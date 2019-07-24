@@ -20,10 +20,10 @@ export default {
 	},
 	methods: {
 		updateSource() {
-			let srcURL = url.parse(this.src);
 			if (!this.src) {
 				return;
 			}
+			let srcURL = url.parse(this.src);
 			if (srcURL.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
 				this.service = "youtube";
 				this.youtubeVideoId = this.$youtube.getIdFromUrl(srcURL.href);
