@@ -15,7 +15,8 @@ export default new Vuex.Store({
 			currentSource: "",
 			queue: [],
 			isPlaying: false,
-			playbackPosition: 0
+			playbackPosition: 0,
+			playbackDuration: 0
 		}
 	},
 	mutations:{
@@ -63,6 +64,7 @@ export default new Vuex.Store({
 				}
 			}
 			this.state.room.playbackPosition = message.playbackPosition;
+			this.state.room.playbackDuration = message.playbackDuration;
 		}
 	}
 });
