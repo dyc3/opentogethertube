@@ -2,8 +2,8 @@
   <div class="room">
     <h1>Room</h1>
     <span>{{ connectionStatus }}</span>
-    <SyncedVideo :src="currentSource"></SyncedVideo>
-    <button @click="manualSyncRoom()">Sync</button>
+    <SyncedVideo :src="currentSource" :position="playbackPosition"></SyncedVideo>
+    <button @click="togglePlayback()">Toggle Playback</button>
     <button @click="postTestVideo()">Add test video</button>
   </div>
 </template>
@@ -33,21 +33,29 @@ export default {
     },
     currentSource() {
       return this.$store.state.room.currentSource;
+    },
+    playbackPosition() {
+      return this.$store.state.room.playbackPosition;
     }
   },
   created() {
 
   },
   methods: {
-    manualSyncRoom() {
-      API.get("/room/test").then(res => {
-        this.videoSource = res.data.currentVideo;
-      });
-    },
     postTestVideo() {
       API.post("/room/test/queue", {
-        url: "https://www.youtube.com/watch?v=Kf8Jf8dzUDg"
+        url: "https://www.youtube.com/watch?v=cHpbcnCsl00"
       });
+    },
+    togglePlayback() {
+      if (this.$store.state.room.isPlaying) {
+        // this.$events.emit("pauseVideo");
+        this.$socket.sendObj({ action: "pause" });
+      }
+      else {
+        // this.$events.emit("playVideo");
+        this.$socket.sendObj({ action: "play" });
+      }
     }
   }
 }

@@ -10,7 +10,8 @@ import url from "url";
 export default {
 	name: "syncedvideo",
 	props: {
-		src: String
+		src: String,
+		position: Number, // playback position
 	},
 	data() {
 		return {
@@ -21,6 +22,7 @@ export default {
 	methods: {
 		updateSource() {
 			if (!this.src) {
+				this.service = "";
 				return;
 			}
 			let srcURL = url.parse(this.src);
@@ -31,15 +33,43 @@ export default {
 			else {
 				console.log("unknown url, host", srcURL.host);
 			}
+		},
+		play() {
+			if (this.service == "youtube") {
+				this.$refs.youtube.player.playVideo();
+			}
+		},
+		pause() {
+			if (this.service == "youtube") {
+				this.$refs.youtube.player.pauseVideo();
+			}
 		}
 	},
 	watch: {
 		src(newSrc, oldSrc) {
 			this.updateSource();
+			if (this.$store.state.room.isPlaying) {
+				this.play();
+			}
+		},
+		async position(newPosition, oldPosition) {
+			console.log("new", newPosition, "currentTime", await this.$refs.youtube.player.getCurrentTime());
+			console.log("diff", Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()));
+			console.log(this.$refs.youtube.player);
+			window.YT_inst = this.$refs.youtube.player;
+			if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
+				this.$refs.youtube.player.seekTo(newPosition);
+			}
 		}
 	},
 	mounted() {
 		this.updateSource();
+		this.$events.on("playVideo", eventData => {
+			this.play();
+		});
+		this.$events.on("pauseVideo", eventData => {
+			this.pause();
+		});
 	}
 }
 </script>

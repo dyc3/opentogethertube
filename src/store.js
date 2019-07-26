@@ -13,7 +13,9 @@ export default new Vuex.Store({
 		room: {
 			name: "",
 			currentSource: "",
-			queue: []
+			queue: [],
+			isPlaying: false,
+			playbackPosition: 0
 		}
 	},
 	mutations:{
@@ -51,6 +53,16 @@ export default new Vuex.Store({
 			this.state.room.name = message.name;
 			this.state.room.currentSource = message.currentSource;
 			this.state.room.queue = message.queue;
+			if (this.state.room.isPlaying != message.isPlaying) {
+				this.state.room.isPlaying = message.isPlaying;
+				if (message.isPlaying) {
+					Vue.prototype.$events.emit("playVideo");
+				}
+				else {
+					Vue.prototype.$events.emit("pauseVideo");
+				}
+			}
+			this.state.room.playbackPosition = message.playbackPosition;
 		}
 	}
 });
