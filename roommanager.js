@@ -76,7 +76,10 @@ module.exports = function (server) {
 				rooms["test"].isPlaying = false;
 				syncRoom(rooms["test"]);
 			}
-			// ws.send(`Hello, you sent -> ${message}`);
+			else if (msg.action == "seek") {
+				rooms["test"].playbackPosition = msg.playbackPosition;
+				syncRoom(rooms["test"]);
+			}
 		});
 
 		// sync room immediately
@@ -86,7 +89,6 @@ module.exports = function (server) {
 	let roomTicker = setInterval(function() {
 		for (let roomName in rooms) {
 			let room = rooms[roomName];
-			console.log(room);
 			if (room.isPlaying) {
 				room.playbackPosition += 1;
 				updateRoom(room);

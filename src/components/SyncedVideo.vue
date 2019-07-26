@@ -19,6 +19,11 @@ export default {
 			youtubeVideoId: ''
 		}
 	},
+	computed: {
+		async playbackPercent() {
+			return (await this.$refs.youtube.player.getCurrentTime()) / (await this.$refs.youtube.player.getDuration())
+		}
+	},
 	methods: {
 		updateSource() {
 			if (!this.src) {
@@ -53,10 +58,6 @@ export default {
 			}
 		},
 		async position(newPosition, oldPosition) {
-			console.log("new", newPosition, "currentTime", await this.$refs.youtube.player.getCurrentTime());
-			console.log("diff", Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()));
-			console.log(this.$refs.youtube.player);
-			window.YT_inst = this.$refs.youtube.player;
 			if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
 				this.$refs.youtube.player.seekTo(newPosition);
 			}
