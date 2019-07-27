@@ -3,10 +3,7 @@
     <h1>Room</h1>
     <span>{{ connectionStatus }}</span>
     <SyncedVideo :src="currentSource" :position="playbackPosition" ref="video"></SyncedVideo>
-    <div ref="playbackSlider" id="playbackSlider">
-      <div id="playbackSliderPreview"></div>
-      <div id="playbackSliderFill" :style="{ width: `${playbackPercentage * 100}%` }"></div>
-    </div>
+    <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
     <button @click="togglePlayback()">Toggle Playback</button>
     <button @click="postTestVideo(0)">Add test video 0</button>
     <button @click="postTestVideo(1)">Add test video 1</button>
@@ -25,6 +22,7 @@ export default {
   data() {
     return {
       videoSource: "",
+      sliderPosition: 0
     }
   },
   computed: {
@@ -47,7 +45,9 @@ export default {
     }
   },
   created() {
-
+    this.$events.on("onSync", () => {
+      this.sliderPosition = this.$store.state.room.playbackPosition;
+    });
   },
   methods: {
     postTestVideo(v) {
@@ -68,20 +68,14 @@ export default {
         // this.$events.emit("playVideo");
         this.$socket.sendObj({ action: "play" });
       }
+    },
+    sliderChange() {
+      this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-#playbackSlider {
-  height: 10px;
-  width: 100%;
-  background: #ddd;
-}
-#playbackSliderFill {
-  height: 10px;
-  background: #fa0;
-  transition: width .5s ease-in-out;
-}
+
 </style>

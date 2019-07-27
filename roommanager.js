@@ -77,7 +77,7 @@ module.exports = function (server) {
 				syncRoom(rooms["test"]);
 			}
 			else if (msg.action == "seek") {
-				rooms["test"].playbackPosition = msg.playbackPosition;
+				rooms["test"].playbackPosition = msg.position;
 				syncRoom(rooms["test"]);
 			}
 		});

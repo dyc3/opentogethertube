@@ -65,6 +65,8 @@ export default new Vuex.Store({
 			}
 			this.state.room.playbackPosition = message.playbackPosition;
 			this.state.room.playbackDuration = message.playbackDuration;
+
+			Vue.prototype.$events.emit('onSync');
 		}
 	}
 });
