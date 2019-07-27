@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const express = require('express');
 const http = require('http');
-
+const fs = require('fs');
 
 const sequelize = new Sequelize('database', 'username', 'password', {
 	host: 'localhost',
@@ -30,6 +30,9 @@ app.use(function (req, res, next) {
 });
 
 app.use("/api", api);
+if (fs.existsSync("./dist")) {
+	app.use("/", express.static("./dist"));
+}
 
 //start our server
 server.listen(process.env.PORT || 3000, () => {

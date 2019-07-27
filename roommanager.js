@@ -83,16 +83,8 @@ module.exports = function (server) {
 				syncRoom(rooms["test"]);
 			}
 			else if (msg.action == "skip") {
-				if (rooms["test"].queue.length > 0) {
-					rooms["test"].currentSource = rooms["test"].queue.shift();
-				}
-				else {
-					rooms["test"].currentSource = "";
-					rooms["test"].isPlaying = false;
-					rooms["test"].playbackPosition = 0;
-					rooms["test"].playbackDuration = 0;
-				}
-				syncRoom(rooms["test"]);
+				rooms["test"].playbackPosition = rooms["test"].playbackDuration + 1;
+				updateRoom(rooms["test"]);
 			}
 		});
 

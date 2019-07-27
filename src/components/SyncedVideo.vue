@@ -1,6 +1,6 @@
 <template>
-	<div>
-		<youtube v-if="service == 'youtube'" :video-id="youtubeVideoId" ref="youtube"></youtube>
+	<div class="iframe-container">
+		<youtube v-if="service == 'youtube'" resize :width="width" :height="height" :video-id="youtubeVideoId" ref="youtube"></youtube>
 	</div>
 </template>
 
@@ -12,6 +12,8 @@ export default {
 	props: {
 		src: String,
 		position: Number, // playback position
+		width: [Number, String],
+		height: [Number, String],
 	},
 	data() {
 		return {
@@ -76,5 +78,18 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
+.iframe-container {
+	overflow: hidden;
+	// Calculated from the aspect ration of the content (in case of 16:9 it is 9/16= 0.5625)
+	// padding-top: 56.25%;
+	position: relative;
+}
+.iframe-container iframe {
+	border: 0;
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
 </style>

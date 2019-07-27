@@ -2,12 +2,28 @@
   <div class="room">
     <h1>Room</h1>
     <span>{{ connectionStatus }}</span>
-    <SyncedVideo :src="currentSource" :position="playbackPosition" ref="video"></SyncedVideo>
-    <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
-    <button @click="togglePlayback()">Toggle Playback</button>
-    <button @click="skipVideo()">Skip</button>
-    <button @click="postTestVideo(0)">Add test video 0</button>
-    <button @click="postTestVideo(1)">Add test video 1</button>
+    <div class="">
+      <div class="video-container">
+        <SyncedVideo class="video" :src="currentSource" :position="playbackPosition" width="853" height="480" ref="video"></SyncedVideo>
+        <div class="video-controls">
+          <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
+          <v-btn @click="togglePlayback()">Toggle Playback</v-btn>
+          <v-btn @click="skipVideo()">Skip</v-btn>
+          <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
+          <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
+        </div>
+      </div>
+    </div>
+    <div class="video-add">
+      <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
+      <v-btn @click="addToQueue">Add</v-btn>
+    </div>
+    <div class="video-queue">
+      <h3>Queue</h3>
+      <ul>
+        <li v-for="(url, index) in $store.state.room.queue" :key="index">{{ url }}</li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -75,11 +91,25 @@ export default {
     },
     sliderChange() {
       this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
+    },
+    addToQueue() {
+      API.post("/room/test/queue", {
+        url: this.$refs.inputAddUrl.lazyValue
+      });
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-
+.video-container {
+  width: 853px;
+  margin: 10px;
+}
+.video-queue {
+  margin: 40px;
+}
+.video-add {
+  margin: 10px;
+}
 </style>

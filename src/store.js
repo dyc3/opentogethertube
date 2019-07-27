@@ -50,7 +50,7 @@ export default new Vuex.Store({
 			Vue.prototype.$socket.send(message);
 		},
 		sync(context, message) {
-			console.log("SYNC", message);
+			console.debug("SYNC", message);
 			this.state.room.name = message.name;
 			this.state.room.currentSource = message.currentSource;
 			this.state.room.queue = message.queue;

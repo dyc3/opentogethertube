@@ -20,9 +20,11 @@ Vue.use(VueNativeWebsocket, "ws://localhost:8080/api", {
   reconnectionDelay: 3000,
  });
 
-import VueMaterial from 'vue-material';
-import 'vue-material/dist/vue-material.min.css';
-Vue.use(VueMaterial);
+// import VueMaterial from 'vue-material';
+// import 'vue-material/dist/vue-material.min.css';
+// Vue.use(VueMaterial);
+
+import vuetify from '@/plugins/vuetify';
 
 import VueYoutube from 'vue-youtube';
 Vue.use(VueYoutube);
@@ -34,6 +36,7 @@ Vue.component('VueSlider', VueSlider);
 Vue.config.productionTip = false;
 
 new Vue({
+  vuetify,
   store,
   router,
   render: h => h(App)
