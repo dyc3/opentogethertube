@@ -37,6 +37,8 @@ module.exports = function (server) {
 		}
 		if (room.currentSource == "" && room.queue.length == 0 && room.isPlaying) {
 			room.isPlaying = false;
+			room.playbackPosition = 0;
+			room.playbackDuration = 0;
 		}
 		syncRoom(room);
 	}
@@ -78,6 +80,18 @@ module.exports = function (server) {
 			}
 			else if (msg.action == "seek") {
 				rooms["test"].playbackPosition = msg.position;
+				syncRoom(rooms["test"]);
+			}
+			else if (msg.action == "skip") {
+				if (rooms["test"].queue.length > 0) {
+					rooms["test"].currentSource = rooms["test"].queue.shift();
+				}
+				else {
+					rooms["test"].currentSource = "";
+					rooms["test"].isPlaying = false;
+					rooms["test"].playbackPosition = 0;
+					rooms["test"].playbackDuration = 0;
+				}
 				syncRoom(rooms["test"]);
 			}
 		});

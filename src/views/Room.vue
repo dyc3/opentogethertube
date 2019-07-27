@@ -5,6 +5,7 @@
     <SyncedVideo :src="currentSource" :position="playbackPosition" ref="video"></SyncedVideo>
     <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
     <button @click="togglePlayback()">Toggle Playback</button>
+    <button @click="skipVideo()">Skip</button>
     <button @click="postTestVideo(0)">Add test video 0</button>
     <button @click="postTestVideo(1)">Add test video 1</button>
   </div>
@@ -68,6 +69,9 @@ export default {
         // this.$events.emit("playVideo");
         this.$socket.sendObj({ action: "play" });
       }
+    },
+    skipVideo() {
+      this.$socket.sendObj({ action: "skip" });
     },
     sliderChange() {
       this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
