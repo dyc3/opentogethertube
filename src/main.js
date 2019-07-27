@@ -13,7 +13,7 @@ Vue.use(VueEvents);
 //  });
 
 import VueNativeWebsocket from "vue-native-websocket";
-Vue.use(VueNativeWebsocket, "ws://localhost:8080/api", {
+Vue.use(VueNativeWebsocket, process.env.WEBSOCKET_URL || "ws://localhost:8080/api", {
   store: store,
   format: 'json',
   reconnection: true,
