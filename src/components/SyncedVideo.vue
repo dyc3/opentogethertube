@@ -1,5 +1,5 @@
 <template>
-	<div class="iframe-container">
+	<div class="iframe-container" :key="src">
 		<youtube v-if="service == 'youtube'" resize :width="width" :height="height" :video-id="youtubeVideoId" ref="youtube"></youtube>
 	</div>
 </template>
