@@ -89,6 +89,9 @@ module.exports = function (server) {
 				rooms["test"].playbackPosition = rooms["test"].playbackDuration + 1;
 				updateRoom(rooms["test"]);
 			}
+			else {
+				console.warn("[ws] UNKNOWN ACTION", msg.action);
+			}
 		});
 
 		// sync room immediately
