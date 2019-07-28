@@ -1,6 +1,6 @@
 <template>
 	<div class="iframe-container" :key="src">
-		<youtube v-if="service == 'youtube'" resize :width="width" :height="height" :video-id="youtubeVideoId" ref="youtube"></youtube>
+		<youtube v-if="service == 'youtube'" fitParent resize :video-id="youtubeVideoId" ref="youtube"></youtube>
 	</div>
 </template>
 
@@ -79,17 +79,17 @@ export default {
 
 <style lang="scss" scoped>
 .iframe-container {
-	overflow: hidden;
-	// Calculated from the aspect ration of the content (in case of 16:9 it is 9/16= 0.5625)
-	// padding-top: 56.25%;
 	position: relative;
+	padding-bottom: 56.25%;
+	height: 0;
+	overflow: hidden;
+	max-width: 100%;
 }
 .iframe-container iframe {
-	border: 0;
-	height: 100%;
-	left: 0;
 	position: absolute;
 	top: 0;
+	left: 0;
 	width: 100%;
+	height: 100%;
 }
 </style>

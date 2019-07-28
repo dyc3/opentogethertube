@@ -103,7 +103,7 @@ export default {
 
 <style lang="scss" scoped>
 .video-container {
-  width: 853px;
+  // width: 853px;
   margin: 10px;
 }
 .video-queue {
