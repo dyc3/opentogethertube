@@ -29,14 +29,22 @@ module.exports = function (server) {
 			room.currentSource = room.queue.shift();
 			InfoExtract.getVideoLengthYoutube(room.currentSource).then(seconds => {
 				room.playbackDuration = seconds;
+			}).catch(err => {
+				console.error("Failed to get video length");
+				console.error(err);
 			});
 		}
 		else if (room.playbackPosition > room.playbackDuration) {
 			room.currentSource = room.queue.length > 0 ? room.queue.shift() : "";
 			room.playbackPosition = 0;
-			InfoExtract.getVideoLengthYoutube(room.currentSource).then(seconds => {
-				room.playbackDuration = seconds;
-			});
+			if (room.currentSource != "") {
+				InfoExtract.getVideoLengthYoutube(room.currentSource).then(seconds => {
+					room.playbackDuration = seconds;
+				}).catch(err => {
+					console.error("Failed to get video length");
+					console.error(err);
+				});
+			}
 		}
 		if (room.currentSource == "" && room.queue.length == 0 && room.isPlaying) {
 			room.isPlaying = false;
