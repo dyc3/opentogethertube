@@ -67,10 +67,7 @@ module.exports = function (server) {
 			socket: ws
 		});
 
-		//connection is up, let's add a simple simple event
 		ws.on('message', (message) => {
-
-			//log the received message and send it back to the client
 			console.log('[ws] received:', typeof(message), message);
 			let msg = JSON.parse(message);
 			if (msg.action == "play") {
