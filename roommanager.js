@@ -15,6 +15,9 @@ module.exports = function (server) {
 		for (let i = 0; i < room.clients.length; i++) {
 			let ws = room.clients[i].socket;
 			if (ws.readyState != 1) {
+				console.log("Remove inactive client:", i, room.clients[i].name);
+				room.clients.splice(i, 1);
+				i--;
 				continue;
 			}
 			ws.send(JSON.stringify(syncMsg));
