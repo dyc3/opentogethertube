@@ -18,8 +18,6 @@
               <v-btn @click="skipVideo()">
                 <v-icon>fas fa-fast-forward</v-icon>
               </v-btn>
-              <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
-              <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
             </v-flex>
           </v-flex>
         </v-flex>
@@ -27,6 +25,8 @@
       <div class="video-add">
         <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
         <v-btn @click="addToQueue">Add</v-btn>
+        <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
+        <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
       </div>
       <v-layout column class="video-queue">
         <h3>Queue</h3>
