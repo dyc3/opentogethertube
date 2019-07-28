@@ -6,9 +6,7 @@ module.exports = function(_roommanager) {
 
 	router.get("/room/:name", (req, res) => {
 		if (req.params.name === "test") {
-			res.json({
-				currentVideo: roommanager.rooms[req.params.name].queue.length > 0 ? roommanager.rooms[req.params.name].queue[0] : ""
-			});
+			res.json(roommanager.rooms[req.params.name]);
 		}
 		else {
 			res.status(404);
