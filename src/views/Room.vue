@@ -11,8 +11,13 @@
           <v-flex column class="video-controls">
             <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
             <v-flex row>
-              <v-btn @click="togglePlayback()">Toggle Playback</v-btn>
-              <v-btn @click="skipVideo()">Skip</v-btn>
+              <v-btn @click="togglePlayback()">
+                <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
+                <v-icon v-else>fas fa-play</v-icon>
+              </v-btn>
+              <v-btn @click="skipVideo()">
+                <v-icon>fas fa-fast-forward</v-icon>
+              </v-btn>
               <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
               <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
             </v-flex>
