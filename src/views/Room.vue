@@ -1,18 +1,22 @@
 <template>
-  <div class="room">
-    <h1>Room</h1>
-    <span>{{ connectionStatus }}</span>
+  <v-container class="room">
+    <v-layout column>
+      <h1>Room</h1>
+      <span>{{ connectionStatus }}</span>
+    </v-layout>
     <div class="">
-      <div class="video-container">
+      <v-layout column class="video-container">
         <SyncedVideo class="video" :src="currentSource" :position="playbackPosition" width="853" height="480" ref="video"></SyncedVideo>
-        <div class="video-controls">
+        <v-layout column class="video-controls">
           <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
-          <v-btn @click="togglePlayback()">Toggle Playback</v-btn>
-          <v-btn @click="skipVideo()">Skip</v-btn>
-          <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
-          <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-        </div>
-      </div>
+          <v-layout row>
+            <v-btn @click="togglePlayback()">Toggle Playback</v-btn>
+            <v-btn @click="skipVideo()">Skip</v-btn>
+            <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
+            <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
+          </v-layout>
+        </v-layout>
+      </v-layout>
     </div>
     <div class="video-add">
       <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
@@ -24,7 +28,7 @@
         <li v-for="(url, index) in $store.state.room.queue" :key="index">{{ url }}</li>
       </ul>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script>
