@@ -28,11 +28,21 @@
         <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
         <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
       </div>
-      <v-layout column class="video-queue">
-        <h3>Queue</h3>
-        <ul>
-          <li v-for="(url, index) in $store.state.room.queue" :key="index">{{ url }}</li>
-        </ul>
+      <v-layout>
+        <v-flex row>
+          <v-flex column class="video-queue">
+            <h3>Queue</h3>
+            <ul>
+              <li v-for="(url, index) in $store.state.room.queue" :key="index">{{ url }}</li>
+            </ul>
+          </v-flex>
+          <v-flex column md2 class="user-list">
+            <v-card>
+              <v-subheader>Users</v-subheader>
+              <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">{{ user }}</v-list-item>
+            </v-card>
+          </v-flex>
+        </v-flex>
       </v-layout>
     </v-layout>
   </v-container>

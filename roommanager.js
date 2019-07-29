@@ -10,8 +10,13 @@ module.exports = function (server) {
 			queue: room.queue,
 			isPlaying: room.isPlaying,
 			playbackPosition: room.playbackPosition,
-			playbackDuration: room.playbackDuration
+			playbackDuration: room.playbackDuration,
+			users: []
 		};
+		for (let i = 0; i < room.clients.length; i++) {
+			syncMsg.users.push(room.clients[i].name);
+		}
+
 		for (let i = 0; i < room.clients.length; i++) {
 			let ws = room.clients[i].socket;
 			if (ws.readyState != 1) {
