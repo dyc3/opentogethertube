@@ -1,6 +1,6 @@
 <template>
 	<div class="iframe-container" :key="src">
-		<youtube v-if="service == 'youtube'" fitParent resize :video-id="youtubeVideoId" ref="youtube"></youtube>
+		<youtube v-if="service == 'youtube'" fitParent resize :video-id="youtubeVideoId" ref="youtube" :playerVars="{ controls: 0 }"></youtube>
 	</div>
 </template>
 
