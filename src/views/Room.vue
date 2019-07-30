@@ -39,7 +39,13 @@
           </v-flex>
           <v-flex column md2 class="user-list">
             <v-card>
-              <v-subheader>Users</v-subheader>
+              <v-subheader>
+                Users
+                <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
+              </v-subheader>
+              <v-list-item v-if="showEditName">
+                <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"></v-text-field>
+              </v-list-item>
               <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
                 {{ user.name }}
                 <span v-if="user.isYou" class="is-you">You</span>
@@ -65,7 +71,8 @@ export default {
     return {
       videoSource: "",
       sliderPosition: 0,
-      volume: 100
+      volume: 100,
+      showEditName: false
     }
   },
   computed: {
@@ -125,6 +132,15 @@ export default {
       API.post("/room/test/queue", {
         url: this.$refs.inputAddUrl.lazyValue
       });
+    },
+    openEditName() {
+      this.showEditName = !this.showEditName;
+      if (this.showEditName) {
+        this.$refs.editName.lazyValue = this.$store.state.room.users.filter(u => u.isYou)[0].name;
+      }
+    },
+    onEditNameChange() {
+      this.$socket.sendObj({ action: "set-name", name: this.$refs.editName.lazyValue });
     }
   }
 }

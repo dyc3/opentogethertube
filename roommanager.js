@@ -105,6 +105,19 @@ module.exports = function (server) {
 				rooms["test"].playbackPosition = rooms["test"].playbackDuration + 1;
 				updateRoom(rooms["test"]);
 			}
+			else if (msg.action == "set-name") {
+				if (!msg.name) {
+					console.warn("name not supplied");
+					return;
+				}
+				for (let i = 0; i < rooms["test"].clients.length; i++) {
+					if (rooms["test"].clients[i].socket == ws) {
+						rooms["test"].clients[i].name = msg.name;
+						break;
+					}
+				}
+				updateRoom(rooms["test"]);
+			}
 			else {
 				console.warn("[ws] UNKNOWN ACTION", msg.action);
 			}
