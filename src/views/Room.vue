@@ -33,9 +33,9 @@
         <v-flex row>
           <v-flex column class="video-queue">
             <h3>Queue</h3>
-            <ul>
-              <li v-for="(url, index) in $store.state.room.queue" :key="index">{{ url }}</li>
-            </ul>
+            <v-card v-for="(url, index) in $store.state.room.queue" :key="index" style="margin-top: 10px">
+              <v-card-text>{{ url }}</v-card-text>
+            </v-card>
           </v-flex>
           <v-flex column md2 class="user-list">
             <v-card>
