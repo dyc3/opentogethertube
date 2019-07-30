@@ -40,7 +40,10 @@
           <v-flex column md2 class="user-list">
             <v-card>
               <v-subheader>Users</v-subheader>
-              <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">{{ user }}</v-list-item>
+              <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
+                {{ user.name }}
+                <span v-if="user.isYou" class="is-you">You</span>
+              </v-list-item>
             </v-card>
           </v-flex>
         </v-flex>
@@ -137,5 +140,13 @@ export default {
 }
 .video-add {
   margin: 10px;
+}
+.is-you {
+  color: #fff;
+  background-color: #1976d2;
+  border-radius: 5px;
+  margin: 5px;
+  padding: 0 5px;
+  font-size: 10px;
 }
 </style>

@@ -13,11 +13,17 @@ module.exports = function (server) {
 			playbackDuration: room.playbackDuration,
 			users: []
 		};
-		for (let i = 0; i < room.clients.length; i++) {
-			syncMsg.users.push(room.clients[i].name);
-		}
+		
 
 		for (let i = 0; i < room.clients.length; i++) {
+			syncMsg.users = [];
+			for (let u = 0; u < room.clients.length; u++) {
+				syncMsg.users.push({
+					name: room.clients[u].name,
+					isYou: room.clients[i].socket == room.clients[u].socket
+				});
+			}
+
 			let ws = room.clients[i].socket;
 			if (ws.readyState != 1) {
 				console.log("Remove inactive client:", i, room.clients[i].name);
