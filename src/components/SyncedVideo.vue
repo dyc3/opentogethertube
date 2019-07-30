@@ -50,6 +50,11 @@ export default {
 			if (this.service == "youtube") {
 				this.$refs.youtube.player.pauseVideo();
 			}
+		},
+		setVolume(value) {
+			if (this.service == "youtube") {
+				this.$refs.youtube.player.setVolume(value);
+			}
 		}
 	},
 	watch: {
