@@ -16,6 +16,29 @@ module.exports = function(_roommanager) {
 		}
 	});
 
+	router.post("/room/create", (req, res) => {
+		if (!req.body.name) {
+			console.log(req.body);
+			res.status(400).json({
+				success: false,
+				error: "Missing argument (name)"
+			});
+			return;
+		}
+		if (roommanager.rooms[req.body.name] != undefined) {
+			// already exists
+			res.status(400).json({
+				success: false,
+				error: "Room with that name already exists"
+			});
+			return;
+		}
+		roommanager.rooms[req.body.name] = {};
+		res.json({
+			success: true
+		});
+	});
+
 	router.post("/room/:name/queue", (req, res) => {
 		if (req.params.name === "test") {
 			roommanager.rooms[req.params.name].queue.push(req.body.url);
