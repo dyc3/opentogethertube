@@ -136,11 +136,13 @@ export default {
     openEditName() {
       this.showEditName = !this.showEditName;
       if (this.showEditName) {
-        this.$refs.editName.lazyValue = this.$store.state.room.users.filter(u => u.isYou)[0].name;
+        // Doesn't work
+        this.$refs.editName.lazyValue = window.localStorage.getItem("username"); //this.$store.state.room.users.filter(u => u.isYou)[0].name;
       }
     },
     onEditNameChange() {
-      this.$socket.sendObj({ action: "set-name", name: this.$refs.editName.lazyValue });
+      window.localStorage.setItem("username", this.$refs.editName.lazyValue);
+      this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
     }
   }
 }

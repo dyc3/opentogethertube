@@ -24,6 +24,7 @@ export default new Vuex.Store({
 			console.log("socket open");
 			Vue.prototype.$socket = event.currentTarget;
 			state.socket.isConnected = true;
+			Vue.prototype.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
 		},
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close");
