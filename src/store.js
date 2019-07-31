@@ -24,7 +24,13 @@ export default new Vuex.Store({
 			console.log("socket open");
 			Vue.prototype.$socket = event.currentTarget;
 			state.socket.isConnected = true;
-			Vue.prototype.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
+			let username = window.localStorage.getItem("username");
+			if (username != null && username != undefined) {
+				Vue.prototype.$socket.sendObj({ action: "set-name", name: username });
+			}
+			else {
+				Vue.prototype.$socket.sendObj({ action: "generate-name" });
+			}
 		},
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close");
@@ -69,6 +75,10 @@ export default new Vuex.Store({
 			this.state.room.users = message.users;
 
 			Vue.prototype.$events.emit('onSync');
+		},
+		generatedName(context, message) {
+			console.debug("generated name received from server");
+			window.localStorage.setItem("username", message.name);
 		}
 	}
 });

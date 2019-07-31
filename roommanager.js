@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const InfoExtract = require("./infoextract");
+const { uniqueNamesGenerator } = require('unique-names-generator');
 
 module.exports = function (server) {
 	function syncRoom(room) {
@@ -13,7 +14,7 @@ module.exports = function (server) {
 			playbackDuration: room.playbackDuration,
 			users: []
 		};
-		
+
 
 		for (let i = 0; i < room.clients.length; i++) {
 			syncMsg.users = [];
@@ -113,6 +114,21 @@ module.exports = function (server) {
 				for (let i = 0; i < rooms["test"].clients.length; i++) {
 					if (rooms["test"].clients[i].socket == ws) {
 						rooms["test"].clients[i].name = msg.name;
+						break;
+					}
+				}
+				updateRoom(rooms["test"]);
+			}
+			else if (msg.action == "generate-name") {
+				let generatedName = uniqueNamesGenerator();
+				ws.send(JSON.stringify({
+					action: "generatedName",
+					name: generatedName
+				}));
+
+				for (let i = 0; i < rooms["test"].clients.length; i++) {
+					if (rooms["test"].clients[i].socket == ws) {
+						rooms["test"].clients[i].name = generatedName;
 						break;
 					}
 				}
