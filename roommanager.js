@@ -88,6 +88,11 @@ module.exports = function (server) {
 			return;
 		}
 		let roomName = req.url.replace("/api/room/", "");
+		if (!rooms.hasOwnProperty(roomName)) {
+			console.error("[ws] Room doesn't exist");
+			ws.close(-2, "Room doesn't exist");
+			return;
+		}
 
 		rooms[roomName].clients.push({
 			name: "client",
