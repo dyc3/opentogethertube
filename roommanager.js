@@ -97,33 +97,33 @@ module.exports = function (server) {
 			console.log('[ws] received:', typeof(message), message);
 			let msg = JSON.parse(message);
 			if (msg.action == "play") {
-				rooms["test"].isPlaying = true;
-				syncRoom(rooms["test"]);
+				rooms[roomName].isPlaying = true;
+				syncRoom(rooms[roomName]);
 			}
 			else if (msg.action == "pause") {
-				rooms["test"].isPlaying = false;
-				syncRoom(rooms["test"]);
+				rooms[roomName].isPlaying = false;
+				syncRoom(rooms[roomName]);
 			}
 			else if (msg.action == "seek") {
-				rooms["test"].playbackPosition = msg.position;
-				syncRoom(rooms["test"]);
+				rooms[roomName].playbackPosition = msg.position;
+				syncRoom(rooms[roomName]);
 			}
 			else if (msg.action == "skip") {
-				rooms["test"].playbackPosition = rooms["test"].playbackDuration + 1;
-				updateRoom(rooms["test"]);
+				rooms[roomName].playbackPosition = rooms[roomName].playbackDuration + 1;
+				updateRoom(rooms[roomName]);
 			}
 			else if (msg.action == "set-name") {
 				if (!msg.name) {
 					console.warn("name not supplied");
 					return;
 				}
-				for (let i = 0; i < rooms["test"].clients.length; i++) {
-					if (rooms["test"].clients[i].socket == ws) {
-						rooms["test"].clients[i].name = msg.name;
+				for (let i = 0; i < rooms[roomName].clients.length; i++) {
+					if (rooms[roomName].clients[i].socket == ws) {
+						rooms[roomName].clients[i].name = msg.name;
 						break;
 					}
 				}
-				updateRoom(rooms["test"]);
+				updateRoom(rooms[roomName]);
 			}
 			else if (msg.action == "generate-name") {
 				let generatedName = uniqueNamesGenerator();
@@ -132,13 +132,13 @@ module.exports = function (server) {
 					name: generatedName
 				}));
 
-				for (let i = 0; i < rooms["test"].clients.length; i++) {
-					if (rooms["test"].clients[i].socket == ws) {
-						rooms["test"].clients[i].name = generatedName;
+				for (let i = 0; i < rooms[roomName].clients.length; i++) {
+					if (rooms[roomName].clients[i].socket == ws) {
+						rooms[roomName].clients[i].name = generatedName;
 						break;
 					}
 				}
-				updateRoom(rooms["test"]);
+				updateRoom(rooms[roomName]);
 			}
 			else {
 				console.warn("[ws] UNKNOWN ACTION", msg.action);
@@ -146,7 +146,7 @@ module.exports = function (server) {
 		});
 
 		// sync room immediately
-		syncRoom(rooms["test"]);
+		syncRoom(rooms[roomName]);
 	});
 
 	let roomTicker = setInterval(function() {
