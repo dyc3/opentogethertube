@@ -1,8 +1,23 @@
 const express = require('express');
+const _ = require("lodash");
 
 module.exports = function(_roommanager) {
 	const roommanager = _roommanager;
 	const router = express.Router();
+
+	router.get("/room/list", (req, res) => {
+		let roomNames = _.keys(roommanager.rooms);
+		let rooms = [];
+		for (let i = 0; i < roomNames.length; i++) {
+			let room = roommanager.rooms[roomNames[i]];
+			rooms.push({
+				name: roomNames[i],
+				currentSource: room.currentSource,
+				users: room.clients.length
+			});
+		}
+		res.json(rooms);
+	});
 
 	router.get("/room/:name", (req, res) => {
 		if (req.params.name === "test") {
