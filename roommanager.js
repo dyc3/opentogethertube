@@ -85,6 +85,7 @@ module.exports = function (server) {
 		if (!req.url.startsWith("/api/room/")) {
 			console.error("[ws] Invalid connection url");
 			ws.close(-1, "Invalid connection url");
+			return;
 		}
 		let roomName = req.url.replace("/api/room/", "");
 
