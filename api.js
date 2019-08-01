@@ -33,7 +33,14 @@ module.exports = function(_roommanager) {
 			});
 			return;
 		}
-		roommanager.rooms[req.body.name] = {};
+		roommanager.rooms[req.body.name] = {
+			currentSource: "",
+			queue: [],
+			clients: [],
+			isPlaying: false,
+			playbackPosition: 0,
+			playbackDuration: 0
+		};
 		res.json({
 			success: true
 		});
