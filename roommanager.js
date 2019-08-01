@@ -66,6 +66,16 @@ module.exports = function (server) {
 		syncRoom(room);
 	}
 
+	function deleteRoom(roomName) {
+		for (let i = 0; i < rooms[roomName].clients.length; i++) {
+			rooms[roomName].clients[i].socket.send(JSON.stringify({
+				action: "room-delete"
+			}));
+			rooms[roomName].clients[i].socket.close(4003, "Room has been deleted");
+		}
+		delete rooms[roomName];
+	}
+
 	const wss = new WebSocket.Server({ server });
 
 	let rooms = {
@@ -168,6 +178,7 @@ module.exports = function (server) {
 	return {
 		rooms: rooms,
 		syncRoom: syncRoom,
-		updateRoom: updateRoom
+		updateRoom: updateRoom,
+		deleteRoom: deleteRoom
 	};
 };

@@ -46,6 +46,20 @@ module.exports = function(_roommanager) {
 		});
 	});
 
+	router.delete("/room/:name", (req, res) => {
+		if (roommanager.rooms[req.params.name] == undefined) {
+			res.status(400).json({
+				success: false,
+				error: "Room does not exist"
+			});
+			return;
+		}
+		roommanager.deleteRoom(req.params.name);
+		res.status(200).json({
+			success: true
+		})
+	});
+
 	router.post("/room/:name/queue", (req, res) => {
 		if (req.params.name === "test") {
 			roommanager.rooms[req.params.name].queue.push(req.body.url);
