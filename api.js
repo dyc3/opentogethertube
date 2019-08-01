@@ -40,6 +40,13 @@ module.exports = function(_roommanager) {
 			});
 			return;
 		}
+		if (req.body.name == "list") {
+			res.status(400).json({
+				success: false,
+				error: "Room name not allowed (reserved)"
+			});
+			return;
+		}
 		if (roommanager.rooms[req.body.name] != undefined) {
 			// already exists
 			res.status(400).json({
