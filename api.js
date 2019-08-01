@@ -55,14 +55,7 @@ module.exports = function(_roommanager) {
 			});
 			return;
 		}
-		roommanager.rooms[req.body.name] = {
-			currentSource: "",
-			queue: [],
-			clients: [],
-			isPlaying: false,
-			playbackPosition: 0,
-			playbackDuration: 0
-		};
+		roommanager.createRoom(req.body.name);
 		res.json({
 			success: true
 		});

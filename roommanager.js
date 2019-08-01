@@ -66,6 +66,17 @@ module.exports = function (server) {
 		syncRoom(room);
 	}
 
+	function createRoom(roomName) {
+		rooms[roomName] = {
+			currentSource: "",
+			queue: [],
+			clients: [],
+			isPlaying: false,
+			playbackPosition: 0,
+			playbackDuration: 0
+		};
+	}
+
 	function deleteRoom(roomName) {
 		for (let i = 0; i < rooms[roomName].clients.length; i++) {
 			rooms[roomName].clients[i].socket.send(JSON.stringify({
@@ -179,6 +190,7 @@ module.exports = function (server) {
 		rooms: rooms,
 		syncRoom: syncRoom,
 		updateRoom: updateRoom,
+		createRoom: createRoom,
 		deleteRoom: deleteRoom
 	};
 };
