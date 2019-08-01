@@ -6,12 +6,6 @@ import store from './store';
 import VueEvents from 'vue-events';
 Vue.use(VueEvents);
 
-// import VueWebsocket from "vue-websocket";
-// Vue.use(VueWebsocket, "ws://localhost:8080/api", {
-//   reconnection: true,
-//   reconnectionDelay: 3000,
-//  });
-
 import VueNativeWebsocket from "vue-native-websocket";
 Vue.use(VueNativeWebsocket, `ws://${window.location.host}/api`, {
   store: store,
@@ -20,10 +14,6 @@ Vue.use(VueNativeWebsocket, `ws://${window.location.host}/api`, {
   reconnectionDelay: 3000,
   connectManually: true,
  });
-
-// import VueMaterial from 'vue-material';
-// import 'vue-material/dist/vue-material.min.css';
-// Vue.use(VueMaterial);
 
 import vuetify from '@/plugins/vuetify';
 
