@@ -84,13 +84,13 @@ module.exports = function (server) {
 
 		if (!req.url.startsWith("/api/room/")) {
 			console.error("[ws] Invalid connection url");
-			ws.close(-1, "Invalid connection url");
+			ws.close(4001, "Invalid connection url");
 			return;
 		}
 		let roomName = req.url.replace("/api/room/", "");
 		if (!rooms.hasOwnProperty(roomName)) {
 			console.error("[ws] Room doesn't exist");
-			ws.close(-2, "Room doesn't exist");
+			ws.close(4002, "Room doesn't exist");
 			return;
 		}
 
