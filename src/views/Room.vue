@@ -98,6 +98,8 @@ export default {
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
+
+    this.$connect(`ws://${window.location.host}/api/room/${this.$route.params.roomId}`);
   },
   methods: {
     postTestVideo(v) {

@@ -18,6 +18,7 @@ Vue.use(VueNativeWebsocket, `ws://${window.location.host}/api`, {
   format: 'json',
   reconnection: true,
   reconnectionDelay: 3000,
+  connectManually: true,
  });
 
 // import VueMaterial from 'vue-material';

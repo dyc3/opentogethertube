@@ -14,7 +14,7 @@ export default new Router({
       component: Home
     },
     {
-      path: '/room/:name',
+      path: '/room/:roomId',
       name: 'room',
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route

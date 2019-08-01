@@ -79,10 +79,16 @@ module.exports = function (server) {
 		}
 	};
 
-	wss.on('connection', (ws) => {
-		console.log("[ws] CONNECTION ESTABLISHED", ws.protocol, ws.url, ws.readyState);
+	wss.on('connection', (ws, req) => {
+		console.log("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
 
-		rooms["test"].clients.push({
+		if (!req.url.startsWith("/api/room/")) {
+			console.error("[ws] Invalid connection url");
+			ws.close(-1, "Invalid connection url");
+		}
+		let roomName = req.url.replace("/api/room/", "");
+
+		rooms[roomName].clients.push({
 			name: "client",
 			socket: ws
 		});
