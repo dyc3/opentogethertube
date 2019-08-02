@@ -4,12 +4,12 @@
       <v-app-bar>
         <v-app-bar-nav-icon></v-app-bar-nav-icon>
         <v-toolbar-title>
-          <router-link class="link-invis" to="/">
+          <router-link class="link-invis" style="margin-right: 10px" to="/">
             OpenTogetherTube
           </router-link>
         </v-toolbar-title>
         <v-toolbar-items>
-
+          <v-btn text to="/rooms">Browse</v-btn>
         </v-toolbar-items>
       </v-app-bar>
       <router-view/>

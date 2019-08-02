@@ -1,32 +1,35 @@
 <template>
-  <v-container class="home">
-    <v-layout row>
-      <v-flex xs6 md3>
-        <v-card v-for="(room, index) in rooms" :key="index" hover :to="`/room/${room.name}`">
-          <v-card-title>{{ room.name }}</v-card-title>
-          <v-card-text>{{ room.users }} users in room</v-card-text>
-        </v-card>
-      </v-flex>
-    </v-layout>
-  </v-container>
+	<v-content class="home">
+		<v-container class="hero" fluid>
+			<v-layout justify-center align-content-center>
+				<v-spacer></v-spacer>
+				<v-flex grow align-self-center>
+					<h1>Enjoy Together.</h1>
+				</v-flex>
+				<v-flex grow align-self-center>
+					Real-time syncronized playback. Optional voting system.
+				</v-flex>
+				<v-flex grow md4>
+					No sign up required. All Open Source.
+				</v-flex>
+			</v-layout>
+		</v-container>
+	</v-content>
 </template>
 
 <script>
-import { API } from "@/common-http.js";
-
 export default {
-  name: 'home',
-  components: {
-  },
-  data() {
-    return {
-      rooms: []
-    }
-  },
-  created() {
-    API.get("/room/list").then(res => {
-      this.rooms = res.data;
-    });
-  }
+	name: 'home'
 }
 </script>
+
+<style lang="scss" scoped>
+.home {
+	background-image: linear-gradient(to top, #88d3ce 0%, #6e45e2 100%);
+	height: 100%;
+}
+
+.hero {
+	color: white;
+}
+</style>
