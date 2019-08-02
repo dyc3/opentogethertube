@@ -1,18 +1,32 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+  <v-container class="home">
+    <v-layout row>
+      <v-flex xs6 md3>
+        <v-card v-for="(room, index) in rooms" :key="index" hover :to="`/room/${room.name}`">
+          <v-card-title>{{ room.name }}</v-card-title>
+          <v-card-text>{{ room.users }} users in room</v-card-text>
+        </v-card>
+      </v-flex>
+    </v-layout>
+  </v-container>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import { API } from "@/common-http.js";
 
 export default {
   name: 'home',
   components: {
-    HelloWorld
+  },
+  data() {
+    return {
+      rooms: []
+    }
+  },
+  created() {
+    API.get("/room/list").then(res => {
+      this.rooms = res.data;
+    });
   }
 }
 </script>
