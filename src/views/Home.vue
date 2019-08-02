@@ -22,7 +22,7 @@ export default {
 
 <style lang="scss" scoped>
 .hero {
-	background-image: linear-gradient(to top, #88d3ce 0%, #6e45e2 100%);
+	background: linear-gradient(217deg, rgb(206, 74, 239), rgb(247, 208, 109));
 	color: white;
 	font-size: 22px;
 
