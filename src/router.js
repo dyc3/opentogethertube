@@ -19,7 +19,7 @@ export default new Router({
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/RoomList.vue')
+      component: () => import(/* webpackChunkName: "roomlist" */ './views/RoomList.vue')
     },
     {
       path: '/room/:roomId',
@@ -27,7 +27,7 @@ export default new Router({
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/Room.vue')
+      component: () => import(/* webpackChunkName: "room" */ './views/Room.vue')
     }
   ]
 });
