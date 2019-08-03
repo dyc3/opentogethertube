@@ -6,8 +6,8 @@
 					<v-flex>
 						<h1>Enjoy Together.</h1>
 						<span>
-							Real-time syncronized playback. Optional voting system. <br>
-							No sign up required. All Open Source.
+							Real-time syncronized playback. Optional voting system.<br>
+							Dark theme. No sign up required. All Open Source.
 						</span>
 					</v-flex>
 				</v-layout>
