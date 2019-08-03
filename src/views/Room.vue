@@ -1,7 +1,7 @@
 <template>
   <v-container class="room">
     <v-layout column>
-      <h1>Room</h1>
+      <h1>{{ $store.state.room.title != "" ? $store.state.room.title : $store.state.room.name }}</h1>
       <span>{{ connectionStatus }}</span>
     </v-layout>
     <v-layout column justify-center>
