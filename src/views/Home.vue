@@ -17,6 +17,12 @@
 			<v-layout row align-center>
 				<v-flex>
 					<h1>Simple and Easy.</h1>
+					<p>
+						The original TogetherTube was loved for it's simple interface,
+						and how easy it was to start watching videos right away.
+						OpenTogetherTube aims to be just as easy, and then improve on
+						top of that to make it even better.
+					</p>
 				</v-flex>
 			</v-layout>
 		</v-container>
