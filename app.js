@@ -21,6 +21,11 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 	extended: true
 }));
 
+// Redirect urls with trailing slashes
+app.get('\\S+\/$', function (req, res) {
+	return res.redirect(301, req.path.slice(0, -1) + req.url.slice(req.path.length));
+});
+
 app.use(function (req, res, next) {
 	console.log(">", req.method, req.path, req.params);
 	if (req.method == "POST") {
@@ -29,11 +34,22 @@ app.use(function (req, res, next) {
 	next();
 });
 
+function serveBuiltFiles(req, res) {
+	fs.readFile("dist/index.html", (err, contents) => {
+		res.setHeader("Content-type", "text/html");
+		res.send(contents.toString());
+	});
+}
+
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
-	app.use("/", express.static("./dist"));
-	app.use("/rooms", express.static("./dist"));
-	app.use("/room/:roomId", express.static("./dist"));
+	app.use(express.static(__dirname + "/dist", redirect=false));
+	app.get("/", serveBuiltFiles);
+	app.get("/rooms", serveBuiltFiles);
+	app.get("/room/:roomId", serveBuiltFiles);
+}
+else {
+	console.warn("no dist folder found");
 }
 
 //start our server
