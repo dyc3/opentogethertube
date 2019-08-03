@@ -32,6 +32,8 @@ app.use(function (req, res, next) {
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
 	app.use("/", express.static("./dist"));
+	app.use("/rooms", express.static("./dist"));
+	app.use("/room/:roomId", express.static("./dist"));
 }
 
 //start our server
