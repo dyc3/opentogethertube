@@ -163,7 +163,7 @@ export default {
 }
 .is-you {
   color: #fff;
-  background-color: #1976d2;
+  background-color: #aa00ff;
   border-radius: 5px;
   margin: 5px;
   padding: 0 5px;

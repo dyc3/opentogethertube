@@ -22,4 +22,8 @@
   text-decoration: none;
   color: inherit !important;
 }
+
+.vue-slider-process {
+  background: #ffb300 !important;
+}
 </style>
