@@ -9,6 +9,11 @@
 							Real-time syncronized playback. Optional voting system.<br>
 							Dark theme. No sign up required. All Open Source.
 						</span>
+						<v-layout row justify-space-between style="margin-top: 16px">
+							<v-btn elevation="12" to="/create">Create Room</v-btn>
+							<v-btn elevation="12" to="/rooms">Browse Rooms</v-btn>
+							<v-btn elevation="12" href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
+						</v-layout>
 					</v-flex>
 				</v-layout>
 			</v-layout>
@@ -48,6 +53,10 @@ export default {
 
 	h1 {
 		font-size: 52px;
+	}
+
+	.v-btn {
+		background: transparent !important;
 	}
 }
 </style>
