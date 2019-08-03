@@ -12,6 +12,7 @@ module.exports = function(_roommanager) {
 			let room = roommanager.rooms[roomNames[i]];
 			rooms.push({
 				name: roomNames[i],
+				description: room.description,
 				currentSource: room.currentSource,
 				users: room.clients.length
 			});
