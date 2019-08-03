@@ -7,6 +7,8 @@ module.exports = function (server) {
 		let syncMsg = {
 			action: "sync",
 			name: "test",
+			title: room.title,
+			description: room.description,
 			currentSource: room.currentSource,
 			queue: room.queue,
 			isPlaying: room.isPlaying,
@@ -68,6 +70,8 @@ module.exports = function (server) {
 
 	function createRoom(roomName) {
 		rooms[roomName] = {
+			title: "",
+			description: "",
 			currentSource: "",
 			queue: [],
 			clients: [],
@@ -91,6 +95,8 @@ module.exports = function (server) {
 
 	let rooms = {
 		test: {
+			title: "Test Room",
+			description: "This is a test room.",
 			currentSource: "",
 			queue: [],
 			clients: [],

@@ -12,6 +12,8 @@ export default new Vuex.Store({
 		},
 		room: {
 			name: "",
+			title: "",
+			description: "",
 			currentSource: "",
 			queue: [],
 			isPlaying: false,
@@ -59,6 +61,8 @@ export default new Vuex.Store({
 		sync(context, message) {
 			console.debug("SYNC", message);
 			this.state.room.name = message.name;
+			this.state.room.title = message.title;
+			this.state.room.description = message.description;
 			this.state.room.currentSource = message.currentSource;
 			this.state.room.queue = message.queue;
 			if (this.state.room.isPlaying != message.isPlaying) {
