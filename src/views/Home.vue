@@ -32,13 +32,13 @@ export default {
 <style lang="scss" scoped>
 .home {
 	width: 100%;
-	height: 100%;
 }
 
 .hero {
 	background: linear-gradient(217deg, rgb(206, 74, 239), rgb(247, 208, 109));
 	color: white;
 	font-size: 22px;
+	height: 100vh;
 
 	h1 {
 		font-size: 52px;
