@@ -107,7 +107,7 @@ export default {
         "https://www.youtube.com/watch?v=cHpbcnCsl00",
         "https://www.youtube.com/watch?v=aI67KDJRnvQ"
       ];
-      API.post("/room/test/queue", {
+      API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v]
       });
     },
@@ -131,7 +131,7 @@ export default {
       this.$refs.video.setVolume(this.volume);
     },
     addToQueue() {
-      API.post("/room/test/queue", {
+      API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: this.$refs.inputAddUrl.lazyValue
       });
     },
