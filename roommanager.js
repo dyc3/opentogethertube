@@ -29,12 +29,6 @@ module.exports = function (server) {
 			}
 
 			let ws = room.clients[i].socket;
-			if (ws.readyState != 1) {
-				console.log("Remove inactive client:", i, room.clients[i].name);
-				room.clients.splice(i, 1);
-				i--;
-				continue;
-			}
 			ws.send(JSON.stringify(syncMsg));
 		}
 	}
@@ -191,6 +185,18 @@ module.exports = function (server) {
 	let roomTicker = setInterval(function() {
 		for (let roomName in rooms) {
 			let room = rooms[roomName];
+
+			// remove inactive clients
+			for (let i = 0; i < room.clients.length; i++) {
+				let ws = room.clients[i].socket;
+				if (ws.readyState != 1) {
+					console.log("Remove inactive client:", i, room.clients[i].name);
+					room.clients.splice(i, 1);
+					i--;
+					continue;
+				}
+			}
+
 			if (room.isPlaying) {
 				room.playbackPosition += 1;
 				updateRoom(room);
