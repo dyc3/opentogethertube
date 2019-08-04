@@ -183,6 +183,7 @@ module.exports = function (server) {
 	});
 
 	let roomTicker = setInterval(function() {
+		let roomsToDelete = [];
 		for (let roomName in rooms) {
 			let room = rooms[roomName];
 
@@ -201,6 +202,15 @@ module.exports = function (server) {
 				room.playbackPosition += 1;
 				updateRoom(room);
 			}
+
+			// remove empty temporary rooms
+			if (room.isTemporary && room.clients.length == 0) {
+				roomsToDelete.push(roomName);
+			}
+		}
+
+		for (let i = 0; i < roomsToDelete.length; i++) {
+			delete rooms[roomsToDelete[i]];
 		}
 	}, 1000);
 
