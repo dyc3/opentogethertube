@@ -1,8 +1,8 @@
 <template>
-  <v-container class="room-list">
-    <v-layout row>
-      <v-flex xs6 md3>
-        <v-card v-for="(room, index) in rooms" :key="index" hover :to="`/room/${room.name}`">
+  <v-container class="room-list" grid-list-md>
+    <v-layout wrap>
+      <v-flex xs6 md3 v-for="(room, index) in rooms" :key="index">
+        <v-card hover :to="`/room/${room.name}`">
           <v-card-title>{{ room.name }}</v-card-title>
           <v-card-text>{{ room.description }}</v-card-text>
           <v-card-text>{{ room.users }} users</v-card-text>
