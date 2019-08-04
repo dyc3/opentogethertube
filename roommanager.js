@@ -9,6 +9,7 @@ module.exports = function (server) {
 			name: room.name,
 			title: room.title,
 			description: room.description,
+			isTemporary: room.isTemporary,
 			currentSource: room.currentSource,
 			queue: room.queue,
 			isPlaying: room.isPlaying,
@@ -68,11 +69,12 @@ module.exports = function (server) {
 		syncRoom(room);
 	}
 
-	function createRoom(roomName) {
+	function createRoom(roomName, isTemporary=false) {
 		rooms[roomName] = {
 			name: roomName,
 			title: "",
 			description: "",
+			isTemporary: isTemporary,
 			currentSource: "",
 			queue: [],
 			clients: [],
@@ -99,6 +101,7 @@ module.exports = function (server) {
 			name: "test",
 			title: "Test Room",
 			description: "This is a test room.",
+			isTemporary: false,
 			currentSource: "",
 			queue: [],
 			clients: [],

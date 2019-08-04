@@ -15,6 +15,7 @@ export default new Vuex.Store({
 			name: "",
 			title: "",
 			description: "",
+			isTemporary: false,
 			currentSource: "",
 			queue: [],
 			isPlaying: false,
@@ -69,6 +70,7 @@ export default new Vuex.Store({
 			this.state.room.name = message.name;
 			this.state.room.title = message.title;
 			this.state.room.description = message.description;
+			this.state.room.isTemporary = message.isTemporary;
 			this.state.room.currentSource = message.currentSource;
 			this.state.room.queue = message.queue;
 			if (this.state.room.isPlaying != message.isPlaying) {

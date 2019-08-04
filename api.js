@@ -12,7 +12,7 @@ module.exports = function(_roommanager) {
 		for (let i = 0; i < roomNames.length; i++) {
 			let room = roommanager.rooms[roomNames[i]];
 			rooms.push({
-				name: roomNames[i],
+				name: room.isTemporary ? "Temporary Room" : roomNames[i],
 				description: room.description,
 				currentSource: room.currentSource,
 				users: room.clients.length
@@ -65,7 +65,7 @@ module.exports = function(_roommanager) {
 
 	router.post("/room/generate", (req, res) => {
 		let roomName = uuid();
-		roommanager.createRoom(roomName);
+		roommanager.createRoom(roomName, isTemporary=true);
 		res.json({
 			success: true,
 			room: roomName
