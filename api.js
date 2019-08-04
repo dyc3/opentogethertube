@@ -1,5 +1,6 @@
 const express = require('express');
 const _ = require("lodash");
+const uuid = require("uuid/v4");
 
 module.exports = function(_roommanager) {
 	const roommanager = _roommanager;
@@ -59,6 +60,15 @@ module.exports = function(_roommanager) {
 		roommanager.createRoom(req.body.name);
 		res.json({
 			success: true
+		});
+	});
+
+	router.post("/room/generate", (req, res) => {
+		let roomName = uuid();
+		roommanager.createRoom(roomName);
+		res.json({
+			success: true,
+			room: roomName
 		});
 	});
 

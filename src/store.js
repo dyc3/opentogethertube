@@ -35,7 +35,7 @@ export default new Vuex.Store({
 			}
 		},
 		SOCKET_ONCLOSE (state, event)  {
-			console.log("socket close");
+			console.log("socket close", event);
 			state.socket.isConnected = false;
 		},
 		SOCKET_ONERROR (state, event)  {

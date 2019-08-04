@@ -6,7 +6,7 @@ module.exports = function (server) {
 	function syncRoom(room) {
 		let syncMsg = {
 			action: "sync",
-			name: "test",
+			name: room.name,
 			title: room.title,
 			description: room.description,
 			currentSource: room.currentSource,
@@ -70,6 +70,7 @@ module.exports = function (server) {
 
 	function createRoom(roomName) {
 		rooms[roomName] = {
+			name: roomName,
 			title: "",
 			description: "",
 			currentSource: "",
@@ -95,6 +96,7 @@ module.exports = function (server) {
 
 	let rooms = {
 		test: {
+			name: "test",
 			title: "Test Room",
 			description: "This is a test room.",
 			currentSource: "",
@@ -125,6 +127,7 @@ module.exports = function (server) {
 			name: "client",
 			socket: ws
 		});
+		console.log("[ws] client joined", roomName);
 
 		ws.on('message', (message) => {
 			console.log('[ws] received:', typeof(message), message);

@@ -10,7 +10,7 @@
 							Dark theme. No sign up required. All Open Source.
 						</span>
 						<v-layout row justify-space-between style="margin-top: 16px">
-							<v-btn elevation="12" to="/create">Create Room</v-btn>
+							<v-btn elevation="12" @click="createRoom">Create Room</v-btn>
 							<v-btn elevation="12" to="/rooms">Browse Rooms</v-btn>
 							<v-btn elevation="12" href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
 						</v-layout>
@@ -35,8 +35,19 @@
 </template>
 
 <script>
+import { API } from "@/common-http.js";
+
 export default {
-	name: 'home'
+	name: 'home',
+	methods: {
+		createRoom() {
+			API.post("/room/generate").then(res => {
+				console.log(res);
+				console.log(res.datas);
+				this.$router.push(`/room/${res.data.room}`);
+			});
+		}
+	}
 }
 </script>
 
