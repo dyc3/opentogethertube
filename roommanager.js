@@ -64,7 +64,7 @@ module.exports = function (server) {
 	}
 
 	function createRoom(roomName, isTemporary=false) {
-		rooms[roomName] = {
+		let newRoom = {
 			name: roomName,
 			title: "",
 			description: "",
@@ -76,6 +76,11 @@ module.exports = function (server) {
 			playbackPosition: 0,
 			playbackDuration: 0
 		};
+		if (isTemporary) {
+			// Used to delete temporary rooms after a certain amount of time with no users connected
+			newRoom.keepAlivePing = new Date();
+		}
+		rooms[roomName] = newRoom;
 	}
 
 	function deleteRoom(roomName) {
@@ -204,13 +209,22 @@ module.exports = function (server) {
 			}
 
 			// remove empty temporary rooms
-			if (room.isTemporary && room.clients.length == 0) {
-				roomsToDelete.push(roomName);
+			if (room.isTemporary) {
+				if (room.clients.length > 0) {
+					room.keepAlivePing = new Date();
+				}
+				else {
+					let diffSeconds = (new Date() - room.keepAlivePing) / 1000;
+					if (diffSeconds > 10) {
+						console.log("Removing inactive temporary room", roomName);
+						roomsToDelete.push(roomName);
+					}
+				}
 			}
 		}
 
 		for (let i = 0; i < roomsToDelete.length; i++) {
-			delete rooms[roomsToDelete[i]];
+			deleteRoom(roomsToDelete[i]);
 		}
 	}, 1000);
 
