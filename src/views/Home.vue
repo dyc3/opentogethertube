@@ -31,6 +31,9 @@
 				</v-flex>
 			</v-layout>
 		</v-container>
+		<v-overlay :value="isLoading">
+			<v-progress-circular indeterminate></v-progress-circular>
+		</v-overlay>
 	</div>
 </template>
 
@@ -39,9 +42,16 @@ import { API } from "@/common-http.js";
 
 export default {
 	name: 'home',
+	data() {
+		return {
+			isLoading: false
+		}
+	},
 	methods: {
 		createRoom() {
+			this.isLoading = true;
 			API.post("/room/generate").then(res => {
+				this.isLoading = false;
 				this.$router.push(`/room/${res.data.room}`);
 			});
 		}

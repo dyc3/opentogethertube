@@ -9,6 +9,9 @@
         </v-card>
       </v-flex>
     </v-layout>
+    <v-overlay :value="isLoading">
+			<v-progress-circular indeterminate></v-progress-circular>
+		</v-overlay>
   </v-container>
 </template>
 
@@ -21,11 +24,14 @@ export default {
   },
   data() {
     return {
-      rooms: []
+      rooms: [],
+      isLoading: false,
     }
   },
   created() {
+    this.isLoading = true;
     API.get("/room/list").then(res => {
+      this.isLoading = false;
       this.rooms = res.data;
     });
   }
