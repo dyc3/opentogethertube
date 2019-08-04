@@ -12,8 +12,9 @@ module.exports = function(_roommanager) {
 		for (let i = 0; i < roomNames.length; i++) {
 			let room = roommanager.rooms[roomNames[i]];
 			rooms.push({
-				name: room.isTemporary ? "Temporary Room" : roomNames[i],
+				name: roomNames[i],
 				description: room.description,
+				isTemporary: room.isTemporary,
 				currentSource: room.currentSource,
 				users: room.clients.length
 			});
