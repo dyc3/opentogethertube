@@ -10,6 +10,7 @@ export default new Vuex.Store({
 			message: '',
 			reconnectError: false,
 		},
+		joinFailureReason: null,
 		room: {
 			name: "",
 			title: "",
@@ -24,6 +25,7 @@ export default new Vuex.Store({
 	mutations:{
 		SOCKET_ONOPEN (state, event)  {
 			console.log("socket open");
+			state.joinFailureReason = null;
 			Vue.prototype.$socket = event.currentTarget;
 			state.socket.isConnected = true;
 			let username = window.localStorage.getItem("username");
@@ -37,6 +39,10 @@ export default new Vuex.Store({
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close", event);
 			state.socket.isConnected = false;
+			if (event.code == 4002) {
+				state.joinFailureReason = "Room does not exist.";
+				Vue.prototype.$disconnect();
+			}
 		},
 		SOCKET_ONERROR (state, event)  {
 			console.error(state, event);
