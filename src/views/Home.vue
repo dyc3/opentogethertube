@@ -10,9 +10,9 @@
 							Dark theme. No sign up required. All Open Source.
 						</span>
 						<v-layout row justify-space-between style="margin-top: 16px">
-							<v-btn elevation="12" @click="createRoom">Create Room</v-btn>
-							<v-btn elevation="12" to="/rooms">Browse Rooms</v-btn>
-							<v-btn elevation="12" href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
+							<v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
+							<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
+							<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
 						</v-layout>
 					</v-flex>
 				</v-layout>
