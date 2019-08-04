@@ -17,6 +17,20 @@
   </v-app>
 </template>
 
+<script>
+export default {
+  name: "app",
+  watch:{
+    $route (to, from){
+      console.log(" route change", to, from);
+      if (to.name != "room" && this.$store.state.socket.isConnected) {
+        this.$disconnect();
+      }
+    }
+  }
+}
+</script>
+
 <style lang="scss">
 .link-invis {
   text-decoration: none;
