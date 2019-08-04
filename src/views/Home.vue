@@ -42,8 +42,6 @@ export default {
 	methods: {
 		createRoom() {
 			API.post("/room/generate").then(res => {
-				console.log(res);
-				console.log(res.datas);
 				this.$router.push(`/room/${res.data.room}`);
 			});
 		}
