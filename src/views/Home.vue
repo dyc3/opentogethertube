@@ -65,7 +65,7 @@ export default {
 }
 
 .hero {
-	background: linear-gradient(217deg, rgb(206, 74, 239), rgb(247, 208, 109));
+	background: linear-gradient(217deg, rgb(125, 74, 239), rgb(227,141,174) 30%, rgb(247, 208, 109));
 	color: white;
 	font-size: 22px;
 	height: 100vh;
