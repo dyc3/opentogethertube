@@ -1,6 +1,11 @@
 <template>
-  <v-container class="room-list" grid-list-md>
-    <v-layout wrap>
+  <v-container class="room-list" grid-list-md fill-height>
+    <v-layout align-center v-if="isLoading">
+      <v-layout justify-center>
+        <v-progress-circular indeterminate></v-progress-circular>
+      </v-layout>
+    </v-layout>
+    <v-layout wrap v-if="!isLoading">
       <v-flex xs6 md3 v-for="(room, index) in rooms" :key="index">
         <v-card hover :to="`/room/${room.name}`">
           <v-card-title>{{ room.isTemporary ? "Temporary Room" : room.name }}</v-card-title>
@@ -9,9 +14,6 @@
         </v-card>
       </v-flex>
     </v-layout>
-    <v-overlay :value="isLoading">
-			<v-progress-circular indeterminate></v-progress-circular>
-		</v-overlay>
   </v-container>
 </template>
 
