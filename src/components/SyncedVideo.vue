@@ -14,6 +14,7 @@ export default {
 		position: Number, // playback position
 		width: [Number, String],
 		height: [Number, String],
+		volume: Number
 	},
 	data() {
 		return {
@@ -56,10 +57,11 @@ export default {
 		},
 		setVolume(value) {
 			if (this.service == "youtube") {
-				this.$refs.youtube.player.setVolume(value);
+				this.$refs.youtube.player.setVolume(this.volume);
 			}
 		},
 		OnPlaybackChange(changeTo) {
+			this.setVolume(this.volume);
 			if (changeTo == this.playing) {
 				return;
 			}
@@ -83,6 +85,9 @@ export default {
 			if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
 				this.$refs.youtube.player.seekTo(newPosition);
 			}
+		},
+		volume(newVolume, oldVolume) {
+			this.setVolume(parseInt(newVolume));
 		}
 	},
 	mounted() {

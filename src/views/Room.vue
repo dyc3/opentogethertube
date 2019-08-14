@@ -7,7 +7,7 @@
     <v-layout column justify-center>
       <v-layout wrap class="video-container">
         <v-flex xl8>
-          <SyncedVideo class="video" :src="currentSource" :position="playbackPosition" width="853" height="480" ref="video"></SyncedVideo>
+          <SyncedVideo class="video" :src="currentSource" :position="playbackPosition" :volume="volume" width="853" height="480" ref="video"></SyncedVideo>
           <v-flex column class="video-controls">
             <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
             <v-flex row align-center>
@@ -18,7 +18,7 @@
               <v-btn @click="skipVideo()">
                 <v-icon>fas fa-fast-forward</v-icon>
               </v-btn>
-              <vue-slider v-model="volume" @change="volumeChange" style="width: 150px; margin-left: 10px"></vue-slider>
+              <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"></vue-slider>
             </v-flex>
           </v-flex>
         </v-flex>
@@ -126,9 +126,6 @@ export default {
     },
     sliderChange() {
       this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
-    },
-    volumeChange() {
-      this.$refs.video.setVolume(this.volume);
     },
     addToQueue() {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
