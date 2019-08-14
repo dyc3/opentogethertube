@@ -1,6 +1,6 @@
 <template>
 	<div class="iframe-container" :key="src">
-		<youtube v-if="service == 'youtube'" fitParent resize :video-id="youtubeVideoId" ref="youtube" :playerVars="{ controls: 0 }"></youtube>
+		<youtube v-if="service == 'youtube'" fitParent resize :video-id="youtubeVideoId" ref="youtube" :playerVars="{ controls: 0 }" @playing="OnPlaybackChange(true)" @paused="OnPlaybackChange(false)"></youtube>
 	</div>
 </template>
 
@@ -18,7 +18,8 @@ export default {
 	data() {
 		return {
 			service: '',
-			youtubeVideoId: ''
+			youtubeVideoId: '',
+			playing: false,
 		}
 	},
 	computed: {
@@ -42,11 +43,13 @@ export default {
 			}
 		},
 		play() {
+			this.playing = true;
 			if (this.service == "youtube") {
 				this.$refs.youtube.player.playVideo();
 			}
 		},
 		pause() {
+			this.playing = false;
 			if (this.service == "youtube") {
 				this.$refs.youtube.player.pauseVideo();
 			}
@@ -54,6 +57,18 @@ export default {
 		setVolume(value) {
 			if (this.service == "youtube") {
 				this.$refs.youtube.player.setVolume(value);
+			}
+		},
+		OnPlaybackChange(changeTo) {
+			if (changeTo == this.playing) {
+				return;
+			}
+
+			if (this.playing) {
+				this.play();
+			}
+			else {
+				this.pause();
 			}
 		}
 	},
