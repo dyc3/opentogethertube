@@ -35,9 +35,14 @@ export default {
 				return;
 			}
 			let srcURL = url.parse(this.src);
-			if (srcURL.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
+			if (srcURL.host.endsWith("youtube.com") || srcURL.host.endsWith("youtu.be")) {
 				this.service = "youtube";
-				this.youtubeVideoId = this.$youtube.getIdFromUrl(srcURL.href);
+				if (srcURL.host.endsWith("youtu.be")) {
+					this.youtubeVideoId = srcURL.path.replace("/", "");
+				}
+				else {
+					this.youtubeVideoId = this.$youtube.getIdFromUrl(srcURL.href);
+				}
 			}
 			else {
 				console.log("unknown url, host", srcURL.host);
