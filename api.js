@@ -95,9 +95,9 @@ module.exports = function(_roommanager) {
 			});
 			return;
 		}
-		roommanager.rooms[req.params.name].queue.push(req.body.url);
+		let success = roommanager.addToQueue(req.params.name, req.body.url);
 		res.json({
-			success: true
+			success
 		});
 		roommanager.updateRoom(roommanager.rooms[req.params.name]);
 	});
