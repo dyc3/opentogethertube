@@ -180,7 +180,12 @@ export default {
   watch: {
     volume(newVolume, oldVolume) {
       this.setVolume(parseInt(newVolume));
-    }
+    },
+    async sliderPosition(newPosition, oldPosition) {
+      if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
+        this.$refs.youtube.player.seekTo(newPosition);
+      }
+    },
   }
 }
 </script>
