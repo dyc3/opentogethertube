@@ -112,11 +112,9 @@ export default {
     },
     togglePlayback() {
       if (this.$store.state.room.isPlaying) {
-        // this.$events.emit("pauseVideo");
         this.$socket.sendObj({ action: "pause" });
       }
       else {
-        // this.$events.emit("playVideo");
         this.$socket.sendObj({ action: "play" });
       }
     },
