@@ -7,7 +7,9 @@
     <v-layout column justify-center>
       <v-layout wrap class="video-container">
         <v-flex xl8>
-          <SyncedVideo class="video" :src="currentSource" :position="playbackPosition" :volume="volume" width="853" height="480" ref="video"></SyncedVideo>
+          <div class="iframe-container" :key="currentSource.service">
+            <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="OnPlaybackChange(true)" @paused="OnPlaybackChange(false)"></youtube>
+          </div>
           <v-flex column class="video-controls">
             <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
             <v-flex row align-center>
@@ -59,17 +61,14 @@
 </template>
 
 <script>
-import SyncedVideo from "@/components/SyncedVideo.vue";
 import { API } from "@/common-http.js";
 
 export default {
   name: 'room',
   components: {
-    SyncedVideo
   },
   data() {
     return {
-      videoSource: "",
       sliderPosition: 0,
       volume: 100,
       showEditName: false
@@ -139,10 +138,46 @@ export default {
         this.$refs.editName.lazyValue = window.localStorage.getItem("username"); //this.$store.state.room.users.filter(u => u.isYou)[0].name;
       }
     },
+    play() {
+      if (this.currentSource.service == "youtube") {
+        this.$refs.youtube.player.playVideo();
+      }
+    },
+    pause() {
+      if (this.currentSource.service == "youtube") {
+        this.$refs.youtube.player.pauseVideo();
+      }
+    },
+    setVolume(value) {
+      if (this.currentSource.service == "youtube") {
+        this.$refs.youtube.player.setVolume(this.volume);
+      }
+    },
     onEditNameChange() {
       window.localStorage.setItem("username", this.$refs.editName.lazyValue);
       this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
+    },
+    OnPlaybackChange(changeTo) {
+      this.setVolume(this.volume);
+      if (changeTo == this.$store.state.room.isPlaying) {
+        return;
+      }
+
+      if (this.$store.state.room.isPlaying) {
+        this.play();
+      }
+      else {
+        this.pause();
+      }
     }
+  },
+  mounted() {
+    this.$events.on("playVideo", eventData => {
+      this.play();
+    });
+    this.$events.on("pauseVideo", eventData => {
+      this.pause();
+    });
   }
 }
 </script>
@@ -165,5 +200,19 @@ export default {
   margin: 5px;
   padding: 0 5px;
   font-size: 10px;
+}
+.iframe-container {
+	position: relative;
+	padding-bottom: 56.25%;
+	height: 0;
+	overflow: hidden;
+	max-width: 100%;
+}
+.iframe-container iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 }
 </style>
