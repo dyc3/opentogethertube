@@ -103,7 +103,7 @@ export default {
   methods: {
     postTestVideo(v) {
       let videos = [
-        "https://www.youtube.com/watch?v=cHpbcnCsl00",
+        "https://www.youtube.com/watch?v=WC66l5tPIF4",
         "https://www.youtube.com/watch?v=aI67KDJRnvQ"
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
