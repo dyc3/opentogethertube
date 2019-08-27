@@ -3,6 +3,7 @@ const InfoExtract = require("./infoextract");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const url = require("url");
 const querystring = require('querystring');
+const _ = require("lodash");
 
 module.exports = function (server) {
 	function syncRoom(room) {
@@ -36,28 +37,21 @@ module.exports = function (server) {
 	}
 
 	function updateRoom(room) {
-		if (room.currentSource == {} && room.queue.length > 0) {
-			room.currentSource = room.queue.shift();
-			// InfoExtract.getVideoLengthYoutube(room.currentSource).then(seconds => {
-			// 	room.playbackDuration = seconds;
-			// }).catch(err => {
-			// 	console.error("Failed to get video length");
-			// 	console.error(err);
-			// });
+		if (!_.isEmpty(room.currentSource) && room.currentSource.hasOwnProperty("length")) {
+			// FIXME: the client expectes playbackDuration to exist and be >0.
+			// A better way to do this would be for the client to infer playbackDuration
+			// from currentsource.length
+			room.playbackDuration = room.currentSource.length;
 		}
-		else if (room.playbackPosition > room.playbackDuration) {
+
+		if (_.isEmpty(room.currentSource) && room.queue.length > 0) {
+			room.currentSource = room.queue.shift();
+		}
+		else if (!_.isEmpty(room.currentSource) && room.playbackPosition > room.playbackDuration) {
 			room.currentSource = room.queue.length > 0 ? room.queue.shift() : {};
 			room.playbackPosition = 0;
-			// if (room.currentSource != "") {
-			// 	InfoExtract.getVideoLengthYoutube(room.currentSource).then(seconds => {
-			// 		room.playbackDuration = seconds;
-			// 	}).catch(err => {
-			// 		console.error("Failed to get video length");
-			// 		console.error(err);
-			// 	});
-			// }
 		}
-		if (room.currentSource == {} && room.queue.length == 0 && room.isPlaying) {
+		if (_.isEmpty(room.currentSource) && room.queue.length == 0 && room.isPlaying) {
 			room.isPlaying = false;
 			room.playbackPosition = 0;
 			room.playbackDuration = 0;
@@ -71,7 +65,7 @@ module.exports = function (server) {
 			title: "",
 			description: "",
 			isTemporary: isTemporary,
-			currentSource: "",
+			currentSource: {},
 			queue: [],
 			clients: [],
 			isPlaying: false,
@@ -102,33 +96,26 @@ module.exports = function (server) {
 			length: 0
 		};
 
-		// Because this part runs asyncronously, the length
-		// doesn't get set until after this function is done,
-		// which may cause issues
-		InfoExtract.getVideoLengthYoutube(link).then(seconds => {
+		return InfoExtract.getVideoLengthYoutube(link).then(seconds => {
 			queueItem.length = seconds;
 		}).catch(err => {
 			console.error("Failed to get video length");
 			console.error(err);
-		});
+		}).then(() => {
+			let srcUrl = url.parse(link);
 
-		let srcUrl = url.parse(link);
-
-		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
-			queueItem.service = "youtube";
-			if (srcUrl.host.endsWith("youtu.be")) {
-				queueItem.id = srcUrl.path.replace("/", "");
+			if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
+				queueItem.service = "youtube";
+				queueItem.id = InfoExtract.getVideoIdYoutube(link);
 			}
 			else {
-				queueItem.id = querystring.parse(srcUrl.query)["v"];
+				console.log("unknown url, host", srcUrl.host);
+				return false;
 			}
-		}
-		else {
-			console.log("unknown url, host", srcUrl.host);
-			return false;
-		}
-		rooms[roomName].queue.push(queueItem);
-		return true;
+			rooms[roomName].queue.push(queueItem);
+			updateRoom(rooms[roomName]);
+			return true;
+		});
 	}
 
 	const wss = new WebSocket.Server({ server });
