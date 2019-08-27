@@ -176,6 +176,11 @@ export default {
     this.$events.on("pauseVideo", eventData => {
       this.pause();
     });
+  },
+  watch: {
+    volume(newVolume, oldVolume) {
+      this.setVolume(parseInt(newVolume));
+    }
   }
 }
 </script>
