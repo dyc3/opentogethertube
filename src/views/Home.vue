@@ -30,6 +30,11 @@
 					</p>
 				</v-flex>
 			</v-layout>
+			<v-footer>
+				<v-flex text-center>
+					{{ new Date().getFullYear() }} - <a href="https://carsonmcmanus.com/">Carson McManus</a> - Made in America
+				</v-flex>
+			</v-footer>
 		</v-container>
 		<v-overlay :value="isLoading">
 			<v-progress-circular indeterminate></v-progress-circular>
