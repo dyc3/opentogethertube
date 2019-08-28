@@ -29,6 +29,71 @@
 						top of that to make it even better.
 					</p>
 				</v-flex>
+				<v-flex>
+					<h1>Core Features</h1>
+					<v-layout row justify-center class="features">
+						<v-flex xs12 sm6 md4>
+							<v-card hover height="150">
+								<v-card-title>Syncronized Playback</v-card-title>
+								<v-card-text>
+									You hit play, and the video plays for everybody
+									in the room. Simple as that.
+								</v-card-text>
+							</v-card>
+						</v-flex>
+						<v-flex xs12 sm6 md4>
+							<v-card hover height="150">
+								<v-card-title>Permanent Rooms</v-card-title>
+								<v-card-text>
+									You and the squad come here often? Avoid the hastle
+									of sending out a new link every time. Permanent
+									rooms get a custom url that doesn't change
+								</v-card-text>
+							</v-card>
+						</v-flex>
+						<v-flex xs12 sm6 md4>
+							<v-card hover height="150">
+								<v-card-title>Dark Theme</v-card-title>
+								<v-card-text>
+									Watching Vine compilations late at night?
+									OpenTogetherTube has a dark theme by default so
+									your eyes won't suffer.
+								</v-card-text>
+							</v-card>
+						</v-flex>
+						<v-flex xs12 sm6 md4>
+							<v-card hover height="150">
+								<v-card-title>Room Permissions</v-card-title>
+								<v-card-text>
+									Tired of random goofballs joining your room and
+									adding lots of loud videos to your chill lofi hip-hop
+									listening session? Just block them from adding videos.
+								</v-card-text>
+							</v-card>
+						</v-flex>
+						<v-flex xs12 sm6 md4>
+							<v-card hover height="150">
+								<v-card-title>Voting System</v-card-title>
+								<v-card-text>
+									Can't decide what to watch next? Switch the queue
+									to the vote system and let democracy do what it
+									does best.
+								</v-card-text>
+							</v-card>
+						</v-flex>
+						<v-flex xs12 sm6 md4>
+							<v-card hover height="150">
+								<v-card-title>Playlist Copying</v-card-title>
+								<v-card-text>
+									Add entire playlists or channels to the video queue
+									all at once so you don't have to sit there adding
+									each video to the queue one by one. It's the best
+									way to binge watch that new channel with your friends.
+								</v-card-text>
+							</v-card>
+						</v-flex>
+					</v-layout>
+				</v-flex>
 			</v-layout>
 			<v-footer>
 				<v-flex text-center>
@@ -82,6 +147,12 @@ export default {
 
 	.v-btn {
 		background: transparent !important;
+	}
+}
+
+.features {
+	.v-card {
+		margin: 7px;
 	}
 }
 </style>
