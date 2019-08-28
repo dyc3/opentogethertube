@@ -2,6 +2,11 @@ const axios = require("axios");
 const url = require("url");
 const querystring = require('querystring');
 
+const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
+const YtApi = axios.create({
+	baseURL: YOUTUBE_API_URL
+});
+
 module.exports = {
 	getVideoIdYoutube(link) {
 		let urlParsed = url.parse(link);
@@ -13,7 +18,31 @@ module.exports = {
 		}
 	},
 
-	getVideoLengthYoutube: async (url) => {
+	getVideoInfoYoutube(ids) {
+		if (!Array.isArray(ids)) {
+			throw "`ids` must be an array on video IDs.";
+		}
+		return new Promise((resolve, reject) => {
+			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=snippet,contentDetails&id=${ids.join(",")}`).then(res => {
+				if (res.status !== 200) {
+					reject(`Failed with status code ${res.status}`);
+					return;
+				}
+				console.log("Got youtube video info", res.data);
+
+				let results = {};
+				for (let i = 0; i < res.data.items.length; i++) {
+					let item = res.data.items[i];
+					results[item.id] = item;
+				}
+				resolve(results);
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	},
+
+	getVideoLengthYoutube_Fallback: async (url) => {
 		let res = await axios.get(url);
 		let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
 		for (let r = 0; r < regexs.length; r++) {

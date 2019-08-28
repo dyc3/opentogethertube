@@ -4,6 +4,7 @@ const { uniqueNamesGenerator } = require('unique-names-generator');
 const url = require("url");
 const querystring = require('querystring');
 const _ = require("lodash");
+const moment = require("moment");
 
 module.exports = function (server) {
 	function syncRoom(room) {
@@ -93,29 +94,42 @@ module.exports = function (server) {
 		let queueItem = {
 			service: "",
 			id: "",
+			title: "",
+			description: "",
+			thumbnail: "",
 			length: 0
 		};
 
-		return InfoExtract.getVideoLengthYoutube(link).then(seconds => {
-			queueItem.length = seconds;
-		}).catch(err => {
-			console.error("Failed to get video length");
-			console.error(err);
-		}).then(() => {
-			let srcUrl = url.parse(link);
+		let srcUrl = url.parse(link);
+		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
+			queueItem.service = "youtube";
+			queueItem.id = InfoExtract.getVideoIdYoutube(link);
+		}
+		else {
+			console.log("unknown url, host", srcUrl.host);
+			return false;
+		}
 
-			if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
-				queueItem.service = "youtube";
-				queueItem.id = InfoExtract.getVideoIdYoutube(link);
-			}
-			else {
-				console.log("unknown url, host", srcUrl.host);
-				return false;
-			}
-			rooms[roomName].queue.push(queueItem);
-			updateRoom(rooms[roomName]);
-			return true;
-		});
+		if (queueItem.service === "youtube") {
+			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
+			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
+				let videoInfo = results[queueItem.id];
+				queueItem.title = videoInfo.snippet.title;
+				queueItem.description = videoInfo.snippet.description;
+				queueItem.thumbnail = videoInfo.snippet.thumbnails.medium.url;
+				queueItem.length = moment.duration(videoInfo.contentDetails.length).asSeconds();
+			}).catch(err => {
+				console.error("Failed to get video info");
+				console.error(err);
+			}).then(() => {
+				rooms[roomName].queue.push(queueItem);
+				updateRoom(rooms[roomName]);
+				return true;
+			});
+		}
+		else {
+			throw `Service ${queueItem.service} not yet supported`;
+		}
 	}
 
 	const wss = new WebSocket.Server({ server });
