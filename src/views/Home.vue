@@ -19,7 +19,7 @@
 			</v-layout>
 		</v-container>
 		<v-container>
-			<v-layout row align-center>
+			<v-layout row justify-center>
 				<v-flex>
 					<h1>Simple and Easy.</h1>
 					<p>
