@@ -69,6 +69,7 @@ export default {
 	color: white;
 	font-size: 22px;
 	height: 100vh;
+	min-height: 350px;
 
 	h1 {
 		font-size: 52px;
