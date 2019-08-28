@@ -36,9 +36,7 @@
           <v-flex row>
             <v-flex column class="video-queue">
               <h3>Queue</h3>
-              <v-card v-for="(url, index) in $store.state.room.queue" :key="index" style="margin-top: 10px">
-                <v-card-text>{{ url }}</v-card-text>
-              </v-card>
+              <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata" :item="itemdata"/>
             </v-flex>
             <v-flex column md2 class="user-list">
               <v-card>
@@ -71,10 +69,12 @@
 
 <script>
 import { API } from "@/common-http.js";
+import VideoQueueItem from "@/components/VideoQueueItem.vue";
 
 export default {
   name: 'room',
   components: {
+    VideoQueueItem
   },
   data() {
     return {
