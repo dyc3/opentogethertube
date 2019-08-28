@@ -1,63 +1,72 @@
 <template>
-  <v-container class="room">
-    <v-layout column>
-      <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
-      <span>{{ connectionStatus }}</span>
-    </v-layout>
-    <v-layout column justify-center>
-      <v-layout wrap class="video-container">
-        <v-flex xl8>
-          <div class="iframe-container" :key="currentSource.service">
-            <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="OnPlaybackChange(true)" @paused="OnPlaybackChange(false)"></youtube>
-          </div>
-          <v-flex column class="video-controls">
-            <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
-            <v-flex row align-center>
-              <v-btn @click="togglePlayback()">
-                <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
-                <v-icon v-else>fas fa-play</v-icon>
-              </v-btn>
-              <v-btn @click="skipVideo()">
-                <v-icon>fas fa-fast-forward</v-icon>
-              </v-btn>
-              <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"></vue-slider>
+  <div>
+    <v-container class="room" v-if="!showJoinFailOverlay">
+      <v-layout column>
+        <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
+        <span>{{ connectionStatus }}</span>
+      </v-layout>
+      <v-layout column justify-center>
+        <v-layout wrap class="video-container">
+          <v-flex xl8>
+            <div class="iframe-container" :key="currentSource.service">
+              <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="OnPlaybackChange(true)" @paused="OnPlaybackChange(false)"></youtube>
+            </div>
+            <v-flex column class="video-controls">
+              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
+              <v-flex row align-center>
+                <v-btn @click="togglePlayback()">
+                  <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
+                  <v-icon v-else>fas fa-play</v-icon>
+                </v-btn>
+                <v-btn @click="skipVideo()">
+                  <v-icon>fas fa-fast-forward</v-icon>
+                </v-btn>
+                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"></vue-slider>
+              </v-flex>
             </v-flex>
           </v-flex>
-        </v-flex>
-      </v-layout>
-      <div class="video-add">
-        <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
-        <v-btn @click="addToQueue">Add</v-btn>
-        <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
-        <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-      </div>
-      <v-layout>
-        <v-flex row>
-          <v-flex column class="video-queue">
-            <h3>Queue</h3>
-            <v-card v-for="(url, index) in $store.state.room.queue" :key="index" style="margin-top: 10px">
-              <v-card-text>{{ url }}</v-card-text>
-            </v-card>
+        </v-layout>
+        <div class="video-add">
+          <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
+          <v-btn @click="addToQueue">Add</v-btn>
+          <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
+          <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
+        </div>
+        <v-layout>
+          <v-flex row>
+            <v-flex column class="video-queue">
+              <h3>Queue</h3>
+              <v-card v-for="(url, index) in $store.state.room.queue" :key="index" style="margin-top: 10px">
+                <v-card-text>{{ url }}</v-card-text>
+              </v-card>
+            </v-flex>
+            <v-flex column md2 class="user-list">
+              <v-card>
+                <v-subheader>
+                  Users
+                  <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
+                </v-subheader>
+                <v-list-item v-if="showEditName">
+                  <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"></v-text-field>
+                </v-list-item>
+                <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
+                  {{ user.name }}
+                  <span v-if="user.isYou" class="is-you">You</span>
+                </v-list-item>
+              </v-card>
+            </v-flex>
           </v-flex>
-          <v-flex column md2 class="user-list">
-            <v-card>
-              <v-subheader>
-                Users
-                <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
-              </v-subheader>
-              <v-list-item v-if="showEditName">
-                <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"></v-text-field>
-              </v-list-item>
-              <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
-                {{ user.name }}
-                <span v-if="user.isYou" class="is-you">You</span>
-              </v-list-item>
-            </v-card>
-          </v-flex>
-        </v-flex>
+        </v-layout>
       </v-layout>
-    </v-layout>
-  </v-container>
+    </v-container>
+    <v-overlay :value="showJoinFailOverlay">
+      <v-layout column>
+        <h1>Failed to join room</h1>
+        <span>{{ joinFailReason }}</span>
+        <v-btn to="/rooms">Find Another Room</v-btn>
+      </v-layout>
+    </v-overlay>
+  </div>
 </template>
 
 <script>
@@ -71,7 +80,9 @@ export default {
     return {
       sliderPosition: 0,
       volume: 100,
-      showEditName: false
+      showEditName: false,
+      showJoinFailOverlay: false,
+      joinFailReason: ""
     }
   },
   computed: {
@@ -175,6 +186,10 @@ export default {
     });
     this.$events.on("pauseVideo", eventData => {
       this.pause();
+    });
+    this.$events.on("roomJoinFailure", eventData => {
+      this.showJoinFailOverlay = true;
+      this.joinFailReason = eventData.reason;
     });
   },
   watch: {

@@ -43,6 +43,7 @@ export default new Vuex.Store({
 			if (event.code == 4002) {
 				state.joinFailureReason = "Room does not exist.";
 				Vue.prototype.$disconnect();
+				Vue.prototype.$events.fire("roomJoinFailure", { reason: "Room does not exist." });
 			}
 		},
 		SOCKET_ONERROR (state, event)  {
