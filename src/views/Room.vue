@@ -26,21 +26,20 @@
             </v-flex>
           </v-flex>
         </v-layout>
-        <v-layout>
-          <v-flex>
-            <div class="video-add">
+        <v-layout row justify-space-between>
+          <v-flex column md8 sm12>
+            <v-tabs grow v-model="queueTab">
+              <v-tab>Queue</v-tab>
+              <v-tab>Add</v-tab>
+            </v-tabs>
+            <div class="video-queue" v-if="queueTab === 0">
+              <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata" :item="itemdata"/>
+            </div>
+            <div class="video-add" v-if="queueTab === 1">
               <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
               <v-btn @click="addToQueue">Add</v-btn>
               <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
               <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-            </div>
-          </v-flex>
-        </v-layout>
-        <v-layout row justify-space-between>
-          <v-flex column md8 sm12>
-            <div class="video-queue">
-              <h3>Queue</h3>
-              <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata" :item="itemdata"/>
             </div>
           </v-flex>
           <v-flex column md4 sm12>
@@ -86,7 +85,10 @@ export default {
     return {
       sliderPosition: 0,
       volume: 100,
+
       showEditName: false,
+      queueTab: 0,
+
       showJoinFailOverlay: false,
       joinFailReason: ""
     }
@@ -216,11 +218,9 @@ export default {
   // width: 853px;
   margin: 10px;
 }
-.video-queue, .user-list {
+.video-queue, .video-add, .user-list {
   margin: 10px;
-}
-.video-add {
-  margin: 10px;
+  min-height: 500px;
 }
 .is-you {
   color: #fff;
