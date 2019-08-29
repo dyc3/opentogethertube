@@ -19,6 +19,7 @@ module.exports = {
 	},
 
 	getVideoInfoYoutube(ids) {
+		// TODO: local caching of results
 		if (!Array.isArray(ids)) {
 			throw "`ids` must be an array on video IDs.";
 		}
