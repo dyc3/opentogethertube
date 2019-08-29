@@ -100,17 +100,11 @@ module.exports = function (server) {
 			length: 0
 		};
 
-		let srcUrl = url.parse(link);
-		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
-			queueItem.service = "youtube";
-			queueItem.id = InfoExtract.getVideoIdYoutube(link);
-		}
-		else {
-			console.log("unknown url, host", srcUrl.host);
-			return false;
-		}
+		queueItem.service = InfoExtract.getService(link);
 
 		if (queueItem.service === "youtube") {
+			queueItem.id = InfoExtract.getVideoIdYoutube(link);
+
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
 				let videoInfo = results[queueItem.id];

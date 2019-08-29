@@ -8,6 +8,16 @@ const YtApi = axios.create({
 });
 
 module.exports = {
+	getService(link) {
+		let srcUrl = url.parse(link);
+		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
+			return "youtube";
+		}
+		else {
+			return false;
+		}
+	},
+
 	getVideoIdYoutube(link) {
 		let urlParsed = url.parse(link);
 		if (urlParsed.host.endsWith("youtu.be")) {
