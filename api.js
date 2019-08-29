@@ -102,5 +102,43 @@ module.exports = function(_roommanager) {
 		roommanager.updateRoom(roommanager.rooms[req.params.name]);
 	});
 
+	router.delete("/room/:name/queue", (req, res) => {
+		if (!roommanager.rooms.hasOwnProperty(req.params.name)) {
+			res.status(404);
+			res.json({
+				success: false,
+				error: "Room does not exist",
+			});
+			return;
+		}
+
+		// find the index of the item to delete
+		let room = roommanager.rooms[req.params.name];
+		let matchIdx = -1;
+		for (let i = 0; i < room.queue.length; i++) {
+			let item = room.queue[i];
+			if (item.service === req.body.service && item.id === req.body.id) {
+				matchIdx = i;
+				break;
+			}
+		}
+
+		if (matchIdx < 0) {
+			res.status(404).json({
+				success: false,
+				error: "Queue item not found",
+			})
+		}
+
+		// remove the item from the queue
+		room.queue.splice(matchIdx, 1);
+
+		// respond
+		res.json({
+			success: true,
+		});
+		roommanager.updateRoom(roommanager.rooms[req.params.name]);
+	});
+
 	return router;
 };
