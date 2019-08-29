@@ -1,5 +1,5 @@
 <template>
-	<v-card :key="item" style="margin-top: 10px">
+	<v-card style="margin-top: 10px">
 		<v-card-title>{{ item.title }}</v-card-title>
 		<v-card-text>
 			{{ item.service }} {{ item.length }}<br>
