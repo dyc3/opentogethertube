@@ -2,6 +2,24 @@ const Sequelize = require('sequelize');
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
+const path = require('path');
+
+if (!process.env.NODE_ENV) {
+	console.warn("NODE_ENV not set, assuming dev environment");
+	process.env.NODE_ENV = "dev";
+}
+
+if (process.env.NODE_ENV === "example") {
+	console.error("Invalid NODE_ENV! Aborting...");
+	process.exit(1);
+}
+
+const config_path = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
+console.log(`Reading config from ${process.env.NODE_ENV}.env`);
+if (!fs.existsSync(config_path)) {
+	console.error("No config found! Things will break!", config_path);
+}
+require('dotenv').config({ path: config_path });
 
 const sequelize = new Sequelize('database', 'username', 'password', {
 	host: 'localhost',
