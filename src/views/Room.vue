@@ -32,13 +32,15 @@
           <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
           <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
         </div>
-        <v-layout>
-          <v-flex row>
-            <v-flex column class="video-queue">
+        <v-layout row justify-space-between>
+          <v-flex column md8>
+            <div class="video-queue">
               <h3>Queue</h3>
               <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata" :item="itemdata"/>
-            </v-flex>
-            <v-flex column md2 class="user-list">
+            </div>
+          </v-flex>
+          <v-flex column md4>
+            <div class="user-list">
               <v-card>
                 <v-subheader>
                   Users
@@ -52,7 +54,7 @@
                   <span v-if="user.isYou" class="is-you">You</span>
                 </v-list-item>
               </v-card>
-            </v-flex>
+            </div>
           </v-flex>
         </v-layout>
       </v-layout>
@@ -210,8 +212,8 @@ export default {
   // width: 853px;
   margin: 10px;
 }
-.video-queue {
-  margin: 40px;
+.video-queue, .user-list {
+  margin: 10px;
 }
 .video-add {
   margin: 10px;
