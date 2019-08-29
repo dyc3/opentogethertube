@@ -28,7 +28,6 @@ module.exports = {
 					reject(`Failed with status code ${res.status}`);
 					return;
 				}
-				console.log("Got youtube video info", res.data);
 
 				let results = {};
 				for (let i = 0; i < res.data.items.length; i++) {
