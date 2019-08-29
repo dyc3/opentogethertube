@@ -1,6 +1,7 @@
 const axios = require("axios");
 const url = require("url");
 const querystring = require('querystring');
+const moment = require("moment");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
 const YtApi = axios.create({
@@ -69,5 +70,68 @@ module.exports = {
 			}
 		}
 		return -1;
-	}
+	},
+
+	getPlaylistYoutube(id) {
+		return new Promise((resolve, reject) => {
+			YtApi.get(`/playlistItems?key=${process.env.YOUTUBE_API_KEY}&part=snippet&playlistId=${id}`).then(res => {
+				if (res.status !== 200) {
+					reject(`Failed with status code ${res.status}`);
+					return;
+				}
+
+				let results = [];
+				for (let i = 0; i < res.data.items.length; i++) {
+					let item = res.data.items[i];
+					results.push({
+						service: "youtube",
+						id: item.snippet.resourceId.videoId,
+						title: item.snippet.title,
+						description: item.snippet.description,
+						thumbnail: item.snippet.thumbnails.medium.url,
+					});
+				}
+				resolve(results);
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	},
+
+	getAddPreview(input) {
+		let service = this.getService(input);
+
+		if (service !== "youtube") {
+			console.error("Unsupported input for getAddPreview");
+			throw "Unsupported input for getAddPreview";
+		}
+
+		let urlParsed = url.parse(input);
+		let queryParams = querystring.parse(urlParsed.query);
+		if (queryParams["list"]) {
+			// there is a playlist associated with this link
+			console.log("playlist found");
+			// TODO: actually process the playlist
+			return new Promise(resolve => resolve([]));
+		}
+		else {
+			let video = {
+				service: "youtube",
+				id: queryParams.v,
+				title: queryParams.v
+			};
+			return this.getVideoInfoYoutube([video.id]).then(results => {
+				let videoInfo = results[queryParams.v];
+				video.title = videoInfo.snippet.title;
+				video.description = videoInfo.snippet.description;
+				video.thumbnail = videoInfo.snippet.thumbnails.medium.url;
+				video.length = moment.duration(videoInfo.contentDetails.duration).asSeconds();
+			}).catch(err => {
+				console.error("Failed to get video info");
+				console.error(err);
+			}).then(() => {
+				return [video];
+			});
+		}
+	},
 }

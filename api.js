@@ -1,6 +1,7 @@
 const express = require('express');
 const _ = require("lodash");
 const uuid = require("uuid/v4");
+const InfoExtract = require("./infoextract");
 
 module.exports = function(_roommanager) {
 	const roommanager = _roommanager;
@@ -138,6 +139,22 @@ module.exports = function(_roommanager) {
 			success: true,
 		});
 		roommanager.updateRoom(roommanager.rooms[req.params.name]);
+	});
+
+	router.get("/data/previewAdd", (req, res) => {
+		// FIXME: this endpoint has the potential to be abused.
+		// TODO: rate limit
+
+		console.log("Getting queue add preview for", req.query.input);
+		try {
+			InfoExtract.getAddPreview(req.query.input).then(result => {
+				res.json(result);
+			});
+		}
+		catch(error) {
+			console.error("Unable to get add preview", error);
+			res.status(500).json([{ error: "Unable to preview" }]);
+		}
 	});
 
 	return router;
