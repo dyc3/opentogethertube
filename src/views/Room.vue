@@ -33,13 +33,13 @@
           <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
         </div>
         <v-layout row justify-space-between>
-          <v-flex column md8>
+          <v-flex column md8 sm12>
             <div class="video-queue">
               <h3>Queue</h3>
               <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata" :item="itemdata"/>
             </div>
           </v-flex>
-          <v-flex column md4>
+          <v-flex column md4 sm12>
             <div class="user-list">
               <v-card>
                 <v-subheader>
