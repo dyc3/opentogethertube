@@ -5,7 +5,7 @@
 			{{ item.service }} {{ item.length }}<br>
 			{{ item.description }}
 		</v-card-text>
-    <v-btn icon @click="removeFromQueue">
+	<v-btn icon @click="removeFromQueue">
 			<v-icon>fas fa-trash</v-icon>
 		</v-btn>
 	</v-card>
