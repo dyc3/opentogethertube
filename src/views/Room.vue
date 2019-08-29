@@ -26,12 +26,16 @@
             </v-flex>
           </v-flex>
         </v-layout>
-        <div class="video-add">
-          <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
-          <v-btn @click="addToQueue">Add</v-btn>
-          <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
-          <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-        </div>
+        <v-layout>
+          <v-flex>
+            <div class="video-add">
+              <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
+              <v-btn @click="addToQueue">Add</v-btn>
+              <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
+              <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
+            </div>
+          </v-flex>
+        </v-layout>
         <v-layout row justify-space-between>
           <v-flex column md8 sm12>
             <div class="video-queue">
