@@ -33,13 +33,15 @@
               <v-tab>Add</v-tab>
             </v-tabs>
             <div class="video-queue" v-if="queueTab === 0">
-              <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata" :item="itemdata"/>
+              <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
             </div>
             <div class="video-add" v-if="queueTab === 1">
-              <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
+              <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl" @change="onInputAddChange"></v-text-field>
               <v-btn @click="addToQueue">Add</v-btn>
               <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
               <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
+
+              <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" isPreview/>
             </div>
           </v-flex>
           <v-flex column md4 sm12>
@@ -85,9 +87,11 @@ export default {
     return {
       sliderPosition: 0,
       volume: 100,
+      addPreview: [],
 
       showEditName: false,
       queueTab: 0,
+      isLoadingAddPreview: false,
 
       showJoinFailOverlay: false,
       joinFailReason: ""
@@ -186,6 +190,18 @@ export default {
       else {
         this.pause();
       }
+    },
+    onInputAddChange(value) {
+      // TODO: debounce
+      this.isLoadingAddPreview = true;
+      API.get(`/data/previewAdd?input=${encodeURIComponent(value)}`).then(res => {
+        this.isLoadingAddPreview = false;
+        this.addPreview = res.data;
+        console.log(`Got add preview with ${this.addPreview.length}`);
+      }).catch(err => {
+        this.isLoadingAddPreview = false;
+        console.error("Failed to get add preview", err);
+      });
     }
   },
   mounted() {
