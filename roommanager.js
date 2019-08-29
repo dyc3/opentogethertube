@@ -121,6 +121,7 @@ module.exports = function (server) {
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);
+				queueItem.title = queueItem.id;
 			}).then(() => {
 				rooms[roomName].queue.push(queueItem);
 				updateRoom(rooms[roomName]);
