@@ -22,6 +22,13 @@ This project targets the lastest LTS version of node.js.
 ```
 npm install
 ```
+3. Next you need to set up your configuration. Start by copying the example
+config in the `env` folder to a new file called `dev.env`
+```
+cp env/example.env env/dev.env
+```
+4. Obtain a YouTube API key
+5. Open `env/dev.env` and replace `API_KEY_GOES_HERE` with the youtube api key.
 
 ### Testing
 
