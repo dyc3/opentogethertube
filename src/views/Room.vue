@@ -219,7 +219,7 @@ export default {
   margin: 10px;
 }
 .video-queue, .video-add, .user-list {
-  margin: 10px;
+  margin: 0 10px;
   min-height: 500px;
 }
 .is-you {
