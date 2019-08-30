@@ -91,6 +91,27 @@ module.exports = function (server, storage) {
 		delete rooms[roomName];
 	}
 
+	function getRoom(roomName) {
+		if (rooms.hasOwnProperty(roomName)) {
+			return rooms[roomName];
+		}
+
+		// load the room from storage if it exists
+		let room = storage.getRoomByName(roomName);
+		if (!room) {
+			return false;
+		}
+		room.isTemporary = false;
+		room.currentSource = {};
+		room.queue = [];
+		room.clients = [];
+		room.isPlaying = false;
+		room.playbackPosition = 0;
+		room.playbackDuration = 0;
+		rooms[roomName] = room;
+		return room;
+	}
+
 	function addToQueue(roomName, link) {
 		let queueItem = {
 			service: "",
