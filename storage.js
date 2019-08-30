@@ -23,6 +23,12 @@ module.exports = {
 		});
 	},
 	saveRoom(room) {
-
+		Room.create({
+			name: room.name,
+			title: room.title,
+			description: room.description,
+		}).then(result => {
+			console.log("Saved room to db: id", result.dataValues.id);
+		});
 	}
 }

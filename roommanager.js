@@ -78,6 +78,9 @@ module.exports = function (server, storage) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
 			newRoom.keepAlivePing = new Date();
 		}
+		else {
+			storage.saveRoom(newRoom);
+		}
 		rooms[roomName] = newRoom;
 	}
 
@@ -296,6 +299,7 @@ module.exports = function (server, storage) {
 		updateRoom,
 		createRoom,
 		deleteRoom,
-		addToQueue
+		addToQueue,
+		getRoom
 	};
 };
