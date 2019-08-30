@@ -11,6 +11,9 @@
 					{{ item.description }}
 				</v-card-text>
 				<v-card-actions>
+					<v-btn icon @click="addToQueue" v-if="isPreview">
+						<v-icon>fas fa-plus</v-icon>
+					</v-btn>
 					<v-btn icon @click="removeFromQueue" v-if="!isPreview">
 						<v-icon>fas fa-trash</v-icon>
 					</v-btn>
@@ -30,6 +33,11 @@ export default {
 		isPreview: { type: Boolean, default: false }
 	},
 	methods: {
+		addToQueue() {
+			API.post(`/room/${this.$route.params.roomId}/queue`, {
+				url: `http://youtube.com/watch?v=${this.item.id}`
+			});
+		},
 		removeFromQueue() {
 			let data = {
 				service: this.item.service,
