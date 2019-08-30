@@ -9,7 +9,7 @@
     "lint": "vue-cli-service lint",
     "test": "vue-cli-service test:unit",
     "api-server": "nodemon app.js",
-    "dev": "NODE_ENV=dev concurrently \"npm:api-server\" \"npm:serve\""
+    "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"npm:serve\""
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.9.0",
