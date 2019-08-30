@@ -52,7 +52,7 @@
     "node-sass": "^4.9.0",
     "nodemon": "^1.19.1",
     "sass-loader": "^7.1.0",
-    "sqlite3": "^4.0.9",
+    "sqlite3": "^4.1.0",
     "vue-template-compiler": "^2.6.10"
   }
 }
