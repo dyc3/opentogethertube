@@ -6,7 +6,7 @@ const querystring = require('querystring');
 const _ = require("lodash");
 const moment = require("moment");
 
-module.exports = function (server) {
+module.exports = function (server, storage) {
 	function syncRoom(room) {
 		let syncMsg = {
 			action: "sync",
@@ -61,6 +61,7 @@ module.exports = function (server) {
 	}
 
 	function createRoom(roomName, isTemporary=false) {
+		// temporary rooms are not stored in the database
 		let newRoom = {
 			name: roomName,
 			title: "",

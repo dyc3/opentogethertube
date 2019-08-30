@@ -2,7 +2,7 @@ const express = require('express');
 const _ = require("lodash");
 const uuid = require("uuid/v4");
 
-module.exports = function(_roommanager) {
+module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
 	const router = express.Router();
 
