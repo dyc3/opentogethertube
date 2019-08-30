@@ -6,7 +6,7 @@ const path = require('path');
 
 if (!process.env.NODE_ENV) {
 	console.warn("NODE_ENV not set, assuming dev environment");
-	process.env.NODE_ENV = "dev";
+	process.env.NODE_ENV = "development";
 }
 
 if (process.env.NODE_ENV === "example") {
