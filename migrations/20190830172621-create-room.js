@@ -19,7 +19,7 @@ module.exports = {
         defaultValue: "Room",
       },
       description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
         defaultValue: "",
       },
