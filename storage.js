@@ -14,11 +14,13 @@
 // 	description: { type: Sequelize.STRING, allowNull: false, defaultValue: "" },
 // }, { sequelize, modelName: 'room' })
 
-const models = require("./models/index.js");
+const { Room } = require("./models");
 
 module.exports = {
 	getRoomByName(roomName) {
-
+		return Room.findOne({ where: { name: roomName } }).then(room => {
+			return room;
+		});
 	},
 	saveRoom(room) {
 
