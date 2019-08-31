@@ -26,21 +26,22 @@
             </v-flex>
           </v-flex>
         </v-layout>
-        <v-layout>
-          <v-flex>
-            <div class="video-add">
-              <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl"></v-text-field>
+        <v-layout row justify-space-between>
+          <v-flex column md8 sm12>
+            <v-tabs grow v-model="queueTab">
+              <v-tab>Queue</v-tab>
+              <v-tab>Add</v-tab>
+            </v-tabs>
+            <div class="video-queue" v-if="queueTab === 0">
+              <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
+            </div>
+            <div class="video-add" v-if="queueTab === 1">
+              <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"></v-text-field>
               <v-btn @click="addToQueue">Add</v-btn>
               <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
               <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-            </div>
-          </v-flex>
-        </v-layout>
-        <v-layout row justify-space-between>
-          <v-flex column md8 sm12>
-            <div class="video-queue">
-              <h3>Queue</h3>
-              <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata" :item="itemdata"/>
+
+              <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" isPreview/>
             </div>
           </v-flex>
           <v-flex column md4 sm12>
@@ -86,7 +87,13 @@ export default {
     return {
       sliderPosition: 0,
       volume: 100,
+      addPreview: [],
+
       showEditName: false,
+      queueTab: 0,
+      isLoadingAddPreview: false,
+      inputAddUrlText: "",
+
       showJoinFailOverlay: false,
       joinFailReason: ""
     }
@@ -143,7 +150,7 @@ export default {
     },
     addToQueue() {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.$refs.inputAddUrl.lazyValue
+        url: this.inputAddUrlText
       });
     },
     openEditName() {
@@ -184,6 +191,18 @@ export default {
       else {
         this.pause();
       }
+    },
+    onInputAddChange(value) {
+      // TODO: debounce
+      this.isLoadingAddPreview = true;
+      API.get(`/data/previewAdd?input=${encodeURIComponent(value)}`).then(res => {
+        this.isLoadingAddPreview = false;
+        this.addPreview = res.data;
+        console.log(`Got add preview with ${this.addPreview.length}`);
+      }).catch(err => {
+        this.isLoadingAddPreview = false;
+        console.error("Failed to get add preview", err);
+      });
     }
   },
   mounted() {
@@ -216,11 +235,9 @@ export default {
   // width: 853px;
   margin: 10px;
 }
-.video-queue, .user-list {
-  margin: 10px;
-}
-.video-add {
-  margin: 10px;
+.video-queue, .video-add, .user-list {
+  margin: 0 10px;
+  min-height: 500px;
 }
 .is-you {
   color: #fff;
