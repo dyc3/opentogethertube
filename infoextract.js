@@ -128,6 +128,11 @@ module.exports = {
 						let addPreviewResults = [];
 						for (let i = 0; i < videoIds.length; i++) {
 							const videoInfo = infoResults[videoIds[i]];
+							if (!videoInfo) {
+								// Failed to get info for this video
+								// video has probably been deleted, skip it
+								continue;
+							}
 							let video = {
 								service: "youtube",
 								id: videoIds[i],
