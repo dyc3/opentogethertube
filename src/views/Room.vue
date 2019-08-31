@@ -36,7 +36,7 @@
               <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
             </div>
             <div class="video-add" v-if="queueTab === 1">
-              <v-text-field placeholder="Video URL to add to queue" ref="inputAddUrl" @change="onInputAddChange"></v-text-field>
+              <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"></v-text-field>
               <v-btn @click="addToQueue">Add</v-btn>
               <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
               <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
@@ -92,6 +92,7 @@ export default {
       showEditName: false,
       queueTab: 0,
       isLoadingAddPreview: false,
+      inputAddUrlText: "",
 
       showJoinFailOverlay: false,
       joinFailReason: ""
@@ -149,7 +150,7 @@ export default {
     },
     addToQueue() {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.$refs.inputAddUrl.lazyValue
+        url: this.inputAddUrlText
       });
     },
     openEditName() {
