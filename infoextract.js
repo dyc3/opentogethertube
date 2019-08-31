@@ -74,7 +74,7 @@ module.exports = {
 
 	getPlaylistYoutube(id) {
 		return new Promise((resolve, reject) => {
-			YtApi.get(`/playlistItems?key=${process.env.YOUTUBE_API_KEY}&part=snippet&playlistId=${id}`).then(res => {
+			YtApi.get(`/playlistItems?key=${process.env.YOUTUBE_API_KEY}&part=snippet&playlistId=${id}&maxResults=50`).then(res => {
 				if (res.status !== 200) {
 					reject(`Failed with status code ${res.status}`);
 					return;
