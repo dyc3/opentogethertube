@@ -111,8 +111,38 @@ module.exports = {
 		if (queryParams["list"]) {
 			// there is a playlist associated with this link
 			console.log("playlist found");
-			// TODO: actually process the playlist
-			return new Promise(resolve => resolve([]));
+			return new Promise((resolve, reject) => {
+				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
+					let videoIds = playlist.map(item => item.id);
+					console.log(`Found ${playlist.length} videos in playlist`);
+
+					this.getVideoInfoYoutube(videoIds).then(infoResults => {
+						let addPreviewResults = [];
+						for (let i = 0; i < videoIds.length; i++) {
+							const videoInfo = infoResults[videoIds[i]];
+							let video = {
+								service: "youtube",
+								id: videoIds[i],
+								title: videoInfo.snippet.title,
+								description: videoInfo.snippet.description,
+								thumbnail: videoInfo.snippet.thumbnails.medium.url,
+								length: moment.duration(videoInfo.contentDetails.duration).asSeconds(),
+							}
+							if (queryParams["v"] && video.id === queryParams["v"]) {
+								video.highlight = true;
+							}
+							addPreviewResults.push(video);
+						}
+						resolve(addPreviewResults);
+					}).catch(err => {
+						console.error("Failed to compile add preview:", err);
+						reject(err);
+					});
+				}).catch(err => {
+					console.error("Failed to compile add preview:", err);
+					reject(err);
+				});
+			});
 		}
 		else {
 			let video = {
