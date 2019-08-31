@@ -83,13 +83,21 @@ module.exports = {
 				let results = [];
 				for (let i = 0; i < res.data.items.length; i++) {
 					let item = res.data.items[i];
-					results.push({
+					let video = {
 						service: "youtube",
 						id: item.snippet.resourceId.videoId,
 						title: item.snippet.title,
 						description: item.snippet.description,
-						thumbnail: item.snippet.thumbnails.medium.url,
-					});
+					};
+					if (item.snippet.thumbnails) {
+						if (item.snippet.thumbnails.medium) {
+							video.thumbnail = item.snippet.thumbnails.medium.url;
+						}
+						else {
+							video.thumbnail = item.snippet.thumbnails.default.url;
+						}
+					}
+					results.push(video);
 				}
 				resolve(results);
 			}).catch(err => {
@@ -135,11 +143,11 @@ module.exports = {
 						}
 						resolve(addPreviewResults);
 					}).catch(err => {
-						console.error("Failed to compile add preview:", err);
+						console.error("Failed to compile add preview: error getting video info:", err);
 						reject(err);
 					});
 				}).catch(err => {
-					console.error("Failed to compile add preview:", err);
+					console.error("Failed to compile add preview: error getting playlist:", err);
 					reject(err);
 				});
 			});
