@@ -23,16 +23,17 @@ module.exports = function(_roommanager, storage) {
 	});
 
 	router.get("/room/:name", (req, res) => {
-		res.json(roommanager.getRoom(req.params.name));
-		// if (req.params.name === "test") {
-
-		// }
-		// else {
-		// 	res.status(404);
-		// 	res.json({
-		// 		error: "Room does not exist"
-		// 	});
-		// }
+		roommanager.getRoom(req.params.name).then(room => {
+			if (room) {
+				res.json(room);
+			}
+			else {
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
+		});
 	});
 
 	router.post("/room/create", (req, res) => {

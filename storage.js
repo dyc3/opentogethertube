@@ -19,6 +19,8 @@ const { Room } = require("./models");
 module.exports = {
 	getRoomByName(roomName) {
 		return Room.findOne({ where: { name: roomName } }).then(room => {
+			delete room.createdAt;
+			delete room.updatedAt;
 			return room;
 		});
 	},

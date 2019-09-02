@@ -96,23 +96,32 @@ module.exports = function (server, storage) {
 
 	function getRoom(roomName) {
 		if (rooms.hasOwnProperty(roomName)) {
-			return rooms[roomName];
+			console.log("Room already loaded from db");
+			return new Promise(resolve =>resolve(rooms[roomName]));
 		}
 
 		// load the room from storage if it exists
-		let room = storage.getRoomByName(roomName);
-		if (!room) {
-			return false;
-		}
-		room.isTemporary = false;
-		room.currentSource = {};
-		room.queue = [];
-		room.clients = [];
-		room.isPlaying = false;
-		room.playbackPosition = 0;
-		room.playbackDuration = 0;
-		rooms[roomName] = room;
-		return room;
+		console.log("Grabbing room", roomName, "from db");
+		return storage.getRoomByName(roomName).then(result => {
+			if (!result) {
+				return false;
+			}
+
+			let room = {
+				name: result.name,
+				title: result.title,
+				description: result.description,
+				isTemporary: false,
+				currentSource: {},
+				queue: [],
+				clients: [],
+				isPlaying: false,
+				playbackPosition: 0,
+				playbackDuration: 0
+			};
+			rooms[roomName] = room;
+			return room;
+		});
 	}
 
 	function addToQueue(roomName, link) {
