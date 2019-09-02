@@ -193,72 +193,74 @@ module.exports = function (server, storage) {
 			return;
 		}
 		let roomName = req.url.replace("/api/room/", "");
-		if (!rooms.hasOwnProperty(roomName)) {
-			console.error("[ws] Room doesn't exist");
-			ws.close(4002, "Room doesn't exist");
-			return;
-		}
+		getRoom(roomName).then(result => {
+			if (!result) {
+				console.error("[ws] Room doesn't exist")
+				ws.close(4002, "Room doesn't exist");
+				return;
+			}
+		}).then(() => {
+			rooms[roomName].clients.push({
+				name: "client",
+				socket: ws
+			});
+			console.log("[ws] client joined", roomName);
 
-		rooms[roomName].clients.push({
-			name: "client",
-			socket: ws
-		});
-		console.log("[ws] client joined", roomName);
-
-		ws.on('message', (message) => {
-			console.log('[ws] received:', typeof(message), message);
-			let msg = JSON.parse(message);
-			if (msg.action == "play") {
-				rooms[roomName].isPlaying = true;
-				syncRoom(rooms[roomName]);
-			}
-			else if (msg.action == "pause") {
-				rooms[roomName].isPlaying = false;
-				syncRoom(rooms[roomName]);
-			}
-			else if (msg.action == "seek") {
-				rooms[roomName].playbackPosition = msg.position;
-				syncRoom(rooms[roomName]);
-			}
-			else if (msg.action == "skip") {
-				rooms[roomName].playbackPosition = rooms[roomName].playbackDuration + 1;
-				updateRoom(rooms[roomName]);
-			}
-			else if (msg.action == "set-name") {
-				if (!msg.name) {
-					console.warn("name not supplied");
-					return;
+			ws.on('message', (message) => {
+				console.log('[ws] received:', typeof(message), message);
+				let msg = JSON.parse(message);
+				if (msg.action == "play") {
+					rooms[roomName].isPlaying = true;
+					syncRoom(rooms[roomName]);
 				}
-				for (let i = 0; i < rooms[roomName].clients.length; i++) {
-					if (rooms[roomName].clients[i].socket == ws) {
-						rooms[roomName].clients[i].name = msg.name;
-						break;
+				else if (msg.action == "pause") {
+					rooms[roomName].isPlaying = false;
+					syncRoom(rooms[roomName]);
+				}
+				else if (msg.action == "seek") {
+					rooms[roomName].playbackPosition = msg.position;
+					syncRoom(rooms[roomName]);
+				}
+				else if (msg.action == "skip") {
+					rooms[roomName].playbackPosition = rooms[roomName].playbackDuration + 1;
+					updateRoom(rooms[roomName]);
+				}
+				else if (msg.action == "set-name") {
+					if (!msg.name) {
+						console.warn("name not supplied");
+						return;
 					}
-				}
-				updateRoom(rooms[roomName]);
-			}
-			else if (msg.action == "generate-name") {
-				let generatedName = uniqueNamesGenerator();
-				ws.send(JSON.stringify({
-					action: "generatedName",
-					name: generatedName
-				}));
-
-				for (let i = 0; i < rooms[roomName].clients.length; i++) {
-					if (rooms[roomName].clients[i].socket == ws) {
-						rooms[roomName].clients[i].name = generatedName;
-						break;
+					for (let i = 0; i < rooms[roomName].clients.length; i++) {
+						if (rooms[roomName].clients[i].socket == ws) {
+							rooms[roomName].clients[i].name = msg.name;
+							break;
+						}
 					}
+					updateRoom(rooms[roomName]);
 				}
-				updateRoom(rooms[roomName]);
-			}
-			else {
-				console.warn("[ws] UNKNOWN ACTION", msg.action);
-			}
-		});
+				else if (msg.action == "generate-name") {
+					let generatedName = uniqueNamesGenerator();
+					ws.send(JSON.stringify({
+						action: "generatedName",
+						name: generatedName
+					}));
 
-		// sync room immediately
-		syncRoom(rooms[roomName]);
+					for (let i = 0; i < rooms[roomName].clients.length; i++) {
+						if (rooms[roomName].clients[i].socket == ws) {
+							rooms[roomName].clients[i].name = generatedName;
+							break;
+						}
+					}
+					updateRoom(rooms[roomName]);
+				}
+				else {
+					console.warn("[ws] UNKNOWN ACTION", msg.action);
+				}
+			});
+
+			// sync room immediately
+			syncRoom(rooms[roomName]);
+		});
 	});
 
 	let roomTicker = setInterval(function() {
