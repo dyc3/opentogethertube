@@ -1,4 +1,3 @@
-const Sequelize = require('sequelize');
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
@@ -6,7 +5,7 @@ const path = require('path');
 
 if (!process.env.NODE_ENV) {
 	console.warn("NODE_ENV not set, assuming dev environment");
-	process.env.NODE_ENV = "dev";
+	process.env.NODE_ENV = "development";
 }
 
 if (process.env.NODE_ENV === "example") {
@@ -21,17 +20,12 @@ if (!fs.existsSync(config_path)) {
 }
 require('dotenv').config({ path: config_path });
 
-const sequelize = new Sequelize('database', 'username', 'password', {
-	host: 'localhost',
-	dialect: 'sqlite', /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
-	storage: 'db/dev.sqlite'
-});
-
 const app = express();
 const server = http.createServer(app);
 
-const roommanager = require("./roommanager")(server);
-const api = require("./api")(roommanager);
+const storage = require("./storage");
+const roommanager = require("./roommanager")(server, storage);
+const api = require("./api")(roommanager, storage);
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies

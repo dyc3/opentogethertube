@@ -3,7 +3,7 @@ const _ = require("lodash");
 const uuid = require("uuid/v4");
 const InfoExtract = require("./infoextract");
 
-module.exports = function(_roommanager) {
+module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
 	const router = express.Router();
 
@@ -24,15 +24,17 @@ module.exports = function(_roommanager) {
 	});
 
 	router.get("/room/:name", (req, res) => {
-		if (req.params.name === "test") {
-			res.json(roommanager.rooms[req.params.name]);
-		}
-		else {
-			res.status(404);
-			res.json({
-				error: "Room does not exist"
-			});
-		}
+		roommanager.getRoom(req.params.name).then(room => {
+			if (room) {
+				res.json(room);
+			}
+			else {
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
+		});
 	});
 
 	router.post("/room/create", (req, res) => {

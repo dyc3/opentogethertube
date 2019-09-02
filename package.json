@@ -9,7 +9,7 @@
     "lint": "vue-cli-service lint",
     "test": "vue-cli-service test:unit",
     "api-server": "nodemon app.js",
-    "dev": "NODE_ENV=dev concurrently \"npm:api-server\" \"npm:serve\""
+    "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"npm:serve\""
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.9.0",
@@ -24,6 +24,7 @@
     "pg": "^7.11.0",
     "pg-hstore": "^2.3.3",
     "sequelize": "^5.10.1",
+    "sequelize-cli": "^5.5.0",
     "unique-names-generator": "^3.0.0",
     "uuid": "^3.3.2",
     "vue": "^2.6.10",
@@ -51,7 +52,7 @@
     "node-sass": "^4.9.0",
     "nodemon": "^1.19.1",
     "sass-loader": "^7.1.0",
-    "sqlite3": "^4.0.9",
+    "sqlite3": "^4.1.0",
     "vue-template-compiler": "^2.6.10"
   }
 }
