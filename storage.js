@@ -1,19 +1,3 @@
-// const Sequelize = require('sequelize');
-
-// const sequelize = new Sequelize('database', 'username', 'password', {
-// 	host: 'localhost',
-// 	dialect: 'sqlite', /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
-// 	storage: 'db/dev.sqlite'
-// });
-
-// class Room extends Sequelize.Model {}
-// Room.init({
-// 	id: { type: Sequelize.INTEGER, primaryKey: true, unique: true, autoIncrement: true },
-// 	name: { type: Sequelize.STRING, allowNull: false, unique: true },
-// 	title: { type: Sequelize.STRING, allowNull: false, defaultValue: "Room" },
-// 	description: { type: Sequelize.STRING, allowNull: false, defaultValue: "" },
-// }, { sequelize, modelName: 'room' })
-
 const { Room } = require("./models");
 
 module.exports = {
@@ -36,5 +20,8 @@ module.exports = {
 			console.error("Failed to save room to storage:", err);
 			return false;
 		});
+	},
+	updateRoom: function(room) {
+		// TODO: update existing room in db
 	}
 }
