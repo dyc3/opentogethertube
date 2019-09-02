@@ -28,7 +28,11 @@ config in the `env` folder to a new file called `development.env`
 cp env/example.env env/development.env
 ```
 4. Obtain a YouTube API key
-5. Open `env/dev.env` and replace `API_KEY_GOES_HERE` with the youtube api key.
+5. Open `env/development.env` and replace `API_KEY_GOES_HERE` with the youtube api key.
+6. Initialize your local database.
+```
+npx sequelize-cli db:migrate
+```
 
 ### Testing
 
