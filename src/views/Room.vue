@@ -9,7 +9,7 @@
         <v-layout wrap class="video-container">
           <v-flex xl8>
             <div class="iframe-container" :key="currentSource.service">
-              <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="OnPlaybackChange(true)" @paused="OnPlaybackChange(false)"></youtube>
+              <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)"></youtube>
             </div>
             <v-flex column class="video-controls">
               <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
@@ -183,7 +183,7 @@ export default {
       window.localStorage.setItem("username", this.$refs.editName.lazyValue);
       this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
     },
-    OnPlaybackChange(changeTo) {
+    onPlaybackChange(changeTo) {
       this.setVolume(this.volume);
       if (changeTo == this.$store.state.room.isPlaying) {
         return;
