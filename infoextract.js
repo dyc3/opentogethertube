@@ -140,7 +140,7 @@ module.exports = {
 								description: videoInfo.snippet.description,
 								thumbnail: videoInfo.snippet.thumbnails.medium.url,
 								length: moment.duration(videoInfo.contentDetails.duration).asSeconds(),
-							}
+							};
 							if (queryParams["v"] && video.id === queryParams["v"]) {
 								video.highlight = true;
 							}
@@ -177,4 +177,4 @@ module.exports = {
 			});
 		}
 	},
-}
+};

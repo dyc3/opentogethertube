@@ -28,7 +28,7 @@ export default {
     return {
       rooms: [],
       isLoading: false,
-    }
+    };
   },
   created() {
     this.isLoading = true;
@@ -37,5 +37,5 @@ export default {
       this.rooms = res.data;
     });
   }
-}
+};
 </script>

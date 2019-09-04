@@ -96,7 +96,7 @@ export default {
 
       showJoinFailOverlay: false,
       joinFailReason: ""
-    }
+    };
   },
   computed: {
     connectionStatus() {
@@ -231,7 +231,7 @@ export default {
       }
     },
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>

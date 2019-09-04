@@ -15,7 +15,7 @@ module.exports = {
 			description: room.description,
 		}).then(result => {
 			console.log("Saved room to db: id", result.dataValues.id);
-			return true
+			return true;
 		}).catch(err => {
 			console.error("Failed to save room to storage:", err);
 			return false;
@@ -25,4 +25,4 @@ module.exports = {
 	updateRoom: function(room) {
 		// TODO: update existing room in db
 	}
-}
+};

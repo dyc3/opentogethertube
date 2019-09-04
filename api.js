@@ -88,7 +88,7 @@ module.exports = function(_roommanager, storage) {
 		roommanager.deleteRoom(req.params.name);
 		res.status(200).json({
 			success: true
-		})
+		});
 	});
 
 	router.post("/room/:name/queue", (req, res) => {
@@ -131,7 +131,7 @@ module.exports = function(_roommanager, storage) {
 			res.status(404).json({
 				success: false,
 				error: "Queue item not found",
-			})
+			});
 		}
 
 		// remove the item from the queue

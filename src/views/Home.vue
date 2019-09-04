@@ -115,7 +115,7 @@ export default {
 	data() {
 		return {
 			isLoading: false
-		}
+		};
 	},
 	methods: {
 		createRoom() {
@@ -126,7 +126,7 @@ export default {
 			});
 		}
 	}
-}
+};
 </script>
 
 <style lang="scss" scoped>

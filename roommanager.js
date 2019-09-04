@@ -187,7 +187,7 @@ module.exports = function (server, storage) {
 		let roomName = req.url.replace("/api/room/", "");
 		getRoom(roomName).then(result => {
 			if (!result) {
-				console.error("[ws] Room doesn't exist")
+				console.error("[ws] Room doesn't exist");
 				ws.close(4002, "Room doesn't exist");
 				return;
 			}
