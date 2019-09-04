@@ -174,7 +174,7 @@ export default {
         this.$refs.youtube.player.pauseVideo();
       }
     },
-    setVolume(value) {
+    updateVolume() {
       if (this.currentSource.service == "youtube") {
         this.$refs.youtube.player.setVolume(this.volume);
       }
@@ -184,7 +184,7 @@ export default {
       this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
     },
     onPlaybackChange(changeTo) {
-      this.setVolume(this.volume);
+      this.updateVolume();
       if (changeTo == this.$store.state.room.isPlaying) {
         return;
       }
@@ -210,10 +210,10 @@ export default {
     }
   },
   mounted() {
-    this.$events.on("playVideo", eventData => {
+    this.$events.on("playVideo", () => {
       this.play();
     });
-    this.$events.on("pauseVideo", eventData => {
+    this.$events.on("pauseVideo", () => {
       this.pause();
     });
     this.$events.on("roomJoinFailure", eventData => {
@@ -222,10 +222,10 @@ export default {
     });
   },
   watch: {
-    volume(newVolume, oldVolume) {
-      this.setVolume(parseInt(newVolume));
+    volume() {
+      this.updateVolume();
     },
-    async sliderPosition(newPosition, oldPosition) {
+    async sliderPosition(newPosition) {
       if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
         this.$refs.youtube.player.seekTo(newPosition);
       }

@@ -21,7 +21,7 @@
 export default {
   name: "app",
   watch:{
-    $route (to, from){
+    $route (to){
       if (to.name != "room" && this.$store.state.socket.isConnected) {
         this.$disconnect();
       }

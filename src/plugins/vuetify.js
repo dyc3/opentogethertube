@@ -6,8 +6,6 @@ import '@mdi/font/css/materialdesignicons.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 Vue.use(Vuetify);
 
-import colors from 'vuetify/lib/util/colors';
-
 export default new Vuetify({
 	icons: {
 		iconfont: "fa"

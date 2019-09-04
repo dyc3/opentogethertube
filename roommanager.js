@@ -255,7 +255,7 @@ module.exports = function (server, storage) {
 		});
 	});
 
-	let roomTicker = setInterval(function() {
+	setInterval(function() {
 		let roomsToDelete = [];
 		for (let roomName in rooms) {
 			let room = rooms[roomName];

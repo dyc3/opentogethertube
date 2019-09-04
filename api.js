@@ -3,6 +3,7 @@ const _ = require("lodash");
 const uuid = require("uuid/v4");
 const InfoExtract = require("./infoextract");
 
+// eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
 	const router = express.Router();
@@ -69,7 +70,7 @@ module.exports = function(_roommanager, storage) {
 
 	router.post("/room/generate", (req, res) => {
 		let roomName = uuid();
-		roommanager.createRoom(roomName, isTemporary=true);
+		roommanager.createRoom(roomName, true);
 		res.json({
 			success: true,
 			room: roomName

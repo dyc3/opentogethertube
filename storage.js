@@ -21,6 +21,7 @@ module.exports = {
 			return false;
 		});
 	},
+	// eslint-disable-next-line no-unused-vars
 	updateRoom: function(room) {
 		// TODO: update existing room in db
 	}

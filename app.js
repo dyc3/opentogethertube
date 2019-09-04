@@ -34,7 +34,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 }));
 
 // Redirect urls with trailing slashes
-app.get('\\S+\/$', function (req, res) {
+app.get('\\S+/$', function (req, res) {
 	return res.redirect(301, req.path.slice(0, -1) + req.url.slice(req.path.length));
 });
 
@@ -55,7 +55,7 @@ function serveBuiltFiles(req, res) {
 
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
-	app.use(express.static(__dirname + "/dist", redirect=false));
+	app.use(express.static(__dirname + "/dist", false));
 	app.get("/", serveBuiltFiles);
 	app.get("/rooms", serveBuiltFiles);
 	app.get("/room/:roomId", serveBuiltFiles);
