@@ -1,8 +1,6 @@
 const WebSocket = require('ws');
 const InfoExtract = require("./infoextract");
 const { uniqueNamesGenerator } = require('unique-names-generator');
-const url = require("url");
-const querystring = require('querystring');
 const _ = require("lodash");
 const moment = require("moment");
 
