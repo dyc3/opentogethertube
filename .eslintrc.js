@@ -12,9 +12,13 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'curly': ['error', 'all'],
     'no-eval': ['error', {}],
+    'no-var': 'error',
+    'semi': ['error', 'always'],
+    'semi-spacing': ["error", {"before": false, "after": true}],
+    'eol-last': ["error", "always"],
   },
   parserOptions: {
     ecmaVersion: 6,
     parser: 'babel-eslint'
   }
-}
+};
