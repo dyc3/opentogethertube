@@ -44,7 +44,23 @@ module.exports = {
 				let results = {};
 				for (let i = 0; i < res.data.items.length; i++) {
 					let item = res.data.items[i];
-					results[item.id] = item;
+					let video = {
+						service: "youtube",
+						id: item.id,
+						title: item.snippet.title,
+						description: item.snippet.description,
+						thumbnail: "",
+						length: moment.duration(item.contentDetails.duration).asSeconds(),
+					};
+					if (item.snippet.thumbnails) {
+						if (item.snippet.thumbnails.medium) {
+							video.thumbnail = item.snippet.thumbnails.medium.url;
+						}
+						else {
+							video.thumbnail = item.snippet.thumbnails.default.url;
+						}
+					}
+					results[item.id] = video;
 				}
 				resolve(results);
 			}).catch(err => {
@@ -133,14 +149,7 @@ module.exports = {
 								// video has probably been deleted, skip it
 								continue;
 							}
-							let video = {
-								service: "youtube",
-								id: videoIds[i],
-								title: videoInfo.snippet.title,
-								description: videoInfo.snippet.description,
-								thumbnail: videoInfo.snippet.thumbnails.medium.url,
-								length: moment.duration(videoInfo.contentDetails.duration).asSeconds(),
-							};
+							let video = videoInfo;
 							if (queryParams["v"] && video.id === queryParams["v"]) {
 								video.highlight = true;
 							}
@@ -164,11 +173,7 @@ module.exports = {
 				title: queryParams.v
 			};
 			return this.getVideoInfoYoutube([video.id]).then(results => {
-				let videoInfo = results[queryParams.v];
-				video.title = videoInfo.snippet.title;
-				video.description = videoInfo.snippet.description;
-				video.thumbnail = videoInfo.snippet.thumbnails.medium.url;
-				video.length = moment.duration(videoInfo.contentDetails.duration).asSeconds();
+				video = results[queryParams.v];
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);

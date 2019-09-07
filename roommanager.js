@@ -139,11 +139,7 @@ module.exports = function (server, storage) {
 
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
-				let videoInfo = results[queueItem.id];
-				queueItem.title = videoInfo.snippet.title;
-				queueItem.description = videoInfo.snippet.description;
-				queueItem.thumbnail = videoInfo.snippet.thumbnails.medium.url;
-				queueItem.length = moment.duration(videoInfo.contentDetails.duration).asSeconds();
+				queueItem = results[queueItem.id];
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);
