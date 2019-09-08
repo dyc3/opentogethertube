@@ -17,7 +17,7 @@ module.exports = {
     "operatorsAliases": false
   },
   "production": {
-    "username": "root",
+    "username": "ott",
     "password": process.env.DB_PASSWORD,
     "database": "db_opentogethertube_prod",
     "host": "127.0.0.1",
