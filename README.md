@@ -18,6 +18,9 @@ This project targets the lastest LTS version of node.js.
 ### Setup
 
 1. Fork this repo and clone it.
+
+	*If you are planning to deploy this yourself, make sure you are on the `master` branch.*
+
 2. In a terminal, navigate to the `opentogethertube` folder and run
 ```
 npm install
