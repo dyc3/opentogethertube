@@ -1,3 +1,12 @@
+if (process.env.NODE_ENV !== 'production') {
+  const fs = require('fs');
+  const path = require('path');
+  let rootDir = path.resolve(__dirname + "/..");
+  if (!fs.existsSync(path.join(rootDir, "./db"))) {
+    fs.mkdirSync(path.join(rootDir, "./db"));
+  }
+}
+
 module.exports = {
   "development": {
     "username": "root",
