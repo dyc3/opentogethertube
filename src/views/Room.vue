@@ -125,7 +125,7 @@ export default {
     if (!this.$store.state.socket.isConnected) {
       // This check prevents the client from connecting multiple times,
       // caused by hot reloading in the dev environment.
-      this.$connect(`ws://${window.location.host}/api/room/${this.$route.params.roomId}`);
+      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
     }
   },
   methods: {
