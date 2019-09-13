@@ -1,0 +1,9 @@
+# This robots.txt file tells webcrawlers and search engines which parts of the sites they cannot access.
+
+# The User-agent field is the name of the webcrawler. We're going to put '*' to reference all robots.
+User-agent: *
+
+# The Disallow field tells which routes we do not want the webcrawlers to have access to.
+# Right now the only route we're going to deny access to is the room page.
+# NOTE: this also affects all subroutes so /room/test and /room/myroom are also blocked.
+Disallow: /room
