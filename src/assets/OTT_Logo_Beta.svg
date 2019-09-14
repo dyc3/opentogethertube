@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="160mm" height="130mm" version="1.1" viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="162.5mm" height="132.5mm" version="1.1" viewBox="0 0 162.5 132.5" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
 <defs>
-<linearGradient id="a" x1="60" x2="100" y1="232" y2="232" gradientUnits="userSpaceOnUse">
+<linearGradient id="a" osb:paint="solid">
 <stop stop-color="#a36cff" offset="0"/>
 </linearGradient>
+<linearGradient id="c" x1="60" x2="100" y1="232" y2="232" gradientTransform="translate(2.5)" gradientUnits="userSpaceOnUse" xlink:href="#a"/>
+<linearGradient id="b" x1="60" x2="100" y1="232" y2="232" gradientTransform="translate(2.5,-2.5)" gradientUnits="userSpaceOnUse" xlink:href="#a"/>
 </defs>
 <metadata>
 <rdf:RDF>
@@ -14,16 +16,12 @@
 </cc:Work>
 </rdf:RDF>
 </metadata>
-<g transform="translate(0,-167)">
-<rect x="60" y="207" width="100" height="90" rx="5" ry="5" fill="#626262"/>
-<g transform="translate(-20)" fill="#d76cff">
-<rect x="140" y="207" width="40" height="90" rx="5" ry="5"/>
-<circle cx="160" cy="187" r="20"/>
-</g>
-<g fill="url(#a)">
-<rect x="60" y="207" width="40" height="90" rx="5" ry="5"/>
-<circle cx="80" cy="187" r="20"/>
-</g>
+<g transform="translate(0,-164.5)">
+<rect x="62.5" y="207" width="100" height="90" rx="5" ry="5" fill="#626262"/>
+<rect x="122.5" y="207" width="40" height="90" rx="5" ry="5" fill="#d76cff"/>
+<circle cx="142.5" cy="184.5" r="20" fill="#d76cff"/>
+<rect x="62.5" y="207" width="40" height="90" rx="5" ry="5" fill="url(#c)"/>
+<circle cx="82.5" cy="184.5" r="20" fill="url(#b)"/>
 <path d="m57.659 256.09c-18.587 15.436-35.318 25.885-51.233 39.209-4.1167 3.4798-6.4256 1.1304-6.4256-2.6535l0.12505-81.626c-0.006128-4.2791 1.3978-5.3763 5.5457-2.1511 18.288 14.22 33.45 24.996 51.738 39.216 3.4085 2.5226 3.4154 5.4844 0.2501 8.0049z" fill="#f90"/>
 </g>
 </svg>
