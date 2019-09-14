@@ -31,7 +31,7 @@
             <v-tabs grow v-model="queueTab">
               <v-tab>
                 Queue
-                <span class="bubble">2</span>
+                <span class="bubble">{{$store.state.room.queue.length}}</span>
               </v-tab>
               <v-tab>Add</v-tab>
             </v-tabs>
@@ -98,7 +98,9 @@ export default {
       inputAddUrlText: "",
 
       showJoinFailOverlay: false,
-      joinFailReason: ""
+      joinFailReason: "",
+
+      totalItemsInQueue: 0
     };
   },
   computed: {
@@ -159,6 +161,7 @@ export default {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: this.inputAddUrlText
       });
+      this.totalItemsInQueue += 1;
     },
     openEditName() {
       this.showEditName = !this.showEditName;
