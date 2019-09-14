@@ -31,7 +31,7 @@
             <v-tabs grow v-model="queueTab">
               <v-tab>
                 Queue
-                <span class="bubble">{{$store.state.room.queue.length}}</span>
+                <span class="bubble">{{$store.state.room.queue.length < 99? $store.state.room.queue.length : "99+"}}</span>
               </v-tab>
               <v-tab>Add</v-tab>
             </v-tabs>
