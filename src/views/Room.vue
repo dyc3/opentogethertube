@@ -244,9 +244,9 @@ export default {
   min-height: 500px;
 }
 .is-you {
-  color: #fff;
-  background-color: #aa00ff;
-  border-radius: 5px;
+  color: #ffb300;
+  border: 1px #ffb300 solid;
+  border-radius: 10px;
   margin: 5px;
   padding: 0 5px;
   font-size: 10px;
