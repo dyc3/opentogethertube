@@ -99,8 +99,6 @@ export default {
 
       showJoinFailOverlay: false,
       joinFailReason: "",
-
-      totalItemsInQueue: 0
     };
   },
   computed: {
@@ -161,7 +159,6 @@ export default {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: this.inputAddUrlText
       });
-      this.totalItemsInQueue += 1;
     },
     openEditName() {
       this.showEditName = !this.showEditName;
