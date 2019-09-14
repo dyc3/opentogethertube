@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="160mm" height="130mm" version="1.1" viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<linearGradient id="a" x1="60" x2="100" y1="232" y2="232" gradientUnits="userSpaceOnUse">
+<stop stop-color="#a36cff" offset="0"/>
+</linearGradient>
+</defs>
+<metadata>
+<rdf:RDF>
+<cc:Work rdf:about="">
+<dc:format>image/svg+xml</dc:format>
+<dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+<dc:title/>
+</cc:Work>
+</rdf:RDF>
+</metadata>
+<g transform="translate(0,-167)">
+<rect x="60" y="207" width="100" height="90" rx="5" ry="5" fill="#626262"/>
+<g transform="translate(-20)" fill="#d76cff">
+<rect x="140" y="207" width="40" height="90" rx="5" ry="5"/>
+<circle cx="160" cy="187" r="20"/>
+</g>
+<g fill="url(#a)">
+<rect x="60" y="207" width="40" height="90" rx="5" ry="5"/>
+<circle cx="80" cy="187" r="20"/>
+</g>
+<path transform="matrix(.84459 0 0 1.0972 0 -28.854)" d="m71.041 255.98-71.041 41.015v-82.031z" fill="#f90"/>
+</g>
+</svg>
