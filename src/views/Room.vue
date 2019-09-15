@@ -98,7 +98,7 @@ export default {
       inputAddUrlText: "",
 
       showJoinFailOverlay: false,
-      joinFailReason: ""
+      joinFailReason: "",
     };
   },
   computed: {
