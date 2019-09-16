@@ -9,7 +9,7 @@
         <v-layout wrap class="video-container">
           <v-flex xl8>
             <div class="iframe-container" :key="currentSource.service">
-              <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)"></youtube>
+              <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"></youtube>
             </div>
             <v-flex column class="video-controls">
               <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
@@ -207,7 +207,10 @@ export default {
         this.isLoadingAddPreview = false;
         console.error("Failed to get add preview", err);
       });
-    }
+    },
+    onPlayerReady_Youtube() {
+      this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
