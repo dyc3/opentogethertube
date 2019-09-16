@@ -29,7 +29,10 @@
         <v-layout row justify-space-between>
           <v-flex column md8 sm12>
             <v-tabs grow v-model="queueTab">
-              <v-tab>Queue</v-tab>
+              <v-tab>
+                Queue
+                <span class="bubble">{{ $store.state.room.queue.length <= 99 ? $store.state.room.queue.length : "99+" }}</span>
+              </v-tab>
               <v-tab>Add</v-tab>
             </v-tabs>
             <div class="video-queue" v-if="queueTab === 0">
@@ -95,7 +98,7 @@ export default {
       inputAddUrlText: "",
 
       showJoinFailOverlay: false,
-      joinFailReason: ""
+      joinFailReason: "",
     };
   },
   computed: {
@@ -267,5 +270,18 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+}
+.bubble{
+  height: 25px;
+  width: 25px;
+  margin-left: 10px;
+  background-color: #3f3838;
+  border-radius: 50%;
+  display: inline-block;
+
+  font-weight: bold;
+  color:#fff;
+  text-align: center;
+  line-height: 1.8;
 }
 </style>
