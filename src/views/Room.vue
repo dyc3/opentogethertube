@@ -22,6 +22,9 @@
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"></vue-slider>
+                <div style="margin-left: 20px">
+                  {{ positionDisplay }}
+                </div>
               </v-flex>
             </v-flex>
           </v-flex>
@@ -118,6 +121,11 @@ export default {
     },
     playbackPercentage() {
       return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
+    },
+    positionDisplay(){
+      const position = this.$store.state.room.playbackPosition >= 3600 ? new Date(this.$store.state.room.playbackPosition * 1000).toISOString().substr(11,8) : new Date(this.$store.state.room.playbackPosition * 1000).toISOString().substr(14,5);
+      const duration = this.$store.state.room.currentSource.length >= 3600 ? new Date(this.$store.state.room.currentSource.length * 1000).toISOString().substr(11,8) : new Date(this.$store.state.room.currentSource.length * 1000).toISOString().substr(14,5);
+      return position + " / " + duration;
     }
   },
   created() {
