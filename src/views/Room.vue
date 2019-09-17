@@ -83,7 +83,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import convertSecondstoHHMMSS from "../timestamp.js";
+import secondsToTimestamp from "@/timestamp.js";
 
 export default {
   name: 'room',
@@ -124,8 +124,8 @@ export default {
       return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
     },
     timestampDisplay(){
-      const position = convertSecondstoHHMMSS(this.$store.state.room.playbackPosition);
-      const duration = convertSecondstoHHMMSS(this.$store.state.room.currentSource.length);
+      const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
+      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length);
       return position + " / " + duration;
     }
   },
