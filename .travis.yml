@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+  - lts/*
+cache:
+  directories:
+    - "$HOME/.npm"
+install:
+  - npm ci
+before_script:
+  - npm run build
+script:
+  - npm run lint
+  - npm test
