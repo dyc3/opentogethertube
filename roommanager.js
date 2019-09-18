@@ -2,7 +2,6 @@ const WebSocket = require('ws');
 const InfoExtract = require("./infoextract");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const _ = require("lodash");
-const moment = require("moment");
 
 module.exports = function (server, storage) {
 	function syncRoom(room) {
