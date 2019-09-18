@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     title: DataTypes.STRING,
     description: DataTypes.STRING
   }, {});
+  // eslint-disable-next-line no-unused-vars
   Room.associate = function(models) {
     // associations can be defined here
   };
