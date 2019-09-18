@@ -11,11 +11,28 @@ module.exports = {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'array-bracket-newline': ['error', { "multiline": true, "minItems": 2 }],
+    'array-bracket-spacing': ['error', 'never'],
+    'brace-style': ['error', 'stroustrup', { 'allowSingleLine': false }],
+    'comma-dangle': ['error', {
+      'arrays': 'always-multiline',
+      'objects': 'always-multiline',
+      'imports': 'never',
+      'exports': 'always-multiline',
+      'functions': 'never',
+    }],
+    'comma-spacing': ['error', {'before': false, 'after': true}],
     'curly': ['error', 'all'],
+    'func-call-spacing': ['error', 'never'],
+    'implicit-arrow-linebreak': ['error', 'beside'],
+    'keyword-spacing': ['error', { 'before': true, 'after': true }],
     'no-eval': ['error', {}],
     'no-var': 'error',
+    'no-dupe-keys': 'error',
+    'prefer-arrow-callback': 'error',
     'semi': ['error', 'always'],
     'semi-spacing': ["error", {"before": false, "after": true}],
+    'space-before-blocks': ['error', 'always'],
     'eol-last': ["error", "always"],
 
     // HACK: this rule is required, otherwise travis-ci will fail (for some reason)
