@@ -5,7 +5,7 @@ const moment = require("moment");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
 const YtApi = axios.create({
-	baseURL: YOUTUBE_API_URL
+	baseURL: YOUTUBE_API_URL,
 });
 
 module.exports = {
@@ -71,7 +71,9 @@ module.exports = {
 
 	getVideoLengthYoutube_Fallback: async (url) => {
 		let res = await axios.get(url);
-		let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
+		let regexs = [
+/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
+];
 		for (let r = 0; r < regexs.length; r++) {
 			let matches = res.data.match(regexs[r]);
 			if (matches == null) {
@@ -170,7 +172,7 @@ module.exports = {
 			let video = {
 				service: "youtube",
 				id: queryParams.v,
-				title: queryParams.v
+				title: queryParams.v,
 			};
 			return this.getVideoInfoYoutube([video.id]).then(results => {
 				video = results[queryParams.v];

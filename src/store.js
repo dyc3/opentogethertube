@@ -20,8 +20,8 @@ export default new Vuex.Store({
 			queue: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0
-		}
+			playbackDuration: 0,
+		},
 	},
 	mutations:{
 		SOCKET_ONOPEN (state, event)  {
@@ -92,6 +92,6 @@ export default new Vuex.Store({
 		generatedName(context, message) {
 			console.debug("generated name received from server");
 			window.localStorage.setItem("username", message.name);
-		}
-	}
+		},
+	},
 });

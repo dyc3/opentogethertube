@@ -30,15 +30,15 @@ const api = require("./api")(roommanager, storage);
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
-	extended: true
+	extended: true,
 }));
 
 // Redirect urls with trailing slashes
-app.get('\\S+/$', function (req, res) {
+app.get('\\S+/$', (req, res) => {
 	return res.redirect(301, req.path.slice(0, -1) + req.url.slice(req.path.length));
 });
 
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
 	console.log(">", req.method, req.path, req.params);
 	if (req.method == "POST") {
 		console.log("   -", req.body);
