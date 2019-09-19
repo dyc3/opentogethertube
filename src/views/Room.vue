@@ -22,6 +22,9 @@
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"></vue-slider>
+                <div style="margin-left: 20px">
+                  {{ timestampDisplay }}
+                </div>
               </v-flex>
             </v-flex>
           </v-flex>
@@ -80,6 +83,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
+import secondsToTimestamp from "@/timestamp.js";
 
 export default {
   name: 'room',
@@ -118,6 +122,11 @@ export default {
     },
     playbackPercentage() {
       return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
+    },
+    timestampDisplay(){
+      const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
+      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length);
+      return position + " / " + duration;
     }
   },
   created() {
