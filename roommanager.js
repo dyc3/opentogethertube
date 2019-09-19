@@ -121,7 +121,7 @@ module.exports = function (server, storage) {
 		});
 	}
 
-	function addToQueue(roomName, link) {
+	function addToQueue(roomName, video) {
 		let queueItem = {
 			service: "",
 			id: "",
@@ -131,11 +131,19 @@ module.exports = function (server, storage) {
 			length: 0,
 		};
 
-		queueItem.service = InfoExtract.getService(link);
+		if (video.hasOwnProperty("url")) {
+			queueItem.service = InfoExtract.getService(video.url);
+
+			if (queueItem.service === "youtube") {
+				queueItem.id = InfoExtract.getVideoIdYoutube(video.url);
+			}
+		}
+		else {
+			queueItem.service = video.service;
+			queueItem.id = video.id;
+		}
 
 		if (queueItem.service === "youtube") {
-			queueItem.id = InfoExtract.getVideoIdYoutube(link);
-
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
 				queueItem = results[queueItem.id];
