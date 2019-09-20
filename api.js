@@ -99,10 +99,27 @@ module.exports = function(_roommanager, storage) {
 			});
 			return;
 		}
-		let success = roommanager.addToQueue(req.params.name, req.body.url);
-		res.json({
-			success,
-		});
+		if (req.body.url) {
+			roommanager.addToQueue(req.params.name, { url: req.body.url }).then(success => {
+				res.json({
+					success,
+				});
+			});
+		}
+		else if (req.body.service && req.body.id) {
+			roommanager.addToQueue(req.params.name, { service: req.body.service, id: req.body.id }).then(success => {
+				res.json({
+					success,
+				});
+			});
+		}
+		else {
+			res.status(400).json({
+				success: false,
+				error: "Invalid parameters",
+			});
+			return;
+		}
 		roommanager.updateRoom(roommanager.rooms[req.params.name]);
 	});
 
