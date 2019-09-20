@@ -10,7 +10,8 @@ export default new Vuex.Store({
 			message: '',
 			reconnectError: false,
 		},
-		joinFailureReason: null,
+            joinFailureReason: null,
+            production: process.env.NODE_ENV === 'production',
 		room: {
 			name: "",
 			title: "",
