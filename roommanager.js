@@ -15,7 +15,7 @@ module.exports = function (server, storage) {
 			queue: room.queue,
 			isPlaying: room.isPlaying,
 			playbackPosition: room.playbackPosition,
-			playbackDuration: room.playbackDuration,
+			
 			users: [],
 		};
 
@@ -35,24 +35,20 @@ module.exports = function (server, storage) {
 	}
 
 	function updateRoom(room) {
-		if (!_.isEmpty(room.currentSource) && room.currentSource.hasOwnProperty("length")) {
-			// FIXME: the client expectes playbackDuration to exist and be >0.
-			// A better way to do this would be for the client to infer playbackDuration
-			// from currentsource.length
-			room.playbackDuration = room.currentSource.length;
-		}
+		
+			
 
 		if (_.isEmpty(room.currentSource) && room.queue.length > 0) {
 			room.currentSource = room.queue.shift();
 		}
-		else if (!_.isEmpty(room.currentSource) && room.playbackPosition > room.playbackDuration) {
+		else if (!_.isEmpty(room.currentSource) && room.playbackPosition > room.currentSource.length) {
 			room.currentSource = room.queue.length > 0 ? room.queue.shift() : {};
 			room.playbackPosition = 0;
 		}
 		if (_.isEmpty(room.currentSource) && room.queue.length == 0 && room.isPlaying) {
 			room.isPlaying = false;
 			room.playbackPosition = 0;
-			room.playbackDuration = 0;
+			room.currentSource.length = 0;
 		}
 		syncRoom(room);
 	}
@@ -69,7 +65,7 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0,
+			
 		};
 		if (isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
@@ -114,7 +110,7 @@ module.exports = function (server, storage) {
 				clients: [],
 				isPlaying: false,
 				playbackPosition: 0,
-				playbackDuration: 0,
+				
 			};
 			rooms[roomName] = room;
 			return room;
@@ -175,7 +171,7 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0,
+			
 		},
 	};
 
@@ -217,7 +213,7 @@ module.exports = function (server, storage) {
 					syncRoom(rooms[roomName]);
 				}
 				else if (msg.action == "skip") {
-					rooms[roomName].playbackPosition = rooms[roomName].playbackDuration + 1;
+					rooms[roomName].playbackPosition = rooms[roomName].currentSource.length + 1;
 					updateRoom(rooms[roomName]);
 				}
 				else if (msg.action == "set-name") {
