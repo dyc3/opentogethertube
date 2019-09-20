@@ -125,11 +125,17 @@ export default {
       return this.$store.state.room.playbackPosition;
     },
     playbackPercentage() {
+      if (!this.$store.state.room.currentSource) {
+        return 0;
+      }
+      if (this.$store.state.room.currentSource.length == 0) {
+        return 0;
+      }
       return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
     },
     timestampDisplay(){
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
-      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length);
+      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
       return position + " / " + duration;
     }
   },
