@@ -44,8 +44,8 @@
             <div class="video-add" v-if="queueTab === 1">
               <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"></v-text-field>
               <v-btn @click="addToQueue">Add</v-btn>
-              <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
-              <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
+              <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
+              <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
 
               <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" isPreview/>
             </div>
