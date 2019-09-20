@@ -38,16 +38,21 @@
               </v-tab>
               <v-tab>Add</v-tab>
             </v-tabs>
-            <div class="video-queue" v-if="queueTab === 0">
-              <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
-            </div>
-            <div class="video-add" v-if="queueTab === 1">
-              <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"></v-text-field>
-              <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
-              <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-
-              <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" isPreview/>
-            </div>
+            <v-tabs-items v-model="queueTab" class="queue-tab-content">
+              <v-tab-item>
+                <div class="video-queue">
+                  <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
+                </div>
+              </v-tab-item>
+              <v-tab-item>
+                <div class="video-add">
+                  <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"></v-text-field>
+                  <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
+                  <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
+                  <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" isPreview/>
+                </div>
+              </v-tab-item>
+            </v-tabs-items>
           </v-flex>
           <v-flex column md4 sm12>
             <div class="user-list">
@@ -96,7 +101,7 @@ export default {
       addPreview: [],
 
       showEditName: false,
-      queueTab: 0,
+      queueTab: 0, // "queueTab-queue",
       isLoadingAddPreview: false,
       inputAddUrlText: "",
 
@@ -256,6 +261,9 @@ export default {
 .video-queue, .video-add, .user-list {
   margin: 0 10px;
   min-height: 500px;
+}
+.queue-tab-content {
+  background: transparent;
 }
 .is-you {
   color: #ffb300;
