@@ -13,13 +13,37 @@ module.exports = {
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
 	 * local caching and obtaining missing data from external sources.
+	 * Note that this function does not update the cache. That should be
+	 * handled by the functions that actually retrieve missing info.
 	 * @param	{string} service The service that hosts the source video.
 	 * @param	{string} id The id of the video on the given service.
 	 * @return	{Object} Video object
 	 */
 	getVideoInfo(service, id) {
-		storage.getVideoInfo(service, id).then(result => {
-			return result;
+		// TODO: check if service is valid
+		// TODO: check if id is valid for service
+		return storage.getVideoInfo(service, id).then(result => {
+			let video = {};
+			for (const key in result) {
+				if (result.hasOwnProperty(key)) {
+					video[key] = result[key];
+				}
+			}
+			let missingInfo = [
+				"title",
+				"description",
+				"thumbnail",
+				"length",
+			].filter(p => !video.hasOwnProperty(p));
+			if (missingInfo.length === 0) {
+				return video;
+			}
+
+			if (video.service === "youtube") {
+				return this.getVideoInfoYoutube([video.id]).then(result => {
+					return result[video.id];
+				});
+			}
 		}).catch(err => {
 			console.error("Failed to get video metadata from database:", err);
 		});
