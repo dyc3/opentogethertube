@@ -2,6 +2,7 @@ const axios = require("axios");
 const url = require("url");
 const querystring = require('querystring');
 const moment = require("moment");
+const storage = require("./storage");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
 const YtApi = axios.create({
@@ -9,6 +10,21 @@ const YtApi = axios.create({
 });
 
 module.exports = {
+	/**
+	 * Gets all necessary information needed to represent a video. Handles
+	 * local caching and obtaining missing data from external sources.
+	 * @param	{string} service The service that hosts the source video.
+	 * @param	{string} id The id of the video on the given service.
+	 * @return	{Object} Video object
+	 */
+	getVideoInfo(service, id) {
+		storage.getVideoInfo(service, id).then(result => {
+			return result;
+		}).catch(err => {
+			console.error("Failed to get video metadata from database:", err);
+		});
+	},
+
 	getService(link) {
 		let srcUrl = url.parse(link);
 		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
