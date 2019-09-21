@@ -1,9 +1,12 @@
 <template>
   <div>
     <v-container class="room" v-if="!showJoinFailOverlay">
-      <v-layout column>
-        <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
-        <span>{{ connectionStatus }}</span>
+      <v-layout class="room-info" column>
+        <input class="room-title" v-model="title" />
+		<input class="room-description" placeholder="No description" v-model="description"/>
+        <div class="room-connection">
+			<div class="connection-indicator" :class="connectionStatus == 'Connected' ? 'open' : ''"></div>{{ connectionStatus }}
+		</div>
       </v-layout>
       <v-layout column justify-center>
         <v-layout wrap class="video-container">
@@ -120,7 +123,15 @@ export default {
     },
     currentSource() {
       return this.$store.state.room.currentSource;
-    },
+	},
+	description: {
+		get() {
+			return this.room.description;
+		},
+		set(description) {
+			this.room.description = description;	
+		},
+	},
     playbackPosition() {
       return this.$store.state.room.playbackPosition;
     },
@@ -136,11 +147,24 @@ export default {
     production() {
       return this.$store.state.production;
     },
+    room() {
+      return this.$store.state.production;  
+    },
     timestampDisplay() {
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
       return position + " / " + duration;
-    },
+	},
+	title: {
+		get() {
+			return this.room.title != ""
+				? this.room.title
+				: (this.room.isTemporary ? "Temporary Room" : this.room.name);
+		},
+		set(title) {
+			this.room.title = title;
+		},
+	},
   },
   created() {
     this.$events.on("onSync", () => {
@@ -263,6 +287,42 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.room-info {
+	.room-title {
+		border: 1px solid transparent;
+		font-size: 1.4rem;
+		outline: none;
+		width: 40%;
+		&:focus {
+			border-color: darken(rgba(255, 255, 255, 0.7), 25%);
+		}
+	}
+	.room-description {
+		border: 1px solid transparent;
+		font-size: 0.9rem;
+		height: auto;
+		outline: none;
+		width: 40%;
+		&:focus {
+			border-color: darken(rgba(255, 255, 255, 0.7), 25%);
+		}
+	}
+	.room-connection {
+		display: flex;
+		align-items: center;
+	}
+	.connection-indicator {
+		background: orange;
+		border-radius: 50%;
+		height: 5px;
+		margin-right: 7.5px;
+		width: 5px;
+		&.open {
+			background: lime;
+		}
+	}
+}
+
 .video-container {
   // width: 853px;
   margin: 10px;
