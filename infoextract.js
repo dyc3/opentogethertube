@@ -42,6 +42,9 @@ module.exports = {
 			if (video.service === "youtube") {
 				return this.getVideoInfoYoutube([video.id]).then(result => {
 					return result[video.id];
+				}).catch(err => {
+					console.error("Failed to get youtube video info:", err);
+					throw err;
 				});
 			}
 		}).catch(err => {
@@ -70,7 +73,6 @@ module.exports = {
 	},
 
 	getVideoInfoYoutube(ids) {
-		// TODO: local caching of results
 		if (!Array.isArray(ids)) {
 			throw "`ids` must be an array on video IDs.";
 		}
@@ -102,6 +104,12 @@ module.exports = {
 					}
 					results[item.id] = video;
 				}
+
+				// update cache
+				for (const id in results) {
+					storage.updateVideoInfo(results[id]);
+				}
+
 				resolve(results);
 			}).catch(err => {
 				reject(err);

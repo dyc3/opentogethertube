@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const { Room, CachedVideo } = require("./models");
 
 module.exports = {
@@ -68,6 +69,7 @@ module.exports = {
 	 * @param {Object} video Video object to store
 	 */
 	updateVideoInfo(video) {
+		video = _.cloneDeep(video);
 		video.service_id = video.id;
 		delete video.id;
 
