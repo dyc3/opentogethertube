@@ -11,9 +11,10 @@ module.exports = {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'array-bracket-newline': ['error', { "multiline": true, "minItems": 2 }],
+    'array-bracket-newline': ['error', { 'multiline': true, 'minItems': 2 }],
     'array-bracket-spacing': ['error', 'never'],
     'brace-style': ['error', 'stroustrup', { 'allowSingleLine': false }],
+    'camelcase': ['error', { 'properties': 'always' }],
     'comma-dangle': ['error', {
       'arrays': 'always-multiline',
       'objects': 'always-multiline',
@@ -21,24 +22,26 @@ module.exports = {
       'exports': 'always-multiline',
       'functions': 'never',
     }],
-    'comma-spacing': ['error', {'before': false, 'after': true}],
+    'comma-spacing': ['error', { 'before': false, 'after': true }],
     'curly': ['error', 'all'],
     'func-call-spacing': ['error', 'never'],
     'implicit-arrow-linebreak': ['error', 'beside'],
+    'indent': ['error', 'tab'],
     'keyword-spacing': ['error', { 'before': true, 'after': true }],
     'no-eval': ['error', {}],
+    'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 0, 'maxBOF': 0 }],
     'no-var': 'error',
     'no-dupe-keys': 'error',
     'prefer-arrow-callback': 'error',
     'semi': ['error', 'always'],
-    'semi-spacing': ["error", {"before": false, "after": true}],
+    'semi-spacing': ['error', { 'before': false, 'after': true }],
     'space-before-blocks': ['error', 'always'],
-    'eol-last': ["error", "always"],
+    'eol-last': ['error', 'always'],
 
     // HACK: this rule is required, otherwise travis-ci will fail (for some reason)
     // even through when run locally, no linting errors occur.
-    "vue/no-parsing-error": ["error", {
-      "invalid-first-character-of-tag-name": false,
+    'vue/no-parsing-error': ['error', {
+      'invalid-first-character-of-tag-name': false,
     }],
   },
   parserOptions: {

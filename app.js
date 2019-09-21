@@ -13,12 +13,12 @@ if (process.env.NODE_ENV === "example") {
 	process.exit(1);
 }
 
-const config_path = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
+const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
 console.log(`Reading config from ${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(config_path)) {
-	console.error("No config found! Things will break!", config_path);
+if (!fs.existsSync(configPath)) {
+	console.error("No config found! Things will break!", configPath);
 }
-require('dotenv').config({ path: config_path });
+require('dotenv').config({ path: configPath });
 
 const app = express();
 const server = http.createServer(app);
@@ -66,5 +66,5 @@ else {
 
 //start our server
 server.listen(process.env.PORT || 3000, () => {
-    console.log(`Server started on port ${server.address().port}`);
+	console.log(`Server started on port ${server.address().port}`);
 });

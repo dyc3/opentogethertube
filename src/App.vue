@@ -19,14 +19,14 @@
 
 <script>
 export default {
-  name: "app",
-  watch:{
-    $route (to) {
-      if (to.name != "room" && this.$store.state.socket.isConnected) {
-        this.$disconnect();
-      }
-    },
-  },
+	name: "app",
+	watch:{
+		$route (to) {
+			if (to.name != "room" && this.$store.state.socket.isConnected) {
+				this.$disconnect();
+			}
+		},
+	},
 };
 </script>
 
