@@ -39,9 +39,14 @@ module.exports = {
 				return video;
 			}
 
+			console.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
+
 			if (video.service === "youtube") {
-				return this.getVideoInfoYoutube([video.id]).then(result => {
-					return result[video.id];
+				return this.getVideoInfoYoutube([video.id], missingInfo).then(result => {
+					for (let field of missingInfo) {
+						video[field] = result[video.id][field];
+					}
+					return video;
 				}).catch(err => {
 					console.error("Failed to get youtube video info:", err);
 					throw err;
@@ -72,12 +77,32 @@ module.exports = {
 		}
 	},
 
-	getVideoInfoYoutube(ids) {
+	getVideoInfoYoutube(ids, onlyProperties=null) {
 		if (!Array.isArray(ids)) {
 			throw "`ids` must be an array on video IDs.";
 		}
 		return new Promise((resolve, reject) => {
-			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=snippet,contentDetails&id=${ids.join(",")}`).then(res => {
+			let parts = [];
+			if (onlyProperties !== null) {
+				if (onlyProperties.includes("title") || onlyProperties.includes("description") || onlyProperties.includes("thumbnail")) {
+					parts.push("snippet");
+				}
+				if (onlyProperties.includes("length")) {
+					parts.push("contentDetails");
+				}
+
+				if (parts.length === 0) {
+					console.error("onlyProperties must have valid values or be null! Found", onlyProperties);
+					return null;
+				}
+			}
+			else {
+				parts = [
+					"snippet",
+					"contentDetails",
+				];
+			}
+			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=${parts.join(",")}&id=${ids.join(",")}`).then(res => {
 				if (res.status !== 200) {
 					reject(`Failed with status code ${res.status}`);
 					return;
@@ -89,18 +114,21 @@ module.exports = {
 					let video = {
 						service: "youtube",
 						id: item.id,
-						title: item.snippet.title,
-						description: item.snippet.description,
-						thumbnail: "",
-						length: moment.duration(item.contentDetails.duration).asSeconds(),
 					};
-					if (item.snippet.thumbnails) {
-						if (item.snippet.thumbnails.medium) {
-							video.thumbnail = item.snippet.thumbnails.medium.url;
+					if (item.snippet) {
+						video.title = item.snippet.title;
+						video.description = item.snippet.description;
+						if (item.snippet.thumbnails) {
+							if (item.snippet.thumbnails.medium) {
+								video.thumbnail = item.snippet.thumbnails.medium.url;
+							}
+							else {
+								video.thumbnail = item.snippet.thumbnails.default.url;
+							}
 						}
-						else {
-							video.thumbnail = item.snippet.thumbnails.default.url;
-						}
+					}
+					if (item.contentDetails) {
+						video.length = moment.duration(item.contentDetails.duration).asSeconds();
 					}
 					results[item.id] = video;
 				}

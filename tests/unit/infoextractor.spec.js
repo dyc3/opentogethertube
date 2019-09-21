@@ -99,4 +99,46 @@ describe('InfoExtractor Spec', () => {
       done();
     }).catch(err => done.fail(err));
   });
+
+  it('should partially hit cache, get the missing video metadata (length), and store it in the cache', async done => {
+    InfoExtract.getVideoInfoYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve({ "I3O9J02G67I": { service: "youtube", id: "I3O9J02G67I", length: 10 } })));
+
+    await expect(CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }})).resolves.toBeNull();
+
+    await expect(CachedVideo.create({
+      service: "youtube",
+      service_id: "I3O9J02G67I",
+      title: "tmpATT2Cp",
+      description: "tmpATT2Cp",
+      thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+    })).resolves.toBeDefined();
+
+    await CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }}).then(result => {
+      expect(result).toBeDefined();
+      expect(result.length).toBeNull();
+    });
+
+    InfoExtract.getVideoInfo("youtube", "I3O9J02G67I").then(async video => {
+      expect(InfoExtract.getVideoInfoYoutube).toBeCalledWith(["I3O9J02G67I"], ["length"]);
+
+      expect(video).toBeDefined();
+      expect(video.service).toBeDefined();
+      expect(video.service).toBe("youtube");
+      expect(video.service_id).toBeUndefined();
+      expect(video.id).toBeDefined();
+      expect(video.id).toBe("I3O9J02G67I");
+      expect(video.title).toBeDefined();
+      expect(video.title).toBe("tmpATT2Cp");
+      expect(video.description).toBeDefined();
+      expect(video.description).toBe("tmpATT2Cp");
+      expect(video.thumbnail).toBeDefined();
+      expect(video.thumbnail).toBe("https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg");
+      expect(video.length).toBeDefined();
+      expect(video.length).toBe(10);
+
+      await expect(CachedVideo.count()).resolves.toEqual(1);
+      await expect(CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }})).resolves.toBeDefined();
+      done();
+    }).catch(err => done.fail(err));
+  });
 });
