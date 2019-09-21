@@ -165,6 +165,12 @@ module.exports = {
 					}
 					results.push(video);
 				}
+
+				// update cache
+				for (const video of results) {
+					storage.updateVideoInfo(video);
+				}
+
 				resolve(results);
 			}).catch(err => {
 				reject(err);
