@@ -74,7 +74,7 @@ module.exports = {
 		delete video.id;
 
 		return CachedVideo.findOne({ where: { service: video.service, service_id: video.service_id } }).then(cachedVideo => {
-			console.log(`Found video {video.service}:{video.service_id} in cache`);
+			console.log(`Found video ${video.service}:${video.service_id} in cache`);
 			CachedVideo.update(video, { where: { id: cachedVideo.id } }).then(rowsUpdated => {
 				console.log("Updated database records, updated", rowsUpdated, "rows");
 				return true;
@@ -84,7 +84,7 @@ module.exports = {
 			});
 		}).catch(() => {
 			return CachedVideo.create(video).then(() => {
-				console.log(`Stored video info for {video.service}:{video.service_id} in cache`);
+				console.log(`Stored video info for ${video.service}:${video.service_id} in cache`);
 				return true;
 			}).catch(err => {
 				console.error("Failed to cache video info", err);
