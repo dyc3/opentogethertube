@@ -9,10 +9,10 @@
         <v-layout wrap class="video-container">
           <v-flex xl8>
             <div class="iframe-container" :key="currentSource.service">
-              <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"></youtube>
+              <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
             <v-flex column class="video-controls">
-              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
+              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"/>
               <v-flex row align-center>
                 <v-btn @click="togglePlayback()">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
@@ -21,7 +21,7 @@
                 <v-btn @click="skipVideo()">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
-                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"></vue-slider>
+                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"/>
                 <div style="margin-left: 20px">
                   {{ timestampDisplay }}
                 </div>
@@ -46,10 +46,10 @@
               </v-tab-item>
               <v-tab-item>
                 <div class="video-add">
-                  <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"></v-text-field>
+                  <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"/>
                   <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
                   <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-                  <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" isPreview/>
+                  <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -62,7 +62,7 @@
                   <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
                 </v-subheader>
                 <v-list-item v-if="showEditName">
-                  <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"></v-text-field>
+                  <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"/>
                 </v-list-item>
                 <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
                   {{ user.name }}
@@ -92,7 +92,7 @@ import secondsToTimestamp from "@/timestamp.js";
 export default {
   name: 'room',
   components: {
-    VideoQueueItem
+    VideoQueueItem,
   },
   data() {
     return {
@@ -133,11 +133,11 @@ export default {
       }
       return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
     },
-    timestampDisplay(){
+    timestampDisplay() {
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
       return position + " / " + duration;
-    }
+    },
   },
   created() {
     this.$events.on("onSync", () => {
@@ -154,10 +154,10 @@ export default {
     postTestVideo(v) {
       let videos = [
         "https://www.youtube.com/watch?v=WC66l5tPIF4",
-        "https://www.youtube.com/watch?v=aI67KDJRnvQ"
+        "https://www.youtube.com/watch?v=aI67KDJRnvQ",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: videos[v]
+        url: videos[v],
       });
     },
     togglePlayback() {
@@ -176,7 +176,7 @@ export default {
     },
     addToQueue() {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.inputAddUrlText
+        url: this.inputAddUrlText,
       });
     },
     openEditName() {
@@ -255,7 +255,7 @@ export default {
         this.$refs.youtube.player.seekTo(newPosition);
       }
     },
-  }
+  },
 };
 </script>
 
