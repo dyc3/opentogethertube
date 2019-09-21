@@ -218,12 +218,12 @@ module.exports = {
 		}
 		else {
 			let video = {
-				service: "youtube",
+				service: service,
 				id: queryParams.v,
 				title: queryParams.v,
 			};
-			return this.getVideoInfoYoutube([video.id]).then(results => {
-				video = results[queryParams.v];
+			return this.getVideoInfo(video.service, video.id).then(result => {
+				video = result;
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);

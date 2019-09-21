@@ -145,8 +145,8 @@ module.exports = function (server, storage) {
 
 		if (queueItem.service === "youtube") {
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
-			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
-				queueItem = results[queueItem.id];
+			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
+				queueItem = result;
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);
