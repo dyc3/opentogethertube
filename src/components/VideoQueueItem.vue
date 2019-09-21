@@ -2,7 +2,7 @@
 	<v-card style="margin-top: 10px">
 		<v-list-item three-line>
 			<v-list-item-avatar tile size="125">
-				<v-img :src="item.thumbnail"></v-img>
+				<v-img :src="item.thumbnail"/>
 			</v-list-item-avatar>
 			<v-list-item-content>
 				<v-card-title>{{ item.title }}</v-card-title>
@@ -30,12 +30,12 @@ export default {
 	name: "VideoQueueItem",
 	props: {
 		item: { type: Object, required: true },
-		isPreview: { type: Boolean, default: false }
+		isPreview: { type: Boolean, default: false },
 	},
 	methods: {
 		addToQueue() {
 			API.post(`/room/${this.$route.params.roomId}/queue`, {
-				url: `http://youtube.com/watch?v=${this.item.id}`
+				url: `http://youtube.com/watch?v=${this.item.id}`,
 			});
 		},
 		removeFromQueue() {
@@ -46,7 +46,7 @@ export default {
 			API.delete(`/room/${this.$route.params.roomId}/queue`, { data: data }).then(res => {
 				console.log(`Remove ${data} from queue:`, res.data);
 			});
-		}
-	}
+		},
+	},
 };
 </script>

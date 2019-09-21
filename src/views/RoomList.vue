@@ -2,7 +2,7 @@
   <v-container class="room-list" grid-list-md fill-height>
     <v-layout align-center v-if="isLoading">
       <v-layout justify-center>
-        <v-progress-circular indeterminate></v-progress-circular>
+        <v-progress-circular indeterminate/>
       </v-layout>
     </v-layout>
     <v-layout wrap v-if="!isLoading">
@@ -36,6 +36,6 @@ export default {
       this.isLoading = false;
       this.rooms = res.data;
     });
-  }
+  },
 };
 </script>

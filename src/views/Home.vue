@@ -102,7 +102,7 @@
 			</v-footer>
 		</v-container>
 		<v-overlay :value="isLoading">
-			<v-progress-circular indeterminate></v-progress-circular>
+			<v-progress-circular indeterminate/>
 		</v-overlay>
 	</div>
 </template>
@@ -114,7 +114,7 @@ export default {
 	name: 'home',
 	data() {
 		return {
-			isLoading: false
+			isLoading: false,
 		};
 	},
 	methods: {
@@ -124,8 +124,8 @@ export default {
 				this.isLoading = false;
 				this.$router.push(`/room/${res.data.room}`);
 			});
-		}
-	}
+		},
+	},
 };
 </script>
 
