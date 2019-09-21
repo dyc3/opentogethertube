@@ -5,11 +5,13 @@ module.exports = {
 		return Room.findOne({
 			where: { name: roomName },
 		}).then(room => {
-			delete room.createdAt;
-			delete room.updatedAt;
-			return room;
+            if (room) {
+                delete room.createdAt;
+                delete room.updatedAt;
+            }
+            return room;
 		}).catch(err => {
-			console.error("Room does not exist:", err);
+			console.error("Failed to get room by name:", err);
 		});
 	},
 	saveRoom(room) {
