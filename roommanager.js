@@ -19,17 +19,22 @@ module.exports = function (server, storage) {
 			users: [],
 		};
 
-
 		for (let i = 0; i < room.clients.length; i++) {
+			let ws = room.clients[i].socket;
+
+			// make sure the socket is still open
+			if (ws.readyState != 1) {
+				continue;
+			}
+
 			syncMsg.users = [];
 			for (let u = 0; u < room.clients.length; u++) {
 				syncMsg.users.push({
 					name: room.clients[u].name,
-					isYou: room.clients[i].socket == room.clients[u].socket,
+					isYou: ws == room.clients[u].socket,
 				});
 			}
 
-			let ws = room.clients[i].socket;
 			ws.send(JSON.stringify(syncMsg));
 		}
 	}
