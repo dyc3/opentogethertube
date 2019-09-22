@@ -2,6 +2,7 @@ const axios = require("axios");
 const url = require("url");
 const querystring = require('querystring');
 const moment = require("moment");
+const _ = require("lodash");
 const storage = require("./storage");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
@@ -23,12 +24,7 @@ module.exports = {
 		// TODO: check if service is valid
 		// TODO: check if id is valid for service
 		return storage.getVideoInfo(service, id).then(result => {
-			let video = {};
-			for (const key in result) {
-				if (result.hasOwnProperty(key)) {
-					video[key] = result[key];
-				}
-			}
+			let video = _.cloneDeep(result);
 			let missingInfo = [
 				"title",
 				"description",
