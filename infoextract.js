@@ -43,9 +43,7 @@ module.exports = {
 
 			if (video.service === "youtube") {
 				return this.getVideoInfoYoutube([video.id], missingInfo).then(result => {
-					for (let field of missingInfo) {
-						video[field] = result[video.id][field];
-					}
+					video = Object.assign(video, result[video.id]);
 					return video;
 				}).catch(err => {
 					console.error("Failed to get youtube video info:", err);
