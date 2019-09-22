@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const moment = require("moment");
 const { Room, CachedVideo } = require("./models");
 
 module.exports = {
@@ -39,14 +40,24 @@ module.exports = {
 				console.log("Cache missed:", service, id);
 				return { service, id };
 			}
+			const origCreatedAt = moment(cachedVideo.createdAt);
+			const lastUpdatedAt = moment(cachedVideo.updatedAt);
+			const today = moment();
+			// We check for changes every at an interval of 30 days, unless the original cache date was
+			// less than 7 days ago, then the interval is 7 days. The reason for this is that the uploader
+			// is unlikely to change the video info after a week of the original upload. Since we don't store
+			// the upload date, we pretend the original cache date is the upload date. This is potentially an
+			// over optimization.
+			const isCachedInfoValid = lastUpdatedAt.diff(today, "days") <= (origCreatedAt.diff(today, "days") <= 7) ? 7 : 30;
 			let video = {
 				service: cachedVideo.service,
 				id: cachedVideo.service_id,
 			};
-			if (cachedVideo.title !== null) {
+			// We only invalidate the title and description because those are the only ones that can change.
+			if (cachedVideo.title !== null && isCachedInfoValid) {
 				video.title = cachedVideo.title;
 			}
-			if (cachedVideo.description !== null) {
+			if (cachedVideo.description !== null && isCachedInfoValid) {
 				video.description = cachedVideo.description;
 			}
 			if (cachedVideo.thumbnail !== null) {
