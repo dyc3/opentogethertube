@@ -5,9 +5,9 @@ const _ = require("lodash");
 
 module.exports = function (server, storage) {
 	function syncRoom(room) {
-        if (!room) {
-            return;
-        }
+		if (!room) {
+			return;
+		}
 		let syncMsg = {
 			action: "sync",
 			name: room.name,
@@ -196,12 +196,12 @@ module.exports = function (server, storage) {
 				console.error("[ws] Room doesn't exist");
 				ws.close(4002, "Room doesn't exist");
 				return;
-            }
-            rooms[roomName].clients.push({
-                name: "client",
-                socket: ws,
-            });
-            console.log("[ws] client joined", roomName);
+			}
+			rooms[roomName].clients.push({
+				name: "client",
+				socket: ws,
+			});
+			console.log("[ws] client joined", roomName);
 		}).then(() => {
 			ws.on('message', (message) => {
 				console.log('[ws] received:', typeof(message), message);
