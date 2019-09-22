@@ -35,7 +35,7 @@ module.exports = {
 	 * @return	{Object} Video object, but it may contain missing properties.
 	 */
 	getVideoInfo(service, id) {
-		return CachedVideo.findOne({ where: { service: service, service_id: id } }).then(cachedVideo => {
+		return CachedVideo.findOne({ where: { service: service, serviceId: id } }).then(cachedVideo => {
 			if (cachedVideo === null) {
 				console.log("Cache missed:", service, id);
 				return { service, id };
@@ -51,7 +51,7 @@ module.exports = {
 			const isCachedInfoValid = lastUpdatedAt.diff(today, "days") <= (origCreatedAt.diff(today, "days") <= 7) ? 7 : 30;
 			let video = {
 				service: cachedVideo.service,
-				id: cachedVideo.service_id,
+				id: cachedVideo.serviceId,
 			};
 			// We only invalidate the title and description because those are the only ones that can change.
 			if (cachedVideo.title !== null && isCachedInfoValid) {
@@ -81,11 +81,11 @@ module.exports = {
 	 */
 	updateVideoInfo(video) {
 		video = _.cloneDeep(video);
-		video.service_id = video.id;
+		video.serviceId = video.id;
 		delete video.id;
 
-		return CachedVideo.findOne({ where: { service: video.service, service_id: video.service_id } }).then(cachedVideo => {
-			console.log(`Found video ${video.service}:${video.service_id} in cache`);
+		return CachedVideo.findOne({ where: { service: video.service, serviceId: video.serviceId } }).then(cachedVideo => {
+			console.log(`Found video ${video.service}:${video.serviceId} in cache`);
 			CachedVideo.update(video, { where: { id: cachedVideo.id } }).then(rowsUpdated => {
 				console.log("Updated database records, updated", rowsUpdated, "rows");
 				return true;
@@ -95,7 +95,7 @@ module.exports = {
 			});
 		}).catch(() => {
 			return CachedVideo.create(video).then(() => {
-				console.log(`Stored video info for ${video.service}:${video.service_id} in cache`);
+				console.log(`Stored video info for ${video.service}:${video.serviceId} in cache`);
 				return true;
 			}).catch(err => {
 				console.error("Failed to cache video info", err);

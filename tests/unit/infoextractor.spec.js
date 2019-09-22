@@ -24,7 +24,7 @@ describe('InfoExtractor Spec', () => {
         expect(video).toBeDefined();
         expect(video.service).toBeDefined();
         expect(video.service).toBe("youtube");
-        expect(video.service_id).toBeUndefined();
+        expect(video.serviceId).toBeUndefined();
         expect(video.id).toBeDefined();
         expect(video.id).toBe("BTZ5KVRUy1Q");
         expect(video.title).toBeDefined();
@@ -40,13 +40,13 @@ describe('InfoExtractor Spec', () => {
   });
 
   it('should miss cache, get the correct video metadata, and store it in the cache', async done => {
-    await expect(CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }})).resolves.toBeNull();
+    await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeNull();
 
     InfoExtract.getVideoInfo("youtube", "I3O9J02G67I").then(async video => {
       expect(video).toBeDefined();
       expect(video.service).toBeDefined();
       expect(video.service).toBe("youtube");
-      expect(video.service_id).toBeUndefined();
+      expect(video.serviceId).toBeUndefined();
       expect(video.id).toBeDefined();
       expect(video.id).toBe("I3O9J02G67I");
       expect(video.title).toBeDefined();
@@ -59,7 +59,7 @@ describe('InfoExtractor Spec', () => {
       expect(video.length).toBe(10);
 
       await expect(CachedVideo.count()).resolves.toEqual(1);
-      await expect(CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }})).resolves.toBeDefined();
+      await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeDefined();
       done();
     }).catch(err => done.fail(err));
   });
@@ -69,7 +69,7 @@ describe('InfoExtractor Spec', () => {
 
     await expect(CachedVideo.create({
       service: "fakeservice",
-      service_id: "abc123",
+      serviceId: "abc123",
       title: "Test Title",
       description: "This is a test description.",
       thumbnail: "http://example.com/thumbnail.jpg",
@@ -82,7 +82,7 @@ describe('InfoExtractor Spec', () => {
       expect(video).toBeDefined();
       expect(video.service).toBeDefined();
       expect(video.service).toBe("fakeservice");
-      expect(video.service_id).toBeUndefined();
+      expect(video.serviceId).toBeUndefined();
       expect(video.id).toBeDefined();
       expect(video.id).toBe("abc123");
       expect(video.title).toBeDefined();
@@ -95,7 +95,7 @@ describe('InfoExtractor Spec', () => {
       expect(video.length).toBe(32);
 
       await expect(CachedVideo.count()).resolves.toEqual(1);
-      await expect(CachedVideo.findOne({ where: { service: "fakeservice", service_id: "abc123" }})).resolves.toBeDefined();
+      await expect(CachedVideo.findOne({ where: { service: "fakeservice", serviceId: "abc123" }})).resolves.toBeDefined();
       done();
     }).catch(err => done.fail(err));
   });
@@ -103,17 +103,17 @@ describe('InfoExtractor Spec', () => {
   it('should partially hit cache, get the missing video metadata (length), and store it in the cache', async done => {
     InfoExtract.getVideoInfoYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve({ "I3O9J02G67I": { service: "youtube", id: "I3O9J02G67I", length: 10 } })));
 
-    await expect(CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }})).resolves.toBeNull();
+    await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeNull();
 
     await expect(CachedVideo.create({
       service: "youtube",
-      service_id: "I3O9J02G67I",
+      serviceId: "I3O9J02G67I",
       title: "tmpATT2Cp",
       description: "tmpATT2Cp",
       thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
     })).resolves.toBeDefined();
 
-    await CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }}).then(result => {
+    await CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }}).then(result => {
       expect(result).toBeDefined();
       expect(result.length).toBeNull();
     });
@@ -124,7 +124,7 @@ describe('InfoExtractor Spec', () => {
       expect(video).toBeDefined();
       expect(video.service).toBeDefined();
       expect(video.service).toBe("youtube");
-      expect(video.service_id).toBeUndefined();
+      expect(video.serviceId).toBeUndefined();
       expect(video.id).toBeDefined();
       expect(video.id).toBe("I3O9J02G67I");
       expect(video.title).toBeDefined();
@@ -137,7 +137,7 @@ describe('InfoExtractor Spec', () => {
       expect(video.length).toBe(10);
 
       await expect(CachedVideo.count()).resolves.toEqual(1);
-      await expect(CachedVideo.findOne({ where: { service: "youtube", service_id: "I3O9J02G67I" }})).resolves.toBeDefined();
+      await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeDefined();
       done();
     }).catch(err => done.fail(err));
   });

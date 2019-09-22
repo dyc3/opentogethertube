@@ -11,7 +11,7 @@ module.exports = {
       service: {
         type: Sequelize.STRING,
       },
-      service_id: {
+      serviceId: {
         type: Sequelize.STRING,
       },
       title: {

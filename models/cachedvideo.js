@@ -2,7 +2,7 @@
 module.exports = (sequelize, DataTypes) => {
   const CachedVideo = sequelize.define('CachedVideo', {
     service: DataTypes.STRING,
-    service_id: DataTypes.STRING,
+    serviceId: DataTypes.STRING,
     title: DataTypes.STRING,
     description: DataTypes.TEXT,
     thumbnail: DataTypes.STRING,
