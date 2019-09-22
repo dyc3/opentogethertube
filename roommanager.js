@@ -15,7 +15,6 @@ module.exports = function (server, storage) {
 			queue: room.queue,
 			isPlaying: room.isPlaying,
 			playbackPosition: room.playbackPosition,
-			
 			users: [],
 		};
 
@@ -35,9 +34,6 @@ module.exports = function (server, storage) {
 	}
 
 	function updateRoom(room) {
-		
-			
-
 		if (_.isEmpty(room.currentSource) && room.queue.length > 0) {
 			room.currentSource = room.queue.shift();
 		}
@@ -65,7 +61,6 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			
 		};
 		if (isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
@@ -110,7 +105,6 @@ module.exports = function (server, storage) {
 				clients: [],
 				isPlaying: false,
 				playbackPosition: 0,
-				
 			};
 			rooms[roomName] = room;
 			return room;
@@ -171,7 +165,6 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			
 		},
 	};
 
