@@ -21,4 +21,13 @@ describe('Storage Spec', () => {
     expect(storage.updateVideoInfo(video)).resolves.toBe(true);
     done();
   });
+
+  it('should return the attributes that a video object should have', () => {
+    let attributes = storage.getVideoInfoFields();
+    expect(attributes.length).toBeGreaterThan(0);
+    expect(attributes).not.toContain("id");
+    expect(attributes).not.toContain("serviceId");
+    expect(attributes).not.toContain("createdAt");
+    expect(attributes).not.toContain("updatedAt");
+  });
 });

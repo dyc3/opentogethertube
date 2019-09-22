@@ -103,4 +103,14 @@ module.exports = {
 			});
 		});
 	},
+	getVideoInfoFields() {
+		let fields = [];
+		for (let column in CachedVideo.rawAttributes) {
+			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId") {
+				continue;
+			}
+			fields.push(column);
+		}
+		return fields;
+	},
 };
