@@ -133,6 +133,9 @@ export default {
       }
       return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
     },
+    production() {
+      return this.$store.state.production;
+    },
     timestampDisplay() {
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
