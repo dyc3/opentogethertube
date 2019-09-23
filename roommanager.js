@@ -44,7 +44,6 @@ module.exports = function (server, storage) {
 		if (_.isEmpty(room.currentSource) && room.queue.length == 0 && room.isPlaying) {
 			room.isPlaying = false;
 			room.playbackPosition = 0;
-			room.currentSource.length = 0;
 		}
 		syncRoom(room);
 	}
