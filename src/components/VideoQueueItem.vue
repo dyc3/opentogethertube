@@ -2,12 +2,12 @@
 	<v-card class="video" style="margin-top: 10px" hover>
 		<v-card-text style="padding: 0 12px">
 			<v-layout row>
-				<v-flex md3 sm12>
+				<v-flex lg3 xs4>
 					<v-img :src="item.thumbnail">
 						<span class="length">{{ videoLength }}</span>
 					</v-img>
 				</v-flex>
-				<v-flex md9 sm12>
+				<v-flex lg9 xs8>
 					<v-layout column style="margin-left: 16px">
 						<v-flex class="title">
 							{{ item.title }}
@@ -16,10 +16,10 @@
 							{{ item.description }}
 						</v-flex>
 						<v-flex class="actions">
-							<v-btn icon small @click="addToQueue" v-if="isPreview">
+							<v-btn icon small="$vuetify.breakpoint.mdAndUp" x-small="$vuetify.breakpoint.smAndDown" @click="addToQueue" v-if="isPreview">
 								<v-icon>fas fa-plus</v-icon>
 							</v-btn>
-							<v-btn icon small @click="removeFromQueue" v-if="!isPreview">
+							<v-btn icon small="$vuetify.breakpoint.mdAndUp" x-small="$vuetify.breakpoint.smAndDown" @click="removeFromQueue" v-if="!isPreview">
 								<v-icon>fas fa-trash</v-icon>
 							</v-btn>
 						</v-flex>
@@ -66,10 +66,29 @@ export default {
 
 <style lang="scss" scoped>
 .video {
-	height: 175px;
+	@media screen and (max-width: 960px) {
+		height: 67px;
+	}
+	@media screen and (min-width: 960px) and (max-width: 1264px) {
+		height: 117px;
+	}
+	@media screen and (min-width: 1264px) {
+		height: 175px;
+	}
+	overflow: hidden;
 }
 .title {
-	font-size: 20px;
+	@media screen and (max-width: 960px) {
+		font-size: 10px !important;
+	}
+	@media screen and (min-width: 960px) and  (max-width: 1264px) {
+		font-size: 12px !important;
+	}
+	@media screen and (min-width: 1264px) {
+		font-size: 20px !important;
+	}
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .description {
 	font-size: 11px;
@@ -77,6 +96,10 @@ export default {
 	overflow-y: hidden;
 	text-overflow: ellipsis;
 	height: 100px;
+
+	@media screen and (max-width: 1264px) {
+		display: none;
+	}
 }
 .actions {
 	margin-left: 4px;
