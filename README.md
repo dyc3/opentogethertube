@@ -1,5 +1,7 @@
 # OpenTogetherTube
 
+![Build status](https://travis-ci.org/dyc3/opentogethertube.svg?branch=master)
+
 The easy way to watch videos with your friends.
 
 http://opentogethertube.com/

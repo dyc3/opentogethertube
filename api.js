@@ -18,7 +18,7 @@ module.exports = function(_roommanager, storage) {
 				description: room.description,
 				isTemporary: room.isTemporary,
 				currentSource: room.currentSource,
-				users: room.clients.length
+				users: room.clients.length,
 			});
 		}
 		res.json(rooms);
@@ -43,14 +43,14 @@ module.exports = function(_roommanager, storage) {
 			console.log(req.body);
 			res.status(400).json({
 				success: false,
-				error: "Missing argument (name)"
+				error: "Missing argument (name)",
 			});
 			return;
 		}
 		if (req.body.name == "list") {
 			res.status(400).json({
 				success: false,
-				error: "Room name not allowed (reserved)"
+				error: "Room name not allowed (reserved)",
 			});
 			return;
 		}
@@ -58,13 +58,13 @@ module.exports = function(_roommanager, storage) {
 			// already exists
 			res.status(400).json({
 				success: false,
-				error: "Room with that name already exists"
+				error: "Room with that name already exists",
 			});
 			return;
 		}
 		roommanager.createRoom(req.body.name);
 		res.json({
-			success: true
+			success: true,
 		});
 	});
 
@@ -73,7 +73,7 @@ module.exports = function(_roommanager, storage) {
 		roommanager.createRoom(roomName, true);
 		res.json({
 			success: true,
-			room: roomName
+			room: roomName,
 		});
 	});
 
@@ -81,13 +81,13 @@ module.exports = function(_roommanager, storage) {
 		if (roommanager.rooms[req.params.name] == undefined) {
 			res.status(400).json({
 				success: false,
-				error: "Room does not exist"
+				error: "Room does not exist",
 			});
 			return;
 		}
 		roommanager.deleteRoom(req.params.name);
 		res.status(200).json({
-			success: true
+			success: true,
 		});
 	});
 
@@ -95,14 +95,31 @@ module.exports = function(_roommanager, storage) {
 		if (!roommanager.rooms.hasOwnProperty(req.params.name)) {
 			res.status(404);
 			res.json({
-				error: "Room does not exist"
+				error: "Room does not exist",
 			});
 			return;
 		}
-		let success = roommanager.addToQueue(req.params.name, req.body.url);
-		res.json({
-			success
-		});
+		if (req.body.url) {
+			roommanager.addToQueue(req.params.name, { url: req.body.url }).then(success => {
+				res.json({
+					success,
+				});
+			});
+		}
+		else if (req.body.service && req.body.id) {
+			roommanager.addToQueue(req.params.name, { service: req.body.service, id: req.body.id }).then(success => {
+				res.json({
+					success,
+				});
+			});
+		}
+		else {
+			res.status(400).json({
+				success: false,
+				error: "Invalid parameters",
+			});
+			return;
+		}
 		roommanager.updateRoom(roommanager.rooms[req.params.name]);
 	});
 
@@ -154,7 +171,7 @@ module.exports = function(_roommanager, storage) {
 				res.json(result);
 			});
 		}
-		catch(error) {
+		catch (error) {
 			console.error("Unable to get add preview", error);
 			res.status(500).json([{ error: "Unable to preview" }]);
 		}

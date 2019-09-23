@@ -2,7 +2,6 @@ const WebSocket = require('ws');
 const InfoExtract = require("./infoextract");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const _ = require("lodash");
-const moment = require("moment");
 
 module.exports = function (server, storage) {
 	function syncRoom(room) {
@@ -17,7 +16,7 @@ module.exports = function (server, storage) {
 			isPlaying: room.isPlaying,
 			playbackPosition: room.playbackPosition,
 			playbackDuration: room.playbackDuration,
-			users: []
+			users: [],
 		};
 
 
@@ -26,7 +25,7 @@ module.exports = function (server, storage) {
 			for (let u = 0; u < room.clients.length; u++) {
 				syncMsg.users.push({
 					name: room.clients[u].name,
-					isYou: room.clients[i].socket == room.clients[u].socket
+					isYou: room.clients[i].socket == room.clients[u].socket,
 				});
 			}
 
@@ -70,7 +69,7 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0
+			playbackDuration: 0,
 		};
 		if (isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
@@ -85,7 +84,7 @@ module.exports = function (server, storage) {
 	function deleteRoom(roomName) {
 		for (let i = 0; i < rooms[roomName].clients.length; i++) {
 			rooms[roomName].clients[i].socket.send(JSON.stringify({
-				action: "room-delete"
+				action: "room-delete",
 			}));
 			rooms[roomName].clients[i].socket.close(4003, "Room has been deleted");
 		}
@@ -115,28 +114,36 @@ module.exports = function (server, storage) {
 				clients: [],
 				isPlaying: false,
 				playbackPosition: 0,
-				playbackDuration: 0
+				playbackDuration: 0,
 			};
 			rooms[roomName] = room;
 			return room;
 		});
 	}
 
-	function addToQueue(roomName, link) {
+	function addToQueue(roomName, video) {
 		let queueItem = {
 			service: "",
 			id: "",
 			title: "",
 			description: "",
 			thumbnail: "",
-			length: 0
+			length: 0,
 		};
 
-		queueItem.service = InfoExtract.getService(link);
+		if (video.hasOwnProperty("url")) {
+			queueItem.service = InfoExtract.getService(video.url);
+
+			if (queueItem.service === "youtube") {
+				queueItem.id = InfoExtract.getVideoIdYoutube(video.url);
+			}
+		}
+		else {
+			queueItem.service = video.service;
+			queueItem.id = video.id;
+		}
 
 		if (queueItem.service === "youtube") {
-			queueItem.id = InfoExtract.getVideoIdYoutube(link);
-
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
 				queueItem = results[queueItem.id];
@@ -168,8 +175,8 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0
-		}
+			playbackDuration: 0,
+		},
 	};
 
 	wss.on('connection', (ws, req) => {
@@ -190,7 +197,7 @@ module.exports = function (server, storage) {
 		}).then(() => {
 			rooms[roomName].clients.push({
 				name: "client",
-				socket: ws
+				socket: ws,
 			});
 			console.log("[ws] client joined", roomName);
 
@@ -230,7 +237,7 @@ module.exports = function (server, storage) {
 					let generatedName = uniqueNamesGenerator();
 					ws.send(JSON.stringify({
 						action: "generatedName",
-						name: generatedName
+						name: generatedName,
 					}));
 
 					for (let i = 0; i < rooms[roomName].clients.length; i++) {
@@ -251,7 +258,7 @@ module.exports = function (server, storage) {
 		});
 	});
 
-	setInterval(function() {
+	setInterval(() => {
 		let roomsToDelete = [];
 		for (let roomName in rooms) {
 			let room = rooms[roomName];
@@ -299,6 +306,6 @@ module.exports = function (server, storage) {
 		createRoom,
 		deleteRoom,
 		addToQueue,
-		getRoom
+		getRoom,
 	};
 };
