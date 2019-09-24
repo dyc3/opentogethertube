@@ -11,6 +11,7 @@ export default new Vuex.Store({
 			reconnectError: false,
 		},
 		joinFailureReason: null,
+		production: process.env.NODE_ENV === 'production',
 		room: {
 			name: "",
 			title: "",
