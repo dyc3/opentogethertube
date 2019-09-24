@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const InfoExtract = require("./infoextract");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const _ = require("lodash");
+const moment = require("moment");
 
 module.exports = function (server, storage) {
 	function syncRoom(room) {
@@ -282,11 +283,10 @@ module.exports = function (server, storage) {
 			// remove empty temporary rooms
 			if (room.isTemporary) {
 				if (room.clients.length > 0) {
-					room.keepAlivePing = new Date();
+					room.keepAlivePing = moment();
 				}
 				else {
-					let diffSeconds = (new Date() - room.keepAlivePing) / 1000;
-					if (diffSeconds > 10) {
+					if (moment().diff(room.keepAlivePing, 'seconds') > 10) {
 						console.log("Removing inactive temporary room", roomName);
 						roomsToDelete.push(roomName);
 					}
