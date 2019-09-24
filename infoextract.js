@@ -29,18 +29,21 @@ module.exports = {
 		}
 	},
 
-	getChanneInfoYoutube(link) {
+	getChanneInfoYoutube(channelData) {
 		return new Promise((resolve, reject) => {
 			YtApi.get('/channels' +
 				`?key=${process.env.YOUTUBE_API_KEY}&` +
 				'part=contentDetails&' +
-				`${link[1] === 'c' ? 'id' : 'forUsername'}=${link.slice(link.lastIndexOf('/')+1)}`
+				`${channelData['channel'] ? 'id' : 'forUsername'}=${channelData["id"]}`
+				//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
+				//on the other hand, a user link requires the forUsername filter
 			).then(async res => {
 				if (res.status === 200) {
 					resolve(await this.getPlaylistYoutube(
 						res.data.items[0].contentDetails.relatedPlaylists.uploads
 					));
-				} else {
+				}
+				else {
 					reject(`Failed with status code ${res.status}`);
 				}
 			}).catch(err => {
@@ -144,26 +147,18 @@ module.exports = {
 		});
 	},
 
-	getManyPreviews(videoIds, qParamsV) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const videoInfo = await this.getVideoInfoYoutube(videoIds);
-				resolve(videoIds.map(id => videoInfo[id])
-						   	.filter(info => info !== undefined) //remove deleted videos
-						   	.map(info => {
-									if (qParamsV && qParamsV === info.id) {
-										info.highlight = true;
-									}
-									return info;
-								}));
-			} catch (err) {
-				console.error("Failed to compile add preview: error getting video info:", err);
-				reject(err);
-			}
-		});
+	async getManyPreviews(videoIds) {
+		try {
+			const videoInfo = await this.getVideoInfoYoutube(videoIds);
+			return videoIds.map(id => videoInfo[id])
+						.filter(info => info !== undefined); //remove deleted videos
+		}
+		catch (err) {
+			console.error("Failed to compile add preview: error getting video info:", err);
+		}
 	},
 
-	getAddPreview(input) {
+	async getAddPreview(input) {
 		const service = this.getService(input);
 
 		if (service !== "youtube") {
@@ -180,20 +175,30 @@ module.exports = {
 				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
 					const videoIds = playlist.map(item => item.id);
 					console.log(`Found ${playlist.length} videos in playlist`);
-					resolve(this.getManyPreviews(videoIds, queryParams["v"]));
+					resolve(this.getManyPreviews(videoIds));
 				}).catch(err => {
 					console.error("Failed to compile add preview: error getting playlist:", err);
 					reject(err);
 				});
 			});
-		} else if (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel')) {
+		}
+		else if (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel')) {
 			console.log('channel found');
-			return new Promise((resolve, reject) => {
-				this.getChanneInfoYoutube(urlParsed.path.slice(urlParsed.path.indexOf('/'))).then(res => {
-					resolve(res);
-				}).catch(err => reject(err));
-			});
-		} else {
+			try {
+				const channelData = {id: urlParsed.path.slice(urlParsed.path.lastIndexOf('/')+1)};
+				if (urlParsed.path.startsWith('/channel/')) {
+					channelData.channel = true;
+				}
+				else {
+					channelData.user = true;
+				}
+				return await this.getChanneInfoYoutube(channelData);
+			}
+			catch (err) {
+				console.error('Error getting channel info:', err);
+			}
+		}
+ else {
 			let video = {
 				service: "youtube",
 				id: queryParams.v,
