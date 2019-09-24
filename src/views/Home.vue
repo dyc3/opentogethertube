@@ -9,7 +9,11 @@
 							Real-time syncronized playback. Optional voting system.<br>
 							Dark theme. No sign up required. All Open Source.
 						</span>
-						<v-layout row justify-space-between style="margin-top: 16px">
+						<v-layout :row="$vuetify.breakpoint.smAndUp"
+								:column="$vuetify.breakpoint.xs"
+								:justify-space-between="$vuetify.breakpoint.smAndUp"
+								:justify-space-around="$vuetify.breakpoint.xs"
+								style="margin-top: 16px">
 							<v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
 							<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
 							<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
@@ -18,7 +22,7 @@
 				</v-layout>
 			</v-layout>
 		</v-container>
-		<v-container>
+		<v-container class="content">
 			<v-layout row justify-center>
 				<v-flex>
 					<h1>Simple and Easy.</h1>
@@ -33,7 +37,7 @@
 					<h1>Core Features</h1>
 					<v-layout row justify-center class="features">
 						<v-flex xs12 sm6 md4>
-							<v-card hover height="150">
+							<v-card hover :height="cardHeight">
 								<v-card-title>Syncronized Playback</v-card-title>
 								<v-card-text>
 									You hit play, and the video plays for everybody
@@ -42,7 +46,7 @@
 							</v-card>
 						</v-flex>
 						<v-flex xs12 sm6 md4>
-							<v-card hover height="150">
+							<v-card hover :height="cardHeight">
 								<v-card-title>Permanent Rooms</v-card-title>
 								<v-card-text>
 									You and the squad come here often? Avoid the hastle
@@ -52,7 +56,7 @@
 							</v-card>
 						</v-flex>
 						<v-flex xs12 sm6 md4>
-							<v-card hover height="150">
+							<v-card hover :height="cardHeight">
 								<v-card-title>Dark Theme</v-card-title>
 								<v-card-text>
 									Watching Vine compilations late at night?
@@ -62,7 +66,7 @@
 							</v-card>
 						</v-flex>
 						<v-flex xs12 sm6 md4>
-							<v-card hover height="150">
+							<v-card hover :height="cardHeight">
 								<v-card-title>Room Permissions</v-card-title>
 								<v-card-text>
 									Tired of random goofballs joining your room and
@@ -72,7 +76,7 @@
 							</v-card>
 						</v-flex>
 						<v-flex xs12 sm6 md4>
-							<v-card hover height="150">
+							<v-card hover :height="cardHeight">
 								<v-card-title>Voting System</v-card-title>
 								<v-card-text>
 									Can't decide what to watch next? Switch the queue
@@ -82,7 +86,7 @@
 							</v-card>
 						</v-flex>
 						<v-flex xs12 sm6 md4>
-							<v-card hover height="150">
+							<v-card hover :height="cardHeight">
 								<v-card-title>Playlist Copying</v-card-title>
 								<v-card-text>
 									Add entire playlists or channels to the video queue
@@ -117,6 +121,11 @@ export default {
 			isLoading: false,
 		};
 	},
+	computed: {
+		cardHeight() {
+			return this.$vuetify.breakpoint.mdAndUp ? 150 : 180;
+		},
+	},
 	methods: {
 		createRoom() {
 			this.isLoading = true;
@@ -134,6 +143,18 @@ export default {
 	width: 100%;
 }
 
+@media only screen and (max-width: 1264px) {
+	.content > .layout {
+		padding: 0 14px;
+	}
+
+	.hero {
+		.v-btn {
+			margin-top: 26px;
+		}
+	}
+}
+
 .hero {
 	background: linear-gradient(217deg, rgb(125, 74, 239), rgb(227,141,174) 30%, rgb(247, 208, 109));
 	color: white;
@@ -143,6 +164,12 @@ export default {
 
 	h1 {
 		font-size: 52px;
+	}
+
+	@media only screen and (max-width: 600px) {
+		h1 {
+			font-size: 48px;
+		}
 	}
 
 	.v-btn {

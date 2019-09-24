@@ -12,7 +12,7 @@
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
             <v-flex column class="video-controls">
-              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"/>
+              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length"/>
               <v-flex row align-center>
                 <v-btn @click="togglePlayback()">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
@@ -131,7 +131,7 @@ export default {
       if (this.$store.state.room.currentSource.length == 0) {
         return 0;
       }
-      return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
+      return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
     },
     timestampDisplay() {
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
