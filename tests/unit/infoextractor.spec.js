@@ -9,7 +9,47 @@ if (!fs.existsSync(config_path)) {
 }
 require('dotenv').config({ path: config_path });
 
-describe('InfoExtractor Spec', () => {
+describe('InfoExtractor Link Parsing', () => {
+  it('getService() should return youtube when given youtube link', () => {
+    expect(InfoExtract.getService("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("http://youtu.be/I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://youtu.be/I3O9J02G67I")).toEqual("youtube");
+  });
+
+  it('getService() should return false when given link to unsupported service', () => {
+    expect(InfoExtract.getService("http://example.com")).toEqual(false);
+  });
+
+  it('getService() should return false when given invalid string', () => {
+    expect(InfoExtract.getService("funny man")).toEqual(false);
+    expect(InfoExtract.getService("youtube.com epic fail compilation")).toEqual(false);
+    expect(InfoExtract.getService("")).toEqual(false);
+  });
+
+  it('getService() should return false when given null', () => {
+    expect(InfoExtract.getService(null)).toEqual(false);
+  });
+
+  it('getService() should return false when given undefined', () => {
+    expect(InfoExtract.getService(undefined)).toEqual(false);
+  });
+
+  it('getVideoIdYoutube() should return correct id when given youtube link', () => {
+    expect(InfoExtract.getVideoIdYoutube("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("http://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
+  });
+});
+
+describe('InfoExtractor Caching Spec', () => {
   beforeEach(async () => {
     console.warn("CLEAR CACHE");
     await CachedVideo.destroy({ where: {} });
