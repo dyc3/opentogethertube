@@ -75,11 +75,12 @@ module.exports = {
 				`${channelData['channel'] ? 'id' : 'forUsername'}=${channelData["id"]}`
 				//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
 				//on the other hand, a user link requires the forUsername filter
-			).then(async res => {
+			).then(res => {
 				if (res.status === 200) {
-					resolve(await this.getPlaylistYoutube(
+					this.getPlaylistYoutube(
 						res.data.items[0].contentDetails.relatedPlaylists.uploads
-					));
+					).then(playlist => resolve(playlist))
+					.catch(err => reject(err));
 				}
 				else {
 					reject(`Failed with status code ${res.status}`);
@@ -161,8 +162,8 @@ module.exports = {
 	getVideoLengthYoutube_Fallback: async (url) => {
 		let res = await axios.get(url);
 		let regexs = [
-/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
-];
+			/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
+		];
 		for (let r = 0; r < regexs.length; r++) {
 			let matches = res.data.match(regexs[r]);
 			if (matches == null) {
@@ -219,18 +220,15 @@ module.exports = {
 		});
 	},
 
-	async getManyPreviews(videoIds) {
-		try {
-			const videoInfo = await this.getVideoInfoYoutube(videoIds);
-			return videoIds.map(id => videoInfo[id])
-						.filter(info => info !== undefined); //remove deleted videos
-		}
-		catch (err) {
-			console.error("Failed to compile add preview: error getting video info:", err);
-		}
+	getManyPreviews(playlist) {
+		//get info for all videos in playlist, then return all non-deleted videos
+		return Promise.all(
+			playlist.map(video => video.id).map(id => this.getVideoInfo('youtube', id))
+		).then(previews => previews.filter(item => item !== undefined))
+		.catch(err => console.error('Error getting video info:', err));
 	},
 
-	async getAddPreview(input) {
+	getAddPreview(input) {
 		const service = this.getService(input);
 
 		if (service !== "youtube") {
@@ -245,9 +243,9 @@ module.exports = {
 			console.log("playlist found");
 			return new Promise((resolve, reject) => {
 				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
-					const videoIds = playlist.map(item => item.id);
+					//const videoIds = playlist.map(item => item.id);
 					console.log(`Found ${playlist.length} videos in playlist`);
-					resolve(this.getManyPreviews(videoIds));
+					this.getManyPreviews(playlist).then(previews => resolve(previews));
 				}).catch(err => {
 					console.error("Failed to compile add preview: error getting playlist:", err);
 					reject(err);
@@ -264,13 +262,16 @@ module.exports = {
 				else {
 					channelData.user = true;
 				}
-				return await this.getChanneInfoYoutube(channelData);
+				return this.getChanneInfoYoutube(channelData)
+					.then(newestVideos => this.getManyPreviews(newestVideos))
+					.then(previews => previews)
+					.catch(err => console.error(err));
 			}
 			catch (err) {
 				console.error('Error getting channel info:', err);
 			}
 		}
- else {
+ 		else {
 			let video = {
 				service: service,
 				id: queryParams.v,
