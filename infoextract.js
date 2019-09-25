@@ -243,7 +243,6 @@ module.exports = {
 			console.log("playlist found");
 			return new Promise((resolve, reject) => {
 				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
-					//const videoIds = playlist.map(item => item.id);
 					console.log(`Found ${playlist.length} videos in playlist`);
 					this.getManyPreviews(playlist).then(previews => resolve(previews));
 				}).catch(err => {
