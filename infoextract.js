@@ -271,7 +271,7 @@ module.exports = {
 				console.error('Error getting channel info:', err);
 			}
 		}
- 		else {
+		else {
 			let video = {
 				service: service,
 				id: queryParams.v,
