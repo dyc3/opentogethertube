@@ -25,7 +25,6 @@ module.exports = {
 		// TODO: check if id is valid for service
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
-			console.log("==========================", storage.getVideoInfoFields());
 			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
 			if (missingInfo.length === 0) {
 				return video;
@@ -48,7 +47,15 @@ module.exports = {
 	},
 
 	getService(link) {
+		if (typeof link !== "string") {
+			return false;
+		}
+
 		let srcUrl = url.parse(link);
+		if (srcUrl.host === null) {
+			return false;
+		}
+
 		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
 			return "youtube";
 		}

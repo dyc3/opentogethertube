@@ -5,9 +5,11 @@ const { Room, CachedVideo } = require("./models");
 module.exports = {
 	getRoomByName(roomName) {
 		return Room.findOne({ where: { name: roomName } }).then(room => {
-			delete room.createdAt;
-			delete room.updatedAt;
-			return room;
+			return {
+				name: room.name,
+				title: room.title,
+				description: room.description,
+			};
 		});
 	},
 	saveRoom(room) {
