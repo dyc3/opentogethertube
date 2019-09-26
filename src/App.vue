@@ -2,7 +2,7 @@
   <v-app id="app">
     <v-content>
       <v-app-bar>
-        <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon/>
         <v-toolbar-title>
           <router-link class="link-invis" style="margin-right: 10px" to="/">
             OpenTogetherTube
@@ -21,12 +21,12 @@
 export default {
   name: "app",
   watch:{
-    $route (to){
+    $route (to) {
       if (to.name != "room" && this.$store.state.socket.isConnected) {
         this.$disconnect();
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

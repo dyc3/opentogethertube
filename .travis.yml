@@ -7,7 +7,8 @@ cache:
 install:
   - npm ci
 before_script:
+  - NODE_ENV=test npx sequelize-cli db:migrate
   - npm run build
 script:
-  - npm run lint
+  - npm run lint-ci
   - npm test
