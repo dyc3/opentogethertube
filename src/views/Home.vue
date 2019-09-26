@@ -133,7 +133,6 @@ export default {
 			});
 		},
 		cancelRoom() {
-			console.log("cancelled");
 			this.cancelledCreation = true;
 			this.isLoading = false;
 		},
