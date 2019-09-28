@@ -116,4 +116,14 @@ describe('Room manager: Room tests', () => {
       done();
     });
   });
+
+  it('should create a temporary room with the name "tmp"', () => {
+    roommanager.createRoom('tmp', true);
+
+    expect(roommanager.rooms.tmp).toBeDefined();
+    expect(roommanager.rooms.tmp.name).toBeDefined();
+    expect(roommanager.rooms.tmp.name).toEqual("tmp");
+    expect(roommanager.rooms.tmp.isTemporary).toEqual(true);
+    expect(roommanager.rooms.tmp.keepAlivePing).toBeDefined();
+  });
 });
