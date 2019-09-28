@@ -24,6 +24,35 @@ describe('Room manager: Room tests', () => {
     };
   });
 
+  it('should dequeue the next video in the queue, when there is no video playing', () => {
+    roommanager.rooms.test.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
+    roommanager.updateRoom(roommanager.rooms.test);
+    expect(roommanager.rooms.test.queue.length).toEqual(0);
+    expect(roommanager.rooms.test.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
+  });
+
+  it('should dequeue the next video in the queue, when the current video is done playing', () => {
+    roommanager.rooms.test.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
+    roommanager.rooms.test.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
+    roommanager.rooms.test.playbackPosition = 11;
+    roommanager.updateRoom(roommanager.rooms.test);
+    expect(roommanager.rooms.test.queue.length).toEqual(0);
+    expect(roommanager.rooms.test.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
+    expect(roommanager.rooms.test.playbackPosition).toEqual(0);
+  });
+
+  it('should stop playing, when the current video is done playing and the queue is empty', () => {
+    roommanager.rooms.test.queue = [];
+    roommanager.rooms.test.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
+    roommanager.rooms.test.playbackPosition = 11;
+    roommanager.rooms.test.isPlaying = true;
+    roommanager.updateRoom(roommanager.rooms.test);
+    expect(roommanager.rooms.test.queue.length).toEqual(0);
+    expect(roommanager.rooms.test.currentSource).toEqual({});
+    expect(roommanager.rooms.test.playbackPosition).toEqual(0);
+    expect(roommanager.rooms.test.isPlaying).toEqual(false);
+  });
+
   it('should add a video to the queue with url provided, and because no video is playing, move it into currentSource', done => {
     InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve({ service: "youtube", id: "I3O9J02G67I", length: 10 })));
     expect(roommanager.rooms).toBeDefined();
