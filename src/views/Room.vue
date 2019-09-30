@@ -3,7 +3,7 @@
     <v-container class="room" v-if="!showJoinFailOverlay">
       <v-layout column>
         <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
-        <span>{{ connectionStatus }}</span>
+        <span id="connectStatus">{{ connectionStatus }}</span>
       </v-layout>
       <v-layout column justify-center>
         <v-layout wrap class="video-container">
@@ -22,7 +22,7 @@
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"/>
-                <div style="margin-left: 20px">
+                <div style="margin-left: 20px" class="timestamp">
                   {{ timestampDisplay }}
                 </div>
               </v-flex>

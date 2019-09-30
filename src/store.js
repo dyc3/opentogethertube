@@ -17,7 +17,7 @@ export default new Vuex.Store({
 			title: "",
 			description: "",
 			isTemporary: false,
-			currentSource: "",
+			currentSource: {},
 			queue: [],
 			isPlaying: false,
 			playbackPosition: 0,
