@@ -88,6 +88,7 @@
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import secondsToTimestamp from "@/timestamp.js";
+import _ from "lodash";
 
 export default {
   name: 'room',
@@ -146,6 +147,9 @@ export default {
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
+
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keydown', this.onKeyDown);
 
     if (!this.$store.state.socket.isConnected) {
       // This check prevents the client from connecting multiple times,
@@ -235,6 +239,43 @@ export default {
     },
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+    },
+    onKeyDown(e) {
+      if (e.target.nodeName === "INPUT") {
+        return;
+      }
+
+      if (e.code === "Space" || e.code === "k") {
+        this.togglePlayback();
+        e.preventDefault();
+      }
+      else if (e.code === "Home") {
+        this.$socket.sendObj({ action: "seek", position: 0 });
+        e.preventDefault();
+      }
+      else if (e.code === "End") {
+        this.$socket.sendObj({ action: "skip" });
+        e.preventDefault();
+      }
+      else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
+        let seekIncrement = 5;
+        if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
+          seekIncrement = 10;
+        }
+        if (e.code === "ArrowLeft" || e.code === "KeyJ") {
+          seekIncrement *= -1;
+        }
+
+        this.$socket.sendObj({
+          action: "seek",
+          position: _.clamp(this.$store.state.room.playbackPosition + seekIncrement, 0, this.$store.state.room.currentSource.length),
+        });
+        e.preventDefault();
+      }
+      else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+        this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
+        e.preventDefault();
+      }
     },
   },
   mounted() {
