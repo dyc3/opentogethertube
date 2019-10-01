@@ -3,6 +3,7 @@
     <v-content>
       <v-app-bar>
         <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
         <v-toolbar-title>
           <router-link class="link-invis" style="margin-right: 10px" to="/">
             OpenTogetherTube
