@@ -223,7 +223,7 @@ module.exports = {
 	getManyPreviews(playlist) {
 		//get info for all videos in playlist, then return all non-deleted videos
 		return Promise.all(
-			playlist.map(video => video.id).map(id => this.getVideoInfo('youtube', id))
+			playlist.map(video => this.getVideoInfo('youtube', video.id))
 		).then(previews => previews.filter(item => item !== undefined))
 		.catch(err => console.error('Error getting video info:', err));
 	},
