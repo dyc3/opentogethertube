@@ -19,7 +19,6 @@ module.exports = function (server, storage) {
 			users: [],
 		};
 
-
 		for (let i = 0; i < room.clients.length; i++) {
 			syncMsg.users = [];
 			for (let u = 0; u < room.clients.length; u++) {
