@@ -68,27 +68,22 @@ module.exports = {
 	},
 
 	getChanneInfoYoutube(channelData) {
-		return new Promise((resolve, reject) => {
-			YtApi.get('/channels' +
-				`?key=${process.env.YOUTUBE_API_KEY}&` +
-				'part=contentDetails&' +
-				`${channelData['channel'] ? 'id' : 'forUsername'}=${channelData["id"]}`
-				//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
-				//on the other hand, a user link requires the forUsername filter
-			).then(res => {
-				if (res.status === 200) {
-					this.getPlaylistYoutube(
-						res.data.items[0].contentDetails.relatedPlaylists.uploads
-					).then(playlist => resolve(playlist))
-					.catch(err => reject(err));
-				}
-				else {
-					reject(`Failed with status code ${res.status}`);
-				}
-			}).catch(err => {
-				reject(err);
-			});
-		});
+		return YtApi.get('/channels' +
+			`?key=${process.env.YOUTUBE_API_KEY}&` +
+			'part=contentDetails&' +
+			`${channelData['channel'] ? 'id' : 'forUsername'}=${channelData["id"]}`
+			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
+			//on the other hand, a user link requires the forUsername filter
+		).then(res => {
+			if (res.status === 200) {
+				return this.getPlaylistYoutube(
+					res.data.items[0].contentDetails.relatedPlaylists.uploads
+				).catch(err => console.error(err));
+			}
+			else {
+				console.error(`Failed with status code ${res.status}`);
+			}
+		}).catch(err => console.error(err));
 	},
 
 	getVideoInfoYoutube(ids, onlyProperties=null) {
@@ -263,7 +258,6 @@ module.exports = {
 				}
 				return this.getChanneInfoYoutube(channelData)
 					.then(newestVideos => this.getManyPreviews(newestVideos))
-					.then(previews => previews)
 					.catch(err => console.error(err));
 			}
 			catch (err) {
