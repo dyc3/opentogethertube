@@ -71,7 +71,7 @@ module.exports = {
 		return YtApi.get('/channels' +
 			`?key=${process.env.YOUTUBE_API_KEY}&` +
 			'part=contentDetails&' +
-			`${channelData['channel'] ? 'id' : 'forUsername'}=${channelData["id"]}`
+			`${Object.keys(channelData)[0] === 'channel' ? 'id' : 'forUsername'}=${Object.values(channelData)[0]}`
 			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
 			//on the other hand, a user link requires the forUsername filter
 		).then(res => {
@@ -248,21 +248,17 @@ module.exports = {
 		}
 		else if (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel')) {
 			console.log('channel found');
-			try {
-				const channelData = {id: urlParsed.path.slice(urlParsed.path.lastIndexOf('/')+1)};
-				if (urlParsed.path.startsWith('/channel/')) {
-					channelData.channel = true;
-				}
-				else {
-					channelData.user = true;
-				}
-				return this.getChanneInfoYoutube(channelData)
-					.then(newestVideos => this.getManyPreviews(newestVideos))
-					.catch(err => console.error(err));
+			const channelData = {};
+			const channelId = urlParsed.path.slice(urlParsed.path.lastIndexOf('/') + 1);
+			if (urlParsed.path.startsWith('/channel/')) {
+				channelData.channel = channelId;
 			}
-			catch (err) {
-				console.error('Error getting channel info:', err);
+			else {
+				channelData.user = channelId;
 			}
+			return this.getChanneInfoYoutube(channelData)
+				.then(newestVideos => this.getManyPreviews(newestVideos))
+				.catch(err => console.error('Error getting channel info:', err));
 		}
 		else {
 			let video = {
