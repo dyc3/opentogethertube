@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const InfoExtract = require("./infoextract");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const _ = require("lodash");
+const moment = require("moment");
 
 module.exports = function (server, storage) {
 	function syncRoom(room) {
@@ -15,43 +16,40 @@ module.exports = function (server, storage) {
 			queue: room.queue,
 			isPlaying: room.isPlaying,
 			playbackPosition: room.playbackPosition,
-			playbackDuration: room.playbackDuration,
 			users: [],
 		};
 
 		for (let i = 0; i < room.clients.length; i++) {
+			let ws = room.clients[i].socket;
+
+			// make sure the socket is still open
+			if (ws.readyState != 1) {
+				continue;
+			}
+
 			syncMsg.users = [];
 			for (let u = 0; u < room.clients.length; u++) {
 				syncMsg.users.push({
 					name: room.clients[u].name,
-					isYou: room.clients[i].socket == room.clients[u].socket,
+					isYou: ws == room.clients[u].socket,
 				});
 			}
 
-			let ws = room.clients[i].socket;
 			ws.send(JSON.stringify(syncMsg));
 		}
 	}
 
 	function updateRoom(room) {
-		if (!_.isEmpty(room.currentSource) && room.currentSource.hasOwnProperty("length")) {
-			// FIXME: the client expectes playbackDuration to exist and be >0.
-			// A better way to do this would be for the client to infer playbackDuration
-			// from currentsource.length
-			room.playbackDuration = room.currentSource.length;
-		}
-
 		if (_.isEmpty(room.currentSource) && room.queue.length > 0) {
 			room.currentSource = room.queue.shift();
 		}
-		else if (!_.isEmpty(room.currentSource) && room.playbackPosition > room.playbackDuration) {
+		else if (!_.isEmpty(room.currentSource) && room.playbackPosition > room.currentSource.length) {
 			room.currentSource = room.queue.length > 0 ? room.queue.shift() : {};
 			room.playbackPosition = 0;
 		}
 		if (_.isEmpty(room.currentSource) && room.queue.length == 0 && room.isPlaying) {
 			room.isPlaying = false;
 			room.playbackPosition = 0;
-			room.playbackDuration = 0;
 		}
 		syncRoom(room);
 	}
@@ -68,7 +66,6 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0,
 		};
 		if (isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
@@ -113,7 +110,6 @@ module.exports = function (server, storage) {
 				clients: [],
 				isPlaying: false,
 				playbackPosition: 0,
-				playbackDuration: 0,
 			};
 			rooms[roomName] = room;
 			return room;
@@ -144,8 +140,8 @@ module.exports = function (server, storage) {
 
 		if (queueItem.service === "youtube") {
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
-			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
-				queueItem = results[queueItem.id];
+			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
+				queueItem = result;
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);
@@ -174,7 +170,6 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0,
 		},
 	};
 
@@ -216,7 +211,7 @@ module.exports = function (server, storage) {
 					syncRoom(rooms[roomName]);
 				}
 				else if (msg.action == "skip") {
-					rooms[roomName].playbackPosition = rooms[roomName].playbackDuration + 1;
+					rooms[roomName].playbackPosition = rooms[roomName].currentSource.length + 1;
 					updateRoom(rooms[roomName]);
 				}
 				else if (msg.action == "set-name") {
@@ -281,11 +276,10 @@ module.exports = function (server, storage) {
 			// remove empty temporary rooms
 			if (room.isTemporary) {
 				if (room.clients.length > 0) {
-					room.keepAlivePing = new Date();
+					room.keepAlivePing = moment();
 				}
 				else {
-					let diffSeconds = (new Date() - room.keepAlivePing) / 1000;
-					if (diffSeconds > 10) {
+					if (moment().diff(room.keepAlivePing, 'seconds') > 10) {
 						console.log("Removing inactive temporary room", roomName);
 						roomsToDelete.push(roomName);
 					}

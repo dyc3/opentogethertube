@@ -2,6 +2,8 @@ const axios = require("axios");
 const url = require("url");
 const querystring = require('querystring');
 const moment = require("moment");
+const _ = require("lodash");
+const storage = require("./storage");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
 const YtApi = axios.create({
@@ -9,6 +11,42 @@ const YtApi = axios.create({
 });
 
 module.exports = {
+	/**
+	 * Gets all necessary information needed to represent a video. Handles
+	 * local caching and obtaining missing data from external sources.
+	 * Note that this function does not update the cache. That should be
+	 * handled by the functions that actually retrieve missing info.
+	 * @param	{string} service The service that hosts the source video.
+	 * @param	{string} id The id of the video on the given service.
+	 * @return	{Object} Video object
+	 */
+	getVideoInfo(service, id) {
+		// TODO: check if service is valid
+		// TODO: check if id is valid for service
+		return storage.getVideoInfo(service, id).then(result => {
+			let video = _.cloneDeep(result);
+			console.log("==========================", storage.getVideoInfoFields());
+			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
+			if (missingInfo.length === 0) {
+				return video;
+			}
+
+			console.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
+
+			if (video.service === "youtube") {
+				return this.getVideoInfoYoutube([video.id], missingInfo).then(result => {
+					video = Object.assign(video, result[video.id]);
+					return video;
+				}).catch(err => {
+					console.error("Failed to get youtube video info:", err);
+					throw err;
+				});
+			}
+		}).catch(err => {
+			console.error("Failed to get video metadata from database:", err);
+		});
+	},
+
 	getService(link) {
 		let srcUrl = url.parse(link);
 		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
@@ -29,13 +67,32 @@ module.exports = {
 		}
 	},
 
-	getVideoInfoYoutube(ids) {
-		// TODO: local caching of results
+	getVideoInfoYoutube(ids, onlyProperties=null) {
 		if (!Array.isArray(ids)) {
 			throw "`ids` must be an array on video IDs.";
 		}
 		return new Promise((resolve, reject) => {
-			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=snippet,contentDetails&id=${ids.join(",")}`).then(res => {
+			let parts = [];
+			if (onlyProperties !== null) {
+				if (onlyProperties.includes("title") || onlyProperties.includes("description") || onlyProperties.includes("thumbnail")) {
+					parts.push("snippet");
+				}
+				if (onlyProperties.includes("length")) {
+					parts.push("contentDetails");
+				}
+
+				if (parts.length === 0) {
+					console.error("onlyProperties must have valid values or be null! Found", onlyProperties);
+					return null;
+				}
+			}
+			else {
+				parts = [
+					"snippet",
+					"contentDetails",
+				];
+			}
+			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=${parts.join(",")}&id=${ids.join(",")}`).then(res => {
 				if (res.status !== 200) {
 					reject(`Failed with status code ${res.status}`);
 					return;
@@ -47,21 +104,30 @@ module.exports = {
 					let video = {
 						service: "youtube",
 						id: item.id,
-						title: item.snippet.title,
-						description: item.snippet.description,
-						thumbnail: "",
-						length: moment.duration(item.contentDetails.duration).asSeconds(),
 					};
-					if (item.snippet.thumbnails) {
-						if (item.snippet.thumbnails.medium) {
-							video.thumbnail = item.snippet.thumbnails.medium.url;
+					if (item.snippet) {
+						video.title = item.snippet.title;
+						video.description = item.snippet.description;
+						if (item.snippet.thumbnails) {
+							if (item.snippet.thumbnails.medium) {
+								video.thumbnail = item.snippet.thumbnails.medium.url;
+							}
+							else {
+								video.thumbnail = item.snippet.thumbnails.default.url;
+							}
 						}
-						else {
-							video.thumbnail = item.snippet.thumbnails.default.url;
-						}
+					}
+					if (item.contentDetails) {
+						video.length = moment.duration(item.contentDetails.duration).asSeconds();
 					}
 					results[item.id] = video;
 				}
+
+				// update cache
+				for (const id in results) {
+					storage.updateVideoInfo(results[id]);
+				}
+
 				resolve(results);
 			}).catch(err => {
 				reject(err);
@@ -117,6 +183,12 @@ module.exports = {
 					}
 					results.push(video);
 				}
+
+				// update cache
+				for (const video of results) {
+					storage.updateVideoInfo(video);
+				}
+
 				resolve(results);
 			}).catch(err => {
 				reject(err);
@@ -170,12 +242,12 @@ module.exports = {
 		}
 		else {
 			let video = {
-				service: "youtube",
+				service: service,
 				id: queryParams.v,
 				title: queryParams.v,
 			};
-			return this.getVideoInfoYoutube([video.id]).then(results => {
-				video = results[queryParams.v];
+			return this.getVideoInfo(video.service, video.id).then(result => {
+				video = result;
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);

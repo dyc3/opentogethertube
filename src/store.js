@@ -11,6 +11,7 @@ export default new Vuex.Store({
 			reconnectError: false,
 		},
 		joinFailureReason: null,
+		production: process.env.NODE_ENV === 'production',
 		room: {
 			name: "",
 			title: "",
@@ -20,7 +21,6 @@ export default new Vuex.Store({
 			queue: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0,
 		},
 	},
 	mutations:{
@@ -84,7 +84,6 @@ export default new Vuex.Store({
 				}
 			}
 			this.state.room.playbackPosition = message.playbackPosition;
-			this.state.room.playbackDuration = message.playbackDuration;
 			this.state.room.users = message.users;
 
 			Vue.prototype.$events.emit('onSync');
