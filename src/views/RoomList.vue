@@ -21,21 +21,21 @@
 import { API } from "@/common-http.js";
 
 export default {
-	name: 'room-list',
-	components: {
-	},
-	data() {
-		return {
-			rooms: [],
-			isLoading: false,
-		};
-	},
-	created() {
-		this.isLoading = true;
-		API.get("/room/list").then(res => {
-			this.isLoading = false;
-			this.rooms = res.data;
-		});
-	},
+  name: 'room-list',
+  components: {
+  },
+  data() {
+    return {
+      rooms: [],
+      isLoading: false,
+    };
+  },
+  created() {
+    this.isLoading = true;
+    API.get("/room/list").then(res => {
+      this.isLoading = false;
+      this.rooms = res.data;
+    });
+  },
 };
 </script>

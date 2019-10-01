@@ -69,11 +69,11 @@ module.exports = {
 		});
 	},
 
-	getVideoLengthYoutubeFallback: async (url) => {
+	getVideoLengthYoutube_Fallback: async (url) => {
 		let res = await axios.get(url);
 		let regexs = [
-			/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
-		];
+/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
+];
 		for (let r = 0; r < regexs.length; r++) {
 			let matches = res.data.match(regexs[r]);
 			if (matches == null) {

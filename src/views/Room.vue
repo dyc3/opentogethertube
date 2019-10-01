@@ -90,172 +90,172 @@ import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import secondsToTimestamp from "@/timestamp.js";
 
 export default {
-	name: 'room',
-	components: {
-		VideoQueueItem,
-	},
-	data() {
-		return {
-			sliderPosition: 0,
-			volume: 100,
-			addPreview: [],
+  name: 'room',
+  components: {
+    VideoQueueItem,
+  },
+  data() {
+    return {
+      sliderPosition: 0,
+      volume: 100,
+      addPreview: [],
 
-			showEditName: false,
-			queueTab: 0, // "queueTab-queue",
-			isLoadingAddPreview: false,
-			inputAddUrlText: "",
+      showEditName: false,
+      queueTab: 0, // "queueTab-queue",
+      isLoadingAddPreview: false,
+      inputAddUrlText: "",
 
-			showJoinFailOverlay: false,
-			joinFailReason: "",
-		};
-	},
-	computed: {
-		connectionStatus() {
-			if (this.$store.state.socket.isConnected) {
-				return "Connected";
-			}
-			else {
-				return "Connecting...";
-			}
-		},
-		currentSource() {
-			return this.$store.state.room.currentSource;
-		},
-		playbackPosition() {
-			return this.$store.state.room.playbackPosition;
-		},
-		playbackPercentage() {
-			if (!this.$store.state.room.currentSource) {
-				return 0;
-			}
-			if (this.$store.state.room.currentSource.length == 0) {
-				return 0;
-			}
-			return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
-		},
-		timestampDisplay() {
-			const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
-			const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
-			return position + " / " + duration;
-		},
-	},
-	created() {
-		this.$events.on("onSync", () => {
-			this.sliderPosition = this.$store.state.room.playbackPosition;
-		});
+      showJoinFailOverlay: false,
+      joinFailReason: "",
+    };
+  },
+  computed: {
+    connectionStatus() {
+      if (this.$store.state.socket.isConnected) {
+        return "Connected";
+      }
+      else {
+        return "Connecting...";
+      }
+    },
+    currentSource() {
+      return this.$store.state.room.currentSource;
+    },
+    playbackPosition() {
+      return this.$store.state.room.playbackPosition;
+    },
+    playbackPercentage() {
+      if (!this.$store.state.room.currentSource) {
+        return 0;
+      }
+      if (this.$store.state.room.currentSource.length == 0) {
+        return 0;
+      }
+      return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
+    },
+    timestampDisplay() {
+      const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
+      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
+      return position + " / " + duration;
+    },
+  },
+  created() {
+    this.$events.on("onSync", () => {
+      this.sliderPosition = this.$store.state.room.playbackPosition;
+    });
 
-		if (!this.$store.state.socket.isConnected) {
-			// This check prevents the client from connecting multiple times,
-			// caused by hot reloading in the dev environment.
-			this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-		}
-	},
-	methods: {
-		postTestVideo(v) {
-			let videos = [
-				"https://www.youtube.com/watch?v=WC66l5tPIF4",
-				"https://www.youtube.com/watch?v=aI67KDJRnvQ",
-			];
-			API.post(`/room/${this.$route.params.roomId}/queue`, {
-				url: videos[v],
-			});
-		},
-		togglePlayback() {
-			if (this.$store.state.room.isPlaying) {
-				this.$socket.sendObj({ action: "pause" });
-			}
-			else {
-				this.$socket.sendObj({ action: "play" });
-			}
-		},
-		skipVideo() {
-			this.$socket.sendObj({ action: "skip" });
-		},
-		sliderChange() {
-			this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
-		},
-		addToQueue() {
-			API.post(`/room/${this.$route.params.roomId}/queue`, {
-				url: this.inputAddUrlText,
-			});
-		},
-		openEditName() {
-			this.showEditName = !this.showEditName;
-			if (this.showEditName) {
-				// Doesn't work
-				this.$refs.editName.lazyValue = window.localStorage.getItem("username"); //this.$store.state.room.users.filter(u => u.isYou)[0].name;
-			}
-		},
-		play() {
-			if (this.currentSource.service == "youtube") {
-				this.$refs.youtube.player.playVideo();
-			}
-		},
-		pause() {
-			if (this.currentSource.service == "youtube") {
-				this.$refs.youtube.player.pauseVideo();
-			}
-		},
-		updateVolume() {
-			if (this.currentSource.service == "youtube") {
-				this.$refs.youtube.player.setVolume(this.volume);
-			}
-		},
-		onEditNameChange() {
-			window.localStorage.setItem("username", this.$refs.editName.lazyValue);
-			this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
-		},
-		onPlaybackChange(changeTo) {
-			this.updateVolume();
-			if (changeTo == this.$store.state.room.isPlaying) {
-				return;
-			}
+    if (!this.$store.state.socket.isConnected) {
+      // This check prevents the client from connecting multiple times,
+      // caused by hot reloading in the dev environment.
+      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+    }
+  },
+  methods: {
+    postTestVideo(v) {
+      let videos = [
+        "https://www.youtube.com/watch?v=WC66l5tPIF4",
+        "https://www.youtube.com/watch?v=aI67KDJRnvQ",
+      ];
+      API.post(`/room/${this.$route.params.roomId}/queue`, {
+        url: videos[v],
+      });
+    },
+    togglePlayback() {
+      if (this.$store.state.room.isPlaying) {
+        this.$socket.sendObj({ action: "pause" });
+      }
+      else {
+        this.$socket.sendObj({ action: "play" });
+      }
+    },
+    skipVideo() {
+      this.$socket.sendObj({ action: "skip" });
+    },
+    sliderChange() {
+      this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
+    },
+    addToQueue() {
+      API.post(`/room/${this.$route.params.roomId}/queue`, {
+        url: this.inputAddUrlText,
+      });
+    },
+    openEditName() {
+      this.showEditName = !this.showEditName;
+      if (this.showEditName) {
+        // Doesn't work
+        this.$refs.editName.lazyValue = window.localStorage.getItem("username"); //this.$store.state.room.users.filter(u => u.isYou)[0].name;
+      }
+    },
+    play() {
+      if (this.currentSource.service == "youtube") {
+        this.$refs.youtube.player.playVideo();
+      }
+    },
+    pause() {
+      if (this.currentSource.service == "youtube") {
+        this.$refs.youtube.player.pauseVideo();
+      }
+    },
+    updateVolume() {
+      if (this.currentSource.service == "youtube") {
+        this.$refs.youtube.player.setVolume(this.volume);
+      }
+    },
+    onEditNameChange() {
+      window.localStorage.setItem("username", this.$refs.editName.lazyValue);
+      this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
+    },
+    onPlaybackChange(changeTo) {
+      this.updateVolume();
+      if (changeTo == this.$store.state.room.isPlaying) {
+        return;
+      }
 
-			if (this.$store.state.room.isPlaying) {
-				this.play();
-			}
-			else {
-				this.pause();
-			}
-		},
-		onInputAddChange(value) {
-			// TODO: debounce
-			this.isLoadingAddPreview = true;
-			API.get(`/data/previewAdd?input=${encodeURIComponent(value)}`).then(res => {
-				this.isLoadingAddPreview = false;
-				this.addPreview = res.data;
-				console.log(`Got add preview with ${this.addPreview.length}`);
-			}).catch(err => {
-				this.isLoadingAddPreview = false;
-				console.error("Failed to get add preview", err);
-			});
-		},
-		onPlayerReadyYoutube() {
-			this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
-		},
-	},
-	mounted() {
-		this.$events.on("playVideo", () => {
-			this.play();
-		});
-		this.$events.on("pauseVideo", () => {
-			this.pause();
-		});
-		this.$events.on("roomJoinFailure", eventData => {
-			this.showJoinFailOverlay = true;
-			this.joinFailReason = eventData.reason;
-		});
-	},
-	watch: {
-		volume() {
-			this.updateVolume();
-		},
-		async sliderPosition(newPosition) {
-			if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
-				this.$refs.youtube.player.seekTo(newPosition);
-			}
-		},
-	},
+      if (this.$store.state.room.isPlaying) {
+        this.play();
+      }
+      else {
+        this.pause();
+      }
+    },
+    onInputAddChange(value) {
+      // TODO: debounce
+      this.isLoadingAddPreview = true;
+      API.get(`/data/previewAdd?input=${encodeURIComponent(value)}`).then(res => {
+        this.isLoadingAddPreview = false;
+        this.addPreview = res.data;
+        console.log(`Got add preview with ${this.addPreview.length}`);
+      }).catch(err => {
+        this.isLoadingAddPreview = false;
+        console.error("Failed to get add preview", err);
+      });
+    },
+    onPlayerReady_Youtube() {
+      this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+    },
+  },
+  mounted() {
+    this.$events.on("playVideo", () => {
+      this.play();
+    });
+    this.$events.on("pauseVideo", () => {
+      this.pause();
+    });
+    this.$events.on("roomJoinFailure", eventData => {
+      this.showJoinFailOverlay = true;
+      this.joinFailReason = eventData.reason;
+    });
+  },
+  watch: {
+    volume() {
+      this.updateVolume();
+    },
+    async sliderPosition(newPosition) {
+      if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
+        this.$refs.youtube.player.seekTo(newPosition);
+      }
+    },
+  },
 };
 </script>
 
