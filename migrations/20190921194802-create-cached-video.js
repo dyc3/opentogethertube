@@ -1,27 +1,30 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Rooms', {
+    return queryInterface.createTable('CachedVideos', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      name: {
+      service: {
         type: Sequelize.STRING,
-        unique: true,
-        allowNull: false,
+      },
+      serviceId: {
+        type: Sequelize.STRING,
       },
       title: {
         type: Sequelize.STRING,
-        allowNull: false,
-        defaultValue: "Room",
       },
       description: {
         type: Sequelize.TEXT,
-        allowNull: false,
-        defaultValue: "",
+      },
+      thumbnail: {
+        type: Sequelize.STRING,
+      },
+      length: {
+        type: Sequelize.INTEGER,
       },
       createdAt: {
         allowNull: false,
@@ -35,6 +38,6 @@ module.exports = {
   },
   // eslint-disable-next-line no-unused-vars
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Rooms');
+    return queryInterface.dropTable('CachedVideos');
   },
 };

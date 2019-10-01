@@ -15,7 +15,7 @@ module.exports = {
     "host": "127.0.0.1",
     "dialect": "sqlite",
     "operatorsAliases": false,
-    "storage": "db/dev.sqlite"
+    "storage": "db/dev.sqlite",
   },
   "test": {
     "username": "root",
@@ -23,7 +23,8 @@ module.exports = {
     "database": "db_opentogethertube_test",
     "host": "127.0.0.1",
     "dialect": "sqlite",
-    "operatorsAliases": false
+    "operatorsAliases": false,
+    "storage": "db/test.sqlite",
   },
   "production": {
     "username": "ott",
@@ -31,6 +32,6 @@ module.exports = {
     "database": "db_opentogethertube_prod",
     "host": "127.0.0.1",
     "dialect": "postgres",
-    "operatorsAliases": false
-  }
-}
+    "operatorsAliases": false,
+  },
+};

@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - lts/*
+cache:
+  directories:
+    - "$HOME/.npm"
+install:
+  - npm ci
+before_script:
+  - NODE_ENV=test npx sequelize-cli db:migrate
+  - npm run build
+script:
+  - npm run lint-ci
+  - npm test

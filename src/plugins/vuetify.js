@@ -8,15 +8,15 @@ Vue.use(Vuetify);
 
 export default new Vuetify({
 	icons: {
-		iconfont: "fa"
+		iconfont: "fa",
 	},
 	theme: {
 		dark: true,
 		themes: {
 			dark: {
-				primary: "#aa00ff",
-				secondary: "#ffb300"
-			}
-		}
+				primary: "#ffb300", // orange
+				secondary: "#42A5F5", // blue
+			},
+		},
 	},
 });

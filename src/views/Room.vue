@@ -9,10 +9,10 @@
         <v-layout wrap class="video-container">
           <v-flex xl8>
             <div class="iframe-container" :key="currentSource.service">
-              <youtube v-if="currentSource.service == 'youtube'" fitParent resize :video-id="currentSource.id" ref="youtube" :playerVars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)"></youtube>
+              <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
             <v-flex column class="video-controls">
-              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.playbackDuration"></vue-slider>
+              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length"/>
               <v-flex row align-center>
                 <v-btn @click="togglePlayback()">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
@@ -21,7 +21,10 @@
                 <v-btn @click="skipVideo()">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
-                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"></vue-slider>
+                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"/>
+                <div style="margin-left: 20px">
+                  {{ timestampDisplay }}
+                </div>
               </v-flex>
             </v-flex>
           </v-flex>
@@ -29,20 +32,27 @@
         <v-layout row justify-space-between>
           <v-flex column md8 sm12>
             <v-tabs grow v-model="queueTab">
-              <v-tab>Queue</v-tab>
+              <v-tab>
+                Queue
+                <span class="bubble">{{ $store.state.room.queue.length <= 99 ? $store.state.room.queue.length : "99+" }}</span>
+              </v-tab>
               <v-tab>Add</v-tab>
             </v-tabs>
-            <div class="video-queue" v-if="queueTab === 0">
-              <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
-            </div>
-            <div class="video-add" v-if="queueTab === 1">
-              <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"></v-text-field>
-              <v-btn @click="addToQueue">Add</v-btn>
-              <v-btn @click="postTestVideo(0)">Add test video 0</v-btn>
-              <v-btn @click="postTestVideo(1)">Add test video 1</v-btn>
-
-              <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" isPreview/>
-            </div>
+            <v-tabs-items v-model="queueTab" class="queue-tab-content">
+              <v-tab-item>
+                <div class="video-queue">
+                  <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
+                </div>
+              </v-tab-item>
+              <v-tab-item>
+                <div class="video-add">
+                  <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"/>
+                  <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
+                  <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
+                  <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
+                </div>
+              </v-tab-item>
+            </v-tabs-items>
           </v-flex>
           <v-flex column md4 sm12>
             <div class="user-list">
@@ -52,7 +62,7 @@
                   <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
                 </v-subheader>
                 <v-list-item v-if="showEditName">
-                  <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"></v-text-field>
+                  <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"/>
                 </v-list-item>
                 <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
                   {{ user.name }}
@@ -77,11 +87,12 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
+import secondsToTimestamp from "@/timestamp.js";
 
 export default {
   name: 'room',
   components: {
-    VideoQueueItem
+    VideoQueueItem,
   },
   data() {
     return {
@@ -90,12 +101,12 @@ export default {
       addPreview: [],
 
       showEditName: false,
-      queueTab: 0,
+      queueTab: 0, // "queueTab-queue",
       isLoadingAddPreview: false,
       inputAddUrlText: "",
 
       showJoinFailOverlay: false,
-      joinFailReason: ""
+      joinFailReason: "",
     };
   },
   computed: {
@@ -114,8 +125,22 @@ export default {
       return this.$store.state.room.playbackPosition;
     },
     playbackPercentage() {
-      return this.$store.state.room.playbackPosition / this.$store.state.room.playbackDuration;
-    }
+      if (!this.$store.state.room.currentSource) {
+        return 0;
+      }
+      if (this.$store.state.room.currentSource.length == 0) {
+        return 0;
+      }
+      return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
+    },
+    production() {
+      return this.$store.state.production;
+    },
+    timestampDisplay() {
+      const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
+      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
+      return position + " / " + duration;
+    },
   },
   created() {
     this.$events.on("onSync", () => {
@@ -132,10 +157,10 @@ export default {
     postTestVideo(v) {
       let videos = [
         "https://www.youtube.com/watch?v=WC66l5tPIF4",
-        "https://www.youtube.com/watch?v=aI67KDJRnvQ"
+        "https://www.youtube.com/watch?v=aI67KDJRnvQ",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: videos[v]
+        url: videos[v],
       });
     },
     togglePlayback() {
@@ -154,7 +179,7 @@ export default {
     },
     addToQueue() {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.inputAddUrlText
+        url: this.inputAddUrlText,
       });
     },
     openEditName() {
@@ -207,7 +232,10 @@ export default {
         this.isLoadingAddPreview = false;
         console.error("Failed to get add preview", err);
       });
-    }
+    },
+    onPlayerReady_Youtube() {
+      this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
@@ -230,7 +258,7 @@ export default {
         this.$refs.youtube.player.seekTo(newPosition);
       }
     },
-  }
+  },
 };
 </script>
 
@@ -243,10 +271,13 @@ export default {
   margin: 0 10px;
   min-height: 500px;
 }
+.queue-tab-content {
+  background: transparent;
+}
 .is-you {
-  color: #fff;
-  background-color: #aa00ff;
-  border-radius: 5px;
+  color: #ffb300;
+  border: 1px #ffb300 solid;
+  border-radius: 10px;
   margin: 5px;
   padding: 0 5px;
   font-size: 10px;
@@ -264,5 +295,18 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+}
+.bubble{
+  height: 25px;
+  width: 25px;
+  margin-left: 10px;
+  background-color: #3f3838;
+  border-radius: 50%;
+  display: inline-block;
+
+  font-weight: bold;
+  color:#fff;
+  text-align: center;
+  line-height: 1.8;
 }
 </style>

@@ -16,44 +16,40 @@ module.exports = function (server, storage) {
 			queue: room.queue,
 			isPlaying: room.isPlaying,
 			playbackPosition: room.playbackPosition,
-			playbackDuration: room.playbackDuration,
-			users: []
+			users: [],
 		};
 
-
 		for (let i = 0; i < room.clients.length; i++) {
+			let ws = room.clients[i].socket;
+
+			// make sure the socket is still open
+			if (ws.readyState != 1) {
+				continue;
+			}
+
 			syncMsg.users = [];
 			for (let u = 0; u < room.clients.length; u++) {
 				syncMsg.users.push({
 					name: room.clients[u].name,
-					isYou: room.clients[i].socket == room.clients[u].socket
+					isYou: ws == room.clients[u].socket,
 				});
 			}
 
-			let ws = room.clients[i].socket;
 			ws.send(JSON.stringify(syncMsg));
 		}
 	}
 
 	function updateRoom(room) {
-		if (!_.isEmpty(room.currentSource) && room.currentSource.hasOwnProperty("length")) {
-			// FIXME: the client expectes playbackDuration to exist and be >0.
-			// A better way to do this would be for the client to infer playbackDuration
-			// from currentsource.length
-			room.playbackDuration = room.currentSource.length;
-		}
-
 		if (_.isEmpty(room.currentSource) && room.queue.length > 0) {
 			room.currentSource = room.queue.shift();
 		}
-		else if (!_.isEmpty(room.currentSource) && room.playbackPosition > room.playbackDuration) {
+		else if (!_.isEmpty(room.currentSource) && room.playbackPosition > room.currentSource.length) {
 			room.currentSource = room.queue.length > 0 ? room.queue.shift() : {};
 			room.playbackPosition = 0;
 		}
 		if (_.isEmpty(room.currentSource) && room.queue.length == 0 && room.isPlaying) {
 			room.isPlaying = false;
 			room.playbackPosition = 0;
-			room.playbackDuration = 0;
 		}
 		syncRoom(room);
 	}
@@ -70,7 +66,6 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0
 		};
 		if (isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
@@ -85,7 +80,7 @@ module.exports = function (server, storage) {
 	function deleteRoom(roomName) {
 		for (let i = 0; i < rooms[roomName].clients.length; i++) {
 			rooms[roomName].clients[i].socket.send(JSON.stringify({
-				action: "room-delete"
+				action: "room-delete",
 			}));
 			rooms[roomName].clients[i].socket.close(4003, "Room has been deleted");
 		}
@@ -115,31 +110,38 @@ module.exports = function (server, storage) {
 				clients: [],
 				isPlaying: false,
 				playbackPosition: 0,
-				playbackDuration: 0
 			};
 			rooms[roomName] = room;
 			return room;
 		});
 	}
 
-	function addToQueue(roomName, link) {
+	function addToQueue(roomName, video) {
 		let queueItem = {
 			service: "",
 			id: "",
 			title: "",
 			description: "",
 			thumbnail: "",
-			length: 0
+			length: 0,
 		};
 
-		queueItem.service = InfoExtract.getService(link);
+		if (video.hasOwnProperty("url")) {
+			queueItem.service = InfoExtract.getService(video.url);
+
+			if (queueItem.service === "youtube") {
+				queueItem.id = InfoExtract.getVideoIdYoutube(video.url);
+			}
+		}
+		else {
+			queueItem.service = video.service;
+			queueItem.id = video.id;
+		}
 
 		if (queueItem.service === "youtube") {
-			queueItem.id = InfoExtract.getVideoIdYoutube(link);
-
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
-			return InfoExtract.getVideoInfoYoutube([queueItem.id]).then(results => {
-				queueItem = results[queueItem.id];
+			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
+				queueItem = result;
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);
@@ -168,8 +170,7 @@ module.exports = function (server, storage) {
 			clients: [],
 			isPlaying: false,
 			playbackPosition: 0,
-			playbackDuration: 0
-		}
+		},
 	};
 
 	wss.on('connection', (ws, req) => {
@@ -190,7 +191,7 @@ module.exports = function (server, storage) {
 		}).then(() => {
 			rooms[roomName].clients.push({
 				name: "client",
-				socket: ws
+				socket: ws,
 			});
 			console.log("[ws] client joined", roomName);
 
@@ -210,7 +211,7 @@ module.exports = function (server, storage) {
 					syncRoom(rooms[roomName]);
 				}
 				else if (msg.action == "skip") {
-					rooms[roomName].playbackPosition = rooms[roomName].playbackDuration + 1;
+					rooms[roomName].playbackPosition = rooms[roomName].currentSource.length + 1;
 					updateRoom(rooms[roomName]);
 				}
 				else if (msg.action == "set-name") {
@@ -230,7 +231,7 @@ module.exports = function (server, storage) {
 					let generatedName = uniqueNamesGenerator();
 					ws.send(JSON.stringify({
 						action: "generatedName",
-						name: generatedName
+						name: generatedName,
 					}));
 
 					for (let i = 0; i < rooms[roomName].clients.length; i++) {
@@ -251,7 +252,7 @@ module.exports = function (server, storage) {
 		});
 	});
 
-	setInterval(function() {
+	setInterval(() => {
 		let roomsToDelete = [];
 		for (let roomName in rooms) {
 			let room = rooms[roomName];
@@ -275,11 +276,10 @@ module.exports = function (server, storage) {
 			// remove empty temporary rooms
 			if (room.isTemporary) {
 				if (room.clients.length > 0) {
-					room.keepAlivePing = new Date();
+					room.keepAlivePing = moment();
 				}
 				else {
-					let diffSeconds = (new Date() - room.keepAlivePing) / 1000;
-					if (diffSeconds > 10) {
+					if (moment().diff(room.keepAlivePing, 'seconds') > 10) {
 						console.log("Removing inactive temporary room", roomName);
 						roomsToDelete.push(roomName);
 					}
@@ -299,6 +299,6 @@ module.exports = function (server, storage) {
 		createRoom,
 		deleteRoom,
 		addToQueue,
-		getRoom
+		getRoom,
 	};
 };
