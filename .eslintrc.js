@@ -27,6 +27,7 @@ module.exports = {
     'implicit-arrow-linebreak': ['error', 'beside'],
     'keyword-spacing': ['error', { 'before': true, 'after': true }],
     'no-eval': ['error', {}],
+    'no-multiple-empty-lines': ['error', { 'max': 1, 'maxBOF': 0 }],
     'no-var': 'error',
     'no-dupe-keys': 'error',
     'prefer-arrow-callback': 'error',
