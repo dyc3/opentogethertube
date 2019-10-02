@@ -9,12 +9,10 @@ module.exports = function(_roommanager, storage) {
 	const router = express.Router();
 
 	router.get("/room/list", (req, res) => {
-		let roomNames = _.keys(roommanager.rooms);
 		let rooms = [];
-		for (let i = 0; i < roomNames.length; i++) {
-			let room = roommanager.rooms[roomNames[i]];
+		for (const room of roommanager.rooms) {
 			rooms.push({
-				name: roomNames[i],
+				name: room.name,
 				description: room.description,
 				isTemporary: room.isTemporary,
 				currentSource: room.currentSource,
@@ -25,11 +23,17 @@ module.exports = function(_roommanager, storage) {
 	});
 
 	router.get("/room/:name", (req, res) => {
-		roommanager.getRoom(req.params.name).then(room => {
-			if (room) {
-				res.json(room);
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			res.json(room);
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
 			}
 			else {
+				console.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -92,35 +96,42 @@ module.exports = function(_roommanager, storage) {
 	});
 
 	router.post("/room/:name/queue", (req, res) => {
-		if (!roommanager.rooms.hasOwnProperty(req.params.name)) {
-			res.status(404);
-			res.json({
-				error: "Room does not exist",
-			});
-			return;
-		}
-		if (req.body.url) {
-			roommanager.addToQueue(req.params.name, { url: req.body.url }).then(success => {
-				res.json({
-					success,
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			if (req.body.url) {
+				room.addToQueue({ url: req.body.url }).then(success => {
+					res.json({
+						success,
+					});
 				});
-			});
-		}
-		else if (req.body.service && req.body.id) {
-			roommanager.addToQueue(req.params.name, { service: req.body.service, id: req.body.id }).then(success => {
-				res.json({
-					success,
+			}
+			else if (req.body.service && req.body.id) {
+				room.addToQueue({ service: req.body.service, id: req.body.id }).then(success => {
+					res.json({
+						success,
+					});
 				});
-			});
-		}
-		else {
-			res.status(400).json({
-				success: false,
-				error: "Invalid parameters",
-			});
-			return;
-		}
-		roommanager.updateRoom(roommanager.rooms[req.params.name]);
+			}
+			else {
+				res.status(400).json({
+					success: false,
+					error: "Invalid parameters",
+				});
+			}
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
+		});
 	});
 
 	router.delete("/room/:name/queue", (req, res) => {
