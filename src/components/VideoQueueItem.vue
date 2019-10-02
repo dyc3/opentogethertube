@@ -16,10 +16,11 @@
 							{{ item.description }}
 						</v-flex>
 						<v-flex class="actions">
-							<v-btn icon small="$vuetify.breakpoint.mdAndUp" x-small="$vuetify.breakpoint.smAndDown" @click="addToQueue" v-if="isPreview">
-								<v-icon>fas fa-plus</v-icon>
+							<v-btn icon :loading="isLoading" :small="$vuetify.breakpoint.mdAndUp" :x-small="$vuetify.breakpoint.smAndDown" @click="addToQueue" v-if="isPreview">
+								<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
+								<v-icon v-else>fas fa-plus</v-icon>
 							</v-btn>
-							<v-btn icon small="$vuetify.breakpoint.mdAndUp" x-small="$vuetify.breakpoint.smAndDown" @click="removeFromQueue" v-if="!isPreview">
+							<v-btn icon :loading="isLoading" :small="$vuetify.breakpoint.mdAndUp" :x-small="$vuetify.breakpoint.smAndDown" @click="removeFromQueue" v-if="!isPreview">
 								<v-icon>fas fa-trash</v-icon>
 							</v-btn>
 						</v-flex>
@@ -40,6 +41,12 @@ export default {
 		item: { type: Object, required: true },
 		isPreview: { type: Boolean, default: false },
 	},
+	data() {
+		return {
+			isLoading: false,
+			hasBeenAdded: false,
+		};
+	},
 	computed:{
 		videoLength() {
 			return secondsToTimestamp(this.item.length);
@@ -47,17 +54,24 @@ export default {
 	},
 	methods: {
 		addToQueue() {
+			this.isLoading = true;
 			API.post(`/room/${this.$route.params.roomId}/queue`, {
-				url: `http://youtube.com/watch?v=${this.item.id}`,
+				service: this.item.service,
+				id: this.item.id,
+			}).then(() => {
+				this.isLoading = false;
+				this.hasBeenAdded = true;
 			});
 		},
 		removeFromQueue() {
-			let data = {
-				service: this.item.service,
-				id: this.item.id,
-			};
-			API.delete(`/room/${this.$route.params.roomId}/queue`, { data: data }).then(res => {
-				console.log(`Remove ${data} from queue:`, res.data);
+			this.isLoading = true;
+			API.delete(`/room/${this.$route.params.roomId}/queue`, {
+				data: {
+					service: this.item.service,
+					id: this.item.id,
+				},
+			}).then(() => {
+				this.isLoading = false;
 			});
 		},
 	},
