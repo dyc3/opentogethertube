@@ -4,11 +4,11 @@ const InfoExtract = require("../../infoextract");
 const storage = require("../../storage");
 const { CachedVideo } = require("../../models");
 
-const config_path = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(config_path)) {
-  console.error("No config found! Things will break!", config_path);
+const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
+if (!fs.existsSync(configPath)) {
+  console.error("No config found! Things will break!", configPath);
 }
-require('dotenv').config({ path: config_path });
+require('dotenv').config({ path: configPath });
 
 describe('InfoExtractor Link Parsing', () => {
   it('getService() should return youtube when given youtube link', () => {
