@@ -12,7 +12,7 @@
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
             <v-flex column class="video-controls">
-              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length"/>
+              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter"/>
               <v-flex row align-center>
                 <v-btn @click="togglePlayback()">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
@@ -97,6 +97,7 @@ export default {
   data() {
     return {
       sliderPosition: 0,
+      sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
       addPreview: [],
 
