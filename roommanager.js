@@ -3,6 +3,7 @@ const InfoExtract = require("./infoextract");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const _ = require("lodash");
 const moment = require("moment");
+const NanoTimer = require("nanotimer");
 
 module.exports = function (server, storage) {
 	function syncRoom(room) {
@@ -254,7 +255,8 @@ module.exports = function (server, storage) {
 		});
 	});
 
-	setInterval(() => {
+	const nanotimer = new NanoTimer();
+	nanotimer.setInterval(() => {
 		let roomsToDelete = [];
 		for (let roomName in rooms) {
 			let room = rooms[roomName];
@@ -292,7 +294,7 @@ module.exports = function (server, storage) {
 		for (let i = 0; i < roomsToDelete.length; i++) {
 			deleteRoom(roomsToDelete[i]);
 		}
-	}, 1000);
+	}, '', '1000m');
 
 	return {
 		rooms,
