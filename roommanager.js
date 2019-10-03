@@ -316,6 +316,7 @@ module.exports = {
 	 * @param {string} name The name of the room to load.
 	 * @returns {Promise} Promise that resolves to a Room.
 	 * @throws {RoomNotFoundException}
+	 * @throws {RoomAlreadyLoadedException}
 	 */
 	loadRoom(name) {
 		if (_.findIndex(this.rooms, r => r.name === name) >= 0) {
