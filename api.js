@@ -1,5 +1,4 @@
 const express = require('express');
-const _ = require("lodash");
 const uuid = require("uuid/v4");
 const InfoExtract = require("./infoextract");
 
