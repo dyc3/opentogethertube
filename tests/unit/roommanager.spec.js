@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const roommanager = require("../../roommanager");
 const InfoExtract = require("../../infoextract");
+const storage = require("../../storage");
 
 const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(configPath)) {
@@ -134,16 +135,92 @@ describe('Room manager: Room tests', () => {
       });
     });
   });
+});
+
+describe('Room manager: Manager tests', () => {
+  beforeEach(done => {
+    roommanager.rooms = [];
+    done();
+  });
+
+  afterEach(done => {
+    done();
+  });
 
   it('should create a temporary room with the name "tmp"', done => {
     roommanager.createRoom('tmp', true);
     roommanager.getLoadedRoom('tmp').then(room => {
       expect(room).toBeDefined();
       expect(room.name).toBeDefined();
-      expect(room.name).toEqual("tmp");
+      expect(room.name).toEqual('tmp');
       expect(room.isTemporary).toEqual(true);
       expect(room.keepAlivePing).toBeDefined();
       done();
     });
+  });
+
+  it('should create a permanent room with the name "perm"', done => {
+    storage.saveRoom = jest.fn();
+    roommanager.createRoom('perm', false);
+    roommanager.getLoadedRoom('perm').then(room => {
+      expect(room).toBeDefined();
+      expect(room.name).toBeDefined();
+      expect(room.name).toEqual('perm');
+      expect(room.isTemporary).toEqual(false);
+      expect(room.keepAlivePing).toBe(null);
+      expect(storage.saveRoom).toBeCalled();
+      done();
+    });
+  });
+
+  it('should load the room from the database', done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    expect(roommanager.rooms.length).toEqual(0);
+    roommanager.loadRoom("test").then(room => {
+      expect(storage.getRoomByName).toBeCalled();
+      expect(room).toBeDefined();
+      expect(room.name).toBeDefined();
+      expect(room.name).toEqual("test");
+      expect(room.title).toBeDefined();
+      expect(room.title).toEqual("Test Room");
+      expect(room.description).toBeDefined();
+      expect(room.description).toEqual("This is a Test Room.");
+      expect(roommanager.rooms.length).toEqual(1);
+      done();
+    }).catch(err => done.fail(err));
+  });
+
+  it('should unload the room from memory', done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    roommanager.loadRoom("test").then(room => {
+      expect(roommanager.rooms.length).toEqual(1);
+      roommanager.unloadRoom(room);
+      expect(roommanager.rooms.length).toEqual(0);
+      done();
+    }).catch(err => done.fail(err));
+  });
+
+  it('should throw RoomNotFoundException when attempting to load a room that does not exist', done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve(null)));
+    roommanager.loadRoom("test").then(() => {
+      done.fail();
+    }).catch(err => {
+      expect(err.name).toEqual('RoomNotFoundException');
+      done();
+    });
+  });
+
+  it('should throw RoomAlreadyExistsException when attempting to load a room that is already loaded', async done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    await roommanager.loadRoom("test");
+    try {
+      roommanager.loadRoom("test").then(() => {
+        done.fail();
+      });
+    }
+    catch (err) {
+      expect(err.name).toEqual("RoomAlreadyLoadedException");
+      done();
+    }
   });
 });
