@@ -62,6 +62,7 @@ class Room {
 			}).then(() => {
 				this.queue.push(queueItem);
 				this.update();
+				this.sync();
 				return true;
 			});
 		}
@@ -185,6 +186,7 @@ class Room {
 		else if (msg.action === "skip") {
 			this.playbackPosition = this.currentSource.length + 1;
 			this.update();
+			this.sync();
 		}
 		else if (msg.action === "set-name") {
 			if (!msg.name) {
@@ -199,6 +201,7 @@ class Room {
 			// }
 			client.name = msg.name;
 			this.update();
+			this.sync();
 		}
 		else if (msg.action === "generate-name") {
 			let generatedName = uniqueNamesGenerator();
@@ -215,6 +218,7 @@ class Room {
 			// }
 			client.name = generatedName;
 			this.update();
+			this.sync();
 		}
 		else {
 			console.warn("[ws] UNKNOWN ACTION", msg.action);
