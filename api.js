@@ -82,16 +82,25 @@ module.exports = function(_roommanager, storage) {
 	});
 
 	router.delete("/room/:name", (req, res) => {
-		if (roommanager.rooms[req.params.name] == undefined) {
-			res.status(400).json({
-				success: false,
-				error: "Room does not exist",
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			roommanager.unloadRoom(room);
+			res.json({
+				success: true,
 			});
-			return;
-		}
-		roommanager.deleteRoom(req.params.name);
-		res.status(200).json({
-			success: true,
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
 		});
 	});
 
