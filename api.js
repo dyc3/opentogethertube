@@ -135,41 +135,34 @@ module.exports = function(_roommanager, storage) {
 	});
 
 	router.delete("/room/:name/queue", (req, res) => {
-		if (!roommanager.rooms.hasOwnProperty(req.params.name)) {
-			res.status(404);
-			res.json({
-				success: false,
-				error: "Room does not exist",
-			});
-			return;
-		}
-
-		// find the index of the item to delete
-		let room = roommanager.rooms[req.params.name];
-		let matchIdx = -1;
-		for (let i = 0; i < room.queue.length; i++) {
-			let item = room.queue[i];
-			if (item.service === req.body.service && item.id === req.body.id) {
-				matchIdx = i;
-				break;
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			if (req.body.service && req.body.id) {
+				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id });
+				res.json({
+					success,
+				});
 			}
-		}
-
-		if (matchIdx < 0) {
-			res.status(404).json({
-				success: false,
-				error: "Queue item not found",
-			});
-		}
-
-		// remove the item from the queue
-		room.queue.splice(matchIdx, 1);
-
-		// respond
-		res.json({
-			success: true,
+			else {
+				res.status(400).json({
+					success: false,
+					error: "Invalid parameters",
+				});
+			}
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
 		});
-		roommanager.updateRoom(roommanager.rooms[req.params.name]);
 	});
 
 	router.get("/data/previewAdd", (req, res) => {

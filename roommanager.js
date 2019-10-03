@@ -70,6 +70,17 @@ class Room {
 		}
 	}
 
+	removeFromQueue(video) {
+		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		if (matchIdx < 0) {
+			return false;
+		}
+		// remove the item from the queue
+		this.queue.splice(matchIdx, 1);
+		this.sync();
+		return true;
+	}
+
 	/**
 	 * Updates the room state. Any logic that makes the room do
 	 * something automatically without a user's input goes here
