@@ -273,7 +273,7 @@ module.exports = {
 			});
 		});
 
-		const nanotimer = NanoTimer();
+		const nanotimer = new NanoTimer();
 		nanotimer.setInterval(() => {
 			for (const room of this.rooms) {
 				if (room.isPlaying) {
