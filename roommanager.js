@@ -169,7 +169,7 @@ module.exports = function (server, storage) {
 			title: "Test Room",
 			description: "This is a test room.",
 			isTemporary: false,
-			currentSource: "",
+			currentSource: {},
 			queue: [],
 			clients: [],
 			isPlaying: false,

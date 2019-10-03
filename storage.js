@@ -7,11 +7,11 @@ module.exports = {
 		return Room.findOne({
 			where: { name: roomName },
 		}).then(room => {
-			if (room) {
-				delete room.createdAt;
-				delete room.updatedAt;
-			}
-			return room;
+			return {
+				name: room.name,
+				title: room.title,
+				description: room.description,
+			};
 		}).catch(err => {
 			console.error("Failed to get room by name:", err);
 		});
