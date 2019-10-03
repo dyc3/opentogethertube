@@ -84,8 +84,7 @@ class Room {
 	/**
 	 * Updates the room state. Any logic that makes the room do
 	 * something automatically without a user's input goes here
-	 * (automatically playing the next video in the queue,
-	 * updating playbackPosition when playing, etc.)
+	 * (automatically playing the next video in the queue, etc.)
 	 */
 	update() {
 		// remove inactive clients
@@ -96,10 +95,6 @@ class Room {
 				this.clients.splice(i--, 1);
 				continue;
 			}
-		}
-
-		if (this.isPlaying) {
-			this.playbackPosition += 1;
 		}
 
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
@@ -277,6 +272,10 @@ module.exports = {
 		const nanotimer = NanoTimer();
 		nanotimer.setInterval(() => {
 			for (const room of this.rooms) {
+				if (room.isPlaying) {
+					room.playbackPosition += 1;
+				}
+
 				room.update();
 				room.sync();
 
