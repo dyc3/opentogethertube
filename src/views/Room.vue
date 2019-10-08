@@ -2,10 +2,10 @@
   <div>
     <v-container class="room" v-if="!showJoinFailOverlay">
       <v-layout class="room-info" column>
-        <input class="room-title" v-model="title" />
-		<input class="room-description" placeholder="No description" v-model="description"/>
+        <v-input class="room-title" v-model="title" />
+		<v-input class="room-description" placeholder="No description" v-model="description"/>
         <div class="room-connection">
-			<div class="connection-indicator" :class="connectionStatus == 'Connected' ? 'open' : ''"></div>{{ connectionStatus }}
+			<div class="connection-indicator" :class="connectionStatus == 'Connected' ? 'open secondary' : 'primary'"></div>{{ connectionStatus }}
 		</div>
       </v-layout>
       <v-layout column justify-center>
@@ -129,7 +129,9 @@ export default {
 			return this.room.description;
 		},
 		set(description) {
-			this.room.description = description;	
+            let room = this.room;
+            room.description = description;
+            this.$store.commit('updateRoom', room);
 		},
 	},
     playbackPosition() {
@@ -148,7 +150,7 @@ export default {
       return this.$store.state.production;
     },
     room() {
-      return this.$store.state.production;  
+      return this.$store.state.room;  
     },
     timestampDisplay() {
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
@@ -162,7 +164,9 @@ export default {
 				: (this.room.isTemporary ? "Temporary Room" : this.room.name);
 		},
 		set(title) {
-			this.room.title = title;
+            let room = this.room;
+            room.title = title;
+			this.$store.commit('updateRoom', room);
 		},
 	},
   },
@@ -312,14 +316,14 @@ export default {
 		align-items: center;
 	}
 	.connection-indicator {
-		background: orange;
+		//background: #ffb300;
 		border-radius: 50%;
 		height: 5px;
 		margin-right: 7.5px;
 		width: 5px;
-		&.open {
-			background: lime;
-		}
+		/* &.open {
+			background: #42A5F5;
+		} */
 	}
 }
 

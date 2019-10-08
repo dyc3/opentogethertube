@@ -60,7 +60,10 @@ export default new Vuex.Store({
 		},
 		SOCKET_RECONNECT_ERROR(state) {
 			state.socket.reconnectError = true;
-		},
+        },
+        updateRoom(state, room) {
+            state.room = room;
+        },
 	},
 	actions: {
 		sendMessage(context, message) {
