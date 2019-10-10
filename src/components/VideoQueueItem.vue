@@ -1,33 +1,28 @@
 <template>
 	<v-card class="video" style="margin-top: 10px" hover>
-		<v-card-text style="padding: 0 12px">
-			<v-layout row>
-				<v-flex lg3 xs4>
-					<v-img :src="item.thumbnail">
+		<v-container class="pa-0">
+			<v-row no-gutters align="center" justify="space-between">
+				<v-col cols="4">
+					<v-img :src="item.thumbnail" contain>
 						<span class="length">{{ videoLength }}</span>
 					</v-img>
-				</v-flex>
-				<v-flex lg9 xs8>
-					<v-layout column style="margin-left: 16px">
-						<v-flex class="title">
-							{{ item.title }}
-						</v-flex>
-						<v-flex class="description">
-							{{ item.description }}
-						</v-flex>
-						<v-flex class="actions">
-							<v-btn icon :loading="isLoading" :small="$vuetify.breakpoint.mdAndUp" :x-small="$vuetify.breakpoint.smAndDown" @click="addToQueue" v-if="isPreview">
-								<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
-								<v-icon v-else>fas fa-plus</v-icon>
-							</v-btn>
-							<v-btn icon :loading="isLoading" :small="$vuetify.breakpoint.mdAndUp" :x-small="$vuetify.breakpoint.smAndDown" @click="removeFromQueue" v-if="!isPreview">
-								<v-icon>fas fa-trash</v-icon>
-							</v-btn>
-						</v-flex>
-					</v-layout>
-				</v-flex>
-			</v-layout>
-		</v-card-text>
+				</v-col>
+				<v-col cols="7">
+					<v-container>
+						<v-row class="title" no-gutters>{{ item.title }}</v-row>
+						<v-row class="description" no-gutters>{{ item.description }}</v-row>
+					</v-container>
+				</v-col>
+				<v-col cols="1">
+					<v-btn icon small v-if="isPreview" @click="addToQueue">
+						<v-icon>fas fa-plus</v-icon>
+					</v-btn>
+					<v-btn icon small v-else @click="removeFromQueue">
+						<v-icon>fas fa-trash</v-icon>
+					</v-btn>
+				</v-col>
+			</v-row>
+		</v-container>
 	</v-card>
 </template>
 
@@ -79,18 +74,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.video {
-	@media screen and (max-width: 960px) {
-		height: 67px;
-	}
-	@media screen and (min-width: 960px) and (max-width: 1264px) {
-		height: 117px;
-	}
-	@media screen and (min-width: 1264px) {
-		height: 175px;
-	}
-	overflow: hidden;
-}
 .title {
 	@media screen and (max-width: 960px) {
 		font-size: 10px !important;
@@ -114,9 +97,6 @@ export default {
 	@media screen and (max-width: 1264px) {
 		display: none;
 	}
-}
-.actions {
-	margin-left: 4px;
 }
 .length {
 	color: #fff;
