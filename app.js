@@ -24,8 +24,9 @@ const app = express();
 const server = http.createServer(app);
 
 const storage = require("./storage");
-const roommanager = require("./roommanager")(server, storage);
+const roommanager = require("./roommanager");
 const api = require("./api")(roommanager, storage);
+roommanager.start(server);
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies
@@ -66,5 +67,5 @@ else {
 
 //start our server
 server.listen(process.env.PORT || 3000, () => {
-    console.log(`Server started on port ${server.address().port}`);
+	console.log(`Server started on port ${server.address().port}`);
 });
