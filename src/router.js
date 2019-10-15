@@ -29,5 +29,10 @@ export default new Router({
       // which is lazy-loaded when the route is visited.
       component: () => import(/* webpackChunkName: "room" */ './views/Room.vue'),
     },
+    {
+      path: '*',
+      name: 'not-found',
+      component: () => import(/* webpackChunkName: "not-found" */ './views/NotFound.vue'),
+    },
   ],
 });
