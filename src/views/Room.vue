@@ -1,19 +1,19 @@
 <template>
   <div>
-    <v-container class="room" v-if="!showJoinFailOverlay">
-      <v-layout column>
+    <v-container fluid class="room" v-if="!showJoinFailOverlay">
+      <v-col>
         <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
         <span id="connectStatus">{{ connectionStatus }}</span>
-      </v-layout>
-      <v-layout column justify-center>
-        <v-layout wrap class="video-container">
-          <v-flex xl8>
+      </v-col>
+      <v-col>
+        <v-row no-gutters class="video-container">
+          <v-col cols="8" xl="7" sm="12">
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
-            <v-flex column class="video-controls">
+            <v-col class="video-controls">
               <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter"/>
-              <v-flex row align-center>
+              <v-row no-gutters align="center">
                 <v-btn @click="togglePlayback()">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
                   <v-icon v-else>fas fa-play</v-icon>
@@ -28,12 +28,12 @@
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
-              </v-flex>
-            </v-flex>
-          </v-flex>
-        </v-layout>
-        <v-layout row justify-space-between>
-          <v-flex column md8 sm12>
+              </v-row>
+            </v-col>
+          </v-col>
+        </v-row>
+        <v-row no-gutters>
+          <v-col cols="8" md="8" sm="12">
             <v-tabs grow v-model="queueTab">
               <v-tab>
                 Queue
@@ -56,8 +56,8 @@
                 </div>
               </v-tab-item>
             </v-tabs-items>
-          </v-flex>
-          <v-flex column md4 sm12>
+          </v-col>
+          <v-col col="4" md="4" sm="12">
             <div class="user-list">
               <v-card>
                 <v-subheader>
@@ -73,9 +73,9 @@
                 </v-list-item>
               </v-card>
             </div>
-          </v-flex>
-        </v-layout>
-      </v-layout>
+          </v-col>
+        </v-row>
+      </v-col>
     </v-container>
     <v-overlay :value="showJoinFailOverlay">
       <v-layout column>
