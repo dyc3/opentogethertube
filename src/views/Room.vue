@@ -25,7 +25,7 @@
                 <div style="margin-left: 20px" class="timestamp">
                   {{ timestampDisplay }}
                 </div>
-                <v-btn @click="toggleFullscreen()">
+                <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
               </v-flex>
