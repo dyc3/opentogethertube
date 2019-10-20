@@ -46,7 +46,7 @@
               </v-tab-item>
               <v-tab-item>
                 <div class="video-add">
-                  <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"/>
+                  <v-text-field placeholder="Video URL to add to queue" v-model="inputAddUrlText"/>
                   <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
                   <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
                   <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
@@ -209,6 +209,16 @@ export default {
         this.$refs.youtube.player.setVolume(this.volume);
       }
     },
+    requestAddPreview() {
+      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddUrlText)}`).then(res => {
+        this.isLoadingAddPreview = false;
+        this.addPreview = res.data;
+        console.log(`Got add preview with ${this.addPreview.length}`);
+      }).catch(err => {
+        this.isLoadingAddPreview = false;
+        console.error("Failed to get add preview", err);
+      });
+    },
     onEditNameChange() {
       window.localStorage.setItem("username", this.$refs.editName.lazyValue);
       this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
@@ -226,17 +236,14 @@ export default {
         this.pause();
       }
     },
-    onInputAddChange(value) {
-      // TODO: debounce
+    onInputAddChange() {
       this.isLoadingAddPreview = true;
-      API.get(`/data/previewAdd?input=${encodeURIComponent(value)}`).then(res => {
+      if (_.trim(this.inputAddUrlText).length == 0) {
+        this.addPreview = [];
         this.isLoadingAddPreview = false;
-        this.addPreview = res.data;
-        console.log(`Got add preview with ${this.addPreview.length}`);
-      }).catch(err => {
-        this.isLoadingAddPreview = false;
-        console.error("Failed to get add preview", err);
-      });
+        return;
+      }
+      this.requestAddPreview();
     },
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
@@ -299,6 +306,11 @@ export default {
       if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
         this.$refs.youtube.player.seekTo(newPosition);
       }
+    },
+    inputAddUrlText() {
+      // HACK: The @change event only triggers when the text field is defocused.
+      // This ensures that onInputAddChange() runs everytime the text field's value changes.
+      this.onInputAddChange();
     },
   },
 };
