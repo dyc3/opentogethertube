@@ -219,6 +219,10 @@ export default {
         console.error("Failed to get add preview", err);
       });
     },
+    requestAddPreviewDebounced: _.debounce(function() {
+      // HACK: can't use an arrow function here because it will make `this` undefined
+      this.requestAddPreview();
+    }, 300),
     onEditNameChange() {
       window.localStorage.setItem("username", this.$refs.editName.lazyValue);
       this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
@@ -243,7 +247,7 @@ export default {
         this.isLoadingAddPreview = false;
         return;
       }
-      this.requestAddPreview();
+      this.requestAddPreviewDebounced();
     },
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
