@@ -25,6 +25,9 @@
                 <div style="margin-left: 20px" class="timestamp">
                   {{ timestampDisplay }}
                 </div>
+                <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
+                  <v-icon>fas fa-compress</v-icon>
+                </v-btn>
               </v-flex>
             </v-flex>
           </v-flex>
@@ -276,6 +279,14 @@ export default {
       else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
         this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
         e.preventDefault();
+      }
+    },
+    toggleFullscreen() {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+      else {
+        document.documentElement.requestFullscreen();
       }
     },
   },
