@@ -74,13 +74,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-    .video-length {
-        background: rgba(0, 0, 0, 0.8);
-        padding: 2px 5px;
-        border-top-left-radius: 3px;
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        z-index: 1000;
-    }
+	.video-length {
+		background: rgba(0, 0, 0, 0.8);
+		padding: 2px 5px;
+		border-top-left-radius: 3px;
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		z-index: 1000;
+	}
 </style>

@@ -106,7 +106,7 @@ export default {
       addPreview: [],
 
       showEditName: false,
-      queueTab: 0, // "queueTab-queue",
+      queueTab: 0,
       isLoadingAddPreview: false,
       inputAddUrlText: "",
 
@@ -317,7 +317,6 @@ export default {
 
 <style lang="scss" scoped>
 .video-container {
-  // width: 853px;
   margin: 10px;
 }
 .video-queue, .video-add, .user-list {
