@@ -62,7 +62,7 @@
                   <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
                 </v-subheader>
                 <v-list-item v-if="showEditName">
-                  <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"/>
+                  <v-text-field @change="onEditNameChange" placeholder="Set your name" v-model="username"/>
                 </v-list-item>
                 <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
                   {{ user.name }}
@@ -101,6 +101,8 @@ export default {
       sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
       addPreview: [],
+
+      username: "", // refers to the local user's username
 
       showEditName: false,
       queueTab: 0, // "queueTab-queue",
@@ -145,6 +147,8 @@ export default {
     },
   },
   created() {
+    this.username = window.localStorage.getItem("username");
+
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
@@ -189,10 +193,6 @@ export default {
     },
     openEditName() {
       this.showEditName = !this.showEditName;
-      if (this.showEditName) {
-        // Doesn't work
-        this.$refs.editName.lazyValue = window.localStorage.getItem("username"); //this.$store.state.room.users.filter(u => u.isYou)[0].name;
-      }
     },
     play() {
       if (this.currentSource.service == "youtube") {
@@ -210,8 +210,8 @@ export default {
       }
     },
     onEditNameChange() {
-      window.localStorage.setItem("username", this.$refs.editName.lazyValue);
-      this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
+      this.$socket.sendObj({ action: "set-name", name: this.username });
+      this.showEditName = false;
     },
     onPlaybackChange(changeTo) {
       this.updateVolume();
@@ -292,6 +292,9 @@ export default {
     });
   },
   watch: {
+    username(newValue) {
+      window.localStorage.setItem("username", newValue);
+    },
     volume() {
       this.updateVolume();
     },
