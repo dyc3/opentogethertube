@@ -14,10 +14,11 @@
 					</v-container>
 				</v-col>
 				<v-col cols="1">
-					<v-btn icon small v-if="isPreview" @click="addToQueue">
-						<v-icon>fas fa-plus</v-icon>
+					<v-btn icon small :loading="isLoading" v-if="isPreview" @click="addToQueue">
+						<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
+						<v-icon v-else>fas fa-plus</v-icon>
 					</v-btn>
-					<v-btn icon small v-else @click="removeFromQueue">
+					<v-btn icon small :loading="isLoading" v-else @click="removeFromQueue">
 						<v-icon>fas fa-trash</v-icon>
 					</v-btn>
 				</v-col>
