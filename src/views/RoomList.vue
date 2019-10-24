@@ -1,5 +1,5 @@
 <template>
-  <v-container class="room-list" grid-list-md fill-height>
+  <v-container class="room-list" grid-list-md>
     <v-layout align-center v-if="isLoading">
       <v-layout justify-center>
         <v-progress-circular indeterminate/>
