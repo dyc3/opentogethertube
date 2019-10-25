@@ -7,7 +7,7 @@
       </v-col>
       <v-col>
         <v-row no-gutters class="video-container">
-          <v-col cols="8" xl="7" sm="12">
+          <v-col cols="8" xl="7" md="8" sm="12">
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
@@ -30,6 +30,20 @@
                 </v-btn>
               </v-row>
             </v-col>
+          </v-col>
+          <v-col cols="4" xl="5" class="chat-container">
+            <div class="d-flex flex-column" style="height: 100%">
+              <h4>Chat</h4>
+              <div class="messages d-flex flex-column flex-grow-1 mt-2">
+                <div class="msg d-flex mr-2 mb-3" v-for="(msg, index) in $store.state.room.chatMessages" :key="index">
+                  <div class="from">{{ msg.from }}</div>
+                  <div class="text">{{ msg.text }}</div>
+                </div>
+              </div>
+              <div class="d-flex justify-end">
+                <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText"/>
+              </div>
+            </div>
           </v-col>
         </v-row>
         <v-row no-gutters>
@@ -111,6 +125,7 @@ export default {
       queueTab: 0,
       isLoadingAddPreview: false,
       inputAddUrlText: "",
+      inputChatMsgText: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -289,6 +304,12 @@ export default {
         document.documentElement.requestFullscreen();
       }
     },
+    onChatMessageKeyDown(e) {
+      if (e.keyCode === 13 && this.inputChatMsgText.length > 0) {
+        this.$socket.sendObj({ action: "chat", text: this.inputChatMsgText });
+        this.inputChatMsgText = "";
+      }
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
@@ -314,6 +335,13 @@ export default {
         this.$refs.youtube.player.seekTo(newPosition);
       }
     },
+  },
+  updated() {
+    // scroll the messages to the bottom
+    let msgsDiv = document.getElementsByClassName("messages")[0];
+    if (msgsDiv.scrollTop >= msgsDiv.scrollHeight - msgsDiv.clientHeight - 100) {
+      msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    }
   },
 };
 </script>
@@ -363,5 +391,34 @@ export default {
   color:#fff;
   text-align: center;
   line-height: 1.8;
+}
+.chat-container {
+  padding: 5px 10px;
+
+  h4 {
+    border-bottom: 1px solid #666;
+  }
+
+  .messages {
+    overflow-y: auto;
+    height: 0; // makes flex-grow work (for some reason)
+
+    // push the messages to the bottom of the container
+    > .msg:first-child {
+      margin-top: auto;
+    }
+  }
+
+  .msg {
+    background-color: #444;
+
+    .from, .text {
+      margin: 3px 5px;
+    }
+
+    .from {
+      font-weight: bold;
+    }
+  }
 }
 </style>
