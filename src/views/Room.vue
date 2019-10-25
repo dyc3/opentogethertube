@@ -7,7 +7,7 @@
       </v-col>
       <v-col>
         <v-row no-gutters class="video-container">
-          <v-col cols="8" xl="7" md="8" sm="12">
+          <v-col cols="12" xl="7" md="8">
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
@@ -31,7 +31,7 @@
               </v-row>
             </v-col>
           </v-col>
-          <v-col cols="4" xl="5" class="chat-container">
+          <v-col cols="12" xl="5" md="4" class="chat-container">
             <div class="d-flex flex-column" style="height: 100%">
               <h4>Chat</h4>
               <div class="messages d-flex flex-column flex-grow-1 mt-2">
@@ -401,7 +401,10 @@ export default {
 
   .messages {
     overflow-y: auto;
-    height: 0; // makes flex-grow work (for some reason)
+
+    // makes flex-grow work (for some reason)
+    // the value is the height this element will take on md size screens and smaller
+    height: 200px;
 
     // push the messages to the bottom of the container
     > .msg:first-child {
