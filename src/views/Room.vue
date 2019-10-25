@@ -35,10 +35,10 @@
             <div class="d-flex flex-column" style="height: 100%">
               <h4>Chat</h4>
               <div class="messages d-flex flex-column flex-grow-1 mt-2">
-                <div class="msg d-flex mr-2 mb-3" v-for="(msg, index) in $store.state.room.chatMessages" :key="index">
+                <v-card class="msg d-flex mr-2 mb-2" v-for="(msg, index) in $store.state.room.chatMessages" :key="index">
                   <div class="from">{{ msg.from }}</div>
                   <div class="text">{{ msg.text }}</div>
-                </div>
+                </v-card>
               </div>
               <div class="d-flex justify-end">
                 <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText"/>
