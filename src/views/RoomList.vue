@@ -1,12 +1,10 @@
 <template>
   <v-container class="room-list" grid-list-md>
-    <v-layout align-center v-if="isLoading">
-      <v-layout justify-center>
-        <v-progress-circular indeterminate/>
-      </v-layout>
-    </v-layout>
-    <v-layout wrap v-if="!isLoading">
-      <v-flex xs6 md3 v-for="(room, index) in rooms" :key="index">
+    <v-row justify="center" v-if="isLoading">
+      <v-progress-circular indeterminate/>
+    </v-row>
+    <v-row wrap v-if="!isLoading">
+      <v-col cols="6" sm="4" md="3" v-for="(room, index) in rooms" :key="index">
         <v-card hover class="room" :to="`/room/${room.name}`">
           <v-img :src="room.currentSource.thumbnail ? room.currentSource.thumbnail : require('@/assets/placeholder.svg')">
             <span class="subtitle-2 users">{{ room.users }} <v-icon small>fas fa-user-friends</v-icon></span>
@@ -17,8 +15,8 @@
             <div class="video-title">{{ room.currentSource.title }}</div>
           </v-card-text>
         </v-card>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
