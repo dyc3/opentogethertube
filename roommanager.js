@@ -193,12 +193,6 @@ class Room {
 				console.warn("name not supplied");
 				return;
 			}
-			// for (let i = 0; i < this.clients.length; i++) {
-			// 	if (this.clients[i].socket == client.socket) {
-			// 		this.clients[i].name = msg.name;
-			// 		break;
-			// 	}
-			// }
 			client.name = msg.name;
 			this.update();
 			this.sync();
@@ -209,13 +203,6 @@ class Room {
 				action: "generatedName",
 				name: generatedName,
 			}));
-
-			// for (let i = 0; i < this.clients.length; i++) {
-			// 	if (this.clients[i].socket == client.socket) {
-			// 		this.clients[i].name = generatedName;
-			// 		break;
-			// 	}
-			// }
 			client.name = generatedName;
 			this.update();
 			this.sync();
