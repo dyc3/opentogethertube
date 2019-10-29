@@ -11,8 +11,11 @@
           </v-img>
           <v-card-title v-text="room.isTemporary ? 'Temporary Room' : room.name" />
           <v-card-text>
-            <div class="description">{{ room.description }}</div>
-            <div class="video-title">{{ room.currentSource.title }}</div>
+            <div class="description" v-if="room.description">{{ room.description }}</div>
+            <div class="description empty" v-else>No description.</div>
+
+            <div class="video-title" v-if="room.currentSource.title">{{ room.currentSource.title }}</div>
+            <div class="video-title empty" v-else>Nothing playing.</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -49,6 +52,9 @@ export default {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+.empty {
+  font-style: italic;
 }
 .users {
   background: rgba(0, 0, 0, 0.8);
