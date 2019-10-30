@@ -110,8 +110,8 @@ class Room {
 			this.playbackPosition = 0;
 		}
 
-		// remove empty temporary rooms
-		if (this.isTemporary && this.clients.length > 0) {
+		// remove empty rooms
+		if (this.clients.length > 0) {
 			this.keepAlivePing = moment();
 		}
 	}
@@ -283,7 +283,7 @@ module.exports = {
 				room.update();
 				room.sync();
 
-				if (room.isTemporary && room.clients.length == 0 &&
+				if (room.clients.length == 0 &&
 					moment().diff(room.keepAlivePing, 'seconds') > 10) {
 					this.unloadRoom(room);
 				}
