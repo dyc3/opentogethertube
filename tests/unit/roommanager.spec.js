@@ -207,8 +207,19 @@ describe('Room manager: Manager tests', () => {
       expect(roommanager.rooms.length).toEqual(1);
       room.keepAlivePing = moment().subtract(10, 'seconds');
       roommanager.unloadIfEmpty(room);
+      expect(roommanager.rooms.length).toEqual(0);
     });
-    expect(roommanager.rooms.length).toEqual(0);
+    done();
+  });
+
+  it('should not unload a room with no active clients after 9 seconds', done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    roommanager.loadRoom("test").then((room) => {
+      expect(roommanager.rooms.length).toEqual(1);
+      room.keepAlivePing = moment().subtract(9, 'seconds');
+      roommanager.unloadIfEmpty(room);
+      expect(roommanager.rooms.length).toEqual(1);
+    });
     done();
   });
 
