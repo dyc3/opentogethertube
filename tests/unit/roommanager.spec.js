@@ -200,6 +200,18 @@ describe('Room manager: Manager tests', () => {
     }).catch(err => done.fail(err));
   });
 
+  jest.useFakeTimers();
+  it('should unload a room with no active clients after 10 seconds', done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    roommanager.loadRoom("test").then(() => {
+      expect(roommanager.rooms.length).toEqual(1);
+    });
+    expect(setInterval).not.toBeCalled();
+    jest.advanceTimersByTime(10000);
+    expect(roommanager.rooms.length).toEqual(0);
+    done();
+  });
+
   it('should throw RoomNotFoundException when attempting to load a room that does not exist', done => {
     storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve(null)));
     roommanager.loadRoom("test").then(() => {
