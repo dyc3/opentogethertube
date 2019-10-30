@@ -207,6 +207,16 @@ class Room {
 			this.update();
 			this.sync();
 		}
+		else if (msg.action === "chat") {
+			let chat = {
+				action: msg.action,
+				from: client.name,
+				text: msg.text,
+			};
+			for (let c of this.clients) {
+				c.socket.send(JSON.stringify(chat));
+			}
+		}
 		else {
 			console.warn("[ws] UNKNOWN ACTION", msg.action);
 		}
