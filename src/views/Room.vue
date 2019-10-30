@@ -165,7 +165,9 @@ export default {
     },
   },
   created() {
-    this.username = window.localStorage.getItem("username");
+    if (window.localStorage.getItem("username") != null) {
+      this.username = window.localStorage.getItem("username");
+    }
 
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
@@ -210,6 +212,9 @@ export default {
       });
     },
     openEditName() {
+      if (window.localStorage.getItem("username") != null) {
+        this.username = window.localStorage.getItem("username");
+      }
       this.showEditName = !this.showEditName;
     },
     play() {
@@ -325,7 +330,9 @@ export default {
   },
   watch: {
     username(newValue) {
-      window.localStorage.setItem("username", newValue);
+      if (newValue != null) {
+        window.localStorage.setItem("username", newValue);
+      }
     },
     volume() {
       this.updateVolume();
