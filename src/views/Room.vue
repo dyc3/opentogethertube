@@ -41,7 +41,7 @@
                 </v-card>
               </div>
               <div class="d-flex justify-end">
-                <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText"/>
+                <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText" autocomplete="off"/>
               </div>
             </div>
           </v-col>
