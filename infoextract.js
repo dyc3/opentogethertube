@@ -11,6 +11,8 @@ const YtApi = axios.create({
 });
 
 module.exports = {
+	YtApi,
+
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
 	 * local caching and obtaining missing data from external sources.
