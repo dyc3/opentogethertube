@@ -3,6 +3,7 @@ const path = require('path');
 const roommanager = require("../../roommanager");
 const InfoExtract = require("../../infoextract");
 const storage = require("../../storage");
+const moment = require("moment");
 
 const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(configPath)) {
@@ -198,6 +199,28 @@ describe('Room manager: Manager tests', () => {
       expect(roommanager.rooms.length).toEqual(0);
       done();
     }).catch(err => done.fail(err));
+  });
+
+  it('should unload a room with no active clients after 10 seconds', done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    roommanager.loadRoom("test").then((room) => {
+      expect(roommanager.rooms.length).toEqual(1);
+      room.keepAlivePing = moment().subtract(10, 'seconds');
+      roommanager.unloadIfEmpty(room);
+      expect(roommanager.rooms.length).toEqual(0);
+    });
+    done();
+  });
+
+  it('should not unload a room with no active clients after 9 seconds', done => {
+    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    roommanager.loadRoom("test").then((room) => {
+      expect(roommanager.rooms.length).toEqual(1);
+      room.keepAlivePing = moment().subtract(9, 'seconds');
+      roommanager.unloadIfEmpty(room);
+      expect(roommanager.rooms.length).toEqual(1);
+    });
+    done();
   });
 
   it('should throw RoomNotFoundException when attempting to load a room that does not exist', done => {

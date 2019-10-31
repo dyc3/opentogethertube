@@ -279,13 +279,22 @@ module.exports = {
 
 				room.update();
 				room.sync();
-
-				if (room.clients.length == 0 &&
-					moment().diff(room.keepAlivePing, 'seconds') > 10) {
-					this.unloadRoom(room);
-				}
+				this.unloadIfEmpty(room);
+				
 			}
 		}, '', '1000m');
+	},
+
+	/**
+	 *  Checks if an empty (no active clients) room has been loaded for longer than a specified time, and unloads it if this is true.
+	 * @param {Room} room The room to unload.
+	 * @param {Number} time The time in seconds the room must be inactive for it to be unloaded.
+	 */
+	unloadIfEmpty(room, time=10) {
+		if (room.clients.length == 0 &&
+			moment().diff(room.keepAlivePing, 'seconds') > time) {
+			this.unloadRoom(room);
+		}
 	},
 
 	/**
