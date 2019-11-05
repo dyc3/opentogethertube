@@ -106,7 +106,10 @@
 			</v-footer>
 		</v-container>
 		<v-overlay :value="isLoading">
-			<v-progress-circular indeterminate/>
+			<v-layout column align-center>
+				<v-progress-circular indeterminate />
+				<v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">Cancel</v-btn>
+			</v-layout>
 		</v-overlay>
 	</div>
 </template>
@@ -129,10 +132,18 @@ export default {
 	methods: {
 		createRoom() {
 			this.isLoading = true;
+			this.cancelledCreation = false;
 			API.post("/room/generate").then(res => {
-				this.isLoading = false;
-				this.$router.push(`/room/${res.data.room}`);
+				if (!this.cancelledCreation) {
+					this.isLoading = false;
+					this.cancelledCreation = false;
+					this.$router.push(`/room/${res.data.room}`);
+				}
 			});
+		},
+		cancelRoom() {
+			this.cancelledCreation = true;
+			this.isLoading = false;
 		},
 	},
 };

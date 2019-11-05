@@ -25,7 +25,6 @@ module.exports = {
 		// TODO: check if id is valid for service
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
-			console.log("==========================", storage.getVideoInfoFields());
 			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
 			if (missingInfo.length === 0) {
 				return video;
@@ -48,7 +47,15 @@ module.exports = {
 	},
 
 	getService(link) {
+		if (typeof link !== "string") {
+			return false;
+		}
+
 		let srcUrl = url.parse(link);
+		if (srcUrl.host === null) {
+			return false;
+		}
+
 		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
 			return "youtube";
 		}
@@ -65,6 +72,25 @@ module.exports = {
 		else {
 			return querystring.parse(urlParsed.query)["v"];
 		}
+	},
+
+	getChanneInfoYoutube(channelData) {
+		return YtApi.get('/channels' +
+			`?key=${process.env.YOUTUBE_API_KEY}&` +
+			'part=contentDetails&' +
+			`${Object.keys(channelData)[0] === 'channel' ? 'id' : 'forUsername'}=${Object.values(channelData)[0]}`
+			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
+			//on the other hand, a user link requires the forUsername filter
+		).then(res => {
+			if (res.status === 200) {
+				return this.getPlaylistYoutube(
+					res.data.items[0].contentDetails.relatedPlaylists.uploads
+				).catch(err => console.error(err));
+			}
+			else {
+				console.error(`Failed with status code ${res.status}`);
+			}
+		}).catch(err => console.error(err));
 	},
 
 	getVideoInfoYoutube(ids, onlyProperties=null) {
@@ -138,8 +164,8 @@ module.exports = {
 	getVideoLengthYoutube_Fallback: async (url) => {
 		let res = await axios.get(url);
 		let regexs = [
-/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
-];
+			/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
+		];
 		for (let r = 0; r < regexs.length; r++) {
 			let matches = res.data.match(regexs[r]);
 			if (matches == null) {
@@ -196,49 +222,50 @@ module.exports = {
 		});
 	},
 
+	getManyPreviews(playlist) {
+		//get info for all videos in playlist, then return all non-deleted videos
+		return Promise.all(
+			playlist.map(video => this.getVideoInfo('youtube', video.id))
+		).then(previews => previews.filter(item => item !== undefined))
+		.catch(err => console.error('Error getting video info:', err));
+	},
+
 	getAddPreview(input) {
-		let service = this.getService(input);
+		const service = this.getService(input);
 
 		if (service !== "youtube") {
 			console.error("Unsupported input for getAddPreview");
 			throw "Unsupported input for getAddPreview";
 		}
 
-		let urlParsed = url.parse(input);
-		let queryParams = querystring.parse(urlParsed.query);
+		const urlParsed = url.parse(input);
+		const queryParams = querystring.parse(urlParsed.query);
 		if (queryParams["list"]) {
 			// there is a playlist associated with this link
 			console.log("playlist found");
 			return new Promise((resolve, reject) => {
 				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
-					let videoIds = playlist.map(item => item.id);
 					console.log(`Found ${playlist.length} videos in playlist`);
-
-					this.getVideoInfoYoutube(videoIds).then(infoResults => {
-						let addPreviewResults = [];
-						for (let i = 0; i < videoIds.length; i++) {
-							const videoInfo = infoResults[videoIds[i]];
-							if (!videoInfo) {
-								// Failed to get info for this video
-								// video has probably been deleted, skip it
-								continue;
-							}
-							let video = videoInfo;
-							if (queryParams["v"] && video.id === queryParams["v"]) {
-								video.highlight = true;
-							}
-							addPreviewResults.push(video);
-						}
-						resolve(addPreviewResults);
-					}).catch(err => {
-						console.error("Failed to compile add preview: error getting video info:", err);
-						reject(err);
-					});
+					this.getManyPreviews(playlist).then(previews => resolve(previews));
 				}).catch(err => {
 					console.error("Failed to compile add preview: error getting playlist:", err);
 					reject(err);
 				});
 			});
+		}
+		else if (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel')) {
+			console.log('channel found');
+			const channelData = {};
+			const channelId = urlParsed.path.slice(urlParsed.path.lastIndexOf('/') + 1);
+			if (urlParsed.path.startsWith('/channel/')) {
+				channelData.channel = channelId;
+			}
+			else {
+				channelData.user = channelId;
+			}
+			return this.getChanneInfoYoutube(channelData)
+				.then(newestVideos => this.getManyPreviews(newestVideos))
+				.catch(err => console.error('Error getting channel info:', err));
 		}
 		else {
 			let video = {

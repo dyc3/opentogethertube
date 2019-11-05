@@ -1,15 +1,56 @@
 const fs = require('fs');
 const path = require('path');
 const InfoExtract = require("../../infoextract");
+const storage = require("../../storage");
 const { CachedVideo } = require("../../models");
 
-const config_path = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(config_path)) {
-  console.error("No config found! Things will break!", config_path);
+const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
+if (!fs.existsSync(configPath)) {
+  console.error("No config found! Things will break!", configPath);
 }
-require('dotenv').config({ path: config_path });
+require('dotenv').config({ path: configPath });
 
-describe('InfoExtractor Spec', () => {
+describe('InfoExtractor Link Parsing', () => {
+  it('getService() should return youtube when given youtube link', () => {
+    expect(InfoExtract.getService("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("http://youtu.be/I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://youtu.be/I3O9J02G67I")).toEqual("youtube");
+  });
+
+  it('getService() should return false when given link to unsupported service', () => {
+    expect(InfoExtract.getService("http://example.com")).toEqual(false);
+  });
+
+  it('getService() should return false when given invalid string', () => {
+    expect(InfoExtract.getService("funny man")).toEqual(false);
+    expect(InfoExtract.getService("youtube.com epic fail compilation")).toEqual(false);
+    expect(InfoExtract.getService("")).toEqual(false);
+  });
+
+  it('getService() should return false when given null', () => {
+    expect(InfoExtract.getService(null)).toEqual(false);
+  });
+
+  it('getService() should return false when given undefined', () => {
+    expect(InfoExtract.getService(undefined)).toEqual(false);
+  });
+
+  it('getVideoIdYoutube() should return correct id when given youtube link', () => {
+    expect(InfoExtract.getVideoIdYoutube("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("http://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
+  });
+});
+
+describe('InfoExtractor Caching Spec', () => {
   beforeEach(async () => {
     console.warn("CLEAR CACHE");
     await CachedVideo.destroy({ where: {} });
@@ -140,5 +181,60 @@ describe('InfoExtractor Spec', () => {
       await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeDefined();
       done();
     }).catch(err => done.fail(err));
+  });
+});
+
+describe('InfoExtractor Partial Data Retrieval', () => {
+  it('should detect if length is missing from the cached video info', done => {
+    storage.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve({
+      "service": "youtube",
+      "id": "I3O9J02G67I",
+      "title": "tmpATT2Cp",
+      "description": "tmpATT2Cp",
+      "thumbnail": "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+    })));
+    InfoExtract.getVideoInfoYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve({ "I3O9J02G67I": { service: "youtube", id: "I3O9J02G67I", length: 10 } })));
+
+    InfoExtract.getVideoInfo("youtube", "I3O9J02G67I").then(video => {
+      expect(InfoExtract.getVideoInfoYoutube).toBeCalledWith(["I3O9J02G67I"], ["length"]);
+      expect(video).toBeDefined();
+      done();
+    });
+  });
+
+  it('should detect if title is missing from the cached video info', done => {
+    storage.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve({
+      "service": "youtube",
+      "id": "I3O9J02G67I",
+      "description": "tmpATT2Cp",
+      "thumbnail": "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+      "length": 10,
+    })));
+    InfoExtract.getVideoInfoYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve({ "I3O9J02G67I": { service: "youtube", id: "I3O9J02G67I", title: "tmpATT2Cp" } })));
+
+    InfoExtract.getVideoInfo("youtube", "I3O9J02G67I").then(video => {
+      expect(InfoExtract.getVideoInfoYoutube).toBeCalledWith(["I3O9J02G67I"], ["title"]);
+      expect(video).toBeDefined();
+      done();
+    });
+  });
+
+  it('should detect if title and description is missing from the cached video info', done => {
+    storage.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve({
+      "service": "youtube",
+      "id": "I3O9J02G67I",
+      "thumbnail": "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+      "length": 10,
+    })));
+    InfoExtract.getVideoInfoYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve({ "I3O9J02G67I": { service: "youtube", id: "I3O9J02G67I", title: "tmpATT2Cp", description: "tmpATT2Cp" } })));
+
+    InfoExtract.getVideoInfo("youtube", "I3O9J02G67I").then(video => {
+      expect(InfoExtract.getVideoInfoYoutube).toBeCalledWith(["I3O9J02G67I"], [
+        "title",
+        "description",
+      ]);
+      expect(video).toBeDefined();
+      done();
+    });
   });
 });

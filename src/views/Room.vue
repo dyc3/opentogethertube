@@ -1,5 +1,6 @@
 <template>
   <div>
+<<<<<<< HEAD
     <v-container class="room" v-if="!showJoinFailOverlay">
       <v-layout class="room-info" column>
         <input class="room-title" v-model="title" />
@@ -11,12 +12,22 @@
       <v-layout column justify-center>
         <v-layout wrap class="video-container">
           <v-flex xl8>
+=======
+    <v-container fluid class="room" v-if="!showJoinFailOverlay">
+      <v-col>
+        <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
+        <span id="connectStatus">{{ connectionStatus }}</span>
+      </v-col>
+      <v-col>
+        <v-row no-gutters class="video-container">
+          <v-col cols="12" xl="7" md="8">
+>>>>>>> master
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
-            <v-flex column class="video-controls">
-              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length"/>
-              <v-flex row align-center>
+            <v-col class="video-controls">
+              <vue-slider v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter"/>
+              <v-row no-gutters align="center">
                 <v-btn @click="togglePlayback()">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
                   <v-icon v-else>fas fa-play</v-icon>
@@ -25,15 +36,32 @@
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"/>
-                <div style="margin-left: 20px">
+                <div style="margin-left: 20px" class="timestamp">
                   {{ timestampDisplay }}
                 </div>
-              </v-flex>
-            </v-flex>
-          </v-flex>
-        </v-layout>
-        <v-layout row justify-space-between>
-          <v-flex column md8 sm12>
+                <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
+                  <v-icon>fas fa-compress</v-icon>
+                </v-btn>
+              </v-row>
+            </v-col>
+          </v-col>
+          <v-col cols="12" xl="5" md="4" class="chat-container">
+            <div class="d-flex flex-column" style="height: 100%">
+              <h4>Chat</h4>
+              <div class="messages d-flex flex-column flex-grow-1 mt-2">
+                <v-card class="msg d-flex mr-2 mb-2" v-for="(msg, index) in $store.state.room.chatMessages" :key="index">
+                  <div class="from">{{ msg.from }}</div>
+                  <div class="text">{{ msg.text }}</div>
+                </v-card>
+              </div>
+              <div class="d-flex justify-end">
+                <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText" autocomplete="off"/>
+              </div>
+            </div>
+          </v-col>
+        </v-row>
+        <v-row no-gutters>
+          <v-col cols="8" md="8" sm="12">
             <v-tabs grow v-model="queueTab">
               <v-tab>
                 Queue
@@ -49,15 +77,15 @@
               </v-tab-item>
               <v-tab-item>
                 <div class="video-add">
-                  <v-text-field placeholder="Video URL to add to queue" @change="onInputAddChange" v-model="inputAddUrlText"/>
+                  <v-text-field placeholder="Video URL to add to queue" v-model="inputAddUrlText"/>
                   <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
                   <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
                   <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                 </div>
               </v-tab-item>
             </v-tabs-items>
-          </v-flex>
-          <v-flex column md4 sm12>
+          </v-col>
+          <v-col col="4" md="4" sm="12">
             <div class="user-list">
               <v-card>
                 <v-subheader>
@@ -65,7 +93,7 @@
                   <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
                 </v-subheader>
                 <v-list-item v-if="showEditName">
-                  <v-text-field ref="editName" @change="onEditNameChange" placeholder="Set your name"/>
+                  <v-text-field @change="onEditNameChange" placeholder="Set your name" v-model="username"/>
                 </v-list-item>
                 <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
                   {{ user.name }}
@@ -73,9 +101,9 @@
                 </v-list-item>
               </v-card>
             </div>
-          </v-flex>
-        </v-layout>
-      </v-layout>
+          </v-col>
+        </v-row>
+      </v-col>
     </v-container>
     <v-overlay :value="showJoinFailOverlay">
       <v-layout column>
@@ -91,6 +119,7 @@
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import secondsToTimestamp from "@/timestamp.js";
+import _ from "lodash";
 
 export default {
   name: 'room',
@@ -100,13 +129,17 @@ export default {
   data() {
     return {
       sliderPosition: 0,
+      sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
       addPreview: [],
 
+      username: "", // refers to the local user's username
+
       showEditName: false,
-      queueTab: 0, // "queueTab-queue",
+      queueTab: 0,
       isLoadingAddPreview: false,
       inputAddUrlText: "",
+      inputChatMsgText: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -173,9 +206,20 @@ export default {
     },
   },
   created() {
+<<<<<<< HEAD
       this.$events.on("onSync", () => {
+=======
+    if (window.localStorage.getItem("username") != null) {
+      this.username = window.localStorage.getItem("username");
+    }
+
+    this.$events.on("onSync", () => {
+>>>>>>> master
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
+
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keydown', this.onKeyDown);
 
     if (!this.$store.state.socket.isConnected) {
       // This check prevents the client from connecting multiple times,
@@ -218,11 +262,10 @@ export default {
       });
     },
     openEditName() {
-      this.showEditName = !this.showEditName;
-      if (this.showEditName) {
-        // Doesn't work
-        this.$refs.editName.lazyValue = window.localStorage.getItem("username"); //this.$store.state.room.users.filter(u => u.isYou)[0].name;
+      if (window.localStorage.getItem("username") != null) {
+        this.username = window.localStorage.getItem("username");
       }
+      this.showEditName = !this.showEditName;
     },
     play() {
       if (this.currentSource.service == "youtube") {
@@ -239,9 +282,23 @@ export default {
         this.$refs.youtube.player.setVolume(this.volume);
       }
     },
+    requestAddPreview() {
+      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddUrlText)}`).then(res => {
+        this.isLoadingAddPreview = false;
+        this.addPreview = res.data;
+        console.log(`Got add preview with ${this.addPreview.length}`);
+      }).catch(err => {
+        this.isLoadingAddPreview = false;
+        console.error("Failed to get add preview", err);
+      });
+    },
+    requestAddPreviewDebounced: _.debounce(function() {
+      // HACK: can't use an arrow function here because it will make `this` undefined
+      this.requestAddPreview();
+    }, 300),
     onEditNameChange() {
-      window.localStorage.setItem("username", this.$refs.editName.lazyValue);
-      this.$socket.sendObj({ action: "set-name", name: window.localStorage.getItem("username") });
+      this.$socket.sendObj({ action: "set-name", name: this.username });
+      this.showEditName = false;
     },
     onPlaybackChange(changeTo) {
       this.updateVolume();
@@ -256,20 +313,68 @@ export default {
         this.pause();
       }
     },
-    onInputAddChange(value) {
-      // TODO: debounce
+    onInputAddChange() {
       this.isLoadingAddPreview = true;
-      API.get(`/data/previewAdd?input=${encodeURIComponent(value)}`).then(res => {
+      if (_.trim(this.inputAddUrlText).length == 0) {
+        this.addPreview = [];
         this.isLoadingAddPreview = false;
-        this.addPreview = res.data;
-        console.log(`Got add preview with ${this.addPreview.length}`);
-      }).catch(err => {
-        this.isLoadingAddPreview = false;
-        console.error("Failed to get add preview", err);
-      });
+        return;
+      }
+      this.requestAddPreviewDebounced();
     },
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+    },
+    onKeyDown(e) {
+      if (e.target.nodeName === "INPUT") {
+        return;
+      }
+
+      if (e.code === "Space" || e.code === "k") {
+        this.togglePlayback();
+        e.preventDefault();
+      }
+      else if (e.code === "Home") {
+        this.$socket.sendObj({ action: "seek", position: 0 });
+        e.preventDefault();
+      }
+      else if (e.code === "End") {
+        this.$socket.sendObj({ action: "skip" });
+        e.preventDefault();
+      }
+      else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
+        let seekIncrement = 5;
+        if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
+          seekIncrement = 10;
+        }
+        if (e.code === "ArrowLeft" || e.code === "KeyJ") {
+          seekIncrement *= -1;
+        }
+
+        this.$socket.sendObj({
+          action: "seek",
+          position: _.clamp(this.$store.state.room.playbackPosition + seekIncrement, 0, this.$store.state.room.currentSource.length),
+        });
+        e.preventDefault();
+      }
+      else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+        this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
+        e.preventDefault();
+      }
+    },
+    toggleFullscreen() {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+      else {
+        document.documentElement.requestFullscreen();
+      }
+    },
+    onChatMessageKeyDown(e) {
+      if (e.keyCode === 13 && this.inputChatMsgText.length > 0) {
+        this.$socket.sendObj({ action: "chat", text: this.inputChatMsgText });
+        this.inputChatMsgText = "";
+      }
     },
   },
   mounted() {
@@ -285,6 +390,11 @@ export default {
     });
   },
   watch: {
+    username(newValue) {
+      if (newValue != null) {
+        window.localStorage.setItem("username", newValue);
+      }
+    },
     volume() {
       this.updateVolume();
     },
@@ -293,6 +403,18 @@ export default {
         this.$refs.youtube.player.seekTo(newPosition);
       }
     },
+    inputAddUrlText() {
+      // HACK: The @change event only triggers when the text field is defocused.
+      // This ensures that onInputAddChange() runs everytime the text field's value changes.
+      this.onInputAddChange();
+    },
+  },
+  updated() {
+    // scroll the messages to the bottom
+    let msgsDiv = document.getElementsByClassName("messages")[0];
+    if (msgsDiv.scrollTop >= msgsDiv.scrollHeight - msgsDiv.clientHeight - 100) {
+      msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    }
   },
 };
 </script>
@@ -335,7 +457,6 @@ export default {
 }
 
 .video-container {
-  // width: 853px;
   margin: 10px;
 }
 .video-queue, .video-add, .user-list {
@@ -379,5 +500,37 @@ export default {
   color:#fff;
   text-align: center;
   line-height: 1.8;
+}
+.chat-container {
+  padding: 5px 10px;
+
+  h4 {
+    border-bottom: 1px solid #666;
+  }
+
+  .messages {
+    overflow-y: auto;
+
+    // makes flex-grow work (for some reason)
+    // the value is the height this element will take on md size screens and smaller
+    height: 200px;
+
+    // push the messages to the bottom of the container
+    > .msg:first-child {
+      margin-top: auto;
+    }
+  }
+
+  .msg {
+    background-color: #444;
+
+    .from, .text {
+      margin: 3px 5px;
+    }
+
+    .from {
+      font-weight: bold;
+    }
+  }
 }
 </style>

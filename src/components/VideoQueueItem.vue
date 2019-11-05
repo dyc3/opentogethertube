@@ -1,32 +1,29 @@
 <template>
-	<v-card class="video" style="margin-top: 10px" hover>
-		<v-card-text style="padding: 0 12px">
-			<v-layout row>
-				<v-flex lg3 xs4>
-					<v-img :src="item.thumbnail">
-						<span class="length">{{ videoLength }}</span>
+	<v-card class="mt-2" hover>
+		<v-container class="pa-0">
+			<v-row no-gutters align="center" justify="space-between">
+				<v-col cols="4">
+					<v-img :src="item.thumbnail" contain>
+						<span class="subtitle-2 video-length">{{ videoLength }}</span>
 					</v-img>
-				</v-flex>
-				<v-flex lg9 xs8>
-					<v-layout column style="margin-left: 16px">
-						<v-flex class="title">
-							{{ item.title }}
-						</v-flex>
-						<v-flex class="description">
-							{{ item.description }}
-						</v-flex>
-						<v-flex class="actions">
-							<v-btn icon small="$vuetify.breakpoint.mdAndUp" x-small="$vuetify.breakpoint.smAndDown" @click="addToQueue" v-if="isPreview">
-								<v-icon>fas fa-plus</v-icon>
-							</v-btn>
-							<v-btn icon small="$vuetify.breakpoint.mdAndUp" x-small="$vuetify.breakpoint.smAndDown" @click="removeFromQueue" v-if="!isPreview">
-								<v-icon>fas fa-trash</v-icon>
-							</v-btn>
-						</v-flex>
-					</v-layout>
-				</v-flex>
-			</v-layout>
-		</v-card-text>
+				</v-col>
+				<v-col cols="7">
+					<v-container>
+						<v-row class="title" no-gutters>{{ item.title }}</v-row>
+						<v-row class="body-1 text-truncate" no-gutters>{{ item.description }}</v-row>
+					</v-container>
+				</v-col>
+				<v-col cols="1">
+					<v-btn icon small :loading="isLoading" v-if="isPreview" @click="addToQueue">
+						<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
+						<v-icon v-else>fas fa-plus</v-icon>
+					</v-btn>
+					<v-btn icon small :loading="isLoading" v-else @click="removeFromQueue">
+						<v-icon>fas fa-trash</v-icon>
+					</v-btn>
+				</v-col>
+			</v-row>
+		</v-container>
 	</v-card>
 </template>
 
@@ -40,6 +37,12 @@ export default {
 		item: { type: Object, required: true },
 		isPreview: { type: Boolean, default: false },
 	},
+	data() {
+		return {
+			isLoading: false,
+			hasBeenAdded: false,
+		};
+	},
 	computed:{
 		videoLength() {
 			return secondsToTimestamp(this.item.length);
@@ -47,17 +50,24 @@ export default {
 	},
 	methods: {
 		addToQueue() {
+			this.isLoading = true;
 			API.post(`/room/${this.$route.params.roomId}/queue`, {
-				url: `http://youtube.com/watch?v=${this.item.id}`,
+				service: this.item.service,
+				id: this.item.id,
+			}).then(() => {
+				this.isLoading = false;
+				this.hasBeenAdded = true;
 			});
 		},
 		removeFromQueue() {
-			let data = {
-				service: this.item.service,
-				id: this.item.id,
-			};
-			API.delete(`/room/${this.$route.params.roomId}/queue`, { data: data }).then(res => {
-				console.log(`Remove ${data} from queue:`, res.data);
+			this.isLoading = true;
+			API.delete(`/room/${this.$route.params.roomId}/queue`, {
+				data: {
+					service: this.item.service,
+					id: this.item.id,
+				},
+			}).then(() => {
+				this.isLoading = false;
 			});
 		},
 	},
@@ -65,53 +75,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.video {
-	@media screen and (max-width: 960px) {
-		height: 67px;
+	.video-length {
+		background: rgba(0, 0, 0, 0.8);
+		padding: 2px 5px;
+		border-top-left-radius: 3px;
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		z-index: 1000;
 	}
-	@media screen and (min-width: 960px) and (max-width: 1264px) {
-		height: 117px;
-	}
-	@media screen and (min-width: 1264px) {
-		height: 175px;
-	}
-	overflow: hidden;
-}
-.title {
-	@media screen and (max-width: 960px) {
-		font-size: 10px !important;
-	}
-	@media screen and (min-width: 960px) and  (max-width: 1264px) {
-		font-size: 12px !important;
-	}
-	@media screen and (min-width: 1264px) {
-		font-size: 20px !important;
-	}
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.description {
-	font-size: 11px;
-	line-height: 1;
-	overflow-y: hidden;
-	text-overflow: ellipsis;
-	height: 100px;
-
-	@media screen and (max-width: 1264px) {
-		display: none;
-	}
-}
-.actions {
-	margin-left: 4px;
-}
-.length {
-	color: #fff;
-	background: rgba(0, 0, 0, 0.8);
-	padding: 2px 5px;
-	border-radius: 3px;
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	z-index: 1000;
-}
 </style>

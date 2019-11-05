@@ -1,8 +1,9 @@
 <template>
   <v-app id="app">
     <v-content>
-      <v-app-bar>
+      <v-app-bar v-if="!fullscreen">
         <v-app-bar-nav-icon/>
+        <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
         <v-toolbar-title>
           <router-link class="link-invis" style="margin-right: 10px" to="/">
             OpenTogetherTube
@@ -20,6 +21,21 @@
 <script>
 export default {
   name: "app",
+  data() {
+    return {
+      fullscreen: false,
+    };
+  },
+  created() {
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        this.fullscreen = true;
+      }
+      else {
+        this.fullscreen = false;
+      }
+    });
+  },
   watch:{
     $route (to) {
       if (to.name != "room" && this.$store.state.socket.isConnected) {

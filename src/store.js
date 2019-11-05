@@ -17,10 +17,11 @@ export default new Vuex.Store({
 			title: "",
 			description: "",
 			isTemporary: false,
-			currentSource: "",
+			currentSource: {},
 			queue: [],
 			isPlaying: false,
 			playbackPosition: 0,
+			chatMessages: [],
 		},
 	},
 	mutations:{
@@ -94,6 +95,9 @@ export default new Vuex.Store({
 		generatedName(context, message) {
 			console.debug("generated name received from server");
 			window.localStorage.setItem("username", message.name);
+		},
+		chat(context, message) {
+			this.state.room.chatMessages.push(message);
 		},
 	},
 });

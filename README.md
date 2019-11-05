@@ -41,14 +41,22 @@ npx sequelize-cli db:migrate
 
 ### Testing
 
-Currently, we do not have any automated tests. This is on the todo list.
+To run the test suite, run
+```
+npm test
+```
 
 ## How to run
 
 This project has 2 main components: the client and the server. You can run
 both of them simultaneously using the command
+#### Linux / Mac
 ```
 npm run dev
+```
+#### Windows
+```
+npm run dev-windows
 ```
 
 Sometimes, you may want to run them seperately so you can use breakpoints to
