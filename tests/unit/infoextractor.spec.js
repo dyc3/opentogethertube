@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 const InfoExtract = require("../../infoextract");
 const storage = require("../../storage");
 const { CachedVideo } = require("../../models");
