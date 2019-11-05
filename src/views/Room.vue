@@ -1,27 +1,16 @@
 <template>
   <div>
-<<<<<<< HEAD
-    <v-container class="room" v-if="!showJoinFailOverlay">
-      <v-layout class="room-info" column>
+    <v-container fluid class="room" v-if="!showJoinFailOverlay">
+      <v-col class="d-flex flex-column">
         <input class="room-title" v-model="title" />
         <input class="room-description" placeholder="No description" v-model="description"/>
         <div class="room-connection">
-      <div class="connection-indicator" :class="connectionStatus == 'Connected' ? 'open secondary' : 'primary'"></div>{{ connectionStatus }}
-    </div>
-      </v-layout>
-      <v-layout column justify-center>
-        <v-layout wrap class="video-container">
-          <v-flex xl8>
-=======
-    <v-container fluid class="room" v-if="!showJoinFailOverlay">
-      <v-col>
-        <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
-        <span id="connectStatus">{{ connectionStatus }}</span>
+          <div class="connection-indicator" :class="connectionStatus == 'Connected' ? 'open secondary' : 'primary'"></div>{{ connectionStatus }}
+        </div>
       </v-col>
       <v-col>
         <v-row no-gutters class="video-container">
           <v-col cols="12" xl="7" md="8">
->>>>>>> master
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
@@ -206,15 +195,11 @@ export default {
     },
   },
   created() {
-<<<<<<< HEAD
-      this.$events.on("onSync", () => {
-=======
     if (window.localStorage.getItem("username") != null) {
       this.username = window.localStorage.getItem("username");
     }
 
     this.$events.on("onSync", () => {
->>>>>>> master
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
 
@@ -420,39 +405,37 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.room-info {
-  .room-title {
-    border: 1px solid transparent;
-    font-size: 1.4rem;
-    outline: none;
-    width: 40%;
-    &:focus {
-      border-color: darken(rgba(255, 255, 255, 0.7), 25%);
-    }
+.room-title {
+  border: 1px solid transparent;
+  font-size: 1.4rem;
+  outline: none;
+  width: 40%;
+  &:focus {
+    border-color: darken(rgba(255, 255, 255, 0.7), 25%);
   }
-  .room-description {
-    border: 1px solid transparent;
-    font-size: 0.9rem;
-    height: auto;
-    outline: none;
-    width: 40%;
-    &:focus {
-      border-color: darken(rgba(255, 255, 255, 0.7), 25%);
-    }
+}
+.room-description {
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  height: auto;
+  outline: none;
+  width: 40%;
+  &:focus {
+    border-color: darken(rgba(255, 255, 255, 0.7), 25%);
   }
-  .room-connection {
-    display: flex;
-    align-items: center;
-  }
-  .connection-indicator {
-    //background: #ffb300;
-    border-radius: 50%;
-    height: 5px;
-    margin-right: 7.5px;
-    width: 5px;
-    /* &.open {
-      background: #42A5F5;
-    } */
+}
+.room-connection {
+  display: flex;
+  align-items: center;
+}
+.connection-indicator {
+  background: #ffb300;
+  border-radius: 50%;
+  height: 5px;
+  margin-right: 7.5px;
+  width: 5px;
+  &.open {
+    background: #42A5F5;
   }
 }
 

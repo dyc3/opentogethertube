@@ -321,6 +321,21 @@ module.exports = {
 		}
 		this.rooms.push(newRoom);
 	},
+	
+	/**
+	 * Updates a room's properties such as title and description.
+	 * @param {Room} room The room which is being modified.
+	 * @param {Object} props Key-value pairs of the fields being modified.
+	 */
+	modifyRoom(room, props) {
+		for (let k in props) {
+			room[k] = props[k];
+		}
+		this.rooms[room.name] = room;
+		if (!room.isTemporary) {
+			storage.saveRoom(room);
+		}
+	},
 
 	/**
 	 * Loads the Room with the given name from the database. If the
