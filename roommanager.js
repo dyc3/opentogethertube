@@ -38,6 +38,16 @@ module.exports = function (server, storage) {
 			ws.send(JSON.stringify(syncMsg));
 		}
 	}
+	
+	function modifyRoom(room, props) {
+		for (let k in props) {
+			room[k] = props[k];
+		}
+		rooms[room.name] = room;
+		if (!room.isTemporary) {
+			storage.saveRoom(room);
+		}
+	}
 
 	function updateRoom(room) {
 		if (_.isEmpty(room.currentSource) && room.queue.length > 0) {
@@ -295,6 +305,7 @@ module.exports = function (server, storage) {
 	return {
 		rooms,
 		syncRoom,
+		modifyRoom,
 		updateRoom,
 		createRoom,
 		deleteRoom,

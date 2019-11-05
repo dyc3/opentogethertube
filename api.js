@@ -90,6 +90,20 @@ module.exports = function(_roommanager, storage) {
 			success: true,
 		});
 	});
+	
+	router.patch("/room/:name", (req, res) => {
+		if (roommanager.rooms[req.params.name] == undefined) {
+			res.status(400).json({
+				success: false,
+				error: "Room does not exist",
+			});
+			return;
+		}
+		roommanager.modifyRoom(roommanager.rooms[req.params.name], req.body);
+		res.status(200).json({
+			success: true,
+		});
+	});
 
 	router.post("/room/:name/queue", (req, res) => {
 		if (!roommanager.rooms.hasOwnProperty(req.params.name)) {

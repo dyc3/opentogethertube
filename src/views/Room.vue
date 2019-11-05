@@ -2,11 +2,11 @@
   <div>
     <v-container class="room" v-if="!showJoinFailOverlay">
       <v-layout class="room-info" column>
-        <v-input class="room-title" v-model="title" />
-		<v-input class="room-description" placeholder="No description" v-model="description"/>
+        <input class="room-title" v-model="title" />
+        <input class="room-description" placeholder="No description" v-model="description"/>
         <div class="room-connection">
-			<div class="connection-indicator" :class="connectionStatus == 'Connected' ? 'open secondary' : 'primary'"></div>{{ connectionStatus }}
-		</div>
+      <div class="connection-indicator" :class="connectionStatus == 'Connected' ? 'open secondary' : 'primary'"></div>{{ connectionStatus }}
+    </div>
       </v-layout>
       <v-layout column justify-center>
         <v-layout wrap class="video-container">
@@ -123,55 +123,57 @@ export default {
     },
     currentSource() {
       return this.$store.state.room.currentSource;
-	},
-	description: {
-		get() {
-			return this.room.description;
-		},
-		set(description) {
-            let room = this.room;
-            room.description = description;
-            this.$store.commit('updateRoom', room);
-		},
-	},
-    playbackPosition() {
-      return this.$store.state.room.playbackPosition;
     },
-    playbackPercentage() {
-      if (!this.$store.state.room.currentSource) {
-        return 0;
-      }
-      if (this.$store.state.room.currentSource.length == 0) {
-        return 0;
-      }
-      return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
+    description: {
+      get() {
+        return this.room.description;
+      },
+      set(description) {
+        let room = this.room;
+        room.description = description;
+        this.$store.commit('updateRoom', room);
+        this.modifyRoom('description', description);
+      },
     },
-    production() {
-      return this.$store.state.production;
+      playbackPosition() {
+        return this.$store.state.room.playbackPosition;
+      },
+      playbackPercentage() {
+        if (!this.$store.state.room.currentSource) {
+          return 0;
+        }
+        if (this.$store.state.room.currentSource.length == 0) {
+          return 0;
+        }
+        return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
+      },
+      production() {
+        return this.$store.state.production;
+      },
+      room() {
+        return this.$store.state.room;  
+      },
+      timestampDisplay() {
+        const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
+        const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
+        return position + " / " + duration;
     },
-    room() {
-      return this.$store.state.room;  
+    title: {
+      get() {
+        return this.room.title != ""
+          ? this.room.title
+          : (this.room.isTemporary ? "Temporary Room" : this.room.name);
+      },
+      set(title) {
+        let room = this.room;
+        room.title = title;
+        this.$store.commit('updateRoom', room);
+        this.modifyRoom('title', title);
+      },
     },
-    timestampDisplay() {
-      const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
-      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
-      return position + " / " + duration;
-	},
-	title: {
-		get() {
-			return this.room.title != ""
-				? this.room.title
-				: (this.room.isTemporary ? "Temporary Room" : this.room.name);
-		},
-		set(title) {
-            let room = this.room;
-            room.title = title;
-			this.$store.commit('updateRoom', room);
-		},
-	},
   },
   created() {
-    this.$events.on("onSync", () => {
+      this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
 
@@ -189,6 +191,11 @@ export default {
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
+      });
+    },
+    modifyRoom(prop, value) {
+      API.patch(`/room/${this.$route.params.roomId}`, {
+        [prop]: value,
       });
     },
     togglePlayback() {
@@ -292,39 +299,39 @@ export default {
 
 <style lang="scss" scoped>
 .room-info {
-	.room-title {
-		border: 1px solid transparent;
-		font-size: 1.4rem;
-		outline: none;
-		width: 40%;
-		&:focus {
-			border-color: darken(rgba(255, 255, 255, 0.7), 25%);
-		}
-	}
-	.room-description {
-		border: 1px solid transparent;
-		font-size: 0.9rem;
-		height: auto;
-		outline: none;
-		width: 40%;
-		&:focus {
-			border-color: darken(rgba(255, 255, 255, 0.7), 25%);
-		}
-	}
-	.room-connection {
-		display: flex;
-		align-items: center;
-	}
-	.connection-indicator {
-		//background: #ffb300;
-		border-radius: 50%;
-		height: 5px;
-		margin-right: 7.5px;
-		width: 5px;
-		/* &.open {
-			background: #42A5F5;
-		} */
-	}
+  .room-title {
+    border: 1px solid transparent;
+    font-size: 1.4rem;
+    outline: none;
+    width: 40%;
+    &:focus {
+      border-color: darken(rgba(255, 255, 255, 0.7), 25%);
+    }
+  }
+  .room-description {
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+    height: auto;
+    outline: none;
+    width: 40%;
+    &:focus {
+      border-color: darken(rgba(255, 255, 255, 0.7), 25%);
+    }
+  }
+  .room-connection {
+    display: flex;
+    align-items: center;
+  }
+  .connection-indicator {
+    //background: #ffb300;
+    border-radius: 50%;
+    height: 5px;
+    margin-right: 7.5px;
+    width: 5px;
+    /* &.open {
+      background: #42A5F5;
+    } */
+  }
 }
 
 .video-container {
