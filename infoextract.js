@@ -69,10 +69,10 @@ module.exports = {
 	getVideoIdYoutube(link) {
 		let urlParsed = url.parse(link);
 		if (urlParsed.host.endsWith("youtu.be")) {
-			return urlParsed.path.replace("/", "");
+			return urlParsed.path.replace("/", "").trim();
 		}
 		else {
-			return querystring.parse(urlParsed.query)["v"];
+			return querystring.parse(urlParsed.query)["v"].trim();
 		}
 	},
 
@@ -245,7 +245,7 @@ module.exports = {
 			id = this.getVideoIdYoutube(input);
 		}
 
-		const urlParsed = url.parse(input);
+		const urlParsed = url.parse(input.trim());
 		const queryParams = querystring.parse(urlParsed.query);
 		if (queryParams["list"]) {
 			// there is a playlist associated with this link
