@@ -23,8 +23,12 @@ module.exports = {
 	 * @return	{Object} Video object
 	 */
 	getVideoInfo(service, id) {
-		// TODO: check if service is valid
-		// TODO: check if id is valid for service
+		if (service === "youtube") {
+			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
+				throw new Error(`Invalid youtube video ID: ${id}`);
+			}
+		}
+
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
 			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
