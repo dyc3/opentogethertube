@@ -240,6 +240,11 @@ module.exports = {
 			throw "Unsupported input for getAddPreview";
 		}
 
+		let id = null;
+		if (service == "youtube") {
+			id = this.getVideoIdYoutube(input);
+		}
+
 		const urlParsed = url.parse(input);
 		const queryParams = querystring.parse(urlParsed.query);
 		if (queryParams["list"]) {
@@ -272,8 +277,8 @@ module.exports = {
 		else {
 			let video = {
 				service: service,
-				id: queryParams.v,
-				title: queryParams.v,
+				id: id,
+				title: id,
 			};
 			return this.getVideoInfo(video.service, video.id).then(result => {
 				video = result;
