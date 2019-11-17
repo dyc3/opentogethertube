@@ -6,7 +6,7 @@
     <v-row wrap v-if="!isLoading">
       <v-col cols="6" sm="4" md="3" v-for="(room, index) in rooms" :key="index">
         <v-card hover class="room" :to="`/room/${room.name}`">
-          <v-img :src="room.currentSource.thumbnail ? room.currentSource.thumbnail : require('@/assets/placeholder.svg')">
+          <v-img :src="room.currentSource.thumbnail ? room.currentSource.thumbnail : require('@/assets/placeholder.svg')" aspect-ratio="1.8">
             <span class="subtitle-2 users">{{ room.users }} <v-icon small>fas fa-user-friends</v-icon></span>
           </v-img>
           <v-card-title v-text="room.isTemporary ? 'Temporary Room' : room.name" />
