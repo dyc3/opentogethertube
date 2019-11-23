@@ -107,7 +107,7 @@ describe('Room UI spec', () => {
     expect(videoSlider.attributes('disabled')).toBe("true");
   });
 
-  it('should render an enabled video slider if there is somthing playing', () => {
+  it('should render an enabled video slider if there is something playing', () => {
     store.state.room.currentSource = { service: "youtube", id: "I3O9J02G67I", length: 10 };
     const videoSlider = wrapper.find('#videoSlider');
     expect(videoSlider.exists()).toBe(true);
