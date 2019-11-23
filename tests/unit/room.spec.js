@@ -100,6 +100,20 @@ describe('Room UI spec', () => {
     expect(timestamp.text()).toEqual('00:03 / 00:10');
   });
 
+  it('should render a disabled video slider if there is nothing playing', () => {
+    store.state.room.currentSource = {};
+    const videoSlider = wrapper.find('#videoSlider');
+    expect(videoSlider.exists()).toBe(true);
+    expect(videoSlider.attributes('disabled')).toBe("true");
+  });
+
+  it('should render an enabled video slider if there is something playing', () => {
+    store.state.room.currentSource = { service: "youtube", id: "I3O9J02G67I", length: 10 };
+    const videoSlider = wrapper.find('#videoSlider');
+    expect(videoSlider.exists()).toBe(true);
+    expect(videoSlider.attributes('disabled')).toBe(undefined);
+  });
+
   it('should render "Connected" if connected', () => {
     store.state.socket.isConnected = true;
     const connectStatusElement = wrapper.find('#connectStatus');
