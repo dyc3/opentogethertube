@@ -23,8 +23,12 @@ module.exports = {
 	 * @return	{Object} Video object
 	 */
 	getVideoInfo(service, id) {
-		// TODO: check if service is valid
-		// TODO: check if id is valid for service
+		if (service === "youtube") {
+			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
+				throw new Error(`Invalid youtube video ID: ${id}`);
+			}
+		}
+
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
 			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
@@ -69,10 +73,10 @@ module.exports = {
 	getVideoIdYoutube(link) {
 		let urlParsed = url.parse(link);
 		if (urlParsed.host.endsWith("youtu.be")) {
-			return urlParsed.path.replace("/", "");
+			return urlParsed.path.replace("/", "").trim();
 		}
 		else {
-			return querystring.parse(urlParsed.query)["v"];
+			return querystring.parse(urlParsed.query)["v"].trim();
 		}
 	},
 
@@ -245,7 +249,7 @@ module.exports = {
 			id = this.getVideoIdYoutube(input);
 		}
 
-		const urlParsed = url.parse(input);
+		const urlParsed = url.parse(input.trim());
 		const queryParams = querystring.parse(urlParsed.query);
 		if (queryParams["list"]) {
 			// there is a playlist associated with this link
