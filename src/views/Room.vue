@@ -66,7 +66,7 @@
                   <v-text-field placeholder="Video URL to add to queue" v-model="inputAddUrlText"/>
                   <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
                   <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
-                  <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All Videos in Playlist to Queue</v-btn>
+                  <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
                   <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                 </div>
               </v-tab-item>
