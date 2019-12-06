@@ -251,7 +251,14 @@ module.exports = {
 					this.getManyPreviews(playlist).then(previews => resolve(previews));
 				}).catch(err => {
 					console.error("Failed to compile add preview: error getting playlist:", err);
-					reject(err);
+					if (queryParams.v) {
+						return this.getVideoInfo(service, queryParams.v).then(video => {
+							resolve([video]);	
+						});
+					}
+					else {
+						reject(err);
+					}
 				});
 			});
 		}
