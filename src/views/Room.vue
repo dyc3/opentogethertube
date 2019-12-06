@@ -66,6 +66,7 @@
                   <v-text-field placeholder="Video URL to add to queue" v-model="inputAddUrlText"/>
                   <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
                   <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
+                  <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All Videos in Playlist to Queue</v-btn>
                   <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                 </div>
               </v-tab-item>
@@ -210,6 +211,11 @@ export default {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: this.inputAddUrlText,
       });
+    },
+    addAllToQueue() {
+      for (let video of this.addPreview) { 
+        API.post(`/room/${this.$route.params.roomId}/queue`, video);
+      }
     },
     openEditName() {
       if (window.localStorage.getItem("username") != null) {
