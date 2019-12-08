@@ -250,13 +250,17 @@ module.exports = {
 					console.log(`Found ${playlist.length} videos in playlist`);
 					this.getManyPreviews(playlist).then(previews => resolve(previews));
 				}).catch(err => {
-					console.error("Failed to compile add preview: error getting playlist:", err);
 					if (queryParams.v) {
+						console.warn(`Playlist does not exist, retreiving video...`);
 						return this.getVideoInfo(service, queryParams.v).then(video => {
-							resolve([video]);	
+							resolve([video]);
+						}).catch(err => {
+							console.error("Failed to compile add preview: error getting video:", err);
+							reject(err);
 						});
 					}
 					else {
+						console.error("Failed to compile add preview: error getting playlist:", err);
 						reject(err);
 					}
 				});
