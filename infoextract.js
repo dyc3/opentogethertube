@@ -258,7 +258,6 @@ module.exports = {
 			id = this.getVideoIdYoutube(input);
 		}
 
-
 		if (queryParams["list"]) {
 			// there is a playlist associated with this link
 			console.log("playlist found");
