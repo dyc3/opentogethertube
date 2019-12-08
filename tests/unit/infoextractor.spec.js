@@ -45,6 +45,11 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getVideoIdYoutube("http://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
     expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
   });
+
+  it('getVideoIdYoutube() should return null if link does not contain video id', () => {
+    expect(InfoExtract.getVideoIdYoutube("http://youtube.com/")).toEqual(null);
+    expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).toEqual(null);
+  });
 });
 
 describe('InfoExtractor Caching Spec', () => {

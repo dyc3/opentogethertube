@@ -76,7 +76,13 @@ module.exports = {
 			return urlParsed.path.replace("/", "").trim();
 		}
 		else {
-			return querystring.parse(urlParsed.query)["v"].trim();
+			let query = querystring.parse(urlParsed.query);
+			if (query["v"]) {
+				return query["v"].trim();
+			}
+			else {
+				return null;
+			}
 		}
 	},
 
@@ -245,12 +251,14 @@ module.exports = {
 		}
 
 		let id = null;
-		if (service == "youtube") {
-			id = this.getVideoIdYoutube(input);
-		}
 
 		const urlParsed = url.parse(input.trim());
 		const queryParams = querystring.parse(urlParsed.query);
+		if (service == "youtube" && queryParams["v"]) {
+			id = this.getVideoIdYoutube(input);
+		}
+
+
 		if (queryParams["list"]) {
 			// there is a playlist associated with this link
 			console.log("playlist found");
