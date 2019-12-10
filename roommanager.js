@@ -341,6 +341,7 @@ module.exports = {
 			room.name = result.name;
 			room.title = result.title;
 			room.description = result.description;
+			room.visibilityStatus = result.visibility;
 			room.isTemporary = false;
 			this.rooms.push(room);
 			return room;
