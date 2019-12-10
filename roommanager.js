@@ -18,6 +18,7 @@ class Room {
 		this.title = "";
 		this.description = "";
 		this.isTemporary = false;
+		this.visibilityStatus = "public"; //TODO: Might not be the best variable. Change?
 		this.currentSource = {};
 		this.queue = [];
 		this.isPlaying = false;
@@ -301,11 +302,13 @@ module.exports = {
 	 * Create a new room using the given name.
 	 * @param {string} name The name for the new room
 	 * @param {boolean} isTemporary Whether or not the new room is temporary. Temporary rooms do not get stored in the database.
+	 * @param {string} visibilityStatus Indicates the room's visibility. Only public rooms are shown on the rooms list.
 	 */
-	createRoom(name, isTemporary=false) {
+	createRoom(name, isTemporary=false, visibilityStatus="public") {
 		let newRoom = new Room();
 		newRoom.name = name;
 		newRoom.isTemporary = isTemporary;
+		newRoom.visibilityStatus = visibilityStatus;
 		if (isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
 			newRoom.keepAlivePing = new Date();
