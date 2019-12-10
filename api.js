@@ -10,6 +10,9 @@ module.exports = function(_roommanager, storage) {
 	router.get("/room/list", (req, res) => {
 		let rooms = [];
 		for (const room of roommanager.rooms) {
+			if (room.visibility !== "public") {
+				continue;
+			}
 			rooms.push({
 				name: room.name,
 				description: room.description,
@@ -65,7 +68,13 @@ module.exports = function(_roommanager, storage) {
 			});
 			return;
 		}
-		roommanager.createRoom(req.body.name);
+		if (!req.body.temporary) {
+			req.body.temporary = false;
+		}
+		if (!req.body.visibility) {
+			req.body.visibility = "public";
+		}
+		roommanager.createRoom(req.body.name, req.body.temporary, req.body.visibility);
 		res.json({
 			success: true,
 		});
