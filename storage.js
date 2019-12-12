@@ -11,6 +11,7 @@ module.exports = {
 				name: room.name,
 				title: room.title,
 				description: room.description,
+				visibility: room.visibility,
 			};
 		}).catch(err => {
 			console.error("Failed to get room by name:", err);
@@ -21,6 +22,7 @@ module.exports = {
 			name: room.name,
 			title: room.title,
 			description: room.description,
+			visibility: room.visibilityStatus,
 		}).then(result => {
 			console.log("Saved room to db: id", result.dataValues.id);
 			return true;
