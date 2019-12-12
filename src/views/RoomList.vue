@@ -3,7 +3,7 @@
     <v-row align="center" justify="center" v-if="isLoading">
       <v-progress-circular indeterminate/>
     </v-row>
-    <v-row v-if="(rooms.length == 0 && !isLoading)" align="center" justify="center">
+    <v-row v-if="rooms.length == 0 && !isLoading" align="center" justify="center">
       <div>
         <h1>
           No rooms right now...
