@@ -1,9 +1,17 @@
 <template>
   <v-container class="room-list" grid-list-md>
-    <v-row justify="center" v-if="isLoading">
+    <v-row align="center" justify="center" v-if="isLoading">
       <v-progress-circular indeterminate/>
     </v-row>
-    <v-row wrap v-if="!isLoading">
+    <v-row v-if="rooms.length == 0 && !isLoading" align="center" justify="center">
+      <div>
+        <h1>
+          No rooms right now...
+        </h1>
+        <v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
+      </div>
+    </v-row>
+    <v-row wrap v-else-if="!isLoading">
       <v-col cols="6" sm="4" md="3" v-for="(room, index) in rooms" :key="index">
         <v-card hover class="room" :to="`/room/${room.name}`">
           <v-img :src="room.currentSource.thumbnail ? room.currentSource.thumbnail : require('@/assets/placeholder.svg')" aspect-ratio="1.8">
@@ -43,6 +51,23 @@ export default {
       this.rooms = res.data;
     });
   },
+  methods: {
+		createRoom() {
+			this.isLoading = true;
+			this.cancelledCreation = false;
+			API.post("/room/generate").then(res => {
+				if (!this.cancelledCreation) {
+					this.isLoading = false;
+					this.cancelledCreation = false;
+					this.$router.push(`/room/${res.data.room}`);
+				}
+			});
+		},
+		cancelRoom() {
+			this.cancelledCreation = true;
+			this.isLoading = false;
+		},
+	},
 };
 </script>
 
