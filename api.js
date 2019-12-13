@@ -1,5 +1,6 @@
 const express = require('express');
 const uuid = require("uuid/v4");
+const _ = require("lodash");
 const InfoExtract = require("./infoextract");
 
 // eslint-disable-next-line no-unused-vars
@@ -26,6 +27,10 @@ module.exports = function(_roommanager, storage) {
 
 	router.get("/room/:name", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			room = _.cloneDeep(room);
+			for (let client of room.clients) {
+				delete client.socket;
+			}
 			res.json(room);
 		}).catch(err => {
 			if (err.name === "RoomNotFoundException") {
