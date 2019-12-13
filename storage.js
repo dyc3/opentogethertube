@@ -22,7 +22,7 @@ module.exports = {
 			name: room.name,
 			title: room.title,
 			description: room.description,
-			visibility: room.visibilityStatus,
+			visibility: room.visibility,
 		}).then(result => {
 			console.log("Saved room to db: id", result.dataValues.id);
 			return true;
