@@ -253,6 +253,13 @@ class RoomAlreadyLoadedException extends Error {
 	}
 }
 
+class RoomNameTakenException extends Error {
+	constructor(roomName) {
+		super(`The room "${roomName}" is taken.`);
+		this.name = "RoomNameTakenException";
+	}
+}
+
 module.exports = {
 	rooms: [],
 
@@ -320,6 +327,10 @@ module.exports = {
 	 * @param {string} visibility Indicates the room's visibility. Only public rooms are shown on the rooms list.
 	 */
 	createRoom(name, isTemporary=false, visibility="public") {
+		if (_.find(this.rooms, room => room.name === name)) {
+			throw new RoomNameTakenException(name);
+		}
+
 		let newRoom = new Room();
 		newRoom.name = name;
 		newRoom.isTemporary = isTemporary;

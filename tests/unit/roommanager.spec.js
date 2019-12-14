@@ -233,7 +233,7 @@ describe('Room manager: Manager tests', () => {
     });
   });
 
-  it('should throw RoomAlreadyExistsException when attempting to load a room that is already loaded', async done => {
+  it('should throw RoomAlreadyLoadedException when attempting to load a room that is already loaded', async done => {
     storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
     await roommanager.loadRoom("test");
     try {
@@ -245,5 +245,17 @@ describe('Room manager: Manager tests', () => {
       expect(err.name).toEqual("RoomAlreadyLoadedException");
       done();
     }
+  });
+
+  it('should throw RoomNameTakenException if a room with a given name already exists', () => {
+    roommanager.createRoom("test", true);
+    expect(roommanager.rooms).toHaveLength(1);
+    try {
+      roommanager.createRoom("test", true);
+    }
+    catch (err) {
+      expect(err.name).toEqual("RoomNameTakenException");
+    }
+    expect(roommanager.rooms).toHaveLength(1);
   });
 });
