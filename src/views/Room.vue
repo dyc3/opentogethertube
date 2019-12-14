@@ -58,7 +58,9 @@
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
                 <div class="video-queue">
-                  <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
+                  <draggable v-model="$store.state.room.queue" :move="onQueueDragDrop">
+                    <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
+                  </draggable>
                 </div>
               </v-tab-item>
               <v-tab-item>
@@ -107,10 +109,12 @@ import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import secondsToTimestamp from "@/timestamp.js";
 import _ from "lodash";
+import draggable from 'vuedraggable';
 
 export default {
   name: 'room',
   components: {
+    draggable,
     VideoQueueItem,
   },
   data() {
@@ -213,7 +217,7 @@ export default {
       });
     },
     addAllToQueue() {
-      for (let video of this.addPreview) { 
+      for (let video of this.addPreview) {
         API.post(`/room/${this.$route.params.roomId}/queue`, video);
       }
     },
@@ -331,6 +335,13 @@ export default {
         this.$socket.sendObj({ action: "chat", text: this.inputChatMsgText });
         this.inputChatMsgText = "";
       }
+    },
+    onQueueDragDrop(evt) {
+      this.$socket.sendObj({
+        action: "queue-move",
+        currentIdx: evt.draggedContext.index,
+        targetIdx: evt.draggedContext.futureIndex,
+      });
     },
   },
   mounted() {
