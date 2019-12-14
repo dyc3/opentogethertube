@@ -58,7 +58,7 @@
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
                 <div class="video-queue">
-                  <draggable v-model="$store.state.room.queue" :move="onQueueDragDrop" handle=".drag-handle">
+                  <draggable v-model="$store.state.room.queue" @end="onQueueDragDrop" handle=".drag-handle">
                     <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
                   </draggable>
                 </div>
@@ -336,11 +336,11 @@ export default {
         this.inputChatMsgText = "";
       }
     },
-    onQueueDragDrop(evt) {
+    onQueueDragDrop(e) {
       this.$socket.sendObj({
         action: "queue-move",
-        currentIdx: evt.draggedContext.index,
-        targetIdx: evt.draggedContext.futureIndex,
+        currentIdx: e.oldIndex,
+        targetIdx: e.newIndex,
       });
     },
   },
