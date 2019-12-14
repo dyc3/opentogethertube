@@ -147,7 +147,12 @@ class Room {
 				};
 			});
 
-			client.socket.send(JSON.stringify(syncMsg));
+			try {
+				client.socket.send(JSON.stringify(syncMsg));
+			}
+			catch (error) {
+				// ignore errors
+			}
 		}
 	}
 
@@ -215,7 +220,12 @@ class Room {
 				text: msg.text,
 			};
 			for (let c of this.clients) {
-				c.socket.send(JSON.stringify(chat));
+				try {
+					c.socket.send(JSON.stringify(chat));
+				}
+				catch (error) {
+					// ignore errors
+				}
 			}
 		}
 		else {
