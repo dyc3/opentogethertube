@@ -65,24 +65,32 @@ module.exports = function(_roommanager, storage) {
 			});
 			return;
 		}
-		if (roommanager.rooms[req.body.name] != undefined) {
-			// already exists
-			res.status(400).json({
-				success: false,
-				error: "Room with that name already exists",
-			});
-			return;
-		}
 		if (!req.body.temporary) {
 			req.body.temporary = false;
 		}
 		if (!req.body.visibility) {
 			req.body.visibility = "public";
 		}
-		roommanager.createRoom(req.body.name, req.body.temporary, req.body.visibility);
-		res.json({
-			success: true,
-		});
+		try {
+			roommanager.createRoom(req.body.name, req.body.temporary, req.body.visibility);
+			res.json({
+				success: true,
+			});
+		}
+		catch (e) {
+			if (e.name === "RoomNameTakenException") {
+				res.status(400).json({
+					success: false,
+					error: "Room with that name already exists",
+				});
+			}
+			else {
+				res.status(500).json({
+					success: false,
+					error: "An unknown error occured when creating this room. Try again later.",
+				});
+			}
+		}
 	});
 
 	router.post("/room/generate", (req, res) => {
