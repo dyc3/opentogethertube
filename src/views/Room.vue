@@ -58,7 +58,7 @@
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
                 <div class="video-queue">
-                  <draggable v-model="$store.state.room.queue" :move="onQueueDragDrop">
+                  <draggable v-model="$store.state.room.queue" :move="onQueueDragDrop" handle=".drag-handle">
                     <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
                   </draggable>
                 </div>
@@ -463,5 +463,12 @@ export default {
       font-weight: bold;
     }
   }
+}
+
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
 }
 </style>
