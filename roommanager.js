@@ -228,6 +228,11 @@ class Room {
 				}
 			}
 		}
+		else if (msg.action === "queue-move") {
+			let video = this.queue.splice(msg.currentIdx, 1)[0];
+			this.queue.splice(msg.targetIdx, 0, video);
+			this.sync();
+		}
 		else {
 			console.warn("[ws] UNKNOWN ACTION", msg.action);
 		}
