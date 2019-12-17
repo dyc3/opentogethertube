@@ -87,6 +87,7 @@ class Room {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
 				console.log("Remove inactive client:", i, this.clients[i].name);
+				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].name, {}));
 				this.clients.splice(i--, 1);
 				continue;
 			}
@@ -150,6 +151,26 @@ class Room {
 	}
 
 	/**
+	 * Sends the room event to all clients.
+	 * @param {RoomEvent} event
+	 */
+	sendRoomEvent(event) {
+		console.log("Room event:", event);
+		let msg = {
+			action: "event",
+			event: event,
+		};
+		for (let c of this.clients) {
+			try {
+				c.socket.send(JSON.stringify(msg));
+			}
+			catch (error) {
+				// ignore errors
+			}
+		}
+	}
+
+	/**
 	 * Called when a new client connects to this room.
 	 * @param {Object} ws Websocket for the client.
 	 */
@@ -159,6 +180,7 @@ class Room {
 			socket: ws,
 		};
 		this.clients.push(client);
+		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.name, {}));
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
@@ -171,18 +193,22 @@ class Room {
 	 */
 	onMessageReceived(client, msg) {
 		if (msg.action === "play") {
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.name, {}));
 			this.isPlaying = true;
 			this.sync();
 		}
 		else if (msg.action === "pause") {
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.name, {}));
 			this.isPlaying = false;
 			this.sync();
 		}
 		else if (msg.action === "seek") {
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.name, { position: msg.position, previousPosition: this.playbackPosition }));
 			this.playbackPosition = msg.position;
 			this.sync();
 		}
 		else if (msg.action === "skip") {
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.name, { video: this.currentSource }));
 			this.playbackPosition = this.currentSource.length + 1;
 			this.update();
 			this.sync();
@@ -222,6 +248,29 @@ class Room {
 		else {
 			console.warn("[ws] UNKNOWN ACTION", msg.action);
 		}
+	}
+}
+
+const ROOM_EVENT_TYPE = {
+	PLAY: "play",
+	PAUSE: "pause",
+	SKIP: "skip",
+	SEEK: "seek",
+	ADD_TO_QUEUE: "addToQueue",
+	REMOVE_FROM_QUEUE: "removeFromQueue",
+	JOIN_ROOM: "joinRoom",
+	LEAVE_ROOM: "leaveRoom",
+};
+
+/**
+ * Represents an action that a user performed in a room, like playing, pausing, skipping, adding to the queue, etc.
+ */
+class RoomEvent {
+	constructor(roomName, eventType, userName, parameters) {
+		this.roomName = roomName;
+		this.eventType = eventType;
+		this.userName = userName;
+		this.parameters = parameters;
 	}
 }
 
