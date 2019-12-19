@@ -65,6 +65,20 @@ module.exports = function(_roommanager, storage) {
 			});
 			return;
 		}
+		if (req.body.name.length < 3) {
+			res.status(400).json({
+				success: false,
+				error: "Room name not allowed (too shart, must be at least 3 characters)",
+			});
+			return;
+		}
+		if (!(/^[A-za-z0-9_-]+$/).exec(req.body.name)) {
+			res.status(400).json({
+				success: false,
+				error: "Room name not allowed (invalid characters)",
+			});
+			return;
+		}
 		if (!req.body.temporary) {
 			req.body.temporary = false;
 		}
