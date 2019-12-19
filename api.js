@@ -68,7 +68,7 @@ module.exports = function(_roommanager, storage) {
 		if (req.body.name.length < 3) {
 			res.status(400).json({
 				success: false,
-				error: "Room name not allowed (too shart, must be at least 3 characters)",
+				error: "Room name not allowed (too short, must be at least 3 characters)",
 			});
 			return;
 		}
