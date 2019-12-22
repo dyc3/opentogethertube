@@ -10,6 +10,20 @@ const YtApi = axios.create({
 	baseURL: YOUTUBE_API_URL,
 });
 
+class UnsupportedServiceException extends Error {
+	constructor(hostname) {
+		super(`The service at "${hostname}" is not yet supported.`);
+		this.name = "UnsupportedServiceException";
+	}
+}
+
+class UnsupportedAddPreviewInputException extends Error {
+	constructor() {
+		super(`You must supply a Youtube video, playlist, or channel link.`);
+		this.name = "UnsupportedAddPreviewInputException";
+	}
+}
+
 module.exports = {
 	YtApi,
 
@@ -245,17 +259,19 @@ module.exports = {
 	getAddPreview(input) {
 		const service = this.getService(input);
 
-		if (service !== "youtube") {
-			console.error("Unsupported input for getAddPreview");
-			throw "Unsupported input for getAddPreview";
-		}
-
 		let id = null;
 
 		const urlParsed = url.parse(input.trim());
 		const queryParams = querystring.parse(urlParsed.query);
 		if (service == "youtube" && queryParams["v"]) {
 			id = this.getVideoIdYoutube(input);
+		}
+
+		if (urlParsed.host && service !== "youtube") {
+			throw new UnsupportedServiceException(urlParsed.host);
+		}
+		else if (!urlParsed.host) {
+			throw new UnsupportedAddPreviewInputException();
 		}
 
 		if (queryParams["list"]) {

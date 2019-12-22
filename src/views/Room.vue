@@ -65,11 +65,23 @@
               </v-tab-item>
               <v-tab-item>
                 <div class="video-add">
-                  <v-text-field placeholder="Video URL to add to queue" v-model="inputAddUrlText"/>
-                  <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
-                  <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
-                  <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
-                  <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
+                  <div>
+                    <v-text-field placeholder="Video URL to add to queue" v-model="inputAddUrlText"/>
+                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
+                    <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
+                  </div>
+                  <v-row v-if="isLoadingAddPreview" justify="center">
+                    <v-progress-circular indeterminate/>
+                  </v-row>
+                  <div v-if="!isLoadingAddPreview">
+                    <v-row justify="center">
+                      <div v-if="hasAddPreviewFailed">
+                        {{ addPreviewLoadFailureText }}
+                      </div>
+                    </v-row>
+                    <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
+                  </div>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -129,6 +141,8 @@ export default {
       showEditName: false,
       queueTab: 0,
       isLoadingAddPreview: false,
+      hasAddPreviewFailed: false,
+      addPreviewLoadFailureText: "",
       inputAddUrlText: "",
       inputChatMsgText: "",
 
@@ -243,12 +257,24 @@ export default {
       }
     },
     requestAddPreview() {
-      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddUrlText)}`).then(res => {
+      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddUrlText)}`, { validateStatus: status => status < 500 }).then(res => {
         this.isLoadingAddPreview = false;
-        this.addPreview = res.data;
-        console.log(`Got add preview with ${this.addPreview.length}`);
+        if (res.status === 200) {
+          this.hasAddPreviewFailed = false;
+          this.addPreview = res.data;
+          console.log(`Got add preview with ${this.addPreview.length}`);
+        }
+        else if (res.status === 400) {
+          this.hasAddPreviewFailed = true;
+          this.addPreviewLoadFailureText = res.data.error;
+        }
+        else {
+          console.warn("Unknown status for add preview response:", res.status);
+        }
       }).catch(err => {
         this.isLoadingAddPreview = false;
+        this.hasAddPreviewFailed = true;
+        this.addPreviewLoadFailureText = "An unknown error occurred when getting add preview. Try again later.";
         console.error("Failed to get add preview", err);
       });
     },
