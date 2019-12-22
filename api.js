@@ -220,8 +220,20 @@ module.exports = function(_roommanager, storage) {
 			});
 		}
 		catch (error) {
-			console.error("Unable to get add preview", error);
-			res.status(500).json([{ error: "Unable to preview" }]);
+			if (error.name === "UnsupportedServiceException" || error.name === "UnsupportedAddPreviewInputException") {
+				console.error("Unable to get add preview:", error.name);
+				res.status(400).json({
+					success: false,
+					error: error.message,
+				});
+			}
+			else {
+				console.error("Unable to get add preview:", error);
+				res.status(500).json({
+					success: false,
+					error: "Unknown error occurred.",
+				});
+			}
 		}
 	});
 
