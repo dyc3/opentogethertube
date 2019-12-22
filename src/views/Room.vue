@@ -113,6 +113,9 @@
         <v-btn to="/rooms">Find Another Room</v-btn>
       </v-layout>
     </v-overlay>
+    <v-snackbar v-for="(event, index) in $store.state.room.events" :key="index" v-model="event.isVisible">
+      {{ snackbarText }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -148,6 +151,8 @@ export default {
 
       showJoinFailOverlay: false,
       joinFailReason: "",
+      snackbarActive: false,
+      snackbarText: "",
     };
   },
   computed: {
@@ -195,6 +200,25 @@ export default {
 
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
+    });
+
+    this.$events.on("onRoomEvent", event => {
+      if (event.eventType === "play") {
+        this.snackbarText = `${event.userName} played the video`;
+      }
+      else if (event.eventType === "pause") {
+        this.snackbarText = `${event.userName} paused the video`;
+      }
+      else if (event.eventType === "skip") {
+        this.snackbarText = `${event.userName} skipped ${event.parameters.video.title}`;
+      }
+      else if (event.eventType === "seek") {
+        this.snackbarText = `${event.userName} seeked to ${secondsToTimestamp(event.parameters.position)}`;
+      }
+      else {
+        this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
+      }
+      this.snackbarActive = true;
     });
 
     window.removeEventListener('keydown', this.onKeyDown);

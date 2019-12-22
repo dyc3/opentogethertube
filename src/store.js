@@ -22,6 +22,7 @@ export default new Vuex.Store({
 			isPlaying: false,
 			playbackPosition: 0,
 			chatMessages: [],
+			events: [],
 		},
 	},
 	mutations:{
@@ -88,6 +89,12 @@ export default new Vuex.Store({
 		},
 		chat(context, message) {
 			this.state.room.chatMessages.push(message);
+		},
+		event(context, message) {
+			let event = message.event;
+			event.isVisible = true;
+			this.state.room.events.push(event);
+			Vue.prototype.$events.emit('onRoomEvent', message.event);
 		},
 	},
 });
