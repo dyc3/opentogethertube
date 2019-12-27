@@ -4,7 +4,7 @@
 			<v-row no-gutters align="center" justify="space-between">
 				<v-col cols="4">
 					<v-img :src="item.thumbnail" contain>
-						<span class="drag-handle">
+						<span class="drag-handle" v-if="!isPreview">
 							<v-icon>fas fa-align-justify</v-icon>
 						</span>
 						<span class="subtitle-2 video-length">{{ videoLength }}</span>
