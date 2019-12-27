@@ -4,6 +4,7 @@ const querystring = require('querystring');
 const moment = require("moment");
 const _ = require("lodash");
 const storage = require("./storage");
+const Video = require("./common/video.js");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
 const YtApi = axios.create({
@@ -34,7 +35,7 @@ module.exports = {
 	 * handled by the functions that actually retrieve missing info.
 	 * @param	{string} service The service that hosts the source video.
 	 * @param	{string} id The id of the video on the given service.
-	 * @return	{Object} Video object
+	 * @return	{Video} Video object
 	 */
 	getVideoInfo(service, id) {
 		if (service === "youtube") {
@@ -47,7 +48,7 @@ module.exports = {
 			let video = _.cloneDeep(result);
 			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
 			if (missingInfo.length === 0) {
-				return video;
+				return new Video(video);
 			}
 
 			console.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
@@ -55,7 +56,7 @@ module.exports = {
 			if (video.service === "youtube") {
 				return this.getVideoInfoYoutube([video.id], missingInfo).then(result => {
 					video = Object.assign(video, result[video.id]);
-					return video;
+					return new Video(video);
 				}).catch(err => {
 					console.error("Failed to get youtube video info:", err);
 					throw err;
@@ -313,13 +314,13 @@ module.exports = {
 				.catch(err => console.error('Error getting channel info:', err));
 		}
 		else {
-			let video = {
+			let video = new Video({
 				service: service,
 				id: id,
 				title: id,
-			};
+			});
 			return this.getVideoInfo(video.service, video.id).then(result => {
-				video = result;
+				Object.assign(video, result);
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);

@@ -5,6 +5,7 @@ const moment = require("moment");
 const NanoTimer = require("nanotimer");
 const InfoExtract = require("./infoextract");
 const storage = require("./storage");
+const Video = require("./common/video.js");
 
 /**
  * Represents a Room and all it's associated state, settings, connected clients.
@@ -29,17 +30,10 @@ class Room {
 
 	/**
 	 * Obtains metadata for a given video and adds it to the queue
-	 * @param {Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
+	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
 	 */
 	addToQueue(video) {
-		let queueItem = {
-			service: "",
-			id: "",
-			title: "",
-			description: "",
-			thumbnail: "",
-			length: 0,
-		};
+		let queueItem = new Video();
 
 		if (video.hasOwnProperty("url")) {
 			queueItem.service = InfoExtract.getService(video.url);

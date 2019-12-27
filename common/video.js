@@ -3,14 +3,16 @@
  */
 class Video {
 	constructor(args=undefined) {
-		this.service = "";
-		this.id = "";
-		this.title = "";
-		this.description = "";
-		this.thumbnail = "";
-		this.length = 0;
+		this.service = null;
+		this.id = null;
+		this.title = null;
+		this.description = null;
+		this.thumbnail = null;
+		this.length = null;
 		if (args) {
 			Object.assign(this, args);
 		}
 	}
 }
+
+module.exports = Video;
