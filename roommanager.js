@@ -128,13 +128,13 @@ class Room {
 			users: [],
 		};
 
-		for (const client of this.clients) {
+		for (const client of this.clients.filter(c => c.name !== null)) {
 			// make sure the socket is still open
 			if (client.socket.readyState != 1) {
 				continue;
 			}
 
-			syncMsg.users = this.clients.map(c => {
+			syncMsg.users = this.clients.filter(c => c.name !== null).map(c => {
 				return {
 					name: c.name,
 					isYou: client.socket == c.socket,
@@ -156,7 +156,7 @@ class Room {
 	 */
 	onConnectionReceived(ws) {
 		let client = {
-			name: "client",
+			name: null,
 			socket: ws,
 		};
 		this.clients.push(client);
@@ -193,6 +193,9 @@ class Room {
 				console.warn("name not supplied");
 				return;
 			}
+			if (client.name === null) {
+				console.log(msg.name, "has joined", this.name);
+			}
 			client.name = msg.name;
 			this.update();
 			this.sync();
@@ -203,6 +206,9 @@ class Room {
 				action: "generatedName",
 				name: generatedName,
 			}));
+			if (client.name === null) {
+				console.log(generatedName, "has joined", this.name);
+			}
 			client.name = generatedName;
 			this.update();
 			this.sync();
@@ -213,7 +219,7 @@ class Room {
 				from: client.name,
 				text: msg.text,
 			};
-			for (let c of this.clients) {
+			for (let c of this.clients.filter(c => c.name !== null)) {
 				try {
 					c.socket.send(JSON.stringify(chat));
 				}
