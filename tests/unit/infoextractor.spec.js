@@ -59,7 +59,7 @@ describe('InfoExtractor Caching Spec', () => {
   }),
 
   afterEach(async () => {
-
+    await CachedVideo.destroy({ where: {} });
   }),
 
   it('should get the correct video metadata', done => {
