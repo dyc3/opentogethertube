@@ -183,9 +183,14 @@ export default {
       return position + " / " + duration;
     },
   },
-  created() {
-    if (window.localStorage.getItem("username") != null) {
-      this.username = window.localStorage.getItem("username");
+  async created() {
+    this.username = window.localStorage.getItem("username");
+    if (this.username === null || this.username === undefined) {
+      console.log("Requesting name from server...");
+      await API.get("/data/generateName").then(res => {
+        window.localStorage.setItem("username", res.data.name);
+        this.username = res.data.name;
+      });
     }
 
     this.$events.on("onSync", () => {

@@ -1,6 +1,7 @@
 const express = require('express');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
+const { uniqueNamesGenerator } = require('unique-names-generator');
 const InfoExtract = require("./infoextract");
 
 // eslint-disable-next-line no-unused-vars
@@ -235,6 +236,13 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 		}
+	});
+
+	router.get("/data/generateName", (req, res) => {
+		let generatedName = uniqueNamesGenerator();
+		res.json({
+			name: generatedName,
+		});
 	});
 
 	return router;

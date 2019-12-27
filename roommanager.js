@@ -200,19 +200,6 @@ class Room {
 			this.update();
 			this.sync();
 		}
-		else if (msg.action === "generate-name") {
-			let generatedName = uniqueNamesGenerator();
-			client.socket.send(JSON.stringify({
-				action: "generatedName",
-				name: generatedName,
-			}));
-			if (client.name === null) {
-				console.log(generatedName, "has joined", this.name);
-			}
-			client.name = generatedName;
-			this.update();
-			this.sync();
-		}
 		else if (msg.action === "chat") {
 			let chat = {
 				action: msg.action,

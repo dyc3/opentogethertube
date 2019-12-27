@@ -34,9 +34,6 @@ export default new Vuex.Store({
 			if (username != null && username != undefined) {
 				Vue.prototype.$socket.sendObj({ action: "set-name", name: username });
 			}
-			else {
-				Vue.prototype.$socket.sendObj({ action: "generate-name" });
-			}
 		},
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close", event);
@@ -88,10 +85,6 @@ export default new Vuex.Store({
 			this.state.room.users = message.users;
 
 			Vue.prototype.$events.emit('onSync');
-		},
-		generatedName(context, message) {
-			console.debug("generated name received from server");
-			window.localStorage.setItem("username", message.name);
 		},
 		chat(context, message) {
 			this.state.room.chatMessages.push(message);
