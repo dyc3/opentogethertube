@@ -1,6 +1,7 @@
 const InfoExtract = require("../../infoextract");
 const storage = require("../../storage");
 const { CachedVideo } = require("../../models");
+const Video = require("../../common/video.js");
 
 const youtubeVideoListSampleResponses = {
   "BTZ5KVRUy1Q": '{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q","snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}]}',
@@ -243,6 +244,44 @@ describe('InfoExtractor Partial Data Retrieval', () => {
         "description",
       ]);
       expect(video).toBeDefined();
+      done();
+    });
+  });
+});
+
+describe('InfoExtractor Add Preview Spec', () => {
+  it('should return 1 video when given a long youtube URL', done => {
+    InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(new Video({
+      service: "youtube",
+      id: "I3O9J02G67I",
+      title: "tmpATT2Cp",
+      description: "tmpATT2Cp",
+      thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+      length: 10,
+    }))));
+
+    InfoExtract.getAddPreview("https://www.youtube.com/watch?v=I3O9J02G67I").then(result => {
+      expect(InfoExtract.getVideoInfo).toBeCalled();
+      expect(result.length).toEqual(1);
+
+      done();
+    });
+  });
+
+  it('should return 1 video when given a short youtube URL', done => {
+    InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(new Video({
+      service: "youtube",
+      id: "I3O9J02G67I",
+      title: "tmpATT2Cp",
+      description: "tmpATT2Cp",
+      thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+      length: 10,
+    }))));
+
+    InfoExtract.getAddPreview("https://youtu.be/I3O9J02G67I").then(result => {
+      expect(InfoExtract.getVideoInfo).toBeCalled();
+      expect(result.length).toEqual(1);
+
       done();
     });
   });
