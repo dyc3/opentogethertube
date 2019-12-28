@@ -264,7 +264,7 @@ module.exports = {
 
 		const urlParsed = url.parse(input.trim());
 		const queryParams = querystring.parse(urlParsed.query);
-		if (service == "youtube" && queryParams["v"]) {
+		if (service == "youtube" && (queryParams["v"] || urlParsed.host === "youtu.be")) {
 			id = this.getVideoIdYoutube(input);
 		}
 
