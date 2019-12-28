@@ -215,6 +215,12 @@ export default {
       else if (event.eventType === "seek") {
         this.snackbarText = `${event.userName} seeked to ${secondsToTimestamp(event.parameters.position)}`;
       }
+      else if (event.eventType === "joinRoom") {
+        this.snackbarText = `${event.userName} joined the room`;
+      }
+      else if (event.eventType === "leaveRoom") {
+        this.snackbarText = `${event.userName} left the room`;
+      }
       else {
         this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
       }

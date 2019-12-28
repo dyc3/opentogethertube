@@ -180,7 +180,6 @@ class Room {
 			socket: ws,
 		};
 		this.clients.push(client);
-		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.name, {}));
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
@@ -220,6 +219,7 @@ class Room {
 			}
 			if (client.name === null) {
 				console.log(msg.name, "has joined", this.name);
+				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, msg.name, {}));
 			}
 			client.name = msg.name;
 			this.update();
