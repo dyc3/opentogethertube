@@ -7,6 +7,7 @@ const storage = require("./storage");
 const Video = require("./common/video.js");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
+const ADD_PREVIEW_SEARCH_MIN_LENGTH = 3;
 const YtApi = axios.create({
 	baseURL: YOUTUBE_API_URL,
 });
@@ -18,10 +19,10 @@ class UnsupportedServiceException extends Error {
 	}
 }
 
-class UnsupportedAddPreviewInputException extends Error {
+class InvalidAddPreviewInputException extends Error {
 	constructor() {
-		super(`You must supply a Youtube video, playlist, or channel link.`);
-		this.name = "UnsupportedAddPreviewInputException";
+		super(`Your search query must at least ${ADD_PREVIEW_SEARCH_MIN_LENGTH} characters, or supply a Youtube video, playlist, or channel link.`);
+		this.name = "InvalidAddPreviewInputException";
 	}
 }
 
@@ -257,6 +258,15 @@ module.exports = {
 		.catch(err => console.error('Error getting video info:', err));
 	},
 
+	searchYoutube(query) {
+		return YtApi.get(`/search?key=${process.env.YOUTUBE_API_KEY}&part=id&type=video&maxResults=10&safeSearch=none&videoEmbeddable=true&videoSyndicated=true&q=${query}`).then(res => {
+			return res.data.items.map(searchResult => new Video({
+				service: "youtube",
+				id: searchResult.id.videoId,
+			}));
+		});
+	},
+
 	getAddPreview(input) {
 		const service = this.getService(input);
 
@@ -272,7 +282,12 @@ module.exports = {
 			throw new UnsupportedServiceException(urlParsed.host);
 		}
 		else if (!urlParsed.host) {
-			throw new UnsupportedAddPreviewInputException();
+			if (input.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
+				throw new InvalidAddPreviewInputException();
+			}
+			return this.searchYoutube(input)
+				.then(searchResults => this.getManyPreviews(searchResults))
+				.catch(err => console.error("Failed to search youtube for add preview:", err));
 		}
 
 		if (queryParams["list"]) {
