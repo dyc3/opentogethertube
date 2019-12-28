@@ -262,7 +262,7 @@ describe('InfoExtractor Add Preview Spec', () => {
 
     InfoExtract.getAddPreview("https://www.youtube.com/watch?v=I3O9J02G67I").then(result => {
       expect(InfoExtract.getVideoInfo).toBeCalled();
-      expect(result.length).toEqual(1);
+      expect(result).toHaveLength(1);
 
       done();
     });
@@ -280,7 +280,122 @@ describe('InfoExtractor Add Preview Spec', () => {
 
     InfoExtract.getAddPreview("https://youtu.be/I3O9J02G67I").then(result => {
       expect(InfoExtract.getVideoInfo).toBeCalled();
-      expect(result.length).toEqual(1);
+      expect(result).toHaveLength(1);
+
+      done();
+    });
+  });
+
+  it('should return at least 1 video when given a public youtube playlist', done => {
+    InfoExtract.getPlaylistYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ])));
+    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }),
+    ])));
+
+    InfoExtract.getAddPreview("https://youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(result => {
+      expect(InfoExtract.getPlaylistYoutube).toBeCalled();
+      expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
+      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(result).toHaveLength(2);
+      expect(result[0]).toHaveProperty('title', "tmpATT2Cp");
+      expect(result[0]).toHaveProperty('length', 10);
+      expect(result[1]).toHaveProperty('title', "tmpIwT4T4");
+      expect(result[1]).toHaveProperty('length', 10);
+
+      done();
+    });
+  });
+
+  it('should return at least 1 video when given a youtube video that is in a public playlist', done => {
+    InfoExtract.getPlaylistYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ])));
+    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }),
+    ])));
+
+    InfoExtract.getAddPreview("https://youtube.com/watch?v=I3O9J02G67I&list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm&index=1").then(result => {
+      expect(InfoExtract.getPlaylistYoutube).toBeCalled();
+      expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
+      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(result).toHaveLength(2);
+      expect(result[0]).toHaveProperty('title', "tmpATT2Cp");
+      expect(result[0]).toHaveProperty('length', 10);
+      expect(result[1]).toHaveProperty('title', "tmpIwT4T4");
+      expect(result[1]).toHaveProperty('length', 10);
+
+      done();
+    });
+  });
+
+  it('should return at 1 video when given a youtube video that is in a private playlist', done => {
+    InfoExtract.getPlaylistYoutube = jest.fn().mockReturnValue(new Promise(() => {
+      throw new Error("fake error");
+    }));
+    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([])));
+    InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(new Video({
+      service: "youtube",
+      id: "I3O9J02G67I",
+      title: "tmpATT2Cp",
+      description: "tmpATT2Cp",
+      thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+      length: 10,
+    }))));
+
+    InfoExtract.getAddPreview("https://youtube.com/watch?v=I3O9J02G67I&list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm&index=1").then(result => {
+      expect(InfoExtract.getPlaylistYoutube).toBeCalled();
+      expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
+      expect(InfoExtract.getManyPreviews).not.toBeCalled();
+      expect(InfoExtract.getVideoInfo).toBeCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('title', "tmpATT2Cp");
+      expect(result[0]).toHaveProperty('length', 10);
 
       done();
     });
