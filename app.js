@@ -50,7 +50,12 @@ app.use((req, res, next) => {
 function serveBuiltFiles(req, res) {
 	fs.readFile("dist/index.html", (err, contents) => {
 		res.setHeader("Content-type", "text/html");
-		res.send(contents.toString());
+		if (contents) {
+			res.send(contents.toString());
+		}
+		else {
+			res.status(500).send("Failed to serve page, try again later.");
+		}
 	});
 }
 
