@@ -9,7 +9,7 @@
         <v-row no-gutters class="video-container">
           <v-col cols="12" xl="7" md="8">
             <div class="iframe-container" :key="currentSource.service">
-              <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
+              <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0, disablekb: 1 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
             </div>
             <v-col class="video-controls">
               <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
@@ -450,6 +450,16 @@ export default {
 <style lang="scss" scoped>
 .video-container {
   margin: 10px;
+
+  .no-video {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+
+    color: #696969;
+    border: 1px solid #666;
+    border-radius: 3px;
+  }
 }
 .video-queue, .video-add, .user-list {
   margin: 0 10px;
