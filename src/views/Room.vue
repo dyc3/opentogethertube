@@ -447,9 +447,12 @@ export default {
   },
   updated() {
     // scroll the messages to the bottom
-    let msgsDiv = document.getElementsByClassName("messages")[0];
-    if (msgsDiv.scrollTop >= msgsDiv.scrollHeight - msgsDiv.clientHeight - 100) {
-      msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    let msgsDiv = document.getElementsByClassName("messages");
+    if (msgsDiv.length) {
+      msgsDiv = msgsDiv[0];
+      if (msgsDiv.scrollTop >= msgsDiv.scrollHeight - msgsDiv.clientHeight - 100) {
+        msgsDiv.scrollTop = msgsDiv.scrollHeight;
+      }
     }
   },
 };
