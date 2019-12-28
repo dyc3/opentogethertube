@@ -400,4 +400,84 @@ describe('InfoExtractor Add Preview Spec', () => {
       done();
     });
   });
+
+  it('should return at least 1 video when given a youtube channel url', done => {
+    InfoExtract.getChanneInfoYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ])));
+    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }),
+    ])));
+
+    InfoExtract.getAddPreview("https://www.youtube.com/channel/UC_3pplzbKMZsP5zBH_6SVJQ").then(result => {
+      expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
+      expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" });
+      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(result).toHaveLength(2);
+
+      done();
+    });
+  });
+
+  it('should return at least 1 video when given a custom youtube channel url', done => {
+    InfoExtract.getChanneInfoYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ])));
+    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }),
+    ])));
+
+    InfoExtract.getAddPreview("https://www.youtube.com/user/GenoSamuel1994Part2").then(result => {
+      expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
+      expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ user: "GenoSamuel1994Part2" });
+      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(result).toHaveLength(2);
+
+      done();
+    });
+  });
 });
