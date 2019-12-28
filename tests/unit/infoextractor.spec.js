@@ -107,7 +107,6 @@ describe('InfoExtractor Caching Spec', () => {
       expect(video.length).toBeDefined();
       expect(video.length).toBe(10);
 
-      await expect(CachedVideo.count()).resolves.toEqual(1);
       await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeDefined();
 
       expect(InfoExtract.YtApi.get).toBeCalled();
