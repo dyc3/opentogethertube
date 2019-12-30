@@ -220,6 +220,12 @@ export default {
       else if (event.eventType === "leaveRoom") {
         this.snackbarText = `${event.userName} left the room`;
       }
+      else if (event.eventType === "addToQueue") {
+        this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+      }
+      else if (event.eventType === "removeFromQueue") {
+        this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
+      }
       else {
         this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
       }

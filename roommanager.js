@@ -32,7 +32,7 @@ class Room {
 	 * Obtains metadata for a given video and adds it to the queue
 	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
 	 */
-	addToQueue(video) {
+	addToQueue(video, session=null) {
 		let queueItem = new Video();
 
 		if (video.hasOwnProperty("url")) {
@@ -58,6 +58,13 @@ class Room {
 				this.queue.push(queueItem);
 				this.update();
 				this.sync();
+
+				if (session) {
+					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, session.username, { video: queueItem }));
+				}
+				else {
+					console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
+				}
 				return true;
 			});
 		}
@@ -66,13 +73,19 @@ class Room {
 		}
 	}
 
-	removeFromQueue(video) {
+	removeFromQueue(video, session=null) {
 		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
 		if (matchIdx < 0) {
 			return false;
 		}
 		// remove the item from the queue
-		this.queue.splice(matchIdx, 1);
+		let removed = this.queue.splice(matchIdx, 1)[0];
+		if (session) {
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
+		}
+		else {
+			console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
+		}
 		this.sync();
 		return true;
 	}

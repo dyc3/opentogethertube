@@ -145,14 +145,14 @@ module.exports = function(_roommanager, storage) {
 	router.post("/room/:name/queue", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.url) {
-				room.addToQueue({ url: req.body.url }).then(success => {
+				room.addToQueue({ url: req.body.url }, req.session).then(success => {
 					res.json({
 						success,
 					});
 				});
 			}
 			else if (req.body.service && req.body.id) {
-				room.addToQueue({ service: req.body.service, id: req.body.id }).then(success => {
+				room.addToQueue({ service: req.body.service, id: req.body.id }, req.session).then(success => {
 					res.json({
 						success,
 					});
@@ -184,7 +184,7 @@ module.exports = function(_roommanager, storage) {
 	router.delete("/room/:name/queue", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.service && req.body.id) {
-				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id });
+				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
 				res.json({
 					success,
 				});
