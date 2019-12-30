@@ -30,6 +30,8 @@ module.exports = function(_roommanager, storage) {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			room = _.cloneDeep(room);
 			for (let client of room.clients) {
+				client.name = client.session.username;
+				delete client.session;
 				delete client.socket;
 			}
 			res.json(room);
@@ -238,10 +240,9 @@ module.exports = function(_roommanager, storage) {
 		}
 	});
 
-	router.get("/data/generateName", (req, res) => {
-		let generatedName = uniqueNamesGenerator();
+	router.get("/user", (req, res) => {
 		res.json({
-			name: generatedName,
+			name: req.session.username,
 		});
 	});
 

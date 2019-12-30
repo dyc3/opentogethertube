@@ -197,15 +197,6 @@ export default {
     },
   },
   async created() {
-    this.username = window.localStorage.getItem("username");
-    if (this.username === null || this.username === undefined) {
-      console.log("Requesting name from server...");
-      await API.get("/data/generateName").then(res => {
-        window.localStorage.setItem("username", res.data.name);
-        this.username = res.data.name;
-      });
-    }
-
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
@@ -279,9 +270,7 @@ export default {
       }
     },
     openEditName() {
-      if (window.localStorage.getItem("username") != null) {
-        this.username = window.localStorage.getItem("username");
-      }
+      this.username = this.$store.state.username;
       this.showEditName = !this.showEditName;
     },
     play() {
