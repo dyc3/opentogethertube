@@ -142,7 +142,6 @@ class Room {
 			users: [],
 		};
 
-
 		for (const client of this.clients) {
 			// make sure the socket is still open
 			if (client.socket.readyState != 1) {
