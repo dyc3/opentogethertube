@@ -239,7 +239,13 @@ class Room {
 				console.warn("name not supplied");
 				return;
 			}
+			if (msg.name === client.session.username) {
+				// name unchanged, ignore
+				return;
+			}
+			console.log(`${client.session.username} changed name to ${msg.name}`);
 			client.session.username = msg.name;
+			client.session.save();
 			this.update();
 			this.sync();
 		}
