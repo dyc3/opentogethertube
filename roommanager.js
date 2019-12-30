@@ -100,7 +100,7 @@ class Room {
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
-				console.log("Remove inactive client:", i, this.clients[i].name);
+				console.log("Remove inactive client:", i, this.clients[i].session.username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
 				this.clients.splice(i--, 1);
 				continue;
