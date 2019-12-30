@@ -88,7 +88,7 @@ class Room {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
 				console.log("Remove inactive client:", i, this.clients[i].name);
-				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].name, {}));
+				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
 				this.clients.splice(i--, 1);
 				continue;
 			}
@@ -192,6 +192,7 @@ class Room {
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
+		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.session.username, {}));
 	}
 
 	/**
@@ -225,10 +226,6 @@ class Room {
 			if (!msg.name) {
 				console.warn("name not supplied");
 				return;
-			}
-			if (client.session.username === null) {
-				console.log(msg.name, "has joined", this.name);
-				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.session.username, {}));
 			}
 			client.session.username = msg.name;
 			this.update();

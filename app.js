@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { uniqueNamesGenerator } = require('unique-names-generator');
 
 if (!process.env.NODE_ENV) {
 	console.warn("NODE_ENV not set, assuming dev environment");
@@ -28,7 +29,9 @@ let sessionOpts = {
 	secret: "opentogethertube", // FIXME: This doesn't matter right now, but when user accounts are implemented this should be fixed.
 	resave: false,
 	saveUninitialized: true,
+	unset: 'keep',
 	cookie: {
+		expires: false,
 		maxAge: 99999999999,
 	},
 };
@@ -38,6 +41,17 @@ if (process.env.NODE_ENV === "production") {
 }
 const sessions = session(sessionOpts);
 app.use(sessions);
+
+app.use((req, res, next) => {
+	if (!req.session.username) {
+		let username = uniqueNamesGenerator();
+		console.log("Generated name for new user: ", username);
+		req.session.username = username;
+		req.session.save();
+	}
+
+	next();
+});
 
 const storage = require("./storage");
 const roommanager = require("./roommanager");
