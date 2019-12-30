@@ -246,7 +246,7 @@ class Room {
 		else if (msg.action === "chat") {
 			let chat = {
 				action: msg.action,
-				from: client.name,
+				from: client.session.username,
 				text: msg.text,
 			};
 			for (let c of this.clients) {
