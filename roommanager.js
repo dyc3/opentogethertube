@@ -192,7 +192,7 @@ class Room {
 	onConnectionReceived(ws, req) {
 		if (!req.session.username) {
 			let username = uniqueNamesGenerator();
-			console.log("Generated name for new user: ", username);
+			console.log("Generated name for new user (on connect):", username);
 			req.session.username = username;
 			req.session.save();
 		}

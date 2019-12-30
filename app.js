@@ -45,7 +45,7 @@ app.use(sessions);
 app.use((req, res, next) => {
 	if (!req.session.username) {
 		let username = uniqueNamesGenerator();
-		console.log("Generated name for new user: ", username);
+		console.log("Generated name for new user (on request):", username);
 		req.session.username = username;
 		req.session.save();
 	}
