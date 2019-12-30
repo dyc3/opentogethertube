@@ -480,4 +480,44 @@ describe('InfoExtractor Add Preview Spec', () => {
       done();
     });
   });
+
+  it('should search youtube and return at least 1 video when given a non url input', done => {
+    InfoExtract.searchYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ])));
+    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }),
+    ])));
+
+    InfoExtract.getAddPreview("blah blah").then(result => {
+      expect(InfoExtract.searchYoutube).toBeCalled();
+      expect(InfoExtract.searchYoutube).toBeCalledWith("blah blah");
+      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(result).toHaveLength(2);
+
+      done();
+    });
+  });
 });
