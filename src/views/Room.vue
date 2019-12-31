@@ -197,6 +197,12 @@ export default {
     },
   },
   async created() {
+    if (!this.$store.state.production) {
+      // HACK: get the server to set the session cookie
+      // this isn't needed in production because the requests for resources will set the cookie
+      await API.get("/user");
+    }
+
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
     });
