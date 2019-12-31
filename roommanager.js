@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 const _ = require("lodash");
 const moment = require("moment");
+const { uniqueNamesGenerator } = require('unique-names-generator');
 const NanoTimer = require("nanotimer");
 const InfoExtract = require("./infoextract");
 const storage = require("./storage");
@@ -31,7 +32,7 @@ class Room {
 	 * Obtains metadata for a given video and adds it to the queue
 	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
 	 */
-	addToQueue(video) {
+	addToQueue(video, session=null) {
 		let queueItem = new Video();
 
 		if (video.hasOwnProperty("url")) {
@@ -57,6 +58,13 @@ class Room {
 				this.queue.push(queueItem);
 				this.update();
 				this.sync();
+
+				if (session) {
+					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, session.username, { video: queueItem }));
+				}
+				else {
+					console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
+				}
 				return true;
 			});
 		}
@@ -65,13 +73,19 @@ class Room {
 		}
 	}
 
-	removeFromQueue(video) {
+	removeFromQueue(video, session=null) {
 		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
 		if (matchIdx < 0) {
 			return false;
 		}
 		// remove the item from the queue
-		this.queue.splice(matchIdx, 1);
+		let removed = this.queue.splice(matchIdx, 1)[0];
+		if (session) {
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
+		}
+		else {
+			console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
+		}
 		this.sync();
 		return true;
 	}
@@ -86,8 +100,8 @@ class Room {
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
-				console.log("Remove inactive client:", i, this.clients[i].name);
-				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].name, {}));
+				console.log("Remove inactive client:", i, this.clients[i].session.username);
+				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
 				this.clients.splice(i--, 1);
 				continue;
 			}
@@ -128,15 +142,15 @@ class Room {
 			users: [],
 		};
 
-		for (const client of this.clients.filter(c => c.name !== null)) {
+		for (const client of this.clients) {
 			// make sure the socket is still open
 			if (client.socket.readyState != 1) {
 				continue;
 			}
 
-			syncMsg.users = this.clients.filter(c => c.name !== null).map(c => {
+			syncMsg.users = this.clients.map(c => {
 				return {
-					name: c.name,
+					name: c.session.username,
 					isYou: client.socket == c.socket,
 				};
 			});
@@ -173,16 +187,24 @@ class Room {
 	/**
 	 * Called when a new client connects to this room.
 	 * @param {Object} ws Websocket for the client.
+	 * @param {Object} req HTTP request used to initiate the connection.
 	 */
-	onConnectionReceived(ws) {
+	onConnectionReceived(ws, req) {
+		if (!req.session.username) {
+			let username = uniqueNamesGenerator();
+			console.log("Generated name for new user (on connect):", username);
+			req.session.username = username;
+			req.session.save();
+		}
 		let client = {
-			name: null,
+			session: req.session,
 			socket: ws,
 		};
 		this.clients.push(client);
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
+		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.session.username, {}));
 	}
 
 	/**
@@ -192,22 +214,22 @@ class Room {
 	 */
 	onMessageReceived(client, msg) {
 		if (msg.action === "play") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.name, {}));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.session.username, {}));
 			this.isPlaying = true;
 			this.sync();
 		}
 		else if (msg.action === "pause") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.name, {}));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.session.username, {}));
 			this.isPlaying = false;
 			this.sync();
 		}
 		else if (msg.action === "seek") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.name, { position: msg.position, previousPosition: this.playbackPosition }));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.session.username, { position: msg.position, previousPosition: this.playbackPosition }));
 			this.playbackPosition = msg.position;
 			this.sync();
 		}
 		else if (msg.action === "skip") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.name, { video: this.currentSource }));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.session.username, { video: this.currentSource }));
 			this.playbackPosition = this.currentSource.length + 1;
 			this.update();
 			this.sync();
@@ -217,21 +239,23 @@ class Room {
 				console.warn("name not supplied");
 				return;
 			}
-			if (client.name === null) {
-				console.log(msg.name, "has joined", this.name);
-				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, msg.name, {}));
+			if (msg.name === client.session.username) {
+				// name unchanged, ignore
+				return;
 			}
-			client.name = msg.name;
+			console.log(`${client.session.username} changed name to ${msg.name}`);
+			client.session.username = msg.name;
+			client.session.save();
 			this.update();
 			this.sync();
 		}
 		else if (msg.action === "chat") {
 			let chat = {
 				action: msg.action,
-				from: client.name,
+				from: client.session.username,
 				text: msg.text,
 			};
-			for (let c of this.clients.filter(c => c.name !== null)) {
+			for (let c of this.clients) {
 				try {
 					c.socket.send(JSON.stringify(chat));
 				}
@@ -301,9 +325,18 @@ module.exports = {
 	/**
 	 * Start the room manager.
 	 * @param {Object} httpServer The http server to get websocket connections from.
+	 * @param {Object} sessions The session parser that express uses.
 	 */
-	start(httpServer) {
-		const wss = new WebSocket.Server({ server: httpServer });
+	start(httpServer, sessions) {
+		const wss = new WebSocket.Server({ noServer: true });
+
+		httpServer.on('upgrade', (req, socket, head) => {
+			sessions(req, {}, () => {
+				wss.handleUpgrade(req, socket, head, ws => {
+					wss.emit('connection', ws, req);
+				});
+			});
+		});
 
 		wss.on('connection', (ws, req) => {
 			console.log("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
@@ -315,7 +348,7 @@ module.exports = {
 			}
 			let roomName = req.url.replace("/api/room/", "");
 			this.getOrLoadRoom(roomName).then(room => {
-				room.onConnectionReceived(ws);
+				room.onConnectionReceived(ws, req);
 			}).catch(err => {
 				if (err.name === "RoomNotFoundException") {
 					console.error("[ws] Room doesn't exist");

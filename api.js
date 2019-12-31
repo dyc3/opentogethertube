@@ -1,7 +1,6 @@
 const express = require('express');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
-const { uniqueNamesGenerator } = require('unique-names-generator');
 const InfoExtract = require("./infoextract");
 
 // eslint-disable-next-line no-unused-vars
@@ -30,6 +29,8 @@ module.exports = function(_roommanager, storage) {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			room = _.cloneDeep(room);
 			for (let client of room.clients) {
+				client.name = client.session.username;
+				delete client.session;
 				delete client.socket;
 			}
 			res.json(room);
@@ -143,14 +144,14 @@ module.exports = function(_roommanager, storage) {
 	router.post("/room/:name/queue", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.url) {
-				room.addToQueue({ url: req.body.url }).then(success => {
+				room.addToQueue({ url: req.body.url }, req.session).then(success => {
 					res.json({
 						success,
 					});
 				});
 			}
 			else if (req.body.service && req.body.id) {
-				room.addToQueue({ service: req.body.service, id: req.body.id }).then(success => {
+				room.addToQueue({ service: req.body.service, id: req.body.id }, req.session).then(success => {
 					res.json({
 						success,
 					});
@@ -182,7 +183,7 @@ module.exports = function(_roommanager, storage) {
 	router.delete("/room/:name/queue", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.service && req.body.id) {
-				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id });
+				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
 				res.json({
 					success,
 				});
@@ -238,10 +239,9 @@ module.exports = function(_roommanager, storage) {
 		}
 	});
 
-	router.get("/data/generateName", (req, res) => {
-		let generatedName = uniqueNamesGenerator();
+	router.get("/user", (req, res) => {
 		res.json({
-			name: generatedName,
+			name: req.session.username,
 		});
 	});
 

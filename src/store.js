@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import _ from 'lodash';
 
 Vue.use(Vuex);
 
@@ -12,6 +13,7 @@ export default new Vuex.Store({
 		},
 		joinFailureReason: null,
 		production: process.env.NODE_ENV === 'production',
+		username: null,
 		room: {
 			name: "",
 			title: "",
@@ -32,7 +34,8 @@ export default new Vuex.Store({
 			Vue.prototype.$socket = event.currentTarget;
 			state.socket.isConnected = true;
 			let username = window.localStorage.getItem("username");
-			if (username != null && username != undefined) {
+			if (username) {
+				state.username = username;
 				Vue.prototype.$socket.sendObj({ action: "set-name", name: username });
 			}
 		},
@@ -84,6 +87,8 @@ export default new Vuex.Store({
 			}
 			this.state.room.playbackPosition = message.playbackPosition;
 			this.state.room.users = message.users;
+
+			this.state.username = _.find(this.state.room.users, { isYou: true }).name;
 
 			Vue.prototype.$events.emit('onSync');
 		},

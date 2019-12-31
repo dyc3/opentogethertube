@@ -21,6 +21,7 @@
     "core-js": "^2.6.5",
     "dotenv": "^8.1.0",
     "express": "^4.17.1",
+    "express-session": "^1.17.0",
     "lodash": "^4.17.15",
     "material-design-icons-iconfont": "^5.0.1",
     "moment": "^2.24.0",

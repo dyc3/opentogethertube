@@ -197,13 +197,10 @@ export default {
     },
   },
   async created() {
-    this.username = window.localStorage.getItem("username");
-    if (this.username === null || this.username === undefined) {
-      console.log("Requesting name from server...");
-      await API.get("/data/generateName").then(res => {
-        window.localStorage.setItem("username", res.data.name);
-        this.username = res.data.name;
-      });
+    if (!this.$store.state.production) {
+      // HACK: get the server to set the session cookie
+      // this isn't needed in production because the requests for resources will set the cookie
+      await API.get("/user");
     }
 
     this.$events.on("onSync", () => {
@@ -228,6 +225,12 @@ export default {
       }
       else if (event.eventType === "leaveRoom") {
         this.snackbarText = `${event.userName} left the room`;
+      }
+      else if (event.eventType === "addToQueue") {
+        this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+      }
+      else if (event.eventType === "removeFromQueue") {
+        this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
       }
       else {
         this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
@@ -279,9 +282,7 @@ export default {
       }
     },
     openEditName() {
-      if (window.localStorage.getItem("username") != null) {
-        this.username = window.localStorage.getItem("username");
-      }
+      this.username = this.$store.state.username;
       this.showEditName = !this.showEditName;
     },
     play() {

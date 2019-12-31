@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { uniqueNamesGenerator } = require('unique-names-generator');
 
 if (!process.env.NODE_ENV) {
 	console.warn("NODE_ENV not set, assuming dev environment");
@@ -23,10 +24,39 @@ require('dotenv').config({ path: config_path });
 const app = express();
 const server = http.createServer(app);
 
+const session = require('express-session');
+let sessionOpts = {
+	secret: "opentogethertube", // FIXME: This doesn't matter right now, but when user accounts are implemented this should be fixed.
+	resave: false,
+	saveUninitialized: true,
+	unset: 'keep',
+	cookie: {
+		expires: false,
+		maxAge: 99999999999,
+	},
+};
+if (process.env.NODE_ENV === "production") {
+	app.set('trust proxy', 1);
+	sessionOpts.cookie.secure = true;
+}
+const sessions = session(sessionOpts);
+app.use(sessions);
+
+app.use((req, res, next) => {
+	if (!req.session.username) {
+		let username = uniqueNamesGenerator();
+		console.log("Generated name for new user (on request):", username);
+		req.session.username = username;
+		req.session.save();
+	}
+
+	next();
+});
+
 const storage = require("./storage");
 const roommanager = require("./roommanager");
 const api = require("./api")(roommanager, storage);
-roommanager.start(server);
+roommanager.start(server, sessions);
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies
