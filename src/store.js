@@ -98,6 +98,7 @@ export default new Vuex.Store({
 		event(context, message) {
 			let event = message.event;
 			event.isVisible = true;
+			event.isUndoable = event.eventType === 'seek' || event.eventType === 'skip' || event.eventType === 'addToQueue' || event.eventType === 'removeFromQueue';
 			this.state.room.events.push(event);
 			Vue.prototype.$events.emit('onRoomEvent', message.event);
 		},
