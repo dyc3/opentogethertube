@@ -123,6 +123,7 @@
     </v-overlay>
     <v-snackbar v-for="(event, index) in $store.state.room.events" :key="index" v-model="event.isVisible">
       {{ snackbarText }}
+      <v-btn @click="undoEvent(event, index)" v-if="event.isUndoable">Undo</v-btn>
     </v-snackbar>
   </div>
 </template>
@@ -412,6 +413,13 @@ export default {
         currentIdx: e.oldIndex,
         targetIdx: e.newIndex,
       });
+    },
+    undoEvent(event, idx) {
+      this.$socket.sendObj({
+        action: "undo",
+        event,
+      });
+      this.$store.state.room.events.splice(idx, 1);
     },
   },
   mounted() {

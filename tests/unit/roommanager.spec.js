@@ -4,6 +4,7 @@ const roommanager = require("../../roommanager");
 const InfoExtract = require("../../infoextract");
 const storage = require("../../storage");
 const moment = require("moment");
+const Video = require("../../common/video.js");
 
 const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(configPath)) {
@@ -257,5 +258,229 @@ describe('Room manager: Manager tests', () => {
       expect(err.name).toEqual("RoomNameTakenException");
     }
     expect(roommanager.rooms).toHaveLength(1);
+  });
+});
+
+describe('Room manager: Undoable Events', () => {
+  beforeEach(done => {
+    roommanager.rooms = [];
+    done();
+  });
+
+  it('should revert seek event', () => {
+    roommanager.createRoom("test", true);
+    let testRoom = roommanager.rooms[0];
+    testRoom.currentSource = new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    });
+    testRoom.playbackPosition = 20;
+
+    testRoom.undoEvent({
+      eventType: "seek",
+      parameters: {
+        position: 20,
+        previousPosition: 10,
+      },
+    });
+
+    expect(testRoom.playbackPosition).toEqual(10);
+  });
+
+  it('should revert skip event with no videos in the queue and no video playing', () => {
+    roommanager.createRoom("test", true);
+    let testRoom = roommanager.rooms[0];
+
+    testRoom.undoEvent({
+      eventType: "skip",
+      parameters: {
+        video: new Video({
+          service: "fakeservice",
+          id: "abc123",
+          title: "test video",
+          length: 30,
+        }),
+      },
+    });
+
+    expect(testRoom.currentSource).toEqual(new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    }));
+    expect(testRoom.playbackPosition).toEqual(0);
+  });
+
+  it('should revert skip event with no videos in the queue and with a video playing', () => {
+    roommanager.createRoom("test", true);
+    let testRoom = roommanager.rooms[0];
+    testRoom.currentSource = new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    });
+    testRoom.playbackPosition = 10;
+
+    testRoom.undoEvent({
+      eventType: "skip",
+      parameters: {
+        video: new Video({
+          service: "fakeservice",
+          id: "skipped",
+          title: "skipped video",
+          length: 30,
+        }),
+      },
+    });
+
+    expect(testRoom.currentSource).toEqual(new Video({
+      service: "fakeservice",
+      id: "skipped",
+      title: "skipped video",
+      length: 30,
+    }));
+    expect(testRoom.queue[0]).toEqual(new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    }));
+    expect(testRoom.playbackPosition).toEqual(0);
+  });
+
+  it('should revert skip event with one video in the queue and with a video playing', () => {
+    roommanager.createRoom("test", true);
+    let testRoom = roommanager.rooms[0];
+    testRoom.currentSource = new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    });
+    testRoom.playbackPosition = 10;
+    testRoom.queue = [
+      new Video({
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+        length: 30,
+      }),
+    ];
+
+    testRoom.undoEvent({
+      eventType: "skip",
+      parameters: {
+        video: new Video({
+          service: "fakeservice",
+          id: "skipped",
+          title: "skipped video",
+          length: 30,
+        }),
+      },
+    });
+
+    expect(testRoom.currentSource).toEqual(new Video({
+      service: "fakeservice",
+      id: "skipped",
+      title: "skipped video",
+      length: 30,
+    }));
+    expect(testRoom.queue).toHaveLength(2);
+    expect(testRoom.queue[0]).toEqual(new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    }));
+    expect(testRoom.playbackPosition).toEqual(0);
+  });
+
+  it('should revert removeFromQueue event with videos in the queue and with a video playing', () => {
+    roommanager.createRoom("test", true);
+    let testRoom = roommanager.rooms[0];
+    testRoom.currentSource = new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    });
+    testRoom.playbackPosition = 10;
+    testRoom.queue = [
+      new Video({
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+        length: 30,
+      }),
+      new Video({
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+        length: 30,
+      }),
+      new Video({
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+        length: 30,
+      }),
+      new Video({
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+        length: 30,
+      }),
+      new Video({
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+        length: 30,
+      }),
+      new Video({
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+        length: 30,
+      }),
+    ];
+
+    testRoom.undoEvent({
+      eventType: "removeFromQueue",
+      parameters: {
+        video: new Video({
+          service: "fakeservice",
+          id: "removed",
+          title: "removed video",
+          length: 30,
+        }),
+        queueIdx: 2,
+      },
+    });
+
+    expect(testRoom.currentSource).toEqual(new Video({
+      service: "fakeservice",
+      id: "abc123",
+      title: "test video",
+      length: 30,
+    }));
+    expect(testRoom.queue).toHaveLength(7);
+    expect(testRoom.queue[2]).toEqual(new Video({
+      service: "fakeservice",
+      id: "removed",
+      title: "removed video",
+      length: 30,
+    }));
+    expect(testRoom.queue[3]).not.toBeInstanceOf(Array);
+    expect(testRoom.queue[6]).toEqual(new Video({
+      service: "fakeservice",
+      id: "abc456",
+      title: "test video 2",
+      length: 30,
+    }));
+    expect(testRoom.playbackPosition).toEqual(10);
   });
 });

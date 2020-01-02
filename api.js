@@ -211,6 +211,26 @@ module.exports = function(_roommanager, storage) {
 		});
 	});
 
+	router.post("/room/:name/undo", (req, res) => {
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			room.undoEvent(req.body.event);
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
+		});
+	});
+
 	router.get("/data/previewAdd", (req, res) => {
 		// FIXME: this endpoint has the potential to be abused.
 		// TODO: rate limit

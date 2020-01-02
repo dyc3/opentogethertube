@@ -185,6 +185,40 @@ class Room {
 	}
 
 	/**
+	 * Performs the opposite of the event to undo it.
+	 * @param {RoomEvent|Object} event The event to be reverted.
+	 */
+	undoEvent(event) {
+		if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
+			this.playbackPosition = event.parameters.previousPosition;
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.SKIP) {
+			if (this.currentSource) {
+				this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
+			}
+			this.currentSource = event.parameters.video;
+			this.playbackPosition = 0;
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.ADD_TO_QUEUE) {
+			if (this.queue.length > 0) {
+				this.removeFromQueue(event.parameters.video);
+			}
+			else {
+				this.currentSource = {};
+			}
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE) {
+			let newQueue = this.queue.splice(0, event.parameters.queueIdx);
+			newQueue.push(event.parameters.video);
+			newQueue.push(...this.queue);
+			this.queue = newQueue;
+		}
+		else {
+			console.error("Can't undo room event with type:", event.eventType);
+		}
+	}
+
+	/**
 	 * Called when a new client connects to this room.
 	 * @param {Object} ws Websocket for the client.
 	 * @param {Object} req HTTP request used to initiate the connection.
@@ -267,6 +301,14 @@ class Room {
 		else if (msg.action === "queue-move") {
 			let video = this.queue.splice(msg.currentIdx, 1)[0];
 			this.queue.splice(msg.targetIdx, 0, video);
+			this.sync();
+		}
+		else if (msg.action === "undo") {
+			if (!msg.event) {
+				console.warn("Room event to be undone was not supplied");
+				return;
+			}
+			this.undoEvent(msg.event);
 			this.sync();
 		}
 		else {
