@@ -210,7 +210,7 @@ class Room {
 		else if (event.eventType === ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE) {
 			let newQueue = this.queue.splice(0, event.parameters.queueIdx);
 			newQueue.push(event.parameters.video);
-			newQueue.push(...this.queue.splice(event.parameters.queueIdx));
+			newQueue.push(...this.queue);
 			this.queue = newQueue;
 		}
 		else {
