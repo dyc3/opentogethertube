@@ -31,10 +31,6 @@ module.exports = {
 			return false;
 		});
 	},
-	// eslint-disable-next-line no-unused-vars
-	updateRoom: function(room) {
-		// TODO: update existing room in db
-	},
 	/**
 	 * Gets cached video information from the database. If cached information
 	 * is invalid, it will be omitted from the returned video object.
@@ -85,7 +81,7 @@ module.exports = {
 	 * the database, it is overwritten. Omitted properties will not be
 	 * overwritten. If the video does not exist in the database, it will be
 	 * created.
-	 * @param {Object} video Video object to store
+	 * @param {Video|Object} video Video object to store
 	 */
 	updateVideoInfo(video) {
 		video = _.cloneDeep(video);
