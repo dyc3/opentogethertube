@@ -108,7 +108,7 @@ module.exports = {
 		}).then(foundVideos => {
 			if (videos.length !== foundVideos.length) {
 				for (let video of videos) {
-					if (_.find(foundVideos, video)) {
+					if (!_.find(foundVideos, video)) {
 						foundVideos.push(video);
 					}
 				}
@@ -128,16 +128,16 @@ module.exports = {
 					id: cachedVideo.serviceId,
 				};
 				// We only invalidate the title and description because those are the only ones that can change.
-				if (cachedVideo.title !== null && isCachedInfoValid) {
+				if (cachedVideo.title && isCachedInfoValid) {
 					video.title = cachedVideo.title;
 				}
-				if (cachedVideo.description !== null && isCachedInfoValid) {
+				if (cachedVideo.description && isCachedInfoValid) {
 					video.description = cachedVideo.description;
 				}
-				if (cachedVideo.thumbnail !== null) {
+				if (cachedVideo.thumbnail) {
 					video.thumbnail = cachedVideo.thumbnail;
 				}
-				if (cachedVideo.length !== null) {
+				if (cachedVideo.length) {
 					video.length = cachedVideo.length;
 				}
 				return video;

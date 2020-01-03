@@ -32,8 +32,6 @@ module.exports = {
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
 	 * local caching and obtaining missing data from external sources.
-	 * Note that this function does not update the cache. That should be
-	 * handled by the functions that actually retrieve missing info.
 	 * @param	{string} service The service that hosts the source video.
 	 * @param	{string} id The id of the video on the given service.
 	 * @return	{Video} Video object
@@ -65,6 +63,58 @@ module.exports = {
 			}
 		}).catch(err => {
 			console.error("Failed to get video metadata from database:", err);
+		});
+	},
+
+	/**
+	 * Gets all necessary information needed to represent all videos in the
+	 * given list. Handles local caching and obtaining missing data from
+	 * external sources.
+	 *
+	 * This also optimizes the number of requests made to external sources.
+	 * @param {Array.<Video|Object>} videos
+	 * @returns {Promise.<Array.<Video>>}
+	 */
+	getManyVideoInfo(videos) {
+		let grouped = _.groupBy(videos, "service");
+		let retrievalPromises = [];
+		for (let service in grouped) {
+			let retrievalPromise = storage.getManyVideoInfo(grouped[service]).then(serviceVideos => {
+				// group by missing info
+				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p)));
+
+				if (service === "youtube") {
+					let promises = [];
+					for (let missingInfo in groupedServiceVideos) {
+						let missingInfoGroup = groupedServiceVideos[missingInfo];
+						if (!missingInfo) {
+							promises.push(new Promise(resolve => resolve(missingInfoGroup)));
+							continue;
+						}
+						promises.push(this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => _.values(results)));
+					}
+					return Promise.all(promises);
+				}
+				else {
+					console.error("Unknown service:", service);
+					return new Promise(resolve => resolve(serviceVideos));
+				}
+			});
+			retrievalPromises.push(retrievalPromise);
+		}
+		return Promise.all(retrievalPromises).then(results => {
+			results = _.flattenDeep(results);
+
+			// ensure the original order is preserved
+			let finalResults = [];
+			for (let result of results) {
+				let idx = _.findIndex(videos, {
+					service: result.service,
+					id: result.id,
+				});
+				finalResults[idx] = new Video(result);
+			}
+			return finalResults;
 		});
 	},
 
