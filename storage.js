@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const moment = require("moment");
 const { Room, CachedVideo } = require("./models");
+const Sequelize = require("sequelize");
 
 module.exports = {
 	getRoomByName(roomName) {
@@ -103,6 +104,54 @@ module.exports = {
 				return true;
 			}).catch(err => {
 				console.error("Failed to cache video info", err);
+				return false;
+			});
+		});
+	},
+	/**
+	 * Updates the database for all the videos in the given list. If a video
+	 * exists in the database, it is overwritten. Omitted properties will not
+	 * be overwritten. If the video does not exist in the database, it will be
+	 * created.
+	 *
+	 * This also minimizes the number of database queries made by doing bulk
+	 * queries instead of a query for each video.
+	 * @param {Array} videos List of videos to store.
+	 */
+	updateManyVideoInfo(videos) {
+		const { or, and } = Sequelize.Op;
+
+		videos = videos.map(video => {
+			video = _.cloneDeep(video);
+			video.serviceId = video.id;
+			delete video.id;
+			return video;
+		});
+
+		return CachedVideo.findAll({
+			where: {
+				[or]: videos.map(video => {
+					return {
+						[and]: [
+							{ service: video.service },
+							{ serviceId: video.serviceId },
+						],
+					};
+				}),
+			},
+		}).then(foundVideos => {
+			let [
+				toUpdate,
+				toCreate,
+			] = _.partition(videos, video => _.find(foundVideos, { service: video.service, serviceId: video.serviceId }));
+			console.log("bulk cache: should update", toUpdate.length, "rows, create", toCreate.length, "rows");
+			toCreate = toCreate.map(video => CachedVideo.build(video));
+			toUpdate = toUpdate.map(video => Object.assign(_.find(foundVideos, { service: video.service, serviceId: video.serviceId }), video));
+			return CachedVideo.bulkCreate(_.concat(toCreate, toUpdate)).then(cachedVideos => {
+				console.log("bulk cache: created/updated", cachedVideos.length, "rows");
+				return true;
+			}).catch(err => {
+				console.error("Failed to bulk update video cache:", err);
 				return false;
 			});
 		});
