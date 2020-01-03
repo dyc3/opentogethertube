@@ -326,7 +326,7 @@ export default {
     requestAddPreviewDebounced: _.debounce(function() {
       // HACK: can't use an arrow function here because it will make `this` undefined
       this.requestAddPreview();
-    }, 300),
+    }, 500),
     onEditNameChange() {
       this.$socket.sendObj({ action: "set-name", name: this.username });
       this.showEditName = false;
