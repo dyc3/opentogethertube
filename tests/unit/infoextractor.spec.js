@@ -342,7 +342,7 @@ describe('InfoExtractor Add Preview Spec', () => {
         id: "BTZ5KVRUy1Q",
       }),
     ])));
-    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+    InfoExtract.getManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve([
       new Video({
         service: "youtube",
         id: "I3O9J02G67I",
@@ -364,7 +364,7 @@ describe('InfoExtractor Add Preview Spec', () => {
     InfoExtract.getAddPreview("https://youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(result => {
       expect(InfoExtract.getPlaylistYoutube).toBeCalled();
       expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
-      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(InfoExtract.getManyVideoInfo).toBeCalled();
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('title', "tmpATT2Cp");
       expect(result[0]).toHaveProperty('length', 10);
@@ -386,7 +386,7 @@ describe('InfoExtractor Add Preview Spec', () => {
         id: "BTZ5KVRUy1Q",
       }),
     ])));
-    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+    InfoExtract.getManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve([
       new Video({
         service: "youtube",
         id: "I3O9J02G67I",
@@ -408,7 +408,7 @@ describe('InfoExtractor Add Preview Spec', () => {
     InfoExtract.getAddPreview("https://youtube.com/watch?v=I3O9J02G67I&list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm&index=1").then(result => {
       expect(InfoExtract.getPlaylistYoutube).toBeCalled();
       expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
-      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(InfoExtract.getManyVideoInfo).toBeCalled();
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('title', "tmpATT2Cp");
       expect(result[0]).toHaveProperty('length', 10);
@@ -423,7 +423,7 @@ describe('InfoExtractor Add Preview Spec', () => {
     InfoExtract.getPlaylistYoutube = jest.fn().mockReturnValue(new Promise(() => {
       throw new Error("fake error");
     }));
-    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([])));
+    InfoExtract.getManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve([])));
     InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(new Video({
       service: "youtube",
       id: "I3O9J02G67I",
@@ -436,7 +436,7 @@ describe('InfoExtractor Add Preview Spec', () => {
     InfoExtract.getAddPreview("https://youtube.com/watch?v=I3O9J02G67I&list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm&index=1").then(result => {
       expect(InfoExtract.getPlaylistYoutube).toBeCalled();
       expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
-      expect(InfoExtract.getManyPreviews).not.toBeCalled();
+      expect(InfoExtract.getManyVideoInfo).not.toBeCalled();
       expect(InfoExtract.getVideoInfo).toBeCalled();
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('title', "tmpATT2Cp");
@@ -457,7 +457,7 @@ describe('InfoExtractor Add Preview Spec', () => {
         id: "BTZ5KVRUy1Q",
       }),
     ])));
-    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+    InfoExtract.getManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve([
       new Video({
         service: "youtube",
         id: "I3O9J02G67I",
@@ -479,7 +479,7 @@ describe('InfoExtractor Add Preview Spec', () => {
     InfoExtract.getAddPreview("https://www.youtube.com/channel/UC_3pplzbKMZsP5zBH_6SVJQ").then(result => {
       expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
       expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" });
-      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(InfoExtract.getManyVideoInfo).toBeCalled();
       expect(result).toHaveLength(2);
 
       done();
@@ -497,7 +497,7 @@ describe('InfoExtractor Add Preview Spec', () => {
         id: "BTZ5KVRUy1Q",
       }),
     ])));
-    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+    InfoExtract.getManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve([
       new Video({
         service: "youtube",
         id: "I3O9J02G67I",
@@ -519,7 +519,7 @@ describe('InfoExtractor Add Preview Spec', () => {
     InfoExtract.getAddPreview("https://www.youtube.com/user/GenoSamuel1994Part2").then(result => {
       expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
       expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ user: "GenoSamuel1994Part2" });
-      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(InfoExtract.getManyVideoInfo).toBeCalled();
       expect(result).toHaveLength(2);
 
       done();
@@ -537,7 +537,7 @@ describe('InfoExtractor Add Preview Spec', () => {
         id: "BTZ5KVRUy1Q",
       }),
     ])));
-    InfoExtract.getManyPreviews = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+    InfoExtract.getManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve([
       new Video({
         service: "youtube",
         id: "I3O9J02G67I",
@@ -559,7 +559,7 @@ describe('InfoExtractor Add Preview Spec', () => {
     InfoExtract.getAddPreview("blah blah").then(result => {
       expect(InfoExtract.searchYoutube).toBeCalled();
       expect(InfoExtract.searchYoutube).toBeCalledWith("blah blah");
-      expect(InfoExtract.getManyPreviews).toBeCalled();
+      expect(InfoExtract.getManyVideoInfo).toBeCalled();
       expect(result).toHaveLength(2);
 
       done();

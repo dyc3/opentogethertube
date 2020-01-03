@@ -300,14 +300,6 @@ module.exports = {
 		});
 	},
 
-	getManyPreviews(playlist) {
-		//get info for all videos in playlist, then return all non-deleted videos
-		return Promise.all(
-			playlist.map(video => this.getVideoInfo('youtube', video.id))
-		).then(previews => previews.filter(item => item !== undefined))
-		.catch(err => console.error('Error getting video info:', err));
-	},
-
 	searchYoutube(query) {
 		return YtApi.get(`/search?key=${process.env.YOUTUBE_API_KEY}&part=id&type=video&maxResults=10&safeSearch=none&videoEmbeddable=true&videoSyndicated=true&q=${query}`).then(res => {
 			return res.data.items.map(searchResult => new Video({
@@ -336,7 +328,7 @@ module.exports = {
 				throw new InvalidAddPreviewInputException();
 			}
 			return this.searchYoutube(input)
-				.then(searchResults => this.getManyPreviews(searchResults))
+				.then(searchResults => this.getManyVideoInfo(searchResults))
 				.catch(err => console.error("Failed to search youtube for add preview:", err));
 		}
 
@@ -346,7 +338,7 @@ module.exports = {
 			return new Promise((resolve, reject) => {
 				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
 					console.log(`Found ${playlist.length} videos in playlist`);
-					this.getManyPreviews(playlist).then(previews => resolve(previews));
+					this.getManyVideoInfo(playlist).then(previews => resolve(previews));
 				}).catch(err => {
 					if (queryParams.v) {
 						console.warn(`Playlist does not exist, retreiving video...`);
@@ -375,7 +367,7 @@ module.exports = {
 				channelData.user = channelId;
 			}
 			return this.getChanneInfoYoutube(channelData)
-				.then(newestVideos => this.getManyPreviews(newestVideos))
+				.then(newestVideos => this.getManyVideoInfo(newestVideos))
 				.catch(err => console.error('Error getting channel info:', err));
 		}
 		else {
