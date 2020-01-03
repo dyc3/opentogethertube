@@ -78,6 +78,76 @@ module.exports = {
 		});
 	},
 	/**
+	 * Gets cached video information from the database. If cached information
+	 * is invalid, it will be omitted from the returned video object.
+	 * Does not guarantee order will be maintained.
+	 * @param	{Array.<Video|Object>} videos The videos to find in the cache.
+	 * @return	{Promise.<Object>} Video object, but it may contain missing properties.
+	 */
+	getManyVideoInfo(videos) {
+		const { or, and } = Sequelize.Op;
+
+		videos = videos.map(video => {
+			video = _.cloneDeep(video);
+			video.serviceId = video.id;
+			delete video.id;
+			return video;
+		});
+
+		return CachedVideo.findAll({
+			where: {
+				[or]: videos.map(video => {
+					return {
+						[and]: [
+							{ service: video.service },
+							{ serviceId: video.serviceId },
+						],
+					};
+				}),
+			},
+		}).then(foundVideos => {
+			if (videos.length !== foundVideos.length) {
+				for (let video of videos) {
+					if (_.find(foundVideos, video)) {
+						foundVideos.push(video);
+					}
+				}
+			}
+			return foundVideos.map(cachedVideo => {
+				const origCreatedAt = moment(cachedVideo.createdAt);
+				const lastUpdatedAt = moment(cachedVideo.updatedAt);
+				const today = moment();
+				// We check for changes every at an interval of 30 days, unless the original cache date was
+				// less than 7 days ago, then the interval is 7 days. The reason for this is that the uploader
+				// is unlikely to change the video info after a week of the original upload. Since we don't store
+				// the upload date, we pretend the original cache date is the upload date. This is potentially an
+				// over optimization.
+				const isCachedInfoValid = lastUpdatedAt.diff(today, "days") <= (origCreatedAt.diff(today, "days") <= 7) ? 7 : 30;
+				let video = {
+					service: cachedVideo.service,
+					id: cachedVideo.serviceId,
+				};
+				// We only invalidate the title and description because those are the only ones that can change.
+				if (cachedVideo.title !== null && isCachedInfoValid) {
+					video.title = cachedVideo.title;
+				}
+				if (cachedVideo.description !== null && isCachedInfoValid) {
+					video.description = cachedVideo.description;
+				}
+				if (cachedVideo.thumbnail !== null) {
+					video.thumbnail = cachedVideo.thumbnail;
+				}
+				if (cachedVideo.length !== null) {
+					video.length = cachedVideo.length;
+				}
+				return video;
+			});
+		}).catch(err => {
+			console.warn("Cache failure", err);
+			return videos;
+		});
+	},
+	/**
 	 * Updates the database with the given video. If the video exists in
 	 * the database, it is overwritten. Omitted properties will not be
 	 * overwritten. If the video does not exist in the database, it will be
