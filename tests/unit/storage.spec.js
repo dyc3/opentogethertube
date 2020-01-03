@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { CachedVideo } = require("../../models");
 const storage = require("../../storage");
 const { Room } = require("../../models");
 
@@ -59,6 +60,10 @@ describe('Storage: Room Spec', () => {
 });
 
 describe('Storage: CachedVideos Spec', () => {
+  afterAll(async () => {
+    await CachedVideo.destroy({ where: {} });
+  });
+
   it('should create or update cached video', done => {
     let video = {
       service: "youtube",
