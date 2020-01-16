@@ -109,10 +109,14 @@
 			</v-footer>
 		</v-container>
 		<v-overlay :value="isLoading">
-			<v-layout column align-center>
-				<v-progress-circular indeterminate />
-				<v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">Cancel</v-btn>
-			</v-layout>
+			<v-container fill-height>
+				<v-row align="center" justify="center">
+					<v-col cols="12" sm="4">
+						<v-progress-circular indeterminate />
+						<v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">Cancel</v-btn>
+					</v-col>
+				</v-row>
+			</v-container>
 		</v-overlay>
 	</div>
 </template>
