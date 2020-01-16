@@ -3,6 +3,11 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
+import VueGtag from "vue-gtag";
+Vue.use(VueGtag, {
+  config: { id: "UA-148983263-2" },
+}, router);
+
 import VueEvents from 'vue-events';
 Vue.use(VueEvents);
 
