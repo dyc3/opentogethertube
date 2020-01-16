@@ -22,8 +22,8 @@
 			</v-row>
 		</v-container>
 		<v-container class="content">
-			<v-layout row justify-center>
-				<v-flex>
+			<v-row>
+				<v-col>
 					<h1>Simple and Easy.</h1>
 					<p>
 						The original TogetherTube was loved for it's simple interface,
@@ -31,11 +31,13 @@
 						OpenTogetherTube aims to be just as easy, and then improve on
 						top of that to make it even better.
 					</p>
-				</v-flex>
-				<v-flex>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col>
 					<h1>Core Features</h1>
-					<v-layout row justify-center class="features">
-						<v-flex xs12 sm6 md4>
+					<v-row dense class="features">
+						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
 								<v-card-title>Syncronized Playback</v-card-title>
 								<v-card-text>
@@ -43,8 +45,8 @@
 									in the room. Simple as that.
 								</v-card-text>
 							</v-card>
-						</v-flex>
-						<v-flex xs12 sm6 md4>
+						</v-col>
+						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
 								<v-card-title>Permanent Rooms</v-card-title>
 								<v-card-text>
@@ -53,8 +55,8 @@
 									rooms get a custom url that doesn't change
 								</v-card-text>
 							</v-card>
-						</v-flex>
-						<v-flex xs12 sm6 md4>
+						</v-col>
+						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
 								<v-card-title>Dark Theme</v-card-title>
 								<v-card-text>
@@ -63,8 +65,8 @@
 									your eyes won't suffer.
 								</v-card-text>
 							</v-card>
-						</v-flex>
-						<v-flex xs12 sm6 md4>
+						</v-col>
+						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
 								<v-card-title>Room Permissions</v-card-title>
 								<v-card-text>
@@ -73,8 +75,8 @@
 									listening session? Just block them from adding videos.
 								</v-card-text>
 							</v-card>
-						</v-flex>
-						<v-flex xs12 sm6 md4>
+						</v-col>
+						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
 								<v-card-title>Voting System</v-card-title>
 								<v-card-text>
@@ -83,8 +85,8 @@
 									does best.
 								</v-card-text>
 							</v-card>
-						</v-flex>
-						<v-flex xs12 sm6 md4>
+						</v-col>
+						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
 								<v-card-title>Playlist Copying</v-card-title>
 								<v-card-text>
@@ -94,10 +96,10 @@
 									way to binge watch that new channel with your friends.
 								</v-card-text>
 							</v-card>
-						</v-flex>
-					</v-layout>
-				</v-flex>
-			</v-layout>
+						</v-col>
+					</v-row>
+				</v-col>
+			</v-row>
 			<v-footer>
 				<v-flex text-center>
 					{{ new Date().getFullYear() }} - <a href="https://carsonmcmanus.com/">Carson McManus</a> - Made in America
@@ -125,7 +127,7 @@ export default {
 	},
 	computed: {
 		cardHeight() {
-			return this.$vuetify.breakpoint.mdAndUp ? 150 : 180;
+			return this.$vuetify.breakpoint.mdAndUp ? 180 : 180;
 		},
 	},
 	methods: {
@@ -154,10 +156,6 @@ export default {
 }
 
 @media only screen and (max-width: 1264px) {
-	.content > .layout {
-		padding: 0 14px;
-	}
-
 	.hero {
 		.v-btn {
 			margin-top: 22px;
@@ -184,12 +182,6 @@ export default {
 
 	.v-btn {
 		background: transparent !important;
-	}
-}
-
-.features {
-	.v-card {
-		margin: 7px;
 	}
 }
 </style>
