@@ -74,7 +74,7 @@
               <v-tab-item>
                 <div class="video-add">
                   <div>
-                    <v-text-field placeholder="Video URL to add to queue" v-model="inputAddUrlText"/>
+                    <v-text-field placeholder="Video URL to add to queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" />
                     <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
@@ -87,6 +87,14 @@
                       <div v-if="hasAddPreviewFailed">
                         {{ addPreviewLoadFailureText }}
                       </div>
+                      <v-container fill-height v-if="addPreview.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
+                        <v-row justify="center" align="center">
+                          <v-col cols="12">
+                            Search YouTube for "{{ inputAddPreview }}" by pressing enter, or by clicking search.<br>
+                            <v-btn @click="requestAddPreviewExplicit">Search</v-btn>
+                          </v-col>
+                        </v-row>
+                      </v-container>
                     </v-row>
                     <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                   </div>
@@ -155,7 +163,7 @@ export default {
       isLoadingAddPreview: false,
       hasAddPreviewFailed: false,
       addPreviewLoadFailureText: "",
-      inputAddUrlText: "",
+      inputAddPreview: "",
       inputChatMsgText: "",
 
       showJoinFailOverlay: false,
@@ -195,6 +203,19 @@ export default {
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
       return position + " / " + duration;
+    },
+    isAddPreviewInputUrl() {
+      try {
+        if (new URL(this.inputAddPreview).host) {
+          return true;
+        }
+        else {
+          return false;
+        }
+      }
+      catch {
+        return false;
+      }
     },
   },
   async created() {
@@ -274,7 +295,7 @@ export default {
     },
     addToQueue() {
       API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.inputAddUrlText,
+        url: this.inputAddPreview,
       });
     },
     addAllToQueue() {
@@ -302,7 +323,7 @@ export default {
       }
     },
     requestAddPreview() {
-      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddUrlText)}`, { validateStatus: status => status < 500 }).then(res => {
+      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
         this.isLoadingAddPreview = false;
         if (res.status === 200) {
           this.hasAddPreviewFailed = false;
@@ -327,6 +348,15 @@ export default {
       // HACK: can't use an arrow function here because it will make `this` undefined
       this.requestAddPreview();
     }, 500),
+    /**
+     * Request an add preview regardless of the current input.
+     */
+    requestAddPreviewExplicit() {
+      this.isLoadingAddPreview = true;
+      this.hasAddPreviewFailed = false;
+      this.addPreview = [];
+      this.requestAddPreview();
+    },
     onEditNameChange() {
       this.$socket.sendObj({ action: "set-name", name: this.username });
       this.showEditName = false;
@@ -344,14 +374,31 @@ export default {
         this.pause();
       }
     },
-    onInputAddChange() {
+    onInputAddPreviewChange() {
       this.isLoadingAddPreview = true;
-      if (_.trim(this.inputAddUrlText).length == 0) {
+      this.hasAddPreviewFailed = false;
+      if (_.trim(this.inputAddPreview).length == 0) {
         this.addPreview = [];
         this.isLoadingAddPreview = false;
         return;
       }
+      if (!this.isAddPreviewInputUrl) {
+        this.addPreview = [];
+        this.isLoadingAddPreview = false;
+        // Don't send API requests for non URL inputs without the user's explicit input to do so.
+        // This is to help conserve youtube API quota.
+        return;
+      }
       this.requestAddPreviewDebounced();
+    },
+    onInputAddPreviewKeyDown(e) {
+      if (_.trim(this.inputAddPreview).length == 0 || this.isAddPreviewInputUrl) {
+        return;
+      }
+
+      if (e.keyCode === 13 && this.addPreview.length == 0) {
+        this.requestAddPreviewExplicit();
+      }
     },
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
@@ -448,10 +495,10 @@ export default {
         this.$refs.youtube.player.seekTo(newPosition);
       }
     },
-    inputAddUrlText() {
+    inputAddPreview() {
       // HACK: The @change event only triggers when the text field is defocused.
-      // This ensures that onInputAddChange() runs everytime the text field's value changes.
-      this.onInputAddChange();
+      // This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
+      this.onInputAddPreviewChange();
     },
   },
   updated() {
