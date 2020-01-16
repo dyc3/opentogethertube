@@ -101,9 +101,11 @@
 				</v-col>
 			</v-row>
 			<v-footer>
-				<v-flex text-center>
-					{{ new Date().getFullYear() }} - <a href="https://carsonmcmanus.com/">Carson McManus</a> - Made in America
-				</v-flex>
+				<v-container pa-0>
+					<v-row no-gutters align="center" justify="center">
+						{{ new Date().getFullYear() }} -&nbsp;<a href="https://carsonmcmanus.com/">Carson McManus</a>&nbsp;- Made in America
+					</v-row>
+				</v-container>
 			</v-footer>
 		</v-container>
 		<v-overlay :value="isLoading">
