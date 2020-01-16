@@ -1,7 +1,7 @@
 <template>
   <v-app id="app">
     <v-content>
-      <v-app-bar v-if="!fullscreen">
+      <v-app-bar app v-if="!fullscreen">
         <v-app-bar-nav-icon/>
         <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
         <v-toolbar-title>
