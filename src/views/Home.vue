@@ -2,23 +2,21 @@
 	<div class="home">
 		<v-container class="hero" fluid fill-height grid-list-md text-xs-center>
 			<v-row align="center" justify="center">
-				<v-col cols="12" sm="10" md="6">
-					<div>
-						<h1>Enjoy Together.</h1>
-						<span>
-							Real-time syncronized playback. Optional voting system.<br>
-							Dark theme. No sign up required. All Open Source.
-						</span>
-						<v-layout :row="$vuetify.breakpoint.smAndUp"
-								:column="$vuetify.breakpoint.xs"
-								:justify-space-between="$vuetify.breakpoint.smAndUp"
-								:justify-space-around="$vuetify.breakpoint.xs">
-							<v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
-							<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
-							<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
-						</v-layout>
-					</div>
-				</v-col>
+				<div>
+					<h1>Enjoy Together.</h1>
+					<span>
+						Real-time syncronized playback. Optional voting system.<br>
+						Dark theme. No sign up required. All Open Source.
+					</span>
+					<v-layout :row="$vuetify.breakpoint.smAndUp"
+							:column="$vuetify.breakpoint.xs"
+							:justify-space-between="$vuetify.breakpoint.smAndUp"
+							:justify-space-around="$vuetify.breakpoint.xs">
+						<v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
+						<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
+						<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
+					</v-layout>
+				</div>
 			</v-row>
 		</v-container>
 		<v-container class="content">
