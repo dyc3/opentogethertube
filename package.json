@@ -60,6 +60,7 @@
     "nodemon": "^1.19.1",
     "sass-loader": "^7.1.0",
     "sqlite3": "^4.1.0",
-    "vue-template-compiler": "^2.6.10"
+    "vue-template-compiler": "^2.6.10",
+    "webpack-bundle-analyzer": "^3.6.0"
   }
 }
