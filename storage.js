@@ -8,6 +8,10 @@ module.exports = {
 		return Room.findOne({
 			where: { name: roomName },
 		}).then(room => {
+			if (!room) {
+				console.error("Room", roomName, "does not exist in db.");
+				return null;
+			}
 			return {
 				name: room.name,
 				title: room.title,
