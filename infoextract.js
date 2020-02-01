@@ -59,6 +59,13 @@ module.exports = {
 				}).catch(err => {
 					if (err.response.status === 403) {
 						console.error("Failed to get youtube video info: Out of quota");
+						return this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${video.id}`).then(videoLength => {
+							return new Video({
+								...video,
+								title: video.id,
+								length: videoLength,
+							});
+						});
 					}
 					else {
 						console.error("Failed to get youtube video info:", err);
