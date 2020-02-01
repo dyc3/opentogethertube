@@ -57,8 +57,13 @@ module.exports = {
 					video = Object.assign(video, result[video.id]);
 					return new Video(video);
 				}).catch(err => {
-					console.error("Failed to get youtube video info:", err);
-					throw err;
+					if (err.response.status === 403) {
+						console.error("Failed to get youtube video info: Out of quota");
+					}
+					else {
+						console.error("Failed to get youtube video info:", err);
+						throw err;
+					}
 				});
 			}
 		}).catch(err => {
@@ -329,7 +334,14 @@ module.exports = {
 			}
 			return this.searchYoutube(input)
 				.then(searchResults => this.getManyVideoInfo(searchResults))
-				.catch(err => console.error("Failed to search youtube for add preview:", err));
+				.catch(err => {
+					if (err.response && err.response.status === 403) {
+						console.error("Failed to search youtube for add preview: Out of quota");
+					}
+					else {
+						console.error("Failed to search youtube for add preview:", err);
+					}
+				});
 		}
 
 		if (queryParams["list"]) {
@@ -350,7 +362,12 @@ module.exports = {
 						});
 					}
 					else {
-						console.error("Failed to compile add preview: error getting playlist:", err);
+						if (err.response.status === 403) {
+							console.error("Failed to compile add preview: error getting playlist: Out of quota");
+						}
+						else {
+							console.error("Failed to compile add preview: error getting playlist:", err);
+						}
 						reject(err);
 					}
 				});
