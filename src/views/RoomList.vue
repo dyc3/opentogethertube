@@ -14,7 +14,7 @@
     <v-row v-if="!isLoading">
       <v-col cols="6" sm="4" md="3" v-for="(room, index) in rooms" :key="index">
         <v-card hover class="room" :to="`/room/${room.name}`">
-          <v-img :src="room.currentSource.thumbnail ? room.currentSource.thumbnail : require('@/assets/placeholder.svg')" aspect-ratio="1.8">
+          <v-img :src="room.currentSource && room.currentSource.thumbnail ? room.currentSource.thumbnail : require('@/assets/placeholder.svg')" aspect-ratio="1.8">
             <span class="subtitle-2 users">{{ room.users }} <v-icon small>fas fa-user-friends</v-icon></span>
           </v-img>
           <v-card-title v-text="room.isTemporary ? 'Temporary Room' : room.name" />
@@ -22,7 +22,7 @@
             <div class="description" v-if="room.description">{{ room.description }}</div>
             <div class="description empty" v-else>No description.</div>
 
-            <div class="video-title" v-if="room.currentSource.title">{{ room.currentSource.title }}</div>
+            <div class="video-title" v-if="room.currentSource && room.currentSource.title">{{ room.currentSource.title }}</div>
             <div class="video-title empty" v-else>Nothing playing.</div>
           </v-card-text>
         </v-card>
