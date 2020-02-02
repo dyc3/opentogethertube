@@ -3,7 +3,7 @@
 		<v-container class="pa-0">
 			<v-row no-gutters align="center" justify="space-between">
 				<v-col cols="4">
-					<v-img :src="item.thumbnail" contain>
+					<v-img :src="item.thumbnail ? item.thumbnail : require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }">
 						<span class="drag-handle" v-if="!isPreview">
 							<v-icon>fas fa-align-justify</v-icon>
 						</span>
