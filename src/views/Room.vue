@@ -74,7 +74,7 @@
               <v-tab-item>
                 <div class="video-add">
                   <div>
-                    <v-text-field placeholder="Video URL to add to queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" />
+                    <v-text-field placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" />
                     <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
