@@ -75,8 +75,9 @@
                 <div class="video-add">
                   <div>
                     <v-text-field placeholder="Video URL to add to queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" />
-                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -274,6 +275,7 @@ export default {
       let videos = [
         "https://www.youtube.com/watch?v=WC66l5tPIF4",
         "https://www.youtube.com/watch?v=aI67KDJRnvQ",
+        "https://vimeo.com/94338566",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
