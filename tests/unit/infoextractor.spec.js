@@ -20,6 +20,10 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getService("https://youtu.be/I3O9J02G67I")).toEqual("youtube");
   });
 
+  it('getService() should return vimeo when given vimeo link', () => {
+    expect(InfoExtract.getService("https://vimeo.com/94338566")).toEqual("vimeo");
+  });
+
   it('getService() should return false when given link to unsupported service', () => {
     expect(InfoExtract.getService("http://example.com")).toEqual(false);
   });
@@ -51,6 +55,11 @@ describe('InfoExtractor Link Parsing', () => {
   it('getVideoIdYoutube() should return null if link does not contain video id', () => {
     expect(InfoExtract.getVideoIdYoutube("http://youtube.com/")).toEqual(null);
     expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).toEqual(null);
+  });
+
+  it('getVideoIdVimeo() should return correct id when given vimeo link', () => {
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566")).toEqual("94338566");
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/channels/susisie/94338566")).toEqual("94338566");
   });
 });
 

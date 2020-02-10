@@ -143,6 +143,9 @@ module.exports = {
 		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
 			return "youtube";
 		}
+		else if (srcUrl.host.endsWith("vimeo.com")) {
+			return "vimeo";
+		}
 		else {
 			return false;
 		}
@@ -409,5 +412,10 @@ module.exports = {
 				return [video];
 			});
 		}
+	},
+
+	getVideoIdVimeo(link) {
+		let urlParsed = url.parse(link);
+		return urlParsed.path.split("/").slice(-1)[0].trim();
 	},
 };
