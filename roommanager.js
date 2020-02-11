@@ -41,13 +41,16 @@ class Room {
 			if (queueItem.service === "youtube") {
 				queueItem.id = InfoExtract.getVideoIdYoutube(video.url);
 			}
+			else if (queueItem.service === "vimeo") {
+				queueItem.id = InfoExtract.getVideoIdVimeo(video.url);
+			}
 		}
 		else {
 			queueItem.service = video.service;
 			queueItem.id = video.id;
 		}
 
-		if (queueItem.service === "youtube") {
+		if (queueItem.service === "youtube" || queueItem.service === "vimeo") {
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
