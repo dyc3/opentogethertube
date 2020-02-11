@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+    opentogethertube-prod:
+        container_name: opentogethertube-dev
+        environment:
+            - YOUTUBE_API_KEY=API_KEY_GOES_HERE # optional put it in env/development.env
+        ports:
+            - 8080:8080
+        image: opentogethertube-dev

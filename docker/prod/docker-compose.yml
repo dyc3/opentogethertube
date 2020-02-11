@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+    opentogethertube-prod:
+        container_name: opentogethertube-prod
+        ports:
+            - 8080:8080
+        image: opentogethertube-prod
