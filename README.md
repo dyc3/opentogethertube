@@ -98,3 +98,7 @@ You can also specify the port the server will listen on by setting the
 ```
 PORT=8080 npm start
 ```
+
+## Docker
+
+Go to [Docker](docker/DOCKER.md)
