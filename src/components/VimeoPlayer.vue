@@ -17,6 +17,8 @@ export default {
 	data() {
 		return {
 			iframe: null,
+
+			isBuffering: false,
 		};
 	},
 	computed: {
@@ -35,9 +37,15 @@ export default {
 					this.player.on("play", () => this.$emit("playing"));
 					this.player.on("pause", () => this.$emit("paused"));
 					this.player.on("loaded", () => this.$emit("ready"));
-					this.player.on("bufferstart", () => this.$emit("butterstart"));
-					this.player.on("bufferend", () => this.$emit("butterend"));
-				}, 300);
+					this.player.on("bufferstart", () => {
+						this.isBuffering = true;
+						this.$emit("butterstart");
+					});
+					this.player.on("bufferend", () => {
+						this.isBuffering = false;
+						this.$emit("butterend");
+					});
+				}, 0);
 			});
 		},
 		play() {
@@ -50,7 +58,7 @@ export default {
 			return this.player.getCurrentTime();
 		},
 		setPosition(position) {
-			return this.player.setCurrentTime(position);
+			return this.player.setCurrentTime(position + (this.$store.state.room.isPlaying && this.isBuffering ? 1 : 0));
 		},
 		setVolume(value) {
 			return this.player.setVolume(value / 100);
