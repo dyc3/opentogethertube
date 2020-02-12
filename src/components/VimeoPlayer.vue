@@ -27,13 +27,17 @@ export default {
 	created() {
 		this.updateIframe();
 	},
-	updated() {
-		this.updateIframe();
-	},
 	methods: {
 		updateIframe() {
 			axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${this.videoId}&responsive=true&portrait=false&controls=false`).then(res => {
 				this.iframe = res.data.html;
+				setTimeout(() => {
+					this.player.on("play", () => this.$emit("playing"));
+					this.player.on("pause", () => this.$emit("paused"));
+					this.player.on("loaded", () => this.$emit("ready"));
+					this.player.on("bufferstart", () => this.$emit("butterstart"));
+					this.player.on("bufferend", () => this.$emit("butterend"));
+				}, 300);
 			});
 		},
 		play() {
@@ -50,6 +54,11 @@ export default {
 		},
 		setVolume(value) {
 			return this.player.setVolume(value / 100);
+		},
+	},
+	watch: {
+		videoId() {
+			this.updateIframe();
 		},
 	},
 };

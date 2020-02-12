@@ -10,7 +10,7 @@
           <v-col cols="12" xl="7" md="8">
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0, disablekb: 1 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
-              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" />
+              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
               <v-container fluid fill-height class="no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -416,6 +416,14 @@ export default {
     },
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+    },
+    onPlayerReady_Vimeo() {
+      if (this.$store.state.room.isPlaying) {
+        this.play();
+      }
+      else {
+        this.pause();
+      }
     },
     onKeyDown(e) {
       if (e.target.nodeName === "INPUT") {
