@@ -9,6 +9,10 @@ const youtubeVideoListSampleResponses = {
   "BTZ5KVRUy1Q,I3O9J02G67I": '{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 2,"resultsPerPage": 2},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q","snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}, {"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I","snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
 };
 
+const vimeoOEmbedSampleResponses = {
+  "94338566": '{"type":"video","version":"1.0","provider_name":"Vimeo","provider_url":"https://vimeo.com/","title":"Showreel","author_name":"Susi Sie","author_url":"https://vimeo.com/susisie","is_plus":"1","account_type":"plus","html":"<iframe src="https://player.vimeo.com/video/94338566?app_id=122963" width="480" height="190" frameborder="0" allow="autoplay; fullscreen" allowfullscreen title="Showreel"></iframe>","width":480,"height":190,"duration":70,"description":"No animation. No 3D. Just reality.\n\nTitle: Showreel I Directed & Produced: Susi Sie I Music & Sound Design: Nikolai von Sallwitz\n\nwww.susisie.de\nfacebook.com/page.sie/\n\nwww.vonsallwitz.com","thumbnail_url":"https://i.vimeocdn.com/video/474246782_295x166.jpg","thumbnail_width":295,"thumbnail_height":117,"thumbnail_url_with_play_button":"https://i.vimeocdn.com/filter/overlay?src0=https%3A%2F%2Fi.vimeocdn.com%2Fvideo%2F474246782_295x166.jpg&src1=http%3A%2F%2Ff.vimeocdn.com%2Fp%2Fimages%2Fcrawler_play.png","upload_date":"2014-05-07 04:30:13","video_id":94338566,"uri":"/videos/94338566"}',
+};
+
 describe('InfoExtractor Link Parsing', () => {
   it('getService() should return youtube when given youtube link', () => {
     expect(InfoExtract.getService("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
@@ -18,6 +22,10 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getService("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
     expect(InfoExtract.getService("http://youtu.be/I3O9J02G67I")).toEqual("youtube");
     expect(InfoExtract.getService("https://youtu.be/I3O9J02G67I")).toEqual("youtube");
+  });
+
+  it('getService() should return vimeo when given vimeo link', () => {
+    expect(InfoExtract.getService("https://vimeo.com/94338566")).toEqual("vimeo");
   });
 
   it('getService() should return false when given link to unsupported service', () => {
@@ -51,6 +59,11 @@ describe('InfoExtractor Link Parsing', () => {
   it('getVideoIdYoutube() should return null if link does not contain video id', () => {
     expect(InfoExtract.getVideoIdYoutube("http://youtube.com/")).toEqual(null);
     expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).toEqual(null);
+  });
+
+  it('getVideoIdVimeo() should return correct id when given vimeo link', () => {
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566")).toEqual("94338566");
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/channels/susisie/94338566")).toEqual("94338566");
   });
 });
 
@@ -561,6 +574,24 @@ describe('InfoExtractor Add Preview Spec', () => {
       expect(InfoExtract.searchYoutube).toBeCalledWith("blah blah");
       expect(InfoExtract.getManyVideoInfo).toBeCalled();
       expect(result).toHaveLength(2);
+
+      done();
+    });
+  });
+
+  it('should return 1 video when given a vimeo URL', done => {
+    InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(new Video({
+      service: "vimeo",
+      id: "94338566",
+      title: "Showreel",
+      description: "No animation. No 3D. Just reality.\n\nTitle: Showreel I Directed & Produced: Susi Sie I Music & Sound Design: Nikolai von Sallwitz\n\nwww.susisie.de\nfacebook.com/page.sie/\n\nwww.vonsallwitz.com",
+      thumbnail: "https://i.vimeocdn.com/video/474246782_295x166.jpg",
+      length: 70,
+    }))));
+
+    InfoExtract.getAddPreview("https://vimeo.com/videos/94338566").then(result => {
+      expect(InfoExtract.getVideoInfo).toBeCalled();
+      expect(result).toHaveLength(1);
 
       done();
     });

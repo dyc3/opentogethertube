@@ -10,6 +10,7 @@
           <v-col cols="12" xl="7" md="8">
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0, disablekb: 1 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
+              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
               <v-container fluid fill-height class="no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -75,8 +76,10 @@
                 <div class="video-add">
                   <div>
                     <v-text-field placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" />
-                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -142,12 +145,14 @@ import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import secondsToTimestamp from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
+import VimeoPlayer from "@/components/VimeoPlayer.vue";
 
 export default {
   name: 'room',
   components: {
     draggable,
     VideoQueueItem,
+    VimeoPlayer,
   },
   data() {
     return {
@@ -274,6 +279,8 @@ export default {
       let videos = [
         "https://www.youtube.com/watch?v=WC66l5tPIF4",
         "https://www.youtube.com/watch?v=aI67KDJRnvQ",
+        "https://vimeo.com/94338566",
+        "https://vimeo.com/239423699",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
@@ -311,15 +318,24 @@ export default {
       if (this.currentSource.service == "youtube") {
         this.$refs.youtube.player.playVideo();
       }
+      else if (this.currentSource.service === "vimeo") {
+        this.$refs.vimeo.play();
+      }
     },
     pause() {
       if (this.currentSource.service == "youtube") {
         this.$refs.youtube.player.pauseVideo();
       }
+      else if (this.currentSource.service === "vimeo") {
+        this.$refs.vimeo.pause();
+      }
     },
     updateVolume() {
       if (this.currentSource.service == "youtube") {
         this.$refs.youtube.player.setVolume(this.volume);
+      }
+      else if (this.currentSource.service === "vimeo") {
+        this.$refs.vimeo.setVolume(this.volume);
       }
     },
     requestAddPreview() {
@@ -402,6 +418,14 @@ export default {
     },
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+    },
+    onPlayerReady_Vimeo() {
+      if (this.$store.state.room.isPlaying) {
+        this.play();
+      }
+      else {
+        this.pause();
+      }
     },
     onKeyDown(e) {
       if (e.target.nodeName === "INPUT") {
@@ -491,8 +515,20 @@ export default {
       this.updateVolume();
     },
     async sliderPosition(newPosition) {
-      if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
-        this.$refs.youtube.player.seekTo(newPosition);
+      let currentTime = null;
+      if (this.currentSource.service === "youtube") {
+        currentTime = await this.$refs.youtube.player.getCurrentTime();
+      }
+      else if (this.currentSource.service === "vimeo") {
+        currentTime = await this.$refs.vimeo.getPosition();
+      }
+      if (Math.abs(newPosition - currentTime) > 1) {
+        if (this.currentSource.service === "youtube") {
+          this.$refs.youtube.player.seekTo(newPosition);
+        }
+        else if (this.currentSource.service === "vimeo") {
+          this.$refs.vimeo.setPosition(newPosition);
+        }
       }
     },
     inputAddPreview() {

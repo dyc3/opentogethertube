@@ -11,6 +11,7 @@ const ADD_PREVIEW_SEARCH_MIN_LENGTH = 3;
 const YtApi = axios.create({
 	baseURL: YOUTUBE_API_URL,
 });
+const VIMEO_OEMBED_API_URL = "https://vimeo.com/api/oembed.json";
 
 class UnsupportedServiceException extends Error {
 	constructor(hostname) {
@@ -40,6 +41,11 @@ module.exports = {
 		if (service === "youtube") {
 			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
 				throw new Error(`Invalid youtube video ID: ${id}`);
+			}
+		}
+		else if (service === "vimeo") {
+			if (!(/^[0-9]+$/).exec(id)) {
+				throw new Error(`Invalid vimeo video ID: ${id}`);
 			}
 		}
 
@@ -72,6 +78,9 @@ module.exports = {
 						throw err;
 					}
 				});
+			}
+			else if (video.service === "vimeo") {
+				return this.getVideoInfoVimeo(video.id);
 			}
 		}).catch(err => {
 			console.error("Failed to get video metadata from database:", err);
@@ -142,6 +151,9 @@ module.exports = {
 
 		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
 			return "youtube";
+		}
+		else if (srcUrl.host.endsWith("vimeo.com")) {
+			return "vimeo";
 		}
 		else {
 			return false;
@@ -331,8 +343,11 @@ module.exports = {
 		if (service == "youtube" && (queryParams["v"] || urlParsed.host === "youtu.be")) {
 			id = this.getVideoIdYoutube(input);
 		}
+		else if (service === "vimeo") {
+			id = this.getVideoIdVimeo(input);
+		}
 
-		if (urlParsed.host && service !== "youtube") {
+		if (urlParsed.host && service !== "youtube" && service !== "vimeo") {
 			throw new UnsupportedServiceException(urlParsed.host);
 		}
 		else if (!urlParsed.host) {
@@ -351,7 +366,7 @@ module.exports = {
 				});
 		}
 
-		if (queryParams["list"]) {
+		if (service === "youtube" && queryParams["list"]) {
 			// there is a playlist associated with this link
 			console.log("playlist found");
 			return new Promise((resolve, reject) => {
@@ -380,7 +395,7 @@ module.exports = {
 				});
 			});
 		}
-		else if (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel')) {
+		else if (service === "youtube" && (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel'))) {
 			console.log('channel found');
 			const channelData = {};
 			const channelId = urlParsed.path.slice(urlParsed.path.lastIndexOf('/') + 1);
@@ -409,5 +424,46 @@ module.exports = {
 				return [video];
 			});
 		}
+	},
+
+	getVideoIdVimeo(link) {
+		let urlParsed = url.parse(link);
+		return urlParsed.path.split("/").slice(-1)[0].trim();
+	},
+
+	/**
+	 * Gets video metadata for vimeo videos.
+	 *
+	 * https://developer.vimeo.com/api/oembed/videos#embedding-a-video-with-oembed
+	 * https://developer.vimeo.com/api/reference/videos#get_video
+	 * @param {string} id The video id on vimeo
+	 * @returns {Promise<Video>|null} Video with metadata, null if it fails to get metadata
+	 */
+	getVideoInfoVimeo(id) {
+		// HACK: This API method doesn't require us to use authentication, but it gives us somewhat low res thumbnail urls
+		return axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${id}`).then(res => {
+			let video = new Video({
+				service: "vimeo",
+				id,
+				title: res.data.title,
+				description: res.data.description,
+				thumbnail: res.data.thumbnail_url,
+				length: res.data.duration,
+			});
+			storage.updateVideoInfo(video);
+			return video;
+		}).catch(err => {
+			if (err.response.status === 403) {
+				console.error("Failed to get vimeo video info: Embedding for this video is disabled");
+				return null;
+			}
+			else {
+				console.error("Failed to get vimeo video info:", err);
+				return new Video({
+					service: "vimeo",
+					id,
+				});
+			}
+		});
 	},
 };
