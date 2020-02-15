@@ -3,6 +3,13 @@ const uuid = require("uuid/v4");
 const _ = require("lodash");
 const InfoExtract = require("./infoextract");
 
+// These strings are not allowed to be used as room names.
+const RESERVED_ROOM_NAMES = [
+	"list",
+	"create",
+	"generate",
+];
+
 // eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
@@ -60,7 +67,7 @@ module.exports = function(_roommanager, storage) {
 			});
 			return;
 		}
-		if (req.body.name == "list") {
+		if (RESERVED_ROOM_NAMES.includes(req.body.name)) {
 			res.status(400).json({
 				success: false,
 				error: "Room name not allowed (reserved)",
