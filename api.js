@@ -10,6 +10,12 @@ const RESERVED_ROOM_NAMES = [
 	"generate",
 ];
 
+const VALID_ROOM_VISIBILITY = [
+	"public",
+	"unlisted",
+	"private",
+];
+
 // eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
@@ -122,6 +128,55 @@ module.exports = function(_roommanager, storage) {
 		res.json({
 			success: true,
 			room: roomName,
+		});
+	});
+
+	router.patch("/room/:name", (req, res) => {
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			let filtered = _.pick(req.body, [
+				"title",
+				"description",
+				"visibility",
+			]);
+			filtered = _.pickBy(filtered, n => n !== null);
+			if (filtered.visibility && !VALID_ROOM_VISIBILITY.includes(filtered.visibility)) {
+				res.status(400).json({
+					success: false,
+					error: "Invalid value for room visibility",
+				});
+				return;
+			}
+			Object.assign(room, filtered);
+			if (!room.isTemporary) {
+				storage.updateRoom(room).then(success => {
+					res.status(success ? 200 : 500).json({
+						success,
+					});
+				}).catch(() => {
+					res.status(500).json({
+						success: false,
+					});
+				});
+			}
+			else {
+				res.json({
+					success: true,
+				});
+			}
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
 		});
 	});
 
