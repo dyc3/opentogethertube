@@ -63,6 +63,7 @@
     "sass-loader": "^7.1.0",
     "sqlite3": "^4.1.0",
     "vue-cli-plugin-vuetify": "^2.0.3",
+    "vue-cli-plugin-webpack-bundle-analyzer": "^2.0.0",
     "vue-template-compiler": "^2.6.10",
     "vuetify-loader": "^1.4.3",
     "webpack-bundle-analyzer": "^3.6.0"
