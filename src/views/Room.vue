@@ -1,13 +1,13 @@
 <template>
   <div>
-    <v-container fluid class="room" v-if="!showJoinFailOverlay">
-      <v-col>
+    <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
+      <v-col v-if="!$store.state.fullscreen">
         <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
         <span id="connectStatus">{{ connectionStatus }}</span>
       </v-col>
-      <v-col>
+      <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
         <v-row no-gutters class="video-container">
-          <v-col cols="12" xl="7" md="8">
+          <v-col cols="12" :xl="$store.state.fullscreen ? 8 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0, disablekb: 1 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
@@ -40,7 +40,7 @@
               </v-row>
             </v-col>
           </v-col>
-          <v-col cols="12" xl="5" md="4" class="chat-container">
+          <v-col cols="12" :xl="$store.state.fullscreen ? 4 : 5" md="4" class="chat-container">
             <div class="d-flex flex-column" style="height: 100%">
               <h4>Chat</h4>
               <div class="messages d-flex flex-column flex-grow-1 mt-2">
@@ -647,5 +647,13 @@ export default {
 }
 .no-move {
   transition: transform 0s;
+}
+
+.fullscreen {
+  padding: 0;
+
+  .video-container {
+    margin: 0;
+  }
 }
 </style>
