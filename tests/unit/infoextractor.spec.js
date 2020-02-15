@@ -54,6 +54,7 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getVideoIdYoutube("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
     expect(InfoExtract.getVideoIdYoutube("http://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
     expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I?t=2")).toEqual("I3O9J02G67I");
   });
 
   it('getVideoIdYoutube() should return null if link does not contain video id', () => {
@@ -63,6 +64,7 @@ describe('InfoExtractor Link Parsing', () => {
 
   it('getVideoIdVimeo() should return correct id when given vimeo link', () => {
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566")).toEqual("94338566");
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566?t=2")).toEqual("94338566");
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/channels/susisie/94338566")).toEqual("94338566");
   });
 });
