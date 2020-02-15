@@ -163,7 +163,7 @@ module.exports = {
 	getVideoIdYoutube(link) {
 		let urlParsed = url.parse(link);
 		if (urlParsed.host.endsWith("youtu.be")) {
-			return urlParsed.path.replace("/", "").trim();
+			return urlParsed.path.replace("/", "").split("?")[0].trim();
 		}
 		else {
 			let query = querystring.parse(urlParsed.query);
@@ -428,7 +428,7 @@ module.exports = {
 
 	getVideoIdVimeo(link) {
 		let urlParsed = url.parse(link);
-		return urlParsed.path.split("/").slice(-1)[0].trim();
+		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
 	},
 
 	/**
