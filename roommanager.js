@@ -19,7 +19,7 @@ class Room {
 		this.title = "";
 		this.description = "";
 		this.isTemporary = false;
-		this.visibility = "public"; //TODO: Might not be the best variable. Change?
+		this.visibility = "public";
 		this.currentSource = {};
 		this.queue = [];
 		this.isPlaying = false;
