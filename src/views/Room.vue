@@ -444,6 +444,9 @@ export default {
         this.$socket.sendObj({ action: "skip" });
         e.preventDefault();
       }
+      else if (e.code === "KeyF") {
+        this.toggleFullscreen();
+      }
       else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
         let seekIncrement = 5;
         if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
