@@ -145,14 +145,16 @@ import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import secondsToTimestamp from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
-import VimeoPlayer from "@/components/VimeoPlayer.vue";
+import VueSlider from 'vue-slider-component';
+import 'vue-slider-component/theme/default.css';
 
 export default {
   name: 'room',
   components: {
     draggable,
     VideoQueueItem,
-    VimeoPlayer,
+    VueSlider,
+    VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
   },
   data() {
     return {

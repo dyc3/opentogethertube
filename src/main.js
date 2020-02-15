@@ -22,12 +22,9 @@ Vue.use(VueNativeWebsocket, `ws://${window.location.host}/api`, {
 
 import vuetify from '@/plugins/vuetify';
 
+// TODO: use a different solution that supports code splitting
 import VueYoutube from 'vue-youtube';
 Vue.use(VueYoutube);
-
-import VueSlider from 'vue-slider-component';
-import 'vue-slider-component/theme/default.css';
-Vue.component('VueSlider', VueSlider);
 
 Vue.config.productionTip = false;
 
