@@ -1,18 +1,17 @@
 <template>
   <v-app id="app">
+    <v-app-bar app absolute v-if="!fullscreen">
+      <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
+      <v-toolbar-title>
+        <router-link class="link-invis" style="margin-right: 10px" to="/">
+          OpenTogetherTube
+        </router-link>
+      </v-toolbar-title>
+      <v-toolbar-items>
+        <v-btn text to="/rooms">Browse</v-btn>
+      </v-toolbar-items>
+    </v-app-bar>
     <v-content>
-      <v-app-bar app v-if="!fullscreen">
-        <v-app-bar-nav-icon/>
-        <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
-        <v-toolbar-title>
-          <router-link class="link-invis" style="margin-right: 10px" to="/">
-            OpenTogetherTube
-          </router-link>
-        </v-toolbar-title>
-        <v-toolbar-items>
-          <v-btn text to="/rooms">Browse</v-btn>
-        </v-toolbar-items>
-      </v-app-bar>
       <router-view/>
     </v-content>
   </v-app>
