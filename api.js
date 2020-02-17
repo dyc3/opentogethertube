@@ -298,7 +298,7 @@ module.exports = function(_roommanager, storage) {
 	router.post("/room/:name/vote", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.service && req.body.id) {
-				let success = room.voteVideo({ service: req.body.service, id: req.body.id }, req.session)
+				let success = room.voteVideo({ service: req.body.service, id: req.body.id }, req.session);
 				res.json({
 					success,
 				});

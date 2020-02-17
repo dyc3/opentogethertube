@@ -429,17 +429,6 @@ class RoomEvent {
 	}
 }
 
-class VideoVote {
-	constructor(args) {
-		this.service = null;
-		this.id = null;
-		this.userSessionId = null;
-		if (args) {
-			Object.assign(this, args);
-		}
-	}
-}
-
 class RoomNotFoundException extends Error {
 	constructor(roomName) {
 		super(`The room "${roomName}" could not be found.`);
