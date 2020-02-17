@@ -26,6 +26,8 @@ import vuetify from '@/plugins/vuetify';
 import VueYoutube from 'vue-youtube';
 Vue.use(VueYoutube);
 
+import 'vue-slider-component/theme/default.css';
+
 Vue.config.productionTip = false;
 
 new Vue({

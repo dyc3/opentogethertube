@@ -157,7 +157,6 @@ import secondsToTimestamp from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
-import 'vue-slider-component/theme/default.css';
 
 export default {
   name: 'room',
