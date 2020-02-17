@@ -93,10 +93,10 @@ export default {
 				});
 			}
 			else {
-				API.delete(`/room/${this.$route.params.roomId}/vote`, {
+				API.delete(`/room/${this.$route.params.roomId}/vote`, { data: {
 					service: this.item.service,
 					id: this.item.id,
-				}).then(() => {
+				}}).then(() => {
 					this.isLoadingVote = false;
 					this.item.voted = false;
 				});

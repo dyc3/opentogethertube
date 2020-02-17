@@ -27,8 +27,6 @@ class Room {
 		this.playbackPosition = 0;
 		this.clients = [];
 		this.keepAlivePing = null;
-
-		this.votes = [];
 	}
 
 	/**
@@ -90,26 +88,25 @@ class Room {
 			return false;
 		}
 
-		let newVote = new VideoVote({
-			service: video.service,
-			id: video.id,
-			userSessionId: session.id,
-		});
-
-		// check to see if the vote already exists
-		if (_.findIndex(this.votes, newVote) >= 0) {
-			console.error("Vote for video already exists");
-			return false;
-		}
-
 		// check if the voted video is in the queue
-		if (_.findIndex(this.queue, { service: newVote.service, id: newVote.id }) < 0) {
+		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		if (matchIdx < 0) {
 			console.error("Can't vote for video not in queue");
 			return false;
 		}
 
-		console.log("adding vote:", newVote);
-		this.votes.push(newVote);
+		if (!this.queue[matchIdx].votes) {
+			this.queue[matchIdx].votes = [];
+		}
+
+		// check to see if the vote already exists
+		if (_.findIndex(this.queue[matchIdx].votes, { userSessionId: session.id }) >= 0) {
+			console.error("Vote for video already exists");
+			return false;
+		}
+
+		this.queue[matchIdx].votes.push({ userSessionId: session.id });
+		return true;
 	}
 
 	/**
@@ -123,12 +120,15 @@ class Room {
 			return false;
 		}
 
-		console.log("removing vote");
-		this.votes = _.reject(this.votes, {
-			service: video.service,
-			id: video.id,
-			userSessionId: session.id,
-		});
+		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		if (matchIdx < 0) {
+			console.error("Can't remove vote for video not in queue");
+			return false;
+		}
+
+		console.log("removing vote:", video);
+		this.queue[matchIdx].votes = _.reject(this.queue[matchIdx].votes, { userSessionId: session.id });
+		return true;
 	}
 
 	removeFromQueue(video, session=null) {
@@ -195,32 +195,11 @@ class Room {
 			isTemporary: this.isTemporary,
 			queueMode: this.queueMode,
 			currentSource: this.currentSource,
-			queue: this.queue,
+			queue: _.cloneDeep(this.queue),
 			isPlaying: this.isPlaying,
 			playbackPosition: this.playbackPosition,
 			users: [],
 		};
-
-		// include vote counts
-		if (this.queueMode === "vote") {
-			for (let i = 0; i < this.queue.length; i++) {
-				let voteCount = 0;
-				for (let vote of this.votes) {
-					let queueVideo = {
-						service: this.queue[i].service,
-						id: this.queue[i].id,
-					};
-					let voteVideo = {
-						service: vote.service,
-						id: vote.id,
-					};
-					if (_.isEqual(queueVideo, voteVideo)) {
-						voteCount++;
-					}
-				}
-				syncMsg.queue[i].votes = voteCount;
-			}
-		}
 
 		for (const client of this.clients) {
 			// make sure the socket is still open
@@ -237,19 +216,10 @@ class Room {
 
 			// include if the user has voted
 			if (this.queueMode === "vote") {
-				syncMsg.queue = syncMsg.queue.map(video => {
+				syncMsg.queue = this.queue.map(video => {
 					let v = _.cloneDeep(video);
-					v.voted = false;
-					for (let vote of this.votes) {
-						if (_.isEqual(vote, {
-							service: video.service,
-							id: video.id,
-							userSessionId: client.session.id,
-						})) {
-							v.voted = true;
-							break;
-						}
-					}
+					v.votes = video.votes ? video.votes.length : 0;
+					v.voted = _.find(video.votes, { userSessionId: client.session.id }) ? true : false;
 					return v;
 				});
 			}
