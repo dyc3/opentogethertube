@@ -110,6 +110,7 @@ class Room {
 		}
 
 		this.queue[matchIdx].votes.push({ userSessionId: session.id });
+		this.queue[matchIdx]._lastVotesChanged = moment();
 		return true;
 	}
 
@@ -130,8 +131,8 @@ class Room {
 			return false;
 		}
 
-		console.log("removing vote:", video);
 		this.queue[matchIdx].votes = _.reject(this.queue[matchIdx].votes, { userSessionId: session.id });
+		this.queue[matchIdx]._lastVotesChanged = moment();
 		return true;
 	}
 
@@ -171,7 +172,13 @@ class Room {
 
 		// sort queue according to queue mode
 		if (this.queueMode === "vote") {
-			this.queue = _.sortBy(this.queue, video => video.votes ? video.votes.length : 0).reverse();
+			this.queue = _.orderBy(this.queue, [
+				video => video.votes ? video.votes.length : 0,
+				video => video._lastVotesChanged,
+			], [
+				"desc",
+				"asc",
+			]);
 		}
 
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
