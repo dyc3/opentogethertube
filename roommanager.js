@@ -169,6 +169,11 @@ class Room {
 			}
 		}
 
+		// sort queue according to queue mode
+		if (this.queueMode === "vote") {
+			this.queue = _.sortBy(this.queue, video => video.votes ? video.votes.length : 0).reverse();
+		}
+
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
 			this.currentSource = this.queue.shift();
 		}
