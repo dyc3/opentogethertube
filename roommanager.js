@@ -20,7 +20,7 @@ class Room {
 		this.description = "";
 		this.isTemporary = false;
 		this.visibility = "public";
-		this.queueMode = "vote"; // manual, vote
+		this.queueMode = "manual"; // manual, vote
 		this.currentSource = {};
 		this.queue = [];
 		this.isPlaying = false;
