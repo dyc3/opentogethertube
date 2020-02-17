@@ -65,6 +65,10 @@ class Room {
 
 				if (session) {
 					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, session.username, { video: queueItem }));
+
+					if (this.queueMode === "vote") {
+						this.voteVideo(queueItem, session);
+					}
 				}
 				else {
 					console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
