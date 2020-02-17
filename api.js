@@ -16,6 +16,11 @@ const VALID_ROOM_VISIBILITY = [
 	"private",
 ];
 
+const VALID_ROOM_QUEUE_MODE = [
+	"manual",
+	"vote",
+];
+
 // eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
@@ -137,12 +142,20 @@ module.exports = function(_roommanager, storage) {
 				"title",
 				"description",
 				"visibility",
+				"queueMode",
 			]);
 			filtered = _.pickBy(filtered, n => n !== null);
 			if (filtered.visibility && !VALID_ROOM_VISIBILITY.includes(filtered.visibility)) {
 				res.status(400).json({
 					success: false,
 					error: "Invalid value for room visibility",
+				});
+				return;
+			}
+			if (filtered.queueMode && !VALID_ROOM_QUEUE_MODE.includes(filtered.queueMode)) {
+				res.status(400).json({
+					success: false,
+					error: "Invalid value for room queue mode",
 				});
 				return;
 			}
