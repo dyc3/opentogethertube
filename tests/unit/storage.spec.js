@@ -59,6 +59,36 @@ describe('Storage: Room Spec', () => {
       done.fail(err);
     });
   });
+
+  it('should update the matching room in the database with the provided properties', async done => {
+    await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
+    await expect(storage.saveRoom({ name: "example" })).resolves.toBe(true);
+
+    await expect(storage.updateRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "unlisted" })).resolves.toBe(true);
+
+    Room.findOne({ where: { name: "example" }}).then(room => {
+      expect(room).toBeInstanceOf(Room);
+      expect(room.id).toBeDefined();
+      expect(room.name).toBeDefined();
+      expect(room.name).toEqual("example");
+      expect(room.title).toBeDefined();
+      expect(room.title).toEqual("Example Room");
+      expect(room.description).toBeDefined();
+      expect(room.description).toEqual("This is an example room.");
+      expect(room.visibility).toEqual("unlisted");
+      done();
+    }).catch(err => {
+      done.fail(err);
+    });
+  });
+
+  it('should fail to update if provided properties does not include name', done => {
+    storage.updateRoom({ title: "Example Room", description: "This is an example room.", visibility: "unlisted" }).then(() => {
+      done.fail();
+    }).catch(() => {
+      done();
+    });
+  });
 });
 
 describe('Storage: CachedVideos Spec', () => {
