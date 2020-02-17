@@ -100,6 +100,10 @@
                         </v-row>
                       </v-container>
                     </v-row>
+                    <div v-if="highlightedAddPreviewItem">
+                      <VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
+                      <h4>Playlist</h4>
+                    </div>
                     <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                   </div>
                 </div>
@@ -240,6 +244,9 @@ export default {
       catch (e) {
         return false;
       }
+    },
+    highlightedAddPreviewItem() {
+      return _.find(this.addPreview, { highlight: true });
     },
   },
   async created() {

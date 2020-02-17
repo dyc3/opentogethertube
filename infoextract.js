@@ -372,7 +372,31 @@ module.exports = {
 			return new Promise((resolve, reject) => {
 				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
 					console.log(`Found ${playlist.length} videos in playlist`);
-					this.getManyVideoInfo(playlist).then(previews => resolve(previews));
+					this.getManyVideoInfo(playlist).then(previews => {
+						if (id) {
+							let highlighted = false;
+							for (let preview of previews) {
+								if (preview.id === id) {
+									preview.highlight = true;
+									highlighted = true;
+								}
+							}
+							if (!highlighted) {
+								// Guarentee video is in add preview
+								this.getVideoInfo(service, id).then(video => {
+									resolve(_.concat([video], previews));
+								}).catch(() => {
+									resolve(previews);
+								});
+							}
+							else {
+								resolve(previews);
+							}
+						}
+						else {
+							resolve(previews);
+						}
+					});
 				}).catch(err => {
 					if (queryParams.v) {
 						console.warn(`Playlist does not exist, retreiving video...`);
