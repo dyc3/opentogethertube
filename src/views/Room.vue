@@ -182,6 +182,7 @@ export default {
       addPreviewLoadFailureText: "",
       inputAddPreview: "",
       inputChatMsgText: "",
+      shouldChatStickToBottom: true,
       isLoadingRoomSettings: false,
       inputRoomSettingsTitle: "",
       inputRoomSettingsDescription: "",
@@ -283,6 +284,13 @@ export default {
 
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
+    let msgsDiv = document.getElementsByClassName("messages");
+    if (msgsDiv.length) {
+      msgsDiv = msgsDiv[0];
+      // msgsDiv.removeEventListener("scroll", this.onChatScroll);
+      // msgsDiv.addEventListener("scroll", this.onChatScroll);
+      msgsDiv.onscroll = this.onChatScroll;
+    }
 
     if (!this.$store.state.socket.isConnected) {
       // This check prevents the client from connecting multiple times,
@@ -495,6 +503,15 @@ export default {
       if (e.keyCode === 13 && this.inputChatMsgText.length > 0) {
         this.$socket.sendObj({ action: "chat", text: this.inputChatMsgText });
         this.inputChatMsgText = "";
+        this.shouldChatStickToBottom = true;
+      }
+    },
+    onChatScroll() {
+      let msgsDiv = document.getElementsByClassName("messages");
+      if (msgsDiv.length) {
+        msgsDiv = msgsDiv[0];
+        let distToBottom = msgsDiv.scrollHeight - msgsDiv.clientHeight - msgsDiv.scrollTop;
+        this.shouldChatStickToBottom = distToBottom == 0;
       }
     },
     onQueueDragDrop(e) {
@@ -580,10 +597,10 @@ export default {
   },
   updated() {
     // scroll the messages to the bottom
-    let msgsDiv = document.getElementsByClassName("messages");
-    if (msgsDiv.length) {
-      msgsDiv = msgsDiv[0];
-      if (msgsDiv.scrollTop >= msgsDiv.scrollHeight - msgsDiv.clientHeight - 100) {
+    if (this.shouldChatStickToBottom) {
+      let msgsDiv = document.getElementsByClassName("messages");
+      if (msgsDiv.length) {
+        msgsDiv = msgsDiv[0];
         msgsDiv.scrollTop = msgsDiv.scrollHeight;
       }
     }
