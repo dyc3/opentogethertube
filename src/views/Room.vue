@@ -57,12 +57,13 @@
         </v-row>
         <v-row no-gutters>
           <v-col cols="8" md="8" sm="12">
-            <v-tabs grow v-model="queueTab">
+            <v-tabs grow v-model="queueTab" @change="onTabChange">
               <v-tab>
                 Queue
                 <span class="bubble">{{ $store.state.room.queue.length <= 99 ? $store.state.room.queue.length : "99+" }}</span>
               </v-tab>
               <v-tab>Add</v-tab>
+              <v-tab>Settings</v-tab>
             </v-tabs>
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
@@ -101,6 +102,16 @@
                     </v-row>
                     <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                   </div>
+                </div>
+              </v-tab-item>
+              <v-tab-item>
+                <div class="room-settings">
+                  <v-form @submit="submitRoomSettings">
+                    <v-text-field label="Title" v-model="inputRoomSettingsTitle" :loading="isLoadingRoomSettings" />
+                    <v-text-field label="Description" v-model="inputRoomSettingsDescription" :loading="isLoadingRoomSettings" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettingsVisibility" :loading="isLoadingRoomSettings" />
+                    <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Update</v-btn>
+                  </v-form>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -172,6 +183,10 @@ export default {
       addPreviewLoadFailureText: "",
       inputAddPreview: "",
       inputChatMsgText: "",
+      isLoadingRoomSettings: false,
+      inputRoomSettingsTitle: "",
+      inputRoomSettingsDescription: "",
+      inputRoomSettingsVisibility: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -496,6 +511,28 @@ export default {
         event,
       });
       this.$store.state.room.events.splice(idx, 1);
+    },
+    onTabChange() {
+      if (this.queueTab === 2) {
+        // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
+        this.isLoadingRoomSettings = true;
+        API.get(`/room/${this.$route.params.roomId}`).then(res => {
+          this.isLoadingRoomSettings = false;
+          this.inputRoomSettingsTitle = res.data.title;
+          this.inputRoomSettingsDescription = res.data.description;
+          this.inputRoomSettingsVisibility = res.data.visibility;
+        });
+      }
+    },
+    submitRoomSettings() {
+      this.isLoadingRoomSettings = true;
+      API.patch(`/room/${this.$route.params.roomId}`, {
+        title: this.inputRoomSettingsTitle,
+        description: this.inputRoomSettingsDescription,
+        visibility: this.inputRoomSettingsVisibility,
+      }).then(() => {
+        this.isLoadingRoomSettings = false;
+      });
     },
   },
   mounted() {
