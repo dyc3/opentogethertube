@@ -20,12 +20,15 @@ class Room {
 		this.description = "";
 		this.isTemporary = false;
 		this.visibility = "public";
+		this.queueMode = "vote";
 		this.currentSource = {};
 		this.queue = [];
 		this.isPlaying = false;
 		this.playbackPosition = 0;
 		this.clients = [];
 		this.keepAlivePing = null;
+
+		this.votes = [];
 	}
 
 	/**
@@ -74,6 +77,39 @@ class Room {
 		else {
 			throw `Service ${queueItem.service} not yet supported`;
 		}
+	}
+
+	/**
+	 * Vote for a video if the room is in voting mode.
+	 * @param {Video|Object} video The video to vote for.
+	 * @param {Object} session The user session that is voting for the video
+	 */
+	voteVideo(video, session) {
+		if (this.queueMode !== "vote") {
+			console.error("Room not in voting mode");
+			return false;
+		}
+
+		let newVote = new VideoVote({
+			service: video.service,
+			id: video.id,
+			userSessionId: session.id,
+		});
+
+		// check to see if the vote already exists
+		if (_.findIndex(this.votes, newVote) >= 0) {
+			console.error("Vote for video already exists");
+			return false;
+		}
+
+		// check if the voted video is in the queue
+		if (_.findIndex(this.queue, { service: newVote.service, id: newVote.id }) < 0) {
+			console.error("Can't vote for video not in queue");
+			return false;
+		}
+
+		console.log("adding vote:", newVote);
+		this.votes.push(newVote);
 	}
 
 	removeFromQueue(video, session=null) {
@@ -138,12 +174,34 @@ class Room {
 			title: this.title,
 			description: this.description,
 			isTemporary: this.isTemporary,
+			queueMode: this.queueMode,
 			currentSource: this.currentSource,
 			queue: this.queue,
 			isPlaying: this.isPlaying,
 			playbackPosition: this.playbackPosition,
 			users: [],
 		};
+
+		// include vote counts
+		if (this.queueMode === "vote") {
+			for (let i = 0; i < this.queue.length; i++) {
+				let voteCount = 0;
+				for (let vote of this.votes) {
+					let queueVideo = {
+						service: this.queue[i].service,
+						id: this.queue[i].id,
+					};
+					let voteVideo = {
+						service: vote.service,
+						id: vote.id,
+					};
+					if (_.isEqual(queueVideo, voteVideo)) {
+						voteCount++;
+					}
+				}
+				syncMsg.queue[i].votes = voteCount;
+			}
+		}
 
 		for (const client of this.clients) {
 			// make sure the socket is still open
@@ -157,6 +215,25 @@ class Room {
 					isYou: client.socket == c.socket,
 				};
 			});
+
+			// include if the user has voted
+			if (this.queueMode === "vote") {
+				syncMsg.queue = syncMsg.queue.map(video => {
+					let v = _.cloneDeep(video);
+					v.voted = false;
+					for (let vote of this.votes) {
+						if (_.isEqual(vote, {
+							service: video.service,
+							id: video.id,
+							userSessionId: client.session.id,
+						})) {
+							v.voted = true;
+							break;
+						}
+					}
+					return v;
+				});
+			}
 
 			try {
 				client.socket.send(JSON.stringify(syncMsg));
@@ -340,6 +417,17 @@ class RoomEvent {
 		this.eventType = eventType;
 		this.userName = userName;
 		this.parameters = parameters;
+	}
+}
+
+class VideoVote {
+	constructor(args) {
+		this.service = null;
+		this.id = null;
+		this.userSessionId = null;
+		if (args) {
+			Object.assign(this, args);
+		}
 	}
 }
 
