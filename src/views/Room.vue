@@ -656,6 +656,7 @@ export default {
 
   .messages {
     overflow-y: auto;
+    overflow-x: hidden;
 
     // makes flex-grow work (for some reason)
     // the value is the height this element will take on md size screens and smaller
@@ -672,10 +673,16 @@ export default {
 
     .from, .text {
       margin: 3px 5px;
+      word-wrap: break-word;
     }
 
     .from {
       font-weight: bold;
+      max-width: 20%;
+    }
+
+    .text {
+      min-width: 80%;
     }
   }
 }
