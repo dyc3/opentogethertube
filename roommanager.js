@@ -112,6 +112,25 @@ class Room {
 		this.votes.push(newVote);
 	}
 
+	/**
+	 * Remove a user's vote for a video if the room is in voting mode.
+	 * @param {Video|Object} video The video to remove the vote for.
+	 * @param {Object} session The user session that is voting for the video
+	 */
+	removeVoteVideo(video, session) {
+		if (this.queueMode !== "vote") {
+			console.error("Room not in voting mode");
+			return false;
+		}
+
+		console.log("removing vote");
+		this.votes = _.reject(this.votes, {
+			service: video.service,
+			id: video.id,
+			userSessionId: session.id,
+		});
+	}
+
 	removeFromQueue(video, session=null) {
 		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
 		if (matchIdx < 0) {

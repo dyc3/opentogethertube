@@ -20,7 +20,7 @@
 					<v-btn @click="vote" :loading="isLoadingVote" :color="item.voted ? 'red' : 'green'">
 						<span>{{ item.votes ? item.votes : 0 }}</span>
 						<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
-						<span>Vote</span>
+						<span>{{ item.voted ? "Unvote" : "Vote" }}</span>
 					</v-btn>
 				</v-col>
 				<v-col cols="1">
@@ -83,13 +83,24 @@ export default {
 		},
 		vote() {
 			this.isLoadingVote = true;
-			API.post(`/room/${this.$route.params.roomId}/vote`, {
-				service: this.item.service,
-				id: this.item.id,
-			}).then(() => {
-				this.isLoadingVote = false;
-				this.item.voted = !this.item.voted;
-			});
+			if (!this.item.voted) {
+				API.post(`/room/${this.$route.params.roomId}/vote`, {
+					service: this.item.service,
+					id: this.item.id,
+				}).then(() => {
+					this.isLoadingVote = false;
+					this.item.voted = true;
+				});
+			}
+			else {
+				API.delete(`/room/${this.$route.params.roomId}/vote`, {
+					service: this.item.service,
+					id: this.item.id,
+				}).then(() => {
+					this.isLoadingVote = false;
+					this.item.voted = false;
+				});
+			}
 		},
 	},
 };

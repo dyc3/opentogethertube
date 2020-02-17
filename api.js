@@ -317,6 +317,37 @@ module.exports = function(_roommanager, storage) {
 		});
 	});
 
+	router.delete("/room/:name/vote", (req, res) => {
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			if (req.body.service && req.body.id) {
+				let success = room.removeVoteVideo({ service: req.body.service, id: req.body.id }, req.session);
+				res.json({
+					success,
+				});
+			}
+			else {
+				res.status(400).json({
+					success: false,
+					error: "Invalid parameters",
+				});
+			}
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
+		});
+	});
+
 	router.post("/room/:name/undo", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			room.undoEvent(req.body.event);
