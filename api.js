@@ -51,6 +51,14 @@ module.exports = function(_roommanager, storage) {
 				delete client.session;
 				delete client.socket;
 			}
+			for (let video of room.queue) {
+				if (room.queueMode === "vote") {
+					video.votes = video.votes ? video.votes.length : 0;
+				}
+				else {
+					delete video.votes;
+				}
+			}
 			res.json(room);
 		}).catch(err => {
 			if (err.name === "RoomNotFoundException") {
