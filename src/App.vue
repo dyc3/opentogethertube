@@ -9,6 +9,7 @@
       </v-toolbar-title>
       <v-toolbar-items>
         <v-btn text to="/rooms">Browse</v-btn>
+        <v-btn text to="/faq">FAQ</v-btn>
       </v-toolbar-items>
     </v-app-bar>
     <v-content>
