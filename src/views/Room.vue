@@ -611,7 +611,7 @@ export default {
   min-height: 500px;
 }
 .queue-tab-content {
-  background: transparent;
+  background: transparent !important;
 }
 .is-you {
   color: #ffb300;
