@@ -16,7 +16,7 @@ describe('Storage: Room Spec', () => {
   }),
 
   it('should return room object without extra properties', async done => {
-    await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room." });
+    await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" });
 
     storage.getRoomByName("example").then(room => {
       expect(room).not.toBeNull();
@@ -32,6 +32,7 @@ describe('Storage: Room Spec', () => {
       expect(room.title).toEqual("Example Room");
       expect(room.description).toBeDefined();
       expect(room.description).toEqual("This is an example room.");
+      expect(room.visibility).toEqual("public");
       done();
     }).catch(err => {
       done.fail(err);
@@ -41,7 +42,7 @@ describe('Storage: Room Spec', () => {
   it('should create room in database', async done => {
     await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
 
-    await expect(storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room." })).resolves.toBe(true);
+    await expect(storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" })).resolves.toBe(true);
 
     Room.findOne({ where: { name: "example" }}).then(room => {
       expect(room).toBeInstanceOf(Room);
@@ -52,6 +53,7 @@ describe('Storage: Room Spec', () => {
       expect(room.title).toEqual("Example Room");
       expect(room.description).toBeDefined();
       expect(room.description).toEqual("This is an example room.");
+      expect(room.visibility).toEqual("public");
       done();
     }).catch(err => {
       done.fail(err);
