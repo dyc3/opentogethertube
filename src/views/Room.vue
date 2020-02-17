@@ -110,6 +110,7 @@
                     <v-text-field label="Title" v-model="inputRoomSettingsTitle" :loading="isLoadingRoomSettings" />
                     <v-text-field label="Description" v-model="inputRoomSettingsDescription" :loading="isLoadingRoomSettings" />
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettingsVisibility" :loading="isLoadingRoomSettings" />
+                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettingsQueueMode" :loading="isLoadingRoomSettings" />
                     <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Update</v-btn>
                   </v-form>
                 </div>
@@ -187,6 +188,7 @@ export default {
       inputRoomSettingsTitle: "",
       inputRoomSettingsDescription: "",
       inputRoomSettingsVisibility: "",
+      inputRoomSettingsQueueMode: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -537,6 +539,7 @@ export default {
           this.inputRoomSettingsTitle = res.data.title;
           this.inputRoomSettingsDescription = res.data.description;
           this.inputRoomSettingsVisibility = res.data.visibility;
+          this.inputRoomSettingsQueueMode = res.data.queueMode;
         });
       }
     },
@@ -546,6 +549,7 @@ export default {
         title: this.inputRoomSettingsTitle,
         description: this.inputRoomSettingsDescription,
         visibility: this.inputRoomSettingsVisibility,
+        queueMode: this.inputRoomSettingsQueueMode,
       }).then(() => {
         this.isLoadingRoomSettings = false;
       });

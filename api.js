@@ -16,6 +16,11 @@ const VALID_ROOM_VISIBILITY = [
 	"private",
 ];
 
+const VALID_ROOM_QUEUE_MODE = [
+	"manual",
+	"vote",
+];
+
 // eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
@@ -45,6 +50,15 @@ module.exports = function(_roommanager, storage) {
 				client.name = client.session.username;
 				delete client.session;
 				delete client.socket;
+			}
+			for (let video of room.queue) {
+				delete video._lastVotesChanged;
+				if (room.queueMode === "vote") {
+					video.votes = video.votes ? video.votes.length : 0;
+				}
+				else {
+					delete video.votes;
+				}
 			}
 			res.json(room);
 		}).catch(err => {
@@ -137,12 +151,20 @@ module.exports = function(_roommanager, storage) {
 				"title",
 				"description",
 				"visibility",
+				"queueMode",
 			]);
 			filtered = _.pickBy(filtered, n => n !== null);
 			if (filtered.visibility && !VALID_ROOM_VISIBILITY.includes(filtered.visibility)) {
 				res.status(400).json({
 					success: false,
 					error: "Invalid value for room visibility",
+				});
+				return;
+			}
+			if (filtered.queueMode && !VALID_ROOM_QUEUE_MODE.includes(filtered.queueMode)) {
+				res.status(400).json({
+					success: false,
+					error: "Invalid value for room queue mode",
 				});
 				return;
 			}
@@ -246,6 +268,68 @@ module.exports = function(_roommanager, storage) {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.service && req.body.id) {
 				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
+				res.json({
+					success,
+				});
+			}
+			else {
+				res.status(400).json({
+					success: false,
+					error: "Invalid parameters",
+				});
+			}
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
+		});
+	});
+
+	router.post("/room/:name/vote", (req, res) => {
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			if (req.body.service && req.body.id) {
+				let success = room.voteVideo({ service: req.body.service, id: req.body.id }, req.session);
+				res.json({
+					success,
+				});
+			}
+			else {
+				res.status(400).json({
+					success: false,
+					error: "Invalid parameters",
+				});
+			}
+		}).catch(err => {
+			if (err.name === "RoomNotFoundException") {
+				res.status(404).json({
+					success: false,
+					error: "Room not found",
+				});
+			}
+			else {
+				console.error("Unhandled exception when getting room:", err);
+				res.status(500).json({
+					success: false,
+					error: "Failed to get room",
+				});
+			}
+		});
+	});
+
+	router.delete("/room/:name/vote", (req, res) => {
+		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			if (req.body.service && req.body.id) {
+				let success = room.removeVoteVideo({ service: req.body.service, id: req.body.id }, req.session);
 				res.json({
 					success,
 				});

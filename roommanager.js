@@ -20,6 +20,7 @@ class Room {
 		this.description = "";
 		this.isTemporary = false;
 		this.visibility = "public";
+		this.queueMode = "manual"; // manual, vote
 		this.currentSource = {};
 		this.queue = [];
 		this.isPlaying = false;
@@ -64,6 +65,10 @@ class Room {
 
 				if (session) {
 					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, session.username, { video: queueItem }));
+
+					if (this.queueMode === "vote") {
+						this.voteVideo(queueItem, session);
+					}
 				}
 				else {
 					console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
@@ -74,6 +79,61 @@ class Room {
 		else {
 			throw `Service ${queueItem.service} not yet supported`;
 		}
+	}
+
+	/**
+	 * Vote for a video if the room is in voting mode.
+	 * @param {Video|Object} video The video to vote for.
+	 * @param {Object} session The user session that is voting for the video
+	 */
+	voteVideo(video, session) {
+		if (this.queueMode !== "vote") {
+			console.error("Room not in voting mode");
+			return false;
+		}
+
+		// check if the voted video is in the queue
+		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		if (matchIdx < 0) {
+			console.error("Can't vote for video not in queue");
+			return false;
+		}
+
+		if (!this.queue[matchIdx].votes) {
+			this.queue[matchIdx].votes = [];
+		}
+
+		// check to see if the vote already exists
+		if (_.findIndex(this.queue[matchIdx].votes, { userSessionId: session.id }) >= 0) {
+			console.error("Vote for video already exists");
+			return false;
+		}
+
+		this.queue[matchIdx].votes.push({ userSessionId: session.id });
+		this.queue[matchIdx]._lastVotesChanged = moment();
+		return true;
+	}
+
+	/**
+	 * Remove a user's vote for a video if the room is in voting mode.
+	 * @param {Video|Object} video The video to remove the vote for.
+	 * @param {Object} session The user session that is voting for the video
+	 */
+	removeVoteVideo(video, session) {
+		if (this.queueMode !== "vote") {
+			console.error("Room not in voting mode");
+			return false;
+		}
+
+		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		if (matchIdx < 0) {
+			console.error("Can't remove vote for video not in queue");
+			return false;
+		}
+
+		this.queue[matchIdx].votes = _.reject(this.queue[matchIdx].votes, { userSessionId: session.id });
+		this.queue[matchIdx]._lastVotesChanged = moment();
+		return true;
 	}
 
 	removeFromQueue(video, session=null) {
@@ -110,6 +170,17 @@ class Room {
 			}
 		}
 
+		// sort queue according to queue mode
+		if (this.queueMode === "vote") {
+			this.queue = _.orderBy(this.queue, [
+				video => video.votes ? video.votes.length : 0,
+				video => video._lastVotesChanged,
+			], [
+				"desc",
+				"asc",
+			]);
+		}
+
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
 			this.currentSource = this.queue.shift();
 		}
@@ -138,8 +209,9 @@ class Room {
 			title: this.title,
 			description: this.description,
 			isTemporary: this.isTemporary,
+			queueMode: this.queueMode,
 			currentSource: this.currentSource,
-			queue: this.queue,
+			queue: _.cloneDeep(this.queue),
 			isPlaying: this.isPlaying,
 			playbackPosition: this.playbackPosition,
 			users: [],
@@ -157,6 +229,16 @@ class Room {
 					isYou: client.socket == c.socket,
 				};
 			});
+
+			// include if the user has voted
+			if (this.queueMode === "vote") {
+				syncMsg.queue = this.queue.map(video => {
+					let v = _.cloneDeep(video);
+					v.votes = video.votes ? video.votes.length : 0;
+					v.voted = _.find(video.votes, { userSessionId: client.session.id }) ? true : false;
+					return v;
+				});
+			}
 
 			try {
 				client.socket.send(JSON.stringify(syncMsg));
@@ -302,6 +384,10 @@ class Room {
 			}
 		}
 		else if (msg.action === "queue-move") {
+			if (this.queueMode === "vote") {
+				return;
+			}
+
 			let video = this.queue.splice(msg.currentIdx, 1)[0];
 			this.queue.splice(msg.targetIdx, 0, video);
 			this.sync();
