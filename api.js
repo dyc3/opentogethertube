@@ -52,6 +52,7 @@ module.exports = function(_roommanager, storage) {
 				delete client.socket;
 			}
 			for (let video of room.queue) {
+				delete video._lastVotesChanged;
 				if (room.queueMode === "vote") {
 					video.votes = video.votes ? video.votes.length : 0;
 				}
