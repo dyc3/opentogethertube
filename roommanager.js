@@ -3,17 +3,9 @@ const _ = require("lodash");
 const moment = require("moment");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const NanoTimer = require("nanotimer");
-const redis = require('redis');
 const InfoExtract = require("./infoextract");
 const storage = require("./storage");
 const Video = require("./common/video.js");
-
-const redisClient = redis.createClient({
-	port: process.env.REDIS_PORT || undefined,
-	host: process.env.REDIS_HOST || undefined,
-	password: process.env.REDIS_PASSWORD || undefined,
-	db: 0,
-});
 
 /**
  * Represents a Room and all it's associated state, settings, connected clients.
@@ -469,7 +461,7 @@ module.exports = {
 	 * @param {Object} httpServer The http server to get websocket connections from.
 	 * @param {Object} sessions The session parser that express uses.
 	 */
-	start(httpServer, sessions) {
+	start(httpServer, sessions, redisClient) {
 		const wss = new WebSocket.Server({ noServer: true });
 
 		httpServer.on('upgrade', (req, socket, head) => {
@@ -503,6 +495,7 @@ module.exports = {
 			});
 		});
 
+		this.redisClient = redisClient;
 		redisClient.on("connect", () => {
 			console.log("Connected to redis");
 		});
@@ -575,7 +568,7 @@ module.exports = {
 	 */
 	getAllLoadedRooms() {
 		return new Promise((resolve, reject) => {
-			redisClient.get("rooms", (err, value) => {
+			this.redisClient.get("rooms", (err, value) => {
 				if (err) {
 					reject(err);
 					return;
@@ -593,7 +586,7 @@ module.exports = {
 	 * Save all the loaded rooms into redis.
 	 */
 	saveAllLoadedRooms() {
-		redisClient.set("rooms", JSON.stringify(this.rooms), err => {
+		this.redisClient.set("rooms", JSON.stringify(this.rooms), err => {
 			if (err) {
 				console.error(err);
 				throw err;
