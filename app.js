@@ -29,7 +29,7 @@ const redisClient = redis.createClient({
 	port: process.env.REDIS_PORT || undefined,
 	host: process.env.REDIS_HOST || undefined,
 	password: process.env.REDIS_PASSWORD || undefined,
-	db: 0,
+	db: process.env.REDIS_DB || undefined,
 });
 
 const session = require('express-session');

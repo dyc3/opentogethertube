@@ -507,6 +507,7 @@ module.exports = {
 		});
 		this.getAllLoadedRooms().then(result => {
 			this.rooms = result || [];
+			console.log(`Loaded ${this.rooms.length} rooms from redis`);
 		});
 
 		const nanotimer = new NanoTimer();
