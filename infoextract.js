@@ -376,7 +376,7 @@ module.exports = {
 						if (id) {
 							let highlighted = false;
 							for (let preview of previews) {
-								if (preview.id === id) {
+								if (preview && preview.id === id) {
 									preview.highlight = true;
 									highlighted = true;
 								}
