@@ -1,3 +1,5 @@
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
+
 module.exports = {
 	devServer: {
 		proxy: {
@@ -12,5 +14,8 @@ module.exports = {
 		webpackBundleAnalyzer: {
 			openAnalyzer: false,
 		},
+	},
+	configureWebpack: {
+		plugins: [new PreloadWebpackPlugin()],
 	},
 };
