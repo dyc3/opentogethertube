@@ -325,7 +325,7 @@ module.exports = {
 	},
 
 	searchYoutube(query) {
-		return YtApi.get(`/search?key=${process.env.YOUTUBE_API_KEY}&part=id&type=video&maxResults=10&safeSearch=none&videoEmbeddable=true&videoSyndicated=true&q=${query}`).then(res => {
+		return YtApi.get(`/search?key=${process.env.YOUTUBE_API_KEY}&part=id&type=video&maxResults=8&safeSearch=none&videoEmbeddable=true&videoSyndicated=true&q=${query}`).then(res => {
 			return res.data.items.map(searchResult => new Video({
 				service: "youtube",
 				id: searchResult.id.videoId,
