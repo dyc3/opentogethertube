@@ -574,6 +574,9 @@ module.exports = {
 					reject(err);
 					return;
 				}
+				if (!value) {
+					return null;
+				}
 				let rooms = JSON.parse(value);
 				resolve(rooms.map(room => {
 					delete room.clients;
