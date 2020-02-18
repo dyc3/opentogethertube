@@ -14,7 +14,7 @@ class Room {
 	/**
 	 * DO NOT CREATE NEW ROOMS WITH THIS CONSTRUCTOR. Create/get Rooms using the RoomManager.
 	 */
-	constructor() {
+	constructor(args=undefined) {
 		this.name = "";
 		this.title = "";
 		this.description = "";
@@ -27,6 +27,9 @@ class Room {
 		this.playbackPosition = 0;
 		this.clients = [];
 		this.keepAlivePing = null;
+		if (args) {
+			Object.assign(this, args);
+		}
 	}
 
 	/**
@@ -458,7 +461,7 @@ module.exports = {
 	 * @param {Object} httpServer The http server to get websocket connections from.
 	 * @param {Object} sessions The session parser that express uses.
 	 */
-	start(httpServer, sessions) {
+	start(httpServer, sessions, redisClient) {
 		const wss = new WebSocket.Server({ noServer: true });
 
 		httpServer.on('upgrade', (req, socket, head) => {
@@ -492,6 +495,21 @@ module.exports = {
 			});
 		});
 
+		this.redisClient = redisClient;
+		redisClient.on("connect", () => {
+			console.log("Connected to redis");
+		});
+		redisClient.on("ready", () => {
+			console.log("Redis client is ready");
+		});
+		redisClient.on('error', err => {
+			console.log('error event - ' + redisClient.host + ':' + redisClient.port + ' - ' + err);
+		});
+		this.getAllLoadedRooms().then(result => {
+			this.rooms = result || [];
+			console.log(`Loaded ${this.rooms.length} rooms from redis`);
+		});
+
 		const nanotimer = new NanoTimer();
 		nanotimer.setInterval(() => {
 			for (const room of this.rooms) {
@@ -502,8 +520,9 @@ module.exports = {
 				room.update();
 				room.sync();
 				this.unloadIfEmpty(room);
-
 			}
+
+			this.saveAllLoadedRooms();
 		}, '', '1000m');
 	},
 
@@ -542,6 +561,42 @@ module.exports = {
 			storage.saveRoom(newRoom);
 		}
 		this.rooms.push(newRoom);
+	},
+
+	/**
+	 * Get all the loaded rooms from redis.
+	 * @returns {Promise.<Array.<Room>>}
+	 */
+	getAllLoadedRooms() {
+		return new Promise((resolve, reject) => {
+			this.redisClient.get("rooms", (err, value) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				let rooms = JSON.parse(value);
+				resolve(rooms.map(room => {
+					delete room.clients;
+					return new Room(room);
+				}));
+			});
+		});
+	},
+
+	/**
+	 * Save all the loaded rooms into redis.
+	 */
+	saveAllLoadedRooms() {
+		let rooms = _.cloneDeep(this.rooms).map(room => {
+			delete room.clients;
+			return room;
+		});
+		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
+			if (err) {
+				console.error(err);
+				throw err;
+			}
+		});
 	},
 
 	/**
