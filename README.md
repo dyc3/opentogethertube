@@ -38,6 +38,7 @@ cp env/example.env env/development.env
 ```
 npx sequelize-cli db:migrate
 ```
+7. Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
 
 ### Testing
 
