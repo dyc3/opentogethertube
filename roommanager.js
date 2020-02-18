@@ -575,18 +575,22 @@ module.exports = {
 				}
 				let rooms = JSON.parse(value);
 				resolve(rooms.map(room => {
-					delete room.users;
+					delete room.clients;
 					return new Room(room);
 				}));
 			});
-		})
+		});
 	},
 
 	/**
 	 * Save all the loaded rooms into redis.
 	 */
 	saveAllLoadedRooms() {
-		this.redisClient.set("rooms", JSON.stringify(this.rooms), err => {
+		let rooms = _.cloneDeep(this.rooms).map(room => {
+			delete room.clients;
+			return room;
+		});
+		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
 			if (err) {
 				console.error(err);
 				throw err;
