@@ -24,8 +24,18 @@ require('dotenv').config({ path: config_path });
 const app = express();
 const server = http.createServer(app);
 
+const redis = require('redis');
+const redisClient = redis.createClient({
+	port: process.env.REDIS_PORT || undefined,
+	host: process.env.REDIS_HOST || undefined,
+	password: process.env.REDIS_PASSWORD || undefined,
+	db: process.env.REDIS_DB || undefined,
+});
+
 const session = require('express-session');
+let RedisStore = require('connect-redis')(session);
 let sessionOpts = {
+	store: new RedisStore({ client: redisClient }),
 	secret: "opentogethertube", // FIXME: This doesn't matter right now, but when user accounts are implemented this should be fixed.
 	resave: false,
 	saveUninitialized: true,
@@ -56,7 +66,7 @@ app.use((req, res, next) => {
 const storage = require("./storage");
 const roommanager = require("./roommanager");
 const api = require("./api")(roommanager, storage);
-roommanager.start(server, sessions);
+roommanager.start(server, sessions, redisClient);
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies

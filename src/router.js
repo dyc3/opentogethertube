@@ -26,6 +26,11 @@ export default new Router({
       component: () => import(/* webpackChunkName: "room" */ './views/Room.vue'),
     },
     {
+      path: '/faq',
+      name: 'faq',
+      component: () => import(/* webpackChunkName: "faq" */ './views/Faq.vue'),
+    },
+    {
       path: '*',
       name: 'not-found',
       component: () => import(/* webpackChunkName: "not-found" */ './views/NotFound.vue'),

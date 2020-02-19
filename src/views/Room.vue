@@ -1,15 +1,16 @@
 <template>
   <div>
-    <v-container fluid class="room" v-if="!showJoinFailOverlay">
-      <v-col>
+    <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
+      <v-col v-if="!$store.state.fullscreen">
         <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
         <span id="connectStatus">{{ connectionStatus }}</span>
       </v-col>
-      <v-col>
+      <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
         <v-row no-gutters class="video-container">
-          <v-col cols="12" xl="7" md="8">
+          <v-col cols="12" :xl="$store.state.fullscreen ? 8 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <div class="iframe-container" :key="currentSource.service">
               <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0, disablekb: 1 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
+              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
               <v-container fluid fill-height class="no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -39,7 +40,7 @@
               </v-row>
             </v-col>
           </v-col>
-          <v-col cols="12" xl="5" md="4" class="chat-container">
+          <v-col cols="12" :xl="$store.state.fullscreen ? 4 : 5" md="4" class="chat-container">
             <div class="d-flex flex-column" style="height: 100%">
               <h4>Chat</h4>
               <div class="messages d-flex flex-column flex-grow-1 mt-2">
@@ -56,12 +57,13 @@
         </v-row>
         <v-row no-gutters>
           <v-col cols="8" md="8" sm="12">
-            <v-tabs grow v-model="queueTab">
+            <v-tabs grow v-model="queueTab" @change="onTabChange">
               <v-tab>
                 Queue
                 <span class="bubble">{{ $store.state.room.queue.length <= 99 ? $store.state.room.queue.length : "99+" }}</span>
               </v-tab>
               <v-tab>Add</v-tab>
+              <v-tab>Settings</v-tab>
             </v-tabs>
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
@@ -75,8 +77,10 @@
                 <div class="video-add">
                   <div>
                     <v-text-field placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" />
-                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test video 0</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test video 1</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -96,8 +100,23 @@
                         </v-row>
                       </v-container>
                     </v-row>
+                    <div v-if="highlightedAddPreviewItem">
+                      <VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
+                      <h4>Playlist</h4>
+                    </div>
                     <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
                   </div>
+                </div>
+              </v-tab-item>
+              <v-tab-item>
+                <div class="room-settings">
+                  <v-form @submit="submitRoomSettings">
+                    <v-text-field label="Title" v-model="inputRoomSettingsTitle" :loading="isLoadingRoomSettings" />
+                    <v-text-field label="Description" v-model="inputRoomSettingsDescription" :loading="isLoadingRoomSettings" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettingsVisibility" :loading="isLoadingRoomSettings" />
+                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettingsQueueMode" :loading="isLoadingRoomSettings" />
+                    <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
+                  </v-form>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -142,12 +161,15 @@ import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import secondsToTimestamp from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
+import VueSlider from 'vue-slider-component';
 
 export default {
   name: 'room',
   components: {
     draggable,
     VideoQueueItem,
+    VueSlider,
+    VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
   },
   data() {
     return {
@@ -165,6 +187,12 @@ export default {
       addPreviewLoadFailureText: "",
       inputAddPreview: "",
       inputChatMsgText: "",
+      shouldChatStickToBottom: true,
+      isLoadingRoomSettings: false,
+      inputRoomSettingsTitle: "",
+      inputRoomSettingsDescription: "",
+      inputRoomSettingsVisibility: "",
+      inputRoomSettingsQueueMode: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -217,6 +245,9 @@ export default {
         return false;
       }
     },
+    highlightedAddPreviewItem() {
+      return _.find(this.addPreview, { highlight: true });
+    },
   },
   async created() {
     if (!this.$store.state.production) {
@@ -262,6 +293,13 @@ export default {
 
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
+    let msgsDiv = document.getElementsByClassName("messages");
+    if (msgsDiv.length) {
+      msgsDiv = msgsDiv[0];
+      // msgsDiv.removeEventListener("scroll", this.onChatScroll);
+      // msgsDiv.addEventListener("scroll", this.onChatScroll);
+      msgsDiv.onscroll = this.onChatScroll;
+    }
 
     if (!this.$store.state.socket.isConnected) {
       // This check prevents the client from connecting multiple times,
@@ -274,6 +312,8 @@ export default {
       let videos = [
         "https://www.youtube.com/watch?v=WC66l5tPIF4",
         "https://www.youtube.com/watch?v=aI67KDJRnvQ",
+        "https://vimeo.com/94338566",
+        "https://vimeo.com/239423699",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
@@ -311,15 +351,24 @@ export default {
       if (this.currentSource.service == "youtube") {
         this.$refs.youtube.player.playVideo();
       }
+      else if (this.currentSource.service === "vimeo") {
+        this.$refs.vimeo.play();
+      }
     },
     pause() {
       if (this.currentSource.service == "youtube") {
         this.$refs.youtube.player.pauseVideo();
       }
+      else if (this.currentSource.service === "vimeo") {
+        this.$refs.vimeo.pause();
+      }
     },
     updateVolume() {
       if (this.currentSource.service == "youtube") {
         this.$refs.youtube.player.setVolume(this.volume);
+      }
+      else if (this.currentSource.service === "vimeo") {
+        this.$refs.vimeo.setVolume(this.volume);
       }
     },
     requestAddPreview() {
@@ -403,6 +452,14 @@ export default {
     onPlayerReady_Youtube() {
       this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
     },
+    onPlayerReady_Vimeo() {
+      if (this.$store.state.room.isPlaying) {
+        this.play();
+      }
+      else {
+        this.pause();
+      }
+    },
     onKeyDown(e) {
       if (e.target.nodeName === "INPUT") {
         return;
@@ -419,6 +476,9 @@ export default {
       else if (e.code === "End") {
         this.$socket.sendObj({ action: "skip" });
         e.preventDefault();
+      }
+      else if (e.code === "KeyF") {
+        this.toggleFullscreen();
       }
       else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
         let seekIncrement = 5;
@@ -452,6 +512,15 @@ export default {
       if (e.keyCode === 13 && this.inputChatMsgText.length > 0) {
         this.$socket.sendObj({ action: "chat", text: this.inputChatMsgText });
         this.inputChatMsgText = "";
+        this.shouldChatStickToBottom = true;
+      }
+    },
+    onChatScroll() {
+      let msgsDiv = document.getElementsByClassName("messages");
+      if (msgsDiv.length) {
+        msgsDiv = msgsDiv[0];
+        let distToBottom = msgsDiv.scrollHeight - msgsDiv.clientHeight - msgsDiv.scrollTop;
+        this.shouldChatStickToBottom = distToBottom == 0;
       }
     },
     onQueueDragDrop(e) {
@@ -467,6 +536,30 @@ export default {
         event,
       });
       this.$store.state.room.events.splice(idx, 1);
+    },
+    onTabChange() {
+      if (this.queueTab === 2) {
+        // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
+        this.isLoadingRoomSettings = true;
+        API.get(`/room/${this.$route.params.roomId}`).then(res => {
+          this.isLoadingRoomSettings = false;
+          this.inputRoomSettingsTitle = res.data.title;
+          this.inputRoomSettingsDescription = res.data.description;
+          this.inputRoomSettingsVisibility = res.data.visibility;
+          this.inputRoomSettingsQueueMode = res.data.queueMode;
+        });
+      }
+    },
+    submitRoomSettings() {
+      this.isLoadingRoomSettings = true;
+      API.patch(`/room/${this.$route.params.roomId}`, {
+        title: this.inputRoomSettingsTitle,
+        description: this.inputRoomSettingsDescription,
+        visibility: this.inputRoomSettingsVisibility,
+        queueMode: this.inputRoomSettingsQueueMode,
+      }).then(() => {
+        this.isLoadingRoomSettings = false;
+      });
     },
   },
   mounted() {
@@ -491,8 +584,20 @@ export default {
       this.updateVolume();
     },
     async sliderPosition(newPosition) {
-      if (Math.abs(newPosition - await this.$refs.youtube.player.getCurrentTime()) > 1) {
-        this.$refs.youtube.player.seekTo(newPosition);
+      let currentTime = null;
+      if (this.currentSource.service === "youtube") {
+        currentTime = await this.$refs.youtube.player.getCurrentTime();
+      }
+      else if (this.currentSource.service === "vimeo") {
+        currentTime = await this.$refs.vimeo.getPosition();
+      }
+      if (Math.abs(newPosition - currentTime) > 1) {
+        if (this.currentSource.service === "youtube") {
+          this.$refs.youtube.player.seekTo(newPosition);
+        }
+        else if (this.currentSource.service === "vimeo") {
+          this.$refs.vimeo.setPosition(newPosition);
+        }
       }
     },
     inputAddPreview() {
@@ -503,10 +608,10 @@ export default {
   },
   updated() {
     // scroll the messages to the bottom
-    let msgsDiv = document.getElementsByClassName("messages");
-    if (msgsDiv.length) {
-      msgsDiv = msgsDiv[0];
-      if (msgsDiv.scrollTop >= msgsDiv.scrollHeight - msgsDiv.clientHeight - 100) {
+    if (this.shouldChatStickToBottom) {
+      let msgsDiv = document.getElementsByClassName("messages");
+      if (msgsDiv.length) {
+        msgsDiv = msgsDiv[0];
         msgsDiv.scrollTop = msgsDiv.scrollHeight;
       }
     }
@@ -533,7 +638,7 @@ export default {
   min-height: 500px;
 }
 .queue-tab-content {
-  background: transparent;
+  background: transparent !important;
 }
 .is-you {
   color: #ffb300;
@@ -579,6 +684,7 @@ export default {
 
   .messages {
     overflow-y: auto;
+    overflow-x: hidden;
 
     // makes flex-grow work (for some reason)
     // the value is the height this element will take on md size screens and smaller
@@ -595,10 +701,16 @@ export default {
 
     .from, .text {
       margin: 3px 5px;
+      word-wrap: break-word;
     }
 
     .from {
       font-weight: bold;
+      max-width: 20%;
+    }
+
+    .text {
+      min-width: 80%;
     }
   }
 }
@@ -608,5 +720,13 @@ export default {
 }
 .no-move {
   transition: transform 0s;
+}
+
+.fullscreen {
+  padding: 0;
+
+  .video-container {
+    margin: 0;
+  }
 }
 </style>

@@ -8,4 +8,12 @@ module.exports = {
 		},
 	},
 	transpileDependencies: ["vuetify"],
+	pluginOptions: {
+		webpackBundleAnalyzer: {
+			openAnalyzer: false,
+		},
+	},
+	configureWebpack: {
+		plugins: [],
+	},
 };

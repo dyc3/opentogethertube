@@ -145,9 +145,10 @@ describe('Room UI spec', () => {
   it('should render test buttons when in dev environment', () => {
     store.state.production = false;
     const testVideoButtons = wrapper.find('.video-add').findAll({ name: 'v-btn' });
-    expect(testVideoButtons.length).toEqual(2);
-    expect(testVideoButtons.at(0).text()).toEqual('Add test video 0');
-    expect(testVideoButtons.at(1).text()).toEqual('Add test video 1');
+    expect(testVideoButtons.length).toBeGreaterThanOrEqual(1);
+    expect(testVideoButtons.at(0).text()).toEqual('Add test youtube 0');
+    expect(testVideoButtons.at(1).text()).toEqual('Add test youtube 1');
+    expect(testVideoButtons.at(2).text()).toEqual('Add test vimeo 2');
   });
 
   it('should NOT render test buttons when in production environment', () => {

@@ -8,7 +8,7 @@ http://opentogethertube.com/
 
 # Contributing
 
-Contributions are welcome. The current iteration is named "Flare", and you can
+Contributions are welcome. The current iteration is named "Firework", and you can
 see what's currently being worked on under the "projects" tab.
 
 ## Setting up your dev environment
@@ -38,6 +38,7 @@ cp env/example.env env/development.env
 ```
 npx sequelize-cli db:migrate
 ```
+7. Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
 
 ### Testing
 

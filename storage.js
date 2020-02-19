@@ -36,6 +36,16 @@ module.exports = {
 			return false;
 		});
 	},
+	updateRoom(room) {
+		return Room.findOne({
+			where: { name: room.name },
+		}).then(dbRoom => {
+			if (!dbRoom) {
+				return false;
+			}
+			return dbRoom.update(room).then(() => true);
+		});
+	},
 	/**
 	 * Gets cached video information from the database. If cached information
 	 * is invalid, it will be omitted from the returned video object.

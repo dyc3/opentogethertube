@@ -14,18 +14,22 @@ class Room {
 	/**
 	 * DO NOT CREATE NEW ROOMS WITH THIS CONSTRUCTOR. Create/get Rooms using the RoomManager.
 	 */
-	constructor() {
+	constructor(args=undefined) {
 		this.name = "";
 		this.title = "";
 		this.description = "";
 		this.isTemporary = false;
-		this.visibility = "public"; //TODO: Might not be the best variable. Change?
+		this.visibility = "public";
+		this.queueMode = "manual"; // manual, vote
 		this.currentSource = {};
 		this.queue = [];
 		this.isPlaying = false;
 		this.playbackPosition = 0;
 		this.clients = [];
 		this.keepAlivePing = null;
+		if (args) {
+			Object.assign(this, args);
+		}
 	}
 
 	/**
@@ -41,13 +45,16 @@ class Room {
 			if (queueItem.service === "youtube") {
 				queueItem.id = InfoExtract.getVideoIdYoutube(video.url);
 			}
+			else if (queueItem.service === "vimeo") {
+				queueItem.id = InfoExtract.getVideoIdVimeo(video.url);
+			}
 		}
 		else {
 			queueItem.service = video.service;
 			queueItem.id = video.id;
 		}
 
-		if (queueItem.service === "youtube") {
+		if (queueItem.service === "youtube" || queueItem.service === "vimeo") {
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
@@ -61,6 +68,10 @@ class Room {
 
 				if (session) {
 					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, session.username, { video: queueItem }));
+
+					if (this.queueMode === "vote") {
+						this.voteVideo(queueItem, session);
+					}
 				}
 				else {
 					console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
@@ -71,6 +82,61 @@ class Room {
 		else {
 			throw `Service ${queueItem.service} not yet supported`;
 		}
+	}
+
+	/**
+	 * Vote for a video if the room is in voting mode.
+	 * @param {Video|Object} video The video to vote for.
+	 * @param {Object} session The user session that is voting for the video
+	 */
+	voteVideo(video, session) {
+		if (this.queueMode !== "vote") {
+			console.error("Room not in voting mode");
+			return false;
+		}
+
+		// check if the voted video is in the queue
+		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		if (matchIdx < 0) {
+			console.error("Can't vote for video not in queue");
+			return false;
+		}
+
+		if (!this.queue[matchIdx].votes) {
+			this.queue[matchIdx].votes = [];
+		}
+
+		// check to see if the vote already exists
+		if (_.findIndex(this.queue[matchIdx].votes, { userSessionId: session.id }) >= 0) {
+			console.error("Vote for video already exists");
+			return false;
+		}
+
+		this.queue[matchIdx].votes.push({ userSessionId: session.id });
+		this.queue[matchIdx]._lastVotesChanged = moment();
+		return true;
+	}
+
+	/**
+	 * Remove a user's vote for a video if the room is in voting mode.
+	 * @param {Video|Object} video The video to remove the vote for.
+	 * @param {Object} session The user session that is voting for the video
+	 */
+	removeVoteVideo(video, session) {
+		if (this.queueMode !== "vote") {
+			console.error("Room not in voting mode");
+			return false;
+		}
+
+		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		if (matchIdx < 0) {
+			console.error("Can't remove vote for video not in queue");
+			return false;
+		}
+
+		this.queue[matchIdx].votes = _.reject(this.queue[matchIdx].votes, { userSessionId: session.id });
+		this.queue[matchIdx]._lastVotesChanged = moment();
+		return true;
 	}
 
 	removeFromQueue(video, session=null) {
@@ -107,6 +173,17 @@ class Room {
 			}
 		}
 
+		// sort queue according to queue mode
+		if (this.queueMode === "vote") {
+			this.queue = _.orderBy(this.queue, [
+				video => video.votes ? video.votes.length : 0,
+				video => video._lastVotesChanged,
+			], [
+				"desc",
+				"asc",
+			]);
+		}
+
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
 			this.currentSource = this.queue.shift();
 		}
@@ -135,8 +212,9 @@ class Room {
 			title: this.title,
 			description: this.description,
 			isTemporary: this.isTemporary,
+			queueMode: this.queueMode,
 			currentSource: this.currentSource,
-			queue: this.queue,
+			queue: _.cloneDeep(this.queue),
 			isPlaying: this.isPlaying,
 			playbackPosition: this.playbackPosition,
 			users: [],
@@ -154,6 +232,16 @@ class Room {
 					isYou: client.socket == c.socket,
 				};
 			});
+
+			// include if the user has voted
+			if (this.queueMode === "vote") {
+				syncMsg.queue = this.queue.map(video => {
+					let v = _.cloneDeep(video);
+					v.votes = video.votes ? video.votes.length : 0;
+					v.voted = _.find(video.votes, { userSessionId: client.session.id }) ? true : false;
+					return v;
+				});
+			}
 
 			try {
 				client.socket.send(JSON.stringify(syncMsg));
@@ -299,6 +387,10 @@ class Room {
 			}
 		}
 		else if (msg.action === "queue-move") {
+			if (this.queueMode === "vote") {
+				return;
+			}
+
 			let video = this.queue.splice(msg.currentIdx, 1)[0];
 			this.queue.splice(msg.targetIdx, 0, video);
 			this.sync();
@@ -369,7 +461,7 @@ module.exports = {
 	 * @param {Object} httpServer The http server to get websocket connections from.
 	 * @param {Object} sessions The session parser that express uses.
 	 */
-	start(httpServer, sessions) {
+	start(httpServer, sessions, redisClient) {
 		const wss = new WebSocket.Server({ noServer: true });
 
 		httpServer.on('upgrade', (req, socket, head) => {
@@ -403,6 +495,21 @@ module.exports = {
 			});
 		});
 
+		this.redisClient = redisClient;
+		redisClient.on("connect", () => {
+			console.log("Connected to redis");
+		});
+		redisClient.on("ready", () => {
+			console.log("Redis client is ready");
+		});
+		redisClient.on('error', err => {
+			console.log('error event - ' + redisClient.host + ':' + redisClient.port + ' - ' + err);
+		});
+		this.getAllLoadedRooms().then(result => {
+			this.rooms = result || [];
+			console.log(`Loaded ${this.rooms.length} rooms from redis`);
+		});
+
 		const nanotimer = new NanoTimer();
 		nanotimer.setInterval(() => {
 			for (const room of this.rooms) {
@@ -413,8 +520,9 @@ module.exports = {
 				room.update();
 				room.sync();
 				this.unloadIfEmpty(room);
-
 			}
+
+			this.saveAllLoadedRooms();
 		}, '', '1000m');
 	},
 
@@ -453,6 +561,45 @@ module.exports = {
 			storage.saveRoom(newRoom);
 		}
 		this.rooms.push(newRoom);
+	},
+
+	/**
+	 * Get all the loaded rooms from redis.
+	 * @returns {Promise.<Array.<Room>>}
+	 */
+	getAllLoadedRooms() {
+		return new Promise((resolve, reject) => {
+			this.redisClient.get("rooms", (err, value) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				if (!value) {
+					return null;
+				}
+				let rooms = JSON.parse(value);
+				resolve(rooms.map(room => {
+					delete room.clients;
+					return new Room(room);
+				}));
+			});
+		});
+	},
+
+	/**
+	 * Save all the loaded rooms into redis.
+	 */
+	saveAllLoadedRooms() {
+		let rooms = _.cloneDeep(this.rooms).map(room => {
+			delete room.clients;
+			return room;
+		});
+		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
+			if (err) {
+				console.error(err);
+				throw err;
+			}
+		});
 	},
 
 	/**
