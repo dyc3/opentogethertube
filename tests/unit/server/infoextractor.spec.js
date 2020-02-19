@@ -40,6 +40,11 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getService("https://vimeo.com/94338566")).toEqual("vimeo");
   });
 
+  it('getService() should return dailymotion when given dailymotion link', () => {
+    expect(InfoExtract.getService("https://www.dailymotion.com/video/x6hkywd")).toEqual("dailymotion");
+    expect(InfoExtract.getService("https://dai.ly/x6hkywd")).toEqual("dailymotion");
+  });
+
   it('getService() should return false when given link to unsupported service', () => {
     expect(InfoExtract.getService("http://example.com")).toEqual(false);
   });
@@ -78,6 +83,12 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566")).toEqual("94338566");
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566?t=2")).toEqual("94338566");
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/channels/susisie/94338566")).toEqual("94338566");
+  });
+
+  it('getVideoIdDailymotion() should return correct id when given dailymotion link', () => {
+    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd")).toEqual("x6hkywd");
+    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd?start=120")).toEqual("x6hkywd");
+    expect(InfoExtract.getVideoIdDailymotion("https://dai.ly/x6hkywd")).toEqual("x6hkywd");
   });
 });
 

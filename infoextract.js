@@ -13,6 +13,7 @@ const YtApi = axios.create({
 });
 const VIMEO_OEMBED_API_URL = "https://vimeo.com/api/oembed.json";
 const VimeoApi = axios.create();
+const DAILYMOTION_OEMBED_API_URL = "http://www.dailymotion.com/services/oembed";
 
 class UnsupportedServiceException extends Error {
 	constructor(hostname) {
@@ -301,6 +302,9 @@ module.exports = {
 		else if (srcUrl.host.endsWith("vimeo.com")) {
 			return "vimeo";
 		}
+		else if (srcUrl.host.endsWith("dailymotion.com") || srcUrl.host.endsWith("dai.ly")) {
+			return "dailymotion";
+		}
 		else {
 			return false;
 		}
@@ -530,6 +534,11 @@ module.exports = {
 	 * @returns {string} Vimeo video id
 	 */
 	getVideoIdVimeo(link) {
+		let urlParsed = url.parse(link);
+		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
+	},
+
+	getVideoIdDailymotion(link) {
 		let urlParsed = url.parse(link);
 		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
 	},
