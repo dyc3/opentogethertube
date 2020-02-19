@@ -578,4 +578,40 @@ module.exports = {
 			}
 		});
 	},
+
+	/**
+	 * Gets video metadata for dailymotion videos.
+	 *
+	 * https://developer.dailymotion.com/player/#player-oembed
+	 * https://developer.dailymotion.com/tools/
+	 * @param {string} id The video id on vimeo
+	 * @returns {Promise<Video>|null} Video with metadata, null if it fails to get metadata
+	 */
+	getVideoInfoDailymotion(id) {
+		// HACK: This API method doesn't require us to use authentication, but it gives us somewhat low res thumbnail urls
+		return axios.get(`${DAILYMOTION_OEMBED_API_URL}?url=https://dailymotion.com/${id}`).then(res => {
+			let video = new Video({
+				service: "dailymotion",
+				id,
+				title: res.data.title,
+				description: res.data.description,
+				thumbnail: res.data.thumbnail_url,
+				length: res.data.duration,
+			});
+			storage.updateVideoInfo(video);
+			return video;
+		}).catch(err => {
+			if (err.response.status === 403) {
+				console.error("Failed to get dailymotion video info: Embedding for this video is disabled");
+				return null;
+			}
+			else {
+				console.error("Failed to get dailymotion video info:", err);
+				return new Video({
+					service: "dailymotion",
+					id,
+				});
+			}
+		});
+	},
 };
