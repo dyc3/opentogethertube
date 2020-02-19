@@ -252,9 +252,7 @@ module.exports = {
 				}
 
 				// update cache
-				for (const id in results) {
-					storage.updateVideoInfo(results[id]);
-				}
+				storage.updateManyVideoInfo(_.values(results));
 
 				resolve(results);
 			}).catch(err => {
