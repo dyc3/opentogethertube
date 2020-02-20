@@ -11,6 +11,7 @@
             <div class="player-container" :key="currentSource.service">
               <YoutubePlayer v-if="currentSource.service == 'youtube'" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
+              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" ref="dailymotion" :video-id="currentSource.id" />
               <v-container fluid fill-height class="no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -172,6 +173,7 @@ export default {
     VueSlider,
     YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
     VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
+    DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
   },
   data() {
     return {
@@ -350,6 +352,9 @@ export default {
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.play();
       }
+      else if (this.currentSource.service === "dailymotion") {
+        this.$refs.dailymotion.play();
+      }
     },
     pause() {
       if (this.currentSource.service == "youtube") {
@@ -358,6 +363,9 @@ export default {
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.pause();
       }
+      else if (this.currentSource.service === "dailymotion") {
+        this.$refs.dailymotion.pause();
+      }
     },
     updateVolume() {
       if (this.currentSource.service == "youtube") {
@@ -365,6 +373,9 @@ export default {
       }
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.setVolume(this.volume);
+      }
+      else if (this.currentSource.service === "dailymotion") {
+        this.$refs.dailymotion.setVolume(this.volume);
       }
     },
     requestAddPreview() {
