@@ -7,6 +7,8 @@ const InfoExtract = require("./infoextract");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 
+const SUPPORTED_SERVICES = ["youtube", "vimeo", "dailymotion"];
+
 /**
  * Represents a Room and all it's associated state, settings, connected clients.
  */
@@ -48,13 +50,16 @@ class Room {
 			else if (queueItem.service === "vimeo") {
 				queueItem.id = InfoExtract.getVideoIdVimeo(video.url);
 			}
+			else if (queueItem.service === "dailymotion") {
+				queueItem.id = InfoExtract.getVideoIdDailymotion(video.url);
+			}
 		}
 		else {
 			queueItem.service = video.service;
 			queueItem.id = video.id;
 		}
 
-		if (queueItem.service === "youtube" || queueItem.service === "vimeo") {
+		if (SUPPORTED_SERVICES.includes(queueItem.service)) {
 			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;

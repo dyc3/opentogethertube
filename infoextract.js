@@ -92,6 +92,9 @@ module.exports = {
 			else if (video.service === "vimeo") {
 				return this.getVideoInfoVimeo(video.id);
 			}
+			else if (video.service === "dailymotion") {
+				return this.getVideoInfoDailymotion(video.id);
+			}
 		}).catch(err => {
 			console.error("Failed to get video metadata from database:", err);
 		});
@@ -589,14 +592,14 @@ module.exports = {
 	 */
 	getVideoInfoDailymotion(id) {
 		// HACK: This API method doesn't require us to use authentication, but it gives us somewhat low res thumbnail urls
-		return axios.get(`${DAILYMOTION_OEMBED_API_URL}?url=https://dailymotion.com/${id}`).then(res => {
+		// FIXME: oEmbed endpoint does not provide video length
+		return axios.get(`${DAILYMOTION_OEMBED_API_URL}?url=https://dailymotion.com/video/${id}`).then(res => {
 			let video = new Video({
 				service: "dailymotion",
 				id,
 				title: res.data.title,
 				description: res.data.description,
 				thumbnail: res.data.thumbnail_url,
-				length: res.data.duration,
 			});
 			storage.updateVideoInfo(video);
 			return video;
