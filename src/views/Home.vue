@@ -6,7 +6,8 @@
 					<h1>Enjoy Together.</h1>
 					<span>
 						Real-time syncronized playback. Optional voting system.<br>
-						Dark theme. No sign up required. All Open Source.
+						Dark theme. No sign up required. All Open Source.<br>
+						It's never been easier to watch videos together.
 					</span>
 					<v-layout :row="$vuetify.breakpoint.smAndUp"
 							:column="$vuetify.breakpoint.xs"
@@ -28,6 +29,10 @@
 						and how easy it was to start watching videos right away.
 						OpenTogetherTube aims to be just as easy, and then improve on
 						top of that to make it even better.
+					</p>
+					<p>
+						Currently, you can watch videos from Youtube, Vimeo and
+						<a href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request">more are on the way</a>.
 					</p>
 				</v-col>
 			</v-row>
