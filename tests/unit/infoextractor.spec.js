@@ -113,6 +113,53 @@ describe('InfoExtractor Bulk Retrieval', () => {
       done();
     }).catch(err => done.fail(err));
   });
+
+  it("should get the correct video metadata for multiple videos with only 2 calls to the youtube API", done => {
+    InfoExtract.YtApi.get = jest.fn().mockImplementation(url => {
+      if (url.includes("BTZ5KVRUy1Q")) {
+        return new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) }));
+      }
+      else if (url.includes("I3O9J02G67I")) {
+        return new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["I3O9J02G67I"]) }));
+      }
+    });
+    let videos = [
+      {
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+      },
+      {
+        service: "youtube",
+        id: "I3O9J02G67I",
+        length: 10,
+      },
+    ];
+
+    InfoExtract.getManyVideoInfo(videos).then(videos => {
+      expect(videos).toHaveLength(2);
+      expect(videos[0]).toEqual({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      });
+      expect(videos[1]).toEqual({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+      });
+      expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(2);
+      done();
+    }).catch(err => done.fail(err));
+  });
 });
 
 describe('InfoExtractor Caching Spec', () => {
