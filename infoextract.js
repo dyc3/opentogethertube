@@ -12,6 +12,7 @@ const YtApi = axios.create({
 	baseURL: YOUTUBE_API_URL,
 });
 const VIMEO_OEMBED_API_URL = "https://vimeo.com/api/oembed.json";
+const VimeoApi = axios.create();
 
 class UnsupportedServiceException extends Error {
 	constructor(hostname) {
@@ -29,6 +30,7 @@ class InvalidAddPreviewInputException extends Error {
 
 module.exports = {
 	YtApi,
+	VimeoApi,
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
@@ -492,7 +494,7 @@ module.exports = {
 	 */
 	getVideoInfoVimeo(id) {
 		// HACK: This API method doesn't require us to use authentication, but it gives us somewhat low res thumbnail urls
-		return axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${id}`).then(res => {
+		return VimeoApi.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${id}`).then(res => {
 			let video = new Video({
 				service: "vimeo",
 				id,
@@ -504,7 +506,7 @@ module.exports = {
 			storage.updateVideoInfo(video);
 			return video;
 		}).catch(err => {
-			if (err.response.status === 403) {
+			if (err.response && err.response.status === 403) {
 				console.error("Failed to get vimeo video info: Embedding for this video is disabled");
 				return null;
 			}
