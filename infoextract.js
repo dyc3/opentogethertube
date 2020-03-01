@@ -252,11 +252,14 @@ module.exports = {
 				}
 
 				// update cache
-				for (let video of _.values(results)) {
-					storage.updateVideoInfo(video);
-				}
+				// for (let video of _.values(results)) {
+				// 	storage.updateVideoInfo(video);
+				// }
+				// resolve(results);
 
-				resolve(results);
+				storage.updateManyVideoInfo(_.values(results)).then(() => {
+					resolve(results);
+				});
 			}).catch(err => {
 				reject(err);
 			});
@@ -315,11 +318,14 @@ module.exports = {
 				}
 
 				// update cache
-				for (let video of results) {
-					storage.updateVideoInfo(video);
-				}
+				// for (let video of results) {
+				// 	storage.updateVideoInfo(video);
+				// }
+				// resolve(results);
 
-				resolve(results);
+				storage.updateManyVideoInfo(results).then(() => {
+					resolve(results);
+				});
 			}).catch(err => {
 				reject(err);
 			});
