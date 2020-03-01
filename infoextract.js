@@ -139,208 +139,6 @@ module.exports = {
 		});
 	},
 
-	getService(link) {
-		if (typeof link !== "string") {
-			return false;
-		}
-
-		let srcUrl = url.parse(link);
-		if (srcUrl.host === null) {
-			return false;
-		}
-
-		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
-			return "youtube";
-		}
-		else if (srcUrl.host.endsWith("vimeo.com")) {
-			return "vimeo";
-		}
-		else {
-			return false;
-		}
-	},
-
-	getVideoIdYoutube(link) {
-		let urlParsed = url.parse(link);
-		if (urlParsed.host.endsWith("youtu.be")) {
-			return urlParsed.path.replace("/", "").split("?")[0].trim();
-		}
-		else {
-			let query = querystring.parse(urlParsed.query);
-			if (query["v"]) {
-				return query["v"].trim();
-			}
-			else {
-				return null;
-			}
-		}
-	},
-
-	getChanneInfoYoutube(channelData) {
-		return YtApi.get('/channels' +
-			`?key=${process.env.YOUTUBE_API_KEY}&` +
-			'part=contentDetails&' +
-			`${Object.keys(channelData)[0] === 'channel' ? 'id' : 'forUsername'}=${Object.values(channelData)[0]}`
-			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
-			//on the other hand, a user link requires the forUsername filter
-		).then(res => {
-			if (res.status === 200) {
-				return this.getPlaylistYoutube(
-					res.data.items[0].contentDetails.relatedPlaylists.uploads
-				).catch(err => console.error(err));
-			}
-			else {
-				console.error(`Failed with status code ${res.status}`);
-			}
-		}).catch(err => console.error(err));
-	},
-
-	getVideoInfoYoutube(ids, onlyProperties=null) {
-		if (!Array.isArray(ids)) {
-			throw "`ids` must be an array on video IDs.";
-		}
-		return new Promise((resolve, reject) => {
-			let parts = [];
-			if (onlyProperties !== null) {
-				if (onlyProperties.includes("title") || onlyProperties.includes("description") || onlyProperties.includes("thumbnail")) {
-					parts.push("snippet");
-				}
-				if (onlyProperties.includes("length")) {
-					parts.push("contentDetails");
-				}
-
-				if (parts.length === 0) {
-					console.error("onlyProperties must have valid values or be null! Found", onlyProperties);
-					return null;
-				}
-			}
-			else {
-				parts = [
-					"snippet",
-					"contentDetails",
-				];
-			}
-			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=${parts.join(",")}&id=${ids.join(",")}`).then(res => {
-				if (res.status !== 200) {
-					reject(`Failed with status code ${res.status}`);
-					return;
-				}
-
-				let results = {};
-				for (let i = 0; i < res.data.items.length; i++) {
-					let item = res.data.items[i];
-					let video = {
-						service: "youtube",
-						id: item.id,
-					};
-					if (item.snippet) {
-						video.title = item.snippet.title;
-						video.description = item.snippet.description;
-						if (item.snippet.thumbnails) {
-							if (item.snippet.thumbnails.medium) {
-								video.thumbnail = item.snippet.thumbnails.medium.url;
-							}
-							else {
-								video.thumbnail = item.snippet.thumbnails.default.url;
-							}
-						}
-					}
-					if (item.contentDetails) {
-						video.length = moment.duration(item.contentDetails.duration).asSeconds();
-					}
-					results[item.id] = video;
-				}
-
-				// update cache
-				// for (let video of _.values(results)) {
-				// 	storage.updateVideoInfo(video);
-				// }
-				// resolve(results);
-
-				storage.updateManyVideoInfo(_.values(results)).then(() => {
-					resolve(results);
-				});
-			}).catch(err => {
-				reject(err);
-			});
-		});
-	},
-
-	getVideoLengthYoutube_Fallback: async (url) => {
-		let res = await axios.get(url);
-		let regexs = [
-			/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
-		];
-		for (let r = 0; r < regexs.length; r++) {
-			let matches = res.data.match(regexs[r]);
-			if (matches == null) {
-				continue;
-			}
-			for (let m = 0; m < matches.length; m++) {
-				const match = matches[m];
-				let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
-				console.log("MATCH", match);
-				console.log("EXTRACTED", extracted);
-				return parseInt(extracted);
-			}
-		}
-		return -1;
-	},
-
-	getPlaylistYoutube(id) {
-		return new Promise((resolve, reject) => {
-			// Unfortunately, we have to request the `snippet` part in order to get the youtube video ids
-			// The `id` part just gives playlistItemIds
-			YtApi.get(`/playlistItems?key=${process.env.YOUTUBE_API_KEY}&part=snippet&playlistId=${id}&maxResults=30`).then(res => {
-				if (res.status !== 200) {
-					reject(`Failed with status code ${res.status}`);
-					return;
-				}
-
-				let results = [];
-				for (let i = 0; i < res.data.items.length; i++) {
-					let item = res.data.items[i];
-					let video = {
-						service: "youtube",
-						id: item.snippet.resourceId.videoId,
-						title: item.snippet.title,
-						description: item.snippet.description,
-					};
-					if (item.snippet.thumbnails) {
-						if (item.snippet.thumbnails.medium) {
-							video.thumbnail = item.snippet.thumbnails.medium.url;
-						}
-						else {
-							video.thumbnail = item.snippet.thumbnails.default.url;
-						}
-					}
-					results.push(video);
-				}
-
-				// update cache
-				// for (let video of results) {
-				// 	storage.updateVideoInfo(video);
-				// }
-				// resolve(results);
-
-				storage.updateManyVideoInfo(results).then(() => {
-					resolve(results);
-				});
-			}).catch(err => {
-				reject(err);
-			});
-		});
-	},
-
-	searchYoutube(query) {
-		return YtApi.get(`/search?key=${process.env.YOUTUBE_API_KEY}&part=id&type=video&maxResults=8&safeSearch=none&videoEmbeddable=true&videoSyndicated=true&q=${query}`).then(res => {
-			return res.data.items.map(searchResult => new Video({
-				service: "youtube",
-				id: searchResult.id.videoId,
-			}));
-		});
-	},
-
 	getAddPreview(input) {
 		const service = this.getService(input);
 
@@ -458,6 +256,227 @@ module.exports = {
 		}
 	},
 
+	getService(link) {
+		if (typeof link !== "string") {
+			return false;
+		}
+
+		let srcUrl = url.parse(link);
+		if (srcUrl.host === null) {
+			return false;
+		}
+
+		if (srcUrl.host.endsWith("youtube.com") || srcUrl.host.endsWith("youtu.be")) {
+			return "youtube";
+		}
+		else if (srcUrl.host.endsWith("vimeo.com")) {
+			return "vimeo";
+		}
+		else {
+			return false;
+		}
+	},
+
+	/* YOUTUBE */
+
+	/**
+	 * Gets the Youtube video id from the link.
+	 * @param {string} link Youtube URL
+	 * @returns {string|null} Youtube video id, or null if invalid
+	 */
+	getVideoIdYoutube(link) {
+		let urlParsed = url.parse(link);
+		if (urlParsed.host.endsWith("youtu.be")) {
+			return urlParsed.path.replace("/", "").split("?")[0].trim();
+		}
+		else {
+			let query = querystring.parse(urlParsed.query);
+			if (query["v"]) {
+				return query["v"].trim();
+			}
+			else {
+				return null;
+			}
+		}
+	},
+
+	getVideoInfoYoutube(ids, onlyProperties=null) {
+		if (!Array.isArray(ids)) {
+			throw "`ids` must be an array on video IDs.";
+		}
+		return new Promise((resolve, reject) => {
+			let parts = [];
+			if (onlyProperties !== null) {
+				if (onlyProperties.includes("title") || onlyProperties.includes("description") || onlyProperties.includes("thumbnail")) {
+					parts.push("snippet");
+				}
+				if (onlyProperties.includes("length")) {
+					parts.push("contentDetails");
+				}
+
+				if (parts.length === 0) {
+					console.error("onlyProperties must have valid values or be null! Found", onlyProperties);
+					return null;
+				}
+			}
+			else {
+				parts = [
+					"snippet",
+					"contentDetails",
+				];
+			}
+			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=${parts.join(",")}&id=${ids.join(",")}`).then(res => {
+				if (res.status !== 200) {
+					reject(`Failed with status code ${res.status}`);
+					return;
+				}
+
+				let results = {};
+				for (let i = 0; i < res.data.items.length; i++) {
+					let item = res.data.items[i];
+					let video = {
+						service: "youtube",
+						id: item.id,
+					};
+					if (item.snippet) {
+						video.title = item.snippet.title;
+						video.description = item.snippet.description;
+						if (item.snippet.thumbnails) {
+							if (item.snippet.thumbnails.medium) {
+								video.thumbnail = item.snippet.thumbnails.medium.url;
+							}
+							else {
+								video.thumbnail = item.snippet.thumbnails.default.url;
+							}
+						}
+					}
+					if (item.contentDetails) {
+						video.length = moment.duration(item.contentDetails.duration).asSeconds();
+					}
+					results[item.id] = video;
+				}
+
+				// update cache
+				// for (let video of _.values(results)) {
+				// 	storage.updateVideoInfo(video);
+				// }
+				// resolve(results);
+
+				storage.updateManyVideoInfo(_.values(results)).then(() => {
+					resolve(results);
+				});
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	},
+
+	async getVideoLengthYoutube_Fallback(url) {
+		let res = await axios.get(url);
+		let regexs = [
+			/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
+		];
+		for (let r = 0; r < regexs.length; r++) {
+			let matches = res.data.match(regexs[r]);
+			if (matches == null) {
+				continue;
+			}
+			for (let m = 0; m < matches.length; m++) {
+				const match = matches[m];
+				let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
+				console.log("MATCH", match);
+				console.log("EXTRACTED", extracted);
+				return parseInt(extracted);
+			}
+		}
+		return -1;
+	},
+
+	getPlaylistYoutube(id) {
+		return new Promise((resolve, reject) => {
+			// Unfortunately, we have to request the `snippet` part in order to get the youtube video ids
+			// The `id` part just gives playlistItemIds
+			YtApi.get(`/playlistItems?key=${process.env.YOUTUBE_API_KEY}&part=snippet&playlistId=${id}&maxResults=30`).then(res => {
+				if (res.status !== 200) {
+					reject(`Failed with status code ${res.status}`);
+					return;
+				}
+
+				let results = [];
+				for (let i = 0; i < res.data.items.length; i++) {
+					let item = res.data.items[i];
+					let video = {
+						service: "youtube",
+						id: item.snippet.resourceId.videoId,
+						title: item.snippet.title,
+						description: item.snippet.description,
+					};
+					if (item.snippet.thumbnails) {
+						if (item.snippet.thumbnails.medium) {
+							video.thumbnail = item.snippet.thumbnails.medium.url;
+						}
+						else {
+							video.thumbnail = item.snippet.thumbnails.default.url;
+						}
+					}
+					results.push(video);
+				}
+
+				// update cache
+				// for (let video of results) {
+				// 	storage.updateVideoInfo(video);
+				// }
+				// resolve(results);
+
+				storage.updateManyVideoInfo(results).then(() => {
+					resolve(results);
+				});
+			}).catch(err => {
+				reject(err);
+			});
+		});
+	},
+
+	getChanneInfoYoutube(channelData) {
+		return YtApi.get('/channels' +
+			`?key=${process.env.YOUTUBE_API_KEY}&` +
+			'part=contentDetails&' +
+			`${Object.keys(channelData)[0] === 'channel' ? 'id' : 'forUsername'}=${Object.values(channelData)[0]}`
+			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
+			//on the other hand, a user link requires the forUsername filter
+		).then(res => {
+			if (res.status === 200) {
+				return this.getPlaylistYoutube(
+					res.data.items[0].contentDetails.relatedPlaylists.uploads
+				).catch(err => console.error(err));
+			}
+			else {
+				console.error(`Failed with status code ${res.status}`);
+			}
+		}).catch(err => console.error(err));
+	},
+
+	/**
+	 * Search Youtube for videos most related to the user's query
+	 * @param {string} query The user's search query
+	 * @returns {Array<Video>}
+	 */
+	searchYoutube(query) {
+		return YtApi.get(`/search?key=${process.env.YOUTUBE_API_KEY}&part=id&type=video&maxResults=8&safeSearch=none&videoEmbeddable=true&videoSyndicated=true&q=${query}`).then(res => {
+			return res.data.items.map(searchResult => new Video({
+				service: "youtube",
+				id: searchResult.id.videoId,
+			}));
+		});
+	},
+
+	/* VIMEO */
+
+	/**
+	 * Gets the Vimeo video id from the link.
+	 * @param {string} link Vimeo URL
+	 * @returns {string} Vimeo video id
+	 */
 	getVideoIdVimeo(link) {
 		let urlParsed = url.parse(link);
 		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
