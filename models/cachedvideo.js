@@ -1,8 +1,14 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const CachedVideo = sequelize.define('CachedVideo', {
-    service: DataTypes.STRING,
-    serviceId: DataTypes.STRING,
+    service: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    serviceId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     title: DataTypes.STRING,
     description: DataTypes.TEXT,
     thumbnail: DataTypes.STRING,
