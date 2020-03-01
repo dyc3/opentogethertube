@@ -112,7 +112,7 @@ module.exports = {
 							promises.push(new Promise(resolve => resolve(missingInfoGroup)));
 							continue;
 						}
-						promises.push(this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => _.values(results)));
+						promises.push(this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => missingInfoGroup.map(video => Object.assign(video, results[video.id]))));
 					}
 					return Promise.all(promises);
 				}
