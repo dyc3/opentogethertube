@@ -109,6 +109,32 @@ describe('Storage: CachedVideos Spec', () => {
     done();
   });
 
+  it('should fail validation, no null allowed for service', done => {
+    let video = {
+      service: null,
+      id: "-29I-VbvPLQ",
+      title: "tmp181mfK",
+      description: "tmp181mfK",
+      thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
+      length: 10,
+    };
+    expect(storage.updateVideoInfo(video, false)).resolves.toBe(false);
+    done();
+  });
+
+  it('should fail validation, no null allowed for serviceId', done => {
+    let video = {
+      service: "youtube",
+      id: null,
+      title: "tmp181mfK",
+      description: "tmp181mfK",
+      thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
+      length: 10,
+    };
+    expect(storage.updateVideoInfo(video, false)).resolves.toBe(false);
+    done();
+  });
+
   it('should return the attributes that a video object should have', () => {
     let attributes = storage.getVideoInfoFields();
     expect(attributes.length).toBeGreaterThan(0);
