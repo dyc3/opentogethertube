@@ -168,26 +168,38 @@ module.exports = {
 	 * created.
 	 * @param {Video|Object} video Video object to store
 	 */
-	updateVideoInfo(video) {
+	updateVideoInfo(video, log=true) {
 		video = _.cloneDeep(video);
-		video.serviceId = video.id;
-		delete video.id;
+		if (!video.serviceId) {
+			video.serviceId = video.id;
+			delete video.id;
+		}
 
 		return CachedVideo.findOne({ where: { service: video.service, serviceId: video.serviceId } }).then(cachedVideo => {
-			console.log(`Found video ${video.service}:${video.serviceId} in cache`);
-			CachedVideo.update(video, { where: { id: cachedVideo.id } }).then(rowsUpdated => {
-				console.log("Updated database records, updated", rowsUpdated, "rows");
+			if (log) {
+				console.log(`Found video ${video.service}:${video.serviceId} in cache`);
+			}
+			return CachedVideo.update(video, { where: { id: cachedVideo.id } }).then(rowsUpdated => {
+				if (log) {
+					console.log("Updated database records, updated", rowsUpdated[0], "rows");
+				}
 				return true;
 			}).catch(err => {
-				console.error("Failed to cache video info", err);
+				if (log) {
+					console.error("Failed to cache video info", err);
+				}
 				return false;
 			});
 		}).catch(() => {
 			return CachedVideo.create(video).then(() => {
-				console.log(`Stored video info for ${video.service}:${video.serviceId} in cache`);
+				if (log) {
+					console.log(`Stored video info for ${video.service}:${video.serviceId} in cache`);
+				}
 				return true;
 			}).catch(err => {
-				console.error("Failed to cache video info", err);
+				if (log) {
+					console.error("Failed to cache video info", err);
+				}
 				return false;
 			});
 		});
@@ -223,16 +235,17 @@ module.exports = {
 					};
 				}),
 			},
-		}).then(foundVideos => {
+		}).then(async foundVideos => {
 			let [
 				toUpdate,
 				toCreate,
 			] = _.partition(videos, video => _.find(foundVideos, { service: video.service, serviceId: video.serviceId }));
 			console.log("bulk cache: should update", toUpdate.length, "rows, create", toCreate.length, "rows");
-			toCreate = toCreate.map(video => CachedVideo.build(video));
-			toUpdate = toUpdate.map(video => Object.assign(_.find(foundVideos, { service: video.service, serviceId: video.serviceId }), video));
-			return CachedVideo.bulkCreate(_.concat(toCreate, toUpdate)).then(cachedVideos => {
-				console.log("bulk cache: created/updated", cachedVideos.length, "rows");
+			for (let video of toUpdate) {
+				await this.updateVideoInfo(video, false);
+			}
+			return CachedVideo.bulkCreate(toCreate).then(cachedVideos => {
+				console.log("bulk cache: created", cachedVideos.length, "rows");
 				return true;
 			}).catch(err => {
 				console.error("Failed to bulk update video cache:", err);

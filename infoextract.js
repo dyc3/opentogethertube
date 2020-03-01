@@ -252,9 +252,9 @@ module.exports = {
 				}
 
 				// update cache
-				storage.updateManyVideoInfo(_.values(results));
-
-				resolve(results);
+				storage.updateManyVideoInfo(_.values(results)).then(() => {
+					resolve(results);
+				});
 			}).catch(err => {
 				reject(err);
 			});
