@@ -252,9 +252,11 @@ module.exports = {
 				}
 
 				// update cache
-				storage.updateManyVideoInfo(_.values(results)).then(() => {
-					resolve(results);
-				});
+				for (let video of _.values(results)) {
+					storage.updateVideoInfo(video);
+				}
+
+				resolve(results);
 			}).catch(err => {
 				reject(err);
 			});
@@ -313,9 +315,11 @@ module.exports = {
 				}
 
 				// update cache
-				storage.updateManyVideoInfo(results).then(() => {
-					resolve(results);
-				});
+				for (let video of results) {
+					storage.updateVideoInfo(video);
+				}
+
+				resolve(results);
 			}).catch(err => {
 				reject(err);
 			});

@@ -205,6 +205,8 @@ module.exports = {
 		});
 	},
 	/**
+	 * FIXME: THIS IS BROKEN AND I DON'T KNOW WHY
+	 *
 	 * Updates the database for all the videos in the given list. If a video
 	 * exists in the database, it is overwritten. Omitted properties will not
 	 * be overwritten. If the video does not exist in the database, it will be
