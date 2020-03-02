@@ -22,7 +22,7 @@ config in the `env` folder to a new file called `development.env`
 
    ```bash
    docker build -f docker/dev/Dockerfile -t opentogethertube-dev .
-   docker run --name opentogethertube-dev -d -p 8080:8080 opentogethertube-dev
+   docker run --name opentogethertube-dev -d -p 8080:8080 -p 3000:3000 -p 6379:6379 opentogethertube-dev
    ```
 
 You can run the unit test from the dev container using this command.
