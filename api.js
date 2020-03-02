@@ -388,7 +388,7 @@ module.exports = function(_roommanager, storage) {
 			});
 		}
 		catch (error) {
-			if (error.name === "UnsupportedServiceException" || error.name === "InvalidAddPreviewInputException") {
+			if (error.name === "UnsupportedServiceException" || error.name === "InvalidAddPreviewInputException" || error.name === "OutOfQuotaException") {
 				console.error("Unable to get add preview:", error.name);
 				res.status(400).json({
 					success: false,

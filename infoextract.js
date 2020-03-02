@@ -28,6 +28,13 @@ class InvalidAddPreviewInputException extends Error {
 	}
 }
 
+class OutOfQuotaException extends Error {
+	constructor() {
+		super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 10,000 quota per day.`);
+		this.name = "OutOfQuotaException";
+	}
+}
+
 module.exports = {
 	YtApi,
 	VimeoApi,
@@ -328,18 +335,13 @@ module.exports = {
 				];
 			}
 			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=${parts.join(",")}&id=${ids.join(",")}`).then(res => {
-				if (res.status !== 200) {
-					reject(`Failed with status code ${res.status}`);
-					return;
-				}
-
 				let results = {};
 				for (let i = 0; i < res.data.items.length; i++) {
 					let item = res.data.items[i];
-					let video = {
+					let video = new Video({
 						service: "youtube",
 						id: item.id,
-					};
+					});
 					if (item.snippet) {
 						video.title = item.snippet.title;
 						video.description = item.snippet.description;
@@ -399,20 +401,15 @@ module.exports = {
 			// Unfortunately, we have to request the `snippet` part in order to get the youtube video ids
 			// The `id` part just gives playlistItemIds
 			YtApi.get(`/playlistItems?key=${process.env.YOUTUBE_API_KEY}&part=snippet&playlistId=${id}&maxResults=30`).then(res => {
-				if (res.status !== 200) {
-					reject(`Failed with status code ${res.status}`);
-					return;
-				}
-
 				let results = [];
 				for (let i = 0; i < res.data.items.length; i++) {
 					let item = res.data.items[i];
-					let video = {
+					let video = new Video({
 						service: "youtube",
 						id: item.snippet.resourceId.videoId,
 						title: item.snippet.title,
 						description: item.snippet.description,
-					};
+					});
 					if (item.snippet.thumbnails) {
 						if (item.snippet.thumbnails.medium) {
 							video.thumbnail = item.snippet.thumbnails.medium.url;
@@ -434,7 +431,12 @@ module.exports = {
 					resolve(results);
 				});
 			}).catch(err => {
-				reject(err);
+				if (err.response && err.response.status === 403) {
+					reject(new OutOfQuotaException());
+				}
+				else {
+					reject(err);
+				}
 			});
 		});
 	},
@@ -447,15 +449,18 @@ module.exports = {
 			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
 			//on the other hand, a user link requires the forUsername filter
 		).then(res => {
-			if (res.status === 200) {
-				return this.getPlaylistYoutube(
-					res.data.items[0].contentDetails.relatedPlaylists.uploads
-				).catch(err => console.error(err));
+			return this.getPlaylistYoutube(
+				res.data.items[0].contentDetails.relatedPlaylists.uploads
+			);
+		}).catch(err => {
+			console.error(err);
+			if (err.response.status === 403) {
+				throw new OutOfQuotaException();
 			}
 			else {
-				console.error(`Failed with status code ${res.status}`);
+				throw err;
 			}
-		}).catch(err => console.error(err));
+		});
 	},
 
 	/**
