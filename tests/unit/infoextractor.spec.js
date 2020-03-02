@@ -193,6 +193,25 @@ describe("InfoExtractor Youtube Support", () => {
     });
   });
 
+  it("should get 1 video with onlyProperties set", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    // eslint-disable-next-line array-bracket-newline
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["title", "description", "thumbnail", "length"]).then(results => {
+      expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }));
+      expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+      done();
+    });
+  });
+
   it("should get 2 videos", done => {
     InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q,I3O9J02G67I"]) })));
     storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
@@ -216,6 +235,58 @@ describe("InfoExtractor Youtube Support", () => {
         length: 10,
       }));
       expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+      done();
+    });
+  });
+
+  it("should fail to get video due to quota limit", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 403 } })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"]).then(() => {
+      done.fail();
+    }).catch(err => {
+      expect(err.name).toBe("OutOfQuotaException");
+      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it("should fail to get video due to other reasons", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 500 } })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"]).then(() => {
+      done.fail();
+    }).catch(err => {
+      expect(err.name).not.toBe("OutOfQuotaException");
+      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it("should fail to get video because ids is not an array", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getVideoInfoYoutube("BTZ5KVRUy1Q").then(() => {
+      done.fail();
+    }).catch(() => {
+      expect(InfoExtract.YtApi.get).not.toHaveBeenCalled();
+      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it("should fail to get video because onlyProperties is an empty array", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], []).then(() => {
+      done.fail();
+    }).catch(() => {
+      expect(InfoExtract.YtApi.get).not.toHaveBeenCalled();
+      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
       done();
     });
   });

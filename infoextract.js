@@ -72,7 +72,7 @@ module.exports = {
 					video = Object.assign(video, result[video.id]);
 					return new Video(video);
 				}).catch(err => {
-					if (err.response.status === 403) {
+					if (err.name === "OutOfQuotaException") {
 						console.error("Failed to get youtube video info: Out of quota");
 						return this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${video.id}`).then(videoLength => {
 							return new Video({
@@ -311,7 +311,7 @@ module.exports = {
 
 	getVideoInfoYoutube(ids, onlyProperties=null) {
 		if (!Array.isArray(ids)) {
-			throw "`ids` must be an array on video IDs.";
+			return new Promise((resolve, reject) => reject("`ids` must be an array on video IDs."));
 		}
 		return new Promise((resolve, reject) => {
 			let parts = [];
@@ -325,7 +325,8 @@ module.exports = {
 
 				if (parts.length === 0) {
 					console.error("onlyProperties must have valid values or be null! Found", onlyProperties);
-					return null;
+					reject(null);
+					return;
 				}
 			}
 			else {
@@ -370,7 +371,12 @@ module.exports = {
 					resolve(results);
 				});
 			}).catch(err => {
-				reject(err);
+				if (err.response && err.response.status === 403) {
+					reject(new OutOfQuotaException());
+				}
+				else {
+					reject(err);
+				}
 			});
 		});
 	},
