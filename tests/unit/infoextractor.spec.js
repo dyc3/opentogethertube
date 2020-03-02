@@ -5,13 +5,25 @@ const Video = require("../../common/video.js");
 
 const youtubeVideoListSampleResponses = {
   "BTZ5KVRUy1Q": '{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q","snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}]}',
-  "I3O9J02G67I": '{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Ly8EM_vOONCLOEzI8TMYnzfG37k\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I","snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
-  "BTZ5KVRUy1Q,I3O9J02G67I": '{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 2,"resultsPerPage": 2},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q","snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}, {"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I","snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
+  "I3O9J02G67I": '{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Ly8EM_vOONCLOEzI8TMYnzfG37k\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I","snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
+  "BTZ5KVRUy1Q,I3O9J02G67I": '{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 2,"resultsPerPage": 2},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q","snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}, {"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I","snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
 };
 
-// const vimeoOEmbedSampleResponses = {
-//   "94338566": '{"type":"video","version":"1.0","provider_name":"Vimeo","provider_url":"https://vimeo.com/","title":"Showreel","author_name":"Susi Sie","author_url":"https://vimeo.com/susisie","is_plus":"1","account_type":"plus","html":"<iframe src="https://player.vimeo.com/video/94338566?app_id=122963" width="480" height="190" frameborder="0" allow="autoplay; fullscreen" allowfullscreen title="Showreel"></iframe>","width":480,"height":190,"duration":70,"description":"No animation. No 3D. Just reality.\n\nTitle: Showreel I Directed & Produced: Susi Sie I Music & Sound Design: Nikolai von Sallwitz\n\nwww.susisie.de\nfacebook.com/page.sie/\n\nwww.vonsallwitz.com","thumbnail_url":"https://i.vimeocdn.com/video/474246782_295x166.jpg","thumbnail_width":295,"thumbnail_height":117,"thumbnail_url_with_play_button":"https://i.vimeocdn.com/filter/overlay?src0=https%3A%2F%2Fi.vimeocdn.com%2Fvideo%2F474246782_295x166.jpg&src1=http%3A%2F%2Ff.vimeocdn.com%2Fp%2Fimages%2Fcrawler_play.png","upload_date":"2014-05-07 04:30:13","video_id":94338566,"uri":"/videos/94338566"}',
-// };
+const youtubePlaylistItemsSampleResponses = {
+  "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm": '{"kind": "youtube#playlistItemListResponse","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/cnSEbcCodxUd20zl5d_GdkwUYHA\\"","nextPageToken": "CAIQAA","pageInfo": {"totalResults": 30,"resultsPerPage": 2},"items": [{"kind": "youtube#playlistItem","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/NuyI91BSe5o9qLD3tvex5k06aRA\\"","id": "UExBQnFFWXE2SDN2cENtc215VW5IbmZNT2VBbmpCZFNObS4wMTcyMDhGQUE4NTIzM0Y5","snippet": {"publishedAt": "2019-03-10T02:57:27.000Z","channelId": "UC_3pplzbKMZsP5zBH_6SVJQ","title": "Chris Chan: A Comprehensive History - Part 1","description": "(1982-2000)","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/zgxj_0xPleg/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg","width": 320,"height": 180}},"channelTitle": "GenoSamuel2.1","playlistId": "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm","position": 0,"resourceId": {"kind": "youtube#video","videoId": "zgxj_0xPleg"}}}, {"kind": "youtube#playlistItem","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/yhZlmlB3rT2tcC0HpcPP0XuiTpc\\"","id": "UExBQnFFWXE2SDN2cENtc215VW5IbmZNT2VBbmpCZFNObS41NkI0NEY2RDEwNTU3Q0M2","snippet": {"publishedAt": "2019-03-02T15:25:25.000Z","channelId": "UC_3pplzbKMZsP5zBH_6SVJQ","title": "Chris Chan: A Comprehensive History - Part 2","description": "(2000-2004)","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg","width": 120,"height": 90}},"channelTitle": "GenoSamuel2.1","playlistId": "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm","position": 1,"resourceId": {"kind": "youtube#video","videoId": "_3QMqssyBwQ"}}}]}',
+};
+
+const youtubeChannelInfoSampleResponses = {
+  "UC_3pplzbKMZsP5zBH_6SVJQ": '{"kind": "youtube#channelListResponse","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/leWpA6dGmEXalohSiXBor2qtaWQ\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#channel","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/PB1IXNZVuqTG-acrVEyYgyg_L7s\\"","id": "UC_3pplzbKMZsP5zBH_6SVJQ","contentDetails": {"relatedPlaylists": {"uploads": "UU_3pplzbKMZsP5zBH_6SVJQ","watchHistory": "HL","watchLater": "WL"}}}]}',
+};
+
+const youtubeSearchSampleResponses = {
+  "family guy funny moments": '{ "kind": "youtube#searchListResponse", "etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/-rW-pTc9pdX9oaCnXbRwseTrCG4\\"", "nextPageToken": "CAMQAA", "regionCode": "US", "pageInfo": {"totalResults": 1000000,"resultsPerPage": 3 }, "items": [{"kind": "youtube#searchResult","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/H2q6SSWvRq7umOC6k4pKLlQ_EFU\\"","id": {"kind": "youtube#video","videoId": "UJXZihZCP2g"}},{"kind": "youtube#searchResult","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/qmodXyyqsd1jYzoKX0Sg658bGbY\\"","id": {"kind": "youtube#video","videoId": "ysEdZ3KWYIU"}},{"kind": "youtube#searchResult","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/yebpBNSyYMGWyXGEruVYdK1PmcA\\"","id": {"kind": "youtube#video","videoId": "Tu3TiESKJGk"}} ]}',
+};
+
+const vimeoOEmbedSampleResponses = {
+  "94338566": `{"type":"video","version":"1.0","provider_name":"Vimeo","provider_url":"https://vimeo.com/","title":"Showreel","author_name":"Susi Sie","author_url":"https://vimeo.com/susisie","is_plus":"1","account_type":"plus","width":480,"height":190,"duration":70,"description":"No animation. No 3D. Just reality.","thumbnail_url":"https://i.vimeocdn.com/video/474246782_295x166.jpg","thumbnail_width":295,"thumbnail_height":117,"thumbnail_url_with_play_button":"https://i.vimeocdn.com/filter/overlay?src0=https%3A%2F%2Fi.vimeocdn.com%2Fvideo%2F474246782_295x166.jpg&src1=http%3A%2F%2Ff.vimeocdn.com%2Fp%2Fimages%2Fcrawler_play.png","upload_date":"2014-05-07 04:30:13","video_id":94338566,"uri":"/videos/94338566"}`,
+};
 
 describe('InfoExtractor Link Parsing', () => {
   it('getService() should return youtube when given youtube link', () => {
@@ -106,12 +118,268 @@ describe('InfoExtractor Bulk Retrieval', () => {
         id: "I3O9J02G67I",
         title: "tmpATT2Cp",
         description: "tmpATT2Cp",
-        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg",
         length: 10,
       });
       expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
       done();
     }).catch(err => done.fail(err));
+  });
+
+  it("should get the correct video metadata for multiple videos with only 2 calls to the youtube API", done => {
+    InfoExtract.YtApi.get = jest.fn().mockImplementation(url => {
+      if (url.includes("BTZ5KVRUy1Q")) {
+        return new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) }));
+      }
+      else if (url.includes("I3O9J02G67I")) {
+        return new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["I3O9J02G67I"]) }));
+      }
+    });
+    let videos = [
+      {
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+      },
+      {
+        service: "youtube",
+        id: "I3O9J02G67I",
+        length: 10,
+      },
+    ];
+
+    InfoExtract.getManyVideoInfo(videos).then(videos => {
+      expect(videos).toHaveLength(2);
+      expect(videos[0]).toEqual({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      });
+      expect(videos[1]).toEqual({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg",
+        length: 10,
+      });
+      expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(2);
+      done();
+    }).catch(err => done.fail(err));
+  });
+});
+
+describe("InfoExtractor Youtube Support", () => {
+  it("should get 1 video", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"]).then(results => {
+      expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }));
+      expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+      done();
+    });
+  });
+
+  it("should get 2 videos", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q,I3O9J02G67I"]) })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    // eslint-disable-next-line array-bracket-newline
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q", "I3O9J02G67I"]).then(results => {
+      expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }));
+      expect(results["I3O9J02G67I"]).toEqual(new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg",
+        length: 10,
+      }));
+      expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+      done();
+    });
+  });
+
+  it("should get videos in the given youtube playlist", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(results => {
+      expect(results).toHaveLength(2);
+      expect(results[0]).toEqual(new Video({
+        service: "youtube",
+        id: "zgxj_0xPleg",
+        title: "Chris Chan: A Comprehensive History - Part 1",
+        description: "(1982-2000)",
+        thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
+      }));
+      expect(results[1]).toEqual(new Video({
+        service: "youtube",
+        id: "_3QMqssyBwQ",
+        title: "Chris Chan: A Comprehensive History - Part 2",
+        description: "(2000-2004)",
+        thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
+      }));
+      expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+      done();
+    }).catch(err => done.fail(err));
+  });
+
+  it("should fail when youtube playlist request fails due to quota limit", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 403 } })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(() => {
+      done.fail();
+    }).catch(err => {
+      expect(err.name).toBe("OutOfQuotaException");
+      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it("should fail when youtube playlist request fails due to other reasons", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 500 } })));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+
+    InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(() => {
+      done.fail();
+    }).catch(err => {
+      expect(err.name).not.toBe("OutOfQuotaException");
+      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it("should get videos on the given youtube channel", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeChannelInfoSampleResponses["UC_3pplzbKMZsP5zBH_6SVJQ"]) })));
+    InfoExtract.getPlaylistYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ])));
+    InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(results => {
+      expect(results).toHaveLength(2);
+      expect(results[0]).toEqual(new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }));
+      expect(results[1]).toEqual(new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }));
+      done();
+    }).catch(err => done.fail(err));
+  });
+
+  it("should fail when youtube channel request fails due to quota limit", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 403 } })));
+    InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(() => {
+      done.fail();
+    }).catch(err => {
+      expect(err.name).toBe("OutOfQuotaException");
+      done();
+    });
+  });
+
+  it("should fail when youtube channel request fails for other reasons", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 500 } })));
+    InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(() => {
+      done.fail();
+    }).catch(err => {
+      expect(err.name).not.toBe("OutOfQuotaException");
+      done();
+    });
+  });
+
+  it("should search youtube and parse results without failing", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) })));
+    InfoExtract.searchYoutube("family guy funny moments").then(results => {
+      expect(results).toHaveLength(3);
+      expect(results[0]).toEqual(new Video({
+        service: "youtube",
+        id: "UJXZihZCP2g",
+      }));
+      expect(results[1]).toEqual(new Video({
+        service: "youtube",
+        id: "ysEdZ3KWYIU",
+      }));
+      expect(results[2]).toEqual(new Video({
+        service: "youtube",
+        id: "Tu3TiESKJGk",
+      }));
+      done();
+    }).catch(err => done.fail(err));
+  });
+});
+
+describe("InfoExtractor Vimeo Support", () => {
+  it("should handle single video", done => {
+    InfoExtract.VimeoApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(vimeoOEmbedSampleResponses["94338566"]) })));
+    storage.updateVideoInfo = jest.fn();
+
+    InfoExtract.getVideoInfoVimeo("94338566").then(video => {
+      expect(video).toEqual(new Video({
+        service: "vimeo",
+        id: "94338566",
+        title: "Showreel",
+        description: "No animation. No 3D. Just reality.",
+        thumbnail: "https://i.vimeocdn.com/video/474246782_295x166.jpg",
+        length: 70,
+      }));
+      expect(storage.updateVideoInfo).toHaveBeenCalledTimes(1);
+      done();
+    }).catch(err => {
+      done.fail(err);
+    });
+  });
+
+  it("should handle video with embedding disabled gracefully", done => {
+    InfoExtract.VimeoApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 403 } })));
+    storage.updateVideoInfo = jest.fn();
+    InfoExtract.getVideoInfoVimeo("94338566").then(video => {
+      expect(video).toBeNull();
+      expect(storage.updateVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it("should handle other failures gracefully", done => {
+    InfoExtract.VimeoApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 200 } })));
+    storage.updateVideoInfo = jest.fn();
+    InfoExtract.getVideoInfoVimeo("94338566").then(video => {
+      expect(video).toEqual(new Video({
+        service: "vimeo",
+        id: "94338566",
+      }));
+      expect(storage.updateVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
   });
 });
 
@@ -164,7 +432,7 @@ describe('InfoExtractor Caching Spec', () => {
       expect(video.description).toBeDefined();
       expect(video.description).toBe("tmpATT2Cp");
       expect(video.thumbnail).toBeDefined();
-      expect(video.thumbnail).toBe("https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg");
+      expect(video.thumbnail).toBe("https://i.ytimg.com/vi/I3O9J02G67I/default.jpg");
       expect(video.length).toBeDefined();
       expect(video.length).toBe(10);
 
@@ -628,7 +896,7 @@ describe('InfoExtractor Add Preview Spec', () => {
       service: "vimeo",
       id: "94338566",
       title: "Showreel",
-      description: "No animation. No 3D. Just reality.\n\nTitle: Showreel I Directed & Produced: Susi Sie I Music & Sound Design: Nikolai von Sallwitz\n\nwww.susisie.de\nfacebook.com/page.sie/\n\nwww.vonsallwitz.com",
+      description: "No animation. No 3D. Just reality.",
       thumbnail: "https://i.vimeocdn.com/video/474246782_295x166.jpg",
       length: 70,
     }))));

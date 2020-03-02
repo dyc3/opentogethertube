@@ -25,6 +25,7 @@ module.exports = {
     "dialect": "sqlite",
     "operatorsAliases": false,
     "storage": "db/test.sqlite",
+    "logging": false,
   },
   "production": {
     "username": "ott",
@@ -33,5 +34,6 @@ module.exports = {
     "host": "127.0.0.1",
     "dialect": "postgres",
     "operatorsAliases": false,
+    "logging": false,
   },
 };
