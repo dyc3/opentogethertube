@@ -385,6 +385,7 @@ module.exports = function(_roommanager, storage) {
 		try {
 			InfoExtract.getAddPreview(req.query.input.trim()).then(result => {
 				res.json(result);
+				console.log("Sent add preview response with", result.length, "items");
 			});
 		}
 		catch (error) {

@@ -121,7 +121,14 @@ module.exports = {
 							promises.push(new Promise(resolve => resolve(missingInfoGroup)));
 							continue;
 						}
-						promises.push(this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => missingInfoGroup.map(video => Object.assign(video, results[video.id]))));
+						let promise = this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => {
+							return missingInfoGroup.map(video => {
+								// TODO: make a merge function to better merge vidoe info together
+								Object.assign(video, _.pickBy(results[video.id], x => x !== null && x !== undefined));
+								return video;
+							});
+						});
+						promises.push(promise);
 					}
 					return Promise.all(promises);
 				}
