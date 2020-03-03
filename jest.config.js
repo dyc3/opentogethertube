@@ -32,5 +32,9 @@ module.exports = {
     '!**/dist/**',
     '!**/*.config.js',
     '!**/*.eslintrc.js',
+    '!**/config/**',
+    '!**/migrations/**',
+    '!**/models/**',
+    '!**/seeders/**',
   ],
 };
