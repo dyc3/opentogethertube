@@ -293,13 +293,6 @@ export default {
 
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
-    let msgsDiv = document.getElementsByClassName("messages");
-    if (msgsDiv.length) {
-      msgsDiv = msgsDiv[0];
-      // msgsDiv.removeEventListener("scroll", this.onChatScroll);
-      // msgsDiv.addEventListener("scroll", this.onChatScroll);
-      msgsDiv.onscroll = this.onChatScroll;
-    }
 
     if (!this.$store.state.socket.isConnected) {
       // This check prevents the client from connecting multiple times,
@@ -573,6 +566,15 @@ export default {
       this.showJoinFailOverlay = true;
       this.joinFailReason = eventData.reason;
     });
+
+    let msgsDiv = document.getElementsByClassName("messages");
+    if (msgsDiv.length) {
+      msgsDiv = msgsDiv[0];
+      msgsDiv.onscroll = this.onChatScroll;
+    }
+    else {
+      console.error("Couldn't find chat messages div");
+    }
   },
   watch: {
     username(newValue) {
