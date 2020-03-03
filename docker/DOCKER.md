@@ -6,6 +6,8 @@ You can run the application using the development image or production/deployment
 
 ## Development
 
+The development image use docker-compose with redis and postgres in seperate containers.
+
 To use the development image, please follow the steps below.
 
 1. Next you need to set up your configuration. Start by copying the example
@@ -21,9 +23,10 @@ config in the `env` folder to a new file called `development.env`
    before runing the command below.
 
    ```bash
-   docker build -f docker/dev/Dockerfile -t opentogethertube-dev .
-   docker run --name opentogethertube-dev -d -p 8080:8080 -p 3000:3000 -p 6379:6379 opentogethertube-dev
+   docker-compose -f docker/prod/docker-compose.yml up -d
    ```
+
+4. Go to http://localhost:3001
 
 You can run the unit test from the dev container using this command.
 
@@ -38,6 +41,8 @@ docker exec -it opentogethertube-dev npm lint
 ```
 
 ## Production
+
+The production image use docker-compose with redis and postgres in seperate containers.
 
 To use the production image, please follow the steps below.
 
@@ -54,23 +59,10 @@ config in the `env` folder to a new file called `production.env`
    before runing the command below.
 
    ```bash
-   docker build -f docker/prod/Dockerfile -t opentogethertube-prod .
-   docker run --name opentogethertube-prod -d -p 8080:8080 opentogethertube-prod
+   docker-compose -f docker/prod/docker-compose.yml up -d
    ```
 
-## Docker Compose
-
-You can also use docker compose after you have build the image locally.
-
-```bash
-docker-compose -d -f docker/<dev or prod>/docker-compose.yml up
-```
-
-After, you can stop the container.
-
-```bash
-docker-compose -f docker/<dev or prod>/docker-compose.yml down
-```
+4. Go to http://localhost:8080/
 
 ## Debug
 

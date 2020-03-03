@@ -1,11 +1,60 @@
-version: '3.7'
+version: "3.7"
 services:
     opentogethertube-prod:
-        container_name: opentogethertube-dev
+        image: opentogethertube_dev
+        container_name: opentogethertube_dev
+        build:
+            context: ../../
+            dockerfile: docker/dev/Dockerfile
         environment:
             - YOUTUBE_API_KEY=API_KEY_GOES_HERE # optional put it in env/development.env
+            - REDIS_PASSWORD=""
+            - REDIS_DB=""
+        networks:
+            - opentogethertube_dev-net
         ports:
-            - 8080:8080
             - 3000:3000
+            - 3001:3001
+            - 8888:8888
             - 6379:6379
-        image: opentogethertube-dev
+        links:
+            - redis
+        depends_on:
+            - redis
+            - postgres
+
+    redis:
+        container_name: opentogethertube_dev_redis
+        image: redis
+        environment: 
+            - REDIS_PASSWORD=""
+            - REDIS_DB=""
+        networks:
+            - opentogethertube_dev-net
+        volumes:
+            - dev_db_data:/data
+        expose:
+            - 6379
+
+    postgres:
+        container_name: opentogethertube_dev_postgres
+        image: postgres
+        environment: 
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=opentogethertube
+            - PGDATA=/var/lib/postgresql/data/db-dev
+        networks:
+            - opentogethertube_dev-net
+        volumes:
+            - dev_db_data:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+
+networks:
+    opentogethertube_dev-net:
+        driver: bridge
+
+volumes:
+    dev_db_data:
+        driver: local
