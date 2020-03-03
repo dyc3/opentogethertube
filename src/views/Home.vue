@@ -136,7 +136,7 @@ export default {
 	},
 	computed: {
 		cardHeight() {
-			return this.$vuetify.breakpoint.mdAndUp ? 180 : 180;
+			return 180;
 		},
 	},
 	methods: {
