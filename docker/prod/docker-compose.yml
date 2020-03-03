@@ -1,7 +1,57 @@
-version: '3.7'
+version: "3.7"
 services:
-    opentogethertube-prod:
+    opentogethertube:
+        image: opentogethertube
+        build:
+            context: ../../
+            dockerfile: docker/prod/Dockerfile
         container_name: opentogethertube-prod
+        environment:
+            - NODE_ENV=production
+            - REDIS_PASSWORD=""
+            - REDIS_DB=""
+        networks:
+            - opentogethertube-net
         ports:
             - 8080:8080
-        image: opentogethertube-prod
+        links:
+            - redis
+        depends_on:
+            - redis
+            - postgres
+
+    redis:
+        container_name: opentogethertube_redis
+        image: redis
+        environment: 
+            - REDIS_PASSWORD=""
+            - REDIS_DB=""
+        networks:
+            - opentogethertube-net
+        volumes: 
+            - db-data:/data
+        expose:
+            - 6379
+
+    postgres:
+        container_name: opentogethertube_postgres
+        image: postgres
+        environment: 
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=opentogethertube
+            - PGDATA=/var/lib/postgresql/data/db
+        networks:
+            - opentogethertube-net
+        volumes:
+            - db-data:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+
+networks:
+    opentogethertube-net:
+        driver: bridge
+
+volumes:
+    db-data:
+        driver: local
