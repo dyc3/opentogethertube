@@ -111,6 +111,7 @@ module.exports = {
 		for (let service in grouped) {
 			let retrievalPromise = storage.getManyVideoInfo(grouped[service]).then(serviceVideos => {
 				// group by missing info
+				// WARNING: Arrays can't be used as keys, so the array of strings gets turned in to a string. May cause issues?
 				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p)));
 
 				if (service === "youtube") {
