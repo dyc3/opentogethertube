@@ -1,4 +1,4 @@
-import secondsToTimestamp from '../../src/timestamp';
+import secondsToTimestamp from '../../../src/timestamp';
 
 describe('secondsToTimestamp spec', () => {
     it('handles positive values', () => {

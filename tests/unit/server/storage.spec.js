@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const { CachedVideo } = require("../../models");
-const storage = require("../../storage");
-const { Room } = require("../../models");
+const { CachedVideo } = require("../../../models");
+const storage = require("../../../storage");
+const { Room } = require("../../../models");
 
 const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(configPath)) {

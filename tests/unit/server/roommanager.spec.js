@@ -1,10 +1,10 @@
 const fs = require('fs');
 const path = require('path');
-const roommanager = require("../../roommanager");
-const InfoExtract = require("../../infoextract");
-const storage = require("../../storage");
+const roommanager = require("../../../roommanager");
+const InfoExtract = require("../../../infoextract");
+const storage = require("../../../storage");
 const moment = require("moment");
-const Video = require("../../common/video.js");
+const Video = require("../../../common/video.js");
 
 const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(configPath)) {
