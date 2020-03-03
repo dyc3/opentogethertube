@@ -36,5 +36,9 @@ module.exports = {
     '!**/migrations/**',
     '!**/models/**',
     '!**/seeders/**',
+    '!app.js',
+    '!src/App.vue',
+    '!src/plugins/vuetify.js',
+    '!src/(main|router).js',
   ],
 };
