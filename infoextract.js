@@ -172,12 +172,13 @@ module.exports = {
 			return this.searchYoutube(input)
 				.then(searchResults => this.getManyVideoInfo(searchResults))
 				.catch(err => {
-					if (err.response && err.response.status === 403) {
+					if (err.name === "OutOfQuotaException") {
 						console.error("Failed to search youtube for add preview: Out of quota");
 					}
 					else {
 						console.error("Failed to search youtube for add preview:", err);
 					}
+					throw err;
 				});
 		}
 
