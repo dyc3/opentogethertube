@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../../../app.js').app;
 const roommanager = require('../../../roommanager.js');
+const InfoExtract = require('../../../infoextract.js');
 
 describe("Room API", () => {
 	it("GET /room/list", async done => {
@@ -319,6 +320,73 @@ describe("Room API", () => {
 				});
 			});
 
+		done();
+	});
+});
+
+describe("Data API", () => {
+	it("GET /data/previewAdd", async done => {
+		let getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise(resolve => resolve([])));
+
+		await request(app)
+			.get("/api/data/previewAdd")
+			.query({ input: "test search query" })
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body).toHaveLength(0);
+				expect(getAddPreviewSpy).toBeCalled();
+			});
+
+		getAddPreviewSpy.mockRestore();
+		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => {
+			throw { name: "UnsupportedServiceException", message: "error message" };
+		});
+
+		await request(app)
+			.get("/api/data/previewAdd")
+			.query({ input: "test search query" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.error).toBeDefined();
+				expect(getAddPreviewSpy).toBeCalled();
+			});
+
+		getAddPreviewSpy.mockRestore();
+		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => {
+			throw { name: "InvalidAddPreviewInputException", message: "error message" };
+		});
+
+		await request(app)
+			.get("/api/data/previewAdd")
+			.query({ input: "test search query" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.error).toBeDefined();
+				expect(getAddPreviewSpy).toBeCalled();
+			});
+
+		getAddPreviewSpy.mockRestore();
+		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => {
+			throw { name: "OutOfQuotaException", message: "error message" };
+		});
+
+		await request(app)
+			.get("/api/data/previewAdd")
+			.query({ input: "test search query" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.error).toBeDefined();
+				expect(getAddPreviewSpy).toBeCalled();
+			});
+
+		getAddPreviewSpy.mockRestore();
 		done();
 	});
 });
