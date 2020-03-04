@@ -108,6 +108,13 @@ module.exports = function(_roommanager, storage) {
 			});
 			return;
 		}
+		if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
+			res.status(400).json({
+				success: false,
+				error: "Invalid value for room visibility",
+			});
+			return;
+		}
 		if (!req.body.temporary) {
 			req.body.temporary = false;
 		}

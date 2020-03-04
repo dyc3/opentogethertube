@@ -144,6 +144,15 @@ describe("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
+			.send({ name: "test1", temporary: true, visibility: "invalid" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body.success).toBeFalsy();
+			});
+
+		await request(app)
+			.post("/api/room/create")
 			.send({ temporary: true })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -215,6 +224,102 @@ describe("Room API", () => {
 				expect(resp.body.room).toBeDefined();
 				done();
 			});
+	});
+
+	it("PATCH /room/:name", async done => {
+		roommanager.createRoom("test1", true);
+
+		await request(app)
+			.patch("/api/room/test1")
+			.send({ title: "Test" })
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body.success).toBeTruthy();
+			});
+
+		roommanager.unloadRoom("test1", true);
+
+		roommanager.createRoom("test1", true);
+
+		await request(app)
+			.patch("/api/room/test1")
+			.send({ visibility: "unlisted" })
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body.success).toBeTruthy();
+			});
+		await request(app)
+			.patch("/api/room/test1")
+			.send({ visibility: "invalid" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body.success).toBeFalsy();
+			});
+
+		roommanager.unloadRoom("test1", true);
+
+		roommanager.createRoom("test1", true);
+
+		await request(app)
+			.patch("/api/room/test1")
+			.send({ queueMode: "vote" })
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body.success).toBeTruthy();
+			});
+		await request(app)
+			.patch("/api/room/test1")
+			.send({ queueMode: "invalid" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body.success).toBeFalsy();
+			});
+
+		roommanager.unloadRoom("test1", true);
+
+		await request(app)
+			.patch("/api/room/test1")
+			.send({ title: "Test" })
+			.expect("Content-Type", /json/)
+			.expect(404)
+			.then(resp => {
+				expect(resp.body).toEqual({
+					success: false,
+					error: "Room not found",
+				});
+			});
+
+		done();
+	});
+
+	it("DELETE /room/:name", async done => {
+		roommanager.createRoom("test1", true);
+
+		await request(app)
+			.delete("/api/room/test1")
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body.success).toBeTruthy();
+			});
+
+		await request(app)
+			.delete("/api/room/test1")
+			.expect("Content-Type", /json/)
+			.expect(404)
+			.then(resp => {
+				expect(resp.body).toEqual({
+					success: false,
+					error: "Room not found",
+				});
+			});
+
+		done();
 	});
 });
 
