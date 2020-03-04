@@ -111,6 +111,12 @@ else {
 }
 
 //start our server
-server.listen(process.env.PORT || 3000, () => {
-	console.log(`Server started on port ${server.address().port}`);
-});
+if (process.env.NODE_ENV !== "test") {
+	server.listen(process.env.PORT || 3000, () => {
+		console.log(`Server started on port ${server.address().port}`);
+	});
+}
+
+module.exports = {
+	app,
+};

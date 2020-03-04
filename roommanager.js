@@ -549,10 +549,11 @@ module.exports = {
 			throw new RoomNameTakenException(name);
 		}
 
-		let newRoom = new Room();
-		newRoom.name = name;
-		newRoom.isTemporary = isTemporary;
-		newRoom.visibility = visibility;
+		let newRoom = new Room({
+			name,
+			isTemporary,
+			visibility,
+		});
 		if (isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
 			newRoom.keepAlivePing = new Date();
@@ -636,11 +637,16 @@ module.exports = {
 	 * @param {Room} room The room to unload
 	 */
 	unloadRoom(room) {
-		for (const client of room.clients) {
-			client.socket.send(JSON.stringify({
-				action: "room-unload",
-			}));
-			client.socket.close(4003, "Room has been unloaded");
+		// HACK: for some reason, this became undefined when running unit tests,
+		// even though clients is defined to be an empty list in the constructor.
+		// This is one of the greatest mysteries of our time.
+		if (room.clients) {
+			for (const client of room.clients) {
+				client.socket.send(JSON.stringify({
+					action: "room-unload",
+				}));
+				client.socket.close(4003, "Room has been unloaded");
+			}
 		}
 
 		const roomIdx = _.findIndex(this.rooms, r => r.name === room.name);
