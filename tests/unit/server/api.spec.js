@@ -4,6 +4,13 @@ const roommanager = require('../../../roommanager.js');
 const InfoExtract = require('../../../infoextract.js');
 
 describe("Room API", () => {
+	beforeEach(() => {
+		roommanager.unloadRoom("test");
+		roommanager.unloadRoom("test1");
+		roommanager.unloadRoom("test2");
+		roommanager.unloadRoom("test3");
+	});
+
 	it("GET /room/list", async done => {
 		await request(app)
 			.get("/api/room/list")
