@@ -15,3 +15,5 @@ before_script:
 script:
   - npm run lint-ci
   - npm test
+after_script:
+  - bash <(curl -s https://codecov.io/bash)

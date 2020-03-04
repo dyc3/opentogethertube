@@ -25,6 +25,8 @@ module.exports = {
   "coverageReporters": [
     "text-summary",
     "text",
+    "json",
+    "html",
   ],
   'collectCoverageFrom': [
     '**/*.{js,vue}',
