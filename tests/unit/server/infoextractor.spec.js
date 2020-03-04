@@ -407,6 +407,16 @@ describe("InfoExtractor Youtube Support", () => {
       done();
     }).catch(err => done.fail(err));
   });
+
+  it("should search youtube using the extra options", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) })));
+    InfoExtract.searchYoutube("family guy funny moments", { maxResults: 3, fromUser: "test" }).then(() => {
+      expect(InfoExtract.YtApi.get).toBeCalled();
+      expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("maxResults=3");
+      expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("quotaUser=test");
+      done();
+    }).catch(err => done.fail(err));
+  });
 });
 
 describe("InfoExtractor Vimeo Support", () => {

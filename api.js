@@ -390,7 +390,7 @@ module.exports = function(_roommanager, storage) {
 
 		console.log("Getting queue add preview for", req.query.input);
 		try {
-			InfoExtract.getAddPreview(req.query.input.trim()).then(result => {
+			InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
 				res.json(result);
 				console.log("Sent add preview response with", result.length, "items");
 			});

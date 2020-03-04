@@ -156,7 +156,16 @@ module.exports = {
 		});
 	},
 
-	getAddPreview(input) {
+	/**
+	 * Gets a list of videos to make an add preview.
+	 * @param {string} input User input
+	 * @param {Object} options Optional extra parameters
+	 * @param {string} options.fromUser A unique identifier indicating the user that made the request for the add preview. Should not contain sensitive information, because it will be sent to the youtube API as `quotaUser`.
+	 * @returns {Array<Video>}
+	 * @throws UnsupportedServiceException
+	 * @throws InvalidAddPreviewInputException
+	 */
+	getAddPreview(input, options={}) {
 		const service = this.getService(input);
 
 		let id = null;
@@ -171,13 +180,15 @@ module.exports = {
 		}
 
 		if (urlParsed.host && service !== "youtube" && service !== "vimeo") {
+			// FIXME: To be more consistent, instead of throwing exceptions like this
+			// should be a promise that rejects with the exception.
 			throw new UnsupportedServiceException(urlParsed.host);
 		}
 		else if (!urlParsed.host) {
 			if (input.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
 				throw new InvalidAddPreviewInputException();
 			}
-			return this.searchYoutube(input)
+			return this.searchYoutube(input, options)
 				.then(searchResults => this.getManyVideoInfo(searchResults))
 				.catch(err => {
 					if (err.name === "OutOfQuotaException") {
@@ -481,10 +492,29 @@ module.exports = {
 	/**
 	 * Search Youtube for videos most related to the user's query
 	 * @param {string} query The user's search query
-	 * @returns {Array<Video>}
+	 * @param {Object} options Optional extra parameters
+	 * @param {string|undefined} [options.fromUser=undefined] A unique identifier indicating the user that made the request for the add preview. Should not contain sensitive information, because it will be sent to the youtube API as `quotaUser`.
+	 * @param {Number} [options.maxResults=8] The max number of results to return from the query.
+	 * @returns {Array<Video>} An array of videos with only service and id set.
 	 */
-	searchYoutube(query) {
-		return YtApi.get(`/search?key=${process.env.YOUTUBE_API_KEY}&part=id&type=video&maxResults=8&safeSearch=none&videoEmbeddable=true&videoSyndicated=true&q=${query}`).then(res => {
+	searchYoutube(query, options={}) {
+		options = _.defaults(options, {
+			maxResults: 8,
+		});
+		let queryParams = {
+			key: process.env.YOUTUBE_API_KEY,
+			part: "id",
+			type: "video",
+			maxResults: options.maxResults,
+			safeSearch: "none",
+			videoEmbeddable: true,
+			videoSyndicated: true,
+			q: query,
+		};
+		if (options.fromUser) {
+			queryParams.quotaUser = options.fromUser;
+		}
+		return YtApi.get(`/search?${querystring.stringify(queryParams)}`).then(res => {
 			return res.data.items.map(searchResult => new Video({
 				service: "youtube",
 				id: searchResult.id.videoId,
