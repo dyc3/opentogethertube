@@ -71,7 +71,7 @@ docker-compose -f docker/prod/docker-compose.yml up -d
 You can open a shell inside of the container with the following command.
 
 ```bash
-docker exec -it opentogethertube-<dev or prod> bash
+docker exec -it opentogethertube_<dev or prod> bash
 ```
 
 You can also see the logs for the multiples containers with the following command.

@@ -7,33 +7,42 @@ services:
       dockerfile: docker/prod/Dockerfile
     container_name: opentogethertube-prod
     environment:
+      # nodejs
       - NODE_ENV=production
-    networks:
-      - opentogethertube-net
+      - NODE_OPTIONS="--max-http-header-size=16000"
+      # redis
+      - REDIS_PORT=6379
+      - REDIS_HOST=redis_db
+      - REDIS_PASSWORD=redis
+      # postgrep
+      - DB_PASSWORD=postgres
+      - DATABASE_URL=postgres://ott:postgres@db_opentogethertube_prod:5432
+      - PORT=8080
     ports:
       - 8080:8080
+    links:
+      - redis_db
+      - postgres_db
     depends_on:
-      - redis
-      - postgres
+      - redis_db
+      - postgres_db
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-  redis:
+  redis_db:
     container_name: opentogethertube_redis
     image: redis
     environment:
-        - REDIS_PASSWORD="redis"
-        - REDIS_DB="opentogethertube"
+      - REDIS_PASSWORD="redis"
+      - REDIS_DB="opentogethertube"
     healthcheck:
       test: "redis-cli ping"
-    networks:
-      - opentogethertube-net
-    ports:
-      - 6379:6379
+    expose:
+      - 6379
     volumes:
       - db-data:/data
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-  postgres:
+  postgres_db:
     container_name: opentogethertube_postgres
     image: postgres
     environment:
@@ -42,19 +51,14 @@ services:
       - POSTGRES_DB=db_opentogethertube_prod
       - PGDATA=/var/lib/postgresql/data/db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ott"]
-    networks:
-      - opentogethertube-net
-    ports:
-        - 5432:5432
+      test: "pg_isready -U ott"
+    expose:
+      - 5432
     volumes:
       - db-data:/var/lib/postgresql/data
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-networks:
-  opentogethertube-net:
-    driver: bridge
-
+# shared volume
 volumes:
   db-data:
     driver: local
