@@ -1,10 +1,14 @@
 FROM node:lts
 
 # Port for web server
-ENV PORT=8080
-EXPOSE 8080
+ENV REDIS_PORT="6379"
+ENV REDIS_HOST="127.0.0.1"
+ENV REDIS_PASSWORD="redis"
+ENV REDIS_DB="opentogethertube"
+ENV DB_PASSWORD="postgres"
+ENV PORT="8080"
 
-# Install sqlite3 and redis
+# Install sqlite3
 RUN apt-get update -qq
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -qq sqlite3 git
 

@@ -1,60 +1,68 @@
 version: "3.7"
 services:
-    opentogethertube-prod:
-        image: opentogethertube_dev
-        container_name: opentogethertube_dev
-        build:
-            context: ../../
-            dockerfile: docker/dev/Dockerfile
-        environment:
-            - YOUTUBE_API_KEY=API_KEY_GOES_HERE # optional put it in env/development.env
-            - REDIS_PASSWORD=""
-            - REDIS_DB=""
-        networks:
-            - opentogethertube_dev-net
-        ports:
-            - 3000:3000
-            - 3001:3001
-            - 8888:8888
-            - 6379:6379
-        links:
-            - redis
-        depends_on:
-            - redis
-            - postgres
+  opentogethertube-dev:
+    image: opentogethertube_dev
+    container_name: opentogethertube_dev
+    build:
+      context: ../../
+      dockerfile: docker/dev/Dockerfile
+    environment:
+    # - YOUTUBE_API_KEY=API_KEY_GOES_HERE # optional put it in env/development.env
+        - REDIS_PORT="6379"
+        - REDIS_HOST="127.0.0.1"
+        - REDIS_PASSWORD="redis"
+        - REDIS_DB="opentogethertubedev"
+        - DB_PASSWORD=""
+    networks:
+      - opentogethertube_dev-net
+    ports:
+      - 3000:3000
+      - 3001:3001
+      - 8888:8888
+    depends_on:
+      - redis
+      - postgres
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-    redis:
-        container_name: opentogethertube_dev_redis
-        image: redis
-        environment: 
-            - REDIS_PASSWORD=""
-            - REDIS_DB=""
-        networks:
-            - opentogethertube_dev-net
-        volumes:
-            - dev_db_data:/data
-        expose:
-            - 6379
+  redis:
+    container_name: opentogethertube_dev_redis
+    image: redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD="redis"
+      - REDIS_DB="opentogethertubedev"
+    healthcheck:
+      test: "redis-cli ping"
+    networks:
+      - opentogethertube_dev-net
+    ports:
+      - 6379:6379
+    volumes:
+      - dev_db_data:/data
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-    postgres:
-        container_name: opentogethertube_dev_postgres
-        image: postgres
-        environment: 
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres
-            - POSTGRES_DB=opentogethertube
-            - PGDATA=/var/lib/postgresql/data/db-dev
-        networks:
-            - opentogethertube_dev-net
-        volumes:
-            - dev_db_data:/var/lib/postgresql/data
-        ports:
-            - 5432:5432
+  postgres:
+    container_name: opentogethertube_dev_postgres
+    image: postgres
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=""
+      - POSTGRES_DB=db_opentogethertube_dev
+      - PGDATA=/var/lib/postgresql/data/db-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+    networks:
+      - opentogethertube_dev-net
+    ports:
+      - 5432:5432
+    volumes:
+      - dev_db_data:/var/lib/postgresql/data
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
 networks:
-    opentogethertube_dev-net:
-        driver: bridge
+  opentogethertube_dev-net:
+    driver: bridge
 
 volumes:
-    dev_db_data:
-        driver: local
+  dev_db_data:
+    driver: local

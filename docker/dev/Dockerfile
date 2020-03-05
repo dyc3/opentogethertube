@@ -1,17 +1,14 @@
 FROM node:lts
 
-# Port for web server
-ENV PORT=3000
-ENV WEB_PORT=8080
-ENV REDIS_PORT=6379
-ENV REDIS_PASSWORD=redis
-ENV REDIS_DB=opentogethertubedev
+# Environnement variable
+ENV REDIS_PORT="6379"
+ENV REDIS_HOST="127.0.0.1"
+ENV REDIS_PASSWORD="redis"
+ENV REDIS_DB="opentogethertubedev"
+ENV DB_PASSWORD=""
+ENV PORT="3000"
 
-# Expose Port
-EXPOSE 8080
-EXPOSE 3000
-
-# Install sqlite3 and redis
+# Install sqlite3
 RUN apt-get update -qq
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -qq sqlite3
 

@@ -1,57 +1,60 @@
 version: "3.7"
 services:
-    opentogethertube:
-        image: opentogethertube
-        build:
-            context: ../../
-            dockerfile: docker/prod/Dockerfile
-        container_name: opentogethertube-prod
-        environment:
-            - NODE_ENV=production
-            - REDIS_PASSWORD=""
-            - REDIS_DB=""
-        networks:
-            - opentogethertube-net
-        ports:
-            - 8080:8080
-        links:
-            - redis
-        depends_on:
-            - redis
-            - postgres
+  opentogethertube:
+    image: opentogethertube
+    build:
+      context: ../../
+      dockerfile: docker/prod/Dockerfile
+    container_name: opentogethertube-prod
+    environment:
+      - NODE_ENV=production
+    networks:
+      - opentogethertube-net
+    ports:
+      - 8080:8080
+    depends_on:
+      - redis
+      - postgres
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-    redis:
-        container_name: opentogethertube_redis
-        image: redis
-        environment: 
-            - REDIS_PASSWORD=""
-            - REDIS_DB=""
-        networks:
-            - opentogethertube-net
-        volumes: 
-            - db-data:/data
-        expose:
-            - 6379
+  redis:
+    container_name: opentogethertube_redis
+    image: redis
+    environment:
+        - REDIS_PASSWORD="redis"
+        - REDIS_DB="opentogethertube"
+    healthcheck:
+      test: "redis-cli ping"
+    networks:
+      - opentogethertube-net
+    ports:
+      - 6379:6379
+    volumes:
+      - db-data:/data
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-    postgres:
-        container_name: opentogethertube_postgres
-        image: postgres
-        environment: 
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres
-            - POSTGRES_DB=opentogethertube
-            - PGDATA=/var/lib/postgresql/data/db
-        networks:
-            - opentogethertube-net
-        volumes:
-            - db-data:/var/lib/postgresql/data
-        ports:
-            - 5432:5432
+  postgres:
+    container_name: opentogethertube_postgres
+    image: postgres
+    environment:
+      - POSTGRES_USER=ott
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db_opentogethertube_prod
+      - PGDATA=/var/lib/postgresql/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ott"]
+    networks:
+      - opentogethertube-net
+    ports:
+        - 5432:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
 networks:
-    opentogethertube-net:
-        driver: bridge
+  opentogethertube-net:
+    driver: bridge
 
 volumes:
-    db-data:
-        driver: local
+  db-data:
+    driver: local
