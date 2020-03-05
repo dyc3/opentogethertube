@@ -7,41 +7,41 @@ services:
       context: ../../
       dockerfile: docker/dev/Dockerfile
     environment:
-    # - YOUTUBE_API_KEY=API_KEY_GOES_HERE # optional put it in env/development.env
-        - REDIS_PORT="6379"
-        - REDIS_HOST="127.0.0.1"
-        - REDIS_PASSWORD="redis"
-        - REDIS_DB="opentogethertubedev"
-        - DB_PASSWORD=""
-    networks:
-      - opentogethertube_dev-net
+      # - YOUTUBE_API_KEY=API_KEY_GOES_HERE # optional put it in env/development.env
+      # nodejs
+      - NODE_ENV=development
+      - NODE_OPTIONS="--max-http-header-size=16000"
+      # redis
+      - REDIS_HOST=redis_db
+      - REDIS_PASSWORD=redis
+      # postgres
+      - DATABASE_URL=postgres://root@db_opentogethertube_dev:5432
+    healthcheck:
+      test: "curl -f http://localhost:8080/ || exit 1"
     ports:
-      - 3000:3000
-      - 3001:3001
-      - 8888:8888
+      - 8080:8080
+    links:
+      - redis_db
+      - postgres_db
     depends_on:
-      - redis
-      - postgres
+      - redis_db
+      - postgres_db
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-  redis:
+  redis_db:
     container_name: opentogethertube_dev_redis
     image: redis
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
-      - REDIS_PASSWORD="redis"
-      - REDIS_DB="opentogethertubedev"
     healthcheck:
       test: "redis-cli ping"
-    networks:
-      - opentogethertube_dev-net
-    ports:
-      - 6379:6379
+    expose:
+        - 6379
     volumes:
       - dev_db_data:/data
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-  postgres:
+  postgres_db:
     container_name: opentogethertube_dev_postgres
     image: postgres
     environment:
@@ -50,19 +50,14 @@ services:
       - POSTGRES_DB=db_opentogethertube_dev
       - PGDATA=/var/lib/postgresql/data/db-dev
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root"]
-    networks:
-      - opentogethertube_dev-net
-    ports:
-      - 5432:5432
+      test: "pg_isready -U root"
+    expose:
+      - 5432
     volumes:
       - dev_db_data:/var/lib/postgresql/data
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-networks:
-  opentogethertube_dev-net:
-    driver: bridge
-
+# shared volume
 volumes:
   dev_db_data:
     driver: local
