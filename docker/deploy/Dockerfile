@@ -1,22 +1,23 @@
-FROM node:lts
+FROM node:alpine3.11
 
 # Environnement variable redis/postgres/webport
 ENV REDIS_PORT 6379
 ENV REDIS_PASSWORD redis
-ENV REDIS_DB opentogethertube
 ENV DB_PASSWORD postgres
 ENV PORT 8080
 
 # Install sqlite3
-RUN apt-get update -qq
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -qq sqlite3
+RUN apk update -q
+RUN apk add sqlite -q
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /usr/app
 
 # Install app dependencies
-COPY . .
-RUN npm install
+COPY dist .
+COPY node_modules .
+COPY package.json .
+RUN npm install --production
 
 # Build dist
 RUN npm run build
