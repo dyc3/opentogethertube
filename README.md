@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/dyc3/opentogethertube.svg?branch=master)](https://travis-ci.com/dyc3/opentogethertube)
 [![codecov](https://codecov.io/gh/dyc3/opentogethertube/branch/master/graph/badge.svg)](https://codecov.io/gh/dyc3/opentogethertube)
+[![Docker size](https://img.shields.io/docker/image-size/antoine13/opentogethertube)](https://hub.docker.com/r/antoine13/opentogethertube)
 
 The easy way to watch videos with your friends.
 
