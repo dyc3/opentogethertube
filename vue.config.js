@@ -13,6 +13,7 @@ module.exports = {
 	transpileDependencies: ["vuetify"],
 	pluginOptions: {
 		webpackBundleAnalyzer: {
+			analyzerHost: "0.0.0.0",
 			openAnalyzer: false,
 		},
 	},

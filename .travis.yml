@@ -1,21 +1,21 @@
 language: node_js
 branches:
   only:
-    - master
+  - master
 node_js:
-  - lts/*
+- lts/*
 cache:
   directories:
     - "$HOME/.npm"
 services:
-  - redis-server
+  - redis
 install:
-  - npm ci
+- npm ci
 before_script:
-  - NODE_ENV=test npx sequelize-cli db:migrate
-  - npm run build
+- NODE_ENV=test npx sequelize-cli db:migrate
+- npm run build
 script:
-  - npm run lint-ci
-  - npm test
+- npm run lint-ci
+- npm test
 after_script:
-  - bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash)
