@@ -39,7 +39,11 @@ export default {
 				width: "100%",
 				height: "100%",
 				params: {
+					api: 1,
 					autoplay: false,
+					controls: false,
+					"ui-logo": false,
+					"ui-start-screen-info": false,
 				},
 				events: {
 					apiready: () => this.$emit("ready"),
