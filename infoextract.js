@@ -13,7 +13,11 @@ const YtApi = axios.create({
 });
 const VIMEO_OEMBED_API_URL = "https://vimeo.com/api/oembed.json";
 const VimeoApi = axios.create();
-const DAILYMOTION_OEMBED_API_URL = "http://www.dailymotion.com/services/oembed";
+const DAILYMOTION_API_URL = "https://api.dailymotion.com";
+// const DAILYMOTION_OEMBED_API_URL = "http://www.dailymotion.com/services/oembed";
+const DailymotionApi = axios.create({
+	baseURL: DAILYMOTION_API_URL,
+});
 
 class UnsupportedServiceException extends Error {
 	constructor(hostname) {
@@ -39,6 +43,7 @@ class OutOfQuotaException extends Error {
 module.exports = {
 	YtApi,
 	VimeoApi,
+	DailymotionApi,
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
@@ -593,35 +598,25 @@ module.exports = {
 	 * Gets video metadata for dailymotion videos.
 	 *
 	 * https://developer.dailymotion.com/player/#player-oembed
-	 * https://developer.dailymotion.com/tools/
-	 * @param {string} id The video id on vimeo
+	 * https://developer.dailymotion.com/tools/#/video
+	 * @param {string} id The video id on dailymotion
 	 * @returns {Promise<Video>|null} Video with metadata, null if it fails to get metadata
 	 */
 	getVideoInfoDailymotion(id) {
-		// HACK: This API method doesn't require us to use authentication, but it gives us somewhat low res thumbnail urls
-		// FIXME: oEmbed endpoint does not provide video length
-		return axios.get(`${DAILYMOTION_OEMBED_API_URL}?url=https://dailymotion.com/video/${id}`).then(res => {
+		return DailymotionApi.get(`/video/${id}?fields=title,description,thumbnail_url,duration`).then(res => {
 			let video = new Video({
 				service: "dailymotion",
 				id,
 				title: res.data.title,
 				description: res.data.description,
 				thumbnail: res.data.thumbnail_url,
+				length: res.data.duration,
 			});
 			storage.updateVideoInfo(video);
 			return video;
 		}).catch(err => {
-			if (err.response.status === 403) {
-				console.error("Failed to get dailymotion video info: Embedding for this video is disabled");
-				return null;
-			}
-			else {
-				console.error("Failed to get dailymotion video info:", err);
-				return new Video({
-					service: "dailymotion",
-					id,
-				});
-			}
+			console.error("Failed to get dailymotion video info:", err);
+			return null;
 		});
 	},
 };
