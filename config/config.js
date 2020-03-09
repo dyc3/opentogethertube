@@ -9,19 +9,19 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = {
   "development": {
-    "username": process.env.POSTGRES_DB_USERNAME || "root",
-    "password": process.env.POSTGRES_DB_PASSWORD || null,
-    "database": process.env.POSTGRES_DB_NAME || "db_opentogethertube_dev",
-    "host": process.env.POSTGRES_DB_HOST || "127.0.0.1",
+    "username": "root",
+    "password": null,
+    "database": "db_opentogethertube_dev",
+    "host": "127.0.0.1",
     "dialect": "sqlite",
     "operatorsAliases": false,
     "storage": "db/dev.sqlite",
   },
   "test": {
-    "username": process.env.POSTGRES_DB_USERNAME || "root",
-    "password": process.env.POSTGRES_DB_PASSWORD || null,
-    "database": process.env.POSTGRES_DB_NAME || "db_opentogethertube_test",
-    "host": process.env.POSTGRES_DB_HOST || "127.0.0.1",
+    "username": "root",
+    "password": null,
+    "database": "db_opentogethertube_test",
+    "host": "127.0.0.1",
     "dialect": "sqlite",
     "operatorsAliases": false,
     "storage": "db/test.sqlite",
