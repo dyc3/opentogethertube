@@ -9,7 +9,7 @@
         <v-row no-gutters class="video-container">
           <v-col cols="12" :xl="$store.state.fullscreen ? 8 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <div class="iframe-container" :key="currentSource.service">
-              <youtube v-if="currentSource.service == 'youtube'" fit-parent resize :video-id="currentSource.id" ref="youtube" :player-vars="{ controls: 0, disablekb: 1 }" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
+              <YoutubePlayer v-if="currentSource.service == 'youtube'" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
               <v-container fluid fill-height class="no-video" v-else>
                 <v-row justify="center" align="center">
@@ -169,6 +169,7 @@ export default {
     draggable,
     VideoQueueItem,
     VueSlider,
+    YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
     VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
   },
   data() {
@@ -342,7 +343,7 @@ export default {
     },
     play() {
       if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.player.playVideo();
+        this.$refs.youtube.play();
       }
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.play();
@@ -350,7 +351,7 @@ export default {
     },
     pause() {
       if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.player.pauseVideo();
+        this.$refs.youtube.pause();
       }
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.pause();
@@ -358,7 +359,7 @@ export default {
     },
     updateVolume() {
       if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.player.setVolume(this.volume);
+        this.$refs.youtube.setVolume(this.volume);
       }
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.setVolume(this.volume);
@@ -443,7 +444,7 @@ export default {
       }
     },
     onPlayerReady_Youtube() {
-      this.$refs.youtube.player.loadVideoById(this.$store.state.room.currentSource.id);
+      this.$refs.youtubeplayer.player.loadVideoById(this.$store.state.room.currentSource.id);
     },
     onPlayerReady_Vimeo() {
       if (this.$store.state.room.isPlaying) {
@@ -588,14 +589,14 @@ export default {
     async sliderPosition(newPosition) {
       let currentTime = null;
       if (this.currentSource.service === "youtube") {
-        currentTime = await this.$refs.youtube.player.getCurrentTime();
+        currentTime = await this.$refs.youtube.getPosition();
       }
       else if (this.currentSource.service === "vimeo") {
         currentTime = await this.$refs.vimeo.getPosition();
       }
       if (Math.abs(newPosition - currentTime) > 1) {
         if (this.currentSource.service === "youtube") {
-          this.$refs.youtube.player.seekTo(newPosition);
+          this.$refs.youtube.setPosition(newPosition);
         }
         else if (this.currentSource.service === "vimeo") {
           this.$refs.vimeo.setPosition(newPosition);
@@ -649,20 +650,6 @@ export default {
   margin: 5px;
   padding: 0 5px;
   font-size: 10px;
-}
-.iframe-container {
-  position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
-  overflow: hidden;
-  max-width: 100%;
-}
-.iframe-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
 }
 .bubble{
   height: 25px;
