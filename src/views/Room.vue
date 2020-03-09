@@ -644,7 +644,7 @@ export default {
     padding-top: 56.25%;
     position: relative;
   }
-  .no-video, .youtube, .vimeo {
+  .no-video, .youtube, .vimeo, .dailymotion {
     position: absolute;
     top: 0;
     left: 0;

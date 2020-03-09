@@ -1,5 +1,4 @@
 <template>
-	<!-- eslint-disable-next-line vue/no-v-html -->
 	<div class="dailymotion" id="dailymotion-player"></div>
 </template>
 
@@ -22,9 +21,12 @@ export default {
 		};
 	},
 	created() {
-		getSdk(DAILYMOTION_SDK_URL, "DM").then(DM => {
-			console.log("DM: ", DM);
+		getSdk(DAILYMOTION_SDK_URL, "DM", "dmAsyncInit").then(DM => {
 			this.DM = DM;
+			this.DM.init({
+				status: false,
+				cookie: false,
+			});
 			this.updateIframe();
 		});
 	},
@@ -45,22 +47,6 @@ export default {
 					waiting: () => this.$emit("buffering"),
 				},
 			});
-			// axios.get(`${DAILYMOTION_OEMBED_API_URL}?url=https://dailymotion.com/video/${this.videoId}`).then(res => {
-			// 	this.iframe = res.data.html;
-			// 	// setTimeout(() => {
-			// 	// 	this.player.on("play", () => this.$emit("playing"));
-			// 	// 	this.player.on("pause", () => this.$emit("paused"));
-			// 	// 	this.player.on("loaded", () => this.$emit("ready"));
-			// 	// 	this.player.on("bufferstart", () => {
-			// 	// 		this.isBuffering = true;
-			// 	// 		this.$emit("butterstart");
-			// 	// 	});
-			// 	// 	this.player.on("bufferend", () => {
-			// 	// 		this.isBuffering = false;
-			// 	// 		this.$emit("butterend");
-			// 	// 	});
-			// 	// }, 0);
-			// });
 		},
 		play() {
 			return this.player.play();
@@ -88,10 +74,6 @@ export default {
 
 <style lang="scss" scoped>
 .dailymotion {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-
 	color: #696969;
 	border: 1px solid #666;
 	border-radius: 3px;
