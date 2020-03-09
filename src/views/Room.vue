@@ -8,7 +8,7 @@
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
         <v-row no-gutters class="video-container">
           <v-col cols="12" :xl="$store.state.fullscreen ? 8 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
-            <div class="iframe-container" :key="currentSource.service">
+            <div class="player-container" :key="currentSource.service">
               <YoutubePlayer v-if="currentSource.service == 'youtube'" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
               <v-container fluid fill-height class="no-video" v-else>
@@ -626,11 +626,21 @@ export default {
 .video-container {
   margin: 10px;
 
-  .no-video {
+  // HACK: Jank ass force the player to be 16:9 hack
+  .player-container {
+    padding-top: 56.25%;
+    position: relative;
+  }
+  .no-video, .youtube, .vimeo {
     position: absolute;
-    height: 100%;
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100%;
+  }
 
+  .no-video {
+    height: 100%;
     color: #696969;
     border: 1px solid #666;
     border-radius: 3px;
