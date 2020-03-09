@@ -63,6 +63,11 @@ module.exports = {
 				throw new Error(`Invalid vimeo video ID: ${id}`);
 			}
 		}
+		else if (service === "dailymotion") {
+			if (!(/^[A-za-z0-9]+$/).exec(id)) {
+				throw new Error(`Invalid dailymotion video ID: ${id}`);
+			}
+		}
 
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
@@ -187,8 +192,11 @@ module.exports = {
 		else if (service === "vimeo") {
 			id = this.getVideoIdVimeo(input);
 		}
+		else if (service === "dailymotion") {
+			id = this.getVideoIdDailymotion(input);
+		}
 
-		if (urlParsed.host && service !== "youtube" && service !== "vimeo") {
+		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion") {
 			// FIXME: To be more consistent, instead of throwing exceptions like this
 			// should be a promise that rejects with the exception.
 			throw new UnsupportedServiceException(urlParsed.host);
