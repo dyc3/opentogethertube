@@ -1,5 +1,7 @@
 <template>
-	<div class="dailymotion" id="dailymotion-player"></div>
+	<div class="dailymotion">
+		<div id="dailymotion-player"></div>
+	</div>
 </template>
 
 <script>
