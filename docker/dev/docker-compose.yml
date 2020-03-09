@@ -8,9 +8,6 @@ services:
       dockerfile: docker/dev/Dockerfile
     environment:
       - REDIS_HOST=redis_db
-      # - POSTGRES_DB_NAME=opentogethertubedev
-      # - POSTGRES_DB_HOST=postgres_db
-      # - POSTGRES_DB_PASSWORD=root
     healthcheck:
       test: "curl -f http://localhost:3001/ || exit 1"
     ports:
@@ -18,10 +15,8 @@ services:
       - 8888:8888
     links:
       - redis_db
-      # - postgres_db
     depends_on:
       - redis_db
-      # - postgres_db
 
   redis_db:
     container_name: opentogethertube_dev_redis
@@ -36,25 +31,7 @@ services:
       - db-data-redis:/data
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
-  # postgres_db:
-  #   container_name: opentogethertube_dev_postgres
-  #   image: postgres
-  #   environment:
-  #     - POSTGRES_DB=opentogethertubedev
-  #     - POSTGRES_USER=root
-  #     - POSTGRES_PASSWORD=root
-  #     - PGDATA=/tmp
-  #   healthcheck:
-  #     test: "pg_isready -U root"
-  #   expose:
-  #     - 5432
-  #   volumes:
-  #     - db-data-postgres:/var/lib/postgresql/data
-  #   restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
-
 # shared volume
 volumes:
   db-data-redis:
     driver: local
-  # db-data-postgres:
-  #   driver: local
