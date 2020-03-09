@@ -74,10 +74,6 @@ export default {
 
 <style lang="scss" scoped>
 .vimeo {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-
 	color: #696969;
 	border: 1px solid #666;
 	border-radius: 3px;
