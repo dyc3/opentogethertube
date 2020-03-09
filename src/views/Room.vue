@@ -444,7 +444,7 @@ export default {
       }
     },
     onPlayerReady_Youtube() {
-      this.$refs.youtubeplayer.player.loadVideoById(this.$store.state.room.currentSource.id);
+
     },
     onPlayerReady_Vimeo() {
       if (this.$store.state.room.isPlaying) {

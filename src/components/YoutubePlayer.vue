@@ -1,6 +1,6 @@
 <template>
 	<div class="youtube-player">
-		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="$emit('ready')"/>
+		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="onReady"/>
 	</div>
 </template>
 
@@ -30,6 +30,11 @@ export default {
 		},
 		setVolume() {
 			this.$refs.youtubeplayer.player.setVolume(this.volume);
+		},
+
+		onReady() {
+			this.$refs.youtubeplayer.player.loadVideoById(this.$store.state.room.currentSource.id);
+			this.$emit('ready');
 		},
 	},
 };
