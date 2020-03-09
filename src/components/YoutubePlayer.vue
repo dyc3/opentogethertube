@@ -1,5 +1,5 @@
 <template>
-	<div class="youtube-player">
+	<div class="youtube">
 		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="onReady"/>
 	</div>
 </template>
