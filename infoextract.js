@@ -541,11 +541,6 @@ module.exports = {
 		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
 	},
 
-	getVideoIdDailymotion(link) {
-		let urlParsed = url.parse(link);
-		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
-	},
-
 	/**
 	 * Gets video metadata for vimeo videos.
 	 *
@@ -580,6 +575,18 @@ module.exports = {
 				});
 			}
 		});
+	},
+
+	/* DAILYMOTION */
+
+	/**
+	 * Gets the Dailymotion video id from the link.
+	 * @param {string} link Dailymotion URL
+	 * @returns {string} Dailymotion video id
+	 */
+	getVideoIdDailymotion(link) {
+		let urlParsed = url.parse(link);
+		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
 	},
 
 	/**
