@@ -7,7 +7,9 @@ const InfoExtract = require("./infoextract");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 
-const SUPPORTED_SERVICES = ["youtube", "vimeo", "dailymotion"];
+const SUPPORTED_SERVICES = [
+"youtube", "vimeo", "dailymotion",
+];
 
 /**
  * Represents a Room and all it's associated state, settings, connected clients.

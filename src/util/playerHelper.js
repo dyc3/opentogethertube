@@ -29,7 +29,7 @@ export function getSdk(url, sdkGlobal, sdkReady=null, isLoaded=() => true, fetch
 		const onLoaded = sdk => {
 			// When loaded, resolve all pending request promises
 			requests[url].forEach(request => request.resolve(sdk));
-		}
+		};
 		if (sdkReady) {
 			const previousOnReady = window[sdkReady];
 			window[sdkReady] = () => {
