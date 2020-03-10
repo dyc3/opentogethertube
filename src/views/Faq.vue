@@ -23,7 +23,7 @@ export default {
 			questions: [
 				{
 					question: "What kind of videos can be played?",
-					answer: "Youtube and Vimeo videos.",
+					answer: "Youtube, Vimeo, and Dailymotion videos.",
 				},
 				{
 					question: "Can you add support X?",
