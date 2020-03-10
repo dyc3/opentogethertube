@@ -80,6 +80,10 @@ app.get('\\S+/$', (req, res) => {
 });
 
 app.use((req, res, next) => {
+	if (!req.path.startsWith("/api")) {
+		next();
+		return;
+	}
 	console.log(">", req.method, req.path, req.params);
 	if (req.method == "POST") {
 		console.log("   -", req.body);
