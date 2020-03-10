@@ -40,10 +40,16 @@ class OutOfQuotaException extends Error {
 	}
 }
 
+let redisClient;
+
 module.exports = {
 	YtApi,
 	VimeoApi,
 	DailymotionApi,
+
+	init(_redisClient) {
+		redisClient = _redisClient;
+	},
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
@@ -514,7 +520,25 @@ module.exports = {
 	 * @param {Number} [options.maxResults=8] The max number of results to return from the query.
 	 * @returns {Array<Video>} An array of videos with only service and id set.
 	 */
-	searchYoutube(query, options={}) {
+	async searchYoutube(query, options={}) {
+		let cachedResults = await new Promise((resolve, reject) => {
+			redisClient.get(`search:${query}`, (err, value) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				if (!value) {
+					resolve(null);
+					return;
+				}
+				resolve(JSON.parse(value));
+			});
+		});
+		if (cachedResults) {
+			console.log("Using cached results for youtube search");
+			return cachedResults;
+		}
+
 		options = _.defaults(options, {
 			maxResults: 8,
 		});
@@ -532,10 +556,17 @@ module.exports = {
 			queryParams.quotaUser = options.fromUser;
 		}
 		return YtApi.get(`/search?${querystring.stringify(queryParams)}`).then(res => {
-			return res.data.items.map(searchResult => new Video({
+			let results = res.data.items.map(searchResult => new Video({
 				service: "youtube",
 				id: searchResult.id.videoId,
 			}));
+			// results expire in 24 hours
+			redisClient.set(`search:${query}`, JSON.stringify(results), "EX", 60 * 60 * 24, err => {
+				if (err) {
+					console.error("Failed to cache search results:", err);
+				}
+			});
+			return results;
 		});
 	},
 
