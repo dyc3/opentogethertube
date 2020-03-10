@@ -13,6 +13,11 @@ const YtApi = axios.create({
 });
 const VIMEO_OEMBED_API_URL = "https://vimeo.com/api/oembed.json";
 const VimeoApi = axios.create();
+const DAILYMOTION_API_URL = "https://api.dailymotion.com";
+// const DAILYMOTION_OEMBED_API_URL = "http://www.dailymotion.com/services/oembed";
+const DailymotionApi = axios.create({
+	baseURL: DAILYMOTION_API_URL,
+});
 
 class UnsupportedServiceException extends Error {
 	constructor(hostname) {
@@ -38,6 +43,7 @@ class OutOfQuotaException extends Error {
 module.exports = {
 	YtApi,
 	VimeoApi,
+	DailymotionApi,
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
@@ -55,6 +61,11 @@ module.exports = {
 		else if (service === "vimeo") {
 			if (!(/^[0-9]+$/).exec(id)) {
 				throw new Error(`Invalid vimeo video ID: ${id}`);
+			}
+		}
+		else if (service === "dailymotion") {
+			if (!(/^[A-za-z0-9]+$/).exec(id)) {
+				throw new Error(`Invalid dailymotion video ID: ${id}`);
 			}
 		}
 
@@ -90,6 +101,9 @@ module.exports = {
 			}
 			else if (video.service === "vimeo") {
 				return this.getVideoInfoVimeo(video.id);
+			}
+			else if (video.service === "dailymotion") {
+				return this.getVideoInfoDailymotion(video.id);
 			}
 		}).catch(err => {
 			console.error("Failed to get video metadata from database:", err);
@@ -178,8 +192,11 @@ module.exports = {
 		else if (service === "vimeo") {
 			id = this.getVideoIdVimeo(input);
 		}
+		else if (service === "dailymotion") {
+			id = this.getVideoIdDailymotion(input);
+		}
 
-		if (urlParsed.host && service !== "youtube" && service !== "vimeo") {
+		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion") {
 			// FIXME: To be more consistent, instead of throwing exceptions like this
 			// should be a promise that rejects with the exception.
 			throw new UnsupportedServiceException(urlParsed.host);
@@ -300,6 +317,9 @@ module.exports = {
 		}
 		else if (srcUrl.host.endsWith("vimeo.com")) {
 			return "vimeo";
+		}
+		else if (srcUrl.host.endsWith("dailymotion.com") || srcUrl.host.endsWith("dai.ly")) {
+			return "dailymotion";
 		}
 		else {
 			return false;
@@ -567,6 +587,44 @@ module.exports = {
 					id,
 				});
 			}
+		});
+	},
+
+	/* DAILYMOTION */
+
+	/**
+	 * Gets the Dailymotion video id from the link.
+	 * @param {string} link Dailymotion URL
+	 * @returns {string} Dailymotion video id
+	 */
+	getVideoIdDailymotion(link) {
+		let urlParsed = url.parse(link);
+		return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
+	},
+
+	/**
+	 * Gets video metadata for dailymotion videos.
+	 *
+	 * https://developer.dailymotion.com/player/#player-oembed
+	 * https://developer.dailymotion.com/tools/#/video
+	 * @param {string} id The video id on dailymotion
+	 * @returns {Promise<Video>|null} Video with metadata, null if it fails to get metadata
+	 */
+	getVideoInfoDailymotion(id) {
+		return DailymotionApi.get(`/video/${id}?fields=title,description,thumbnail_url,duration`).then(res => {
+			let video = new Video({
+				service: "dailymotion",
+				id,
+				title: res.data.title,
+				description: res.data.description,
+				thumbnail: res.data.thumbnail_url,
+				length: res.data.duration,
+			});
+			storage.updateVideoInfo(video);
+			return video;
+		}).catch(err => {
+			console.error("Failed to get dailymotion video info:", err);
+			return null;
 		});
 	},
 };

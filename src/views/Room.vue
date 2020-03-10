@@ -11,6 +11,7 @@
             <div class="player-container" :key="currentSource.service">
               <YoutubePlayer v-if="currentSource.service == 'youtube'" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
+              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" ref="dailymotion" :video-id="currentSource.id" />
               <v-container fluid fill-height class="no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -81,6 +82,7 @@
                     <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -171,6 +173,7 @@ export default {
     VueSlider,
     YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
     VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
+    DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
   },
   data() {
     return {
@@ -308,6 +311,7 @@ export default {
         "https://www.youtube.com/watch?v=aI67KDJRnvQ",
         "https://vimeo.com/94338566",
         "https://vimeo.com/239423699",
+        "https://www.dailymotion.com/video/x6hkywd",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
@@ -348,6 +352,9 @@ export default {
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.play();
       }
+      else if (this.currentSource.service === "dailymotion") {
+        this.$refs.dailymotion.play();
+      }
     },
     pause() {
       if (this.currentSource.service == "youtube") {
@@ -356,6 +363,9 @@ export default {
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.pause();
       }
+      else if (this.currentSource.service === "dailymotion") {
+        this.$refs.dailymotion.pause();
+      }
     },
     updateVolume() {
       if (this.currentSource.service == "youtube") {
@@ -363,6 +373,9 @@ export default {
       }
       else if (this.currentSource.service === "vimeo") {
         this.$refs.vimeo.setVolume(this.volume);
+      }
+      else if (this.currentSource.service === "dailymotion") {
+        this.$refs.dailymotion.setVolume(this.volume);
       }
     },
     requestAddPreview() {
@@ -594,12 +607,18 @@ export default {
       else if (this.currentSource.service === "vimeo") {
         currentTime = await this.$refs.vimeo.getPosition();
       }
+      else if (this.currentSource.service === "dailymotion") {
+        currentTime = await this.$refs.dailymotion.getPosition();
+      }
       if (Math.abs(newPosition - currentTime) > 1) {
         if (this.currentSource.service === "youtube") {
           this.$refs.youtube.setPosition(newPosition);
         }
         else if (this.currentSource.service === "vimeo") {
           this.$refs.vimeo.setPosition(newPosition);
+        }
+        else if (this.currentSource.service === "dailymotion") {
+          this.$refs.dailymotion.setPosition(newPosition);
         }
       }
     },
@@ -631,7 +650,7 @@ export default {
     padding-top: 56.25%;
     position: relative;
   }
-  .no-video, .youtube, .vimeo {
+  .no-video, .youtube, .vimeo, .dailymotion {
     position: absolute;
     top: 0;
     left: 0;

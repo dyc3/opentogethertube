@@ -25,6 +25,10 @@ const vimeoOEmbedSampleResponses = {
   "94338566": `{"type":"video","version":"1.0","provider_name":"Vimeo","provider_url":"https://vimeo.com/","title":"Showreel","author_name":"Susi Sie","author_url":"https://vimeo.com/susisie","is_plus":"1","account_type":"plus","width":480,"height":190,"duration":70,"description":"No animation. No 3D. Just reality.","thumbnail_url":"https://i.vimeocdn.com/video/474246782_295x166.jpg","thumbnail_width":295,"thumbnail_height":117,"thumbnail_url_with_play_button":"https://i.vimeocdn.com/filter/overlay?src0=https%3A%2F%2Fi.vimeocdn.com%2Fvideo%2F474246782_295x166.jpg&src1=http%3A%2F%2Ff.vimeocdn.com%2Fp%2Fimages%2Fcrawler_play.png","upload_date":"2014-05-07 04:30:13","video_id":94338566,"uri":"/videos/94338566"}`,
 };
 
+const dailymotionVideoInfoSampleResponses = {
+  "x1fz4ii": `{"title":"Hackathon BeMyApp/Dailymotion","description":"This is a video that was done after our hackathon","thumbnail_url":"https://s2.dmcdn.net/v/7sRg71UN0OKwaG4Wj","duration":213}`,
+};
+
 describe('InfoExtractor Link Parsing', () => {
   it('getService() should return youtube when given youtube link', () => {
     expect(InfoExtract.getService("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
@@ -38,6 +42,11 @@ describe('InfoExtractor Link Parsing', () => {
 
   it('getService() should return vimeo when given vimeo link', () => {
     expect(InfoExtract.getService("https://vimeo.com/94338566")).toEqual("vimeo");
+  });
+
+  it('getService() should return dailymotion when given dailymotion link', () => {
+    expect(InfoExtract.getService("https://www.dailymotion.com/video/x6hkywd")).toEqual("dailymotion");
+    expect(InfoExtract.getService("https://dai.ly/x6hkywd")).toEqual("dailymotion");
   });
 
   it('getService() should return false when given link to unsupported service', () => {
@@ -78,6 +87,12 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566")).toEqual("94338566");
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566?t=2")).toEqual("94338566");
     expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/channels/susisie/94338566")).toEqual("94338566");
+  });
+
+  it('getVideoIdDailymotion() should return correct id when given dailymotion link', () => {
+    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd")).toEqual("x6hkywd");
+    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd?start=120")).toEqual("x6hkywd");
+    expect(InfoExtract.getVideoIdDailymotion("https://dai.ly/x6hkywd")).toEqual("x6hkywd");
   });
 });
 
@@ -458,6 +473,38 @@ describe("InfoExtractor Vimeo Support", () => {
         service: "vimeo",
         id: "94338566",
       }));
+      expect(storage.updateVideoInfo).not.toHaveBeenCalled();
+      done();
+    });
+  });
+});
+
+describe("InfoExtractor Dailymotion Support", () => {
+  it("should handle single video", done => {
+    InfoExtract.DailymotionApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(dailymotionVideoInfoSampleResponses["x1fz4ii"]) })));
+    storage.updateVideoInfo = jest.fn();
+
+    InfoExtract.getVideoInfoDailymotion("x1fz4ii").then(video => {
+      expect(video).toEqual(new Video({
+        service: "dailymotion",
+        id: "x1fz4ii",
+        title: "Hackathon BeMyApp/Dailymotion",
+        description: "This is a video that was done after our hackathon",
+        thumbnail: "https://s2.dmcdn.net/v/7sRg71UN0OKwaG4Wj",
+        length: 213,
+      }));
+      expect(storage.updateVideoInfo).toHaveBeenCalledTimes(1);
+      done();
+    }).catch(err => {
+      done.fail(err);
+    });
+  });
+
+  it("should handle other failures gracefully", done => {
+    InfoExtract.DailymotionApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 500 } })));
+    storage.updateVideoInfo = jest.fn();
+    InfoExtract.getVideoInfoDailymotion("x1fz4ii").then(video => {
+      expect(video).toBeNull();
       expect(storage.updateVideoInfo).not.toHaveBeenCalled();
       done();
     });
