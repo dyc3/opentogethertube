@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 /**
  * Represents a video on any video providing service.
  */
@@ -12,6 +14,20 @@ class Video {
 		if (args) {
 			Object.assign(this, args);
 		}
+	}
+
+	/**
+	 * Merges together 2 video's metadata, favoring video B's info if there is a conflict. Service and ID must match.
+	 * @param {Video} a A video object
+	 * @param {Video} b Another video object
+	 * @returns A new video object
+	 */
+	static merge(a, b) {
+		if (a.service !== b.service || a.id !== b.id) {
+			throw "Both video's service and id must match in order to merge";
+		}
+
+		return Object.assign(_.cloneDeep(a), _.pickBy(b, x => x));
 	}
 }
 

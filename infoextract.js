@@ -80,8 +80,7 @@ module.exports = {
 
 			if (video.service === "youtube") {
 				return this.getVideoInfoYoutube([video.id], missingInfo).then(result => {
-					video = Object.assign(video, result[video.id]);
-					return new Video(video);
+					return Video.merge(video, result[video.id]);
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
 						console.error("Failed to get youtube video info: Out of quota");
@@ -138,9 +137,7 @@ module.exports = {
 						}
 						let promise = this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => {
 							return missingInfoGroup.map(video => {
-								// TODO: make a merge function to better merge vidoe info together
-								Object.assign(video, _.pickBy(results[video.id], x => x !== null && x !== undefined));
-								return video;
+								return Video.merge(video, results[video.id]);
 							});
 						});
 						promises.push(promise);
@@ -292,7 +289,7 @@ module.exports = {
 				title: id,
 			});
 			return this.getVideoInfo(video.service, video.id).then(result => {
-				Object.assign(video, result);
+				return Video.merge(video, result);
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);
