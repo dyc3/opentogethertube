@@ -404,7 +404,12 @@ describe("InfoExtractor Youtube Support", () => {
   });
 
   it("should search youtube and parse results without failing", done => {
+    let redisClientMock = {
+      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
+      set: jest.fn(),
+    };
     InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) })));
+    InfoExtract.init(redisClientMock);
     InfoExtract.searchYoutube("family guy funny moments").then(results => {
       expect(results).toHaveLength(3);
       expect(results[0]).toEqual(new Video({
@@ -419,12 +424,18 @@ describe("InfoExtractor Youtube Support", () => {
         service: "youtube",
         id: "Tu3TiESKJGk",
       }));
+      expect(redisClientMock.set).toBeCalled();
       done();
     }).catch(err => done.fail(err));
   });
 
   it("should search youtube using the extra options", done => {
+    let redisClientMock = {
+      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
+      set: jest.fn(),
+    };
     InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) })));
+    InfoExtract.init(redisClientMock);
     InfoExtract.searchYoutube("family guy funny moments", { maxResults: 3, fromUser: "test" }).then(() => {
       expect(InfoExtract.YtApi.get).toBeCalled();
       expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("maxResults=3");
