@@ -299,8 +299,9 @@ module.exports = {
 			}).catch(err => {
 				console.error("Failed to get video info");
 				console.error(err);
-			}).then(() => {
 				return [video];
+			}).then(result => {
+				return [result];
 			});
 		}
 	},
