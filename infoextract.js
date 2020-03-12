@@ -450,6 +450,9 @@ module.exports = {
 		return new Promise((resolve, reject) => {
 			// Unfortunately, we have to request the `snippet` part in order to get the youtube video ids
 			// The `id` part just gives playlistItemIds
+			// The `contentDetails` part just gives the video id and the date the video was published.
+			// Youtube API docs makes it unclear whether snippet or contentDetails costs more api quota,
+			// so just stick with snippet i guess?
 			YtApi.get(`/playlistItems?key=${process.env.YOUTUBE_API_KEY}&part=snippet&playlistId=${id}&maxResults=30`).then(res => {
 				let results = [];
 				for (let i = 0; i < res.data.items.length; i++) {
