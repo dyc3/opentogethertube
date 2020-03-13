@@ -73,7 +73,7 @@ class Room {
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
-				this.log.error("Failed to get video info:", err);
+				this.log.error(`Failed to get video info: ${err}`);
 				queueItem.title = queueItem.id;
 			}).then(() => {
 				this.queue.push(queueItem);
@@ -316,7 +316,7 @@ class Room {
 			this.queue = newQueue;
 		}
 		else {
-			this.log.error("Can't undo room event with type:", event.eventType);
+			this.log.error(`Can't undo room event with type: ${event.eventType}`);
 		}
 	}
 
@@ -328,7 +328,7 @@ class Room {
 	onConnectionReceived(ws, req) {
 		if (!req.session.username) {
 			let username = uniqueNamesGenerator();
-			this.log.debug("Generated name for new user (on connect):", username);
+			this.log.debug(`Generated name for new user (on connect): ${username}`);
 			req.session.username = username;
 			req.session.save();
 		}
@@ -418,7 +418,7 @@ class Room {
 			this.sync();
 		}
 		else {
-			log.warn("[ws] UNKNOWN ACTION", msg.action);
+			log.warn(`[ws] UNKNOWN ACTION ${msg.action}`);
 		}
 	}
 }

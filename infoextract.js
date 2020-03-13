@@ -102,7 +102,7 @@ module.exports = {
 						});
 					}
 					else {
-						log.error("Failed to get youtube video info:", err);
+						log.error(`Failed to get youtube video info: ${err}`);
 						throw err;
 					}
 				});
@@ -114,7 +114,7 @@ module.exports = {
 				return this.getVideoInfoDailymotion(video.id);
 			}
 		}).catch(err => {
-			log.error("Failed to get video metadata from database:", err);
+			log.error(`Failed to get video metadata from database: ${err}`);
 		});
 	},
 
@@ -154,7 +154,7 @@ module.exports = {
 					return Promise.all(promises);
 				}
 				else {
-					log.error("Unknown service:", service);
+					log.error(`Unknown service: ${service}`);
 					return new Promise(resolve => resolve(serviceVideos));
 				}
 			});
@@ -218,7 +218,7 @@ module.exports = {
 						log.error("Failed to search youtube for add preview: Out of quota");
 					}
 					else {
-						log.error("Failed to search youtube for add preview:", err);
+						log.error(`Failed to search youtube for add preview: ${err}`);
 					}
 					throw err;
 				});
@@ -261,7 +261,7 @@ module.exports = {
 						return this.getVideoInfo(service, queryParams.v).then(video => {
 							resolve([video]);
 						}).catch(err => {
-							log.error("Failed to compile add preview: error getting video:", err);
+							log.error(`Failed to compile add preview: error getting video: ${err}`);
 							reject(err);
 						});
 					}
@@ -270,7 +270,7 @@ module.exports = {
 							log.error("Failed to compile add preview: error getting playlist: Out of quota");
 						}
 						else {
-							log.error("Failed to compile add preview: error getting playlist:", err);
+							log.error(`Failed to compile add preview: error getting playlist: ${err}`);
 						}
 						reject(err);
 					}
@@ -289,7 +289,7 @@ module.exports = {
 			}
 			return this.getChanneInfoYoutube(channelData)
 				.then(newestVideos => this.getManyVideoInfo(newestVideos))
-				.catch(err => log.error('Error getting channel info:', err));
+				.catch(err => log.error(`Error getting channel info: ${err}`));
 		}
 		else {
 			let video = new Video({
@@ -371,7 +371,7 @@ module.exports = {
 				}
 
 				if (parts.length === 0) {
-					log.error("onlyProperties must have valid values or be null! Found", onlyProperties);
+					log.error(`onlyProperties must have valid values or be null! Found ${onlyProperties}`);
 					reject(null);
 					return;
 				}
@@ -441,8 +441,8 @@ module.exports = {
 			for (let m = 0; m < matches.length; m++) {
 				const match = matches[m];
 				let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
-				log.info("MATCH", match);
-				log.info("EXTRACTED", extracted);
+				log.info(`MATCH ${match}`);
+				log.info(`EXTRACTED ${extracted}`);
 				return parseInt(extracted);
 			}
 		}
@@ -570,7 +570,7 @@ module.exports = {
 			// results expire in 24 hours
 			redisClient.set(`search:${query}`, JSON.stringify(results), "EX", 60 * 60 * 24, err => {
 				if (err) {
-					log.error("Failed to cache search results:", err);
+					log.error(`Failed to cache search results: ${err}`);
 				}
 			});
 			return results;
@@ -616,7 +616,7 @@ module.exports = {
 				return null;
 			}
 			else {
-				log.error("Failed to get vimeo video info:", err);
+				log.error(`Failed to get vimeo video info: ${err}`);
 				return new Video({
 					service: "vimeo",
 					id,
@@ -658,7 +658,7 @@ module.exports = {
 			storage.updateVideoInfo(video);
 			return video;
 		}).catch(err => {
-			log.error("Failed to get dailymotion video info:", err);
+			log.error(`Failed to get dailymotion video info: ${err}`);
 			return null;
 		});
 	},
