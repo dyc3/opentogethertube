@@ -171,7 +171,7 @@ module.exports = {
 	 * created.
 	 * @param {Video|Object} video Video object to store
 	 */
-	updateVideoInfo(video, log=true) {
+	updateVideoInfo(video) {
 		video = _.cloneDeep(video);
 		if (!video.serviceId) {
 			video.serviceId = video.id;
@@ -179,30 +179,20 @@ module.exports = {
 		}
 
 		return CachedVideo.findOne({ where: { service: video.service, serviceId: video.serviceId } }).then(cachedVideo => {
-			if (log) {
-				log.info(`Found video ${video.service}:${video.serviceId} in cache`);
-			}
+			log.info(`Found video ${video.service}:${video.serviceId} in cache`);
 			return CachedVideo.update(video, { where: { id: cachedVideo.id } }).then(rowsUpdated => {
-				if (log) {
-					log.info("Updated database records, updated", rowsUpdated[0], "rows");
-				}
+				log.info("Updated database records, updated", rowsUpdated[0], "rows");
 				return true;
 			}).catch(err => {
-				if (log) {
-					log.error("Failed to cache video info", err);
-				}
+				log.error("Failed to cache video info", err);
 				return false;
 			});
 		}).catch(() => {
 			return CachedVideo.create(video).then(() => {
-				if (log) {
-					log.info(`Stored video info for ${video.service}:${video.serviceId} in cache`);
-				}
+				log.info(`Stored video info for ${video.service}:${video.serviceId} in cache`);
 				return true;
 			}).catch(err => {
-				if (log) {
-					log.error("Failed to cache video info", err);
-				}
+				log.error("Failed to cache video info", err);
 				return false;
 			});
 		});
