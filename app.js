@@ -3,21 +3,24 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { uniqueNamesGenerator } = require('unique-names-generator');
+const { getLogger } = require('./logger.js');
+
+const log = getLogger("app");
 
 if (!process.env.NODE_ENV) {
-	console.warn("NODE_ENV not set, assuming dev environment");
+	log.warn("NODE_ENV not set, assuming dev environment");
 	process.env.NODE_ENV = "development";
 }
 
 if (process.env.NODE_ENV === "example") {
-	console.error("Invalid NODE_ENV! Aborting...");
+	log.error("Invalid NODE_ENV! Aborting...");
 	process.exit(1);
 }
 
 const config_path = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
-console.log(`Reading config from ${process.env.NODE_ENV}.env`);
+log.info(`Reading config from ${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(config_path)) {
-	console.error("No config found! Things will break!", config_path);
+	log.error("No config found! Things will break!", config_path);
 }
 require('dotenv').config({ path: config_path });
 
@@ -55,7 +58,7 @@ app.use(sessions);
 app.use((req, res, next) => {
 	if (!req.session.username) {
 		let username = uniqueNamesGenerator();
-		console.log("Generated name for new user (on request):", username);
+		log.debug("Generated name for new user (on request):", username);
 		req.session.username = username;
 		req.session.save();
 	}
@@ -86,9 +89,9 @@ app.use((req, res, next) => {
 		next();
 		return;
 	}
-	console.log(">", req.method, req.path, req.params);
+	log.info(">", req.method, req.path, req.params);
 	if (req.method == "POST") {
-		console.log("   -", req.body);
+		log.info("   -", req.body);
 	}
 	next();
 });
@@ -113,13 +116,13 @@ if (fs.existsSync("./dist")) {
 	app.get("/room/:roomId", serveBuiltFiles);
 }
 else {
-	console.warn("no dist folder found");
+	log.warn("no dist folder found");
 }
 
 //start our server
 if (process.env.NODE_ENV !== "test") {
 	server.listen(process.env.PORT || 3000, () => {
-		console.log(`Server started on port ${server.address().port}`);
+		log.info(`Server started on port ${server.address().port}`);
 	});
 }
 
