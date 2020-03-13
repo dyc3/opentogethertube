@@ -28,8 +28,8 @@ export default {
 		setPosition(position) {
 			return this.$refs.youtubeplayer.player.seekTo(position);
 		},
-		setVolume() {
-			this.$refs.youtubeplayer.player.setVolume(this.volume);
+		setVolume(volume) {
+			this.$refs.youtubeplayer.player.setVolume(volume);
 		},
 
 		onReady() {
