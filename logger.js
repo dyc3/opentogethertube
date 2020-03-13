@@ -1,6 +1,12 @@
 const { createLogger, format, transports } = require('winston');
 
-const myFormat = format.printf(({ level, message, timestamp, namespace }) => {
+const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
+	if (roomName) {
+		if (roomEvent) {
+			return `${timestamp} [${namespace}] [Room/${roomName}] ${level} Room event: ${JSON.stringify(roomEvent)}`;
+		}
+		return `${timestamp} [${namespace}] [Room/${roomName}] ${level}: ${message}`;
+	}
 	return `${timestamp} [${namespace}] ${level}: ${message}`;
 });
 

@@ -37,6 +37,10 @@ class Room {
 		if (args) {
 			Object.assign(this, args);
 		}
+
+		this.log = log.child({
+			roomName: this.name,
+		});
 	}
 
 	/**
@@ -69,7 +73,7 @@ class Room {
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
-				log.error("Failed to get video info:", err);
+				this.log.error("Failed to get video info:", err);
 				queueItem.title = queueItem.id;
 			}).then(() => {
 				this.queue.push(queueItem);
@@ -84,7 +88,7 @@ class Room {
 					}
 				}
 				else {
-					log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
+					this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
 				}
 				return true;
 			});
@@ -101,14 +105,14 @@ class Room {
 	 */
 	voteVideo(video, session) {
 		if (this.queueMode !== "vote") {
-			log.error("Room not in voting mode");
+			this.log.error("Room not in voting mode");
 			return false;
 		}
 
 		// check if the voted video is in the queue
 		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
 		if (matchIdx < 0) {
-			log.error("Can't vote for video not in queue");
+			this.log.error("Can't vote for video not in queue");
 			return false;
 		}
 
@@ -118,7 +122,7 @@ class Room {
 
 		// check to see if the vote already exists
 		if (_.findIndex(this.queue[matchIdx].votes, { userSessionId: session.id }) >= 0) {
-			log.error("Vote for video already exists");
+			this.log.error("Vote for video already exists");
 			return false;
 		}
 
@@ -134,13 +138,13 @@ class Room {
 	 */
 	removeVoteVideo(video, session) {
 		if (this.queueMode !== "vote") {
-			log.error("Room not in voting mode");
+			this.log.error("Room not in voting mode");
 			return false;
 		}
 
 		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
 		if (matchIdx < 0) {
-			log.error("Can't remove vote for video not in queue");
+			this.log.error("Can't remove vote for video not in queue");
 			return false;
 		}
 
@@ -160,7 +164,7 @@ class Room {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
 		}
 		else {
-			log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
+			this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
 		}
 		this.sync();
 		return true;
@@ -176,7 +180,7 @@ class Room {
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
-				log.info("Remove inactive client:", i, this.clients[i].session.username);
+				this.log.debug("Remove inactive client:", i, this.clients[i].session.username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
 				this.clients.splice(i--, 1);
 				continue;
@@ -267,7 +271,7 @@ class Room {
 	 * @param {RoomEvent} event
 	 */
 	sendRoomEvent(event) {
-		log.info("Room event:", event);
+		this.log.log({ level: "info", roomEvent: event });
 		let msg = {
 			action: "event",
 			event: event,
@@ -312,7 +316,7 @@ class Room {
 			this.queue = newQueue;
 		}
 		else {
-			log.error("Can't undo room event with type:", event.eventType);
+			this.log.error("Can't undo room event with type:", event.eventType);
 		}
 	}
 
@@ -324,7 +328,7 @@ class Room {
 	onConnectionReceived(ws, req) {
 		if (!req.session.username) {
 			let username = uniqueNamesGenerator();
-			log.info("Generated name for new user (on connect):", username);
+			this.log.debug("Generated name for new user (on connect):", username);
 			req.session.username = username;
 			req.session.save();
 		}
@@ -368,7 +372,7 @@ class Room {
 		}
 		else if (msg.action === "set-name") {
 			if (!msg.name) {
-				log.warn("name not supplied");
+				this.log.warn("name not supplied");
 				return;
 			}
 			if (msg.name === client.session.username) {
@@ -407,7 +411,7 @@ class Room {
 		}
 		else if (msg.action === "undo") {
 			if (!msg.event) {
-				log.warn("Room event to be undone was not supplied");
+				this.log.warn("Room event to be undone was not supplied");
 				return;
 			}
 			this.undoEvent(msg.event);
