@@ -9,8 +9,8 @@ module.exports = {
     'plugin:vue/essential',
   ],
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': 'error',
+    'no-debugger': 'error',
     'array-bracket-newline': ['error', { "multiline": true, "minItems": 2 }],
     'array-bracket-spacing': ['error', 'never'],
     'brace-style': ['error', 'stroustrup', { 'allowSingleLine': false }],
