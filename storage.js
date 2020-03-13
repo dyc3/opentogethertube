@@ -2,6 +2,9 @@ const _ = require("lodash");
 const moment = require("moment");
 const { Room, CachedVideo } = require("./models");
 const Sequelize = require("sequelize");
+const { getLogger } = require("./logger.js");
+
+const log = getLogger("storage");
 
 module.exports = {
 	getRoomByName(roomName) {
@@ -9,7 +12,7 @@ module.exports = {
 			where: { name: roomName },
 		}).then(room => {
 			if (!room) {
-				console.error("Room", roomName, "does not exist in db.");
+				log.error("Room", roomName, "does not exist in db.");
 				return null;
 			}
 			return {
@@ -19,7 +22,7 @@ module.exports = {
 				visibility: room.visibility,
 			};
 		}).catch(err => {
-			console.error("Failed to get room by name:", err);
+			log.error("Failed to get room by name:", err);
 		});
 	},
 	saveRoom(room) {
@@ -29,10 +32,10 @@ module.exports = {
 			description: room.description,
 			visibility: room.visibility,
 		}).then(result => {
-			console.log("Saved room to db: id", result.dataValues.id);
+			log.info("Saved room to db: id", result.dataValues.id);
 			return true;
 		}).catch(err => {
-			console.error("Failed to save room to storage:", err);
+			log.error("Failed to save room to storage:", err);
 			return false;
 		});
 	},
@@ -56,7 +59,7 @@ module.exports = {
 	getVideoInfo(service, id) {
 		return CachedVideo.findOne({ where: { service: service, serviceId: id } }).then(cachedVideo => {
 			if (cachedVideo === null) {
-				console.log("Cache missed:", service, id);
+				log.info("Cache missed:", service, id);
 				return { service, id };
 			}
 			const origCreatedAt = moment(cachedVideo.createdAt);
@@ -87,7 +90,7 @@ module.exports = {
 			}
 			return video;
 		}).catch(err => {
-			console.warn("Cache failure", err);
+			log.warn("Cache failure", err);
 			return { service, id };
 		});
 	},
@@ -157,7 +160,7 @@ module.exports = {
 				return video;
 			});
 		}).catch(err => {
-			console.warn("Cache failure", err);
+			log.warn("Cache failure", err);
 			return videos;
 		});
 	},
@@ -177,28 +180,28 @@ module.exports = {
 
 		return CachedVideo.findOne({ where: { service: video.service, serviceId: video.serviceId } }).then(cachedVideo => {
 			if (log) {
-				console.log(`Found video ${video.service}:${video.serviceId} in cache`);
+				log.info(`Found video ${video.service}:${video.serviceId} in cache`);
 			}
 			return CachedVideo.update(video, { where: { id: cachedVideo.id } }).then(rowsUpdated => {
 				if (log) {
-					console.log("Updated database records, updated", rowsUpdated[0], "rows");
+					log.info("Updated database records, updated", rowsUpdated[0], "rows");
 				}
 				return true;
 			}).catch(err => {
 				if (log) {
-					console.error("Failed to cache video info", err);
+					log.error("Failed to cache video info", err);
 				}
 				return false;
 			});
 		}).catch(() => {
 			return CachedVideo.create(video).then(() => {
 				if (log) {
-					console.log(`Stored video info for ${video.service}:${video.serviceId} in cache`);
+					log.info(`Stored video info for ${video.service}:${video.serviceId} in cache`);
 				}
 				return true;
 			}).catch(err => {
 				if (log) {
-					console.error("Failed to cache video info", err);
+					log.error("Failed to cache video info", err);
 				}
 				return false;
 			});
@@ -240,15 +243,15 @@ module.exports = {
 				toUpdate,
 				toCreate,
 			] = _.partition(videos, video => _.find(foundVideos, { service: video.service, serviceId: video.serviceId }));
-			console.log("bulk cache: should update", toUpdate.length, "rows, create", toCreate.length, "rows");
+			log.info("bulk cache: should update", toUpdate.length, "rows, create", toCreate.length, "rows");
 			for (let video of toUpdate) {
 				await this.updateVideoInfo(video, false);
 			}
 			return CachedVideo.bulkCreate(toCreate).then(cachedVideos => {
-				console.log("bulk cache: created", cachedVideos.length, "rows");
+				log.info("bulk cache: created", cachedVideos.length, "rows");
 				return true;
 			}).catch(err => {
-				console.error("Failed to bulk update video cache:", err);
+				log.error("Failed to bulk update video cache:", err);
 				return false;
 			});
 		});
