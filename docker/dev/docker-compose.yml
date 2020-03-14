@@ -9,7 +9,8 @@ services:
     environment:
       - REDIS_HOST=redis_db
     healthcheck:
-      test: "curl -f http://localhost:3001/ || exit 1"
+      test: "curl -f http://localhost:8080/ || exit 1"
+    env_file: ../../env/development.env
     ports:
       - 8080:8080
       - 8888:8888
