@@ -61,17 +61,13 @@ The production image uses docker-compose with redis and postgres in separate con
 To use the production image, please follow the steps below.
 
 1. Next you need to set up your configuration. Start by copying the example
-   config in the `env` folder to a new file called `docker.env`
+   config in the `env` folder to a new file called `production.env`
 
 ```bash
-cp env/docker.env env/production.env
+cp env/example.env env/production.env
 ```
 
-2. Open `env/docker.env` and replace `API_KEY_GOES_HERE` with the youtube api key.
-
-   2.1 Open `env/docker.env` and make the file empty.
-      The `YOUTUBE_API_KEY` environment variable can be set directly in the environment section in the docker-compose file
-      or with [docker secret](https://docs.docker.com/engine/reference/commandline/secret/).
+2. Open `env/production.env` and replace `API_KEY_GOES_HERE` with the api keys.
 
 3. To build the image locally using the prod image make sure you are in the project root `/opentogethertube`
    before runing the command below.
@@ -115,30 +111,25 @@ Use the production Dockerfile that is optimized for a smaller size image for Doc
 To use the create the deploy image, please follow the steps below.
 
 1. Next you need to set up your configuration. Start by copying the example
-   config in the `env` folder to a new file called `docker.env`
+   config in the `env` folder to a new file called `example.env`
 
 ```bash
-cp env/docker.env env/production.env
+cp env/example.env env/production.env
 ```
 
-2. Open `env/docker.env` and replace `API_KEY_GOES_HERE` with the youtube api key.
-
-   2.1 Open `env/docker.env` and make the file empty.
-      The `YOUTUBE_API_KEY` environment variable can be set directly in the environment section in the docker-compose file
-      or with [docker secret](https://docs.docker.com/engine/reference/commandline/secret/) TODO.
+2. Open `env/production.env` and make sure the file is empty to not leak any api keys.
 
 3. To build the image, make sure you are in the project root `/opentogethertube`.
 
 ```bash
+DOCKER_HUB_USERNAME=yourhubusername
 PACKAGE_VERSION=$(node -p "require('./package.json').version")
-docker build -f docker/prod/Dockerfile -t antoine13/opentogethertube:$PACKAGE_VERSION .
+docker build -f docker/prod/Dockerfile -t $DOCKER_HUB_USERNAME/opentogethertube:$PACKAGE_VERSION .
 ```
 
 4. Login to Docker hub and push the docker image
 
 ```bash
-DOCKER_HUB_USERNAME=yourhubusername
-DOCKER_HUB_PASSWORD=youthubpassword
 docker login --username=$DOCKER_HUB_USERNAME # enter your password
 docker push $DOCKER_HUB_USERNAME/opentogethertube:$PACKAGE_VERSION
 ```
@@ -147,11 +138,11 @@ docker push $DOCKER_HUB_USERNAME/opentogethertube:$PACKAGE_VERSION
 
 1. Install travis cli tool to add secret env to the ci
 
-```
+```bash
 sudo gem install travis
 travis login
 travis encrypt DOCKER_HUB_USERNAME=<email> --add
-travis encrypt DOCKER_HUB_PASSWORD=<username> --add
+travis encrypt DOCKER_HUB_PASSWORD=<password> --add
 ```
 
 2. This will add env to the `.travis.yml` section with the secret password and username for docker hub

@@ -7,13 +7,13 @@ services:
       dockerfile: docker/prod/Dockerfile
     container_name: opentogethertube
     environment:
-      - YOUTUBE_API_KEY=API_KEY_GOES_HERE # or put in production.env before build image
       - REDIS_HOST=redis_db
       # postgres
       - POSTGRES_DB_USERNAME=opentogethertube
       - POSTGRES_DB_NAME=opentogethertube
       - POSTGRES_DB_HOST=postgres_db
       - POSTGRES_DB_PASSWORD=postgres
+    env_file: ../../env/production.env
     ports:
       - 8080:8080
     links:

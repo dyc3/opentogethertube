@@ -30,7 +30,7 @@ module.exports = {
   "production": {
     "username": process.env.POSTGRES_DB_USERNAME || "ott",
     "password": process.env.POSTGRES_DB_PASSWORD,
-    "database": process.env.POSTGRES_DB_NAME || "opentogethertube_postgres",
+    "database": process.env.POSTGRES_DB_NAME || "db_opentogethertube_prod",
     "host": process.env.POSTGRES_DB_HOST || "127.0.0.1",
     "dialect": "postgres",
     "operatorsAliases": false,
