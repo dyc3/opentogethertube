@@ -2,6 +2,9 @@ const express = require('express');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
 const InfoExtract = require("./infoextract");
+const { getLogger } = require('./logger.js');
+
+const log = getLogger("api");
 
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = [
@@ -69,7 +72,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -80,7 +83,7 @@ module.exports = function(_roommanager, storage) {
 
 	router.post("/room/create", (req, res) => {
 		if (!req.body.name) {
-			console.log(req.body);
+			log.info(req.body);
 			res.status(400).json({
 				success: false,
 				error: "Missing argument (name)",
@@ -200,7 +203,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -223,7 +226,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -262,7 +265,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -293,7 +296,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -324,7 +327,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -355,7 +358,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -375,7 +378,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				console.error("Unhandled exception when getting room:", err);
+				log.error("Unhandled exception when getting room:", err);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -388,23 +391,23 @@ module.exports = function(_roommanager, storage) {
 		// FIXME: this endpoint has the potential to be abused.
 		// TODO: rate limit
 
-		console.log("Getting queue add preview for", req.query.input);
+		log.info("Getting queue add preview for", req.query.input);
 		try {
 			InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
 				res.json(result);
-				console.log("Sent add preview response with", result.length, "items");
+				log.info("Sent add preview response with", result.length, "items");
 			});
 		}
 		catch (error) {
 			if (error.name === "UnsupportedServiceException" || error.name === "InvalidAddPreviewInputException" || error.name === "OutOfQuotaException") {
-				console.error("Unable to get add preview:", error.name);
+				log.error("Unable to get add preview:", error.name);
 				res.status(400).json({
 					success: false,
 					error: error.message,
 				});
 			}
 			else {
-				console.error("Unable to get add preview:", error);
+				log.error("Unable to get add preview:", error);
 				res.status(500).json({
 					success: false,
 					error: "Unknown error occurred.",

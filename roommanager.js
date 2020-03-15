@@ -6,6 +6,9 @@ const NanoTimer = require("nanotimer");
 const InfoExtract = require("./infoextract");
 const storage = require("./storage");
 const Video = require("./common/video.js");
+const { getLogger } = require("./logger.js");
+
+const log = getLogger("roommanager");
 
 const SUPPORTED_SERVICES = [
 "youtube", "vimeo", "dailymotion",
@@ -34,6 +37,10 @@ class Room {
 		if (args) {
 			Object.assign(this, args);
 		}
+
+		this.log = log.child({
+			roomName: this.name,
+		});
 	}
 
 	/**
@@ -66,7 +73,7 @@ class Room {
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
-				console.error("Failed to get video info:", err);
+				this.log.error(`Failed to get video info: ${err}`);
 				queueItem.title = queueItem.id;
 			}).then(() => {
 				this.queue.push(queueItem);
@@ -81,7 +88,7 @@ class Room {
 					}
 				}
 				else {
-					console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
+					this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event addToQueue because no session information was provided.");
 				}
 				return true;
 			});
@@ -98,14 +105,14 @@ class Room {
 	 */
 	voteVideo(video, session) {
 		if (this.queueMode !== "vote") {
-			console.error("Room not in voting mode");
+			this.log.error("Room not in voting mode");
 			return false;
 		}
 
 		// check if the voted video is in the queue
 		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
 		if (matchIdx < 0) {
-			console.error("Can't vote for video not in queue");
+			this.log.error("Can't vote for video not in queue");
 			return false;
 		}
 
@@ -115,7 +122,7 @@ class Room {
 
 		// check to see if the vote already exists
 		if (_.findIndex(this.queue[matchIdx].votes, { userSessionId: session.id }) >= 0) {
-			console.error("Vote for video already exists");
+			this.log.error("Vote for video already exists");
 			return false;
 		}
 
@@ -131,13 +138,13 @@ class Room {
 	 */
 	removeVoteVideo(video, session) {
 		if (this.queueMode !== "vote") {
-			console.error("Room not in voting mode");
+			this.log.error("Room not in voting mode");
 			return false;
 		}
 
 		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
 		if (matchIdx < 0) {
-			console.error("Can't remove vote for video not in queue");
+			this.log.error("Can't remove vote for video not in queue");
 			return false;
 		}
 
@@ -157,7 +164,7 @@ class Room {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
 		}
 		else {
-			console.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
+			this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
 		}
 		this.sync();
 		return true;
@@ -173,7 +180,7 @@ class Room {
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
-				console.log("Remove inactive client:", i, this.clients[i].session.username);
+				this.log.debug("Remove inactive client:", i, this.clients[i].session.username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
 				this.clients.splice(i--, 1);
 				continue;
@@ -264,7 +271,7 @@ class Room {
 	 * @param {RoomEvent} event
 	 */
 	sendRoomEvent(event) {
-		console.log("Room event:", event);
+		this.log.log({ level: "info", roomEvent: event });
 		let msg = {
 			action: "event",
 			event: event,
@@ -309,7 +316,7 @@ class Room {
 			this.queue = newQueue;
 		}
 		else {
-			console.error("Can't undo room event with type:", event.eventType);
+			this.log.error(`Can't undo room event with type: ${event.eventType}`);
 		}
 	}
 
@@ -321,7 +328,7 @@ class Room {
 	onConnectionReceived(ws, req) {
 		if (!req.session.username) {
 			let username = uniqueNamesGenerator();
-			console.log("Generated name for new user (on connect):", username);
+			this.log.debug(`Generated name for new user (on connect): ${username}`);
 			req.session.username = username;
 			req.session.save();
 		}
@@ -365,14 +372,14 @@ class Room {
 		}
 		else if (msg.action === "set-name") {
 			if (!msg.name) {
-				console.warn("name not supplied");
+				this.log.warn("name not supplied");
 				return;
 			}
 			if (msg.name === client.session.username) {
 				// name unchanged, ignore
 				return;
 			}
-			console.log(`${client.session.username} changed name to ${msg.name}`);
+			log.info(`${client.session.username} changed name to ${msg.name}`);
 			client.session.username = msg.name;
 			client.session.save();
 			this.update();
@@ -404,14 +411,14 @@ class Room {
 		}
 		else if (msg.action === "undo") {
 			if (!msg.event) {
-				console.warn("Room event to be undone was not supplied");
+				this.log.warn("Room event to be undone was not supplied");
 				return;
 			}
 			this.undoEvent(msg.event);
 			this.sync();
 		}
 		else {
-			console.warn("[ws] UNKNOWN ACTION", msg.action);
+			log.warn(`[ws] UNKNOWN ACTION ${msg.action}`);
 		}
 	}
 }
@@ -480,10 +487,10 @@ module.exports = {
 		});
 
 		wss.on('connection', (ws, req) => {
-			console.log("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
+			log.info("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
 
 			if (!req.url.startsWith("/api/room/")) {
-				console.error("[ws] Invalid connection url");
+				log.error("[ws] Invalid connection url");
 				ws.close(4001, "Invalid connection url");
 				return;
 			}
@@ -492,7 +499,7 @@ module.exports = {
 				room.onConnectionReceived(ws, req);
 			}).catch(err => {
 				if (err.name === "RoomNotFoundException") {
-					console.error("[ws] Room doesn't exist");
+					log.error("[ws] Room doesn't exist");
 					ws.close(4002, "Room doesn't exist");
 					return;
 				}
@@ -504,17 +511,17 @@ module.exports = {
 
 		this.redisClient = redisClient;
 		redisClient.on("connect", () => {
-			console.log("Connected to redis");
+			log.info("Connected to redis");
 		});
 		redisClient.on("ready", () => {
-			console.log("Redis client is ready");
+			log.info("Redis client is ready");
 		});
 		redisClient.on('error', err => {
-			console.log('error event - ' + redisClient.host + ':' + redisClient.port + ' - ' + err);
+			log.error('error event - ' + redisClient.host + ':' + redisClient.port + ' - ' + err);
 		});
 		this.getAllLoadedRooms().then(result => {
 			this.rooms = result || [];
-			console.log(`Loaded ${this.rooms.length} rooms from redis`);
+			log.info(`Loaded ${this.rooms.length} rooms from redis`);
 		});
 
 		const nanotimer = new NanoTimer();
@@ -604,7 +611,7 @@ module.exports = {
 		});
 		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
 			if (err) {
-				console.error(err);
+				log.error(err);
 				throw err;
 			}
 		});
@@ -686,11 +693,11 @@ module.exports = {
 	getOrLoadRoom(name) {
 		return this.getLoadedRoom(name).then(room => {
 			if (room) {
-				console.log(`Found room ${room.name} in loaded rooms`);
+				log.info(`Found room ${room.name} in loaded rooms`);
 				return room;
 			}
 			else {
-				console.log(`Looking for room ${name} in database`);
+				log.info(`Looking for room ${name} in database`);
 				return this.loadRoom(name);
 			}
 		});

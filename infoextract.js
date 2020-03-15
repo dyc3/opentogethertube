@@ -5,6 +5,9 @@ const moment = require("moment");
 const _ = require("lodash");
 const storage = require("./storage");
 const Video = require("./common/video.js");
+const { getLogger } = require("./logger.js");
+
+const log = getLogger("infoextract");
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = 3;
@@ -82,14 +85,14 @@ module.exports = {
 				return new Video(video);
 			}
 
-			console.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
+			log.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
 
 			if (video.service === "youtube") {
 				return this.getVideoInfoYoutube([video.id], missingInfo).then(result => {
 					return Video.merge(video, result[video.id]);
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
-						console.error("Failed to get youtube video info: Out of quota");
+						log.error("Failed to get youtube video info: Out of quota");
 						return this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${video.id}`).then(videoLength => {
 							return new Video({
 								...video,
@@ -99,7 +102,7 @@ module.exports = {
 						});
 					}
 					else {
-						console.error("Failed to get youtube video info:", err);
+						log.error(`Failed to get youtube video info: ${err}`);
 						throw err;
 					}
 				});
@@ -111,7 +114,7 @@ module.exports = {
 				return this.getVideoInfoDailymotion(video.id);
 			}
 		}).catch(err => {
-			console.error("Failed to get video metadata from database:", err);
+			log.error(`Failed to get video metadata from database: ${err}`);
 		});
 	},
 
@@ -151,7 +154,7 @@ module.exports = {
 					return Promise.all(promises);
 				}
 				else {
-					console.error("Unknown service:", service);
+					log.error(`Unknown service: ${service}`);
 					return new Promise(resolve => resolve(serviceVideos));
 				}
 			});
@@ -212,10 +215,10 @@ module.exports = {
 				.then(searchResults => this.getManyVideoInfo(searchResults))
 				.catch(err => {
 					if (err.name === "OutOfQuotaException") {
-						console.error("Failed to search youtube for add preview: Out of quota");
+						log.error("Failed to search youtube for add preview: Out of quota");
 					}
 					else {
-						console.error("Failed to search youtube for add preview:", err);
+						log.error(`Failed to search youtube for add preview: ${err}`);
 					}
 					throw err;
 				});
@@ -223,10 +226,10 @@ module.exports = {
 
 		if (service === "youtube" && queryParams["list"]) {
 			// there is a playlist associated with this link
-			console.log("playlist found");
+			log.info("playlist found");
 			return new Promise((resolve, reject) => {
 				this.getPlaylistYoutube(queryParams["list"]).then(playlist => {
-					console.log(`Found ${playlist.length} videos in playlist`);
+					log.info(`Found ${playlist.length} videos in playlist`);
 					this.getManyVideoInfo(playlist).then(previews => {
 						if (id) {
 							let highlighted = false;
@@ -254,20 +257,20 @@ module.exports = {
 					});
 				}).catch(err => {
 					if (queryParams.v) {
-						console.warn(`Playlist does not exist, retreiving video...`);
+						log.warn(`Playlist does not exist, retreiving video...`);
 						return this.getVideoInfo(service, queryParams.v).then(video => {
 							resolve([video]);
 						}).catch(err => {
-							console.error("Failed to compile add preview: error getting video:", err);
+							log.error(`Failed to compile add preview: error getting video: ${err}`);
 							reject(err);
 						});
 					}
 					else {
 						if (err.response.status === 403) {
-							console.error("Failed to compile add preview: error getting playlist: Out of quota");
+							log.error("Failed to compile add preview: error getting playlist: Out of quota");
 						}
 						else {
-							console.error("Failed to compile add preview: error getting playlist:", err);
+							log.error(`Failed to compile add preview: error getting playlist: ${err}`);
 						}
 						reject(err);
 					}
@@ -275,7 +278,7 @@ module.exports = {
 			});
 		}
 		else if (service === "youtube" && (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel'))) {
-			console.log('channel found');
+			log.info('channel found');
 			const channelData = {};
 			const channelId = urlParsed.path.slice(urlParsed.path.lastIndexOf('/') + 1);
 			if (urlParsed.path.startsWith('/channel/')) {
@@ -286,7 +289,7 @@ module.exports = {
 			}
 			return this.getChanneInfoYoutube(channelData)
 				.then(newestVideos => this.getManyVideoInfo(newestVideos))
-				.catch(err => console.error('Error getting channel info:', err));
+				.catch(err => log.error(`Error getting channel info: ${err}`));
 		}
 		else {
 			let video = new Video({
@@ -297,8 +300,8 @@ module.exports = {
 			return this.getVideoInfo(video.service, video.id).then(result => {
 				return Video.merge(video, result);
 			}).catch(err => {
-				console.error("Failed to get video info");
-				console.error(err);
+				log.error("Failed to get video info");
+				log.error(err);
 				return [video];
 			}).then(result => {
 				return [result];
@@ -368,7 +371,7 @@ module.exports = {
 				}
 
 				if (parts.length === 0) {
-					console.error("onlyProperties must have valid values or be null! Found", onlyProperties);
+					log.error(`onlyProperties must have valid values or be null! Found ${onlyProperties}`);
 					reject(null);
 					return;
 				}
@@ -438,8 +441,8 @@ module.exports = {
 			for (let m = 0; m < matches.length; m++) {
 				const match = matches[m];
 				let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
-				console.log("MATCH", match);
-				console.log("EXTRACTED", extracted);
+				log.info(`MATCH ${match}`);
+				log.info(`EXTRACTED ${extracted}`);
 				return parseInt(extracted);
 			}
 		}
@@ -506,7 +509,7 @@ module.exports = {
 				res.data.items[0].contentDetails.relatedPlaylists.uploads
 			);
 		}).catch(err => {
-			console.error(err);
+			log.error(err);
 			if (err.response.status === 403) {
 				throw new OutOfQuotaException();
 			}
@@ -539,7 +542,7 @@ module.exports = {
 			});
 		});
 		if (cachedResults) {
-			console.log("Using cached results for youtube search");
+			log.info("Using cached results for youtube search");
 			return cachedResults;
 		}
 
@@ -567,7 +570,7 @@ module.exports = {
 			// results expire in 24 hours
 			redisClient.set(`search:${query}`, JSON.stringify(results), "EX", 60 * 60 * 24, err => {
 				if (err) {
-					console.error("Failed to cache search results:", err);
+					log.error(`Failed to cache search results: ${err}`);
 				}
 			});
 			return results;
@@ -609,11 +612,11 @@ module.exports = {
 			return video;
 		}).catch(err => {
 			if (err.response && err.response.status === 403) {
-				console.error("Failed to get vimeo video info: Embedding for this video is disabled");
+				log.error("Failed to get vimeo video info: Embedding for this video is disabled");
 				return null;
 			}
 			else {
-				console.error("Failed to get vimeo video info:", err);
+				log.error(`Failed to get vimeo video info: ${err}`);
 				return new Video({
 					service: "vimeo",
 					id,
@@ -655,7 +658,7 @@ module.exports = {
 			storage.updateVideoInfo(video);
 			return video;
 		}).catch(err => {
-			console.error("Failed to get dailymotion video info:", err);
+			log.error(`Failed to get dailymotion video info: ${err}`);
 			return null;
 		});
 	},
