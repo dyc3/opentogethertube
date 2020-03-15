@@ -18,6 +18,7 @@
     "@mdi/font": "^3.9.97",
     "@vimeo/player": "^2.10.0",
     "@vue/cli": "^3.12.1",
+    "ansi-colors": "^4.1.1",
     "axios": "^0.19.2",
     "connect-redis": "^4.0.4",
     "core-js": "^2.6.11",
