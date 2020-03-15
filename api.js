@@ -378,7 +378,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				log.error("Unhandled exception when getting room:", err);
+				log.error(`Unhandled exception when getting room: ${err}`);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -391,23 +391,23 @@ module.exports = function(_roommanager, storage) {
 		// FIXME: this endpoint has the potential to be abused.
 		// TODO: rate limit
 
-		log.info("Getting queue add preview for", req.query.input);
+		log.info(`Getting queue add preview for ${req.query.input}`);
 		try {
 			InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
 				res.json(result);
-				log.info("Sent add preview response with", result.length, "items");
+				log.info(`Sent add preview response with ${result.length} items`);
 			});
 		}
 		catch (error) {
 			if (error.name === "UnsupportedServiceException" || error.name === "InvalidAddPreviewInputException" || error.name === "OutOfQuotaException") {
-				log.error("Unable to get add preview:", error.name);
+				log.error(`Unable to get add preview: ${error.name}`);
 				res.status(400).json({
 					success: false,
 					error: error.message,
 				});
 			}
 			else {
-				log.error("Unable to get add preview:", error);
+				log.error(`Unable to get add preview: ${error}`);
 				res.status(500).json({
 					success: false,
 					error: "Unknown error occurred.",
