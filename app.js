@@ -89,10 +89,7 @@ app.use((req, res, next) => {
 		next();
 		return;
 	}
-	log.info(`> ${req.method} ${req.path} ${req.params}`);
-	if (req.method == "POST") {
-		log.info(`   - ${req.body}`);
-	}
+	log.info(`> ${req.method} ${req.path}`);
 	next();
 });
 
