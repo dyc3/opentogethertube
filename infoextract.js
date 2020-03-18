@@ -113,7 +113,7 @@ module.exports = {
 				return this.getVideoInfoDailymotion(video.id);
 			}
 		}).catch(err => {
-			log.error(`Failed to get video metadata from database: ${err}`);
+			log.error(`Failed to get video metadata: ${err}`);
 		});
 	},
 
