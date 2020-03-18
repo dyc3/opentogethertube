@@ -94,11 +94,10 @@ module.exports = {
 					if (err.name === "OutOfQuotaException") {
 						log.error("Failed to get youtube video info: Out of quota");
 						return this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${video.id}`).then(videoLength => {
-							return new Video({
-								...video,
-								title: video.id,
-								length: videoLength,
-							});
+							log.warn(`Used web scraping fallback to get length: ${videoLength}`);
+							video.length = videoLength;
+							storage.updateVideoInfo(video);
+							return video;
 						});
 					}
 					else {
@@ -446,7 +445,7 @@ module.exports = {
 				return parseInt(extracted);
 			}
 		}
-		return -1;
+		return null;
 	},
 
 	getPlaylistYoutube(id) {
