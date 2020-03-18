@@ -487,7 +487,7 @@ module.exports = {
 		});
 
 		wss.on('connection', (ws, req) => {
-			log.info("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
+			log.debug("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
 
 			if (!req.url.startsWith("/api/room/")) {
 				log.error("[ws] Invalid connection url");
@@ -693,11 +693,11 @@ module.exports = {
 	getOrLoadRoom(name) {
 		return this.getLoadedRoom(name).then(room => {
 			if (room) {
-				log.info(`Found room ${room.name} in loaded rooms`);
+				log.debug(`Found room ${room.name} in loaded rooms`);
 				return room;
 			}
 			else {
-				log.info(`Looking for room ${name} in database`);
+				log.debug(`Looking for room ${name} in database`);
 				return this.loadRoom(name);
 			}
 		});
