@@ -365,6 +365,9 @@ class Room {
 			this.sync();
 		}
 		else if (msg.action === "seek") {
+			if (msg.position === this.playbackPosition) {
+				return;
+			}
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.session.username, { position: msg.position, previousPosition: this.playbackPosition }));
 			this.playbackPosition = msg.position;
 			this.sync();
