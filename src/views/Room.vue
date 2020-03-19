@@ -77,7 +77,7 @@
               <v-tab-item>
                 <div class="video-add">
                   <div>
-                    <v-text-field placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" />
+                    <v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onInputAddPreviewFocus" />
                     <v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
@@ -455,6 +455,10 @@ export default {
       if (e.keyCode === 13 && this.addPreview.length == 0) {
         this.requestAddPreviewExplicit();
       }
+    },
+    onInputAddPreviewFocus(e) {
+      console.log(e);
+      e.target.select();
     },
     onPlayerReady_Youtube() {
 
