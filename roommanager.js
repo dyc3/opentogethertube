@@ -11,8 +11,13 @@ const { getLogger } = require("./logger.js");
 const log = getLogger("roommanager");
 
 const SUPPORTED_SERVICES = [
-"youtube", "vimeo", "dailymotion",
+	"youtube", "vimeo", "dailymotion",
 ];
+
+// Custom websocket error codes
+const WS_ERROR_INVALID_CONNECTION_URL = 4001;
+const WS_ERROR_ROOM_NOT_FOUND = 4002;
+const WS_ERROR_ROOM_UNLOADED = 4003;
 
 /**
  * Represents a Room and all it's associated state, settings, connected clients.
@@ -490,8 +495,8 @@ module.exports = {
 			log.debug("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
 
 			if (!req.url.startsWith("/api/room/")) {
-				log.error("[ws] Invalid connection url");
-				ws.close(4001, "Invalid connection url");
+				log.error("Closing connection because the connection url was invalid");
+				ws.close(WS_ERROR_INVALID_CONNECTION_URL, "Invalid connection url");
 				return;
 			}
 			let roomName = req.url.replace("/api/room/", "");
@@ -499,8 +504,8 @@ module.exports = {
 				room.onConnectionReceived(ws, req);
 			}).catch(err => {
 				if (err.name === "RoomNotFoundException") {
-					log.error("[ws] Room doesn't exist");
-					ws.close(4002, "Room doesn't exist");
+					log.error("Closing connection because the room doesn't exist");
+					ws.close(WS_ERROR_ROOM_NOT_FOUND, "Room doesn't exist");
 					return;
 				}
 				else {
@@ -659,7 +664,7 @@ module.exports = {
 				client.socket.send(JSON.stringify({
 					action: "room-unload",
 				}));
-				client.socket.close(4003, "Room has been unloaded");
+				client.socket.close(WS_ERROR_ROOM_UNLOADED, "Room has been unloaded");
 			}
 		}
 
