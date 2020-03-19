@@ -326,6 +326,25 @@ class Room {
 	}
 
 	/**
+	 * Sends an announcement to all clients in this room.
+	 * @param {String} text The message to send
+	 */
+	sendAnnouncement(text) {
+		let msg = {
+			action: "announcement",
+			text,
+		};
+		for (let c of this.clients) {
+			try {
+				c.socket.send(JSON.stringify(msg));
+			}
+			catch (error) {
+				// ignore errors
+			}
+		}
+	}
+
+	/**
 	 * Called when a new client connects to this room.
 	 * @param {Object} ws Websocket for the client.
 	 * @param {Object} req HTTP request used to initiate the connection.
@@ -709,5 +728,15 @@ module.exports = {
 				return this.loadRoom(name);
 			}
 		});
+	},
+
+	/**
+	 * Sends an announcement to all currently connected clients in all rooms.
+	 * @param {String} text The message to send
+	 */
+	sendAnnouncement(text) {
+		for (let room of this.rooms) {
+			room.sendAnnouncement(text);
+		}
 	},
 };

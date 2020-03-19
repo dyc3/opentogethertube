@@ -422,5 +422,46 @@ module.exports = function(_roommanager, storage) {
 		});
 	});
 
+	router.post("/announce", (req, res) => {
+		if (req.body.apikey) {
+			if (req.body.apikey !== process.env.OPENTOGETHERTUBE_API_KEY) {
+				res.status(400).json({
+					success: false,
+					error: "apikey is invalid",
+				});
+				return;
+			}
+		}
+		else {
+			res.status(400).json({
+				success: false,
+				error: "apikey was not supplied",
+			});
+			return;
+		}
+		if (!req.body.text) {
+			res.status(400).json({
+				success: false,
+				error: "text was not supplied",
+			});
+			return;
+		}
+
+		try {
+			roommanager.sendAnnouncement(req.body.text);
+		}
+		catch (error) {
+			log.error(`An unknown error occurred while sending an announcement: ${error}`);
+			res.status(500).json({
+				success: false,
+				error: "Unknown, check logs",
+			});
+			return;
+		}
+		res.json({
+			success: true,
+		});
+	});
+
 	return router;
 };
