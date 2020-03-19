@@ -9,17 +9,15 @@ if [ $# == 0 ] ; then
     exit 1;
 fi
 
-HOST="localhost:3000"
+HOST="http://localhost:3000"
 APIKEY=""
 
-while getopts ":i:vh" optname; do
+while getopts ":d:k:h" optname; do
     case "$optname" in
       "d")
-        echo "-d argument: $OPTARG"
         HOST="$OPTARG"
         ;;
       "k")
-        echo "-k argument: $OPTARG"
         APIKEY="$OPTARG"
         ;;
       "h")
@@ -52,4 +50,4 @@ fi
 
 MESSAGE="$1"
 
-curl -X POST -d apikey=$APIKEY\&text="$MESSAGE" http://$HOST/api/announce
+curl -L -X POST -d apikey="$APIKEY" -d text="$MESSAGE" $HOST/api/announce
