@@ -50,6 +50,6 @@ if [[ "$APIKEY" == "" ]]; then
     APIKEY=$(cat ./env/$NODE_ENV.env | grep OPENTOGETHERTUBE_API_KEY | cut -d = -f 2 | tr -d '[:space:]')
 fi
 
-MESSAGE=$1
+MESSAGE="$1"
 
-curl -X POST -d apikey=$APIKEY\&text=$MESSAGE http://$HOST/api/announce
+curl -X POST -d apikey=$APIKEY\&text="$MESSAGE" http://$HOST/api/announce
