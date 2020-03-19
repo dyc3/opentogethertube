@@ -3,6 +3,8 @@ const app = require('../../../app.js').app;
 const roommanager = require('../../../roommanager.js');
 const InfoExtract = require('../../../infoextract.js');
 
+const TEST_API_KEY = "TESTAPIKEY";
+
 describe("Room API", () => {
 	beforeEach(() => {
 		roommanager.unloadRoom("test");
@@ -408,5 +410,103 @@ describe("User API", () => {
 				expect(resp.body.name).toBeDefined();
 				done();
 			});
+	});
+});
+
+describe("Announcements API", () => {
+	beforeAll(() => {
+		process.env.OPENTOGETHERTUBE_API_KEY = TEST_API_KEY;
+	});
+
+	it("should send an announcement", async () => {
+		let sendAnnouncementSpy = jest.spyOn(roommanager, "sendAnnouncement").mockImplementation(() => {});
+
+		await request(app)
+			.post("/api/announce")
+			.send({ apikey: TEST_API_KEY, text: "test announcement" })
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body).toEqual({
+					success: true,
+				});
+			});
+		expect(sendAnnouncementSpy).toHaveBeenCalledWith("test announcement");
+
+		sendAnnouncementSpy.mockRestore();
+	});
+
+	it("should not send announcement if the api key does not match", async () => {
+		let sendAnnouncementSpy = jest.spyOn(roommanager, "sendAnnouncement").mockImplementation(() => {});
+
+		await request(app)
+			.post("/api/announce")
+			.send({ text: "test announcement" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body).toEqual({
+					success: false,
+					error: "apikey was not supplied",
+				});
+			});
+		expect(sendAnnouncementSpy).not.toHaveBeenCalled();
+
+		sendAnnouncementSpy.mockReset();
+
+		await request(app)
+			.post("/api/announce")
+			.send({ apikey: "wrong key", text: "test announcement" })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body).toEqual({
+					success: false,
+					error: "apikey is invalid",
+				});
+			});
+		expect(sendAnnouncementSpy).not.toHaveBeenCalled();
+
+		sendAnnouncementSpy.mockRestore();
+	});
+
+	it("should not send an announcement if no text is provided", async () => {
+		let sendAnnouncementSpy = jest.spyOn(roommanager, "sendAnnouncement").mockImplementation(() => {});
+
+		await request(app)
+			.post("/api/announce")
+			.send({ apikey: TEST_API_KEY })
+			.expect("Content-Type", /json/)
+			.expect(400)
+			.then(resp => {
+				expect(resp.body).toEqual({
+					success: false,
+					error: "text was not supplied",
+				});
+			});
+		expect(sendAnnouncementSpy).not.toHaveBeenCalled();
+
+		sendAnnouncementSpy.mockRestore();
+	});
+
+	it("should fail if an unknown error occurrs", async () => {
+		let sendAnnouncementSpy = jest.spyOn(roommanager, "sendAnnouncement").mockImplementation(() => {
+			throw new Error("fake error");
+		});
+
+		await request(app)
+			.post("/api/announce")
+			.send({ apikey: TEST_API_KEY, text: "test announcement" })
+			.expect("Content-Type", /json/)
+			.expect(500)
+			.then(resp => {
+				expect(resp.body).toEqual({
+					success: false,
+					error: "Unknown, check logs",
+				});
+			});
+		expect(sendAnnouncementSpy).toHaveBeenCalledWith("test announcement");
+
+		sendAnnouncementSpy.mockRestore();
 	});
 });
