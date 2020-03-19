@@ -105,5 +105,8 @@ export default new Vuex.Store({
 			this.state.room.events.push(event);
 			Vue.prototype.$events.emit('onRoomEvent', message.event);
 		},
+		announcement(context, message) {
+			Vue.prototype.$events.emit('onAnnouncement', message.text);
+		},
 	},
 });
