@@ -43,7 +43,7 @@ module.exports = function(_roommanager, storage) {
 				users: room.clients.length,
 			});
 		}
-		rooms = _.sortBy(rooms, "users").reverse();
+		rooms = _.sortBy(_.sortBy(rooms, "name").reverse(), "users").reverse();
 		res.json(rooms);
 	});
 

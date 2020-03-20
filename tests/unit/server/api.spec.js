@@ -24,22 +24,31 @@ describe("Room API", () => {
 
 		roommanager.createRoom("test1", true);
 		roommanager.createRoom("test2", true);
+		roommanager.createRoom("test3", true);
+		roommanager.rooms[0].clients = [{}];
 
 		await request(app)
 			.get("/api/room/list")
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body).toHaveLength(2);
+				expect(resp.body).toHaveLength(3);
 				expect(resp.body[0]).toEqual({
 					name: "test1",
 					description: "",
 					isTemporary: true,
 					currentSource: {},
-					users: 0,
+					users: 1,
 				});
 				expect(resp.body[1]).toEqual({
 					name: "test2",
+					description: "",
+					isTemporary: true,
+					currentSource: {},
+					users: 0,
+				});
+				expect(resp.body[2]).toEqual({
+					name: "test3",
 					description: "",
 					isTemporary: true,
 					currentSource: {},
@@ -49,6 +58,7 @@ describe("Room API", () => {
 
 		roommanager.unloadRoom("test1", true);
 		roommanager.unloadRoom("test2", true);
+		roommanager.unloadRoom("test3", true);
 
 		roommanager.createRoom("test1", true, "public");
 		roommanager.createRoom("test2", true, "unlisted");
