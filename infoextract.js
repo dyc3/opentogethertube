@@ -432,7 +432,7 @@ module.exports = {
 								id: i[0],
 								length: i[1],
 							}));
-							let finalResult = _.toPairs(ids, videos);
+							let finalResult = _.zipObject(ids, videos);
 							storage.updateManyVideoInfo(videos).then(() => {
 								resolve(finalResult);
 							}).catch(err => {
