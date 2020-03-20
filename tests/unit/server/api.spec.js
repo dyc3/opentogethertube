@@ -345,7 +345,7 @@ describe("Room API", () => {
 
 describe("Data API", () => {
 	it("GET /data/previewAdd", async done => {
-		let getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise(resolve => resolve([])));
+		let getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockReturnValue(Promise.resolve([]));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -358,9 +358,7 @@ describe("Data API", () => {
 			});
 
 		getAddPreviewSpy.mockRestore();
-		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => {
-			throw { name: "UnsupportedServiceException", message: "error message" };
-		});
+		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -374,9 +372,7 @@ describe("Data API", () => {
 			});
 
 		getAddPreviewSpy.mockRestore();
-		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => {
-			throw { name: "InvalidAddPreviewInputException", message: "error message" };
-		});
+		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "InvalidAddPreviewInputException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -390,9 +386,7 @@ describe("Data API", () => {
 			});
 
 		getAddPreviewSpy.mockRestore();
-		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => {
-			throw { name: "OutOfQuotaException", message: "error message" };
-		});
+		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
