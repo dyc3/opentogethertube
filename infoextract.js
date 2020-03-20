@@ -410,6 +410,9 @@ module.exports = {
 
 				storage.updateManyVideoInfo(_.values(results)).then(() => {
 					resolve(results);
+				}).catch(err => {
+					log.error(`Failed to cache video info, will return metadata anyway: ${err}`);
+					resolve(results);
 				});
 			}).catch(err => {
 				if (err.response && err.response.status === 403) {
@@ -422,8 +425,12 @@ module.exports = {
 								id: i[0],
 								length: i[1],
 							}));
+							let finalResult = _.toPairs(ids, videos);
 							storage.updateManyVideoInfo(videos).then(() => {
-								resolve(_.toPairs(ids, videos));
+								resolve(finalResult);
+							}).catch(err => {
+								log.error(`Failed to cache video info, will return metadata anyway: ${err}`);
+								resolve(finalResult);
 							});
 						}).catch(err => {
 							log.error(`Youtube fallback failed ${err}`);
