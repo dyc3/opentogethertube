@@ -254,15 +254,40 @@ describe("InfoExtractor Youtube Support", () => {
     });
   });
 
-  it("should fail to get video due to quota limit", done => {
-    InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 403 } })));
-    storage.updateManyVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve(true)));
+  it("should attempt fallback if it fails to get video due to quota limit, and length is requested", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(Promise.reject({ response: { status: 403 } }));
+    let getLengthFallback = jest.spyOn(InfoExtract, "getVideoLengthYoutube_Fallback").mockReturnValue(Promise.resolve(10));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(Promise.resolve(true));
 
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"]).then(() => {
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["length"]).then(results => {
+      expect(getLengthFallback).toHaveBeenCalled();
+      expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        length: 10,
+      }));
+      expect(storage.updateManyVideoInfo).toHaveBeenCalled();
+      getLengthFallback.mockRestore();
+      done();
+    }).catch(err => {
+      getLengthFallback.mockRestore();
+      done.fail(err);
+    });
+  });
+
+  it("should fail to get video due to quota limit, and length is not requested", done => {
+    InfoExtract.YtApi.get = jest.fn().mockReturnValue(Promise.reject({ response: { status: 403 } }));
+    let getLengthFallback = jest.spyOn(InfoExtract, "getVideoLengthYoutube_Fallback").mockReturnValue(Promise.resolve(10));
+    storage.updateManyVideoInfo = jest.fn().mockReturnValue(Promise.resolve(true));
+
+    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["title"]).then(() => {
+      getLengthFallback.mockRestore();
       done.fail();
     }).catch(err => {
+      expect(getLengthFallback).not.toHaveBeenCalled();
       expect(err.name).toBe("OutOfQuotaException");
       expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+      getLengthFallback.mockRestore();
       done();
     });
   });
