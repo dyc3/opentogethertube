@@ -573,6 +573,13 @@ module.exports = {
 				}
 			});
 			return results;
+		}).catch(err => {
+			if (err.response && err.response.status === 403) {
+				throw new OutOfQuotaException();
+			}
+			else {
+				throw err;
+			}
 		});
 	},
 
