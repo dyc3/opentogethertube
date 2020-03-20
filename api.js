@@ -393,28 +393,25 @@ module.exports = function(_roommanager, storage) {
 		// TODO: rate limit
 
 		log.info(`Getting queue add preview for ${req.query.input}`);
-		try {
-			InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
-				res.json(result);
-				log.info(`Sent add preview response with ${result.length} items`);
-			});
-		}
-		catch (error) {
-			if (error.name === "UnsupportedServiceException" || error.name === "InvalidAddPreviewInputException" || error.name === "OutOfQuotaException") {
-				log.error(`Unable to get add preview: ${error.name}`);
+		InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
+			res.json(result);
+			log.info(`Sent add preview response with ${result.length} items`);
+		}).catch(err => {
+			if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException") {
+				log.error(`Unable to get add preview: ${err.name}`);
 				res.status(400).json({
 					success: false,
-					error: error.message,
+					error: err.message,
 				});
 			}
 			else {
-				log.error(`Unable to get add preview: ${error}`);
+				log.error(`Unable to get add preview: ${err}`);
 				res.status(500).json({
 					success: false,
 					error: "Unknown error occurred.",
 				});
 			}
-		}
+		});
 	});
 
 	router.get("/user", (req, res) => {

@@ -14,6 +14,7 @@ const ADD_PREVIEW_SEARCH_MIN_LENGTH = 3;
 const YtApi = axios.create({
 	baseURL: YOUTUBE_API_URL,
 });
+const YtFallbackApi = axios.create();
 const VIMEO_OEMBED_API_URL = "https://vimeo.com/api/oembed.json";
 const VimeoApi = axios.create();
 const DAILYMOTION_API_URL = "https://api.dailymotion.com";
@@ -45,8 +46,13 @@ class OutOfQuotaException extends Error {
 
 let redisClient;
 
+if (process.env.DEBUG_FAKE_YOUTUBE_OUT_OF_QUOTA) {
+	YtApi.get = () => Promise.reject({ response: { status: 403 } });
+}
+
 module.exports = {
 	YtApi,
+	YtFallbackApi,
 	VimeoApi,
 	DailymotionApi,
 
@@ -174,9 +180,10 @@ module.exports = {
 	 * @param {string} input User input
 	 * @param {Object} options Optional extra parameters
 	 * @param {string} options.fromUser A unique identifier indicating the user that made the request for the add preview. Should not contain sensitive information, because it will be sent to the youtube API as `quotaUser`.
-	 * @returns {Array<Video>}
+	 * @returns {Promise.<Array<Video>>}
 	 * @throws UnsupportedServiceException
 	 * @throws InvalidAddPreviewInputException
+	 * @throws OutOfQuotaException
 	 */
 	getAddPreview(input, options={}) {
 		const service = this.getService(input);
@@ -196,24 +203,23 @@ module.exports = {
 		}
 
 		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion") {
-			// FIXME: To be more consistent, instead of throwing exceptions like this
-			// should be a promise that rejects with the exception.
-			throw new UnsupportedServiceException(urlParsed.host);
+			return Promise.reject(new UnsupportedServiceException(urlParsed.host));
 		}
 		else if (!urlParsed.host) {
 			if (input.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
-				throw new InvalidAddPreviewInputException();
+				return Promise.reject(new InvalidAddPreviewInputException());
 			}
 			return this.searchYoutube(input, options)
 				.then(searchResults => this.getManyVideoInfo(searchResults))
 				.catch(err => {
 					if (err.name === "OutOfQuotaException") {
 						log.error("Failed to search youtube for add preview: Out of quota");
+						throw new OutOfQuotaException();
 					}
 					else {
 						log.error(`Failed to search youtube for add preview: ${err}`);
+						throw err;
 					}
-					throw err;
 				});
 		}
 
@@ -259,13 +265,14 @@ module.exports = {
 						});
 					}
 					else {
-						if (err.response.status === 403) {
+						if (err.response && err.response.status === 403) {
 							log.error("Failed to compile add preview: error getting playlist: Out of quota");
+							reject(new OutOfQuotaException());
 						}
 						else {
 							log.error(`Failed to compile add preview: error getting playlist: ${err}`);
+							reject(err);
 						}
-						reject(err);
 					}
 				});
 			});
@@ -416,7 +423,7 @@ module.exports = {
 				});
 			}).catch(err => {
 				if (err.response && err.response.status === 403) {
-					if (onlyProperties.includes("length")) {
+					if (!onlyProperties || onlyProperties.includes("length")) {
 						log.warn(`Attempting youtube fallback method for ${ids.length} videos`);
 						let getLengthPromises = ids.map(id => this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${id}`));
 						Promise.all(getLengthPromises).then(results => {
@@ -450,7 +457,7 @@ module.exports = {
 	},
 
 	async getVideoLengthYoutube_Fallback(url) {
-		let res = await axios.get(url);
+		let res = await YtFallbackApi.get(url);
 		let regexs = [
 			/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
 		];
