@@ -572,7 +572,7 @@ module.exports = {
 	 * @param {Room} room The room to unload.
 	 * @param {Number} time The time in seconds the room must be inactive for it to be unloaded.
 	 */
-	unloadIfEmpty(room, time=10) {
+	unloadIfEmpty(room, time=240) {
 		if (room.clients.length == 0 &&
 			moment().diff(room.keepAlivePing, 'seconds') > time) {
 			this.unloadRoom(room);
@@ -622,6 +622,7 @@ module.exports = {
 				let rooms = JSON.parse(value);
 				resolve(rooms.map(room => {
 					delete room.clients;
+					room.keepAlivePing = moment();
 					return new Room(room);
 				}));
 			});
