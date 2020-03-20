@@ -93,17 +93,11 @@ module.exports = {
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
 						log.error("Failed to get youtube video info: Out of quota");
-						return this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${video.id}`).then(videoLength => {
-							log.warn(`Used web scraping fallback to get length: ${videoLength}`);
-							video.length = videoLength;
-							storage.updateVideoInfo(video);
-							return video;
-						});
 					}
 					else {
 						log.error(`Failed to get youtube video info: ${err}`);
-						throw err;
 					}
+					throw err;
 				});
 			}
 			else if (video.service === "vimeo") {
@@ -357,7 +351,7 @@ module.exports = {
 
 	getVideoInfoYoutube(ids, onlyProperties=null) {
 		if (!Array.isArray(ids)) {
-			return new Promise((resolve, reject) => reject("`ids` must be an array on video IDs."));
+			return Promise.reject(new Error("`ids` must be an array of youtube video IDs."));
 		}
 		return new Promise((resolve, reject) => {
 			let parts = [];
@@ -381,6 +375,7 @@ module.exports = {
 					"contentDetails",
 				];
 			}
+			log.silly(`Requesting ${parts.length} parts for ${ids.length} videos`);
 			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=${parts.join(",")}&id=${ids.join(",")}`).then(res => {
 				let results = {};
 				for (let i = 0; i < res.data.items.length; i++) {
@@ -418,7 +413,27 @@ module.exports = {
 				});
 			}).catch(err => {
 				if (err.response && err.response.status === 403) {
-					reject(new OutOfQuotaException());
+					if (onlyProperties.includes("length")) {
+						log.warn(`Attempting youtube fallback method for ${ids.length} videos`);
+						let getLengthPromises = ids.map(id => this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${id}`));
+						Promise.all(getLengthPromises).then(results => {
+							let videos = _.zip(ids, results).map(i => new Video({
+								service: "youtube",
+								id: i[0],
+								length: i[1],
+							}));
+							storage.updateManyVideoInfo(videos).then(() => {
+								resolve(_.toPairs(ids, videos));
+							});
+						}).catch(err => {
+							log.error(`Youtube fallback failed ${err}`);
+							reject(err);
+						});
+					}
+					else {
+						log.warn("No fallback method for requested metadata properties");
+						reject(new OutOfQuotaException());
+					}
 				}
 				else {
 					reject(err);
@@ -440,8 +455,8 @@ module.exports = {
 			for (let m = 0; m < matches.length; m++) {
 				const match = matches[m];
 				let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
-				log.info(`MATCH ${match}`);
-				log.info(`EXTRACTED ${extracted}`);
+				log.silly(`MATCH ${match}`);
+				log.debug(`EXTRACTED ${extracted}`);
 				return parseInt(extracted);
 			}
 		}
