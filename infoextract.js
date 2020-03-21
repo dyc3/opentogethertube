@@ -99,11 +99,18 @@ module.exports = {
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
 						log.error("Failed to get youtube video info: Out of quota");
+						if (missingInfo.length < storage.getVideoInfoFields().length) {
+							log.warn(`Returning cached results for ${video.service}:${video.id}`);
+							return result;
+						}
+						else {
+							throw err;
+						}
 					}
 					else {
 						log.error(`Failed to get youtube video info: ${err}`);
+						throw err;
 					}
-					throw err;
 				});
 			}
 			else if (video.service === "vimeo") {
@@ -300,9 +307,8 @@ module.exports = {
 			return this.getVideoInfo(video.service, video.id).then(result => {
 				return Video.merge(video, result);
 			}).catch(err => {
-				log.error("Failed to get video info");
-				log.error(err);
-				return [video];
+				log.error(`Failed to get video info ${err}`);
+				return video;
 			}).then(result => {
 				return [result];
 			});

@@ -203,6 +203,12 @@ class Room {
 			]);
 		}
 
+		// HACK: sometimes, if we fuck up getting a video, currentSource may become undefined.
+		// So if that happens, log it so we can catch it.
+		if (this.currentSource === undefined) {
+			this.log.error("currentSource is undefined! This is not good.");
+		}
+
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
 			this.currentSource = this.queue.shift();
 		}
