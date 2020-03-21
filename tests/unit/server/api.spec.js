@@ -1,6 +1,7 @@
 const request = require('supertest');
-const app = require('../../../app.js').app;
 const roommanager = require('../../../roommanager.js');
+jest.spyOn(roommanager, "getAllLoadedRooms").mockReturnValue(Promise.resolve([]));
+const app = require('../../../app.js').app;
 const InfoExtract = require('../../../infoextract.js');
 
 const TEST_API_KEY = "TESTAPIKEY";
