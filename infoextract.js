@@ -44,6 +44,13 @@ class OutOfQuotaException extends Error {
 	}
 }
 
+class InvalidVideoIdException extends Error {
+	constructor(service, id) {
+		super(`"${id} is an invalid ${service} video ID."`);
+		this.name = "InvalidVideoIdException";
+	}
+}
+
 let redisClient;
 
 if (process.env.DEBUG_FAKE_YOUTUBE_OUT_OF_QUOTA) {
@@ -65,22 +72,22 @@ module.exports = {
 	 * local caching and obtaining missing data from external sources.
 	 * @param	{string} service The service that hosts the source video.
 	 * @param	{string} id The id of the video on the given service.
-	 * @return	{Video} Video object
+	 * @return	{Promise<Video>} Video object
 	 */
 	getVideoInfo(service, id) {
 		if (service === "youtube") {
 			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
-				throw new Error(`Invalid youtube video ID: ${id}`);
+				return Promise.reject(new InvalidVideoIdException(service, id));
 			}
 		}
 		else if (service === "vimeo") {
 			if (!(/^[0-9]+$/).exec(id)) {
-				throw new Error(`Invalid vimeo video ID: ${id}`);
+				return Promise.reject(new InvalidVideoIdException(service, id));
 			}
 		}
 		else if (service === "dailymotion") {
 			if (!(/^[A-za-z0-9]+$/).exec(id)) {
-				throw new Error(`Invalid dailymotion video ID: ${id}`);
+				return Promise.reject(new InvalidVideoIdException(service, id));
 			}
 		}
 
@@ -121,6 +128,7 @@ module.exports = {
 			}
 		}).catch(err => {
 			log.error(`Failed to get video metadata: ${err}`);
+			throw err;
 		});
 	},
 
@@ -308,7 +316,7 @@ module.exports = {
 				return Video.merge(video, result);
 			}).catch(err => {
 				log.error(`Failed to get video info ${err}`);
-				return video;
+				throw err;
 			}).then(result => {
 				return [result];
 			});
