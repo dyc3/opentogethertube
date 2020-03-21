@@ -41,6 +41,14 @@ export default {
 					question: "I want a permanent room with a custom URL.",
 					answer: "Currently, there isn't a way to make permanent rooms through the website. <a href='https://twitter.com/@rollthedyc3'>DM me on twitter</a> and I'll make you one.",
 				},
+				{
+					question: "Why do videos sometimes have no title or thumbnail, but they can still be played?",
+					answer: "This probably means that the server was unable to get that information because it ran out of Youtube API quota.",
+				},
+				{
+					question: 'Why does it say "Out of quota" when searching for youtube videos?',
+					answer: "Youtube searches are expensive to perform. Because of this, searches are rate limted. If this happens, just do the search on youtube and copy the link.",
+				},
 			],
 		};
 	},
