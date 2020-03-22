@@ -1,6 +1,6 @@
 <template>
 	<div class="googledrive">
-		<video controls id="gdriveplayer" class="video-js vjs-default-skin" :key="videoId">
+		<video id="gdriveplayer" class="video-js vjs-default-skin" :key="videoId">
 			<source :src="videoSource" :type="$store.state.room.currentSource.mime" />
 		</video>
 	</div>
@@ -23,12 +23,22 @@ export default {
 		videoSource() {
 			// Yes, we send the google drive api key to the client. This is because we need to get the download link, but we can only do that
 			// by authenticating with google, either by api key or by having people sign in with google. This is easier, and not really a problem
-			// because we have 1,000,000,000 google drive api quota and the api methods we use don't cost that much.
+			// because we have 1,000,000,000 google drive api quota and the api methods we use don't cost that much. And this means we don't have
+			// to waste bandwidth streaming video to clients.
 			return `https://www.googleapis.com/drive/v3/files/${this.videoId}?key=${process.env.GOOGLE_DRIVE_API_KEY}&alt=media&aknowledgeAbuse=true`;
 		},
 	},
 	mounted() {
-		this.player = videojs(document.getElementById("gdriveplayer"), {});
+		this.player = videojs(document.getElementById("gdriveplayer"), {
+			controls: true,
+			responsive: true,
+			poster: this.$store.state.room.currentSource.thumbnail,
+		});
+	},
+	beforeDestroy() {
+		if (this.player) {
+			this.player.dispose();
+		}
 	},
 	methods: {
 		play() {
@@ -37,10 +47,24 @@ export default {
 		pause() {
 			return this.player.pause();
 		},
+		setVolume(volume) {
+			return this.player.volume(volume / 100);
+		},
+		getPosition() {
+			return this.player.currentTime();
+		},
+		setPosition(position) {
+			return this.player.currentTime(position);
+		},
 	},
 };
 </script>
 
 <style lang="scss" scoped>
 @import url("https://vjs.zencdn.net/5.4.6/video-js.min.css");
+
+.video-js {
+	width: 100%;
+	height: 100%;
+}
 </style>
