@@ -159,7 +159,7 @@ module.exports = {
 							continue;
 						}
 						let promise = this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => {
-							return missingInfoGroup.map(video => {
+							return missingInfoGroup.filter(video => results[video.id]).map(video => {
 								return Video.merge(video, results[video.id]);
 							});
 						});
