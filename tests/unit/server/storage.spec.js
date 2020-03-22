@@ -142,6 +142,11 @@ describe('Storage: CachedVideos Spec', () => {
     expect(attributes).not.toContain("serviceId");
     expect(attributes).not.toContain("createdAt");
     expect(attributes).not.toContain("updatedAt");
+
+    attributes = storage.getVideoInfoFields("youtube");
+    expect(attributes).not.toContain("mime");
+    attributes = storage.getVideoInfoFields("googledrive");
+    expect(attributes).not.toContain("description");
   });
 
   it('should create or update multiple videos without failing', done => {

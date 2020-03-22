@@ -124,7 +124,7 @@ module.exports = {
 
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
-			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
+			let missingInfo = storage.getVideoInfoFields(video.service).filter(p => !video.hasOwnProperty(p));
 			if (missingInfo.length === 0) {
 				return new Video(video);
 			}
@@ -137,7 +137,7 @@ module.exports = {
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
 						log.error("Failed to get youtube video info: Out of quota");
-						if (missingInfo.length < storage.getVideoInfoFields().length) {
+						if (missingInfo.length < storage.getVideoInfoFields(video.service).length) {
 							log.warn(`Returning cached results for ${video.service}:${video.id}`);
 							return result;
 						}
@@ -163,7 +163,7 @@ module.exports = {
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
 						log.error("Failed to get google drive file info: Out of quota");
-						if (missingInfo.length < storage.getVideoInfoFields().length) {
+						if (missingInfo.length < storage.getVideoInfoFields(video.service).length) {
 							log.warn(`Returning cached results for ${video.service}:${video.id}`);
 							return result;
 						}
@@ -199,7 +199,7 @@ module.exports = {
 			let retrievalPromise = storage.getManyVideoInfo(grouped[service]).then(serviceVideos => {
 				// group by missing info
 				// WARNING: Arrays can't be used as keys, so the array of strings gets turned in to a string. May cause issues?
-				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p)));
+				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields(service).filter(p => !video.hasOwnProperty(p)));
 
 				if (service === "youtube") {
 					let promises = [];
