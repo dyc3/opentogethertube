@@ -388,6 +388,9 @@ export default {
       else if (this.currentSource.service === "dailymotion") {
         this.$refs.dailymotion.setVolume(this.volume);
       }
+      else if (this.currentSource.service === "googledrive") {
+        this.$refs.googledrive.setVolume(this.volume);
+      }
     },
     requestAddPreview() {
       API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
@@ -640,6 +643,9 @@ export default {
       else if (this.currentSource.service === "dailymotion") {
         currentTime = await this.$refs.dailymotion.getPosition();
       }
+      else if (this.currentSource.service === "googledrive") {
+        currentTime = await this.$refs.googledrive.getPosition();
+      }
       if (Math.abs(newPosition - currentTime) > 1) {
         if (this.currentSource.service === "youtube") {
           this.$refs.youtube.setPosition(newPosition);
@@ -649,6 +655,9 @@ export default {
         }
         else if (this.currentSource.service === "dailymotion") {
           this.$refs.dailymotion.setPosition(newPosition);
+        }
+        else if (this.currentSource.service === "googledrive") {
+          this.$refs.googledrive.setPosition(newPosition);
         }
       }
     },
