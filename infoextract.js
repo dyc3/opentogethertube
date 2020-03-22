@@ -22,6 +22,10 @@ const DAILYMOTION_API_URL = "https://api.dailymotion.com";
 const DailymotionApi = axios.create({
 	baseURL: DAILYMOTION_API_URL,
 });
+const GOOGLE_DRIVE_API_URL = "https://www.googleapis.com/drive/v3";
+const GoogleDriveApi = axios.create({
+	baseUrl: GOOGLE_DRIVE_API_URL,
+});
 
 class UnsupportedServiceException extends Error {
 	constructor(hostname) {
@@ -55,6 +59,13 @@ class FeatureDisabledException extends Error {
 	constructor(reason) {
 		super(`Sorry, this feature is disabled: ${reason}`);
 		this.name = "FeatureDisabledException";
+	}
+}
+
+class NotActuallyVideoException extends Error {
+	constructor(mime) {
+		super(`The requested resource was not actually a video, it was a ${mime}`);
+		this.name = "NotActuallyVideoException";
 	}
 }
 
@@ -780,5 +791,23 @@ module.exports = {
 			let query = querystring.parse(urlParsed.query);
 			return query["id"];
 		}
+	},
+
+	getVideoInfoGoogleDrive(id) {
+		// https://stackoverflow.com/questions/57585838/how-to-get-thumbnail-of-a-video-uploaded-to-google-drive
+		return GoogleDriveApi.get(`/files/${id}?key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)`).then(res => {
+			if (!res.data.mimeType.startsWith("video/")) {
+				throw new NotActuallyVideoException(res.data.mimeType);
+			}
+
+			// description is not provided
+			return new Video({
+				service: "googledrive",
+				id,
+				title: res.data.name,
+				thumbnail: res.data.thumbnailLink,
+				length: res.data.videoMediaMetadata.durationMillis / 1000,
+			});
+		});
 	},
 };
