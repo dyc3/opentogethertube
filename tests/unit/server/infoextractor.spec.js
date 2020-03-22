@@ -576,7 +576,12 @@ describe("InfoExtractor Dailymotion Support", () => {
 });
 
 describe("InfoExtractor Google Drive Support", () => {
-
+  it("should return whether or not the mime type is supported", () => {
+    expect(InfoExtract.isSupportedMimeType("video/mp4")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/webm")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/x-flv")).toBe(false);
+    expect(InfoExtract.isSupportedMimeType("video/x-matroska")).toBe(false);
+  });
 });
 
 describe('InfoExtractor Caching Spec', () => {

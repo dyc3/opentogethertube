@@ -88,6 +88,9 @@ module.exports = {
 			if (cachedVideo.length !== null) {
 				video.length = cachedVideo.length;
 			}
+			if (cachedVideo.mime !== null) {
+				video.mime = cachedVideo.mime;
+			}
 			return video;
 		}).catch(err => {
 			log.warn(`Cache failure ${err}`);
@@ -156,6 +159,9 @@ module.exports = {
 				}
 				if (cachedVideo.length) {
 					video.length = cachedVideo.length;
+				}
+				if (cachedVideo.mime) {
+					video.mime = cachedVideo.mime;
 				}
 				return video;
 			});
