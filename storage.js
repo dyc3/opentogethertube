@@ -246,10 +246,17 @@ module.exports = {
 			});
 		});
 	},
-	getVideoInfoFields() {
+	getVideoInfoFields(service=undefined) {
 		let fields = [];
 		for (let column in CachedVideo.rawAttributes) {
 			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId") {
+				continue;
+			}
+			// eslint-disable-next-line array-bracket-newline
+			if (["youtube", "vimeo", "dailymotion"].includes(service) && column === "mime") {
+				continue;
+			}
+			if (service === "googledrive" && column === "description") {
 				continue;
 			}
 			fields.push(column);
