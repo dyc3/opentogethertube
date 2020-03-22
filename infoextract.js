@@ -842,13 +842,19 @@ module.exports = {
 				id,
 				title: res.data.name,
 				thumbnail: res.data.thumbnailLink,
-				length: res.data.videoMediaMetadata.durationMillis / 1000,
+				length: Math.ceil(res.data.videoMediaMetadata.durationMillis / 1000),
 			});
 		}).catch(err => {
 			if (err.response && err.response.body.error.errors[0].reason === "dailyLimitExceeded") {
 				throw new OutOfQuotaException("googledrive");
 			}
 			else {
+				if (err.response && err.response.body.error) {
+					log.error(`Failed to get google drive video metadata: ${err.response.body.error.message}`);
+				}
+				else {
+					log.error(`Failed to get google drive video metadata: ${err}`);
+				}
 				throw err;
 			}
 		});
