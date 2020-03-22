@@ -24,7 +24,7 @@ const DailymotionApi = axios.create({
 });
 const GOOGLE_DRIVE_API_URL = "https://www.googleapis.com/drive/v3";
 const GoogleDriveApi = axios.create({
-	baseUrl: GOOGLE_DRIVE_API_URL,
+	baseURL: GOOGLE_DRIVE_API_URL,
 });
 
 class UnsupportedServiceException extends Error {
@@ -42,8 +42,16 @@ class InvalidAddPreviewInputException extends Error {
 }
 
 class OutOfQuotaException extends Error {
-	constructor() {
-		super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 10,000 quota per day.`);
+	constructor(service) {
+		if (service === "youtube") {
+			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 10,000 quota per day.`);
+		}
+		else if (service === "googledrive") {
+			super(`We don't have enough Google Drive API quota to complete the request.`);
+		}
+		else {
+			super(`We don't have enough API quota to complete the request. Try again later.`);
+		}
 		this.name = "OutOfQuotaException";
 	}
 }
@@ -248,7 +256,7 @@ module.exports = {
 					.catch(err => {
 						if (err.name === "OutOfQuotaException") {
 							log.error("Failed to search youtube for add preview: Out of quota");
-							throw new OutOfQuotaException();
+							throw new OutOfQuotaException("youtube");
 						}
 						else {
 							log.error(`Failed to search youtube for add preview: ${err}`);
@@ -305,7 +313,7 @@ module.exports = {
 					else {
 						if (err.response && err.response.status === 403) {
 							log.error("Failed to compile add preview: error getting playlist: Out of quota");
-							reject(new OutOfQuotaException());
+							reject(new OutOfQuotaException("youtube"));
 						}
 						else {
 							log.error(`Failed to compile add preview: error getting playlist: ${err}`);
@@ -488,7 +496,7 @@ module.exports = {
 					}
 					else {
 						log.warn("No fallback method for requested metadata properties");
-						reject(new OutOfQuotaException());
+						reject(new OutOfQuotaException("youtube"));
 					}
 				}
 				else {
@@ -558,7 +566,7 @@ module.exports = {
 				});
 			}).catch(err => {
 				if (err.response && err.response.status === 403) {
-					reject(new OutOfQuotaException());
+					reject(new OutOfQuotaException("youtube"));
 				}
 				else {
 					reject(err);
@@ -808,6 +816,13 @@ module.exports = {
 				thumbnail: res.data.thumbnailLink,
 				length: res.data.videoMediaMetadata.durationMillis / 1000,
 			});
+		}).catch(err => {
+			if (err.response && err.response.body.error.errors[0].reason === "dailyLimitExceeded") {
+				throw new OutOfQuotaException("googledrive");
+			}
+			else {
+				throw err;
+			}
 		});
 	},
 };
