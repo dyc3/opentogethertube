@@ -843,6 +843,7 @@ module.exports = {
 				title: res.data.name,
 				thumbnail: res.data.thumbnailLink,
 				length: Math.ceil(res.data.videoMediaMetadata.durationMillis / 1000),
+				mime: res.data.mimeType,
 			});
 		}).catch(err => {
 			if (err.response && err.response.body.error.errors[0].reason === "dailyLimitExceeded") {
