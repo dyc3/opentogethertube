@@ -354,6 +354,9 @@ module.exports = {
 		else if (srcUrl.host.endsWith("dailymotion.com") || srcUrl.host.endsWith("dai.ly")) {
 			return "dailymotion";
 		}
+		else if (srcUrl.host.endsWith("drive.google.com")) {
+			return "googledrive";
+		}
 		else {
 			return false;
 		}
@@ -764,5 +767,18 @@ module.exports = {
 			log.error(`Failed to get dailymotion video info: ${err}`);
 			return null;
 		});
+	},
+
+	/* GOOGLE DRIVE */
+
+	getVideoIdGoogleDrive(link) {
+		let urlParsed = url.parse(link);
+		if (urlParsed.path.startsWith("/file/d/")) {
+			return urlParsed.path.split("/")[3];
+		}
+		else {
+			let query = querystring.parse(urlParsed.query);
+			return query["id"];
+		}
 	},
 };

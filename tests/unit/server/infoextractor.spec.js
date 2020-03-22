@@ -49,6 +49,12 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getService("https://dai.ly/x6hkywd")).toEqual("dailymotion");
   });
 
+  it('getService() should return googledrive when given google drive link', () => {
+    expect(InfoExtract.getService("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("googledrive");
+    expect(InfoExtract.getService("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("googledrive");
+    expect(InfoExtract.getService("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("googledrive");
+  });
+
   it('getService() should return false when given link to unsupported service', () => {
     expect(InfoExtract.getService("http://example.com")).toEqual(false);
   });
@@ -93,6 +99,12 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd")).toEqual("x6hkywd");
     expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd?start=120")).toEqual("x6hkywd");
     expect(InfoExtract.getVideoIdDailymotion("https://dai.ly/x6hkywd")).toEqual("x6hkywd");
+  });
+
+  it('getVideoIdGoogleDrive() should return correct id when given google drive link', () => {
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw");
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq");
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("1rx4j-79UXk0PXccDwTxnrVVMenGopDIN");
   });
 });
 
