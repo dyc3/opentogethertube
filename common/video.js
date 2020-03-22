@@ -11,8 +11,17 @@ class Video {
 		this.description = null;
 		this.thumbnail = null;
 		this.length = null;
+		this.mime = null;
 		if (args) {
 			Object.assign(this, args);
+		}
+
+		// eslint-disable-next-line array-bracket-newline
+		if (["youtube", "vimeo", "dailymotion"].includes(this.service)) {
+			delete this.mime;
+		}
+		else if (["googledrive"].includes(this.service)) {
+			delete this.description;
 		}
 	}
 
