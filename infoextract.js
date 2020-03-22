@@ -846,12 +846,12 @@ module.exports = {
 				mime: res.data.mimeType,
 			});
 		}).catch(err => {
-			if (err.response && err.response.body.error.errors[0].reason === "dailyLimitExceeded") {
+			if (err.response && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
 				throw new OutOfQuotaException("googledrive");
 			}
 			else {
-				if (err.response && err.response.body.error) {
-					log.error(`Failed to get google drive video metadata: ${err.response.body.error.message}`);
+				if (err.response && err.response.data.error) {
+					log.error(`Failed to get google drive video metadata: ${err.response.data.error.message} ${err.response.data.errors}`);
 				}
 				else {
 					log.error(`Failed to get google drive video metadata: ${err}`);
