@@ -116,6 +116,11 @@ module.exports = {
 				return Promise.reject(new InvalidVideoIdException(service, id));
 			}
 		}
+		else if (service === "googledrive") {
+			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
+				return Promise.reject(new InvalidVideoIdException(service, id));
+			}
+		}
 
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
@@ -151,6 +156,26 @@ module.exports = {
 			}
 			else if (video.service === "dailymotion") {
 				return this.getVideoInfoDailymotion(video.id);
+			}
+			else if (video.service === "googledrive") {
+				return this.getVideoInfoGoogleDrive(video.id).then(result => {
+					return Video.merge(video, result);
+				}).catch(err => {
+					if (err.name === "OutOfQuotaException") {
+						log.error("Failed to get google drive file info: Out of quota");
+						if (missingInfo.length < storage.getVideoInfoFields().length) {
+							log.warn(`Returning cached results for ${video.service}:${video.id}`);
+							return result;
+						}
+						else {
+							throw err;
+						}
+					}
+					else {
+						log.error(`Failed to get google drive file info: ${err}`);
+						throw err;
+					}
+				});
 			}
 		}).catch(err => {
 			log.error(`Failed to get video metadata: ${err}`);
@@ -242,8 +267,11 @@ module.exports = {
 		else if (service === "dailymotion") {
 			id = this.getVideoIdDailymotion(input);
 		}
+		else if (service === "googledrive") {
+			id = this.getVideoIdGoogleDrive(input);
+		}
 
-		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion") {
+		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion" && service !== "googledrive") {
 			return Promise.reject(new UnsupportedServiceException(urlParsed.host));
 		}
 		else if (!urlParsed.host) {
@@ -628,7 +656,7 @@ module.exports = {
 		}).catch(err => {
 			if (err.response && err.response.status === 403) {
 				log.error(`Error when getting channel upload playlist ID: Out of Quota`);
-				throw new OutOfQuotaException();
+				throw new OutOfQuotaException("youtube");
 			}
 			else {
 				log.error(`Error when getting channel upload playlist ID: ${err}`);
@@ -694,7 +722,7 @@ module.exports = {
 			return results;
 		}).catch(err => {
 			if (err.response && err.response.status === 403) {
-				throw new OutOfQuotaException();
+				throw new OutOfQuotaException("youtube");
 			}
 			else {
 				throw err;
