@@ -70,10 +70,15 @@ class FeatureDisabledException extends Error {
 	}
 }
 
-class NotActuallyVideoException extends Error {
+class UnsupportedMimeTypeException extends Error {
 	constructor(mime) {
-		super(`The requested resource was not actually a video, it was a ${mime}`);
-		this.name = "NotActuallyVideoException";
+		if (mime.startsWith("video/")) {
+			super(`Files that are ${mime} are not supported.`);
+		}
+		else {
+			super(`The requested resource was not actually a video, it was a ${mime}`);
+		}
+		this.name = "UnsupportedMimeTypeException";
 	}
 }
 
@@ -126,7 +131,11 @@ module.exports = {
 			let video = _.cloneDeep(result);
 			let missingInfo = storage.getVideoInfoFields(video.service).filter(p => !video.hasOwnProperty(p));
 			if (missingInfo.length === 0) {
-				return new Video(video);
+				video = new Video(video);
+				if (video.service === "googledrive" && !this.isSupportedMimeType(video.mime)) {
+					throw new UnsupportedMimeTypeException(video.mime);
+				}
+				return video;
 			}
 
 			log.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
@@ -407,6 +416,10 @@ module.exports = {
 		else {
 			return false;
 		}
+	},
+
+	isSupportedMimeType(mime) {
+		return /^video\/(?!x-flv)(?!x-matroska)[a-z0-9-]+$/.exec(mime) ? true : false;
 	},
 
 	/* YOUTUBE */
@@ -832,12 +845,8 @@ module.exports = {
 	getVideoInfoGoogleDrive(id) {
 		// https://stackoverflow.com/questions/57585838/how-to-get-thumbnail-of-a-video-uploaded-to-google-drive
 		return GoogleDriveApi.get(`/files/${id}?key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)`).then(res => {
-			if (!res.data.mimeType.startsWith("video/")) {
-				throw new NotActuallyVideoException(res.data.mimeType);
-			}
-
 			// description is not provided
-			return new Video({
+			let video = new Video({
 				service: "googledrive",
 				id,
 				title: res.data.name,
@@ -845,6 +854,11 @@ module.exports = {
 				length: Math.ceil(res.data.videoMediaMetadata.durationMillis / 1000),
 				mime: res.data.mimeType,
 			});
+			storage.updateVideoInfo(video);
+			if (!this.isSupportedMimeType(video.mime)) {
+				throw new UnsupportedMimeTypeException(video.mime);
+			}
+			return video;
 		}).catch(err => {
 			if (err.response && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
 				throw new OutOfQuotaException("googledrive");

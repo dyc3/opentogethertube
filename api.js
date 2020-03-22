@@ -397,7 +397,7 @@ module.exports = function(_roommanager, storage) {
 			res.json(result);
 			log.info(`Sent add preview response with ${result.length} items`);
 		}).catch(err => {
-			if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException") {
+			if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException" || err.name === "UnsupportedMimeTypeException") {
 				log.error(`Unable to get add preview: ${err.name}`);
 				res.status(400).json({
 					success: false,
