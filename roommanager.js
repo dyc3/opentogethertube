@@ -11,7 +11,7 @@ const { getLogger } = require("./logger.js");
 const log = getLogger("roommanager");
 
 const SUPPORTED_SERVICES = [
-	"youtube", "vimeo", "dailymotion",
+	"youtube", "vimeo", "dailymotion", "googledrive",
 ];
 
 // Custom websocket error codes
