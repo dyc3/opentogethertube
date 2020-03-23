@@ -82,7 +82,7 @@ module.exports = {
 			if (cachedVideo.description !== null && isCachedInfoValid) {
 				video.description = cachedVideo.description;
 			}
-			if (cachedVideo.thumbnail !== null && (video.service !== "googledrive" || (video.service === "googledrive" && lastUpdatedAt.diff(today, "hour") >= 12))) {
+			if (cachedVideo.thumbnail !== null && (video.service !== "googledrive" || (video.service === "googledrive" && lastUpdatedAt.diff(today, "hour") <= 12))) {
 				video.thumbnail = cachedVideo.thumbnail;
 			}
 			if (cachedVideo.length !== null) {
