@@ -868,7 +868,7 @@ module.exports = {
 					log.error(`Failed to get google drive video metadata: ${err.response.data.error.message} ${err.response.data.error.errors}`);
 				}
 				else {
-					log.error(`Failed to get google drive video metadata: ${err}`);
+					log.error(`Failed to get google drive video metadata: ${err}: ${JSON.stringify(err.response.data)}`);
 				}
 				throw err;
 			}
