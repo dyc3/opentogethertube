@@ -31,8 +31,14 @@
 						top of that to make it even better.
 					</p>
 					<p>
-						Currently, you can watch videos from Youtube, Vimeo, Dailymotion and
+						Currently, you can watch online videos with your friends from Youtube, Vimeo, Dailymotion and
 						<a href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request">more are on the way</a>.
+					</p>
+					<h1>Social distancing? How about social listening?</h1>
+					<p>
+						Because of the coronavirus pandemic, these are crazy times, and social
+						distancing can be hard. OpenTogetherTube is dedicated to providing a place
+						for friends to hang out and have fun.
 					</p>
 				</v-col>
 			</v-row>
@@ -55,7 +61,7 @@
 								<v-card-text>
 									You and the squad come here often? Avoid the hastle
 									of sending out a new link every time. Permanent
-									rooms get a custom url that doesn't change
+									rooms get a custom url that doesn't change.
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -71,7 +77,7 @@
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Room Permissions</v-card-title>
+								<v-card-title>Room Permissions (WIP)</v-card-title>
 								<v-card-text>
 									Tired of random goofballs joining your room and
 									adding lots of loud videos to your chill lofi hip-hop
