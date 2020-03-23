@@ -109,6 +109,7 @@ app.use("/api", api);
 if (fs.existsSync("./dist")) {
 	app.use(express.static(__dirname + "/dist", false));
 	app.get("/", serveBuiltFiles);
+	app.get("/faq", serveBuiltFiles);
 	app.get("/rooms", serveBuiltFiles);
 	app.get("/room/:roomId", serveBuiltFiles);
 }
