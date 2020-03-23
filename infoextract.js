@@ -860,12 +860,12 @@ module.exports = {
 			}
 			return video;
 		}).catch(err => {
-			if (err.response && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
+			if (err.response && err.response.data.error && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
 				throw new OutOfQuotaException("googledrive");
 			}
 			else {
 				if (err.response && err.response.data.error) {
-					log.error(`Failed to get google drive video metadata: ${err.response.data.error.message} ${err.response.data.errors}`);
+					log.error(`Failed to get google drive video metadata: ${err.response.data.error.message} ${err.response.data.error.errors}`);
 				}
 				else {
 					log.error(`Failed to get google drive video metadata: ${err}`);
