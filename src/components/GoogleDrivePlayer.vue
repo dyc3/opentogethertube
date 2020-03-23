@@ -1,7 +1,7 @@
 <template>
 	<div class="googledrive">
 		<video id="gdriveplayer" class="video-js vjs-default-skin" :key="videoId">
-			<source :src="videoSource" :type="$store.state.room.currentSource.mime" />
+			<!-- <source :src="videoSource" :type="$store.state.room.currentSource.mime" /> -->
 		</video>
 	</div>
 </template>
@@ -41,6 +41,8 @@ export default {
 		this.player.on("pause", () => this.$emit("paused"));
 		this.player.on("play", () => this.$emit("waiting"));
 		this.player.on("stalled", () => this.$emit("buffering"));
+		this.loadVideoSource();
+		this.player.load();
 	},
 	beforeDestroy() {
 		if (this.player) {
@@ -62,6 +64,17 @@ export default {
 		},
 		setPosition(position) {
 			return this.player.currentTime(position);
+		},
+		loadVideoSource() {
+			this.player.src({
+				src: this.videoSource,
+				type: this.$store.state.room.currentSource.mime,
+			});
+		},
+	},
+	watch: {
+		videoId() {
+			this.loadVideoSource();
 		},
 	},
 };
