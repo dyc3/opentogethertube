@@ -30,10 +30,17 @@ export default {
 	},
 	mounted() {
 		this.player = videojs(document.getElementById("gdriveplayer"), {
-			controls: true,
+			controls: false,
 			responsive: true,
+			loop: false,
 			poster: this.$store.state.room.currentSource.thumbnail,
 		});
+		this.player.on("ready", () => this.$emit("ready"));
+		this.player.on("ended", () => this.$emit("end"));
+		this.player.on("playing", () => this.$emit("playing"));
+		this.player.on("pause", () => this.$emit("paused"));
+		this.player.on("play", () => this.$emit("waiting"));
+		this.player.on("stalled", () => this.$emit("buffering"));
 	},
 	beforeDestroy() {
 		if (this.player) {
