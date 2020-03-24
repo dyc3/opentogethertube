@@ -446,7 +446,7 @@ module.exports = {
 								id: i[0],
 								length: i[1],
 								// HACK: we can guess what the thumbnail url is, but this could possibly change without warning
-								thumbnail: `https://i.ytimg.com/vi/${video.id}/default.jpg`,
+								thumbnail: `https://i.ytimg.com/vi/${i[0]}/default.jpg`,
 							}));
 							let finalResult = _.zipObject(ids, videos);
 							storage.updateManyVideoInfo(videos).then(() => {
