@@ -374,6 +374,13 @@ module.exports = {
 				.then(newestVideos => this.getManyVideoInfo(newestVideos))
 				.catch(err => log.error(`Error getting channel info: ${err}`));
 		}
+		else if (service === "googledrive" && urlParsed.path.startsWith("/drive")) {
+			let folderId = this.getFolderIdGoogleDrive(input);
+			log.info(`google drive folder found: ${folderId}`);
+			return this.getFolderGoogleDrive(folderId)
+				// .then(videos => this.getManyVideoInfo(videos))
+				.catch(err => log.error(`Error getting google drive info: ${err}`));
+		}
 		else {
 			let video = new Video({
 				service: service,
@@ -842,18 +849,35 @@ module.exports = {
 		}
 	},
 
+	getFolderIdGoogleDrive(link) {
+		let urlParsed = url.parse(link);
+		if (/^\/drive\/u\/\d\/folders\//.exec(urlParsed.path)) {
+			return urlParsed.path.split("/")[5].split("?")[0].trim();
+		}
+		else if (urlParsed.path.startsWith("/drive/folders")) {
+			return urlParsed.path.split("/")[3].split("?")[0].trim();
+		}
+		else {
+			throw new Error("Invalid google drive folder");
+		}
+	},
+
+	parseGoogleDriveFile(file) {
+		return new Video({
+			service: "googledrive",
+			id: file.id,
+			title: file.name,
+			thumbnail: file.thumbnailLink,
+			length: Math.ceil(file.videoMediaMetadata.durationMillis / 1000),
+			mime: file.mimeType,
+		});
+	},
+
 	getVideoInfoGoogleDrive(id) {
 		// https://stackoverflow.com/questions/57585838/how-to-get-thumbnail-of-a-video-uploaded-to-google-drive
 		return GoogleDriveApi.get(`/files/${id}?key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)`).then(res => {
 			// description is not provided
-			let video = new Video({
-				service: "googledrive",
-				id,
-				title: res.data.name,
-				thumbnail: res.data.thumbnailLink,
-				length: Math.ceil(res.data.videoMediaMetadata.durationMillis / 1000),
-				mime: res.data.mimeType,
-			});
+			let video = this.parseGoogleDriveFile(res.data);
 			storage.updateVideoInfo(video);
 			if (!this.isSupportedMimeType(video.mime)) {
 				throw new UnsupportedMimeTypeException(video.mime);
@@ -865,10 +889,30 @@ module.exports = {
 			}
 			else {
 				if (err.response && err.response.data.error) {
-					log.error(`Failed to get google drive video metadata: ${err.response.data.error.message} ${err.response.data.error.errors}`);
+					log.error(`Failed to get google drive video metadata: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
 				}
 				else {
 					log.error(`Failed to get google drive video metadata: ${err}: ${JSON.stringify(err.response.data)}`);
+				}
+				throw err;
+			}
+		});
+	},
+
+	getFolderGoogleDrive(id) {
+		return GoogleDriveApi.get(`/files?q="${id}"+in+parents&key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=files(name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis))`).then(res => {
+			log.info(`Found ${res.data.files.length} items in folder`);
+			return res.data.files.map(item => this.parseGoogleDriveFile(item));
+		}).catch(err => {
+			if (err.response && err.response.data.error && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
+				throw new OutOfQuotaException("googledrive");
+			}
+			else {
+				if (err.response && err.response.data.error) {
+					log.error(`Failed to get google drive folder: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
+				}
+				else {
+					log.error(`Failed to get google drive folder: ${err}: ${JSON.stringify(err.response.data)}`);
 				}
 				throw err;
 			}
