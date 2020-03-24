@@ -539,7 +539,27 @@ module.exports = {
 		});
 	},
 
-	getChanneInfoYoutube(channelData) {
+	async getChanneInfoYoutube(channelData) {
+		// TODO: maybe use relational db for this cache instead?
+		let cachedPlaylistId = await new Promise((resolve, reject) => {
+			redisClient.get(`ytchannel:${_.keys(channelData)[0]}:${_.values(channelData)[0]}`, (err, value) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				if (!value) {
+					resolve(null);
+					return;
+				}
+				resolve(value);
+			});
+		});
+		if (cachedPlaylistId) {
+			// use the cached playlist id
+			log.info("Using cached uploads playlist id");
+			return this.getPlaylistYoutube(cachedPlaylistId);
+		}
+
 		return YtApi.get('/channels' +
 			`?key=${process.env.YOUTUBE_API_KEY}&` +
 			'part=contentDetails&' +
@@ -547,15 +567,35 @@ module.exports = {
 			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
 			//on the other hand, a user link requires the forUsername filter
 		).then(res => {
-			return this.getPlaylistYoutube(
-				res.data.items[0].contentDetails.relatedPlaylists.uploads
-			);
+			let uploadsPlaylistId = res.data.items[0].contentDetails.relatedPlaylists.uploads;
+			redisClient.set(`ytchannel:${_.keys(channelData)[0]}:${_.values(channelData)[0]}`, uploadsPlaylistId, err => {
+				if (err) {
+					log.error(`Failed to cache channel uploads playlist: ${err}`);
+				}
+				else {
+					log.info(`Cached channel uploads playlist: ytchannel:${_.keys(channelData)[0]}:${_.values(channelData)[0]}`);
+				}
+			});
+			if (channelData.user) {
+				// we can add a cache entry for the channel id as well.
+				let channelId = res.data.items[0].id;
+				redisClient.set(`ytchannel:channel:${channelId}`, uploadsPlaylistId, err => {
+					if (err) {
+						log.error(`Failed to cache channel uploads playlist: ${err}`);
+					}
+					else {
+						log.info(`Cached channel uploads playlist: ytchannel:channel:${channelId}`);
+					}
+				});
+			}
+			return this.getPlaylistYoutube(uploadsPlaylistId);
 		}).catch(err => {
-			log.error(err);
-			if (err.response.status === 403) {
+			if (err.response && err.response.status === 403) {
+				log.error(`Error when getting channel upload playlist ID: Out of Quota`);
 				throw new OutOfQuotaException();
 			}
 			else {
+				log.error(`Error when getting channel upload playlist ID: ${err}`);
 				throw err;
 			}
 		});

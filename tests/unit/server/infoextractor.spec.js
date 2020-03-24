@@ -383,6 +383,10 @@ describe("InfoExtractor Youtube Support", () => {
   });
 
   it("should get videos on the given youtube channel", done => {
+    let redisClientMock = {
+      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
+      set: jest.fn(),
+    };
     InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise(resolve => resolve({ status: 200, data: JSON.parse(youtubeChannelInfoSampleResponses["UC_3pplzbKMZsP5zBH_6SVJQ"]) })));
     InfoExtract.getPlaylistYoutube = jest.fn().mockReturnValue(new Promise(resolve => resolve([
       new Video({
@@ -394,6 +398,7 @@ describe("InfoExtractor Youtube Support", () => {
         id: "BTZ5KVRUy1Q",
       }),
     ])));
+    InfoExtract.init(redisClientMock);
     InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(results => {
       expect(results).toHaveLength(2);
       expect(results[0]).toEqual(new Video({
@@ -409,7 +414,12 @@ describe("InfoExtractor Youtube Support", () => {
   });
 
   it("should fail when youtube channel request fails due to quota limit", done => {
+    let redisClientMock = {
+      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
+      set: jest.fn(),
+    };
     InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 403 } })));
+    InfoExtract.init(redisClientMock);
     InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(() => {
       done.fail();
     }).catch(err => {
@@ -419,7 +429,12 @@ describe("InfoExtractor Youtube Support", () => {
   });
 
   it("should fail when youtube channel request fails for other reasons", done => {
+    let redisClientMock = {
+      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
+      set: jest.fn(),
+    };
     InfoExtract.YtApi.get = jest.fn().mockReturnValue(new Promise((resolve, reject) => reject({ response: { status: 500 } })));
+    InfoExtract.init(redisClientMock);
     InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(() => {
       done.fail();
     }).catch(err => {
