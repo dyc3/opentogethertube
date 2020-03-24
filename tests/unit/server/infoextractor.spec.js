@@ -582,6 +582,11 @@ describe("InfoExtractor Google Drive Support", () => {
     expect(InfoExtract.isSupportedMimeType("video/x-flv")).toBe(false);
     expect(InfoExtract.isSupportedMimeType("video/x-matroska")).toBe(false);
   });
+
+  it("should return the folder id if the link is valid", () => {
+    expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/u/0/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
+    expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
+  });
 });
 
 describe('InfoExtractor Caching Spec', () => {
