@@ -2,7 +2,7 @@
 	<v-card class="mt-2 video" hover>
 		<v-container fluid class="pa-0">
 			<v-row no-gutters align="center" justify="space-between">
-				<v-col cols="4">
+				<v-col cols="4" lg="3" xl="2">
 					<v-img :src="item.thumbnail ? item.thumbnail : require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }">
 						<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode === 'manual'">
 							<v-icon>fas fa-align-justify</v-icon>
@@ -10,7 +10,7 @@
 						<span class="subtitle-2 video-length">{{ videoLength }}</span>
 					</v-img>
 				</v-col>
-				<v-col cols="5">
+				<v-col cols="5" lg="6" xl="7">
 					<v-container>
 						<v-row class="title" no-gutters>{{ item.title }}</v-row>
 						<v-row class="body-1 text-truncate" no-gutters>{{ item.description }}</v-row>
