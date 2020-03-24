@@ -9,15 +9,17 @@
 			</v-img>
 		</div>
 		<div class="meta-container">
-			<div class="video-title" no-gutters>{{ item.title }}</div>
-			<div class="description text-truncate" no-gutters>{{ item.description }}</div>
+			<div>
+				<div class="video-title" no-gutters>{{ item.title }}</div>
+				<div class="description text-truncate" no-gutters>{{ item.description }}</div>
+			</div>
 		</div>
 		<div style="display: flex; justify-content: center; flex-direction: column">
 			<div class="button-container">
 				<v-btn @click="vote" :loading="isLoadingVote" :color="item.voted ? 'red' : 'green'" v-if="!isPreview && $store.state.room.queueMode === 'vote'">
 					<span>{{ item.votes ? item.votes : 0 }}</span>
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
-					<span>{{ item.voted ? "Unvote" : "Vote" }}</span>
+					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
 				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
 					<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
@@ -118,9 +120,13 @@ export default {
 	.meta-container {
 		flex-grow: 1;
 		margin: 0 10px;
-		// align-self: stretch;
-		flex-direction: column;
-		max-width: 60%;
+
+		> div {
+			flex-direction: column;
+			width: 100%;
+		}
+		min-width: 20%;
+		width: 30%;
 
 		.video-title {
 			font-size: 1.25rem;
@@ -137,17 +143,30 @@ export default {
 			font-size: 0.9rem;
 			overflow: hidden;
 			text-overflow: ellipsis;
+
+			@media (max-width: $sm-max) {
+				display: none;
+			}
 		}
 	}
 
 	.img-container {
 		max-width: 200px;
+		@media (max-width: $sm-max) {
+			max-width: 80px;
+		}
 	}
 
 	.button-container {
-		flex-basis: 20%;
 		flex-direction: row;
 		justify-content: center;
+		flex-wrap: nowrap;
+
+		@media (max-width: $sm-max) {
+			.vote-text {
+				display: none;
+			}
+		}
 	}
 
 	.drag-handle {
