@@ -57,7 +57,7 @@
           </v-col>
         </v-row>
         <v-row no-gutters>
-          <v-col cols="8" md="8" sm="12">
+          <v-col cols="12" md="8" sm="12">
             <v-tabs grow v-model="queueTab" @change="onTabChange">
               <v-tab>
                 Queue

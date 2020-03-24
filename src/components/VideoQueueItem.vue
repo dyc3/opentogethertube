@@ -1,40 +1,36 @@
 <template>
-	<v-card class="mt-2 video" hover>
-		<v-container fluid class="pa-0">
-			<v-row no-gutters align="center" justify="space-between">
-				<v-col cols="4">
-					<v-img :src="item.thumbnail ? item.thumbnail : require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }">
-						<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode === 'manual'">
-							<v-icon>fas fa-align-justify</v-icon>
-						</span>
-						<span class="subtitle-2 video-length">{{ videoLength }}</span>
-					</v-img>
-				</v-col>
-				<v-col cols="5">
-					<v-container>
-						<v-row class="title" no-gutters>{{ item.title }}</v-row>
-						<v-row class="body-1 text-truncate" no-gutters>{{ item.description }}</v-row>
-					</v-container>
-				</v-col>
-				<v-col cols="1" v-if="!isPreview && $store.state.room.queueMode === 'vote'">
-					<v-btn @click="vote" :loading="isLoadingVote" :color="item.voted ? 'red' : 'green'">
-						<span>{{ item.votes ? item.votes : 0 }}</span>
-						<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
-						<span>{{ item.voted ? "Unvote" : "Vote" }}</span>
-					</v-btn>
-				</v-col>
-				<v-col cols="1">
-					<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
-						<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
-						<v-icon v-else>fas fa-plus</v-icon>
-					</v-btn>
-					<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
-						<v-icon>fas fa-trash</v-icon>
-					</v-btn>
-				</v-col>
-			</v-row>
-		</v-container>
-	</v-card>
+	<v-sheet class="mt-2 video" hover>
+		<div class="img-container">
+			<v-img :src="item.thumbnail ? item.thumbnail : require('@/assets/placeholder.svg')" :lazy-src="require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }">
+				<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode === 'manual'">
+					<v-icon>fas fa-align-justify</v-icon>
+				</span>
+				<span class="video-length">{{ videoLength }}</span>
+			</v-img>
+		</div>
+		<div class="meta-container">
+			<div>
+				<div class="video-title" no-gutters>{{ item.title }}</div>
+				<div class="description text-truncate" no-gutters>{{ item.description }}</div>
+			</div>
+		</div>
+		<div style="display: flex; justify-content: center; flex-direction: column">
+			<div class="button-container">
+				<v-btn @click="vote" :loading="isLoadingVote" :color="item.voted ? 'red' : 'green'" v-if="!isPreview && $store.state.room.queueMode === 'vote'">
+					<span>{{ item.votes ? item.votes : 0 }}</span>
+					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
+					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
+				</v-btn>
+				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
+					<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
+					<v-icon v-else>fas fa-plus</v-icon>
+				</v-btn>
+				<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
+					<v-icon>fas fa-trash</v-icon>
+				</v-btn>
+			</div>
+		</div>
+	</v-sheet>
 </template>
 
 <script>
@@ -107,7 +103,72 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
+
 .video {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	justify-content: space-between;
+	width: 100%;
+
+	> * {
+		display: flex;
+	}
+
+	.meta-container {
+		flex-grow: 1;
+		margin: 0 10px;
+
+		> div {
+			flex-direction: column;
+			width: 100%;
+		}
+		min-width: 20%;
+		width: 30%;
+
+		.video-title {
+			font-size: 1.25rem;
+			@media (max-width: $sm-max) {
+				font-size: 0.8rem;
+			}
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.description {
+			flex-grow: 1;
+			font-size: 0.9rem;
+			overflow: hidden;
+			text-overflow: ellipsis;
+
+			@media (max-width: $sm-max) {
+				display: none;
+			}
+		}
+	}
+
+	.img-container {
+		max-width: 200px;
+		@media (max-width: $sm-max) {
+			max-width: 80px;
+		}
+	}
+
+	.button-container {
+		flex-direction: row;
+		justify-content: center;
+		flex-wrap: nowrap;
+
+		@media (max-width: $sm-max) {
+			.vote-text {
+				display: none;
+			}
+		}
+	}
+
 	.drag-handle {
 		position: absolute;
 		top: 50%;

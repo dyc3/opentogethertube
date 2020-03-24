@@ -475,7 +475,7 @@ class RoomEvent {
 		this.roomName = roomName;
 		this.eventType = eventType;
 		this.userName = userName;
-		this.parameters = parameters;
+		this.parameters = _.cloneDeep(parameters);
 	}
 }
 
