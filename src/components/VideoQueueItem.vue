@@ -1,5 +1,5 @@
 <template>
-	<v-card class="mt-2 video" hover>
+	<v-sheet class="mt-2 video" hover>
 		<v-container fluid class="pa-0">
 			<v-row no-gutters align="center" justify="space-between">
 				<v-col cols="4" lg="3" xl="2">
@@ -12,7 +12,7 @@
 				</v-col>
 				<v-col cols="5" lg="6" xl="7">
 					<v-container>
-						<v-row class="title" no-gutters>{{ item.title }}</v-row>
+						<v-row class="video-title" no-gutters>{{ item.title }}</v-row>
 						<v-row class="body-1 text-truncate" no-gutters>{{ item.description }}</v-row>
 					</v-container>
 				</v-col>
@@ -34,7 +34,7 @@
 				</v-col>
 			</v-row>
 		</v-container>
-	</v-card>
+	</v-sheet>
 </template>
 
 <script>
@@ -107,7 +107,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
+
 .video {
+	.video-title {
+		font-size: 1.25rem;
+		@media (max-width: $sm-max) {
+			font-size: 0.8rem;
+		}
+	}
+
 	.drag-handle {
 		position: absolute;
 		top: 50%;
