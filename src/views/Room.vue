@@ -136,7 +136,8 @@
                 <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
                   {{ user.name }}
                   <span v-if="user.isYou" class="is-you">You</span>
-                  <span>{{ user.status }}</span>
+                  <v-icon class="player-status" v-if="user.status === 'buffering'">fas fa-spinner</v-icon>
+                  <v-icon class="player-status" v-else-if="user.status === 'ready'">fas fa-check</v-icon>
                 </v-list-item>
               </v-card>
             </div>
@@ -693,6 +694,10 @@ export default {
   margin: 5px;
   padding: 0 5px;
   font-size: 10px;
+}
+.player-status {
+  margin: 0 5px;
+  font-size: 12px;
 }
 .bubble{
   height: 25px;
