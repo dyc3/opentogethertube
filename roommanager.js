@@ -255,6 +255,7 @@ class Room {
 				return {
 					name: c.session.username,
 					isYou: client.socket == c.socket,
+					status: c.status,
 				};
 			});
 
@@ -365,6 +366,7 @@ class Room {
 		let client = {
 			session: req.session,
 			socket: ws,
+			status: "joined",
 		};
 		this.clients.push(client);
 		ws.on('message', (message) => {
@@ -448,6 +450,11 @@ class Room {
 				return;
 			}
 			this.undoEvent(msg.event);
+			this.sync();
+		}
+		else if (msg.action === "status") {
+			this.log.info(`status: ${client.session.username} ${msg.status}`);
+			client.status = msg.status;
 			this.sync();
 		}
 		else {
