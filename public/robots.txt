@@ -6,4 +6,4 @@ User-agent: *
 # The Disallow field tells which routes we do not want the webcrawlers to have access to.
 # Right now the only route we're going to deny access to is the room page.
 # NOTE: this also affects all subroutes so /room/test and /room/myroom are also blocked.
-Disallow: /room
+Disallow: /room/*
