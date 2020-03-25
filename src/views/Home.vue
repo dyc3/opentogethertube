@@ -109,6 +109,11 @@
 					</v-row>
 				</v-col>
 			</v-row>
+			<v-row>
+				<v-col>
+					<em style="opacity: 0.5">Disclaimer: The OpenTogetherTube project is not associated with TogetherTube nor Watch2Gether.</em>
+				</v-col>
+			</v-row>
 			<v-footer>
 				<v-container pa-0>
 					<v-row no-gutters align="center" justify="center">
