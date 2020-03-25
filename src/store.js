@@ -65,6 +65,9 @@ export default new Vuex.Store({
 		SOCKET_RECONNECT_ERROR(state) {
 			state.socket.reconnectError = true;
 		},
+		PLAYBACK_STATUS(state, message) {
+			Vue.prototype.$socket.sendObj({ action: "status", status: message });
+		},
 	},
 	actions: {
 		sendMessage(context, message) {

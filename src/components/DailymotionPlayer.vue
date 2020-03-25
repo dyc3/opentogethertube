@@ -46,11 +46,12 @@ export default {
 					"ui-start-screen-info": false,
 				},
 				events: {
-					apiready: () => this.$emit("ready"),
+					apiready: this.onApiReady,
 					video_end: () => this.$emit("end"),
 					playing: () => this.$emit("playing"),
 					pause: () => this.$emit("paused"),
 					waiting: () => this.$emit("buffering"),
+					playback_ready: () => this.$emit("ready"),
 				},
 			});
 		},
@@ -69,10 +70,14 @@ export default {
 		setVolume(value) {
 			return this.player.setVolume(value / 100);
 		},
+		onApiReady() {
+			this.$emit("apiready");
+		},
 	},
 	watch: {
 		videoId() {
 			this.updateIframe();
+			this.player.load({ video: this.videoId });
 		},
 	},
 };

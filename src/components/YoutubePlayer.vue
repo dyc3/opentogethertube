@@ -1,6 +1,6 @@
 <template>
 	<div class="youtube">
-		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="onReady"/>
+		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="onReady" @buffering="$emit('buffering')" @cued="$emit('ready')" />
 	</div>
 </template>
 
@@ -34,7 +34,7 @@ export default {
 
 		onReady() {
 			this.$refs.youtubeplayer.player.loadVideoById(this.$store.state.room.currentSource.id);
-			this.$emit('ready');
+			this.$emit('apiready');
 		},
 	},
 };

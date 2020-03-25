@@ -9,9 +9,9 @@
         <v-row no-gutters class="video-container">
           <v-col cols="12" :xl="$store.state.fullscreen ? 8 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <div class="player-container" :key="currentSource.service">
-              <YoutubePlayer v-if="currentSource.service == 'youtube'" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Youtube"/>
-              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady_Vimeo" />
-              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" ref="dailymotion" :video-id="currentSource.id" />
+              <YoutubePlayer v-if="currentSource.service == 'youtube'" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
+              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
+              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
               <v-container fluid fill-height class="no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -136,6 +136,7 @@
                 <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
                   {{ user.name }}
                   <span v-if="user.isYou" class="is-you">You</span>
+                  <span>{{ user.status }}</span>
                 </v-list-item>
               </v-card>
             </div>
@@ -418,6 +419,9 @@ export default {
       this.showEditName = false;
     },
     onPlaybackChange(changeTo) {
+      if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
+        this.$store.commit("PLAYBACK_STATUS", "ready");
+      }
       this.updateVolume();
       if (changeTo == this.$store.state.room.isPlaying) {
         return;
@@ -459,8 +463,12 @@ export default {
     onInputAddPreviewFocus(e) {
       e.target.select();
     },
-    onPlayerReady_Youtube() {
+    onPlayerReady() {
+      this.$store.commit("PLAYBACK_STATUS", "ready");
 
+      if (this.currentSource.service === "vimeo") {
+        this.onPlayerReady_Vimeo();
+      }
     },
     onPlayerReady_Vimeo() {
       if (this.$store.state.room.isPlaying) {
@@ -570,6 +578,9 @@ export default {
       }).then(() => {
         this.isLoadingRoomSettings = false;
       });
+    },
+    onVideoBuffer() {
+      this.$store.commit("PLAYBACK_STATUS", "buffering");
     },
   },
   mounted() {
