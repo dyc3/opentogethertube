@@ -265,6 +265,7 @@ describe("InfoExtractor Youtube Support", () => {
         service: "youtube",
         id: "BTZ5KVRUy1Q",
         length: 10,
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg",
       }));
       expect(storage.updateManyVideoInfo).toHaveBeenCalled();
       getLengthFallback.mockRestore();
