@@ -39,11 +39,11 @@ export default {
 					this.player.on("loaded", () => this.$emit("ready"));
 					this.player.on("bufferstart", () => {
 						this.isBuffering = true;
-						this.$emit("butterstart");
+						this.$emit("buffering");
 					});
 					this.player.on("bufferend", () => {
 						this.isBuffering = false;
-						this.$emit("butterend");
+						this.$emit("ready");
 					});
 				}, 0);
 			});
