@@ -51,6 +51,13 @@ class InvalidVideoIdException extends Error {
 	}
 }
 
+class FeatureDisabledException extends Error {
+	constructor(reason) {
+		super(`Sorry, this feature is disabled: ${reason}`);
+		this.name = "FeatureDisabledException";
+	}
+}
+
 let redisClient;
 
 if (process.env.DEBUG_FAKE_YOUTUBE_OUT_OF_QUOTA) {
@@ -221,21 +228,26 @@ module.exports = {
 			return Promise.reject(new UnsupportedServiceException(urlParsed.host));
 		}
 		else if (!urlParsed.host) {
-			if (input.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
-				return Promise.reject(new InvalidAddPreviewInputException());
+			if (process.env.ENABLE_YOUTUBE_SEARCH) {
+				if (input.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
+					return Promise.reject(new InvalidAddPreviewInputException());
+				}
+				return this.searchYoutube(input, options)
+					.then(searchResults => this.getManyVideoInfo(searchResults))
+					.catch(err => {
+						if (err.name === "OutOfQuotaException") {
+							log.error("Failed to search youtube for add preview: Out of quota");
+							throw new OutOfQuotaException();
+						}
+						else {
+							log.error(`Failed to search youtube for add preview: ${err}`);
+							throw err;
+						}
+					});
 			}
-			return this.searchYoutube(input, options)
-				.then(searchResults => this.getManyVideoInfo(searchResults))
-				.catch(err => {
-					if (err.name === "OutOfQuotaException") {
-						log.error("Failed to search youtube for add preview: Out of quota");
-						throw new OutOfQuotaException();
-					}
-					else {
-						log.error(`Failed to search youtube for add preview: ${err}`);
-						throw err;
-					}
-				});
+			else {
+				return Promise.reject(new FeatureDisabledException("Youtube searches have been disabled by the administrator. See dyc3/opentogethertube#226 for more information."));
+			}
 		}
 
 		if (service === "youtube" && queryParams["list"]) {
