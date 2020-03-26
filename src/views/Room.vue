@@ -8,11 +8,11 @@
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
         <v-row no-gutters class="video-container">
           <v-col cols="12" :xl="$store.state.fullscreen ? 8 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
-            <div class="player-container" :key="currentSource.service">
-              <YoutubePlayer v-if="currentSource.service == 'youtube'" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
-              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
-              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
-              <v-container fluid fill-height class="no-video" v-else>
+            <v-responsive :aspect-ratio="16/9" class="player-container" :key="currentSource.service">
+              <YoutubePlayer v-if="currentSource.service == 'youtube'" class="player" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
+              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
+              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
+              <v-container fluid fill-height class="player no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
                     <h1>No video is playing.</h1>
@@ -20,7 +20,7 @@
                   </div>
                 </v-row>
               </v-container>
-            </div>
+            </v-responsive>
             <v-col class="video-controls">
               <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
               <v-row no-gutters align="center">
@@ -663,12 +663,7 @@ export default {
 .video-container {
   margin: 10px;
 
-  // HACK: Jank ass force the player to be 16:9 hack
-  .player-container {
-    padding-top: 56.25%;
-    position: relative;
-  }
-  .no-video, .youtube, .vimeo, .dailymotion {
+  .player {
     position: absolute;
     top: 0;
     left: 0;
