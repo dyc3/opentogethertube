@@ -1060,13 +1060,14 @@ describe('InfoExtractor Add Preview Spec', () => {
         length: 10,
       }),
     ])));
+    process.env.ENABLE_YOUTUBE_SEARCH = true;
 
     InfoExtract.getAddPreview("blah blah").then(result => {
-      expect(InfoExtract.searchYoutube).toBeCalled();
       expect(InfoExtract.searchYoutube).toBeCalledWith("blah blah", {});
       expect(InfoExtract.getManyVideoInfo).toBeCalled();
       expect(result).toHaveLength(2);
 
+      process.env.ENABLE_YOUTUBE_SEARCH = false;
       done();
     });
   });
