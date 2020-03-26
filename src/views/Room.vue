@@ -236,7 +236,7 @@ export default {
     timestampDisplay() {
       const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
-      return position + " / " + duration;
+      return `${position} / ${duration}`;
     },
     isAddPreviewInputUrl() {
       try {
