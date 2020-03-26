@@ -390,7 +390,10 @@ export default {
         }
         else if (res.status === 400) {
           this.hasAddPreviewFailed = true;
-          this.addPreviewLoadFailureText = res.data.error;
+          this.addPreviewLoadFailureText = res.data.error.message;
+          if (res.data.error.name === "FeatureDisabledException" && !this.isAddPreviewInputUrl) {
+            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(this.inputAddPreview)}`, "_blank");
+          }
         }
         else {
           console.warn("Unknown status for add preview response:", res.status);
