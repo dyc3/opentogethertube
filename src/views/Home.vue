@@ -34,12 +34,6 @@
 						Currently, you can watch online videos with your friends from Youtube, Vimeo, Dailymotion and
 						<a href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request">more are on the way</a>.
 					</p>
-					<h1>Social distancing? How about social listening?</h1>
-					<p>
-						Because of the coronavirus pandemic, these are crazy times, and social
-						distancing can be hard. OpenTogetherTube is dedicated to providing a place
-						for friends to hang out and have fun.
-					</p>
 				</v-col>
 			</v-row>
 			<v-row>
