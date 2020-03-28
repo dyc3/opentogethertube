@@ -875,9 +875,10 @@ module.exports = {
 
 	getVideoInfoGoogleDrive(id) {
 		// https://stackoverflow.com/questions/57585838/how-to-get-thumbnail-of-a-video-uploaded-to-google-drive
-		return GoogleDriveApi.get(`/files/${id}?key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)`).then(res => {
+		return GoogleDriveApi.get(`/files/${id}?key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=id,name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)`).then(res => {
 			// description is not provided
 			let video = this.parseGoogleDriveFile(res.data);
+			// video.id = id;
 			storage.updateVideoInfo(video);
 			if (!this.isSupportedMimeType(video.mime)) {
 				throw new UnsupportedMimeTypeException(video.mime);
@@ -900,7 +901,7 @@ module.exports = {
 	},
 
 	getFolderGoogleDrive(id) {
-		return GoogleDriveApi.get(`/files?q="${id}"+in+parents&key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=files(name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis))`).then(res => {
+		return GoogleDriveApi.get(`/files?q="${id}"+in+parents&key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=files(id,name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis))`).then(res => {
 			log.info(`Found ${res.data.files.length} items in folder`);
 			return res.data.files.map(item => this.parseGoogleDriveFile(item));
 		}).catch(err => {
