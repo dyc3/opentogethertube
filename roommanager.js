@@ -67,6 +67,9 @@ class Room {
 			else if (queueItem.service === "dailymotion") {
 				queueItem.id = InfoExtract.getVideoIdDailymotion(video.url);
 			}
+			else if (queueItem.service === "googledrive") {
+				queueItem.id = InfoExtract.getVideoIdGoogledrive(video.url);
+			}
 		}
 		else {
 			queueItem.service = video.service;
