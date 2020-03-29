@@ -1,6 +1,6 @@
 <template>
 	<div class="youtube">
-		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="onReady" @buffering="$emit('buffering')" @cued="$emit('ready')" />
+		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="onReady" @buffering="$emit('buffering')" @cued="$emit('ready')" @error="$emit('error')" />
 	</div>
 </template>
 

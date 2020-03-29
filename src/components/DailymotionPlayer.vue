@@ -52,6 +52,7 @@ export default {
 					pause: () => this.$emit("paused"),
 					waiting: () => this.$emit("buffering"),
 					playback_ready: () => this.$emit("ready"),
+					error: () => this.$emit("error"),
 				},
 			});
 		},

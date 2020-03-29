@@ -9,9 +9,9 @@
         <v-row no-gutters class="video-container">
           <v-col cols="12" :xl="$store.state.fullscreen ? 8 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <v-responsive :aspect-ratio="16/9" class="player-container" :key="currentSource.service">
-              <YoutubePlayer v-if="currentSource.service == 'youtube'" class="player" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
-              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
-              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" />
+              <YoutubePlayer v-if="currentSource.service == 'youtube'" class="player" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
+              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
+              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <v-container fluid fill-height class="player no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -138,6 +138,7 @@
                   <span v-if="user.isYou" class="is-you">You</span>
                   <v-icon class="player-status" v-if="user.status === 'buffering'">fas fa-spinner</v-icon>
                   <v-icon class="player-status" v-else-if="user.status === 'ready'">fas fa-check</v-icon>
+                  <v-icon class="player-status" v-else-if="user.status === 'error'">fas fa-exclamation</v-icon>
                 </v-list-item>
               </v-card>
             </div>
@@ -586,6 +587,9 @@ export default {
     onVideoBuffer() {
       this.$store.commit("PLAYBACK_STATUS", "buffering");
     },
+    onVideoError() {
+      this.$store.commit("PLAYBACK_STATUS", "error");
+    }
   },
   mounted() {
     this.$events.on("playVideo", () => {

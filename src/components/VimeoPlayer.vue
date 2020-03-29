@@ -45,6 +45,7 @@ export default {
 						this.isBuffering = false;
 						this.$emit("ready");
 					});
+					this.player.on("error", () => this.$emit("error"));
 				}, 0);
 			});
 		},
