@@ -41,6 +41,7 @@ export default {
 		this.player.on("pause", () => this.$emit("paused"));
 		this.player.on("play", () => this.$emit("waiting"));
 		this.player.on("stalled", () => this.$emit("buffering"));
+		this.player.on("error", () => this.$emit("error"));
 		this.loadVideoSource();
 		this.player.load();
 	},
