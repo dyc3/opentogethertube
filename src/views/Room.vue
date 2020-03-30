@@ -589,7 +589,7 @@ export default {
     },
     onVideoError() {
       this.$store.commit("PLAYBACK_STATUS", "error");
-    }
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
