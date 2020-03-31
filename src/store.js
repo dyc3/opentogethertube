@@ -85,24 +85,6 @@ export default new Vuex.Store({
 				}
 			}
 			Object.assign(this.state.room, message);
-			// this.state.room.name = message.name;
-			// this.state.room.title = message.title;
-			// this.state.room.description = message.description;
-			// this.state.room.isTemporary = message.isTemporary;
-			// this.state.room.queueMode = message.queueMode;
-			// this.state.room.currentSource = message.currentSource;
-			// this.state.room.queue = message.queue;
-			// if (this.state.room.isPlaying != message.isPlaying) {
-			// 	this.state.room.isPlaying = message.isPlaying;
-			// 	if (message.isPlaying) {
-			// 		Vue.prototype.$events.emit("playVideo");
-			// 	}
-			// 	else {
-			// 		Vue.prototype.$events.emit("pauseVideo");
-			// 	}
-			// }
-			// this.state.room.playbackPosition = message.playbackPosition;
-			// this.state.room.users = message.users;
 
 			this.state.username = _.find(this.state.room.users, { isYou: true }).name;
 
