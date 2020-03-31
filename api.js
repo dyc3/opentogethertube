@@ -94,47 +94,59 @@ module.exports = function(_roommanager, storage, redisClient) {
 	});
 
 	let createRoomLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:RoomCreate" }), windowMs: 60 * 60 * 1000, max: 5, message: "You are creating too many rooms. Please try again later." });
-	router.post("/room/create", process.env.NODE_ENV !== "test" ? createRoomLimiter : (req, res, next) => next(), (req, res) => {
+	router.post("/room/create", process.env.NODE_ENV === "production" ? createRoomLimiter : (req, res, next) => next(), async (req, res) => {
 		if (!req.body.name) {
 			log.info(req.body);
 			res.status(400).json({
 				success: false,
-				error: "Missing argument (name)",
+				error: {
+					message: "Missing argument (name)",
+				},
 			});
 			return;
 		}
 		if (RESERVED_ROOM_NAMES.includes(req.body.name)) {
 			res.status(400).json({
 				success: false,
-				error: "Room name not allowed (reserved)",
+				error: {
+					message: "Room name not allowed (reserved)",
+				},
 			});
 			return;
 		}
 		if (req.body.name.length < 3) {
 			res.status(400).json({
 				success: false,
-				error: "Room name not allowed (too short, must be at least 3 characters)",
+				error: {
+					message: "Room name not allowed (too short, must be at least 3 characters)",
+				},
 			});
 			return;
 		}
 		if (req.body.name.length > 32) {
 			res.status(400).json({
 				success: false,
-				error: "Room name not allowed (too long, must be at most 32 characters)",
+				error: {
+					message: "Room name not allowed (too long, must be at most 32 characters)",
+				},
 			});
 			return;
 		}
 		if (!(/^[A-za-z0-9_-]+$/).exec(req.body.name)) {
 			res.status(400).json({
 				success: false,
-				error: "Room name not allowed (invalid characters)",
+				error: {
+					message: "Room name not allowed (invalid characters)",
+				},
 			});
 			return;
 		}
 		if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
 			res.status(400).json({
 				success: false,
-				error: "Invalid value for room visibility",
+				error: {
+					message: "Invalid value for room visibility",
+				},
 			});
 			return;
 		}
@@ -145,7 +157,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 			req.body.visibility = "public";
 		}
 		try {
-			roommanager.createRoom(req.body.name, req.body.temporary, req.body.visibility);
+			await roommanager.createRoom(req.body);
 			res.json({
 				success: true,
 			});
@@ -154,21 +166,27 @@ module.exports = function(_roommanager, storage, redisClient) {
 			if (e.name === "RoomNameTakenException") {
 				res.status(400).json({
 					success: false,
-					error: "Room with that name already exists",
+					error: {
+						name: e.name,
+						message: "Room with that name already exists",
+					},
 				});
 			}
 			else {
 				res.status(500).json({
 					success: false,
-					error: "An unknown error occured when creating this room. Try again later.",
+					error: {
+						name: "Unknown",
+						message: "An unknown error occured when creating this room. Try again later.",
+					},
 				});
 			}
 		}
 	});
 
-	router.post("/room/generate", (req, res) => {
+	router.post("/room/generate", async (req, res) => {
 		let roomName = uuid();
-		roommanager.createRoom(roomName, true);
+		await roommanager.createRoom(roomName, true);
 		res.json({
 			success: true,
 			room: roomName,

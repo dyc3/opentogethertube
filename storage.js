@@ -39,6 +39,9 @@ module.exports = {
 			return false;
 		});
 	},
+	async isRoomNameTaken(roomName) {
+		return await Room.findOne({ where: { name: roomName } }).then(room => room ? true : false).catch(() => false);
+	},
 	updateRoom(room) {
 		return Room.findOne({
 			where: { name: room.name },
