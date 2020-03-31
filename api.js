@@ -1,4 +1,6 @@
 const express = require('express');
+const rateLimit = require("express-rate-limit");
+const RateLimitStore = require('rate-limit-redis');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
 const InfoExtract = require("./infoextract");
@@ -25,7 +27,7 @@ const VALID_ROOM_QUEUE_MODE = [
 ];
 
 // eslint-disable-next-line no-unused-vars
-module.exports = function(_roommanager, storage) {
+module.exports = function(_roommanager, storage, redisClient) {
 	const roommanager = _roommanager;
 	const router = express.Router();
 
@@ -91,7 +93,8 @@ module.exports = function(_roommanager, storage) {
 		});
 	});
 
-	router.post("/room/create", (req, res) => {
+	let createRoomLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:RoomCreate" }), windowMs: 60 * 60 * 1000, max: 5, message: "You are creating too many rooms. Please try again later." });
+	router.post("/room/create", process.env.NODE_ENV !== "test" ? createRoomLimiter : (req, res, next) => next(), (req, res) => {
 		if (!req.body.name) {
 			log.info(req.body);
 			res.status(400).json({
