@@ -49,7 +49,16 @@ module.exports = function(_roommanager, storage) {
 
 	router.get("/room/:name", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
-			room = _.cloneDeep(room);
+			room = _.cloneDeep(_.pick(room, [
+				"name",
+				"title",
+				"description",
+				"isTemporary",
+				"visibility",
+				"queueMode",
+				"queue",
+				"clients",
+			]));
 			for (let client of room.clients) {
 				client.name = client.session.username;
 				delete client.session;

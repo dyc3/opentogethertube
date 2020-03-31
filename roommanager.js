@@ -27,6 +27,8 @@ class Room {
 	 * DO NOT CREATE NEW ROOMS WITH THIS CONSTRUCTOR. Create/get Rooms using the RoomManager.
 	 */
 	constructor(args=undefined) {
+		this._dirtyProps = [];
+
 		this.name = "";
 		this.title = "";
 		this.description = "";
@@ -46,6 +48,87 @@ class Room {
 		this.log = log.child({
 			roomName: this.name,
 		});
+	}
+
+	get name() {
+		return this._name;
+	}
+
+	set name(value) {
+		this._name = value;
+		this._dirtyProps.push("name");
+	}
+
+	get title() {
+		return this._title;
+	}
+
+	set title(value) {
+		this._title = value;
+		this._dirtyProps.push("title");
+	}
+
+	get description() {
+		return this._description;
+	}
+
+	set description(value) {
+		this._description = value;
+		this._dirtyProps.push("description");
+	}
+
+	get isTemporary() {
+		return this._isTemporary;
+	}
+
+	set isTemporary(value) {
+		this._isTemporary = value;
+		this._dirtyProps.push("isTemporary");
+	}
+
+	get visibility() {
+		return this._visibility;
+	}
+
+	set visibility(value) {
+		this._visibility = value;
+		this._dirtyProps.push("visibility");
+	}
+
+	get queueMode() {
+		return this._queueMode;
+	}
+
+	set queueMode(value) {
+		this._queueMode = value;
+		this._dirtyProps.push("queueMode");
+	}
+
+	get currentSource() {
+		return this._currentSource;
+	}
+
+	set currentSource(value) {
+		this._currentSource = value;
+		this._dirtyProps.push("currentSource");
+	}
+
+	get isPlaying() {
+		return this._isPlaying;
+	}
+
+	set isPlaying(value) {
+		this._isPlaying = value;
+		this._dirtyProps.push("isPlaying");
+	}
+
+	get playbackPosition() {
+		return this._playbackPosition;
+	}
+
+	set playbackPosition(value) {
+		this._playbackPosition = value;
+		this._dirtyProps.push("playbackPosition");
 	}
 
 	/**
@@ -82,6 +165,7 @@ class Room {
 				queueItem.title = queueItem.id;
 			}).then(() => {
 				this.queue.push(queueItem);
+				this._dirtyProps.push("queue");
 				this.update();
 				this.sync();
 
@@ -133,6 +217,7 @@ class Room {
 
 		this.queue[matchIdx].votes.push({ userSessionId: session.id });
 		this.queue[matchIdx]._lastVotesChanged = moment();
+		this._dirtyProps.push("queue");
 		return true;
 	}
 
@@ -155,6 +240,7 @@ class Room {
 
 		this.queue[matchIdx].votes = _.reject(this.queue[matchIdx].votes, { userSessionId: session.id });
 		this.queue[matchIdx]._lastVotesChanged = moment();
+		this._dirtyProps.push("queue");
 		return true;
 	}
 
@@ -165,6 +251,7 @@ class Room {
 		}
 		// remove the item from the queue
 		let removed = this.queue.splice(matchIdx, 1)[0];
+		this._dirtyProps.push("queue");
 		if (session) {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
 		}
@@ -188,12 +275,14 @@ class Room {
 				this.log.debug("Remove inactive client:", i, this.clients[i].session.username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
 				this.clients.splice(i--, 1);
+				this._dirtyProps.push("users");
 				continue;
 			}
 		}
 
 		// sort queue according to queue mode
 		if (this.queueMode === "vote") {
+			let _oldOrder = _.clone(this.queue);
 			this.queue = _.orderBy(this.queue, [
 				video => video.votes ? video.votes.length : 0,
 				video => video._lastVotesChanged,
@@ -201,6 +290,9 @@ class Room {
 				"desc",
 				"asc",
 			]);
+			if (this.queue.length > 0 && !this.queue.every((value, index) => _.isEqual(value, _oldOrder[index]))) {
+				this._dirtyProps.push("queue");
+			}
 		}
 
 		// HACK: sometimes, if we fuck up getting a video, currentSource may become undefined.
@@ -211,9 +303,11 @@ class Room {
 
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
 			this.currentSource = this.queue.shift();
+			this._dirtyProps.push("queue");
 		}
 		else if (!_.isEmpty(this.currentSource) && this.playbackPosition > this.currentSource.length) {
 			this.currentSource = this.queue.length > 0 ? this.queue.shift() : {};
+			this._dirtyProps.push("queue");
 			this.playbackPosition = 0;
 		}
 		if (_.isEmpty(this.currentSource) && this.queue.length == 0 && this.isPlaying) {
@@ -231,6 +325,8 @@ class Room {
 	 * Synchronize all clients in this room by sending a sync message.
 	 */
 	sync() {
+		this._dirtyProps = _.uniq(this._dirtyProps);
+
 		let syncMsg = {
 			action: "sync",
 			name: this.name,
@@ -248,6 +344,10 @@ class Room {
 		for (const client of this.clients) {
 			// make sure the socket is still open
 			if (client.socket.readyState != 1) {
+				continue;
+			}
+
+			if (!client.needsFullSync && this._dirtyProps.length == 0) {
 				continue;
 			}
 
@@ -269,13 +369,21 @@ class Room {
 				});
 			}
 
+			let dirtySyncMsg = _.pick(syncMsg, _.concat(["action"], this._dirtyProps));
+			if (client.needsFullSync) {
+				this.log.debug("sending full sync message to client");
+				dirtySyncMsg = syncMsg;
+				client.needsFullSync = false;
+			}
+
 			try {
-				client.socket.send(JSON.stringify(syncMsg));
+				client.socket.send(JSON.stringify(dirtySyncMsg));
 			}
 			catch (error) {
 				// ignore errors
 			}
 		}
+		this._dirtyProps = [];
 	}
 
 	/**
@@ -367,8 +475,10 @@ class Room {
 			session: req.session,
 			socket: ws,
 			status: "joined",
+			needsFullSync: true,
 		};
 		this.clients.push(client);
+		this._dirtyProps.push("users");
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
@@ -635,6 +745,7 @@ module.exports = {
 				let rooms = JSON.parse(value);
 				resolve(rooms.map(room => {
 					delete room.clients;
+					delete room._dirtyProps;
 					room.keepAlivePing = moment();
 					return new Room(room);
 				}));
@@ -648,6 +759,8 @@ module.exports = {
 	saveAllLoadedRooms() {
 		let rooms = _.cloneDeep(this.rooms).map(room => {
 			delete room.clients;
+			delete room._dirtyProps;
+			delete room.log;
 			return room;
 		});
 		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
