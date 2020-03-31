@@ -114,6 +114,13 @@ module.exports = function(_roommanager, storage) {
 			});
 			return;
 		}
+		if (req.body.name.length > 32) {
+			res.status(400).json({
+				success: false,
+				error: "Room name not allowed (too long, must be at most 32 characters)",
+			});
+			return;
+		}
 		if (!(/^[A-za-z0-9_-]+$/).exec(req.body.name)) {
 			res.status(400).json({
 				success: false,
