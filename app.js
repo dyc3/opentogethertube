@@ -69,7 +69,7 @@ app.use((req, res, next) => {
 const storage = require("./storage");
 const roommanager = require("./roommanager");
 const infoextract = require("./infoextract");
-const api = require("./api")(roommanager, storage);
+const api = require("./api")(roommanager, storage, redisClient);
 roommanager.start(server, sessions, redisClient);
 infoextract.init(redisClient);
 

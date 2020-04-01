@@ -708,22 +708,40 @@ module.exports = {
 	 * @param {boolean} isTemporary Whether or not the new room is temporary. Temporary rooms do not get stored in the database.
 	 * @param {string} visibility Indicates the room's visibility. Only public rooms are shown on the rooms list.
 	 */
-	createRoom(name, isTemporary=false, visibility="public") {
-		if (_.find(this.rooms, room => room.name === name)) {
-			throw new RoomNameTakenException(name);
+	async createRoom(options, isTemporary=false, visibility="public") {
+		if (typeof options === "string") {
+			let name = options;
+			options = {
+				name,
+				isTemporary,
+				visibility,
+			};
+		}
+		else {
+			options = _.defaults(options, {
+				isTemporary: false,
+				visibility: "public",
+			});
+			if (options.temporary !== undefined) {
+				options.isTemporary = options.temporary;
+				delete options.temporary;
+			}
 		}
 
-		let newRoom = new Room({
-			name,
-			isTemporary,
-			visibility,
-		});
-		if (isTemporary) {
+		if (_.find(this.rooms, room => room.name === options.name)) {
+			throw new RoomNameTakenException(options.name);
+		}
+		if (await storage.isRoomNameTaken(options.name)) {
+			throw new RoomNameTakenException(options.name);
+		}
+
+		let newRoom = new Room(options);
+		if (options.isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
 			newRoom.keepAlivePing = new Date();
 		}
 		else {
-			storage.saveRoom(newRoom);
+			await storage.saveRoom(newRoom);
 		}
 		this.rooms.push(newRoom);
 	},
@@ -817,7 +835,7 @@ module.exports = {
 			}
 		}
 
-		const roomIdx = _.findIndex(this.rooms, r => r.name === room.name);
+		const roomIdx = _.findIndex(this.rooms, r => r.name === (typeof room === "string" ? room : room.name));
 		this.rooms.splice(roomIdx, 1);
 	},
 

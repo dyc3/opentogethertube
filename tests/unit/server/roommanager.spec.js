@@ -5,6 +5,7 @@ const InfoExtract = require("../../../infoextract");
 const storage = require("../../../storage");
 const moment = require("moment");
 const Video = require("../../../common/video.js");
+const { Room } = require("../../../models");
 
 const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(configPath)) {
@@ -13,9 +14,10 @@ if (!fs.existsSync(configPath)) {
 require('dotenv').config({ path: configPath });
 
 describe('Room manager: Room tests', () => {
-  beforeEach(done => {
+  beforeEach(async done => {
     roommanager.rooms = [];
-    roommanager.createRoom("test", true);
+    await Room.destroy({ where: {} });
+    await roommanager.createRoom("test", true);
     roommanager.getLoadedRoom("test").then(room => {
       room.title = "Test Room";
       room.description = "This is a test room.";
@@ -23,11 +25,9 @@ describe('Room manager: Room tests', () => {
     });
   });
 
-  afterEach(done => {
-    roommanager.getLoadedRoom("test").then(room => {
-      roommanager.unloadRoom(room);
-      done();
-    });
+  afterEach(async () => {
+    await roommanager.unloadRoom("test");
+    await Room.destroy({ where: {} });
   });
 
   it('should dequeue the next video in the queue, when there is no video playing', done => {
@@ -140,17 +140,18 @@ describe('Room manager: Room tests', () => {
 });
 
 describe('Room manager: Manager tests', () => {
-  beforeEach(done => {
+  beforeEach(async done => {
+    await Room.destroy({ where: {} });
     roommanager.rooms = [];
     done();
   });
 
-  afterEach(done => {
-    done();
+  afterEach(async () => {
+    await Room.destroy({ where: {} });
   });
 
-  it('should create a temporary room with the name "tmp"', done => {
-    roommanager.createRoom('tmp', true);
+  it('should create a temporary room with the name "tmp"', async done => {
+    await roommanager.createRoom('tmp', true);
     roommanager.getLoadedRoom('tmp').then(room => {
       expect(room).toBeDefined();
       expect(room.name).toBeDefined();
@@ -161,9 +162,9 @@ describe('Room manager: Manager tests', () => {
     });
   });
 
-  it('should create a permanent room with the name "perm"', done => {
+  it('should create a permanent room with the name "perm"', async done => {
     storage.saveRoom = jest.fn();
-    roommanager.createRoom('perm', false);
+    await roommanager.createRoom('perm', false);
     roommanager.getLoadedRoom('perm').then(room => {
       expect(room).toBeDefined();
       expect(room.name).toBeDefined();
@@ -202,11 +203,11 @@ describe('Room manager: Manager tests', () => {
     }).catch(err => done.fail(err));
   });
 
-  it('should unload a room with no active clients after 10 seconds', done => {
+  it('should unload a room with no active clients after 240 seconds', done => {
     storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
     roommanager.loadRoom("test").then((room) => {
       expect(roommanager.rooms.length).toEqual(1);
-      room.keepAlivePing = moment().subtract(10, 'seconds');
+      room.keepAlivePing = moment().subtract(241, 'seconds');
       roommanager.unloadIfEmpty(room);
       expect(roommanager.rooms.length).toEqual(0);
     });
@@ -248,11 +249,11 @@ describe('Room manager: Manager tests', () => {
     }
   });
 
-  it('should throw RoomNameTakenException if a room with a given name already exists', () => {
-    roommanager.createRoom("test", true);
+  it('should throw RoomNameTakenException if a room with a given name already exists', async () => {
+    await roommanager.createRoom("test", true);
     expect(roommanager.rooms).toHaveLength(1);
     try {
-      roommanager.createRoom("test", true);
+      await roommanager.createRoom("test", true);
     }
     catch (err) {
       expect(err.name).toEqual("RoomNameTakenException");
@@ -262,13 +263,14 @@ describe('Room manager: Manager tests', () => {
 });
 
 describe('Room manager: Undoable Events', () => {
-  beforeEach(done => {
+  beforeEach(async done => {
     roommanager.rooms = [];
+    await Room.destroy({ where: {} });
     done();
   });
 
-  it('should revert seek event', () => {
-    roommanager.createRoom("test", true);
+  it('should revert seek event', async () => {
+    await roommanager.createRoom("test", true);
     let testRoom = roommanager.rooms[0];
     testRoom.currentSource = new Video({
       service: "fakeservice",
@@ -289,8 +291,8 @@ describe('Room manager: Undoable Events', () => {
     expect(testRoom.playbackPosition).toEqual(10);
   });
 
-  it('should revert skip event with no videos in the queue and no video playing', () => {
-    roommanager.createRoom("test", true);
+  it('should revert skip event with no videos in the queue and no video playing', async () => {
+    await roommanager.createRoom("test", true);
     let testRoom = roommanager.rooms[0];
 
     testRoom.undoEvent({
@@ -314,8 +316,8 @@ describe('Room manager: Undoable Events', () => {
     expect(testRoom.playbackPosition).toEqual(0);
   });
 
-  it('should revert skip event with no videos in the queue and with a video playing', () => {
-    roommanager.createRoom("test", true);
+  it('should revert skip event with no videos in the queue and with a video playing', async () => {
+    await roommanager.createRoom("test", true);
     let testRoom = roommanager.rooms[0];
     testRoom.currentSource = new Video({
       service: "fakeservice",
@@ -352,8 +354,8 @@ describe('Room manager: Undoable Events', () => {
     expect(testRoom.playbackPosition).toEqual(0);
   });
 
-  it('should revert skip event with one video in the queue and with a video playing', () => {
-    roommanager.createRoom("test", true);
+  it('should revert skip event with one video in the queue and with a video playing', async () => {
+    await roommanager.createRoom("test", true);
     let testRoom = roommanager.rooms[0];
     testRoom.currentSource = new Video({
       service: "fakeservice",
@@ -399,8 +401,8 @@ describe('Room manager: Undoable Events', () => {
     expect(testRoom.playbackPosition).toEqual(0);
   });
 
-  it('should revert removeFromQueue event with videos in the queue and with a video playing', () => {
-    roommanager.createRoom("test", true);
+  it('should revert removeFromQueue event with videos in the queue and with a video playing', async () => {
+    await roommanager.createRoom("test", true);
     let testRoom = roommanager.rooms[0];
     testRoom.currentSource = new Video({
       service: "fakeservice",

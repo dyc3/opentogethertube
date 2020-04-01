@@ -23,9 +23,9 @@ describe("Room API", () => {
 				expect(resp.body).toHaveLength(0);
 			});
 
-		roommanager.createRoom("test1", true);
-		roommanager.createRoom("test2", true);
-		roommanager.createRoom("test3", true);
+		await roommanager.createRoom("test1", true);
+		await roommanager.createRoom("test2", true);
+		await roommanager.createRoom("test3", true);
 		roommanager.rooms[0].clients = [{}];
 
 		await request(app)
@@ -57,13 +57,13 @@ describe("Room API", () => {
 				});
 			});
 
-		roommanager.unloadRoom("test1", true);
-		roommanager.unloadRoom("test2", true);
-		roommanager.unloadRoom("test3", true);
+		roommanager.unloadRoom("test1");
+		roommanager.unloadRoom("test2");
+		roommanager.unloadRoom("test3");
 
-		roommanager.createRoom("test1", true, "public");
-		roommanager.createRoom("test2", true, "unlisted");
-		roommanager.createRoom("test3", true, "private");
+		await roommanager.createRoom("test1", true, "public");
+		await roommanager.createRoom("test2", true, "unlisted");
+		await roommanager.createRoom("test3", true, "private");
 
 		await request(app)
 			.get("/api/room/list")
@@ -80,15 +80,15 @@ describe("Room API", () => {
 				});
 			});
 
-		roommanager.unloadRoom("test1", true);
-		roommanager.unloadRoom("test2", true);
-		roommanager.unloadRoom("test3", true);
+		roommanager.unloadRoom("test1");
+		roommanager.unloadRoom("test2");
+		roommanager.unloadRoom("test3");
 
 		done();
 	});
 
 	it("GET /room/:name", async done => {
-		roommanager.createRoom("test1", true);
+		await roommanager.createRoom("test1", true);
 
 		await request(app)
 			.get("/api/room/test1")
@@ -102,9 +102,9 @@ describe("Room API", () => {
 				expect(resp.body.visibility).toBe("public");
 			});
 
-		roommanager.unloadRoom("test1", true);
+		roommanager.unloadRoom("test1");
 
-		roommanager.createRoom("test1", true, "unlisted");
+		await roommanager.createRoom("test1", true, "unlisted");
 
 		await request(app)
 			.get("/api/room/test1")
@@ -179,7 +179,7 @@ describe("Room API", () => {
 			.expect(400)
 			.then(resp => {
 				expect(resp.body.success).toBeFalsy();
-				expect(resp.body.error).toContain("Missing argument");
+				expect(resp.body.error.message).toContain("Missing argument");
 			});
 
 		await request(app)
@@ -189,7 +189,7 @@ describe("Room API", () => {
 			.expect(400)
 			.then(resp => {
 				expect(resp.body.success).toBeFalsy();
-				expect(resp.body.error).toContain("not allowed");
+				expect(resp.body.error.message).toContain("not allowed");
 			});
 
 		await request(app)
@@ -199,7 +199,7 @@ describe("Room API", () => {
 			.expect(400)
 			.then(resp => {
 				expect(resp.body.success).toBeFalsy();
-				expect(resp.body.error).toContain("not allowed");
+				expect(resp.body.error.message).toContain("not allowed");
 			});
 
 		await request(app)
@@ -209,7 +209,7 @@ describe("Room API", () => {
 			.expect(400)
 			.then(resp => {
 				expect(resp.body.success).toBeFalsy();
-				expect(resp.body.error).toContain("not allowed");
+				expect(resp.body.error.message).toContain("not allowed");
 			});
 
 		await request(app)
@@ -219,7 +219,7 @@ describe("Room API", () => {
 			.expect(400)
 			.then(resp => {
 				expect(resp.body.success).toBeFalsy();
-				expect(resp.body.error).toContain("not allowed");
+				expect(resp.body.error.message).toContain("not allowed");
 			});
 
 		await request(app)
@@ -229,7 +229,7 @@ describe("Room API", () => {
 			.expect(400)
 			.then(resp => {
 				expect(resp.body.success).toBeFalsy();
-				expect(resp.body.error).toContain("not allowed");
+				expect(resp.body.error.message).toContain("not allowed");
 			});
 
 		done();
@@ -248,7 +248,7 @@ describe("Room API", () => {
 	});
 
 	it("PATCH /room/:name", async done => {
-		roommanager.createRoom("test1", true);
+		await roommanager.createRoom("test1", true);
 
 		await request(app)
 			.patch("/api/room/test1")
@@ -259,9 +259,9 @@ describe("Room API", () => {
 				expect(resp.body.success).toBeTruthy();
 			});
 
-		roommanager.unloadRoom("test1", true);
+		roommanager.unloadRoom("test1");
 
-		roommanager.createRoom("test1", true);
+		await roommanager.createRoom("test1", true);
 
 		await request(app)
 			.patch("/api/room/test1")
@@ -280,9 +280,9 @@ describe("Room API", () => {
 				expect(resp.body.success).toBeFalsy();
 			});
 
-		roommanager.unloadRoom("test1", true);
+		roommanager.unloadRoom("test1");
 
-		roommanager.createRoom("test1", true);
+		await roommanager.createRoom("test1", true);
 
 		await request(app)
 			.patch("/api/room/test1")
@@ -301,7 +301,7 @@ describe("Room API", () => {
 				expect(resp.body.success).toBeFalsy();
 			});
 
-		roommanager.unloadRoom("test1", true);
+		roommanager.unloadRoom("test1");
 
 		await request(app)
 			.patch("/api/room/test1")
@@ -319,7 +319,7 @@ describe("Room API", () => {
 	});
 
 	it("DELETE /room/:name", async done => {
-		roommanager.createRoom("test1", true);
+		await roommanager.createRoom("test1", true);
 
 		await request(app)
 			.delete("/api/room/test1")
