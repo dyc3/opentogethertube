@@ -16,26 +16,46 @@
         <v-btn text to="/rooms">Browse</v-btn>
         <v-btn text to="/faq">FAQ</v-btn>
       </v-toolbar-items>
+      <v-spacer />
+      <v-toolbar-items>
+        <v-btn text @click="showCreateRoomForm = true">
+          <v-icon>fas fa-plus-square</v-icon>&nbsp;Create Room
+        </v-btn>
+      </v-toolbar-items>
     </v-app-bar>
     <v-content>
       <router-view/>
     </v-content>
+    <v-container>
+      <v-dialog v-model="showCreateRoomForm" persistent max-width="600">
+        <CreateRoomForm @roomCreated="onRoomCreated" @cancel="showCreateRoomForm = false" />
+      </v-dialog>
+    </v-container>
   </v-app>
 </template>
 
 <script>
+import CreateRoomForm from "@/components/CreateRoomForm.vue";
+
 export default {
   name: "app",
+  components: {
+    CreateRoomForm,
+  },
   data() {
     return {
       announcement: null,
       showAnnouncement: false,
+      showCreateRoomForm: false,
     };
   },
   methods: {
     onAnnouncement(text) {
       this.showAnnouncement = true;
       this.announcement = text;
+    },
+    onRoomCreated(roomName) {
+      this.$router.push(`/room/${roomName}`);
     },
   },
   created() {
