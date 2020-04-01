@@ -49,6 +49,10 @@ export default {
 					question: 'Why does it say "Out of quota" when searching for youtube videos?',
 					answer: "Youtube searches are expensive to perform. Because of this, searches are rate limted. If this happens, just do the search on youtube and copy the link.",
 				},
+				{
+					question: "How do permanent rooms work?",
+					answer: "Right now, permanent rooms just serve to provide custom room URLs, and anybody can access all permanent rooms. When user accounts are implemented, people will be able to claim ownership of permanent rooms. Check the progress of user accounts here: <a href=\"https://github.com/dyc3/opentogethertube/issues/50\">dyc3/opentogethertube#50</a> Then rooms will be able to be set visibility as private, and only allow invited users into the room. This will require all invited users to have accounts, but it will prevent random or unwanted people from entering private rooms.",
+				},
 			],
 		};
 	},
