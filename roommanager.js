@@ -413,20 +413,26 @@ class Room {
 	undoEvent(event) {
 		if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
 			this.playbackPosition = event.parameters.previousPosition;
+			this._dirtyProps.push("playbackPosition");
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.SKIP) {
 			if (this.currentSource) {
 				this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
+				this._dirtyProps.push("queue");
 			}
 			this.currentSource = event.parameters.video;
 			this.playbackPosition = 0;
+			this._dirtyProps.push("currentSource");
+			this._dirtyProps.push("playbackPosition");
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.ADD_TO_QUEUE) {
 			if (this.queue.length > 0) {
 				this.removeFromQueue(event.parameters.video);
+				this._dirtyProps.push("queue");
 			}
 			else {
 				this.currentSource = {};
+				this._dirtyProps.push("currentSource");
 			}
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE) {
@@ -434,6 +440,7 @@ class Room {
 			newQueue.push(event.parameters.video);
 			newQueue.push(...this.queue);
 			this.queue = newQueue;
+			this._dirtyProps.push("queue");
 		}
 		else {
 			this.log.error(`Can't undo room event with type: ${event.eventType}`);
@@ -552,6 +559,7 @@ class Room {
 
 			let video = this.queue.splice(msg.currentIdx, 1)[0];
 			this.queue.splice(msg.targetIdx, 0, video);
+			this._dirtyProps.push("queue");
 			this.sync();
 		}
 		else if (msg.action === "undo") {
