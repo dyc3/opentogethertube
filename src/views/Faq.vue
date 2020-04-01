@@ -39,7 +39,7 @@ export default {
 				},
 				{
 					question: "I want a permanent room with a custom URL.",
-					answer: "Currently, there isn't a way to make permanent rooms through the website. <a href='https://twitter.com/@rollthedyc3'>DM me on twitter</a> and I'll make you one.",
+					answer: "Create one by clicking the button in the top right corner.",
 				},
 				{
 					question: "Why do videos sometimes have no title or thumbnail, but they can still be played?",
