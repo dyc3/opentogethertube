@@ -119,49 +119,19 @@
 				</v-container>
 			</v-footer>
 		</v-container>
-		<v-overlay :value="isLoading">
-			<v-container fill-height>
-				<v-row align="center" justify="center">
-					<v-col cols="12" sm="4">
-						<v-progress-circular indeterminate />
-						<v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">Cancel</v-btn>
-					</v-col>
-				</v-row>
-			</v-container>
-		</v-overlay>
 	</div>
 </template>
 
 <script>
-import { API } from "@/common-http.js";
 
 export default {
 	name: 'home',
 	data() {
-		return {
-			isLoading: false,
-		};
+		return {};
 	},
 	computed: {
 		cardHeight() {
 			return 180;
-		},
-	},
-	methods: {
-		createRoom() {
-			this.isLoading = true;
-			this.cancelledCreation = false;
-			API.post("/room/generate").then(res => {
-				if (!this.cancelledCreation) {
-					this.isLoading = false;
-					this.cancelledCreation = false;
-					this.$router.push(`/room/${res.data.room}`);
-				}
-			});
-		},
-		cancelRoom() {
-			this.cancelledCreation = true;
-			this.isLoading = false;
 		},
 	},
 };

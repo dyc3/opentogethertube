@@ -24,9 +24,33 @@
       </v-toolbar-items>
       <v-spacer />
       <v-toolbar-items>
-        <v-btn text @click="showCreateRoomForm = true">
-          <v-icon>fas fa-plus-square</v-icon>&nbsp;Create Room
-        </v-btn>
+        <v-menu offset-y>
+          <template v-slot:activator="{ on }">
+            <v-btn text v-on="on">
+              <v-icon>fas fa-plus-square</v-icon>&nbsp;Create Room
+            </v-btn>
+          </template>
+          <v-list two-line max-width="400">
+            <v-list-item @click="createTempRoom">
+              <v-list-item-icon>
+                <v-icon>fas fa-plus-square</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Create Temporary Room</v-list-item-title>
+                <v-list-item-subtitle class="text-muted">Start watching videos with your friends ASAP.</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item @click="showCreateRoomForm = true">
+              <v-list-item-icon>
+                <v-icon>fas fa-plus-square</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Create Permanent Room</v-list-item-title>
+                <v-list-item-subtitle class="text-muted">Perfect for frequent visitors.</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </v-toolbar-items>
     </v-app-bar>
     <v-content>
@@ -37,10 +61,21 @@
         <CreateRoomForm @roomCreated="onRoomCreated" @cancel="showCreateRoomForm = false" />
       </v-dialog>
     </v-container>
+    <v-overlay :value="isLoadingTempRoom">
+      <v-container fill-height>
+        <v-row align="center" justify="center">
+          <v-col cols="12" sm="4">
+            <v-progress-circular indeterminate />
+            <v-btn elevation="12" x-large @click="cancelTempRoom" style="margin-top: 24px">Cancel</v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-overlay>
   </v-app>
 </template>
 
 <script>
+import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 
 export default {
@@ -54,6 +89,8 @@ export default {
       showAnnouncement: false,
       showCreateRoomForm: false,
       shouldAdvertisePermRoom: false,
+      isLoadingTempRoom: false,
+      cancelledTempRoomCreation: false,
     };
   },
   methods: {
@@ -63,6 +100,21 @@ export default {
     },
     onRoomCreated(roomName) {
       this.$router.push(`/room/${roomName}`);
+    },
+    createTempRoom() {
+      this.isLoadingTempRoom = true;
+      this.cancelledTempRoomCreation = false;
+      API.post("/room/generate").then(res => {
+        if (!this.cancelledTempRoomCreation) {
+          this.isLoadingTempRoom = false;
+          this.cancelledTempRoomCreation = false;
+          this.onRoomCreated(res.data.room);
+        }
+      });
+    },
+    cancelTempRoom() {
+      this.cancelledTempRoomCreation = true;
+      this.isLoadingTempRoom = false;
     },
   },
   created() {
@@ -117,5 +169,9 @@ export default {
   .announcement {
     margin: 10px;
   }
+}
+
+.text-muted {
+  opacity: 0.7;
 }
 </style>
