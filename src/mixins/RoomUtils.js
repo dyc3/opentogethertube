@@ -14,12 +14,29 @@ export default {
 		createTempRoom() {
 			this.isLoadingCreateRoom = true;
 			this.cancelledRoomCreation = false;
-			API.post("/room/generate").then(res => {
+			return API.post("/room/generate").then(res => {
 				if (!this.cancelledRoomCreation) {
 					this.isLoadingCreateRoom = false;
 					this.cancelledRoomCreation = false;
 					this.$events.fire("onRoomCreated", res.data.room);
 				}
+			});
+		},
+		createPermRoom(options) {
+			this.isLoadingCreateRoom = true;
+			this.cancelledRoomCreation = false;
+			return API.post(`/room/create`, {
+				...options,
+				temporary: false,
+			}).then(() => {
+				if (!this.cancelledRoomCreation) {
+					this.isLoadingCreateRoom = false;
+					this.cancelledRoomCreation = false;
+					this.$events.fire("onRoomCreated", options.name);
+				}
+			}).catch(err => {
+				this.isLoadingCreateRoom = false;
+				throw err;
 			});
 		},
 		cancelRoom() {

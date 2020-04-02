@@ -3,11 +3,11 @@
 		<v-form ref="form" @submit="submit" v-model="isValid">
 			<v-card-title>Create a Permanent Room</v-card-title>
 			<v-card-text>
-				<v-text-field label="Name" hint="Used in the room URL. Can't be changed later." v-model="name" required counter="32" :rules="nameRules" @keydown="() => isRoomNameTaken = false" />
-				<v-text-field label="Title" hint="Optional" v-model="title" />
-				<v-text-field label="Description" hint="Optional" v-model="description" />
-				<v-select label="Visibility" hint="Controls whether or not the room shows up in the room list." :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="visibility" />
-				<v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="queueMode" />
+				<v-text-field label="Name" hint="Used in the room URL. Can't be changed later." v-model="options.name" required counter="32" :rules="rules.name" @keydown="() => isRoomNameTaken = false" />
+				<v-text-field label="Title" hint="Optional" v-model="options.title" />
+				<v-text-field label="Description" hint="Optional" v-model="options.description" />
+				<v-select label="Visibility" hint="Controls whether or not the room shows up in the room list." :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="options.visibility" :rules="rules.visibility" />
+				<v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="options.queueMode" :rules="rules.queueMode" />
 				<div :key="error">{{ error }}</div>
 			</v-card-text>
 			<v-card-actions>
@@ -20,32 +20,37 @@
 </template>
 
 <script>
-import { API } from "@/common-http.js";
+import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 
 export default {
 	name: "CreateRoomForm",
+	mixins: [RoomUtilsMixin],
 	data() {
 		return {
-			name: "",
-			nameRules: [
-				v => !!v || "Name is required",
-				v => (v && v.length >= 3 && v.length <= 32) || "Name must be between 3 and 32 characters",
-				v => (v && !this.isRoomNameTaken) || "Name is already taken",
-			],
-			title: "",
-			description: "",
-			visibility: "public",
-			// eslint-disable-next-line array-bracket-newline
-			visibilityRules: [
+			options: {
+				name: "",
+				title: "",
+				description: "",
+				visibility: "public",
+				queueMode: "manual",
+			},
+			rules: {
+				name: [
+					v => !!v || "Name is required",
+					v => (v && v.length >= 3 && v.length <= 32) || "Name must be between 3 and 32 characters",
+					v => (v && !this.isRoomNameTaken) || "Name is already taken",
+				],
 				// eslint-disable-next-line array-bracket-newline
-				v => (v && ["public", "unlisted"].includes(v)) || "Invalid Visibility",
-			],
-			queueMode: "manual",
-			// eslint-disable-next-line array-bracket-newline
-			queueModeRules: [
+				visibility: [
+					// eslint-disable-next-line array-bracket-newline
+					v => (v && ["public", "unlisted"].includes(v)) || "Invalid Visibility",
+				],
 				// eslint-disable-next-line array-bracket-newline
-				v => (v && ["manual", "vote"].includes(v)) || "Invalid Queue Mode",
-			],
+				queueMode: [
+					// eslint-disable-next-line array-bracket-newline
+					v => (v && ["manual", "vote"].includes(v)) || "Invalid Queue Mode",
+				],
+			},
 
 			isValid: false,
 			isSubmitting: false,
@@ -60,20 +65,9 @@ export default {
 				return;
 			}
 
-			this.isSubmitting = true;
-			API.post(`/room/create`, {
-				name: this.name,
-				temporary: false,
-				title: this.title,
-				description: this.description,
-				visibility: this.visibility,
-				queueMode: this.queueMode,
-			}).then(() => {
-				this.isSubmitting = false;
+			this.createPermRoom(this.options).then(() => {
 				this.$emit("roomCreated", this.name);
-				this.$events.fire("onRoomCreated", this.name);
 			}).catch(err => {
-				this.isSubmitting = false;
 				if (err.response) {
 					if (err.response.status === 400) {
 						if (err.response.data.error.name === "RoomNameTakenException") {
