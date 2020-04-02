@@ -66,7 +66,14 @@ export default {
 			}
 
 			this.createPermRoom(this.options).then(() => {
-				this.$emit("roomCreated", this.name);
+				this.$emit("roomCreated", this.options.name);
+				this.options = {
+					name: "",
+					title: "",
+					description: "",
+					visibility: "public",
+					queueMode: "manual",
+				};
 			}).catch(err => {
 				if (err.response) {
 					if (err.response.status === 400) {

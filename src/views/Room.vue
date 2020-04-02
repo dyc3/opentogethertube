@@ -305,6 +305,13 @@ export default {
       this.snackbarActive = true;
     });
 
+    this.$events.on("onRoomCreated", () => {
+      if (this.$store.state.socket.isConnected) {
+        this.$disconnect();
+      }
+      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+    });
+
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
 
