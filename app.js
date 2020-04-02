@@ -112,6 +112,7 @@ if (fs.existsSync("./dist")) {
 	app.get("/faq", serveBuiltFiles);
 	app.get("/rooms", serveBuiltFiles);
 	app.get("/room/:roomId", serveBuiltFiles);
+	app.get("/privacypolicy", serveBuiltFiles);
 }
 else {
 	log.warn("no dist folder found");
