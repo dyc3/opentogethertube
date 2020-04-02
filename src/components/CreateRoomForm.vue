@@ -71,6 +71,7 @@ export default {
 			}).then(() => {
 				this.isSubmitting = false;
 				this.$emit("roomCreated", this.name);
+				this.$events.fire("onRoomCreated", this.name);
 			}).catch(err => {
 				this.isSubmitting = false;
 				if (err.response) {

@@ -13,7 +13,7 @@
 							:column="$vuetify.breakpoint.xs"
 							:justify-space-between="$vuetify.breakpoint.smAndUp"
 							:justify-space-around="$vuetify.breakpoint.xs">
-						<v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
+						<v-btn elevation="12" x-large @click="createTempRoom">Create Room</v-btn>
 						<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
 						<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
 					</v-layout>
@@ -123,9 +123,11 @@
 </template>
 
 <script>
+import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 
 export default {
 	name: 'home',
+	mixins: [RoomUtilsMixin],
 	data() {
 		return {};
 	},

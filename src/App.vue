@@ -58,15 +58,15 @@
     </v-content>
     <v-container>
       <v-dialog v-model="showCreateRoomForm" persistent max-width="600">
-        <CreateRoomForm @roomCreated="onRoomCreated" @cancel="showCreateRoomForm = false" />
+        <CreateRoomForm @roomCreated="showCreateRoomForm = false" @cancel="showCreateRoomForm = false" />
       </v-dialog>
     </v-container>
-    <v-overlay :value="isLoadingTempRoom">
+    <v-overlay :value="isLoadingCreateRoom">
       <v-container fill-height>
         <v-row align="center" justify="center">
           <v-col cols="12" sm="4">
             <v-progress-circular indeterminate />
-            <v-btn elevation="12" x-large @click="cancelTempRoom" style="margin-top: 24px">Cancel</v-btn>
+            <v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">Cancel</v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -75,46 +75,27 @@
 </template>
 
 <script>
-import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
+import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 
 export default {
   name: "app",
   components: {
     CreateRoomForm,
   },
+  mixins: [RoomUtilsMixin],
   data() {
     return {
       announcement: null,
       showAnnouncement: false,
       showCreateRoomForm: false,
       shouldAdvertisePermRoom: false,
-      isLoadingTempRoom: false,
-      cancelledTempRoomCreation: false,
     };
   },
   methods: {
     onAnnouncement(text) {
       this.showAnnouncement = true;
       this.announcement = text;
-    },
-    onRoomCreated(roomName) {
-      this.$router.push(`/room/${roomName}`);
-    },
-    createTempRoom() {
-      this.isLoadingTempRoom = true;
-      this.cancelledTempRoomCreation = false;
-      API.post("/room/generate").then(res => {
-        if (!this.cancelledTempRoomCreation) {
-          this.isLoadingTempRoom = false;
-          this.cancelledTempRoomCreation = false;
-          this.onRoomCreated(res.data.room);
-        }
-      });
-    },
-    cancelTempRoom() {
-      this.cancelledTempRoomCreation = true;
-      this.isLoadingTempRoom = false;
     },
   },
   created() {
