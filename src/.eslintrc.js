@@ -7,7 +7,7 @@ module.exports = {
     'plugin:vue/essential',
   ],
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'vue/attribute-hyphenation': ['error', 'always'],
     'vue/html-self-closing': ['error', {
       'html': {
