@@ -531,7 +531,7 @@ class Room {
 				// name unchanged, ignore
 				return;
 			}
-			log.info(`${client.session.username} changed name to ${msg.name}`);
+			this.log.info(`${client.session.username} changed name to ${msg.name}`);
 			client.session.username = msg.name;
 			client.session.save();
 			this.update();
@@ -676,7 +676,7 @@ module.exports = {
 			log.info("Redis client is ready");
 		});
 		redisClient.on('error', err => {
-			log.error('error event - ' + redisClient.host + ':' + redisClient.port + ' - ' + err);
+			log.error(`error event - ${redisClient.host}:${redisClient.port} - ${err}`);
 		});
 		this.getAllLoadedRooms().then(result => {
 			this.rooms = result || [];
@@ -753,6 +753,7 @@ module.exports = {
 			await storage.saveRoom(newRoom);
 		}
 		this.rooms.push(newRoom);
+		log.info(`Room created: ${newRoom.name}`);
 	},
 
 	/**
@@ -889,6 +890,7 @@ module.exports = {
 	 * @param {String} text The message to send
 	 */
 	sendAnnouncement(text) {
+		log.info(`Sending announcement: ${text}`);
 		for (let room of this.rooms) {
 			room.sendAnnouncement(text);
 		}

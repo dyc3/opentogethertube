@@ -38,9 +38,6 @@ const customColorizer = format(info => {
 	else {
 		info.level = colors.bold(info.level);
 	}
-	if (info.roomName) {
-		info.roomName = colors.italic(info.roomName);
-	}
 	return info;
 });
 
