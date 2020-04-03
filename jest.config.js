@@ -10,7 +10,12 @@ module.exports = {
     '.+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
     '^.+\\.js(|x)?$': 'babel-jest',
   },
-  transformIgnorePatterns: ['/node_modules/'],
+  transformIgnorePatterns: [
+    '/node_modules/',
+    '!/src/',
+    '/tests/unit/server/',
+    '/common/',
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
@@ -38,6 +43,7 @@ module.exports = {
     '!**/migrations/**',
     '!**/models/**',
     '!**/seeders/**',
+    '!**/coverage/**',
     '!app.js',
     '!src/App.vue',
     '!src/plugins/vuetify.js',

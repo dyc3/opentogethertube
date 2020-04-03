@@ -30,6 +30,7 @@ module.exports = {
     'no-multiple-empty-lines': ['error', { 'max': 1, 'maxBOF': 0 }],
     'no-var': 'error',
     'no-dupe-keys': 'error',
+    'no-prototype-builtins': 'off',
     'prefer-arrow-callback': 'error',
     'semi': ['error', 'always'],
     'semi-spacing': ["error", {"before": false, "after": true}],
