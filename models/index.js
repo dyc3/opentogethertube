@@ -9,10 +9,17 @@ const config = require(__dirname + '/../config/config.js')[env];
 const db = {};
 
 let sequelize;
-if (config.use_env_variable) {
+if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+  // for heroku
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+    protocol: "postgres",
+  });
+}
+else if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 }
- else {
+else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
