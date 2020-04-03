@@ -57,7 +57,10 @@ describe('Room UI spec', () => {
         $connect: jest.fn(),
         $disconnect: jest.fn(),
       },
-      stubs: ['youtube'],
+      stubs: [
+        'youtube',
+        'router-link',
+      ],
     });
   });
 

@@ -20,6 +20,7 @@ describe("Home view", () => {
 		shallowMount(Home, {
 			localVue,
 			vuetify,
+			stubs: ['router-link'],
 		});
 	});
 });
