@@ -14,6 +14,7 @@ module.exports = {
     '/node_modules/',
     '!/src/',
     '/tests/unit/server/',
+    '/common/',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
