@@ -793,7 +793,7 @@ module.exports = {
 		});
 		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
 			if (err) {
-				log.error(err);
+				log.error(`Failed to save rooms to redis: ${err} ${err.message}`);
 				throw err;
 			}
 		});
