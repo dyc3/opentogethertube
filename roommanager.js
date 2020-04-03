@@ -573,6 +573,7 @@ class Room {
 		else if (msg.action === "status") {
 			this.log.debug(`status: ${client.session.username} ${msg.status}`);
 			client.status = msg.status;
+			this._dirtyProps.push("users");
 			this.sync();
 		}
 		else {
