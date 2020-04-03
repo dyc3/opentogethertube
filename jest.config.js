@@ -42,6 +42,7 @@ module.exports = {
     '!**/migrations/**',
     '!**/models/**',
     '!**/seeders/**',
+    '!**/coverage/**',
     '!app.js',
     '!src/App.vue',
     '!src/plugins/vuetify.js',
