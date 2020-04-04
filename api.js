@@ -32,15 +32,25 @@ module.exports = function(_roommanager, storage, redisClient) {
 	const router = express.Router();
 
 	router.get("/room/list", (req, res) => {
+		let isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
+		if (req.get("apikey") && !isAuthorized) {
+			res.status(400).json({
+				success: false,
+				error: "apikey is invalid",
+			});
+			return;
+		}
 		let rooms = [];
 		for (const room of roommanager.rooms) {
-			if (room.visibility !== "public") {
+			if (room.visibility !== "public" && !isAuthorized) {
 				continue;
 			}
 			rooms.push({
 				name: room.name,
+				title: room.title,
 				description: room.description,
 				isTemporary: room.isTemporary,
+				visibility: room.visibility,
 				currentSource: room.currentSource,
 				users: room.clients.length,
 			});

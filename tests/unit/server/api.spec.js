@@ -14,77 +14,146 @@ describe("Room API", () => {
 		roommanager.unloadRoom("test3");
 	});
 
-	it("GET /room/list", async done => {
-		await request(app)
-			.get("/api/room/list")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body).toHaveLength(0);
-			});
+	describe("GET /room/list", () => {
+		beforeAll(() => {
+			process.env.OPENTOGETHERTUBE_API_KEY = TEST_API_KEY;
+		});
 
-		await roommanager.createRoom("test1", true);
-		await roommanager.createRoom("test2", true);
-		await roommanager.createRoom("test3", true);
-		roommanager.rooms[0].clients = [{}];
+		beforeEach(() => {
+			roommanager.unloadRoom("test");
+			roommanager.unloadRoom("test1");
+			roommanager.unloadRoom("test2");
+			roommanager.unloadRoom("test3");
+		});
 
-		await request(app)
-			.get("/api/room/list")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body).toHaveLength(3);
-				expect(resp.body[0]).toEqual({
-					name: "test1",
-					description: "",
-					isTemporary: true,
-					currentSource: {},
-					users: 1,
+		it("should get 0 rooms", async () => {
+			await request(app)
+				.get("/api/room/list")
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body).toHaveLength(0);
 				});
-				expect(resp.body[1]).toEqual({
-					name: "test2",
-					description: "",
-					isTemporary: true,
-					currentSource: {},
-					users: 0,
+		});
+
+		it("should get 3 public rooms", async () => {
+			await roommanager.createRoom("test1", true);
+			await roommanager.createRoom("test2", true);
+			await roommanager.createRoom("test3", true);
+			roommanager.rooms[0].clients = [{}];
+
+			await request(app)
+				.get("/api/room/list")
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body).toHaveLength(3);
+					expect(resp.body[0]).toEqual({
+						name: "test1",
+						title: "",
+						description: "",
+						isTemporary: true,
+						visibility: "public",
+						currentSource: {},
+						users: 1,
+					});
+					expect(resp.body[1]).toEqual({
+						name: "test2",
+						title: "",
+						description: "",
+						isTemporary: true,
+						visibility: "public",
+						currentSource: {},
+						users: 0,
+					});
+					expect(resp.body[2]).toEqual({
+						name: "test3",
+						title: "",
+						description: "",
+						isTemporary: true,
+						visibility: "public",
+						currentSource: {},
+						users: 0,
+					});
 				});
-				expect(resp.body[2]).toEqual({
-					name: "test3",
-					description: "",
-					isTemporary: true,
-					currentSource: {},
-					users: 0,
+
+			roommanager.unloadRoom("test1");
+			roommanager.unloadRoom("test2");
+			roommanager.unloadRoom("test3");
+		});
+
+		it("should get 1 public room and exclude unlisted and private rooms", async () => {
+			await roommanager.createRoom("test1", true, "public");
+			await roommanager.createRoom("test2", true, "unlisted");
+			await roommanager.createRoom("test3", true, "private");
+
+			await request(app)
+				.get("/api/room/list")
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body).toHaveLength(1);
+					expect(resp.body[0]).toEqual({
+						name: "test1",
+						title: "",
+						description: "",
+						isTemporary: true,
+						visibility: "public",
+						currentSource: {},
+						users: 0,
+					});
 				});
-			});
 
-		roommanager.unloadRoom("test1");
-		roommanager.unloadRoom("test2");
-		roommanager.unloadRoom("test3");
+			roommanager.unloadRoom("test1");
+			roommanager.unloadRoom("test2");
+			roommanager.unloadRoom("test3");
+		});
 
-		await roommanager.createRoom("test1", true, "public");
-		await roommanager.createRoom("test2", true, "unlisted");
-		await roommanager.createRoom("test3", true, "private");
+		it("should get all room if valid api key is provided", async () => {
+			await roommanager.createRoom("test1", true, "public");
+			await roommanager.createRoom("test2", true, "unlisted");
+			await roommanager.createRoom("test3", true, "private");
 
-		await request(app)
-			.get("/api/room/list")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body).toHaveLength(1);
-				expect(resp.body[0]).toEqual({
-					name: "test1",
-					description: "",
-					isTemporary: true,
-					currentSource: {},
-					users: 0,
+			await request(app)
+				.get("/api/room/list")
+				.set("apikey", TEST_API_KEY)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body).toHaveLength(3);
+					expect(resp.body[0]).toEqual({
+						name: "test1",
+						title: "",
+						description: "",
+						isTemporary: true,
+						visibility: "public",
+						currentSource: {},
+						users: 0,
+					});
+					expect(resp.body[1]).toEqual({
+						name: "test2",
+						title: "",
+						description: "",
+						isTemporary: true,
+						visibility: "unlisted",
+						currentSource: {},
+						users: 0,
+					});
+					expect(resp.body[2]).toEqual({
+						name: "test3",
+						title: "",
+						description: "",
+						isTemporary: true,
+						visibility: "private",
+						currentSource: {},
+						users: 0,
+					});
 				});
-			});
 
-		roommanager.unloadRoom("test1");
-		roommanager.unloadRoom("test2");
-		roommanager.unloadRoom("test3");
-
-		done();
+			roommanager.unloadRoom("test1");
+			roommanager.unloadRoom("test2");
+			roommanager.unloadRoom("test3");
+		});
 	});
 
 	it("GET /room/:name", async done => {
