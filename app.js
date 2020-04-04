@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const { getLogger } = require('./logger.js');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 const log = getLogger("app");
 
@@ -80,6 +82,13 @@ app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 	extended: true,
 }));
+
+const usermanager = require("./usermanager");
+passport.use(new LocalStrategy(usermanager.authCallback));
+passport.serializeUser(usermanager.serializeUser);
+passport.deserializeUser(usermanager.deserializeUser);
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Redirect urls with trailing slashes
 app.get('\\S+/$', (req, res) => {
