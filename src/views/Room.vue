@@ -722,6 +722,12 @@ export default {
     width: calc(100% / 12 * 4);
   }
 
+  @media (max-width: $md-max) {
+    .video-subcontainer, .chat-container {
+      width: 100%;
+    }
+  }
+
   @media (min-width: $xl-min) {
     .video-subcontainer {
       width: calc(100% / 12 * 9);
