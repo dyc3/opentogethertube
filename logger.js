@@ -7,8 +7,7 @@ const myFormat = format.printf(({ level, message, timestamp, namespace, roomName
 		if (roomEvent.parameters && roomEvent.parameters.video) {
 			delete roomEvent.parameters.video.description;
 		}
-		delete roomEvent.roomName;
-		return `${timestamp} ${namespace} Room/${roomName} ${level} Room event: ${JSON.stringify(roomEvent)}`;
+		return `${timestamp} ${namespace} Room/${roomEvent.roomName} ${level} Room event: ${JSON.stringify(roomEvent)}`;
 	}
 	if (roomName) {
 		return `${timestamp} ${namespace} Room/${roomName} ${level} ${message}`;
