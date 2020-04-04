@@ -730,11 +730,11 @@ export default {
 
   @media (min-width: $xl-min) {
     .video-subcontainer {
-      width: calc(100% / 12 * 9);
+      width: calc(100% / 12 * 7);
     }
 
     .chat-container {
-      width: calc(100% / 12 * 3);
+      width: calc(100% / 12 * 5);
     }
   }
 }
