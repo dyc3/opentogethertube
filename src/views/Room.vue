@@ -721,6 +721,16 @@ export default {
   .chat-container {
     width: calc(100% / 12 * 4);
   }
+
+  @media (min-width: $xl-min) {
+    .video-subcontainer {
+      width: calc(100% / 12 * 9);
+    }
+
+    .chat-container {
+      width: calc(100% / 12 * 3);
+    }
+  }
 }
 .video-queue, .video-add, .user-list {
   margin: 0 10px;
