@@ -173,6 +173,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 				});
 			}
 			else {
+				log.error(`Unable to create room: ${e} ${e.message}`);
 				res.status(500).json({
 					success: false,
 					error: {
@@ -241,7 +242,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 				});
 			}
 			else {
-				log.error("Unhandled exception when getting room:", err);
+				log.error(`Unhandled exception when getting room: ${err} ${err.message}`);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -264,7 +265,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 				});
 			}
 			else {
-				log.error("Unhandled exception when getting room:", err);
+				log.error(`Unhandled exception when getting room: ${err} ${err.message}`);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
