@@ -7,7 +7,7 @@
       </v-col>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
         <v-row no-gutters class="video-container">
-          <v-col cols="12" :xl="$store.state.fullscreen ? 9 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
+          <div class="video-subcontainer" cols="12" :xl="$store.state.fullscreen ? 9 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <v-responsive :aspect-ratio="16/9" class="player-container" :key="currentSource.service">
               <YoutubePlayer v-if="currentSource.service == 'youtube'" class="player" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
@@ -40,8 +40,8 @@
                 </v-btn>
               </v-row>
             </v-col>
-          </v-col>
-          <v-col cols="12" :xl="$store.state.fullscreen ? 3 : 5" md="4" class="chat-container">
+          </div>
+          <div cols="12" :xl="$store.state.fullscreen ? 3 : 5" md="4" class="chat-container">
             <div class="d-flex flex-column" style="height: 100%">
               <h4>Chat</h4>
               <div class="messages d-flex flex-column flex-grow-1 mt-2">
@@ -54,7 +54,7 @@
                 <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText" autocomplete="off"/>
               </div>
             </div>
-          </v-col>
+          </div>
         </v-row>
         <v-row no-gutters>
           <v-col cols="12" md="8" sm="12">
@@ -713,6 +713,14 @@ export default {
     border: 1px solid #666;
     border-radius: 3px;
   }
+
+  .video-subcontainer {
+    width: calc(100% / 12 * 8);
+  }
+
+  .chat-container {
+    width: calc(100% / 12 * 4);
+  }
 }
 .video-queue, .video-add, .user-list {
   margin: 0 10px;
@@ -800,6 +808,14 @@ export default {
     margin: 0;
   }
 
+  .video-subcontainer {
+    width: calc(100% / 12 * 9);
+  }
+
+  .chat-container {
+    width: calc(100% / 12 * 3);
+  }
+
   .player-container {
     height: 100vh;
 
@@ -817,6 +833,16 @@ export default {
 
     &.hide {
       opacity: 0;
+    }
+  }
+
+  @media only screen and (max-aspect-ratio: 16/9) {
+    .video-subcontainer {
+      width: 100%;
+    }
+
+    .chat-container {
+      display: none;
     }
   }
 }
