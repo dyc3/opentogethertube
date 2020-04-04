@@ -41,7 +41,7 @@ const session = require('express-session');
 let RedisStore = require('connect-redis')(session);
 let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
-	secret: "opentogethertube", // FIXME: This doesn't matter right now, but when user accounts are implemented this should be fixed.
+	secret: process.env.SESSION_SECRET || "opentogethertube",
 	resave: false,
 	saveUninitialized: true,
 	unset: 'keep',
