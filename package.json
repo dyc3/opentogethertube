@@ -30,6 +30,8 @@
     "material-design-icons-iconfont": "^5.0.1",
     "moment": "^2.24.0",
     "nanotimer": "^0.3.15",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
     "pg": "^7.18.1",
     "pg-hstore": "^2.3.3",
     "rate-limit-redis": "^1.7.0",
