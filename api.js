@@ -93,7 +93,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 		});
 	});
 
-	let createRoomLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:RoomCreate" }), windowMs: 60 * 60 * 1000, max: 5, message: "You are creating too many rooms. Please try again later." });
+	let createRoomLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:RoomCreate" }), windowMs: 60 * 60 * 1000, max: 4, message: "You are creating too many rooms. Please try again later." });
 	router.post("/room/create", process.env.NODE_ENV === "production" ? createRoomLimiter : (req, res, next) => next(), async (req, res) => {
 		if (!req.body.name) {
 			log.info(req.body);
@@ -184,7 +184,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 		}
 	});
 
-	router.post("/room/generate", async (req, res) => {
+	router.post("/room/generate", process.env.NODE_ENV === "production" ? createRoomLimiter : (req, res, next) => next(), async (req, res) => {
 		let roomName = uuid();
 		await roommanager.createRoom(roomName, true);
 		res.json({
@@ -273,7 +273,8 @@ module.exports = function(_roommanager, storage, redisClient) {
 		});
 	});
 
-	router.post("/room/:name/queue", (req, res) => {
+	let addToQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueAdd" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before adding more videos." });
+	router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.url) {
 				room.addToQueue({ url: req.body.url }, req.session).then(success => {
@@ -312,7 +313,8 @@ module.exports = function(_roommanager, storage, redisClient) {
 		});
 	});
 
-	router.delete("/room/:name/queue", (req, res) => {
+	let removeFromQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueRemove" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before removing more videos." });
+	router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.service && req.body.id) {
 				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
@@ -425,10 +427,8 @@ module.exports = function(_roommanager, storage, redisClient) {
 		});
 	});
 
-	router.get("/data/previewAdd", (req, res) => {
-		// FIXME: this endpoint has the potential to be abused.
-		// TODO: rate limit
-
+	let addPreviewLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:AddPreview" }), windowMs: 40 * 1000, max: 20, message: "Wait a little bit longer before requesting more add previews." });
+	router.get("/data/previewAdd", process.env.NODE_ENV === "production" ? addPreviewLimiter : (req, res, next) => next(), (req, res) => {
 		log.info(`Getting queue add preview for ${req.query.input}`);
 		InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
 			res.json(result);
