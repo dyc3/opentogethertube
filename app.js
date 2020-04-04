@@ -89,6 +89,7 @@ passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(usermanager.router);
 
 // Redirect urls with trailing slashes
 app.get('\\S+/$', (req, res) => {
