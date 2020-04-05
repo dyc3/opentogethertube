@@ -28,12 +28,14 @@ module.exports = {
 	 * Callback used by passport LocalStrategy to authenticate Users.
 	 */
 	async authCallback(email, password, done) {
+		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		let usermanager = require("./usermanager.js");
 		if (process.env.NODE_ENV !== 'production') {
 			if (email === "test@localhost" && password === "test") {
-				done(null, await this.usermanager.getUser({ email }));
+				done(null, await usermanager.getUser({ email }));
 			}
 		}
-		let user = await this.usermanager.getUser({ email });
+		let user = await usermanager.getUser({ email });
 		let result = await pwd.verify(user.salt + password, user.hash);
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
@@ -73,7 +75,9 @@ module.exports = {
 	 * Used for persistent session storage.
 	 */
 	async deserializeUser(id, done) {
-		let user = await this.usermanager.getUser({ id });
+		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		let usermanager = require("./usermanager.js");
+		let user = await usermanager.getUser({ id });
 		done(null, user);
 	},
 
