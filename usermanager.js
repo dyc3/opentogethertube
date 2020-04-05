@@ -26,26 +26,26 @@ module.exports = {
 	/**
 	 * Callback used by passport LocalStrategy to authenticate Users.
 	 */
-	async authCallback(username, password, done) {
-		let user = await this.getUser({ username });
-		let result = await pwd.verify(password, user.hash);
+	async authCallback(email, password, done) {
+		let user = await this.getUser({ email });
+		let result = await pwd.verify(user.salt + password, user.hash);
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
-				log.error(`${username}: Unrecognized hash. I don't think this should ever happen.`);
+				log.error(`${email}: Unrecognized hash. I don't think this should ever happen.`);
 				done(null, false);
 				break;
 			case securePassword.INVALID:
-				log.error(`${username}: Hash is invalid`);
+				log.error(`${email}: Hash is invalid`);
 				done(null, false);
 				break;
 			case securePassword.VALID_NEEDS_REHASH:
-				log.info(`${username}: Hash is valid, needs rehash`);
-				user.hash = await pwd.hash(Buffer.from(password));
+				log.info(`${email}: Hash is valid, needs rehash`);
+				user.hash = await pwd.hash(Buffer.from(user.salt + password));
 
 				// TODO: save User to database
 			// eslint-disable-next-line no-fallthrough
 			case securePassword.VALID:
-				log.info(`${username}: Hash is valid`);
+				log.info(`${email}: Hash is valid`);
 				done(null, user);
 				break;
 
@@ -78,10 +78,10 @@ module.exports = {
 	},
 
 	/**
-	 * Gets a User based on either their username or id.
+	 * Gets a User based on either their email or id.
 	 * @param {*} param0
 	 */
-	getUser({ username, id }) {
+	getUser({ email, id }) {
 		// TODO: get User from database
 	},
 };
