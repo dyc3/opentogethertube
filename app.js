@@ -84,6 +84,8 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 }));
 
 const usermanager = require("./usermanager");
+// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+global.usermanager = usermanager;
 passport.use(new LocalStrategy(usermanager.authCallback));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);

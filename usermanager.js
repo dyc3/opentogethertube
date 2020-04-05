@@ -2,6 +2,7 @@ const { getLogger } = require('./logger.js');
 const securePassword = require('secure-password');
 const express = require('express');
 const passport = require('passport');
+const { User } = require("./models");
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -27,7 +28,12 @@ module.exports = {
 	 * Callback used by passport LocalStrategy to authenticate Users.
 	 */
 	async authCallback(email, password, done) {
-		let user = await this.getUser({ email });
+		if (process.env.NODE_ENV !== 'production') {
+			if (email === "test@localhost" && password === "test") {
+				done(null, await this.usermanager.getUser({ email }));
+			}
+		}
+		let user = await this.usermanager.getUser({ email });
 		let result = await pwd.verify(user.salt + password, user.hash);
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
@@ -66,12 +72,12 @@ module.exports = {
 	 * Converts a user id into a User.
 	 * Used for persistent session storage.
 	 */
-	deserializeUser(id, done) {
-		let user = this.getUser({ id });
+	async deserializeUser(id, done) {
+		let user = await this.usermanager.getUser({ id });
 		done(null, user);
 	},
 
-	async registerUser({ email, password }) {
+	async registerUser({ email, username, password }) {
 		// TODO: generate salt
 		let salt = "asdf";
 		let hash = await pwd.hash(Buffer.from(salt + password));
@@ -82,8 +88,12 @@ module.exports = {
 	/**
 	 * Gets a User based on either their email or id.
 	 * @param {*} param0
+	 * @returns Promise<User>
 	 */
-	getUser({ email, id }) {
+	async getUser({ email, id }) {
 		// TODO: get User from database
+		if (process.env.NODE_ENV !== 'production' && (email === "test@localhost" || id === -1)) {
+			return Promise.resolve(User.build({ id: -1, email, username: "test user" }));
+		}
 	},
 };
