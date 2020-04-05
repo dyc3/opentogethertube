@@ -71,8 +71,10 @@ module.exports = {
 		done(null, user);
 	},
 
-	async registerUser({ username, password }) {
-		let hash = await pwd.hash(Buffer.from(password));
+	async registerUser({ email, password }) {
+		// TODO: generate salt
+		let salt = "asdf";
+		let hash = await pwd.hash(Buffer.from(salt + password));
 
 		// TODO: save user in database
 	},
