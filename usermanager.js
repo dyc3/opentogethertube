@@ -33,10 +33,11 @@ module.exports = {
 		if (process.env.NODE_ENV !== 'production') {
 			if (email === "test@localhost" && password === "test") {
 				done(null, await usermanager.getUser({ email }));
+				return;
 			}
 		}
 		let user = await usermanager.getUser({ email });
-		let result = await pwd.verify(user.salt + password, user.hash);
+		let result = await pwd.verify(user.salt + password, Buffer.from(user.hash));
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
 				log.error(`${email}: Unrecognized hash. I don't think this should ever happen.`);
