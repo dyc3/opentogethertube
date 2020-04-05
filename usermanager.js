@@ -21,6 +21,21 @@ router.post("/login", passport.authenticate("local"), (req, res) => {
 	}
 });
 
+router.post("/register", (req, res) => {
+	this.registerUser(req.body).then(success => {
+		res.json({ success });
+	}).catch(err => {
+		log.error(`Unable to register user ${err} ${err.message}`);
+		res.status(500).json({
+			success: false,
+			error: {
+				name: "Unknown",
+				message: "An unknown error occurred. Try again later.",
+			},
+		});
+	});
+});
+
 module.exports = {
 	router,
 
