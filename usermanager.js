@@ -21,6 +21,23 @@ router.post("/login", passport.authenticate("local"), (req, res) => {
 	}
 });
 
+router.post("logout", (req, res) => {
+	if (req.user) {
+		req.logout();
+		res.json({
+			success: true,
+		});
+	}
+	else {
+		res.json({
+			success: false,
+			error: {
+				message: "Not logged in.",
+			},
+		});
+	}
+});
+
 router.post("/register", (req, res) => {
 	this.registerUser(req.body).then(success => {
 		res.json({ success });
