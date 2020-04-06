@@ -102,7 +102,17 @@ module.exports = {
 		let salt = "asdf";
 		let hash = await pwd.hash(Buffer.from(salt + password));
 
-		// TODO: save user in database
+		return User.create({
+			email,
+			username,
+			salt,
+			hash,
+		}).then(() => {
+			return true;
+		}).catch(err => {
+			log.err(`Failed to create new user in the database: ${err} ${err.message}`);
+			return false;
+		});
 	},
 
 	/**
