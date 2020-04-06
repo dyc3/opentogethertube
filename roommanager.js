@@ -7,6 +7,7 @@ const InfoExtract = require("./infoextract");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
+const usermanager = require("./usermanager.js");
 
 const log = getLogger("roommanager");
 
@@ -353,7 +354,7 @@ class Room {
 
 			syncMsg.users = this.clients.map(c => {
 				return {
-					name: c.session.username,
+					name: c.user ? c.user.username : c.session.username,
 					isYou: client.socket == c.socket,
 					status: c.status,
 				};
@@ -471,25 +472,31 @@ class Room {
 	 * @param {Object} ws Websocket for the client.
 	 * @param {Object} req HTTP request used to initiate the connection.
 	 */
-	onConnectionReceived(ws, req) {
-		if (!req.session.username) {
+	async onConnectionReceived(ws, req) {
+		if (!req.user && !req.session.username) {
 			let username = uniqueNamesGenerator();
 			this.log.debug(`Generated name for new user (on connect): ${username}`);
 			req.session.username = username;
 			req.session.save();
 		}
-		let client = {
+		else {
+			log.debug("User is logged in, skipping username generation");
+		}
+		let client = new Client({
 			session: req.session,
 			socket: ws,
 			status: "joined",
 			needsFullSync: true,
-		};
+		});
+		if (req.session.passport.user) {
+			client.user = await usermanager.getUser(req.session.passport.user);
+		}
 		this.clients.push(client);
 		this._dirtyProps.push("users");
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
-		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.session.username, {}));
+		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.username, {}));
 	}
 
 	/**
@@ -499,12 +506,12 @@ class Room {
 	 */
 	onMessageReceived(client, msg) {
 		if (msg.action === "play") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.session.username, {}));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
 			this.isPlaying = true;
 			this.sync();
 		}
 		else if (msg.action === "pause") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.session.username, {}));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
 			this.isPlaying = false;
 			this.sync();
 		}
@@ -512,12 +519,12 @@ class Room {
 			if (msg.position === this.playbackPosition) {
 				return;
 			}
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.session.username, { position: msg.position, previousPosition: this.playbackPosition }));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
 			this.playbackPosition = msg.position;
 			this.sync();
 		}
 		else if (msg.action === "skip") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.session.username, { video: this.currentSource }));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
 			this.playbackPosition = this.currentSource.length + 1;
 			this.update();
 			this.sync();
@@ -527,20 +534,20 @@ class Room {
 				this.log.warn("name not supplied");
 				return;
 			}
-			if (msg.name === client.session.username) {
+			if (msg.name === client.username) {
 				// name unchanged, ignore
 				return;
 			}
-			this.log.info(`${client.session.username} changed name to ${msg.name}`);
-			client.session.username = msg.name;
-			client.session.save();
+			this.log.info(`${client.username} changed name to ${msg.name}`);
+			client.username = msg.name;
+			this._dirtyProps.push("users");
 			this.update();
 			this.sync();
 		}
 		else if (msg.action === "chat") {
 			let chat = {
 				action: msg.action,
-				from: client.session.username,
+				from: client.username,
 				text: msg.text,
 			};
 			for (let c of this.clients) {
@@ -571,7 +578,7 @@ class Room {
 			this.sync();
 		}
 		else if (msg.action === "status") {
-			this.log.debug(`status: ${client.session.username} ${msg.status}`);
+			this.log.debug(`status: ${client.username} ${msg.status}`);
 			client.status = msg.status;
 			this._dirtyProps.push("users");
 			this.sync();
@@ -602,6 +609,33 @@ class RoomEvent {
 		this.eventType = eventType;
 		this.userName = userName;
 		this.parameters = _.cloneDeep(parameters);
+	}
+}
+
+class Client {
+	constructor(args) {
+		this.session = null;
+		this.socket = null;
+		this.status = "?";
+		this.needsFullSync = true;
+		this.user = null;
+		if (args) {
+			Object.assign(this, args);
+		}
+	}
+
+	get username() {
+		return this.user ? this.user.username : this.session.username;
+	}
+
+	set username(value) {
+		if (this.user) {
+			this.user.username = value;
+		}
+		else {
+			this.session.username = value;
+			this.session.save();
+		}
 	}
 }
 

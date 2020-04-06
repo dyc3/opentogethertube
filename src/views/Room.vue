@@ -264,11 +264,11 @@ export default {
     },
   },
   async created() {
-    if (!this.$store.state.production) {
-      // HACK: get the server to set the session cookie
-      // this isn't needed in production because the requests for resources will set the cookie
-      await API.get("/user");
-    }
+    // if (!this.$store.state.production) {
+    //   // HACK: get the server to set the session cookie
+    //   // this isn't needed in production because the requests for resources will set the cookie
+    //   await API.get("/user");
+    // }
 
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
@@ -359,7 +359,7 @@ export default {
       }
     },
     openEditName() {
-      this.username = this.$store.state.username;
+      this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
       this.showEditName = !this.showEditName;
     },
     play() {

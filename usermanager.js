@@ -11,6 +11,7 @@ const router = express.Router();
 router.post("/login", passport.authenticate("local"), (req, res) => {
 	if (req.user) {
 		delete req.session.username;
+		req.session.save();
 		res.json({
 			success: true,
 			user: req.user,
@@ -44,6 +45,7 @@ router.post("/register", (req, res) => {
 	this.registerUser(req.body).then(result => {
 		req.login(result.user);
 		delete req.session.username;
+		req.session.save();
 		res.json(result);
 	}).catch(err => {
 		log.error(`Unable to register user ${err} ${err.message}`);

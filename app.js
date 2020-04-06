@@ -59,12 +59,22 @@ if (process.env.NODE_ENV === "production") {
 const sessions = session(sessionOpts);
 app.use(sessions);
 
+const usermanager = require("./usermanager");
+passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallback));
+passport.serializeUser(usermanager.serializeUser);
+passport.deserializeUser(usermanager.deserializeUser);
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use((req, res, next) => {
-	if (!req.session.username) {
+	if (!req.user && !req.session.username) {
 		let username = uniqueNamesGenerator();
 		log.debug(`Generated name for new user (on request): ${username}`);
 		req.session.username = username;
 		req.session.save();
+	}
+	else {
+		log.debug("User is logged in, skipping username generation");
 	}
 
 	next();
@@ -82,14 +92,6 @@ app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 	extended: true,
 }));
-
-const usermanager = require("./usermanager");
-passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallback));
-passport.serializeUser(usermanager.serializeUser);
-passport.deserializeUser(usermanager.deserializeUser);
-app.use(passport.initialize());
-app.use(passport.session());
-app.use("/api/user", usermanager.router);
 
 // Redirect urls with trailing slashes
 app.get('\\S+/$', (req, res) => {
@@ -117,6 +119,7 @@ function serveBuiltFiles(req, res) {
 	});
 }
 
+app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
 	app.use(express.static(__dirname + "/dist", false));

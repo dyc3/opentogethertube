@@ -56,7 +56,7 @@
         </v-btn>
         <v-menu offset-y v-if="$store.state.user">
           <template v-slot:activator="{ on }">
-            <v-btn text v-on="on">
+            <v-btn text v-on="on" :key="$store.state.user.username">
               {{ $store.state.user.username }}
             </v-btn>
           </template>
@@ -147,6 +147,15 @@ export default {
       this.shouldAdvertisePermRoom = true;
     }
     console.log("shouldAdvertisePermRoom", this.shouldAdvertisePermRoom);
+
+    // ask the server if we are logged in or not, and update the client to reflect that status.
+    API.get("/user").then(res => {
+      if (res.data.loggedIn) {
+        let user = res.data;
+        delete user.loggedIn;
+        this.$store.commit("LOGIN", user);
+      }
+    });
   },
   watch:{
     $route (to) {

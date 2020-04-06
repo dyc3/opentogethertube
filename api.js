@@ -3,7 +3,6 @@ const rateLimit = require("express-rate-limit");
 const RateLimitStore = require('rate-limit-redis');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
-const passport = require('passport');
 const InfoExtract = require("./infoextract");
 const { getLogger } = require('./logger.js');
 
@@ -471,11 +470,16 @@ module.exports = function(_roommanager, storage, redisClient) {
 
 	router.get("/user", (req, res) => {
 		if (req.user) {
-			res.json(req.user);
+			let user = {
+				username: req.user.username,
+				loggedIn: true,
+			};
+			res.json(user);
 		}
 		else {
 			res.json({
-				name: req.session.username,
+				username: req.session.username,
+				loggedIn: false,
 			});
 		}
 	});
