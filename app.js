@@ -84,7 +84,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 }));
 
 const usermanager = require("./usermanager");
-passport.use(new LocalStrategy(usermanager.authCallback));
+passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallback));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());

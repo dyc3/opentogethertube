@@ -12,6 +12,7 @@ router.post("/login", passport.authenticate("local"), (req, res) => {
 	if (req.user) {
 		res.json({
 			success: true,
+			user: req.user,
 		});
 	}
 	else {
@@ -21,7 +22,7 @@ router.post("/login", passport.authenticate("local"), (req, res) => {
 	}
 });
 
-router.post("logout", (req, res) => {
+router.post("/logout", (req, res) => {
 	if (req.user) {
 		req.logout();
 		res.json({
@@ -39,8 +40,9 @@ router.post("logout", (req, res) => {
 });
 
 router.post("/register", (req, res) => {
-	this.registerUser(req.body).then(success => {
-		res.json({ success });
+	this.registerUser(req.body).then(result => {
+		req.login(result.user);
+		res.json(result);
 	}).catch(err => {
 		log.error(`Unable to register user ${err} ${err.message}`);
 		res.status(500).json({
@@ -124,11 +126,16 @@ module.exports = {
 			username,
 			salt,
 			hash,
-		}).then(() => {
-			return true;
+		}).then(user => {
+			return {
+				success: true,
+				user,
+			};
 		}).catch(err => {
 			log.err(`Failed to create new user in the database: ${err} ${err.message}`);
-			return false;
+			return {
+				success: false,
+			};
 		});
 	},
 
