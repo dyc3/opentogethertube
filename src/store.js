@@ -15,6 +15,7 @@ export default new Vuex.Store({
 		joinFailureReason: null,
 		production: process.env.NODE_ENV === 'production',
 		username: null,
+		user: null,
 		room: {
 			name: "",
 			title: "",
@@ -36,7 +37,7 @@ export default new Vuex.Store({
 			Vue.prototype.$socket = event.currentTarget;
 			state.socket.isConnected = true;
 			let username = window.localStorage.getItem("username");
-			if (username) {
+			if (!state.user && username) {
 				state.username = username;
 				Vue.prototype.$socket.sendObj({ action: "set-name", name: username });
 			}
@@ -67,6 +68,12 @@ export default new Vuex.Store({
 		},
 		PLAYBACK_STATUS(state, message) {
 			Vue.prototype.$socket.sendObj({ action: "status", status: message });
+		},
+		LOGIN(state, user) {
+			state.user = user;
+		},
+		LOGOUT(state) {
+			state.user = null;
 		},
 	},
 	actions: {

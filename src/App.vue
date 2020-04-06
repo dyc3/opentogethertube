@@ -51,6 +51,25 @@
             </v-list-item>
           </v-list>
         </v-menu>
+        <v-menu offset-y>
+          <template v-slot:activator="{ on }">
+            <v-btn text v-on="on">
+              USER
+            </v-btn>
+          </template>
+          <v-list two-line max-width="400">
+            <v-list-item @click="showLogin = true">
+              <v-list-item-content>
+                <v-list-item-title>Log In</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item @click="showLogin = true">
+              <v-list-item-content>
+                <v-list-item-title>Register</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </v-toolbar-items>
     </v-app-bar>
     <v-content>
@@ -59,6 +78,11 @@
     <v-container>
       <v-dialog v-model="showCreateRoomForm" persistent max-width="600">
         <CreateRoomForm @roomCreated="showCreateRoomForm = false" @cancel="showCreateRoomForm = false" />
+      </v-dialog>
+    </v-container>
+    <v-container>
+      <v-dialog v-model="showLogin" max-width="400">
+        <LogInForm @shouldClose="showLogin = false" />
       </v-dialog>
     </v-container>
     <v-overlay :value="isLoadingCreateRoom">
@@ -76,12 +100,14 @@
 
 <script>
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
+import LogInForm from "@/components/LogInForm.vue";
 import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 
 export default {
   name: "app",
   components: {
     CreateRoomForm,
+    LogInForm,
   },
   mixins: [RoomUtilsMixin],
   data() {
@@ -90,6 +116,7 @@ export default {
       showAnnouncement: false,
       showCreateRoomForm: false,
       shouldAdvertisePermRoom: false,
+      showLogin: false,
     };
   },
   methods: {
