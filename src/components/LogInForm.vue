@@ -77,6 +77,8 @@ export default {
 					console.log("Log in success");
 					this.$store.commit("LOGIN", resp.data.user);
 					this.$emit("shouldClose");
+					this.email = "";
+					this.password = "";
 				}
 				else {
 					console.log("Log in failed");
@@ -94,6 +96,8 @@ export default {
 					console.log("Registeration success");
 					this.$store.commit("LOGIN", resp.data.user);
 					this.$emit("shouldClose");
+					this.email = "";
+					this.password = "";
 				}
 				else {
 					console.log("Registeration failed");
