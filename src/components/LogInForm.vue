@@ -64,7 +64,9 @@ export default {
 		};
 	},
 	created() {
-		this.username = this.$store.state.username;
+		if (this.$store.state.username) {
+			this.username = this.$store.state.username;
+		}
 	},
 	methods: {
 		login() {

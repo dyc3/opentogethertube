@@ -93,7 +93,9 @@ export default new Vuex.Store({
 			}
 			Object.assign(this.state.room, message);
 
-			this.state.username = _.find(this.state.room.users, { isYou: true }).name;
+			if (!this.user) {
+				this.state.username = _.find(this.state.room.users, { isYou: true }).name;
+			}
 
 			Vue.prototype.$events.emit('onSync');
 		},
