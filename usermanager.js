@@ -136,7 +136,7 @@ module.exports = {
 				user,
 			};
 		}).catch(err => {
-			log.err(`Failed to create new user in the database: ${err} ${err.message}`);
+			log.error(`Failed to create new user in the database: ${err} ${err.message}`);
 			return {
 				success: false,
 			};
