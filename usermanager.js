@@ -42,11 +42,12 @@ router.post("/logout", (req, res) => {
 });
 
 router.post("/register", (req, res) => {
-	this.registerUser(req.body).then(result => {
-		req.login(result.user);
-		delete req.session.username;
-		req.session.save();
-		res.json(result);
+	usermanager.registerUser(req.body).then(result => {
+		req.login(result.user, () => {
+			delete req.session.username;
+			req.session.save();
+			res.json(result);
+		});
 	}).catch(err => {
 		log.error(`Unable to register user ${err} ${err.message}`);
 		res.status(500).json({
@@ -59,7 +60,7 @@ router.post("/register", (req, res) => {
 	});
 });
 
-module.exports = {
+let usermanager = {
 	router,
 
 	/**
@@ -155,3 +156,5 @@ module.exports = {
 		}
 	},
 };
+
+module.exports = usermanager;
