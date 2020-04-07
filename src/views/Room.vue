@@ -643,11 +643,11 @@ export default {
     };
   },
   watch: {
-    username(newValue) {
-      if (newValue != null) {
-        window.localStorage.setItem("username", newValue);
-      }
-    },
+    // username(newValue) {
+    //   if (newValue != null) {
+    //     // window.localStorage.setItem("username", newValue);
+    //   }
+    // },
     volume() {
       this.updateVolume();
     },
