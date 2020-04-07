@@ -473,7 +473,7 @@ class Room {
 	 * @param {Object} req HTTP request used to initiate the connection.
 	 */
 	async onConnectionReceived(ws, req) {
-		if (!req.user && !req.session.username) {
+		if (!(req.session.passport && req.session.passport.user) && !req.session.username) {
 			let username = uniqueNamesGenerator();
 			this.log.debug(`Generated name for new user (on connect): ${username}`);
 			req.session.username = username;
@@ -488,7 +488,7 @@ class Room {
 			status: "joined",
 			needsFullSync: true,
 		});
-		if (req.session.passport.user) {
+		if (req.session.passport && req.session.passport.user) {
 			client.user = await usermanager.getUser(req.session.passport.user);
 		}
 		this.clients.push(client);
