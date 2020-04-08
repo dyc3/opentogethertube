@@ -489,7 +489,7 @@ class Room {
 			needsFullSync: true,
 		});
 		if (req.session.passport && req.session.passport.user) {
-			client.user = await usermanager.getUser(req.session.passport.user);
+			client.user = await usermanager.getUser({ id: req.session.passport.user });
 		}
 		this.clients.push(client);
 		this._dirtyProps.push("users");

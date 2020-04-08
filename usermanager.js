@@ -77,7 +77,7 @@ let usermanager = {
 			}
 		}
 		let user = await usermanager.getUser({ email });
-		let result = await pwd.verify(user.salt + password, Buffer.from(user.hash));
+		let result = await pwd.verify(Buffer.from(user.salt + password), Buffer.from(user.hash));
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
 				log.error(`${email}: Unrecognized hash. I don't think this should ever happen.`);
@@ -118,8 +118,14 @@ let usermanager = {
 	async deserializeUser(id, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
 		let usermanager = require("./usermanager.js");
-		let user = await usermanager.getUser({ id });
-		done(null, user);
+		try {
+			let user = await usermanager.getUser({ id });
+			done(null, user);
+		}
+		catch (err) {
+			log.error(`Unable to deserialize user id=${id} ${err}`);
+			done(err, null);
+		}
 	},
 
 	async registerUser({ email, username, password }) {
@@ -150,10 +156,27 @@ let usermanager = {
 	 * @returns Promise<User>
 	 */
 	async getUser({ email, id }) {
-		// TODO: get User from database
+		if (!email && !id) {
+			log.error("Invalid parameters to find user");
+			throw new Error("Invalid parameters to find user");
+		}
 		if (process.env.NODE_ENV !== 'production' && (email === "test@localhost" || id === -1)) {
 			return Promise.resolve(User.build({ id: -1, email, username: "test user" }));
 		}
+		let where = {};
+		if (email) {
+			where = { email };
+		}
+		else if (id) {
+			where = { id };
+		}
+		return User.findOne({ where }).then(user => {
+			if (!user) {
+				log.error("User not found");
+				throw new Error("User not found");
+			}
+			return user;
+		});
 	},
 };
 
