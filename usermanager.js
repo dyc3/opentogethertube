@@ -2,6 +2,7 @@ const { getLogger } = require('./logger.js');
 const securePassword = require('secure-password');
 const express = require('express');
 const passport = require('passport');
+const crypto = require('crypto');
 const { User } = require("./models");
 
 const pwd = securePassword();
@@ -122,8 +123,7 @@ let usermanager = {
 	},
 
 	async registerUser({ email, username, password }) {
-		// TODO: generate salt
-		let salt = "asdf";
+		let salt = crypto.randomBytes(256).toString('base64');
 		let hash = await pwd.hash(Buffer.from(salt + password));
 
 		return User.create({
