@@ -85,10 +85,10 @@ module.exports = {
 			if (cachedVideo.description !== null && isCachedInfoValid) {
 				video.description = cachedVideo.description;
 			}
-			if (cachedVideo.thumbnail !== null) {
+			if (cachedVideo.thumbnail !== null && isCachedInfoValid) {
 				video.thumbnail = cachedVideo.thumbnail;
 			}
-			if (cachedVideo.length !== null) {
+			if (cachedVideo.length !== null && isCachedInfoValid) {
 				video.length = cachedVideo.length;
 			}
 			return video;
@@ -154,10 +154,10 @@ module.exports = {
 				if (cachedVideo.description && isCachedInfoValid) {
 					video.description = cachedVideo.description;
 				}
-				if (cachedVideo.thumbnail) {
+				if (cachedVideo.thumbnail && isCachedInfoValid) {
 					video.thumbnail = cachedVideo.thumbnail;
 				}
-				if (cachedVideo.length) {
+				if (cachedVideo.length && isCachedInfoValid) {
 					video.length = cachedVideo.length;
 				}
 				return video;
