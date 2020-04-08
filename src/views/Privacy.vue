@@ -16,7 +16,8 @@
 
     <p>
       This site uses the Youtube Data API, and it's usage must comply with the <a href="https://developers.google.com/youtube/terms/api-services-terms-of-service">YouTube API Terms of Service</a>.
-      No personally identifiable information is sent to Youtube. Watching Youtube videos requires you to agree to the <a href="https://www.youtube.com/t/terms">Youtube Terms of Service</a>.
+      No personally identifiable information is sent to Youtube. Watching Youtube videos requires you to agree to the <a href="https://www.youtube.com/t/terms">Youtube Terms of Service</a>,
+      and <a href="https://policies.google.com/privacy">Google's privacy policy</a>.
     </p>
   </v-container>
 </template>
