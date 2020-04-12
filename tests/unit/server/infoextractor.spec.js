@@ -659,6 +659,7 @@ describe('InfoExtractor Caching Spec', () => {
       description: "This is a test description.",
       thumbnail: "http://example.com/thumbnail.jpg",
       length: 32,
+      mime: "fake/mime",
     })).resolves.toBeDefined();
 
     await expect(CachedVideo.count()).resolves.toEqual(1);
@@ -678,6 +679,7 @@ describe('InfoExtractor Caching Spec', () => {
       expect(video.thumbnail).toBe("http://example.com/thumbnail.jpg");
       expect(video.length).toBeDefined();
       expect(video.length).toBe(32);
+      expect(video.mime).toBe("fake/mime");
 
       await expect(CachedVideo.count()).resolves.toEqual(1);
       await expect(CachedVideo.findOne({ where: { service: "fakeservice", serviceId: "abc123" }})).resolves.toBeDefined();
