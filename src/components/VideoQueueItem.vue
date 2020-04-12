@@ -12,6 +12,7 @@
 			<div>
 				<div class="video-title" no-gutters>{{ item.title }}</div>
 				<div class="description text-truncate" no-gutters>{{ item.description }}</div>
+				<div v-if="item.service === 'googledrive'" class="experimental">Experimental support for this service! Expect it to break a lot.</div>
 			</div>
 		</div>
 		<div style="display: flex; justify-content: center; flex-direction: column">
@@ -135,7 +136,7 @@ export default {
 		min-width: 20%;
 		width: 30%;
 
-		.video-title {
+		.video-title, .experimental {
 			font-size: 1.25rem;
 			@media (max-width: $sm-max) {
 				font-size: 0.8rem;
