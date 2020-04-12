@@ -39,6 +39,9 @@ module.exports = {
 			return false;
 		});
 	},
+	async isRoomNameTaken(roomName) {
+		return await Room.findOne({ where: { name: roomName } }).then(room => room ? true : false).catch(() => false);
+	},
 	updateRoom(room) {
 		return Room.findOne({
 			where: { name: room.name },
@@ -82,10 +85,10 @@ module.exports = {
 			if (cachedVideo.description !== null && isCachedInfoValid) {
 				video.description = cachedVideo.description;
 			}
-			if (cachedVideo.thumbnail !== null && (video.service !== "googledrive" || (video.service === "googledrive" && lastUpdatedAt.diff(today, "hour") <= 12))) {
+			if (cachedVideo.thumbnail !== null && (video.service !== "googledrive" && isCachedInfoValid || (video.service === "googledrive" && lastUpdatedAt.diff(today, "hour") <= 12))) {
 				video.thumbnail = cachedVideo.thumbnail;
 			}
-			if (cachedVideo.length !== null) {
+			if (cachedVideo.length !== null && isCachedInfoValid) {
 				video.length = cachedVideo.length;
 			}
 			if (cachedVideo.mime !== null) {
@@ -154,10 +157,10 @@ module.exports = {
 				if (cachedVideo.description && isCachedInfoValid) {
 					video.description = cachedVideo.description;
 				}
-				if (cachedVideo.thumbnail) {
+				if (cachedVideo.thumbnail && isCachedInfoValid) {
 					video.thumbnail = cachedVideo.thumbnail;
 				}
-				if (cachedVideo.length) {
+				if (cachedVideo.length && isCachedInfoValid) {
 					video.length = cachedVideo.length;
 				}
 				if (cachedVideo.mime) {

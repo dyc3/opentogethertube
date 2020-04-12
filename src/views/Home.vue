@@ -13,7 +13,7 @@
 							:column="$vuetify.breakpoint.xs"
 							:justify-space-between="$vuetify.breakpoint.smAndUp"
 							:justify-space-around="$vuetify.breakpoint.xs">
-						<v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
+						<v-btn elevation="12" x-large @click="createTempRoom">Create Room</v-btn>
 						<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
 						<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
 					</v-layout>
@@ -113,52 +113,27 @@
 					<v-row no-gutters align="center" justify="center">
 						{{ new Date().getFullYear() }} -&nbsp;<a href="https://carsonmcmanus.com/">Carson McManus</a>&nbsp;- Made in America - Special Thanks to&nbsp;<a href="https://softe.club">SEC</a>&nbsp;@ Stevens
 					</v-row>
+					<v-row no-gutters align="center" justify="center">
+						<router-link to="/privacypolicy">Privacy Policy</router-link>
+					</v-row>
 				</v-container>
 			</v-footer>
 		</v-container>
-		<v-overlay :value="isLoading">
-			<v-container fill-height>
-				<v-row align="center" justify="center">
-					<v-col cols="12" sm="4">
-						<v-progress-circular indeterminate />
-						<v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">Cancel</v-btn>
-					</v-col>
-				</v-row>
-			</v-container>
-		</v-overlay>
 	</div>
 </template>
 
 <script>
-import { API } from "@/common-http.js";
+import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 
 export default {
 	name: 'home',
+	mixins: [RoomUtilsMixin],
 	data() {
-		return {
-			isLoading: false,
-		};
+		return {};
 	},
 	computed: {
 		cardHeight() {
 			return 180;
-		},
-	},
-	methods: {
-		createRoom() {
-			this.isLoading = true;
-			this.cancelledCreation = false;
-			API.post("/room/generate").then(res => {
-				if (!this.cancelledCreation) {
-					this.isLoading = false;
-					this.cancelledCreation = false;
-					this.$router.push(`/room/${res.data.room}`);
-				}
-			});
-		},
-		cancelRoom() {
-			this.cancelledCreation = true;
-			this.isLoading = false;
 		},
 	},
 };

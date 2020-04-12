@@ -76,6 +76,9 @@ To start the client: `npm run serve`
 # Deployment
 
 1. Clone this repo.
+```
+git clone https://github.com/dyc3/opentogethertube.git
+```
 2. Install despendencies.
 ```
 npm install

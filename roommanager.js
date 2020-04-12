@@ -27,6 +27,8 @@ class Room {
 	 * DO NOT CREATE NEW ROOMS WITH THIS CONSTRUCTOR. Create/get Rooms using the RoomManager.
 	 */
 	constructor(args=undefined) {
+		this._dirtyProps = [];
+
 		this.name = "";
 		this.title = "";
 		this.description = "";
@@ -46,6 +48,87 @@ class Room {
 		this.log = log.child({
 			roomName: this.name,
 		});
+	}
+
+	get name() {
+		return this._name;
+	}
+
+	set name(value) {
+		this._name = value;
+		this._dirtyProps.push("name");
+	}
+
+	get title() {
+		return this._title;
+	}
+
+	set title(value) {
+		this._title = value;
+		this._dirtyProps.push("title");
+	}
+
+	get description() {
+		return this._description;
+	}
+
+	set description(value) {
+		this._description = value;
+		this._dirtyProps.push("description");
+	}
+
+	get isTemporary() {
+		return this._isTemporary;
+	}
+
+	set isTemporary(value) {
+		this._isTemporary = value;
+		this._dirtyProps.push("isTemporary");
+	}
+
+	get visibility() {
+		return this._visibility;
+	}
+
+	set visibility(value) {
+		this._visibility = value;
+		this._dirtyProps.push("visibility");
+	}
+
+	get queueMode() {
+		return this._queueMode;
+	}
+
+	set queueMode(value) {
+		this._queueMode = value;
+		this._dirtyProps.push("queueMode");
+	}
+
+	get currentSource() {
+		return this._currentSource;
+	}
+
+	set currentSource(value) {
+		this._currentSource = value;
+		this._dirtyProps.push("currentSource");
+	}
+
+	get isPlaying() {
+		return this._isPlaying;
+	}
+
+	set isPlaying(value) {
+		this._isPlaying = value;
+		this._dirtyProps.push("isPlaying");
+	}
+
+	get playbackPosition() {
+		return this._playbackPosition;
+	}
+
+	set playbackPosition(value) {
+		this._playbackPosition = value;
+		this._dirtyProps.push("playbackPosition");
 	}
 
 	/**
@@ -85,6 +168,7 @@ class Room {
 				queueItem.title = queueItem.id;
 			}).then(() => {
 				this.queue.push(queueItem);
+				this._dirtyProps.push("queue");
 				this.update();
 				this.sync();
 
@@ -136,6 +220,7 @@ class Room {
 
 		this.queue[matchIdx].votes.push({ userSessionId: session.id });
 		this.queue[matchIdx]._lastVotesChanged = moment();
+		this._dirtyProps.push("queue");
 		return true;
 	}
 
@@ -158,6 +243,7 @@ class Room {
 
 		this.queue[matchIdx].votes = _.reject(this.queue[matchIdx].votes, { userSessionId: session.id });
 		this.queue[matchIdx]._lastVotesChanged = moment();
+		this._dirtyProps.push("queue");
 		return true;
 	}
 
@@ -168,6 +254,7 @@ class Room {
 		}
 		// remove the item from the queue
 		let removed = this.queue.splice(matchIdx, 1)[0];
+		this._dirtyProps.push("queue");
 		if (session) {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
 		}
@@ -191,12 +278,14 @@ class Room {
 				this.log.debug("Remove inactive client:", i, this.clients[i].session.username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
 				this.clients.splice(i--, 1);
+				this._dirtyProps.push("users");
 				continue;
 			}
 		}
 
 		// sort queue according to queue mode
 		if (this.queueMode === "vote") {
+			let _oldOrder = _.clone(this.queue);
 			this.queue = _.orderBy(this.queue, [
 				video => video.votes ? video.votes.length : 0,
 				video => video._lastVotesChanged,
@@ -204,6 +293,9 @@ class Room {
 				"desc",
 				"asc",
 			]);
+			if (this.queue.length > 0 && !this.queue.every((value, index) => _.isEqual(value, _oldOrder[index]))) {
+				this._dirtyProps.push("queue");
+			}
 		}
 
 		// HACK: sometimes, if we fuck up getting a video, currentSource may become undefined.
@@ -214,9 +306,11 @@ class Room {
 
 		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
 			this.currentSource = this.queue.shift();
+			this._dirtyProps.push("queue");
 		}
 		else if (!_.isEmpty(this.currentSource) && this.playbackPosition > this.currentSource.length) {
 			this.currentSource = this.queue.length > 0 ? this.queue.shift() : {};
+			this._dirtyProps.push("queue");
 			this.playbackPosition = 0;
 		}
 		if (_.isEmpty(this.currentSource) && this.queue.length == 0 && this.isPlaying) {
@@ -234,6 +328,8 @@ class Room {
 	 * Synchronize all clients in this room by sending a sync message.
 	 */
 	sync() {
+		this._dirtyProps = _.uniq(this._dirtyProps);
+
 		let syncMsg = {
 			action: "sync",
 			name: this.name,
@@ -251,6 +347,10 @@ class Room {
 		for (const client of this.clients) {
 			// make sure the socket is still open
 			if (client.socket.readyState != 1) {
+				continue;
+			}
+
+			if (!client.needsFullSync && this._dirtyProps.length == 0) {
 				continue;
 			}
 
@@ -272,13 +372,21 @@ class Room {
 				});
 			}
 
+			let dirtySyncMsg = _.pick(syncMsg, _.concat(["action"], this._dirtyProps));
+			if (client.needsFullSync) {
+				this.log.debug("sending full sync message to client");
+				dirtySyncMsg = syncMsg;
+				client.needsFullSync = false;
+			}
+
 			try {
-				client.socket.send(JSON.stringify(syncMsg));
+				client.socket.send(JSON.stringify(dirtySyncMsg));
 			}
 			catch (error) {
 				// ignore errors
 			}
 		}
+		this._dirtyProps = [];
 	}
 
 	/**
@@ -308,20 +416,26 @@ class Room {
 	undoEvent(event) {
 		if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
 			this.playbackPosition = event.parameters.previousPosition;
+			this._dirtyProps.push("playbackPosition");
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.SKIP) {
 			if (this.currentSource) {
 				this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
+				this._dirtyProps.push("queue");
 			}
 			this.currentSource = event.parameters.video;
 			this.playbackPosition = 0;
+			this._dirtyProps.push("currentSource");
+			this._dirtyProps.push("playbackPosition");
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.ADD_TO_QUEUE) {
 			if (this.queue.length > 0) {
 				this.removeFromQueue(event.parameters.video);
+				this._dirtyProps.push("queue");
 			}
 			else {
 				this.currentSource = {};
+				this._dirtyProps.push("currentSource");
 			}
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE) {
@@ -329,6 +443,7 @@ class Room {
 			newQueue.push(event.parameters.video);
 			newQueue.push(...this.queue);
 			this.queue = newQueue;
+			this._dirtyProps.push("queue");
 		}
 		else {
 			this.log.error(`Can't undo room event with type: ${event.eventType}`);
@@ -370,8 +485,10 @@ class Room {
 			session: req.session,
 			socket: ws,
 			status: "joined",
+			needsFullSync: true,
 		};
 		this.clients.push(client);
+		this._dirtyProps.push("users");
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
@@ -417,7 +534,7 @@ class Room {
 				// name unchanged, ignore
 				return;
 			}
-			log.info(`${client.session.username} changed name to ${msg.name}`);
+			this.log.info(`${client.session.username} changed name to ${msg.name}`);
 			client.session.username = msg.name;
 			client.session.save();
 			this.update();
@@ -445,6 +562,7 @@ class Room {
 
 			let video = this.queue.splice(msg.currentIdx, 1)[0];
 			this.queue.splice(msg.targetIdx, 0, video);
+			this._dirtyProps.push("queue");
 			this.sync();
 		}
 		else if (msg.action === "undo") {
@@ -458,6 +576,7 @@ class Room {
 		else if (msg.action === "status") {
 			this.log.debug(`status: ${client.session.username} ${msg.status}`);
 			client.status = msg.status;
+			this._dirtyProps.push("users");
 			this.sync();
 		}
 		else {
@@ -560,7 +679,7 @@ module.exports = {
 			log.info("Redis client is ready");
 		});
 		redisClient.on('error', err => {
-			log.error('error event - ' + redisClient.host + ':' + redisClient.port + ' - ' + err);
+			log.error(`error event - ${redisClient.host}:${redisClient.port} - ${err}`);
 		});
 		this.getAllLoadedRooms().then(result => {
 			this.rooms = result || [];
@@ -601,24 +720,43 @@ module.exports = {
 	 * @param {boolean} isTemporary Whether or not the new room is temporary. Temporary rooms do not get stored in the database.
 	 * @param {string} visibility Indicates the room's visibility. Only public rooms are shown on the rooms list.
 	 */
-	createRoom(name, isTemporary=false, visibility="public") {
-		if (_.find(this.rooms, room => room.name === name)) {
-			throw new RoomNameTakenException(name);
+	async createRoom(options, isTemporary=false, visibility="public") {
+		if (typeof options === "string") {
+			let name = options;
+			options = {
+				name,
+				isTemporary,
+				visibility,
+			};
+		}
+		else {
+			options = _.defaults(options, {
+				isTemporary: false,
+				visibility: "public",
+			});
+			if (options.temporary !== undefined) {
+				options.isTemporary = options.temporary;
+				delete options.temporary;
+			}
 		}
 
-		let newRoom = new Room({
-			name,
-			isTemporary,
-			visibility,
-		});
-		if (isTemporary) {
+		if (_.find(this.rooms, room => room.name === options.name)) {
+			throw new RoomNameTakenException(options.name);
+		}
+		if (await storage.isRoomNameTaken(options.name)) {
+			throw new RoomNameTakenException(options.name);
+		}
+
+		let newRoom = new Room(options);
+		if (options.isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
 			newRoom.keepAlivePing = new Date();
 		}
 		else {
-			storage.saveRoom(newRoom);
+			await storage.saveRoom(newRoom);
 		}
 		this.rooms.push(newRoom);
+		log.info(`Room created: ${newRoom.name}`);
 	},
 
 	/**
@@ -638,6 +776,7 @@ module.exports = {
 				let rooms = JSON.parse(value);
 				resolve(rooms.map(room => {
 					delete room.clients;
+					delete room._dirtyProps;
 					room.keepAlivePing = moment();
 					return new Room(room);
 				}));
@@ -651,11 +790,13 @@ module.exports = {
 	saveAllLoadedRooms() {
 		let rooms = _.cloneDeep(this.rooms).map(room => {
 			delete room.clients;
+			delete room._dirtyProps;
+			delete room.log;
 			return room;
 		});
 		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
 			if (err) {
-				log.error(err);
+				log.error(`Failed to save rooms to redis: ${err} ${err.message}`);
 				throw err;
 			}
 		});
@@ -707,7 +848,7 @@ module.exports = {
 			}
 		}
 
-		const roomIdx = _.findIndex(this.rooms, r => r.name === room.name);
+		const roomIdx = _.findIndex(this.rooms, r => r.name === (typeof room === "string" ? room : room.name));
 		this.rooms.splice(roomIdx, 1);
 	},
 
@@ -752,6 +893,7 @@ module.exports = {
 	 * @param {String} text The message to send
 	 */
 	sendAnnouncement(text) {
+		log.info(`Sending announcement: ${text}`);
 		for (let room of this.rooms) {
 			room.sendAnnouncement(text);
 		}

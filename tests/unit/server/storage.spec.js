@@ -89,6 +89,13 @@ describe('Storage: Room Spec', () => {
       done();
     });
   });
+
+  it('should return true if room name is taken', async () => {
+    await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
+    expect(await storage.isRoomNameTaken("example")).toBeFalsy();
+    await expect(storage.saveRoom({ name: "example" })).resolves.toBe(true);
+    expect(await storage.isRoomNameTaken("example")).toBeTruthy();
+  });
 });
 
 describe('Storage: CachedVideos Spec', () => {

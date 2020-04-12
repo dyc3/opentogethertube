@@ -28,12 +28,14 @@ const app = express();
 const server = http.createServer(app);
 
 const redis = require('redis');
-const redisClient = redis.createClient({
-	port: process.env.REDIS_PORT || undefined,
-	host: process.env.REDIS_HOST || undefined,
-	password: process.env.REDIS_PASSWORD || undefined,
-	db: process.env.REDIS_DB || undefined,
-});
+const redisClient = process.env.REDIS_URL ?
+	redis.createClient(process.env.REDIS_URL) :
+	redis.createClient({
+		port: process.env.REDIS_PORT || undefined,
+		host: process.env.REDIS_HOST || undefined,
+		password: process.env.REDIS_PASSWORD || undefined,
+		db: process.env.REDIS_DB || undefined,
+	});
 
 const session = require('express-session');
 let RedisStore = require('connect-redis')(session);
@@ -69,7 +71,7 @@ app.use((req, res, next) => {
 const storage = require("./storage");
 const roommanager = require("./roommanager");
 const infoextract = require("./infoextract");
-const api = require("./api")(roommanager, storage);
+const api = require("./api")(roommanager, storage, redisClient);
 roommanager.start(server, sessions, redisClient);
 infoextract.init(redisClient);
 
@@ -112,6 +114,7 @@ if (fs.existsSync("./dist")) {
 	app.get("/faq", serveBuiltFiles);
 	app.get("/rooms", serveBuiltFiles);
 	app.get("/room/:roomId", serveBuiltFiles);
+	app.get("/privacypolicy", serveBuiltFiles);
 }
 else {
 	log.warn("no dist folder found");

@@ -2,15 +2,14 @@ const { createLogger, format, transports } = require('winston');
 const colors = require('ansi-colors');
 
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
-	if (roomName) {
-		if (roomEvent) {
-			// HACK: video descriptions are long, so remove then to make logs easier to read.
-			if (roomEvent.parameters && roomEvent.parameters.video) {
-				delete roomEvent.parameters.video.description;
-			}
-			delete roomEvent.roomName;
-			return `${timestamp} ${namespace} Room/${roomName} ${level} Room event: ${JSON.stringify(roomEvent)}`;
+	if (roomEvent) {
+		// HACK: video descriptions are long, so remove then to make logs easier to read.
+		if (roomEvent.parameters && roomEvent.parameters.video) {
+			delete roomEvent.parameters.video.description;
 		}
+		return `${timestamp} ${namespace} Room/${roomEvent.roomName} ${level} Room event: ${JSON.stringify(roomEvent)}`;
+	}
+	if (roomName) {
 		return `${timestamp} ${namespace} Room/${roomName} ${level} ${message}`;
 	}
 	return `${timestamp} ${namespace} ${level} ${message}`;
@@ -37,9 +36,6 @@ const customColorizer = format(info => {
 	}
 	else {
 		info.level = colors.bold(info.level);
-	}
-	if (info.roomName) {
-		info.roomName = colors.italic(info.roomName);
 	}
 	return info;
 });
