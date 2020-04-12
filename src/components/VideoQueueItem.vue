@@ -1,7 +1,7 @@
 <template>
 	<v-sheet class="mt-2 video" hover>
 		<div class="img-container">
-			<v-img :src="item.thumbnail ? item.thumbnail : require('@/assets/placeholder.svg')" :lazy-src="require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }">
+			<v-img :src="thumbnailSource" :lazy-src="require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }" aspect-ratio="1.8" @error="onThumbnailError">
 				<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode === 'manual'">
 					<v-icon>fas fa-align-justify</v-icon>
 				</span>
@@ -48,11 +48,15 @@ export default {
 			isLoadingAdd: false,
 			isLoadingVote: false,
 			hasBeenAdded: false,
+			thumbnailHasError: false,
 		};
 	},
 	computed:{
 		videoLength() {
 			return secondsToTimestamp(this.item.length);
+		},
+		thumbnailSource() {
+			return !this.thumbnailHasError && this.item.thumbnail ? this.item.thumbnail : require('@/assets/placeholder.svg');
 		},
 	},
 	methods: {
@@ -97,6 +101,9 @@ export default {
 					this.item.voted = false;
 				});
 			}
+		},
+		onThumbnailError() {
+			this.thumbnailHasError = true;
 		},
 	},
 };
@@ -151,6 +158,7 @@ export default {
 	}
 
 	.img-container {
+		width: 200px;
 		max-width: 200px;
 		@media (max-width: $sm-max) {
 			max-width: 80px;
