@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.TEXT,
     thumbnail: DataTypes.STRING,
     length: DataTypes.INTEGER,
+    mime: DataTypes.STRING,
   }, {});
   // eslint-disable-next-line no-unused-vars
   CachedVideo.associate = function(models) {

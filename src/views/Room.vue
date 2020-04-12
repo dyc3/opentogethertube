@@ -12,6 +12,7 @@
               <YoutubePlayer v-if="currentSource.service == 'youtube'" class="player" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
+              <GoogleDrivePlayer v-else-if="currentSource.service == 'googledrive'" class="player" ref="googledrive" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <v-container fluid fill-height class="player no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -184,6 +185,7 @@ export default {
     YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
     VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
     DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
+    GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
   },
   data() {
     return {
@@ -372,6 +374,9 @@ export default {
       else if (this.currentSource.service === "dailymotion") {
         this.$refs.dailymotion.play();
       }
+      else if (this.currentSource.service === "googledrive") {
+        this.$refs.googledrive.play();
+      }
     },
     pause() {
       if (this.currentSource.service == "youtube") {
@@ -383,6 +388,9 @@ export default {
       else if (this.currentSource.service === "dailymotion") {
         this.$refs.dailymotion.pause();
       }
+      else if (this.currentSource.service === "googledrive") {
+        this.$refs.googledrive.pause();
+      }
     },
     updateVolume() {
       if (this.currentSource.service == "youtube") {
@@ -393,6 +401,9 @@ export default {
       }
       else if (this.currentSource.service === "dailymotion") {
         this.$refs.dailymotion.setVolume(this.volume);
+      }
+      else if (this.currentSource.service === "googledrive") {
+        this.$refs.googledrive.setVolume(this.volume);
       }
     },
     requestAddPreview() {
@@ -662,6 +673,9 @@ export default {
       else if (this.currentSource.service === "dailymotion") {
         currentTime = await this.$refs.dailymotion.getPosition();
       }
+      else if (this.currentSource.service === "googledrive") {
+        currentTime = await this.$refs.googledrive.getPosition();
+      }
       if (Math.abs(newPosition - currentTime) > 1) {
         if (this.currentSource.service === "youtube") {
           this.$refs.youtube.setPosition(newPosition);
@@ -671,6 +685,9 @@ export default {
         }
         else if (this.currentSource.service === "dailymotion") {
           this.$refs.dailymotion.setPosition(newPosition);
+        }
+        else if (this.currentSource.service === "googledrive") {
+          this.$refs.googledrive.setPosition(newPosition);
         }
       }
     },

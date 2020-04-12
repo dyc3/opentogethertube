@@ -11,8 +11,17 @@ class Video {
 		this.description = null;
 		this.thumbnail = null;
 		this.length = null;
+		this.mime = null;
 		if (args) {
 			Object.assign(this, args);
+		}
+
+		// eslint-disable-next-line array-bracket-newline
+		if (["youtube", "vimeo", "dailymotion"].includes(this.service)) {
+			delete this.mime;
+		}
+		else if (["googledrive"].includes(this.service)) {
+			delete this.description;
 		}
 	}
 
@@ -24,7 +33,7 @@ class Video {
 	 */
 	static merge(a, b) {
 		if (a.service !== b.service || a.id !== b.id) {
-			throw "Both video's service and id must match in order to merge";
+			throw new Error("Both video's service and id must match in order to merge");
 		}
 
 		return Object.assign(_.cloneDeep(a), _.pickBy(b, x => x));

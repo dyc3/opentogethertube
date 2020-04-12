@@ -85,11 +85,14 @@ module.exports = {
 			if (cachedVideo.description !== null && isCachedInfoValid) {
 				video.description = cachedVideo.description;
 			}
-			if (cachedVideo.thumbnail !== null && isCachedInfoValid) {
+			if (cachedVideo.thumbnail !== null && (video.service !== "googledrive" && isCachedInfoValid || (video.service === "googledrive" && lastUpdatedAt.diff(today, "hour") <= 12))) {
 				video.thumbnail = cachedVideo.thumbnail;
 			}
 			if (cachedVideo.length !== null && isCachedInfoValid) {
 				video.length = cachedVideo.length;
+			}
+			if (cachedVideo.mime !== null) {
+				video.mime = cachedVideo.mime;
 			}
 			return video;
 		}).catch(err => {
@@ -159,6 +162,9 @@ module.exports = {
 				}
 				if (cachedVideo.length && isCachedInfoValid) {
 					video.length = cachedVideo.length;
+				}
+				if (cachedVideo.mime) {
+					video.mime = cachedVideo.mime;
 				}
 				return video;
 			});
@@ -249,10 +255,17 @@ module.exports = {
 			});
 		});
 	},
-	getVideoInfoFields() {
+	getVideoInfoFields(service=undefined) {
 		let fields = [];
 		for (let column in CachedVideo.rawAttributes) {
 			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId") {
+				continue;
+			}
+			// eslint-disable-next-line array-bracket-newline
+			if (["youtube", "vimeo", "dailymotion"].includes(service) && column === "mime") {
+				continue;
+			}
+			if (service === "googledrive" && column === "description") {
 				continue;
 			}
 			fields.push(column);

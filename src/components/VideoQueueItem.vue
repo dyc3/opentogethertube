@@ -1,7 +1,7 @@
 <template>
 	<v-sheet class="mt-2 video" hover>
 		<div class="img-container">
-			<v-img :src="item.thumbnail ? item.thumbnail : require('@/assets/placeholder.svg')" :lazy-src="require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }">
+			<v-img :src="thumbnailSource" :lazy-src="require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }" aspect-ratio="1.8" @error="onThumbnailError">
 				<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode === 'manual'">
 					<v-icon>fas fa-align-justify</v-icon>
 				</span>
@@ -12,6 +12,7 @@
 			<div>
 				<div class="video-title" no-gutters>{{ item.title }}</div>
 				<div class="description text-truncate" no-gutters>{{ item.description }}</div>
+				<div v-if="item.service === 'googledrive'" class="experimental">Experimental support for this service! Expect it to break a lot.</div>
 			</div>
 		</div>
 		<div style="display: flex; justify-content: center; flex-direction: column">
@@ -48,11 +49,15 @@ export default {
 			isLoadingAdd: false,
 			isLoadingVote: false,
 			hasBeenAdded: false,
+			thumbnailHasError: false,
 		};
 	},
 	computed:{
 		videoLength() {
 			return secondsToTimestamp(this.item.length);
+		},
+		thumbnailSource() {
+			return !this.thumbnailHasError && this.item.thumbnail ? this.item.thumbnail : require('@/assets/placeholder.svg');
 		},
 	},
 	methods: {
@@ -98,6 +103,9 @@ export default {
 				});
 			}
 		},
+		onThumbnailError() {
+			this.thumbnailHasError = true;
+		},
 	},
 };
 </script>
@@ -128,7 +136,7 @@ export default {
 		min-width: 20%;
 		width: 30%;
 
-		.video-title {
+		.video-title, .experimental {
 			font-size: 1.25rem;
 			@media (max-width: $sm-max) {
 				font-size: 0.8rem;
@@ -151,6 +159,7 @@ export default {
 	}
 
 	.img-container {
+		width: 200px;
 		max-width: 200px;
 		@media (max-width: $sm-max) {
 			max-width: 80px;

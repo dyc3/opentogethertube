@@ -33,13 +33,17 @@ config in the `env` folder to a new file called `development.env`
 ```
 cp env/example.env env/development.env
 ```
-4. Obtain a YouTube API key
-5. Open `env/development.env` and replace `API_KEY_GOES_HERE` with the youtube api key.
-6. Initialize your local database.
+4. Create a new project on [Google Cloud](https://console.cloud.google.com)
+5. Add "YouTube Data API v3" and "Google Drive API" to the project
+6. Obtain a YouTube API key
+7. Obtain a Google Drive API key
+	- _Not necessary if you don't plan to stream videos from Google Drive, which you probably shouldn't do anyway because Google doesn't like that._
+8. Open `env/development.env` and replace `API_KEY_GOES_HERE` with the appropriate api key.
+9. Initialize your local database.
 ```
 npx sequelize-cli db:migrate
 ```
-7. Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
+10. Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
 
 ### Testing
 
