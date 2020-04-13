@@ -22,6 +22,10 @@ const DAILYMOTION_API_URL = "https://api.dailymotion.com";
 const DailymotionApi = axios.create({
 	baseURL: DAILYMOTION_API_URL,
 });
+const GOOGLE_DRIVE_API_URL = "https://www.googleapis.com/drive/v3";
+const GoogleDriveApi = axios.create({
+	baseURL: GOOGLE_DRIVE_API_URL,
+});
 
 class UnsupportedServiceException extends Error {
 	constructor(hostname) {
@@ -38,8 +42,16 @@ class InvalidAddPreviewInputException extends Error {
 }
 
 class OutOfQuotaException extends Error {
-	constructor() {
-		super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 10,000 quota per day.`);
+	constructor(service) {
+		if (service === "youtube") {
+			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 10,000 quota per day.`);
+		}
+		else if (service === "googledrive") {
+			super(`We don't have enough Google Drive API quota to complete the request.`);
+		}
+		else {
+			super(`We don't have enough API quota to complete the request. Try again later.`);
+		}
 		this.name = "OutOfQuotaException";
 	}
 }
@@ -55,6 +67,18 @@ class FeatureDisabledException extends Error {
 	constructor(reason) {
 		super(`Sorry, this feature is disabled: ${reason}`);
 		this.name = "FeatureDisabledException";
+	}
+}
+
+class UnsupportedMimeTypeException extends Error {
+	constructor(mime) {
+		if (mime.startsWith("video/")) {
+			super(`Files that are ${mime} are not supported.`);
+		}
+		else {
+			super(`The requested resource was not actually a video, it was a ${mime}`);
+		}
+		this.name = "UnsupportedMimeTypeException";
 	}
 }
 
@@ -97,12 +121,21 @@ module.exports = {
 				return Promise.reject(new InvalidVideoIdException(service, id));
 			}
 		}
+		else if (service === "googledrive") {
+			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
+				return Promise.reject(new InvalidVideoIdException(service, id));
+			}
+		}
 
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
-			let missingInfo = storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p));
+			let missingInfo = storage.getVideoInfoFields(video.service).filter(p => !video.hasOwnProperty(p));
 			if (missingInfo.length === 0) {
-				return new Video(video);
+				video = new Video(video);
+				if (video.service === "googledrive" && !this.isSupportedMimeType(video.mime)) {
+					throw new UnsupportedMimeTypeException(video.mime);
+				}
+				return video;
 			}
 
 			log.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
@@ -113,7 +146,7 @@ module.exports = {
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
 						log.error("Failed to get youtube video info: Out of quota");
-						if (missingInfo.length < storage.getVideoInfoFields().length) {
+						if (missingInfo.length < storage.getVideoInfoFields(video.service).length) {
 							log.warn(`Returning cached results for ${video.service}:${video.id}`);
 							return result;
 						}
@@ -132,6 +165,26 @@ module.exports = {
 			}
 			else if (video.service === "dailymotion") {
 				return this.getVideoInfoDailymotion(video.id);
+			}
+			else if (video.service === "googledrive") {
+				return this.getVideoInfoGoogleDrive(video.id).then(result => {
+					return Video.merge(video, result);
+				}).catch(err => {
+					if (err.name === "OutOfQuotaException") {
+						log.error("Failed to get google drive file info: Out of quota");
+						if (missingInfo.length < storage.getVideoInfoFields(video.service).length) {
+							log.warn(`Returning cached results for ${video.service}:${video.id}`);
+							return result;
+						}
+						else {
+							throw err;
+						}
+					}
+					else {
+						log.error(`Failed to get google drive file info: ${err}`);
+						throw err;
+					}
+				});
 			}
 		}).catch(err => {
 			log.error(`Failed to get video metadata: ${err}`);
@@ -155,7 +208,7 @@ module.exports = {
 			let retrievalPromise = storage.getManyVideoInfo(grouped[service]).then(serviceVideos => {
 				// group by missing info
 				// WARNING: Arrays can't be used as keys, so the array of strings gets turned in to a string. May cause issues?
-				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields().filter(p => !video.hasOwnProperty(p)));
+				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields(service).filter(p => !video.hasOwnProperty(p)));
 
 				if (service === "youtube") {
 					let promises = [];
@@ -223,8 +276,11 @@ module.exports = {
 		else if (service === "dailymotion") {
 			id = this.getVideoIdDailymotion(input);
 		}
+		else if (service === "googledrive") {
+			id = this.getVideoIdGoogleDrive(input);
+		}
 
-		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion") {
+		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion" && service !== "googledrive") {
 			return Promise.reject(new UnsupportedServiceException(urlParsed.host));
 		}
 		else if (!urlParsed.host) {
@@ -237,7 +293,7 @@ module.exports = {
 					.catch(err => {
 						if (err.name === "OutOfQuotaException") {
 							log.error("Failed to search youtube for add preview: Out of quota");
-							throw new OutOfQuotaException();
+							throw new OutOfQuotaException("youtube");
 						}
 						else {
 							log.error(`Failed to search youtube for add preview: ${err}`);
@@ -294,7 +350,7 @@ module.exports = {
 					else {
 						if (err.response && err.response.status === 403) {
 							log.error("Failed to compile add preview: error getting playlist: Out of quota");
-							reject(new OutOfQuotaException());
+							reject(new OutOfQuotaException("youtube"));
 						}
 						else {
 							log.error(`Failed to compile add preview: error getting playlist: ${err}`);
@@ -317,6 +373,13 @@ module.exports = {
 			return this.getChanneInfoYoutube(channelData)
 				.then(newestVideos => this.getManyVideoInfo(newestVideos))
 				.catch(err => log.error(`Error getting channel info: ${err}`));
+		}
+		else if (service === "googledrive" && urlParsed.path.startsWith("/drive")) {
+			let folderId = this.getFolderIdGoogleDrive(input);
+			log.info(`google drive folder found: ${folderId}`);
+			return this.getFolderGoogleDrive(folderId)
+				// .then(videos => this.getManyVideoInfo(videos))
+				.catch(err => log.error(`Error getting google drive info: ${err}`));
 		}
 		else {
 			let video = new Video({
@@ -354,9 +417,16 @@ module.exports = {
 		else if (srcUrl.host.endsWith("dailymotion.com") || srcUrl.host.endsWith("dai.ly")) {
 			return "dailymotion";
 		}
+		else if (srcUrl.host.endsWith("drive.google.com")) {
+			return "googledrive";
+		}
 		else {
 			return false;
 		}
+	},
+
+	isSupportedMimeType(mime) {
+		return /^video\/(?!x-flv)(?!x-matroska)[a-z0-9-]+$/.exec(mime) ? true : false;
 	},
 
 	/* YOUTUBE */
@@ -474,7 +544,7 @@ module.exports = {
 					}
 					else {
 						log.warn("No fallback method for requested metadata properties");
-						reject(new OutOfQuotaException());
+						reject(new OutOfQuotaException("youtube"));
 					}
 				}
 				else {
@@ -544,7 +614,7 @@ module.exports = {
 				});
 			}).catch(err => {
 				if (err.response && err.response.status === 403) {
-					reject(new OutOfQuotaException());
+					reject(new OutOfQuotaException("youtube"));
 				}
 				else {
 					reject(err);
@@ -606,7 +676,7 @@ module.exports = {
 		}).catch(err => {
 			if (err.response && err.response.status === 403) {
 				log.error(`Error when getting channel upload playlist ID: Out of Quota`);
-				throw new OutOfQuotaException();
+				throw new OutOfQuotaException("youtube");
 			}
 			else {
 				log.error(`Error when getting channel upload playlist ID: ${err}`);
@@ -672,7 +742,7 @@ module.exports = {
 			return results;
 		}).catch(err => {
 			if (err.response && err.response.status === 403) {
-				throw new OutOfQuotaException();
+				throw new OutOfQuotaException("youtube");
 			}
 			else {
 				throw err;
@@ -763,6 +833,90 @@ module.exports = {
 		}).catch(err => {
 			log.error(`Failed to get dailymotion video info: ${err}`);
 			return null;
+		});
+	},
+
+	/* GOOGLE DRIVE */
+
+	getVideoIdGoogleDrive(link) {
+		let urlParsed = url.parse(link);
+		if (urlParsed.path.startsWith("/file/d/")) {
+			return urlParsed.path.split("/")[3];
+		}
+		else {
+			let query = querystring.parse(urlParsed.query);
+			return query["id"];
+		}
+	},
+
+	getFolderIdGoogleDrive(link) {
+		let urlParsed = url.parse(link);
+		if (/^\/drive\/u\/\d\/folders\//.exec(urlParsed.path)) {
+			return urlParsed.path.split("/")[5].split("?")[0].trim();
+		}
+		else if (urlParsed.path.startsWith("/drive/folders")) {
+			return urlParsed.path.split("/")[3].split("?")[0].trim();
+		}
+		else {
+			throw new Error("Invalid google drive folder");
+		}
+	},
+
+	parseGoogleDriveFile(file) {
+		return new Video({
+			service: "googledrive",
+			id: file.id,
+			title: file.name,
+			thumbnail: file.thumbnailLink,
+			length: Math.ceil(file.videoMediaMetadata.durationMillis / 1000),
+			mime: file.mimeType,
+		});
+	},
+
+	getVideoInfoGoogleDrive(id) {
+		// https://stackoverflow.com/questions/57585838/how-to-get-thumbnail-of-a-video-uploaded-to-google-drive
+		return GoogleDriveApi.get(`/files/${id}?key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=id,name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)`).then(res => {
+			// description is not provided
+			let video = this.parseGoogleDriveFile(res.data);
+			// video.id = id;
+			storage.updateVideoInfo(video);
+			if (!this.isSupportedMimeType(video.mime)) {
+				throw new UnsupportedMimeTypeException(video.mime);
+			}
+			return video;
+		}).catch(err => {
+			if (err.response && err.response.data.error && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
+				throw new OutOfQuotaException("googledrive");
+			}
+			else {
+				if (err.response && err.response.data.error) {
+					log.error(`Failed to get google drive video metadata: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
+				}
+				else {
+					log.error(`Failed to get google drive video metadata: ${err}: ${JSON.stringify(err.response.data)}`);
+				}
+				throw err;
+			}
+		});
+	},
+
+	getFolderGoogleDrive(id) {
+		return GoogleDriveApi.get(`/files?q="${id}"+in+parents&key=${process.env.GOOGLE_DRIVE_API_KEY}&fields=files(id,name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis))`).then(res => {
+			log.info(`Found ${res.data.files.length} items in folder`);
+			return res.data.files.map(item => this.parseGoogleDriveFile(item));
+		}).catch(err => {
+			if (err.response && err.response.data.error && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
+				throw new OutOfQuotaException("googledrive");
+			}
+			else {
+				if (err.response && err.response.data.error) {
+					log.error(`Failed to get google drive folder: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
+				}
+				else {
+					log.error(`Failed to get google drive folder: ${err}: ${JSON.stringify(err.response.data)}`);
+				}
+				throw err;
+			}
 		});
 	},
 };

@@ -49,6 +49,12 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getService("https://dai.ly/x6hkywd")).toEqual("dailymotion");
   });
 
+  it('getService() should return googledrive when given google drive link', () => {
+    expect(InfoExtract.getService("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("googledrive");
+    expect(InfoExtract.getService("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("googledrive");
+    expect(InfoExtract.getService("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("googledrive");
+  });
+
   it('getService() should return false when given link to unsupported service', () => {
     expect(InfoExtract.getService("http://example.com")).toEqual(false);
   });
@@ -93,6 +99,12 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd")).toEqual("x6hkywd");
     expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd?start=120")).toEqual("x6hkywd");
     expect(InfoExtract.getVideoIdDailymotion("https://dai.ly/x6hkywd")).toEqual("x6hkywd");
+  });
+
+  it('getVideoIdGoogleDrive() should return correct id when given google drive link', () => {
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw");
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq");
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("1rx4j-79UXk0PXccDwTxnrVVMenGopDIN");
   });
 });
 
@@ -563,6 +575,20 @@ describe("InfoExtractor Dailymotion Support", () => {
   });
 });
 
+describe("InfoExtractor Google Drive Support", () => {
+  it("should return whether or not the mime type is supported", () => {
+    expect(InfoExtract.isSupportedMimeType("video/mp4")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/webm")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/x-flv")).toBe(false);
+    expect(InfoExtract.isSupportedMimeType("video/x-matroska")).toBe(false);
+  });
+
+  it("should return the folder id if the link is valid", () => {
+    expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/u/0/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
+    expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
+  });
+});
+
 describe('InfoExtractor Caching Spec', () => {
   beforeEach(async () => {
     console.warn("CLEAR CACHE");
@@ -633,6 +659,7 @@ describe('InfoExtractor Caching Spec', () => {
       description: "This is a test description.",
       thumbnail: "http://example.com/thumbnail.jpg",
       length: 32,
+      mime: "fake/mime",
     })).resolves.toBeDefined();
 
     await expect(CachedVideo.count()).resolves.toEqual(1);
@@ -652,6 +679,7 @@ describe('InfoExtractor Caching Spec', () => {
       expect(video.thumbnail).toBe("http://example.com/thumbnail.jpg");
       expect(video.length).toBeDefined();
       expect(video.length).toBe(32);
+      expect(video.mime).toBe("fake/mime");
 
       await expect(CachedVideo.count()).resolves.toEqual(1);
       await expect(CachedVideo.findOne({ where: { service: "fakeservice", serviceId: "abc123" }})).resolves.toBeDefined();

@@ -85,11 +85,14 @@ module.exports = {
 			if (cachedVideo.description !== null && isCachedInfoValid) {
 				video.description = cachedVideo.description;
 			}
-			if (cachedVideo.thumbnail !== null && isCachedInfoValid) {
+			if (cachedVideo.thumbnail !== null && (video.service !== "googledrive" && isCachedInfoValid || (video.service === "googledrive" && lastUpdatedAt.diff(today, "hour") <= 12))) {
 				video.thumbnail = cachedVideo.thumbnail;
 			}
 			if (cachedVideo.length !== null && isCachedInfoValid) {
 				video.length = cachedVideo.length;
+			}
+			if (cachedVideo.mime !== null) {
+				video.mime = cachedVideo.mime;
 			}
 			return video;
 		}).catch(err => {
@@ -160,6 +163,9 @@ module.exports = {
 				if (cachedVideo.length && isCachedInfoValid) {
 					video.length = cachedVideo.length;
 				}
+				if (cachedVideo.mime) {
+					video.mime = cachedVideo.mime;
+				}
 				return video;
 			});
 		}).catch(err => {
@@ -174,7 +180,7 @@ module.exports = {
 	 * created.
 	 * @param {Video|Object} video Video object to store
 	 */
-	updateVideoInfo(video) {
+	updateVideoInfo(video, shouldLog=true) {
 		video = _.cloneDeep(video);
 		if (!video.serviceId) {
 			video.serviceId = video.id;
@@ -182,9 +188,13 @@ module.exports = {
 		}
 
 		return CachedVideo.findOne({ where: { service: video.service, serviceId: video.serviceId } }).then(cachedVideo => {
-			log.info(`Found video ${video.service}:${video.serviceId} in cache`);
+			if (shouldLog) {
+				log.info(`Found video ${video.service}:${video.serviceId} in cache`);
+			}
 			return CachedVideo.update(video, { where: { id: cachedVideo.id } }).then(rowsUpdated => {
-				log.info(`Updated database records, updated ${rowsUpdated[0]} rows`);
+				if (shouldLog) {
+					log.info(`Updated database records, updated ${rowsUpdated[0]} rows`);
+				}
 				return true;
 			}).catch(err => {
 				log.error(`Failed to cache video info ${err}`);
@@ -192,7 +202,9 @@ module.exports = {
 			});
 		}).catch(() => {
 			return CachedVideo.create(video).then(() => {
-				log.info(`Stored video info for ${video.service}:${video.serviceId} in cache`);
+				if (shouldLog) {
+					log.info(`Stored video info for ${video.service}:${video.serviceId} in cache`);
+				}
 				return true;
 			}).catch(err => {
 				log.error(`Failed to cache video info ${err}`);
@@ -237,11 +249,12 @@ module.exports = {
 				toCreate,
 			] = _.partition(videos, video => _.find(foundVideos, { service: video.service, serviceId: video.serviceId }));
 			log.info(`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`);
-			for (let video of toUpdate) {
-				await this.updateVideoInfo(video, false);
+			let promises = toUpdate.map(video => this.updateVideoInfo(video, false));
+			if (toCreate.length) {
+				promises.push(CachedVideo.bulkCreate(toCreate));
 			}
-			return CachedVideo.bulkCreate(toCreate).then(cachedVideos => {
-				log.info(`bulk cache: created ${cachedVideos.length} rows`);
+			return Promise.all(promises).then(() => {
+				log.info(`bulk cache: created ${toCreate.length} rows, updated ${toUpdate.length} rows`);
 				return true;
 			}).catch(err => {
 				log.error(`Failed to bulk update video cache: ${err}`);
@@ -249,10 +262,17 @@ module.exports = {
 			});
 		});
 	},
-	getVideoInfoFields() {
+	getVideoInfoFields(service=undefined) {
 		let fields = [];
 		for (let column in CachedVideo.rawAttributes) {
 			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId") {
+				continue;
+			}
+			// eslint-disable-next-line array-bracket-newline
+			if (["youtube", "vimeo", "dailymotion"].includes(service) && column === "mime") {
+				continue;
+			}
+			if (service === "googledrive" && column === "description") {
 				continue;
 			}
 			fields.push(column);

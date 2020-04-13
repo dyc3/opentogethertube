@@ -12,7 +12,7 @@ const usermanager = require("./usermanager.js");
 const log = getLogger("roommanager");
 
 const SUPPORTED_SERVICES = [
-	"youtube", "vimeo", "dailymotion",
+	"youtube", "vimeo", "dailymotion", "googledrive",
 ];
 
 // Custom websocket error codes
@@ -150,6 +150,9 @@ class Room {
 			}
 			else if (queueItem.service === "dailymotion") {
 				queueItem.id = InfoExtract.getVideoIdDailymotion(video.url);
+			}
+			else if (queueItem.service === "googledrive") {
+				queueItem.id = InfoExtract.getVideoIdGoogledrive(video.url);
 			}
 		}
 		else {
