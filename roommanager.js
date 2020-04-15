@@ -493,6 +493,8 @@ class Room {
 			needsFullSync: true,
 		});
 		if (req.session.passport && req.session.passport.user) {
+			// HACK: for some reason even though we import usermanager at the top of the module, it somehow doesn't exist in this context. But only sometimes? I don't know
+			let usermanager = require("./usermanager.js");
 			client.user = await usermanager.getUser({ id: req.session.passport.user });
 		}
 		this.clients.push(client);
