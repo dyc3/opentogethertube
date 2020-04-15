@@ -38,6 +38,7 @@ router.post("/login", (req, res, next) => {
 					success: true,
 					user: user,
 				});
+				usermanager.onUserLogIn(user);
 			});
 		}
 		else {
@@ -57,6 +58,7 @@ router.post("/logout", (req, res) => {
 		res.json({
 			success: true,
 		});
+		usermanager.onUserLogout(req.user);
 	}
 	else {
 		res.json({
@@ -74,6 +76,7 @@ router.post("/register", (req, res) => {
 			delete req.session.username;
 			req.session.save();
 			res.json(result);
+			usermanager.onUserLogIn(result.user);
 		});
 	}).catch(err => {
 		log.error(`Unable to register user ${err} ${err.message}`);
@@ -216,6 +219,14 @@ let usermanager = {
 			}
 			return user;
 		});
+	},
+
+	onUserLogIn(user) {
+		log.info(`${user.username} (id: ${user.id}) has logged in.`);
+	},
+
+	onUserLogOut(user) {
+		log.info(`${user.username} (id: ${user.id}) has logged out.`);
 	},
 };
 
