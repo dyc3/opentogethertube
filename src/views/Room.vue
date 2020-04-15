@@ -311,7 +311,9 @@ export default {
       if (this.$store.state.socket.isConnected) {
         this.$disconnect();
       }
-      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+      setTimeout(() => {
+        this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+      }, 100);
     });
 
     window.removeEventListener('keydown', this.onKeyDown);
