@@ -3,7 +3,9 @@ const securePassword = require('secure-password');
 const express = require('express');
 const passport = require('passport');
 const crypto = require('crypto');
+const { uniqueNamesGenerator } = require('unique-names-generator');
 const { User } = require("./models");
+const roommanager = require("./roommanager");
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -34,11 +36,16 @@ router.post("/login", (req, res, next) => {
 				}
 				delete req.session.username;
 				req.session.save();
+				try {
+					usermanager.onUserLogIn(user, req.session);
+				}
+				catch (err) {
+					log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
+				}
 				res.json({
 					success: true,
 					user: user,
 				});
-				usermanager.onUserLogIn(user);
 			});
 		}
 		else {
@@ -54,11 +61,12 @@ router.post("/login", (req, res, next) => {
 
 router.post("/logout", (req, res) => {
 	if (req.user) {
+		let user = req.user;
 		req.logout();
+		usermanager.onUserLogOut(user, req.session);
 		res.json({
 			success: true,
 		});
-		usermanager.onUserLogout(req.user);
 	}
 	else {
 		res.json({
@@ -72,11 +80,19 @@ router.post("/logout", (req, res) => {
 
 router.post("/register", (req, res) => {
 	usermanager.registerUser(req.body).then(result => {
-		req.login(result.user, () => {
+		req.login(result, () => {
 			delete req.session.username;
 			req.session.save();
-			res.json(result);
-			usermanager.onUserLogIn(result.user);
+			try {
+				usermanager.onUserLogIn(result, req.session);
+			}
+			catch (err) {
+				log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
+			}
+			res.json({
+				success: true,
+				user: result,
+			});
 		});
 	}).catch(err => {
 		log.error(`Unable to register user ${err} ${err.message}`);
@@ -221,12 +237,34 @@ let usermanager = {
 		});
 	},
 
-	onUserLogIn(user) {
+	onUserLogIn(user, session) {
 		log.info(`${user.username} (id: ${user.id}) has logged in.`);
+		for (let room of roommanager.rooms) {
+			for (let client of room.clients) {
+				if (client.session.id === session.id) {
+					client.user = user;
+					room._dirtyProps.push("users");
+					break;
+				}
+			}
+		}
 	},
 
-	onUserLogOut(user) {
+	onUserLogOut(user, session) {
 		log.info(`${user.username} (id: ${user.id}) has logged out.`);
+		for (let room of roommanager.rooms) {
+			for (let client of room.clients) {
+				if (client.session.id === session.id) {
+					client.user = null;
+					room._dirtyProps.push("users");
+					break;
+				}
+			}
+		}
+		let username = uniqueNamesGenerator();
+		this.log.debug(`Generated name for new user (on log out): ${username}`);
+		session.username = username;
+		session.save();
 	},
 };
 

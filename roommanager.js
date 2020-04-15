@@ -361,6 +361,7 @@ class Room {
 					name: c.username,
 					isYou: client.socket == c.socket,
 					status: c.status,
+					isLoggedIn: c.isLoggedIn,
 				};
 			});
 
