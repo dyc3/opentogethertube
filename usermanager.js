@@ -148,16 +148,16 @@ let usermanager = {
 				done(null, false);
 				break;
 			case securePassword.INVALID:
-				log.error(`${email}: Hash is invalid`);
+				log.debug(`${email}: Hash is invalid`);
 				done(null, false);
 				break;
 			case securePassword.VALID_NEEDS_REHASH:
-				log.info(`${email}: Hash is valid, needs rehash`);
+				log.debug(`${email}: Hash is valid, needs rehash`);
 				user.hash = await pwd.hash(Buffer.from(user.salt + password));
 				await user.save();
 			// eslint-disable-next-line no-fallthrough
 			case securePassword.VALID:
-				log.info(`${email}: Hash is valid`);
+				log.debug(`${email}: Hash is valid`);
 				done(null, user);
 				break;
 
