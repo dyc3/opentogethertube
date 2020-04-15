@@ -135,8 +135,7 @@ let usermanager = {
 			case securePassword.VALID_NEEDS_REHASH:
 				log.info(`${email}: Hash is valid, needs rehash`);
 				user.hash = await pwd.hash(Buffer.from(user.salt + password));
-
-				// TODO: save User to database
+				await user.save();
 			// eslint-disable-next-line no-fallthrough
 			case securePassword.VALID:
 				log.info(`${email}: Hash is valid`);
