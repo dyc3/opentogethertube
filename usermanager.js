@@ -9,20 +9,46 @@ const pwd = securePassword();
 const log = getLogger("usermanager");
 const router = express.Router();
 
-router.post("/login", passport.authenticate("local"), (req, res) => {
-	if (req.user) {
-		delete req.session.username;
-		req.session.save();
-		res.json({
-			success: true,
-			user: req.user,
-		});
-	}
-	else {
-		res.status(401).json({
-			success: false,
-		});
-	}
+router.post("/login", (req, res, next) => {
+	passport.authenticate("local", (err, user) => {
+		if (err) {
+			res.status(401).json({
+				success: false,
+				error: {
+					message: err.message,
+				},
+			});
+			return;
+		}
+		if (user) {
+			req.login(user, (err) => {
+				if (err) {
+					log.error("Unknown error when logging in");
+					res.status(500).json({
+						success: false,
+						error: {
+							message: "An unknown error occurred when logging in.",
+						},
+					});
+					return;
+				}
+				delete req.session.username;
+				req.session.save();
+				res.json({
+					success: true,
+					user: user,
+				});
+			});
+		}
+		else {
+			res.status(401).json({
+				success: false,
+				error: {
+					message: "Either the email or password was not provided.",
+				},
+			});
+		}
+	})(req, res, next);
 });
 
 router.post("/logout", (req, res) => {
@@ -70,13 +96,20 @@ let usermanager = {
 	async authCallback(email, password, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
 		let usermanager = require("./usermanager.js");
-		if (process.env.NODE_ENV !== 'production') {
-			if (email === "test@localhost" && password === "test") {
-				done(null, await usermanager.getUser({ email }));
-				return;
-			}
+		// if (process.env.NODE_ENV !== 'production') {
+		// 	if (email === "test@localhost" && password === "test") {
+		// 		done(null, await usermanager.getUser({ email }));
+		// 		return;
+		// 	}
+		// }
+		let user;
+		try {
+			user = await usermanager.getUser({ email });
 		}
-		let user = await usermanager.getUser({ email });
+		catch (err) {
+			done(new Error("Email or password is incorrect."));
+			return;
+		}
 		let result = await pwd.verify(Buffer.from(user.salt + password), Buffer.from(user.hash));
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
@@ -160,9 +193,9 @@ let usermanager = {
 			log.error("Invalid parameters to find user");
 			throw new Error("Invalid parameters to find user");
 		}
-		if (process.env.NODE_ENV !== 'production' && (email === "test@localhost" || id === -1)) {
-			return Promise.resolve(User.build({ id: -1, email, username: "test user" }));
-		}
+		// if (process.env.NODE_ENV !== 'production' && (email === "test@localhost" || id === -1)) {
+		// 	return Promise.resolve(User.build({ id: -1, email, username: "test user" }));
+		// }
 		let where = {};
 		if (email) {
 			where = { email };
