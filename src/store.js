@@ -35,6 +35,8 @@ export default new Vuex.Store({
 			state.joinFailureReason = null;
 			Vue.prototype.$socket = event.currentTarget;
 			state.socket.isConnected = true;
+			state.room.chatMessages = [];
+			state.room.events = [];
 			let username = window.localStorage.getItem("username");
 			if (username) {
 				state.username = username;
