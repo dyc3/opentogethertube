@@ -358,7 +358,7 @@ class Room {
 
 			syncMsg.users = this.clients.map(c => {
 				return {
-					name: c.user ? c.user.username : c.session.username,
+					name: c.username,
 					isYou: client.socket == c.socket,
 					status: c.status,
 				};
