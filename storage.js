@@ -250,7 +250,7 @@ module.exports = {
 				toUpdate,
 				toCreate,
 			] = _.partition(videos, video => _.find(foundVideos, { service: video.service, serviceId: video.serviceId }));
-			log.info(`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`);
+			log.debug(`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`);
 			let promises = toUpdate.map(video => this.updateVideoInfo(video, false));
 			if (toCreate.length) {
 				promises.push(CachedVideo.bulkCreate(toCreate));
