@@ -77,13 +77,25 @@ router.post("/register", (req, res) => {
 		});
 	}).catch(err => {
 		log.error(`Unable to register user ${err} ${err.message}`);
-		res.status(500).json({
-			success: false,
-			error: {
-				name: "Unknown",
-				message: "An unknown error occurred. Try again later.",
-			},
-		});
+		if (err.name === "SequelizeUniqueConstraintError") {
+			let fields = err.fields.join(", ");
+			fields = fields.charAt(0).toUpperCase() + fields.slice(1);
+			res.status(400).json({
+				success: false,
+				error: {
+					message: `${fields} ${err.fields.length > 1 ? "are" : "is"} already in use.`,
+				},
+			});
+		}
+		else {
+			res.status(500).json({
+				success: false,
+				error: {
+					name: "Unknown",
+					message: "An unknown error occurred. Try again later.",
+				},
+			});
+		}
 	});
 });
 
@@ -171,15 +183,10 @@ let usermanager = {
 			salt,
 			hash,
 		}).then(user => {
-			return {
-				success: true,
-				user,
-			};
+			return user;
 		}).catch(err => {
 			log.error(`Failed to create new user in the database: ${err} ${err.message}`);
-			return {
-				success: false,
-			};
+			throw err;
 		});
 	},
 
