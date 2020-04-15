@@ -16,6 +16,9 @@
 								<v-text-field :loading="isLoading" label="Email" required v-model="email" />
 								<v-text-field :loading="isLoading" label="Password" required v-model="password" />
 							</v-row>
+							<v-row v-if="logInFailureMessage">
+								{{ logInFailureMessage }}
+							</v-row>
 						</v-container>
 					</v-card-text>
 					<v-card-actions>
@@ -35,6 +38,9 @@
 								<v-text-field :loading="isLoading" label="Email" required v-model="email" />
 								<v-text-field :loading="isLoading" label="Username" required v-model="username" />
 								<v-text-field :loading="isLoading" label="Password" required v-model="password" />
+							</v-row>
+							<v-row v-if="registerFailureMessage">
+								{{ registerFailureMessage }}
 							</v-row>
 						</v-container>
 					</v-card-text>
@@ -61,6 +67,8 @@ export default {
 
 			mode: "",
 			isLoading: false,
+			logInFailureMessage: "",
+			registerFailureMessage: "",
 		};
 	},
 	created() {
@@ -71,6 +79,7 @@ export default {
 	methods: {
 		login() {
 			this.isLoading = true;
+			this.logInFailureMessage = "";
 			API.post("/user/login", { email: this.email, password: this.password }).then(resp => {
 				this.isLoading = false;
 				if (resp.data.success) {
@@ -85,11 +94,22 @@ export default {
 				}
 			}).catch(err => {
 				this.isLoading = false;
-				console.log("could not log in", err, err.response);
+				if (err.response && !err.response.data.success) {
+					if (err.response.data.error) {
+						this.logInFailureMessage = err.response.data.error.message;
+					}
+					else {
+						this.logInFailureMessage = "Failed to log in, but the server didn't say why.";
+					}
+				}
+				else {
+					console.log("could not log in", err, err.response);
+				}
 			});
 		},
 		register() {
 			this.isLoading = true;
+			this.registerFailureMessage = "";
 			API.post("/user/register", { email: this.email, username: this.username, password: this.password }).then(resp => {
 				this.isLoading = false;
 				if (resp.data.success) {
@@ -97,6 +117,7 @@ export default {
 					this.$store.commit("LOGIN", resp.data.user);
 					this.$emit("shouldClose");
 					this.email = "";
+					this.username = "";
 					this.password = "";
 				}
 				else {
@@ -104,7 +125,17 @@ export default {
 				}
 			}).catch(err => {
 				this.isLoading = false;
-				console.log("could not register", err);
+				if (err.response && !err.response.data.success) {
+					if (err.response.data.error) {
+						this.registerFailureMessage = err.response.data.error.message;
+					}
+					else {
+						this.registerFailureMessage = "Failed to register, but the server didn't say why.";
+					}
+				}
+				else {
+					console.log("could not register", err);
+				}
 			});
 		},
 	},
