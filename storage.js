@@ -20,6 +20,7 @@ module.exports = {
 				title: room.title,
 				description: room.description,
 				visibility: room.visibility,
+				owner: room.owner,
 			};
 		}).catch(err => {
 			log.error(`Failed to get room by name: ${err}`);
@@ -31,6 +32,7 @@ module.exports = {
 			title: room.title,
 			description: room.description,
 			visibility: room.visibility,
+			ownerId: room.owner.id,
 		}).then(result => {
 			log.info(`Saved room to db: id ${result.dataValues.id}`);
 			return true;

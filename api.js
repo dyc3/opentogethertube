@@ -167,7 +167,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 			req.body.visibility = "public";
 		}
 		try {
-			await roommanager.createRoom(req.body);
+			await roommanager.createRoom({ ...req.body, owner: req.user });
 			res.json({
 				success: true,
 			});

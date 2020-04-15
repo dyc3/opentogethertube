@@ -42,6 +42,7 @@ class Room {
 		this.playbackPosition = 0;
 		this.clients = [];
 		this.keepAlivePing = null;
+		this.owner = null;
 		if (args) {
 			Object.assign(this, args);
 		}
@@ -854,12 +855,14 @@ module.exports = {
 				throw new RoomNotFoundException(name);
 			}
 
-			let room = new Room();
-			room.name = result.name;
-			room.title = result.title;
-			room.description = result.description;
-			room.visibility = result.visibility;
-			room.isTemporary = false;
+			let room = new Room({
+				name: result.name,
+				title: result.title,
+				description: result.description,
+				visibility: result.visibility,
+				isTemporary: false,
+				owner: result.owner,
+			});
 			this.rooms.push(room);
 			return room;
 		});

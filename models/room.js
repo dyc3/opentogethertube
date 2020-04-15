@@ -5,10 +5,15 @@ module.exports = (sequelize, DataTypes) => {
     title: DataTypes.STRING,
     description: DataTypes.STRING,
     visibility: DataTypes.STRING,
+    ownerId: {
+      type: DataTypes.INTEGER,
+      defaultValue: -1,
+      allowNull: false,
+    },
   }, {});
   // eslint-disable-next-line no-unused-vars
   Room.associate = function(models) {
-    // associations can be defined here
+    Room.belongsTo(models.User, { foreignKey: "ownerId", as: "owner" });
   };
   return Room;
 };
