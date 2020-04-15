@@ -537,6 +537,7 @@ class Room {
 			this.log.info(`${client.session.username} changed name to ${msg.name}`);
 			client.session.username = msg.name;
 			client.session.save();
+			this._dirtyProps.push("users");
 			this.update();
 			this.sync();
 		}
