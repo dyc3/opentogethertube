@@ -149,7 +149,7 @@ let usermanager = {
 				break;
 			case securePassword.INVALID:
 				log.debug(`${email}: Hash is invalid`);
-				done(null, false);
+				done(new Error("Email or password is incorrect."), false);
 				break;
 			case securePassword.VALID_NEEDS_REHASH:
 				log.debug(`${email}: Hash is valid, needs rehash`);
