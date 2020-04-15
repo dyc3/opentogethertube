@@ -635,6 +635,7 @@ class Client {
 	set username(value) {
 		if (this.user) {
 			this.user.username = value;
+			this.user.save();
 		}
 		else {
 			this.session.username = value;
