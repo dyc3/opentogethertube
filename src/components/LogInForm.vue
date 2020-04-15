@@ -91,6 +91,7 @@ export default {
 				}
 				else {
 					console.log("Log in failed");
+					this.logInFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
 				}
 			}).catch(err => {
 				this.isLoading = false;
@@ -99,11 +100,12 @@ export default {
 						this.logInFailureMessage = err.response.data.error.message;
 					}
 					else {
-						this.logInFailureMessage = "Failed to log in, but the server didn't say why.";
+						this.logInFailureMessage = "Failed to log in, but the server didn't say why. Report this as a bug.";
 					}
 				}
 				else {
 					console.log("could not log in", err, err.response);
+					this.logInFailureMessage = "Failed to log in, and I don't know why. Report this as a bug.";
 				}
 			});
 		},
@@ -122,6 +124,7 @@ export default {
 				}
 				else {
 					console.log("Registeration failed");
+					this.registerFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
 				}
 			}).catch(err => {
 				this.isLoading = false;
@@ -130,11 +133,12 @@ export default {
 						this.registerFailureMessage = err.response.data.error.message;
 					}
 					else {
-						this.registerFailureMessage = "Failed to register, but the server didn't say why.";
+						this.registerFailureMessage = "Failed to register, but the server didn't say why. Report this as a bug.";
 					}
 				}
 				else {
 					console.log("could not register", err);
+					this.registerFailureMessage = "Failed to register, and I don't know why. Check the console and report this as a bug.";
 				}
 			});
 		},
