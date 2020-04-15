@@ -644,6 +644,10 @@ class Client {
 			this.session.save();
 		}
 	}
+
+	get isLoggedIn() {
+		return !!this.user;
+	}
 }
 
 class RoomNotFoundException extends Error {
