@@ -13,8 +13,8 @@
 					<v-card-text>
 						<v-container>
 							<v-row>
-								<v-text-field :loading="isLoading" label="Email" required v-model="email" />
-								<v-text-field :loading="isLoading" label="Password" required v-model="password" />
+								<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="logInFailureMessage" />
+								<v-text-field :loading="isLoading" label="Password" required v-model="password" :error-messages="logInFailureMessage" />
 							</v-row>
 							<v-row v-if="logInFailureMessage">
 								{{ logInFailureMessage }}
@@ -35,9 +35,9 @@
 					<v-card-text>
 						<v-container>
 							<v-row>
-								<v-text-field :loading="isLoading" label="Email" required v-model="email" />
-								<v-text-field :loading="isLoading" label="Username" required v-model="username" />
-								<v-text-field :loading="isLoading" label="Password" required v-model="password" />
+								<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="registerFieldErrors.email" />
+								<v-text-field :loading="isLoading" label="Username" required v-model="username" :error-messages="registerFieldErrors.username" />
+								<v-text-field :loading="isLoading" label="Password" required v-model="password" :error-messages="registerFieldErrors.password" />
 							</v-row>
 							<v-row v-if="registerFailureMessage">
 								{{ registerFailureMessage }}
@@ -69,6 +69,12 @@ export default {
 			isLoading: false,
 			logInFailureMessage: "",
 			registerFailureMessage: "",
+
+			registerFieldErrors: {
+				email: "",
+				username: "",
+				password: "",
+			},
 		};
 	},
 	created() {
@@ -112,6 +118,11 @@ export default {
 		register() {
 			this.isLoading = true;
 			this.registerFailureMessage = "";
+			this.registerFieldErrors = {
+				email: "",
+				username: "",
+				password: "",
+			};
 			API.post("/user/register", { email: this.email, username: this.username, password: this.password }).then(resp => {
 				this.isLoading = false;
 				if (resp.data.success) {
@@ -130,6 +141,14 @@ export default {
 				this.isLoading = false;
 				if (err.response && !err.response.data.success) {
 					if (err.response.data.error) {
+						if (err.response.data.error.name === "AlreadyInUse") {
+							if (err.response.data.error.fields.includes("email")) {
+								this.registerFieldErrors.email = "Already in use.";
+							}
+							if (err.response.data.error.fields.includes("username")) {
+								this.registerFieldErrors.username = "Already in use.";
+							}
+						}
 						this.registerFailureMessage = err.response.data.error.message;
 					}
 					else {

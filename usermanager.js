@@ -174,6 +174,8 @@ router.post("/register", (req, res) => {
 			res.status(400).json({
 				success: false,
 				error: {
+					name: "AlreadyInUse",
+					fields: err.fields,
 					message: `${fields} ${err.fields.length > 1 ? "are" : "is"} already in use.`,
 				},
 			});
