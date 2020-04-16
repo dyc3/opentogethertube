@@ -468,22 +468,6 @@ module.exports = function(_roommanager, storage, redisClient) {
 		});
 	});
 
-	router.get("/user", (req, res) => {
-		if (req.user) {
-			let user = {
-				username: req.user.username,
-				loggedIn: true,
-			};
-			res.json(user);
-		}
-		else {
-			res.json({
-				username: req.session.username,
-				loggedIn: false,
-			});
-		}
-	});
-
 	router.post("/announce", (req, res) => {
 		if (req.body.apikey) {
 			if (req.body.apikey !== process.env.OPENTOGETHERTUBE_API_KEY) {

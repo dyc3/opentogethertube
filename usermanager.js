@@ -11,6 +11,78 @@ const pwd = securePassword();
 const log = getLogger("usermanager");
 const router = express.Router();
 
+router.get("/", (req, res) => {
+	if (req.user) {
+		let user = {
+			username: req.user.username,
+			loggedIn: true,
+		};
+		res.json(user);
+	}
+	else {
+		res.json({
+			username: req.session.username,
+			loggedIn: false,
+		});
+	}
+});
+
+router.post("/", async (req, res) => {
+	if (!req.body.username) {
+		res.status(400).json({
+			success: false,
+			error: {
+				message: "Missing argument (username)",
+			},
+		});
+		return;
+	}
+	let oldUsername;
+	if (req.user) {
+		oldUsername = req.user.username;
+		req.user.username = req.body.username;
+		try {
+			await req.user.save();
+		}
+		catch (err) {
+			if (err.name === "SequelizeUniqueConstraintError") {
+				await req.user.reload();
+				res.status(400).json({
+					success: false,
+					error: {
+						name: "UsernameTaken",
+						message: "Somebody else is already using that username.",
+					},
+				});
+				return;
+			}
+			else {
+				log.error(`Unknown error occurred when saving user to database ${err.message}`);
+				res.status(500).json({
+					success: false,
+					error: {
+						message: "An unknown error occurred.",
+					},
+				});
+				return;
+			}
+		}
+		res.json({
+			success: true,
+		});
+	}
+	else {
+		oldUsername = this.session.username;
+		this.session.username = req.body.username;
+		this.session.save();
+		res.json({
+			success: true,
+		});
+	}
+	log.info(`${oldUsername} changed username to ${req.body.username}`);
+	usermanager.onUserModified(req.session);
+});
+
 router.post("/login", (req, res, next) => {
 	passport.authenticate("local", (err, user) => {
 		if (err) {
@@ -265,6 +337,17 @@ let usermanager = {
 		this.log.debug(`Generated name for new user (on log out): ${username}`);
 		session.username = username;
 		session.save();
+	},
+
+	onUserModified(session) {
+		for (let room of roommanager.rooms) {
+			for (let client of room.clients) {
+				if (client.session.id === session.id) {
+					room._dirtyProps.push("users");
+					break;
+				}
+			}
+		}
 	},
 };
 
