@@ -72,9 +72,9 @@ router.post("/", async (req, res) => {
 		});
 	}
 	else {
-		oldUsername = this.session.username;
-		this.session.username = req.body.username;
-		this.session.save();
+		oldUsername = req.session.username;
+		req.session.username = req.body.username;
+		req.session.save();
 		res.json({
 			success: true,
 		});
@@ -347,6 +347,10 @@ let usermanager = {
 				if (client.session.id === session.id) {
 					if (client.isLoggedIn) {
 						client.user.reload();
+					}
+					else {
+						// HACK: for some reason, client.session.reload() doesn't work in this situation
+						client.session.username = session.username;
 					}
 					room._dirtyProps.push("users");
 					break;
