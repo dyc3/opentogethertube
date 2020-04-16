@@ -27,13 +27,16 @@ module.exports = {
 		});
 	},
 	saveRoom(room) {
-		return Room.create({
+		let options = {
 			name: room.name,
 			title: room.title,
 			description: room.description,
 			visibility: room.visibility,
-			ownerId: room.owner.id,
-		}).then(result => {
+		};
+		if (room.owner) {
+			options.ownerId = room.owner.id;
+		}
+		return Room.create(options).then(result => {
 			log.info(`Saved room to db: id ${result.dataValues.id}`);
 			return true;
 		}).catch(err => {
