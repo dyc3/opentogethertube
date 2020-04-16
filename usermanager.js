@@ -334,7 +334,7 @@ let usermanager = {
 			}
 		}
 		let username = uniqueNamesGenerator();
-		this.log.debug(`Generated name for new user (on log out): ${username}`);
+		log.debug(`Generated name for new user (on log out): ${username}`);
 		session.username = username;
 		session.save();
 	},
