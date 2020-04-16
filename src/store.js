@@ -27,6 +27,7 @@ export default new Vuex.Store({
 			queue: [],
 			isPlaying: false,
 			playbackPosition: 0,
+			hasOwner: false,
 			chatMessages: [],
 			events: [],
 		},

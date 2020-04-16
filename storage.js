@@ -54,7 +54,16 @@ module.exports = {
 			if (!dbRoom) {
 				return false;
 			}
-			return dbRoom.update(room).then(() => true);
+			let options = {
+				name: room.name,
+				title: room.title,
+				description: room.description,
+				visibility: room.visibility,
+			};
+			if (room.owner) {
+				options.ownerId = room.owner.id;
+			}
+			return dbRoom.update(options).then(() => true);
 		});
 	},
 	/**

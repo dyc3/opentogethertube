@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   // eslint-disable-next-line no-unused-vars
   User.associate = function(models) {
-    User.hasMany(models.Room, { as: "rooms" });
+    // User.hasMany(models.Room, { as: "rooms" });
   };
   return User;
 };

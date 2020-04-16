@@ -133,6 +133,15 @@ class Room {
 		this._dirtyProps.push("playbackPosition");
 	}
 
+	get owner() {
+		return this._owner;
+	}
+
+	set owner(value) {
+		this._owner = value;
+		this._dirtyProps.push("hasOwner");
+	}
+
 	/**
 	 * Obtains metadata for a given video and adds it to the queue
 	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
@@ -344,6 +353,7 @@ class Room {
 			isPlaying: this.isPlaying,
 			playbackPosition: this.playbackPosition,
 			users: [],
+			hasOwner: !!this.owner,
 		};
 
 		for (const client of this.clients) {

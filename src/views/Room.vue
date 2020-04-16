@@ -120,6 +120,7 @@
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettingsQueueMode" :loading="isLoadingRoomSettings" />
                     <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
                   </v-form>
+                  <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -633,6 +634,17 @@ export default {
         controlsDiv.classList.add("hide");
       }
     }, 3000),
+    claimOwnership() {
+      this.isLoadingRoomSettings = true;
+      API.patch(`/room/${this.$route.params.roomId}`, {
+        claim: true,
+      }).then(() => {
+        this.isLoadingRoomSettings = false;
+      }).catch(err => {
+        console.log(err);
+        this.isLoadingRoomSettings = false;
+      });
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {

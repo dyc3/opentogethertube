@@ -234,11 +234,27 @@ module.exports = function(_roommanager, storage, redisClient) {
 			}
 			Object.assign(room, filtered);
 			if (!room.isTemporary) {
+				if (req.body.claim && !room.owner) {
+					if (req.user) {
+						room.owner = req.user;
+					}
+					else {
+						res.status(401).json({
+							success: false,
+							error: {
+								message: "Must be logged in to claim room ownership.",
+							},
+						});
+						return;
+					}
+				}
+
 				storage.updateRoom(room).then(success => {
 					res.status(success ? 200 : 500).json({
 						success,
 					});
-				}).catch(() => {
+				}).catch(err => {
+					log.error(`Failed to update room: ${err} ${err.message}`);
 					res.status(500).json({
 						success: false,
 					});
