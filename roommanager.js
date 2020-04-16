@@ -536,21 +536,6 @@ class Room {
 			this.update();
 			this.sync();
 		}
-		else if (msg.action === "set-name") {
-			if (!msg.name) {
-				this.log.warn("name not supplied");
-				return;
-			}
-			if (msg.name === client.username) {
-				// name unchanged, ignore
-				return;
-			}
-			this.log.info(`${client.username} changed name to ${msg.name}`);
-			client.username = msg.name;
-			this._dirtyProps.push("users");
-			this.update();
-			this.sync();
-		}
 		else if (msg.action === "chat") {
 			let chat = {
 				action: msg.action,
@@ -633,17 +618,6 @@ class Client {
 
 	get username() {
 		return this.user ? this.user.username : this.session.username;
-	}
-
-	set username(value) {
-		if (this.user) {
-			this.user.username = value;
-			this.user.save();
-		}
-		else {
-			this.session.username = value;
-			this.session.save();
-		}
 	}
 
 	get isLoggedIn() {

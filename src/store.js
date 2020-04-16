@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import _ from 'lodash';
+import { API } from './common-http.js';
 
 Vue.use(Vuex);
 
@@ -41,7 +42,7 @@ export default new Vuex.Store({
 			let username = window.localStorage.getItem("username");
 			if (!state.user && username) {
 				state.username = username;
-				Vue.prototype.$socket.sendObj({ action: "set-name", name: username });
+				API.post("/user", { username });
 			}
 		},
 		SOCKET_ONCLOSE (state, event)  {

@@ -343,6 +343,9 @@ let usermanager = {
 		for (let room of roommanager.rooms) {
 			for (let client of room.clients) {
 				if (client.session.id === session.id) {
+					if (client.isLoggedIn) {
+						client.user.reload();
+					}
 					room._dirtyProps.push("users");
 					break;
 				}
