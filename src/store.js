@@ -93,7 +93,9 @@ export default new Vuex.Store({
 					Vue.prototype.$events.emit("pauseVideo");
 				}
 			}
-			Object.assign(this.state.room, message);
+			// HACK: this lets vue detect the changes and react to them
+			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+			this.state.room = Object.assign({}, this.state.room, message);
 
 			if (!this.user) {
 				this.state.username = _.find(this.state.room.users, { isYou: true }).name;
