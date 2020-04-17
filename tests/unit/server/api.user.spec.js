@@ -193,5 +193,71 @@ describe("User API", () => {
 					});
 			});
 		});
+
+		describe("POST /user/register", () => {
+			let onUserLogInSpy;
+
+			beforeAll(() => {
+				onUserLogInSpy = jest.spyOn(usermanager, "onUserLogIn").mockImplementation(() => {});
+			});
+
+			beforeEach(async () => {
+				onUserLogInSpy.mockClear();
+				await User.destroy({ where: { [not]: { [or]: [
+					{ email: "forced@localhost" },
+					{ email: "test@localhost" },
+				] } } });
+			});
+
+			afterAll(() => {
+				onUserLogInSpy.mockRestore();
+			});
+
+			it("should register user", async () => {
+				await request(app)
+					.post("/api/user/register")
+					.send({ email: "register@localhost", username: "registered", password: "test" })
+					.expect(200)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body).toEqual({
+							success: true,
+							user: {
+								username: "registered",
+								email: "register@localhost",
+							},
+						});
+						expect(onUserLogInSpy).toBeCalled();
+					});
+			});
+
+			it("should not register user if email is already in use", async () => {
+				await request(app)
+					.post("/api/user/register")
+					.send({ email: "test@localhost", username: "registered", password: "test" })
+					.expect(400)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.error).toBeDefined();
+						expect(resp.body.error.name).toEqual("AlreadyInUse");
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
+
+			it("should not register user if username is already in use", async () => {
+				await request(app)
+					.post("/api/user/register")
+					.send({ email: "register@localhost", username: "test user", password: "test" })
+					.expect(400)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.error).toBeDefined();
+						expect(resp.body.error.name).toEqual("AlreadyInUse");
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
+		});
 	});
 });
