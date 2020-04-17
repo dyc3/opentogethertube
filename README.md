@@ -102,4 +102,4 @@ PORT=8080 npm start
 
 ## Docker
 
-Go to [Docker](docker/DOCKER.md)
+Go to [Docker](docker/README.md)

@@ -3,8 +3,8 @@ services:
   opentogethertube:
     image: opentogethertube
     build:
-      context: ../../
-      dockerfile: docker/prod/Dockerfile
+      context: ../
+      dockerfile: docker/Dockerfile
     container_name: opentogethertube
     environment:
       - REDIS_HOST=redis_db
@@ -13,7 +13,7 @@ services:
       - POSTGRES_DB_NAME=opentogethertube
       - POSTGRES_DB_HOST=postgres_db
       - POSTGRES_DB_PASSWORD=postgres
-    env_file: ../../env/production.env
+    env_file: ../env/production.env
     ports:
       - 8080:8080
     links:
