@@ -14,7 +14,7 @@
 						<v-container>
 							<v-row>
 								<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="logInFailureMessage" />
-								<v-text-field :loading="isLoading" label="Password" required v-model="password" :error-messages="logInFailureMessage" />
+								<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="logInFailureMessage" />
 							</v-row>
 							<v-row v-if="logInFailureMessage">
 								{{ logInFailureMessage }}
@@ -37,7 +37,7 @@
 							<v-row>
 								<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="registerFieldErrors.email" />
 								<v-text-field :loading="isLoading" label="Username" required v-model="username" :error-messages="registerFieldErrors.username" />
-								<v-text-field :loading="isLoading" label="Password" required v-model="password" :error-messages="registerFieldErrors.password" />
+								<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="registerFieldErrors.password" />
 							</v-row>
 							<v-row v-if="registerFailureMessage">
 								{{ registerFailureMessage }}
