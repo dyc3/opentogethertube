@@ -217,7 +217,13 @@ let usermanager = {
 			user = await usermanager.getUser({ email });
 		}
 		catch (err) {
-			done(new Error("Email or password is incorrect."));
+			if (err.message === "User not found") {
+				done(new Error("Email or password is incorrect."));
+			}
+			else {
+				log.error(`Auth callback failed: ${err}`);
+				done(new Error("An unknown error occurred. This is a bug."));
+			}
 			return;
 		}
 		let result = await pwd.verify(Buffer.from(user.salt + password), Buffer.from(user.hash));
