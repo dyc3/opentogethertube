@@ -3,7 +3,6 @@ const securePassword = require('secure-password');
 const express = require('express');
 const passport = require('passport');
 const crypto = require('crypto');
-const { uniqueNamesGenerator } = require('unique-names-generator');
 const { User } = require("./models");
 const roommanager = require("./roommanager");
 
@@ -106,7 +105,6 @@ router.post("/login", (req, res, next) => {
 					});
 					return;
 				}
-				delete req.session.username;
 				req.session.save();
 				try {
 					usermanager.onUserLogIn(user, req.session);
@@ -153,8 +151,6 @@ router.post("/logout", (req, res) => {
 router.post("/register", (req, res) => {
 	usermanager.registerUser(req.body).then(result => {
 		req.login(result, () => {
-			delete req.session.username;
-			req.session.save();
 			try {
 				usermanager.onUserLogIn(result, req.session);
 			}
@@ -335,10 +331,6 @@ let usermanager = {
 				}
 			}
 		}
-		let username = uniqueNamesGenerator();
-		log.debug(`Generated name for new user (on log out): ${username}`);
-		session.username = username;
-		session.save();
 	},
 
 	onUserModified(session) {
@@ -347,10 +339,6 @@ let usermanager = {
 				if (client.session.id === session.id) {
 					if (client.isLoggedIn) {
 						client.user.reload();
-					}
-					else {
-						// HACK: for some reason, client.session.reload() doesn't work in this situation
-						client.session.username = session.username;
 					}
 					room._dirtyProps.push("users");
 					break;
