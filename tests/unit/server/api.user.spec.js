@@ -102,7 +102,7 @@ describe("User API", () => {
 				});
 		});
 
-		it("should change the registered user's name if it's already in use", async done => {
+		it("should not change the registered user's name if it's already in use", async done => {
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
