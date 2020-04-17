@@ -4,7 +4,9 @@ jest.spyOn(roommanager, "getAllLoadedRooms").mockReturnValue(Promise.resolve([])
 const app = require('../../../app.js').app;
 const usermanager = require('../../../usermanager.js');
 const { User } = require("../../../models");
+const Sequelize = require("sequelize");
 
+const { or, not } = Sequelize.Op;
 const TEST_API_KEY = "TESTAPIKEY";
 
 describe("User API", () => {
@@ -22,6 +24,8 @@ describe("User API", () => {
 		});
 
 		it("should have the forced test user logged in", async done => {
+			await User.update({ username: "forced test user" }, { where: { email: "forced@localhost" } });
+
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
@@ -94,6 +98,30 @@ describe("User API", () => {
 				.then(resp => {
 					expect(resp.body.success).toBeTruthy();
 					expect(onUserModifiedSpy).toBeCalled();
+					done();
+				});
+		});
+
+		it("should change the registered user's name if it's already in use", async done => {
+			let cookies;
+			await request(app)
+				.get("/api/user/test/forceLogin")
+				.expect(200)
+				.then(resp => {
+					cookies = resp.header["set-cookie"];
+				});
+
+			await request(app)
+				.post("/api/user")
+				.set("Cookie", cookies)
+				.send({ username: "test user" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBeFalsy();
+					expect(resp.body.error).toBeDefined();
+					expect(resp.body.error.name).toEqual("UsernameTaken");
+					expect(onUserModifiedSpy).not.toBeCalled();
 					done();
 				});
 		});
