@@ -135,8 +135,8 @@
                 <v-list-item v-if="showEditName">
                   <v-text-field @change="onEditNameChange" placeholder="Set your name" v-model="username" :loading="setUsernameLoading" :error-messages="setUsernameFailureText"/>
                 </v-list-item>
-                <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
-                  {{ user.name }}
+                <v-list-item v-for="(user, index) in $store.state.room.users" :key="index" :class="user.isLoggedIn ? 'user registered' : 'user'">
+                  <span class="name">{{ user.name }}</span>
                   <span v-if="user.isYou" class="is-you">You</span>
                   <v-icon class="player-status" v-if="user.status === 'buffering'">fas fa-spinner</v-icon>
                   <v-icon class="player-status" v-else-if="user.status === 'ready'">fas fa-check</v-icon>
@@ -899,6 +899,19 @@ export default {
 
     .chat-container {
       display: none;
+    }
+  }
+}
+.user {
+  .name {
+    opacity: 0.5;
+    font-style: italic;
+  }
+
+  &.registered {
+    .name {
+      opacity: 1;
+      font-style: normal;
     }
   }
 }
