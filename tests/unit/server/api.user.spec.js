@@ -148,5 +148,50 @@ describe("User API", () => {
 					});
 			});
 		});
+
+		describe("POST /user/logout", () => {
+			let onUserLogOutSpy;
+
+			beforeAll(() => {
+				onUserLogOutSpy = jest.spyOn(usermanager, "onUserLogOut").mockImplementation(() => {});
+			});
+
+			beforeEach(async () => {
+				onUserLogOutSpy.mockClear();
+			});
+
+			afterAll(() => {
+				onUserLogOutSpy.mockRestore();
+			});
+
+			it("should log out the test uesr", async () => {
+				let cookies;
+				await request(app)
+					.get("/api/user/test/forceLogin")
+					.expect(200)
+					.then(resp => {
+						cookies = resp.header["set-cookie"];
+					});
+
+				await request(app)
+					.post("/api/user/logout")
+					.set("Cookie", cookies)
+					.expect("Content-Type", /json/)
+					.expect(200)
+					.then(resp => {
+						expect(resp.body.success).toBeTruthy();
+					});
+			});
+
+			it("should fail if the user is not logged in", async () => {
+				await request(app)
+					.post("/api/user/logout")
+					.expect("Content-Type", /json/)
+					.expect(200)
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+					});
+			});
+		});
 	});
 });
