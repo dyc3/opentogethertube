@@ -77,12 +77,17 @@ describe("User API", () => {
 		});
 
 		it("should change the registered user's name without failing", async done => {
+			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
-				.expect(200);
+				.expect(200)
+				.then(resp => {
+					cookies = resp.header["set-cookie"];
+				});
 
 			await request(app)
 				.post("/api/user")
+				.set("Cookie", cookies)
 				.send({ username: "new username" })
 				.expect("Content-Type", /json/)
 				.expect(200)
