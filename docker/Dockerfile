@@ -14,7 +14,6 @@ RUN npm install
 RUN npm run build
 
 
-
 ### Deployement server nginx ###
 FROM node:alpine3.11 as production-stage
 
