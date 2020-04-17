@@ -7,47 +7,52 @@
 		<v-tabs-items v-model="mode">
 			<v-tab-item>
 				<v-card>
-					<v-card-title>
-						Log in
-					</v-card-title>
-					<v-card-text>
-						<v-container>
-							<v-row>
-								<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="logInFailureMessage" />
-								<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="logInFailureMessage" />
-							</v-row>
-							<v-row v-if="logInFailureMessage">
-								{{ logInFailureMessage }}
-							</v-row>
-						</v-container>
-					</v-card-text>
-					<v-card-actions>
-						<v-spacer />
-						<v-btn color="primary" :loading="isLoading" @click="login">Log in</v-btn>
-					</v-card-actions>
+					<v-form ref="loginForm" @submit="login" v-model="loginValid" :lazy-validation="false">
+						<v-card-title>
+							Log in
+						</v-card-title>
+						<v-card-text>
+							<v-container>
+								<v-row>
+									<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="logInFailureMessage" :rules="emailRules" />
+									<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="logInFailureMessage" />
+								</v-row>
+								<v-row v-if="logInFailureMessage">
+									{{ logInFailureMessage }}
+								</v-row>
+							</v-container>
+						</v-card-text>
+						<v-card-actions>
+							<v-spacer />
+							<v-btn color="primary" :loading="isLoading" @click="login" :disabled="!loginValid">Log in</v-btn>
+						</v-card-actions>
+					</v-form>
 				</v-card>
 			</v-tab-item>
 			<v-tab-item>
 				<v-card>
-					<v-card-title>
-						Register
-					</v-card-title>
-					<v-card-text>
-						<v-container>
-							<v-row>
-								<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="registerFieldErrors.email" />
-								<v-text-field :loading="isLoading" label="Username" required v-model="username" :error-messages="registerFieldErrors.username" />
-								<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="registerFieldErrors.password" />
-							</v-row>
-							<v-row v-if="registerFailureMessage">
-								{{ registerFailureMessage }}
-							</v-row>
-						</v-container>
-					</v-card-text>
-					<v-card-actions>
-						<v-spacer />
-						<v-btn color="primary" :loading="isLoading" @click="register">Register</v-btn>
-					</v-card-actions>
+					<v-form ref="registerForm" @submit="register" v-model="registerValid" :lazy-validation="false">
+						<v-card-title>
+							Register
+						</v-card-title>
+						<v-card-text>
+							<v-container>
+								<v-row>
+									<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="registerFieldErrors.email" :rules="emailRules" />
+									<v-text-field :loading="isLoading" label="Username" required v-model="username" :error-messages="registerFieldErrors.username" :rules="usernameRules" />
+									<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="registerFieldErrors.password" :rules="passwordRules" counter />
+									<v-text-field :loading="isLoading" label="Retype Password" type="password" required v-model="password2" :error-messages="registerFieldErrors.password2" :rules="retypePasswordRules" />
+								</v-row>
+								<v-row v-if="registerFailureMessage">
+									{{ registerFailureMessage }}
+								</v-row>
+							</v-container>
+						</v-card-text>
+						<v-card-actions>
+							<v-spacer />
+							<v-btn color="primary" :loading="isLoading" @click="register" :disabled="!registerValid">Register</v-btn>
+						</v-card-actions>
+					</v-form>
 				</v-card>
 			</v-tab-item>
 		</v-tabs-items>
@@ -56,6 +61,7 @@
 
 <script>
 import { API } from "@/common-http.js";
+import isEmail from 'validator/es/lib/isEmail';
 
 export default {
 	name: "LogIn",
@@ -64,17 +70,38 @@ export default {
 			email: "",
 			username: "",
 			password: "",
+			password2: "",
 
 			mode: "",
 			isLoading: false,
 			logInFailureMessage: "",
 			registerFailureMessage: "",
 
+			loginValid: false,
+			registerValid: false,
 			registerFieldErrors: {
 				email: "",
 				username: "",
 				password: "",
+				password2: "",
 			},
+
+			emailRules: [
+				v => !!v || "Email is required",
+				v => v && isEmail(v) || "Must be a valid email",
+			],
+			usernameRules: [
+				// eslint-disable-next-line array-bracket-newline
+				v => !!v || "Username is required",
+			],
+			passwordRules: [
+				v => !!v || "Password is required",
+				v => v && v.length >= 10 || process.env.NODE_ENV === "development" && v === "1" || "Password must be at least 10 characters long",
+			],
+			retypePasswordRules: [
+				v => !!v || "Please retype your password",
+				v => v === this.password || "Passwords must match",
+			],
 		};
 	},
 	created() {
@@ -84,6 +111,11 @@ export default {
 	},
 	methods: {
 		login() {
+			this.$refs.loginForm.validate();
+			if (!this.loginValid) {
+				return;
+			}
+
 			this.isLoading = true;
 			this.logInFailureMessage = "";
 			API.post("/user/login", { email: this.email, password: this.password }).then(resp => {
@@ -116,12 +148,18 @@ export default {
 			});
 		},
 		register() {
+			this.$refs.registerForm.validate();
+			if (!this.registerValid) {
+				return;
+			}
+
 			this.isLoading = true;
 			this.registerFailureMessage = "";
 			this.registerFieldErrors = {
 				email: "",
 				username: "",
 				password: "",
+				password2: "",
 			};
 			API.post("/user/register", { email: this.email, username: this.username, password: this.password }).then(resp => {
 				this.isLoading = false;
@@ -132,6 +170,7 @@ export default {
 					this.email = "";
 					this.username = "";
 					this.password = "";
+					this.password2 = "";
 				}
 				else {
 					console.log("Registeration failed");
@@ -160,6 +199,14 @@ export default {
 					this.registerFailureMessage = "Failed to register, and I don't know why. Check the console and report this as a bug.";
 				}
 			});
+		},
+	},
+	watch: {
+		email() {
+			this.logInFailureMessage = "";
+		},
+		password() {
+			this.logInFailureMessage = "";
 		},
 	},
 };
