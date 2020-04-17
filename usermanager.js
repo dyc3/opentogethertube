@@ -3,12 +3,15 @@ const securePassword = require('secure-password');
 const express = require('express');
 const passport = require('passport');
 const crypto = require('crypto');
+const rateLimit = require("express-rate-limit");
+const RateLimitStore = require('rate-limit-redis');
 const { User } = require("./models");
 const roommanager = require("./roommanager");
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
 const router = express.Router();
+let redisClient;
 
 router.get("/", (req, res) => {
 	if (req.user) {
@@ -82,7 +85,8 @@ router.post("/", async (req, res) => {
 	usermanager.onUserModified(req.session);
 });
 
-router.post("/login", (req, res, next) => {
+let logInLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:UserRegister" }), windowMs: 10 * 1000, max: 5, message: "You are doing that too much." });
+router.post("/login", process.env.NODE_ENV === "production" ? logInLimiter : (req, res, next) => next(), (req, res, next) => {
 	passport.authenticate("local", (err, user) => {
 		if (err) {
 			res.status(401).json({
@@ -148,7 +152,8 @@ router.post("/logout", (req, res) => {
 	}
 });
 
-router.post("/register", (req, res) => {
+let registerLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:UserRegister" }), windowMs: 60 * 60 * 1000, max: 4, message: "You are doing that too much." });
+router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter : (req, res, next) => next(), (req, res) => {
 	usermanager.registerUser(req.body).then(result => {
 		req.login(result, () => {
 			try {
@@ -190,6 +195,10 @@ router.post("/register", (req, res) => {
 
 let usermanager = {
 	router,
+
+	init(_redisClient) {
+		redisClient = _redisClient;
+	},
 
 	/**
 	 * Callback used by passport LocalStrategy to authenticate Users.

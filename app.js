@@ -86,6 +86,7 @@ const infoextract = require("./infoextract");
 const api = require("./api")(roommanager, storage, redisClient);
 roommanager.start(server, sessions, redisClient);
 infoextract.init(redisClient);
+usermanager.init(redisClient);
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies
