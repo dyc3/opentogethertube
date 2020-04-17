@@ -1,4 +1,5 @@
 const { getLogger } = require('./logger.js');
+const _ = require("lodash");
 const securePassword = require('secure-password');
 const express = require('express');
 const passport = require('passport');
@@ -118,7 +119,10 @@ router.post("/login", process.env.NODE_ENV === "production" ? logInLimiter : (re
 				}
 				res.json({
 					success: true,
-					user: user,
+					user: _.pick(user, [
+						"email",
+						"username",
+					]),
 				});
 			});
 		}
@@ -164,7 +168,10 @@ router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter
 			}
 			res.json({
 				success: true,
-				user: result,
+				user: _.pick(result, [
+					"email",
+					"username",
+				]),
 			});
 		});
 	}).catch(err => {
@@ -367,6 +374,14 @@ if (process.env.NODE_ENV === "test") {
 	usermanager.registerUser({
 		email: "forced@localhost",
 		username: "forced test user",
+		password: "test",
+	}).catch(err => {
+		log.warn(`failed to register test user ${err.message}`);
+	});
+
+	usermanager.registerUser({
+		email: "test@localhost",
+		username: "test user",
 		password: "test",
 	}).catch(err => {
 		log.warn(`failed to register test user ${err.message}`);

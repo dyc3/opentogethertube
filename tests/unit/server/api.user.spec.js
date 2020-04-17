@@ -30,8 +30,6 @@ describe("User API", () => {
 					cookies = resp.header["set-cookie"];
 				});
 
-			console.log(cookies);
-
 			await request(app)
 				.get("/api/user")
 				.set("Cookie", cookies)
@@ -93,6 +91,57 @@ describe("User API", () => {
 					expect(onUserModifiedSpy).toBeCalled();
 					done();
 				});
+		});
+	});
+
+	describe("User login and registration", () => {
+		describe("POST /user/login", () => {
+			let onUserLogInSpy;
+
+			beforeAll(() => {
+				onUserLogInSpy = jest.spyOn(usermanager, "onUserLogIn").mockImplementation(() => {});
+			});
+
+			beforeEach(async () => {
+				onUserLogInSpy.mockClear();
+			});
+
+			afterAll(() => {
+				onUserLogInSpy.mockRestore();
+			});
+
+			it("should log in the test user", async () => {
+				await request(app)
+					.post("/api/user/login")
+					.send({ email: "test@localhost", password: "test" })
+					.then(resp => {
+						expect(resp.body).toEqual({
+							success: true,
+							user: {
+								username: "test user",
+								email: "test@localhost",
+							},
+						});
+						expect(onUserLogInSpy).toBeCalled();
+					});
+			});
+
+			it("should not log in the test user with wrong credentials", async () => {
+				await request(app)
+					.post("/api/user/login")
+					.send({ email: "notreal@localhost", password: "test" })
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+				await request(app)
+					.post("/api/user/login")
+					.send({ email: "test@localhost", password: "wrong" })
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
 		});
 	});
 });
