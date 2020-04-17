@@ -357,4 +357,22 @@ let usermanager = {
 	},
 };
 
+if (process.env.NODE_ENV === "test") {
+	usermanager.registerUser({
+		email: "forced@localhost",
+		username: "forced test user",
+		password: "test",
+	}).catch(err => {
+		log.warn(`failed to register test user ${err.message}`);
+	});
+
+	router.get("/test/forceLogin", async (req, res) => {
+		req.login(await usermanager.getUser({ email: "forced@localhost" }), (err) => {
+			res.json({
+				success: !!err,
+			});
+		});
+	});
+}
+
 module.exports = usermanager;

@@ -474,19 +474,6 @@ describe("Data API", () => {
 	});
 });
 
-describe("User API", () => {
-	it("GET /user", done => {
-		request(app)
-			.get("/api/user")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.name).toBeDefined();
-				done();
-			});
-	});
-});
-
 describe("Announcements API", () => {
 	beforeAll(() => {
 		process.env.OPENTOGETHERTUBE_API_KEY = TEST_API_KEY;
