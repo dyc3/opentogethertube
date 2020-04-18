@@ -44,7 +44,7 @@ class InvalidAddPreviewInputException extends Error {
 class OutOfQuotaException extends Error {
 	constructor(service) {
 		if (service === "youtube") {
-			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 10,000 quota per day.`);
+			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 50,000 quota per day.`);
 		}
 		else if (service === "googledrive") {
 			super(`We don't have enough Google Drive API quota to complete the request.`);
