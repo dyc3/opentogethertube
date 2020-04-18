@@ -50,6 +50,7 @@ module.exports = {
     'jest/expect-expect': 'warn',
     'jest/no-duplicate-hooks': 'error',
     'jest/no-focused-tests': 'error',
+    'jest/no-identical-title': 'error',
     'jest/no-if': 'error',
     'jest/no-truthy-falsy': 'warn',
     'jest/prefer-spy-on': 'error',
