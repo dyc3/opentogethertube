@@ -3,6 +3,9 @@ module.exports = {
   env: {
     node: true
   },
+  plugins: [
+    "jest",
+  ],
   'extends': [
     'eslint:recommended',
     'plugin:vue/base',
@@ -42,6 +45,15 @@ module.exports = {
     "vue/no-parsing-error": ["error", {
       "invalid-first-character-of-tag-name": false,
     }],
+
+    'jest/consistent-test-it': ["error", {"fn": "it"}],
+    'jest/expect-expect': 'warn',
+    'jest/no-duplicate-hooks': 'error',
+    'jest/no-focused-tests': 'error',
+    'jest/no-if': 'error',
+    'jest/no-truthy-falsy': 'warn',
+    'jest/prefer-spy-on': 'error',
+    'jest/require-top-level-describe': 'warn',
   },
   parserOptions: {
     ecmaVersion: 6,
