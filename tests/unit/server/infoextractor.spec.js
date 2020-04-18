@@ -117,7 +117,7 @@ describe('InfoExtractor Bulk Retrieval', () => {
     await CachedVideo.destroy({ where: {} });
   }),
 
-  it("should get the correct video metadata for multiple videos with only one call to the youtube API", done => {
+  it("should get the correct video metadata for multiple videos with only one call to the youtube API", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q,I3O9J02G67I"]) });
     let videos = [
       {
@@ -129,31 +129,37 @@ describe('InfoExtractor Bulk Retrieval', () => {
         id: "I3O9J02G67I",
       },
     ];
+    jest.spyOn(storage, "getManyVideoInfo").mockResolvedValue(videos);
+    jest.spyOn(storage, "updateManyVideoInfo").mockResolvedValue(true);
 
-    InfoExtract.getManyVideoInfo(videos).then(videos => {
-      expect(videos).toHaveLength(2);
-      expect(videos[0]).toEqual({
+    expect(await InfoExtract.getManyVideoInfo(videos)).toEqual([
+      new Video({
         service: "youtube",
         id: "BTZ5KVRUy1Q",
         title: "tmpIwT4T4",
         description: "tmpIwT4T4",
         thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
         length: 10,
-      });
-      expect(videos[1]).toEqual({
+      }),
+      new Video({
         service: "youtube",
         id: "I3O9J02G67I",
         title: "tmpATT2Cp",
         description: "tmpATT2Cp",
         thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg",
         length: 10,
-      });
-      expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
-      done();
-    }).catch(err => done.fail(err));
+      }),
+    ]);
+    expect(storage.getManyVideoInfo).toHaveBeenCalledTimes(1);
+    expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+    expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.getManyVideoInfo.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should get the correct video metadata for multiple videos with only 2 calls to the youtube API", done => {
+  it("should get the correct video metadata for multiple videos with only 2 calls to the youtube API", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockImplementation(url => {
       if (url.includes("BTZ5KVRUy1Q")) {
         return Promise.resolve({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
@@ -176,37 +182,44 @@ describe('InfoExtractor Bulk Retrieval', () => {
         length: 10,
       },
     ];
+    jest.spyOn(storage, "getManyVideoInfo").mockResolvedValue(videos);
+    jest.spyOn(storage, "updateManyVideoInfo").mockResolvedValue(true);
 
-    InfoExtract.getManyVideoInfo(videos).then(videos => {
-      expect(videos).toHaveLength(2);
-      expect(videos[0]).toEqual({
+    expect(await InfoExtract.getManyVideoInfo(videos)).toEqual([
+      new Video({
         service: "youtube",
         id: "BTZ5KVRUy1Q",
         title: "tmpIwT4T4",
         description: "tmpIwT4T4",
         thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
         length: 10,
-      });
-      expect(videos[1]).toEqual({
+      }),
+      new Video({
         service: "youtube",
         id: "I3O9J02G67I",
         title: "tmpATT2Cp",
         description: "tmpATT2Cp",
         thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg",
         length: 10,
-      });
-      expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(2);
-      done();
-    }).catch(err => done.fail(err));
+      }),
+    ]);
+    expect(storage.getManyVideoInfo).toHaveBeenCalledTimes(1);
+    expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(2);
+    expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(2);
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.getManyVideoInfo.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 });
 
 describe("InfoExtractor Youtube Support", () => {
-  it("should get 1 video", done => {
+  it("should get 1 video", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"]).then(results => {
+    expect.assertions(2);
+    await InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"]).then(results => {
       expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
         service: "youtube",
         id: "BTZ5KVRUy1Q",
@@ -215,17 +228,20 @@ describe("InfoExtractor Youtube Support", () => {
         thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
         length: 10,
       }));
-      expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
-      done();
     });
+    expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should get 1 video with onlyProperties set", done => {
+  it("should get 1 video with onlyProperties set", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
+    expect.assertions(2);
     // eslint-disable-next-line array-bracket-newline
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["title", "description", "thumbnail", "length"]).then(results => {
+    await InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["title", "description", "thumbnail", "length"]).then(results => {
       expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
         service: "youtube",
         id: "BTZ5KVRUy1Q",
@@ -235,16 +251,19 @@ describe("InfoExtractor Youtube Support", () => {
         length: 10,
       }));
       expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
-      done();
     });
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should get 2 videos", done => {
+  it("should get 2 videos", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q,I3O9J02G67I"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
+    expect.assertions(3);
     // eslint-disable-next-line array-bracket-newline
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q", "I3O9J02G67I"]).then(results => {
+    await InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q", "I3O9J02G67I"]).then(results => {
       expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
         service: "youtube",
         id: "BTZ5KVRUy1Q",
@@ -262,17 +281,20 @@ describe("InfoExtractor Youtube Support", () => {
         length: 10,
       }));
       expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
-      done();
     });
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should attempt fallback if it fails to get video due to quota limit, and length is requested", done => {
+  it("should attempt fallback if it fails to get video due to quota limit, and length is requested", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 403 } });
-    let getLengthFallback = jest.spyOn(InfoExtract, "getVideoLengthYoutube_Fallback").mockResolvedValue(10);
+    jest.spyOn(InfoExtract, "getVideoLengthYoutube_Fallback").mockResolvedValue(10);
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockRejectedValue(true);
 
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["length"]).then(results => {
-      expect(getLengthFallback).toHaveBeenCalled();
+    expect.assertions(3);
+    await InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["length"]).then(results => {
+      expect(InfoExtract.getVideoLengthYoutube_Fallback).toHaveBeenCalled();
       expect(results["BTZ5KVRUy1Q"]).toEqual(new Video({
         service: "youtube",
         id: "BTZ5KVRUy1Q",
@@ -280,122 +302,115 @@ describe("InfoExtractor Youtube Support", () => {
         thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg",
       }));
       expect(storage.updateManyVideoInfo).toHaveBeenCalled();
-      getLengthFallback.mockRestore();
-      done();
-    }).catch(err => {
-      getLengthFallback.mockRestore();
-      done.fail(err);
     });
+
+    InfoExtract.YtApi.get.mockRestore();
+    InfoExtract.getVideoLengthYoutube_Fallback.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should fail to get video due to quota limit, and length is not requested", done => {
+  it("should fail to get video due to quota limit, and length is not requested", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 403 } });
-    let getLengthFallback = jest.spyOn(InfoExtract, "getVideoLengthYoutube_Fallback").mockResolvedValue(10);
+    jest.spyOn(InfoExtract, "getVideoLengthYoutube_Fallback").mockResolvedValue(10);
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockRejectedValue(true);
 
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["title"]).then(() => {
-      getLengthFallback.mockRestore();
-      done.fail();
-    }).catch(err => {
-      expect(getLengthFallback).not.toHaveBeenCalled();
-      expect(err.name).toBe("OutOfQuotaException");
-      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
-      getLengthFallback.mockRestore();
-      done();
-    });
+    await expect(InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], ["title"])).rejects.toThrow(/API quota/);
+    expect(InfoExtract.getVideoLengthYoutube_Fallback).not.toHaveBeenCalled();
+    expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.YtApi.get.mockRestore();
+    InfoExtract.getVideoLengthYoutube_Fallback.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should fail to get video due to other reasons", done => {
-    jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 500 } });
+  it("should fail to get video due to other reasons", async () => {
+    jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue(new Error());
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"]).then(() => {
-      done.fail();
-    }).catch(err => {
-      expect(err.name).not.toBe("OutOfQuotaException");
-      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+    await expect(InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"])).rejects.toThrow();
+    expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
+    expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should fail to get video because ids is not an array", done => {
+  it("should fail to get video because ids is not an array", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    InfoExtract.getVideoInfoYoutube("BTZ5KVRUy1Q").then(() => {
-      done.fail();
-    }).catch(() => {
-      expect(InfoExtract.YtApi.get).not.toHaveBeenCalled();
-      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+    await expect(InfoExtract.getVideoInfoYoutube("BTZ5KVRUy1Q")).rejects.toThrow();
+    expect(InfoExtract.YtApi.get).not.toHaveBeenCalled();
+    expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should fail to get video because onlyProperties is an empty array", done => {
+  it("should fail to get video because onlyProperties is an empty array", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], []).then(() => {
-      done.fail();
-    }).catch(() => {
-      expect(InfoExtract.YtApi.get).not.toHaveBeenCalled();
-      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+    await expect(InfoExtract.getVideoInfoYoutube(["BTZ5KVRUy1Q"], [])).rejects.toThrow("onlyProperties must have valid values or be null!");
+    expect(InfoExtract.YtApi.get).not.toHaveBeenCalled();
+    expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should get videos in the given youtube playlist", done => {
+  it("should get videos in the given youtube playlist", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(results => {
-      expect(results).toHaveLength(2);
-      expect(results[0]).toEqual(new Video({
+    await expect(InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).resolves.toEqual([
+      new Video({
         service: "youtube",
         id: "zgxj_0xPleg",
         title: "Chris Chan: A Comprehensive History - Part 1",
         description: "(1982-2000)",
         thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
-      }));
-      expect(results[1]).toEqual(new Video({
+      }),
+      new Video({
         service: "youtube",
         id: "_3QMqssyBwQ",
         title: "Chris Chan: A Comprehensive History - Part 2",
         description: "(2000-2004)",
         thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
-      }));
-      expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
-      done();
-    }).catch(err => done.fail(err));
+      }),
+    ]);
+
+    expect(InfoExtract.YtApi.get).toHaveBeenCalled();
+    expect(storage.updateManyVideoInfo).toHaveBeenCalledTimes(1);
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should fail when youtube playlist request fails due to quota limit", done => {
+  it("should fail when youtube playlist request fails due to quota limit", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 403 } });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(() => {
-      done.fail();
-    }).catch(err => {
-      expect(err.name).toBe("OutOfQuotaException");
-      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+    await expect(InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).rejects.toThrow(/API quota/);
+    expect(InfoExtract.YtApi.get).toHaveBeenCalled();
+    expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should fail when youtube playlist request fails due to other reasons", done => {
-    jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 500 } });
+  it("should fail when youtube playlist request fails due to other reasons", async () => {
+    jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue(new Error());
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm").then(() => {
-      done.fail();
-    }).catch(err => {
-      expect(err.name).not.toBe("OutOfQuotaException");
-      expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+    await expect(InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).rejects.toThrow();
+    expect(storage.updateManyVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.YtApi.get.mockRestore();
+    storage.updateManyVideoInfo.mockRestore();
   });
 
-  it("should get videos on the given youtube channel", done => {
+  it("should get videos on the given youtube channel", async () => {
     let redisClientMock = {
       get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
       set: jest.fn(),
@@ -412,166 +427,174 @@ describe("InfoExtractor Youtube Support", () => {
       }),
     ]);
     InfoExtract.init(redisClientMock);
-    InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(results => {
-      expect(results).toHaveLength(2);
-      expect(results[0]).toEqual(new Video({
+
+    expect(await InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" })).toEqual([
+      new Video({
         service: "youtube",
         id: "I3O9J02G67I",
-      }));
-      expect(results[1]).toEqual(new Video({
+      }),
+      new Video({
         service: "youtube",
         id: "BTZ5KVRUy1Q",
-      }));
-      done();
-    }).catch(err => done.fail(err));
+      }),
+    ]);
+    expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
+
+    InfoExtract.YtApi.get.mockRestore();
+    InfoExtract.getPlaylistYoutube.mockRestore();
   });
 
-  it("should fail when youtube channel request fails due to quota limit", done => {
+  it("should fail when youtube channel request fails due to quota limit", async () => {
     let redisClientMock = {
       get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
       set: jest.fn(),
     };
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 403 } });
     InfoExtract.init(redisClientMock);
-    InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(() => {
-      done.fail();
-    }).catch(err => {
-      expect(err.name).toBe("OutOfQuotaException");
-      done();
-    });
+
+    await expect(InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" })).rejects.toThrow(/API quota/);
+    expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
+
+    InfoExtract.YtApi.get.mockRestore();
   });
 
-  it("should fail when youtube channel request fails for other reasons", done => {
+  it("should fail when youtube channel request fails for other reasons", async () => {
     let redisClientMock = {
       get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
       set: jest.fn(),
     };
-    jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 500 } });
+    jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue(new Error());
     InfoExtract.init(redisClientMock);
-    InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" }).then(() => {
-      done.fail();
-    }).catch(err => {
-      expect(err.name).not.toBe("OutOfQuotaException");
-      done();
-    });
+
+    await expect(InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" })).rejects.toThrow();
+    expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
+
+    InfoExtract.YtApi.get.mockRestore();
   });
 
-  it("should search youtube and parse results without failing", done => {
+  it("should search youtube and parse results without failing", async () => {
     let redisClientMock = {
       get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
       set: jest.fn(),
     };
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) });
     InfoExtract.init(redisClientMock);
-    InfoExtract.searchYoutube("family guy funny moments").then(results => {
-      expect(results).toHaveLength(3);
-      expect(results[0]).toEqual(new Video({
+
+    expect(await InfoExtract.searchYoutube("family guy funny moments")).toEqual([
+      new Video({
         service: "youtube",
         id: "UJXZihZCP2g",
-      }));
-      expect(results[1]).toEqual(new Video({
+      }),
+      new Video({
         service: "youtube",
         id: "ysEdZ3KWYIU",
-      }));
-      expect(results[2]).toEqual(new Video({
+      }),
+      new Video({
         service: "youtube",
         id: "Tu3TiESKJGk",
-      }));
-      expect(redisClientMock.set).toBeCalled();
-      done();
-    }).catch(err => done.fail(err));
+      }),
+    ]);
+    expect(redisClientMock.set).toBeCalled();
+
+    InfoExtract.YtApi.get.mockRestore();
   });
 
-  it("should search youtube using the extra options", done => {
+  it("should search youtube using the extra options", async () => {
     let redisClientMock = {
       get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
       set: jest.fn(),
     };
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) });
     InfoExtract.init(redisClientMock);
-    InfoExtract.searchYoutube("family guy funny moments", { maxResults: 3, fromUser: "test" }).then(() => {
-      expect(InfoExtract.YtApi.get).toBeCalled();
-      expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("maxResults=3");
-      expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("quotaUser=test");
-      done();
-    }).catch(err => done.fail(err));
+
+    expect(await InfoExtract.searchYoutube("family guy funny moments", { maxResults: 3, fromUser: "test" })).toHaveLength(3);
+    expect(redisClientMock.get).toBeCalled();
+    expect(InfoExtract.YtApi.get).toBeCalled();
+    expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("maxResults=3");
+    expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("quotaUser=test");
+
+    InfoExtract.YtApi.get.mockRestore();
   });
 });
 
 describe("InfoExtractor Vimeo Support", () => {
-  it("should handle single video", done => {
+  it("should handle single video", async () => {
     jest.spyOn(InfoExtract.VimeoApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(vimeoOEmbedSampleResponses["94338566"]) });
     jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
 
-    InfoExtract.getVideoInfoVimeo("94338566").then(video => {
-      expect(video).toEqual(new Video({
-        service: "vimeo",
-        id: "94338566",
-        title: "Showreel",
-        description: "No animation. No 3D. Just reality.",
-        thumbnail: "https://i.vimeocdn.com/video/474246782_295x166.jpg",
-        length: 70,
-      }));
-      expect(storage.updateVideoInfo).toHaveBeenCalledTimes(1);
-      done();
-    }).catch(err => {
-      done.fail(err);
-    });
+    expect(await InfoExtract.getVideoInfoVimeo("94338566")).toEqual(new Video({
+      service: "vimeo",
+      id: "94338566",
+      title: "Showreel",
+      description: "No animation. No 3D. Just reality.",
+      thumbnail: "https://i.vimeocdn.com/video/474246782_295x166.jpg",
+      length: 70,
+    }));
+    expect(InfoExtract.VimeoApi.get).toHaveBeenCalledTimes(1);
+    expect(storage.updateVideoInfo).toHaveBeenCalledTimes(1);
+
+    InfoExtract.VimeoApi.get.mockRestore();
+    storage.updateVideoInfo.mockRestore();
   });
 
-  it("should handle video with embedding disabled gracefully", done => {
+  it("should handle video with embedding disabled gracefully", async () => {
     jest.spyOn(InfoExtract.VimeoApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 403 } });
     jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
-    InfoExtract.getVideoInfoVimeo("94338566").then(video => {
-      expect(video).toBeNull();
-      expect(storage.updateVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+
+    expect(await InfoExtract.getVideoInfoVimeo("94338566")).toBeNull();
+    expect(InfoExtract.VimeoApi.get).toHaveBeenCalledTimes(1);
+    expect(storage.updateVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.VimeoApi.get.mockRestore();
+    storage.updateVideoInfo.mockRestore();
   });
 
-  it("should handle other failures gracefully", done => {
+  it("should handle other failures gracefully", async () => {
     jest.spyOn(InfoExtract.VimeoApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 200 } });
     jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
-    InfoExtract.getVideoInfoVimeo("94338566").then(video => {
-      expect(video).toEqual(new Video({
-        service: "vimeo",
-        id: "94338566",
-      }));
-      expect(storage.updateVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+
+    expect(await InfoExtract.getVideoInfoVimeo("94338566")).toEqual(new Video({
+      service: "vimeo",
+      id: "94338566",
+    }));
+    expect(InfoExtract.VimeoApi.get).toHaveBeenCalledTimes(1);
+    expect(storage.updateVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.VimeoApi.get.mockRestore();
+    storage.updateVideoInfo.mockRestore();
   });
 });
 
 describe("InfoExtractor Dailymotion Support", () => {
-  it("should handle single video", done => {
+  it("should handle single video", async () => {
     jest.spyOn(InfoExtract.DailymotionApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(dailymotionVideoInfoSampleResponses["x1fz4ii"]) });
     jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
 
-    InfoExtract.getVideoInfoDailymotion("x1fz4ii").then(video => {
-      expect(video).toEqual(new Video({
-        service: "dailymotion",
-        id: "x1fz4ii",
-        title: "Hackathon BeMyApp/Dailymotion",
-        description: "This is a video that was done after our hackathon",
-        thumbnail: "https://s2.dmcdn.net/v/7sRg71UN0OKwaG4Wj",
-        length: 213,
-      }));
-      expect(storage.updateVideoInfo).toHaveBeenCalledTimes(1);
-      done();
-    }).catch(err => {
-      done.fail(err);
-    });
+    expect(await InfoExtract.getVideoInfoDailymotion("x1fz4ii")).toEqual(new Video({
+      service: "dailymotion",
+      id: "x1fz4ii",
+      title: "Hackathon BeMyApp/Dailymotion",
+      description: "This is a video that was done after our hackathon",
+      thumbnail: "https://s2.dmcdn.net/v/7sRg71UN0OKwaG4Wj",
+      length: 213,
+    }));
+    expect(InfoExtract.DailymotionApi.get).toHaveBeenCalledTimes(1);
+    expect(storage.updateVideoInfo).toHaveBeenCalledTimes(1);
+
+    InfoExtract.DailymotionApi.get.mockRestore();
+    storage.updateVideoInfo.mockRestore();
   });
 
-  it("should handle other failures gracefully", done => {
+  it("should handle other failures gracefully", async () => {
     jest.spyOn(InfoExtract.DailymotionApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 500 } });
     jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
-    InfoExtract.getVideoInfoDailymotion("x1fz4ii").then(video => {
-      expect(video).toBeNull();
-      expect(storage.updateVideoInfo).not.toHaveBeenCalled();
-      done();
-    });
+
+    expect(await InfoExtract.getVideoInfoDailymotion("x1fz4ii")).toBeNull();
+    expect(InfoExtract.DailymotionApi.get).toHaveBeenCalledTimes(1);
+    expect(storage.updateVideoInfo).not.toHaveBeenCalled();
+
+    InfoExtract.DailymotionApi.get.mockRestore();
+    storage.updateVideoInfo.mockRestore();
   });
 });
 

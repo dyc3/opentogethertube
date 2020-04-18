@@ -468,7 +468,7 @@ module.exports = {
 
 				if (parts.length === 0) {
 					log.error(`onlyProperties must have valid values or be null! Found ${onlyProperties}`);
-					reject(null);
+					reject(new Error("onlyProperties must have valid values or be null!"));
 					return;
 				}
 			}
