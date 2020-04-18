@@ -146,7 +146,7 @@ describe("User API", () => {
 			it("should log in the test user", async () => {
 				await request(app)
 					.post("/api/user/login")
-					.send({ email: "test@localhost", password: "test" })
+					.send({ email: "test@localhost", password: "test1234" })
 					.then(resp => {
 						expect(resp.body).toEqual({
 							success: true,
@@ -162,7 +162,7 @@ describe("User API", () => {
 			it("should not log in the test user with wrong credentials", async () => {
 				await request(app)
 					.post("/api/user/login")
-					.send({ email: "notreal@localhost", password: "test" })
+					.send({ email: "notreal@localhost", password: "test1234" })
 					.then(resp => {
 						expect(resp.body.success).toBeFalsy();
 						expect(onUserLogInSpy).not.toBeCalled();
@@ -244,7 +244,7 @@ describe("User API", () => {
 			it("should register user", async () => {
 				await request(app)
 					.post("/api/user/register")
-					.send({ email: "register@localhost", username: "registered", password: "test" })
+					.send({ email: "register@localhost", username: "registered", password: "test1234" })
 					.expect(200)
 					.expect("Content-Type", /json/)
 					.then(resp => {
@@ -262,7 +262,7 @@ describe("User API", () => {
 			it("should not register user if email is already in use", async () => {
 				await request(app)
 					.post("/api/user/register")
-					.send({ email: "test@localhost", username: "registered", password: "test" })
+					.send({ email: "test@localhost", username: "registered", password: "test1234" })
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
@@ -276,13 +276,55 @@ describe("User API", () => {
 			it("should not register user if username is already in use", async () => {
 				await request(app)
 					.post("/api/user/register")
-					.send({ email: "register@localhost", username: "test user", password: "test" })
+					.send({ email: "register@localhost", username: "test user", password: "test1234" })
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
 						expect(resp.body.success).toBeFalsy();
 						expect(resp.body.error).toBeDefined();
 						expect(resp.body.error.name).toEqual("AlreadyInUse");
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
+
+			it("should not register user if email is invalid", async () => {
+				await request(app)
+					.post("/api/user/register")
+					.send({ email: "bad", username: "bad email user", password: "test1234" })
+					.expect(400)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.error).toBeDefined();
+						expect(resp.body.error.name).toEqual("ValidationError");
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
+
+			it("should not register user if username is invalid", async () => {
+				await request(app)
+					.post("/api/user/register")
+					.send({ email: "badusername@localhost", username: "", password: "test1234" })
+					.expect(400)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.error).toBeDefined();
+						expect(resp.body.error.name).toEqual("ValidationError");
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
+
+			it("should not register user if password is not good enough", async () => {
+				await request(app)
+					.post("/api/user/register")
+					.send({ email: "badpassword@localhost", username: "bad password", password: "a" })
+					.expect(400)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.error).toBeDefined();
+						expect(resp.body.error.name).toEqual("ValidationError");
 						expect(onUserLogInSpy).not.toBeCalled();
 					});
 			});

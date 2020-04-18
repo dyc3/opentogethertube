@@ -188,6 +188,15 @@ router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter
 				},
 			});
 		}
+		else if (err.name === "SequelizeValidationError" || err.name === "BadPasswordError") {
+			res.status(400).json({
+				success: false,
+				error: {
+					name: "ValidationError",
+					message: err.message,
+				},
+			});
+		}
 		else {
 			res.status(500).json({
 				success: false,
@@ -199,6 +208,13 @@ router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter
 		}
 	});
 });
+
+class BadPasswordError extends Error {
+	constructor() {
+		super("Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.");
+		this.name = "BadPasswordError";
+	}
+}
 
 let usermanager = {
 	router,
@@ -284,6 +300,10 @@ let usermanager = {
 	},
 
 	async registerUser({ email, username, password }) {
+		if (!this.isPasswordValid(password)) {
+			return Promise.reject(new BadPasswordError());
+		}
+
 		let salt = crypto.randomBytes(256).toString('base64');
 		let hash = await pwd.hash(Buffer.from(salt + password));
 
@@ -327,6 +347,16 @@ let usermanager = {
 			}
 			return user;
 		});
+	},
+
+	isPasswordValid(password) {
+		let conditions = [
+			!!/^(?=.*[a-z])/.exec(password),
+			!!/^(?=.*[A-Z])/.exec(password),
+			!!/^(?=.*[0-9])/.exec(password),
+			!!/^(?=.*[!@#$%^&*])/.exec(password),
+		];
+		return conditions.reduce((acc, curr) => acc + curr) >= 2 && !!/^(?=.{8,})/.exec(password);
 	},
 
 	onUserLogIn(user, session) {
@@ -374,7 +404,7 @@ if (process.env.NODE_ENV === "test") {
 	usermanager.registerUser({
 		email: "forced@localhost",
 		username: "forced test user",
-		password: "test",
+		password: "test1234",
 	}).catch(err => {
 		log.warn(`failed to register test user ${err.message}`);
 	});
@@ -382,7 +412,7 @@ if (process.env.NODE_ENV === "test") {
 	usermanager.registerUser({
 		email: "test@localhost",
 		username: "test user",
-		password: "test",
+		password: "test1234",
 	}).catch(err => {
 		log.warn(`failed to register test user ${err.message}`);
 	});
