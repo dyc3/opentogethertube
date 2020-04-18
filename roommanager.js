@@ -7,7 +7,6 @@ const InfoExtract = require("./infoextract");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
-const usermanager = require("./usermanager.js");
 
 const log = getLogger("roommanager");
 

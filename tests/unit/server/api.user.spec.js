@@ -7,7 +7,6 @@ const { User } = require("../../../models");
 const Sequelize = require("sequelize");
 
 const { or, not } = Sequelize.Op;
-const TEST_API_KEY = "TESTAPIKEY";
 
 describe("User API", () => {
 	describe("GET /user", () => {
