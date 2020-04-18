@@ -809,6 +809,15 @@ describe('InfoExtractor Partial Data Retrieval', () => {
 });
 
 describe('InfoExtractor Add Preview Spec', () => {
+  afterEach(() => {
+    if (InfoExtract.getVideoInfo.mock) {
+      InfoExtract.getVideoInfo.mockRestore();
+    }
+    if (InfoExtract.getManyVideoInfo.mock) {
+      InfoExtract.getManyVideoInfo.mockRestore();
+    }
+  });
+
   it('should return 1 video when given a long youtube URL', done => {
     jest.spyOn(InfoExtract, 'getVideoInfo').mockImplementation().mockResolvedValue(new Video({
       service: "youtube",
