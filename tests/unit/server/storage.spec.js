@@ -82,19 +82,15 @@ describe('Storage: Room Spec', () => {
     });
   });
 
-  it('should fail to update if provided properties does not include name', done => {
-    storage.updateRoom({ title: "Example Room", description: "This is an example room.", visibility: "unlisted" }).then(() => {
-      done.fail();
-    }).catch(() => {
-      done();
-    });
+  it('should fail to update if provided properties does not include name', () => {
+    return expect(storage.updateRoom({ title: "Example Room", description: "This is an example room.", visibility: "unlisted" })).rejects.toThrow();
   });
 
   it('should return true if room name is taken', async () => {
     await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
-    expect(await storage.isRoomNameTaken("example")).toBe(false);
+    await expect(storage.isRoomNameTaken("example")).resolves.toBe(false);
     await expect(storage.saveRoom({ name: "example" })).resolves.toBe(true);
-    expect(await storage.isRoomNameTaken("example")).toBe(true);
+    await expect(storage.isRoomNameTaken("example")).resolves.toBe(true);
   });
 });
 
