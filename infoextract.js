@@ -215,7 +215,7 @@ module.exports = {
 					for (let missingInfo in groupedServiceVideos) {
 						let missingInfoGroup = groupedServiceVideos[missingInfo];
 						if (!missingInfo) {
-							promises.push(new Promise(resolve => resolve(missingInfoGroup)));
+							promises.push(Promise.resolve(missingInfoGroup));
 							continue;
 						}
 						let promise = this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => {
@@ -229,7 +229,7 @@ module.exports = {
 				}
 				else {
 					log.error(`Unknown service: ${service}`);
-					return new Promise(resolve => resolve(serviceVideos));
+					return Promise.resolve(serviceVideos);
 				}
 			});
 			retrievalPromises.push(retrievalPromise);
