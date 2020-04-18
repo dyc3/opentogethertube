@@ -5,11 +5,24 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+      validate: {
+        // eslint-disable-next-line array-bracket-newline
+        len: [1, Infinity],
+      },
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+      validate: {
+        isEmail: {
+          args: [
+            {
+              require_tld: process.env.NODE_ENV === 'production',
+            },
+          ],
+        },
+      },
     },
     salt: {
       type: DataTypes.STRING,
