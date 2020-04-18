@@ -183,7 +183,8 @@ class Room {
 				this.sync();
 
 				if (session) {
-					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, session.username, { video: queueItem }));
+					let client = _.find(this.clients, { session: { id: session.id } });
+					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, client.username, { video: queueItem }));
 
 					if (this.queueMode === "vote") {
 						this.voteVideo(queueItem, session);
@@ -266,7 +267,8 @@ class Room {
 		let removed = this.queue.splice(matchIdx, 1)[0];
 		this._dirtyProps.push("queue");
 		if (session) {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
+			let client = _.find(this.clients, { session: { id: session.id } });
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
 		}
 		else {
 			this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
@@ -285,8 +287,8 @@ class Room {
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
-				this.log.debug("Remove inactive client:", i, this.clients[i].session.username);
-				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
+				this.log.debug("Remove inactive client:", i, this.clients[i].username);
+				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].username, {}));
 				this.clients.splice(i--, 1);
 				this._dirtyProps.push("users");
 				continue;

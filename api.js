@@ -72,7 +72,7 @@ module.exports = function(_roommanager, storage, redisClient) {
 				"clients",
 			]));
 			for (let client of room.clients) {
-				client.name = client.session.username;
+				client.name = client.username;
 				delete client.session;
 				delete client.socket;
 			}
