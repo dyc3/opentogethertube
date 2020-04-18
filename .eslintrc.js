@@ -52,6 +52,8 @@ module.exports = {
     'jest/no-focused-tests': 'error',
     'jest/no-identical-title': 'error',
     'jest/no-if': 'error',
+    'jest/no-export': 'error',
+    'jest/no-standalone-expect': 'error',
     'jest/no-truthy-falsy': 'warn',
     'jest/prefer-spy-on': 'error',
     'jest/require-top-level-describe': 'warn',
