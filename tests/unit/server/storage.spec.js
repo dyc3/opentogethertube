@@ -92,9 +92,9 @@ describe('Storage: Room Spec', () => {
 
   it('should return true if room name is taken', async () => {
     await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
-    expect(await storage.isRoomNameTaken("example")).toBeFalsy();
+    expect(await storage.isRoomNameTaken("example")).toBe(false);
     await expect(storage.saveRoom({ name: "example" })).resolves.toBe(true);
-    expect(await storage.isRoomNameTaken("example")).toBeTruthy();
+    expect(await storage.isRoomNameTaken("example")).toBe(true);
   });
 });
 
