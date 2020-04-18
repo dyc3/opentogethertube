@@ -350,6 +350,9 @@ let usermanager = {
 	},
 
 	isPasswordValid(password) {
+		if (process.env.NODE_ENV === "development" && password === "1") {
+			return true;
+		}
 		let conditions = [
 			!!/^(?=.*[a-z])/.exec(password),
 			!!/^(?=.*[A-Z])/.exec(password),
