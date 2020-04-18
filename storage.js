@@ -12,7 +12,7 @@ module.exports = {
 			where: { name: roomName },
 		}).then(room => {
 			if (!room) {
-				log.error(`Room ${roomName} does not exist in db.`);
+				log.debug(`Room ${roomName} does not exist in db.`);
 				return null;
 			}
 			return {

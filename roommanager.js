@@ -662,7 +662,7 @@ module.exports = {
 				room.onConnectionReceived(ws, req);
 			}).catch(err => {
 				if (err.name === "RoomNotFoundException") {
-					log.error("Closing connection because the room doesn't exist");
+					log.debug("Closing connection because the room doesn't exist");
 					ws.close(WS_ERROR_ROOM_NOT_FOUND, "Room doesn't exist");
 					return;
 				}
