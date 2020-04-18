@@ -100,7 +100,7 @@ describe('Storage: CachedVideos Spec', () => {
     await CachedVideo.destroy({ where: {} });
   });
 
-  it('should create or update cached video without failing', done => {
+  it('should create or update cached video without failing', async () => {
     let video = {
       service: "youtube",
       id: "-29I-VbvPLQ",
@@ -109,11 +109,10 @@ describe('Storage: CachedVideos Spec', () => {
       thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
       length: 10,
     };
-    expect(storage.updateVideoInfo(video)).resolves.toBe(true);
-    done();
+    expect(await storage.updateVideoInfo(video)).toBe(true);
   });
 
-  it('should fail validation, no null allowed for service', done => {
+  it('should fail validation, no null allowed for service', async () => {
     let video = {
       service: null,
       id: "-29I-VbvPLQ",
@@ -122,11 +121,10 @@ describe('Storage: CachedVideos Spec', () => {
       thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
       length: 10,
     };
-    expect(storage.updateVideoInfo(video, false)).resolves.toBe(false);
-    done();
+    expect(await storage.updateVideoInfo(video, false)).toBe(false);
   });
 
-  it('should fail validation, no null allowed for serviceId', done => {
+  it('should fail validation, no null allowed for serviceId', async () => {
     let video = {
       service: "youtube",
       id: null,
@@ -135,8 +133,7 @@ describe('Storage: CachedVideos Spec', () => {
       thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
       length: 10,
     };
-    expect(storage.updateVideoInfo(video, false)).resolves.toBe(false);
-    done();
+    expect(await storage.updateVideoInfo(video, false)).toBe(false);
   });
 
   it('should return the attributes that a video object should have', () => {
