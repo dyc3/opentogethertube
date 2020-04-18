@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const fs = require('fs');
 const path = require('path');
 const { CachedVideo } = require("../../../models");
@@ -95,7 +96,7 @@ describe('Storage: Room Spec', () => {
 });
 
 describe('Storage: CachedVideos Spec', () => {
-  afterAll(async () => {
+  afterEach(async () => {
     await CachedVideo.destroy({ where: {} });
   });
 
@@ -152,7 +153,7 @@ describe('Storage: CachedVideos Spec', () => {
     expect(attributes).not.toContain("description");
   });
 
-  it('should create or update multiple videos without failing', done => {
+  it('should create or update multiple videos without failing', async () => {
     let videos = [
       {
         service: "fakeservice",
@@ -180,8 +181,77 @@ describe('Storage: CachedVideos Spec', () => {
         title: "test video 5",
       },
     ];
-    expect(storage.updateManyVideoInfo(videos)).resolves.toBe(true);
-    done();
+    expect(await storage.updateManyVideoInfo(videos)).toBe(true);
+  });
+
+  it('should get multiple videos without failing', async () => {
+    let videos = [
+      {
+        service: "fakeservice",
+        id: "abc123",
+        title: "test video 1",
+      },
+      {
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+      },
+      {
+        service: "fakeservice",
+        id: "abc789",
+        title: "test video 3",
+      },
+      {
+        service: "fakeservice",
+        id: "def123",
+        title: "test video 4",
+      },
+      {
+        service: "fakeservice",
+        id: "def456",
+        title: "test video 5",
+      },
+    ];
+    await CachedVideo.bulkCreate(_.cloneDeep(videos).map(video => {
+      video.serviceId = video.id;
+      delete video.id;
+      return video;
+    }));
+    expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
+  });
+
+  it('should return the same number of videos as requested even when some are not in the database', async () => {
+    let videos = [
+      {
+        service: "fakeservice",
+        id: "abc123",
+        title: "test video 1",
+      },
+      {
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+      },
+      {
+        service: "fakeservice",
+        id: "abc789",
+        title: "test video 3",
+      },
+      {
+        service: "fakeservice",
+        id: "def123",
+      },
+      {
+        service: "fakeservice",
+        id: "def456",
+      },
+    ];
+    await CachedVideo.bulkCreate(_.cloneDeep(videos).splice(0, 3).map(video => {
+      video.serviceId = video.id;
+      delete video.id;
+      return video;
+    }));
+    expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
   });
 });
 
