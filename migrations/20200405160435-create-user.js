@@ -24,7 +24,7 @@ module.exports = {
       },
       hash: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: Sequelize.BLOB,
       },
       createdAt: {
         allowNull: false,
