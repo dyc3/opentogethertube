@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       validate: {
         // eslint-disable-next-line array-bracket-newline
-        len: [1, Infinity],
+        len: [1, 255],
       },
     },
     email: {
