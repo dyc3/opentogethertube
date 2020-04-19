@@ -196,9 +196,6 @@ module.exports = {
 					log.info(`Updated database records, updated ${rowsUpdated[0]} rows`);
 				}
 				return true;
-			}).catch(err => {
-				log.error(`Failed to cache video info ${err}`);
-				return false;
 			});
 		}).catch(() => {
 			return CachedVideo.create(video).then(() => {
@@ -256,9 +253,6 @@ module.exports = {
 			return Promise.all(promises).then(() => {
 				log.info(`bulk cache: created ${toCreate.length} rows, updated ${toUpdate.length} rows`);
 				return true;
-			}).catch(err => {
-				log.error(`Failed to bulk update video cache: ${err}`);
-				return false;
 			});
 		});
 	},

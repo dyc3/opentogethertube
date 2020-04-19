@@ -8,7 +8,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "lint-ci": "vue-cli-service --no-fix lint",
-    "test": "vue-cli-service test:unit",
+    "test": "vue-cli-service test:unit --runInBand --detectOpenHandles",
     "api-server": "nodemon app.js",
     "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"npm:serve\"",
     "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\""
@@ -64,6 +64,7 @@
     "concurrently": "^4.1.2",
     "core-js": "^3.6.4",
     "eslint": "^6.7.2",
+    "eslint-plugin-jest": "^23.8.2",
     "eslint-plugin-vue": "^6.1.2",
     "husky": "^4.2.3",
     "node-sass": "^4.13.1",

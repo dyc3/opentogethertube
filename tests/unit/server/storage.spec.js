@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const fs = require('fs');
 const path = require('path');
 const { CachedVideo } = require("../../../models");
@@ -82,28 +83,24 @@ describe('Storage: Room Spec', () => {
     });
   });
 
-  it('should fail to update if provided properties does not include name', done => {
-    storage.updateRoom({ title: "Example Room", description: "This is an example room.", visibility: "unlisted" }).then(() => {
-      done.fail();
-    }).catch(() => {
-      done();
-    });
+  it('should fail to update if provided properties does not include name', () => {
+    return expect(storage.updateRoom({ title: "Example Room", description: "This is an example room.", visibility: "unlisted" })).rejects.toThrow();
   });
 
   it('should return true if room name is taken', async () => {
     await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
-    expect(await storage.isRoomNameTaken("example")).toBeFalsy();
+    await expect(storage.isRoomNameTaken("example")).resolves.toBe(false);
     await expect(storage.saveRoom({ name: "example" })).resolves.toBe(true);
-    expect(await storage.isRoomNameTaken("example")).toBeTruthy();
+    await expect(storage.isRoomNameTaken("example")).resolves.toBe(true);
   });
 });
 
 describe('Storage: CachedVideos Spec', () => {
-  afterAll(async () => {
+  afterEach(async () => {
     await CachedVideo.destroy({ where: {} });
   });
 
-  it('should create or update cached video without failing', done => {
+  it('should create or update cached video without failing', async () => {
     let video = {
       service: "youtube",
       id: "-29I-VbvPLQ",
@@ -112,11 +109,10 @@ describe('Storage: CachedVideos Spec', () => {
       thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
       length: 10,
     };
-    expect(storage.updateVideoInfo(video)).resolves.toBe(true);
-    done();
+    expect(await storage.updateVideoInfo(video)).toBe(true);
   });
 
-  it('should fail validation, no null allowed for service', done => {
+  it('should fail validation, no null allowed for service', async () => {
     let video = {
       service: null,
       id: "-29I-VbvPLQ",
@@ -125,11 +121,10 @@ describe('Storage: CachedVideos Spec', () => {
       thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
       length: 10,
     };
-    expect(storage.updateVideoInfo(video, false)).resolves.toBe(false);
-    done();
+    expect(await storage.updateVideoInfo(video, false)).toBe(false);
   });
 
-  it('should fail validation, no null allowed for serviceId', done => {
+  it('should fail validation, no null allowed for serviceId', async () => {
     let video = {
       service: "youtube",
       id: null,
@@ -138,8 +133,7 @@ describe('Storage: CachedVideos Spec', () => {
       thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
       length: 10,
     };
-    expect(storage.updateVideoInfo(video, false)).resolves.toBe(false);
-    done();
+    expect(await storage.updateVideoInfo(video, false)).toBe(false);
   });
 
   it('should return the attributes that a video object should have', () => {
@@ -156,7 +150,7 @@ describe('Storage: CachedVideos Spec', () => {
     expect(attributes).not.toContain("description");
   });
 
-  it('should create or update multiple videos without failing', done => {
+  it('should create or update multiple videos without failing', async () => {
     let videos = [
       {
         service: "fakeservice",
@@ -184,8 +178,77 @@ describe('Storage: CachedVideos Spec', () => {
         title: "test video 5",
       },
     ];
-    expect(storage.updateManyVideoInfo(videos)).resolves.toBe(true);
-    done();
+    expect(await storage.updateManyVideoInfo(videos)).toBe(true);
+  });
+
+  it('should get multiple videos without failing', async () => {
+    let videos = [
+      {
+        service: "fakeservice",
+        id: "abc123",
+        title: "test video 1",
+      },
+      {
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+      },
+      {
+        service: "fakeservice",
+        id: "abc789",
+        title: "test video 3",
+      },
+      {
+        service: "fakeservice",
+        id: "def123",
+        title: "test video 4",
+      },
+      {
+        service: "fakeservice",
+        id: "def456",
+        title: "test video 5",
+      },
+    ];
+    await CachedVideo.bulkCreate(_.cloneDeep(videos).map(video => {
+      video.serviceId = video.id;
+      delete video.id;
+      return video;
+    }));
+    expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
+  });
+
+  it('should return the same number of videos as requested even when some are not in the database', async () => {
+    let videos = [
+      {
+        service: "fakeservice",
+        id: "abc123",
+        title: "test video 1",
+      },
+      {
+        service: "fakeservice",
+        id: "abc456",
+        title: "test video 2",
+      },
+      {
+        service: "fakeservice",
+        id: "abc789",
+        title: "test video 3",
+      },
+      {
+        service: "fakeservice",
+        id: "def123",
+      },
+      {
+        service: "fakeservice",
+        id: "def456",
+      },
+    ];
+    await CachedVideo.bulkCreate(_.cloneDeep(videos).splice(0, 3).map(video => {
+      video.serviceId = video.id;
+      delete video.id;
+      return video;
+    }));
+    expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
   });
 });
 
