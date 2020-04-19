@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const InfoExtract = require("../../../infoextract");
 const storage = require("../../../storage");
 const { CachedVideo } = require("../../../models");
@@ -810,19 +811,19 @@ describe('InfoExtractor Partial Data Retrieval', () => {
 
 describe('InfoExtractor Add Preview Spec', () => {
   afterEach(() => {
-    if (InfoExtract.getVideoInfo.mock) {
+    if (jest.isMockFunction(InfoExtract.getVideoInfo)) {
       InfoExtract.getVideoInfo.mockRestore();
     }
-    if (InfoExtract.getManyVideoInfo.mock) {
+    if (jest.isMockFunction(InfoExtract.getManyVideoInfo)) {
       InfoExtract.getManyVideoInfo.mockRestore();
     }
-    if (InfoExtract.getPlaylistYoutube.mock) {
+    if (jest.isMockFunction(InfoExtract.getPlaylistYoutube)) {
       InfoExtract.getPlaylistYoutube.mockRestore();
     }
-    if (InfoExtract.getChanneInfoYoutube.mock) {
+    if (jest.isMockFunction(InfoExtract.getChanneInfoYoutube)) {
       InfoExtract.getChanneInfoYoutube.mockRestore();
     }
-    if (InfoExtract.searchYoutube.mock) {
+    if (jest.isMockFunction(InfoExtract.searchYoutube)) {
       InfoExtract.searchYoutube.mockRestore();
     }
   });
@@ -957,11 +958,61 @@ describe('InfoExtractor Add Preview Spec', () => {
         length: 10,
       }),
     ];
-    jest.spyOn(InfoExtract, 'getManyVideoInfo').mockImplementation().mockResolvedValue(videos);
+    jest.spyOn(InfoExtract, 'getManyVideoInfo').mockResolvedValue(videos.map(video => _.omit(video, "highlight")));
 
     expect(await InfoExtract.getAddPreview("https://youtube.com/watch?v=I3O9J02G67I&list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm&index=1")).toEqual(videos);
     expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
     expect(InfoExtract.getManyVideoInfo).toBeCalled();
+  });
+
+  it('should guarentee the highlighted video is included', async () => {
+    jest.spyOn(InfoExtract, 'getPlaylistYoutube').mockResolvedValue([
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ]);
+    let videos = [
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+        highlight: true,
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }),
+    ];
+    jest.spyOn(InfoExtract, 'getManyVideoInfo').mockResolvedValue(videos.slice(1));
+    jest.spyOn(InfoExtract, 'getVideoInfo').mockResolvedValue(new Video({
+      service: "youtube",
+      id: "I3O9J02G67I",
+      title: "tmpATT2Cp",
+      description: "tmpATT2Cp",
+      thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+      length: 10,
+    }));
+
+    expect(await InfoExtract.getAddPreview("https://youtube.com/watch?v=I3O9J02G67I&list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm&index=1")).toEqual(videos);
+    expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledWith("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
+    expect(InfoExtract.getPlaylistYoutube).toHaveBeenCalledTimes(1);
+    expect(InfoExtract.getManyVideoInfo).toHaveBeenCalledWith([
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ]);
+    expect(InfoExtract.getManyVideoInfo).toHaveBeenCalledTimes(1);
+    expect(InfoExtract.getVideoInfo).toHaveBeenCalledWith("youtube", "I3O9J02G67I");
+    expect(InfoExtract.getVideoInfo).toHaveBeenCalledTimes(1);
   });
 
   it('should return at 1 video when given a youtube video that is in a private playlist', done => {

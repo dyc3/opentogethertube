@@ -324,6 +324,7 @@ module.exports = {
 							if (!highlighted) {
 								// Guarentee video is in add preview
 								this.getVideoInfo(service, id).then(video => {
+									video.highlight = true;
 									resolve(_.concat([video], previews));
 								}).catch(() => {
 									resolve(previews);
