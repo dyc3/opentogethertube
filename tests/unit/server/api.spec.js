@@ -584,3 +584,10 @@ describe("Announcements API", () => {
 		sendAnnouncementSpy.mockRestore();
 	});
 });
+
+// eslint-disable-next-line jest/require-top-level-describe
+afterAll(async () => {
+	let { redisClient, server } = require('../../../app.js');
+	await redisClient.quit();
+	server.close();
+});

@@ -8,7 +8,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "lint-ci": "vue-cli-service --no-fix lint",
-    "test": "vue-cli-service test:unit --runInBand",
+    "test": "vue-cli-service test:unit --runInBand --detectOpenHandles",
     "api-server": "nodemon app.js",
     "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"npm:serve\"",
     "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\""
