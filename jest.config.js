@@ -11,7 +11,7 @@ module.exports = {
     '^.+\\.js(|x)?$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/',
+    // '/node_modules/',
     '!/src/',
     '/tests/unit/server/',
     '/common/',

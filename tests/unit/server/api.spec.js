@@ -3,6 +3,7 @@ const roommanager = require('../../../roommanager.js');
 jest.spyOn(roommanager, "getAllLoadedRooms").mockReturnValue(Promise.resolve([]));
 const app = require('../../../app.js').app;
 const InfoExtract = require('../../../infoextract.js');
+const { Room } = require("../../../models");
 
 const TEST_API_KEY = "TESTAPIKEY";
 
@@ -301,6 +302,42 @@ describe("Room API", () => {
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
+		// should create permanent room without owner
+		await request(app)
+			.post("/api/room/create")
+			.send({ name: "testnoowner" })
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body.success).toBeTruthy();
+				expect(roommanager.rooms[0].name).toBe("testnoowner");
+				expect(roommanager.rooms[0].owner).toBeNull();
+			});
+		await Room.destroy({ where: { name: "testnoowner" } });
+		roommanager.unloadRoom("testnoowner");
+
+		// should create permanent room with owner
+		let cookies;
+		await request(app)
+			.get("/api/user/test/forceLogin")
+			.expect(200)
+			.then(resp => {
+				cookies = resp.header["set-cookie"];
+			});
+		await request(app)
+			.post("/api/room/create")
+			.set("Cookie", cookies)
+			.send({ name: "testowner" })
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.then(resp => {
+				expect(resp.body.success).toBeTruthy();
+				expect(roommanager.rooms[0].name).toBe("testowner");
+				expect(roommanager.rooms[0].owner.email).toBe("forced@localhost");
+			});
+		await Room.destroy({ where: { name: "testowner" } });
+		roommanager.unloadRoom("testowner");
+
 		done();
 	});
 
@@ -471,19 +508,6 @@ describe("Data API", () => {
 
 		getAddPreviewSpy.mockRestore();
 		done();
-	});
-});
-
-describe("User API", () => {
-	it("GET /user", done => {
-		request(app)
-			.get("/api/user")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.name).toBeDefined();
-				done();
-			});
 	});
 });
 

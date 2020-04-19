@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import _ from 'lodash';
+import { API } from './common-http.js';
 
 Vue.use(Vuex);
 
@@ -15,6 +16,7 @@ export default new Vuex.Store({
 		joinFailureReason: null,
 		production: process.env.NODE_ENV === 'production',
 		username: null,
+		user: null,
 		room: {
 			name: "",
 			title: "",
@@ -25,6 +27,7 @@ export default new Vuex.Store({
 			queue: [],
 			isPlaying: false,
 			playbackPosition: 0,
+			hasOwner: false,
 			chatMessages: [],
 			events: [],
 		},
@@ -38,9 +41,9 @@ export default new Vuex.Store({
 			state.room.chatMessages = [];
 			state.room.events = [];
 			let username = window.localStorage.getItem("username");
-			if (username) {
+			if (!state.user && username) {
 				state.username = username;
-				Vue.prototype.$socket.sendObj({ action: "set-name", name: username });
+				API.post("/user", { username });
 			}
 		},
 		SOCKET_ONCLOSE (state, event)  {
@@ -70,6 +73,12 @@ export default new Vuex.Store({
 		PLAYBACK_STATUS(state, message) {
 			Vue.prototype.$socket.sendObj({ action: "status", status: message });
 		},
+		LOGIN(state, user) {
+			state.user = user;
+		},
+		LOGOUT(state) {
+			state.user = null;
+		},
 	},
 	actions: {
 		sendMessage(context, message) {
@@ -90,7 +99,9 @@ export default new Vuex.Store({
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
 			this.state.room = Object.assign({}, this.state.room, message);
 
-			this.state.username = _.find(this.state.room.users, { isYou: true }).name;
+			if (!this.user) {
+				this.state.username = _.find(this.state.room.users, { isYou: true }).name;
+			}
 
 			Vue.prototype.$events.emit('onSync');
 		},

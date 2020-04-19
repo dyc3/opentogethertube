@@ -41,6 +41,7 @@ class Room {
 		this.playbackPosition = 0;
 		this.clients = [];
 		this.keepAlivePing = null;
+		this.owner = null;
 		if (args) {
 			Object.assign(this, args);
 		}
@@ -131,6 +132,15 @@ class Room {
 		this._dirtyProps.push("playbackPosition");
 	}
 
+	get owner() {
+		return this._owner;
+	}
+
+	set owner(value) {
+		this._owner = value;
+		this._dirtyProps.push("hasOwner");
+	}
+
 	/**
 	 * Obtains metadata for a given video and adds it to the queue
 	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
@@ -173,7 +183,8 @@ class Room {
 				this.sync();
 
 				if (session) {
-					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, session.username, { video: queueItem }));
+					let client = _.find(this.clients, { session: { id: session.id } });
+					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, client.username, { video: queueItem }));
 
 					if (this.queueMode === "vote") {
 						this.voteVideo(queueItem, session);
@@ -256,7 +267,8 @@ class Room {
 		let removed = this.queue.splice(matchIdx, 1)[0];
 		this._dirtyProps.push("queue");
 		if (session) {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, session.username, { video: removed, queueIdx: matchIdx }));
+			let client = _.find(this.clients, { session: { id: session.id } });
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
 		}
 		else {
 			this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
@@ -275,8 +287,8 @@ class Room {
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
 			if (ws.readyState != 1) {
-				this.log.debug("Remove inactive client:", i, this.clients[i].session.username);
-				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].session.username, {}));
+				this.log.debug("Remove inactive client:", i, this.clients[i].username);
+				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].username, {}));
 				this.clients.splice(i--, 1);
 				this._dirtyProps.push("users");
 				continue;
@@ -342,6 +354,7 @@ class Room {
 			isPlaying: this.isPlaying,
 			playbackPosition: this.playbackPosition,
 			users: [],
+			hasOwner: !!this.owner,
 		};
 
 		for (const client of this.clients) {
@@ -356,9 +369,10 @@ class Room {
 
 			syncMsg.users = this.clients.map(c => {
 				return {
-					name: c.session.username,
+					name: c.username,
 					isYou: client.socket == c.socket,
 					status: c.status,
+					isLoggedIn: c.isLoggedIn,
 				};
 			});
 
@@ -474,25 +488,33 @@ class Room {
 	 * @param {Object} ws Websocket for the client.
 	 * @param {Object} req HTTP request used to initiate the connection.
 	 */
-	onConnectionReceived(ws, req) {
-		if (!req.session.username) {
+	async onConnectionReceived(ws, req) {
+		if (!(req.session.passport && req.session.passport.user) && !req.session.username) {
 			let username = uniqueNamesGenerator();
 			this.log.debug(`Generated name for new user (on connect): ${username}`);
 			req.session.username = username;
 			req.session.save();
 		}
-		let client = {
+		else {
+			log.debug("User is logged in, skipping username generation");
+		}
+		let client = new Client({
 			session: req.session,
 			socket: ws,
 			status: "joined",
 			needsFullSync: true,
-		};
+		});
+		if (req.session.passport && req.session.passport.user) {
+			// HACK: for some reason even though we import usermanager at the top of the module, it somehow doesn't exist in this context. But only sometimes? I don't know
+			let usermanager = require("./usermanager.js");
+			client.user = await usermanager.getUser({ id: req.session.passport.user });
+		}
 		this.clients.push(client);
 		this._dirtyProps.push("users");
 		ws.on('message', (message) => {
 			this.onMessageReceived(client, JSON.parse(message));
 		});
-		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.session.username, {}));
+		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.username, {}));
 	}
 
 	/**
@@ -502,12 +524,12 @@ class Room {
 	 */
 	onMessageReceived(client, msg) {
 		if (msg.action === "play") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.session.username, {}));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
 			this.isPlaying = true;
 			this.sync();
 		}
 		else if (msg.action === "pause") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.session.username, {}));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
 			this.isPlaying = false;
 			this.sync();
 		}
@@ -515,36 +537,20 @@ class Room {
 			if (msg.position === this.playbackPosition) {
 				return;
 			}
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.session.username, { position: msg.position, previousPosition: this.playbackPosition }));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
 			this.playbackPosition = msg.position;
 			this.sync();
 		}
 		else if (msg.action === "skip") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.session.username, { video: this.currentSource }));
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
 			this.playbackPosition = this.currentSource.length + 1;
-			this.update();
-			this.sync();
-		}
-		else if (msg.action === "set-name") {
-			if (!msg.name) {
-				this.log.warn("name not supplied");
-				return;
-			}
-			if (msg.name === client.session.username) {
-				// name unchanged, ignore
-				return;
-			}
-			this.log.info(`${client.session.username} changed name to ${msg.name}`);
-			client.session.username = msg.name;
-			client.session.save();
-			this._dirtyProps.push("users");
 			this.update();
 			this.sync();
 		}
 		else if (msg.action === "chat") {
 			let chat = {
 				action: msg.action,
-				from: client.session.username,
+				from: client.username,
 				text: msg.text,
 			};
 			for (let c of this.clients) {
@@ -575,7 +581,7 @@ class Room {
 			this.sync();
 		}
 		else if (msg.action === "status") {
-			this.log.debug(`status: ${client.session.username} ${msg.status}`);
+			this.log.debug(`status: ${client.username} ${msg.status}`);
 			client.status = msg.status;
 			this._dirtyProps.push("users");
 			this.sync();
@@ -606,6 +612,27 @@ class RoomEvent {
 		this.eventType = eventType;
 		this.userName = userName;
 		this.parameters = _.cloneDeep(parameters);
+	}
+}
+
+class Client {
+	constructor(args) {
+		this.session = null;
+		this.socket = null;
+		this.status = "?";
+		this.needsFullSync = true;
+		this.user = null;
+		if (args) {
+			Object.assign(this, args);
+		}
+	}
+
+	get username() {
+		return this.user ? this.user.username : this.session.username;
+	}
+
+	get isLoggedIn() {
+		return !!this.user;
 	}
 }
 
@@ -821,12 +848,14 @@ module.exports = {
 				throw new RoomNotFoundException(name);
 			}
 
-			let room = new Room();
-			room.name = result.name;
-			room.title = result.title;
-			room.description = result.description;
-			room.visibility = result.visibility;
-			room.isTemporary = false;
+			let room = new Room({
+				name: result.name,
+				title: result.title,
+				description: result.description,
+				visibility: result.visibility,
+				isTemporary: false,
+				owner: result.owner,
+			});
 			this.rooms.push(room);
 			return room;
 		});

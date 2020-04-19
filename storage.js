@@ -20,18 +20,23 @@ module.exports = {
 				title: room.title,
 				description: room.description,
 				visibility: room.visibility,
+				owner: room.owner,
 			};
 		}).catch(err => {
 			log.error(`Failed to get room by name: ${err}`);
 		});
 	},
 	saveRoom(room) {
-		return Room.create({
+		let options = {
 			name: room.name,
 			title: room.title,
 			description: room.description,
 			visibility: room.visibility,
-		}).then(result => {
+		};
+		if (room.owner) {
+			options.ownerId = room.owner.id;
+		}
+		return Room.create(options).then(result => {
 			log.info(`Saved room to db: id ${result.dataValues.id}`);
 			return true;
 		}).catch(err => {
@@ -49,7 +54,16 @@ module.exports = {
 			if (!dbRoom) {
 				return false;
 			}
-			return dbRoom.update(room).then(() => true);
+			let options = {
+				name: room.name,
+				title: room.title,
+				description: room.description,
+				visibility: room.visibility,
+			};
+			if (room.owner) {
+				options.ownerId = room.owner.id;
+			}
+			return dbRoom.update(options).then(() => true);
 		});
 	},
 	/**

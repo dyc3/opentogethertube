@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const { getLogger } = require('./logger.js');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 const log = getLogger("app");
 
@@ -41,7 +43,7 @@ const session = require('express-session');
 let RedisStore = require('connect-redis')(session);
 let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
-	secret: "opentogethertube", // FIXME: This doesn't matter right now, but when user accounts are implemented this should be fixed.
+	secret: process.env.SESSION_SECRET || "opentogethertube",
 	resave: false,
 	saveUninitialized: true,
 	unset: 'keep',
@@ -57,12 +59,22 @@ if (process.env.NODE_ENV === "production") {
 const sessions = session(sessionOpts);
 app.use(sessions);
 
+const usermanager = require("./usermanager");
+passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallback));
+passport.serializeUser(usermanager.serializeUser);
+passport.deserializeUser(usermanager.deserializeUser);
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use((req, res, next) => {
-	if (!req.session.username) {
+	if (!req.user && !req.session.username) {
 		let username = uniqueNamesGenerator();
 		log.debug(`Generated name for new user (on request): ${username}`);
 		req.session.username = username;
 		req.session.save();
+	}
+	else {
+		log.debug("User is logged in, skipping username generation");
 	}
 
 	next();
@@ -74,6 +86,7 @@ const infoextract = require("./infoextract");
 const api = require("./api")(roommanager, storage, redisClient);
 roommanager.start(server, sessions, redisClient);
 infoextract.init(redisClient);
+usermanager.init(redisClient);
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies
@@ -107,6 +120,7 @@ function serveBuiltFiles(req, res) {
 	});
 }
 
+app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
 	app.use(express.static(__dirname + "/dist", false));

@@ -51,6 +51,23 @@
             </v-list-item>
           </v-list>
         </v-menu>
+        <v-btn text @click="showLogin = true" v-if="!$store.state.user">
+          Log In
+        </v-btn>
+        <v-menu offset-y v-if="$store.state.user">
+          <template v-slot:activator="{ on }">
+            <v-btn text v-on="on" :key="$store.state.user.username">
+              {{ $store.state.user.username }}
+            </v-btn>
+          </template>
+          <v-list two-line max-width="400">
+            <v-list-item @click="logout">
+              <v-list-item-content>
+                <v-list-item-title>Log Out</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </v-toolbar-items>
     </v-app-bar>
     <v-content>
@@ -59,6 +76,11 @@
     <v-container>
       <v-dialog v-model="showCreateRoomForm" persistent max-width="600">
         <CreateRoomForm @roomCreated="showCreateRoomForm = false" @cancel="showCreateRoomForm = false" />
+      </v-dialog>
+    </v-container>
+    <v-container>
+      <v-dialog v-model="showLogin" max-width="400">
+        <LogInForm @shouldClose="showLogin = false" />
       </v-dialog>
     </v-container>
     <v-overlay :value="isLoadingCreateRoom">
@@ -75,13 +97,16 @@
 </template>
 
 <script>
+import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
+import LogInForm from "@/components/LogInForm.vue";
 import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 
 export default {
   name: "app",
   components: {
     CreateRoomForm,
+    LogInForm,
   },
   mixins: [RoomUtilsMixin],
   data() {
@@ -90,12 +115,20 @@ export default {
       showAnnouncement: false,
       showCreateRoomForm: false,
       shouldAdvertisePermRoom: false,
+      showLogin: false,
     };
   },
   methods: {
     onAnnouncement(text) {
       this.showAnnouncement = true;
       this.announcement = text;
+    },
+    logout() {
+      API.post("/user/logout").then(res => {
+        if (res.data.success) {
+          this.$store.commit("LOGOUT");
+        }
+      });
     },
   },
   created() {
@@ -114,6 +147,15 @@ export default {
       this.shouldAdvertisePermRoom = true;
     }
     console.log("shouldAdvertisePermRoom", this.shouldAdvertisePermRoom);
+
+    // ask the server if we are logged in or not, and update the client to reflect that status.
+    API.get("/user").then(res => {
+      if (res.data.loggedIn) {
+        let user = res.data;
+        delete user.loggedIn;
+        this.$store.commit("LOGIN", user);
+      }
+    });
   },
   watch:{
     $route (to) {

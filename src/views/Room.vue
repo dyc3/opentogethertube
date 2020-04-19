@@ -120,6 +120,7 @@
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettingsQueueMode" :loading="isLoadingRoomSettings" />
                     <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
                   </v-form>
+                  <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -132,10 +133,10 @@
                   <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
                 </v-subheader>
                 <v-list-item v-if="showEditName">
-                  <v-text-field @change="onEditNameChange" placeholder="Set your name" v-model="username"/>
+                  <v-text-field @change="onEditNameChange" placeholder="Set your name" v-model="username" :loading="setUsernameLoading" :error-messages="setUsernameFailureText"/>
                 </v-list-item>
-                <v-list-item v-for="(user, index) in $store.state.room.users" :key="index">
-                  {{ user.name }}
+                <v-list-item v-for="(user, index) in $store.state.room.users" :key="index" :class="user.isLoggedIn ? 'user registered' : 'user'">
+                  <span class="name">{{ user.name }}</span>
                   <span v-if="user.isYou" class="is-you">You</span>
                   <v-icon class="player-status" v-if="user.status === 'buffering'">fas fa-spinner</v-icon>
                   <v-icon class="player-status" v-else-if="user.status === 'ready'">fas fa-check</v-icon>
@@ -209,6 +210,8 @@ export default {
       inputRoomSettingsDescription: "",
       inputRoomSettingsVisibility: "",
       inputRoomSettingsQueueMode: "",
+      setUsernameLoading: false,
+      setUsernameFailureText: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -266,11 +269,11 @@ export default {
     },
   },
   async created() {
-    if (!this.$store.state.production) {
-      // HACK: get the server to set the session cookie
-      // this isn't needed in production because the requests for resources will set the cookie
-      await API.get("/user");
-    }
+    // if (!this.$store.state.production) {
+    //   // HACK: get the server to set the session cookie
+    //   // this isn't needed in production because the requests for resources will set the cookie
+    //   await API.get("/user");
+    // }
 
     this.$events.on("onSync", () => {
       this.sliderPosition = this.$store.state.room.playbackPosition;
@@ -363,7 +366,7 @@ export default {
       }
     },
     openEditName() {
-      this.username = this.$store.state.username;
+      this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
       this.showEditName = !this.showEditName;
     },
     play() {
@@ -447,8 +450,15 @@ export default {
       this.requestAddPreview();
     },
     onEditNameChange() {
-      this.$socket.sendObj({ action: "set-name", name: this.username });
-      this.showEditName = false;
+      this.setUsernameLoading = true;
+      API.post("/user", { username: this.username }).then(() => {
+        this.showEditName = false;
+        this.setUsernameLoading = false;
+        this.setUsernameFailureText = "";
+      }).catch(err => {
+        this.setUsernameLoading = false;
+        this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
+      });
     },
     onPlaybackChange(changeTo) {
       if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
@@ -624,6 +634,17 @@ export default {
         controlsDiv.classList.add("hide");
       }
     }, 3000),
+    claimOwnership() {
+      this.isLoadingRoomSettings = true;
+      API.patch(`/room/${this.$route.params.roomId}`, {
+        claim: true,
+      }).then(() => {
+        this.isLoadingRoomSettings = false;
+      }).catch(err => {
+        console.log(err);
+        this.isLoadingRoomSettings = false;
+      });
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
@@ -656,11 +677,11 @@ export default {
     };
   },
   watch: {
-    username(newValue) {
-      if (newValue != null) {
-        window.localStorage.setItem("username", newValue);
-      }
-    },
+    // username(newValue) {
+    //   if (newValue != null) {
+    //     // window.localStorage.setItem("username", newValue);
+    //   }
+    // },
     volume() {
       this.updateVolume();
     },
@@ -878,6 +899,19 @@ export default {
 
     .chat-container {
       display: none;
+    }
+  }
+}
+.user {
+  .name {
+    opacity: 0.5;
+    font-style: italic;
+  }
+
+  &.registered {
+    .name {
+      opacity: 1;
+      font-style: normal;
     }
   }
 }
