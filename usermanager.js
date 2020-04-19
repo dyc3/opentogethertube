@@ -304,7 +304,7 @@ let usermanager = {
 			return Promise.reject(new BadPasswordError());
 		}
 
-		let salt = crypto.randomBytes(256).toString('base64');
+		let salt = crypto.randomBytes(256).toString('utf8');
 		let hash = await pwd.hash(Buffer.from(salt + password));
 
 		return User.create({

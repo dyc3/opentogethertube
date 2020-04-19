@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
     salt: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        // eslint-disable-next-line array-bracket-newline
+        len: [1, 255],
+      },
     },
     hash: {
       type: DataTypes.BLOB,
