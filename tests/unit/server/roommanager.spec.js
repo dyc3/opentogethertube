@@ -72,7 +72,7 @@ describe('Room manager: Room tests', () => {
   });
 
   it('should add a video to the queue with url provided, and because no video is playing, move it into currentSource', done => {
-    InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve({ service: "youtube", id: "I3O9J02G67I", length: 10 })));
+    jest.spyOn(InfoExtract, 'getVideoInfo').mockImplementation().mockResolvedValue({ service: "youtube", id: "I3O9J02G67I", length: 10 });
     roommanager.getLoadedRoom("test").then(room => {
       room.queue = [];
 
@@ -94,7 +94,7 @@ describe('Room manager: Room tests', () => {
   });
 
   it('should add a video to the queue with service and id provided, and because no video is playing, move it into currentSource', done => {
-    InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve({ service: "youtube", id: "I3O9J02G67I", length: 10 })));
+    jest.spyOn(InfoExtract, 'getVideoInfo').mockImplementation().mockResolvedValue({ service: "youtube", id: "I3O9J02G67I", length: 10 });
     roommanager.getLoadedRoom("test").then(room => {
       room.queue = [];
 
@@ -116,7 +116,7 @@ describe('Room manager: Room tests', () => {
   });
 
   it('should add a video to the queue with service and id provided, and because a video is playing, leave it in the queue', done => {
-    InfoExtract.getVideoInfo = jest.fn().mockReturnValue(new Promise(resolve => resolve({ service: "youtube", id: "I3O9J02G67I", length: 10 })));
+    jest.spyOn(InfoExtract, 'getVideoInfo').mockImplementation().mockResolvedValue({ service: "youtube", id: "I3O9J02G67I", length: 10 });
     roommanager.getLoadedRoom("test").then(room => {
       room.queue = [];
       room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
@@ -163,7 +163,7 @@ describe('Room manager: Manager tests', () => {
   });
 
   it('should create a permanent room with the name "perm"', async done => {
-    storage.saveRoom = jest.fn();
+    jest.spyOn(storage, 'saveRoom').mockImplementation();
     await roommanager.createRoom('perm', false);
     roommanager.getLoadedRoom('perm').then(room => {
       expect(room).toBeDefined();
@@ -177,7 +177,7 @@ describe('Room manager: Manager tests', () => {
   });
 
   it('should load the room from the database', done => {
-    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({ name: "test", title: "Test Room", description: "This is a Test Room." });
     expect(roommanager.rooms.length).toEqual(0);
     roommanager.loadRoom("test").then(room => {
       expect(storage.getRoomByName).toBeCalled();
@@ -194,7 +194,7 @@ describe('Room manager: Manager tests', () => {
   });
 
   it('should unload the room from memory', done => {
-    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({ name: "test", title: "Test Room", description: "This is a Test Room." });
     roommanager.loadRoom("test").then(room => {
       expect(roommanager.rooms.length).toEqual(1);
       roommanager.unloadRoom(room);
@@ -204,7 +204,7 @@ describe('Room manager: Manager tests', () => {
   });
 
   it('should unload a room with no active clients after 240 seconds', done => {
-    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({ name: "test", title: "Test Room", description: "This is a Test Room." });
     roommanager.loadRoom("test").then((room) => {
       expect(roommanager.rooms.length).toEqual(1);
       room.keepAlivePing = moment().subtract(241, 'seconds');
@@ -215,7 +215,7 @@ describe('Room manager: Manager tests', () => {
   });
 
   it('should not unload a room with no active clients after 9 seconds', done => {
-    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({ name: "test", title: "Test Room", description: "This is a Test Room." });
     roommanager.loadRoom("test").then((room) => {
       expect(roommanager.rooms.length).toEqual(1);
       room.keepAlivePing = moment().subtract(9, 'seconds');
@@ -226,7 +226,7 @@ describe('Room manager: Manager tests', () => {
   });
 
   it('should throw RoomNotFoundException when attempting to load a room that does not exist', done => {
-    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve(null)));
+    jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue(null);
     roommanager.loadRoom("test").then(() => {
       done.fail();
     }).catch(err => {
@@ -236,7 +236,7 @@ describe('Room manager: Manager tests', () => {
   });
 
   it('should throw RoomAlreadyLoadedException when attempting to load a room that is already loaded', async done => {
-    storage.getRoomByName = jest.fn().mockReturnValue(new Promise(resolve => resolve({ name: "test", title: "Test Room", description: "This is a Test Room." })));
+    jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({ name: "test", title: "Test Room", description: "This is a Test Room." });
     await roommanager.loadRoom("test");
     try {
       roommanager.loadRoom("test").then(() => {

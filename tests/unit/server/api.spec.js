@@ -211,9 +211,9 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 				expect(roommanager.rooms[0].name).toBe("test1");
-				expect(roommanager.rooms[0].isTemporary).toBeTruthy();
+				expect(roommanager.rooms[0].isTemporary).toBe(true);
 				expect(roommanager.rooms[0].visibility).toBe("public");
 			});
 
@@ -225,9 +225,9 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 				expect(roommanager.rooms[0].name).toBe("test1");
-				expect(roommanager.rooms[0].isTemporary).toBeTruthy();
+				expect(roommanager.rooms[0].isTemporary).toBe(true);
 				expect(roommanager.rooms[0].visibility).toBe("unlisted");
 			});
 
@@ -239,7 +239,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 			});
 
 		await request(app)
@@ -248,7 +248,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error.message).toContain("Missing argument");
 			});
 
@@ -258,7 +258,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -268,7 +268,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -278,7 +278,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -288,7 +288,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -298,7 +298,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -347,7 +347,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 				expect(resp.body.room).toBeDefined();
 				done();
 			});
@@ -362,7 +362,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 			});
 
 		roommanager.unloadRoom("test1");
@@ -375,7 +375,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 			});
 		await request(app)
 			.patch("/api/room/test1")
@@ -383,7 +383,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 			});
 
 		roommanager.unloadRoom("test1");
@@ -396,7 +396,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 			});
 		await request(app)
 			.patch("/api/room/test1")
@@ -404,7 +404,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 			});
 
 		roommanager.unloadRoom("test1");
@@ -432,7 +432,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 			});
 
 		await request(app)
@@ -473,7 +473,7 @@ describe("Data API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
 				expect(getAddPreviewSpy).toBeCalled();
 			});
@@ -487,7 +487,7 @@ describe("Data API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
 				expect(getAddPreviewSpy).toBeCalled();
 			});
@@ -501,7 +501,7 @@ describe("Data API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBeFalsy();
+				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
 				expect(getAddPreviewSpy).toBeCalled();
 			});
@@ -607,4 +607,11 @@ describe("Announcements API", () => {
 
 		sendAnnouncementSpy.mockRestore();
 	});
+});
+
+// eslint-disable-next-line jest/require-top-level-describe
+afterAll(async () => {
+	let { redisClient, server } = require('../../../app.js');
+	await redisClient.quit();
+	server.close();
 });

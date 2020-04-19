@@ -44,7 +44,7 @@ class InvalidAddPreviewInputException extends Error {
 class OutOfQuotaException extends Error {
 	constructor(service) {
 		if (service === "youtube") {
-			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 10,000 quota per day.`);
+			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 50,000 quota per day.`);
 		}
 		else if (service === "googledrive") {
 			super(`We don't have enough Google Drive API quota to complete the request.`);
@@ -215,7 +215,7 @@ module.exports = {
 					for (let missingInfo in groupedServiceVideos) {
 						let missingInfoGroup = groupedServiceVideos[missingInfo];
 						if (!missingInfo) {
-							promises.push(new Promise(resolve => resolve(missingInfoGroup)));
+							promises.push(Promise.resolve(missingInfoGroup));
 							continue;
 						}
 						let promise = this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => {
@@ -229,7 +229,7 @@ module.exports = {
 				}
 				else {
 					log.error(`Unknown service: ${service}`);
-					return new Promise(resolve => resolve(serviceVideos));
+					return Promise.resolve(serviceVideos);
 				}
 			});
 			retrievalPromises.push(retrievalPromise);
@@ -324,6 +324,7 @@ module.exports = {
 							if (!highlighted) {
 								// Guarentee video is in add preview
 								this.getVideoInfo(service, id).then(video => {
+									video.highlight = true;
 									resolve(_.concat([video], previews));
 								}).catch(() => {
 									resolve(previews);
@@ -468,7 +469,7 @@ module.exports = {
 
 				if (parts.length === 0) {
 					log.error(`onlyProperties must have valid values or be null! Found ${onlyProperties}`);
-					reject(null);
+					reject(new Error("onlyProperties must have valid values or be null!"));
 					return;
 				}
 			}
