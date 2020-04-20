@@ -297,7 +297,22 @@ let usermanager = {
 		}
 		catch (err) {
 			log.error(`Unable to deserialize user id=${id} ${err}`);
-			done(err, null);
+			done(err, false);
+		}
+	},
+
+	/**
+	 * Middleware to handle errors in serialize and deserialize callbacks
+	 */
+	passportErrorHandler(err, req, res, next) {
+		if (err) {
+			log.error(`Error in middleware ${err}, logging user out.`);
+			req.logout();
+			req.session.save();
+			next();
+		}
+		else {
+			next();
 		}
 	},
 

@@ -70,6 +70,7 @@ passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(usermanager.passportErrorHandler);
 
 app.use((req, res, next) => {
 	if (!req.user && !req.session.username) {
