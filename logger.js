@@ -71,4 +71,7 @@ module.exports = {
 	getLogger(namespace) {
 		return logger.child({ namespace });
 	},
+	setLogLevel(level) {
+		logger.level = level;
+	},
 };

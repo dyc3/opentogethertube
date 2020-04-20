@@ -3,7 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { uniqueNamesGenerator } = require('unique-names-generator');
-const { getLogger } = require('./logger.js');
+const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
@@ -25,6 +25,11 @@ if (!fs.existsSync(config_path)) {
 	log.error(`No config found! Things will break! ${config_path}`);
 }
 require('dotenv').config({ path: config_path });
+
+if (process.env.LOG_LEVEL) {
+	log.info(`Set log level to ${process.env.LOG_LEVEL}`);
+	setLogLevel(process.env.LOG_LEVEL);
+}
 
 const app = express();
 const server = http.createServer(app);
