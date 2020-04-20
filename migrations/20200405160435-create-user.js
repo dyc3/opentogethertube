@@ -20,7 +20,7 @@ module.exports = {
       },
       salt: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: Sequelize.BLOB,
       },
       hash: {
         allowNull: false,

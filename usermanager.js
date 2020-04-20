@@ -249,7 +249,8 @@ let usermanager = {
 			}
 			return;
 		}
-		let result = await pwd.verify(Buffer.from(user.salt + password), Buffer.from(user.hash));
+		// eslint-disable-next-line array-bracket-newline
+		let result = await pwd.verify(Buffer.concat([user.salt, Buffer.from(password)]), Buffer.from(user.hash));
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
 				log.error(`${email}: Unrecognized hash. I don't think this should ever happen.`);
@@ -261,7 +262,8 @@ let usermanager = {
 				break;
 			case securePassword.VALID_NEEDS_REHASH:
 				log.debug(`${email}: Hash is valid, needs rehash`);
-				user.hash = await pwd.hash(Buffer.from(user.salt + password));
+				// eslint-disable-next-line array-bracket-newline
+				user.hash = await pwd.hash(Buffer.concat([user.salt, Buffer.from(password)]));
 				await user.save();
 			// eslint-disable-next-line no-fallthrough
 			case securePassword.VALID:
@@ -304,8 +306,9 @@ let usermanager = {
 			return Promise.reject(new BadPasswordError());
 		}
 
-		let salt = crypto.randomBytes(256).toString('utf8');
-		let hash = await pwd.hash(Buffer.from(salt + password));
+		let salt = crypto.randomBytes(128);
+		// eslint-disable-next-line array-bracket-newline
+		let hash = await pwd.hash(Buffer.concat([salt, Buffer.from(password)]));
 
 		return User.create({
 			email,
