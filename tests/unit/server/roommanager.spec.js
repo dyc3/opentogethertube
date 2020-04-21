@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const roommanager = require("../../../roommanager");
+const { RoomEvent, ROOM_EVENT_TYPE, ...roommanager } = require("../../../roommanager");
 const InfoExtract = require("../../../infoextract");
 const storage = require("../../../storage");
 const moment = require("moment");
@@ -137,6 +137,57 @@ describe('Room manager: Room tests', () => {
       });
     });
   });
+
+  it('should calculate correct playback position based on commitRoomEvent', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    room.currentSource = { service: "fakeservice", id: "abc123", length: 200 };
+    room.playbackPosition = 0;
+    let now = moment("2020-01-01T06:00:00");
+
+    room.commitRoomEvent(new RoomEvent(room.name, ROOM_EVENT_TYPE.PLAY, "user", {}), now);
+
+    expect(room.isPlaying).toEqual(true);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(0);
+
+    now.add(5, "seconds");
+    room.commitRoomEvent(new RoomEvent(room.name, ROOM_EVENT_TYPE.PAUSE, "user", {}), now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).not.toEqual(now);
+    expect(room.playbackPosition).toEqual(5);
+
+    now.add(10, "seconds");
+    room.commitRoomEvent(new RoomEvent(room.name, ROOM_EVENT_TYPE.SEEK, "user", { position: 50 }), now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(50);
+
+    // undo seek forwards
+    let undoable = new RoomEvent(room.name, ROOM_EVENT_TYPE.SEEK, "user", { position: 100 });
+    room.commitRoomEvent(undoable, now);
+    expect(room.playbackPosition).toEqual(100);
+    expect(undoable.parameters.previousPosition).toEqual(50);
+    now.add(5, "seconds");
+    room.undoEvent(undoable, now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(50);
+
+    // undo seek backwards
+    undoable = new RoomEvent(room.name, ROOM_EVENT_TYPE.SEEK, "user", { position: 20 });
+    room.commitRoomEvent(undoable, now);
+    expect(room.playbackPosition).toEqual(20);
+    expect(undoable.parameters.previousPosition).toEqual(50);
+    now.add(5, "seconds");
+    room.undoEvent(undoable, now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(50);
+  });
 });
 
 describe('Room manager: Manager tests', () => {
@@ -263,10 +314,9 @@ describe('Room manager: Manager tests', () => {
 });
 
 describe('Room manager: Undoable Events', () => {
-  beforeEach(async done => {
+  beforeEach(async () => {
     roommanager.rooms = [];
     await Room.destroy({ where: {} });
-    done();
   });
 
   it('should revert seek event', async () => {

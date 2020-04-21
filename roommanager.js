@@ -146,20 +146,20 @@ class Room {
 	 * Modifies the room state based on the room event given, sends the event to clients, and syncs clients.
 	 * @param {RoomEvent} event
 	 */
-	commitRoomEvent(event) {
+	commitRoomEvent(event, now=moment()) {
 		this.log.debug(`Commiting room event ${event.eventType}`);
 		if (event.eventType === ROOM_EVENT_TYPE.PLAY) {
-			this.playbackStartTime = moment();
+			this.playbackStartTime = now.clone();
 			this.isPlaying = true;
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.PAUSE) {
 			this.isPlaying = false;
-			this.playbackPosition += moment().diff(this.playbackStartTime, "seconds");
+			this.playbackPosition += now.diff(this.playbackStartTime, "seconds");
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
+			event.parameters.previousPosition = this.playbackPosition + now.diff(this.playbackStartTime, "seconds");
 			this.playbackPosition = event.parameters.position;
-			event.parameters.previousPosition = moment().diff(this.playbackStartTime, "seconds");
-			this.playbackStartTime = moment();
+			this.playbackStartTime = now.clone();
 		}
 		else {
 			log.error(`Can't commit event, unknown event type ${event.eventType}`);
@@ -454,10 +454,11 @@ class Room {
 	 * Performs the opposite of the event to undo it.
 	 * @param {RoomEvent|Object} event The event to be reverted.
 	 */
-	undoEvent(event) {
+	undoEvent(event, now=moment()) {
 		if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
 			this.playbackPosition = event.parameters.previousPosition;
 			this._dirtyProps.push("playbackPosition");
+			this.playbackStartTime = now.clone();
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.SKIP) {
 			if (this.currentSource) {
@@ -680,6 +681,8 @@ class RoomNameTakenException extends Error {
 
 module.exports = {
 	rooms: [],
+	RoomEvent,
+	ROOM_EVENT_TYPE,
 
 	/**
 	 * Start the room manager.
