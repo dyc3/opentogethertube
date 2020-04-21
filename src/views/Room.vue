@@ -172,7 +172,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import secondsToTimestamp from "@/timestamp.js";
+import { secondsToTimestamp } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';

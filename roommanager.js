@@ -42,6 +42,7 @@ class Room {
 		this.clients = [];
 		this.keepAlivePing = null;
 		this.owner = null;
+		this.playbackStartTime = null;
 		if (args) {
 			Object.assign(this, args);
 		}
