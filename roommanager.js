@@ -143,6 +143,32 @@ class Room {
 	}
 
 	/**
+	 * Modifies the room state based on the room event given, sends the event to clients, and syncs clients.
+	 * @param {RoomEvent} event
+	 */
+	commitRoomEvent(event) {
+		this.log.debug(`Commiting room event ${event.eventType}`);
+		if (event.eventType === ROOM_EVENT_TYPE.PLAY) {
+			this.playbackStartTime = moment();
+			this.isPlaying = true;
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.PAUSE) {
+			this.isPlaying = false;
+			this.playbackPosition += moment().diff(this.playbackStartTime, "seconds");
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
+			this.playbackPosition = event.parameters.position;
+			event.parameters.previousPosition = moment().diff(this.playbackStartTime, "seconds");
+			this.playbackStartTime = moment();
+		}
+		else {
+			log.error(`Can't commit event, unknown event type ${event.eventType}`);
+		}
+		this.sendRoomEvent(event);
+		this.sync();
+	}
+
+	/**
 	 * Obtains metadata for a given video and adds it to the queue
 	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
 	 */
@@ -525,22 +551,16 @@ class Room {
 	 */
 	onMessageReceived(client, msg) {
 		if (msg.action === "play") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
-			this.isPlaying = true;
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
 		}
 		else if (msg.action === "pause") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
-			this.isPlaying = false;
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
 		}
 		else if (msg.action === "seek") {
 			if (msg.position === this.playbackPosition) {
 				return;
 			}
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
-			this.playbackPosition = msg.position;
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
 		}
 		else if (msg.action === "skip") {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
@@ -718,10 +738,6 @@ module.exports = {
 		const nanotimer = new NanoTimer();
 		nanotimer.setInterval(() => {
 			for (const room of this.rooms) {
-				if (room.isPlaying) {
-					room.playbackPosition += 1;
-				}
-
 				room.update();
 				room.sync();
 				this.unloadIfEmpty(room);
