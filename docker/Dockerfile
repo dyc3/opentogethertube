@@ -9,7 +9,7 @@ COPY . .
 
 # Install app dependencies
 RUN apk update -q
-RUN apk --no-cache add sqlite curl libc6-compat python make g++ -q
+RUN apk --no-cache add sqlite curl libc6-compat python make g++ autoconf automake libtool -q
 
 # Install app dependencies
 RUN npm install
@@ -32,7 +32,7 @@ ENV PORT 8080
 
 # Install sqlite3
 RUN apk update -q
-RUN apk add sqlite curl libc6-compat python make g++ -q
+RUN apk add sqlite curl libc6-compat python make g++ autoconf automake libtool -q
 
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
