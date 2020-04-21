@@ -18,7 +18,7 @@ docker-compose up -d
 
 Go to http://localhost:8080/ 
 
-## Production
+## How to build and use the image locally
 
 The production image uses docker-compose with redis and postgres in separate containers.
 
