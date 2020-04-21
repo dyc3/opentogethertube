@@ -8,6 +8,10 @@ WORKDIR /usr/app
 COPY . .
 
 # Install app dependencies
+RUN apk update -q
+RUN apk --no-cache add sqlite curl libc6-compat python make g++ -q
+
+# Install app dependencies
 RUN npm install
 
 # Build the application for deployement
@@ -28,11 +32,14 @@ ENV PORT 8080
 
 # Install sqlite3
 RUN apk update -q
-RUN apk add sqlite curl -q
+RUN apk add sqlite curl libc6-compat python make g++ -q
 
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
 COPY --from=build-stage /usr/app/docker/scripts/wait_for_db.sh /usr/app/wait_for_db.sh
+
+# remove the build dependency
+RUN rm -rf /usr/app/nodes_modules
 
 # Install app dependencies
 RUN npm install --production
