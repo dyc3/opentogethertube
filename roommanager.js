@@ -151,6 +151,12 @@ class Room {
 		this._dirtyProps.push("playbackStartTime");
 	}
 
+	getTruePlaybackPosition(now=moment()) {
+		// FIXME: This function is basically the same as calculateCurrentPosition in timestamp.js
+		// on the client side, there has to be some way to share functions between the client and server.
+		return this.playbackPosition + (this.isPlaying * now.diff(this.playbackStartTime, "seconds"));
+	}
+
 	/**
 	 * Modifies the room state based on the room event given, sends the event to clients, and syncs clients.
 	 * @param {RoomEvent} event
@@ -166,7 +172,7 @@ class Room {
 			this.playbackPosition += now.diff(this.playbackStartTime, "seconds");
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
-			event.parameters.previousPosition = this.playbackPosition + now.diff(this.playbackStartTime, "seconds");
+			event.parameters.previousPosition = this.getTruePlaybackPosition(now);
 			this.playbackPosition = event.parameters.position;
 			this.playbackStartTime = now.clone();
 		}
@@ -220,6 +226,7 @@ class Room {
 			}).then(() => {
 				this.queue.push(queueItem);
 				this._dirtyProps.push("queue");
+				this.playbackStartTime = moment();
 				this.update();
 				this.sync();
 
@@ -323,7 +330,7 @@ class Room {
 	 * something automatically without a user's input goes here
 	 * (automatically playing the next video in the queue, etc.)
 	 */
-	update() {
+	update(now=moment()) {
 		// remove inactive clients
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
@@ -357,17 +364,20 @@ class Room {
 			this.log.error("currentSource is undefined! This is not good.");
 		}
 
-		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
-			this.currentSource = this.queue.shift();
-			this._dirtyProps.push("queue");
+		if (_.isEmpty(this.currentSource)) {
+			if (this.queue.length > 0) {
+				this.currentSource = this.queue.shift();
+				this._dirtyProps.push("queue");
+			}
+			else if (this.isPlaying) {
+				this.isPlaying = false;
+				this.playbackPosition = 0;
+			}
 		}
-		else if (!_.isEmpty(this.currentSource) && this.playbackPosition > this.currentSource.length) {
+		else if (this.playbackStartTime && this.getTruePlaybackPosition(now) > this.currentSource.length) {
+			this.log.debug("Video has ended, playing next video...");
 			this.currentSource = this.queue.length > 0 ? this.queue.shift() : {};
 			this._dirtyProps.push("queue");
-			this.playbackPosition = 0;
-		}
-		if (_.isEmpty(this.currentSource) && this.queue.length == 0 && this.isPlaying) {
-			this.isPlaying = false;
 			this.playbackPosition = 0;
 		}
 

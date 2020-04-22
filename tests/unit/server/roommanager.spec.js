@@ -140,6 +140,7 @@ describe('Room manager: Room tests', () => {
 
   it('should calculate correct playback position based on commitRoomEvent', async () => {
     let room = await roommanager.getLoadedRoom("test");
+    jest.spyOn(room, "sync").mockImplementation();
     room.currentSource = { service: "fakeservice", id: "abc123", length: 200 };
     room.playbackPosition = 0;
     let now = moment("2020-01-01T06:00:00");
@@ -187,6 +188,8 @@ describe('Room manager: Room tests', () => {
     expect(room.isPlaying).toEqual(false);
     expect(room.playbackStartTime).toEqual(now);
     expect(room.playbackPosition).toEqual(50);
+
+    room.sync.mockReset();
   });
 });
 

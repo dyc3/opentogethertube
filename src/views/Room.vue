@@ -324,10 +324,11 @@ export default {
 
     this.i_timestampUpdater = setInterval(() => {
       this.sliderPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
+      this.sliderPosition = _.clamp(this.sliderPosition, 0, this.$store.state.room.currentSource.length);
       const position = secondsToTimestamp(this.sliderPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
       this.timestampDisplay = `${position} / ${duration}`;
-    }, 500);
+    }, 1000);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
