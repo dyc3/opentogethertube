@@ -8,11 +8,11 @@ const rateLimit = require("express-rate-limit");
 const RateLimitStore = require('rate-limit-redis');
 const { User } = require("./models");
 const roommanager = require("./roommanager");
+const { redisClient } = require('./redisclient.js');
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
 const router = express.Router();
-let redisClient;
 
 router.get("/", (req, res) => {
 	if (req.user) {
@@ -218,10 +218,6 @@ class BadPasswordError extends Error {
 
 let usermanager = {
 	router,
-
-	init(_redisClient) {
-		redisClient = _redisClient;
-	},
 
 	/**
 	 * Callback used by passport LocalStrategy to authenticate Users.

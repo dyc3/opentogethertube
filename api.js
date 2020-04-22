@@ -5,6 +5,7 @@ const uuid = require("uuid/v4");
 const _ = require("lodash");
 const InfoExtract = require("./infoextract");
 const { getLogger } = require('./logger.js');
+const { redisClient } = require('./redisclient.js');
 
 const log = getLogger("api");
 
@@ -27,7 +28,7 @@ const VALID_ROOM_QUEUE_MODE = [
 ];
 
 // eslint-disable-next-line no-unused-vars
-module.exports = function(_roommanager, storage, redisClient) {
+module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
 	const router = express.Router();
 

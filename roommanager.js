@@ -7,6 +7,7 @@ const InfoExtract = require("./infoextract");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
+const { redisClient } = require('./redisclient.js');
 
 const log = getLogger("roommanager");
 
@@ -717,7 +718,7 @@ module.exports = {
 	 * @param {Object} httpServer The http server to get websocket connections from.
 	 * @param {Object} sessions The session parser that express uses.
 	 */
-	start(httpServer, sessions, redisClient) {
+	start(httpServer, sessions) {
 		const wss = new WebSocket.Server({ noServer: true });
 
 		httpServer.on('upgrade', (req, socket, head) => {
@@ -751,7 +752,6 @@ module.exports = {
 			});
 		});
 
-		this.redisClient = redisClient;
 		redisClient.on("connect", () => {
 			log.info("Connected to redis");
 		});
@@ -841,7 +841,7 @@ module.exports = {
 	 */
 	getAllLoadedRooms() {
 		return new Promise((resolve, reject) => {
-			this.redisClient.get("rooms", (err, value) => {
+			redisClient.get("rooms", (err, value) => {
 				if (err) {
 					reject(err);
 					return;
@@ -870,7 +870,7 @@ module.exports = {
 			delete room.log;
 			return room;
 		});
-		this.redisClient.set("rooms", JSON.stringify(rooms), err => {
+		redisClient.set("rooms", JSON.stringify(rooms), err => {
 			if (err) {
 				log.error(`Failed to save rooms to redis: ${err} ${err.message}`);
 				throw err;

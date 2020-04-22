@@ -6,6 +6,7 @@ const _ = require("lodash");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
+const { redisClient } = require('./redisclient.js');
 
 const log = getLogger("infoextract");
 
@@ -82,8 +83,6 @@ class UnsupportedMimeTypeException extends Error {
 	}
 }
 
-let redisClient;
-
 if (process.env.DEBUG_FAKE_YOUTUBE_OUT_OF_QUOTA) {
 	YtApi.get = () => Promise.reject({ response: { status: 403 } });
 }
@@ -93,10 +92,6 @@ module.exports = {
 	YtFallbackApi,
 	VimeoApi,
 	DailymotionApi,
-
-	init(_redisClient) {
-		redisClient = _redisClient;
-	},
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
