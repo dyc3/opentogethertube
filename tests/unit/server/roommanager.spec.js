@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const roommanager = require("../../../roommanager");
+const { RoomEvent, ROOM_EVENT_TYPE, ...roommanager } = require("../../../roommanager");
 const InfoExtract = require("../../../infoextract");
 const storage = require("../../../storage");
 const moment = require("moment");
@@ -41,34 +41,32 @@ describe('Room manager: Room tests', () => {
     });
   });
 
-  it('should dequeue the next video in the queue, when the current video is done playing', done => {
-    roommanager.getLoadedRoom("test").then(room => {
-      room.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
-      room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
-      room.playbackPosition = 11;
-      room.update();
+  it('should dequeue the next video in the queue, when the current video is done playing', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    room.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
+    room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
+    room.playbackPosition = 11;
+    room.playbackStartTime = moment();
+    room.update();
 
-      expect(room.queue.length).toEqual(0);
-      expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-      expect(room.playbackPosition).toEqual(0);
-      done();
-    });
+    expect(room.queue.length).toEqual(0);
+    expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
+    expect(room.playbackPosition).toEqual(0);
   });
 
-  it('should stop playing, when the current video is done playing and the queue is empty', done => {
-    roommanager.getLoadedRoom("test").then(room => {
-      room.queue = [];
-      room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
-      room.playbackPosition = 11;
-      room.isPlaying = true;
-      room.update();
+  it('should stop playing, when the current video is done playing and the queue is empty', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    room.queue = [];
+    room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
+    room.playbackPosition = 11;
+    room.isPlaying = true;
+    room.playbackStartTime = moment();
+    room.update();
 
-      expect(room.queue.length).toEqual(0);
-      expect(room.currentSource).toEqual({});
-      expect(room.playbackPosition).toEqual(0);
-      expect(room.isPlaying).toEqual(false);
-      done();
-    });
+    expect(room.queue.length).toEqual(0);
+    expect(room.currentSource).toEqual({});
+    expect(room.playbackPosition).toEqual(0);
+    expect(room.isPlaying).toEqual(false);
   });
 
   it('should add a video to the queue with url provided, and because no video is playing, move it into currentSource', done => {
@@ -136,6 +134,60 @@ describe('Room manager: Room tests', () => {
         done();
       });
     });
+  });
+
+  it('should calculate correct playback position based on commitRoomEvent', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    jest.spyOn(room, "sync").mockImplementation();
+    room.currentSource = { service: "fakeservice", id: "abc123", length: 200 };
+    room.playbackPosition = 0;
+    let now = moment("2020-01-01T06:00:00");
+
+    room.commitRoomEvent(new RoomEvent(room.name, ROOM_EVENT_TYPE.PLAY, "user", {}), now);
+
+    expect(room.isPlaying).toEqual(true);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(0);
+
+    now.add(5, "seconds");
+    room.commitRoomEvent(new RoomEvent(room.name, ROOM_EVENT_TYPE.PAUSE, "user", {}), now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).not.toEqual(now);
+    expect(room.playbackPosition).toEqual(5);
+
+    now.add(10, "seconds");
+    room.commitRoomEvent(new RoomEvent(room.name, ROOM_EVENT_TYPE.SEEK, "user", { position: 50 }), now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(50);
+
+    // undo seek forwards
+    let undoable = new RoomEvent(room.name, ROOM_EVENT_TYPE.SEEK, "user", { position: 100 });
+    room.commitRoomEvent(undoable, now);
+    expect(room.playbackPosition).toEqual(100);
+    expect(undoable.parameters.previousPosition).toEqual(50);
+    now.add(5, "seconds");
+    room.undoEvent(undoable, now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(50);
+
+    // undo seek backwards
+    undoable = new RoomEvent(room.name, ROOM_EVENT_TYPE.SEEK, "user", { position: 20 });
+    room.commitRoomEvent(undoable, now);
+    expect(room.playbackPosition).toEqual(20);
+    expect(undoable.parameters.previousPosition).toEqual(50);
+    now.add(5, "seconds");
+    room.undoEvent(undoable, now);
+
+    expect(room.isPlaying).toEqual(false);
+    expect(room.playbackStartTime).toEqual(now);
+    expect(room.playbackPosition).toEqual(50);
+
+    room.sync.mockReset();
   });
 });
 
@@ -263,10 +315,9 @@ describe('Room manager: Manager tests', () => {
 });
 
 describe('Room manager: Undoable Events', () => {
-  beforeEach(async done => {
+  beforeEach(async () => {
     roommanager.rooms = [];
     await Room.destroy({ where: {} });
-    done();
   });
 
   it('should revert seek event', async () => {

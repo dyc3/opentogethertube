@@ -42,6 +42,7 @@ class Room {
 		this.clients = [];
 		this.keepAlivePing = null;
 		this.owner = null;
+		this.playbackStartTime = null;
 		if (args) {
 			Object.assign(this, args);
 		}
@@ -141,6 +142,52 @@ class Room {
 		this._dirtyProps.push("hasOwner");
 	}
 
+	get playbackStartTime() {
+		return this._playbackStartTime;
+	}
+
+	set playbackStartTime(value) {
+		this._playbackStartTime = value;
+		this._dirtyProps.push("playbackStartTime");
+	}
+
+	getTruePlaybackPosition(now=moment()) {
+		// FIXME: This function is basically the same as calculateCurrentPosition in timestamp.js
+		// on the client side, there has to be some way to share functions between the client and server.
+		return this.playbackPosition + (this.isPlaying * now.diff(this.playbackStartTime, "seconds"));
+	}
+
+	/**
+	 * Modifies the room state based on the room event given, sends the event to clients, and syncs clients.
+	 * @param {RoomEvent} event
+	 */
+	commitRoomEvent(event, now=moment()) {
+		this.log.debug(`Commiting room event ${event.eventType}`);
+		if (event.eventType === ROOM_EVENT_TYPE.PLAY) {
+			this.playbackStartTime = now.clone();
+			this.isPlaying = true;
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.PAUSE) {
+			this.isPlaying = false;
+			this.playbackPosition += now.diff(this.playbackStartTime, "seconds");
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
+			event.parameters.previousPosition = this.getTruePlaybackPosition(now);
+			this.playbackPosition = event.parameters.position;
+			this.playbackStartTime = now.clone();
+		}
+		else if (event.eventType === ROOM_EVENT_TYPE.SKIP) {
+			this.playbackPosition = this.currentSource.length + 1;
+			this.playbackStartTime = now.clone();
+			this.update();
+		}
+		else {
+			log.error(`Can't commit event, unknown event type ${event.eventType}`);
+		}
+		this.sendRoomEvent(event);
+		this.sync();
+	}
+
 	/**
 	 * Obtains metadata for a given video and adds it to the queue
 	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
@@ -179,6 +226,7 @@ class Room {
 			}).then(() => {
 				this.queue.push(queueItem);
 				this._dirtyProps.push("queue");
+				this.playbackStartTime = moment();
 				this.update();
 				this.sync();
 
@@ -282,7 +330,7 @@ class Room {
 	 * something automatically without a user's input goes here
 	 * (automatically playing the next video in the queue, etc.)
 	 */
-	update() {
+	update(now=moment()) {
 		// remove inactive clients
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
@@ -316,17 +364,26 @@ class Room {
 			this.log.error("currentSource is undefined! This is not good.");
 		}
 
-		if (_.isEmpty(this.currentSource) && this.queue.length > 0) {
-			this.currentSource = this.queue.shift();
-			this._dirtyProps.push("queue");
+		if (_.isEmpty(this.currentSource)) {
+			if (this.queue.length > 0) {
+				this.currentSource = this.queue.shift();
+				this._dirtyProps.push("queue");
+			}
+			else if (this.isPlaying) {
+				this.isPlaying = false;
+				this.playbackPosition = 0;
+			}
 		}
-		else if (!_.isEmpty(this.currentSource) && this.playbackPosition > this.currentSource.length) {
-			this.currentSource = this.queue.length > 0 ? this.queue.shift() : {};
-			this._dirtyProps.push("queue");
-			this.playbackPosition = 0;
-		}
-		if (_.isEmpty(this.currentSource) && this.queue.length == 0 && this.isPlaying) {
-			this.isPlaying = false;
+		else if (this.playbackStartTime && this.getTruePlaybackPosition(now) > this.currentSource.length) {
+			this.log.debug("Video has ended, playing next video...");
+			if (this.queue.length > 0) {
+				this.currentSource = this.queue.shift();
+				this._dirtyProps.push("queue");
+			}
+			else {
+				this.currentSource = {};
+				this.isPlaying = false;
+			}
 			this.playbackPosition = 0;
 		}
 
@@ -355,6 +412,7 @@ class Room {
 			playbackPosition: this.playbackPosition,
 			users: [],
 			hasOwner: !!this.owner,
+			playbackStartTime: this.playbackStartTime,
 		};
 
 		for (const client of this.clients) {
@@ -427,10 +485,11 @@ class Room {
 	 * Performs the opposite of the event to undo it.
 	 * @param {RoomEvent|Object} event The event to be reverted.
 	 */
-	undoEvent(event) {
+	undoEvent(event, now=moment()) {
 		if (event.eventType === ROOM_EVENT_TYPE.SEEK) {
 			this.playbackPosition = event.parameters.previousPosition;
 			this._dirtyProps.push("playbackPosition");
+			this.playbackStartTime = now.clone();
 		}
 		else if (event.eventType === ROOM_EVENT_TYPE.SKIP) {
 			if (this.currentSource) {
@@ -524,28 +583,19 @@ class Room {
 	 */
 	onMessageReceived(client, msg) {
 		if (msg.action === "play") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
-			this.isPlaying = true;
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
 		}
 		else if (msg.action === "pause") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
-			this.isPlaying = false;
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
 		}
 		else if (msg.action === "seek") {
 			if (msg.position === this.playbackPosition) {
 				return;
 			}
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
-			this.playbackPosition = msg.position;
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
 		}
 		else if (msg.action === "skip") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
-			this.playbackPosition = this.currentSource.length + 1;
-			this.update();
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
 		}
 		else if (msg.action === "chat") {
 			let chat = {
@@ -659,6 +709,8 @@ class RoomNameTakenException extends Error {
 
 module.exports = {
 	rooms: [],
+	RoomEvent,
+	ROOM_EVENT_TYPE,
 
 	/**
 	 * Start the room manager.
@@ -717,10 +769,6 @@ module.exports = {
 		const nanotimer = new NanoTimer();
 		nanotimer.setInterval(() => {
 			for (const room of this.rooms) {
-				if (room.isPlaying) {
-					room.playbackPosition += 1;
-				}
-
 				room.update();
 				room.sync();
 				this.unloadIfEmpty(room);

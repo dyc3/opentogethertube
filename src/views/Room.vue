@@ -172,7 +172,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import secondsToTimestamp from "@/timestamp.js";
+import { secondsToTimestamp, calculateCurrentPosition } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
@@ -217,6 +217,9 @@ export default {
       joinFailReason: "",
       snackbarActive: false,
       snackbarText: "",
+
+      timestampDisplay: "",
+      i_timestampUpdater: null,
     };
   },
   computed: {
@@ -246,11 +249,6 @@ export default {
     production() {
       return this.$store.state.production;
     },
-    timestampDisplay() {
-      const position = secondsToTimestamp(this.$store.state.room.playbackPosition);
-      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
-      return `${position} / ${duration}`;
-    },
     isAddPreviewInputUrl() {
       try {
         if (new URL(this.inputAddPreview).host) {
@@ -274,10 +272,6 @@ export default {
     //   // this isn't needed in production because the requests for resources will set the cookie
     //   await API.get("/user");
     // }
-
-    this.$events.on("onSync", () => {
-      this.sliderPosition = this.$store.state.room.playbackPosition;
-    });
 
     this.$events.on("onRoomEvent", event => {
       if (event.eventType === "play") {
@@ -327,6 +321,17 @@ export default {
       // caused by hot reloading in the dev environment.
       this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
     }
+
+    this.i_timestampUpdater = setInterval(() => {
+      this.sliderPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
+      this.sliderPosition = _.clamp(this.sliderPosition, 0, this.$store.state.room.currentSource.length);
+      const position = secondsToTimestamp(this.sliderPosition);
+      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
+      this.timestampDisplay = `${position} / ${duration}`;
+    }, 1000);
+  },
+  destroyed() {
+    clearInterval(this.i_timestampUpdater);
   },
   methods: {
     postTestVideo(v) {
