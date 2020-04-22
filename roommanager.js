@@ -170,6 +170,11 @@ class Room {
 			this.playbackPosition = event.parameters.position;
 			this.playbackStartTime = now.clone();
 		}
+		else if (event.eventType === ROOM_EVENT_TYPE.SKIP) {
+			this.playbackPosition = this.currentSource.length + 1;
+			this.playbackStartTime = now.clone();
+			this.update();
+		}
 		else {
 			log.error(`Can't commit event, unknown event type ${event.eventType}`);
 		}
@@ -574,10 +579,7 @@ class Room {
 			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
 		}
 		else if (msg.action === "skip") {
-			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
-			this.playbackPosition = this.currentSource.length + 1;
-			this.update();
-			this.sync();
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
 		}
 		else if (msg.action === "chat") {
 			let chat = {

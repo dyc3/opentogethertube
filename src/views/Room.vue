@@ -273,10 +273,6 @@ export default {
     //   await API.get("/user");
     // }
 
-    this.$events.on("onSync", () => {
-      this.sliderPosition = this.$store.state.room.playbackPosition;
-    });
-
     this.$events.on("onRoomEvent", event => {
       if (event.eventType === "play") {
         this.snackbarText = `${event.userName} played the video`;
@@ -331,7 +327,7 @@ export default {
       const position = secondsToTimestamp(this.sliderPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
       this.timestampDisplay = `${position} / ${duration}`;
-    }, 1000);
+    }, 500);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
