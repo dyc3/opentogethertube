@@ -92,6 +92,7 @@ module.exports = {
 	YtFallbackApi,
 	VimeoApi,
 	DailymotionApi,
+	redisClient,
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles

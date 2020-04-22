@@ -1,5 +1,7 @@
 const _ = require("lodash");
 const InfoExtract = require("../../../infoextract");
+jest.spyOn(InfoExtract.redisClient, 'get').mockImplementation((key, callback) => callback(null, null));
+jest.spyOn(InfoExtract.redisClient, 'set').mockImplementation();
 const storage = require("../../../storage");
 const { CachedVideo } = require("../../../models");
 const Video = require("../../../common/video.js");
@@ -215,6 +217,11 @@ describe('InfoExtractor Bulk Retrieval', () => {
 });
 
 describe("InfoExtractor Youtube Support", () => {
+  afterEach(() => {
+    InfoExtract.redisClient.get.mockClear();
+    InfoExtract.redisClient.set.mockClear();
+  });
+
   it("should get 1 video", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
@@ -412,10 +419,6 @@ describe("InfoExtractor Youtube Support", () => {
   });
 
   it("should get videos on the given youtube channel", async () => {
-    let redisClientMock = {
-      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
-      set: jest.fn(),
-    };
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeChannelInfoSampleResponses["UC_3pplzbKMZsP5zBH_6SVJQ"]) });
     jest.spyOn(InfoExtract, 'getPlaylistYoutube').mockImplementation().mockResolvedValue([
       new Video({
@@ -427,7 +430,6 @@ describe("InfoExtractor Youtube Support", () => {
         id: "BTZ5KVRUy1Q",
       }),
     ]);
-    InfoExtract.init(redisClientMock);
 
     expect(await InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" })).toEqual([
       new Video({
@@ -446,40 +448,27 @@ describe("InfoExtractor Youtube Support", () => {
   });
 
   it("should fail when youtube channel request fails due to quota limit", async () => {
-    let redisClientMock = {
-      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
-      set: jest.fn(),
-    };
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue({ response: { status: 403 } });
-    InfoExtract.init(redisClientMock);
 
-    await expect(InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" })).rejects.toThrow(/API quota/);
+    await expect(InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVAS" })).rejects.toThrow(/API quota/);
     expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
 
     InfoExtract.YtApi.get.mockRestore();
   });
 
   it("should fail when youtube channel request fails for other reasons", async () => {
-    let redisClientMock = {
-      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
-      set: jest.fn(),
-    };
+    jest.genMockFromModule("../../../redisclient.js");
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockRejectedValue(new Error());
-    InfoExtract.init(redisClientMock);
 
-    await expect(InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SVJQ" })).rejects.toThrow();
+    await expect(InfoExtract.getChanneInfoYoutube({ channel: "UC_3pplzbKMZsP5zBH_6SV73" })).rejects.toThrow();
     expect(InfoExtract.YtApi.get).toHaveBeenCalledTimes(1);
 
     InfoExtract.YtApi.get.mockRestore();
   });
 
   it("should search youtube and parse results without failing", async () => {
-    let redisClientMock = {
-      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
-      set: jest.fn(),
-    };
+    jest.genMockFromModule("../../../redisclient.js");
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) });
-    InfoExtract.init(redisClientMock);
 
     expect(await InfoExtract.searchYoutube("family guy funny moments")).toEqual([
       new Video({
@@ -495,21 +484,17 @@ describe("InfoExtractor Youtube Support", () => {
         id: "Tu3TiESKJGk",
       }),
     ]);
-    expect(redisClientMock.set).toBeCalled();
+    expect(InfoExtract.redisClient.set).toBeCalled();
 
     InfoExtract.YtApi.get.mockRestore();
   });
 
   it("should search youtube using the extra options", async () => {
-    let redisClientMock = {
-      get: jest.fn().mockImplementation((key, callback) => callback(null, null)),
-      set: jest.fn(),
-    };
+    jest.genMockFromModule("../../../redisclient.js");
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeSearchSampleResponses["family guy funny moments"]) });
-    InfoExtract.init(redisClientMock);
 
     expect(await InfoExtract.searchYoutube("family guy funny moments", { maxResults: 3, fromUser: "test" })).toHaveLength(3);
-    expect(redisClientMock.get).toBeCalled();
+    expect(InfoExtract.redisClient.get).toBeCalled();
     expect(InfoExtract.YtApi.get).toBeCalled();
     expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("maxResults=3");
     expect(InfoExtract.YtApi.get.mock.calls[0][0]).toContain("quotaUser=test");
