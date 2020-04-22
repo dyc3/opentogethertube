@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { shallowMount, createLocalVue, enableAutoDestroy } from '@vue/test-utils';
+import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Vuex from 'vuex';
 import VueEvents from 'vue-events';
 import Vuetify from 'vuetify';
@@ -66,7 +66,9 @@ describe('Room UI spec', () => {
     });
   });
 
-  enableAutoDestroy(afterEach);
+  afterEach(async () => {
+    await wrapper.destroy();
+  });
 
   it('should render room title in permanent rooms, if the room has one', () => {
     store.state.room.title = 'Example Room';
@@ -94,7 +96,7 @@ describe('Room UI spec', () => {
 
   it('should render timestamps as 00:00 if there is nothing playing', () => {
     store.state.room.currentSource = {};
-    jest.runAllTimers();
+    jest.advanceTimersByTime(1000);
     const timestamp = wrapper.find('.video-controls .timestamp');
     expect(timestamp.exists()).toBe(true);
     expect(timestamp.text()).toEqual('00:00 / 00:00');
@@ -103,7 +105,7 @@ describe('Room UI spec', () => {
   it('should render timestamps if there is something playing', () => {
     store.state.room.currentSource = { service: "youtube", id: "I3O9J02G67I", length: 10 };
     store.state.room.playbackPosition = 3;
-    jest.runAllTimers();
+    jest.advanceTimersByTime(1000);
     const timestamp = wrapper.find('.video-controls .timestamp');
     expect(timestamp.exists()).toBe(true);
     expect(timestamp.text()).toEqual('00:03 / 00:10');
