@@ -376,8 +376,14 @@ class Room {
 		}
 		else if (this.playbackStartTime && this.getTruePlaybackPosition(now) > this.currentSource.length) {
 			this.log.debug("Video has ended, playing next video...");
-			this.currentSource = this.queue.length > 0 ? this.queue.shift() : {};
-			this._dirtyProps.push("queue");
+			if (this.queue.length > 0) {
+				this.currentSource = this.queue.shift();
+				this._dirtyProps.push("queue");
+			}
+			else {
+				this.currentSource = {};
+				this.isPlaying = false;
+			}
 			this.playbackPosition = 0;
 		}
 

@@ -41,34 +41,32 @@ describe('Room manager: Room tests', () => {
     });
   });
 
-  it('should dequeue the next video in the queue, when the current video is done playing', done => {
-    roommanager.getLoadedRoom("test").then(room => {
-      room.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
-      room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
-      room.playbackPosition = 11;
-      room.update();
+  it('should dequeue the next video in the queue, when the current video is done playing', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    room.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
+    room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
+    room.playbackPosition = 11;
+    room.playbackStartTime = moment();
+    room.update();
 
-      expect(room.queue.length).toEqual(0);
-      expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-      expect(room.playbackPosition).toEqual(0);
-      done();
-    });
+    expect(room.queue.length).toEqual(0);
+    expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
+    expect(room.playbackPosition).toEqual(0);
   });
 
-  it('should stop playing, when the current video is done playing and the queue is empty', done => {
-    roommanager.getLoadedRoom("test").then(room => {
-      room.queue = [];
-      room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
-      room.playbackPosition = 11;
-      room.isPlaying = true;
-      room.update();
+  it('should stop playing, when the current video is done playing and the queue is empty', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    room.queue = [];
+    room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
+    room.playbackPosition = 11;
+    room.isPlaying = true;
+    room.playbackStartTime = moment();
+    room.update();
 
-      expect(room.queue.length).toEqual(0);
-      expect(room.currentSource).toEqual({});
-      expect(room.playbackPosition).toEqual(0);
-      expect(room.isPlaying).toEqual(false);
-      done();
-    });
+    expect(room.queue.length).toEqual(0);
+    expect(room.currentSource).toEqual({});
+    expect(room.playbackPosition).toEqual(0);
+    expect(room.isPlaying).toEqual(false);
   });
 
   it('should add a video to the queue with url provided, and because no video is playing, move it into currentSource', done => {
