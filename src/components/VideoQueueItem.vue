@@ -36,7 +36,7 @@
 
 <script>
 import { API } from "@/common-http.js";
-import secondsToTimestamp from "@/timestamp.js";
+import { secondsToTimestamp } from "@/timestamp.js";
 
 export default {
 	name: "VideoQueueItem",
