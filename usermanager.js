@@ -225,12 +225,6 @@ let usermanager = {
 	async authCallback(email, password, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
 		let usermanager = require("./usermanager.js");
-		// if (process.env.NODE_ENV !== 'production') {
-		// 	if (email === "test@localhost" && password === "test") {
-		// 		done(null, await usermanager.getUser({ email }));
-		// 		return;
-		// 	}
-		// }
 		let user;
 		try {
 			user = await usermanager.getUser({ email });
@@ -344,9 +338,6 @@ let usermanager = {
 			log.error("Invalid parameters to find user");
 			throw new Error("Invalid parameters to find user");
 		}
-		// if (process.env.NODE_ENV !== 'production' && (email === "test@localhost" || id === -1)) {
-		// 	return Promise.resolve(User.build({ id: -1, email, username: "test user" }));
-		// }
 		let where = {};
 		if (email) {
 			where = { email };
