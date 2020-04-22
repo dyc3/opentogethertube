@@ -142,6 +142,15 @@ class Room {
 		this._dirtyProps.push("hasOwner");
 	}
 
+	get playbackStartTime() {
+		return this._playbackStartTime;
+	}
+
+	set playbackStartTime(value) {
+		this._playbackStartTime = value;
+		this._dirtyProps.push("playbackStartTime");
+	}
+
 	/**
 	 * Modifies the room state based on the room event given, sends the event to clients, and syncs clients.
 	 * @param {RoomEvent} event
@@ -382,6 +391,7 @@ class Room {
 			playbackPosition: this.playbackPosition,
 			users: [],
 			hasOwner: !!this.owner,
+			playbackStartTime: this.playbackStartTime,
 		};
 
 		for (const client of this.clients) {
