@@ -948,7 +948,7 @@ module.exports = {
 	async getVideoInfoDirect(link) {
 		let srcUrl = url.parse(link);
 		if (srcUrl.protocol === "file") {
-			throw new new LocalFileException();
+			throw new LocalFileException();
 		}
 		let fileName = srcUrl.path.split("/").slice(-1)[0].split("?")[0].trim();
 		let extension = fileName.split(".")[1];
