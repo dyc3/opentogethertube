@@ -337,7 +337,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				log.error("Unhandled exception when getting room:", err);
+				log.error(`Unhandled exception when getting room: ${err}`);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -369,7 +369,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				log.error("Unhandled exception when getting room:", err);
+				log.error(`Unhandled exception when getting room: ${err}`);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -467,7 +467,7 @@ module.exports = function(_roommanager, storage) {
 			res.json(result);
 			log.info(`Sent add preview response with ${result.length} items`);
 		}).catch(err => {
-			if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException" || err.name === "UnsupportedMimeTypeException") {
+			if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException" || err.name === "UnsupportedMimeTypeException" || err.name === "LocalFileException" || err.name === "MissingMetadataException") {
 				log.error(`Unable to get add preview: ${err.name}`);
 				res.status(400).json({
 					success: false,

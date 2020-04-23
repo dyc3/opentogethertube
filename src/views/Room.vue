@@ -13,6 +13,7 @@
               <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <GoogleDrivePlayer v-else-if="currentSource.service == 'googledrive'" class="player" ref="googledrive" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
+              <DirectPlayer v-else-if="currentSource.service == 'direct'" class="player" ref="direct" :video-url="currentSource.url" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <v-container fluid fill-height class="player no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -187,6 +188,7 @@ export default {
     VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
     DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
     GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
+    DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/DirectPlayer.vue"),
   },
   data() {
     return {
@@ -387,6 +389,9 @@ export default {
       else if (this.currentSource.service === "googledrive") {
         this.$refs.googledrive.play();
       }
+      else if (this.currentSource.service === "direct") {
+        this.$refs.direct.play();
+      }
     },
     pause() {
       if (this.currentSource.service == "youtube") {
@@ -401,6 +406,9 @@ export default {
       else if (this.currentSource.service === "googledrive") {
         this.$refs.googledrive.pause();
       }
+      else if (this.currentSource.service === "direct") {
+        this.$refs.direct.pause();
+      }
     },
     updateVolume() {
       if (this.currentSource.service == "youtube") {
@@ -414,6 +422,9 @@ export default {
       }
       else if (this.currentSource.service === "googledrive") {
         this.$refs.googledrive.setVolume(this.volume);
+      }
+      else if (this.currentSource.service === "direct") {
+        this.$refs.direct.setVolume(this.volume);
       }
     },
     requestAddPreview() {
@@ -704,6 +715,9 @@ export default {
       else if (this.currentSource.service === "googledrive") {
         currentTime = await this.$refs.googledrive.getPosition();
       }
+      else if (this.currentSource.service === "direct") {
+        currentTime = await this.$refs.direct.getPosition();
+      }
       if (Math.abs(newPosition - currentTime) > 1) {
         if (this.currentSource.service === "youtube") {
           this.$refs.youtube.setPosition(newPosition);
@@ -716,6 +730,9 @@ export default {
         }
         else if (this.currentSource.service === "googledrive") {
           this.$refs.googledrive.setPosition(newPosition);
+        }
+        else if (this.currentSource.service === "direct") {
+          this.$refs.direct.setPosition(newPosition);
         }
       }
     },

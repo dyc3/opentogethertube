@@ -7,6 +7,7 @@ const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
 const { redisClient } = require('./redisclient.js');
+const ffprobe = require('./ffprobe.js');
 
 const log = getLogger("infoextract");
 
@@ -83,6 +84,20 @@ class UnsupportedMimeTypeException extends Error {
 	}
 }
 
+class LocalFileException extends Error {
+	constructor() {
+		super(`The video URL provided references a local file. It is not possible to play videos on your computer, nor files located on the server. Videos must be hosted somewhere all users in the room can access.`);
+		this.name = "LocalFileException";
+	}
+}
+
+class MissingMetadataException extends Error {
+	constructor() {
+		super(`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`);
+		this.name = "MissingMetadataException";
+	}
+}
+
 if (process.env.DEBUG_FAKE_YOUTUBE_OUT_OF_QUOTA) {
 	YtApi.get = () => Promise.reject({ response: { status: 403 } });
 }
@@ -93,6 +108,7 @@ module.exports = {
 	VimeoApi,
 	DailymotionApi,
 	redisClient,
+	ffprobe,
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
@@ -121,6 +137,9 @@ module.exports = {
 			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
 				return Promise.reject(new InvalidVideoIdException(service, id));
 			}
+		}
+		else if (service === "direct") {
+			return this.getVideoInfoDirect(id);
 		}
 
 		return storage.getVideoInfo(service, id).then(result => {
@@ -276,7 +295,7 @@ module.exports = {
 			id = this.getVideoIdGoogleDrive(input);
 		}
 
-		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion" && service !== "googledrive") {
+		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion" && service !== "googledrive" && service !== "direct") {
 			return Promise.reject(new UnsupportedServiceException(urlParsed.host));
 		}
 		else if (!urlParsed.host) {
@@ -378,6 +397,11 @@ module.exports = {
 				// .then(videos => this.getManyVideoInfo(videos))
 				.catch(err => log.error(`Error getting google drive info: ${err}`));
 		}
+		else if (service === "direct") {
+			return this.getVideoInfo(service, input).then(video => {
+				return [video];
+			});
+		}
 		else {
 			let video = new Video({
 				service: service,
@@ -417,13 +441,16 @@ module.exports = {
 		else if (srcUrl.host.endsWith("drive.google.com")) {
 			return "googledrive";
 		}
+		else if (/\/*\.(mp4|webm|flv|mkv)$/.exec(srcUrl.path)) {
+			return "direct";
+		}
 		else {
 			return false;
 		}
 	},
 
 	isSupportedMimeType(mime) {
-		return /^video\/(?!x-flv)(?!x-matroska)[a-z0-9-]+$/.exec(mime) ? true : false;
+		return !!/^video\/(?!x-flv)(?!x-matroska)[a-z0-9-]+$/.exec(mime);
 	},
 
 	/* YOUTUBE */
@@ -914,6 +941,59 @@ module.exports = {
 				}
 				throw err;
 			}
+		});
+	},
+
+	/* DIRECT */
+
+	async getVideoInfoDirect(link) {
+		let srcUrl = url.parse(link);
+		if (srcUrl.protocol === "file:") {
+			throw new LocalFileException();
+		}
+		let fileName = srcUrl.path.split("/").slice(-1)[0].split("?")[0].trim();
+		let extension = fileName.split(".")[1];
+		let mime = "unknown";
+		// TODO: swap this out with something more robust
+		// http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+		switch (extension) {
+			case "mp4":
+			case "mp4v":
+			case "mpg4":
+				mime = "video/mp4";
+				break;
+			case "mkv":
+			case "mk3d":
+			case "mks":
+				mime = "video/x-matroska";
+				break;
+			case "mov":
+			case "qt":
+				mime = "video/quicktime";
+				break;
+			case "webm":
+				mime = "video/webm";
+				break;
+			case "flv":
+				mime = "video/x-flv";
+				break;
+		}
+		if (!this.isSupportedMimeType(mime)) {
+			throw new UnsupportedMimeTypeException(mime);
+		}
+		const fileInfo = await ffprobe.getFileInfo(link);
+		let videoStream = _.find(fileInfo.streams, { "codec_type": "video" });
+		if (!videoStream.duration) {
+			log.error("Video duration could not be determined");
+			throw new MissingMetadataException();
+		}
+		return new Video({
+			service: "direct",
+			url: link,
+			title: fileName,
+			description: `Full Link: ${link}`,
+			mime,
+			length: Math.ceil(videoStream.duration),
 		});
 	},
 };
