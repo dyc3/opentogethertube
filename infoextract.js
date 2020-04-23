@@ -91,6 +91,13 @@ class LocalFileException extends Error {
 	}
 }
 
+class MissingMetadataException extends Error {
+	constructor() {
+		super(`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`);
+		this.name = "MissingMetadataException";
+	}
+}
+
 if (process.env.DEBUG_FAKE_YOUTUBE_OUT_OF_QUOTA) {
 	YtApi.get = () => Promise.reject({ response: { status: 403 } });
 }
@@ -943,8 +950,6 @@ module.exports = {
 		if (srcUrl.protocol === "file") {
 			throw new new LocalFileException();
 		}
-		const fileInfo = await ffprobe.getFileInfo(link);
-		let videoStream = _.find(fileInfo.streams, { "codec_type": "video" });
 		let fileName = srcUrl.path.split("/").slice(-1)[0].split("?")[0].trim();
 		let extension = fileName.split(".")[1];
 		let mime = "unknown";
@@ -974,6 +979,12 @@ module.exports = {
 		}
 		if (!this.isSupportedMimeType(mime)) {
 			throw new UnsupportedMimeTypeException(mime);
+		}
+		const fileInfo = await ffprobe.getFileInfo(link);
+		let videoStream = _.find(fileInfo.streams, { "codec_type": "video" });
+		if (!videoStream.duration) {
+			log.error("Video duration could not be determined");
+			throw new MissingMetadataException();
 		}
 		return new Video({
 			service: "direct",
