@@ -337,7 +337,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				log.error("Unhandled exception when getting room:", err);
+				log.error(`Unhandled exception when getting room: ${err}`);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",
@@ -369,7 +369,7 @@ module.exports = function(_roommanager, storage) {
 				});
 			}
 			else {
-				log.error("Unhandled exception when getting room:", err);
+				log.error(`Unhandled exception when getting room: ${err}`);
 				res.status(500).json({
 					success: false,
 					error: "Failed to get room",

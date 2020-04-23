@@ -61,12 +61,23 @@ export default {
 		},
 	},
 	methods: {
-		addToQueue() {
-			this.isLoadingAdd = true;
-			API.post(`/room/${this.$route.params.roomId}/queue`, {
+		getPostData() {
+			let data = {
 				service: this.item.service,
 				id: this.item.id,
-			}).then(() => {
+			};
+			if (this.item.service === "direct") {
+				data = {
+					service: this.item.service,
+					id: this.item.url,
+				};
+			}
+			console.log(data);
+			return data;
+		},
+		addToQueue() {
+			this.isLoadingAdd = true;
+			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(() => {
 				this.isLoadingAdd = false;
 				this.hasBeenAdded = true;
 			});
@@ -74,10 +85,7 @@ export default {
 		removeFromQueue() {
 			this.isLoadingAdd = true;
 			API.delete(`/room/${this.$route.params.roomId}/queue`, {
-				data: {
-					service: this.item.service,
-					id: this.item.id,
-				},
+				data: this.getPostData(),
 			}).then(() => {
 				this.isLoadingAdd = false;
 			});
@@ -85,19 +93,13 @@ export default {
 		vote() {
 			this.isLoadingVote = true;
 			if (!this.item.voted) {
-				API.post(`/room/${this.$route.params.roomId}/vote`, {
-					service: this.item.service,
-					id: this.item.id,
-				}).then(() => {
+				API.post(`/room/${this.$route.params.roomId}/vote`, this.getPostData()).then(() => {
 					this.isLoadingVote = false;
 					this.item.voted = true;
 				});
 			}
 			else {
-				API.delete(`/room/${this.$route.params.roomId}/vote`, { data: {
-					service: this.item.service,
-					id: this.item.id,
-				}}).then(() => {
+				API.delete(`/room/${this.$route.params.roomId}/vote`, { data: this.getPostData() }).then(() => {
 					this.isLoadingVote = false;
 					this.item.voted = false;
 				});

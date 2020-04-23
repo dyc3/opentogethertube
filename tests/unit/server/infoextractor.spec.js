@@ -598,6 +598,16 @@ describe("InfoExtractor Google Drive Support", () => {
   });
 });
 
+describe("InfoExtractor Direct File Support", () => {
+  it("should not accept strings referencing local files", async () => {
+    await expect(InfoExtract.getVideoInfoDirect("file:///tmp/bad.mp4")).rejects.toThrow();
+    await expect(InfoExtract.getVideoInfoDirect("file://C:/tmp/bad.mp4")).rejects.toThrow();
+    await expect(InfoExtract.getVideoInfoDirect("file://G:/tmp/bad.mp4")).rejects.toThrow();
+    await expect(InfoExtract.getVideoInfoDirect("/tmp/bad.mp4")).rejects.toThrow();
+    await expect(InfoExtract.getVideoInfoDirect("C:\\tmp\\bad.mp4")).rejects.toThrow();
+  });
+});
+
 describe('InfoExtractor Caching Spec', () => {
   beforeEach(async () => {
     console.warn("CLEAR CACHE");
