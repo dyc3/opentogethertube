@@ -32,6 +32,252 @@ const dailymotionVideoInfoSampleResponses = {
   "x1fz4ii": `{"title":"Hackathon BeMyApp/Dailymotion","description":"This is a video that was done after our hackathon","thumbnail_url":"https://s2.dmcdn.net/v/7sRg71UN0OKwaG4Wj","duration":213}`,
 };
 
+const directVideoInfoFFProbe = {
+  "normal-mp4": `{
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_time_base": "1/48000",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "sample_fmt": "fltp",
+            "sample_rate": "48000",
+            "channels": 2,
+            "channel_layout": "stereo",
+            "bits_per_sample": 0,
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/48000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 4883456,
+            "duration": "101.738667",
+            "bit_rate": "9429",
+            "max_bit_rate": "128000",
+            "nb_frames": "4769",
+            "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "creation_time": "2018-06-14T00:55:14.000000Z",
+                "language": "eng",
+                "handler_name": "Sound Media Handler"
+            }
+        },
+        {
+            "index": 1,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_time_base": "50867/3052000",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 1280,
+            "height": 720,
+            "coded_width": 1280,
+            "coded_height": 720,
+            "has_b_frames": 2,
+            "sample_aspect_ratio": "0:1",
+            "display_aspect_ratio": "0:1",
+            "pix_fmt": "yuv420p",
+            "level": 32,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "color_transfer": "iec61966-2-1",
+            "color_primaries": "bt709",
+            "chroma_location": "left",
+            "refs": 1,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "r_frame_rate": "30/1",
+            "avg_frame_rate": "1526000/50867",
+            "time_base": "1/1000",
+            "start_pts": 67,
+            "start_time": "0.067000",
+            "duration_ts": 101734,
+            "duration": "101.734000",
+            "bit_rate": "20006455",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "3052",
+            "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "creation_time": "2018-06-14T00:55:14.000000Z",
+                "language": "und",
+                "handler_name": "Video Media Handler",
+                "encoder": "AVC Coding"
+            }
+        }
+    ]
+}`,
+  "mp4-no-audio": `{
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_time_base": "1/60",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "width": 1024,
+            "height": 576,
+            "coded_width": 1024,
+            "coded_height": 576,
+            "has_b_frames": 2,
+            "sample_aspect_ratio": "0:1",
+            "display_aspect_ratio": "0:1",
+            "pix_fmt": "yuv420p",
+            "level": 31,
+            "chroma_location": "left",
+            "refs": 1,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "r_frame_rate": "30/1",
+            "avg_frame_rate": "30/1",
+            "time_base": "1/15360",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 2077194,
+            "duration": "135.233984",
+            "bit_rate": "2401573",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "4057",
+            "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "language": "und",
+                "handler_name": "VideoHandler"
+            }
+        }
+    ]
+}`,
+  "webm-no-duration": `{
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "vp8",
+            "codec_long_name": "On2 VP8",
+            "profile": "1",
+            "codec_type": "video",
+            "codec_time_base": "1/25",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "width": 640,
+            "height": 360,
+            "coded_width": 640,
+            "coded_height": 360,
+            "has_b_frames": 0,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "16:9",
+            "pix_fmt": "yuv420p",
+            "level": -99,
+            "field_order": "progressive",
+            "refs": 1,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "time_base": "1/1000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "language": "eng"
+            }
+        },
+        {
+            "index": 1,
+            "codec_name": "vorbis",
+            "codec_long_name": "Vorbis",
+            "codec_type": "audio",
+            "codec_time_base": "1/44100",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "sample_fmt": "fltp",
+            "sample_rate": "44100",
+            "channels": 1,
+            "channel_layout": "mono",
+            "bits_per_sample": 0,
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "language": "eng"
+            }
+        }
+    ]
+}`,
+};
+
 describe('InfoExtractor Link Parsing', () => {
   it('getService() should return youtube when given youtube link', () => {
     expect(InfoExtract.getService("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
@@ -605,6 +851,49 @@ describe("InfoExtractor Direct File Support", () => {
     await expect(InfoExtract.getVideoInfoDirect("file://G:/tmp/bad.mp4")).rejects.toThrow();
     await expect(InfoExtract.getVideoInfoDirect("/tmp/bad.mp4")).rejects.toThrow();
     await expect(InfoExtract.getVideoInfoDirect("C:\\tmp\\bad.mp4")).rejects.toThrow();
+  });
+
+  it("should not accept unsupported mime types", async () => {
+    await expect(InfoExtract.getVideoInfoDirect("http://example.com/bad.mkv")).rejects.toThrow();
+    await expect(InfoExtract.getVideoInfoDirect("http://example.com/bad.flv")).rejects.toThrow();
+  });
+
+  it("should return video when url is valid, and resource has duration metadata, only 1 stream", async () => {
+    jest.spyOn(InfoExtract.ffprobe, 'getFileInfo').mockResolvedValue(JSON.parse(directVideoInfoFFProbe["mp4-no-audio"]));
+
+    expect(await InfoExtract.getVideoInfoDirect("http://example.com/noaudio.mp4")).toEqual(new Video({
+      service: "direct",
+      url: "http://example.com/noaudio.mp4",
+      title: "noaudio.mp4",
+      description: "Full Link: http://example.com/noaudio.mp4",
+      mime: "video/mp4",
+      length: 136,
+    }));
+
+    InfoExtract.ffprobe.getFileInfo.mockRestore();
+  });
+
+  it("should return video when url is valid, and resource has duration metadata, and more than 1 stream", async () => {
+    jest.spyOn(InfoExtract.ffprobe, 'getFileInfo').mockResolvedValue(JSON.parse(directVideoInfoFFProbe["normal-mp4"]));
+
+    expect(await InfoExtract.getVideoInfoDirect("http://example.com/normal.mp4")).toEqual(new Video({
+      service: "direct",
+      url: "http://example.com/normal.mp4",
+      title: "normal.mp4",
+      description: "Full Link: http://example.com/normal.mp4",
+      mime: "video/mp4",
+      length: 102,
+    }));
+
+    InfoExtract.ffprobe.getFileInfo.mockRestore();
+  });
+
+  it("should fail when url is valid, and resource has no duration metadata", async () => {
+    jest.spyOn(InfoExtract.ffprobe, 'getFileInfo').mockResolvedValue(JSON.parse(directVideoInfoFFProbe["webm-no-duration"]));
+
+    await expect(InfoExtract.getVideoInfoDirect("http://example.com/noduration.webm")).rejects.toThrow();
+
+    InfoExtract.ffprobe.getFileInfo.mockRestore();
   });
 });
 

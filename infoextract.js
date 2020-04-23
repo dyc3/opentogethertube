@@ -108,6 +108,7 @@ module.exports = {
 	VimeoApi,
 	DailymotionApi,
 	redisClient,
+	ffprobe,
 
 	/**
 	 * Gets all necessary information needed to represent a video. Handles
