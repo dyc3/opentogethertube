@@ -1,7 +1,7 @@
 <template>
 	<v-sheet class="mt-2 video" hover>
 		<div class="img-container">
-			<v-img :src="thumbnailSource" :lazy-src="require('@/assets/placeholder.svg')" :style="{ height: item.thumbnail ? null : 320 + 'px' }" aspect-ratio="1.8" @error="onThumbnailError">
+			<v-img :src="thumbnailSource" :lazy-src="require('@/assets/placeholder.svg')" aspect-ratio="1.8" @error="onThumbnailError">
 				<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode === 'manual'">
 					<v-icon>fas fa-align-justify</v-icon>
 				</span>
@@ -122,6 +122,7 @@ export default {
 	align-items: stretch;
 	justify-content: space-between;
 	width: 100%;
+	max-height: 111px;
 
 	> * {
 		display: flex;
