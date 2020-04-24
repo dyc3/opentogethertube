@@ -158,11 +158,6 @@ export default {
     });
   },
   watch:{
-    $route (to) {
-      if (to.name != "room" && this.$store.state.socket.isConnected) {
-        this.$disconnect();
-      }
-    },
     shouldAdvertisePermRoom(value) {
       if (!value) {
         window.localStorage.setItem("ackAdvertisePermRoom", true);

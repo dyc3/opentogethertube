@@ -311,7 +311,9 @@ export default {
         this.$disconnect();
       }
       setTimeout(() => {
-        this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+        if (!this.$store.state.socket.isConnected) {
+          this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+        }
       }, 100);
     });
 
@@ -334,6 +336,7 @@ export default {
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
+    this.$disconnect();
   },
   methods: {
     postTestVideo(v) {
