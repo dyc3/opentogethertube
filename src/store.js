@@ -40,8 +40,9 @@ export default new Vuex.Store({
 			state.socket.isConnected = true;
 			state.room.chatMessages = [];
 			state.room.events = [];
-			let username = window.localStorage.getItem("username");
+			let username = window.localStorage.getItem("username"); // no longer used, eventually can be removed
 			if (!state.user && username) {
+				window.localStorage.removeItem('username');
 				state.username = username;
 				API.post("/user", { username });
 			}
