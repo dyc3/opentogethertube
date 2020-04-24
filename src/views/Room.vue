@@ -269,12 +269,6 @@ export default {
     },
   },
   async created() {
-    // if (!this.$store.state.production) {
-    //   // HACK: get the server to set the session cookie
-    //   // this isn't needed in production because the requests for resources will set the cookie
-    //   await API.get("/user");
-    // }
-
     this.$events.on("onRoomEvent", event => {
       if (event.eventType === "play") {
         this.snackbarText = `${event.userName} played the video`;
