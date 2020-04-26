@@ -304,6 +304,11 @@ describe('InfoExtractor Link Parsing', () => {
     expect(InfoExtract.getService("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("googledrive");
   });
 
+  it('getService() should return direct when given direct video link', () => {
+    expect(InfoExtract.getService("https://example.com/good.mp4")).toEqual("direct");
+    expect(InfoExtract.getService("https://984-651-12-545.399babc383489b346b3c234.plex.direct:32400/library/parts/203/87986543524/file.mp4?download=0&X-Plex-Token=3446vbmngegvfghdmp59E")).toEqual("direct");
+  });
+
   it('getService() should return false when given link to unsupported service', () => {
     expect(InfoExtract.getService("http://example.com")).toEqual(false);
   });

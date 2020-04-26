@@ -441,7 +441,7 @@ module.exports = {
 		else if (srcUrl.host.endsWith("drive.google.com")) {
 			return "googledrive";
 		}
-		else if (/\/*\.(mp4|webm|flv|mkv)$/.exec(srcUrl.path)) {
+		else if (/\/*\.(mp4|webm|flv|mkv)$/.exec(srcUrl.path.split("?")[0])) {
 			return "direct";
 		}
 		else {
