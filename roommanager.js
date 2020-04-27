@@ -227,7 +227,6 @@ class Room {
 			}).then(() => {
 				this.queue.push(queueItem);
 				this._dirtyProps.push("queue");
-				this.playbackStartTime = moment();
 				this.update();
 				this.sync();
 
