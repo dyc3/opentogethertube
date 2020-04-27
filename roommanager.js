@@ -379,6 +379,7 @@ class Room {
 			if (this.queue.length > 0) {
 				this.currentSource = this.queue.shift();
 				this._dirtyProps.push("queue");
+				this.playbackStartTime = moment();
 			}
 			else {
 				this.currentSource = {};
