@@ -12,7 +12,7 @@ log.debug(`ffprobe installed at ${FFPROBE_PATH}`);
 module.exports = {
 	async getFileInfo(uri) {
 		log.debug(`Grabbing file info from ${uri}`);
-		const { error, stdout } = await exec(`${FFPROBE_PATH} -v quiet -i ${uri} -print_format json -show_streams`);
+		const { error, stdout } = await exec(`${FFPROBE_PATH} -v quiet -i "${uri}" -print_format json -show_streams`);
 		if (error) {
 			log.error(`Failed to probe file info: ${error}`);
 			throw error;
