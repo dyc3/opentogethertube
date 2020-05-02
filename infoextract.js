@@ -75,7 +75,7 @@ class FeatureDisabledException extends Error {
 class UnsupportedMimeTypeException extends Error {
 	constructor(mime) {
 		if (mime.startsWith("video/")) {
-			super(`Files that are ${mime} are not supported.`);
+			super(`Files that are ${mime} are not supported. Mp4 videos work the best.`);
 		}
 		else {
 			super(`The requested resource was not actually a video, it was a ${mime}`);
@@ -441,7 +441,7 @@ module.exports = {
 		else if (srcUrl.host.endsWith("drive.google.com")) {
 			return "googledrive";
 		}
-		else if (/\/*\.(mp4|webm|flv|mkv)$/.exec(srcUrl.path.split("?")[0])) {
+		else if (/\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv)$/.exec(srcUrl.path.split("?")[0])) {
 			return "direct";
 		}
 		else {
@@ -450,7 +450,7 @@ module.exports = {
 	},
 
 	isSupportedMimeType(mime) {
-		return !!/^video\/(?!x-flv)(?!x-matroska)[a-z0-9-]+$/.exec(mime);
+		return !!/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/.exec(mime);
 	},
 
 	/* YOUTUBE */
@@ -976,6 +976,15 @@ module.exports = {
 				break;
 			case "flv":
 				mime = "video/x-flv";
+				break;
+			case "avi":
+				mime = "video/x-msvideo";
+				break;
+			case "wmv":
+				mime = "video/x-ms-wmv";
+				break;
+			case "ogv":
+				mime = "video/ogg";
 				break;
 		}
 		if (!this.isSupportedMimeType(mime)) {
