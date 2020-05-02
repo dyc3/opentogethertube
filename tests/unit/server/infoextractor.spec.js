@@ -836,13 +836,6 @@ describe("InfoExtractor Dailymotion Support", () => {
 });
 
 describe("InfoExtractor Google Drive Support", () => {
-  it("should return whether or not the mime type is supported", () => {
-    expect(InfoExtract.isSupportedMimeType("video/mp4")).toBe(true);
-    expect(InfoExtract.isSupportedMimeType("video/webm")).toBe(true);
-    expect(InfoExtract.isSupportedMimeType("video/x-flv")).toBe(false);
-    expect(InfoExtract.isSupportedMimeType("video/x-matroska")).toBe(false);
-  });
-
   it("should return the folder id if the link is valid", () => {
     expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/u/0/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
     expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
@@ -850,6 +843,17 @@ describe("InfoExtractor Google Drive Support", () => {
 });
 
 describe("InfoExtractor Direct File Support", () => {
+  it("should return whether or not the mime type is supported", () => {
+    expect(InfoExtract.isSupportedMimeType("video/mp4")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/webm")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/mov")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/ogg")).toBe(true);
+    expect(InfoExtract.isSupportedMimeType("video/x-flv")).toBe(false);
+    expect(InfoExtract.isSupportedMimeType("video/x-matroska")).toBe(false);
+    expect(InfoExtract.isSupportedMimeType("video/x-ms-wmv")).toBe(false);
+    expect(InfoExtract.isSupportedMimeType("video/x-msvideo")).toBe(false);
+  });
+
   it("should not accept strings referencing local files", async () => {
     await expect(InfoExtract.getVideoInfoDirect("file:///tmp/bad.mp4")).rejects.toThrow();
     await expect(InfoExtract.getVideoInfoDirect("file://C:/tmp/bad.mp4")).rejects.toThrow();
