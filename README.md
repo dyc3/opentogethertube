@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/dyc3/opentogethertube.svg?branch=master)](https://travis-ci.com/dyc3/opentogethertube)
 [![codecov](https://codecov.io/gh/dyc3/opentogethertube/branch/master/graph/badge.svg)](https://codecov.io/gh/dyc3/opentogethertube)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=dyc3_opentogethertube&metric=alert_status)](https://sonarcloud.io/dashboard?id=dyc3_opentogethertube)
 
 The easy way to watch videos with your friends.
 
