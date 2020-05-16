@@ -904,6 +904,22 @@ describe("InfoExtractor Direct File Support", () => {
 
     InfoExtract.ffprobe.getFileInfo.mockRestore();
   });
+
+  it("should return video when file name has multiple '.' in the name", async () => {
+    jest.spyOn(InfoExtract.ffprobe, 'getFileInfo').mockResolvedValue(JSON.parse(directVideoInfoFFProbe["normal-mp4"]));
+
+    expect(await InfoExtract.getVideoInfoDirect("http://example.com/multiple.dots.mp4")).toEqual(new Video({
+      service: "direct",
+      url: "http://example.com/multiple.dots.mp4",
+      title: "multiple.dots.mp4",
+      description: "Full Link: http://example.com/multiple.dots.mp4",
+      mime: "video/mp4",
+      length: 102,
+    }));
+    await expect(InfoExtract.getVideoInfoDirect("")).rejects.toThrow();
+
+    InfoExtract.ffprobe.getFileInfo.mockRestore();
+  });
 });
 
 describe('InfoExtractor Caching Spec', () => {

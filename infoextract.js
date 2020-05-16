@@ -952,7 +952,7 @@ module.exports = {
 			throw new LocalFileException();
 		}
 		let fileName = srcUrl.path.split("/").slice(-1)[0].split("?")[0].trim();
-		let extension = fileName.split(".")[1];
+		let extension = fileName.split(".").slice(-1)[0];
 		let mime = "unknown";
 		// TODO: swap this out with something more robust
 		// http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
