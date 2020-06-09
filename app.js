@@ -124,6 +124,7 @@ if (fs.existsSync("./dist")) {
 	app.get("/rooms", serveBuiltFiles);
 	app.get("/room/:roomId", serveBuiltFiles);
 	app.get("/privacypolicy", serveBuiltFiles);
+	app.get("/quickroom", serveBuiltFiles);
 }
 else {
 	log.warn("no dist folder found");

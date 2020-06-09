@@ -717,6 +717,16 @@ export default {
       }
       this.hideVideoControls();
     };
+
+    if (this.$store.state.quickAdd.length > 0) {
+      for (let video of this.$store.state.quickAdd) {
+        API.post(`/room/${this.$route.params.roomId}/queue`, _.pick(video, [
+          "service",
+          "id",
+          "url",
+        ]));
+      }
+    }
   },
   watch: {
     // username(newValue) {

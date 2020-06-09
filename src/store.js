@@ -31,6 +31,9 @@ export default new Vuex.Store({
 			chatMessages: [],
 			events: [],
 		},
+
+		// used for prompting the user if they want to add the video they came from or the video linked to the queue
+		quickAdd: [],
 	},
 	mutations:{
 		SOCKET_ONOPEN (state, event)  {
@@ -79,6 +82,12 @@ export default new Vuex.Store({
 		},
 		LOGOUT(state) {
 			state.user = null;
+		},
+		QUICKADD_ADD(state, video) {
+			state.quickAdd.push(video);
+		},
+		QUICKADD_CLEAR(state) {
+			state.quickAdd = [];
 		},
 	},
 	actions: {

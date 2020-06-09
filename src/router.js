@@ -26,6 +26,11 @@ export default new Router({
       component: () => import(/* webpackChunkName: "room" */ './views/Room.vue'),
     },
     {
+      path: '/quickroom',
+      name: 'quickroom',
+      component: () => import(/* webpackChunkName: "room" */ './views/QuickRoom.vue'),
+    },
+    {
       path: '/faq',
       name: 'faq',
       component: () => import(/* webpackChunkName: "faq" */ './views/Faq.vue'),
