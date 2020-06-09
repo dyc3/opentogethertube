@@ -72,7 +72,7 @@
     "eslint-plugin-jest": "^23.8.2",
     "eslint-plugin-vue": "^6.1.2",
     "husky": "^4.2.3",
-    "node-sass": "^4.13.1",
+    "node-sass": "^4.14.1",
     "nodemon": "^1.19.4",
     "sass": "^1.19.0",
     "sass-loader": "^7.1.0",
