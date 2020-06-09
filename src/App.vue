@@ -4,12 +4,6 @@
       <v-alert class="announcement" type="warning" border="left" dismissible close-label="Close Announcement" v-model="showAnnouncement" transition="scroll-y-transition">
         SYSTEM: {{ announcement }}
       </v-alert>
-      <v-alert class="announcement" type="info" border="left" dismissible close-label="Close Announcement" v-model="shouldAdvertisePermRoom" transition="scroll-y-transition">
-        Come here often? Get a permanent room and bookmark it! Never have to send the room link to your friends ever again!
-        <v-btn text @click="showCreateRoomForm = true">
-          <v-icon>fas fa-plus-square</v-icon>&nbsp;Create Room
-        </v-btn>
-      </v-alert>
     </div>
     <v-app-bar app :absolute="!$store.state.fullscreen" :inverted-scroll="$store.state.fullscreen">
       <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
@@ -114,7 +108,6 @@ export default {
       announcement: null,
       showAnnouncement: false,
       showCreateRoomForm: false,
-      shouldAdvertisePermRoom: false,
       showLogin: false,
     };
   },
@@ -143,11 +136,6 @@ export default {
 
     this.$events.on("onAnnouncement", this.onAnnouncement);
 
-    if (!window.localStorage.getItem("ackAdvertisePermRoom")) {
-      this.shouldAdvertisePermRoom = true;
-    }
-    console.log("shouldAdvertisePermRoom", this.shouldAdvertisePermRoom);
-
     // ask the server if we are logged in or not, and update the client to reflect that status.
     API.get("/user").then(res => {
       if (res.data.loggedIn) {
@@ -156,13 +144,6 @@ export default {
         this.$store.commit("LOGIN", user);
       }
     });
-  },
-  watch:{
-    shouldAdvertisePermRoom(value) {
-      if (!value) {
-        window.localStorage.setItem("ackAdvertisePermRoom", true);
-      }
-    },
   },
 };
 </script>
