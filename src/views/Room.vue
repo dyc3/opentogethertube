@@ -79,7 +79,7 @@
               <v-tab-item>
                 <div class="video-add">
                   <div>
-                    <v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onInputAddPreviewFocus" :loading="isLoadingAddPreview" />
+                    <v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
                     <v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
@@ -126,8 +126,8 @@
               </v-tab-item>
             </v-tabs-items>
           </v-col>
-          <v-col col="4" md="4" sm="12">
-            <div class="user-list">
+          <v-col col="4" md="4" sm="12" class="user-invite-container">
+            <div class="user-list" v-if="$store.state.room.users">
               <v-card>
                 <v-subheader>
                   Users
@@ -143,6 +143,20 @@
                   <v-icon class="player-status" v-else-if="user.status === 'ready'">fas fa-check</v-icon>
                   <v-icon class="player-status" v-else-if="user.status === 'error'">fas fa-exclamation</v-icon>
                 </v-list-item>
+                <v-list-item class="nobody-here" v-if="$store.state.room.users.length === 1">
+                  There seems to be nobody else here. Invite some friends!
+                </v-list-item>
+              </v-card>
+            </div>
+            <div class="share-invite">
+              <v-card>
+                <v-subheader>
+                  Share Invite
+                </v-subheader>
+                <v-card-text>
+                  Copy this link and share it with your friends!
+                  <v-text-field outlined ref="inviteLinkText" :value="inviteLink" append-outer-icon="fa-clipboard" :success-messages="copyInviteLinkSuccessText" @focus="onFocusHighlightText" @click:append-outer="copyInviteLink" />
+                </v-card-text>
               </v-card>
             </div>
           </v-col>
@@ -222,6 +236,8 @@ export default {
 
       timestampDisplay: "",
       i_timestampUpdater: null,
+
+      copyInviteLinkSuccessText: "",
     };
   },
   computed: {
@@ -266,6 +282,9 @@ export default {
     },
     highlightedAddPreviewItem() {
       return _.find(this.addPreview, { highlight: true });
+    },
+    inviteLink() {
+      return window.location.href.split('?')[0];
     },
   },
   async created() {
@@ -515,7 +534,7 @@ export default {
         this.requestAddPreviewExplicit();
       }
     },
-    onInputAddPreviewFocus(e) {
+    onFocusHighlightText(e) {
       e.target.select();
     },
     onPlayerReady() {
@@ -658,6 +677,16 @@ export default {
         this.isLoadingRoomSettings = false;
       });
     },
+    copyInviteLink() {
+      let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
+      textfield.select();
+      document.execCommand("copy");
+      this.copyInviteLinkSuccessText = "Copied!";
+      setTimeout(() => {
+        this.copyInviteLinkSuccessText = "";
+        textfield.blur();
+      }, 3000);
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
@@ -797,9 +826,22 @@ export default {
     }
   }
 }
-.video-queue, .video-add, .user-list {
+.video-queue, .video-add {
   margin: 0 10px;
   min-height: 500px;
+}
+.user-invite-container {
+  padding: 0 10px;
+  min-height: 500px;
+
+  > * {
+    margin-bottom: 10px;
+  }
+}
+.nobody-here {
+  font-style: italic;
+  opacity: 0.5;
+  font-size: 0.9em;
 }
 .queue-tab-content {
   background: transparent !important;
