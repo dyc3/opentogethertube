@@ -14,7 +14,7 @@ module.exports = {
   rules: {
     'no-console': 'error',
     'no-debugger': 'error',
-    'array-bracket-newline': ['error', { "multiline": true, "minItems": 2 }],
+    'array-bracket-newline': ['error', { "multiline": true, "minItems": 3 }],
     'array-bracket-spacing': ['error', 'never'],
     'brace-style': ['error', 'stroustrup', { 'allowSingleLine': false }],
     'comma-dangle': ['error', {
