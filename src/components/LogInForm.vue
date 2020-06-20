@@ -24,7 +24,7 @@
 							<v-divider />
 							<v-container>
 								<v-row>
-									<v-btn x-large block href="/api/user/auth/discord">Log in with Discord</v-btn>
+									<v-btn x-large block href="/api/user/auth/discord" color="#7289DA">Log in with Discord</v-btn>
 									<!-- TODO: <v-btn x-large block>Log in with Google</v-btn>
 									<v-btn x-large block>Log in with Apple</v-btn> -->
 								</v-row>
