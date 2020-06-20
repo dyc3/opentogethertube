@@ -12,11 +12,11 @@ module.exports = {
       allowNull: true,
     });
     await queryInterface.changeColumn('Users', 'hash', {
-      type: Sequelize.STRING,
+      type: Sequelize.BLOB,
       allowNull: true,
     });
     await queryInterface.changeColumn('Users', 'salt', {
-      type: Sequelize.STRING,
+      type: Sequelize.BLOB,
       allowNull: true,
     });
   },
@@ -29,11 +29,11 @@ module.exports = {
       allowNull: false,
     });
     await queryInterface.changeColumn('Users', 'hash', {
-      type: Sequelize.STRING,
+      type: Sequelize.BLOB,
       allowNull: false,
     });
     await queryInterface.changeColumn('Users', 'salt', {
-      type: Sequelize.STRING,
+      type: Sequelize.BLOB,
       allowNull: false,
     });
   },
