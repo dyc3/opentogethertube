@@ -6,7 +6,7 @@ const passport = require('passport');
 const crypto = require('crypto');
 const rateLimit = require("express-rate-limit");
 const RateLimitStore = require('rate-limit-redis');
-const { User } = require("./models");
+const { User, Room } = require("./models");
 const roommanager = require("./roommanager");
 const { redisClient } = require('./redisclient.js');
 
@@ -211,9 +211,10 @@ router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter
 
 router.get('/auth/discord', passport.authenticate('discord'));
 router.get('/auth/discord/callback', passport.authenticate('discord', {
-    failureRedirect: '/',
+	failureRedirect: '/',
 }), (req, res) => {
-    res.redirect('/'); // Successful auth
+	log.info(`${req.user.username} logged in via social login.`);
+	res.redirect('/'); // Successful auth
 });
 
 class BadPasswordError extends Error {
@@ -273,9 +274,14 @@ let usermanager = {
 		}
 	},
 
-	async authCallbackDiscord(accessToken, refreshToken, profile, done) {
+	async authCallbackDiscord(req, accessToken, refreshToken, profile, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
 		let usermanager = require("./usermanager.js");
+		if (req.user) {
+			log.info(`${req.user.username} already logged in, linking discord account...`);
+			await usermanager.connectSocial(req.user, { discordId: profile.id });
+			return done(null, req.user);
+		}
 		try {
 			let user = await usermanager.getUser({ discordId: profile.id });
 			if (user) {
@@ -365,6 +371,34 @@ let usermanager = {
 			username,
 		});
 		return user;
+	},
+
+	async connectSocial(user, options) {
+		options = _.pick(options, "discordId");
+		if (options) {
+			user.discordId = options.discordId;
+		}
+		else {
+			log.warn("Can't connect social logins, none were provided");
+			return;
+		}
+		let socialUser = null;
+		try {
+			socialUser = await this.getUser(options);
+			log.warn("Detected duplicate accounts for social login! Account merge required");
+		}
+		catch (error) {
+			log.info("No account merging required.");
+		}
+		if (socialUser) {
+			log.warn(`Merging local account ${user.username} with social account ${socialUser.username}...`);
+			// transfer all owned rooms to local account
+			await Room.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
+			// delete old account
+			await socialUser.destroy();
+		}
+		await user.save();
+
 	},
 
 	/**

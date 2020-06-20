@@ -62,10 +62,11 @@ app.use(sessions);
 const usermanager = require("./usermanager");
 passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallback));
 passport.use(new DiscordStrategy({
-    clientID: process.env.DISCORD_CLIENT_ID,
-    clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: (process.env.HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.HOSTNAME}/api/user/auth/discord/callback`,
-    scope: ["identify"],
+	clientID: process.env.DISCORD_CLIENT_ID,
+	clientSecret: process.env.DISCORD_CLIENT_SECRET,
+	callbackURL: (process.env.HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.HOSTNAME}/api/user/auth/discord/callback`,
+	scope: ["identify"],
+	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
