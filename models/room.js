@@ -1,10 +1,25 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Room = sequelize.define('Room', {
-    name: DataTypes.STRING,
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        is: /^[a-z0-9_-]+$/i,
+        len: [3, 32],
+      },
+    },
     title: DataTypes.STRING,
-    description: DataTypes.STRING,
-    visibility: DataTypes.STRING,
+    description: DataTypes.TEXT,
+    visibility: {
+      type: DataTypes.STRING,
+      defaultValue: "public",
+      validate: {
+        // eslint-disable-next-line array-bracket-newline
+        isIn: [["public", "unlisted", "private"]],
+      },
+    },
     ownerId: {
       type: DataTypes.INTEGER,
       defaultValue: -1,
