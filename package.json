@@ -32,7 +32,6 @@
     "moment": "^2.24.0",
     "nanotimer": "^0.3.15",
     "passport": "^0.4.1",
-    "passport-apple": "^1.1.1",
     "passport-discord": "^0.1.4",
     "passport-google": "^0.3.0",
     "passport-local": "^1.0.0",
