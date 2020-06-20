@@ -7,8 +7,6 @@ const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const DiscordStrategy = require('passport-discord').Strategy;
-const GoogleStrategy = require('passport-google').Strategy;
-const AppleStrategy = require('passport-apple');
 
 const log = getLogger("app");
 
