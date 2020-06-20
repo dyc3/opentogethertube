@@ -57,6 +57,7 @@ if (process.env.NODE_ENV !== 'production') {
 			customColorizer(),
 			myFormat
 		),
+		silent: process.env.NODE_ENV === 'test',
 	}));
 }
 else {
