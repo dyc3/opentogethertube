@@ -24,46 +24,55 @@ const $route = {
   },
 };
 
+function createStore() {
+  return new Vuex.Store({
+    state: {
+      socket: {
+        isConnected: false,
+        message: '',
+        reconnectError: false,
+      },
+      joinFailureReason: null,
+      production: true,
+      room: {
+        name: "example",
+        title: "",
+        description: "",
+        isTemporary: false,
+        currentSource: { length: 0 },
+        queue: [],
+        isPlaying: false,
+        playbackPosition: 0,
+        users: [],
+      },
+      quickAdd: [],
+    },
+  });
+}
+
+function mountNewInstance(store) {
+  return shallowMount(Room, {
+    store,
+    localVue,
+    mocks: {
+      $route,
+      $connect: jest.fn(),
+      $disconnect: jest.fn(),
+    },
+    stubs: [
+      'youtube',
+      'router-link',
+    ],
+  });
+}
+
 describe('Room UI spec', () => {
   let wrapper;
   let store;
 
   beforeEach(() => {
-    store = new Vuex.Store({
-      state: {
-        socket: {
-          isConnected: false,
-          message: '',
-          reconnectError: false,
-        },
-        joinFailureReason: null,
-        production: true,
-        room: {
-          name: "example",
-          title: "",
-          description: "",
-          isTemporary: false,
-          currentSource: {},
-          queue: [],
-          isPlaying: false,
-          playbackPosition: 0,
-        },
-      },
-    });
-
-    wrapper = shallowMount(Room, {
-      store,
-      localVue,
-      mocks: {
-        $route,
-        $connect: jest.fn(),
-        $disconnect: jest.fn(),
-      },
-      stubs: [
-        'youtube',
-        'router-link',
-      ],
-    });
+    store = createStore();
+    wrapper = mountNewInstance(store);
   });
 
   afterEach(async () => {
