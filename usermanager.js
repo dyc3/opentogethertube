@@ -19,6 +19,7 @@ router.get("/", (req, res) => {
 		let user = {
 			username: req.user.username,
 			loggedIn: true,
+			discordLinked: !!req.user.discordId,
 		};
 		res.json(user);
 	}
@@ -279,8 +280,13 @@ let usermanager = {
 		let usermanager = require("./usermanager.js");
 		if (req.user) {
 			log.info(`${req.user.username} already logged in, linking discord account...`);
-			await usermanager.connectSocial(req.user, { discordId: profile.id });
-			return done(null, req.user);
+			try {
+				await usermanager.connectSocial(req.user, { discordId: profile.id });
+				return done(null, req.user);
+			}
+			catch (err) {
+				return done(err, req.user);
+			}
 		}
 		try {
 			let user = await usermanager.getUser({ discordId: profile.id });
@@ -385,12 +391,16 @@ let usermanager = {
 		let socialUser = null;
 		try {
 			socialUser = await this.getUser(options);
-			log.warn("Detected duplicate accounts for social login! Account merge required");
+			log.warn("Detected duplicate accounts for social login!");
 		}
 		catch (error) {
 			log.info("No account merging required.");
 		}
 		if (socialUser) {
+			if (socialUser.email || socialUser.salt || socialUser.hash) {
+				log.error("Unable to merge accounts, local login credentials found in other account.");
+				return Promise.reject("Unable to link accounts. Another account is linked to this discord account. Login credentials were found in the other account, so a merge could not be performed.");
+			}
 			log.warn(`Merging local account ${user.username} with social account ${socialUser.username}...`);
 			// transfer all owned rooms to local account
 			await Room.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
