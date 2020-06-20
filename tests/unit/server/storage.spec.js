@@ -40,10 +40,23 @@ describe('Storage: Room Spec', () => {
     });
   });
 
-  it('should create room in database', async done => {
-    await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
+  it('should return room object from room name, case insensitive', async () => {
+    await storage.saveRoom({ name: "CapitalizedExampleRoom", title: "Example Room", description: "This is an example room.", visibility: "public" });
 
-    await expect(storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" })).resolves.toBe(true);
+    let room = await storage.getRoomByName("capitalizedexampleroom");
+    expect(room).toEqual({
+      name: "CapitalizedExampleRoom",
+      title: "Example Room",
+      description: "This is an example room.",
+      visibility: "public",
+      owner: undefined,
+    });
+  });
+
+  it('should create room in database', async done => {
+    expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
+
+    expect(await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" })).toBe(true);
 
     Room.findOne({ where: { name: "example" }}).then(room => {
       expect(room).toBeInstanceOf(Room);
@@ -59,6 +72,12 @@ describe('Storage: Room Spec', () => {
     }).catch(err => {
       done.fail(err);
     });
+  });
+
+  it('should not create room if name matches existing room, case insensitive', async () => {
+    await storage.saveRoom({ name: "CapitalizedExampleRoom", visibility: "public" });
+
+    expect(await storage.saveRoom({ name: "capitalizedexampleroom", visibility: "public" })).toBe(false);
   });
 
   it('should update the matching room in the database with the provided properties', async done => {
@@ -88,10 +107,16 @@ describe('Storage: Room Spec', () => {
   });
 
   it('should return true if room name is taken', async () => {
-    await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
-    await expect(storage.isRoomNameTaken("example")).resolves.toBe(false);
-    await expect(storage.saveRoom({ name: "example" })).resolves.toBe(true);
-    await expect(storage.isRoomNameTaken("example")).resolves.toBe(true);
+    expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
+    expect(await storage.isRoomNameTaken("example")).toBe(false);
+    expect(await storage.saveRoom({ name: "example" })).toBe(true);
+    expect(await storage.isRoomNameTaken("example")).toBe(true);
+  });
+
+  it('should return true if room name is taken, case insensitive', async () => {
+    await storage.saveRoom({ name: "Example" });
+    expect(await storage.isRoomNameTaken("example")).toBe(true);
+    expect(await storage.isRoomNameTaken("exAMple")).toBe(true);
   });
 });
 

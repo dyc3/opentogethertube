@@ -9,7 +9,10 @@ const log = getLogger("storage");
 module.exports = {
 	getRoomByName(roomName) {
 		return Room.findOne({
-			where: { name: roomName },
+			where: {
+				// I have no idea if this is the correct way to do this because the documentation is unclear
+				$and: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', roomName)),
+			},
 		}).then(room => {
 			if (!room) {
 				log.debug(`Room ${roomName} does not exist in db.`);
@@ -24,9 +27,10 @@ module.exports = {
 			};
 		}).catch(err => {
 			log.error(`Failed to get room by name: ${err}`);
+			throw err;
 		});
 	},
-	saveRoom(room) {
+	async saveRoom(room) {
 		let options = {
 			name: room.name,
 			title: room.title,
@@ -35,6 +39,10 @@ module.exports = {
 		};
 		if (room.owner) {
 			options.ownerId = room.owner.id;
+		}
+		// HACK: search for the room to see if it exists
+		if (await this.isRoomNameTaken(options.name)) {
+			return false;
 		}
 		return Room.create(options).then(result => {
 			log.info(`Saved room to db: id ${result.dataValues.id}`);
@@ -45,7 +53,11 @@ module.exports = {
 		});
 	},
 	async isRoomNameTaken(roomName) {
-		return await Room.findOne({ where: { name: roomName } }).then(room => room ? true : false).catch(() => false);
+		return await Room.findOne({
+			where: {
+				$and: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', roomName)),
+			},
+		}).then(room => room ? true : false).catch(() => false);
 	},
 	updateRoom(room) {
 		return Room.findOne({
