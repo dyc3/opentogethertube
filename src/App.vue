@@ -73,7 +73,7 @@
       </v-dialog>
     </v-container>
     <v-container>
-      <v-dialog v-model="showLogin" max-width="400">
+      <v-dialog v-model="showLogin" max-width="600">
         <LogInForm @shouldClose="showLogin = false" />
       </v-dialog>
     </v-container>

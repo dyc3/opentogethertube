@@ -12,23 +12,27 @@
 							Log in
 						</v-card-title>
 						<v-card-text>
-							<v-container>
-								<v-row>
-									<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="logInFailureMessage" :rules="emailRules" />
-									<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="logInFailureMessage" />
-								</v-row>
-								<v-row v-if="logInFailureMessage">
-									{{ logInFailureMessage }}
-								</v-row>
-							</v-container>
-							<v-divider />
-							<v-container>
-								<v-row>
-									<v-btn x-large block href="/api/user/auth/discord" color="#7289DA">Log in with Discord</v-btn>
-									<!-- TODO: <v-btn x-large block>Log in with Google</v-btn>
-									<v-btn x-large block>Log in with Apple</v-btn> -->
-								</v-row>
-							</v-container>
+							<v-row>
+								<v-col cols="12" md="6">
+									<v-container>
+										<v-btn x-large block href="/api/user/auth/discord" color="#7289DA">Log in with Discord</v-btn>
+										<!-- TODO: <v-btn x-large block>Log in with Google</v-btn>
+										<v-btn x-large block>Log in with Apple</v-btn> -->
+									</v-container>
+								</v-col>
+								<v-divider vertical />
+								<v-col cols="12" md="6" style="margin-left: -1px">
+									<v-container>
+										<v-row>
+											<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="logInFailureMessage" :rules="emailRules" />
+											<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="logInFailureMessage" />
+										</v-row>
+										<v-row v-if="logInFailureMessage">
+											{{ logInFailureMessage }}
+										</v-row>
+									</v-container>
+								</v-col>
+							</v-row>
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
