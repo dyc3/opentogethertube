@@ -6,6 +6,9 @@ const { uniqueNamesGenerator } = require('unique-names-generator');
 const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const DiscordStrategy = require('passport-discord').Strategy;
+const GoogleStrategy = require('passport-google').Strategy;
+const AppleStrategy = require('passport-apple');
 
 const log = getLogger("app");
 
@@ -58,6 +61,12 @@ app.use(sessions);
 
 const usermanager = require("./usermanager");
 passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallback));
+passport.use(new DiscordStrategy({
+    clientID: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    callbackURL: (process.env.HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.HOSTNAME}/api/user/auth/discord/callback`,
+    scope: ["identify"],
+}, usermanager.authCallbackDiscord));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());

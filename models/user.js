@@ -6,13 +6,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true,
       validate: {
-        // eslint-disable-next-line array-bracket-newline
         len: [1, 255],
       },
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       unique: true,
       validate: {
         isEmail: {
@@ -26,17 +25,28 @@ module.exports = (sequelize, DataTypes) => {
     },
     salt: {
       type: DataTypes.BLOB,
-      allowNull: false,
+      allowNull: true,
       validate: {
-        // eslint-disable-next-line array-bracket-newline
         len: [1, 256],
       },
     },
     hash: {
       type: DataTypes.BLOB,
-      allowNull: false,
+      allowNull: true,
     },
-  }, {});
+    discordId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+  }, {
+    validate: {
+      ensureCredentials() {
+        if ((!this.email || !this.hash || !this.salt) && !this.discordId) {
+          throw new Error('Incomplete login credentials. Requires social login or email/password.');
+        }
+      },
+    },
+  });
   // eslint-disable-next-line no-unused-vars
   User.associate = function(models) {
     // User.hasMany(models.Room, { as: "rooms" });

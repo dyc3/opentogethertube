@@ -21,6 +21,14 @@
 									{{ logInFailureMessage }}
 								</v-row>
 							</v-container>
+							<v-divider />
+							<v-container>
+								<v-row>
+									<v-btn x-large block href="/api/user/auth/discord">Log in with Discord</v-btn>
+									<!-- TODO: <v-btn x-large block>Log in with Google</v-btn>
+									<v-btn x-large block>Log in with Apple</v-btn> -->
+								</v-row>
+							</v-container>
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />

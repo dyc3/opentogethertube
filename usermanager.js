@@ -209,6 +209,13 @@ router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter
 	});
 });
 
+router.get('/auth/discord', passport.authenticate('discord'));
+router.get('/auth/discord/callback', passport.authenticate('discord', {
+    failureRedirect: '/',
+}), (req, res) => {
+    res.redirect('/'); // Successful auth
+});
+
 class BadPasswordError extends Error {
 	constructor() {
 		super("Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.");
@@ -263,6 +270,30 @@ let usermanager = {
 
 			default:
 				break;
+		}
+	},
+
+	async authCallbackDiscord(accessToken, refreshToken, profile, done) {
+		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		let usermanager = require("./usermanager.js");
+		try {
+			let user = await usermanager.getUser({ discordId: profile.id });
+			if (user) {
+				return done(null, user);
+			}
+		}
+		catch (e) {
+			log.warn("Couldn't find existing user for discord profile, making a new one...");
+			try {
+				let user = await usermanager.registerUserSocial({ username: `${profile.username}#${profile.discriminator}`, discordId: profile.id });
+				if (user) {
+					return done(null, user);
+				}
+			}
+			catch (error) {
+				log.error(`Unable to create new social user: ${error}`);
+				return done(error);
+			}
 		}
 	},
 
@@ -328,13 +359,21 @@ let usermanager = {
 		});
 	},
 
+	async registerUserSocial({ username, discordId }) {
+		let user = await User.create({
+			discordId,
+			username,
+		});
+		return user;
+	},
+
 	/**
 	 * Gets a User based on either their email or id.
 	 * @param {*} param0
 	 * @returns Promise<User>
 	 */
-	async getUser({ email, id }) {
-		if (!email && !id) {
+	async getUser({ email, id, discordId }) {
+		if (!email && !id && !discordId) {
 			log.error("Invalid parameters to find user");
 			throw new Error("Invalid parameters to find user");
 		}
@@ -345,13 +384,15 @@ let usermanager = {
 		else if (id) {
 			where = { id };
 		}
-		return User.findOne({ where }).then(user => {
-			if (!user) {
-				log.error("User not found");
-				throw new Error("User not found");
-			}
-			return user;
-		});
+		else if (discordId) {
+			where = { discordId };
+		}
+		let user = await User.findOne({ where });
+		if (!user) {
+			log.error("User not found");
+			throw new Error("User not found");
+		}
+		return user;
 	},
 
 	isPasswordValid(password) {
