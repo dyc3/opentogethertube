@@ -580,9 +580,7 @@ module.exports = {
 
 	async getVideoLengthYoutube_Fallback(url) {
 		let res = await YtFallbackApi.get(url);
-		let regexs = [
-			/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/,
-		];
+		let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
 		for (let r = 0; r < regexs.length; r++) {
 			let matches = res.data.match(regexs[r]);
 			if (matches == null) {
