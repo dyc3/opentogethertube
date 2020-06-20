@@ -284,7 +284,7 @@ export default {
       return _.find(this.addPreview, { highlight: true });
     },
     inviteLink() {
-      return window.location.href.split('?')[0];
+      return window.location.href.split('?')[0].toLowerCase();
     },
   },
   async created() {
@@ -346,10 +346,13 @@ export default {
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
       this.timestampDisplay = `${position} / ${duration}`;
     }, 1000);
+
+    this.$events.on("onSync", this.rewriteUrlToRoomName);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
     this.$disconnect();
+    this.$events.remove("onSync", this.rewriteUrlToRoomName);
   },
   methods: {
     postTestVideo(v) {
@@ -686,6 +689,11 @@ export default {
         this.copyInviteLinkSuccessText = "";
         textfield.blur();
       }, 3000);
+    },
+    rewriteUrlToRoomName() {
+      if (this.$route.params.roomId !== this.$store.state.room.name) {
+        this.$router.replace({ name: "room", params: { roomId: this.$store.state.room.name } });
+      }
     },
   },
   mounted() {
