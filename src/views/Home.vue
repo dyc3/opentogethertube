@@ -31,7 +31,7 @@
 						top of that to make it even better.
 					</p>
 					<p>
-						Currently, you can watch online videos with your friends from Youtube, Vimeo, Dailymotion and
+						Currently, you can watch online videos with your friends from Youtube, Vimeo, Dailymotion, direct links to .mp4 videos, and
 						<a href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request">more are on the way</a>.
 					</p>
 				</v-col>

@@ -23,7 +23,7 @@ export default {
 			questions: [
 				{
 					question: "What kind of videos can be played?",
-					answer: "Youtube, Vimeo, and Dailymotion videos.",
+					answer: "Youtube, Vimeo, and Dailymotion videos, as well as direct links to supported video files, like .mp4 (and sometimes .webm).",
 				},
 				{
 					question: "Can you add support X?",
@@ -51,7 +51,7 @@ export default {
 				},
 				{
 					question: "How do permanent rooms work?",
-					answer: "Right now, permanent rooms just serve to provide custom room URLs, and anybody can access all permanent rooms. When user accounts are implemented, people will be able to claim ownership of permanent rooms. Check the progress of user accounts here: <a href=\"https://github.com/dyc3/opentogethertube/issues/50\">dyc3/opentogethertube#50</a> Then rooms will be able to be set visibility as private, and only allow invited users into the room. This will require all invited users to have accounts, but it will prevent random or unwanted people from entering private rooms.",
+					answer: "Right now, permanent rooms just serve to provide custom room URLs, and anybody can access all permanent rooms. If you are logged in, you can claim ownership of permanent rooms that have not been claimed. Eventually, rooms will be able to be set visibility as private, and only allow invited users into the room. This will require all invited users to have accounts, but it will prevent random or unwanted people from entering private rooms. Check the progress of private rooms here: <a href=\"https://github.com/dyc3/opentogethertube/issues/261\">dyc3/opentogethertube#261</a>",
 				},
 			],
 		};
