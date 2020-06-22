@@ -17,13 +17,13 @@ describe("User API", () => {
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.username).toBeDefined();
-					expect(resp.body.loggedIn).toBeFalsy();
+					expect(resp.body.loggedIn).toBe(false);
 					done();
 				});
 		});
 
 		it("should have the forced test user logged in", async done => {
-			await User.update({ username: "forced test user" }, { where: { email: "forced@localhost" } });
+			await User.update({ username: "forced test user" }, { where: { email: "forced@localhost" }, validate: false });
 
 			let cookies;
 			await request(app)
@@ -40,10 +40,11 @@ describe("User API", () => {
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.username).toBeDefined();
-					expect(resp.body.loggedIn).toBeTruthy();
+					expect(resp.body.loggedIn).toBe(true);
 					expect(resp.body).toEqual({
 						username: "forced test user",
 						loggedIn: true,
+						discordLinked: false,
 					});
 					done();
 				});
@@ -59,7 +60,7 @@ describe("User API", () => {
 
 		beforeEach(async () => {
 			onUserModifiedSpy.mockClear();
-			await User.update({ username: "forced test user" }, { where: { email: "forced@localhost" } });
+			await User.update({ username: "forced test user" }, { where: { email: "forced@localhost" }, validate: false });
 		});
 
 		afterAll(() => {
@@ -73,7 +74,7 @@ describe("User API", () => {
 				.expect("Content-Type", /json/)
 				.expect(200)
 				.then(resp => {
-					expect(resp.body.success).toBeTruthy();
+					expect(resp.body.success).toBe(true);
 					expect(onUserModifiedSpy).toBeCalled();
 					done();
 				});
@@ -95,7 +96,7 @@ describe("User API", () => {
 				.expect("Content-Type", /json/)
 				.expect(200)
 				.then(resp => {
-					expect(resp.body.success).toBeTruthy();
+					expect(resp.body.success).toBe(true);
 					expect(onUserModifiedSpy).toBeCalled();
 					done();
 				});
@@ -117,7 +118,7 @@ describe("User API", () => {
 				.expect("Content-Type", /json/)
 				.expect(400)
 				.then(resp => {
-					expect(resp.body.success).toBeFalsy();
+					expect(resp.body.success).toBe(false);
 					expect(resp.body.error).toBeDefined();
 					expect(resp.body.error.name).toEqual("UsernameTaken");
 					expect(onUserModifiedSpy).not.toBeCalled();
@@ -163,14 +164,14 @@ describe("User API", () => {
 					.post("/api/user/login")
 					.send({ email: "notreal@localhost", password: "test1234" })
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 						expect(onUserLogInSpy).not.toBeCalled();
 					});
 				await request(app)
 					.post("/api/user/login")
 					.send({ email: "test@localhost", password: "wrong" })
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 						expect(onUserLogInSpy).not.toBeCalled();
 					});
 			});
@@ -206,7 +207,7 @@ describe("User API", () => {
 					.expect("Content-Type", /json/)
 					.expect(200)
 					.then(resp => {
-						expect(resp.body.success).toBeTruthy();
+						expect(resp.body.success).toBe(true);
 					});
 			});
 
@@ -216,7 +217,7 @@ describe("User API", () => {
 					.expect("Content-Type", /json/)
 					.expect(200)
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 					});
 			});
 		});
@@ -265,7 +266,7 @@ describe("User API", () => {
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 						expect(resp.body.error).toBeDefined();
 						expect(resp.body.error.name).toEqual("AlreadyInUse");
 						expect(onUserLogInSpy).not.toBeCalled();
@@ -279,7 +280,7 @@ describe("User API", () => {
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 						expect(resp.body.error).toBeDefined();
 						expect(resp.body.error.name).toEqual("AlreadyInUse");
 						expect(onUserLogInSpy).not.toBeCalled();
@@ -293,7 +294,7 @@ describe("User API", () => {
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 						expect(resp.body.error).toBeDefined();
 						expect(resp.body.error.name).toEqual("ValidationError");
 						expect(onUserLogInSpy).not.toBeCalled();
@@ -307,7 +308,7 @@ describe("User API", () => {
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 						expect(resp.body.error).toBeDefined();
 						expect(resp.body.error.name).toEqual("ValidationError");
 						expect(onUserLogInSpy).not.toBeCalled();
@@ -321,7 +322,7 @@ describe("User API", () => {
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
-						expect(resp.body.success).toBeFalsy();
+						expect(resp.body.success).toBe(false);
 						expect(resp.body.error).toBeDefined();
 						expect(resp.body.error.name).toEqual("ValidationError");
 						expect(onUserLogInSpy).not.toBeCalled();
