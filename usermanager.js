@@ -46,10 +46,14 @@ router.post("/", async (req, res) => {
 		oldUsername = req.user.username;
 		req.user.username = req.body.username;
 		try {
+			// HACK: the unique constrait on the model is fucking broken
+			if (await usermanager.isUsernameTaken(req.body.username)) {
+				throw new UsernameTakenError();
+			}
 			await req.user.save();
 		}
 		catch (err) {
-			if (err.name === "SequelizeUniqueConstraintError") {
+			if (err.name === "SequelizeUniqueConstraintError" || err.name === "UsernameTakenError") {
 				await req.user.reload();
 				res.status(400).json({
 					success: false,
@@ -189,6 +193,26 @@ router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter
 				},
 			});
 		}
+		else if (err.name === "UsernameTakenError") {
+			res.status(400).json({
+				success: false,
+				error: {
+					name: "AlreadyInUse",
+					fields: ["username"],
+					message: "Username is already in use.",
+				},
+			});
+		}
+		else if (err.name === "EmailAlreadyInUseError") {
+			res.status(400).json({
+				success: false,
+				error: {
+					name: "AlreadyInUse",
+					fields: ["email"],
+					message: "Email is already associated with an account.",
+				},
+			});
+		}
 		else if (err.name === "SequelizeValidationError" || err.name === "BadPasswordError") {
 			res.status(400).json({
 				success: false,
@@ -222,6 +246,20 @@ class BadPasswordError extends Error {
 	constructor() {
 		super("Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.");
 		this.name = "BadPasswordError";
+	}
+}
+
+class UsernameTakenError extends Error {
+	constructor() {
+		super("Username taken.");
+		this.name = "UsernameTakenError";
+	}
+}
+
+class EmailAlreadyInUseError extends Error {
+	constructor() {
+		super("Email taken.");
+		this.name = "EmailAlreadyInUseError";
 	}
 }
 
@@ -358,6 +396,14 @@ let usermanager = {
 		// eslint-disable-next-line array-bracket-newline
 		let hash = await pwd.hash(Buffer.concat([salt, Buffer.from(password)]));
 
+		// HACK: the unique constrait on the model is fucking broken
+		if (await this.isUsernameTaken(username)) {
+			return Promise.reject(new UsernameTakenError());
+		}
+		if (await this.isEmailTaken(email)) {
+			return Promise.reject(new EmailAlreadyInUseError());
+		}
+
 		return User.create({
 			email,
 			username,
@@ -491,25 +537,17 @@ let usermanager = {
 			}
 		}
 	},
+
+	async isUsernameTaken(username) {
+		return await User.findOne({ where: { username }}).then(room => room ? true : false).catch(() => false);
+	},
+
+	async isEmailTaken(email) {
+		return await User.findOne({ where: { email }}).then(room => room ? true : false).catch(() => false);
+	},
 };
 
 if (process.env.NODE_ENV === "test") {
-	usermanager.registerUser({
-		email: "forced@localhost",
-		username: "forced test user",
-		password: "test1234",
-	}).catch(err => {
-		log.warn(`failed to register test user ${err.message}`);
-	});
-
-	usermanager.registerUser({
-		email: "test@localhost",
-		username: "test user",
-		password: "test1234",
-	}).catch(err => {
-		log.warn(`failed to register test user ${err.message}`);
-	});
-
 	router.get("/test/forceLogin", async (req, res) => {
 		req.login(await usermanager.getUser({ email: "forced@localhost" }), (err) => {
 			res.json({

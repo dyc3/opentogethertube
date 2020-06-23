@@ -9,6 +9,22 @@ const Sequelize = require("sequelize");
 const { or, not } = Sequelize.Op;
 
 describe("User API", () => {
+	beforeEach(async () => {
+		await User.destroy({ where: {} });
+
+		await usermanager.registerUser({
+			email: "forced@localhost",
+			username: "forced test user",
+			password: "test1234",
+		});
+
+		await usermanager.registerUser({
+			email: "test@localhost",
+			username: "test user",
+			password: "test1234",
+		});
+	});
+
 	describe("GET /user", () => {
 		it("should not fail be default", done => {
 			request(app)
@@ -23,8 +39,6 @@ describe("User API", () => {
 		});
 
 		it("should have the forced test user logged in", async done => {
-			await User.update({ username: "forced test user" }, { where: { email: "forced@localhost" }, validate: false });
-
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
@@ -60,7 +74,6 @@ describe("User API", () => {
 
 		beforeEach(async () => {
 			onUserModifiedSpy.mockClear();
-			await User.update({ username: "forced test user" }, { where: { email: "forced@localhost" }, validate: false });
 		});
 
 		afterAll(() => {
@@ -231,10 +244,6 @@ describe("User API", () => {
 
 			beforeEach(async () => {
 				onUserLogInSpy.mockClear();
-				await User.destroy({ where: { [not]: { [or]: [
-					{ email: "forced@localhost" },
-					{ email: "test@localhost" },
-				] } } });
 			});
 
 			afterAll(() => {
