@@ -4,9 +4,6 @@ jest.spyOn(roommanager, "getAllLoadedRooms").mockReturnValue(Promise.resolve([])
 const app = require('../../../app.js').app;
 const usermanager = require('../../../usermanager.js');
 const { User } = require("../../../models");
-const Sequelize = require("sequelize");
-
-const { or, not } = Sequelize.Op;
 
 describe("User API", () => {
 	beforeEach(async () => {
