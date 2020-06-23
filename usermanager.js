@@ -539,10 +539,12 @@ let usermanager = {
 	},
 
 	async isUsernameTaken(username) {
+		// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
 		return await User.findOne({ where: { username }}).then(room => room ? true : false).catch(() => false);
 	},
 
 	async isEmailTaken(email) {
+		// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
 		return await User.findOne({ where: { email }}).then(room => room ? true : false).catch(() => false);
 	},
 };
