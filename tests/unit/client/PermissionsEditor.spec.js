@@ -57,21 +57,21 @@ describe("PermissionsEditor Component", () => {
 			2: false,
 			1: false,
 			0: false,
-		})).toEqual("3");
+		})).toEqual(3);
 		expect(component.getLowestGranted({
 			4: true,
 			3: true,
 			2: false,
 			1: false,
 			0: true,
-		})).toEqual("0");
+		})).toEqual(0);
 		expect(component.getLowestGranted({
 			4: false,
 			3: false,
 			2: false,
 			1: false,
 			0: false,
-		})).toEqual("4");
+		})).toEqual(4);
 	});
 
 	it("getHighestDenied should do what it says", async () => {
@@ -86,20 +86,27 @@ describe("PermissionsEditor Component", () => {
 			2: false,
 			1: false,
 			0: false,
-		})).toEqual("2");
+		})).toEqual(2);
 		expect(component.getHighestDenied({
 			4: true,
 			3: true,
 			2: false,
 			1: false,
 			0: true,
-		})).toEqual("2");
+		})).toEqual(2);
 		expect(component.getHighestDenied({
 			4: false,
 			3: false,
 			2: false,
 			1: false,
 			0: false,
-		})).toEqual("3");
+		})).toEqual(3);
+		expect(component.getHighestDenied({
+			4: true,
+			3: true,
+			2: true,
+			1: true,
+			0: true,
+		})).toEqual(null);
 	});
 });

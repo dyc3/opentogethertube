@@ -81,13 +81,29 @@ export default {
 		 * Gets the id of the lowest role with this permission granted.
 		 */
 		getLowestGranted(permission) {
-			return _.min(_.keys(_.pickBy(permission, v => v === true))) || "4";
+			let value = _.min(_.keys(_.pickBy(permission, v => v === true)));
+			if (value !== undefined) {
+				return parseInt(value);
+			}
+			else {
+				return 4;
+			}
 		},
 		/**
 		 * Gets the id of the highest role with this permission denied.
 		 */
 		getHighestDenied(permission) {
-			return _.min([_.max(_.keys(_.pickBy(permission, v => v === false))) || "3", "3"]);
+			let value = _.max(_.keys(_.pickBy(permission, v => v === false)));
+			if (value !== undefined) {
+				value = parseInt(value);
+				if (value === 4) {
+					value = 3;
+				}
+				return value;
+			}
+			else {
+				return null;
+			}
 		},
 		extractFromGrants(grants) {
 			let extracted = [];
