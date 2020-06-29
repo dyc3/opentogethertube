@@ -15,7 +15,7 @@
 				<tr v-for="item in permissions" :key="item.name">
 					<td>{{ item.name }}</td>
 					<td v-for="r in 5" :key="r">
-						<v-checkbox v-if="r-1 >= item.minRole && currentRole > r-1" v-model="item[r-1]" :disabled="getLowestGranted(item) < r-1"  />
+						<v-checkbox v-if="r-1 >= item.minRole && currentRole > r-1" v-model="item[r-1]" :disabled="getLowestGranted(item) < r-1" />
 						<v-checkbox v-else v-model="item[r-1]" :disabled="true" />
 					</td>
 				</tr>
@@ -30,7 +30,7 @@ import _ from "lodash";
 export default {
 	name: "permissions-editor",
 	props: {
-		value: { type: Object, required: true },
+		value: { type: Object, required: true, default: () => {} },
 		currentRole: { type: Number, default: 4 },
 	},
 	data() {
