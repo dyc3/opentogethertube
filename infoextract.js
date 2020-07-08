@@ -30,8 +30,15 @@ const GoogleDriveApi = axios.create({
 });
 
 class UnsupportedServiceException extends Error {
-	constructor(hostname) {
-		super(`The service at "${hostname}" is not yet supported.`);
+	constructor(url) {
+		let msg = "";
+		if (/\/*\.([a-z0-9])$/i.exec(url.path.split("?")[0])) {
+			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, the service at "${url.host}" is not yet supported.`;
+		}
+		else {
+			msg = `The service at "${url.host}" is not yet supported.`;
+		}
+		super(msg);
 		this.name = "UnsupportedServiceException";
 	}
 }
@@ -296,7 +303,7 @@ module.exports = {
 		}
 
 		if (urlParsed.host && service !== "youtube" && service !== "vimeo" && service !== "dailymotion" && service !== "googledrive" && service !== "direct") {
-			return Promise.reject(new UnsupportedServiceException(urlParsed.host));
+			return Promise.reject(new UnsupportedServiceException(urlParsed));
 		}
 		else if (!urlParsed.host) {
 			if (process.env.ENABLE_YOUTUBE_SEARCH) {
@@ -441,7 +448,7 @@ module.exports = {
 		else if (srcUrl.host.endsWith("drive.google.com")) {
 			return "googledrive";
 		}
-		else if (/\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv)$/.exec(srcUrl.path.split("?")[0])) {
+		else if (/\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4])$/.exec(srcUrl.path.split("?")[0])) {
 			return "direct";
 		}
 		else {
@@ -983,6 +990,12 @@ module.exports = {
 				break;
 			case "ogv":
 				mime = "video/ogg";
+				break;
+			case "m4v":
+				mime = "video/x-m4v";
+				break;
+			case "h264":
+				mime = "video/h264";
 				break;
 		}
 		if (!this.isSupportedMimeType(mime)) {
