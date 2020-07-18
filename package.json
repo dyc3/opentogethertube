@@ -27,7 +27,7 @@
     "express-rate-limit": "^5.1.1",
     "express-session": "^1.17.0",
     "load-script": "^1.0.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "material-design-icons-iconfont": "^5.0.1",
     "moment": "^2.24.0",
     "nanotimer": "^0.3.15",
