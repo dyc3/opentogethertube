@@ -584,9 +584,10 @@ export default {
           seekIncrement *= -1;
         }
 
+        let currentPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
         this.$socket.sendObj({
           action: "seek",
-          position: _.clamp(this.$store.state.room.playbackPosition + seekIncrement, 0, this.$store.state.room.currentSource.length),
+          position: _.clamp(currentPosition + seekIncrement, 0, this.$store.state.room.currentSource.length),
         });
         e.preventDefault();
       }
