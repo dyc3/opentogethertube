@@ -44,6 +44,7 @@ function createStore() {
         isPlaying: false,
         playbackPosition: 0,
         users: [],
+        events: [],
       },
       quickAdd: [],
     },
