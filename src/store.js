@@ -122,7 +122,14 @@ export default new Vuex.Store({
 			let event = message.event;
 			event.isVisible = true;
 			event.isUndoable = event.eventType === 'seek' || event.eventType === 'skip' || event.eventType === 'addToQueue' || event.eventType === 'removeFromQueue';
-			this.state.room.events.push(event);
+			event.timeout = event.isUndoable ? 7000 : 4000;
+			if (event.eventType === 'seek' && this.state.room.events.slice(-1)[0].eventType === 'seek' && this.state.room.events.slice(-1)[0].isVisible) {
+				this.state.room.events[this.state.room.events.length - 1].parameters.position = event.parameters.position;
+				this.state.room.events[this.state.room.events.length - 1].timeout += 1;
+			}
+			else {
+				this.state.room.events.push(event);
+			}
 			Vue.prototype.$events.emit('onRoomEvent', message.event);
 		},
 		announcement(context, message) {
