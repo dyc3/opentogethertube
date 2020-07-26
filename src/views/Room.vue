@@ -65,7 +65,7 @@
               <div class="messages d-flex flex-column flex-grow-1 mt-2">
                 <v-card class="msg d-flex mr-2 mb-2" v-for="(msg, index) in $store.state.room.chatMessages" :key="index">
                   <div class="from">{{ msg.from }}</div>
-                  <div class="text">{{ msg.text }}</div>
+                  <div class="text"><ProcessedText :text="msg.text" /></div>
                 </v-card>
               </div>
               <div class="d-flex justify-end">
@@ -203,6 +203,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
+import ProcessedText from "@/components/ProcessedText.vue";
 import { secondsToTimestamp, calculateCurrentPosition } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
@@ -213,6 +214,7 @@ export default {
   components: {
     draggable,
     VideoQueueItem,
+    ProcessedText,
     VueSlider,
     YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
     VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
@@ -344,6 +346,11 @@ export default {
           this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
         }
       }, 100);
+    });
+
+    this.$events.on("onChatLinkClick", link => {
+      this.inputAddPreview = link;
+      this.queueTab = 1;
     });
 
     window.removeEventListener('keydown', this.onKeyDown);
