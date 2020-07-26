@@ -385,14 +385,7 @@ module.exports = {
 		}
 		else if (service === "youtube" && (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel'))) {
 			log.info('channel found');
-			const channelData = {};
-			const channelId = urlParsed.path.slice(urlParsed.path.lastIndexOf('/') + 1);
-			if (urlParsed.path.startsWith('/channel/')) {
-				channelData.channel = channelId;
-			}
-			else {
-				channelData.user = channelId;
-			}
+			const channelData = this.getChannelIdYoutube(urlParsed);
 			return this.getChanneInfoYoutube(channelData)
 				.then(newestVideos => this.getManyVideoInfo(newestVideos))
 				.catch(err => log.error(`Error getting channel info: ${err}`));
@@ -481,6 +474,26 @@ module.exports = {
 				return null;
 			}
 		}
+	},
+
+	/**
+	 * Gets the youtube channel ID or username from the link
+	 * @param {import("url").UrlWithStringQuery|string} url
+	 * @retuns Object with either `user` or `channel` set.
+	 */
+	getChannelIdYoutube(link) {
+		if (typeof link === "string") {
+			link = url.parse(link);
+		}
+		const channelData = {};
+		const channelId = (/\/(?!(?:c(?:|hannel)|user)\/)([a-z0-9_-]+)/gi).exec(link.path)[1];
+		if (link.path.startsWith('/channel/')) {
+			channelData.channel = channelId;
+		}
+		else {
+			channelData.user = channelId;
+		}
+		return channelData;
 	},
 
 	getVideoInfoYoutube(ids, onlyProperties=null) {

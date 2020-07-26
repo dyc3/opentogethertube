@@ -279,35 +279,7 @@ const directVideoInfoFFProbe = {
 };
 
 describe('InfoExtractor Link Parsing', () => {
-  it('getService() should return youtube when given youtube link', () => {
-    expect(InfoExtract.getService("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
-    expect(InfoExtract.getService("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
-    expect(InfoExtract.getService("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
-    expect(InfoExtract.getService("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
-    expect(InfoExtract.getService("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
-    expect(InfoExtract.getService("http://youtu.be/I3O9J02G67I")).toEqual("youtube");
-    expect(InfoExtract.getService("https://youtu.be/I3O9J02G67I")).toEqual("youtube");
-  });
-
-  it('getService() should return vimeo when given vimeo link', () => {
-    expect(InfoExtract.getService("https://vimeo.com/94338566")).toEqual("vimeo");
-  });
-
-  it('getService() should return dailymotion when given dailymotion link', () => {
-    expect(InfoExtract.getService("https://www.dailymotion.com/video/x6hkywd")).toEqual("dailymotion");
-    expect(InfoExtract.getService("https://dai.ly/x6hkywd")).toEqual("dailymotion");
-  });
-
-  it('getService() should return googledrive when given google drive link', () => {
-    expect(InfoExtract.getService("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("googledrive");
-    expect(InfoExtract.getService("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("googledrive");
-    expect(InfoExtract.getService("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("googledrive");
-  });
-
-  it('getService() should return direct when given direct video link', () => {
-    expect(InfoExtract.getService("https://example.com/good.mp4")).toEqual("direct");
-    expect(InfoExtract.getService("https://984-651-12-545.399babc383489b346b3c234.plex.direct:32400/library/parts/203/87986543524/file.mp4?download=0&X-Plex-Token=3446vbmngegvfghdmp59E")).toEqual("direct");
-  });
+  // Testing link parsing for specific services has been moved to their respective describe blocks
 
   it('getService() should return false when given link to unsupported service', () => {
     expect(InfoExtract.getService("http://example.com")).toEqual(false);
@@ -325,40 +297,6 @@ describe('InfoExtractor Link Parsing', () => {
 
   it('getService() should return false when given undefined', () => {
     expect(InfoExtract.getService(undefined)).toEqual(false);
-  });
-
-  it('getVideoIdYoutube() should return correct id when given youtube link', () => {
-    expect(InfoExtract.getVideoIdYoutube("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
-    expect(InfoExtract.getVideoIdYoutube("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
-    expect(InfoExtract.getVideoIdYoutube("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
-    expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
-    expect(InfoExtract.getVideoIdYoutube("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
-    expect(InfoExtract.getVideoIdYoutube("http://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
-    expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
-    expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I?t=2")).toEqual("I3O9J02G67I");
-  });
-
-  it('getVideoIdYoutube() should return null if link does not contain video id', () => {
-    expect(InfoExtract.getVideoIdYoutube("http://youtube.com/")).toEqual(null);
-    expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).toEqual(null);
-  });
-
-  it('getVideoIdVimeo() should return correct id when given vimeo link', () => {
-    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566")).toEqual("94338566");
-    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566?t=2")).toEqual("94338566");
-    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/channels/susisie/94338566")).toEqual("94338566");
-  });
-
-  it('getVideoIdDailymotion() should return correct id when given dailymotion link', () => {
-    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd")).toEqual("x6hkywd");
-    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd?start=120")).toEqual("x6hkywd");
-    expect(InfoExtract.getVideoIdDailymotion("https://dai.ly/x6hkywd")).toEqual("x6hkywd");
-  });
-
-  it('getVideoIdGoogleDrive() should return correct id when given google drive link', () => {
-    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw");
-    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq");
-    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("1rx4j-79UXk0PXccDwTxnrVVMenGopDIN");
   });
 });
 
@@ -471,6 +409,49 @@ describe("InfoExtractor Youtube Support", () => {
   afterEach(() => {
     InfoExtract.redisClient.get.mockClear();
     InfoExtract.redisClient.set.mockClear();
+  });
+
+  it('getService() should return youtube when given youtube link', () => {
+    expect(InfoExtract.getService("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("http://youtu.be/I3O9J02G67I")).toEqual("youtube");
+    expect(InfoExtract.getService("https://youtu.be/I3O9J02G67I")).toEqual("youtube");
+  });
+
+  it('getVideoIdYoutube() should return correct id when given youtube link', () => {
+    expect(InfoExtract.getVideoIdYoutube("http://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("http://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://m.youtube.com/watch?v=I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("http://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I")).toEqual("I3O9J02G67I");
+    expect(InfoExtract.getVideoIdYoutube("https://youtu.be/I3O9J02G67I?t=2")).toEqual("I3O9J02G67I");
+  });
+
+  it('getVideoIdYoutube() should return null if link does not contain video id', () => {
+    expect(InfoExtract.getVideoIdYoutube("http://youtube.com/")).toEqual(null);
+    expect(InfoExtract.getVideoIdYoutube("https://www.youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).toEqual(null);
+  });
+
+  it('getChannelIdYoutube() should return correct object', () => {
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg?view_as=subscriber")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/videos")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/playlists")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/community")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/channels")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/about")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/featured")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/asdfsadflkj")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
+    expect(InfoExtract.getChannelIdYoutube("https://youtube.com/user/rollthedyc3")).toEqual({ user: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://youtube.com/c/rollthedyc3")).toEqual({ user: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://youtube.com/rollthedyc3")).toEqual({ user: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/c/rollthedyc3/videos")).toEqual({ user: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/c/rollthedyc3/videos?view_as=subscriber")).toEqual({ user: "rollthedyc3" });
   });
 
   it("should get 1 video", async () => {
@@ -755,6 +736,16 @@ describe("InfoExtractor Youtube Support", () => {
 });
 
 describe("InfoExtractor Vimeo Support", () => {
+  it('getService() should return vimeo when given vimeo link', () => {
+    expect(InfoExtract.getService("https://vimeo.com/94338566")).toEqual("vimeo");
+  });
+
+  it('getVideoIdVimeo() should return correct id when given vimeo link', () => {
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566")).toEqual("94338566");
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/94338566?t=2")).toEqual("94338566");
+    expect(InfoExtract.getVideoIdVimeo("https://vimeo.com/channels/susisie/94338566")).toEqual("94338566");
+  });
+
   it("should handle single video", async () => {
     jest.spyOn(InfoExtract.VimeoApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(vimeoOEmbedSampleResponses["94338566"]) });
     jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
@@ -803,6 +794,17 @@ describe("InfoExtractor Vimeo Support", () => {
 });
 
 describe("InfoExtractor Dailymotion Support", () => {
+  it('getService() should return dailymotion when given dailymotion link', () => {
+    expect(InfoExtract.getService("https://www.dailymotion.com/video/x6hkywd")).toEqual("dailymotion");
+    expect(InfoExtract.getService("https://dai.ly/x6hkywd")).toEqual("dailymotion");
+  });
+
+  it('getVideoIdDailymotion() should return correct id when given dailymotion link', () => {
+    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd")).toEqual("x6hkywd");
+    expect(InfoExtract.getVideoIdDailymotion("https://www.dailymotion.com/video/x6hkywd?start=120")).toEqual("x6hkywd");
+    expect(InfoExtract.getVideoIdDailymotion("https://dai.ly/x6hkywd")).toEqual("x6hkywd");
+  });
+
   it("should handle single video", async () => {
     jest.spyOn(InfoExtract.DailymotionApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(dailymotionVideoInfoSampleResponses["x1fz4ii"]) });
     jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
@@ -836,6 +838,18 @@ describe("InfoExtractor Dailymotion Support", () => {
 });
 
 describe("InfoExtractor Google Drive Support", () => {
+  it('getService() should return googledrive when given google drive link', () => {
+    expect(InfoExtract.getService("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("googledrive");
+    expect(InfoExtract.getService("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("googledrive");
+    expect(InfoExtract.getService("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("googledrive");
+  });
+
+  it('getVideoIdGoogleDrive() should return correct id when given google drive link', () => {
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw/view?usp=sharing")).toEqual("1KxVGtZ2W8sAq9r3xx0t8TLkjq96Np9aw");
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/file/d/1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq/view")).toEqual("1KII8vJ80JCTJxKVnwFqtEAU85pjcSKzq");
+    expect(InfoExtract.getVideoIdGoogleDrive("https://drive.google.com/open?id=1rx4j-79UXk0PXccDwTxnrVVMenGopDIN")).toEqual("1rx4j-79UXk0PXccDwTxnrVVMenGopDIN");
+  });
+
   it("should return the folder id if the link is valid", () => {
     expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/u/0/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
     expect(InfoExtract.getFolderIdGoogleDrive("https://drive.google.com/drive/folders/0B3OoGtYynRDNM1hNZmJ5Unh0Qjg")).toBe("0B3OoGtYynRDNM1hNZmJ5Unh0Qjg");
@@ -843,6 +857,11 @@ describe("InfoExtractor Google Drive Support", () => {
 });
 
 describe("InfoExtractor Direct File Support", () => {
+  it('getService() should return direct when given direct video link', () => {
+    expect(InfoExtract.getService("https://example.com/good.mp4")).toEqual("direct");
+    expect(InfoExtract.getService("https://984-651-12-545.399babc383489b346b3c234.plex.direct:32400/library/parts/203/87986543524/file.mp4?download=0&X-Plex-Token=3446vbmngegvfghdmp59E")).toEqual("direct");
+  });
+
   it("should return whether or not the mime type is supported", () => {
     expect(InfoExtract.isSupportedMimeType("video/mp4")).toBe(true);
     expect(InfoExtract.isSupportedMimeType("video/webm")).toBe(true);
