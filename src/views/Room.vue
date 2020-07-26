@@ -26,10 +26,26 @@
             <v-col class="video-controls">
               <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
               <v-row no-gutters align="center">
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn @click="seekVideo(-10)" v-bind="attrs" v-on="on">
+                      <v-icon>fas fa-angle-left</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Rewind 10s</span>
+                </v-tooltip>
                 <v-btn @click="togglePlayback()">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
                   <v-icon v-else>fas fa-play</v-icon>
                 </v-btn>
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn @click="seekVideo(10)" v-bind="attrs" v-on="on">
+                      <v-icon>fas fa-angle-right</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Skip 10s</span>
+                </v-tooltip>
                 <v-btn @click="skipVideo()">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
@@ -584,11 +600,7 @@ export default {
           seekIncrement *= -1;
         }
 
-        let currentPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
-        this.$socket.sendObj({
-          action: "seek",
-          position: _.clamp(currentPosition + seekIncrement, 0, this.$store.state.room.currentSource.length),
-        });
+        this.seekVideo(seekIncrement);
         e.preventDefault();
       }
       else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
@@ -695,6 +707,13 @@ export default {
       if (this.$route.params.roomId !== this.$store.state.room.name) {
         this.$router.replace({ name: "room", params: { roomId: this.$store.state.room.name } });
       }
+    },
+    seekVideo(delta) {
+        let currentPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
+        this.$socket.sendObj({
+          action: "seek",
+          position: _.clamp(currentPosition + delta, 0, this.$store.state.room.currentSource.length),
+        });
     },
   },
   mounted() {
