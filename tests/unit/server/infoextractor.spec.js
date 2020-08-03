@@ -1506,4 +1506,50 @@ describe('InfoExtractor Add Preview Spec', () => {
       done();
     });
   });
+
+  it('should get youtube channel info when given short channel links', async () => {
+    jest.spyOn(InfoExtract, 'getChanneInfoYoutube').mockImplementation().mockResolvedValue([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+      }),
+    ]);
+    jest.spyOn(InfoExtract, 'getManyVideoInfo').mockImplementation().mockResolvedValue([
+      new Video({
+        service: "youtube",
+        id: "I3O9J02G67I",
+        title: "tmpATT2Cp",
+        description: "tmpATT2Cp",
+        thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
+        length: 10,
+      }),
+      new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        title: "tmpIwT4T4",
+        description: "tmpIwT4T4",
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+        length: 10,
+      }),
+    ]);
+
+    let result = await InfoExtract.getAddPreview("https://www.youtube.com/c/BoshMind");
+    expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
+    expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ user: "BoshMind" });
+    expect(InfoExtract.getManyVideoInfo).toBeCalled();
+    expect(result).toHaveLength(2);
+
+    InfoExtract.getChanneInfoYoutube.mockClear();
+    InfoExtract.getManyVideoInfo.mockClear();
+
+    result = await InfoExtract.getAddPreview("https://youtube.com/rollthedyc3");
+    expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
+    expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ user: "rollthedyc3" });
+    expect(InfoExtract.getManyVideoInfo).toBeCalled();
+    expect(result).toHaveLength(2);
+  });
 });

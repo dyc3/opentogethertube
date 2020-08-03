@@ -383,8 +383,8 @@ module.exports = {
 				});
 			});
 		}
-		else if (service === "youtube" && (urlParsed.path.startsWith('/user') || urlParsed.path.startsWith('/channel'))) {
-			log.info('channel found');
+		else if (service === "youtube" && !(urlParsed.host == "youtu.be" || urlParsed.path.startsWith("/watch"))) {
+			log.debug("found youtube channel");
 			const channelData = this.getChannelIdYoutube(urlParsed);
 			return this.getChanneInfoYoutube(channelData)
 				.then(newestVideos => this.getManyVideoInfo(newestVideos))
