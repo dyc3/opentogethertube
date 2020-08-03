@@ -9,6 +9,7 @@ cache:
     - "$HOME/.npm"
 services:
   - redis
+  - docker
 install:
 - npm ci
 before_script:
@@ -19,3 +20,8 @@ script:
 - npm test
 after_script:
 - bash <(curl -s https://codecov.io/bash)
+- echo "$DOCKER_PASSWORD" | docker login -u "dyc3" --password-stdin
+- docker-compose -f docker/docker-compose.yml up -d --build
+- docker commit opentogethertube opentogethertube
+- docker tag opentogethertube dyc3/opentogethertube:latest
+- docker push dyc3/opentogethertube:latest
