@@ -8,15 +8,19 @@ You can run the application using the development image or production/deployment
 
 ## Use Image
 
-You run the docker container suing the docker-compose file in the root directory `/opentogethertube` by using the following command.
+Make sure to supply the `YOUTUBE_API_KEY` in `env/production.env`
 
-Make sure to change The `YOUTUBE_API_KEY` go the read README.md
+```bash
+cp env/example.env env/production.env
+```
+
+You run the docker container using the docker-compose file in the root directory by using the following command.
 
 ```bash
 docker-compose up -d
 ```
 
-Go to http://localhost:8080/ 
+Go to http://localhost:8080/
 
 ## How to build and use the image locally
 
@@ -37,7 +41,7 @@ cp env/example.env env/production.env
    before runing the command below.
 
 ```bash
-docker-compose -f docker/docker-compose.yml up -d
+docker-compose -f docker/docker-compose.yml --env-file env/production.env up -d
 ```
 
 4. After Go to http://localhost:8080/
