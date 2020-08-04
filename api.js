@@ -72,11 +72,13 @@ module.exports = function(_roommanager, storage) {
 				"queue",
 				"clients",
 			]));
-			for (let client of room.clients) {
+			let clients = [];
+			for (let c of room.clients) {
+				let client = _.pick(c, ["username", "isLoggedIn"]);
 				client.name = client.username;
-				delete client.session;
-				delete client.socket;
+				clients.push(client);
 			}
+			room.clients = clients;
 			for (let video of room.queue) {
 				delete video._lastVotesChanged;
 				if (room.queueMode === "vote") {
