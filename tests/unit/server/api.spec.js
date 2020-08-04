@@ -3,11 +3,22 @@ const roommanager = require('../../../roommanager.js');
 jest.spyOn(roommanager, "getAllLoadedRooms").mockReturnValue(Promise.resolve([]));
 const app = require('../../../app.js').app;
 const InfoExtract = require('../../../infoextract.js');
-const { Room } = require("../../../models");
+const { Room, User } = require("../../../models");
+const usermanager = require('../../../usermanager.js');
 
 const TEST_API_KEY = "TESTAPIKEY";
 
 describe("Room API", () => {
+	beforeAll(async () => {
+		await User.destroy({ where: {} });
+
+		await usermanager.registerUser({
+			email: "forced@localhost",
+			username: "forced test user",
+			password: "test1234",
+		});
+	});
+
 	beforeEach(() => {
 		roommanager.unloadRoom("test");
 		roommanager.unloadRoom("test1");
