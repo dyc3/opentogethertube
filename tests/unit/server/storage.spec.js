@@ -49,7 +49,7 @@ describe('Storage: Room Spec', () => {
       title: "Example Room",
       description: "This is an example room.",
       visibility: "public",
-      owner: undefined,
+      owner: null,
     });
   });
 
