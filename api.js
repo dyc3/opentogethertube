@@ -62,6 +62,7 @@ module.exports = function(_roommanager, storage) {
 
 	router.get("/room/:name", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
+			let hasOwner = !!room.owner;
 			room = _.cloneDeep(_.pick(room, [
 				"name",
 				"title",
@@ -72,6 +73,7 @@ module.exports = function(_roommanager, storage) {
 				"queue",
 				"clients",
 			]));
+			room.hasOwner = hasOwner;
 			let clients = [];
 			for (let c of room.clients) {
 				let client = _.pick(c, ["username", "isLoggedIn"]);
