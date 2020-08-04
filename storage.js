@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const moment = require("moment");
-const { Room, CachedVideo } = require("./models");
+const { Room, CachedVideo, User } = require("./models");
 const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
 
@@ -13,6 +13,7 @@ module.exports = {
 				// I have no idea if this is the correct way to do this because the documentation is unclear
 				$and: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', roomName)),
 			},
+			include: { model: User, as: "owner" },
 		}).then(room => {
 			if (!room) {
 				log.debug(`Room ${roomName} does not exist in db.`);
