@@ -637,6 +637,9 @@ class Room {
 			this._dirtyProps.push("users");
 			this.sync();
 		}
+		else if (msg.action === "ping") {
+			this.log.silly(`Received ping from ${client.username}`);
+		}
 		else {
 			log.warn(`[ws] UNKNOWN ACTION ${msg.action}`);
 		}
