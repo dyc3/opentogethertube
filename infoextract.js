@@ -424,6 +424,10 @@ module.exports = {
 			return false;
 		}
 
+		if (link.startsWith("spotify:")) {
+			return "spotify";
+		}
+
 		let srcUrl = url.parse(link);
 		if (srcUrl.host === null) {
 			return false;
@@ -443,6 +447,9 @@ module.exports = {
 		}
 		else if (/\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4])$/.exec(srcUrl.path.split("?")[0])) {
 			return "direct";
+		}
+		else if (srcUrl.host.endsWith("spotify.com")) {
+			return "spotify";
 		}
 		else {
 			return false;
@@ -1028,5 +1035,17 @@ module.exports = {
 			mime,
 			length: Math.ceil(videoStream.duration),
 		});
+	},
+
+	/* SPOTIFY */
+
+	getTrackIdSpotify(link) {
+		if (link.startsWith("spotify:")) {
+			return link.split(":")[2];
+		}
+		else {
+			let urlParsed = url.parse(link);
+			return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
+		}
 	},
 };

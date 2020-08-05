@@ -941,6 +941,19 @@ describe("InfoExtractor Direct File Support", () => {
   });
 });
 
+describe("InfoExtractor Spotify Support", () => {
+  it("getService() should return spotify", () => {
+    expect(InfoExtract.getService("https://open.spotify.com/track/6sGiI7V9kgLNEhPIxEJDii?si=I8a1t1eBQ-CqhTzece9qdA")).toEqual("spotify");
+    expect(InfoExtract.getService("spotify:artist:7wZTy0ICvnTk3WChdH6YZ5")).toEqual("spotify");
+  });
+
+  it("getTrackIdSpotify() should return correct Id", () => {
+    expect(InfoExtract.getTrackIdSpotify("https://open.spotify.com/track/6sGiI7V9kgLNEhPIxEJDii?si=I8a1t1eBQ-CqhTzece9qdA")).toEqual("6sGiI7V9kgLNEhPIxEJDii");
+    expect(InfoExtract.getTrackIdSpotify("https://open.spotify.com/track/7cwN43wYufgU7QyEctjf1G?si=bgZW5cTQQ0O8e7W12cyedw")).toEqual("7cwN43wYufgU7QyEctjf1G");
+    expect(InfoExtract.getTrackIdSpotify("spotify:track:7cwN43wYufgU7QyEctjf1G")).toEqual("7cwN43wYufgU7QyEctjf1G");
+  });
+});
+
 describe('InfoExtractor Caching Spec', () => {
   beforeEach(async () => {
     console.warn("CLEAR CACHE");
