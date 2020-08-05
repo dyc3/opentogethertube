@@ -34,6 +34,8 @@ export default new Vuex.Store({
 
 		// used for prompting the user if they want to add the video they came from or the video linked to the queue
 		quickAdd: [],
+
+		keepAliveInterval: null,
 	},
 	mutations:{
 		SOCKET_ONOPEN (state, event)  {
@@ -49,6 +51,13 @@ export default new Vuex.Store({
 				state.username = username;
 				API.post("/user", { username });
 			}
+			if (state.keepAliveInterval) {
+				clearInterval(state.keepAliveInterval);
+				state.keepAliveInterval = null;
+			}
+			state.keepAliveInterval = setInterval(() => {
+				Vue.prototype.$socket.sendObj({"action":"ping"});
+			}, 95000);
 		},
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close", event);
@@ -57,6 +66,10 @@ export default new Vuex.Store({
 				state.joinFailureReason = "Room does not exist.";
 				Vue.prototype.$disconnect();
 				Vue.prototype.$events.fire("roomJoinFailure", { reason: "Room does not exist." });
+			}
+			if (state.keepAliveInterval) {
+				clearInterval(state.keepAliveInterval);
+				state.keepAliveInterval = null;
 			}
 		},
 		SOCKET_ONERROR (state, event)  {
