@@ -44,4 +44,5 @@ jobs:
         - docker commit opentogethertube opentogethertube
         - docker-compose -f docker/docker-compose.yml down
         - docker tag opentogethertube dyc3/opentogethertube:latest
+      after_success:
         - docker push dyc3/opentogethertube:latest
