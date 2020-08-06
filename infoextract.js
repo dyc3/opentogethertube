@@ -606,13 +606,11 @@ module.exports = {
 			if (matches == null) {
 				continue;
 			}
-			for (let m = 0; m < matches.length; m++) {
-				const match = matches[m];
-				let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
-				log.silly(`MATCH ${match}`);
-				log.debug(`EXTRACTED ${extracted}`);
-				return parseInt(extracted);
-			}
+			const match = matches[0];
+			let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
+			log.silly(`MATCH ${match}`);
+			log.debug(`EXTRACTED ${extracted}`);
+			return parseInt(extracted);
 		}
 		return null;
 	},

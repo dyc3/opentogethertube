@@ -945,11 +945,11 @@ describe('InfoExtractor Caching Spec', () => {
   beforeEach(async () => {
     console.warn("CLEAR CACHE");
     await CachedVideo.destroy({ where: {} });
-  }),
+  });
 
   afterEach(async () => {
     await CachedVideo.destroy({ where: {} });
-  }),
+  });
 
   it('should get the correct video metadata', async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
