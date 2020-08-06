@@ -1,17 +1,9 @@
-const fs = require('fs');
-const path = require('path');
 const { RoomEvent, ROOM_EVENT_TYPE, ...roommanager } = require("../../../roommanager");
 const InfoExtract = require("../../../infoextract");
 const storage = require("../../../storage");
 const moment = require("moment");
 const Video = require("../../../common/video.js");
 const { Room } = require("../../../models");
-
-const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(configPath)) {
-  console.error("No config found! Things will break!", configPath);
-}
-require('dotenv').config({ path: configPath });
 
 describe('Room manager: Room tests', () => {
   beforeEach(async done => {
@@ -30,15 +22,13 @@ describe('Room manager: Room tests', () => {
     await Room.destroy({ where: {} });
   });
 
-  it('should dequeue the next video in the queue, when there is no video playing', done => {
-    roommanager.getLoadedRoom("test").then(room => {
-      room.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
-      room.update();
+  it('should dequeue the next video in the queue, when there is no video playing', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    room.queue = [{ service: "youtube", id: "I3O9J02G67I", length: 10 }];
+    room.update();
 
-      expect(room.queue.length).toEqual(0);
-      expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-      done();
-    });
+    expect(room.queue.length).toEqual(0);
+    expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
   });
 
   it('should dequeue the next video in the queue, when the current video is done playing', async () => {
@@ -69,53 +59,51 @@ describe('Room manager: Room tests', () => {
     expect(room.isPlaying).toEqual(false);
   });
 
-  it('should add a video to the queue with url provided, and because no video is playing, move it into currentSource', done => {
+  it('should add a video to the queue with url provided, and because no video is playing, move it into currentSource', async done => {
     jest.spyOn(InfoExtract, 'getVideoInfo').mockImplementation().mockResolvedValue({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-    roommanager.getLoadedRoom("test").then(room => {
-      room.queue = [];
+    let room = await roommanager.getLoadedRoom("test");
+    room.queue = [];
 
-      expect(room.name).toBeDefined();
-      expect(room.name.length).toBeGreaterThan(0);
-      expect(room.queue.length).toEqual(0);
-      expect(room.currentSource).toEqual({});
+    expect(room.name).toBeDefined();
+    expect(room.name.length).toBeGreaterThan(0);
+    expect(room.queue.length).toEqual(0);
+    expect(room.currentSource).toEqual({});
 
-      expect(room.addToQueue({ url: "http://youtube.com/watch?v=I3O9J02G67I" })).resolves.toBe(true);
+    expect(await room.addToQueue({ url: "http://youtube.com/watch?v=I3O9J02G67I" })).toBe(true);
 
-      expect(InfoExtract.getVideoInfo).toBeCalledWith("youtube", "I3O9J02G67I");
-      expect(room.queue.length).toEqual(0);
-      // Make sure that any async functions waiting have finished before checking currentSource
-      setImmediate(() => {
-        expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-        done();
-      });
+    expect(InfoExtract.getVideoInfo).toBeCalledWith("youtube", "I3O9J02G67I");
+    expect(room.queue.length).toEqual(0);
+    // Make sure that any async functions waiting have finished before checking currentSource
+    setImmediate(() => {
+      expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
+      done();
     });
   });
 
-  it('should add a video to the queue with service and id provided, and because no video is playing, move it into currentSource', done => {
+  it('should add a video to the queue with service and id provided, and because no video is playing, move it into currentSource', async done => {
     jest.spyOn(InfoExtract, 'getVideoInfo').mockImplementation().mockResolvedValue({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-    roommanager.getLoadedRoom("test").then(room => {
-      room.queue = [];
+    let room = await roommanager.getLoadedRoom("test");
+    room.queue = [];
 
-      expect(room.name).toBeDefined();
-      expect(room.name.length).toBeGreaterThan(0);
-      expect(room.queue.length).toEqual(0);
-      expect(room.currentSource).toEqual({});
+    expect(room.name).toBeDefined();
+    expect(room.name.length).toBeGreaterThan(0);
+    expect(room.queue.length).toEqual(0);
+    expect(room.currentSource).toEqual({});
 
-      expect(room.addToQueue({ service: "youtube", id: "I3O9J02G67I" })).resolves.toBe(true);
+    expect(await room.addToQueue({ service: "youtube", id: "I3O9J02G67I" })).toBe(true);
 
-      expect(InfoExtract.getVideoInfo).toBeCalledWith("youtube", "I3O9J02G67I");
-      expect(room.queue.length).toEqual(0);
-      // Make sure that any async functions waiting have finished before checking currentSource
-      setImmediate(() => {
-        expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-        done();
-      });
+    expect(InfoExtract.getVideoInfo).toBeCalledWith("youtube", "I3O9J02G67I");
+    expect(room.queue.length).toEqual(0);
+    // Make sure that any async functions waiting have finished before checking currentSource
+    setImmediate(() => {
+      expect(room.currentSource).toEqual({ service: "youtube", id: "I3O9J02G67I", length: 10 });
+      done();
     });
   });
 
-  it('should add a video to the queue with service and id provided, and because a video is playing, leave it in the queue', done => {
+  it('should add a video to the queue with service and id provided, and because a video is playing, leave it in the queue', async done => {
     jest.spyOn(InfoExtract, 'getVideoInfo').mockImplementation().mockResolvedValue({ service: "youtube", id: "I3O9J02G67I", length: 10 });
-    roommanager.getLoadedRoom("test").then(room => {
+    await roommanager.getLoadedRoom("test").then(async room => {
       room.queue = [];
       room.currentSource = { service: "youtube", id: "BTZ5KVRUy1Q", length: 10 };
 
@@ -123,7 +111,7 @@ describe('Room manager: Room tests', () => {
       expect(room.name.length).toBeGreaterThan(0);
       expect(room.queue.length).toEqual(0);
 
-      expect(room.addToQueue({ service: "youtube", id: "I3O9J02G67I" })).resolves.toBe(true);
+      expect(await room.addToQueue({ service: "youtube", id: "I3O9J02G67I" })).toBe(true);
 
       expect(InfoExtract.getVideoInfo).toBeCalledWith("youtube", "I3O9J02G67I");
       // Make sure that any async functions waiting have finished before checking currentSource
@@ -214,18 +202,16 @@ describe('Room manager: Manager tests', () => {
     });
   });
 
-  it('should create a permanent room with the name "perm"', async done => {
+  it('should create a permanent room with the name "perm"', async () => {
     jest.spyOn(storage, 'saveRoom').mockImplementation();
     await roommanager.createRoom('perm', false);
-    roommanager.getLoadedRoom('perm').then(room => {
-      expect(room).toBeDefined();
-      expect(room.name).toBeDefined();
-      expect(room.name).toEqual('perm');
-      expect(room.isTemporary).toEqual(false);
-      expect(room.keepAlivePing).toBe(null);
-      expect(storage.saveRoom).toBeCalled();
-      done();
-    });
+    let room = await roommanager.getLoadedRoom('perm');
+    expect(room).toBeDefined();
+    expect(room.name).toBeDefined();
+    expect(room.name).toEqual('perm');
+    expect(room.isTemporary).toEqual(false);
+    expect(room.keepAlivePing).toBe(null);
+    expect(storage.saveRoom).toBeCalled();
   });
 
   it('should load the room from the database', done => {

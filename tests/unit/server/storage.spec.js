@@ -1,15 +1,7 @@
 const _ = require("lodash");
-const fs = require('fs');
-const path = require('path');
 const { CachedVideo } = require("../../../models");
 const storage = require("../../../storage");
 const { Room } = require("../../../models");
-
-const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(configPath)) {
-  console.error("No config found! Things will break!", configPath);
-}
-require('dotenv').config({ path: configPath });
 
 describe('Storage: Room Spec', () => {
   beforeEach(async () => {
@@ -81,10 +73,10 @@ describe('Storage: Room Spec', () => {
   });
 
   it('should update the matching room in the database with the provided properties', async done => {
-    await expect(Room.findOne({ where: { name: "example" }})).resolves.toBeNull();
-    await expect(storage.saveRoom({ name: "example" })).resolves.toBe(true);
+    expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
+    expect(await storage.saveRoom({ name: "example" })).toBe(true);
 
-    await expect(storage.updateRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "unlisted" })).resolves.toBe(true);
+    expect(await storage.updateRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "unlisted" })).toBe(true);
 
     Room.findOne({ where: { name: "example" }}).then(room => {
       expect(room).toBeInstanceOf(Room);
@@ -286,7 +278,7 @@ describe('Storage: CachedVideos: bulk inserts/updates', () => {
     await CachedVideo.destroy({ where: {} });
   });
 
-  it('should create 2 entries and update 3 entries', async done => {
+  it('should create 2 entries and update 3 entries', async () => {
     // setup
     let existingVideos = [
       {
@@ -306,12 +298,7 @@ describe('Storage: CachedVideos: bulk inserts/updates', () => {
       },
     ];
     for (let video of existingVideos) {
-      try {
-        await CachedVideo.create(video);
-      }
-      catch (err) {
-        done.fail(err);
-      }
+      await CachedVideo.create(video);
     }
 
     // test
@@ -342,13 +329,12 @@ describe('Storage: CachedVideos: bulk inserts/updates', () => {
         title: "test video 5",
       },
     ];
-    expect(storage.updateManyVideoInfo(videos)).resolves.toBe(true);
+    expect(await storage.updateManyVideoInfo(videos)).toBe(true);
 
-    expect(storage.getVideoInfo("fakeservice", "abc123")).resolves.toEqual(videos[0]);
-    expect(storage.getVideoInfo("fakeservice", "abc456")).resolves.toEqual(videos[1]);
-    expect(storage.getVideoInfo("fakeservice", "abc789")).resolves.toEqual(videos[2]);
-    expect(storage.getVideoInfo("fakeservice", "def123")).resolves.toEqual(videos[3]);
-    expect(storage.getVideoInfo("fakeservice", "def456")).resolves.toEqual(videos[4]);
-    done();
+    expect(await storage.getVideoInfo("fakeservice", "abc123")).toEqual(videos[0]);
+    expect(await storage.getVideoInfo("fakeservice", "abc456")).toEqual(videos[1]);
+    expect(await storage.getVideoInfo("fakeservice", "abc789")).toEqual(videos[2]);
+    expect(await storage.getVideoInfo("fakeservice", "def123")).toEqual(videos[3]);
+    expect(await storage.getVideoInfo("fakeservice", "def456")).toEqual(videos[4]);
   });
 });

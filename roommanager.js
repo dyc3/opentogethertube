@@ -245,7 +245,7 @@ class Room {
 			});
 		}
 		else {
-			throw `Service ${queueItem.service} not yet supported`;
+			return Promise.reject(`Service ${queueItem.service} not yet supported`);
 		}
 	}
 
