@@ -27,6 +27,22 @@ const VALID_ROOM_QUEUE_MODE = [
 	"vote",
 ];
 
+function handleGetRoomFailure(res, err) {
+	if (err.name === "RoomNotFoundException") {
+		res.status(404).json({
+			success: false,
+			error: "Room not found",
+		});
+	}
+	else {
+		log.error("Unhandled exception when getting room:", err);
+		res.status(500).json({
+			success: false,
+			error: "Failed to get room",
+		});
+	}
+}
+
 // eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
@@ -91,21 +107,7 @@ module.exports = function(_roommanager, storage) {
 				}
 			}
 			res.json(room);
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error("Unhandled exception when getting room:", err);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let createRoomLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:RoomCreate" }), windowMs: 60 * 60 * 1000, max: 4, message: "You are creating too many rooms. Please try again later." });
@@ -271,21 +273,7 @@ module.exports = function(_roommanager, storage) {
 					success: true,
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err} ${err.message}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.delete("/room/:name", (req, res) => {
@@ -294,21 +282,7 @@ module.exports = function(_roommanager, storage) {
 			res.json({
 				success: true,
 			});
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err} ${err.message}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let addToQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueAdd" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before adding more videos." });
@@ -334,21 +308,7 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let removeFromQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueRemove" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before removing more videos." });
@@ -366,21 +326,7 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.post("/room/:name/vote", (req, res) => {
@@ -397,21 +343,7 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error("Unhandled exception when getting room:", err);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.delete("/room/:name/vote", (req, res) => {
@@ -428,41 +360,13 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error("Unhandled exception when getting room:", err);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.post("/room/:name/undo", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			room.undoEvent(req.body.event);
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let addPreviewLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:AddPreview" }), windowMs: 40 * 1000, max: 20, message: "Wait a little bit longer before requesting more add previews." });
