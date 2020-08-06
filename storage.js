@@ -58,7 +58,10 @@ module.exports = {
 			where: {
 				$and: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', roomName)),
 			},
-		}).then(room => room ? true : false).catch(() => false);
+		}).then(room => !!room).catch(err => {
+			log.exception(err);
+			throw err;
+		});
 	},
 	updateRoom(room) {
 		return Room.findOne({
