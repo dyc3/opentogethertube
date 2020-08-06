@@ -287,12 +287,7 @@ export default {
     },
     isAddPreviewInputUrl() {
       try {
-        if (new URL(this.inputAddPreview).host) {
-          return true;
-        }
-        else {
-          return false;
-        }
+        return !!(new URL(this.inputAddPreview).host);
       }
       catch (e) {
         return false;

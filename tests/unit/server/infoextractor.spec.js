@@ -303,11 +303,11 @@ describe('InfoExtractor Link Parsing', () => {
 describe('InfoExtractor Bulk Retrieval', () => {
   beforeEach(async () => {
     await CachedVideo.destroy({ where: {} });
-  }),
+  });
 
   afterEach(async () => {
     await CachedVideo.destroy({ where: {} });
-  }),
+  });
 
   it("should get the correct video metadata for multiple videos with only one call to the youtube API", async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q,I3O9J02G67I"]) });

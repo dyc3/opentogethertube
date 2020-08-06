@@ -14,7 +14,7 @@ require('dotenv').config({ path: configPath });
 describe('Storage: Room Spec', () => {
   beforeEach(async () => {
     await Room.destroy({ where: {} });
-  }),
+  });
 
   it('should return room object without extra properties', async done => {
     await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" });
