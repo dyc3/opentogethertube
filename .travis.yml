@@ -38,7 +38,9 @@ jobs:
       if: branch = master
       services:
         - docker
-      before_script: echo "$DOCKER_PASSWORD" | docker login -u "dyc3" --password-stdin
+      before_script:
+        - echo "$DOCKER_PASSWORD" | docker login -u "dyc3" --password-stdin
+        - touch env/production.env
       script:
         - docker-compose -f docker/docker-compose.yml up -d --build
         - docker commit opentogethertube opentogethertube
