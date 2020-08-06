@@ -16,12 +16,7 @@ RUN npm install
 # Build the application for deployement
 RUN npm run build
 
-# extra build stage just for building dependencies required for production
-# FROM node:alpine3.11 as build-stage-2
-
-# RUN apk update -q && apk add libc6-compat python make g++ autoconf automake libtool -q && rm -rf /var/lib/apt/lists/*
-
-# RUN npm install --only=prod
+RUN rm -rf node_modules && npm install --only=production
 
 ### Deployement server nginx ###
 FROM node:alpine3.11 as production-stage
@@ -35,23 +30,18 @@ ENV REDIS_PORT 6379
 ENV NODE_ENV production
 ENV PORT 8080
 
-RUN apk update -q && apk add libc6-compat python make g++ autoconf automake libtool -q && rm -rf /var/lib/apt/lists/*
+RUN apk update -q && apk add libc6-compat python make g++ autoconf automake libtool -q && rm -rf /var/cache/apk/*
 
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
 COPY --from=build-stage /usr/app/docker/scripts/wait_for_db.sh /usr/app/wait_for_db.sh
 
-# remove the build dependency
-RUN rm -rf /usr/app/node_modules
-# COPY --from=build-stage-2 /usr/app/node_modules /usr/app/node_modules
-
-# Install app dependencies
-RUN npm install --only=prod
-
 # Remove all the unnecessary files
-RUN rm -rf public src .browserslistrc .eslintrc.js .gitignore jest.config.js postcss.config.js vue.config.js babel.config.js docker-compose.yml
+RUN rm -rf public src .browserslistrc .eslintrc.js .gitignore jest.config.js postcss.config.js vue.config.js babel.config.js docker-compose.yml /root/.npm
+RUN apk del python make g++ autoconf automake libtool -q
 
 RUN mkdir env && touch env/production.env
+RUN npx sequelize-cli db:migrate
 
 # Healthcheck API, WEB, REDIS
 HEALTHCHECK CMD ( curl -f http://localhost:8080/ || exit 1 )
