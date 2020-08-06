@@ -30,18 +30,14 @@ ENV REDIS_PORT 6379
 ENV NODE_ENV production
 ENV PORT 8080
 
-# RUN apk update -q && apk add libc6-compat python make g++ autoconf automake libtool -q && rm -rf /var/cache/apk/*
-
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
 COPY --from=build-stage /usr/app/docker/scripts/wait_for_db.sh /usr/app/wait_for_db.sh
 
 # Remove all the unnecessary files
 RUN rm -rf public src .browserslistrc .eslintrc.js .gitignore jest.config.js postcss.config.js vue.config.js babel.config.js docker-compose.yml /root/.npm
-# RUN apk del python make g++ autoconf automake libtool -q
 
 RUN mkdir env && touch env/production.env
-RUN npx sequelize-cli db:migrate
 
 # Healthcheck API, WEB, REDIS
 HEALTHCHECK CMD ( curl -f http://localhost:8080/ || exit 1 )
