@@ -603,7 +603,7 @@ describe("InfoExtractor Youtube Support", () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) });
     jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation().mockResolvedValue(true);
 
-    await expect(InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).resolves.toEqual([
+    expect(await InfoExtract.getPlaylistYoutube("PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")).toEqual([
       new Video({
         service: "youtube",
         id: "zgxj_0xPleg",
@@ -951,60 +951,56 @@ describe('InfoExtractor Caching Spec', () => {
     await CachedVideo.destroy({ where: {} });
   }),
 
-  it('should get the correct video metadata', done => {
+  it('should get the correct video metadata', async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
 
-    InfoExtract.getVideoInfo("youtube", "BTZ5KVRUy1Q").then(video => {
-      expect(video).toBeDefined();
-      expect(video.service).toBeDefined();
-      expect(video.service).toBe("youtube");
-      expect(video.serviceId).toBeUndefined();
-      expect(video.id).toBeDefined();
-      expect(video.id).toBe("BTZ5KVRUy1Q");
-      expect(video.title).toBeDefined();
-      expect(video.title).toBe("tmpIwT4T4");
-      expect(video.description).toBeDefined();
-      expect(video.description).toBe("tmpIwT4T4");
-      expect(video.thumbnail).toBeDefined();
-      expect(video.thumbnail).toBe("https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg");
-      expect(video.length).toBeDefined();
-      expect(video.length).toBe(10);
-      done();
-    }).catch(err => done.fail(err));
+    let video = await InfoExtract.getVideoInfo("youtube", "BTZ5KVRUy1Q");
+    expect(video).toBeDefined();
+    expect(video.service).toBeDefined();
+    expect(video.service).toBe("youtube");
+    expect(video.serviceId).toBeUndefined();
+    expect(video.id).toBeDefined();
+    expect(video.id).toBe("BTZ5KVRUy1Q");
+    expect(video.title).toBeDefined();
+    expect(video.title).toBe("tmpIwT4T4");
+    expect(video.description).toBeDefined();
+    expect(video.description).toBe("tmpIwT4T4");
+    expect(video.thumbnail).toBeDefined();
+    expect(video.thumbnail).toBe("https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg");
+    expect(video.length).toBeDefined();
+    expect(video.length).toBe(10);
   });
 
-  it('should miss cache, get the correct video metadata, and store it in the cache', async done => {
+  it('should miss cache, get the correct video metadata, and store it in the cache', async () => {
     jest.spyOn(InfoExtract.YtApi, 'get').mockImplementation().mockResolvedValue({ status: 200, data: JSON.parse(youtubeVideoListSampleResponses["I3O9J02G67I"]) });
 
-    await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeNull();
+    expect(await CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).toBeNull();
 
-    InfoExtract.getVideoInfo("youtube", "I3O9J02G67I").then(async video => {
-      expect(video).toBeDefined();
-      expect(video.service).toBeDefined();
-      expect(video.service).toBe("youtube");
-      expect(video.serviceId).toBeUndefined();
-      expect(video.id).toBeDefined();
-      expect(video.id).toBe("I3O9J02G67I");
-      expect(video.title).toBeDefined();
-      expect(video.title).toBe("tmpATT2Cp");
-      expect(video.description).toBeDefined();
-      expect(video.description).toBe("tmpATT2Cp");
-      expect(video.thumbnail).toBeDefined();
-      expect(video.thumbnail).toBe("https://i.ytimg.com/vi/I3O9J02G67I/default.jpg");
-      expect(video.length).toBeDefined();
-      expect(video.length).toBe(10);
+    let video = await InfoExtract.getVideoInfo("youtube", "I3O9J02G67I");
+    expect(video).toBeDefined();
+    expect(video.service).toBeDefined();
+    expect(video.service).toBe("youtube");
+    expect(video.serviceId).toBeUndefined();
+    expect(video.id).toBeDefined();
+    expect(video.id).toBe("I3O9J02G67I");
+    expect(video.title).toBeDefined();
+    expect(video.title).toBe("tmpATT2Cp");
+    expect(video.description).toBeDefined();
+    expect(video.description).toBe("tmpATT2Cp");
+    expect(video.thumbnail).toBeDefined();
+    expect(video.thumbnail).toBe("https://i.ytimg.com/vi/I3O9J02G67I/default.jpg");
+    expect(video.length).toBeDefined();
+    expect(video.length).toBe(10);
 
-      await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeDefined();
+    expect(await CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).toBeDefined();
 
-      expect(InfoExtract.YtApi.get).toBeCalled();
-      done();
-    }).catch(err => done.fail(err));
+    expect(InfoExtract.YtApi.get).toBeCalled();
   });
 
-  it('should hit cache, get the correct video metadata from the cache', async done => {
-    await expect(CachedVideo.count()).resolves.toEqual(0);
+  it('should hit cache, get the correct video metadata from the cache', async () => {
+    expect(await CachedVideo.count()).toEqual(0);
 
-    await expect(CachedVideo.create({
+    expect(await CachedVideo.create({
       service: "fakeservice",
       serviceId: "abc123",
       title: "Test Title",
@@ -1012,73 +1008,69 @@ describe('InfoExtractor Caching Spec', () => {
       thumbnail: "http://example.com/thumbnail.jpg",
       length: 32,
       mime: "fake/mime",
-    })).resolves.toBeDefined();
+    })).toBeDefined();
 
-    await expect(CachedVideo.count()).resolves.toEqual(1);
+    expect(await CachedVideo.count()).toEqual(1);
 
-    InfoExtract.getVideoInfo("fakeservice", "abc123").then(async video => {
-      expect(video).toBeDefined();
-      expect(video.service).toBeDefined();
-      expect(video.service).toBe("fakeservice");
-      expect(video.serviceId).toBeUndefined();
-      expect(video.id).toBeDefined();
-      expect(video.id).toBe("abc123");
-      expect(video.title).toBeDefined();
-      expect(video.title).toBe("Test Title");
-      expect(video.description).toBeDefined();
-      expect(video.description).toBe("This is a test description.");
-      expect(video.thumbnail).toBeDefined();
-      expect(video.thumbnail).toBe("http://example.com/thumbnail.jpg");
-      expect(video.length).toBeDefined();
-      expect(video.length).toBe(32);
-      expect(video.mime).toBe("fake/mime");
+    let video = await InfoExtract.getVideoInfo("fakeservice", "abc123");
+    expect(video).toBeDefined();
+    expect(video.service).toBeDefined();
+    expect(video.service).toBe("fakeservice");
+    expect(video.serviceId).toBeUndefined();
+    expect(video.id).toBeDefined();
+    expect(video.id).toBe("abc123");
+    expect(video.title).toBeDefined();
+    expect(video.title).toBe("Test Title");
+    expect(video.description).toBeDefined();
+    expect(video.description).toBe("This is a test description.");
+    expect(video.thumbnail).toBeDefined();
+    expect(video.thumbnail).toBe("http://example.com/thumbnail.jpg");
+    expect(video.length).toBeDefined();
+    expect(video.length).toBe(32);
+    expect(video.mime).toBe("fake/mime");
 
-      await expect(CachedVideo.count()).resolves.toEqual(1);
-      await expect(CachedVideo.findOne({ where: { service: "fakeservice", serviceId: "abc123" }})).resolves.toBeDefined();
-      done();
-    }).catch(err => done.fail(err));
+    expect(await CachedVideo.count()).toEqual(1);
+    expect(await CachedVideo.findOne({ where: { service: "fakeservice", serviceId: "abc123" }})).toBeDefined();
   });
 
-  it('should partially hit cache, get the missing video metadata (length), and store it in the cache', async done => {
+  it('should partially hit cache, get the missing video metadata (length), and store it in the cache', async () => {
     jest.spyOn(InfoExtract, 'getVideoInfoYoutube').mockImplementation().mockResolvedValue({ "I3O9J02G67I": { service: "youtube", id: "I3O9J02G67I", length: 10 } });
 
-    await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeNull();
+    expect(await CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).toBeNull();
 
-    await expect(CachedVideo.create({
+    expect(await CachedVideo.create({
       service: "youtube",
       serviceId: "I3O9J02G67I",
       title: "tmpATT2Cp",
       description: "tmpATT2Cp",
       thumbnail: "https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg",
-    })).resolves.toBeDefined();
+    })).toBeDefined();
 
     await CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }}).then(result => {
       expect(result).toBeDefined();
       expect(result.length).toBeNull();
     });
 
-    InfoExtract.getVideoInfo("youtube", "I3O9J02G67I").then(async video => {
-      expect(InfoExtract.getVideoInfoYoutube).toBeCalledWith(["I3O9J02G67I"], ["length"]);
+    let video = await InfoExtract.getVideoInfo("youtube", "I3O9J02G67I");
+    expect(InfoExtract.getVideoInfoYoutube).toBeCalledWith(["I3O9J02G67I"], ["length"]);
 
-      expect(video).toBeDefined();
-      expect(video.service).toBeDefined();
-      expect(video.service).toBe("youtube");
-      expect(video.serviceId).toBeUndefined();
-      expect(video.id).toBeDefined();
-      expect(video.id).toBe("I3O9J02G67I");
-      expect(video.title).toBeDefined();
-      expect(video.title).toBe("tmpATT2Cp");
-      expect(video.description).toBeDefined();
-      expect(video.description).toBe("tmpATT2Cp");
-      expect(video.thumbnail).toBeDefined();
-      expect(video.thumbnail).toBe("https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg");
-      expect(video.length).toBeDefined();
-      expect(video.length).toBe(10);
+    expect(video).toBeDefined();
+    expect(video.service).toBeDefined();
+    expect(video.service).toBe("youtube");
+    expect(video.serviceId).toBeUndefined();
+    expect(video.id).toBeDefined();
+    expect(video.id).toBe("I3O9J02G67I");
+    expect(video.title).toBeDefined();
+    expect(video.title).toBe("tmpATT2Cp");
+    expect(video.description).toBeDefined();
+    expect(video.description).toBe("tmpATT2Cp");
+    expect(video.thumbnail).toBeDefined();
+    expect(video.thumbnail).toBe("https://i.ytimg.com/vi/I3O9J02G67I/mqdefault.jpg");
+    expect(video.length).toBeDefined();
+    expect(video.length).toBe(10);
 
-      await expect(CachedVideo.count()).resolves.toEqual(1);
-      await expect(CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).resolves.toBeDefined();
-      done();
-    }).catch(err => done.fail(err));
+    expect(await CachedVideo.count()).toEqual(1);
+    expect(await CachedVideo.findOne({ where: { service: "youtube", serviceId: "I3O9J02G67I" }})).toBeDefined();
   });
 });
 
