@@ -1,4 +1,11 @@
-npm-debug.log
+*.log
 .vscode
 .github
-docker-compose.yml
+logs
+tests
+env
+coverage
+*.yml
+db/
+dist/
+.git/
