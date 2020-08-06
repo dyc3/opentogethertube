@@ -207,6 +207,7 @@ module.exports = function(_roommanager, storage) {
 
 	router.post("/room/generate", process.env.NODE_ENV === "production" ? createRoomLimiter : (req, res, next) => next(), async (req, res) => {
 		let roomName = uuid();
+		log.debug(`Generating room: ${roomName}`);
 		await roommanager.createRoom(roomName, true);
 		res.json({
 			success: true,

@@ -818,6 +818,7 @@ module.exports = {
 				delete options.temporary;
 			}
 		}
+		log.silly(`Attempting to create a room with ${JSON.stringify(options)}`);
 
 		if (_.find(this.rooms, room => room.name === options.name)) {
 			throw new RoomNameTakenException(options.name);
@@ -825,6 +826,7 @@ module.exports = {
 		if (await storage.isRoomNameTaken(options.name)) {
 			throw new RoomNameTakenException(options.name);
 		}
+		log.debug("Room name is available.");
 
 		let newRoom = new Room(options);
 		if (options.isTemporary) {
