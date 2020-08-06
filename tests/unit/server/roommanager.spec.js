@@ -1,17 +1,9 @@
-const fs = require('fs');
-const path = require('path');
 const { RoomEvent, ROOM_EVENT_TYPE, ...roommanager } = require("../../../roommanager");
 const InfoExtract = require("../../../infoextract");
 const storage = require("../../../storage");
 const moment = require("moment");
 const Video = require("../../../common/video.js");
 const { Room } = require("../../../models");
-
-const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(configPath)) {
-  console.error("No config found! Things will break!", configPath);
-}
-require('dotenv').config({ path: configPath });
 
 describe('Room manager: Room tests', () => {
   beforeEach(async done => {

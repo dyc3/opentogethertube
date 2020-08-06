@@ -1,15 +1,7 @@
 const _ = require("lodash");
-const fs = require('fs');
-const path = require('path');
 const { CachedVideo } = require("../../../models");
 const storage = require("../../../storage");
 const { Room } = require("../../../models");
-
-const configPath = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(configPath)) {
-  console.error("No config found! Things will break!", configPath);
-}
-require('dotenv').config({ path: configPath });
 
 describe('Storage: Room Spec', () => {
   beforeEach(async () => {
