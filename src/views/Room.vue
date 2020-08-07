@@ -9,19 +9,16 @@
         <v-row no-gutters class="video-container">
           <div class="video-subcontainer" cols="12" :xl="$store.state.fullscreen ? 9 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <v-responsive :aspect-ratio="16/9" class="player-container" :key="currentSource.service">
-              <YoutubePlayer v-if="currentSource.service == 'youtube'" class="player" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <GoogleDrivePlayer v-else-if="currentSource.service == 'googledrive'" class="player" ref="googledrive" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <DirectPlayer v-else-if="currentSource.service == 'direct'" class="player" ref="direct" :video-url="currentSource.url" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <v-container fluid fill-height class="player no-video" v-else>
-                <v-row justify="center" align="center">
-                  <div>
-                    <h1>No video is playing.</h1>
-                    <span>Click "Add" below to add a video.</span>
-                  </div>
-                </v-row>
-              </v-container>
+              <OmniPlayer
+                ref="player"
+                :source="currentSource"
+                :class="{ player: true, 'no-video': !currentSource.service }"
+                @playing="onPlaybackChange(true)"
+                @paused="onPlaybackChange(false)"
+                @ready="onPlayerReady"
+                @buffering="onVideoBuffer"
+                @error="onVideoError"
+              />
             </v-responsive>
             <v-col class="video-controls">
               <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
@@ -208,6 +205,7 @@ import { secondsToTimestamp, calculateCurrentPosition } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
+import OmniPlayer from "@/components/OmniPlayer.vue";
 
 export default {
   name: 'room',
@@ -216,11 +214,7 @@ export default {
     VideoQueueItem,
     ProcessedText,
     VueSlider,
-    YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
-    VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
-    DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
-    GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
-    DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/DirectPlayer.vue"),
+    OmniPlayer,
   },
   data() {
     return {
@@ -414,55 +408,13 @@ export default {
       this.showEditName = !this.showEditName;
     },
     play() {
-      if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.play();
-      }
-      else if (this.currentSource.service === "vimeo") {
-        this.$refs.vimeo.play();
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        this.$refs.dailymotion.play();
-      }
-      else if (this.currentSource.service === "googledrive") {
-        this.$refs.googledrive.play();
-      }
-      else if (this.currentSource.service === "direct") {
-        this.$refs.direct.play();
-      }
+      this.$refs.player.play();
     },
     pause() {
-      if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.pause();
-      }
-      else if (this.currentSource.service === "vimeo") {
-        this.$refs.vimeo.pause();
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        this.$refs.dailymotion.pause();
-      }
-      else if (this.currentSource.service === "googledrive") {
-        this.$refs.googledrive.pause();
-      }
-      else if (this.currentSource.service === "direct") {
-        this.$refs.direct.pause();
-      }
+      this.$refs.player.pause();
     },
     updateVolume() {
-      if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "vimeo") {
-        this.$refs.vimeo.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        this.$refs.dailymotion.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "googledrive") {
-        this.$refs.googledrive.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "direct") {
-        this.$refs.direct.setVolume(this.volume);
-      }
+      this.$refs.player.setVolume(this.volume);
     },
     requestAddPreview() {
       API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
@@ -768,38 +720,10 @@ export default {
       this.updateVolume();
     },
     async sliderPosition(newPosition) {
-      let currentTime = null;
-      if (this.currentSource.service === "youtube") {
-        currentTime = await this.$refs.youtube.getPosition();
-      }
-      else if (this.currentSource.service === "vimeo") {
-        currentTime = await this.$refs.vimeo.getPosition();
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        currentTime = await this.$refs.dailymotion.getPosition();
-      }
-      else if (this.currentSource.service === "googledrive") {
-        currentTime = await this.$refs.googledrive.getPosition();
-      }
-      else if (this.currentSource.service === "direct") {
-        currentTime = await this.$refs.direct.getPosition();
-      }
+      let currentTime = await this.$refs.player.getPosition();
+
       if (Math.abs(newPosition - currentTime) > 1) {
-        if (this.currentSource.service === "youtube") {
-          this.$refs.youtube.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "vimeo") {
-          this.$refs.vimeo.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "dailymotion") {
-          this.$refs.dailymotion.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "googledrive") {
-          this.$refs.googledrive.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "direct") {
-          this.$refs.direct.setPosition(newPosition);
-        }
+        this.$refs.player.setPosition(newPosition);
       }
     },
     inputAddPreview() {
