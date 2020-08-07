@@ -1,10 +1,10 @@
 <template>
-  <fragment>
+  <div>
     <YoutubePlayer
       v-if="source.service == 'youtube'"
       ref="youtube"
-      v-bind="$attrs"
       :video-id="source.id"
+      class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
       @ready="$emit('ready')"
@@ -15,7 +15,7 @@
       v-else-if="source.service == 'vimeo'"
       ref="vimeo"
       :video-id="source.id"
-      v-bind="$attrs"
+      class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
       @ready="$emit('ready')"
@@ -25,8 +25,8 @@
     <DailymotionPlayer
       v-else-if="source.service == 'dailymotion'"
       ref="dailymotion"
-      v-bind="$attrs"
       :video-id="source.id"
+      class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
       @ready="$emit('ready')"
@@ -36,8 +36,8 @@
     <GoogleDrivePlayer
       v-else-if="source.service == 'googledrive'"
       ref="googledrive"
-      v-bind="$attrs"
       :video-id="source.id"
+      class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
       @ready="$emit('ready')"
@@ -47,15 +47,15 @@
     <DirectPlayer
       v-else-if="source.service == 'direct'"
       ref="direct"
-      v-bind="$attrs"
       :video-id="source.id"
+      class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
       @ready="$emit('ready')"
       @buffering="$emit('buffering')"
       @error="$emit('error')"
     />
-    <v-container v-else fluid fill-height v-bind="$attrs">
+    <v-container v-else fluid fill-height>
       <v-row justify="center" align="center">
         <v-col cols="auto">
           <h1>No video is playing.</h1>
@@ -63,7 +63,7 @@
         </v-col>
       </v-row>
     </v-container>
-  </fragment>
+  </div>
 </template>
 
 <script>
@@ -113,3 +113,10 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.player {
+  width: 100%;
+  height: 100%;
+}
+</style>
