@@ -35,7 +35,7 @@ jobs:
       script: npm run build
     - name: build docker image
       stage: upload
-      if: branch = master
+      if: type != pull_request
       services:
         - docker
       before_script:
