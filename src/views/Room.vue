@@ -57,18 +57,7 @@
             </v-col>
           </div>
           <div cols="12" :xl="$store.state.fullscreen ? 3 : 5" md="4" class="chat-container">
-            <div class="d-flex flex-column" style="height: 100%">
-              <h4>Chat</h4>
-              <div class="messages d-flex flex-column flex-grow-1 mt-2">
-                <v-card class="msg d-flex mr-2 mb-2" v-for="(msg, index) in $store.state.room.chatMessages" :key="index">
-                  <div class="from">{{ msg.from }}</div>
-                  <div class="text"><ProcessedText :text="msg.text" /></div>
-                </v-card>
-              </div>
-              <div class="d-flex justify-end">
-                <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText" autocomplete="off"/>
-              </div>
-            </div>
+            <Chat class="chat" />
           </div>
         </v-row>
         <v-row no-gutters>
@@ -200,21 +189,21 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import ProcessedText from "@/components/ProcessedText.vue";
 import { secondsToTimestamp, calculateCurrentPosition } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
 import OmniPlayer from "@/components/OmniPlayer.vue";
+import Chat from "@/components/Chat.vue";
 
 export default {
   name: 'room',
   components: {
     draggable,
     VideoQueueItem,
-    ProcessedText,
     VueSlider,
     OmniPlayer,
+    Chat,
   },
   data() {
     return {
@@ -231,8 +220,6 @@ export default {
       hasAddPreviewFailed: false,
       addPreviewLoadFailureText: "",
       inputAddPreview: "",
-      inputChatMsgText: "",
-      shouldChatStickToBottom: true,
       isLoadingRoomSettings: false,
       inputRoomSettingsTitle: "",
       inputRoomSettingsDescription: "",
@@ -570,21 +557,6 @@ export default {
         document.documentElement.requestFullscreen();
       }
     },
-    onChatMessageKeyDown(e) {
-      if (e.keyCode === 13 && this.inputChatMsgText.length > 0) {
-        this.$socket.sendObj({ action: "chat", text: this.inputChatMsgText });
-        this.inputChatMsgText = "";
-        this.shouldChatStickToBottom = true;
-      }
-    },
-    onChatScroll() {
-      let msgsDiv = document.getElementsByClassName("messages");
-      if (msgsDiv.length) {
-        msgsDiv = msgsDiv[0];
-        let distToBottom = msgsDiv.scrollHeight - msgsDiv.clientHeight - msgsDiv.scrollTop;
-        this.shouldChatStickToBottom = distToBottom == 0;
-      }
-    },
     onQueueDragDrop(e) {
       this.$socket.sendObj({
         action: "queue-move",
@@ -682,15 +654,6 @@ export default {
       this.joinFailReason = eventData.reason;
     });
 
-    let msgsDiv = document.getElementsByClassName("messages");
-    if (msgsDiv.length) {
-      msgsDiv = msgsDiv[0];
-      msgsDiv.onscroll = this.onChatScroll;
-    }
-    else {
-      console.error("Couldn't find chat messages div");
-    }
-
     document.onmousemove = () => {
       let controlsDiv = document.getElementsByClassName("video-controls");
       if (controlsDiv.length) {
@@ -732,16 +695,6 @@ export default {
       this.onInputAddPreviewChange();
     },
   },
-  updated() {
-    // scroll the messages to the bottom
-    if (this.shouldChatStickToBottom) {
-      let msgsDiv = document.getElementsByClassName("messages");
-      if (msgsDiv.length) {
-        msgsDiv = msgsDiv[0];
-        msgsDiv.scrollTop = msgsDiv.scrollHeight;
-      }
-    }
-  },
 };
 </script>
 
@@ -772,6 +725,10 @@ export default {
 
   .chat-container {
     width: calc(100% / 12 * 4);
+
+    .chat {
+      height: 100%;
+    }
   }
 
   @media (max-width: $md-max) {
@@ -837,42 +794,6 @@ export default {
 }
 .chat-container {
   padding: 5px 10px;
-
-  h4 {
-    border-bottom: 1px solid #666;
-  }
-
-  .messages {
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    // makes flex-grow work (for some reason)
-    // the value is the height this element will take on md size screens and smaller
-    height: 200px;
-
-    // push the messages to the bottom of the container
-    > .msg:first-child {
-      margin-top: auto;
-    }
-  }
-
-  .msg {
-    background-color: #444;
-
-    .from, .text {
-      margin: 3px 5px;
-      word-wrap: break-word;
-    }
-
-    .from {
-      font-weight: bold;
-      max-width: 20%;
-    }
-
-    .text {
-      min-width: 80%;
-    }
-  }
 }
 
 .flip-list-move {
