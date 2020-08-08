@@ -44,12 +44,6 @@ class YouTubeAdapter extends ServiceAdapter {
       }
     }
 
-    if (!Array.isArray(ids)) {
-      return Promise.reject(
-        new Error("`ids` must be an array of youtube video IDs.")
-      );
-    }
-
     return new Promise((resolve, reject) => {
       let parts = [];
       if (onlyProperties !== null) {
