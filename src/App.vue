@@ -21,7 +21,7 @@
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-btn text v-on="on">
-              <v-icon>fas fa-plus-square</v-icon>&nbsp;Create Room
+              <v-icon class="side-pad">fas fa-plus-square</v-icon>Create Room
             </v-btn>
           </template>
           <v-list two-line max-width="400">
@@ -157,6 +157,10 @@ export default {
 .link-invis {
   text-decoration: none;
   color: inherit !important;
+}
+
+.side-pad {
+  margin: 0 4px;
 }
 
 .vue-slider-process {
