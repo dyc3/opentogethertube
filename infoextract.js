@@ -1,7 +1,6 @@
 const axios = require("axios");
 const url = require("url");
 const querystring = require('querystring');
-const moment = require("moment");
 const _ = require("lodash");
 const storage = require("./storage");
 const Video = require("./common/video.js");
@@ -18,6 +17,11 @@ const {
 	LocalFileException,
 	MissingMetadataException,
 } = require("./server/exceptions");
+const DailyMotionAdapter = require("./server/services/dailymotion");
+const DirectVideoAdapter = require("./server/services/direct");
+const GoogleDriveAdapter = require("./server/services/googledrive");
+const VimeoAdapter = require("./server/services/vimeo");
+const YouTubeAdapter = require("./server/services/youtube");
 
 const log = getLogger("infoextract");
 
@@ -43,6 +47,14 @@ if (process.env.DEBUG_FAKE_YOUTUBE_OUT_OF_QUOTA) {
 	YtApi.get = () => Promise.reject({ response: { status: 403 } });
 }
 
+const adapters = [
+	new DailyMotionAdapter(),
+	new GoogleDriveAdapter(),
+	new VimeoAdapter(),
+	new YouTubeAdapter(process.env.YOUTUBE_API_KEY),
+	new DirectVideoAdapter(),
+];
+
 module.exports = {
 	YtApi,
 	YtFallbackApi,
@@ -52,6 +64,14 @@ module.exports = {
 	ffprobe,
 
 	/**
+	 * Returns the service adapter instance for a given service
+	 * @param {string} service
+	 */
+	getServiceAdapter(service) {
+		return adapters.find(adapter => adapter.serviceId === service);
+	},
+
+	/**
 	 * Gets all necessary information needed to represent a video. Handles
 	 * local caching and obtaining missing data from external sources.
 	 * @param	{string} service The service that hosts the source video.
@@ -59,12 +79,7 @@ module.exports = {
 	 * @return	{Promise<Video>} Video object
 	 */
 	getVideoInfo(service, id) {
-		if (service === "youtube") {
-			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
-				return Promise.reject(new InvalidVideoIdException(service, id));
-			}
-		}
-		else if (service === "vimeo") {
+		if (service === "vimeo") {
 			if (!(/^[0-9]+$/).exec(id)) {
 				return Promise.reject(new InvalidVideoIdException(service, id));
 			}
@@ -97,7 +112,8 @@ module.exports = {
 			log.warn(`MISSING INFO for ${video.service}:${video.id}: ${missingInfo}`);
 
 			if (video.service === "youtube") {
-				return this.getVideoInfoYoutube([video.id], missingInfo).then(result => {
+				let adapter = this.getServiceAdapter("youtube");
+				return adapter.getVideoInfo([video.id], missingInfo).then(result => {
 					return Video.merge(video, result[video.id]);
 				}).catch(err => {
 					if (err.name === "OutOfQuotaException") {
@@ -167,6 +183,7 @@ module.exports = {
 				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields(service).filter(p => !video.hasOwnProperty(p)));
 
 				if (service === "youtube") {
+					let adapter = this.getServiceAdapter("youtube");
 					let promises = [];
 					for (let missingInfo in groupedServiceVideos) {
 						let missingInfoGroup = groupedServiceVideos[missingInfo];
@@ -174,7 +191,7 @@ module.exports = {
 							promises.push(Promise.resolve(missingInfoGroup));
 							continue;
 						}
-						let promise = this.getVideoInfoYoutube(missingInfoGroup.map(video => video.id), missingInfo).then(results => {
+						let promise = adapter.getVideoInfo(missingInfoGroup.map(video => video.id), missingInfo).then(results => {
 							return missingInfoGroup.filter(video => results[video.id]).map(video => {
 								return Video.merge(video, results[video.id]);
 							});
@@ -428,125 +445,6 @@ module.exports = {
 			channelData.user = channelId;
 		}
 		return channelData;
-	},
-
-	getVideoInfoYoutube(ids, onlyProperties=null) {
-		if (!Array.isArray(ids)) {
-			return Promise.reject(new Error("`ids` must be an array of youtube video IDs."));
-		}
-		return new Promise((resolve, reject) => {
-			let parts = [];
-			if (onlyProperties !== null) {
-				if (onlyProperties.includes("title") || onlyProperties.includes("description") || onlyProperties.includes("thumbnail")) {
-					parts.push("snippet");
-				}
-				if (onlyProperties.includes("length")) {
-					parts.push("contentDetails");
-				}
-
-				if (parts.length === 0) {
-					log.error(`onlyProperties must have valid values or be null! Found ${onlyProperties}`);
-					reject(new Error("onlyProperties must have valid values or be null!"));
-					return;
-				}
-			}
-			else {
-				parts = [
-					"snippet",
-					"contentDetails",
-				];
-			}
-			log.silly(`Requesting ${parts.length} parts for ${ids.length} videos`);
-			YtApi.get(`/videos?key=${process.env.YOUTUBE_API_KEY}&part=${parts.join(",")}&id=${ids.join(",")}`).then(res => {
-				let results = {};
-				for (let i = 0; i < res.data.items.length; i++) {
-					let item = res.data.items[i];
-					let video = new Video({
-						service: "youtube",
-						id: item.id,
-					});
-					if (item.snippet) {
-						video.title = item.snippet.title;
-						video.description = item.snippet.description;
-						if (item.snippet.thumbnails) {
-							if (item.snippet.thumbnails.medium) {
-								video.thumbnail = item.snippet.thumbnails.medium.url;
-							}
-							else {
-								video.thumbnail = item.snippet.thumbnails.default.url;
-							}
-						}
-					}
-					if (item.contentDetails) {
-						video.length = moment.duration(item.contentDetails.duration).asSeconds();
-					}
-					results[item.id] = video;
-				}
-
-				// update cache
-				// for (let video of _.values(results)) {
-				// 	storage.updateVideoInfo(video);
-				// }
-				// resolve(results);
-
-				storage.updateManyVideoInfo(_.values(results)).then(() => {
-					resolve(results);
-				}).catch(err => {
-					log.error(`Failed to cache video info, will return metadata anyway: ${err}`);
-					resolve(results);
-				});
-			}).catch(err => {
-				if (err.response && err.response.status === 403) {
-					if (!onlyProperties || onlyProperties.includes("length")) {
-						log.warn(`Attempting youtube fallback method for ${ids.length} videos`);
-						let getLengthPromises = ids.map(id => this.getVideoLengthYoutube_Fallback(`https://youtube.com/watch?v=${id}`));
-						Promise.all(getLengthPromises).then(results => {
-							let videos = _.zip(ids, results).map(i => new Video({
-								service: "youtube",
-								id: i[0],
-								length: i[1],
-								// HACK: we can guess what the thumbnail url is, but this could possibly change without warning
-								thumbnail: `https://i.ytimg.com/vi/${i[0]}/default.jpg`,
-							}));
-							let finalResult = _.zipObject(ids, videos);
-							storage.updateManyVideoInfo(videos).then(() => {
-								resolve(finalResult);
-							}).catch(err => {
-								log.error(`Failed to cache video info, will return metadata anyway: ${err}`);
-								resolve(finalResult);
-							});
-						}).catch(err => {
-							log.error(`Youtube fallback failed ${err}`);
-							reject(err);
-						});
-					}
-					else {
-						log.warn("No fallback method for requested metadata properties");
-						reject(new OutOfQuotaException("youtube"));
-					}
-				}
-				else {
-					reject(err);
-				}
-			});
-		});
-	},
-
-	async getVideoLengthYoutube_Fallback(url) {
-		let res = await YtFallbackApi.get(url);
-		let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
-		for (let r = 0; r < regexs.length; r++) {
-			let matches = res.data.match(regexs[r]);
-			if (matches == null) {
-				continue;
-			}
-			const match = matches[0];
-			let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
-			log.silly(`MATCH ${match}`);
-			log.debug(`EXTRACTED ${extracted}`);
-			return parseInt(extracted);
-		}
-		return null;
 	},
 
 	getPlaylistYoutube(id) {

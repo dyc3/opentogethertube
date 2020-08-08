@@ -2,9 +2,7 @@ const URL = require("url");
 const ServiceAdapter = require("../serviceadapter");
 
 class GoogleDriveAdapter extends ServiceAdapter {
-  get serviceId() {
-    return "googledrive";
-  }
+  static SERVICE_ID = "googledrive";
 
   canHandleLink(link) {
     const url = URL.parse(link);

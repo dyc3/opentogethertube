@@ -3,7 +3,19 @@ class ServiceAdapter {
    * A string that identifies this service adapter.
    */
   get serviceId() {
-    throw `Service adapter ${this.constructor.name} does not implement the serviceId getter`;
+    if (this.constructor.SERVICE_ID == null) {
+      throw `Service adapter ${this.constructor.name} does not have a static SERVICE_ID property`;
+    }
+
+    return this.constructor.SERVICE_ID;
+  }
+
+  /**
+   * A boolean that indicates whether video metadata can be safely cached.
+   * @returns {boolean}
+   */
+  get cacheSafe() {
+    return true;
   }
 
   /**
@@ -13,6 +25,15 @@ class ServiceAdapter {
    */
   canHandleLink() {
     return false;
+  }
+
+  /**
+   * Fetches video metadata from the API.
+   * @param {string} videoId
+   * @returns {Promise}
+   */
+  getVideoInfo(videoId, onlyProperties) {
+    return this._getVideoInfo(videoId, onlyProperties);
   }
 }
 

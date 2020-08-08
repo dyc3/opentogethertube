@@ -2,9 +2,7 @@ const URL = require("url");
 const ServiceAdapter = require("../serviceadapter");
 
 class VimeoAdapter extends ServiceAdapter {
-  get serviceId() {
-    return "vimeo";
-  }
+  static SERVICE_ID = "vimeo";
 
   canHandleLink(link) {
     const url = URL.parse(link);

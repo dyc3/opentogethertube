@@ -2,9 +2,7 @@ const URL = require("url");
 const ServiceAdapter = require("../serviceadapter");
 
 class DailyMotionAdapter extends ServiceAdapter {
-  get serviceId() {
-    return "dailymotion";
-  }
+  static SERVICE_ID = "dailymotion";
 
   canHandleLink(link) {
     const url = URL.parse(link);
