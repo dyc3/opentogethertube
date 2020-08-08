@@ -14,7 +14,7 @@ class ServiceAdapter {
    * A boolean that indicates whether video metadata can be safely cached.
    * @returns {boolean}
    */
-  get cacheSafe() {
+  get isCacheSafe() {
     return true;
   }
 
