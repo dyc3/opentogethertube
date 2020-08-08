@@ -9,14 +9,14 @@ const { getLogger } = require("./logger.js");
 const { redisClient } = require('./redisclient.js');
 const ffprobe = require('./ffprobe.js');
 const {
-  UnsupportedServiceException,
-  InvalidAddPreviewInputException,
+	UnsupportedServiceException,
+	InvalidAddPreviewInputException,
   OutOfQuotaException,
   InvalidVideoIdException,
-  FeatureDisabledException,
-  UnsupportedMimeTypeException,
-  LocalFileException,
-  MissingMetadataException,
+	FeatureDisabledException,
+	UnsupportedMimeTypeException,
+	LocalFileException,
+	MissingMetadataException,
 } = require("./server/exceptions");
 
 const log = getLogger("infoextract");
