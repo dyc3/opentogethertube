@@ -28,12 +28,60 @@ class ServiceAdapter {
   }
 
   /**
+   * Determines whether a given URL points to a collection of videos.
+   * @param {string} url
+   * @returns {boolean}
+   */
+  isCollectionURL() {
+    throw `Service ${this.serviceId} does not implement method isCollectionURL`;
+  }
+
+  /**
+   * Returns the video ID from a URL.
+   * @param {string} url
+   * @returns {string}
+   */
+  getVideoId() {
+    throw `Service ${this.serviceId} does not implement method getVideoId`;
+  }
+
+  /**
    * Fetches video metadata from the API.
-   * @param {string} videoId
+   * @param {string} url
+   * @param {string[]} properties
    * @returns {Promise}
    */
-  getVideoInfo(videoId, onlyProperties) {
-    return this._getVideoInfo(videoId, onlyProperties);
+  fetchVideoInfo() {
+    throw `Service ${this.serviceId} does not implement method getVideoInfo`;
+  }
+
+  /**
+   * Fetches video metadata for a list of IDs.
+   * @param {string[]} ids
+   * @param {string[]} properties
+   * @returns {Promise}
+   */
+  fetchManyVideoInfo() {
+    throw `Service ${this.serviceId} does not implement method getManyVideoInfo`;
+  }
+
+  /**
+   * Fetches all videos associated with a URL.
+   * @param {string} url
+   * @param {string[]} properties
+   * @returns {Promise}
+   */
+  resolveURL() {
+    throw `Service ${this.serviceId} does not implement method resolveURL`;
+  }
+
+  /**
+   * Searches a video service.
+   * @param {string} query
+   * @returns {Promise}
+   */
+  searchVideos() {
+    return [];
   }
 }
 

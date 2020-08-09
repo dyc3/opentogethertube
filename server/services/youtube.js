@@ -31,7 +31,7 @@ class YouTubeAdapter extends ServiceAdapter {
     return url.host.endsWith("youtube.com") || url.host.endsWith("youtu.be");
   }
 
-  _getVideoInfo(ids, onlyProperties = null) {
+  fetchVideoInfo(ids, onlyProperties = null) {
     if (!Array.isArray(ids)) {
       return Promise.reject(
         new Error("'ids' must be an array of youtube video IDs.")
@@ -177,19 +177,19 @@ class YouTubeAdapter extends ServiceAdapter {
   async getVideoLengthFallback(id) {
     let url = `https://youtube.com/watch?v=${id}`;
     let res = await this.fallbackApi.get(url);
-		let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
-		for (let r = 0; r < regexs.length; r++) {
-			let matches = res.data.match(regexs[r]);
-			if (matches == null) {
-				continue;
-			}
-			const match = matches[0];
-			let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
-			log.silly(`MATCH ${match}`);
-			log.debug(`EXTRACTED ${extracted}`);
-			return parseInt(extracted);
-		}
-		return null;
+    let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
+    for (let r = 0; r < regexs.length; r++) {
+      let matches = res.data.match(regexs[r]);
+      if (matches == null) {
+        continue;
+      }
+      const match = matches[0];
+      let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
+      log.silly(`MATCH ${match}`);
+      log.debug(`EXTRACTED ${extracted}`);
+      return parseInt(extracted);
+    }
+    return null;
   }
 }
 
