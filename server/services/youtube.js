@@ -1,4 +1,5 @@
 const URL = require("url");
+const QueryString = require("querystring");
 const axios = require("axios");
 const _ = require("lodash");
 const ServiceAdapter = require("../serviceadapter");
@@ -29,6 +30,17 @@ class YouTubeAdapter extends ServiceAdapter {
   canHandleLink(link) {
     const url = URL.parse(link);
     return url.host.endsWith("youtube.com") || url.host.endsWith("youtu.be");
+  }
+
+  getVideoId(str) {
+    const url = URL.parse(str);
+    if (url.host.endsWith("youtu.be")) {
+      return url.pathname.replace("/", "").trim();
+    }
+    else {
+      const query = QueryString.parse(url.query);
+      return query.v.trim();
+    }
   }
 
   fetchVideoInfo(ids, onlyProperties = null) {
