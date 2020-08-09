@@ -1,4 +1,4 @@
-// const _ = require("lodash");
+const URL = require("url");
 const DailyMotionAdapter = require("./services/dailymotion");
 const GoogleDriveAdapter = require("./services/googledrive");
 const VimeoAdapter = require("./services/vimeo");
@@ -19,6 +19,10 @@ const adapters = [
   new DirectVideoAdapter(),
 ];
 
+function isURL(str) {
+  return URL.parse(str).host != null;
+}
+
 async function getCachedVideo(service, videoId) {
   try {
     const result = await storage.getVideoInfo(service, videoId);
@@ -36,6 +40,15 @@ async function getCachedVideo(service, videoId) {
   catch (e) {
     log.error(`Failed to get video metadata: ${e}`);
     throw e;
+  }
+}
+
+async function updateCache(videos) {
+  if (Array.isArray(videos)) {
+    return storage.updateManyVideoInfo(videos);
+  }
+  else {
+    return storage.updateVideoInfo(videos);
   }
 }
 
@@ -60,7 +73,7 @@ async function getVideoInfo(service, videoId) {
     try {
       const fetchedVideo = adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
       const video = Video.merge(cachedVideo, fetchedVideo);
-      storage.updateVideoInfo(video);
+      updateCache(video);
       return video;
     }
     catch (e) {
@@ -82,7 +95,29 @@ async function getVideoInfo(service, videoId) {
   }
 }
 
-function resolveVideoQuery(input, searchService) {
+async function resolveVideoQuery(query, searchService) {
+  const results = [];
+
+  if (isURL(query)) {
+    const adapter = getServiceAdapterForURL(query);
+
+    if (!adapter.isCollectionURL(query)) {
+      return getVideoInfo(
+        adapter.serviceId,
+        adapter.getVideoId(query)
+      );
+    }
+
+    const fetchResults = await adapter.resolveURL(query);
+    results.push(...fetchResults);
+  }
+  else {
+    const searchResults = await searchVideos(searchService, query);
+    results.push(...searchResults);
+  }
+
+  updateCache(results);
+  return results;
 }
 
 function searchVideos(service, query) {
