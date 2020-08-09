@@ -14,7 +14,7 @@ const log = getLogger("infoextract");
 
 const adapters = [
   new DailyMotionAdapter(),
-  new GoogleDriveAdapter(),
+  new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY),
   new VimeoAdapter(),
   new YouTubeAdapter(process.env.YOUTUBE_API_KEY),
   new DirectVideoAdapter(),
