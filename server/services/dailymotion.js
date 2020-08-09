@@ -1,13 +1,28 @@
 const URL = require("url");
+const axios = require("axios");
 const ServiceAdapter = require("../serviceadapter");
 const { InvalidVideoIdException } = require("../exceptions");
+const Video = require("../../common/video");
 
 class DailyMotionAdapter extends ServiceAdapter {
   static SERVICE_ID = "dailymotion";
 
+  api = axios.create({
+    baseURL: "https://api.dailymotion.com",
+  });
+
   canHandleLink(link) {
     const url = URL.parse(link);
     return url.host.endsWith("dailymotion.com") || url.host.endsWith("dai.ly");
+  }
+
+  isCollectionURL() {
+    return false;
+  }
+
+  getVideoId(link) {
+    const url = URL.parse(link);
+    return url.pathname.split("/").slice(-1)[0].trim();
   }
 
   async fetchVideoInfo(videoId) {
@@ -16,6 +31,23 @@ class DailyMotionAdapter extends ServiceAdapter {
         new InvalidVideoIdException(this.serviceId, videoId)
       );
     }
+
+    const result = await this.api.get(`/video/${videoId}`, {
+      params: {
+        fields: "title,description,thumbnail_url,duration",
+      },
+    });
+
+    const video = new Video({
+      service: this.serviceId,
+      id: videoId,
+      title: result.data.title,
+      description: result.data.description,
+      thumbnail: result.data.thumbnail_url,
+      length: result.data.duration,
+    });
+
+    return video;
   }
 }
 
