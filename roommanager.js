@@ -3,7 +3,7 @@ const _ = require("lodash");
 const moment = require("moment");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const NanoTimer = require("nanotimer");
-const InfoExtract = require("./infoextract");
+const InfoExtract = require("./server/infoextractor");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
@@ -197,20 +197,9 @@ class Room {
 		let queueItem = new Video();
 
 		if (video.hasOwnProperty("url")) {
-			queueItem.service = InfoExtract.getService(video.url);
-
-			if (queueItem.service === "youtube") {
-				queueItem.id = InfoExtract.getVideoIdYoutube(video.url);
-			}
-			else if (queueItem.service === "vimeo") {
-				queueItem.id = InfoExtract.getVideoIdVimeo(video.url);
-			}
-			else if (queueItem.service === "dailymotion") {
-				queueItem.id = InfoExtract.getVideoIdDailymotion(video.url);
-			}
-			else if (queueItem.service === "googledrive") {
-				queueItem.id = InfoExtract.getVideoIdGoogledrive(video.url);
-			}
+			let adapter = InfoExtract.getServiceAdapterForURL(video.url);
+			queueItem.service = adapter.serviceId;
+			queueItem.id = adapter.getVideoId(video.url);
 		}
 		else {
 			queueItem.service = video.service;

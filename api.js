@@ -3,7 +3,7 @@ const rateLimit = require("express-rate-limit");
 const RateLimitStore = require('rate-limit-redis');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
-const InfoExtract = require("./infoextract");
+const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
 const { redisClient } = require('./redisclient.js');
 
