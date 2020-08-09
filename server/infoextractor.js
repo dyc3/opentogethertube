@@ -104,7 +104,9 @@ async function getVideoInfo(service, videoId) {
     try {
       const fetchedVideo = await adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
       const video = Video.merge(cachedVideo, fetchedVideo);
-      updateCache(video);
+      if (adapter.isCacheSafe) {
+        updateCache(video);
+      }
       return video;
     }
     catch (e) {
@@ -157,7 +159,10 @@ async function getManyVideoInfo(videos) {
 
   const flattened = results.flat();
   const result = videos.map(video => flattened.find(v => v.id === video.id));
-  updateCache(result);
+  updateCache(result.filter(video => {
+    const adapter = getServiceAdapter(video.service);
+    return adapter.isCacheSafe;
+  }));
   return result;
 }
 

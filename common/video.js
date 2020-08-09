@@ -27,9 +27,6 @@ class Video {
 			delete this.description;
 			delete this.url;
 		}
-		else if (["direct"].includes(this.service)) {
-			delete this.id;
-		}
 	}
 
 	/**
