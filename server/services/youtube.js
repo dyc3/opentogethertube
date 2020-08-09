@@ -33,6 +33,12 @@ class YouTubeAdapter extends ServiceAdapter {
     return url.host.endsWith("youtube.com") || url.host.endsWith("youtu.be");
   }
 
+  isCollectionURL(link) {
+    const url = URL.parse(link);
+    const query = QueryString.parse(url.query);
+    return url.pathname.startsWith("/channel") || url.pathname.startsWith("/playlist") || query.list != null;
+  }
+
   getVideoId(str) {
     const url = URL.parse(str);
     if (url.host.endsWith("youtu.be")) {
@@ -44,7 +50,19 @@ class YouTubeAdapter extends ServiceAdapter {
     }
   }
 
-  fetchVideoInfo(ids, onlyProperties = null) {
+  async fetchVideoInfo(id, onlyProperties = null) {
+    log.debug(onlyProperties);
+    return (await this.dings([id], onlyProperties))[id];
+  }
+
+  fetchManyVideoInfo(requests) {
+    const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
+    return Promise.all(Object.values(groupedByMissingInfo).map(group => {
+      return this.dings(group.map(request => request.id), group[0].missingInfo);
+    }));
+  }
+
+  dings(ids, onlyProperties = null) {
     if (!Array.isArray(ids)) {
       ids = [ids];
     }
@@ -183,13 +201,6 @@ class YouTubeAdapter extends ServiceAdapter {
           }
         });
     });
-  }
-
-  fetchManyVideoInfo(requests) {
-    const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
-    return Promise.all(Object.values(groupedByMissingInfo).map(group => {
-      return this.fetchVideoInfo(group.map(request => request.id), group[0].missingInfo);
-    }));
   }
 
   async getVideoLengthFallback(id) {

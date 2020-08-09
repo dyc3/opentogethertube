@@ -38,7 +38,7 @@ async function getCachedVideo(service, videoId) {
     const video = new Video(result);
     const missingInfo = storage
       .getVideoInfoFields(video.service)
-      .filter(p => !video.hasOwnProperty(p));
+      .filter(p => video[p] == null);
 
     if (video.mime && !this.isSupportedMimeType(video.mime)) {
       throw new UnsupportedMimeTypeException(video.mime);
@@ -95,14 +95,14 @@ async function getVideoInfo(service, videoId) {
   const adapter = getServiceAdapter(service);
   const [cachedVideo, missingInfo] = await getCachedVideo(service, videoId);
 
-  if (missingInfo === 0) {
+  if (missingInfo.length === 0) {
     return cachedVideo;
   }
   else {
     log.warn(`MISSING INFO for ${cachedVideo.service}:${cachedVideo.id}: ${missingInfo}`);
 
     try {
-      const fetchedVideo = adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
+      const fetchedVideo = await adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
       const video = Video.merge(cachedVideo, fetchedVideo);
       updateCache(video);
       return video;
@@ -134,7 +134,7 @@ async function getManyVideoInfo(videos) {
     const requests = cachedVideos
       .map(video => ({
         id: video.id,
-        missingInfo: storage.getVideoInfoFields(video.service).filter(p => !video.hasOwnProperty(p)),
+        missingInfo: storage.getVideoInfoFields(video.service).filter(p => video[p] == null),
       }))
       .filter(request => request.missingInfo.length > 0);
 

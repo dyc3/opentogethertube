@@ -372,7 +372,7 @@ module.exports = function(_roommanager, storage) {
 	let addPreviewLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:AddPreview" }), windowMs: 40 * 1000, max: 20, message: "Wait a little bit longer before requesting more add previews." });
 	router.get("/data/previewAdd", process.env.NODE_ENV === "production" ? addPreviewLimiter : (req, res, next) => next(), (req, res) => {
 		log.info(`Getting queue add preview for ${req.query.input}`);
-		InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
+		InfoExtract.resolveVideoQuery(req.query.input.trim(), "youtube").then(result => {
 			res.json(result);
 			log.info(`Sent add preview response with ${result.length} items`);
 		}).catch(err => {
