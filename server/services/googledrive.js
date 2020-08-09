@@ -31,7 +31,7 @@ class GoogleDriveAdapter extends ServiceAdapter {
   }
 
   isFolderURL(url) {
-    return url.pathname.startsWith("/drive"));
+    return url.pathname.startsWith("/drive");
   }
 
   getVideoId(link) {
@@ -126,11 +126,11 @@ class GoogleDriveAdapter extends ServiceAdapter {
   parseFile(file) {
     return new Video({
       service: "googledrive",
-      id: result.data.id,
-      title: result.data.name,
-      thumbnail: result.data.thumbnailLink,
-      length: Math.ceil(result.data.videoMediaMetadata.durationMillis / 1000),
-      mime: result.data.mimeType,
+      id: file.id,
+      title: file.name,
+      thumbnail: file.thumbnailLink,
+      length: Math.ceil(file.videoMediaMetadata.durationMillis / 1000),
+      mime: file.mimeType,
     });
   }
 }
