@@ -1,4 +1,5 @@
 const URL = require("url");
+const _ = require("lodash");
 const DailyMotionAdapter = require("./services/dailymotion");
 const GoogleDriveAdapter = require("./services/googledrive");
 const VimeoAdapter = require("./services/vimeo");
@@ -125,6 +126,41 @@ async function getVideoInfo(service, videoId) {
   }
 }
 
+async function getManyVideoInfo(videos) {
+  const grouped = _.groupBy(videos, "service");
+  const results = await Promise.all(Object.entries(grouped).map(async ([service, serviceVideos]) => {
+    // Handle each service separately
+    const cachedVideos = await storage.getManyVideoInfo(serviceVideos);
+    const requests = cachedVideos
+      .map(video => ({
+        id: video.id,
+        missingInfo: storage.getVideoInfoFields(video.service).filter(p => !video.hasOwnProperty(p)),
+      }))
+      .filter(request => request.missingInfo.length > 0);
+
+    if (requests.length === 0) {
+      return cachedVideos;
+    }
+
+    const adapter = getServiceAdapter(service);
+    const fetchedVideos = await adapter.getManyVideoInfo(requests);
+    return cachedVideos.map(video => {
+      const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
+      if (fetchedVideo) {
+        return Video.merge(video, fetchedVideo);
+      }
+      else {
+        return video;
+      }
+    });
+  }));
+
+  const flattened = results.flat();
+  const result = videos.map(video => flattened.find(v => v.id === video.id));
+  updateCache(result);
+  return result;
+}
+
 /**
  * Turns a search query into a list of videos, regardless of whether it contains a link to a single
  * video or a video collection, or search terms to run against an API. If query is a URL, a service
@@ -176,6 +212,7 @@ module.exports = {
   getServiceAdapter,
   getServiceAdapterForURL,
   getVideoInfo,
+  getManyVideoInfo,
   resolveVideoQuery,
   searchVideos,
 };

@@ -57,8 +57,7 @@ class ServiceAdapter {
 
   /**
    * Fetches video metadata for a list of IDs.
-   * @param {string[]} ids
-   * @param {string[]} properties
+   * @param {Array} requests List of objects with id and missingInfo keys
    * @returns {Promise}
    */
   fetchManyVideoInfo() {

@@ -11,6 +11,7 @@ const { getLogger } = require("../../logger");
 const moment = require("moment");
 const Video = require("../../common/video");
 const storage = require("../../storage");
+const { request } = require("express");
 
 const log = getLogger("youtube");
 
@@ -45,9 +46,7 @@ class YouTubeAdapter extends ServiceAdapter {
 
   fetchVideoInfo(ids, onlyProperties = null) {
     if (!Array.isArray(ids)) {
-      return Promise.reject(
-        new Error("'ids' must be an array of youtube video IDs.")
-      );
+      ids = [ids];
     }
 
     for (const id of ids) {
@@ -184,6 +183,13 @@ class YouTubeAdapter extends ServiceAdapter {
           }
         });
     });
+  }
+
+  fetchManyVideoInfo(requests) {
+    const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
+    return Promise.all(Object.values(groupedByMissingInfo).map(group => {
+      return this.fetchVideoInfo(group.map(request => request.id), group[0].missingInfo);
+    }));
   }
 
   async getVideoLengthFallback(id) {
