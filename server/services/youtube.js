@@ -51,17 +51,17 @@ class YouTubeAdapter extends ServiceAdapter {
 
   async fetchVideoInfo(id, onlyProperties = null) {
     log.debug(onlyProperties);
-    return (await this.dings([id], onlyProperties))[id];
+    return (await this.videoApiRequest([id], onlyProperties))[id];
   }
 
   fetchManyVideoInfo(requests) {
     const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
     return Promise.all(Object.values(groupedByMissingInfo).map(group => {
-      return this.dings(group.map(request => request.id), group[0].missingInfo);
+      return this.videoApiRequest(group.map(request => request.id), group[0].missingInfo);
     }));
   }
 
-  dings(ids, onlyProperties = null) {
+  videoApiRequest(ids, onlyProperties = null) {
     if (!Array.isArray(ids)) {
       ids = [ids];
     }
