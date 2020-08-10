@@ -11,7 +11,6 @@ const { getLogger } = require("../../logger");
 const moment = require("moment");
 const Video = require("../../common/video");
 const storage = require("../../storage");
-const { request } = require("express");
 
 const log = getLogger("youtube");
 
