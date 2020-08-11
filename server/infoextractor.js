@@ -146,7 +146,7 @@ async function getManyVideoInfo(videos) {
     }
 
     const adapter = getServiceAdapter(service);
-    const fetchedVideos = await adapter.getManyVideoInfo(requests);
+    const fetchedVideos = await adapter.fetchManyVideoInfo(requests);
     return cachedVideos.map(video => {
       const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
       if (fetchedVideo) {
@@ -209,9 +209,11 @@ async function resolveVideoQuery(query, searchService) {
  * @param {string} query
  * @returns {Video[]}
  */
-function searchVideos(service, query) {
+async function searchVideos(service, query) {
   const adapter = getServiceAdapter(service);
-  return adapter.searchVideos(query);
+  const searchResults = await adapter.searchVideos(query);
+  const completeResults = await getManyVideoInfo(searchResults);
+  return completeResults;
 }
 
 module.exports = {

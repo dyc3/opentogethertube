@@ -80,11 +80,21 @@ class YouTubeAdapter extends ServiceAdapter {
     return (await this.videoApiRequest([id], onlyProperties))[id];
   }
 
-  fetchManyVideoInfo(requests) {
+  async fetchManyVideoInfo(requests) {
     const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
-    return Promise.all(Object.values(groupedByMissingInfo).map(group => {
+    const groups = await Promise.all(Object.values(groupedByMissingInfo).map(group => {
       return this.videoApiRequest(group.map(request => request.id), group[0].missingInfo);
     }));
+    const results = [];
+    for (const request of requests) {
+      for (const group of groups) {
+        if (group[request.id]) {
+          results.push(group[request.id]);
+          continue;
+        }
+      }
+    }
+    return results;
   }
 
   async fetchChannelVideos(channelData) {
@@ -399,6 +409,43 @@ class YouTubeAdapter extends ServiceAdapter {
     }
     else {
       return { user: channelId };
+    }
+  }
+
+  async searchVideos(query, options = {}) {
+    options = _.defaults(options, {
+      maxResults: 8,
+    });
+
+    const params = {
+      key: this.apiKey,
+      part: "id",
+      type: "video",
+      maxResults: options.maxResults,
+      safeSearch: "none",
+      videoEmbeddable: true,
+      videoSyndicated: true,
+      q: query,
+    };
+    if (options.fromUser) {
+      params.quotaUser = options.fromUser;
+    }
+
+    try {
+      const res = await this.api.get("/search", { params });
+      const results = res.data.items.map(searchResult => new Video({
+        service: this.serviceId,
+        id: searchResult.id.videoId,
+      }));
+      return results;
+    }
+    catch (err) {
+      if (err.response && err.response.status === 403) {
+        throw new OutOfQuotaException(this.serviceId);
+      }
+      else {
+        throw err;
+      }
     }
   }
 }
