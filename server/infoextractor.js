@@ -67,6 +67,31 @@ async function updateCache(videos) {
   }
 }
 
+function getCachedSearchResults(service, query) {
+  return new Promise((resolve, reject) => {
+    redisClient.get(`search:${service}:${query}`, (err, value) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      if (!value) {
+        resolve(null);
+        return;
+      }
+
+      resolve(JSON.parse(value));
+    });
+  });
+}
+
+function cacheSearchResults(service, query, results) {
+  redisClient.set(`search:${service}:${query}`, JSON.stringify(results), "EX", 60 * 60 * 24, (err) => {
+    if (err) {
+      log.error(`Failed to cache search results: ${err}`);
+    }
+  });
+}
+
 /**
  * Returns the adapter instance for a given service name.
  * @param {string} service
@@ -210,9 +235,17 @@ async function resolveVideoQuery(query, searchService) {
  * @returns {Video[]}
  */
 async function searchVideos(service, query) {
+  const cachedResults = await getCachedSearchResults(service, query);
+  if (cachedResults) {
+    log.info("Using cached results for search");
+    const completeResults = await getManyVideoInfo(cachedResults);
+    return completeResults;
+  }
+
   const adapter = getServiceAdapter(service);
   const searchResults = await adapter.searchVideos(query);
   const completeResults = await getManyVideoInfo(searchResults);
+  cacheSearchResults(service, query, searchResults);
   return completeResults;
 }
 

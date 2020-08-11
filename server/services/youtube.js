@@ -85,15 +85,7 @@ class YouTubeAdapter extends ServiceAdapter {
     const groups = await Promise.all(Object.values(groupedByMissingInfo).map(group => {
       return this.videoApiRequest(group.map(request => request.id), group[0].missingInfo);
     }));
-    const results = [];
-    for (const request of requests) {
-      for (const group of groups) {
-        if (group[request.id]) {
-          results.push(group[request.id]);
-          continue;
-        }
-      }
-    }
+    const results = Object.values(groups.flat()[0]);
     return results;
   }
 
