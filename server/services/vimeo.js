@@ -8,11 +8,13 @@ const { getLogger } = require("../../logger");
 const log = getLogger("vimeo");
 
 class VimeoAdapter extends ServiceAdapter {
-  static SERVICE_ID = "vimeo";
-
   api = axios.create({
     baseURL: "https://vimeo.com/api/oembed.json",
   });
+
+  get serviceId() {
+    return "vimeo";
+  }
 
   canHandleLink(link) {
     const url = URL.parse(link);

@@ -10,7 +10,9 @@ const Video = require("../../common/video");
 const log = getLogger("direct");
 
 class DirectVideoAdapter extends ServiceAdapter {
-  static SERVICE_ID = "direct";
+  get serviceId() {
+    return "direct";
+  }
 
   get isCacheSafe() {
     return false;

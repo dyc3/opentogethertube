@@ -15,8 +15,6 @@ const storage = require("../../storage");
 const log = getLogger("youtube");
 
 class YouTubeAdapter extends ServiceAdapter {
-  static SERVICE_ID = "youtube";
-
   constructor(apiKey) {
     super();
 
@@ -25,6 +23,10 @@ class YouTubeAdapter extends ServiceAdapter {
       baseURL: "https://www.googleapis.com/youtube/v3",
     });
     this.fallbackApi = axios.create();
+  }
+
+  get serviceId() {
+    return "youtube";
   }
 
   canHandleLink(link) {

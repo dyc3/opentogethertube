@@ -5,11 +5,7 @@ class ServiceAdapter {
    * A string that identifies this service adapter.
    */
   get serviceId() {
-    if (this.constructor.SERVICE_ID == null) {
-      throw new IncompleteServiceAdapterException(`Service adapter ${this.constructor.name} does note have a serviceId property`);
-    }
-
-    return this.constructor.SERVICE_ID;
+    throw new IncompleteServiceAdapterException(`Service adapter ${this.constructor.name} does note have a serviceId property`);
   }
 
   /**

@@ -5,11 +5,13 @@ const { InvalidVideoIdException } = require("../exceptions");
 const Video = require("../../common/video");
 
 class DailyMotionAdapter extends ServiceAdapter {
-  static SERVICE_ID = "dailymotion";
-
   api = axios.create({
     baseURL: "https://api.dailymotion.com",
   });
+
+  get serviceId() {
+    return "dailymotion";
+  }
 
   canHandleLink(link) {
     const url = URL.parse(link);

@@ -9,8 +9,6 @@ const { getLogger } = require("../../logger");
 const log = getLogger("googledrive");
 
 class GoogleDriveAdapter extends ServiceAdapter {
-  static SERVICE_ID = "googledrive";
-
   api = axios.create({
     baseURL: "https://www.googleapis.com/drive/v3",
   });
@@ -18,6 +16,10 @@ class GoogleDriveAdapter extends ServiceAdapter {
   constructor(apiKey) {
     super();
     this.apiKey = apiKey;
+  }
+
+  get serviceId() {
+    return "googledrive";
   }
 
   canHandleLink(link) {
