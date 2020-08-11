@@ -15,7 +15,7 @@ const storage = require("../../storage");
 const log = getLogger("youtube");
 
 class YouTubeAdapter extends ServiceAdapter {
-  constructor(apiKey) {
+  constructor(apiKey, redisClient) {
     super();
 
     this.apiKey = apiKey;
@@ -23,6 +23,8 @@ class YouTubeAdapter extends ServiceAdapter {
       baseURL: "https://www.googleapis.com/youtube/v3",
     });
     this.fallbackApi = axios.create();
+    this.redisClient = redisClient;
+    this.maxResults = 30;
   }
 
   get serviceId() {
@@ -37,7 +39,7 @@ class YouTubeAdapter extends ServiceAdapter {
   isCollectionURL(link) {
     const url = URL.parse(link);
     const query = QueryString.parse(url.query);
-    return url.pathname.startsWith("/channel") || url.pathname.startsWith("/playlist") || query.list != null;
+    return url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/") || url.pathname.startsWith("/playlist") || query.list != null;
   }
 
   getVideoId(str) {
@@ -51,8 +53,30 @@ class YouTubeAdapter extends ServiceAdapter {
     }
   }
 
+  async resolveURL(link, onlyProperties) {
+    const url = URL.parse(link);
+    const query = QueryString.parse(url.query);
+
+    if (url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/")) {
+      return this.fetchChannelVideos(this.getChannelId(url));
+    }
+    else if (url.pathname === "/watch") {
+      if (query.list) {
+        return this.fetchVideoWithPlaylist(query.v, query.list);
+      }
+      else {
+        return this.fetchVideoInfo(query.v, onlyProperties);
+      }
+    }
+    else if (url.pathname === "/playlist") {
+      return this.fetchPlaylistVideos(query.list);
+    }
+    else if (url.host.endsWith("youtu.be")) {
+      return this.fetchVideoInfo(url.pathname, onlyProperties);
+    }
+  }
+
   async fetchVideoInfo(id, onlyProperties = null) {
-    log.debug(onlyProperties);
     return (await this.videoApiRequest([id], onlyProperties))[id];
   }
 
@@ -61,6 +85,152 @@ class YouTubeAdapter extends ServiceAdapter {
     return Promise.all(Object.values(groupedByMissingInfo).map(group => {
       return this.videoApiRequest(group.map(request => request.id), group[0].missingInfo);
     }));
+  }
+
+  async fetchChannelVideos(channelData) {
+    const cachedPlaylistId = await this.getCachedPlaylistId(channelData);
+    if (cachedPlaylistId) {
+      log.info("Using cached uploads playlist id");
+      return this.fetchPlaylistVideos(cachedPlaylistId);
+    }
+
+    const channelIdProp = channelData.channel ? "id" : "forUsername";
+    const channelIdValue = channelData.channel ? channelData.channel : channelData.user;
+    try {
+      const res = await this.api.get("/channels", {
+        params: {
+          key: this.apiKey,
+          part: "contentDetails",
+          [channelIdProp]: channelIdValue,
+        },
+      });
+
+      const uploadsPlaylistId = res.data.items[0].contentDetails.relatedPlaylists.uploads;
+      this.cachePlaylistId(
+        {
+          user: channelData.user,
+          channel: res.data.items[0].id,
+        },
+        uploadsPlaylistId
+      );
+
+      return this.fetchPlaylistVideos(uploadsPlaylistId);
+    }
+    catch (err) {
+      if (err.response && err.response.status === 403) {
+        log.error("Error when getting channel upload playlist ID: Out of quota");
+        throw new OutOfQuotaException(this.serviceId);
+      }
+      else {
+        log.error(`Error when getting channel upload playlist ID: ${err}`);
+        throw err;
+      }
+    }
+  }
+
+  getCachedPlaylistId(channelData) {
+    return new Promise((resolve, reject) => {
+      const redisKey = `ytchannel${_.keys(channelData)[0]}:${_.values(channelData)[0]})`;
+      this.redisClient.get(redisKey, (err, value) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (!value) {
+          resolve(null);
+          return;
+        }
+        resolve(value);
+      });
+    });
+  }
+
+  cachePlaylistId(channelData, playlistId) {
+    if (channelData.channel) {
+      const idProp = "channel";
+      const idValue = channelData[idProp];
+      this.redisClient.set(`ytchannel:${idProp}:${idValue}`, playlistId, (err) => {
+        if (err) {
+          log.error(`Failed to cache playlist ID: ${err}`);
+        }
+        else {
+          log.info(`Cached playlist ytchannel:${idProp}:${idValue}`);
+        }
+      });
+    }
+    if (channelData.user) {
+      const idProp = "user";
+      const idValue = channelData[idProp];
+      this.redisClient.set(`ytchannel:${idProp}:${idValue}`, playlistId, (err) => {
+        if (err) {
+          log.error(`Failed to cache playlist ID: ${err}`);
+        }
+        else {
+          log.info(`Cached playlist ytchannel:${idProp}:${idValue}`);
+        }
+      });
+    }
+  }
+
+  async fetchPlaylistVideos(playlistId) {
+    try {
+      const res = await this.api.get("/playlistItems", {
+        params: {
+          key: this.apiKey,
+          part: "snippet",
+          playlistId: playlistId,
+          maxResults: this.maxResults,
+        },
+      });
+
+      const results = [];
+      for (const item of res.data.items) {
+        const video = new Video({
+          service: this.serviceId,
+          id: item.snippet.resourceId.videoId,
+          title: item.snippet.title,
+          description: item.snippet.description,
+        });
+        if (item.snippet.thumbnails) {
+          if (item.snippet.thumbnails.medium) {
+            video.thumbnail = item.snippet.thumbnails.medium.url;
+          }
+          else {
+            video.thumbnail = item.snippet.thumbnails.default.url;
+          }
+        }
+        results.push(video);
+      }
+
+      return results;
+    }
+    catch (err) {
+      if (err.response && err.response.status === 403) {
+        throw new OutOfQuotaException(this.serviceId);
+      }
+      else {
+        throw err;
+      }
+    }
+  }
+
+  async fetchVideoWithPlaylist(videoId, playlistId) {
+    const playlist = await this.fetchPlaylistVideos(playlistId);
+    let highlighted = false;
+    playlist.forEach(video => {
+      if (video.id === videoId) {
+        highlighted = true;
+        video.highlight = true;
+      }
+    });
+
+    if (!highlighted) {
+      const video = await this.fetchVideoInfo(videoId);
+      video.highlight = true;
+      playlist.unshift(video);
+    }
+
+    return playlist;
   }
 
   videoApiRequest(ids, onlyProperties = null) {
@@ -220,6 +390,16 @@ class YouTubeAdapter extends ServiceAdapter {
       return parseInt(extracted);
     }
     return null;
+  }
+
+  getChannelId(url) {
+    const channelId = (/\/(?!(?:c(?:|hannel)|user)\/)([a-z0-9_-]+)/gi).exec(url.path)[1];
+    if (url.pathname.startsWith("/channel/")) {
+      return { channel: channelId };
+    }
+    else {
+      return { user: channelId };
+    }
   }
 }
 

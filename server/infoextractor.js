@@ -9,6 +9,7 @@ const storage = require("../storage");
 const Video = require("../common/video");
 const { UnsupportedMimeTypeException, OutOfQuotaException } = require("./exceptions");
 const { getLogger } = require("../logger");
+const { redisClient } = require("../redisclient");
 
 const log = getLogger("infoextract");
 
@@ -16,7 +17,7 @@ const adapters = [
   new DailyMotionAdapter(),
   new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY),
   new VimeoAdapter(),
-  new YouTubeAdapter(process.env.YOUTUBE_API_KEY),
+  new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
   new DirectVideoAdapter(),
 ];
 
