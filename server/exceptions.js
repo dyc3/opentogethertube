@@ -74,6 +74,9 @@ class MissingMetadataException extends Error {
 	}
 }
 
+class IncompleteServiceAdapterException extends Error {
+}
+
 module.exports = {
   UnsupportedServiceException,
   InvalidAddPreviewInputException,
@@ -82,5 +85,6 @@ module.exports = {
   FeatureDisabledException,
   UnsupportedMimeTypeException,
   LocalFileException,
-  MissingMetadataException,
+	MissingMetadataException,
+	IncompleteServiceAdapterException,
 };

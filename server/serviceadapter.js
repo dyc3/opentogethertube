@@ -1,10 +1,12 @@
+const { IncompleteServiceAdapterException } = require("./exceptions");
+
 class ServiceAdapter {
   /**
    * A string that identifies this service adapter.
    */
   get serviceId() {
     if (this.constructor.SERVICE_ID == null) {
-      throw `Service adapter ${this.constructor.name} does not have a static SERVICE_ID property`;
+      throw new IncompleteServiceAdapterException(`Service adapter ${this.constructor.name} does note have a serviceId property`);
     }
 
     return this.constructor.SERVICE_ID;
@@ -33,7 +35,7 @@ class ServiceAdapter {
    * @returns {boolean}
    */
   isCollectionURL() {
-    throw `Service ${this.serviceId} does not implement method isCollectionURL`;
+    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method isCollectionURL`);
   }
 
   /**
@@ -42,7 +44,7 @@ class ServiceAdapter {
    * @returns {string}
    */
   getVideoId() {
-    throw `Service ${this.serviceId} does not implement method getVideoId`;
+    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getVideoId`);
   }
 
   /**
@@ -52,7 +54,7 @@ class ServiceAdapter {
    * @returns {Promise}
    */
   fetchVideoInfo() {
-    throw `Service ${this.serviceId} does not implement method getVideoInfo`;
+    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getVideoInfo`);
   }
 
   /**
@@ -61,7 +63,7 @@ class ServiceAdapter {
    * @returns {Promise}
    */
   fetchManyVideoInfo() {
-    throw `Service ${this.serviceId} does not implement method getManyVideoInfo`;
+    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getManyVideoInfo`);
   }
 
   /**
@@ -71,7 +73,7 @@ class ServiceAdapter {
    * @returns {Promise}
    */
   resolveURL() {
-    throw `Service ${this.serviceId} does not implement method resolveURL`;
+    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method resolveURL`);
   }
 
   /**
