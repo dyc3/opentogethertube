@@ -57,7 +57,7 @@ export default new Vuex.Store({
 			}
 			state.keepAliveInterval = setInterval(() => {
 				Vue.prototype.$socket.sendObj({"action":"ping"});
-			}, 95000);
+			}, 25000);
 		},
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close", event);
