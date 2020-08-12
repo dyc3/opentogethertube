@@ -7,6 +7,7 @@ const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const DiscordStrategy = require('passport-discord').Strategy;
+const validator = require('validator');
 
 const log = getLogger("app");
 
@@ -26,6 +27,40 @@ if (!fs.existsSync(config_path)) {
 	log.error(`No config found! Things will break! ${config_path}`);
 }
 require('dotenv').config({ path: config_path });
+
+// configuration validation
+// key: config variable
+// value: object:
+//   required: bool Indicates whether or not this variable is required to function.
+//   validator: function that returns true if the value is valid
+const configValidators = {
+	HOSTNAME: { required: process.env.NODE_ENV === "production", validator: (value) => validator.isIP(value) || validator.isURL(value, { disallow_auth: true }) || value.includes("localhost") },
+	DISCORD_CLIENT_ID: { required: process.env.NODE_ENV === "production", validator: (value) => value.length >= 18 && validator.isNumeric(value, { no_symbols: true }) },
+	DISCORD_CLIENT_SECRET: { required: process.env.NODE_ENV === "production", validator: (value) => value.length >= 32 },
+	OPENTOGETHERTUBE_API_KEY: { required: false, validator: (value) => process.env.NODE_ENV !== "production" || (value !== "GENERATE_YOUR_OWN_API_KEY" && value.length >= 40) },
+	SESSION_SECRET: { required: process.env.NODE_ENV === "production", validator: (value) => process.env.NODE_ENV !== "production" || (value !== "GENERATE_YOUR_OWN_SECRET" && value.length >= 80) },
+	// eslint-disable-next-line array-bracket-newline
+	LOG_LEVEL: { required: false, validator: (value) => ["silly", "debug", "info", "warn", "error"].includes(value) },
+	YOUTUBE_API_KEY: { required: process.env.NODE_ENV === "production", validator: (value) => process.env.NODE_ENV !== "production" || value !== "API_KEY_GOES_HERE" },
+};
+
+let configCalidationFailed = false;
+for (let configVar in configValidators) {
+	const rules = configValidators[configVar];
+	if (rules.required && !process.env[configVar]) {
+		log.error(`${configVar} is required, but it was not found.`);
+		configCalidationFailed = true;
+	}
+	else if (process.env[configVar] && !rules.validator(process.env[configVar])) {
+		log.error(`${configVar} is invalid.`);
+		configCalidationFailed = true;
+	}
+}
+
+if (configCalidationFailed) {
+	log.error("Config validation FAILED! Check your config!");
+	process.exit(1);
+}
 
 if (process.env.LOG_LEVEL) {
 	log.info(`Set log level to ${process.env.LOG_LEVEL}`);
