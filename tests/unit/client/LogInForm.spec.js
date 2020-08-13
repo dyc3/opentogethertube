@@ -31,7 +31,7 @@ describe("Login form", () => {
 			vuetify,
 			stubs: ['router-link'],
 		});
-		expect(wrapper.exists).toBe(true);
+		expect(wrapper.exists()).toBe(true);
 	});
 
 	it("should have all password fields be type=password", () => {
