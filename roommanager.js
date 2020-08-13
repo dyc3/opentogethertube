@@ -676,6 +676,8 @@ class Client {
 		this.status = "?";
 		this.needsFullSync = true;
 		this.user = null;
+
+		this._actualFuckingUsername = null;
 		if (args) {
 			Object.assign(this, args);
 		}
@@ -683,6 +685,17 @@ class Client {
 
 	get username() {
 		return this.user ? this.user.username : this.session.username;
+	}
+
+	set username(value) {
+		if (this.user) {
+			this.user.username = value;
+			this.user.save();
+		}
+		else {
+			this.session.username = value;
+			this.session.save();
+		}
 	}
 
 	get isLoggedIn() {
