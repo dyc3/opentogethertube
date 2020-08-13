@@ -302,7 +302,12 @@ export default {
         this.snackbarText = `${event.userName} left the room`;
       }
       else if (event.eventType === "addToQueue") {
-        this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+        if (event.parameters.count) {
+          this.snackbarText = `${event.userName} added ${event.parameters.count} videos`;
+        }
+        else {
+          this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+        }
       }
       else if (event.eventType === "removeFromQueue") {
         this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
@@ -380,15 +385,8 @@ export default {
     sliderChange() {
       this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
     },
-    addToQueue() {
-      API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.inputAddPreview,
-      });
-    },
     addAllToQueue() {
-      for (let video of this.addPreview) {
-        API.post(`/room/${this.$route.params.roomId}/queue`, video);
-      }
+      API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.addPreview });
     },
     openEditName() {
       this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
