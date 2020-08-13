@@ -134,7 +134,7 @@ export default new Vuex.Store({
 		event(context, message) {
 			let event = message.event;
 			event.isVisible = true;
-			event.isUndoable = event.eventType === 'seek' || event.eventType === 'skip' || event.eventType === 'addToQueue' || event.eventType === 'removeFromQueue';
+			event.isUndoable = event.eventType === 'seek' || event.eventType === 'skip' || (event.eventType === 'addToQueue' && event.parameters.video) || event.eventType === 'removeFromQueue';
 			event.timeout = event.isUndoable ? 7000 : 4000;
 			if (event.eventType === 'seek' && this.state.room.events.slice(-1)[0].eventType === 'seek' && this.state.room.events.slice(-1)[0].isVisible) {
 				this.state.room.events[this.state.room.events.length - 1].parameters.position = event.parameters.position;

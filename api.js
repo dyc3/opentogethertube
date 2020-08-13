@@ -288,7 +288,14 @@ module.exports = function(_roommanager, storage) {
 	let addToQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueAdd" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before adding more videos." });
 	router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
-			if (req.body.url) {
+			if (req.body.videos) {
+				room.addManyToQueue(req.body.videos, req.session).then(success => {
+					res.json({
+						success,
+					});
+				});
+			}
+			else if (req.body.url) {
 				room.addToQueue({ url: req.body.url }, req.session).then(success => {
 					res.json({
 						success,

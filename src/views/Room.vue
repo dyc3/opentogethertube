@@ -87,7 +87,7 @@
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
-                    <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
+                    <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
                     <v-progress-circular indeterminate/>
@@ -227,6 +227,7 @@ export default {
       inputRoomSettingsQueueMode: "",
       setUsernameLoading: false,
       setUsernameFailureText: "",
+      isLoadingAddAll: false,
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -302,7 +303,12 @@ export default {
         this.snackbarText = `${event.userName} left the room`;
       }
       else if (event.eventType === "addToQueue") {
-        this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+        if (event.parameters.count) {
+          this.snackbarText = `${event.userName} added ${event.parameters.count} videos`;
+        }
+        else {
+          this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+        }
       }
       else if (event.eventType === "removeFromQueue") {
         this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
@@ -380,15 +386,11 @@ export default {
     sliderChange() {
       this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
     },
-    addToQueue() {
-      API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.inputAddPreview,
-      });
-    },
     addAllToQueue() {
-      for (let video of this.addPreview) {
-        API.post(`/room/${this.$route.params.roomId}/queue`, video);
-      }
+      this.isLoadingAddAll = true;
+      API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.addPreview }).then(() => {
+        this.isLoadingAddAll = false;
+      });
     },
     openEditName() {
       this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
