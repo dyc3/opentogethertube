@@ -677,7 +677,6 @@ class Client {
 		this.needsFullSync = true;
 		this.user = null;
 
-		this._actualFuckingUsername = null;
 		if (args) {
 			Object.assign(this, args);
 		}
