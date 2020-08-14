@@ -15,7 +15,11 @@ class DailyMotionAdapter extends ServiceAdapter {
 
   canHandleLink(link) {
     const url = URL.parse(link);
-    return url.host.endsWith("dailymotion.com") || url.host.endsWith("dai.ly");
+
+    return (
+      (url.host.endsWith("dailymotion.com") && url.pathname.startsWith("/video/")) ||
+      (url.host.endsWith("dai.ly") && url.pathname.length > 1)
+    );
   }
 
   isCollectionURL() {
