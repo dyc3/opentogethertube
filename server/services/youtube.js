@@ -33,13 +33,31 @@ class YouTubeAdapter extends ServiceAdapter {
 
   canHandleLink(link) {
     const url = URL.parse(link);
-    return url.host.endsWith("youtube.com") || url.host.endsWith("youtu.be");
+    const query = QueryString.parse(url.query);
+
+    if (url.host.endsWith("youtube.com")) {
+      return (url.pathname.startsWith("/watch") && query.v != null) ||
+        (url.pathname.startsWith("/channel/") && url.pathname.length > 9) ||
+        (url.pathname.startsWith("/user/") && url.pathname.length > 6) ||
+        (url.pathname.startsWith("/c/") && url.pathname.length > 3) ||
+        (url.pathname.startsWith("/playlist") && query.list != null);
+    }
+    else if (url.host.endsWith("youtu.be")) {
+      return url.pathname.length > 1;
+    }
+    else {
+      return false;
+    }
   }
 
   isCollectionURL(link) {
     const url = URL.parse(link);
     const query = QueryString.parse(url.query);
-    return url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/") || url.pathname.startsWith("/playlist") || query.list != null;
+    return url.pathname.startsWith("/channel/") ||
+      url.pathname.startsWith("/c/") ||
+      url.pathname.startsWith("/user/") ||
+      url.pathname.startsWith("/playlist") ||
+      query.list != null;
   }
 
   getVideoId(str) {
