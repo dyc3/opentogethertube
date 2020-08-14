@@ -18,7 +18,7 @@ class VimeoAdapter extends ServiceAdapter {
 
   canHandleLink(link) {
     const url = URL.parse(link);
-    return url.host.endsWith("vimeo.com");
+    return url.host.endsWith("vimeo.com") && /^\/\d+$/.test(url.pathname);
   }
 
   isCollectionURL() {
@@ -31,7 +31,7 @@ class VimeoAdapter extends ServiceAdapter {
   }
 
   async fetchVideoInfo(videoId) {
-    if (!/^[0-9]+$/.exec(videoId)) {
+    if (!/^\d+$/.test(videoId)) {
       return Promise.reject(
         new InvalidVideoIdException(this.serviceId, videoId)
       );
