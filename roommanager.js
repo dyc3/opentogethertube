@@ -207,7 +207,6 @@ class Room {
 		}
 
 		if (SUPPORTED_SERVICES.includes(queueItem.service)) {
-			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
@@ -236,6 +235,22 @@ class Room {
 		else {
 			return Promise.reject(`Service ${queueItem.service} not yet supported`);
 		}
+	}
+
+	async addManyToQueue(videos, session=null) {
+		videos = await InfoExtract.getManyVideoInfo(videos);
+
+		this.queue = [...this.queue, ...videos];
+		this._dirtyProps.push("queue");
+		this.update();
+		this.sync();
+
+		if (session) {
+			let client = _.find(this.clients, { session: { id: session.id } });
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, client.username, { count: videos.length }));
+		}
+
+		return true;
 	}
 
 	/**
@@ -665,6 +680,7 @@ class Client {
 		this.status = "?";
 		this.needsFullSync = true;
 		this.user = null;
+
 		if (args) {
 			Object.assign(this, args);
 		}
@@ -672,6 +688,17 @@ class Client {
 
 	get username() {
 		return this.user ? this.user.username : this.session.username;
+	}
+
+	set username(value) {
+		if (this.user) {
+			this.user.username = value;
+			this.user.save();
+		}
+		else {
+			this.session.username = value;
+			this.session.save();
+		}
 	}
 
 	get isLoggedIn() {

@@ -88,7 +88,7 @@ router.post("/", async (req, res) => {
 		});
 	}
 	log.info(`${oldUsername} changed username to ${req.body.username}`);
-	usermanager.onUserModified(req.session);
+	usermanager.onUserModified(req.session, req.body.username);
 });
 
 let logInLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:UserRegister" }), windowMs: 10 * 1000, max: 5, message: "You are doing that too much." });
@@ -524,12 +524,16 @@ let usermanager = {
 		}
 	},
 
-	onUserModified(session) {
+	onUserModified(session, newUsername=null) {
 		for (let room of roommanager.rooms) {
 			for (let client of room.clients) {
 				if (client.session.id === session.id) {
 					if (client.isLoggedIn) {
 						client.user.reload();
+					}
+					else if (newUsername) {
+						// HACK: used for unregistered users because for some reason the session doesn't want to update the username property
+						client.username = newUsername;
 					}
 					room._dirtyProps.push("users");
 					break;

@@ -19,10 +19,11 @@ describe("Home view", () => {
 	});
 
 	it("should render without failing", () => {
-		shallowMount(Home, {
+		let wrapper = shallowMount(Home, {
 			localVue,
 			vuetify,
 			stubs: ['router-link'],
 		});
+		expect(wrapper.exists()).toBe(true);
 	});
 });

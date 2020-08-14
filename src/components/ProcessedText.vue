@@ -29,6 +29,9 @@ export default {
 	methods: {
 		processText() {
 			this.content = [];
+			if (!this.text) {
+				return;
+			}
 			let urlRegex = /(http(?:|s)?:\/\/[^\s]+)/;
 			let match;
 			let index = 0;

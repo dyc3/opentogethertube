@@ -111,7 +111,7 @@
 			<v-footer>
 				<v-container pa-0>
 					<v-row no-gutters align="center" justify="center">
-						{{ new Date().getFullYear() }} -&nbsp;<a href="https://carsonmcmanus.com/">Carson McManus</a>&nbsp;- Made in America - Special Thanks to&nbsp;<a href="https://softe.club">SEC</a>&nbsp;@ Stevens
+						{{ new Date().getFullYear() }} - <a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> - Made in America - Special Thanks to <a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
 					</v-row>
 					<v-row no-gutters align="center" justify="center">
 						<router-link to="/privacypolicy">Privacy Policy</router-link>
