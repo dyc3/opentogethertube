@@ -192,6 +192,37 @@ describe('Room UI spec', () => {
     expect(overlay.find('span').text()).toEqual('Room does not exist');
   });
 
+  it('should invite link be the page URL', () => {
+    // FIXME: actually test the contents of the invite link
+    expect(wrapper.vm.inviteLink).toEqual(window.location.href);
+  });
+
+  it('should determine if the add preview link is a URL', () => {
+    jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
+
+    wrapper.setData({ inputAddPreview: "https://example.com" });
+    expect(wrapper.vm.isAddPreviewInputUrl).toEqual(true);
+
+    wrapper.setData({ inputAddPreview: "pokimane feet compilation" });
+    expect(wrapper.vm.isAddPreviewInputUrl).toEqual(false);
+  });
+
+  it('should request add previews when input is URL', () => {
+    jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
+
+    wrapper.setData({ inputAddPreview: "https://example.com" });
+    expect(wrapper.vm.requestAddPreviewDebounced).toBeCalled();
+    wrapper.vm.requestAddPreviewDebounced.mockClear();
+
+    wrapper.setData({ inputAddPreview: "       " });
+    expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
+    wrapper.vm.requestAddPreviewDebounced.mockClear();
+
+    wrapper.setData({ inputAddPreview: "how to get smaller toes" });
+    expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
+    wrapper.vm.requestAddPreviewDebounced.mockClear();
+  });
+
   describe('Keyboard controls', () => {
     it('should toggle playback when space or k is pressed', async () => {
       store = createStore();
