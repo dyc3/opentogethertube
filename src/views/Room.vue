@@ -738,6 +738,8 @@ export default {
     .video-subcontainer, .chat-container {
       width: 100%;
     }
+
+    margin: 0;
   }
 
   @media (min-width: $xl-min) {
@@ -862,6 +864,12 @@ export default {
       opacity: 1;
       font-style: normal;
     }
+  }
+}
+
+.room {
+  @media (max-width: $md-max) {
+    padding: 0;
   }
 }
 </style>
