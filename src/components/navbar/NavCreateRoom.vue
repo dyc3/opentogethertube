@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <fragment>
     <v-list-item @click="$emit('createtemp')">
       <v-list-item-icon>
         <v-icon>fas fa-plus-square</v-icon>
@@ -18,7 +18,7 @@
         <v-list-item-subtitle class="text-muted">Perfect for frequent visitors.</v-list-item-subtitle>
       </v-list-item-content>
     </v-list-item>
-  </div>
+  </fragment>
 </template>
 
 <script>

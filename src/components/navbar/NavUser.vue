@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <fragment>
     <v-btn text @click="$emit('login')" v-if="!$store.state.user">
       Log In
     </v-btn>
@@ -22,7 +22,7 @@
         </v-list-item>
       </v-list>
     </v-menu>
-  </div>
+  </fragment>
 </template>
 
 <script>
