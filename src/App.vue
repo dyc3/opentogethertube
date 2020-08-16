@@ -34,7 +34,7 @@
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" absolute temporary>
       <v-list nav dense>
-        <v-list-item-group v-model="group">
+        <v-list-item-group>
           <v-list-item to="/">
             <v-list-item-content>
               Home
