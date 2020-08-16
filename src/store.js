@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import _ from 'lodash';
 import { API } from './common-http.js';
+import moment from 'moment';
 
 Vue.use(Vuex);
 
@@ -117,6 +118,9 @@ export default new Vuex.Store({
 				else {
 					Vue.prototype.$events.emit("pauseVideo");
 				}
+			}
+			if (message.playbackStartTime) {
+				message.playbackStartTime = moment();
 			}
 			// HACK: this lets vue detect the changes and react to them
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
