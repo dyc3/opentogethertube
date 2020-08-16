@@ -729,6 +729,7 @@ export default {
     width: calc(100% / 12 * 4);
 
     .chat {
+      min-height: 400px;
       height: 100%;
     }
   }
