@@ -6,18 +6,19 @@
       </v-alert>
     </div>
     <v-app-bar app :absolute="!$store.state.fullscreen" :inverted-scroll="$store.state.fullscreen">
+      <v-app-bar-nav-icon @click="drawer = true" />
       <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
       <v-toolbar-title>
         <router-link class="link-invis" style="margin-right: 10px" to="/">
           OpenTogetherTube
         </router-link>
       </v-toolbar-title>
-      <v-toolbar-items>
+      <v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
         <v-btn text to="/rooms">Browse</v-btn>
         <v-btn text to="/faq">FAQ</v-btn>
       </v-toolbar-items>
       <v-spacer />
-      <v-toolbar-items>
+      <v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-btn text v-on="on">
@@ -25,50 +26,39 @@
             </v-btn>
           </template>
           <v-list two-line max-width="400">
-            <v-list-item @click="createTempRoom">
-              <v-list-item-icon>
-                <v-icon>fas fa-plus-square</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>Create Temporary Room</v-list-item-title>
-                <v-list-item-subtitle class="text-muted">Start watching videos with your friends ASAP.</v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item @click="showCreateRoomForm = true">
-              <v-list-item-icon>
-                <v-icon>fas fa-plus-square</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>Create Permanent Room</v-list-item-title>
-                <v-list-item-subtitle class="text-muted">Perfect for frequent visitors.</v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
+            <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />
           </v-list>
         </v-menu>
-        <v-btn text @click="showLogin = true" v-if="!$store.state.user">
-          Log In
-        </v-btn>
-        <v-menu offset-y v-if="$store.state.user">
-          <template v-slot:activator="{ on }">
-            <v-btn text v-on="on" :key="$store.state.user.username">
-              {{ $store.state.user.username }}
-            </v-btn>
-          </template>
-          <v-list two-line max-width="400">
-            <v-list-item href="/api/user/auth/discord" target="_blank" v-if="!$store.state.user.discordLinked">
-              <v-list-item-content>
-                <v-list-item-title>Link Discord</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item @click="logout">
-              <v-list-item-content>
-                <v-list-item-title>Log Out</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <NavUser @login="showLogin = true" @logout="logout" />
       </v-toolbar-items>
     </v-app-bar>
+    <v-navigation-drawer v-model="drawer" absolute temporary>
+      <v-list nav dense>
+        <v-list-item-group v-model="group">
+          <v-list-item to="/">
+            <v-list-item-content>
+              Home
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item to="/rooms">
+            <v-list-item-content>
+              Browse
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item to="/faq">
+            <v-list-item-content>
+              FAQ
+            </v-list-item-content>
+          </v-list-item>
+          <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />
+        </v-list-item-group>
+      </v-list>
+      <template v-slot:append>
+        <div class="pa-2">
+          <NavUser @login="showLogin = true" @logout="logout" />
+        </div>
+      </template>
+    </v-navigation-drawer>
     <v-content>
       <router-view/>
     </v-content>
@@ -100,12 +90,16 @@ import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
 import RoomUtilsMixin from "@/mixins/RoomUtils.js";
+import NavUser from "@/components/navbar/NavUser.vue";
+import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 
 export default {
   name: "app",
   components: {
     CreateRoomForm,
     LogInForm,
+    NavUser,
+    NavCreateRoom,
   },
   mixins: [RoomUtilsMixin],
   data() {
@@ -114,6 +108,7 @@ export default {
       showAnnouncement: false,
       showCreateRoomForm: false,
       showLogin: false,
+      drawer: false,
     };
   },
   methods: {
