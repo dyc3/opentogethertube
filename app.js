@@ -34,7 +34,7 @@ require('dotenv').config({ path: config_path });
 //   required: bool Indicates whether or not this variable is required to function.
 //   validator: function that returns true if the value is valid
 const configValidators = {
-	HOSTNAME: { required: process.env.NODE_ENV === "production", validator: (value) => validator.isIP(value) || validator.isURL(value, { disallow_auth: true }) || value.includes("localhost") },
+	OTT_HOSTNAME: { required: process.env.NODE_ENV === "production", validator: (value) => validator.isIP(value) || validator.isURL(value, { disallow_auth: true }) || value.includes("localhost") },
 	DISCORD_CLIENT_ID: { required: process.env.NODE_ENV === "production", validator: (value) => value.length >= 18 && validator.isNumeric(value, { no_symbols: true }) },
 	DISCORD_CLIENT_SECRET: { required: process.env.NODE_ENV === "production", validator: (value) => value.length >= 32 },
 	OPENTOGETHERTUBE_API_KEY: { required: false, validator: (value) => process.env.NODE_ENV !== "production" || (value !== "GENERATE_YOUR_OWN_API_KEY" && value.length >= 40) },
@@ -97,7 +97,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallb
 passport.use(new DiscordStrategy({
 	clientID: process.env.DISCORD_CLIENT_ID || "NONE",
 	clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
-	callbackURL: (!process.env.HOSTNAME || process.env.HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.HOSTNAME}/api/user/auth/discord/callback`,
+	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/user/auth/discord/callback`,
 	scope: ["identify"],
 	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
