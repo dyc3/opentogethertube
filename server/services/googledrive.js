@@ -71,7 +71,7 @@ class GoogleDriveAdapter extends ServiceAdapter {
     }
 
     try {
-      const result = this.api.get(`/files/${videoId}`, {
+      const result = await this.api.get(`/files/${videoId}`, {
         params: {
           key: this.apiKey,
           fields: "id,name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)",
@@ -91,7 +91,7 @@ class GoogleDriveAdapter extends ServiceAdapter {
 
   async fetchFolderVideos(folderId) {
     try {
-      const result = this.api.get("/files", {
+      const result = await this.api.get("/files", {
         params: {
           key: this.apiKey,
           q: `${folderId}+in+parents`,
