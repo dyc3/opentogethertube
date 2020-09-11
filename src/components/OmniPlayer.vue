@@ -47,7 +47,7 @@
     <DirectPlayer
       v-else-if="source.service == 'direct'"
       ref="direct"
-      :video-id="source.id"
+      :video-url="source.url"
       class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
