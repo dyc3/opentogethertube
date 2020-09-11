@@ -45,7 +45,7 @@
     "unique-names-generator": "^3.1.1",
     "uuid": "^3.4.0",
     "validator": "13.0.0",
-    "video.js": "^7.6.6",
+    "video.js": "^7.8.4",
     "vue": "^2.6.11",
     "vue-axios": "^2.1.5",
     "vue-events": "^3.1.0",
