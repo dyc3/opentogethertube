@@ -22,7 +22,7 @@ This project targets the lastest LTS version of node.js.
 git clone https://github.com/dyc3/opentogethertube.git
 ```
 
-2. Install postgres and redis
+2. Install redis
 
 Ubuntu
 ```
