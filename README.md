@@ -9,6 +9,64 @@ The easy way to watch videos with your friends.
 
 http://opentogethertube.com/
 
+# Deployment
+
+### Prerequisites
+
+This project targets the lastest LTS version of node.js.
+
+### Setup
+
+1. Clone this repo.
+```
+git clone https://github.com/dyc3/opentogethertube.git
+```
+
+2. Install postgres and redis
+
+Ubuntu
+```
+sudo apt install redis
+```
+
+3. Install dependencies.
+```
+npm install
+```
+
+4. Copy and fill out the configuration file
+```
+cp env/example.env env/production.env
+```
+
+**Please read the [config docs here](docs/config.md) for which options are required.**
+
+5. Build Vue files so they can be served statically.
+```
+npm run build
+```
+
+6. Run database migrations
+```
+NODE_ENV=production npx sequelize-cli db:migrate
+```
+
+7. Run the server.
+```
+NODE_ENV=production npm start
+```
+
+You can also specify the port the server will listen on by setting the
+`PORT` environment variable.
+
+```
+PORT=8080 NODE_ENV=production npm start
+```
+
+## Docker
+
+See the [Docker README](docker/README.md)
+
 # Contributing
 
 Contributions are welcome. The current iteration is named "Firework", and you can
@@ -23,9 +81,6 @@ This project targets the lastest LTS version of node.js.
 ### Setup
 
 1. Fork this repo and clone it.
-
-	*If you are planning to deploy this yourself, make sure you are on the `master` branch.*
-
 2. In a terminal, navigate to the `opentogethertube` folder and run
 ```
 npm install
@@ -47,7 +102,7 @@ npx sequelize-cli db:migrate
 ```
 10. Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
 
-### Testing
+## Testing
 
 To run the test suite, run
 ```
@@ -73,34 +128,3 @@ debug. Using VSCode, this is trivial.
 To start the server: `Debug > Select "Launch Program" > Start`
 
 To start the client: `npm run serve`
-
-
-# Deployment
-
-1. Clone this repo.
-```
-git clone https://github.com/dyc3/opentogethertube.git
-```
-2. Install despendencies.
-```
-npm install
-```
-3. Build Vue files so they can be served statically.
-```
-npm run build
-```
-4. Run the server.
-```
-npm start
-```
-
-You can also specify the port the server will listen on by setting the
-`PORT` environment variable.
-
-```
-PORT=8080 npm start
-```
-
-## Docker
-
-Go to [Docker](docker/README.md)
