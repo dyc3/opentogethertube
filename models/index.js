@@ -10,7 +10,12 @@ const db = {};
 
 let config;
 if (env === 'production') {
-  config = configs[env][process.env.DB_MODE];
+  if (process.env.DB_MODE === "postgres" || process.env.DOCKER) {
+    config = configs[env];
+  }
+  else if (process.env.DB_MODE === "sqlite") {
+    config = configs["production-sqlite"];
+  }
 }
 else {
   config = configs[env];

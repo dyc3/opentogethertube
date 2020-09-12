@@ -48,7 +48,7 @@ npm run build
 
 6. Run database migrations
 ```
-NODE_ENV=production npx sequelize-cli db:migrate
+NODE_ENV=production-sqlite npx sequelize-cli db:migrate
 ```
 
 7. Run the server.
