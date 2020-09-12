@@ -2,7 +2,6 @@ const util = require('util');
 const ffprobeInstaller = require('@ffprobe-installer/ffprobe');
 const { getLogger } = require("./logger.js");
 const child_process = require('child_process');
-const { ExceptionHandler } = require('winston');
 
 const log = getLogger("infoextract.ffprobe");
 const FFPROBE_PATH = process.env.FFPROBE_PATH || ffprobeInstaller.path;
