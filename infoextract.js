@@ -490,10 +490,29 @@ module.exports = {
 		if (link.path.startsWith('/channel/')) {
 			channelData.channel = channelId;
 		}
-		else {
+		else if (link.path.startsWith('/user/')) {
 			channelData.user = channelId;
 		}
+		else {
+			channelData.customUrl = channelId;
+		}
 		return channelData;
+	},
+
+	/**
+	 * Workaround for #285. Feature was requested here: https://issuetracker.google.com/issues/165676622
+	 * @param {*} customUrl
+	 */
+	async getChanneIdFromYoutubeCustomUrl(customUrl) {
+		log.debug("web scraping to find channel id");
+		let res = await YtFallbackApi.get(`https://youtube.com/c/${customUrl}`);
+		const regex = /externalId":"UC[A-Za-z0-9_-]{22}/;
+		let matches = res.data.match(regex);
+		if (matches == null) {
+			return null;
+		}
+		let extracted = matches[0].split(":")[1].substring(1);
+		return extracted;
 	},
 
 	getVideoInfoYoutube(ids, onlyProperties=null) {
@@ -684,23 +703,31 @@ module.exports = {
 			return this.getPlaylistYoutube(cachedPlaylistId);
 		}
 
-		return YtApi.get('/channels' +
+		if (channelData.customUrl) {
+			// HACK: The youtube API doesn't allow us to grab the youtube channel id only from the channel's URL. See #285
+			channelData.channel = await this.getChanneIdFromYoutubeCustomUrl(channelData.customUrl);
+		}
+
+		let _apipath = '/channels' +
 			`?key=${process.env.YOUTUBE_API_KEY}&` +
-			'part=contentDetails&' +
-			`${Object.keys(channelData)[0] === 'channel' ? 'id' : 'forUsername'}=${Object.values(channelData)[0]}`
-			//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
-			//on the other hand, a user link requires the forUsername filter
-		).then(res => {
+			'part=contentDetails&' + (channelData.customUrl ?
+				`id=${channelData.channel}`
+				: `${Object.keys(channelData)[0] === 'channel' ? 'id' : 'forUsername'}=${Object.values(channelData)[0]}`);
+		//if the link passed is a channel link, ie: /channel/$CHANNEL_ID, then the id filter must be used
+		//on the other hand, a user link requires the forUsername filter
+
+		return YtApi.get(_apipath).then(res => {
 			let uploadsPlaylistId = res.data.items[0].contentDetails.relatedPlaylists.uploads;
-			redisClient.set(`ytchannel:${_.keys(channelData)[0]}:${_.values(channelData)[0]}`, uploadsPlaylistId, err => {
+			let _key = channelData.customUrl ? `ytchannel:customUrl:${channelData.customUrl}` : `ytchannel:${_.keys(channelData)[0]}:${_.values(channelData)[0]}`;
+			redisClient.set(_key, uploadsPlaylistId, err => {
 				if (err) {
 					log.error(`Failed to cache channel uploads playlist: ${err}`);
 				}
 				else {
-					log.info(`Cached channel uploads playlist: ytchannel:${_.keys(channelData)[0]}:${_.values(channelData)[0]}`);
+					log.info(`Cached channel uploads playlist: ${_key}`);
 				}
 			});
-			if (channelData.user) {
+			if (channelData.user || channelData.customUrl) {
 				// we can add a cache entry for the channel id as well.
 				let channelId = res.data.items[0].id;
 				redisClient.set(`ytchannel:channel:${channelId}`, uploadsPlaylistId, err => {

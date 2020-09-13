@@ -438,6 +438,7 @@ describe("InfoExtractor Youtube Support", () => {
   });
 
   it('getChannelIdYoutube() should return correct object', () => {
+    jest.spyOn(InfoExtract, 'getChanneIdFromYoutubeCustomUrl').mockImplementation().mockReturnValue({ customUrl: "rollthedyc3" });
     expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
     expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg?view_as=subscriber")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
     expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/videos")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
@@ -448,10 +449,10 @@ describe("InfoExtractor Youtube Support", () => {
     expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/featured")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
     expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/channel/UCcVClhnvO2PaYoiJstwphpg/asdfsadflkj")).toEqual({ channel: "UCcVClhnvO2PaYoiJstwphpg" });
     expect(InfoExtract.getChannelIdYoutube("https://youtube.com/user/rollthedyc3")).toEqual({ user: "rollthedyc3" });
-    expect(InfoExtract.getChannelIdYoutube("https://youtube.com/c/rollthedyc3")).toEqual({ user: "rollthedyc3" });
-    expect(InfoExtract.getChannelIdYoutube("https://youtube.com/rollthedyc3")).toEqual({ user: "rollthedyc3" });
-    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/c/rollthedyc3/videos")).toEqual({ user: "rollthedyc3" });
-    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/c/rollthedyc3/videos?view_as=subscriber")).toEqual({ user: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://youtube.com/c/rollthedyc3")).toEqual({ customUrl: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://youtube.com/rollthedyc3")).toEqual({ customUrl: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/c/rollthedyc3/videos")).toEqual({ customUrl: "rollthedyc3" });
+    expect(InfoExtract.getChannelIdYoutube("https://www.youtube.com/c/rollthedyc3/videos?view_as=subscriber")).toEqual({ customUrl: "rollthedyc3" });
   });
 
   it("should get 1 video", async () => {
@@ -1531,7 +1532,7 @@ describe('InfoExtractor Add Preview Spec', () => {
 
     let result = await InfoExtract.getAddPreview("https://www.youtube.com/c/BoshMind");
     expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
-    expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ user: "BoshMind" });
+    expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ customUrl: "BoshMind" });
     expect(InfoExtract.getManyVideoInfo).toBeCalled();
     expect(result).toHaveLength(2);
 
@@ -1540,7 +1541,7 @@ describe('InfoExtractor Add Preview Spec', () => {
 
     result = await InfoExtract.getAddPreview("https://youtube.com/rollthedyc3");
     expect(InfoExtract.getChanneInfoYoutube).toBeCalled();
-    expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ user: "rollthedyc3" });
+    expect(InfoExtract.getChanneInfoYoutube).toBeCalledWith({ customUrl: "rollthedyc3" });
     expect(InfoExtract.getManyVideoInfo).toBeCalled();
     expect(result).toHaveLength(2);
   });
