@@ -187,5 +187,8 @@ export default {
 .scrollbarBeGone {
   -ms-overflow-style: none; // I think this is an old way to do this? Probably not ideal
   scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>
