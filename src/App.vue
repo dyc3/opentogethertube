@@ -128,7 +128,7 @@ export default {
     document.addEventListener('fullscreenchange', () => {
       if (document.fullscreenElement) {
         this.$store.state.fullscreen = true;
-        document.fullscreenElement.classList = "scrollbarBeGone";
+        document.querySelector("html").classList.add("scrollbarBeGone");
       }
       else {
         this.$store.state.fullscreen = false;
