@@ -128,9 +128,11 @@ export default {
     document.addEventListener('fullscreenchange', () => {
       if (document.fullscreenElement) {
         this.$store.state.fullscreen = true;
+        document.fullscreenElement.classList = "scrollbarBeGone";
       }
       else {
         this.$store.state.fullscreen = false;
+        document.querySelector("html").classList.remove("scrollbarBeGone");
       }
     });
 
@@ -176,5 +178,14 @@ export default {
 
 .text-muted {
   opacity: 0.7;
+}
+
+.scrollbarBeGone::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbarBeGone {
+  -ms-overflow-style: none; // I think this is an old way to do this? Probably not ideal
+  scrollbar-width: none;
 }
 </style>
