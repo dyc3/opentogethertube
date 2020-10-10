@@ -111,16 +111,12 @@ export default new Vuex.Store({
 		sync(context, message) {
 			console.debug("SYNC", message);
 			delete message.action;
-			if (message.isPlaying !== undefined && this.state.room.isPlaying != message.isPlaying) {
-				if (message.isPlaying) {
-					Vue.prototype.$events.emit("playVideo");
-				}
-				else {
-					Vue.prototype.$events.emit("pauseVideo");
-				}
+			if (message.isPlaying !== undefined && this.state.room.isPlaying !== message.isPlaying) {
+				Vue.prototype.$events.emit(message.isPlaying ? "playVideo" : "pauseVideo");
 			}
-			if (message.playbackStartTime) {
-				message.playbackStartTime = moment();
+			if (message.playbackPosition !== undefined) {
+				console.log("setting playback start time");
+				this.state.room.playbackStartTime = moment();
 			}
 			// HACK: this lets vue detect the changes and react to them
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
