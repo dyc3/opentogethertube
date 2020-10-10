@@ -2,6 +2,9 @@ module.exports = {
   env: {
     node: true,
   },
+  plugins: [
+    "vue",
+  ],
   'extends': [
     'plugin:vue/base',
     'plugin:vue/essential',
