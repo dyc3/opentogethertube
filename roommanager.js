@@ -197,7 +197,7 @@ class Room {
 	addToQueue(video, session=null) {
 		let queueItem = new Video();
 
-		if (video.hasOwnProperty("url")) {
+		if (Object.prototype.hasOwnProperty.call(video, "url")) {
 			queueItem.service = InfoExtract.getService(video.url);
 
 			if (queueItem.service === "youtube") {

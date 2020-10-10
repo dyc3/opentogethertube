@@ -151,7 +151,7 @@ module.exports = {
 
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
-			let missingInfo = storage.getVideoInfoFields(video.service).filter(p => !video.hasOwnProperty(p));
+			let missingInfo = storage.getVideoInfoFields(video.service).filter(p => !Object.prototype.hasOwnProperty.call(video, p));
 			if (missingInfo.length === 0) {
 				video = new Video(video);
 				if (video.service === "googledrive" && !this.isSupportedMimeType(video.mime)) {
@@ -230,7 +230,7 @@ module.exports = {
 			let retrievalPromise = storage.getManyVideoInfo(grouped[service]).then(serviceVideos => {
 				// group by missing info
 				// WARNING: Arrays can't be used as keys, so the array of strings gets turned in to a string. May cause issues?
-				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields(service).filter(p => !video.hasOwnProperty(p)));
+				let groupedServiceVideos = _.groupBy(serviceVideos, video => storage.getVideoInfoFields(service).filter(p => !Object.prototype.hasOwnProperty.call(video, p)));
 
 				if (service === "youtube") {
 					let promises = [];
