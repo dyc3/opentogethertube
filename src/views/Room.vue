@@ -88,6 +88,7 @@
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(5)">Add test direct 5</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -368,6 +369,7 @@ export default {
         "https://vimeo.com/94338566",
         "https://vimeo.com/239423699",
         "https://www.dailymotion.com/video/x6hkywd",
+        "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
