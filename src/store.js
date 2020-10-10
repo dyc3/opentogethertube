@@ -63,7 +63,7 @@ export default new Vuex.Store({
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close", event);
 			state.socket.isConnected = false;
-			if (event.code == 4002) {
+			if (event.code === 4002) {
 				state.joinFailureReason = "Room does not exist.";
 				Vue.prototype.$disconnect();
 				Vue.prototype.$events.fire("roomJoinFailure", { reason: "Room does not exist." });
