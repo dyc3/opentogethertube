@@ -53,6 +53,7 @@
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
+                <v-btn v-if="!production" @click="sendKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
               </v-row>
             </v-col>
           </div>
@@ -642,6 +643,11 @@ export default {
           action: "seek",
           position: _.clamp(currentPosition + delta, 0, this.$store.state.room.currentSource.length),
         });
+    },
+    sendKickMe() {
+      this.$socket.sendObj({
+        action: "kickme",
+      });
     },
   },
   mounted() {
