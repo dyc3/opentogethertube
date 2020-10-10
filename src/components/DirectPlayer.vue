@@ -12,6 +12,8 @@ export default {
 	name: "DirectPlayer",
 	props: {
 		videoUrl: { type: String, required: true },
+		videoMime: { type: String, required: true },
+		thumbnail: { type: String },
 	},
 	data() {
 		return {
@@ -23,7 +25,8 @@ export default {
 			controls: false,
 			responsive: true,
 			loop: false,
-			poster: this.$store.state.room.currentSource.thumbnail,
+			preload: "auto",
+			poster: this.thumbnail,
 		});
 		this.player.on("ready", () => this.$emit("ready"));
 		this.player.on("ended", () => this.$emit("end"));
@@ -59,7 +62,7 @@ export default {
 		loadVideoSource() {
 			this.player.src({
 				src: this.videoUrl,
-				type: this.$store.state.room.currentSource.mime,
+				type: this.videoMime,
 			});
 		},
 	},

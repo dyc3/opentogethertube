@@ -48,6 +48,8 @@
       v-else-if="source.service == 'direct'"
       ref="direct"
       :video-url="source.url"
+      :video-mime="source.mime"
+      :thumbnail="source.thumbnail"
       class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
