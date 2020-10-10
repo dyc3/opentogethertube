@@ -350,7 +350,7 @@ class Room {
 		// remove inactive clients
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
-			if (ws.readyState != 1) {
+			if (ws.readyState !== 1) {
 				this.log.debug("Remove inactive client:", i, this.clients[i].username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].username, {}));
 				this.clients.splice(i--, 1);
@@ -433,18 +433,18 @@ class Room {
 
 		for (const client of this.clients) {
 			// make sure the socket is still open
-			if (client.socket.readyState != 1) {
+			if (client.socket.readyState !== 1) {
 				continue;
 			}
 
-			if (!client.needsFullSync && this._dirtyProps.length == 0) {
+			if (!client.needsFullSync && this._dirtyProps.length === 0) {
 				continue;
 			}
 
 			syncMsg.users = this.clients.map(c => {
 				return {
 					name: c.username,
-					isYou: client.socket == c.socket,
+					isYou: client.socket === c.socket,
 					status: c.status,
 					isLoggedIn: c.isLoggedIn,
 				};
@@ -819,7 +819,7 @@ module.exports = {
 	 * @param {Number} time The time in seconds the room must be inactive for it to be unloaded.
 	 */
 	unloadIfEmpty(room, time=240) {
-		if (room.clients.length == 0 &&
+		if (room.clients.length === 0 &&
 			moment().diff(room.keepAlivePing, 'seconds') > time) {
 			this.unloadRoom(room);
 		}

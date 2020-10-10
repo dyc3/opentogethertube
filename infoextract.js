@@ -289,7 +289,7 @@ module.exports = {
 
 		const urlParsed = url.parse(input.trim());
 		const queryParams = querystring.parse(urlParsed.query);
-		if (service == "youtube" && (queryParams["v"] || urlParsed.host === "youtu.be")) {
+		if (service === "youtube" && (queryParams["v"] || urlParsed.host === "youtu.be")) {
 			id = this.getVideoIdYoutube(input);
 		}
 		else if (service === "vimeo") {
@@ -383,7 +383,7 @@ module.exports = {
 				});
 			});
 		}
-		else if (service === "youtube" && !(urlParsed.host == "youtu.be" || urlParsed.path.startsWith("/watch"))) {
+		else if (service === "youtube" && !(urlParsed.host === "youtu.be" || urlParsed.path.startsWith("/watch"))) {
 			log.debug("found youtube channel");
 			const channelData = this.getChannelIdYoutube(urlParsed);
 			return this.getChanneInfoYoutube(channelData)
@@ -508,7 +508,7 @@ module.exports = {
 		let res = await YtFallbackApi.get(`https://youtube.com/c/${customUrl}`);
 		const regex = /externalId":"UC[A-Za-z0-9_-]{22}/;
 		let matches = res.data.match(regex);
-		if (matches == null) {
+		if (matches === null) {
 			return null;
 		}
 		let extracted = matches[0].split(":")[1].substring(1);
@@ -622,11 +622,11 @@ module.exports = {
 		let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
 		for (let r = 0; r < regexs.length; r++) {
 			let matches = res.data.match(regexs[r]);
-			if (matches == null) {
+			if (matches === null) {
 				continue;
 			}
 			const match = matches[0];
-			let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
+			let extracted = match.split(":")[1].substring(r === 0 ? 1 : 2);
 			log.silly(`MATCH ${match}`);
 			log.debug(`EXTRACTED ${extracted}`);
 			return parseInt(extracted);
