@@ -101,6 +101,9 @@ export default {
 				src: this.videoUrl,
 				type: this.videoMime,
 			});
+			if (this.$store.state.room.isPlaying) {
+				this.player.play();
+			}
 		},
 	},
 	watch: {
