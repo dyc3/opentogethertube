@@ -28,6 +28,37 @@ export default {
 			preload: "auto",
 			poster: this.thumbnail,
 		});
+		if (process.env.NODE_ENV === "development") {
+			for (const event of [
+				"ready",
+				"loadstart",
+				"suspend",
+				"abort",
+				"error",
+				"emptied",
+				"stalled",
+				"loadedmetadata",
+				"loadeddata",
+				"canplay",
+				"canplaythrough",
+				"playing",
+				"waiting",
+				"seeking",
+				"seeked",
+				"ended",
+				"durationchange",
+				"timeupdate",
+				"progress",
+				"play",
+				"pause",
+				"ratechange",
+				"resize",
+				"volumechange",
+			]) {
+				this.player.on(event, () => console.log("DirectPlayer event:", event));
+			}
+			videojs.log.level("debug");
+		}
 		this.player.on("ready", () => this.$emit("ready"));
 		this.player.on("ended", () => this.$emit("end"));
 		this.player.on("playing", () => this.$emit("playing"));
