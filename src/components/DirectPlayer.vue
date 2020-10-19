@@ -65,6 +65,8 @@ export default {
 		this.player.on("pause", () => this.$emit("paused"));
 		this.player.on("play", () => this.$emit("waiting"));
 		this.player.on("stalled", () => this.$emit("buffering"));
+		this.player.on("loadstart", () => this.$emit("buffering"));
+		this.player.on("canplay", () => this.$emit("ready"));
 		this.player.on("error", () => this.$emit("error"));
 		this.player.on("progress", () => {
 			this.$emit("buffer-progress", this.player.bufferedPercent());
