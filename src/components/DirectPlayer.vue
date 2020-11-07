@@ -50,6 +50,7 @@ export default {
 				src: this.videoUrl,
 				type: this.videoMime,
 			});
+			this.player.load();
 			if (this.$store.state.room.isPlaying) {
 				this.player.play();
 			}
@@ -91,6 +92,7 @@ export default {
 			}
 			this.player.on("ready", () => this.$emit("ready"));
 			this.player.on("ended", () => this.$emit("end"));
+			this.player.on("ended", this.onVideoEnd);
 			this.player.on("playing", () => this.$emit("playing"));
 			this.player.on("pause", () => this.$emit("paused"));
 			this.player.on("play", () => this.$emit("waiting"));
@@ -104,12 +106,14 @@ export default {
 			});
 			this.loadVideoSource();
 		},
-
+		onVideoEnd() {
+			this.player.reset();
+		},
 	},
 	watch: {
 		videoUrl() {
-			console.log("directplayer: VIDEO URL CHANGED");
-			this.beginNewVideo();
+			this.player.reset();
+			this.loadVideoSource();
 		},
 	},
 };
