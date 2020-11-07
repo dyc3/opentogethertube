@@ -285,7 +285,7 @@ export default {
       if (!this.$store.state.room.currentSource) {
         return 0;
       }
-      if (this.$store.state.room.currentSource.length == 0) {
+      if (this.$store.state.room.currentSource.length === 0) {
         return 0;
       }
       return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
@@ -487,7 +487,7 @@ export default {
         this.$store.commit("PLAYBACK_STATUS", "ready");
       }
       this.updateVolume();
-      if (changeTo == this.$store.state.room.isPlaying) {
+      if (changeTo === this.$store.state.room.isPlaying) {
         return;
       }
 
@@ -501,7 +501,7 @@ export default {
     onInputAddPreviewChange() {
       this.isLoadingAddPreview = true;
       this.hasAddPreviewFailed = false;
-      if (_.trim(this.inputAddPreview).length == 0) {
+      if (_.trim(this.inputAddPreview).length === 0) {
         this.addPreview = [];
         this.isLoadingAddPreview = false;
         return;
@@ -516,11 +516,11 @@ export default {
       this.requestAddPreviewDebounced();
     },
     onInputAddPreviewKeyDown(e) {
-      if (_.trim(this.inputAddPreview).length == 0 || this.isAddPreviewInputUrl) {
+      if (_.trim(this.inputAddPreview).length === 0 || this.isAddPreviewInputUrl) {
         return;
       }
 
-      if (e.keyCode === 13 && this.addPreview.length == 0) {
+      if (e.keyCode === 13 && this.addPreview.length === 0) {
         this.requestAddPreviewExplicit();
       }
     },
