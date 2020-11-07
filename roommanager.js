@@ -212,6 +212,10 @@ class Room {
 			else if (queueItem.service === "googledrive") {
 				queueItem.id = InfoExtract.getVideoIdGoogledrive(video.url);
 			}
+			else if (queueItem.service === "direct") {
+				queueItem.id = video.url;
+				queueItem.url = video.url;
+			}
 		}
 		else {
 			queueItem.service = video.service;

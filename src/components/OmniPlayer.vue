@@ -48,12 +48,16 @@
       v-else-if="source.service == 'direct'"
       ref="direct"
       :video-url="source.url"
+      :video-mime="source.mime"
+      :thumbnail="source.thumbnail"
       class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
       @ready="$emit('ready')"
       @buffering="$emit('buffering')"
       @error="$emit('error')"
+      @buffer-progress="onBufferProgress"
+      @buffer-spans="timespans => $emit('buffer-spans', timespans)"
     />
     <v-container v-else fluid fill-height>
       <v-row justify="center" align="center">
@@ -109,6 +113,9 @@ export default {
     },
     setPosition(position) {
       return this.player?.setPosition(position);
+    },
+    onBufferProgress(percent) {
+      this.$store.commit("PLAYBACK_BUFFER", percent);
     },
   },
 };

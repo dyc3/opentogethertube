@@ -18,6 +18,7 @@
                 @ready="onPlayerReady"
                 @buffering="onVideoBuffer"
                 @error="onVideoError"
+                @buffer-spans="spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)"
               />
             </v-responsive>
             <v-col class="video-controls">
@@ -88,6 +89,8 @@
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(5)">Add test direct 5</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(6)">Add test direct 6</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -130,6 +133,28 @@
             </v-tabs-items>
           </v-col>
           <v-col col="4" md="4" sm="12" class="user-invite-container">
+            <div v-if="!production" class="debug-container">
+              <v-card>
+                <v-subheader>
+                  Debug
+                </v-subheader>
+                <v-list-item>
+                  Player status: {{ this.$store.state.playerStatus }}
+                </v-list-item>
+                <v-list-item>
+                  Buffered: {{ Math.round(this.$store.state.playerBufferPercent * 10000) / 100 }}%
+                </v-list-item>
+                <v-list-item v-if="this.$store.state.playerBufferSpans !== null && this.$store.state.playerBufferSpans.length > 0">
+                  Buffered spans:
+                  {{ this.$store.state.playerBufferSpans.length }}
+                  {{
+                    Array.from({ length: this.$store.state.playerBufferSpans.length }, (v,k) => k++)
+                      .map(i => `${i}: [${$store.state.playerBufferSpans.start(i)} => ${$store.state.playerBufferSpans.end(i)}]`)
+                      .join(" ")
+                  }}
+                </v-list-item>
+              </v-card>
+            </div>
             <div class="user-list" v-if="$store.state.room.users">
               <v-card>
                 <v-subheader>
@@ -266,7 +291,7 @@ export default {
       return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
     },
     production() {
-      return this.$store.state.production;
+      return process.env.NODE_ENV === 'production';
     },
     isAddPreviewInputUrl() {
       try {
@@ -368,6 +393,8 @@ export default {
         "https://vimeo.com/94338566",
         "https://vimeo.com/239423699",
         "https://www.dailymotion.com/video/x6hkywd",
+        "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+        "https://vjs.zencdn.net/v/oceans.mp4",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
@@ -598,8 +625,9 @@ export default {
         this.isLoadingRoomSettings = false;
       });
     },
-    onVideoBuffer() {
+    onVideoBuffer(percent) {
       this.$store.commit("PLAYBACK_STATUS", "buffering");
+      this.$store.commit("PLAYBACK_BUFFER", percent);
     },
     onVideoError() {
       this.$store.commit("PLAYBACK_STATUS", "error");

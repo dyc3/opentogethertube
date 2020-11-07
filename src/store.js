@@ -8,6 +8,9 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state: {
+		playerStatus: null,
+		playerBufferPercent: null,
+		playerBufferSpans: null,
 		fullscreen: false,
 		socket: {
 			isConnected: false,
@@ -89,7 +92,14 @@ export default new Vuex.Store({
 			state.socket.reconnectError = true;
 		},
 		PLAYBACK_STATUS(state, message) {
+			state.playerStatus = message;
 			Vue.prototype.$socket.sendObj({ action: "status", status: message });
+		},
+		PLAYBACK_BUFFER(state, percent) {
+			state.playerBufferPercent = percent;
+		},
+		PLAYBACK_BUFFER_SPANS(state, spans) {
+			state.playerBufferSpans = spans;
 		},
 		LOGIN(state, user) {
 			state.user = user;
