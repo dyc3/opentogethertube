@@ -52,9 +52,9 @@ export default {
 			thumbnailHasError: false,
 			existsInQueue: false,
 		};
-	}, 
-	created() { 
-        if (this.item.id === this.$store.state.room.currentSource.id) {
+	},
+	created() {
+		if (this.item.id === this.$store.state.room.currentSource.id) {
 			this.isLoadingAdd = false;
 			this.hasBeenAdded = true;
 			this.existsInQueue = true;
@@ -66,7 +66,7 @@ export default {
 				this.existsInQueue = true;
 			}
 		}
-	}, 
+	},
 	computed:{
 		videoLength() {
 			return secondsToTimestamp(this.item.length);
@@ -89,9 +89,9 @@ export default {
 			}
 			console.log(data);
 			return data;
-		}, 
+		},
 		addToQueue() {
-			this.isLoadingAdd = true; 
+			this.isLoadingAdd = true;
 			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(() => {
 				this.isLoadingAdd = false;
 				this.hasBeenAdded = true;
