@@ -22,7 +22,7 @@
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" :disabled="existsInQueue" v-if="isPreview" @click="addToQueue">
+				<v-btn icon :loading="isLoadingAdd" :disabled="hasBeenAdded" v-if="isPreview" @click="addToQueue">
 					<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
@@ -50,20 +50,16 @@ export default {
 			isLoadingVote: false,
 			hasBeenAdded: false,
 			thumbnailHasError: false,
-			existsInQueue: false,
 		};
 	},
 	created() {
-		if (this.item.id === this.$store.state.room.currentSource.id) {
-			this.isLoadingAdd = false;
+		if (this.item.id === this.$store.state.room.currentSource.id && this.item.service === this.$store.state.room.currentSource.service) {
 			this.hasBeenAdded = true;
-			this.existsInQueue = true;
 		}
-		for (let i = 0; i < this.$store.state.room.queue.length; i++) {
-			if (this.item.id === this.$store.state.room.queue[i].id) {
-				this.isLoadingAdd = false;
+		for (let video of this.$store.state.room.queue) {
+			if (this.item.id === video.id && this.item.service === video.service) {
 				this.hasBeenAdded = true;
-				this.existsInQueue = true;
+				break;
 			}
 		}
 	},
@@ -95,7 +91,6 @@ export default {
 			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(() => {
 				this.isLoadingAdd = false;
 				this.hasBeenAdded = true;
-				this.existsInQueue = true;
 			});
 		},
 		removeFromQueue() {
