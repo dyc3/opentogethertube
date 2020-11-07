@@ -21,59 +21,7 @@ export default {
 		};
 	},
 	mounted() {
-		this.player = videojs(document.getElementById("directplayer"), {
-			controls: false,
-			responsive: true,
-			loop: false,
-			preload: "auto",
-			poster: this.thumbnail,
-		});
-		if (process.env.NODE_ENV === "development") {
-			for (const event of [
-				"ready",
-				"loadstart",
-				"suspend",
-				"abort",
-				"error",
-				"emptied",
-				"stalled",
-				"loadedmetadata",
-				"loadeddata",
-				"canplay",
-				"canplaythrough",
-				"playing",
-				"waiting",
-				"seeking",
-				"seeked",
-				"ended",
-				"durationchange",
-				"timeupdate",
-				"progress",
-				"play",
-				"pause",
-				"ratechange",
-				"resize",
-				"volumechange",
-			]) {
-				this.player.on(event, () => console.log("DirectPlayer event:", event));
-			}
-			videojs.log.level("debug");
-		}
-		this.player.on("ready", () => this.$emit("ready"));
-		this.player.on("ended", () => this.$emit("end"));
-		this.player.on("playing", () => this.$emit("playing"));
-		this.player.on("pause", () => this.$emit("paused"));
-		this.player.on("play", () => this.$emit("waiting"));
-		this.player.on("stalled", () => this.$emit("buffering"));
-		this.player.on("loadstart", () => this.$emit("buffering"));
-		this.player.on("canplay", () => this.$emit("ready"));
-		this.player.on("error", () => this.$emit("error"));
-		this.player.on("progress", () => {
-			this.$emit("buffer-progress", this.player.bufferedPercent());
-			this.$emit("buffer-spans", this.player.buffered());
-		});
-		this.loadVideoSource();
-		this.player.load();
+		this.beginNewVideo();
 	},
 	beforeDestroy() {
 		if (this.player) {
@@ -97,6 +45,7 @@ export default {
 			return this.player.currentTime(position);
 		},
 		loadVideoSource() {
+			console.log("DirectPlayer: loading video source:", this.videoUrl, this.videoMime);
 			this.player.src({
 				src: this.videoUrl,
 				type: this.videoMime,
@@ -105,10 +54,62 @@ export default {
 				this.player.play();
 			}
 		},
+		beginNewVideo() {
+			this.player = videojs(document.getElementById("directplayer"), {
+				controls: false,
+				responsive: true,
+				loop: false,
+				preload: "auto",
+				poster: this.thumbnail,
+			});
+			if (process.env.NODE_ENV === "development") {
+				for (const event of [
+					"ready",
+					"loadstart",
+					"suspend",
+					"abort",
+					"error",
+					"emptied",
+					"stalled",
+					"loadedmetadata",
+					"loadeddata",
+					"canplay",
+					"playing",
+					"waiting",
+					"seeking",
+					"seeked",
+					"ended",
+					"durationchange",
+					"progress",
+					"play",
+					"pause",
+					"ratechange",
+				]) {
+					this.player.on(event, () => console.log("DirectPlayer event:", event));
+				}
+				videojs.log.level("debug");
+			}
+			this.player.on("ready", () => this.$emit("ready"));
+			this.player.on("ended", () => this.$emit("end"));
+			this.player.on("playing", () => this.$emit("playing"));
+			this.player.on("pause", () => this.$emit("paused"));
+			this.player.on("play", () => this.$emit("waiting"));
+			this.player.on("stalled", () => this.$emit("buffering"));
+			this.player.on("loadstart", () => this.$emit("buffering"));
+			this.player.on("canplay", () => this.$emit("ready"));
+			this.player.on("error", () => this.$emit("error"));
+			this.player.on("progress", () => {
+				this.$emit("buffer-progress", this.player.bufferedPercent());
+				this.$emit("buffer-spans", this.player.buffered());
+			});
+			this.loadVideoSource();
+		},
+
 	},
 	watch: {
 		videoUrl() {
-			this.loadVideoSource();
+			console.log("directplayer: VIDEO URL CHANGED");
+			this.beginNewVideo();
 		},
 	},
 };
