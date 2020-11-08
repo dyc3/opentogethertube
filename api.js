@@ -44,10 +44,6 @@ function handleGetRoomFailure(res, err) {
 }
 
 function handlePostVideoFailure(res, err) {
-	/*
-	not sure what to do with this function, I know that I'm supposed to call this function in 
-	the router.post("/room/:name/queue" ..... route but I don't know where to do it
-	*/
 	if (err.name === "VideoAlreadyQueuedException") {
 		res.status(400).json({
 			success: false,
@@ -313,14 +309,14 @@ module.exports = function(_roommanager, storage) {
 					res.json({
 						success,
 					});
-				});
+				}).catch(err => handlePostVideoFailure(res, err));
 			}
 			else if (req.body.service && req.body.id) {
 				room.addToQueue({ service: req.body.service, id: req.body.id }, req.session).then(success => {
 					res.json({
 						success,
 					});
-				});
+				}).catch(err => handlePostVideoFailure(res, err));
 			}
 			else {
 				res.status(400).json({

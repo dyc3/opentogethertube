@@ -219,16 +219,15 @@ class Room {
 		}
 
 		if (SUPPORTED_SERVICES.includes(queueItem.service)) {
+			if (_.find(this.queue, queueItem)) {
+				throw new VideoAlreadyQueuedException(queueItem.title);
+			} 
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
 				this.log.error(`Failed to get video info: ${err}`);
 				queueItem.title = queueItem.id;
 			}).then(() => {
-				if (this.queue.id.includes(queueItem.id) && this.queue.service.includes(queueItem.service)) {
-					throw new VideoAlreadyQueuedException(queueItem.title);
-					// is this the right place to do this?
-				} 
 				this.queue.push(queueItem);
 				this._dirtyProps.push("queue");
 				this.update();

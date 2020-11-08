@@ -55,11 +55,12 @@ export default {
 	created() {
 		if (this.item.id === this.$store.state.room.currentSource.id && this.item.service === this.$store.state.room.currentSource.service) {
 			this.hasBeenAdded = true;
+			return;
 		}
 		for (let video of this.$store.state.room.queue) {
 			if (this.item.id === video.id && this.item.service === video.service) {
 				this.hasBeenAdded = true;
-				break;
+				return;
 			}
 		}
 	},
