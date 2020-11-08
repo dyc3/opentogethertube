@@ -225,6 +225,10 @@ class Room {
 				this.log.error(`Failed to get video info: ${err}`);
 				queueItem.title = queueItem.id;
 			}).then(() => {
+				if (this.queue.id.includes(queueItem.id) && this.queue.service.includes(queueItem.service)) {
+					throw new VideoAlreadyQueuedException(queueItem.title);
+					// is this the right place to do this?
+				} 
 				this.queue.push(queueItem);
 				this._dirtyProps.push("queue");
 				this.update();
@@ -740,6 +744,13 @@ class RoomNameTakenException extends Error {
 	constructor(roomName) {
 		super(`The room "${roomName}" is taken.`);
 		this.name = "RoomNameTakenException";
+	}
+}
+
+class VideoAlreadyQueuedException extends Error {
+	constructor(video) {
+		super(`The video "${video}" is already in the queue`);
+		this.name = "VideoAlreadyQueuedException";
 	}
 }
 
