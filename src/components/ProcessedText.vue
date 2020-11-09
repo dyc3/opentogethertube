@@ -70,8 +70,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
+
 .link {
-	color: #ffb300;
+	color: $brand-color;
 	text-decoration: underline;
 }
 </style>

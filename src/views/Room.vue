@@ -807,8 +807,8 @@ export default {
   background: transparent !important;
 }
 .is-you {
-  color: #ffb300;
-  border: 1px #ffb300 solid;
+  color: $brand-color;
+  border: 1px $brand-color solid;
   border-radius: 10px;
   margin: 5px;
   padding: 0 5px;
