@@ -144,7 +144,7 @@
                 <v-list-item>
                   Buffered: {{ Math.round(this.$store.state.playerBufferPercent * 10000) / 100 }}%
                 </v-list-item>
-                <v-list-item v-if="this.$store.state.playerBufferSpans !== null && this.$store.state.playerBufferSpans.length > 0">
+                <v-list-item v-if="this.$store.state.playerBufferSpans && this.$store.state.playerBufferSpans.length > 0">
                   Buffered spans:
                   {{ this.$store.state.playerBufferSpans.length }}
                   {{
@@ -291,7 +291,9 @@ export default {
       return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
     },
     production() {
-      return process.env.NODE_ENV === 'production';
+      // This is used so we can test for development/production only behavior in unit tests.
+      // Do not change.
+      return this.$store.state.production;
     },
     isAddPreviewInputUrl() {
       try {
