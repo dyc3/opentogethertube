@@ -327,8 +327,9 @@ class Room {
 	}
 
 	removeFromQueue(video, session=null) {
-		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		let matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id) || item.url === video.url);
 		if (matchIdx < 0) {
+			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
 			return false;
 		}
 		// remove the item from the queue

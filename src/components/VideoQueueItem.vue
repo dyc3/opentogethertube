@@ -27,7 +27,8 @@
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
 				<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
-					<v-icon>fas fa-trash</v-icon>
+					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
+					<v-icon v-else>fas fa-trash</v-icon>
 				</v-btn>
 			</div>
 		</div>
@@ -50,6 +51,7 @@ export default {
 			isLoadingVote: false,
 			hasBeenAdded: false,
 			thumbnailHasError: false,
+			hasError: false,
 		};
 	},
 	computed:{
@@ -77,7 +79,8 @@ export default {
 		},
 		addToQueue() {
 			this.isLoadingAdd = true;
-			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(() => {
+			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(resp => {
+				this.hasError = !resp.data.success;
 				this.isLoadingAdd = false;
 				this.hasBeenAdded = true;
 			});
@@ -86,7 +89,8 @@ export default {
 			this.isLoadingAdd = true;
 			API.delete(`/room/${this.$route.params.roomId}/queue`, {
 				data: this.getPostData(),
-			}).then(() => {
+			}).then(resp => {
+				this.hasError = !resp.data.success;
 				this.isLoadingAdd = false;
 			});
 		},
