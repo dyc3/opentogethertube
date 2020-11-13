@@ -47,7 +47,14 @@ function handlePostVideoFailure(res, err) {
 	if (err.name === "VideoAlreadyQueuedException") {
 		res.status(400).json({
 			success: false,
-			error: "Video already in queue",
+			error: err.message,
+		});
+	}
+	else {
+		log.error("Unhandled exception when getting video:", err);
+		res.status(500).json({
+			success: false,
+			error: "Failed to get video",
 		});
 	}
 }
