@@ -747,8 +747,8 @@ class RoomNameTakenException extends Error {
 }
 
 class VideoAlreadyQueuedException extends Error {
-	constructor(video) {
-		super(`The video "${video}" is already in the queue`);
+	constructor(title) {
+		super(`The video "${title}" is already in the queue`);
 		this.name = "VideoAlreadyQueuedException";
 	}
 }
