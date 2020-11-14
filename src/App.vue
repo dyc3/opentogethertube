@@ -151,6 +151,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import "variables.scss";
+
 .link-invis {
   text-decoration: none;
   color: inherit !important;
@@ -161,7 +163,7 @@ export default {
 }
 
 .vue-slider-process {
-  background: #ffb300 !important;
+  background: $brand-color !important;
 }
 
 .announcement-container {
