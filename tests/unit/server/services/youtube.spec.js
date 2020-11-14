@@ -64,18 +64,18 @@ const emptyPlaylistItemsResponse = {
   },
 };
 
-describe("canHandleLink", () => {
+describe("canHandleURL", () => {
   const adapter = new YouTubeAdapter("");
 
   it.each(validVideoLinks.map((l) => l[1]).concat(validCollectionLinks))(
     "Accepts %s",
     (link) => {
-      expect(adapter.canHandleLink(link)).toBe(true);
+      expect(adapter.canHandleURL(link)).toBe(true);
     }
   );
 
   it.each(invalidLinks)("Rejects %s", (link) => {
-    expect(adapter.canHandleLink(link)).toBe(false);
+    expect(adapter.canHandleURL(link)).toBe(false);
   });
 });
 

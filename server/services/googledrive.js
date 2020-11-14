@@ -22,7 +22,7 @@ class GoogleDriveAdapter extends ServiceAdapter {
     return "googledrive";
   }
 
-  canHandleLink(link) {
+  canHandleURL(link) {
     const url = URL.parse(link);
     return url.host.endsWith("drive.google.com");
   }

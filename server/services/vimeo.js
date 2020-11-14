@@ -16,7 +16,7 @@ class VimeoAdapter extends ServiceAdapter {
     return "vimeo";
   }
 
-  canHandleLink(link) {
+  canHandleURL(link) {
     const url = URL.parse(link);
     return url.host.endsWith("vimeo.com") && /^\/\d+$/.test(url.pathname);
   }

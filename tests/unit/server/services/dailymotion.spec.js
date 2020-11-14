@@ -15,15 +15,15 @@ const invalidLinks = [
   "https://dailymotion.com/jriwl35",
 ];
 
-describe("canHandleLink", () => {
+describe("canHandleURL", () => {
   const adapter = new DailyMotionAdapter();
 
   it.each(validVideoLinks.map(l => l[1]))("Accepts %s", (link) => {
-    expect(adapter.canHandleLink(link)).toBe(true);
+    expect(adapter.canHandleURL(link)).toBe(true);
   });
 
   it.each(invalidLinks)("Rejects %s", (link) => {
-    expect(adapter.canHandleLink(link)).toBe(false);
+    expect(adapter.canHandleURL(link)).toBe(false);
   });
 });
 

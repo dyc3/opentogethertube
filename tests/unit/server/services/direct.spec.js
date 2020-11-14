@@ -4,7 +4,7 @@ const DirectVideoAdapter = require("../../../../server/services/direct");
 const ffprobe = require("../../../../ffprobe");
 const Video = require("../../../../common/video");
 
-describe("canHandleLink", () => {
+describe("canHandleURL", () => {
   const supportedExtensions = [
     "mp4",
     "mp4v",
@@ -25,12 +25,12 @@ describe("canHandleLink", () => {
 
   it.each(supportedExtensions)("Accepts %s links", (extension) => {
     const url = `https://example.com/test.${extension}`;
-    expect(adapter.canHandleLink(url)).toBe(true);
+    expect(adapter.canHandleURL(url)).toBe(true);
   });
 
   it("Rejects unsupported extensions", () => {
     const url = "https://example.com/test.jpg";
-    expect(adapter.canHandleLink(url)).toBe(false);
+    expect(adapter.canHandleURL(url)).toBe(false);
   });
 });
 

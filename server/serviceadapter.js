@@ -21,7 +21,7 @@ class ServiceAdapter {
    * @param {string} link
    * @returns {boolean}
    */
-  canHandleLink() {
+  canHandleURL() {
     return false;
   }
 

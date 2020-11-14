@@ -107,7 +107,7 @@ function getServiceAdapter(service) {
  * @returns {ServiceAdapter}
  */
 function getServiceAdapterForURL(url) {
-  return adapters.find(adapter => adapter.canHandleLink(url));
+  return adapters.find(adapter => adapter.canHandleURL(url));
 }
 
 /**

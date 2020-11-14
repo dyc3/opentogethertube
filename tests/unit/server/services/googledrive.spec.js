@@ -1,18 +1,18 @@
 const GoogleDriveAdapter = require("../../../../server/services/googledrive");
 const Video = require("../../../../common/video");
 
-describe("canHandleLink", () => {
+describe("canHandleURL", () => {
   const adapter = new GoogleDriveAdapter("");
 
   it("Accepts share links", () => {
     const url =
       "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
-    expect(adapter.canHandleLink(url)).toBe(true);
+    expect(adapter.canHandleURL(url)).toBe(true);
   });
 
   it("Rejects other URLs", () => {
     const url = "https://example.com/somevideo";
-    expect(adapter.canHandleLink(url)).toBe(false);
+    expect(adapter.canHandleURL(url)).toBe(false);
   });
 });
 

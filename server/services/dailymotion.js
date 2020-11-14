@@ -13,7 +13,7 @@ class DailyMotionAdapter extends ServiceAdapter {
     return "dailymotion";
   }
 
-  canHandleLink(link) {
+  canHandleURL(link) {
     const url = URL.parse(link);
 
     return (

@@ -31,7 +31,7 @@ class YouTubeAdapter extends ServiceAdapter {
     return "youtube";
   }
 
-  canHandleLink(link) {
+  canHandleURL(link) {
     const url = URL.parse(link);
     const query = QueryString.parse(url.query);
 

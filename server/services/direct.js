@@ -26,7 +26,7 @@ class DirectVideoAdapter extends ServiceAdapter {
     return link;
   }
 
-  canHandleLink(link) {
+  canHandleURL(link) {
     const url = URL.parse(link);
     return /\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4])$/.test(
       url.path.split("?")[0]
