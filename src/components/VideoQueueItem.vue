@@ -68,12 +68,6 @@ export default {
 				service: this.item.service,
 				id: this.item.id,
 			};
-			if (this.item.service === "direct") {
-				data = {
-					service: this.item.service,
-					id: this.item.url,
-				};
-			}
 			console.log(data);
 			return data;
 		},

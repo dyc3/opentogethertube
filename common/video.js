@@ -7,7 +7,6 @@ class Video {
 	constructor(args=undefined) {
 		this.service = null;
 		this.id = null;
-		this.url = null;
 		this.title = null;
 		this.description = null;
 		this.thumbnail = null;
@@ -20,16 +19,19 @@ class Video {
 		// eslint-disable-next-line array-bracket-newline
 		if (["youtube", "vimeo", "dailymotion"].includes(this.service)) {
 			delete this.mime;
-			delete this.url;
 		}
 		// eslint-disable-next-line array-bracket-newline
 		else if (["googledrive"].includes(this.service)) {
 			delete this.description;
-			delete this.url;
 		}
-		else if (["direct"].includes(this.service)) {
-			delete this.id;
-		}
+	}
+
+	get url() {
+		return this.id;
+	}
+
+	set url(value) {
+		this.id = value;
 	}
 
 	/**
