@@ -7,7 +7,7 @@ const YouTubeAdapter = require("./services/youtube");
 const DirectVideoAdapter = require("./services/direct");
 const storage = require("../storage");
 const Video = require("../common/video");
-const { UnsupportedMimeTypeException, OutOfQuotaException } = require("./exceptions");
+const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException } = require("./exceptions");
 const { getLogger } = require("../logger");
 const { redisClient } = require("../redisclient");
 
@@ -206,6 +206,11 @@ async function resolveVideoQuery(query, searchService) {
 
   if (isURL(query)) {
     const adapter = getServiceAdapterForURL(query);
+
+    if (!adapter) {
+      const url = URL.parse(query);
+      throw new UnsupportedServiceException(url);
+    }
 
     if (!adapter.isCollectionURL(query)) {
       return [
