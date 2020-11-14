@@ -7,7 +7,7 @@ const YouTubeAdapter = require("./services/youtube");
 const DirectVideoAdapter = require("./services/direct");
 const storage = require("../storage");
 const Video = require("../common/video");
-const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException } = require("./exceptions");
+const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException } = require("./exceptions");
 const { getLogger } = require("../logger");
 const { redisClient } = require("../redisclient");
 
@@ -20,6 +20,8 @@ const adapters = [
   new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
   new DirectVideoAdapter(),
 ];
+
+const ADD_PREVIEW_SEARCH_MIN_LENGTH = 3;
 
 function isURL(str) {
   return URL.parse(str).host != null;
@@ -225,6 +227,10 @@ async function resolveVideoQuery(query, searchService) {
     results.push(...fetchResults);
   }
   else {
+    if (query.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
+      throw new InvalidAddPreviewInputException(ADD_PREVIEW_SEARCH_MIN_LENGTH);
+    }
+
     const searchResults = await searchVideos(searchService, query);
     results.push(...searchResults);
   }
