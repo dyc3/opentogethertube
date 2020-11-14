@@ -123,6 +123,7 @@ class Room {
 	set isPlaying(value) {
 		this._isPlaying = value;
 		this._dirtyProps.push("isPlaying");
+		this._dirtyProps.push("playbackPosition");
 	}
 
 	get playbackPosition() {
@@ -196,7 +197,7 @@ class Room {
 	addToQueue(video, session=null) {
 		let queueItem = new Video();
 
-		if (video.hasOwnProperty("url")) {
+		if (Object.prototype.hasOwnProperty.call(video, "url")) {
 			let adapter = InfoExtract.getServiceAdapterForURL(video.url);
 			queueItem.service = adapter.serviceId;
 			queueItem.id = adapter.getVideoId(video.url);
@@ -311,8 +312,9 @@ class Room {
 	}
 
 	removeFromQueue(video, session=null) {
-		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		let matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id) || item.url === video.url);
 		if (matchIdx < 0) {
+			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
 			return false;
 		}
 		// remove the item from the queue
@@ -338,7 +340,7 @@ class Room {
 		// remove inactive clients
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
-			if (ws.readyState != 1) {
+			if (ws.readyState !== 1) {
 				this.log.debug("Remove inactive client:", i, this.clients[i].username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].username, {}));
 				this.clients.splice(i--, 1);
@@ -414,26 +416,25 @@ class Room {
 			currentSource: this.currentSource,
 			queue: _.cloneDeep(this.queue),
 			isPlaying: this.isPlaying,
-			playbackPosition: this.playbackPosition,
+			playbackPosition: this.getTruePlaybackPosition(),
 			users: [],
 			hasOwner: !!this.owner,
-			playbackStartTime: this.playbackStartTime,
 		};
 
 		for (const client of this.clients) {
 			// make sure the socket is still open
-			if (client.socket.readyState != 1) {
+			if (client.socket.readyState !== 1) {
 				continue;
 			}
 
-			if (!client.needsFullSync && this._dirtyProps.length == 0) {
+			if (!client.needsFullSync && this._dirtyProps.length === 0) {
 				continue;
 			}
 
 			syncMsg.users = this.clients.map(c => {
 				return {
 					name: c.username,
-					isYou: client.socket == c.socket,
+					isYou: client.socket === c.socket,
 					status: c.status,
 					isLoggedIn: c.isLoggedIn,
 				};
@@ -444,7 +445,7 @@ class Room {
 				syncMsg.queue = this.queue.map(video => {
 					let v = _.cloneDeep(video);
 					v.votes = video.votes ? video.votes.length : 0;
-					v.voted = _.find(video.votes, { userSessionId: client.session.id }) ? true : false;
+					v.voted = !!_.find(video.votes, { userSessionId: client.session.id });
 					return v;
 				});
 			}
@@ -454,6 +455,7 @@ class Room {
 				this.log.debug("sending full sync message to client");
 				dirtySyncMsg = syncMsg;
 				client.needsFullSync = false;
+				// dirtySyncMsg.playbackPosition = this.getTruePlaybackPosition();
 			}
 
 			try {
@@ -644,6 +646,10 @@ class Room {
 		else if (msg.action === "ping") {
 			this.log.silly(`Received ping from ${client.username}`);
 		}
+		else if (msg.action === "kickme") {
+			this.log.warn("Client requested to be kicked");
+			client.socket.close();
+		}
 		else {
 			log.warn(`[ws] UNKNOWN ACTION ${msg.action}`);
 		}
@@ -803,7 +809,7 @@ module.exports = {
 	 * @param {Number} time The time in seconds the room must be inactive for it to be unloaded.
 	 */
 	unloadIfEmpty(room, time=240) {
-		if (room.clients.length == 0 &&
+		if (room.clients.length === 0 &&
 			moment().diff(room.keepAlivePing, 'seconds') > time) {
 			this.unloadRoom(room);
 		}

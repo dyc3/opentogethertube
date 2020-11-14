@@ -36,7 +36,7 @@ export default {
 			let match;
 			let index = 0;
 			let loop = 0;
-			while ((match = urlRegex.exec(this.text.substring(index))) != null) {
+			while ((match = urlRegex.exec(this.text.substring(index))) !== null) {
 				// console.log("msg:", this.text, "match", match, "content", this.content);
 				if (match.index > index) {
 					this.content.push({ type: "text", text: this.text.slice(index, index + match.index) });
@@ -70,8 +70,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
+
 .link {
-	color: #ffb300;
+	color: $brand-color;
 	text-decoration: underline;
 }
 </style>

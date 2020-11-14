@@ -322,7 +322,13 @@ module.exports = function(_roommanager, storage) {
 	router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.service && req.body.id) {
-				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
+				const success = room.removeFromQueue(req.body.service === "direct" ? { service: req.body.service, url: req.body.id } : { service: req.body.service, id: req.body.id }, req.session);
+				res.json({
+					success,
+				});
+			}
+			else if (req.body.url) {
+				const success = room.removeFromQueue({ url: req.body.url }, req.session);
 				res.json({
 					success,
 				});

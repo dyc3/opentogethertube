@@ -5,8 +5,21 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.js')[env];
+const configs = require(__dirname + '/../config/config.js');
 const db = {};
+
+let config;
+if (env === 'production') {
+  if (process.env.DB_MODE === "postgres" || process.env.DOCKER) {
+    config = configs[env];
+  }
+  else if (process.env.DB_MODE === "sqlite") {
+    config = configs["production-sqlite"];
+  }
+}
+else {
+  config = configs[env];
+}
 
 let sequelize;
 if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
