@@ -224,7 +224,8 @@ async function resolveVideoQuery(query, searchService) {
     }
 
     const fetchResults = await adapter.resolveURL(query);
-    results.push(...fetchResults);
+    const completeResults = await getManyVideoInfo(fetchResults);
+    results.push(...completeResults);
   }
   else {
     if (query.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
