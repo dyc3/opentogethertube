@@ -75,7 +75,7 @@ class YouTubeAdapter extends ServiceAdapter {
     const url = URL.parse(link);
     const query = QueryString.parse(url.query);
 
-    if (url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/")) {
+    if (url.pathname.startsWith("/c/") || url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/")) {
       return this.fetchChannelVideos(this.getChannelId(url));
     }
     else if (url.pathname === "/watch") {
@@ -114,8 +114,14 @@ class YouTubeAdapter extends ServiceAdapter {
       return this.fetchPlaylistVideos(cachedPlaylistId);
     }
 
-    const channelIdProp = channelData.channel ? "id" : "forUsername";
-    const channelIdValue = channelData.channel ? channelData.channel : channelData.user;
+    if (channelData.customUrl) {
+      // HACK: The youtube API doesn't allow us to grab the youtube channel id only from the channel's URL. See #285
+      channelData.channel = await this.getChannelIdFromYoutubeCustomUrl(channelData.customUrl);
+    }
+
+    const channelIdKey = channelData.channel ? "channel" : "user";
+    const channelIdProp = (channelData.customUrl || channelData.channel) ? "id" : "forUsername";
+    const channelIdValue = channelData[channelIdKey];
     try {
       const res = await this.api.get("/channels", {
         params: {
@@ -130,6 +136,7 @@ class YouTubeAdapter extends ServiceAdapter {
         {
           user: channelData.user,
           channel: res.data.items[0].id,
+          customUrl: channelData.customUrl,
         },
         uploadsPlaylistId
       );
@@ -149,8 +156,11 @@ class YouTubeAdapter extends ServiceAdapter {
   }
 
   getCachedPlaylistId(channelData) {
+    const idKey = channelData.customUrl ? "customUrl" : (channelData.channel ? "channel" : "user");
+    const idValue = channelData[idKey];
+    const redisKey = `ytchannel:${idKey}:${idValue}`;
+
     return new Promise((resolve, reject) => {
-      const redisKey = `ytchannel${_.keys(channelData)[0]}:${_.values(channelData)[0]})`;
       this.redisClient.get(redisKey, (err, value) => {
         if (err) {
           reject(err);
@@ -166,30 +176,17 @@ class YouTubeAdapter extends ServiceAdapter {
   }
 
   cachePlaylistId(channelData, playlistId) {
-    if (channelData.channel) {
-      const idProp = "channel";
-      const idValue = channelData[idProp];
-      this.redisClient.set(`ytchannel:${idProp}:${idValue}`, playlistId, (err) => {
-        if (err) {
-          log.error(`Failed to cache playlist ID: ${err}`);
-        }
-        else {
-          log.info(`Cached playlist ytchannel:${idProp}:${idValue}`);
-        }
-      });
-    }
-    if (channelData.user) {
-      const idProp = "user";
-      const idValue = channelData[idProp];
-      this.redisClient.set(`ytchannel:${idProp}:${idValue}`, playlistId, (err) => {
-        if (err) {
-          log.error(`Failed to cache playlist ID: ${err}`);
-        }
-        else {
-          log.info(`Cached playlist ytchannel:${idProp}:${idValue}`);
-        }
-      });
-    }
+    const idProp = channelData.customUrl ? "customUrl" : (channelData.channel ? "channel": "user");
+    const idValue = channelData[idProp];
+    const key = `ytchannel:${idProp}:${idValue}`;
+    this.redisClient.set(key, playlistId, (err) => {
+      if (err) {
+        log.error(`Failed to cache playlist ID: ${err}`);
+      }
+      else {
+        log.info(`Cached playlist ${key}`);
+      }
+    });
   }
 
   async fetchPlaylistVideos(playlistId) {
@@ -417,8 +414,11 @@ class YouTubeAdapter extends ServiceAdapter {
     if (url.pathname.startsWith("/channel/")) {
       return { channel: channelId };
     }
-    else {
+    else if (url.pathname.startsWith("/user/")) {
       return { user: channelId };
+    }
+    else {
+      return { customUrl: channelId };
     }
   }
 
@@ -457,6 +457,22 @@ class YouTubeAdapter extends ServiceAdapter {
         throw err;
       }
     }
+  }
+
+  /**
+   * Workaround for #285. Feature was requested here: https://issuetracker.google.com/issues/165676622
+   * @param {string} customUrl
+   */
+  async getChannelIdFromYoutubeCustomUrl(customUrl) {
+    log.debug("web scraping to find channel id");
+    const res = await this.fallbackApi.get(`https://youtube.com/c/${customUrl}`);
+    const regex = /externalId":"UC[A-Za-z0-9_-]{22}/;
+    const matches = res.data.match(regex);
+    if (matches == null) {
+      return null;
+    }
+    const extracted = matches[0].split(":")[1].substring(1);
+    return extracted;
   }
 }
 
