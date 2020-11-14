@@ -177,6 +177,69 @@ describe('Room manager: Room tests', () => {
 
     room.sync.mockReset();
   });
+
+  it('should remove the correct video from the queue', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+    jest.spyOn(room, 'sync').mockImplementation();
+
+    room.queue = [
+      new Video({ service: "youtube", id: "BTZ5KVRUy1Q" }),
+      new Video({ service: "youtube", id: "I3O9J02G67I" }),
+      new Video({ service: "youtube", id: "9LIGMA4G643" }),
+    ];
+    room.removeFromQueue({ service: "youtube", id: "BTZ5KVRUy1Q" });
+    expect(room.queue).toHaveLength(2);
+    expect(room.queue).toEqual([
+      new Video({ service: "youtube", id: "I3O9J02G67I" }),
+      new Video({ service: "youtube", id: "9LIGMA4G643" }),
+    ]);
+
+    room.queue = [
+      new Video({ service: "youtube", id: "BTZ5KVRUy1Q" }),
+      new Video({ service: "youtube", id: "I3O9J02G67I" }),
+      new Video({ service: "youtube", id: "9LIGMA4G643" }),
+      new Video({ service: "youtube", id: "J54234BOFAE" }),
+    ];
+    room.removeFromQueue({ service: "youtube", id: "9LIGMA4G643" });
+    expect(room.queue).toHaveLength(3);
+    expect(room.queue).toEqual([
+      new Video({ service: "youtube", id: "BTZ5KVRUy1Q" }),
+      new Video({ service: "youtube", id: "I3O9J02G67I" }),
+      new Video({ service: "youtube", id: "J54234BOFAE" }),
+    ]);
+
+    room.queue = [
+      new Video({ service: "youtube", id: "BTZ5KVRUy1Q" }),
+      new Video({ service: "youtube", id: "I3O9J02G67I" }),
+      new Video({ service: "youtube", id: "9LIGMA4G643" }),
+      new Video({ service: "youtube", id: "J54234BOFAE" }),
+    ];
+    room.removeFromQueue({ service: "youtube", id: "9LIGMA4G643" });
+    expect(room.queue).toHaveLength(3);
+    expect(room.queue).toEqual([
+      new Video({ service: "youtube", id: "BTZ5KVRUy1Q" }),
+      new Video({ service: "youtube", id: "I3O9J02G67I" }),
+      new Video({ service: "youtube", id: "J54234BOFAE" }),
+    ]);
+
+    room.queue = [
+      new Video({ service: "youtube", id: "BTZ5KVRUy1Q" }),
+      new Video({ service: "direct", id: "https://example.com/jklp.mp4" }),
+      new Video({ service: "direct", id: "https://example.com/asdf.mp4" }),
+      new Video({ service: "youtube", id: "9LIGMA4G643" }),
+      new Video({ service: "youtube", id: "J54234BOFAE" }),
+    ];
+    room.removeFromQueue({ url: "https://example.com/asdf.mp4" });
+    expect(room.queue).toHaveLength(4);
+    expect(room.queue).toEqual([
+      new Video({ service: "youtube", id: "BTZ5KVRUy1Q" }),
+      new Video({ service: "direct", id: "https://example.com/jklp.mp4" }),
+      new Video({ service: "youtube", id: "9LIGMA4G643" }),
+      new Video({ service: "youtube", id: "J54234BOFAE" }),
+    ]);
+
+    room.sync.mockRestore();
+  });
 });
 
 describe('Room manager: Manager tests', () => {

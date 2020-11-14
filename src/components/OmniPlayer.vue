@@ -47,7 +47,7 @@
     <DirectPlayer
       v-else-if="source.service == 'direct'"
       ref="direct"
-      :video-url="source.url"
+      :video-url="source.id"
       :video-mime="source.mime"
       :thumbnail="source.thumbnail"
       class="player"
