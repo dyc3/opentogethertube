@@ -1,5 +1,5 @@
 const { RoomEvent, ROOM_EVENT_TYPE, ...roommanager } = require("../../../roommanager");
-const InfoExtract = require("../../../infoextract");
+const InfoExtract = require("../../../server/infoextractor");
 const storage = require("../../../storage");
 const moment = require("moment");
 const Video = require("../../../common/video.js");
