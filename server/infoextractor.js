@@ -41,7 +41,7 @@ async function getCachedVideo(service, videoId) {
     const video = new Video(result);
     const missingInfo = storage
       .getVideoInfoFields(video.service)
-      .filter(p => video[p] === null);
+      .filter(p => !video[p]);
 
     if (video.mime && !this.isSupportedMimeType(video.mime)) {
       throw new UnsupportedMimeTypeException(video.mime);
@@ -164,7 +164,7 @@ async function getManyVideoInfo(videos) {
     const requests = cachedVideos
       .map(video => ({
         id: video.id,
-        missingInfo: storage.getVideoInfoFields(video.service).filter(p => video[p] === null),
+        missingInfo: storage.getVideoInfoFields(video.service).filter(p => !video[p]),
       }))
       .filter(request => request.missingInfo.length > 0);
 
