@@ -252,9 +252,44 @@ describe("resolveURL", () => {
     fetchPlaylist.mockRestore();
   });
 
-  // it("Resolves playlist", () => {
+  it("Resolves playlist", async () => {
+    apiGet.mockReset();
+    apiGet
+      .mockResolvedValueOnce({ data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) });
+    let fetchVideoWithPlaylist = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
+    let fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
+    let fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
 
-  // });
+    let videos = await adapter.resolveURL("https://youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
+    expect(fetchVideoWithPlaylist).toHaveBeenCalledTimes(0);
+    expect(fetchPlaylist).toHaveBeenCalledTimes(1);
+    expect(fetchVideo).toHaveBeenCalledTimes(0);
+    expect(videos).toEqual([
+      new Video({
+        service: "youtube",
+        id: "zgxj_0xPleg",
+        title: "Chris Chan: A Comprehensive History - Part 1",
+        description: "(1982-2000)",
+        thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
+        // length expected to be null because the youtube api doesn't return video length in playlist items
+        // feature requested here: https://issuetracker.google.com/issues/173420445
+        length: null, // 2425,
+      }),
+      new Video({
+        service: "youtube",
+        id: "_3QMqssyBwQ",
+        title: "Chris Chan: A Comprehensive History - Part 2",
+        description: "(2000-2004)",
+        thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
+        length: null, //2403,
+      }),
+    ]);
+    expect(apiGet).toHaveBeenCalledTimes(1);
+
+    fetchVideoWithPlaylist.mockRestore();
+    fetchVideo.mockRestore();
+    fetchPlaylist.mockRestore();
+  });
 
   it("Resolves channel URLs", async () => {
     const channelId = "89hasd9h2lalskh8";
