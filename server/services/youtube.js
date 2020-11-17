@@ -36,11 +36,11 @@ class YouTubeAdapter extends ServiceAdapter {
     const query = QueryString.parse(url.query);
 
     if (url.host.endsWith("youtube.com")) {
-      return (url.pathname.startsWith("/watch") && query.v != null) ||
+      return (url.pathname.startsWith("/watch") && !!query.v) ||
         (url.pathname.startsWith("/channel/") && url.pathname.length > 9) ||
         (url.pathname.startsWith("/user/") && url.pathname.length > 6) ||
         (url.pathname.startsWith("/c/") && url.pathname.length > 3) ||
-        (url.pathname.startsWith("/playlist") && query.list != null);
+        (url.pathname.startsWith("/playlist") && !!query.list);
     }
     else if (url.host.endsWith("youtu.be")) {
       return url.pathname.length > 1;
@@ -57,7 +57,7 @@ class YouTubeAdapter extends ServiceAdapter {
       url.pathname.startsWith("/c/") ||
       url.pathname.startsWith("/user/") ||
       url.pathname.startsWith("/playlist") ||
-      query.list != null;
+      !!query.list;
   }
 
   getVideoId(str) {
@@ -389,11 +389,11 @@ class YouTubeAdapter extends ServiceAdapter {
     let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
     for (let r = 0; r < regexs.length; r++) {
       let matches = res.data.match(regexs[r]);
-      if (matches == null) {
+      if (matches === null) {
         continue;
       }
       const match = matches[0];
-      let extracted = match.split(":")[1].substring(r == 0 ? 1 : 2);
+      let extracted = match.split(":")[1].substring(r === 0 ? 1 : 2);
       log.silly(`MATCH ${match}`);
       log.debug(`EXTRACTED ${extracted}`);
       return parseInt(extracted);
@@ -460,7 +460,7 @@ class YouTubeAdapter extends ServiceAdapter {
     const res = await this.fallbackApi.get(`https://youtube.com/c/${customUrl}`);
     const regex = /externalId":"UC[A-Za-z0-9_-]{22}/;
     const matches = res.data.match(regex);
-    if (matches == null) {
+    if (matches === null) {
       return null;
     }
     const extracted = matches[0].split(":")[1].substring(1);
