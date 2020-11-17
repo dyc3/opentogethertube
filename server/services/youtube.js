@@ -72,25 +72,23 @@ class YouTubeAdapter extends ServiceAdapter {
   }
 
   async resolveURL(link, onlyProperties) {
+    log.debug(`resolveURL: ${link}, ${onlyProperties}`);
     const url = URL.parse(link);
     const query = QueryString.parse(url.query);
 
     if (url.pathname.startsWith("/c/") || url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/")) {
       return this.fetchChannelVideos(this.getChannelId(url));
     }
-    else if (url.pathname === "/watch") {
-      if (query.list) {
-        return this.fetchVideoWithPlaylist(query.v, query.list);
-      }
-      else {
-        return this.fetchVideoInfo(query.v, onlyProperties);
-      }
-    }
     else if (url.pathname === "/playlist") {
       return this.fetchPlaylistVideos(query.list);
     }
-    else if (url.host.endsWith("youtu.be")) {
-      return this.fetchVideoInfo(url.pathname, onlyProperties);
+    else {
+      if (query.list) {
+        return this.fetchVideoWithPlaylist(this.getVideoId(link), query.list);
+      }
+      else {
+        return this.fetchVideoInfo(this.getVideoId(link), onlyProperties);
+      }
     }
   }
 
@@ -324,12 +322,6 @@ class YouTubeAdapter extends ServiceAdapter {
             }
             results[item.id] = video;
           }
-
-          // update cache
-          // for (let video of _.values(results)) {
-          // 	storage.updateVideoInfo(video);
-          // }
-          // resolve(results);
 
           storage
             .updateManyVideoInfo(_.values(results))

@@ -10,6 +10,7 @@ const Video = require("../common/video");
 const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException } = require("./exceptions");
 const { getLogger } = require("../logger");
 const { redisClient } = require("../redisclient");
+const { isSupportedMimeType } = require("./mime");
 
 const log = getLogger("infoextract");
 
@@ -43,7 +44,7 @@ async function getCachedVideo(service, videoId) {
       .getVideoInfoFields(video.service)
       .filter(p => !video[p]);
 
-    if (video.mime && !this.isSupportedMimeType(video.mime)) {
+    if (video.mime && !isSupportedMimeType(video.mime)) {
       throw new UnsupportedMimeTypeException(video.mime);
     }
 
@@ -268,4 +269,9 @@ module.exports = {
   getManyVideoInfo,
   resolveVideoQuery,
   searchVideos,
+  isURL,
+  updateCache,
+  getCachedVideo,
+  getCachedSearchResults,
+  cacheSearchResults,
 };
