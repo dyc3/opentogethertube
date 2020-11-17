@@ -367,3 +367,40 @@ describe("searchVideos", () => {
     await expect(promise).rejects.not.toBeInstanceOf(OutOfQuotaException);
   });
 });
+
+describe("videoApiRequest", () => {
+  const adapter = new YouTubeAdapter("", redisClient);
+  const apiGet = jest.spyOn(adapter.api, "get");
+
+  beforeEach(() => {
+    apiGet.mockReset();
+  });
+
+  it("should use the fallback when out of quota, and onlyProperties contains length", async () => {
+    apiGet.mockRejectedValue({ response: { status: 403 } });
+    let fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
+    let video = await adapter.videoApiRequest("BTZ5KVRUy1Q", ["length"]);
+    expect(video).toEqual({
+      "BTZ5KVRUy1Q": new Video({
+        service: "youtube",
+        id: "BTZ5KVRUy1Q",
+        length: 10,
+        thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg",
+      }),
+    });
+    expect(fallbackSpy).toHaveBeenCalledTimes(1);
+    fallbackSpy.mockClear();
+  });
+
+  it("should not use the fallback when out of quota, and onlyProperties does NOT contain length", async () => {
+    apiGet.mockRejectedValue({ response: { status: 403 } });
+    let fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
+    expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(new OutOfQuotaException("youtube"));
+    expect(fallbackSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("should reject when the function fails for unknown reason", async () => {
+    apiGet.mockRejectedValue(new Error("other error"));
+    expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(new Error("other error"));
+  });
+});
