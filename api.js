@@ -43,6 +43,22 @@ function handleGetRoomFailure(res, err) {
 	}
 }
 
+function handlePostVideoFailure(res, err) {
+	if (err.name === "VideoAlreadyQueuedException") {
+		res.status(400).json({
+			success: false,
+			error: err.message,
+		});
+	}
+	else {
+		log.error("Unhandled exception when getting video:", err);
+		res.status(500).json({
+			success: false,
+			error: "Failed to get video",
+		});
+	}
+}
+
 // eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
 	const roommanager = _roommanager;
@@ -300,14 +316,14 @@ module.exports = function(_roommanager, storage) {
 					res.json({
 						success,
 					});
-				});
+				}).catch(err => handlePostVideoFailure(res, err));
 			}
 			else if (req.body.service && req.body.id) {
 				room.addToQueue({ service: req.body.service, id: req.body.id }, req.session).then(success => {
 					res.json({
 						success,
 					});
-				});
+				}).catch(err => handlePostVideoFailure(res, err));
 			}
 			else {
 				res.status(400).json({

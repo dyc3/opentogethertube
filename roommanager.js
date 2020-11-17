@@ -208,6 +208,9 @@ class Room {
 		}
 
 		if (SUPPORTED_SERVICES.includes(queueItem.service)) {
+			if (_.find(this.queue, queueItem)) {
+				throw new VideoAlreadyQueuedException(queueItem.title);
+			} 
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
@@ -730,6 +733,13 @@ class RoomNameTakenException extends Error {
 	constructor(roomName) {
 		super(`The room "${roomName}" is taken.`);
 		this.name = "RoomNameTakenException";
+	}
+}
+
+class VideoAlreadyQueuedException extends Error {
+	constructor(title) {
+		super(`The video "${title}" is already in the queue`);
+		this.name = "VideoAlreadyQueuedException";
 	}
 }
 

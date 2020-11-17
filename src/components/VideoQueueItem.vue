@@ -22,7 +22,7 @@
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
+				<v-btn icon :loading="isLoadingAdd" :disabled="hasBeenAdded" v-if="isPreview" @click="addToQueue">
 					<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
@@ -53,6 +53,18 @@ export default {
 			thumbnailHasError: false,
 			hasError: false,
 		};
+	},
+	created() {
+		if (this.item.id === this.$store.state.room.currentSource.id && this.item.service === this.$store.state.room.currentSource.service) {
+			this.hasBeenAdded = true;
+			return;
+		}
+		for (let video of this.$store.state.room.queue) {
+			if (this.item.id === video.id && this.item.service === video.service) {
+				this.hasBeenAdded = true;
+				return;
+			}
+		}
 	},
 	computed:{
 		videoLength() {
