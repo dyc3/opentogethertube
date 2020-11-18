@@ -1,12 +1,14 @@
 comment: false
 
 coverage:
+  precision: 4
+
   status:
     project:
       default:
-        target: 0%
-        threshold: 10%
+        target: 50%
+        threshold: 1%
     patch:
       default:
-        target: 0%
+        target: 60%
         threshold: 10%
