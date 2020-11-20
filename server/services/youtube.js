@@ -84,7 +84,13 @@ class YouTubeAdapter extends ServiceAdapter {
     }
     else {
       if (query.list) {
-        return this.fetchVideoWithPlaylist(this.getVideoId(link), query.list);
+        try {
+          return await this.fetchVideoWithPlaylist(this.getVideoId(link), query.list);
+        }
+        catch {
+          log.debug("Falling back to fetching video without playlist");
+          return this.fetchVideoInfo(this.getVideoId(link), onlyProperties);
+        }
       }
       else {
         return this.fetchVideoInfo(this.getVideoId(link), onlyProperties);
