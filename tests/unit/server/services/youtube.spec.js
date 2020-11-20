@@ -252,6 +252,43 @@ describe("resolveURL", () => {
     fetchPlaylist.mockRestore();
   });
 
+  it("Recovers after not being able to fetch playlist information for a video", async () => {
+    apiGet
+      .mockRejectedValueOnce({})
+      .mockResolvedValueOnce({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
+
+    const link = "https://youtube.com/watch?v=BTZ5KVRUy1Q&list=fakelistid";
+    const videos = await adapter.resolveURL(link);
+    expect(videos).toEqual(new Video({
+      service: "youtube",
+      id: "BTZ5KVRUy1Q",
+      title: "tmpIwT4T4",
+      description: "tmpIwT4T4",
+      thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+      length: 10,
+    }));
+  });
+
+  it.each(["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`))("Ignores the WL and LL private playlists", async (link) => {
+    apiGet.mockResolvedValue({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
+    const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
+    const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
+    const videos = await adapter.resolveURL(link);
+    expect(videos).toEqual(new Video({
+      service: "youtube",
+      id: "BTZ5KVRUy1Q",
+      title: "tmpIwT4T4",
+      description: "tmpIwT4T4",
+      thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+      length: 10,
+    }));
+    expect(fetchVideo).toBeCalledTimes(1);
+    expect(fetchVideoWithPlaylist).not.toBeCalled();
+
+    fetchVideoWithPlaylist.mockRestore();
+    fetchVideo.mockRestore();
+  });
+
   it("Resolves playlist", async () => {
     apiGet.mockReset();
     apiGet
