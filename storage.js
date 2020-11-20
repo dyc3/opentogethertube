@@ -289,7 +289,7 @@ module.exports = {
 	getVideoInfoFields(service=undefined) {
 		let fields = [];
 		for (let column in CachedVideo.rawAttributes) {
-			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId") {
+			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId" || column === "service") {
 				continue;
 			}
 			// eslint-disable-next-line array-bracket-newline
