@@ -3,7 +3,7 @@ const storage = require("../../../storage");
 const { getMimeType } = require("../../../server/mime");
 const YouTubeAdapter = require("../../../server/services/youtube");
 const Video = require("../../../common/video");
-const { UnsupportedMimeTypeException } = require("../../../server/exceptions");
+const { UnsupportedMimeTypeException, OutOfQuotaException } = require("../../../server/exceptions");
 const ServiceAdapter = require("../../../server/serviceadapter");
 const { redisClient } = require("../../../redisclient");
 const _ = require("lodash");
@@ -120,6 +120,109 @@ describe("InfoExtractor", () => {
 			redisSet.mockRestore();
 		});
 
+	});
+
+	describe("getVideoInfo", () => {
+		let getAdapter;
+		let getCachedVideo;
+		let updateCache;
+		let adapterFetchVideoInfo;
+		beforeAll(() => {
+			let adapter = new TestAdapter();
+			getAdapter = jest.spyOn(InfoExtractor, 'getServiceAdapter').mockReturnValue(adapter);
+			getCachedVideo = jest.spyOn(InfoExtractor, 'getCachedVideo').mockImplementation();
+			updateCache = jest.spyOn(InfoExtractor, 'updateCache').mockImplementation();
+			adapterFetchVideoInfo = jest.spyOn(adapter, 'fetchVideoInfo');
+		});
+		afterEach(() => {
+			updateCache.mockClear();
+			getCachedVideo.mockReset();
+			adapterFetchVideoInfo.mockReset();
+		});
+		afterAll(() => {
+			getAdapter.mockRestore();
+			getCachedVideo.mockRestore();
+			updateCache.mockRestore();
+		});
+
+		let vid = new Video({
+			service: "fakeservice",
+			id: "asdf",
+			title: "title",
+			description: "desc",
+			length: 10,
+			thumbnail: "https://example.com/asdf",
+		});
+		delete vid.mime;
+
+		it("should get video info from adapter", async () => {
+			getCachedVideo.mockResolvedValue([
+				_.pick(vid, "service", "id"),
+				// eslint-disable-next-line array-bracket-newline
+				["title", "description", "length", "thumbnail"],
+			]);
+			adapterFetchVideoInfo.mockResolvedValue(vid);
+			expect(await InfoExtractor.getVideoInfo("youtube", "asdf")).toEqual(vid);
+			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
+			expect(getCachedVideo).toBeCalledTimes(1);
+		});
+
+		it("should update the video in the cache", async () => {
+			getCachedVideo.mockResolvedValue([
+				_.pick(vid, "service", "id"),
+				// eslint-disable-next-line array-bracket-newline
+				["title", "description", "length", "thumbnail"],
+			]);
+			adapterFetchVideoInfo.mockResolvedValue(vid);
+			await InfoExtractor.getVideoInfo("youtube", "asdf");
+			expect(updateCache).toBeCalledTimes(1);
+			expect(updateCache).toBeCalledWith(vid);
+		});
+
+		it("should get video from the cache", async () => {
+			getCachedVideo.mockResolvedValue([
+				vid,
+				// eslint-disable-next-line array-bracket-newline
+				[],
+			]);
+			adapterFetchVideoInfo.mockResolvedValue(vid);
+			expect(await InfoExtractor.getVideoInfo("youtube", "asdf")).toEqual(vid);
+			expect(adapterFetchVideoInfo).toBeCalledTimes(0);
+			expect(getCachedVideo).toBeCalledTimes(1);
+		});
+
+		it("should return what's available in the cache if out of quota", async () => {
+			getCachedVideo.mockResolvedValue([
+				_.pick(vid, "service", "id", "length"),
+				// eslint-disable-next-line array-bracket-newline
+				["title", "description", "thumbnail"],
+			]);
+			adapterFetchVideoInfo.mockRejectedValue(new OutOfQuotaException());
+			expect(await InfoExtractor.getVideoInfo("youtube", "asdf")).toEqual(_.pick(vid, "service", "id", "length"));
+			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
+		});
+
+		it("should fail with OutOfQuotaException if the video is not in the cache and out of quota", async () => {
+			getCachedVideo.mockResolvedValue([
+				_.pick(vid, "service", "id"),
+				// eslint-disable-next-line array-bracket-newline
+				["title", "description", "thumbnail", "length", "mime"],
+			]);
+			adapterFetchVideoInfo.mockRejectedValue(new OutOfQuotaException());
+			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrowError(OutOfQuotaException);
+			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
+		});
+
+		it("should fail with other errors", async () => {
+			getCachedVideo.mockResolvedValue([
+				_.pick(vid, "service", "id", "length"),
+				// eslint-disable-next-line array-bracket-newline
+				["title", "description", "thumbnail"],
+			]);
+			adapterFetchVideoInfo.mockRejectedValue(new Error("fake"));
+			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrow(new Error("fake"));
+			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
+		});
 	});
 });
 
