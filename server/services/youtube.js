@@ -59,7 +59,7 @@ class YouTubeAdapter extends ServiceAdapter {
       url.pathname.startsWith("/c/") ||
       url.pathname.startsWith("/user/") ||
       url.pathname.startsWith("/playlist") ||
-      !!query.list;
+      (!!query.list && !knownPrivateLists.includes(query.list));
   }
 
   getVideoId(str) {
