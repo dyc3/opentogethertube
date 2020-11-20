@@ -14,6 +14,8 @@ const storage = require("../../storage");
 
 const log = getLogger("youtube");
 
+const knownPrivateLists = ["LL", "WL"];
+
 class YouTubeAdapter extends ServiceAdapter {
   constructor(apiKey, redisClient) {
     super();
@@ -83,7 +85,7 @@ class YouTubeAdapter extends ServiceAdapter {
       return this.fetchPlaylistVideos(query.list);
     }
     else {
-      if (query.list) {
+      if (query.list && !knownPrivateLists.includes(query.list)) {
         try {
           return await this.fetchVideoWithPlaylist(this.getVideoId(link), query.list);
         }
