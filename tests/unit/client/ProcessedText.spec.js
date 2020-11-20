@@ -9,6 +9,9 @@ const localVue = createLocalVue();
 // https://github.com/vuetifyjs/vuetify/issues/4964
 Vue.use(Vuetify);
 
+import VueEvents from 'vue-events';
+localVue.use(VueEvents);
+
 describe("ProcessedText component", () => {
 	it("should render nothing", () => {
 		let wrapper = mount(ProcessedText, {
@@ -55,5 +58,18 @@ describe("ProcessedText component", () => {
 			{ type: "link", text: "https://example.com/" },
 			{ type: "text", text: " griffin" },
 		]);
+	});
+
+	it("should fire event when link is clicked", () => {
+		let wrapper = mount(ProcessedText, {
+			localVue,
+			propsData: { text: "https://example.com/" },
+			mounted: jest.fn(),
+		});
+		let eventStub = jest.fn();
+		wrapper.vm.$events.on("onChatLinkClick", eventStub);
+		wrapper.vm.processText();
+		wrapper.find(".link").trigger("click");
+		expect(eventStub).toBeCalledWith("https://example.com/");
 	});
 });
