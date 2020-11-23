@@ -42,6 +42,7 @@
     "secure-password": "^3.1.0",
     "sequelize": "5.21.4",
     "sequelize-cli": "^5.5.1",
+    "source": "^0.0.3",
     "unique-names-generator": "^3.1.1",
     "uuid": "^3.4.0",
     "validator": "13.0.0",
@@ -57,7 +58,8 @@
     "vuedraggable": "^2.23.2",
     "vuetify": "^2.2.19",
     "vuex": "^3.1.2",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "spotify-web-api-js": "^1.5.1"
   },
   "devDependencies": {
     "@babel/core": "7.9.0",
@@ -78,7 +80,7 @@
     "nodemon": "1.19.4",
     "sass": "^1.19.0",
     "sass-loader": "^7.1.0",
-    "sqlite3": "4.1.1",
+    "sqlite3": "^4.1.1",
     "supertest": "4.0.2",
     "vue-cli-plugin-vuetify": "2.0.5",
     "vue-cli-plugin-webpack-bundle-analyzer": "2.0.0",

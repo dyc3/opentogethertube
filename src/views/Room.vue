@@ -14,6 +14,7 @@
               <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <GoogleDrivePlayer v-else-if="currentSource.service == 'googledrive'" class="player" ref="googledrive" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <DirectPlayer v-else-if="currentSource.service == 'direct'" class="player" ref="direct" :video-url="currentSource.url" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
+              <SpotifyPlayer v-else-if="currentSource.service == 'spotify'" class="player" ref="spotify" :video-url="currentSource.url" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
               <v-container fluid fill-height class="player no-video" v-else>
                 <v-row justify="center" align="center">
                   <div>
@@ -101,6 +102,8 @@
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(5)">Add test spotify 0</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(6)">Add test spotify 1</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -221,6 +224,7 @@ export default {
     DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
     GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
     DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/DirectPlayer.vue"),
+    SpotifyPlayer: () => import(/* webpackChunkName: "direct" */"@/components/SpotifyPlayer.vue"),
   },
   data() {
     return {
@@ -385,6 +389,8 @@ export default {
         "https://vimeo.com/94338566",
         "https://vimeo.com/239423699",
         "https://www.dailymotion.com/video/x6hkywd",
+        "https://open.spotify.com/album/2qVM4OAn9U9ZXHVKV0zIiJ?highlight=spotify:track:6sGiI7V9kgLNEhPIxEJDii",
+        "https://open.spotify.com/album/2qVM4OAn9U9ZXHVKV0zIiJ?si=c1XxV53qQ_q9Spvczp7ytQ",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],
@@ -434,6 +440,9 @@ export default {
       else if (this.currentSource.service === "direct") {
         this.$refs.direct.play();
       }
+      else if (this.currentSource.service === "spotify") {
+        this.$refs.spotify.play();
+      }
     },
     pause() {
       if (this.currentSource.service == "youtube") {
@@ -450,6 +459,9 @@ export default {
       }
       else if (this.currentSource.service === "direct") {
         this.$refs.direct.pause();
+      } 
+      else if (this.currentSource.service === "spotify") {
+        this.$refs.spotify.pause();
       }
     },
     updateVolume() {
@@ -468,6 +480,10 @@ export default {
       else if (this.currentSource.service === "direct") {
         this.$refs.direct.setVolume(this.volume);
       }
+      else if (this.currentSource.service === "spotify") {
+        this.$refs.spotify.setVolume(this.volume);
+      }
+
     },
     requestAddPreview() {
       API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
@@ -789,6 +805,9 @@ export default {
       else if (this.currentSource.service === "direct") {
         currentTime = await this.$refs.direct.getPosition();
       }
+      else if (this.currentSource.service === "spotify") {
+        currentTime = await this.$refs.spotify.getPosition();
+      }
       if (Math.abs(newPosition - currentTime) > 1) {
         if (this.currentSource.service === "youtube") {
           this.$refs.youtube.setPosition(newPosition);
@@ -804,6 +823,9 @@ export default {
         }
         else if (this.currentSource.service === "direct") {
           this.$refs.direct.setPosition(newPosition);
+        }
+        else if (this.currentSource.service === "spotify") {
+          this.$refs.spotify.setPosition(newPosition);
         }
       }
     },
