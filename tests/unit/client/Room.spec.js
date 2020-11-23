@@ -59,6 +59,9 @@ function mountNewInstance(store) {
       $route,
       $connect: jest.fn(),
       $disconnect: jest.fn(),
+      $socket: {
+        sendObj: jest.fn(),
+      },
     },
     stubs: [
       'youtube',
@@ -187,5 +190,112 @@ describe('Room UI spec', () => {
     expect(overlay.exists()).toBe(true);
     expect(overlay.isVisible()).toBe(true);
     expect(overlay.find('span').text()).toEqual('Room does not exist');
+  });
+
+  it('should invite link be the page URL', () => {
+    // FIXME: actually test the contents of the invite link
+    expect(wrapper.vm.inviteLink).toEqual(window.location.href);
+  });
+
+  it('should determine if the add preview link is a URL', () => {
+    jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
+
+    wrapper.setData({ inputAddPreview: "https://example.com" });
+    expect(wrapper.vm.isAddPreviewInputUrl).toEqual(true);
+
+    wrapper.setData({ inputAddPreview: "pokimane feet compilation" });
+    expect(wrapper.vm.isAddPreviewInputUrl).toEqual(false);
+  });
+
+  it('should request add previews when input is URL', () => {
+    jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
+
+    wrapper.setData({ inputAddPreview: "https://example.com" });
+    expect(wrapper.vm.requestAddPreviewDebounced).toBeCalled();
+    wrapper.vm.requestAddPreviewDebounced.mockClear();
+
+    wrapper.setData({ inputAddPreview: "       " });
+    expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
+    wrapper.vm.requestAddPreviewDebounced.mockClear();
+
+    wrapper.setData({ inputAddPreview: "how to get smaller toes" });
+    expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
+    wrapper.vm.requestAddPreviewDebounced.mockClear();
+  });
+
+  describe('Keyboard controls', () => {
+    it('should toggle playback when space or k is pressed', async () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+      jest.spyOn(wrapper.vm, 'togglePlayback').mockImplementation();
+
+      // HACK: for some reason wrapper.trigger() is not working here
+      wrapper.vm.onKeyDown({ code: "Space", target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.togglePlayback).toHaveBeenCalledTimes(1);
+      wrapper.vm.togglePlayback.mockClear();
+
+      wrapper.vm.onKeyDown({ code: "k", target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.togglePlayback).toHaveBeenCalledTimes(1);
+      wrapper.vm.togglePlayback.mockClear();
+    });
+
+    it('should seek to beginning when home is pressed', async () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+
+      // HACK: for some reason wrapper.trigger() is not working here
+      wrapper.vm.onKeyDown({ code: "Home", target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.$socket.sendObj).toHaveBeenCalledWith({ action: "seek", position: 0 });
+    });
+
+    it('should skip video when end is pressed', async () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+
+      // HACK: for some reason wrapper.trigger() is not working here
+      wrapper.vm.onKeyDown({ code: "End", target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.$socket.sendObj).toHaveBeenCalledWith({ action: "skip" });
+    });
+
+    it('should toggle fullscreen when f is pressed', async () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+      jest.spyOn(wrapper.vm, 'toggleFullscreen').mockImplementation();
+
+      // HACK: for some reason wrapper.trigger() is not working here
+      wrapper.vm.onKeyDown({ code: "KeyF", target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.toggleFullscreen).toHaveBeenCalledTimes(1);
+    });
+
+    it('should seek the correct amount', async () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+      jest.spyOn(wrapper.vm, 'seekVideo').mockImplementation();
+
+      // HACK: for some reason wrapper.trigger() is not working here
+      wrapper.vm.onKeyDown({ code: "ArrowRight", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(5);
+      wrapper.vm.seekVideo.mockClear();
+
+      wrapper.vm.onKeyDown({ code: "ArrowRight", ctrlKey: true, target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(10);
+      wrapper.vm.seekVideo.mockClear();
+
+      wrapper.vm.onKeyDown({ code: "ArrowLeft", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(-5);
+      wrapper.vm.seekVideo.mockClear();
+
+      wrapper.vm.onKeyDown({ code: "ArrowLeft", ctrlKey: true, target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(-10);
+      wrapper.vm.seekVideo.mockClear();
+
+      wrapper.vm.onKeyDown({ code: "KeyL", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(10);
+      wrapper.vm.seekVideo.mockClear();
+
+      wrapper.vm.onKeyDown({ code: "KeyJ", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
+      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(-10);
+      wrapper.vm.seekVideo.mockClear();
+    });
   });
 });

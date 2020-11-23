@@ -25,12 +25,13 @@ describe("Login form", () => {
 	});
 
 	it("should render without failing", () => {
-		shallowMount(LogInForm, {
+		let wrapper = shallowMount(LogInForm, {
 			store,
 			localVue,
 			vuetify,
 			stubs: ['router-link'],
 		});
+		expect(wrapper.exists()).toBe(true);
 	});
 
 	it("should have all password fields be type=password", () => {

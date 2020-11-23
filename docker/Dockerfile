@@ -1,5 +1,5 @@
 ### Build stage ###
-FROM node:alpine3.11 as build-stage
+FROM node:lts-alpine3.11 as build-stage
 
 # Create app directory
 WORKDIR /usr/app
@@ -8,8 +8,7 @@ WORKDIR /usr/app
 COPY . .
 
 # Install app dependencies
-RUN apk update -q
-RUN apk --no-cache add sqlite curl libc6-compat python make g++ autoconf automake libtool -q
+RUN apk update -q && apk --no-cache add libc6-compat python make g++ autoconf automake libtool -q
 
 # Install app dependencies
 RUN npm install
@@ -17,9 +16,10 @@ RUN npm install
 # Build the application for deployement
 RUN npm run build
 
+RUN rm -rf node_modules && npm install --only=production
 
 ### Deployement server nginx ###
-FROM node:alpine3.11 as production-stage
+FROM node:lts-alpine3.11 as production-stage
 
 # Create app directory
 WORKDIR /usr/app/
@@ -30,27 +30,12 @@ ENV REDIS_PORT 6379
 ENV NODE_ENV production
 ENV PORT 8080
 
-# Install sqlite3
-RUN apk update -q
-RUN apk add sqlite curl libc6-compat python make g++ autoconf automake libtool -q
-
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
 COPY --from=build-stage /usr/app/docker/scripts/wait_for_db.sh /usr/app/wait_for_db.sh
 
-# remove the build dependency
-RUN rm -rf /usr/app/nodes_modules
-
-# Install app dependencies
-RUN npm install --only=prod
-
-# Remove all the unnecessary directories
-RUN rm -rf docker .github .vscode db public test src
-
 # Remove all the unnecessary files
-RUN rm -rf env .browserslistrc .eslintrc.js .gitignore .travis.yml codecov.yaml
-RUN rm -rf jest.config.js postcss.config.js vue.config.js babel.config.js docker-compose.yml
-RUN rm -rf tests logs coverage db
+RUN rm -rf public src .browserslistrc .eslintrc.js .gitignore jest.config.js postcss.config.js vue.config.js babel.config.js docker-compose.yml /root/.npm
 
 RUN mkdir env && touch env/production.env
 

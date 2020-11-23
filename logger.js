@@ -18,24 +18,26 @@ const myFormat = format.printf(({ level, message, timestamp, namespace, roomName
 const customColorizer = format(info => {
 	info.timestamp = colors.green(info.timestamp);
 	info.namespace = colors.blue(info.namespace);
-	if (info.level == "error") {
-		info.level = colors.bold.red(info.level);
-		info.message = colors.red(info.message);
-	}
-	else if (info.level == "warn") {
-		info.level = colors.bold.yellow(info.level);
-		info.message = colors.yellow(info.message);
-	}
-	else if (info.level == "info") {
-		info.level = colors.bold.white(info.level);
-		info.message = colors.white(info.message);
-	}
-	else if (info.level == "debug") {
-		info.level = colors.bold.green(info.level);
-		info.message = colors.green(info.message);
-	}
-	else {
-		info.level = colors.bold(info.level);
+	switch (info.level) {
+		case "error":
+			info.level = colors.bold.red(info.level);
+			info.message = colors.red(info.message);
+			break;
+		case "warn":
+			info.level = colors.bold.yellow(info.level);
+			info.message = colors.yellow(info.message);
+			break;
+		case "info":
+			info.level = colors.bold.white(info.level);
+			info.message = colors.white(info.message);
+			break;
+		case "debug":
+			info.level = colors.bold.green(info.level);
+			info.message = colors.green(info.message);
+			break;
+		default:
+			info.level = colors.bold(info.level);
+			break;
 	}
 	return info;
 });

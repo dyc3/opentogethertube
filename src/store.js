@@ -2,11 +2,15 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import _ from 'lodash';
 import { API } from './common-http.js';
+import moment from 'moment';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state: {
+		playerStatus: null,
+		playerBufferPercent: null,
+		playerBufferSpans: null,
 		fullscreen: false,
 		socket: {
 			isConnected: false,
@@ -34,6 +38,8 @@ export default new Vuex.Store({
 
 		// used for prompting the user if they want to add the video they came from or the video linked to the queue
 		quickAdd: [],
+
+		keepAliveInterval: null,
 	},
 	mutations:{
 		SOCKET_ONOPEN (state, event)  {
@@ -49,14 +55,25 @@ export default new Vuex.Store({
 				state.username = username;
 				API.post("/user", { username });
 			}
+			if (state.keepAliveInterval) {
+				clearInterval(state.keepAliveInterval);
+				state.keepAliveInterval = null;
+			}
+			state.keepAliveInterval = setInterval(() => {
+				Vue.prototype.$socket.sendObj({"action":"ping"});
+			}, 25000);
 		},
 		SOCKET_ONCLOSE (state, event)  {
 			console.log("socket close", event);
 			state.socket.isConnected = false;
-			if (event.code == 4002) {
+			if (event.code === 4002) {
 				state.joinFailureReason = "Room does not exist.";
 				Vue.prototype.$disconnect();
 				Vue.prototype.$events.fire("roomJoinFailure", { reason: "Room does not exist." });
+			}
+			if (state.keepAliveInterval) {
+				clearInterval(state.keepAliveInterval);
+				state.keepAliveInterval = null;
 			}
 		},
 		SOCKET_ONERROR (state, event)  {
@@ -75,7 +92,14 @@ export default new Vuex.Store({
 			state.socket.reconnectError = true;
 		},
 		PLAYBACK_STATUS(state, message) {
+			state.playerStatus = message;
 			Vue.prototype.$socket.sendObj({ action: "status", status: message });
+		},
+		PLAYBACK_BUFFER(state, percent) {
+			state.playerBufferPercent = percent;
+		},
+		PLAYBACK_BUFFER_SPANS(state, spans) {
+			state.playerBufferSpans = spans;
 		},
 		LOGIN(state, user) {
 			state.user = user;
@@ -97,13 +121,12 @@ export default new Vuex.Store({
 		sync(context, message) {
 			console.debug("SYNC", message);
 			delete message.action;
-			if (message.isPlaying !== undefined && this.state.room.isPlaying != message.isPlaying) {
-				if (message.isPlaying) {
-					Vue.prototype.$events.emit("playVideo");
-				}
-				else {
-					Vue.prototype.$events.emit("pauseVideo");
-				}
+			if (message.isPlaying !== undefined && this.state.room.isPlaying !== message.isPlaying) {
+				Vue.prototype.$events.emit(message.isPlaying ? "playVideo" : "pauseVideo");
+			}
+			if (message.playbackPosition !== undefined) {
+				console.log("setting playback start time");
+				this.state.room.playbackStartTime = moment();
 			}
 			// HACK: this lets vue detect the changes and react to them
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
@@ -121,7 +144,7 @@ export default new Vuex.Store({
 		event(context, message) {
 			let event = message.event;
 			event.isVisible = true;
-			event.isUndoable = event.eventType === 'seek' || event.eventType === 'skip' || event.eventType === 'addToQueue' || event.eventType === 'removeFromQueue';
+			event.isUndoable = event.eventType === 'seek' || event.eventType === 'skip' || (event.eventType === 'addToQueue' && event.parameters.video) || event.eventType === 'removeFromQueue';
 			event.timeout = event.isUndoable ? 7000 : 4000;
 			if (event.eventType === 'seek' && this.state.room.events.slice(-1)[0].eventType === 'seek' && this.state.room.events.slice(-1)[0].isVisible) {
 				this.state.room.events[this.state.room.events.length - 1].parameters.position = event.parameters.position;

@@ -12,7 +12,7 @@ module.exports = {
     'plugin:vue/essential',
   ],
   rules: {
-    'no-console': 'error',
+    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'no-debugger': 'error',
     'array-bracket-newline': ['error', { "multiline": true, "minItems": 3 }],
     'array-bracket-spacing': ['error', 'never'],
@@ -33,12 +33,14 @@ module.exports = {
     'no-multiple-empty-lines': ['error', { 'max': 1, 'maxBOF': 0 }],
     'no-var': 'error',
     'no-dupe-keys': 'error',
-    'no-prototype-builtins': 'off',
+    'no-prototype-builtins': 'error',
     'prefer-arrow-callback': 'error',
     'semi': ['error', 'always'],
     'semi-spacing': ["error", {"before": false, "after": true}],
     'space-before-blocks': ['error', 'always'],
     'eol-last': ["error", "always"],
+    'eqeqeq': ["error", "always"],
+    'no-unused-vars': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
 
     // HACK: this rule is required, otherwise travis-ci will fail (for some reason)
     // even through when run locally, no linting errors occur.
@@ -52,7 +54,7 @@ module.exports = {
     'jest/no-focused-tests': 'error',
     'jest/no-identical-title': 'error',
     'jest/no-if': 'error',
-    'jest/no-expect-resolves': 'warn',
+    'jest/no-expect-resolves': 'error',
     'jest/no-export': 'error',
     'jest/no-standalone-expect': 'error',
     'jest/no-truthy-falsy': 'warn',

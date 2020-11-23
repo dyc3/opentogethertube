@@ -12,6 +12,12 @@ log.debug(`ffprobe installed at ${FFPROBE_PATH}`);
 module.exports = {
 	async getFileInfo(uri) {
 		log.debug(`Grabbing file info from ${uri}`);
+		if (uri.includes('"')) {
+			// if, by some weird off chance, the uri SOMEHOW contains a quote, don't execute the command
+			// because it'll break, and probably lead to an exploit.
+			log.error("Failed to grab file info: uri contains unescaped double quote, which is a banned character");
+			throw new Error("Unescaped double quote found in uri");
+		}
 		const { error, stdout } = await exec(`${FFPROBE_PATH} -v quiet -i "${uri}" -print_format json -show_streams`);
 		if (error) {
 			log.error(`Failed to probe file info: ${error}`);

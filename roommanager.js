@@ -3,7 +3,7 @@ const _ = require("lodash");
 const moment = require("moment");
 const { uniqueNamesGenerator } = require('unique-names-generator');
 const NanoTimer = require("nanotimer");
-const InfoExtract = require("./infoextract");
+const InfoExtract = require("./server/infoextractor");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
@@ -123,6 +123,7 @@ class Room {
 	set isPlaying(value) {
 		this._isPlaying = value;
 		this._dirtyProps.push("isPlaying");
+		this._dirtyProps.push("playbackPosition");
 	}
 
 	get playbackPosition() {
@@ -196,21 +197,10 @@ class Room {
 	addToQueue(video, session=null) {
 		let queueItem = new Video();
 
-		if (video.hasOwnProperty("url")) {
-			queueItem.service = InfoExtract.getService(video.url);
-
-			if (queueItem.service === "youtube") {
-				queueItem.id = InfoExtract.getVideoIdYoutube(video.url);
-			}
-			else if (queueItem.service === "vimeo") {
-				queueItem.id = InfoExtract.getVideoIdVimeo(video.url);
-			}
-			else if (queueItem.service === "dailymotion") {
-				queueItem.id = InfoExtract.getVideoIdDailymotion(video.url);
-			}
-			else if (queueItem.service === "googledrive") {
-				queueItem.id = InfoExtract.getVideoIdGoogledrive(video.url);
-			}
+		if (Object.prototype.hasOwnProperty.call(video, "url")) {
+			let adapter = InfoExtract.getServiceAdapterForURL(video.url);
+			queueItem.service = adapter.serviceId;
+			queueItem.id = adapter.getVideoId(video.url);
 		}
 		else {
 			queueItem.service = video.service;
@@ -218,7 +208,9 @@ class Room {
 		}
 
 		if (SUPPORTED_SERVICES.includes(queueItem.service)) {
-			// TODO: fallback to "unofficial" methods of retreiving if using the youtube API fails.
+			if (_.find(this.queue, queueItem)) {
+				throw new VideoAlreadyQueuedException(queueItem.title);
+			} 
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
@@ -245,8 +237,24 @@ class Room {
 			});
 		}
 		else {
-			throw `Service ${queueItem.service} not yet supported`;
+			return Promise.reject(`Service ${queueItem.service} not yet supported`);
 		}
+	}
+
+	async addManyToQueue(videos, session=null) {
+		videos = await InfoExtract.getManyVideoInfo(videos);
+
+		this.queue = [...this.queue, ...videos];
+		this._dirtyProps.push("queue");
+		this.update();
+		this.sync();
+
+		if (session) {
+			let client = _.find(this.clients, { session: { id: session.id } });
+			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, client.username, { count: videos.length }));
+		}
+
+		return true;
 	}
 
 	/**
@@ -307,8 +315,9 @@ class Room {
 	}
 
 	removeFromQueue(video, session=null) {
-		let matchIdx = _.findIndex(this.queue, item => item.service === video.service && item.id === video.id);
+		let matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id) || (item.url && video.url && item.url === video.url));
 		if (matchIdx < 0) {
+			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
 			return false;
 		}
 		// remove the item from the queue
@@ -334,7 +343,7 @@ class Room {
 		// remove inactive clients
 		for (let i = 0; i < this.clients.length; i++) {
 			let ws = this.clients[i].socket;
-			if (ws.readyState != 1) {
+			if (ws.readyState !== 1) {
 				this.log.debug("Remove inactive client:", i, this.clients[i].username);
 				this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.LEAVE_ROOM, this.clients[i].username, {}));
 				this.clients.splice(i--, 1);
@@ -410,26 +419,25 @@ class Room {
 			currentSource: this.currentSource,
 			queue: _.cloneDeep(this.queue),
 			isPlaying: this.isPlaying,
-			playbackPosition: this.playbackPosition,
+			playbackPosition: this.getTruePlaybackPosition(),
 			users: [],
 			hasOwner: !!this.owner,
-			playbackStartTime: this.playbackStartTime,
 		};
 
 		for (const client of this.clients) {
 			// make sure the socket is still open
-			if (client.socket.readyState != 1) {
+			if (client.socket.readyState !== 1) {
 				continue;
 			}
 
-			if (!client.needsFullSync && this._dirtyProps.length == 0) {
+			if (!client.needsFullSync && this._dirtyProps.length === 0) {
 				continue;
 			}
 
 			syncMsg.users = this.clients.map(c => {
 				return {
 					name: c.username,
-					isYou: client.socket == c.socket,
+					isYou: client.socket === c.socket,
 					status: c.status,
 					isLoggedIn: c.isLoggedIn,
 				};
@@ -440,7 +448,7 @@ class Room {
 				syncMsg.queue = this.queue.map(video => {
 					let v = _.cloneDeep(video);
 					v.votes = video.votes ? video.votes.length : 0;
-					v.voted = _.find(video.votes, { userSessionId: client.session.id }) ? true : false;
+					v.voted = !!_.find(video.votes, { userSessionId: client.session.id });
 					return v;
 				});
 			}
@@ -450,6 +458,7 @@ class Room {
 				this.log.debug("sending full sync message to client");
 				dirtySyncMsg = syncMsg;
 				client.needsFullSync = false;
+				// dirtySyncMsg.playbackPosition = this.getTruePlaybackPosition();
 			}
 
 			try {
@@ -637,6 +646,13 @@ class Room {
 			this._dirtyProps.push("users");
 			this.sync();
 		}
+		else if (msg.action === "ping") {
+			this.log.silly(`Received ping from ${client.username}`);
+		}
+		else if (msg.action === "kickme") {
+			this.log.warn("Client requested to be kicked");
+			client.socket.close();
+		}
 		else {
 			log.warn(`[ws] UNKNOWN ACTION ${msg.action}`);
 		}
@@ -673,6 +689,7 @@ class Client {
 		this.status = "?";
 		this.needsFullSync = true;
 		this.user = null;
+
 		if (args) {
 			Object.assign(this, args);
 		}
@@ -680,6 +697,17 @@ class Client {
 
 	get username() {
 		return this.user ? this.user.username : this.session.username;
+	}
+
+	set username(value) {
+		if (this.user) {
+			this.user.username = value;
+			this.user.save();
+		}
+		else {
+			this.session.username = value;
+			this.session.save();
+		}
 	}
 
 	get isLoggedIn() {
@@ -705,6 +733,13 @@ class RoomNameTakenException extends Error {
 	constructor(roomName) {
 		super(`The room "${roomName}" is taken.`);
 		this.name = "RoomNameTakenException";
+	}
+}
+
+class VideoAlreadyQueuedException extends Error {
+	constructor(title) {
+		super(`The video "${title}" is already in the queue`);
+		this.name = "VideoAlreadyQueuedException";
 	}
 }
 
@@ -784,7 +819,7 @@ module.exports = {
 	 * @param {Number} time The time in seconds the room must be inactive for it to be unloaded.
 	 */
 	unloadIfEmpty(room, time=240) {
-		if (room.clients.length == 0 &&
+		if (room.clients.length === 0 &&
 			moment().diff(room.keepAlivePing, 'seconds') > time) {
 			this.unloadRoom(room);
 		}
@@ -815,6 +850,7 @@ module.exports = {
 				delete options.temporary;
 			}
 		}
+		log.silly(`Attempting to create a room with ${JSON.stringify(options)}`);
 
 		if (_.find(this.rooms, room => room.name === options.name)) {
 			throw new RoomNameTakenException(options.name);
@@ -822,6 +858,7 @@ module.exports = {
 		if (await storage.isRoomNameTaken(options.name)) {
 			throw new RoomNameTakenException(options.name);
 		}
+		log.debug("Room name is available.");
 
 		let newRoom = new Room(options);
 		if (options.isTemporary) {

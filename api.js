@@ -3,7 +3,7 @@ const rateLimit = require("express-rate-limit");
 const RateLimitStore = require('rate-limit-redis');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
-const InfoExtract = require("./infoextract");
+const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
 const { redisClient } = require('./redisclient.js');
 
@@ -26,6 +26,38 @@ const VALID_ROOM_QUEUE_MODE = [
 	"manual",
 	"vote",
 ];
+
+function handleGetRoomFailure(res, err) {
+	if (err.name === "RoomNotFoundException") {
+		res.status(404).json({
+			success: false,
+			error: "Room not found",
+		});
+	}
+	else {
+		log.error("Unhandled exception when getting room:", err);
+		res.status(500).json({
+			success: false,
+			error: "Failed to get room",
+		});
+	}
+}
+
+function handlePostVideoFailure(res, err) {
+	if (err.name === "VideoAlreadyQueuedException") {
+		res.status(400).json({
+			success: false,
+			error: err.message,
+		});
+	}
+	else {
+		log.error("Unhandled exception when getting video:", err);
+		res.status(500).json({
+			success: false,
+			error: "Failed to get video",
+		});
+	}
+}
 
 // eslint-disable-next-line no-unused-vars
 module.exports = function(_roommanager, storage) {
@@ -91,21 +123,7 @@ module.exports = function(_roommanager, storage) {
 				}
 			}
 			res.json(room);
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error("Unhandled exception when getting room:", err);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let createRoomLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:RoomCreate" }), windowMs: 60 * 60 * 1000, max: 4, message: "You are creating too many rooms. Please try again later." });
@@ -207,6 +225,7 @@ module.exports = function(_roommanager, storage) {
 
 	router.post("/room/generate", process.env.NODE_ENV === "production" ? createRoomLimiter : (req, res, next) => next(), async (req, res) => {
 		let roomName = uuid();
+		log.debug(`Generating room: ${roomName}`);
 		await roommanager.createRoom(roomName, true);
 		res.json({
 			success: true,
@@ -270,21 +289,7 @@ module.exports = function(_roommanager, storage) {
 					success: true,
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err} ${err.message}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.delete("/room/:name", (req, res) => {
@@ -293,39 +298,32 @@ module.exports = function(_roommanager, storage) {
 			res.json({
 				success: true,
 			});
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err} ${err.message}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let addToQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueAdd" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before adding more videos." });
 	router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
-			if (req.body.url) {
-				room.addToQueue({ url: req.body.url }, req.session).then(success => {
+			if (req.body.videos) {
+				room.addManyToQueue(req.body.videos, req.session).then(success => {
 					res.json({
 						success,
 					});
 				});
+			}
+			else if (req.body.url) {
+				room.addToQueue({ url: req.body.url }, req.session).then(success => {
+					res.json({
+						success,
+					});
+				}).catch(err => handlePostVideoFailure(res, err));
 			}
 			else if (req.body.service && req.body.id) {
 				room.addToQueue({ service: req.body.service, id: req.body.id }, req.session).then(success => {
 					res.json({
 						success,
 					});
-				});
+				}).catch(err => handlePostVideoFailure(res, err));
 			}
 			else {
 				res.status(400).json({
@@ -333,28 +331,20 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let removeFromQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueRemove" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before removing more videos." });
 	router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			if (req.body.service && req.body.id) {
-				const success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
+				const success = room.removeFromQueue(req.body.service === "direct" ? { service: req.body.service, url: req.body.id } : { service: req.body.service, id: req.body.id }, req.session);
+				res.json({
+					success,
+				});
+			}
+			else if (req.body.url) {
+				const success = room.removeFromQueue({ url: req.body.url }, req.session);
 				res.json({
 					success,
 				});
@@ -365,21 +355,7 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.post("/room/:name/vote", (req, res) => {
@@ -396,21 +372,7 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error("Unhandled exception when getting room:", err);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.delete("/room/:name/vote", (req, res) => {
@@ -427,47 +389,19 @@ module.exports = function(_roommanager, storage) {
 					error: "Invalid parameters",
 				});
 			}
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error("Unhandled exception when getting room:", err);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	router.post("/room/:name/undo", (req, res) => {
 		roommanager.getOrLoadRoom(req.params.name).then(room => {
 			room.undoEvent(req.body.event);
-		}).catch(err => {
-			if (err.name === "RoomNotFoundException") {
-				res.status(404).json({
-					success: false,
-					error: "Room not found",
-				});
-			}
-			else {
-				log.error(`Unhandled exception when getting room: ${err}`);
-				res.status(500).json({
-					success: false,
-					error: "Failed to get room",
-				});
-			}
-		});
+		}).catch(err => handleGetRoomFailure(res, err));
 	});
 
 	let addPreviewLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:AddPreview" }), windowMs: 40 * 1000, max: 20, message: "Wait a little bit longer before requesting more add previews." });
 	router.get("/data/previewAdd", process.env.NODE_ENV === "production" ? addPreviewLimiter : (req, res, next) => next(), (req, res) => {
 		log.info(`Getting queue add preview for ${req.query.input}`);
-		InfoExtract.getAddPreview(req.query.input.trim(), { fromUser: req.ip }).then(result => {
+		InfoExtract.resolveVideoQuery(req.query.input.trim(), "youtube").then(result => {
 			res.json(result);
 			log.info(`Sent add preview response with ${result.length} items`);
 		}).catch(err => {

@@ -41,6 +41,14 @@ export default new Router({
       component: () => import(/* webpackChunkName: "legal" */ './views/Privacy.vue'),
     },
     {
+      path: '/r/:roomId',
+      redirect: '/room/:roomId',
+    },
+    {
+      path: '/rooms/:roomId',
+      redirect: '/room/:roomId',
+    },
+    {
       path: '*',
       name: 'not-found',
       component: () => import(/* webpackChunkName: "not-found" */ './views/NotFound.vue'),

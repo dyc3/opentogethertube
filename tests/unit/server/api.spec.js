@@ -2,7 +2,7 @@ const request = require('supertest');
 const roommanager = require('../../../roommanager.js');
 jest.spyOn(roommanager, "getAllLoadedRooms").mockReturnValue(Promise.resolve([]));
 const app = require('../../../app.js').app;
-const InfoExtract = require('../../../infoextract.js');
+const InfoExtract = require('../../../server/infoextractor');
 const { Room, User } = require("../../../models");
 const usermanager = require('../../../usermanager.js');
 
@@ -463,7 +463,7 @@ describe("Room API", () => {
 
 describe("Data API", () => {
 	it("GET /data/previewAdd", async done => {
-		let getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockReturnValue(Promise.resolve([]));
+		let resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockReturnValue(Promise.resolve([]));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -472,11 +472,11 @@ describe("Data API", () => {
 			.expect(200)
 			.then(resp => {
 				expect(resp.body).toHaveLength(0);
-				expect(getAddPreviewSpy).toBeCalled();
+				expect(resolveQuerySpy).toBeCalled();
 			});
 
-		getAddPreviewSpy.mockRestore();
-		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })));
+		resolveQuerySpy.mockRestore();
+		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -486,11 +486,11 @@ describe("Data API", () => {
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
-				expect(getAddPreviewSpy).toBeCalled();
+				expect(resolveQuerySpy).toBeCalled();
 			});
 
-		getAddPreviewSpy.mockRestore();
-		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "InvalidAddPreviewInputException", message: "error message" })));
+		resolveQuerySpy.mockRestore();
+		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "InvalidAddPreviewInputException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -500,11 +500,11 @@ describe("Data API", () => {
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
-				expect(getAddPreviewSpy).toBeCalled();
+				expect(resolveQuerySpy).toBeCalled();
 			});
 
-		getAddPreviewSpy.mockRestore();
-		getAddPreviewSpy = jest.spyOn(InfoExtract, "getAddPreview").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })));
+		resolveQuerySpy.mockRestore();
+		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -514,10 +514,10 @@ describe("Data API", () => {
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
-				expect(getAddPreviewSpy).toBeCalled();
+				expect(resolveQuerySpy).toBeCalled();
 			});
 
-		getAddPreviewSpy.mockRestore();
+		resolveQuerySpy.mockRestore();
 		done();
 	});
 });

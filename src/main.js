@@ -28,6 +28,9 @@ Vue.use(VueYoutube);
 
 import 'vue-slider-component/theme/default.css';
 
+import Fragment from 'vue-fragment';
+Vue.use(Fragment.Plugin);
+
 Vue.config.productionTip = false;
 
 new Vue({

@@ -22,12 +22,13 @@
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
+				<v-btn icon :loading="isLoadingAdd" :disabled="hasBeenAdded" v-if="isPreview" @click="addToQueue">
 					<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
 				<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
-					<v-icon>fas fa-trash</v-icon>
+					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
+					<v-icon v-else>fas fa-trash</v-icon>
 				</v-btn>
 			</div>
 		</div>
@@ -50,7 +51,20 @@ export default {
 			isLoadingVote: false,
 			hasBeenAdded: false,
 			thumbnailHasError: false,
+			hasError: false,
 		};
+	},
+	created() {
+		if (this.item.id === this.$store.state.room.currentSource.id && this.item.service === this.$store.state.room.currentSource.service) {
+			this.hasBeenAdded = true;
+			return;
+		}
+		for (let video of this.$store.state.room.queue) {
+			if (this.item.id === video.id && this.item.service === video.service) {
+				this.hasBeenAdded = true;
+				return;
+			}
+		}
 	},
 	computed:{
 		videoLength() {
@@ -66,18 +80,13 @@ export default {
 				service: this.item.service,
 				id: this.item.id,
 			};
-			if (this.item.service === "direct") {
-				data = {
-					service: this.item.service,
-					id: this.item.url,
-				};
-			}
 			console.log(data);
 			return data;
 		},
 		addToQueue() {
 			this.isLoadingAdd = true;
-			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(() => {
+			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(resp => {
+				this.hasError = !resp.data.success;
 				this.isLoadingAdd = false;
 				this.hasBeenAdded = true;
 			});
@@ -86,7 +95,8 @@ export default {
 			this.isLoadingAdd = true;
 			API.delete(`/room/${this.$route.params.roomId}/queue`, {
 				data: this.getPostData(),
-			}).then(() => {
+			}).then(resp => {
+				this.hasError = !resp.data.success;
 				this.isLoadingAdd = false;
 			});
 		},

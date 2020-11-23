@@ -1,4 +1,6 @@
 language: node_js
+os: linux
+dist: xenial
 branches:
   only:
   - master
@@ -7,21 +9,42 @@ node_js:
 cache:
   directories:
     - "$HOME/.npm"
-services:
-  - redis
-  - docker
-install:
-- npm ci
-before_script:
-- NODE_ENV=test npx sequelize-cli db:migrate
-- npm run build
-script:
-- npm run lint-ci
-- npm test
-after_script:
-- bash <(curl -s https://codecov.io/bash)
-- echo "$DOCKER_PASSWORD" | docker login -u "dyc3" --password-stdin
-- docker-compose -f docker/docker-compose.yml up -d --build
-- docker commit opentogethertube opentogethertube
-- docker tag opentogethertube dyc3/opentogethertube:latest
-- docker push dyc3/opentogethertube:latest
+jobs:
+  include:
+    - name: warmup
+      stage: warmup
+      script:
+        - npm ci
+    - name: test
+      stage: test
+      services:
+        - redis
+      install:
+        - npm ci
+      before_script:
+        - NODE_ENV=test npx sequelize-cli db:migrate
+      script:
+        - npm run lint-ci
+        - npm test
+      after_script:
+        - bash <(curl -s https://codecov.io/bash)
+    - name: test build
+      stage: test
+      install:
+        - npm ci
+      script: npm run build
+    - name: build docker image
+      stage: upload
+      if: type != pull_request
+      services:
+        - docker
+      before_script:
+        - echo "$DOCKER_PASSWORD" | docker login -u "dyc3" --password-stdin
+        - touch env/production.env
+      script:
+        - docker-compose -f docker/docker-compose.yml up -d --build
+        - docker commit opentogethertube opentogethertube
+        - docker-compose -f docker/docker-compose.yml down
+        - docker tag opentogethertube dyc3/opentogethertube:latest
+      after_success:
+        - docker push dyc3/opentogethertube:latest

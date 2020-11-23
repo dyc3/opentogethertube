@@ -58,7 +58,10 @@ module.exports = {
 			where: {
 				$and: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', roomName)),
 			},
-		}).then(room => room ? true : false).catch(() => false);
+		}).then(room => !!room).catch(err => {
+			log.exception(err);
+			throw err;
+		});
 	},
 	updateRoom(room) {
 		return Room.findOne({
@@ -286,7 +289,7 @@ module.exports = {
 	getVideoInfoFields(service=undefined) {
 		let fields = [];
 		for (let column in CachedVideo.rawAttributes) {
-			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId") {
+			if (column === "id" || column === "createdAt" || column === "updatedAt" || column === "serviceId" || column === "service") {
 				continue;
 			}
 			// eslint-disable-next-line array-bracket-newline

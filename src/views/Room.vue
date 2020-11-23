@@ -9,20 +9,17 @@
         <v-row no-gutters class="video-container">
           <div class="video-subcontainer" cols="12" :xl="$store.state.fullscreen ? 9 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
             <v-responsive :aspect-ratio="16/9" class="player-container" :key="currentSource.service">
-              <YoutubePlayer v-if="currentSource.service == 'youtube'" class="player" ref="youtube" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <VimeoPlayer v-else-if="currentSource.service == 'vimeo'" class="player" ref="vimeo" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <DailymotionPlayer v-else-if="currentSource.service == 'dailymotion'" class="player" ref="dailymotion" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <GoogleDrivePlayer v-else-if="currentSource.service == 'googledrive'" class="player" ref="googledrive" :video-id="currentSource.id" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <DirectPlayer v-else-if="currentSource.service == 'direct'" class="player" ref="direct" :video-url="currentSource.url" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <SpotifyPlayer v-else-if="currentSource.service == 'spotify'" class="player" ref="spotify" :video-url="currentSource.url" @playing="onPlaybackChange(true)" @paused="onPlaybackChange(false)" @ready="onPlayerReady" @buffering="onVideoBuffer" @error="onVideoError" />
-              <v-container fluid fill-height class="player no-video" v-else>
-                <v-row justify="center" align="center">
-                  <div>
-                    <h1>No video is playing.</h1>
-                    <span>Click "Add" below to add a video.</span>
-                  </div>
-                </v-row>
-              </v-container>
+              <OmniPlayer
+                ref="player"
+                :source="currentSource"
+                :class="{ player: true, 'no-video': !currentSource.service }"
+                @playing="onPlaybackChange(true)"
+                @paused="onPlaybackChange(false)"
+                @ready="onPlayerReady"
+                @buffering="onVideoBuffer"
+                @error="onVideoError"
+                @buffer-spans="spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)"
+              />
             </v-responsive>
             <v-col class="video-controls">
               <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
@@ -57,22 +54,12 @@
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
+                <v-btn v-if="!production" @click="sendKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
               </v-row>
             </v-col>
           </div>
           <div cols="12" :xl="$store.state.fullscreen ? 3 : 5" md="4" class="chat-container">
-            <div class="d-flex flex-column" style="height: 100%">
-              <h4>Chat</h4>
-              <div class="messages d-flex flex-column flex-grow-1 mt-2">
-                <v-card class="msg d-flex mr-2 mb-2" v-for="(msg, index) in $store.state.room.chatMessages" :key="index">
-                  <div class="from">{{ msg.from }}</div>
-                  <div class="text"><ProcessedText :text="msg.text" /></div>
-                </v-card>
-              </div>
-              <div class="d-flex justify-end">
-                <v-text-field placeholder="Type your message here..." @keydown="onChatMessageKeyDown" v-model="inputChatMsgText" autocomplete="off"/>
-              </div>
-            </div>
+            <Chat class="chat" />
           </div>
         </v-row>
         <v-row no-gutters>
@@ -102,9 +89,11 @@
                     <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(5)">Add test spotify 0</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(6)">Add test spotify 1</v-btn>
-                    <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()">Add All</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(5)">Add test direct 5</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(6)">Add test direct 6</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(7)">Add test spotify 7</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(8)">Add test spotify 8</v-btn>
+                    <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
                     <v-progress-circular indeterminate/>
@@ -146,6 +135,28 @@
             </v-tabs-items>
           </v-col>
           <v-col col="4" md="4" sm="12" class="user-invite-container">
+            <div v-if="!production" class="debug-container">
+              <v-card>
+                <v-subheader>
+                  Debug
+                </v-subheader>
+                <v-list-item>
+                  Player status: {{ this.$store.state.playerStatus }}
+                </v-list-item>
+                <v-list-item>
+                  Buffered: {{ Math.round(this.$store.state.playerBufferPercent * 10000) / 100 }}%
+                </v-list-item>
+                <v-list-item v-if="this.$store.state.playerBufferSpans && this.$store.state.playerBufferSpans.length > 0">
+                  Buffered spans:
+                  {{ this.$store.state.playerBufferSpans.length }}
+                  {{
+                    Array.from({ length: this.$store.state.playerBufferSpans.length }, (v,k) => k++)
+                      .map(i => `${i}: [${$store.state.playerBufferSpans.start(i)} => ${$store.state.playerBufferSpans.end(i)}]`)
+                      .join(" ")
+                  }}
+                </v-list-item>
+              </v-card>
+            </div>
             <div class="user-list" v-if="$store.state.room.users">
               <v-card>
                 <v-subheader>
@@ -206,25 +217,21 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import ProcessedText from "@/components/ProcessedText.vue";
 import { secondsToTimestamp, calculateCurrentPosition } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
+import OmniPlayer from "@/components/OmniPlayer.vue";
+import Chat from "@/components/Chat.vue";
 
 export default {
   name: 'room',
   components: {
     draggable,
     VideoQueueItem,
-    ProcessedText,
     VueSlider,
-    YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
-    VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
-    DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
-    GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
-    DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/DirectPlayer.vue"),
-    SpotifyPlayer: () => import(/* webpackChunkName: "direct" */"@/components/SpotifyPlayer.vue"),
+    OmniPlayer,
+    Chat,
   },
   data() {
     return {
@@ -241,8 +248,6 @@ export default {
       hasAddPreviewFailed: false,
       addPreviewLoadFailureText: "",
       inputAddPreview: "",
-      inputChatMsgText: "",
-      shouldChatStickToBottom: true,
       isLoadingRoomSettings: false,
       inputRoomSettingsTitle: "",
       inputRoomSettingsDescription: "",
@@ -250,6 +255,7 @@ export default {
       inputRoomSettingsQueueMode: "",
       setUsernameLoading: false,
       setUsernameFailureText: "",
+      isLoadingAddAll: false,
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -281,22 +287,19 @@ export default {
       if (!this.$store.state.room.currentSource) {
         return 0;
       }
-      if (this.$store.state.room.currentSource.length == 0) {
+      if (this.$store.state.room.currentSource.length === 0) {
         return 0;
       }
       return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
     },
     production() {
+      // This is used so we can test for development/production only behavior in unit tests.
+      // Do not change.
       return this.$store.state.production;
     },
     isAddPreviewInputUrl() {
       try {
-        if (new URL(this.inputAddPreview).host) {
-          return true;
-        }
-        else {
-          return false;
-        }
+        return !!(new URL(this.inputAddPreview).host);
       }
       catch (e) {
         return false;
@@ -330,7 +333,12 @@ export default {
         this.snackbarText = `${event.userName} left the room`;
       }
       else if (event.eventType === "addToQueue") {
-        this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+        if (event.parameters.count) {
+          this.snackbarText = `${event.userName} added ${event.parameters.count} videos`;
+        }
+        else {
+          this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+        }
       }
       else if (event.eventType === "removeFromQueue") {
         this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
@@ -389,6 +397,8 @@ export default {
         "https://vimeo.com/94338566",
         "https://vimeo.com/239423699",
         "https://www.dailymotion.com/video/x6hkywd",
+        "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+        "https://vjs.zencdn.net/v/oceans.mp4",
         "https://open.spotify.com/album/2qVM4OAn9U9ZXHVKV0zIiJ?highlight=spotify:track:6sGiI7V9kgLNEhPIxEJDii",
         "https://open.spotify.com/album/2qVM4OAn9U9ZXHVKV0zIiJ?si=c1XxV53qQ_q9Spvczp7ytQ",
       ];
@@ -410,80 +420,24 @@ export default {
     sliderChange() {
       this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
     },
-    addToQueue() {
-      API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: this.inputAddPreview,
-      });
-    },
     addAllToQueue() {
-      for (let video of this.addPreview) {
-        API.post(`/room/${this.$route.params.roomId}/queue`, video);
-      }
+      this.isLoadingAddAll = true;
+      API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.addPreview }).then(() => {
+        this.isLoadingAddAll = false;
+      });
     },
     openEditName() {
       this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
       this.showEditName = !this.showEditName;
     },
     play() {
-      if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.play();
-      }
-      else if (this.currentSource.service === "vimeo") {
-        this.$refs.vimeo.play();
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        this.$refs.dailymotion.play();
-      }
-      else if (this.currentSource.service === "googledrive") {
-        this.$refs.googledrive.play();
-      }
-      else if (this.currentSource.service === "direct") {
-        this.$refs.direct.play();
-      }
-      else if (this.currentSource.service === "spotify") {
-        this.$refs.spotify.play();
-      }
+      this.$refs.player.play();
     },
     pause() {
-      if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.pause();
-      }
-      else if (this.currentSource.service === "vimeo") {
-        this.$refs.vimeo.pause();
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        this.$refs.dailymotion.pause();
-      }
-      else if (this.currentSource.service === "googledrive") {
-        this.$refs.googledrive.pause();
-      }
-      else if (this.currentSource.service === "direct") {
-        this.$refs.direct.pause();
-      } 
-      else if (this.currentSource.service === "spotify") {
-        this.$refs.spotify.pause();
-      }
+      this.$refs.player.pause();
     },
     updateVolume() {
-      if (this.currentSource.service == "youtube") {
-        this.$refs.youtube.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "vimeo") {
-        this.$refs.vimeo.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        this.$refs.dailymotion.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "googledrive") {
-        this.$refs.googledrive.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "direct") {
-        this.$refs.direct.setVolume(this.volume);
-      }
-      else if (this.currentSource.service === "spotify") {
-        this.$refs.spotify.setVolume(this.volume);
-      }
-
+      this.$refs.player.setVolume(this.volume);
     },
     requestAddPreview() {
       API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
@@ -539,7 +493,7 @@ export default {
         this.$store.commit("PLAYBACK_STATUS", "ready");
       }
       this.updateVolume();
-      if (changeTo == this.$store.state.room.isPlaying) {
+      if (changeTo === this.$store.state.room.isPlaying) {
         return;
       }
 
@@ -553,7 +507,7 @@ export default {
     onInputAddPreviewChange() {
       this.isLoadingAddPreview = true;
       this.hasAddPreviewFailed = false;
-      if (_.trim(this.inputAddPreview).length == 0) {
+      if (_.trim(this.inputAddPreview).length === 0) {
         this.addPreview = [];
         this.isLoadingAddPreview = false;
         return;
@@ -568,11 +522,11 @@ export default {
       this.requestAddPreviewDebounced();
     },
     onInputAddPreviewKeyDown(e) {
-      if (_.trim(this.inputAddPreview).length == 0 || this.isAddPreviewInputUrl) {
+      if (_.trim(this.inputAddPreview).length === 0 || this.isAddPreviewInputUrl) {
         return;
       }
 
-      if (e.keyCode === 13 && this.addPreview.length == 0) {
+      if (e.keyCode === 13 && this.addPreview.length === 0) {
         this.requestAddPreviewExplicit();
       }
     },
@@ -639,21 +593,6 @@ export default {
         document.documentElement.requestFullscreen();
       }
     },
-    onChatMessageKeyDown(e) {
-      if (e.keyCode === 13 && this.inputChatMsgText.length > 0) {
-        this.$socket.sendObj({ action: "chat", text: this.inputChatMsgText });
-        this.inputChatMsgText = "";
-        this.shouldChatStickToBottom = true;
-      }
-    },
-    onChatScroll() {
-      let msgsDiv = document.getElementsByClassName("messages");
-      if (msgsDiv.length) {
-        msgsDiv = msgsDiv[0];
-        let distToBottom = msgsDiv.scrollHeight - msgsDiv.clientHeight - msgsDiv.scrollTop;
-        this.shouldChatStickToBottom = distToBottom == 0;
-      }
-    },
     onQueueDragDrop(e) {
       this.$socket.sendObj({
         action: "queue-move",
@@ -692,8 +631,9 @@ export default {
         this.isLoadingRoomSettings = false;
       });
     },
-    onVideoBuffer() {
+    onVideoBuffer(percent) {
       this.$store.commit("PLAYBACK_STATUS", "buffering");
+      this.$store.commit("PLAYBACK_BUFFER", percent);
     },
     onVideoError() {
       this.$store.commit("PLAYBACK_STATUS", "error");
@@ -738,6 +678,11 @@ export default {
           position: _.clamp(currentPosition + delta, 0, this.$store.state.room.currentSource.length),
         });
     },
+    sendKickMe() {
+      this.$socket.sendObj({
+        action: "kickme",
+      });
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
@@ -750,15 +695,6 @@ export default {
       this.showJoinFailOverlay = true;
       this.joinFailReason = eventData.reason;
     });
-
-    let msgsDiv = document.getElementsByClassName("messages");
-    if (msgsDiv.length) {
-      msgsDiv = msgsDiv[0];
-      msgsDiv.onscroll = this.onChatScroll;
-    }
-    else {
-      console.error("Couldn't find chat messages div");
-    }
 
     document.onmousemove = () => {
       let controlsDiv = document.getElementsByClassName("video-controls");
@@ -789,44 +725,10 @@ export default {
       this.updateVolume();
     },
     async sliderPosition(newPosition) {
-      let currentTime = null;
-      if (this.currentSource.service === "youtube") {
-        currentTime = await this.$refs.youtube.getPosition();
-      }
-      else if (this.currentSource.service === "vimeo") {
-        currentTime = await this.$refs.vimeo.getPosition();
-      }
-      else if (this.currentSource.service === "dailymotion") {
-        currentTime = await this.$refs.dailymotion.getPosition();
-      }
-      else if (this.currentSource.service === "googledrive") {
-        currentTime = await this.$refs.googledrive.getPosition();
-      }
-      else if (this.currentSource.service === "direct") {
-        currentTime = await this.$refs.direct.getPosition();
-      }
-      else if (this.currentSource.service === "spotify") {
-        currentTime = await this.$refs.spotify.getPosition();
-      }
+      let currentTime = await this.$refs.player.getPosition();
+
       if (Math.abs(newPosition - currentTime) > 1) {
-        if (this.currentSource.service === "youtube") {
-          this.$refs.youtube.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "vimeo") {
-          this.$refs.vimeo.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "dailymotion") {
-          this.$refs.dailymotion.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "googledrive") {
-          this.$refs.googledrive.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "direct") {
-          this.$refs.direct.setPosition(newPosition);
-        }
-        else if (this.currentSource.service === "spotify") {
-          this.$refs.spotify.setPosition(newPosition);
-        }
+        this.$refs.player.setPosition(newPosition);
       }
     },
     inputAddPreview() {
@@ -834,16 +736,6 @@ export default {
       // This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
       this.onInputAddPreviewChange();
     },
-  },
-  updated() {
-    // scroll the messages to the bottom
-    if (this.shouldChatStickToBottom) {
-      let msgsDiv = document.getElementsByClassName("messages");
-      if (msgsDiv.length) {
-        msgsDiv = msgsDiv[0];
-        msgsDiv.scrollTop = msgsDiv.scrollHeight;
-      }
-    }
   },
 };
 </script>
@@ -875,12 +767,19 @@ export default {
 
   .chat-container {
     width: calc(100% / 12 * 4);
+
+    .chat {
+      min-height: 400px;
+      height: 100%;
+    }
   }
 
   @media (max-width: $md-max) {
     .video-subcontainer, .chat-container {
       width: 100%;
     }
+
+    margin: 0;
   }
 
   @media (min-width: $xl-min) {
@@ -914,8 +813,8 @@ export default {
   background: transparent !important;
 }
 .is-you {
-  color: #ffb300;
-  border: 1px #ffb300 solid;
+  color: $brand-color;
+  border: 1px $brand-color solid;
   border-radius: 10px;
   margin: 5px;
   padding: 0 5px;
@@ -940,42 +839,6 @@ export default {
 }
 .chat-container {
   padding: 5px 10px;
-
-  h4 {
-    border-bottom: 1px solid #666;
-  }
-
-  .messages {
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    // makes flex-grow work (for some reason)
-    // the value is the height this element will take on md size screens and smaller
-    height: 200px;
-
-    // push the messages to the bottom of the container
-    > .msg:first-child {
-      margin-top: auto;
-    }
-  }
-
-  .msg {
-    background-color: #444;
-
-    .from, .text {
-      margin: 3px 5px;
-      word-wrap: break-word;
-    }
-
-    .from {
-      font-weight: bold;
-      max-width: 20%;
-    }
-
-    .text {
-      min-width: 80%;
-    }
-  }
 }
 
 .flip-list-move {
@@ -1041,6 +904,12 @@ export default {
       opacity: 1;
       font-style: normal;
     }
+  }
+}
+
+.room {
+  @media (max-width: $md-max) {
+    padding: 0;
   }
 }
 </style>

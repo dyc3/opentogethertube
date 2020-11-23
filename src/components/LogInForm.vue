@@ -7,7 +7,7 @@
 		<v-tabs-items v-model="mode">
 			<v-tab-item>
 				<v-card>
-					<v-form ref="loginForm" @submit="login" v-model="loginValid" :lazy-validation="false">
+					<v-form ref="loginForm" @submit.prevent="login" v-model="loginValid" :lazy-validation="false">
 						<v-card-title>
 							Log in
 						</v-card-title>
@@ -35,14 +35,14 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn color="primary" :loading="isLoading" @click="login" :disabled="!loginValid">Log in</v-btn>
+							<v-btn type="submit" color="primary" :loading="isLoading" @click="login" :disabled="!loginValid">Log in</v-btn>
 						</v-card-actions>
 					</v-form>
 				</v-card>
 			</v-tab-item>
 			<v-tab-item>
 				<v-card>
-					<v-form ref="registerForm" @submit="register" v-model="registerValid" :lazy-validation="false">
+					<v-form ref="registerForm" @submit.prevent="register" v-model="registerValid" :lazy-validation="false">
 						<v-card-title>
 							Register
 						</v-card-title>
@@ -61,7 +61,7 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn color="primary" :loading="isLoading" @click="register" :disabled="!registerValid">Register</v-btn>
+							<v-btn type="submit" color="primary" :loading="isLoading" @click="register" :disabled="!registerValid">Register</v-btn>
 						</v-card-actions>
 					</v-form>
 				</v-card>
