@@ -44,6 +44,7 @@
     "sequelize": "5.21.4",
     "sequelize-cli": "^5.5.1",
     "source": "^0.0.3",
+    "spotify-web-api-js": "^1.5.1",
     "unique-names-generator": "^3.1.1",
     "uuid": "^3.4.0",
     "validator": "13.0.0",
@@ -61,7 +62,7 @@
     "vuetify": "^2.2.19",
     "vuex": "^3.1.2",
     "winston": "^3.2.1",
-    "spotify-web-api-js": "^1.5.1"
+    "xhr": "^2.5.0"
   },
   "devDependencies": {
     "@babel/core": "7.9.0",

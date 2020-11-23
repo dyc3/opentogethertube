@@ -399,7 +399,7 @@ export default {
         "https://www.dailymotion.com/video/x6hkywd",
         "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
         "https://vjs.zencdn.net/v/oceans.mp4",
-        "https://open.spotify.com/album/2qVM4OAn9U9ZXHVKV0zIiJ?highlight=spotify:track:6sGiI7V9kgLNEhPIxEJDii",
+        "https://open.spotify.com/track/6sGiI7V9kgLNEhPIxEJDii",
         "https://open.spotify.com/album/2qVM4OAn9U9ZXHVKV0zIiJ?si=c1XxV53qQ_q9Spvczp7ytQ",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {

@@ -1,4 +1,3 @@
-
 const URL = require("url");
 const axios = require("axios");
 
@@ -76,4 +75,4 @@ class SpotifyAdapter extends ServiceAdapter {
   }
 }
 
-module.exports = MyServiceAdapter;
+module.exports = SpotifyAdapter;

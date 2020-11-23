@@ -6,7 +6,7 @@
 
 <script>
 // import axios from "axios";
-import { getSdk } from "../util/playerHelper.js";
+import { getSdk } from "../../util/playerHelper.js";
 
 const DAILYMOTION_SDK_URL = "https://api.dmcdn.net/all.js";
 // const DAILYMOTION_OEMBED_API_URL = "http://www.dailymotion.com/services/oembed";
