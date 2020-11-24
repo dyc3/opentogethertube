@@ -9,7 +9,7 @@ const log = getLogger("spotify");
 class SpotifyAdapter extends ServiceAdapter {
   constructor(apiKey) {
     super();
-    this.api
+    this.api = "https://api.spotify.com/v1"
     this.apiKey = apiKey;
   }
   get serviceId() {
@@ -32,7 +32,7 @@ class SpotifyAdapter extends ServiceAdapter {
   }
 
   async fetchVideoInfo(Id) {
-    const result = await this.api.get(`/video/${videoId}`);
+    const result = await this.api.get(`/v1/me/player`);
     const video = new Video({
       service: this.serviceId,
       id: videoId,

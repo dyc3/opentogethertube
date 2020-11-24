@@ -92,6 +92,7 @@ const services = [
   "dailymotion",
   "googledrive",
   "direct",
+  "spotify"
 ];
 
 export default {
