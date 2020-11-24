@@ -17,7 +17,7 @@ class Video {
 		}
 
 		// eslint-disable-next-line array-bracket-newline
-		if (["youtube", "vimeo", "dailymotion"].includes(this.service)) {
+		if (["youtube", "vimeo", "dailymotion", "spotify"].includes(this.service)) {
 			delete this.mime;
 		}
 		// eslint-disable-next-line array-bracket-newline

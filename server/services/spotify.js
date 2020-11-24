@@ -1,17 +1,49 @@
 const URL = require("url");
 const axios = require("axios");
+const { Base64 } = require('js-base64');
+const qs = require('qs');
 
 const ServiceAdapter = require("../serviceadapter");
+const Video = require("../../common/video");
 
 const { getLogger } = require("../../logger");
+const { url } = require("inspector");
 const log = getLogger("spotify");
 
+
 class SpotifyAdapter extends ServiceAdapter {
-  constructor(apiKey) {
+  constructor(clientId, clientSecret) {
     super();
-    this.api = "https://api.spotify.com/v1"
-    this.apiKey = apiKey;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.apiUrl = "https://api.spotify.com/v1/"
+    this.apiLoginUrl = "https://accounts.spotify.com/api/token"
+    this.token = null;
+    this.tokenType = null;
+    this.videoId = null;
+    this.videoType = null;
+    this.initApi()
+
   }
+
+  async initApi() {
+
+    const result = await axios({
+      url: this.apiLoginUrl,
+      method: 'post',
+      data: qs.stringify({
+        'grant_type': 'client_credentials'
+      }),
+      headers: {
+        'Authorization': `Basic ${Base64.encode(this.clientId + ":" + this.clientSecret)}`,
+      },
+    });
+
+    this.token = result.data.access_token
+    this.tokenType = result.data.token_type
+  }
+
+
   get serviceId() {
     return "spotify";
   }
@@ -27,31 +59,40 @@ class SpotifyAdapter extends ServiceAdapter {
   }
 
   getVideoId(url) {
-    const pathname = URL.parse(url).pathname;
-    return pathname.split("/").slice(-1)[0].trim();
+    if (url.startsWith("spotify:")) {
+      this.videoType = url.split(":")[1]
+      this.videoId = url.split(":")[2];
+      return url.split(":")[2];
+    }
+    else {
+      const pathname = URL.parse(url).pathname;
+      this.videoType = pathname.split("/")[1]
+      this.videoId = pathname.split("/").slice(-1)[0].trim();
+      return pathname.split("/").slice(-1)[0].trim();
+    }
   }
 
   async fetchVideoInfo(Id) {
-    const result = await this.api.get(`/v1/me/player`);
+    const self = this;
+    const result = await axios({
+      url:`${this.apiUrl}${this.videoType + 's'}/${this.videoId}?market=ES`,
+      method: 'get',
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `${this.tokenType} ${this.token}`
+      }
+      });
+
     const video = new Video({
       service: this.serviceId,
-      id: videoId,
-      title: result.data.title,
-      description: result.data.description,
-      thumbnail: result.data.thumbnail_url,
-      length: result.data.duration,
+      id: this.videoId,
+      title: result.data.name,
+      description: `${result.data.type} ${result.data.name} ${Math.floor((result.data.duration_ms / 1000 / 60) << 0) + ':' + Math.floor((result.data.duration_ms / 1000) % 60)}`,
+      thumbnail: result.data.album.images[2].url,
+      length: result.data.duration_ms * 1000,
     });
     return video;
-  }
-
-  getTrackIdSpotify(url) {
-    if (url.startsWith("spotify:")) {
-        
-    }
-    else {
-        let urlParsed = URL.parse(url);
-        return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
-    }
   }
 
   get isCacheSafe() {
@@ -59,19 +100,6 @@ class SpotifyAdapter extends ServiceAdapter {
   }
 
   async resolveURL(url) {
-    const urlInfo = URL.parse(url);
-    if (url.startsWith("spotify:")){
-
-    }
-    else if (urlInfo.pathname.startsWith("/album/")) {
-
-    } else if (urlInfo.pathname.startsWith("/playlist/")) {
-
-    } else if (urlInfo.pathname.startsWith("/podcast/")) {
-
-    }
-    return [];
-
   }
 }
 

@@ -148,6 +148,11 @@ module.exports = {
 		else if (service === "direct") {
 			return this.getVideoInfoDirect(id);
 		}
+		else if (service === "spotify") {
+			if (!(/^[A-za-z0-9_-]+$/).exec(id)) {
+				return Promise.reject(new InvalidVideoIdException(service, id));
+			}
+		}
 
 		return storage.getVideoInfo(service, id).then(result => {
 			let video = _.cloneDeep(result);
@@ -207,6 +212,9 @@ module.exports = {
 						throw err;
 					}
 				});
+			}
+			else if (video.service === "dailymotion") {
+				return this.getVideoInfoSpotify(video.id);
 			}
 		}).catch(err => {
 			log.error(`Failed to get video metadata: ${err}`);
@@ -282,7 +290,7 @@ module.exports = {
 	 * @throws InvalidAddPreviewInputException
 	 * @throws OutOfQuotaException
 	 */
-	getAddPreview(input, options={}) {
+	getAddPreview(input, options = {}) {
 		const service = this.getService(input);
 
 		let id = null;
@@ -499,7 +507,7 @@ module.exports = {
 		return channelData;
 	},
 
-	getVideoInfoYoutube(ids, onlyProperties=null) {
+	getVideoInfoYoutube(ids, onlyProperties = null) {
 		if (!Array.isArray(ids)) {
 			return Promise.reject(new Error("`ids` must be an array of youtube video IDs."));
 		}
@@ -738,7 +746,7 @@ module.exports = {
 	 * @param {Number} [options.maxResults=8] The max number of results to return from the query.
 	 * @returns {Array<Video>} An array of videos with only service and id set.
 	 */
-	async searchYoutube(query, options={}) {
+	async searchYoutube(query, options = {}) {
 		let cachedResults = await new Promise((resolve, reject) => {
 			redisClient.get(`search:${query}`, (err, value) => {
 				if (err) {
@@ -1035,13 +1043,44 @@ module.exports = {
 
 	/* SPOTIFY */
 
-	getTrackIdSpotify(link) {
+	async getVideoInfoSpotify(link) {
 		if (link.startsWith("spotify:")) {
-			return link.split(":")[2];
+			videoType = link.split(":")[1]
+			videoId = link.split(":")[2];
+		} else {
+			const pathname = url.parse(link).pathname;
+			videoType = pathname.split("/")[1]
+			videoId = pathname.split("/").slice(-1)[0].trim();
 		}
-		else {
-			let urlParsed = url.parse(link);
-			return urlParsed.path.split("/").slice(-1)[0].split("?")[0].trim();
-		}
+		const result = await axios({
+			url: this.apiLoginUrl,
+			method: 'post',
+			data: qs.stringify({
+			  'grant_type': 'client_credentials'
+			}),
+			headers: {
+			  'Authorization': `Basic ${Base64.encode(this.clientId + ":" + this.clientSecret)}`,
+			},
+		  });
+		token = result.data.access_token
+		token_type = result.data.token_type
+
+		const result = await axios.get({
+			url: `https://api.spotify.com/v1/${videoType + 's'}/${videoId}?market=ES`,
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+				"Authorization": `${tokenType} ${token}`
+				
+			}
+		});
+		return new Video({
+			service: "spotify",
+			id: videoId,
+			title: result.data.name,
+			description: `${result.data.type} ${result.data.name} ${Math.floor((result.data.duration_ms / 1000 / 60) << 0) + ':' + Math.floor((result.data.duration_ms / 1000) % 60)}`,
+			thumbnail: result.data.images[3],
+			length: result.data.duration_ms * 1000,
+		});
 	},
 };

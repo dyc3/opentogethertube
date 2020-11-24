@@ -62,17 +62,13 @@
     <SpotifyPlayer
       v-else-if="source.service == 'spotify'"
       ref="spotify"
-      :video-url="source.id"
-      :video-mime="source.mime"
-      :thumbnail="source.thumbnail"
+      :video-id="source.id"
       class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
       @ready="$emit('ready')"
-      @buffering="$emit('buffering')"
       @error="$emit('error')"
-      @buffer-progress="onBufferProgress"
-      @buffer-spans="timespans => $emit('buffer-spans', timespans)"
+      @buffering="$emit('buffering')"
     />
     <v-container v-else fluid fill-height>
       <v-row justify="center" align="center">
@@ -92,7 +88,7 @@ const services = [
   "dailymotion",
   "googledrive",
   "direct",
-  "spotify"
+  "spotify",
 ];
 
 export default {
