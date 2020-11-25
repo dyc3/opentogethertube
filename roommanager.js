@@ -12,7 +12,7 @@ const { redisClient } = require('./redisclient.js');
 const log = getLogger("roommanager");
 
 const SUPPORTED_SERVICES = [
-	"youtube", "vimeo", "dailymotion", "googledrive", "direct", "spotify"
+	"youtube", "vimeo", "dailymotion", "googledrive", "direct", "spotify",
 ];
 
 // Custom websocket error codes

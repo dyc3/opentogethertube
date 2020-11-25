@@ -320,7 +320,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 				expect(roommanager.rooms[0].name).toBe("testnoowner");
 				expect(roommanager.rooms[0].owner).toBeNull();
 			});
@@ -342,7 +342,7 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toBe(true);
 				expect(roommanager.rooms[0].name).toBe("testowner");
 				expect(roommanager.rooms[0].owner.email).toBe("forced@localhost");
 			});

@@ -10,5 +10,6 @@ Vue.use(Vuetify);
 describe("FAQ view", () => {
 	it("should render without failing", () => {
 		shallowMount(Faq);
+		expect(true).toBe(true);
 	});
 });

@@ -10,5 +10,6 @@ Vue.use(Vuetify);
 describe("NotFound view", () => {
 	it("should render without failing", () => {
 		shallowMount(NotFound);
+		expect(true).toBe(true);
 	});
 });

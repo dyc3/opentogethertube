@@ -21,7 +21,7 @@ const adapters = [
   new VimeoAdapter(),
   new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
   new DirectVideoAdapter(),
-  new SpotifyAdapter(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET)
+  new SpotifyAdapter(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET),
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = 3;
