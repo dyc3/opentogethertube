@@ -16,6 +16,8 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `SESSION_SECRET` | **REQUIRED** A secret used to make session cookies safer. | None | Any alpha-numeric string >= 80 characters
 | `YOUTUBE_API_KEY` | **REQUIRED** Youtube api key from [Google Cloud](https://console.cloud.google.com) | None | A Youtube API key
 | `GOOGLE_DRIVE_API_KEY` | **REQUIRED if you want google drive** Google drive api key from [Google Cloud](https://console.cloud.google.com). *Google drive really doesn't like to stream video, YMMV.* | None | A Google Drive API key
+| `SPOTIFY_CLIENT_ID` | Spotify client get this in the Spotify Developper Dashboard after creating a new app | None
+| `SPOTIFY_CLIENT_SECRET` | Spotify client SECRET get this in the Spotify Developper Dashboard after creating a new app | None
 | `DISCORD_CLIENT_ID` | Discord oauth client ID | None
 | `DISCORD_CLIENT_SECRET` | Discord oauth client secret | None
 | `GOOGLE_CLIENT_ID` | Currently unused

@@ -1,7 +1,5 @@
 const URL = require("url");
 const axios = require("axios");
-const { Base64 } = require('js-base64');
-const qs = require('qs');
 
 const ServiceAdapter = require("../serviceadapter");
 const Video = require("../../common/video");
@@ -25,22 +23,22 @@ class SpotifyAdapter extends ServiceAdapter {
 
   async initApi() {
     // https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
+    log.info(`Authorization: Basic ${Buffer.from(this.clientId + ":" + this.clientSecret).toString('base64')}`);
+    var that = this;
     const result = await axios({
       url: this.apiLoginUrl,
       method: 'post',
-      data: qs.stringify({
-        'grant_type': 'client_credentials',
-      }),
+      data: "grant_type=client_credentials",
       headers: {
-        'Authorization': `Basic ${Base64.encode(this.clientId + ":" + this.clientSecret)}`,
+        'Authorization': `Basic ${Buffer.from(this.clientId + ":" + this.clientSecret).toString('base64')}`,
       },
-    }).catch(function (error){
-      log.debug(`Authorization: Basic ${Base64.encode(this.clientId + ":" + this.clientSecret)}`);
-      log.error(`Spotify login token for api failed ${error.response.status} ${error.response.data}`)
+    }).catch(function (error) {
+      log.debug(`Authorization: Basic ${Buffer.from(that.clientId + ":" + that.clientSecret).toString('base64')}`);
+      log.error(`Spotify login token for api failed ${error.response.status} ${error.response.data}`);
       if (error.request) {
-        log.error(`Spotify login token for api failed ${error.request}`)  
+        log.error(`Spotify login token for api failed ${error.request}`);  
       }
-    });;
+    });
     this.token = result.data.access_token;
     this.tokenType = result.data.token_type;
   }
@@ -56,7 +54,7 @@ class SpotifyAdapter extends ServiceAdapter {
 
   isCollectionURL(url) {
     const pathname = URL.parse(url).pathname;
-    return pathname.startsWith("/playlist/") || pathname.startsWith("/album/") || pathname.startsWith("/album/") || pathname.startsWith("/show/");
+    return pathname.startsWith("/playlist/") || pathname.startsWith("/album/") || pathname.startsWith("/show/");
   }
 
   getVideoId(url) {
@@ -74,17 +72,17 @@ class SpotifyAdapter extends ServiceAdapter {
   async fetchVideoInfo(Id) {
     // https://developer.spotify.com/console/get-track/?id=6sGiI7V9kgLNEhPIxEJDii&market=ES
     const result = await axios({
-      url:`${this.apiUrl}${this.videoType + 's'}/${Id}?market=ES`,
+      url:`${this.apiUrl}${this.videoType + 's'}/${Id}`,
       method: 'get',
       headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
           "Authorization": `${this.tokenType} ${this.token}`,
       },
-      }).catch(function (error){
-        log.error(`Spotify Fetch info failed ${error.response.status} ${error.response.data}`)
+      }).catch((error) => {
+        log.error(`Spotify Fetch info failed ${error.response.status} ${error.response.data}`);
         if (error.request) {
-          log.error(`Spotify Fetch info failed ${error.request}`)  
+          log.error(`Spotify Fetch info failed ${error.request}`);  
         }
       });
     
@@ -96,18 +94,18 @@ class SpotifyAdapter extends ServiceAdapter {
       title: result.data.name,
       description: `${result.data.type} ${result.data.name} ${Math.floor((result.data.duration_ms / 1000 / 60) << 0) + ':' + Math.floor((result.data.duration_ms / 1000) % 60)}`,
       thumbnail: result.data.album.images[2].url,
-      length: result.data.duration_ms,
+      length: result.data.duration_ms/1000,
     });
     return video;
   }
 
   get isCacheSafe() {
-    return false;
+    return true;
   }
 
   async resolveURL(url) {
-    log.debug(`url`)
-    return []
+    log.debug(`url`);
+    return [];
   }
 }
 

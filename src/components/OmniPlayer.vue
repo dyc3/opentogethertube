@@ -63,6 +63,7 @@
       v-else-if="source.service == 'spotify'"
       ref="spotify"
       :video-id="source.id"
+      :video-type="source.type"
       class="player"
       @playing="$emit('playing')"
       @paused="$emit('paused')"
