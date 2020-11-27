@@ -1,18 +1,7 @@
 <template>
   <!-- eslint-disable-next-line vue/no-v-html -->
-  <div id="spotify-player" class="spotify">
-    <iframe
-      title="spotify-player-iframe"
-      id="spotify-player-iframe"
-      ref="spotifyPlayerIframe"
-      :src="srcUrl"
-      width="100%"
-      height="100%"
-      frameborder="0"
-      allowtransparency="true"
-      allow="encrypted-media"
-    >
-    </iframe>
+  <div id="spotify-player" class="spotify" width="100%" height="100%">
+    <img ref="spotifyPlayerIframe" :src="srcUrl" width="100%" height="100%" />
   </div>
 </template>
 
@@ -21,7 +10,7 @@ import axios from "axios";
 
 const SPOTIFY_API_URL = "https://api.spotify.com/v1/me/player";
 const SPOTIFY_API_URL_IMPLICIT = "https://accounts.spotify.com/authorize";
-// const SPOTIFY_API_LOGIN_URL = "https://accounts.spotify.com/api/token";
+const SPOTIFY_API_LOGIN_URL = "https://accounts.spotify.com/api/token";
 // const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed";
 
 export default {
@@ -33,46 +22,64 @@ export default {
     return {
       clientId: process.env.SPOTIFY_CLIENT_ID,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+      code: null,
       token: null,
       tokenType: null,
-      videoType: null,
+      videoType: this.videoId.split(":")[0],
       iframe: this.$refs.spotifyPlayerIframe,
       srcUrl: null,
-      position: 0,
+      position: 1,
       playState: false,
       volume: 0,
       image: null,
+      videoID: this.videoId.split(":")[1],
     };
   },
   created() {
     this.initApi();
   },
+  beforeDestroy() {
+		if (this.token) {
+			this.pause();
+		}
+	},
   mounted() {},
   methods: {
     async initApi() {
-      let scope = encodeURIComponent(
+      const scope = encodeURIComponent(
           "user-read-playback-state user-modify-playback-state"
         ),
         clientId = encodeURIComponent(this.clientId),
-        redirect_uri = encodeURIComponent("http://localhost:8080"),
-        state = encodeURIComponent(this.generateRandomString(16));
-
-      // https://developer.spotify.com/documentation/general/guides/authorization-guide/#implicit-grant-flow
-
-      if (localStorage.getItem("spotifyAccessToken") === "undefined") {
-        window.location = `${SPOTIFY_API_URL_IMPLICIT}?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scope}&response_type=token&state=${state}`;
+        redirect_uri = encodeURIComponent(
+          `${window.location.origin}/api/spotify/authentication`
+        ),
+        state = encodeURIComponent(window.location.href);
+      if (window.location.search === "" && this.token === null) {
+        // https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+        if (localStorage.getItem("spotifyAccessToken") === "undefined") {
+          window.location = `${SPOTIFY_API_URL_IMPLICIT}?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scope}&response_type=code&state=${state}`;
+        }
       }
-
-      const params = this.getHashParams();
-      localStorage.setItem("spotifyAccessToken", params.access_token);
-      this.token = localStorage.getItem("spotifyAccessToken");
-      this.tokenType = "Bearer";
-      console.log(this.token);
-      this.getCurrentVideoInfo();
+       else {
+        const result = await axios({
+          url: SPOTIFY_API_LOGIN_URL,
+          method: "post",
+          data: `grant_type=authorization_code&code=${window.location.search.replace(
+            "?",
+            ""
+          )}&redirect_uri=${redirect_uri}`,
+          headers: {
+            Authorization: `Basic ${Buffer.from(
+              this.clientId + ":" + this.clientSecret
+            ).toString("base64")}`,
+          },
+        });
+        this.token = result.data.access_token;
+        this.tokenType = result.data.token_type;
+      }
     },
     async getCurrentVideoInfo() {
       // https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
-      console.log(this.token);
       if (this.token !== null) {
         const result = await axios({
           url: `${SPOTIFY_API_URL}`,
@@ -82,53 +89,57 @@ export default {
           },
         });
 
-        this.position = result.data.progress_ms / 1000;
+        this.position = Math.round(result.data.progress_ms);
         this.playState = result.data.is_playing;
-        this.videoId = result.data.context.external_urls.spotify
-          .split("/")
-          .slice(-1)[0]
-          .trim();
-        this.videoType = result.data.context.type;
         this.volume = result.data.device.volume_percent;
-        this.image = result.data.images[0].url;
+        this.image = result.data.item.album.images[0].url;
         this.$emit("ready");
+        this.updateIframe();
       }
     },
 
     updateIframe() {
-      this.iframe = document.getElementById("spotify-player-iframe");
-      this.iframe.src = this.image;
+      this.srcUrl = this.image;
     },
     play() {
-      axios({
-        url: `${SPOTIFY_API_URL}/play`,
-        method: "put",
-        data: `uris%5B0%5D=${this.videoId}&position_ms=0`,
-        headers: {
-          Authorization: `${this.tokenType} ${this.token}`,
-        },
-      });
-      this.$emit("playing");
+      if (this.playState === false) {
+        axios({
+          url: `${SPOTIFY_API_URL}/play`,
+          method: "put",
+          data: {
+            uris: [`spotify:${this.videoType}:${this.videoID}`],
+            position_ms: this.position,
+          },
+          headers: {
+            Authorization: `${this.tokenType} ${this.token}`,
+          },
+        });
+        this.$emit("playing");
+      }
+        this.playState = true;
+        this.getCurrentVideoInfo();
     },
     pause() {
-      axios({
-        url: `${SPOTIFY_API_URL}/pause`,
-        method: "put",
-        headers: {
-          Authorization: `${this.tokenType} ${this.token}`,
-        },
-      });
-      this.$emit("paused");
+      if (this.playState !== false) {
+        axios({
+          url: `${SPOTIFY_API_URL}/pause`,
+          method: "put",
+          headers: {
+            Authorization: `${this.tokenType} ${this.token}`,
+          },
+        });
+        this.$emit("paused");
+        this.playState = false;
+      }
     },
     getPosition() {
-      return this.position;
+      return Math.round(this.position);
     },
     setPosition(position) {
-      if (this.token) {
+      if (this.token && this.playState !== false && position % 1000 === 0) { // testing value
         axios({
-          url: `${SPOTIFY_API_URL}/seek`,
+          url: `${SPOTIFY_API_URL}/seek?position_ms=${Math.round(position)}`,
           method: "put",
-          data: `position_ms=${position}`,
           headers: {
             Authorization: `${this.tokenType} ${this.token}`,
           },
@@ -137,9 +148,8 @@ export default {
     },
     setVolume(volume) {
       axios({
-        url: `${SPOTIFY_API_URL}/volume`,
+        url: `${SPOTIFY_API_URL}/volume?volume_percent=${volume}`,
         method: "put",
-        data: `position_percent=${volume}`,
         headers: {
           Authorization: `${this.tokenType} ${this.token}`,
         },
@@ -151,39 +161,12 @@ export default {
     getVolume() {
       return this.volume;
     },
-    /**
-     * Obtains parameters from the hash of the URL
-     * @return Object
-     */
-    getHashParams() {
-      let hashParams = {},
-        e,
-        r = /([^&;=]+)=?([^&;]*)/g,
-        q = window.location.hash.substring(1);
-      while ((e = r.exec(q))) {
-        hashParams[e[1]] = decodeURIComponent(e[2]);
-      }
-      return hashParams;
-    },
-    /**
-     * Generates a random string containing numbers and letters
-     * @param  {number} length The length of the string
-     * @return {string} The generated string
-     */
-    generateRandomString(length) {
-      let text = "",
-        possible =
-          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-      for (let i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-      }
-      return text;
+    onReady() {
+      this.$emit("ready");
     },
   },
   watch: {
-    videoId() {
-      this.play();
+    videoID() {
       this.getCurrentVideoInfo();
       this.updateIframe();
     },

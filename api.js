@@ -469,5 +469,10 @@ module.exports = function(_roommanager, storage) {
 		});
 	});
 
+	/* Spotify Authentication Callback url */
+	router.get("/spotify/authentication", (req, res) => {
+		res.redirect(`${req.query.state}?${req.query.code}`);
+	});
+
 	return router;
 };

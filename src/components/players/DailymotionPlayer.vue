@@ -66,7 +66,9 @@ export default {
 			return this.player.currentTime;
 		},
 		setPosition(position) {
-			return this.player.seek(position);
+			if (position % 1000 === 0) {
+				return this.player.seek(position);
+			}
 		},
 		setVolume(value) {
 			return this.player.setVolume(value / 100);

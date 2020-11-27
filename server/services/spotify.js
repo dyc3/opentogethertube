@@ -60,19 +60,19 @@ class SpotifyAdapter extends ServiceAdapter {
   getVideoId(url) {
     if (url.startsWith("spotify:")) {
       this.videoType = url.split(":")[1];
-      return url.split(":")[2];
+      return `${url.split(":")[1]}:${url.split(":")[2]}`;
     }
     else {
       const pathname = URL.parse(url).pathname;
       this.videoType = pathname.split("/")[1];
-      return pathname.split("/").slice(-1)[0].trim();
+      return `${pathname.split("/")[1]}:${pathname.split("/").slice(-1)[0].trim()}`;
     }
   }
 
   async fetchVideoInfo(Id) {
     // https://developer.spotify.com/console/get-track/?id=6sGiI7V9kgLNEhPIxEJDii&market=ES
     const result = await axios({
-      url:`${this.apiUrl}${this.videoType + 's'}/${Id}`,
+      url:`${this.apiUrl}${this.videoType + 's'}/${Id.split(":")[1]}`,
       method: 'get',
       headers: {
           "Accept": "application/json",
@@ -80,9 +80,9 @@ class SpotifyAdapter extends ServiceAdapter {
           "Authorization": `${this.tokenType} ${this.token}`,
       },
       }).catch((error) => {
-        log.error(`Spotify Fetch info failed ${error.response.status} ${error.response.data}`);
+        log.error(`Spotify Fetch info failed ${error.response.status.toString()} ${error.response.data.toString()}`);
         if (error.request) {
-          log.error(`Spotify Fetch info failed ${error.request}`);  
+          log.error(`Spotify Fetch info failed ${error.request.toString()}`);  
         }
       });
     
@@ -94,7 +94,7 @@ class SpotifyAdapter extends ServiceAdapter {
       title: result.data.name,
       description: `${result.data.type} ${result.data.name} ${Math.floor((result.data.duration_ms / 1000 / 60) << 0) + ':' + Math.floor((result.data.duration_ms / 1000) % 60)}`,
       thumbnail: result.data.album.images[2].url,
-      length: result.data.duration_ms/1000,
+      length: Math.round(result.data.duration_ms/1000),
     });
     return video;
   }

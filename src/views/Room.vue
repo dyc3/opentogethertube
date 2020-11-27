@@ -22,7 +22,7 @@
               />
             </v-responsive>
             <v-col class="video-controls">
-              <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
+              <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length === null"/>
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
