@@ -22,7 +22,7 @@ const adapters = [
   new DirectVideoAdapter(),
 ];
 
-const ADD_PREVIEW_SEARCH_MIN_LENGTH = 3;
+const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
 
 module.exports = {
   isURL(str) {

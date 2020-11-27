@@ -32,3 +32,4 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `POSTGRES_DB_NAME` | Postgres database name | `db_opentogethertube_prod` | string
 | `POSTGRES_DB_USERNAME` | Postgres username | `ott` | string
 | `POSTGRES_DB_PASSWORD` | Postgres password | None | string
+| `ADD_PREVIEW_SEARCH_MIN_LENGTH` | Minimum length of an add preview search query. Add preview queries shorter than this number are rejected. Does not affect URL add previews. | `3` | Integer >= 0

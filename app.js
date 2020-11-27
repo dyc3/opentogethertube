@@ -45,6 +45,7 @@ const configValidators = {
 	LOG_LEVEL: { required: false, validator: (value) => ["silly", "debug", "info", "warn", "error"].includes(value) },
 	YOUTUBE_API_KEY: { required: process.env.NODE_ENV === "production", validator: (value) => process.env.NODE_ENV !== "production" || value !== "API_KEY_GOES_HERE" },
 	DB_MODE: { required: false, validator: value => !value || ["sqlite", "postgres"].includes(value) },
+	ADD_PREVIEW_SEARCH_MIN_LENGTH: { required: false, validator: value => !value || (validator.isNumeric(value, { no_symbols: true }) && value > 0) },
 };
 
 let configCalidationFailed = false;
@@ -192,4 +193,5 @@ module.exports = {
 	app,
 	redisClient,
 	server,
+	configValidators,
 };
