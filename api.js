@@ -2,6 +2,8 @@ const express = require('express');
 const rateLimit = require("express-rate-limit");
 const RateLimitStore = require('rate-limit-redis');
 const uuid = require("uuid/v4");
+const URL = require("url");
+const axios = require("axios");
 const _ = require("lodash");
 const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
@@ -472,6 +474,36 @@ module.exports = function(_roommanager, storage) {
 	/* Spotify Authentication Callback url */
 	router.get("/spotify/authentication", (req, res) => {
 		res.redirect(`${req.query.state}?${req.query.code}`);
+	});
+
+	router.post("/spotify/token", async (req, res) => {
+		const SPOTIFY_API_LOGIN_URL = "https://accounts.spotify.com/api/token",
+			redirect_uri = encodeURIComponent("http://localhost:8080/api/spotify/authentication");
+		const result = await axios({
+			url: SPOTIFY_API_LOGIN_URL,
+			method: "post",
+			data: `grant_type=authorization_code&code=${Object.keys(req.body)[0]}&redirect_uri=${redirect_uri}`,
+			headers: {
+			  Authorization: `Basic ${Buffer.from(
+				process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
+			  ).toString("base64")}`,
+			},
+		  });
+
+	try{
+		  res.status(200).json({
+			success: true,
+			token: result.data.access_token,
+			tokenType: result.data.token_type,
+		});
+	} catch {
+		
+		res.status(500).json({
+			success: false,
+			error: result.response.data.error
+		});
+	}
+
 	});
 
 	return router;

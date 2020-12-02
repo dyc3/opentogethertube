@@ -92,7 +92,7 @@ class SpotifyAdapter extends ServiceAdapter {
       service: this.serviceId,
       id: Id,
       title: result.data.name,
-      description: `${result.data.type} ${result.data.name} ${Math.floor((result.data.duration_ms / 1000 / 60) << 0) + ':' + Math.floor((result.data.duration_ms / 1000) % 60)}`,
+      description: `${result.data.type.toUpperCase()} ${result.data.name} ${Math.floor((result.data.duration_ms / 1000 / 60) << 0) + ':' + Math.floor((result.data.duration_ms / 1000) % 60)}`,
       thumbnail: result.data.album.images[2].url,
       length: Math.round(result.data.duration_ms/1000),
     });

@@ -10,7 +10,6 @@ import axios from "axios";
 
 const SPOTIFY_API_URL = "https://api.spotify.com/v1/me/player";
 const SPOTIFY_API_URL_IMPLICIT = "https://accounts.spotify.com/authorize";
-const SPOTIFY_API_LOGIN_URL = "https://accounts.spotify.com/api/token";
 // const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed";
 
 export default {
@@ -39,10 +38,10 @@ export default {
     this.initApi();
   },
   beforeDestroy() {
-		if (this.token) {
-			this.pause();
-		}
-	},
+    if (this.token) {
+      this.pause();
+    }
+  },
   mounted() {},
   methods: {
     async initApi() {
@@ -59,23 +58,18 @@ export default {
         if (localStorage.getItem("spotifyAccessToken") === "undefined") {
           window.location = `${SPOTIFY_API_URL_IMPLICIT}?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scope}&response_type=code&state=${state}`;
         }
-      }
-       else {
+      } 
+      else {
+        const spotifyAuthResponse = new URLSearchParams(window.location.search);
+
         const result = await axios({
-          url: SPOTIFY_API_LOGIN_URL,
+          url: `${window.location.origin}/api/spotify/token`,
           method: "post",
-          data: `grant_type=authorization_code&code=${window.location.search.replace(
-            "?",
-            ""
-          )}&redirect_uri=${redirect_uri}`,
-          headers: {
-            Authorization: `Basic ${Buffer.from(
-              this.clientId + ":" + this.clientSecret
-            ).toString("base64")}`,
-          },
+          data: spotifyAuthResponse,
         });
-        this.token = result.data.access_token;
-        this.tokenType = result.data.token_type;
+
+        this.token = result.data.token;
+        this.tokenType = result.data.tokenType;
       }
     },
     async getCurrentVideoInfo() {
@@ -116,8 +110,8 @@ export default {
         });
         this.$emit("playing");
       }
-        this.playState = true;
-        this.getCurrentVideoInfo();
+      this.playState = true;
+      this.getCurrentVideoInfo();
     },
     pause() {
       if (this.playState !== false) {
@@ -136,7 +130,8 @@ export default {
       return Math.round(this.position);
     },
     setPosition(position) {
-      if (this.token && this.playState !== false && position % 1000 === 0) { // testing value
+      if (this.token && this.playState !== false && position % 1000 === 0) {
+        // testing value
         axios({
           url: `${SPOTIFY_API_URL}/seek?position_ms=${Math.round(position)}`,
           method: "put",
