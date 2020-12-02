@@ -22,7 +22,7 @@
               />
             </v-responsive>
             <v-col class="video-controls">
-              <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
+              <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length === null"/>
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
@@ -91,6 +91,8 @@
                     <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(5)">Add test direct 5</v-btn>
                     <v-btn v-if="!production" @click="postTestVideo(6)">Add test direct 6</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(7)">Add test spotify 7</v-btn>
+                    <v-btn v-if="!production" @click="postTestVideo(8)">Add test spotify 8</v-btn>
                     <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
                   </div>
                   <v-row v-if="isLoadingAddPreview" justify="center">
@@ -397,6 +399,8 @@ export default {
         "https://www.dailymotion.com/video/x6hkywd",
         "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
         "https://vjs.zencdn.net/v/oceans.mp4",
+        "https://open.spotify.com/track/6sGiI7V9kgLNEhPIxEJDii",
+        "https://open.spotify.com/album/2qVM4OAn9U9ZXHVKV0zIiJ?si=c1XxV53qQ_q9Spvczp7ytQ",
       ];
       API.post(`/room/${this.$route.params.roomId}/queue`, {
         url: videos[v],

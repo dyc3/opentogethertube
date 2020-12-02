@@ -23,6 +23,7 @@ module.exports = {
 	chainWebpack: (config) => {
 		config.plugin('define').tap(definitions => {
 			definitions[0]['process.env']['GOOGLE_DRIVE_API_KEY'] = JSON.stringify(process.env.GOOGLE_DRIVE_API_KEY);
+			definitions[0]['process.env']['SPOTIFY_CLIENT_ID'] = JSON.stringify(process.env.SPOTIFY_CLIENT_ID);
 			return definitions;
 		});
 	},
