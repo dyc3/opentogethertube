@@ -20,8 +20,6 @@ export default {
   data() {
     return {
       clientId: process.env.SPOTIFY_CLIENT_ID,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-      code: null,
       token: null,
       tokenType: null,
       videoType: this.videoId.split(":")[0],
@@ -53,11 +51,9 @@ export default {
           `${window.location.origin}/api/spotify/authentication`
         ),
         state = encodeURIComponent(window.location.href);
-      if (window.location.search === "" && this.token === null) {
+      if (window.location.search === "" && this.token === null) { // TODO if token in session don't redirect
         // https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
-        if (localStorage.getItem("spotifyAccessToken") === "undefined") {
           window.location = `${SPOTIFY_API_URL_IMPLICIT}?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scope}&response_type=code&state=${state}`;
-        }
       } 
       else {
         const spotifyAuthResponse = new URLSearchParams(window.location.search);
