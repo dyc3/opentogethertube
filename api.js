@@ -496,7 +496,7 @@ module.exports = function(_roommanager, storage) {
 			try {
 				req.session.spotifyToken = result.data.access_token;
 				req.session.spotifyTokenType = result.data.token_type;
-				req.session.SpotifyExpiresTimeToken = new Date().setMinutes(now.getMinutes() + 10); //new Date(now.setHours(now.getHours() + result.data.expires_in/3600));
+				req.session.SpotifyExpiresTimeToken = new Date().setSeconds(now.getSeconds() + result.data.expires_in);
 				res.status(200).json({
 					success: true,
 					token: result.data.access_token,
