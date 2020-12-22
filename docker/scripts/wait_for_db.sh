@@ -29,6 +29,10 @@ wait_for_db() {
     if [ $result -eq 0 ] ; then
       if [ $# -gt 0 ] ; then
         npx sequelize-cli db:migrate
+        if [ $? != 0 ]; then
+          echo "Failed to run database migrations" >&2
+          exit 2
+        fi
         exec "$@"
       fi
       exit 0
