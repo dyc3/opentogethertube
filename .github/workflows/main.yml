@@ -1,0 +1,63 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: master
+    paths-ignore:
+    - '.vscode/**'
+    - 'docs/**'
+    - 'env/**'
+    - '**/*.md'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get npm cache directory
+      id: npm-cache
+      run: |
+        echo "::set-output name=dir::$(npm config get cache)"
+    - uses: actions/cache@v1
+      with:
+        path: ${{ steps.npm-cache.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npx sequelize-cli db:migrate
+      env:
+        NODE_ENV: test
+    - run: npm run build --if-present
+    - run: npm run lint-ci
+      env:
+        NODE_ENV: production
+    - run: npm test
+  deploy-docker:
+    runs-on: ubuntu-latest
+    name: Deploy docker image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: test
+    steps:
+    - uses: actions/checkout@v1
+    - name: Log in to Dockerhub
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dyc3" --password-stdin
+        touch env/production.env
+    - name: Build image
+      run: |
+        docker-compose -f docker/docker-compose.yml up -d --build
+        docker commit opentogethertube opentogethertube
+        docker-compose -f docker/docker-compose.yml down
+        docker tag opentogethertube dyc3/opentogethertube:latest
+    - name: Push to Dockerhub
+      run: docker push dyc3/opentogethertube:latest
