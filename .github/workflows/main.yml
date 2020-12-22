@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x]
+    continue-on-error: true
 
     steps:
     - uses: actions/checkout@v1
@@ -34,7 +35,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: true
-    - run: npm install
+    - run: npm ci
     - run: npx sequelize-cli db:migrate
       env:
         NODE_ENV: test
