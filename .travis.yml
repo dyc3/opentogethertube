@@ -33,18 +33,18 @@ jobs:
       install:
         - npm ci
       script: npm run build
-    - name: build docker image
-      stage: upload
-      if: type != pull_request
-      services:
-        - docker
-      before_script:
-        - echo "$DOCKER_PASSWORD" | docker login -u "dyc3" --password-stdin
-        - touch env/production.env
-      script:
-        - docker-compose -f docker/docker-compose.yml up -d --build
-        - docker commit opentogethertube opentogethertube
-        - docker-compose -f docker/docker-compose.yml down
-        - docker tag opentogethertube dyc3/opentogethertube:latest
-      after_success:
-        - docker push dyc3/opentogethertube:latest
+    # - name: build docker image
+    #   stage: upload
+    #   if: type != pull_request
+    #   services:
+    #     - docker
+    #   before_script:
+    #     - echo "$DOCKER_PASSWORD" | docker login -u "dyc3" --password-stdin
+    #     - touch env/production.env
+    #   script:
+    #     - docker-compose -f docker/docker-compose.yml up -d --build
+    #     - docker commit opentogethertube opentogethertube
+    #     - docker-compose -f docker/docker-compose.yml down
+    #     - docker tag opentogethertube dyc3/opentogethertube:latest
+    #   after_success:
+    #     - docker push dyc3/opentogethertube:latest
