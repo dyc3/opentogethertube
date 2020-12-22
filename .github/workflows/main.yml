@@ -17,6 +17,16 @@ jobs:
       matrix:
         node-version: [12.x, 14.x]
     continue-on-error: true
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+            - 6379:6379
 
     steps:
     - uses: actions/checkout@v1
@@ -44,6 +54,9 @@ jobs:
       env:
         NODE_ENV: production
     - run: npm test
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
   deploy-docker:
     runs-on: ubuntu-latest
     name: Deploy docker image
