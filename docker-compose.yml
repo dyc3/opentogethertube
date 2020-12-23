@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   opentogethertube:
-    image: dyc3/opentogethertube
+    image: dyc3/opentogethertube:latest
     container_name: opentogethertube
     environment:
       - REDIS_HOST=redis_db
