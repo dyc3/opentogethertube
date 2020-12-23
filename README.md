@@ -13,7 +13,7 @@ http://opentogethertube.com/
 
 ### Prerequisites
 
-This project targets the lastest LTS version of node.js.
+This project targets node 12.
 
 ### Setup
 
