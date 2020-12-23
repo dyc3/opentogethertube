@@ -1,5 +1,5 @@
 ### Build stage ###
-FROM node:lts-alpine3.11 as build-stage
+FROM node:12-alpine3.11 as build-stage
 
 # Create app directory
 WORKDIR /usr/app
@@ -19,7 +19,7 @@ RUN npm run build
 RUN rm -rf node_modules && npm install --only=production
 
 ### Deployement server nginx ###
-FROM node:lts-alpine3.11 as production-stage
+FROM node:12-alpine3.11 as production-stage
 
 # Create app directory
 WORKDIR /usr/app/
