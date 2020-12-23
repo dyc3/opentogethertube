@@ -47,6 +47,7 @@
                 <v-btn @click="skipVideo()">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
+                <VideoSlider/>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"/>
                 <div style="margin-left: 20px" class="timestamp">
                   {{ timestampDisplay }}
@@ -221,6 +222,7 @@ import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
+import VideoSlider from "@/components/VideoSlider.vue";
 
 export default {
   name: 'room',
@@ -230,6 +232,7 @@ export default {
     VueSlider,
     OmniPlayer,
     Chat,
+    VideoSlider,
   },
   data() {
     return {
