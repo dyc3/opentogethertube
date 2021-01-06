@@ -16,6 +16,9 @@ const log = getLogger("youtube");
 
 const knownPrivateLists = ["LL", "WL"];
 
+const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_PLAYLIST_RESULTS_COUNT) || 40;
+const ADD_PREVIEW_SEARCH_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_SEARCH_RESULTS_COUNT) || 10;
+
 class YouTubeAdapter extends ServiceAdapter {
   constructor(apiKey, redisClient) {
     super();
@@ -26,7 +29,6 @@ class YouTubeAdapter extends ServiceAdapter {
     });
     this.fallbackApi = axios.create();
     this.redisClient = redisClient;
-    this.maxResults = 30;
   }
 
   get serviceId() {
@@ -202,7 +204,7 @@ class YouTubeAdapter extends ServiceAdapter {
           key: this.apiKey,
           part: "snippet",
           playlistId: playlistId,
-          maxResults: this.maxResults,
+          maxResults: ADD_PREVIEW_PLAYLIST_RESULTS_COUNT,
         },
       });
 
@@ -424,7 +426,7 @@ class YouTubeAdapter extends ServiceAdapter {
 
   async searchVideos(query, options = {}) {
     options = _.defaults(options, {
-      maxResults: 8,
+      maxResults: ADD_PREVIEW_SEARCH_RESULTS_COUNT,
     });
 
     const params = {

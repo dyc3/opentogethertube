@@ -50,6 +50,8 @@ const configValidators = {
 	// TODO: check which info extractors implement searching videos
 	// eslint-disable-next-line array-bracket-newline
 	SEARCH_PROVIDER: { required: false, validator: value => !value || ["youtube"].includes(value) },
+	ADD_PREVIEW_PLAYLIST_RESULTS_COUNT: { required: false, validator: value => !value || validator.isNumeric(value, { no_symbols: true }) },
+	ADD_PREVIEW_SEARCH_RESULTS_COUNT: { required: false, validator: value => !value || validator.isNumeric(value, { no_symbols: true }) },
 };
 
 let configCalidationFailed = false;
