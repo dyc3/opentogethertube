@@ -121,10 +121,10 @@
               <v-tab-item>
                 <div class="room-settings">
                   <v-form @submit="submitRoomSettings">
-                    <v-text-field label="Title" v-model="inputRoomSettingsTitle" :loading="isLoadingRoomSettings" />
-                    <v-text-field label="Description" v-model="inputRoomSettingsDescription" :loading="isLoadingRoomSettings" />
-                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettingsVisibility" :loading="isLoadingRoomSettings" />
-                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettingsQueueMode" :loading="isLoadingRoomSettings" />
+                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" />
+                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" />
+                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" />
                     <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
                   </v-form>
                   <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
@@ -247,10 +247,12 @@ export default {
       addPreviewLoadFailureText: "",
       inputAddPreview: "",
       isLoadingRoomSettings: false,
-      inputRoomSettingsTitle: "",
-      inputRoomSettingsDescription: "",
-      inputRoomSettingsVisibility: "",
-      inputRoomSettingsQueueMode: "",
+      inputRoomSettings: {
+        title: "",
+        description: "",
+        visibility: "",
+        queueMode: "",
+      },
       setUsernameLoading: false,
       setUsernameFailureText: "",
       isLoadingAddAll: false,
@@ -609,20 +611,20 @@ export default {
         this.isLoadingRoomSettings = true;
         API.get(`/room/${this.$route.params.roomId}`).then(res => {
           this.isLoadingRoomSettings = false;
-          this.inputRoomSettingsTitle = res.data.title;
-          this.inputRoomSettingsDescription = res.data.description;
-          this.inputRoomSettingsVisibility = res.data.visibility;
-          this.inputRoomSettingsQueueMode = res.data.queueMode;
+          this.inputRoomSettings.title = res.data.title;
+          this.inputRoomSettings.description = res.data.description;
+          this.inputRoomSettings.visibility = res.data.visibility;
+          this.inputRoomSettings.queueMode = res.data.queueMode;
         });
       }
     },
     submitRoomSettings() {
       this.isLoadingRoomSettings = true;
       API.patch(`/room/${this.$route.params.roomId}`, {
-        title: this.inputRoomSettingsTitle,
-        description: this.inputRoomSettingsDescription,
-        visibility: this.inputRoomSettingsVisibility,
-        queueMode: this.inputRoomSettingsQueueMode,
+        title: this.inputRoomSettings.title,
+        description: this.inputRoomSettings.description,
+        visibility: this.inputRoomSettings.visibility,
+        queueMode: this.inputRoomSettings.queueMode,
       }).then(() => {
         this.isLoadingRoomSettings = false;
       });
