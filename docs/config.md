@@ -20,7 +20,6 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `DISCORD_CLIENT_SECRET` | Discord oauth client secret | None
 | `GOOGLE_CLIENT_ID` | Currently unused
 | `GOOGLE_CLIENT_SECRET` | Currently unused
-| `ENABLE_YOUTUBE_SEARCH` | Allows users to search youtube in the add preview box. | `0` | `0`, `1` |
 | `REDIS_URL` | URI to your redis server. Overrides `REDIS_HOST`, and `REDIS_PORT`. If not supplied, it will try to connect to the redis server on the local machine. | None |
 | `REDIS_HOST` | Hostname or IP of the redis server. If not supplied, it will try to connect to the redis server on the local machine. | `undefined` | Hostname or IP
 | `REDIS_PORT` | Port of the redis server. If not supplied, it will try to connect to the redis server on the default port. | `undefined` | 1-65535
