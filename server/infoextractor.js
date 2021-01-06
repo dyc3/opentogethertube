@@ -23,7 +23,7 @@ const adapters = [
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
-const ENABLE_SEARCH = process.env.ENABLE_SEARCH === true || process.env.ENABLE_SEARCH === "true";
+const ENABLE_SEARCH = process.env.ENABLE_SEARCH === undefined || process.env.ENABLE_SEARCH === true || process.env.ENABLE_SEARCH === "true";
 
 module.exports = {
   isURL(str) {
