@@ -20,7 +20,6 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `DISCORD_CLIENT_SECRET` | Discord oauth client secret | None
 | `GOOGLE_CLIENT_ID` | Currently unused
 | `GOOGLE_CLIENT_SECRET` | Currently unused
-| `ENABLE_YOUTUBE_SEARCH` | Allows users to search youtube in the add preview box. | `0` | `0`, `1` |
 | `REDIS_URL` | URI to your redis server. Overrides `REDIS_HOST`, and `REDIS_PORT`. If not supplied, it will try to connect to the redis server on the local machine. | None |
 | `REDIS_HOST` | Hostname or IP of the redis server. If not supplied, it will try to connect to the redis server on the local machine. | `undefined` | Hostname or IP
 | `REDIS_PORT` | Port of the redis server. If not supplied, it will try to connect to the redis server on the default port. | `undefined` | 1-65535
@@ -32,3 +31,8 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `POSTGRES_DB_NAME` | Postgres database name | `db_opentogethertube_prod` | string
 | `POSTGRES_DB_USERNAME` | Postgres username | `ott` | string
 | `POSTGRES_DB_PASSWORD` | Postgres password | None | string
+| `ADD_PREVIEW_SEARCH_MIN_LENGTH` | Minimum length of an add preview search query. Add preview queries shorter than this number are rejected. Does not affect URL add previews. | `3` | Integer >= 0
+| `ENABLE_SEARCH` | Enable searching for videos when no link is detected. | `true` | boolean
+| `SEARCH_PROVIDER` | Service adapter to use to provide video search results. | `youtube` | `youtube`
+| `ADD_PREVIEW_PLAYLIST_RESULTS_COUNT` | Limit the number of videos that appear in the results when a playlist is used. | `40` | Integer >= 0
+| `ADD_PREVIEW_SEARCH_RESULTS_COUNT` | Limit the number of videos that appear in the results when searching for a video. | `10` | Integer >= 0
