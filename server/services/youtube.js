@@ -396,14 +396,16 @@ class YouTubeAdapter extends ServiceAdapter {
   async getVideoLengthFallback(id) {
     let url = `https://youtube.com/watch?v=${id}`;
     let res = await this.fallbackApi.get(url);
-    let regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/];
+    let regexs = [
+      /length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/, /lengthSeconds":"\d+/,
+    ];
     for (let r = 0; r < regexs.length; r++) {
       let matches = res.data.match(regexs[r]);
       if (matches === null) {
         continue;
       }
       const match = matches[0];
-      let extracted = match.split(":")[1].substring(r === 0 ? 1 : 2);
+      let extracted = match.split(":")[1].substring(r === 1 ? 2 : 1);
       log.silly(`MATCH ${match}`);
       log.debug(`EXTRACTED ${extracted}`);
       return parseInt(extracted);
