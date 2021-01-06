@@ -7,7 +7,7 @@ const YouTubeAdapter = require("./services/youtube");
 const DirectVideoAdapter = require("./services/direct");
 const storage = require("../storage");
 const Video = require("../common/video");
-const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException } = require("./exceptions");
+const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } = require("./exceptions");
 const { getLogger } = require("../logger");
 const { redisClient } = require("../redisclient");
 const { isSupportedMimeType } = require("./mime");
@@ -23,6 +23,7 @@ const adapters = [
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
+const ENABLE_SEARCH = process.env.ENABLE_SEARCH === true || process.env.ENABLE_SEARCH === "true";
 
 module.exports = {
   isURL(str) {
@@ -249,6 +250,10 @@ module.exports = {
    * @returns {Video[]}
    */
   async searchVideos(service, query) {
+    if (!ENABLE_SEARCH) {
+      throw new FeatureDisabledException("Searching has been disabled by an administrator.");
+    }
+
     const cachedResults = await this.getCachedSearchResults(service, query);
     if (cachedResults) {
       log.info("Using cached results for search");

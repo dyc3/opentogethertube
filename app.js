@@ -46,6 +46,10 @@ const configValidators = {
 	YOUTUBE_API_KEY: { required: process.env.NODE_ENV === "production", validator: (value) => process.env.NODE_ENV !== "production" || value !== "API_KEY_GOES_HERE" },
 	DB_MODE: { required: false, validator: value => !value || ["sqlite", "postgres"].includes(value) },
 	ADD_PREVIEW_SEARCH_MIN_LENGTH: { required: false, validator: value => !value || (validator.isNumeric(value, { no_symbols: true }) && value > 0) },
+	ENABLE_SEARCH: { required: false, validator: value => !value || ["true", "false"].includes(value) },
+	// TODO: check which info extractors implement searching videos
+	// eslint-disable-next-line array-bracket-newline
+	SEARCH_PROVIDER: { required: false, validator: value => !value || ["youtube"].includes(value) },
 };
 
 let configCalidationFailed = false;
@@ -75,6 +79,16 @@ if (!process.env.DB_MODE) {
 	process.env.DB_MODE = (process.env.DATABASE_URL || process.env.POSTGRES_DB_HOST || process.env.POSTGRES_DB_NAME || process.env.POSTGRES_DB_USERNAME || process.env.POSTGRES_DB_PASSWORD) ? "postgres" : "sqlite";
 }
 log.info(`Database mode: ${process.env.DB_MODE}`);
+
+if (process.env.ENABLE_SEARCH === undefined) {
+	process.env.ENABLE_SEARCH = true;
+}
+log.info(`Search enabled: ${process.env.ENABLE_SEARCH}`);
+
+if (!process.env.SEARCH_PROVIDER) {
+	process.env.SEARCH_PROVIDER = "youtube";
+}
+log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
 
 const app = express();
 const server = http.createServer(app);
