@@ -47,9 +47,16 @@
                 <v-btn @click="skipVideo()">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
-                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px"/>
-                <div style="margin-left: 20px" class="timestamp">
-                  {{ timestampDisplay }}
+                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
+                <div>
+                  <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details @keydown="textSeekOnKeyDown" />
+                  <span v-else class="timestamp" @click="activateTextSeek">
+                    {{ timestampDisplay }}
+                  </span>
+                  <span>/</span>
+                  <span class="video-length">
+                    {{ lengthDisplay }}
+                  </span>
                 </div>
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
@@ -121,10 +128,10 @@
               <v-tab-item>
                 <div class="room-settings">
                   <v-form @submit="submitRoomSettings">
-                    <v-text-field label="Title" v-model="inputRoomSettingsTitle" :loading="isLoadingRoomSettings" />
-                    <v-text-field label="Description" v-model="inputRoomSettingsDescription" :loading="isLoadingRoomSettings" />
-                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettingsVisibility" :loading="isLoadingRoomSettings" />
-                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettingsQueueMode" :loading="isLoadingRoomSettings" />
+                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" />
+                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" />
+                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" />
                     <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
                   </v-form>
                   <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
@@ -215,7 +222,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import { secondsToTimestamp, calculateCurrentPosition } from "@/timestamp.js";
+import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
@@ -247,10 +254,12 @@ export default {
       addPreviewLoadFailureText: "",
       inputAddPreview: "",
       isLoadingRoomSettings: false,
-      inputRoomSettingsTitle: "",
-      inputRoomSettingsDescription: "",
-      inputRoomSettingsVisibility: "",
-      inputRoomSettingsQueueMode: "",
+      inputRoomSettings: {
+        title: "",
+        description: "",
+        visibility: "",
+        queueMode: "",
+      },
       setUsernameLoading: false,
       setUsernameFailureText: "",
       isLoadingAddAll: false,
@@ -260,10 +269,16 @@ export default {
       snackbarActive: false,
       snackbarText: "",
 
-      timestampDisplay: "",
+      timestampDisplay: "00:00",
+      lengthDisplay: "00:00",
       i_timestampUpdater: null,
 
       copyInviteLinkSuccessText: "",
+
+      textSeek: {
+        active: false,
+        value: "",
+      },
     };
   },
   computed: {
@@ -377,7 +392,8 @@ export default {
       this.sliderPosition = _.clamp(this.sliderPosition, 0, this.$store.state.room.currentSource.length);
       const position = secondsToTimestamp(this.sliderPosition);
       const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
-      this.timestampDisplay = `${position} / ${duration}`;
+      this.timestampDisplay = position;
+      this.lengthDisplay = duration;
     }, 1000);
 
     this.$events.on("onSync", this.rewriteUrlToRoomName);
@@ -609,20 +625,20 @@ export default {
         this.isLoadingRoomSettings = true;
         API.get(`/room/${this.$route.params.roomId}`).then(res => {
           this.isLoadingRoomSettings = false;
-          this.inputRoomSettingsTitle = res.data.title;
-          this.inputRoomSettingsDescription = res.data.description;
-          this.inputRoomSettingsVisibility = res.data.visibility;
-          this.inputRoomSettingsQueueMode = res.data.queueMode;
+          this.inputRoomSettings.title = res.data.title;
+          this.inputRoomSettings.description = res.data.description;
+          this.inputRoomSettings.visibility = res.data.visibility;
+          this.inputRoomSettings.queueMode = res.data.queueMode;
         });
       }
     },
     submitRoomSettings() {
       this.isLoadingRoomSettings = true;
       API.patch(`/room/${this.$route.params.roomId}`, {
-        title: this.inputRoomSettingsTitle,
-        description: this.inputRoomSettingsDescription,
-        visibility: this.inputRoomSettingsVisibility,
-        queueMode: this.inputRoomSettingsQueueMode,
+        title: this.inputRoomSettings.title,
+        description: this.inputRoomSettings.description,
+        visibility: this.inputRoomSettings.visibility,
+        queueMode: this.inputRoomSettings.queueMode,
       }).then(() => {
         this.isLoadingRoomSettings = false;
       });
@@ -678,6 +694,34 @@ export default {
       this.$socket.sendObj({
         action: "kickme",
       });
+    },
+    activateTextSeek() {
+      this.textSeek.active = true;
+      this.textSeek.value = this.timestampDisplay;
+      this.$nextTick(() => {
+        this.$refs.textseek.focus();
+        this.$refs.textseek.$el.getElementsByTagName('INPUT')[0].addEventListener("focusout", () => {
+          this.textSeek.active = false;
+        });
+      });
+    },
+    textSeekOnKeyDown(e) {
+      if (e.code === "Escape") {
+        this.textSeek.active = false;
+      }
+      else if (e.keyCode === 13) {
+        this.textSeek.active = false;
+        try {
+          let seconds = timestampToSeconds(this.textSeek.value);
+          this.$socket.sendObj({
+            action: "seek",
+            position: seconds,
+          });
+        }
+        catch {
+          console.log("Invalid timestamp, ignoring");
+        }
+      }
     },
   },
   mounted() {
@@ -907,5 +951,10 @@ export default {
   @media (max-width: $md-max) {
     padding: 0;
   }
+}
+
+.textseek {
+  display: inline-flex;
+  width: 90px;
 }
 </style>

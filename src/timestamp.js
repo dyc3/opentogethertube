@@ -10,3 +10,18 @@ export function secondsToTimestamp(seconds) {    //formats seconds into mm:ss if
 export function calculateCurrentPosition(start_time, now_time, offset) {
 	return offset + moment(now_time).diff(start_time, "seconds");
 }
+
+export function timestampToSeconds(timestamp) {
+	if (!timestamp) {
+		throw new Error("Invalid timestamp");
+	}
+	let spl = timestamp.split(":").map(i => parseInt(i)).reverse();
+	if (spl.length > 3 || spl.length === 0) {
+		throw new Error("Invalid timestamp");
+	}
+	let seconds = 0;
+	for (let i = 0; i < spl.length; i++) {
+		seconds += spl[i] * Math.pow(60, i);
+	}
+	return seconds;
+}

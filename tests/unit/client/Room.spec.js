@@ -112,7 +112,10 @@ describe('Room UI spec', () => {
     jest.advanceTimersByTime(1000);
     const timestamp = wrapper.find('.video-controls .timestamp');
     expect(timestamp.exists()).toBe(true);
-    expect(timestamp.text()).toEqual('00:00 / 00:00');
+    expect(timestamp.text()).toEqual('00:00');
+    const videoLength = wrapper.find('.video-controls .video-length');
+    expect(videoLength.exists()).toBe(true);
+    expect(videoLength.text()).toEqual('00:00');
   });
 
   it('should render timestamps if there is something playing', () => {
@@ -121,7 +124,10 @@ describe('Room UI spec', () => {
     jest.advanceTimersByTime(1000);
     const timestamp = wrapper.find('.video-controls .timestamp');
     expect(timestamp.exists()).toBe(true);
-    expect(timestamp.text()).toEqual('00:03 / 00:10');
+    expect(timestamp.text()).toEqual('00:03');
+    const videoLength = wrapper.find('.video-controls .video-length');
+    expect(videoLength.exists()).toBe(true);
+    expect(videoLength.text()).toEqual('00:10');
   });
 
   it('should render a disabled video slider if there is nothing playing', () => {
