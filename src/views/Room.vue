@@ -26,7 +26,7 @@
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekVideo(-10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on">
                       <v-icon>fas fa-angle-left</v-icon>
                     </v-btn>
                   </template>
@@ -38,13 +38,13 @@
                 </v-btn>
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekVideo(10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on">
                       <v-icon>fas fa-angle-right</v-icon>
                     </v-btn>
                   </template>
                   <span>Skip 10s</span>
                 </v-tooltip>
-                <v-btn @click="skipVideo()">
+                <v-btn @click="roomSkip()">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
@@ -61,7 +61,7 @@
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
-                <v-btn v-if="!production" @click="sendKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
+                <v-btn v-if="!production" @click="roomKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
               </v-row>
             </v-col>
           </div>
@@ -240,6 +240,7 @@ export default {
   },
   data() {
     return {
+      truePosition: 0,
       sliderPosition: 0,
       sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
@@ -269,8 +270,6 @@ export default {
       snackbarActive: false,
       snackbarText: "",
 
-      timestampDisplay: "00:00",
-      lengthDisplay: "00:00",
       i_timestampUpdater: null,
 
       copyInviteLinkSuccessText: "",
@@ -283,12 +282,7 @@ export default {
   },
   computed: {
     connectionStatus() {
-      if (this.$store.state.socket.isConnected) {
-        return "Connected";
-      }
-      else {
-        return "Connecting...";
-      }
+      return this.$store.state.socket.isConnected ? "Connected" : "Connecting...";
     },
     currentSource() {
       return this.$store.state.room.currentSource;
@@ -296,18 +290,11 @@ export default {
     playbackPosition() {
       return this.$store.state.room.playbackPosition;
     },
-    playbackPercentage() {
-      if (!this.$store.state.room.currentSource) {
-        return 0;
-      }
-      if (this.$store.state.room.currentSource.length === 0) {
-        return 0;
-      }
-      return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
-    },
+    /**
+     * This is used so we can test for development/production only behavior in unit tests.
+     * Do not change.
+     */
     production() {
-      // This is used so we can test for development/production only behavior in unit tests.
-      // Do not change.
       return this.$store.state.production;
     },
     isAddPreviewInputUrl() {
@@ -323,6 +310,12 @@ export default {
     },
     inviteLink() {
       return window.location.href.split('?')[0].toLowerCase();
+    },
+    timestampDisplay() {
+      return secondsToTimestamp(this.truePosition);
+    },
+    lengthDisplay() {
+      return secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
     },
   },
   async created() {
@@ -387,14 +380,7 @@ export default {
       this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
     }
 
-    this.i_timestampUpdater = setInterval(() => {
-      this.sliderPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
-      this.sliderPosition = _.clamp(this.sliderPosition, 0, this.$store.state.room.currentSource.length);
-      const position = secondsToTimestamp(this.sliderPosition);
-      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
-      this.timestampDisplay = position;
-      this.lengthDisplay = duration;
-    }, 1000);
+    this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
 
     this.$events.on("onSync", this.rewriteUrlToRoomName);
   },
@@ -404,6 +390,77 @@ export default {
     this.$events.remove("onSync", this.rewriteUrlToRoomName);
   },
   methods: {
+    /* ROOM API */
+
+    roomPlay() {
+      this.$socket.sendObj({ action: "play" });
+    },
+    roomPause() {
+      this.$socket.sendObj({ action: "pause" });
+    },
+    togglePlayback() {
+      if (this.$store.state.room.isPlaying) {
+        this.roomPause();
+      }
+      else {
+        this.roomPlay();
+      }
+    },
+    roomSkip() {
+      this.$socket.sendObj({ action: "skip" });
+    },
+    roomSeek(position) {
+      this.$socket.sendObj({ action: "seek", position });
+    },
+    /**
+     * Move the video from `fromIdx` to `toIdx` in the queue.
+     * @param {Number} fromIdx
+     * @param {Number} toIdx
+     * */
+    roomQueueMove(fromIdx, toIdx) {
+      this.$socket.sendObj({
+        action: "queue-move",
+        currentIdx: fromIdx,
+        targetIdx: toIdx,
+      });
+    },
+    undoEvent(event, idx) {
+      this.$socket.sendObj({
+        action: "undo",
+        event,
+      });
+      this.$store.state.room.events.splice(idx, 1);
+    },
+    roomKickMe() {
+      this.$socket.sendObj({
+        action: "kickme",
+      });
+    },
+    async submitRoomSettings() {
+      this.isLoadingRoomSettings = true;
+      await API.patch(`/room/${this.$route.params.roomId}`, this.inputRoomSettings);
+      this.isLoadingRoomSettings = false;
+    },
+    async claimOwnership() {
+      this.isLoadingRoomSettings = true;
+      try {
+        await API.patch(`/room/${this.$route.params.roomId}`, {
+          claim: true,
+        });
+      }
+      catch (error) {
+        console.log(error);
+      }
+      this.isLoadingRoomSettings = false;
+    },
+
+    /* OTHER */
+
+    /** Clock that calculates what the true playback position should be. */
+    timestampUpdate() {
+      this.truePosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
+      this.sliderPosition = _.clamp(this.truePosition, 0, this.$store.state.room.currentSource.length);
+    },
     postTestVideo(v) {
       let videos = [
         "https://www.youtube.com/watch?v=WC66l5tPIF4",
@@ -418,35 +475,17 @@ export default {
         url: videos[v],
       });
     },
-    togglePlayback() {
-      if (this.$store.state.room.isPlaying) {
-        this.$socket.sendObj({ action: "pause" });
-      }
-      else {
-        this.$socket.sendObj({ action: "play" });
-      }
-    },
-    skipVideo() {
-      this.$socket.sendObj({ action: "skip" });
-    },
     sliderChange() {
-      this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
+      this.roomSeek(this.sliderPosition);
     },
-    addAllToQueue() {
+    async addAllToQueue() {
       this.isLoadingAddAll = true;
-      API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.addPreview }).then(() => {
-        this.isLoadingAddAll = false;
-      });
+      await API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.addPreview });
+      this.isLoadingAddAll = false;
     },
     openEditName() {
       this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
       this.showEditName = !this.showEditName;
-    },
-    play() {
-      this.$refs.player.play();
-    },
-    pause() {
-      this.$refs.player.pause();
     },
     updateVolume() {
       this.$refs.player.setVolume(this.volume);
@@ -501,6 +540,7 @@ export default {
       });
     },
     onPlaybackChange(changeTo) {
+      console.log(`onPlaybackChange: ${changeTo}`);
       if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
         this.$store.commit("PLAYBACK_STATUS", "ready");
       }
@@ -510,10 +550,10 @@ export default {
       }
 
       if (this.$store.state.room.isPlaying) {
-        this.play();
+        this.$refs.player.play();
       }
       else {
-        this.pause();
+        this.$refs.player.pause();
       }
     },
     onInputAddPreviewChange() {
@@ -554,10 +594,10 @@ export default {
     },
     onPlayerReady_Vimeo() {
       if (this.$store.state.room.isPlaying) {
-        this.play();
+        this.$refs.player.play();
       }
       else {
-        this.pause();
+        this.$refs.player.pause();
       }
     },
     onKeyDown(e) {
@@ -589,7 +629,7 @@ export default {
           seekIncrement *= -1;
         }
 
-        this.seekVideo(seekIncrement);
+        this.seekDelta(seekIncrement);
         e.preventDefault();
       }
       else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
@@ -606,18 +646,7 @@ export default {
       }
     },
     onQueueDragDrop(e) {
-      this.$socket.sendObj({
-        action: "queue-move",
-        currentIdx: e.oldIndex,
-        targetIdx: e.newIndex,
-      });
-    },
-    undoEvent(event, idx) {
-      this.$socket.sendObj({
-        action: "undo",
-        event,
-      });
-      this.$store.state.room.events.splice(idx, 1);
+      this.roomQueueMove(e.oldIndex, e.newIndex);
     },
     onTabChange() {
       if (this.queueTab === 2) {
@@ -632,17 +661,7 @@ export default {
         });
       }
     },
-    submitRoomSettings() {
-      this.isLoadingRoomSettings = true;
-      API.patch(`/room/${this.$route.params.roomId}`, {
-        title: this.inputRoomSettings.title,
-        description: this.inputRoomSettings.description,
-        visibility: this.inputRoomSettings.visibility,
-        queueMode: this.inputRoomSettings.queueMode,
-      }).then(() => {
-        this.isLoadingRoomSettings = false;
-      });
-    },
+
     onVideoBuffer(percent) {
       this.$store.commit("PLAYBACK_STATUS", "buffering");
       this.$store.commit("PLAYBACK_BUFFER", percent);
@@ -657,17 +676,7 @@ export default {
         controlsDiv.classList.add("hide");
       }
     }, 3000),
-    claimOwnership() {
-      this.isLoadingRoomSettings = true;
-      API.patch(`/room/${this.$route.params.roomId}`, {
-        claim: true,
-      }).then(() => {
-        this.isLoadingRoomSettings = false;
-      }).catch(err => {
-        console.log(err);
-        this.isLoadingRoomSettings = false;
-      });
-    },
+
     copyInviteLink() {
       let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
       textfield.select();
@@ -683,17 +692,8 @@ export default {
         this.$router.replace({ name: "room", params: { roomId: this.$store.state.room.name } });
       }
     },
-    seekVideo(delta) {
-        let currentPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
-        this.$socket.sendObj({
-          action: "seek",
-          position: _.clamp(currentPosition + delta, 0, this.$store.state.room.currentSource.length),
-        });
-    },
-    sendKickMe() {
-      this.$socket.sendObj({
-        action: "kickme",
-      });
+    seekDelta(delta) {
+      this.roomSeek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
     },
     activateTextSeek() {
       this.textSeek.active = true;
@@ -713,10 +713,7 @@ export default {
         this.textSeek.active = false;
         try {
           let seconds = timestampToSeconds(this.textSeek.value);
-          this.$socket.sendObj({
-            action: "seek",
-            position: seconds,
-          });
+          this.roomSeek(seconds);
         }
         catch {
           console.log("Invalid timestamp, ignoring");
@@ -726,10 +723,10 @@ export default {
   },
   mounted() {
     this.$events.on("playVideo", () => {
-      this.play();
+      this.$refs.player.play();
     });
     this.$events.on("pauseVideo", () => {
-      this.pause();
+      this.$refs.player.pause();
     });
     this.$events.on("roomJoinFailure", eventData => {
       this.showJoinFailOverlay = true;
@@ -756,15 +753,10 @@ export default {
     }
   },
   watch: {
-    // username(newValue) {
-    //   if (newValue != null) {
-    //     // window.localStorage.setItem("username", newValue);
-    //   }
-    // },
     volume() {
       this.updateVolume();
     },
-    async sliderPosition(newPosition) {
+    async truePosition(newPosition) {
       let currentTime = await this.$refs.player.getPosition();
 
       if (Math.abs(newPosition - currentTime) > 1) {
