@@ -88,42 +88,7 @@
                 </div>
               </v-tab-item>
               <v-tab-item>
-                <div class="video-add">
-                  <div>
-                    <v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
-                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(5)">Add test direct 5</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(6)">Add test direct 6</v-btn>
-                    <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
-                  </div>
-                  <v-row v-if="isLoadingAddPreview" justify="center">
-                    <v-progress-circular indeterminate/>
-                  </v-row>
-                  <div v-if="!isLoadingAddPreview">
-                    <v-row justify="center">
-                      <div v-if="hasAddPreviewFailed">
-                        {{ addPreviewLoadFailureText }}
-                      </div>
-                      <v-container fill-height v-if="addPreview.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
-                        <v-row justify="center" align="center">
-                          <v-col cols="12">
-                            Search YouTube for "{{ inputAddPreview }}" by pressing enter, or by clicking search.<br>
-                            <v-btn @click="requestAddPreviewExplicit">Search</v-btn>
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-row>
-                    <div v-if="highlightedAddPreviewItem">
-                      <VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
-                      <h4>Playlist</h4>
-                    </div>
-                    <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
-                  </div>
-                </div>
+                <AddPreview />
               </v-tab-item>
               <v-tab-item>
                 <div class="room-settings">
@@ -222,6 +187,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
+import AddPreview from "@/components/AddPreview.vue";
 import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
@@ -237,6 +203,7 @@ export default {
     VueSlider,
     OmniPlayer,
     Chat,
+    AddPreview,
   },
   data() {
     return {
@@ -244,16 +211,11 @@ export default {
       sliderPosition: 0,
       sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
-      addPreview: [],
 
       username: "", // refers to the local user's username
 
       showEditName: false,
       queueTab: 0,
-      isLoadingAddPreview: false,
-      hasAddPreviewFailed: false,
-      addPreviewLoadFailureText: "",
-      inputAddPreview: "",
       isLoadingRoomSettings: false,
       inputRoomSettings: {
         title: "",
@@ -263,7 +225,6 @@ export default {
       },
       setUsernameLoading: false,
       setUsernameFailureText: "",
-      isLoadingAddAll: false,
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -296,17 +257,6 @@ export default {
      */
     production() {
       return this.$store.state.production;
-    },
-    isAddPreviewInputUrl() {
-      try {
-        return !!(new URL(this.inputAddPreview).host);
-      }
-      catch (e) {
-        return false;
-      }
-    },
-    highlightedAddPreviewItem() {
-      return _.find(this.addPreview, { highlight: true });
     },
     inviteLink() {
       return window.location.href.split('?')[0].toLowerCase();
@@ -367,7 +317,6 @@ export default {
     });
 
     this.$events.on("onChatLinkClick", link => {
-      this.inputAddPreview = link;
       this.queueTab = 1;
     });
 
@@ -461,27 +410,8 @@ export default {
       this.truePosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
       this.sliderPosition = _.clamp(this.truePosition, 0, this.$store.state.room.currentSource.length);
     },
-    postTestVideo(v) {
-      let videos = [
-        "https://www.youtube.com/watch?v=WC66l5tPIF4",
-        "https://www.youtube.com/watch?v=aI67KDJRnvQ",
-        "https://vimeo.com/94338566",
-        "https://vimeo.com/239423699",
-        "https://www.dailymotion.com/video/x6hkywd",
-        "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
-        "https://vjs.zencdn.net/v/oceans.mp4",
-      ];
-      API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: videos[v],
-      });
-    },
     sliderChange() {
       this.roomSeek(this.sliderPosition);
-    },
-    async addAllToQueue() {
-      this.isLoadingAddAll = true;
-      await API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.addPreview });
-      this.isLoadingAddAll = false;
     },
     openEditName() {
       this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
@@ -489,44 +419,6 @@ export default {
     },
     updateVolume() {
       this.$refs.player.setVolume(this.volume);
-    },
-    requestAddPreview() {
-      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
-        this.isLoadingAddPreview = false;
-        if (res.status === 200) {
-          this.hasAddPreviewFailed = false;
-          this.addPreview = res.data;
-          console.log(`Got add preview with ${this.addPreview.length}`);
-        }
-        else if (res.status === 400) {
-          this.hasAddPreviewFailed = true;
-          this.addPreviewLoadFailureText = res.data.error.message;
-          if (res.data.error.name === "FeatureDisabledException" && !this.isAddPreviewInputUrl) {
-            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(this.inputAddPreview)}`, "_blank");
-          }
-        }
-        else {
-          console.warn("Unknown status for add preview response:", res.status);
-        }
-      }).catch(err => {
-        this.isLoadingAddPreview = false;
-        this.hasAddPreviewFailed = true;
-        this.addPreviewLoadFailureText = "An unknown error occurred when getting add preview. Try again later.";
-        console.error("Failed to get add preview", err);
-      });
-    },
-    requestAddPreviewDebounced: _.debounce(function() {
-      // HACK: can't use an arrow function here because it will make `this` undefined
-      this.requestAddPreview();
-    }, 500),
-    /**
-     * Request an add preview regardless of the current input.
-     */
-    requestAddPreviewExplicit() {
-      this.isLoadingAddPreview = true;
-      this.hasAddPreviewFailed = false;
-      this.addPreview = [];
-      this.requestAddPreview();
     },
     onEditNameChange() {
       this.setUsernameLoading = true;
@@ -554,32 +446,6 @@ export default {
       }
       else {
         this.$refs.player.pause();
-      }
-    },
-    onInputAddPreviewChange() {
-      this.isLoadingAddPreview = true;
-      this.hasAddPreviewFailed = false;
-      if (_.trim(this.inputAddPreview).length === 0) {
-        this.addPreview = [];
-        this.isLoadingAddPreview = false;
-        return;
-      }
-      if (!this.isAddPreviewInputUrl) {
-        this.addPreview = [];
-        this.isLoadingAddPreview = false;
-        // Don't send API requests for non URL inputs without the user's explicit input to do so.
-        // This is to help conserve youtube API quota.
-        return;
-      }
-      this.requestAddPreviewDebounced();
-    },
-    onInputAddPreviewKeyDown(e) {
-      if (_.trim(this.inputAddPreview).length === 0 || this.isAddPreviewInputUrl) {
-        return;
-      }
-
-      if (e.keyCode === 13 && this.addPreview.length === 0) {
-        this.requestAddPreviewExplicit();
       }
     },
     onFocusHighlightText(e) {
@@ -661,7 +527,6 @@ export default {
         });
       }
     },
-
     onVideoBuffer(percent) {
       this.$store.commit("PLAYBACK_STATUS", "buffering");
       this.$store.commit("PLAYBACK_BUFFER", percent);
@@ -676,7 +541,6 @@ export default {
         controlsDiv.classList.add("hide");
       }
     }, 3000),
-
     copyInviteLink() {
       let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
       textfield.select();
@@ -762,11 +626,6 @@ export default {
       if (Math.abs(newPosition - currentTime) > 1) {
         this.$refs.player.setPosition(newPosition);
       }
-    },
-    inputAddPreview() {
-      // HACK: The @change event only triggers when the text field is defocused.
-      // This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
-      this.onInputAddPreviewChange();
     },
   },
 };
