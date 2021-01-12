@@ -2,7 +2,7 @@
 	<span>
 		<span v-for="(item, index) in content" :key="index">
 			<span v-if="item.type === 'text'">{{ item.text }}</span>
-			<a v-else-if="item.type === 'link'" class="link" :href="item.text" @click="onLinkClick(item.text)">
+			<a v-else-if="item.type === 'link'" class="link" :href="item.text" @click="e => onLinkClick(e, item.text)">
 				<v-tooltip top>
 					<template v-slot:activator="{ on, attrs }">
 						<span v-bind="attrs" v-on="on">{{ item.text }}</span>
@@ -55,7 +55,8 @@ export default {
 
 			this.updateCount++;
 		},
-		onLinkClick(link) {
+		onLinkClick(e, link) {
+			e.preventDefault();
 			this.$events.fire("onChatLinkClick", link);
 		},
 	},
