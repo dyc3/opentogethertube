@@ -2,19 +2,21 @@
 	<span>
 		<span v-for="(item, index) in content" :key="index">
 			<span v-if="item.type === 'text'">{{ item.text }}</span>
-			<span v-else-if="item.type === 'link'" class="link" @click="onLinkClick(item.text)">
+			<a v-else-if="item.type === 'link'" class="link" :href="item.text" @click="onLinkClick(item.text)">
 				<v-tooltip top>
 					<template v-slot:activator="{ on, attrs }">
 						<span v-bind="attrs" v-on="on">{{ item.text }}</span>
 					</template>
 					<span>Click to copy this link to the add tab.</span>
 				</v-tooltip>
-			</span>
+			</a>
 		</span>
 	</span>
 </template>
 
 <script>
+const urlRegex = /(http(?:|s)?:\/\/[^\s]+)/;
+
 export default {
 	name: "ProcessedText",
 	props: {
@@ -32,7 +34,6 @@ export default {
 			if (!this.text) {
 				return;
 			}
-			let urlRegex = /(http(?:|s)?:\/\/[^\s]+)/;
 			let match;
 			let index = 0;
 			let loop = 0;
