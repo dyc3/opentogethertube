@@ -171,9 +171,11 @@ export default {
 		},
 	},
 	watch: {
+		/**
+		 * HACK: The @change event only triggers when the text field is defocused.
+		 * This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
+		 */
 		inputAddPreview() {
-			// HACK: The @change event only triggers when the text field is defocused.
-			// This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
 			this.onInputAddPreviewChange();
 		},
 	},
