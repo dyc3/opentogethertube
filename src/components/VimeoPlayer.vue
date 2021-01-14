@@ -46,6 +46,7 @@ export default {
 						this.$emit("ready");
 					});
 					this.player.on("error", () => this.$emit("error"));
+					this.$emit("apiready");
 				}, 0);
 			});
 		},

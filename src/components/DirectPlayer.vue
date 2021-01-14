@@ -18,6 +18,8 @@ export default {
 	data() {
 		return {
 			player: null,
+
+			hasEmittedApiReady: false,
 		};
 	},
 	mounted() {
@@ -63,6 +65,10 @@ export default {
 				preload: "auto",
 				poster: this.thumbnail,
 			});
+			if (!this.hasEmittedApiReady) {
+				this.$emit("apiready");
+				this.hasEmittedApiReady = true;
+			}
 			if (process.env.NODE_ENV === "development") {
 				for (const event of [
 					"ready",

@@ -13,6 +13,7 @@
                 ref="player"
                 :source="currentSource"
                 :class="{ player: true, 'no-video': !currentSource.service }"
+                @apiready="onPlayerApiReady"
                 @playing="onPlaybackChange(true)"
                 @paused="onPlaybackChange(false)"
                 @ready="onPlayerReady"
@@ -389,6 +390,9 @@ export default {
         this.setUsernameLoading = false;
         this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
       });
+    },
+    onPlayerApiReady() {
+      console.log('internal player API is now ready');
     },
     onPlaybackChange(changeTo) {
       console.log(`onPlaybackChange: ${changeTo}`);
