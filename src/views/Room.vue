@@ -269,56 +269,12 @@ export default {
     },
   },
   async created() {
-    this.$events.on("onRoomEvent", event => {
-      if (event.eventType === "play") {
-        this.snackbarText = `${event.userName} played the video`;
-      }
-      else if (event.eventType === "pause") {
-        this.snackbarText = `${event.userName} paused the video`;
-      }
-      else if (event.eventType === "skip") {
-        this.snackbarText = `${event.userName} skipped ${event.parameters.video.title}`;
-      }
-      else if (event.eventType === "seek") {
-        this.snackbarText = `${event.userName} seeked to ${secondsToTimestamp(event.parameters.position)}`;
-      }
-      else if (event.eventType === "joinRoom") {
-        this.snackbarText = `${event.userName} joined the room`;
-      }
-      else if (event.eventType === "leaveRoom") {
-        this.snackbarText = `${event.userName} left the room`;
-      }
-      else if (event.eventType === "addToQueue") {
-        if (event.parameters.count) {
-          this.snackbarText = `${event.userName} added ${event.parameters.count} videos`;
-        }
-        else {
-          this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
-        }
-      }
-      else if (event.eventType === "removeFromQueue") {
-        this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
-      }
-      else {
-        this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
-      }
-      this.snackbarActive = true;
-    });
-
-    this.$events.on("onRoomCreated", () => {
-      if (this.$store.state.socket.isConnected) {
-        this.$disconnect();
-      }
-      setTimeout(() => {
-        if (!this.$store.state.socket.isConnected) {
-          this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-        }
-      }, 100);
-    });
-
+    this.$events.on("onRoomEvent", this.onRoomEvent);
+    this.$events.on("onRoomCreated", this.onRoomCreated);
     this.$events.on("onChatLinkClick", link => {
       this.queueTab = 1;
     });
+    this.$events.on("onSync", this.rewriteUrlToRoomName);
 
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
@@ -330,8 +286,6 @@ export default {
     }
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
-
-    this.$events.on("onSync", this.rewriteUrlToRoomName);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
@@ -519,17 +473,13 @@ export default {
     onQueueDragDrop(e) {
       this.roomQueueMove(e.oldIndex, e.newIndex);
     },
-    onTabChange() {
+    async onTabChange() {
       if (this.queueTab === 2) {
         // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
         this.isLoadingRoomSettings = true;
-        API.get(`/room/${this.$route.params.roomId}`).then(res => {
-          this.isLoadingRoomSettings = false;
-          this.inputRoomSettings.title = res.data.title;
-          this.inputRoomSettings.description = res.data.description;
-          this.inputRoomSettings.visibility = res.data.visibility;
-          this.inputRoomSettings.queueMode = res.data.queueMode;
-        });
+        let res = await API.get(`/room/${this.$route.params.roomId}`);
+        this.isLoadingRoomSettings = false;
+        this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode");
       }
     },
     onVideoBuffer(percent) {
@@ -588,6 +538,51 @@ export default {
           console.log("Invalid timestamp, ignoring");
         }
       }
+    },
+    onRoomCreated() {
+      if (this.$store.state.socket.isConnected) {
+        this.$disconnect();
+      }
+      setTimeout(() => {
+        if (!this.$store.state.socket.isConnected) {
+          this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+        }
+      }, 100);
+    },
+    onRoomEvent(event) {
+      if (event.eventType === "play") {
+        this.snackbarText = `${event.userName} played the video`;
+      }
+      else if (event.eventType === "pause") {
+        this.snackbarText = `${event.userName} paused the video`;
+      }
+      else if (event.eventType === "skip") {
+        this.snackbarText = `${event.userName} skipped ${event.parameters.video.title}`;
+      }
+      else if (event.eventType === "seek") {
+        this.snackbarText = `${event.userName} seeked to ${secondsToTimestamp(event.parameters.position)}`;
+      }
+      else if (event.eventType === "joinRoom") {
+        this.snackbarText = `${event.userName} joined the room`;
+      }
+      else if (event.eventType === "leaveRoom") {
+        this.snackbarText = `${event.userName} left the room`;
+      }
+      else if (event.eventType === "addToQueue") {
+        if (event.parameters.count) {
+          this.snackbarText = `${event.userName} added ${event.parameters.count} videos`;
+        }
+        else {
+          this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
+        }
+      }
+      else if (event.eventType === "removeFromQueue") {
+        this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
+      }
+      else {
+        this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
+      }
+      this.snackbarActive = true;
     },
   },
   mounted() {
