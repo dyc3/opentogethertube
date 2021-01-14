@@ -341,12 +341,15 @@ export default {
   methods: {
     /* ROOM API */
 
+    /** Send a message to play the video. */
     roomPlay() {
       this.$socket.sendObj({ action: "play" });
     },
+    /** Send a message to pause the video. */
     roomPause() {
       this.$socket.sendObj({ action: "pause" });
     },
+    /** Send a message to play or pause the video, depending on the current state. */
     togglePlayback() {
       if (this.$store.state.room.isPlaying) {
         this.roomPause();
@@ -355,6 +358,7 @@ export default {
         this.roomPlay();
       }
     },
+    /** Send a message to skip the current video. */
     roomSkip() {
       this.$socket.sendObj({ action: "skip" });
     },
@@ -385,6 +389,7 @@ export default {
         action: "kickme",
       });
     },
+    /** Take room settings from the UI and submit them to the server. */
     async submitRoomSettings() {
       this.isLoadingRoomSettings = true;
       await API.patch(`/room/${this.$route.params.roomId}`, this.inputRoomSettings);
