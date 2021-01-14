@@ -272,7 +272,7 @@ export default {
   async created() {
     this.$events.on("onRoomEvent", this.onRoomEvent);
     this.$events.on("onRoomCreated", this.onRoomCreated);
-    this.$events.on("onChatLinkClick", link => {
+    this.$events.on("onChatLinkClick", () => {
       this.queueTab = 1;
     });
     this.$events.on("onSync", this.rewriteUrlToRoomName);
