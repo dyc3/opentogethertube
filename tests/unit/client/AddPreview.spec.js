@@ -65,9 +65,9 @@ describe("AddPreview", () => {
 		store.state.production = false;
 		const testVideoButtons = wrapper.find('.video-add').findAll({ name: 'v-btn' });
 		expect(testVideoButtons.length).toBeGreaterThanOrEqual(1);
-		expect(testVideoButtons.at(0).text()).toEqual('Add test youtube 0');
-		expect(testVideoButtons.at(1).text()).toEqual('Add test youtube 1');
-		expect(testVideoButtons.at(2).text()).toEqual('Add test vimeo 2');
+		expect(testVideoButtons.at(0).text()).toEqual('test youtube 0');
+		expect(testVideoButtons.at(1).text()).toEqual('test youtube 1');
+		expect(testVideoButtons.at(2).text()).toEqual('test vimeo 0');
 	});
 
 	it('should NOT render test buttons when in production environment', () => {

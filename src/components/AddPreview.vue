@@ -2,13 +2,9 @@
 	<div class="video-add">
 		<div>
 			<v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
-			<v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
-			<v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
-			<v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
-			<v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
-			<v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
-			<v-btn v-if="!production" @click="postTestVideo(5)">Add test direct 5</v-btn>
-			<v-btn v-if="!production" @click="postTestVideo(6)">Add test direct 6</v-btn>
+			<div v-if="!production">
+				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{ v[0] }}</v-btn>
+			</div>
 			<v-btn v-if="videos.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
 		</div>
 		<v-row v-if="isLoadingAddPreview" justify="center">
@@ -55,6 +51,16 @@ export default {
 			addPreviewLoadFailureText: "",
 			inputAddPreview: "",
 			isLoadingAddAll: false,
+
+			testVideos: [
+				["test youtube 0", "https://www.youtube.com/watch?v=WC66l5tPIF4"],
+				["test youtube 1", "https://www.youtube.com/watch?v=aI67KDJRnvQ"],
+				["test vimeo 0", "https://vimeo.com/94338566"],
+				["test vimeo 1", "https://vimeo.com/239423699"],
+				["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
+				["test direct 0", "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4"],
+				["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
+			],
 		};
 	},
 	computed: {
@@ -152,18 +158,9 @@ export default {
 				this.requestAddPreviewExplicit();
 			}
 		},
-		postTestVideo(v) {
-			let videos = [
-				"https://www.youtube.com/watch?v=WC66l5tPIF4",
-				"https://www.youtube.com/watch?v=aI67KDJRnvQ",
-				"https://vimeo.com/94338566",
-				"https://vimeo.com/239423699",
-				"https://www.dailymotion.com/video/x6hkywd",
-				"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
-				"https://vjs.zencdn.net/v/oceans.mp4",
-			];
-			API.post(`/room/${this.$route.params.roomId}/queue`, {
-				url: videos[v],
+		async postTestVideo(v) {
+			await API.post(`/room/${this.$route.params.roomId}/queue`, {
+				url: this.testVideos[v][1],
 			});
 		},
 		onFocusHighlightText(e) {
