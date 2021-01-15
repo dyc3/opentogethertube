@@ -5,14 +5,20 @@
 </template>
 
 <script>
+import DebugPlayerWatcher from "./debug/DebugPlayerWatcher.vue";
+
 export default {
 	name: "YoutubePlayer",
 	props: {
 		videoId: { type: String, required: true },
 	},
+	components: {
+		// eslint-disable-next-line vue/no-unused-components
+		DebugPlayerWatcher,
+	},
 	data() {
 		return {
-
+			debug: {},
 		};
 	},
 	methods: {
