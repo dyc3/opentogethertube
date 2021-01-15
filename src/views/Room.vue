@@ -50,7 +50,7 @@
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
                 <div>
-                  <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details @keydown="textSeekOnKeyDown" />
+                  <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
                   <span v-else class="timestamp" @click="activateTextSeek">
                     {{ timestampDisplay }}
                   </span>
