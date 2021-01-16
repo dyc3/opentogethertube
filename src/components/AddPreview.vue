@@ -133,20 +133,18 @@ export default {
 			this.isLoadingAddAll = false;
 		},
 		onInputAddPreviewChange() {
-			this.isLoadingAddPreview = true;
 			this.hasAddPreviewFailed = false;
-			if (_.trim(this.inputAddPreview).length === 0) {
+			if (!this.inputAddPreview || _.trim(this.inputAddPreview).length === 0) {
 				this.videos = [];
-				this.isLoadingAddPreview = false;
 				return;
 			}
 			if (!this.isAddPreviewInputUrl) {
 				this.videos = [];
-				this.isLoadingAddPreview = false;
 				// Don't send API requests for non URL inputs without the user's explicit input to do so.
 				// This is to help conserve youtube API quota.
 				return;
 			}
+			this.isLoadingAddPreview = true;
 			this.requestAddPreviewDebounced();
 		},
 		onInputAddPreviewKeyDown(e) {
@@ -173,6 +171,10 @@ export default {
 		 * This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
 		 */
 		inputAddPreview() {
+			// HACK: ensure that inputAddPreview always a string
+			if (this.inputAddPreview === null) {
+				this.inputAddPreview = "";
+			}
 			this.onInputAddPreviewChange();
 		},
 	},
