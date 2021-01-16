@@ -36,6 +36,7 @@ class Room {
 		this.isTemporary = false;
 		this.visibility = "public";
 		this.queueMode = "manual"; // manual, vote
+		this.tooltip = "none";
 		this.currentSource = {};
 		this.queue = [];
 		this.isPlaying = false;
@@ -105,6 +106,15 @@ class Room {
 	set queueMode(value) {
 		this._queueMode = value;
 		this._dirtyProps.push("queueMode");
+	}
+
+	get tooltip() {
+		return this._tooltip;
+	}
+
+	set tooltip(value) {
+		this._tooltip = value;
+		this._dirtyProps.push("tooltip");
 	}
 
 	get currentSource() {
@@ -416,6 +426,7 @@ class Room {
 			description: this.description,
 			isTemporary: this.isTemporary,
 			queueMode: this.queueMode,
+			tooltip: this.tooltip,
 			currentSource: this.currentSource,
 			queue: _.cloneDeep(this.queue),
 			isPlaying: this.isPlaying,

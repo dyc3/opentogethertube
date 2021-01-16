@@ -27,6 +27,11 @@ const VALID_ROOM_QUEUE_MODE = [
 	"vote",
 ];
 
+const VALID_ROOM_TOOLTIP = [
+	"none",
+	"timestamp",
+];
+
 function handleGetRoomFailure(res, err) {
 	if (err.name === "RoomNotFoundException") {
 		res.status(404).json({
@@ -102,6 +107,7 @@ module.exports = function(_roommanager, storage) {
 				"isTemporary",
 				"visibility",
 				"queueMode",
+				"tooltip",
 				"queue",
 				"clients",
 			]));
@@ -240,6 +246,7 @@ module.exports = function(_roommanager, storage) {
 				"description",
 				"visibility",
 				"queueMode",
+				"tooltip",
 			]);
 			filtered = _.pickBy(filtered, n => n !== null);
 			if (filtered.visibility && !VALID_ROOM_VISIBILITY.includes(filtered.visibility)) {
@@ -253,6 +260,13 @@ module.exports = function(_roommanager, storage) {
 				res.status(400).json({
 					success: false,
 					error: "Invalid value for room queue mode",
+				});
+				return;
+			}
+			if (filtered.tooltip && !VALID_ROOM_TOOLTIP.includes(filtered.tooltip)) {
+				res.status(400).json({
+					success: false,
+					error: "Invalid value for tooltip",
 				});
 				return;
 			}

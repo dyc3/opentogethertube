@@ -8,6 +8,7 @@
 				<v-text-field label="Description" hint="Optional" v-model="options.description" />
 				<v-select label="Visibility" hint="Controls whether or not the room shows up in the room list." :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="options.visibility" :rules="rules.visibility" />
 				<v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="options.queueMode" :rules="rules.queueMode" />
+				<v-select label="Tooltip" :items="[{ text: 'none' }, { text: 'timestamp' }]" v-model="options.tooltip" :rules="rules.tooltip" />
 				<div :key="error">{{ error }}</div>
 			</v-card-text>
 			<v-card-actions>
@@ -33,6 +34,7 @@ export default {
 				description: "",
 				visibility: "public",
 				queueMode: "manual",
+				tooltip: "none",
 			},
 			rules: {
 				name: [
@@ -49,6 +51,11 @@ export default {
 				queueMode: [
 					// eslint-disable-next-line array-bracket-newline
 					v => (v && ["manual", "vote"].includes(v)) || "Invalid Queue Mode",
+				],
+				// eslint-disable-next-line array-bracket-newline
+				tooltip: [
+					// eslint-disable-next-line array-bracket-newline
+					v => (v && ["none", "timestamp"].includes(v)) || "Invalid Tooltip",
 				],
 			},
 
@@ -73,6 +80,7 @@ export default {
 					description: "",
 					visibility: "public",
 					queueMode: "manual",
+					tooltip: "none",
 				};
 			}).catch(err => {
 				if (err.response) {

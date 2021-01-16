@@ -126,6 +126,7 @@
                     <v-text-field label="Description" v-model="inputRoomSettingsDescription" :loading="isLoadingRoomSettings" />
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettingsVisibility" :loading="isLoadingRoomSettings" />
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettingsQueueMode" :loading="isLoadingRoomSettings" />
+                    <v-select label="Slider Tooltip" :items="[{text: 'none'}, {text: 'timestamp'}]" v-model="inputRoomSettingsTooltip" :loading="isLoadingRoomSettings" />
                     <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
                   </v-form>
                   <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
@@ -254,6 +255,7 @@ export default {
       inputRoomSettingsDescription: "",
       inputRoomSettingsVisibility: "",
       inputRoomSettingsQueueMode: "",
+      inputRoomSettingsTooltip: "",
       setUsernameLoading: false,
       setUsernameFailureText: "",
       isLoadingAddAll: false,
@@ -616,6 +618,7 @@ export default {
           this.inputRoomSettingsDescription = res.data.description;
           this.inputRoomSettingsVisibility = res.data.visibility;
           this.inputRoomSettingsQueueMode = res.data.queueMode;
+          this.inputRoomSettingsTooltip = res.data.tooltip;
         });
       }
     },
@@ -626,6 +629,7 @@ export default {
         description: this.inputRoomSettingsDescription,
         visibility: this.inputRoomSettingsVisibility,
         queueMode: this.inputRoomSettingsQueueMode,
+        tooltip: this.inputRoomSettingsTooltip,
       }).then(() => {
         this.isLoadingRoomSettings = false;
       });
