@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import _ from "lodash";
 import DebugPlayerWatcher from "./debug/DebugPlayerWatcher.vue";
 import { getSdk } from "@/util/playerHelper.js";
 
@@ -76,8 +77,11 @@ export default {
 				},
 			});
 		}
+		window.addEventListener('resize', this.onResize);
+		this.fitToContainer();
 	},
 	beforeDestroy() {
+		window.removeEventListener('resize', this.onResize);
 		if (this.player && this.player.destroy) {
 			this.player.destroy();
 			delete this.player;
@@ -164,6 +168,16 @@ export default {
 		},
 		onError() {
 			this.$emit("error");
+		},
+
+		onResize: _.debounce(function() {
+			this.fitToContainer();
+		}, 25),
+		fitToContainer() {
+			let iframe = this.player.getIframe();
+			let width = iframe.parentElement.offsetWidth;
+			let height = iframe.parentElement.offsetHeight;
+			this.player.setSize(width, height);
 		},
 	},
 	watch: {
