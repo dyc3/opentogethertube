@@ -91,4 +91,44 @@ describe("YoutubePlayer", () => {
 		expect(wrapper.vm.player.seekTo).toHaveBeenCalledWith(10);
 		expect(wrapper.vm.player.setVolume).toHaveBeenCalledWith(50);
 	});
+
+	it("should set the size of the player to the size of the parent", () => {
+		wrapper = shallowMount(YoutubePlayer, {
+			props: {
+				videoId: "pvoQg3QIvhA",
+			},
+		});
+		wrapper.setData({
+			player: {
+				getIframe: jest.fn().mockImplementation(() => {
+					return {
+						parentElement: {
+							offsetWidth: 930,
+							offsetHeight: 450,
+						},
+					};
+				}),
+				setSize: jest.fn(),
+			},
+		});
+		wrapper.vm.fitToContainer();
+		expect(wrapper.vm.player.setSize).toHaveBeenCalledWith(930, 450);
+	});
+
+	it("should queue values if player is not ready to receive the values yet", () => {
+		wrapper = shallowMount(YoutubePlayer, {
+			props: {
+				videoId: "pvoQg3QIvhA",
+			},
+		});
+		jest.spyOn(wrapper.vm, 'fitToContainer').mockImplementation();
+		wrapper.vm.play();
+		expect(wrapper.vm.queuedPlaying).toEqual(true);
+		wrapper.vm.pause();
+		expect(wrapper.vm.queuedPlaying).toEqual(false);
+		wrapper.vm.setPosition(54);
+		expect(wrapper.vm.queuedSeek).toEqual(54);
+		wrapper.vm.setVolume(84);
+		expect(wrapper.vm.queuedVolume).toEqual(84);
+	});
 });
