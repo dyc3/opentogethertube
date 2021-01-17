@@ -262,5 +262,40 @@ describe('Room UI spec', () => {
       expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(-10);
       wrapper.vm.seekDelta.mockClear();
     });
+
+    it('should set the correct snackbar text', () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+
+      wrapper.vm.onRoomEvent({ eventType: "anything" });
+      expect(wrapper.vm.snackbarActive).toEqual(true);
+
+      wrapper.vm.onRoomEvent({ eventType: "play" });
+      expect(wrapper.vm.snackbarText).toContain("played");
+
+      wrapper.vm.onRoomEvent({ eventType: "pause" });
+      expect(wrapper.vm.snackbarText).toContain("paused");
+
+      wrapper.vm.onRoomEvent({ eventType: "skip", parameters: { video: {} } });
+      expect(wrapper.vm.snackbarText).toContain("skipped");
+
+      wrapper.vm.onRoomEvent({ eventType: "seek", parameters: { position: 0 } });
+      expect(wrapper.vm.snackbarText).toContain("seeked");
+
+      wrapper.vm.onRoomEvent({ eventType: "joinRoom" });
+      expect(wrapper.vm.snackbarText).toContain("joined");
+
+      wrapper.vm.onRoomEvent({ eventType: "leaveRoom" });
+      expect(wrapper.vm.snackbarText).toContain("left");
+
+      wrapper.vm.onRoomEvent({ eventType: "addToQueue", parameters: { video: {} } });
+      expect(wrapper.vm.snackbarText).toContain("added");
+
+      wrapper.vm.onRoomEvent({ eventType: "addToQueue", parameters: { count: 1 } });
+      expect(wrapper.vm.snackbarText).toContain("added");
+
+      wrapper.vm.onRoomEvent({ eventType: "removeFromQueue", parameters: { video: {} } });
+      expect(wrapper.vm.snackbarText).toContain("removed");
+    });
   });
 });

@@ -439,11 +439,11 @@ export default {
         e.preventDefault();
       }
       else if (e.code === "Home") {
-        this.$socket.sendObj({ action: "seek", position: 0 });
+        this.roomSeek(0);
         e.preventDefault();
       }
       else if (e.code === "End") {
-        this.$socket.sendObj({ action: "skip" });
+        this.roomSkip();
         e.preventDefault();
       }
       else if (e.code === "KeyF") {
