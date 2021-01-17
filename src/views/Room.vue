@@ -13,6 +13,7 @@
                 ref="player"
                 :source="currentSource"
                 :class="{ player: true, 'no-video': !currentSource.service }"
+                @apiready="onPlayerApiReady"
                 @playing="onPlaybackChange(true)"
                 @paused="onPlaybackChange(false)"
                 @ready="onPlayerReady"
@@ -26,7 +27,7 @@
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekVideo(-10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on">
                       <v-icon>fas fa-angle-left</v-icon>
                     </v-btn>
                   </template>
@@ -38,18 +39,18 @@
                 </v-btn>
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekVideo(10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on">
                       <v-icon>fas fa-angle-right</v-icon>
                     </v-btn>
                   </template>
                   <span>Skip 10s</span>
                 </v-tooltip>
-                <v-btn @click="skipVideo()">
+                <v-btn @click="roomSkip()">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
                 <div>
-                  <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details @keydown="textSeekOnKeyDown" />
+                  <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
                   <span v-else class="timestamp" @click="activateTextSeek">
                     {{ timestampDisplay }}
                   </span>
@@ -61,7 +62,7 @@
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
-                <v-btn v-if="!production" @click="sendKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
+                <v-btn v-if="!production" @click="roomKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
               </v-row>
             </v-col>
           </div>
@@ -88,42 +89,7 @@
                 </div>
               </v-tab-item>
               <v-tab-item>
-                <div class="video-add">
-                  <div>
-                    <v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
-                    <v-btn v-if="!production" @click="postTestVideo(0)">Add test youtube 0</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(1)">Add test youtube 1</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(2)">Add test vimeo 2</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(3)">Add test vimeo 3</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(4)">Add test dailymotion 4</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(5)">Add test direct 5</v-btn>
-                    <v-btn v-if="!production" @click="postTestVideo(6)">Add test direct 6</v-btn>
-                    <v-btn v-if="addPreview.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
-                  </div>
-                  <v-row v-if="isLoadingAddPreview" justify="center">
-                    <v-progress-circular indeterminate/>
-                  </v-row>
-                  <div v-if="!isLoadingAddPreview">
-                    <v-row justify="center">
-                      <div v-if="hasAddPreviewFailed">
-                        {{ addPreviewLoadFailureText }}
-                      </div>
-                      <v-container fill-height v-if="addPreview.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
-                        <v-row justify="center" align="center">
-                          <v-col cols="12">
-                            Search YouTube for "{{ inputAddPreview }}" by pressing enter, or by clicking search.<br>
-                            <v-btn @click="requestAddPreviewExplicit">Search</v-btn>
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-row>
-                    <div v-if="highlightedAddPreviewItem">
-                      <VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
-                      <h4>Playlist</h4>
-                    </div>
-                    <VideoQueueItem v-for="(itemdata, index) in addPreview" :key="index" :item="itemdata" is-preview/>
-                  </div>
-                </div>
+                <AddPreview />
               </v-tab-item>
               <v-tab-item>
                 <div class="room-settings">
@@ -222,6 +188,7 @@
 <script>
 import { API } from "@/common-http.js";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
+import AddPreview from "@/components/AddPreview.vue";
 import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
 import _ from "lodash";
 import draggable from 'vuedraggable';
@@ -237,22 +204,19 @@ export default {
     VueSlider,
     OmniPlayer,
     Chat,
+    AddPreview,
   },
   data() {
     return {
+      truePosition: 0,
       sliderPosition: 0,
       sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
-      addPreview: [],
 
       username: "", // refers to the local user's username
 
       showEditName: false,
       queueTab: 0,
-      isLoadingAddPreview: false,
-      hasAddPreviewFailed: false,
-      addPreviewLoadFailureText: "",
-      inputAddPreview: "",
       isLoadingRoomSettings: false,
       inputRoomSettings: {
         title: "",
@@ -262,15 +226,12 @@ export default {
       },
       setUsernameLoading: false,
       setUsernameFailureText: "",
-      isLoadingAddAll: false,
 
       showJoinFailOverlay: false,
       joinFailReason: "",
       snackbarActive: false,
       snackbarText: "",
 
-      timestampDisplay: "00:00",
-      lengthDisplay: "00:00",
       i_timestampUpdater: null,
 
       copyInviteLinkSuccessText: "",
@@ -283,12 +244,7 @@ export default {
   },
   computed: {
     connectionStatus() {
-      if (this.$store.state.socket.isConnected) {
-        return "Connected";
-      }
-      else {
-        return "Connecting...";
-      }
+      return this.$store.state.socket.isConnected ? "Connected" : "Connecting...";
     },
     currentSource() {
       return this.$store.state.room.currentSource;
@@ -296,37 +252,308 @@ export default {
     playbackPosition() {
       return this.$store.state.room.playbackPosition;
     },
-    playbackPercentage() {
-      if (!this.$store.state.room.currentSource) {
-        return 0;
-      }
-      if (this.$store.state.room.currentSource.length === 0) {
-        return 0;
-      }
-      return this.$store.state.room.playbackPosition / this.$store.state.room.currentSource.length;
-    },
+    /**
+     * This is used so we can test for development/production only behavior in unit tests.
+     * Do not change.
+     */
     production() {
-      // This is used so we can test for development/production only behavior in unit tests.
-      // Do not change.
       return this.$store.state.production;
-    },
-    isAddPreviewInputUrl() {
-      try {
-        return !!(new URL(this.inputAddPreview).host);
-      }
-      catch (e) {
-        return false;
-      }
-    },
-    highlightedAddPreviewItem() {
-      return _.find(this.addPreview, { highlight: true });
     },
     inviteLink() {
       return window.location.href.split('?')[0].toLowerCase();
     },
+    timestampDisplay() {
+      return secondsToTimestamp(this.truePosition);
+    },
+    lengthDisplay() {
+      return secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
+    },
   },
   async created() {
-    this.$events.on("onRoomEvent", event => {
+    this.$events.on("onRoomEvent", this.onRoomEvent);
+    this.$events.on("onRoomCreated", this.onRoomCreated);
+    this.$events.on("onChatLinkClick", () => {
+      this.queueTab = 1;
+    });
+    this.$events.on("onSync", this.rewriteUrlToRoomName);
+
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keydown', this.onKeyDown);
+
+    if (!this.$store.state.socket.isConnected) {
+      // This check prevents the client from connecting multiple times,
+      // caused by hot reloading in the dev environment.
+      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+    }
+
+    this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
+  },
+  destroyed() {
+    clearInterval(this.i_timestampUpdater);
+    this.$disconnect();
+    this.$events.remove("onSync", this.rewriteUrlToRoomName);
+  },
+  methods: {
+    /* ROOM API */
+
+    /** Send a message to play the video. */
+    roomPlay() {
+      this.$socket.sendObj({ action: "play" });
+    },
+    /** Send a message to pause the video. */
+    roomPause() {
+      this.$socket.sendObj({ action: "pause" });
+    },
+    /** Send a message to play or pause the video, depending on the current state. */
+    togglePlayback() {
+      if (this.$store.state.room.isPlaying) {
+        this.roomPause();
+      }
+      else {
+        this.roomPlay();
+      }
+    },
+    /** Send a message to skip the current video. */
+    roomSkip() {
+      this.$socket.sendObj({ action: "skip" });
+    },
+    roomSeek(position) {
+      this.$socket.sendObj({ action: "seek", position });
+    },
+    /**
+     * Move the video from `fromIdx` to `toIdx` in the queue.
+     * @param {Number} fromIdx
+     * @param {Number} toIdx
+     * */
+    roomQueueMove(fromIdx, toIdx) {
+      this.$socket.sendObj({
+        action: "queue-move",
+        currentIdx: fromIdx,
+        targetIdx: toIdx,
+      });
+    },
+    undoEvent(event, idx) {
+      this.$socket.sendObj({
+        action: "undo",
+        event,
+      });
+      this.$store.state.room.events.splice(idx, 1);
+    },
+    roomKickMe() {
+      this.$socket.sendObj({
+        action: "kickme",
+      });
+    },
+    /** Take room settings from the UI and submit them to the server. */
+    async submitRoomSettings() {
+      this.isLoadingRoomSettings = true;
+      await API.patch(`/room/${this.$route.params.roomId}`, this.inputRoomSettings);
+      this.isLoadingRoomSettings = false;
+    },
+    async claimOwnership() {
+      this.isLoadingRoomSettings = true;
+      try {
+        await API.patch(`/room/${this.$route.params.roomId}`, {
+          claim: true,
+        });
+      }
+      catch (error) {
+        console.log(error);
+      }
+      this.isLoadingRoomSettings = false;
+    },
+
+    /* OTHER */
+
+    /** Clock that calculates what the true playback position should be. */
+    timestampUpdate() {
+      this.truePosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
+      this.sliderPosition = _.clamp(this.truePosition, 0, this.$store.state.room.currentSource.length);
+    },
+    sliderChange() {
+      this.roomSeek(this.sliderPosition);
+    },
+    openEditName() {
+      this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
+      this.showEditName = !this.showEditName;
+    },
+    updateVolume() {
+      this.$refs.player.setVolume(this.volume);
+    },
+    onEditNameChange() {
+      this.setUsernameLoading = true;
+      API.post("/user", { username: this.username }).then(() => {
+        this.showEditName = false;
+        this.setUsernameLoading = false;
+        this.setUsernameFailureText = "";
+      }).catch(err => {
+        this.setUsernameLoading = false;
+        this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
+      });
+    },
+    onPlayerApiReady() {
+      console.log('internal player API is now ready');
+    },
+    onPlaybackChange(changeTo) {
+      console.log(`onPlaybackChange: ${changeTo}`);
+      if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
+        this.$store.commit("PLAYBACK_STATUS", "ready");
+      }
+      this.updateVolume();
+      if (changeTo === this.$store.state.room.isPlaying) {
+        return;
+      }
+
+      if (this.$store.state.room.isPlaying) {
+        this.$refs.player.play();
+      }
+      else {
+        this.$refs.player.pause();
+      }
+    },
+    onFocusHighlightText(e) {
+      e.target.select();
+    },
+    onPlayerReady() {
+      this.$store.commit("PLAYBACK_STATUS", "ready");
+
+      if (this.currentSource.service === "vimeo") {
+        this.onPlayerReady_Vimeo();
+      }
+    },
+    onPlayerReady_Vimeo() {
+      if (this.$store.state.room.isPlaying) {
+        this.$refs.player.play();
+      }
+      else {
+        this.$refs.player.pause();
+      }
+    },
+    onKeyDown(e) {
+      if (e.target.nodeName === "INPUT") {
+        return;
+      }
+
+      if (e.code === "Space" || e.code === "k") {
+        this.togglePlayback();
+        e.preventDefault();
+      }
+      else if (e.code === "Home") {
+        this.roomSeek(0);
+        e.preventDefault();
+      }
+      else if (e.code === "End") {
+        this.roomSkip();
+        e.preventDefault();
+      }
+      else if (e.code === "KeyF") {
+        this.toggleFullscreen();
+      }
+      else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
+        let seekIncrement = 5;
+        if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
+          seekIncrement = 10;
+        }
+        if (e.code === "ArrowLeft" || e.code === "KeyJ") {
+          seekIncrement *= -1;
+        }
+
+        this.seekDelta(seekIncrement);
+        e.preventDefault();
+      }
+      else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+        this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
+        e.preventDefault();
+      }
+    },
+    toggleFullscreen() {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+      else {
+        document.documentElement.requestFullscreen();
+      }
+    },
+    onQueueDragDrop(e) {
+      this.roomQueueMove(e.oldIndex, e.newIndex);
+    },
+    async onTabChange() {
+      if (this.queueTab === 2) {
+        // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
+        this.isLoadingRoomSettings = true;
+        let res = await API.get(`/room/${this.$route.params.roomId}`);
+        this.isLoadingRoomSettings = false;
+        this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode");
+      }
+    },
+    onVideoBuffer(percent) {
+      this.$store.commit("PLAYBACK_STATUS", "buffering");
+      this.$store.commit("PLAYBACK_BUFFER", percent);
+    },
+    onVideoError() {
+      this.$store.commit("PLAYBACK_STATUS", "error");
+    },
+    hideVideoControls: _.debounce(() => {
+      let controlsDiv = document.getElementsByClassName("video-controls");
+      if (controlsDiv.length) {
+        controlsDiv = controlsDiv[0];
+        controlsDiv.classList.add("hide");
+      }
+    }, 3000),
+    copyInviteLink() {
+      let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
+      textfield.select();
+      document.execCommand("copy");
+      this.copyInviteLinkSuccessText = "Copied!";
+      setTimeout(() => {
+        this.copyInviteLinkSuccessText = "";
+        textfield.blur();
+      }, 3000);
+    },
+    rewriteUrlToRoomName() {
+      if (this.$route.params.roomId !== this.$store.state.room.name) {
+        this.$router.replace({ name: "room", params: { roomId: this.$store.state.room.name } });
+      }
+    },
+    seekDelta(delta) {
+      this.roomSeek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
+    },
+    activateTextSeek() {
+      this.textSeek.active = true;
+      this.textSeek.value = this.timestampDisplay;
+      this.$nextTick(() => {
+        this.$refs.textseek.focus();
+        this.$refs.textseek.$el.getElementsByTagName('INPUT')[0].addEventListener("focusout", () => {
+          this.textSeek.active = false;
+        });
+      });
+    },
+    textSeekOnKeyDown(e) {
+      if (e.code === "Escape") {
+        this.textSeek.active = false;
+      }
+      else if (e.keyCode === 13) {
+        this.textSeek.active = false;
+        try {
+          let seconds = timestampToSeconds(this.textSeek.value);
+          this.roomSeek(seconds);
+        }
+        catch {
+          console.log("Invalid timestamp, ignoring");
+        }
+      }
+    },
+    onRoomCreated() {
+      if (this.$store.state.socket.isConnected) {
+        this.$disconnect();
+      }
+      setTimeout(() => {
+        if (!this.$store.state.socket.isConnected) {
+          this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+        }
+      }, 100);
+    },
+    onRoomEvent(event) {
       if (event.eventType === "play") {
         this.snackbarText = `${event.userName} played the video`;
       }
@@ -360,376 +587,14 @@ export default {
         this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
       }
       this.snackbarActive = true;
-    });
-
-    this.$events.on("onRoomCreated", () => {
-      if (this.$store.state.socket.isConnected) {
-        this.$disconnect();
-      }
-      setTimeout(() => {
-        if (!this.$store.state.socket.isConnected) {
-          this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-        }
-      }, 100);
-    });
-
-    this.$events.on("onChatLinkClick", link => {
-      this.inputAddPreview = link;
-      this.queueTab = 1;
-    });
-
-    window.removeEventListener('keydown', this.onKeyDown);
-    window.addEventListener('keydown', this.onKeyDown);
-
-    if (!this.$store.state.socket.isConnected) {
-      // This check prevents the client from connecting multiple times,
-      // caused by hot reloading in the dev environment.
-      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-    }
-
-    this.i_timestampUpdater = setInterval(() => {
-      this.sliderPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
-      this.sliderPosition = _.clamp(this.sliderPosition, 0, this.$store.state.room.currentSource.length);
-      const position = secondsToTimestamp(this.sliderPosition);
-      const duration = secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
-      this.timestampDisplay = position;
-      this.lengthDisplay = duration;
-    }, 1000);
-
-    this.$events.on("onSync", this.rewriteUrlToRoomName);
-  },
-  destroyed() {
-    clearInterval(this.i_timestampUpdater);
-    this.$disconnect();
-    this.$events.remove("onSync", this.rewriteUrlToRoomName);
-  },
-  methods: {
-    postTestVideo(v) {
-      let videos = [
-        "https://www.youtube.com/watch?v=WC66l5tPIF4",
-        "https://www.youtube.com/watch?v=aI67KDJRnvQ",
-        "https://vimeo.com/94338566",
-        "https://vimeo.com/239423699",
-        "https://www.dailymotion.com/video/x6hkywd",
-        "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
-        "https://vjs.zencdn.net/v/oceans.mp4",
-      ];
-      API.post(`/room/${this.$route.params.roomId}/queue`, {
-        url: videos[v],
-      });
-    },
-    togglePlayback() {
-      if (this.$store.state.room.isPlaying) {
-        this.$socket.sendObj({ action: "pause" });
-      }
-      else {
-        this.$socket.sendObj({ action: "play" });
-      }
-    },
-    skipVideo() {
-      this.$socket.sendObj({ action: "skip" });
-    },
-    sliderChange() {
-      this.$socket.sendObj({ action: "seek", position: this.sliderPosition });
-    },
-    addAllToQueue() {
-      this.isLoadingAddAll = true;
-      API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.addPreview }).then(() => {
-        this.isLoadingAddAll = false;
-      });
-    },
-    openEditName() {
-      this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
-      this.showEditName = !this.showEditName;
-    },
-    play() {
-      this.$refs.player.play();
-    },
-    pause() {
-      this.$refs.player.pause();
-    },
-    updateVolume() {
-      this.$refs.player.setVolume(this.volume);
-    },
-    requestAddPreview() {
-      API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
-        this.isLoadingAddPreview = false;
-        if (res.status === 200) {
-          this.hasAddPreviewFailed = false;
-          this.addPreview = res.data;
-          console.log(`Got add preview with ${this.addPreview.length}`);
-        }
-        else if (res.status === 400) {
-          this.hasAddPreviewFailed = true;
-          this.addPreviewLoadFailureText = res.data.error.message;
-          if (res.data.error.name === "FeatureDisabledException" && !this.isAddPreviewInputUrl) {
-            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(this.inputAddPreview)}`, "_blank");
-          }
-        }
-        else {
-          console.warn("Unknown status for add preview response:", res.status);
-        }
-      }).catch(err => {
-        this.isLoadingAddPreview = false;
-        this.hasAddPreviewFailed = true;
-        this.addPreviewLoadFailureText = "An unknown error occurred when getting add preview. Try again later.";
-        console.error("Failed to get add preview", err);
-      });
-    },
-    requestAddPreviewDebounced: _.debounce(function() {
-      // HACK: can't use an arrow function here because it will make `this` undefined
-      this.requestAddPreview();
-    }, 500),
-    /**
-     * Request an add preview regardless of the current input.
-     */
-    requestAddPreviewExplicit() {
-      this.isLoadingAddPreview = true;
-      this.hasAddPreviewFailed = false;
-      this.addPreview = [];
-      this.requestAddPreview();
-    },
-    onEditNameChange() {
-      this.setUsernameLoading = true;
-      API.post("/user", { username: this.username }).then(() => {
-        this.showEditName = false;
-        this.setUsernameLoading = false;
-        this.setUsernameFailureText = "";
-      }).catch(err => {
-        this.setUsernameLoading = false;
-        this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
-      });
-    },
-    onPlaybackChange(changeTo) {
-      if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
-        this.$store.commit("PLAYBACK_STATUS", "ready");
-      }
-      this.updateVolume();
-      if (changeTo === this.$store.state.room.isPlaying) {
-        return;
-      }
-
-      if (this.$store.state.room.isPlaying) {
-        this.play();
-      }
-      else {
-        this.pause();
-      }
-    },
-    onInputAddPreviewChange() {
-      this.isLoadingAddPreview = true;
-      this.hasAddPreviewFailed = false;
-      if (_.trim(this.inputAddPreview).length === 0) {
-        this.addPreview = [];
-        this.isLoadingAddPreview = false;
-        return;
-      }
-      if (!this.isAddPreviewInputUrl) {
-        this.addPreview = [];
-        this.isLoadingAddPreview = false;
-        // Don't send API requests for non URL inputs without the user's explicit input to do so.
-        // This is to help conserve youtube API quota.
-        return;
-      }
-      this.requestAddPreviewDebounced();
-    },
-    onInputAddPreviewKeyDown(e) {
-      if (_.trim(this.inputAddPreview).length === 0 || this.isAddPreviewInputUrl) {
-        return;
-      }
-
-      if (e.keyCode === 13 && this.addPreview.length === 0) {
-        this.requestAddPreviewExplicit();
-      }
-    },
-    onFocusHighlightText(e) {
-      e.target.select();
-    },
-    onPlayerReady() {
-      this.$store.commit("PLAYBACK_STATUS", "ready");
-
-      if (this.currentSource.service === "vimeo") {
-        this.onPlayerReady_Vimeo();
-      }
-    },
-    onPlayerReady_Vimeo() {
-      if (this.$store.state.room.isPlaying) {
-        this.play();
-      }
-      else {
-        this.pause();
-      }
-    },
-    onKeyDown(e) {
-      if (e.target.nodeName === "INPUT") {
-        return;
-      }
-
-      if (e.code === "Space" || e.code === "k") {
-        this.togglePlayback();
-        e.preventDefault();
-      }
-      else if (e.code === "Home") {
-        this.$socket.sendObj({ action: "seek", position: 0 });
-        e.preventDefault();
-      }
-      else if (e.code === "End") {
-        this.$socket.sendObj({ action: "skip" });
-        e.preventDefault();
-      }
-      else if (e.code === "KeyF") {
-        this.toggleFullscreen();
-      }
-      else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
-        let seekIncrement = 5;
-        if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
-          seekIncrement = 10;
-        }
-        if (e.code === "ArrowLeft" || e.code === "KeyJ") {
-          seekIncrement *= -1;
-        }
-
-        this.seekVideo(seekIncrement);
-        e.preventDefault();
-      }
-      else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
-        this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
-        e.preventDefault();
-      }
-    },
-    toggleFullscreen() {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      }
-      else {
-        document.documentElement.requestFullscreen();
-      }
-    },
-    onQueueDragDrop(e) {
-      this.$socket.sendObj({
-        action: "queue-move",
-        currentIdx: e.oldIndex,
-        targetIdx: e.newIndex,
-      });
-    },
-    undoEvent(event, idx) {
-      this.$socket.sendObj({
-        action: "undo",
-        event,
-      });
-      this.$store.state.room.events.splice(idx, 1);
-    },
-    onTabChange() {
-      if (this.queueTab === 2) {
-        // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
-        this.isLoadingRoomSettings = true;
-        API.get(`/room/${this.$route.params.roomId}`).then(res => {
-          this.isLoadingRoomSettings = false;
-          this.inputRoomSettings.title = res.data.title;
-          this.inputRoomSettings.description = res.data.description;
-          this.inputRoomSettings.visibility = res.data.visibility;
-          this.inputRoomSettings.queueMode = res.data.queueMode;
-        });
-      }
-    },
-    submitRoomSettings() {
-      this.isLoadingRoomSettings = true;
-      API.patch(`/room/${this.$route.params.roomId}`, {
-        title: this.inputRoomSettings.title,
-        description: this.inputRoomSettings.description,
-        visibility: this.inputRoomSettings.visibility,
-        queueMode: this.inputRoomSettings.queueMode,
-      }).then(() => {
-        this.isLoadingRoomSettings = false;
-      });
-    },
-    onVideoBuffer(percent) {
-      this.$store.commit("PLAYBACK_STATUS", "buffering");
-      this.$store.commit("PLAYBACK_BUFFER", percent);
-    },
-    onVideoError() {
-      this.$store.commit("PLAYBACK_STATUS", "error");
-    },
-    hideVideoControls: _.debounce(() => {
-      let controlsDiv = document.getElementsByClassName("video-controls");
-      if (controlsDiv.length) {
-        controlsDiv = controlsDiv[0];
-        controlsDiv.classList.add("hide");
-      }
-    }, 3000),
-    claimOwnership() {
-      this.isLoadingRoomSettings = true;
-      API.patch(`/room/${this.$route.params.roomId}`, {
-        claim: true,
-      }).then(() => {
-        this.isLoadingRoomSettings = false;
-      }).catch(err => {
-        console.log(err);
-        this.isLoadingRoomSettings = false;
-      });
-    },
-    copyInviteLink() {
-      let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
-      textfield.select();
-      document.execCommand("copy");
-      this.copyInviteLinkSuccessText = "Copied!";
-      setTimeout(() => {
-        this.copyInviteLinkSuccessText = "";
-        textfield.blur();
-      }, 3000);
-    },
-    rewriteUrlToRoomName() {
-      if (this.$route.params.roomId !== this.$store.state.room.name) {
-        this.$router.replace({ name: "room", params: { roomId: this.$store.state.room.name } });
-      }
-    },
-    seekVideo(delta) {
-        let currentPosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
-        this.$socket.sendObj({
-          action: "seek",
-          position: _.clamp(currentPosition + delta, 0, this.$store.state.room.currentSource.length),
-        });
-    },
-    sendKickMe() {
-      this.$socket.sendObj({
-        action: "kickme",
-      });
-    },
-    activateTextSeek() {
-      this.textSeek.active = true;
-      this.textSeek.value = this.timestampDisplay;
-      this.$nextTick(() => {
-        this.$refs.textseek.focus();
-        this.$refs.textseek.$el.getElementsByTagName('INPUT')[0].addEventListener("focusout", () => {
-          this.textSeek.active = false;
-        });
-      });
-    },
-    textSeekOnKeyDown(e) {
-      if (e.code === "Escape") {
-        this.textSeek.active = false;
-      }
-      else if (e.keyCode === 13) {
-        this.textSeek.active = false;
-        try {
-          let seconds = timestampToSeconds(this.textSeek.value);
-          this.$socket.sendObj({
-            action: "seek",
-            position: seconds,
-          });
-        }
-        catch {
-          console.log("Invalid timestamp, ignoring");
-        }
-      }
     },
   },
   mounted() {
     this.$events.on("playVideo", () => {
-      this.play();
+      this.$refs.player.play();
     });
     this.$events.on("pauseVideo", () => {
-      this.pause();
+      this.$refs.player.pause();
     });
     this.$events.on("roomJoinFailure", eventData => {
       this.showJoinFailOverlay = true;
@@ -756,25 +621,15 @@ export default {
     }
   },
   watch: {
-    // username(newValue) {
-    //   if (newValue != null) {
-    //     // window.localStorage.setItem("username", newValue);
-    //   }
-    // },
     volume() {
       this.updateVolume();
     },
-    async sliderPosition(newPosition) {
+    async truePosition(newPosition) {
       let currentTime = await this.$refs.player.getPosition();
 
       if (Math.abs(newPosition - currentTime) > 1) {
         this.$refs.player.setPosition(newPosition);
       }
-    },
-    inputAddPreview() {
-      // HACK: The @change event only triggers when the text field is defocused.
-      // This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
-      this.onInputAddPreviewChange();
     },
   },
 };

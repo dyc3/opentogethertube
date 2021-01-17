@@ -22,10 +22,6 @@ Vue.use(VueNativeWebsocket, `ws://${window.location.host}/api`, {
 
 import vuetify from '@/plugins/vuetify';
 
-// TODO: use a different solution that supports code splitting
-import VueYoutube from 'vue-youtube';
-Vue.use(VueYoutube);
-
 import 'vue-slider-component/theme/default.css';
 
 import Fragment from 'vue-fragment';

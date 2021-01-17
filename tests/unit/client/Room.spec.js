@@ -172,21 +172,6 @@ describe('Room UI spec', () => {
     expect(queueCount.text()).toEqual('3');
   });
 
-  it('should render test buttons when in dev environment', () => {
-    store.state.production = false;
-    const testVideoButtons = wrapper.find('.video-add').findAll({ name: 'v-btn' });
-    expect(testVideoButtons.length).toBeGreaterThanOrEqual(1);
-    expect(testVideoButtons.at(0).text()).toEqual('Add test youtube 0');
-    expect(testVideoButtons.at(1).text()).toEqual('Add test youtube 1');
-    expect(testVideoButtons.at(2).text()).toEqual('Add test vimeo 2');
-  });
-
-  it('should NOT render test buttons when in production environment', () => {
-    store.state.production = true;
-    const testVideoButtons = wrapper.find('.video-add').findAll({ name: 'v-btn' });
-    expect(testVideoButtons.length).toEqual(0);
-  });
-
   it('should render join failure overlay', () => {
     wrapper.setData({
       showJoinFailOverlay: true,
@@ -201,32 +186,6 @@ describe('Room UI spec', () => {
   it('should invite link be the page URL', () => {
     // FIXME: actually test the contents of the invite link
     expect(wrapper.vm.inviteLink).toEqual(window.location.href);
-  });
-
-  it('should determine if the add preview link is a URL', () => {
-    jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
-
-    wrapper.setData({ inputAddPreview: "https://example.com" });
-    expect(wrapper.vm.isAddPreviewInputUrl).toEqual(true);
-
-    wrapper.setData({ inputAddPreview: "pokimane feet compilation" });
-    expect(wrapper.vm.isAddPreviewInputUrl).toEqual(false);
-  });
-
-  it('should request add previews when input is URL', () => {
-    jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
-
-    wrapper.setData({ inputAddPreview: "https://example.com" });
-    expect(wrapper.vm.requestAddPreviewDebounced).toBeCalled();
-    wrapper.vm.requestAddPreviewDebounced.mockClear();
-
-    wrapper.setData({ inputAddPreview: "       " });
-    expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
-    wrapper.vm.requestAddPreviewDebounced.mockClear();
-
-    wrapper.setData({ inputAddPreview: "how to get smaller toes" });
-    expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
-    wrapper.vm.requestAddPreviewDebounced.mockClear();
   });
 
   describe('Keyboard controls', () => {
@@ -276,32 +235,67 @@ describe('Room UI spec', () => {
     it('should seek the correct amount', async () => {
       store = createStore();
       wrapper = mountNewInstance(store);
-      jest.spyOn(wrapper.vm, 'seekVideo').mockImplementation();
+      jest.spyOn(wrapper.vm, 'seekDelta').mockImplementation();
 
       // HACK: for some reason wrapper.trigger() is not working here
       wrapper.vm.onKeyDown({ code: "ArrowRight", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
-      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(5);
-      wrapper.vm.seekVideo.mockClear();
+      expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(5);
+      wrapper.vm.seekDelta.mockClear();
 
       wrapper.vm.onKeyDown({ code: "ArrowRight", ctrlKey: true, target: { nodeName: "" }, preventDefault: jest.fn() });
-      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(10);
-      wrapper.vm.seekVideo.mockClear();
+      expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(10);
+      wrapper.vm.seekDelta.mockClear();
 
       wrapper.vm.onKeyDown({ code: "ArrowLeft", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
-      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(-5);
-      wrapper.vm.seekVideo.mockClear();
+      expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(-5);
+      wrapper.vm.seekDelta.mockClear();
 
       wrapper.vm.onKeyDown({ code: "ArrowLeft", ctrlKey: true, target: { nodeName: "" }, preventDefault: jest.fn() });
-      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(-10);
-      wrapper.vm.seekVideo.mockClear();
+      expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(-10);
+      wrapper.vm.seekDelta.mockClear();
 
       wrapper.vm.onKeyDown({ code: "KeyL", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
-      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(10);
-      wrapper.vm.seekVideo.mockClear();
+      expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(10);
+      wrapper.vm.seekDelta.mockClear();
 
       wrapper.vm.onKeyDown({ code: "KeyJ", ctrlKey: false, target: { nodeName: "" }, preventDefault: jest.fn() });
-      expect(wrapper.vm.seekVideo).toHaveBeenCalledWith(-10);
-      wrapper.vm.seekVideo.mockClear();
+      expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(-10);
+      wrapper.vm.seekDelta.mockClear();
+    });
+
+    it('should set the correct snackbar text', () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+
+      wrapper.vm.onRoomEvent({ eventType: "anything" });
+      expect(wrapper.vm.snackbarActive).toEqual(true);
+
+      wrapper.vm.onRoomEvent({ eventType: "play" });
+      expect(wrapper.vm.snackbarText).toContain("played");
+
+      wrapper.vm.onRoomEvent({ eventType: "pause" });
+      expect(wrapper.vm.snackbarText).toContain("paused");
+
+      wrapper.vm.onRoomEvent({ eventType: "skip", parameters: { video: {} } });
+      expect(wrapper.vm.snackbarText).toContain("skipped");
+
+      wrapper.vm.onRoomEvent({ eventType: "seek", parameters: { position: 0 } });
+      expect(wrapper.vm.snackbarText).toContain("seeked");
+
+      wrapper.vm.onRoomEvent({ eventType: "joinRoom" });
+      expect(wrapper.vm.snackbarText).toContain("joined");
+
+      wrapper.vm.onRoomEvent({ eventType: "leaveRoom" });
+      expect(wrapper.vm.snackbarText).toContain("left");
+
+      wrapper.vm.onRoomEvent({ eventType: "addToQueue", parameters: { video: {} } });
+      expect(wrapper.vm.snackbarText).toContain("added");
+
+      wrapper.vm.onRoomEvent({ eventType: "addToQueue", parameters: { count: 1 } });
+      expect(wrapper.vm.snackbarText).toContain("added");
+
+      wrapper.vm.onRoomEvent({ eventType: "removeFromQueue", parameters: { video: {} } });
+      expect(wrapper.vm.snackbarText).toContain("removed");
     });
   });
 });

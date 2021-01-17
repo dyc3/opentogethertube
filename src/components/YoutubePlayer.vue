@@ -1,59 +1,196 @@
 <template>
-	<div class="youtube">
-		<youtube fit-parent resize :video-id="videoId" ref="youtubeplayer" :player-vars="{ controls: 0, disablekb: 1 }" @playing="$emit('playing')" @paused="$emit('paused')" @ready="onReady" @buffering="$emit('buffering')" @cued="$emit('ready')" @error="$emit('error')" />
+	<div>
+		<DebugPlayerWatcher :data="_debug" />
+		<div class="youtube" id="ytcontainer">
+		</div>
 	</div>
 </template>
 
 <script>
+import _ from "lodash";
+import DebugPlayerWatcher from "./debug/DebugPlayerWatcher.vue";
+import { getSdk } from "@/util/playerHelper.js";
+
+const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";
+// eslint-disable-next-line no-unused-vars
+const YT_STATUS_UNSTARTED = -1;
+const YT_STATUS_ENDED = 0;
+const YT_STATUS_PLAYING = 1;
+const YT_STATUS_PAUSED = 2;
+const YT_STATUS_BUFFERING = 3;
+const YT_STATUS_CUED = 5;
+
+/**
+ * Component that manages youtube's iframe player (and all of the woes that come with it), and provides the common OTT player interface.
+ *
+ * When the broswser has blocked autoplay videos (firefox):
+ * - Youtube player state: UNSTARTED
+ * - Youtube player state: BUFFERING
+ * - Youtube player state: UNSTARTED
+ * - At this point, the user must interact with the video manually in order to play the video.
+ */
 export default {
 	name: "YoutubePlayer",
 	props: {
 		videoId: { type: String, required: true },
 	},
+	components: {
+		// eslint-disable-next-line vue/no-unused-components
+		DebugPlayerWatcher,
+	},
 	data() {
 		return {
+			YT: null,
+			player: null,
+			debug: {
+				YoutubeState: null,
+			},
 
+			queuedSeek: null,
+			queuedPlaying: null,
+			queuedVolume: null,
 		};
+	},
+	computed: {
+		_debug() {
+			return {
+				...this.debug,
+				queuedSeek: this.queuedSeek,
+				queuedPlaying: this.queuedPlaying,
+			};
+		},
+	},
+	async created() {
+		this.YT = await getSdk(YOUTUBE_IFRAME_API_URL, "YT", "onYouTubeIframeAPIReady");
+		if (!this.player) {
+			this.player = new this.YT.Player("ytcontainer", {
+				events: {
+					onReady: this.onReady,
+					onStateChange: this.onStateChange,
+					onError: this.onError,
+				},
+				playerVars: {
+					autoplay: 0,
+					enablejsapi: 1,
+					controls: 0,
+					disablekb: 1,
+					// required for iOS
+					playsinline: 1,
+				},
+			});
+		}
+		window.addEventListener('resize', this.onResize);
+		this.fitToContainer();
+	},
+	beforeDestroy() {
+		window.removeEventListener('resize', this.onResize);
+		if (this.player && this.player.destroy) {
+			this.player.destroy();
+			delete this.player;
+		}
 	},
 	methods: {
 		play() {
-			this.$refs.youtubeplayer.player.playVideo();
+			if (!this.player) {
+				this.queuedPlaying = true;
+				return;
+			}
+			this.player.playVideo();
 		},
 		pause() {
-			this.$refs.youtubeplayer.player.pauseVideo();
+			if (!this.player) {
+				this.queuedPlaying = false;
+				return;
+			}
+			this.player.pauseVideo();
 		},
-		async getPosition() {
-			return await this.$refs.youtubeplayer.player.getCurrentTime();
+		getPosition() {
+			if (!this.player) {
+				return 0;
+			}
+			return this.player.getCurrentTime();
 		},
 		setPosition(position) {
-			return this.$refs.youtubeplayer.player.seekTo(position);
+			if (!this.player) {
+				this.queuedSeek = position;
+				return;
+			}
+			return this.player.seekTo(position);
 		},
 		setVolume(volume) {
-			this.$refs.youtubeplayer.player.setVolume(volume);
+			if (!this.player) {
+				this.queuedVolume = volume;
+				return;
+			}
+			this.player.setVolume(volume);
 		},
 
 		onReady() {
-			this.$refs.youtubeplayer.player.loadVideoById(this.$store.state.room.currentSource.id);
-			this.$emit('apiready');
+			this.$emit("apiready");
+			this.player.loadVideoById(this.videoId);
+		},
+		onStateChange(e) {
+			console.log("Youtube player state: ", e.data);
+			this.debug.YoutubeState = e.data;
+			if (e.data === YT_STATUS_ENDED) {
+				this.$emit("ended");
+			}
+			else if (e.data === YT_STATUS_PLAYING) {
+				this.$emit("playing");
+			}
+			else if (e.data === YT_STATUS_PAUSED) {
+				this.$emit("paused");
+			}
+			else if (e.data === YT_STATUS_BUFFERING) {
+				this.$emit("buffering");
+			}
+			else if (e.data === YT_STATUS_CUED) {
+				this.$emit("ready");
+			}
+
+			if (e.data === YT_STATUS_PLAYING || e.data === YT_STATUS_PAUSED) {
+				if (this.queuedSeek !== null) {
+					this.player.seekTo(this.queuedSeek);
+					this.queuedSeek = null;
+				}
+				if (this.queuedPlaying !== null) {
+					if (this.queuedPlaying) {
+						this.player.play();
+					}
+					else {
+						this.player.pause();
+					}
+					this.queuedPlaying = null;
+				}
+				if (this.queuedVolume !== null) {
+					this.player.setVolume(this.queuedVolume);
+					this.queuedVolume = null;
+				}
+			}
+		},
+		onError() {
+			this.$emit("error");
+		},
+
+		onResize: _.debounce(function() {
+			this.fitToContainer();
+		}, 25),
+		fitToContainer() {
+			let iframe = this.player.getIframe();
+			let width = iframe.parentElement.offsetWidth;
+			let height = iframe.parentElement.offsetHeight;
+			this.player.setSize(width, height);
+		},
+	},
+	watch: {
+		videoId() {
+			this.$emit("buffering");
+			this.player.loadVideoById(this.videoId);
 		},
 	},
 };
 </script>
 
 <style lang="scss" scoped>
-.youtube-player {
-	position: relative;
-	padding-bottom: 56.25%;
-	height: 0;
-	overflow: hidden;
-	max-width: 100%;
 
-	iframe {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-	}
-}
 </style>

@@ -31,7 +31,7 @@ export default {
 	},
 	methods: {
 		updateIframe() {
-			axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${this.videoId}&responsive=true&portrait=false&controls=false`).then(res => {
+			axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${this.videoId}&responsive=true&portrait=false&controls=false&playsinline=1`).then(res => {
 				this.iframe = res.data.html;
 				setTimeout(() => {
 					this.player.on("play", () => this.$emit("playing"));
@@ -46,6 +46,7 @@ export default {
 						this.$emit("ready");
 					});
 					this.player.on("error", () => this.$emit("error"));
+					this.$emit("apiready");
 				}, 0);
 			});
 		},
