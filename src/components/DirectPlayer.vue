@@ -65,6 +65,8 @@ export default {
 				preload: "auto",
 				poster: this.thumbnail,
 			});
+			// required for iOS
+			this.player.setPlaysinline(true);
 			if (!this.hasEmittedApiReady) {
 				this.$emit("apiready");
 				this.hasEmittedApiReady = true;

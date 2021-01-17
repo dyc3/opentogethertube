@@ -74,6 +74,8 @@ export default {
 					enablejsapi: 1,
 					controls: 0,
 					disablekb: 1,
+					// required for iOS
+					playsinline: 1,
 				},
 			});
 		}
