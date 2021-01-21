@@ -73,27 +73,27 @@ module.exports = {
 	ROLES,
 
 	defaultPermissions() {
-		let roleGrants = {};
-		roleGrants[ROLES.UNREGISTERED_USER] = this.parseIntoGrantMask([
-			"playback",
-			"manage-queue",
-			"chat",
-			"configure-room.set-title",
-			"configure-room.set-description",
-			"configure-room.set-visibility",
-			"configure-room.set-queue-mode",
-		]);
-		roleGrants[ROLES.REGISTERED_USER] = this.parseIntoGrantMask([]);
-		roleGrants[ROLES.TRUSTED_USER] = this.parseIntoGrantMask([]);
-		roleGrants[ROLES.MODERATOR] = this.parseIntoGrantMask([
-			"manage-users.promote-trusted-user",
-			"manage-users.demote-trusted-user",
-		]);
-		roleGrants[ROLES.ADMINISTRATOR] = this.parseIntoGrantMask([
-			"configure-room.set-permissions",
-			"manage-users",
-		]);
-		return roleGrants;
+		return {
+			[ROLES.UNREGISTERED_USER]: this.parseIntoGrantMask([
+				"playback",
+				"manage-queue",
+				"chat",
+				"configure-room.set-title",
+				"configure-room.set-description",
+				"configure-room.set-visibility",
+				"configure-room.set-queue-mode",
+			]),
+			[ROLES.REGISTERED_USER]: this.parseIntoGrantMask([]),
+			[ROLES.TRUSTED_USER]: this.parseIntoGrantMask([]),
+			[ROLES.MODERATOR]: this.parseIntoGrantMask([
+				"manage-users.promote-trusted-user",
+				"manage-users.demote-trusted-user",
+			]),
+			[ROLES.ADMINISTRATOR]: this.parseIntoGrantMask([
+				"configure-room.set-permissions",
+				"manage-users",
+			]),
+		};
 	},
 
 	/**

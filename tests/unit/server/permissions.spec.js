@@ -1,4 +1,4 @@
-const permissions = require("../../../permissions.js");
+const permissions = require("../../../server/permissions.js");
 
 describe('Permission System', () => {
 	it('should parse exact permissions list into correct grant mask', () => {
