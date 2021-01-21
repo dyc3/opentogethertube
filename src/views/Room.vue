@@ -83,6 +83,20 @@
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
                 <div class="video-queue">
+                  <div class="empty-queue" v-if="$store.state.room.queue.length === 0">
+                    <v-container fill-height>
+                      <v-row justify="center" align="center">
+                        <div>
+                          <div class="msg">
+                            There aren't any videos queued up.
+                          </div>
+                          <v-btn x-large block @click="switchToAddTab">
+                            Add a video
+                          </v-btn>
+                        </div>
+                      </v-row>
+                    </v-container>
+                  </div>
                   <draggable v-model="$store.state.room.queue" @end="onQueueDragDrop" handle=".drag-handle">
                     <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
                   </draggable>
@@ -272,9 +286,7 @@ export default {
   async created() {
     this.$events.on("onRoomEvent", this.onRoomEvent);
     this.$events.on("onRoomCreated", this.onRoomCreated);
-    this.$events.on("onChatLinkClick", () => {
-      this.queueTab = 1;
-    });
+    this.$events.on("onChatLinkClick", this.switchToAddTab);
     this.$events.on("onSync", this.rewriteUrlToRoomName);
 
     window.removeEventListener('keydown', this.onKeyDown);
@@ -588,6 +600,9 @@ export default {
       }
       this.snackbarActive = true;
     },
+    switchToAddTab() {
+      this.queueTab = 1;
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
@@ -811,5 +826,14 @@ export default {
 .textseek {
   display: inline-flex;
   width: 90px;
+}
+
+.empty-queue {
+  height: 300px;
+
+  .msg {
+    opacity: 0.5;
+    font-size: 20px;
+  }
 }
 </style>

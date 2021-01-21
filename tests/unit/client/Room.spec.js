@@ -297,5 +297,13 @@ describe('Room UI spec', () => {
       wrapper.vm.onRoomEvent({ eventType: "removeFromQueue", parameters: { video: {} } });
       expect(wrapper.vm.snackbarText).toContain("removed");
     });
+
+    it('should show the add tab', () => {
+      store = createStore();
+      wrapper = mountNewInstance(store);
+
+      wrapper.vm.switchToAddTab();
+      expect(wrapper.vm.queueTab).toEqual(1);
+    });
   });
 });
