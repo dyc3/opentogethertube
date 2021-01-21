@@ -36,7 +36,7 @@ export default {
 			poster: this.$store.state.room.currentSource.thumbnail,
 		});
 		// required for iOS
-		this.player.setPlaysinline(true);
+		// this.player.setPlaysinline(true);
 		this.player.on("ready", () => this.$emit("ready"));
 		this.player.on("ended", () => this.$emit("end"));
 		this.player.on("playing", () => this.$emit("playing"));

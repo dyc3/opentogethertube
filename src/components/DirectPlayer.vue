@@ -66,7 +66,7 @@ export default {
 				poster: this.thumbnail,
 			});
 			// required for iOS
-			this.player.setPlaysinline(true);
+			// this.player.setPlaysinline(true);
 			if (!this.hasEmittedApiReady) {
 				this.$emit("apiready");
 				this.hasEmittedApiReady = true;
