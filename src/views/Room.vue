@@ -113,6 +113,7 @@
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" />
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" />
                     <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
+                    <PermissionsEditor v-model="inputRoomSettings.permissions" :current-role="4" />
                   </v-form>
                   <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
                 </div>
@@ -209,12 +210,14 @@ import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
+import PermissionsEditor from "@/components/PermissionsEditor.vue";
 
 export default {
   name: 'room',
   components: {
     draggable,
     VideoQueueItem,
+    PermissionsEditor,
     VueSlider,
     OmniPlayer,
     Chat,
@@ -237,6 +240,7 @@ export default {
         description: "",
         visibility: "",
         queueMode: "",
+        permissions: {},
       },
       setUsernameLoading: false,
       setUsernameFailureText: "",
@@ -495,7 +499,7 @@ export default {
         this.isLoadingRoomSettings = true;
         let res = await API.get(`/room/${this.$route.params.roomId}`);
         this.isLoadingRoomSettings = false;
-        this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode");
+        this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode", "permissions");
       }
     },
     onVideoBuffer(percent) {
