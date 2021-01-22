@@ -9,8 +9,8 @@ const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
 const { redisClient } = require('./redisclient.js');
 const permissions = require("./server/permissions.js");
-const { ROLE_DISPLAY_NAMES } = require('./server/permissions.js');
-const { ROLES } = permissions;
+const { ROLES, ROLE_DISPLAY_NAMES } = permissions;
+const { ImpossiblePromotionException } = require('./server/exceptions.js');
 
 const log = getLogger("roommanager");
 
@@ -212,9 +212,7 @@ class Room {
 		else {
 			role = ROLES.UNREGISTERED_USER;
 		}
-		if (!permissions.granted(this.permissions, role, "manage-queue.add")) {
-			return;
-		}
+		permissions.check(this.permissions, role, "manage-queue.add");
 
 		let queueItem = new Video();
 
@@ -270,9 +268,7 @@ class Room {
 		else {
 			role = ROLES.UNREGISTERED_USER;
 		}
-		if (!permissions.granted(this.permissions, role, "manage-queue.add")) {
-			return;
-		}
+		permissions.check(this.permissions, role, "manage-queue.add");
 		videos = await InfoExtract.getManyVideoInfo(videos);
 
 		this.queue = [...this.queue, ...videos];
@@ -301,9 +297,7 @@ class Room {
 		else {
 			role = ROLES.UNREGISTERED_USER;
 		}
-		if (!permissions.granted(this.permissions, role, "manage-queue.vote")) {
-			return;
-		}
+		permissions.check(this.permissions, role, "manage-queue.vote");
 		if (this.queueMode !== "vote") {
 			this.log.error("Room not in voting mode");
 			return false;
@@ -346,9 +340,7 @@ class Room {
 		else {
 			role = ROLES.UNREGISTERED_USER;
 		}
-		if (!permissions.granted(this.permissions, role, "manage-queue.vote")) {
-			return;
-		}
+		permissions.check(this.permissions, role, "manage-queue.vote");
 		if (this.queueMode !== "vote") {
 			this.log.error("Room not in voting mode");
 			return false;
@@ -375,9 +367,7 @@ class Room {
 		else {
 			role = ROLES.UNREGISTERED_USER;
 		}
-		if (!permissions.granted(this.permissions, role, "manage-queue.remove")) {
-			return;
-		}
+		permissions.check(this.permissions, role, "manage-queue.remove");
 		let matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id) || (item.url && video.url && item.url === video.url));
 		if (matchIdx < 0) {
 			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
@@ -646,8 +636,27 @@ class Room {
 		}
 		this.clients.push(client);
 		this._dirtyProps.push("users");
-		ws.on('message', (message) => {
-			this.onMessageReceived(client, JSON.parse(message));
+		ws.on('message', message => {
+			try {
+				this.onMessageReceived(client, JSON.parse(message));
+			}
+			catch (e) {
+				if (e.name === "PermissionDeniedException") {
+					this.log.error(`${client.username}: error: ${e.message}`);
+					try {
+						client.socket.send(JSON.stringify({
+							action: "error",
+							error: e.message,
+						}));
+					}
+					catch (error) {
+						this.log.error(`Failed to send error to client: ${error.message}`);
+					}
+				}
+				else {
+					this.log.error(`Failed to process message: ${message}: ${e.message}`);
+				}
+			}
 		});
 		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.username, {}));
 	}
@@ -658,34 +667,36 @@ class Room {
 	 * @param {Object} message The message that the client sent as a object. Should always have an `action` attribute.
 	 */
 	onMessageReceived(client, msg) {
+		const actionToPerm = {
+			"play": "playback.play-pause",
+			"pause": "playback.play-pause",
+			"seek": "playback.seek",
+			"skip": "playback.skip",
+			"chat": "chat",
+			"queue-move": "manage-queue.order",
+		};
+
 		let role = this.getRole(client);
+		if (actionToPerm[msg.action]) {
+			permissions.check(this.permissions, role, actionToPerm[msg.action]);
+		}
+
 		if (msg.action === "play") {
-			if (permissions.granted(this.permissions, role, "playback.play-pause")) {
-				this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
-			}
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
 		}
 		else if (msg.action === "pause") {
-			if (permissions.granted(this.permissions, role, "playback.play-pause")) {
-				this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
-			}
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));
 		}
 		else if (msg.action === "seek") {
 			if (msg.position === this.playbackPosition) {
 				return;
 			}
-			if (permissions.granted(this.permissions, role, "playback.seek")) {
-				this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
-			}
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SEEK, client.username, { position: msg.position, previousPosition: this.playbackPosition }));
 		}
 		else if (msg.action === "skip") {
-			if (permissions.granted(this.permissions, role, "playback.skip")) {
-				this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
-			}
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.SKIP, client.username, { video: this.currentSource }));
 		}
 		else if (msg.action === "chat") {
-			if (!permissions.granted(this.permissions, role, "chat")) {
-				return;
-			}
 			let chat = {
 				action: msg.action,
 				from: client.username,
@@ -702,9 +713,6 @@ class Room {
 		}
 		else if (msg.action === "queue-move") {
 			if (this.queueMode === "vote") {
-				return;
-			}
-			if (!permissions.granted(this.permissions, role, "manage-queue.order")) {
 				return;
 			}
 
@@ -749,9 +757,7 @@ class Room {
 				default:
 					break;
 			}
-			if (!permissions.granted(this.permissions, this.getRole(client), perm)) {
-				return;
-			}
+			permissions.check(this.permissions, role, perm);
 			let targetClient = _.find(this.clients, { username: msg.username });
 			let demotePerm;
 			switch (this.getRole(targetClient)) {
@@ -767,9 +773,7 @@ class Room {
 				default:
 					break;
 			}
-			if (!permissions.granted(this.permissions, this.getRole(client), demotePerm)) {
-				return;
-			}
+			permissions.check(this.permissions, role, demotePerm);
 			this.promoteTo(targetClient, msg.role);
 		}
 		else {
@@ -806,8 +810,7 @@ class Room {
 	 */
 	promoteTo(client, role) {
 		if (!client.user) {
-			// TODO: Throw non-generic exception
-			throw new Error("Unable to promote/demote unregistered user");
+			throw new ImpossiblePromotionException();
 		}
 		for (let i = ROLES.ADMINISTRATOR; i >= ROLES.TRUSTED_USER; i--) {
 			let set = new Set(this.userRoles[i]);
