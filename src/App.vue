@@ -82,6 +82,10 @@
         </v-row>
       </v-container>
     </v-overlay>
+    <v-snackbar app left color="red" v-model="roomError.active">
+      <v-icon>fas fa-exclamation-circle</v-icon>
+      {{ roomError.message }}
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -109,6 +113,10 @@ export default {
       showCreateRoomForm: false,
       showLogin: false,
       drawer: false,
+      roomError: {
+        active: false,
+        message: "",
+      },
     };
   },
   methods: {
@@ -122,6 +130,10 @@ export default {
           this.$store.commit("LOGOUT");
         }
       });
+    },
+    onRoomError(message) {
+      this.roomError.message = message;
+      this.roomError.active = true;
     },
   },
   created() {
@@ -137,6 +149,7 @@ export default {
     });
 
     this.$events.on("onAnnouncement", this.onAnnouncement);
+    this.$events.on("onRoomError", this.onRoomError);
 
     // ask the server if we are logged in or not, and update the client to reflect that status.
     API.get("/user").then(res => {
