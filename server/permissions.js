@@ -1,5 +1,7 @@
 const _ = require("lodash");
+const { getLogger } = require("../logger.js");
 const { PermissionDeniedException } = require("./exceptions.js");
+const log = getLogger("permissions");
 
 const ROLES = {
 	ADMINISTRATOR: 4,
@@ -160,7 +162,14 @@ module.exports = {
 	granted(grants, role, permission) {
 		let fullmask = this.getFullGrantMask(grants, role);
 		let checkmask = this.parseIntoGrantMask([permission]);
-		return (fullmask & checkmask) === checkmask;
+		let granted = (fullmask & checkmask) === checkmask;
+		if (granted) {
+			log.info(`${permission} granted to ${ROLE_DISPLAY_NAMES[role]}`);
+		}
+		else {
+			log.error(`${permission} denied to ${ROLE_DISPLAY_NAMES[role]}`);
+		}
+		return granted;
 	},
 
 	/**
