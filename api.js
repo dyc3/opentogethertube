@@ -6,6 +6,7 @@ const _ = require("lodash");
 const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
 const { redisClient } = require('./redisclient.js');
+const permissions = require("./server/permissions.js");
 
 const log = getLogger("api");
 
@@ -104,6 +105,7 @@ module.exports = function(_roommanager, storage) {
 				"queueMode",
 				"queue",
 				"clients",
+				"permissions",
 			]));
 			room.hasOwner = hasOwner;
 			let clients = [];
@@ -257,6 +259,15 @@ module.exports = function(_roommanager, storage) {
 				return;
 			}
 			Object.assign(room, filtered);
+			if (req.body.permissions) {
+				let grants = {};
+				// HACK: for some reason, JSON.stringify takes Number keys (which are TOTALLY FUCKING VALID BTW)
+				// and casts them to string. This is to get them back to Number form.
+				for (let r in req.body.permissions) {
+					grants[parseInt(r)] = req.body.permissions[r];
+				}
+				room.setGrants(grants, req.session);
+			}
 			if (!room.isTemporary) {
 				if (req.body.claim && !room.owner) {
 					if (req.user) {
@@ -425,6 +436,20 @@ module.exports = function(_roommanager, storage) {
 					},
 				});
 			}
+		});
+	});
+
+	router.get("/data/permissions", (req, res) => {
+		const { ROLES, ROLE_NAMES, ROLE_DISPLAY_NAMES, PERMISSIONS } = permissions;
+		let roles = _.range(_.values(ROLES).length).map(i => {
+			return {
+				name: ROLE_NAMES[i],
+				display: ROLE_DISPLAY_NAMES[i],
+			};
+		});
+		res.json({
+			roles,
+			permissions: PERMISSIONS,
 		});
 	});
 

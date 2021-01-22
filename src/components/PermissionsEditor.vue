@@ -4,9 +4,9 @@
 		All permissions granted to less privaledged users are automatically granted to more privaledged users.<br>
 		Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.<br>
 		Viewing as: {{ roleNames[currentRole] }}<br>
-		<v-simple-table dense :key="dirty">
+		<v-simple-table dense :key="dirty" v-if="!isLoading && hasMetadata">
 			<thead>
-				<tr>
+				<tr v-if="hasMetadata && !!roleNames">
 					<th class="text-left">Permission</th>
 					<th class="text-left" v-for="(role, index) in roleNames" :key="index">{{ role }}</th>
 				</tr>
@@ -21,11 +21,15 @@
 				</tr>
 			</tbody>
 		</v-simple-table>
+		<v-row v-else justify="center">
+			<v-progress-circular indeterminate/>
+		</v-row>
 	</v-container>
 </template>
 
 <script>
 import _ from "lodash";
+import { API } from "@/common-http.js";
 
 export default {
 	name: "permissions-editor",
@@ -35,45 +39,19 @@ export default {
 	},
 	data() {
 		return {
-			// HACK: roles should be grabbed from room API
-			roleNames: {
-				4: "Administrator",
-				3: "Moderator",
-				2: "Trusted User",
-				1: "Registered User",
-				0: "Unregistered User",
-			},
-			// HACK: available permissions should be grabbed from data/permissions API
-			permissionMeta: [
-				{ name: "playback.play-pause", minRole: 0 },
-				{ name: "playback.skip", minRole: 0 },
-				{ name: "playback.seek", minRole: 0 },
-				{ name: "manage-queue.add", minRole: 0 },
-				{ name: "manage-queue.remove", minRole: 0 },
-				{ name: "manage-queue.order", minRole: 0 },
-				{ name: "manage-queue.vote", minRole: 0 },
-				{ name: "chat", minRole: 0 },
-				{ name: "configure-room.set-title", minRole: 0 },
-				{ name: "configure-room.set-description", minRole: 0 },
-				{ name: "configure-room.set-visibility", minRole: 0 },
-				{ name: "configure-room.set-queue-mode", minRole: 0 },
-				{ name: "configure-room.set-permissions.for-moderator", minRole: 4 },
-				{ name: "configure-room.set-permissions.for-trusted-users", minRole: 3 },
-				{ name: "configure-room.set-permissions.for-all-registered-users", minRole: 2 },
-				{ name: "configure-room.set-permissions.for-all-unregistered-users", minRole: 1 },
-				{ name: "manage-users.promote-admin", minRole: 4 },
-				{ name: "manage-users.demote-admin", minRole: 4 },
-				{ name: "manage-users.promote-moderator", minRole: 3 },
-				{ name: "manage-users.demote-moderator", minRole: 3 },
-				{ name: "manage-users.promote-trusted-user", minRole: 2 },
-				{ name: "manage-users.demote-trusted-user", minRole: 2 },
-			],
+			roleNames: {},
+			permissionMeta: [],
 			permissions: [],
 			dirty: false,
 			shouldAcceptExternalUpdate: true,
+			isLoading: false,
+			hasMetadata: false,
 		};
 	},
-	created() {
+	async created() {
+		if (!this.hasMetadata) {
+			await this.fetchMetadata();
+		}
 		this.permissions = this.extractFromGrants(this.value);
 	},
 	methods: {
@@ -134,9 +112,35 @@ export default {
 			}
 			return grants;
 		},
+		async fetchMetadata() {
+			console.log("fetching permissions metadata");
+			this.isLoading = true;
+			let resp = await API.get("/data/permissions");
+			let meta = resp.data;
+			this.permissionMeta = meta.permissions;
+			for (let i = 0; i < meta.roles.length; i++) {
+				const role = meta.roles[i];
+				this.roleNames[i] = role.display;
+			}
+			console.log("permissions metadata fetched");
+			this.isLoading = false;
+			this.hasMetadata = true;
+		},
+		waitForMetadata() {
+			let _this = this;
+			return new Promise(resolve => {
+				(function wait() {
+					if (_this.hasMetadata) {
+						return resolve();
+					}
+					setTimeout(wait, 30);
+				})();
+			});
+		},
 	},
 	watch: {
-		value() {
+		async value() {
+			await this.waitForMetadata();
 			if (this.shouldAcceptExternalUpdate) {
 				this.dirty = false;
 				this.permissions = this.extractFromGrants(this.value);

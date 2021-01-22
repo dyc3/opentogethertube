@@ -1,6 +1,34 @@
 const _ = require("lodash");
 
-const ROOM_PERMISSIONS = {
+const ROLES = {
+	ADMINISTRATOR: 4,
+	MODERATOR: 3,
+	TRUSTED_USER: 2,
+	REGISTERED_USER: 1,
+	UNREGISTERED_USER: 0,
+	OWNER: -1,
+};
+
+const ROLE_NAMES = {
+	[ROLES.ADMINISTRATOR]: "admin",
+	[ROLES.MODERATOR]: "mod",
+	[ROLES.TRUSTED_USER]: "trusted",
+	[ROLES.REGISTERED_USER]: "registered",
+	[ROLES.UNREGISTERED_USER]: "unregistered",
+	[ROLES.OWNER]: "owner",
+};
+
+const ROLE_DISPLAY_NAMES = {
+	[ROLES.ADMINISTRATOR]: "Administrator",
+	[ROLES.MODERATOR]: "Moderator",
+	[ROLES.TRUSTED_USER]: "Trusted User",
+	[ROLES.REGISTERED_USER]: "Registered User",
+	[ROLES.UNREGISTERED_USER]: "Unregistered User",
+	[ROLES.OWNER]: "Owner",
+};
+
+// TODO: create dynamically
+const PERMISSION_HEIRARCHY = {
 	PLAYBACK: {
 		PLAYPAUSE: 1<<0,
 		SKIP: 1<<1,
@@ -35,42 +63,50 @@ const ROOM_PERMISSIONS = {
 	},
 };
 
-const ROLES = {
-	ADMINISTRATOR: 4,
-	MODERATOR: 3,
-	TRUSTED_USER: 2,
-	REGISTERED_USER: 1,
-	UNREGISTERED_USER: 0,
-};
+class Permission {
+	constructor(args) {
+		this.name = "";
+		this.mask = 0;
+		this.minRole = ROLES.UNREGISTERED_USER;
+		Object.assign(this, args);
+	}
+}
 
-let permMaskMap = {
-	"playback.play-pause": ROOM_PERMISSIONS.PLAYBACK.PLAYPAUSE,
-	"playback.skip": ROOM_PERMISSIONS.PLAYBACK.SKIP,
-	"playback.seek": ROOM_PERMISSIONS.PLAYBACK.SEEK,
-	"manage-queue.add": ROOM_PERMISSIONS.MANAGE_QUEUE.ADD,
-	"manage-queue.remove": ROOM_PERMISSIONS.MANAGE_QUEUE.REMOVE,
-	"manage-queue.order": ROOM_PERMISSIONS.MANAGE_QUEUE.ORDER,
-	"manage-queue.vote": ROOM_PERMISSIONS.MANAGE_QUEUE.VOTE,
-	"chat": ROOM_PERMISSIONS.CHAT,
-	"configure-room.set-title": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_TITLE,
-	"configure-room.set-description": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_DESCRIPTION,
-	"configure-room.set-visibility": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_VISIBILITY,
-	"configure-room.set-queue-mode": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_QUEUE_MODE,
-	"configure-room.set-permissions.for-moderator": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_MODERATOR,
-	"configure-room.set-permissions.for-trusted-users": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_TRUSTED_USER,
-	"configure-room.set-permissions.for-all-registered-users": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_ALL_REGISTERED_USERS,
-	"configure-room.set-permissions.for-all-unregistered-users": ROOM_PERMISSIONS.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_ALL_UNREGISTERED_USERS,
-	"manage-users.promote-admin": ROOM_PERMISSIONS.MANAGE_USERS.PROMOTE_ADMIN,
-	"manage-users.demote-admin": ROOM_PERMISSIONS.MANAGE_USERS.DEMOTE_ADMIN,
-	"manage-users.promote-moderator": ROOM_PERMISSIONS.MANAGE_USERS.PROMOTE_MODERATOR,
-	"manage-users.demote-moderator": ROOM_PERMISSIONS.MANAGE_USERS.DEMOTE_MODERATOR,
-	"manage-users.promote-trusted-user": ROOM_PERMISSIONS.MANAGE_USERS.PROMOTE_TRUSTED_USER,
-	"manage-users.demote-trusted-user": ROOM_PERMISSIONS.MANAGE_USERS.DEMOTE_TRUSTED_USER,
-};
+const PERMISSIONS = [
+	new Permission({ name: "playback.play-pause", mask: PERMISSION_HEIRARCHY.PLAYBACK.PLAYPAUSE, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "playback.skip", mask: PERMISSION_HEIRARCHY.PLAYBACK.SKIP, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "playback.seek", mask: PERMISSION_HEIRARCHY.PLAYBACK.SEEK, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "manage-queue.add", mask: PERMISSION_HEIRARCHY.MANAGE_QUEUE.ADD, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "manage-queue.remove", mask: PERMISSION_HEIRARCHY.MANAGE_QUEUE.REMOVE, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "manage-queue.order", mask: PERMISSION_HEIRARCHY.MANAGE_QUEUE.ORDER, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "manage-queue.vote", mask: PERMISSION_HEIRARCHY.MANAGE_QUEUE.VOTE, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "chat", mask: PERMISSION_HEIRARCHY.CHAT, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "configure-room.set-title", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_TITLE, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "configure-room.set-description", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_DESCRIPTION, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "configure-room.set-visibility", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_VISIBILITY, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "configure-room.set-queue-mode", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_QUEUE_MODE, minRole: ROLES.UNREGISTERED_USER }),
+	new Permission({ name: "configure-room.set-permissions.for-moderator", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_MODERATOR, minRole: ROLES.ADMINISTRATOR }),
+	new Permission({ name: "configure-room.set-permissions.for-trusted-users", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_TRUSTED_USER, minRole: ROLES.MODERATOR }),
+	new Permission({ name: "configure-room.set-permissions.for-all-registered-users", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_ALL_REGISTERED_USERS, minRole: ROLES.TRUSTED_USER }),
+	new Permission({ name: "configure-room.set-permissions.for-all-unregistered-users", mask: PERMISSION_HEIRARCHY.CONFIGURE_ROOM.SET_PERMISSIONS.FOR_ALL_UNREGISTERED_USERS, minRole: ROLES.REGISTERED_USER }),
+	// Permission to promote a user TO admin
+	new Permission({ name: "manage-users.promote-admin", mask: PERMISSION_HEIRARCHY.MANAGE_USERS.PROMOTE_ADMIN, minRole: ROLES.ADMINISTRATOR }),
+	// Permission to demote a user FROM admin
+	new Permission({ name: "manage-users.demote-admin", mask: PERMISSION_HEIRARCHY.MANAGE_USERS.DEMOTE_ADMIN, minRole: ROLES.ADMINISTRATOR }),
+	new Permission({ name: "manage-users.promote-moderator", mask: PERMISSION_HEIRARCHY.MANAGE_USERS.PROMOTE_MODERATOR, minRole: ROLES.MODERATOR }),
+	new Permission({ name: "manage-users.demote-moderator", mask: PERMISSION_HEIRARCHY.MANAGE_USERS.DEMOTE_MODERATOR, minRole: ROLES.MODERATOR }),
+	new Permission({ name: "manage-users.promote-trusted-user", mask: PERMISSION_HEIRARCHY.MANAGE_USERS.PROMOTE_TRUSTED_USER, minRole: ROLES.TRUSTED_USER }),
+	new Permission({ name: "manage-users.demote-trusted-user", mask: PERMISSION_HEIRARCHY.MANAGE_USERS.DEMOTE_TRUSTED_USER, minRole: ROLES.TRUSTED_USER }),
+];
+
+const permMaskMap = Object.fromEntries(PERMISSIONS.map(p => [p.name, p.mask]));
 
 module.exports = {
-	ROOM_PERMISSIONS,
 	ROLES,
+	ROLE_NAMES,
+	ROLE_DISPLAY_NAMES,
+	PERMISSIONS,
+	PERMISSION_HEIRARCHY,
 
 	defaultPermissions() {
 		return {
@@ -93,6 +129,7 @@ module.exports = {
 				"configure-room.set-permissions",
 				"manage-users",
 			]),
+			[ROLES.OWNER]: this.parseIntoGrantMask(["*"]),
 		};
 	},
 
@@ -103,7 +140,7 @@ module.exports = {
 		let mask = 0;
 		for (let perm of perms) {
 			_.forOwn(permMaskMap, (value, key) => {
-				if (key.startsWith(perm)) {
+				if (key.startsWith(perm) || perm === "*") {
 					mask |= value;
 				}
 			});
@@ -111,14 +148,19 @@ module.exports = {
 		return mask;
 	},
 
+	getFullGrantMask(grants, role) {
+		let fullmask = grants[role];
+		for (let i = role - 1; i >= ROLES.UNREGISTERED_USER; i--) {
+			fullmask |= grants[i];
+		}
+		return fullmask;
+	},
+
 	/**
 	 * Checks if the given role is granted the permission, given the grants.
 	 */
 	granted(grants, role, permission) {
-		let fullmask = grants[role];
-		for (let i = role - 1; i >= 0; i--) {
-			fullmask |= grants[i];
-		}
+		let fullmask = this.getFullGrantMask(grants, role);
 		return (fullmask & permMaskMap[permission]) > 0;
 	},
 };

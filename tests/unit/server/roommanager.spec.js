@@ -4,6 +4,7 @@ const storage = require("../../../storage");
 const moment = require("moment");
 const Video = require("../../../common/video.js");
 const { Room } = require("../../../models");
+const { ROLES } = require("../../../server/permissions.js");
 
 describe('Room manager: Room tests', () => {
   beforeEach(async done => {
@@ -239,6 +240,12 @@ describe('Room manager: Room tests', () => {
     ]);
 
     room.sync.mockRestore();
+  });
+
+  it('should get the correct role', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+
+    expect(room.getRole({})).toEqual(ROLES.UNREGISTERED_USER);
   });
 });
 
