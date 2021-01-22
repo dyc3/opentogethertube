@@ -112,16 +112,16 @@
                 <AddPreview />
               </v-tab-item>
               <v-tab-item>
-                <div class="room-settings">
+                <div class="room-settings" style="margin: 12px">
                   <v-form @submit="submitRoomSettings">
                     <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" />
                     <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" />
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" />
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" />
-                    <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
                     <PermissionsEditor v-model="inputRoomSettings.permissions" :current-role="4" />
+                    <v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
                   </v-form>
-                  <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
+                  <v-btn large block color="blue" v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
                 </div>
               </v-tab-item>
             </v-tabs-items>
