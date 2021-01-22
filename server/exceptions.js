@@ -77,14 +77,30 @@ class MissingMetadataException extends Error {
 class IncompleteServiceAdapterException extends Error {
 }
 
+class PermissionDeniedException extends Error {
+	constructor(permission) {
+		super(`Permission denied: ${permission}`);
+		this.name = "PermissionDeniedException";
+	}
+}
+
+class ImpossiblePromotionException extends Error {
+	constructor() {
+		super(`Can't promote/demote unregistered user`);
+		this.name = "ImpossiblePromotionException";
+	}
+}
+
 module.exports = {
-  UnsupportedServiceException,
-  InvalidAddPreviewInputException,
-  OutOfQuotaException,
-  InvalidVideoIdException,
-  FeatureDisabledException,
-  UnsupportedMimeTypeException,
-  LocalFileException,
+	UnsupportedServiceException,
+	InvalidAddPreviewInputException,
+	OutOfQuotaException,
+	InvalidVideoIdException,
+	FeatureDisabledException,
+	UnsupportedMimeTypeException,
+	LocalFileException,
 	MissingMetadataException,
 	IncompleteServiceAdapterException,
+	PermissionDeniedException,
+	ImpossiblePromotionException,
 };
