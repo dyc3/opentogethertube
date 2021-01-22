@@ -1,7 +1,7 @@
 <template>
 	<v-container fluid>
 		Permissions Editor<br>
-		All permissions granted to less privaledged users are automatically granted to more privaledged users.<br>
+		All permissions granted to less privileged users are automatically granted to more privileged users.<br>
 		Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.<br>
 		Viewing as: {{ roleNames[currentRole] }}<br>
 		<v-simple-table dense :key="dirty" v-if="!isLoading && hasMetadata">
