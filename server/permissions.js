@@ -125,10 +125,7 @@ module.exports = {
 				"manage-users.promote-trusted-user",
 				"manage-users.demote-trusted-user",
 			]),
-			[ROLES.ADMINISTRATOR]: this.parseIntoGrantMask([
-				"configure-room.set-permissions",
-				"manage-users",
-			]),
+			[ROLES.ADMINISTRATOR]: this.parseIntoGrantMask(["*"]),
 			[ROLES.OWNER]: this.parseIntoGrantMask(["*"]),
 		};
 	},
