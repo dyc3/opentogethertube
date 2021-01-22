@@ -41,4 +41,14 @@ describe('Permission System', () => {
 		expect(permissions.granted(grants, 2, "chat")).toEqual(true);
 		expect(permissions.granted(grants, 2, "configure-room.set-title")).toEqual(true);
 	});
+
+	it('should evaluate multiple/wildcard permission grants correctly', () => {
+		let grants = {
+			0: 1<<0 | 1<<1 | 1<<2,
+			1: 1<<3 | 1<<4 | 1<<7,
+			2: 1<<8,
+		};
+		expect(permissions.granted(grants, 0, "playback")).toEqual(true);
+		expect(permissions.granted(grants, 0, "manage-queue")).toEqual(false);
+	});
 });

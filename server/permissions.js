@@ -158,6 +158,7 @@ module.exports = {
 	 */
 	granted(grants, role, permission) {
 		let fullmask = this.getFullGrantMask(grants, role);
-		return (fullmask & permMaskMap[permission]) > 0;
+		let checkmask = this.parseIntoGrantMask([permission]);
+		return (fullmask & checkmask) === checkmask;
 	},
 };
