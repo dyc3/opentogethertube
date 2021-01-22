@@ -45,10 +45,13 @@ function handleGetRoomFailure(res, err) {
 }
 
 function handlePostVideoFailure(res, err) {
-	if (err.name === "VideoAlreadyQueuedException") {
+	if (err.name === "VideoAlreadyQueuedException" || err.name === "PermissionDeniedException") {
 		res.status(400).json({
 			success: false,
-			error: err.message,
+			error: {
+				name: err.name,
+				message: err.message,
+			},
 		});
 	}
 	else {
@@ -313,60 +316,76 @@ module.exports = function(_roommanager, storage) {
 	});
 
 	let addToQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueAdd" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before adding more videos." });
-	router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), (req, res) => {
-		roommanager.getOrLoadRoom(req.params.name).then(room => {
+	router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), async (req, res) => {
+		let room;
+		try {
+			room = await roommanager.getOrLoadRoom(req.params.name);
+		}
+		catch (err) {
+			handleGetRoomFailure(res, err);
+			return;
+		}
+
+		try {
+			let success;
 			if (req.body.videos) {
-				room.addManyToQueue(req.body.videos, req.session).then(success => {
-					res.json({
-						success,
-					});
-				});
+				success = await room.addManyToQueue(req.body.videos, req.session);
 			}
 			else if (req.body.url) {
-				room.addToQueue({ url: req.body.url }, req.session).then(success => {
-					res.json({
-						success,
-					});
-				}).catch(err => handlePostVideoFailure(res, err));
+				success = await room.addToQueue({ url: req.body.url }, req.session);
 			}
 			else if (req.body.service && req.body.id) {
-				room.addToQueue({ service: req.body.service, id: req.body.id }, req.session).then(success => {
-					res.json({
-						success,
-					});
-				}).catch(err => handlePostVideoFailure(res, err));
+				success = await room.addToQueue({ service: req.body.service, id: req.body.id }, req.session);
 			}
 			else {
 				res.status(400).json({
 					success: false,
 					error: "Invalid parameters",
 				});
+				return;
 			}
-		}).catch(err => handleGetRoomFailure(res, err));
+			res.json({
+				success,
+			});
+		}
+		catch (err) {
+			handlePostVideoFailure(res, err);
+		}
 	});
 
 	let removeFromQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueRemove" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before removing more videos." });
-	router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), (req, res) => {
-		roommanager.getOrLoadRoom(req.params.name).then(room => {
+	router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), async (req, res) => {
+		let room;
+		try {
+			room = await roommanager.getOrLoadRoom(req.params.name);
+		}
+		catch (err) {
+			handleGetRoomFailure(res, err);
+			return;
+		}
+
+		try {
+			let success;
 			if (req.body.service && req.body.id) {
-				const success = room.removeFromQueue(req.body.service === "direct" ? { service: req.body.service, url: req.body.id } : { service: req.body.service, id: req.body.id }, req.session);
-				res.json({
-					success,
-				});
+				success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
 			}
 			else if (req.body.url) {
-				const success = room.removeFromQueue({ url: req.body.url }, req.session);
-				res.json({
-					success,
-				});
+				success = room.removeFromQueue({ url: req.body.url }, req.session);
 			}
 			else {
 				res.status(400).json({
 					success: false,
 					error: "Invalid parameters",
 				});
+				return;
 			}
-		}).catch(err => handleGetRoomFailure(res, err));
+			res.json({
+				success,
+			});
+		}
+		catch (err) {
+			handlePostVideoFailure(res, err);
+		}
 	});
 
 	router.post("/room/:name/vote", (req, res) => {
