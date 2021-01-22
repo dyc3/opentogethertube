@@ -8,35 +8,35 @@ describe('Storage: Room Spec', () => {
     await Room.destroy({ where: {} });
   });
 
-  it('should return room object without extra properties', async done => {
+  it('should return room object without extra properties', async () => {
     await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" });
 
-    storage.getRoomByName("example").then(room => {
-      expect(room).not.toBeNull();
-      expect(room).toBeDefined();
-      expect(typeof room).toEqual("object");
-      expect(room).not.toBeInstanceOf(Room);
-      expect(room.id).toBeUndefined();
-      expect(room.createdAt).toBeUndefined();
-      expect(room.updatedAt).toBeUndefined();
-      expect(room.name).toBeDefined();
-      expect(room.name).toEqual("example");
-      expect(room.title).toBeDefined();
-      expect(room.title).toEqual("Example Room");
-      expect(room.description).toBeDefined();
-      expect(room.description).toEqual("This is an example room.");
-      expect(room.visibility).toEqual("public");
-      done();
-    }).catch(err => {
-      done.fail(err);
+    let room = await storage.getRoomByName("example");
+    expect(room).not.toBeNull();
+    expect(room).toBeDefined();
+    expect(typeof room).toEqual("object");
+    expect(room).not.toBeInstanceOf(Room);
+    expect(room.id).toBeUndefined();
+    expect(room.createdAt).toBeUndefined();
+    expect(room.updatedAt).toBeUndefined();
+    expect(_.pick(room, "name", "title", "description", "visibility", "owner")).toEqual({
+      name: "example",
+      title: "Example Room",
+      description: "This is an example room.",
+      visibility: "public",
+      owner: null,
     });
+    expect(room.permissions).toBeDefined();
+    expect(typeof room.permissions).toEqual("object");
+    expect(room.userRoles).toBeDefined();
+    expect(typeof room.userRoles).toEqual("object");
   });
 
   it('should return room object from room name, case insensitive', async () => {
     await storage.saveRoom({ name: "CapitalizedExampleRoom", title: "Example Room", description: "This is an example room.", visibility: "public" });
 
     let room = await storage.getRoomByName("capitalizedexampleroom");
-    expect(room).toEqual({
+    expect(_.pick(room, "name", "title", "description", "visibility", "owner")).toEqual({
       name: "CapitalizedExampleRoom",
       title: "Example Room",
       description: "This is an example room.",

@@ -22,9 +22,11 @@ function roomToDb(room) {
 	if (room.owner) {
 		db.ownerId = room.owner.id;
 	}
-	for (let i = 0; i <= 4; i++) {
-		if (i >= permissions.ROLES.TRUSTED_USER) {
-			db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles[i]));
+	if (room.userRoles) {
+		for (let i = 0; i <= 4; i++) {
+			if (i >= permissions.ROLES.TRUSTED_USER) {
+				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles[i]));
+			}
 		}
 	}
 	return db;
