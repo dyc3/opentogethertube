@@ -159,5 +159,9 @@ export default new Vuex.Store({
 		announcement(context, message) {
 			Vue.prototype.$events.emit('onAnnouncement', message.text);
 		},
+		error(context, message) {
+			console.log(`Server sent error: ${message.error}`);
+			Vue.prototype.$events.emit('onRoomError', message.error);
+		},
 	},
 });
