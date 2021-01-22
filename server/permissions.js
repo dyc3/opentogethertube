@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const { PermissionDeniedException } = require("./exceptions.js");
 
 const ROLES = {
 	ADMINISTRATOR: 4,
@@ -160,5 +161,18 @@ module.exports = {
 		let fullmask = this.getFullGrantMask(grants, role);
 		let checkmask = this.parseIntoGrantMask([permission]);
 		return (fullmask & checkmask) === checkmask;
+	},
+
+	/**
+	 * Checks to see if the permission is granted. Throws an exception if it fails.
+	 * @param {*} grants
+	 * @param {*} role
+	 * @param {*} permission
+	 * @throws PermissionDeniedException
+	 */
+	check(grants, role, permission) {
+		if (!this.granted(grants, role, permission)) {
+			throw new PermissionDeniedException(permission);
+		}
 	},
 };
