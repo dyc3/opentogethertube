@@ -23,29 +23,35 @@
               />
             </v-responsive>
             <v-col class="video-controls">
-              <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
+              <vue-slider
+                id="videoSlider"
+                v-model="sliderPosition"
+                @change="sliderChange"
+                :max="$store.state.room.currentSource.length"
+                :tooltip-formatter="sliderTooltipFormatter"
+                :disabled="currentSource.length == null || !granted('playback.seek')"/>
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
                       <v-icon>fas fa-angle-left</v-icon>
                     </v-btn>
                   </template>
                   <span>Rewind 10s</span>
                 </v-tooltip>
-                <v-btn @click="togglePlayback()">
+                <v-btn @click="togglePlayback()" :disabled="!granted('playback.play-pause')">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
                   <v-icon v-else>fas fa-play</v-icon>
                 </v-btn>
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
                       <v-icon>fas fa-angle-right</v-icon>
                     </v-btn>
                   </template>
                   <span>Skip 10s</span>
                 </v-tooltip>
-                <v-btn @click="roomSkip()">
+                <v-btn @click="roomSkip()" :disabled="!granted('playback.skip')">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
@@ -97,7 +103,7 @@
                       </v-row>
                     </v-container>
                   </div>
-                  <draggable v-model="$store.state.room.queue" @end="onQueueDragDrop" handle=".drag-handle">
+                  <draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
                     <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
                   </draggable>
                 </div>
@@ -211,6 +217,7 @@ import VueSlider from 'vue-slider-component';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
+import PermissionsMixin from "@/mixins/permissions.js";
 
 export default {
   name: 'room',
@@ -223,6 +230,7 @@ export default {
     Chat,
     AddPreview,
   },
+  mixins: [PermissionsMixin],
   data() {
     return {
       truePosition: 0,
@@ -450,22 +458,22 @@ export default {
         return;
       }
 
-      if (e.code === "Space" || e.code === "k") {
+      if ((e.code === "Space" || e.code === "k") && this.granted('playback.play-pause')) {
         this.togglePlayback();
         e.preventDefault();
       }
-      else if (e.code === "Home") {
+      else if (e.code === "Home" && this.granted('playback.seek')) {
         this.roomSeek(0);
         e.preventDefault();
       }
-      else if (e.code === "End") {
+      else if (e.code === "End" && this.granted('playback.skip')) {
         this.roomSkip();
         e.preventDefault();
       }
       else if (e.code === "KeyF") {
         this.toggleFullscreen();
       }
-      else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
+      else if ((e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") && this.granted('playback.seek')) {
         let seekIncrement = 5;
         if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
           seekIncrement = 10;
@@ -535,6 +543,9 @@ export default {
       this.roomSeek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
     },
     activateTextSeek() {
+      if (!this.granted('playback.seek')) {
+        return;
+      }
       this.textSeek.active = true;
       this.textSeek.value = this.timestampDisplay;
       this.$nextTick(() => {
