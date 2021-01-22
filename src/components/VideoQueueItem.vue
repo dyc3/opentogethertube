@@ -83,37 +83,50 @@ export default {
 			console.log(data);
 			return data;
 		},
-		addToQueue() {
+		async addToQueue() {
 			this.isLoadingAdd = true;
-			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(resp => {
+			try {
+				let resp = await API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData());
 				this.hasError = !resp.data.success;
-				this.isLoadingAdd = false;
-				this.hasBeenAdded = true;
-			});
+			}
+			catch (e) {
+				this.hasError = true;
+			}
+			this.isLoadingAdd = false;
+			this.hasBeenAdded = true;
 		},
-		removeFromQueue() {
+		async removeFromQueue() {
 			this.isLoadingAdd = true;
-			API.delete(`/room/${this.$route.params.roomId}/queue`, {
-				data: this.getPostData(),
-			}).then(resp => {
+			try {
+				let resp = await API.delete(`/room/${this.$route.params.roomId}/queue`, {
+					data: this.getPostData(),
+				});
 				this.hasError = !resp.data.success;
-				this.isLoadingAdd = false;
-			});
+			}
+			catch (e) {
+				this.hasError = true;
+			}
+			this.isLoadingAdd = false;
 		},
-		vote() {
+		async vote() {
 			this.isLoadingVote = true;
-			if (!this.item.voted) {
-				API.post(`/room/${this.$route.params.roomId}/vote`, this.getPostData()).then(() => {
-					this.isLoadingVote = false;
+			try {
+				let resp;
+				if (!this.item.voted) {
+					resp = await API.post(`/room/${this.$route.params.roomId}/vote`, this.getPostData());
 					this.item.voted = true;
-				});
-			}
-			else {
-				API.delete(`/room/${this.$route.params.roomId}/vote`, { data: this.getPostData() }).then(() => {
-					this.isLoadingVote = false;
+				}
+				else {
+					resp = await API.delete(`/room/${this.$route.params.roomId}/vote`, { data: this.getPostData() });
 					this.item.voted = false;
-				});
+				}
+				this.hasError = !resp.data.success;
 			}
+			catch (e) {
+				this.hasError = true;
+			}
+			this.isLoadingVote = false;
+
 		},
 		onThumbnailError() {
 			this.thumbnailHasError = true;
