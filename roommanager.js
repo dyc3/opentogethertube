@@ -49,9 +49,9 @@ class Room {
 		this.playbackStartTime = null;
 		this.permissions = permissions.defaultPermissions();
 		this.userRoles = {
-			[ROLES.ADMINISTRATOR]: new Set(),
-			[ROLES.MODERATOR]: new Set(),
-			[ROLES.TRUSTED_USER]: new Set(),
+			[ROLES.ADMINISTRATOR]: [],
+			[ROLES.MODERATOR]: [],
+			[ROLES.TRUSTED_USER]: [],
 		};
 		if (args) {
 			Object.assign(this, args);
@@ -783,7 +783,8 @@ class Room {
 				return ROLES.OWNER;
 			}
 			for (let i = ROLES.ADMINISTRATOR; i >= ROLES.TRUSTED_USER; i--) {
-				if (this.userRoles[i].has(client.user.id)) {
+				let set = new Set(this.userRoles[i]);
+				if (set.has(client.user.id)) {
 					return i;
 				}
 			}
@@ -809,12 +810,14 @@ class Room {
 			throw new Error("Unable to promote/demote unregistered user");
 		}
 		for (let i = ROLES.ADMINISTRATOR; i >= ROLES.TRUSTED_USER; i--) {
-			if (this.userRoles[i].has(client.user.id)) {
-				this.userRoles[i].delete(client.user.id);
+			let set = new Set(this.userRoles[i]);
+			if (set.has(client.user.id)) {
+				set.delete(client.user.id);
 			}
+			this.userRoles[i] = Array.from(set);
 		}
 		if (role >= ROLES.TRUSTED_USER) {
-			this.userRoles[role].add(client.user.id);
+			this.userRoles[role].push(client.user.id);
 		}
 		this._dirtyProps.push("users");
 	}

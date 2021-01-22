@@ -46,7 +46,7 @@ function dbToRoomArgs(db) {
 	}
 	for (let i = 0; i <= 4; i++) {
 		if (i >= permissions.ROLES.TRUSTED_USER) {
-			room.userRoles[i] = new Set(JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]));
+			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);
 		}
 	}
 	return room;
