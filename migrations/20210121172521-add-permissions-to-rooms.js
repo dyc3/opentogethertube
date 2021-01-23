@@ -19,14 +19,14 @@ const ROLE_NAMES = {
 module.exports = {
 	up: async (queryInterface, Sequelize) => {
 		await queryInterface.addColumn('Rooms', 'permissions', {
-			type: Sequelize.ARRAY(Sequelize.TEXT),
+			type: Sequelize.TEXT,
 		});
 		for (const role of Object.values(ROLES)) {
 			if (role < ROLES.TRUSTED_USER) {
 				continue;
 			}
 			await queryInterface.addColumn('Rooms', `role-${ROLE_NAMES[role]}`, {
-				type: Sequelize.ARRAY(Sequelize.TEXT),
+				type: Sequelize.TEXT,
 			});
 		}
 	},
