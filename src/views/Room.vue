@@ -161,9 +161,9 @@
                 <v-list-item v-for="(user, index) in $store.state.room.users" :key="index" :class="user.isLoggedIn ? 'user registered' : 'user'">
                   <span class="name">{{ user.name }}</span>
                   <span v-if="user.isYou" class="is-you">You</span>
-                  <v-icon class="player-status" v-if="user.status === 'buffering'">fas fa-spinner</v-icon>
-                  <v-icon class="player-status" v-else-if="user.status === 'ready'">fas fa-check</v-icon>
-                  <v-icon class="player-status" v-else-if="user.status === 'error'">fas fa-exclamation</v-icon>
+                  <v-icon class="player-status">
+                    fas fa-{{ {"buffering":"spinner", "ready":"check", "error":"exclamation" }[user.status] }}
+                  </v-icon>
                 </v-list-item>
                 <v-list-item class="nobody-here" v-if="$store.state.room.users.length === 1">
                   There seems to be nobody else here. Invite some friends!
