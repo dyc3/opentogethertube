@@ -18,17 +18,17 @@
 		<v-list-item
 			v-for="(user, index) in users"
 			:key="index"
-			:class="`user ${user.isLoggedIn ? 'registered' : ''} ${getUserCssClass(user)}`">
+			:class="`user ${user.isLoggedIn ? 'registered' : ''} ${`role-${$store.state.permsMeta.roles[user.role].name}`}`">
 			<span class="name">{{ user.name }}</span>
 			<v-tooltip top>
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
-						<v-icon small class="role" :aria-label="`${user.isYou ? 'you' : user.name} is ${user.role}`">
+						<v-icon small class="role" :aria-label="`${user.isYou ? 'you' : user.name} is ${$store.state.permsMeta.roles[user.role].display}`">
 							fas fa-{{ {"2":"thumbs-up", "3":"chevron-up", "4":"star", "-1":"star" }[user.role] }}
 						</v-icon>
 					</span>
 				</template>
-				<span>{{ {"-1":"Owner", "0":"Unregistered", "1":"Registered", "2":"Trusted", "3":"Moderator", "4":"Administrator"}[user.role] }}</span>
+				<span>{{ $store.state.permsMeta.roles[user.role].display }}</span>
 			</v-tooltip>
 			<span v-if="user.isYou" class="is-you">You</span>
 			<v-tooltip top>
@@ -76,8 +76,6 @@
 <script>
 import { API } from "@/common-http.js";
 
-// TODO: remove all the hardcoded permissions metadata in here, put permissions metadata in vuex store
-
 /** Lists users that are connected to a room. */
 export default {
 	name: "UserList",
@@ -92,11 +90,10 @@ export default {
 			setUsernameFailureText: "",
 		};
 	},
+	async created() {
+		await this.$store.dispatch("updatePermissionsMetadata");
+	},
 	methods: {
-		getUserCssClass(user) {
-			// TODO: derive css class name from `role.name` in permissions metadata
-			return "role-" + {"-1":"owner", "0":"unregistered", "1":"registered", "2":"trusted", "3":"mod", "4":"admin"}[user.role];
-		},
 		openEditName() {
 			if (!this.inputUsername) {
 				this.inputUsername = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
