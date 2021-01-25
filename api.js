@@ -460,8 +460,9 @@ module.exports = function(_roommanager, storage) {
 
 	router.get("/data/permissions", (req, res) => {
 		const { ROLES, ROLE_NAMES, ROLE_DISPLAY_NAMES, PERMISSIONS } = permissions;
-		let roles = _.range(_.values(ROLES).length).map(i => {
+		let roles = _.values(ROLES).map(i => {
 			return {
+				id: i,
 				name: ROLE_NAMES[i],
 				display: ROLE_DISPLAY_NAMES[i],
 			};
