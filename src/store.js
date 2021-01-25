@@ -43,6 +43,12 @@ export default new Vuex.Store({
 		quickAdd: [],
 
 		keepAliveInterval: null,
+		/** Permissions metadata */
+		permsMeta: {
+			loaded: false,
+			roles: {},
+			permissions: [],
+		},
 	},
 	mutations:{
 		SOCKET_ONOPEN (state, event)  {
@@ -116,6 +122,13 @@ export default new Vuex.Store({
 		QUICKADD_CLEAR(state) {
 			state.quickAdd = [];
 		},
+		PERMISSIONS_METADATA(state, metadata) {
+			for (let role of metadata.roles) {
+				state.permsMeta.roles[role.id] = role;
+			}
+			state.permsMeta.permissions = metadata.permissions;
+			state.permsMeta.loaded = true;
+		},
 	},
 	actions: {
 		sendMessage(context, message) {
@@ -164,6 +177,14 @@ export default new Vuex.Store({
 		error(context, message) {
 			console.log(`Server sent error: ${message.error}`);
 			Vue.prototype.$events.emit('onRoomError', message.error);
+		},
+		async updatePermissionsMetadata(context) {
+			if (context.state.permsMeta.loaded) {
+				return;
+			}
+			let resp = await API.get("/data/permissions");
+			let meta = resp.data;
+			context.commit("PERMISSIONS_METADATA", meta);
 		},
 	},
 });

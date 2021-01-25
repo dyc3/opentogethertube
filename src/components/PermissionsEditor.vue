@@ -3,12 +3,12 @@
 		Permissions Editor<br>
 		All permissions granted to less privileged users are automatically granted to more privileged users.<br>
 		Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.<br>
-		Viewing as: {{ roleNames[currentRole] }}<br>
-		<v-simple-table dense :key="dirty" v-if="!isLoading && hasMetadata">
+		Viewing as: {{ $store.state.permsMeta.roles ? $store.state.permsMeta.roles[currentRole].display : "" }}<br>
+		<v-simple-table dense :key="dirty" v-if="$store.state.permsMeta.loaded">
 			<thead>
-				<tr v-if="hasMetadata && !!roleNames">
+				<tr>
 					<th class="text-left">Permission</th>
-					<th class="text-left" v-for="(role, index) in roleNames" :key="index">{{ role }}</th>
+					<th class="text-left" v-for="i in 5" :key="i">{{ $store.state.permsMeta.roles[i-1] ? $store.state.permsMeta.roles[i-1].display : 0 }}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -29,7 +29,6 @@
 
 <script>
 import _ from "lodash";
-import { API } from "@/common-http.js";
 
 export default {
 	name: "permissions-editor",
@@ -39,19 +38,16 @@ export default {
 	},
 	data() {
 		return {
-			roleNames: {},
-			permissionMeta: [],
 			permissions: [],
 			dirty: false,
 			shouldAcceptExternalUpdate: true,
 			isLoading: false,
-			hasMetadata: false,
 		};
 	},
 	async created() {
-		if (!this.hasMetadata) {
-			await this.fetchMetadata();
-		}
+		this.isLoading = true;
+		await this.$store.dispatch("updatePermissionsMetadata");
+		this.isLoading = false;
 		this.permissions = this.extractFromGrants(this.value);
 	},
 	methods: {
@@ -85,17 +81,14 @@ export default {
 		},
 		extractFromGrants(grants) {
 			let extracted = [];
-			for (let i = 0; i < this.permissionMeta.length; i++) {
-				let perm = {
-					name: this.permissionMeta[i].name,
-					minRole: this.permissionMeta[i].minRole,
-				};
+			for (let i = 0; i < this.$store.state.permsMeta.permissions.length; i++) {
+				let perm = this.$store.state.permsMeta.permissions[i];
 				for (let role = 4; role >= 0; role--) {
 					let fullmask = grants[role];
 					for (let r = role - 1; r >= 0; r--) {
 						fullmask |= grants[r];
 					}
-					this.$set(perm, role, (fullmask & 1<<i) > 0);
+					this.$set(perm, role, (fullmask & perm.mask) > 0);
 				}
 				extracted.push(perm);
 			}
@@ -108,32 +101,15 @@ export default {
 			}
 			for (let i in this.permissions) {
 				let lowest = this.getLowestGranted(this.permissions[i]);
-				grants[lowest] |= 1<<i;
+				grants[lowest] |= this.$store.state.permsMeta.permissions[i].mask;
 			}
 			return grants;
-		},
-		async fetchMetadata() {
-			console.log("fetching permissions metadata");
-			this.isLoading = true;
-			let resp = await API.get("/data/permissions");
-			let meta = resp.data;
-			this.permissionMeta = meta.permissions;
-			for (let i = 0; i < meta.roles.length; i++) {
-				const role = meta.roles[i];
-				if (role.id < 0) {
-					continue;
-				}
-				this.roleNames[role.id] = role.display;
-			}
-			console.log("permissions metadata fetched");
-			this.isLoading = false;
-			this.hasMetadata = true;
 		},
 		waitForMetadata() {
 			let _this = this;
 			return new Promise(resolve => {
 				(function wait() {
-					if (_this.hasMetadata) {
+					if (_this.$store.state.permsMeta.loaded) {
 						return resolve();
 					}
 					setTimeout(wait, 30);
