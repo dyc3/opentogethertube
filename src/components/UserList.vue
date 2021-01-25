@@ -31,9 +31,17 @@
 				<span>{{ {"-1":"Owner", "0":"Unregistered", "1":"Registered", "2":"Trusted", "3":"Moderator", "4":"Administrator"}[user.role] }}</span>
 			</v-tooltip>
 			<span v-if="user.isYou" class="is-you">You</span>
-			<v-icon small class="player-status" :aria-label="`${user.isYou ? 'your' : user.name} player is ${user.status}`">
-				fas fa-{{ {"buffering":"spinner", "ready":"check", "error":"exclamation" }[user.status] }}
-			</v-icon>
+			<v-tooltip top>
+				<template v-slot:activator="{ on, attrs }">
+					<span v-bind="attrs" v-on="on">
+						<v-icon small class="player-status" :aria-label="`${user.isYou ? 'your' : user.name} player is ${user.status}`">
+							fas fa-{{ {"buffering":"spinner", "ready":"check", "error":"exclamation" }[user.status] }}
+						</v-icon>
+					</span>
+				</template>
+				<span>{{ user.status }}</span>
+			</v-tooltip>
+
 			<div style="margin-left:auto" v-if="!user.isYou">
 				<v-menu right offset-y>
 					<template v-slot:activator="{ on, attrs }">
