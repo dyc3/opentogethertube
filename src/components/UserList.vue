@@ -34,6 +34,30 @@
 			<v-icon small class="player-status" :aria-label="`${user.isYou ? 'your' : user.name} player is ${user.status}`">
 				fas fa-{{ {"buffering":"spinner", "ready":"check", "error":"exclamation" }[user.status] }}
 			</v-icon>
+			<div style="margin-left:auto" v-if="!user.isYou">
+				<v-menu right offset-y>
+					<template v-slot:activator="{ on, attrs }">
+						<v-btn depressed tile v-bind="attrs" v-on="on">
+							<v-icon small>fas fa-cog</v-icon>
+							<v-icon small style="margin-left:5px">fas fa-caret-down</v-icon>
+						</v-btn>
+					</template>
+					<v-list>
+						<v-list-item @click="promoteUser(user.name, 4)">
+							Promote to Administrator
+						</v-list-item>
+						<v-list-item @click="promoteUser(user.name, 3)">
+							Promote to Moderator
+						</v-list-item>
+						<v-list-item @click="promoteUser(user.name, 2)">
+							Promote to Trusted User
+						</v-list-item>
+						<v-list-item @click="promoteUser(user.name, 1)">
+							Demote to Normal User
+						</v-list-item>
+					</v-list>
+				</v-menu>
+			</div>
 		</v-list-item>
 		<v-list-item class="nobody-here" v-if="users.length === 1">
 			There seems to be nobody else here. Invite some friends!
@@ -43,6 +67,8 @@
 
 <script>
 import { API } from "@/common-http.js";
+
+// TODO: remove all the hardcoded permissions metadata in here, put permissions metadata in vuex store
 
 /** Lists users that are connected to a room. */
 export default {
@@ -80,6 +106,13 @@ export default {
 				this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
 			}
 			this.setUsernameLoading = false;
+		},
+		promoteUser(username, role) {
+			this.$socket.sendObj({
+				action: "set-role",
+				username,
+				role,
+			});
 		},
 	},
 };
