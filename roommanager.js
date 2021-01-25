@@ -10,7 +10,8 @@ const { getLogger } = require("./logger.js");
 const { redisClient } = require('./redisclient.js');
 const permissions = require("./server/permissions.js");
 const { ROLES, ROLE_DISPLAY_NAMES } = permissions;
-const { ImpossiblePromotionException } = require('./server/exceptions.js');
+const { ImpossiblePromotionException, PermissionDeniedException } = require('./server/exceptions.js');
+const { ROLE_NAMES } = require('./server/permissions.js');
 
 const log = getLogger("roommanager");
 
@@ -759,8 +760,9 @@ class Room {
 			}
 			permissions.check(this.permissions, role, perm);
 			let targetClient = _.find(this.clients, { username: msg.username });
+			let targetRole = this.getRole(targetClient);
 			let demotePerm;
-			switch (this.getRole(targetClient)) {
+			switch (targetRole) {
 				case ROLES.ADMINISTRATOR:
 					demotePerm = "manage-users.demote-admin";
 					break;
@@ -771,7 +773,8 @@ class Room {
 					demotePerm = "manage-users.demote-trusted-user";
 					break;
 				default:
-					break;
+					log.error(`Can't demote ${ROLE_NAMES[targetRole]}`);
+					throw new PermissionDeniedException();
 			}
 			permissions.check(this.permissions, role, demotePerm);
 			this.promoteTo(targetClient, msg.role);
