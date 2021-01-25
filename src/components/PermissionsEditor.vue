@@ -120,7 +120,10 @@ export default {
 			this.permissionMeta = meta.permissions;
 			for (let i = 0; i < meta.roles.length; i++) {
 				const role = meta.roles[i];
-				this.roleNames[i] = role.display;
+				if (role.id < 0) {
+					continue;
+				}
+				this.roleNames[role.id] = role.display;
 			}
 			console.log("permissions metadata fetched");
 			this.isLoading = false;
