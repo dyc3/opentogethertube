@@ -19,7 +19,9 @@ export default new Vuex.Store({
 		},
 		joinFailureReason: null,
 		production: process.env.NODE_ENV === 'production',
+		/** Unregistered user's username  */
 		username: null,
+		/** Registered user */
 		user: null,
 		room: {
 			name: "",
