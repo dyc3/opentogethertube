@@ -149,27 +149,7 @@
                 </v-list-item>
               </v-card>
             </div>
-            <div class="user-list" v-if="$store.state.room.users">
-              <v-card>
-                <v-subheader>
-                  Users
-                  <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
-                </v-subheader>
-                <v-list-item v-if="showEditName">
-                  <v-text-field @change="onEditNameChange" placeholder="Set your name" v-model="username" :loading="setUsernameLoading" :error-messages="setUsernameFailureText"/>
-                </v-list-item>
-                <v-list-item v-for="(user, index) in $store.state.room.users" :key="index" :class="user.isLoggedIn ? 'user registered' : 'user'">
-                  <span class="name">{{ user.name }}</span>
-                  <span v-if="user.isYou" class="is-you">You</span>
-                  <v-icon class="player-status">
-                    fas fa-{{ {"buffering":"spinner", "ready":"check", "error":"exclamation" }[user.status] }}
-                  </v-icon>
-                </v-list-item>
-                <v-list-item class="nobody-here" v-if="$store.state.room.users.length === 1">
-                  There seems to be nobody else here. Invite some friends!
-                </v-list-item>
-              </v-card>
-            </div>
+            <UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
             <div class="share-invite">
               <v-card>
                 <v-subheader>
@@ -218,6 +198,7 @@ import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import PermissionsMixin from "@/mixins/permissions.js";
+import UserList from "@/components/UserList.vue";
 
 export default {
   name: 'room',
@@ -229,6 +210,7 @@ export default {
     OmniPlayer,
     Chat,
     AddPreview,
+    UserList,
   },
   mixins: [PermissionsMixin],
   data() {
@@ -238,9 +220,6 @@ export default {
       sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
 
-      username: "", // refers to the local user's username
-
-      showEditName: false,
       queueTab: 0,
       isLoadingRoomSettings: false,
       inputRoomSettings: {
@@ -250,8 +229,6 @@ export default {
         queueMode: "",
         permissions: {},
       },
-      setUsernameLoading: false,
-      setUsernameFailureText: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -397,23 +374,9 @@ export default {
     sliderChange() {
       this.roomSeek(this.sliderPosition);
     },
-    openEditName() {
-      this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
-      this.showEditName = !this.showEditName;
-    },
+
     updateVolume() {
       this.$refs.player.setVolume(this.volume);
-    },
-    onEditNameChange() {
-      this.setUsernameLoading = true;
-      API.post("/user", { username: this.username }).then(() => {
-        this.showEditName = false;
-        this.setUsernameLoading = false;
-        this.setUsernameFailureText = "";
-      }).catch(err => {
-        this.setUsernameLoading = false;
-        this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
-      });
     },
     onPlayerApiReady() {
       console.log('internal player API is now ready');
@@ -729,26 +692,11 @@ export default {
     margin-bottom: 10px;
   }
 }
-.nobody-here {
-  font-style: italic;
-  opacity: 0.5;
-  font-size: 0.9em;
-}
+
 .queue-tab-content {
   background: transparent !important;
 }
-.is-you {
-  color: $brand-color;
-  border: 1px $brand-color solid;
-  border-radius: 10px;
-  margin: 5px;
-  padding: 0 5px;
-  font-size: 10px;
-}
-.player-status {
-  margin: 0 5px;
-  font-size: 12px;
-}
+
 .bubble{
   height: 25px;
   width: 25px;
@@ -815,19 +763,6 @@ export default {
 
     .chat-container {
       display: none;
-    }
-  }
-}
-.user {
-  .name {
-    opacity: 0.5;
-    font-style: italic;
-  }
-
-  &.registered {
-    .name {
-      opacity: 1;
-      font-style: normal;
     }
   }
 }
