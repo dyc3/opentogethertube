@@ -761,22 +761,24 @@ class Room {
 			permissions.check(this.permissions, role, perm);
 			let targetClient = _.find(this.clients, { username: msg.username });
 			let targetRole = this.getRole(targetClient);
-			let demotePerm;
-			switch (targetRole) {
-				case ROLES.ADMINISTRATOR:
-					demotePerm = "manage-users.demote-admin";
-					break;
-				case ROLES.MODERATOR:
-					demotePerm = "manage-users.demote-moderator";
-					break;
-				case ROLES.TRUSTED_USER:
-					demotePerm = "manage-users.demote-trusted-user";
-					break;
-				default:
-					log.error(`Can't demote ${ROLE_NAMES[targetRole]}`);
-					throw new PermissionDeniedException();
+			if (msg.role < targetRole) {
+				let demotePerm;
+				switch (targetRole) {
+					case ROLES.ADMINISTRATOR:
+						demotePerm = "manage-users.demote-admin";
+						break;
+					case ROLES.MODERATOR:
+						demotePerm = "manage-users.demote-moderator";
+						break;
+					case ROLES.TRUSTED_USER:
+						demotePerm = "manage-users.demote-trusted-user";
+						break;
+					default:
+						log.error(`Can't demote ${ROLE_NAMES[targetRole]}`);
+						throw new PermissionDeniedException();
+				}
+				permissions.check(this.permissions, role, demotePerm);
 			}
-			permissions.check(this.permissions, role, demotePerm);
 			this.promoteTo(targetClient, msg.role);
 		}
 		else {
