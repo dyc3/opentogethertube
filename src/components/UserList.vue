@@ -47,7 +47,7 @@
 					<template v-slot:activator="{ on, attrs }">
 						<v-btn depressed tile v-bind="attrs" v-on="on">
 							<v-icon small>fas fa-cog</v-icon>
-							<v-icon small style="margin-left:5px">fas fa-caret-down</v-icon>
+							<v-icon small style="margin-left:5px" aria-hidden>fas fa-caret-down</v-icon>
 						</v-btn>
 					</template>
 					<v-list>
