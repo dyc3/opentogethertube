@@ -29,6 +29,7 @@
 
 <script>
 import _ from "lodash";
+import PermissionsMixin from "@/mixins/permissions.js";
 
 export default {
 	name: "permissions-editor",
@@ -36,6 +37,7 @@ export default {
 		value: { type: Object, required: true, default: () => {} },
 		currentRole: { type: Number, default: 4 },
 	},
+	mixins: [PermissionsMixin],
 	data() {
 		return {
 			permissions: [],
@@ -104,17 +106,6 @@ export default {
 				grants[lowest] |= this.$store.state.permsMeta.permissions[i].mask;
 			}
 			return grants;
-		},
-		waitForMetadata() {
-			let _this = this;
-			return new Promise(resolve => {
-				(function wait() {
-					if (_this.$store.state.permsMeta.loaded) {
-						return resolve();
-					}
-					setTimeout(wait, 30);
-				})();
-			});
 		},
 	},
 	watch: {

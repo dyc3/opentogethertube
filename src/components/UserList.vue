@@ -15,12 +15,15 @@
 				:error-messages="setUsernameFailureText"
 				/>
 		</v-list-item>
+		<div v-if="!$store.state.permsMeta.loaded">
+			Waiting for permissions metadata...
+		</div>
 		<v-list-item
 			v-for="(user, index) in users"
 			:key="index"
-			:class="`user ${user.isLoggedIn ? 'registered' : ''} ${`role-${$store.state.permsMeta.roles[user.role].name}`}`">
+			:class="`user ${user.isLoggedIn ? 'registered' : ''} ${$store.state.permsMeta.loaded ? `role-${$store.state.permsMeta.roles[user.role].name}` : ''}`">
 			<span class="name">{{ user.name }}</span>
-			<v-tooltip top>
+			<v-tooltip top v-if="$store.state.permsMeta.loaded">
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
 						<v-icon small class="role" :aria-label="`${user.isYou ? 'you' : user.name} is ${$store.state.permsMeta.roles[user.role].display}`">
@@ -51,18 +54,16 @@
 						</v-btn>
 					</template>
 					<v-list>
-						<v-list-item @click="promoteUser(user.name, 4)">
-							Promote to Administrator
-						</v-list-item>
-						<v-list-item @click="promoteUser(user.name, 3)">
-							Promote to Moderator
-						</v-list-item>
-						<v-list-item @click="promoteUser(user.name, 2)">
-							Promote to Trusted User
-						</v-list-item>
-						<v-list-item @click="promoteUser(user.name, 1)">
-							Demote to Normal User
-						</v-list-item>
+						<div class="user-promotion" v-if="$store.state.permsMeta.loaded" :key="$store.state.permsMeta.loaded">
+							<div v-for="role in 4" :key="user.role + role">
+								<v-list-item @click="promoteUser(user.name, role)" v-if="user.role !== role && (role <= 1 || granted(roleToPermission(role))) && (user.role <= 1 || granted(roleToPermission(user.role, demote=true)))">
+									{{ user.role > role ? "Demote" : "Promote" }} to {{ $store.state.permsMeta.roles[role].display }}
+								</v-list-item>
+							</div>
+						</div>
+						<v-row v-else justify="center">
+							<v-progress-circular indeterminate/>
+						</v-row>
 					</v-list>
 				</v-menu>
 			</div>
@@ -75,6 +76,7 @@
 
 <script>
 import { API } from "@/common-http.js";
+import PermissionsMixin from "@/mixins/permissions.js";
 
 /** Lists users that are connected to a room. */
 export default {
@@ -82,6 +84,7 @@ export default {
 	props: {
 		users: { type: Array },
 	},
+	mixins: [PermissionsMixin],
 	data() {
 		return {
 			inputUsername: "",
@@ -92,6 +95,7 @@ export default {
 	},
 	async created() {
 		await this.$store.dispatch("updatePermissionsMetadata");
+		await this.waitForMetadata();
 	},
 	methods: {
 		openEditName() {
@@ -118,6 +122,15 @@ export default {
 				username,
 				role,
 			});
+		},
+		/** Gets the appropriate permission name for the role and promotion/demotion. */
+		roleToPermission(role, demote=false) {
+			let r = {
+				4: "admin",
+				3: "moderator",
+				2: "trusted-user",
+			}[role];
+			return `manage-users.${demote ? "de" : "pro" }mote-${r}`;
 		},
 	},
 };
@@ -162,5 +175,10 @@ export default {
 	font-style: italic;
 	opacity: 0.5;
 	font-size: 0.9em;
+}
+
+.user-promotion {
+	display: flex;
+	flex-direction: column-reverse;
 }
 </style>

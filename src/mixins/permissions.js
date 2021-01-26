@@ -29,5 +29,16 @@ export default {
 			};
 			return (this.$store.state.room.grants & masks[permission]) > 0;
 		},
+		waitForMetadata() {
+			let _this = this;
+			return new Promise(resolve => {
+				(function wait() {
+					if (_this.$store.state.permsMeta.loaded) {
+						return resolve();
+					}
+					setTimeout(wait, 30);
+				})();
+			});
+		},
 	},
 };
