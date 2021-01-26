@@ -1,5 +1,6 @@
 import Vue from 'vue';
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount, shallowMount, createLocalVue } from '@vue/test-utils';
+import Vuex from 'vuex';
 import Vuetify from 'vuetify';
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 
@@ -7,9 +8,85 @@ import PermissionsEditor from "@/components/PermissionsEditor.vue";
 // https://github.com/vuetifyjs/vuetify/issues/4964
 Vue.use(Vuetify);
 
+const localVue = createLocalVue();
+localVue.use(Vuex);
+
+function createStore() {
+	return new Vuex.Store({
+		state: {
+			joinFailureReason: null,
+			production: true,
+			room: {
+				name: "example",
+				title: "",
+				description: "",
+				isTemporary: false,
+				currentSource: { length: 0 },
+				queue: [],
+				isPlaying: false,
+				playbackPosition: 0,
+				grants: 0b11111111111111111111111111111111,
+				users: [],
+				events: [],
+			},
+			quickAdd: [],
+			permsMeta: {
+				loaded: true,
+				roles: {
+					0: {
+						id: 0,
+						name: "unregistered",
+						display: "Unregistered User",
+					},
+					1: {
+						id: 1,
+						name: "registered",
+						display: "Registered User",
+					},
+					2: {
+						id: 2,
+						name: "trusted",
+						display: "Trusted User",
+					},
+					3: {
+						id: 3,
+						name: "mod",
+						display: "Moderator",
+					},
+					4: {
+						id: 4,
+						name: "admin",
+						display: "Administrator",
+					},
+					"-1": {
+						id: -1,
+						name: "owner",
+						display: "Owner",
+					},
+				},
+				permissions: [
+					{ name: "playback.play-pause", mask: 1<<0, minRole: 0 },
+					{ name: "playback.skip", mask: 1<<1, minRole: 0 },
+					{ name: "playback.seek", mask: 1<<2, minRole: 0 },
+					{ name: "manage-queue.add", mask: 1<<3, minRole: 0 },
+					{ name: "manage-queue.remove", mask: 1<<4, minRole: 0 },
+					{ name: "manage-queue.order", mask: 1<<5, minRole: 0 },
+				],
+			},
+		},
+		actions: {
+			updatePermissionsMetadata: jest.fn(),
+		},
+	});
+}
+
 describe("PermissionsEditor Component", () => {
+	let store = createStore();
+
 	it("should display grants accurately", async () => {
 		let wrapper = mount(PermissionsEditor, {
+			localVue,
+			store,
 			propsData: {
 				value: { 0: 1<<0 },
 			},
@@ -25,10 +102,12 @@ describe("PermissionsEditor Component", () => {
 		expect(wrapper.vm.permissions[0][4]).toBe(true);
 		expect(wrapper.vm.permissions[1][0]).toBe(false);
 
-		wrapper.destroy();
+		await wrapper.destroy();
 
 		// inherited permissions
 		wrapper = mount(PermissionsEditor, {
+			localVue,
+			store,
 			propsData: {
 				value: { 0: 1<<0, 1: 1<<1 },
 			},
@@ -42,11 +121,13 @@ describe("PermissionsEditor Component", () => {
 		expect(wrapper.vm.permissions[1][1]).toBe(true);
 		expect(wrapper.vm.permissions[1][2]).toBe(true);
 
-		wrapper.destroy();
+		await wrapper.destroy();
 	});
 
 	it("getLowestGranted should do what it says", async () => {
 		let component = shallowMount(PermissionsEditor, {
+			localVue,
+			store,
 			propsData: {
 				value: { 0: 1<<0 },
 			},
@@ -76,6 +157,8 @@ describe("PermissionsEditor Component", () => {
 
 	it("getHighestDenied should do what it says", async () => {
 		let component = shallowMount(PermissionsEditor, {
+			localVue,
+			store,
 			propsData: {
 				value: { 0: 1<<0 },
 			},
