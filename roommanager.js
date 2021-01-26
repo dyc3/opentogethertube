@@ -242,7 +242,7 @@ class Room {
 				this.update();
 				this.sync();
 
-				if (session) {
+				if (session && client) {
 					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, client.username, { video: queueItem }));
 
 					if (this.queueMode === "vote") {
@@ -787,7 +787,7 @@ class Room {
 	}
 
 	getRole(client) {
-		if (client.user) {
+		if (client && client.user) {
 			if (this.isOwner(client)) {
 				return ROLES.OWNER;
 			}

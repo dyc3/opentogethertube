@@ -459,6 +459,60 @@ describe("Room API", () => {
 
 		done();
 	});
+
+	describe("POST /room/:name/queue", () => {
+		it("should add the video to the queue", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let req = request(app);
+
+			await req
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should fail with PermissionDeniedException", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.permissions[0] = 0;
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual({
+						name: "PermissionDeniedException",
+						message: "Permission denied: manage-queue.add",
+					});
+				});
+		});
+
+		it("should fail when something unexpected happens", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			jest.spyOn(room, 'addToQueue').mockRejectedValue(() => new Error("fake unknown error"));
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(500)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Failed to get video");
+				});
+		});
+	});
 });
 
 describe("Data API", () => {
