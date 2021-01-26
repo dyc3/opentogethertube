@@ -55,7 +55,7 @@ function handlePostVideoFailure(res, err) {
 		});
 	}
 	else {
-		log.error("Unhandled exception when getting video:", err);
+		log.error(`Unhandled exception when getting video: ${err}`);
 		res.status(500).json({
 			success: false,
 			error: "Failed to get video",
