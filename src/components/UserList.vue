@@ -56,7 +56,7 @@
 					<v-list>
 						<div class="user-promotion" v-if="$store.state.permsMeta.loaded" :key="$store.state.permsMeta.loaded">
 							<div v-for="role in 4" :key="user.role + role">
-								<v-list-item @click="promoteUser(user.name, role)" v-if="user.role !== role && (role <= 1 || granted(roleToPermission(role))) && (user.role <= 1 || granted(roleToPermission(user.role, demote=true)))">
+								<v-list-item @click="promoteUser(user.name, role)" v-if="user.role !== role && (role <= 1 || granted(roleToPermission(role))) && (user.role > 0 && user.role <= 1 || granted(roleToPermission(user.role, demote=true)))">
 									{{ user.role > role ? "Demote" : "Promote" }} to {{ $store.state.permsMeta.roles[role].display }}
 								</v-list-item>
 							</div>
