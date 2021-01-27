@@ -2,6 +2,7 @@ const _ = require("lodash");
 const { CachedVideo } = require("../../../models");
 const storage = require("../../../storage");
 const { Room } = require("../../../models");
+const permissions = require("../../../server/permissions.js");
 
 describe('Storage: Room Spec', () => {
   beforeEach(async () => {
@@ -109,6 +110,45 @@ describe('Storage: Room Spec', () => {
     await storage.saveRoom({ name: "Example" });
     expect(await storage.isRoomNameTaken("example")).toBe(true);
     expect(await storage.isRoomNameTaken("exAMple")).toBe(true);
+  });
+
+  it('should save and load permissions correctly', async () => {
+    let perms = permissions.defaultPermissions();
+    perms[0] ^= permissions.parseIntoGrantMask("playback");
+    await storage.saveRoom({ name: "example", permissions: perms });
+
+    let room = await storage.getRoomByName("example");
+    expect(room.permissions).toEqual(perms);
+
+    perms[0] ^= permissions.parseIntoGrantMask("manage-queue");
+    await storage.updateRoom({ name: "example", permissions: perms });
+
+    room = await storage.getRoomByName("example");
+    expect(room.permissions).toEqual(perms);
+  });
+
+  it('should save and load userRoles correctly', async () => {
+    let userRoles = {
+      // eslint-disable-next-line array-bracket-newline
+      2: [1, 2, 3],
+      3: [4],
+      4: [8, 9],
+    };
+    await storage.saveRoom({ name: "example", userRoles });
+
+    let room = await storage.getRoomByName("example");
+    expect(room.userRoles).toEqual(userRoles);
+
+    userRoles = {
+      // eslint-disable-next-line array-bracket-newline
+      2: [1, 3],
+      3: [4, 7],
+      4: [8],
+    };
+    await storage.updateRoom({ name: "example", userRoles });
+
+    room = await storage.getRoomByName("example");
+    expect(room.userRoles).toEqual(userRoles);
   });
 });
 
