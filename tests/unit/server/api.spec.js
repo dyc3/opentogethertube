@@ -364,75 +364,93 @@ describe("Room API", () => {
 			});
 	});
 
-	it("PATCH /room/:name", async done => {
-		await roommanager.createRoom("test1", true);
+	describe("PATCH /room/:name", () => {
+		it("should modify permissions", async () => {
+			await roommanager.createRoom("test1", true);
 
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ title: "Test" })
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.success).toBe(true);
-			});
-
-		roommanager.unloadRoom("test1");
-
-		await roommanager.createRoom("test1", true);
-
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ visibility: "unlisted" })
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.success).toBe(true);
-			});
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ visibility: "invalid" })
-			.expect("Content-Type", /json/)
-			.expect(400)
-			.then(resp => {
-				expect(resp.body.success).toBe(false);
-			});
-
-		roommanager.unloadRoom("test1");
-
-		await roommanager.createRoom("test1", true);
-
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ queueMode: "vote" })
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.success).toBe(true);
-			});
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ queueMode: "invalid" })
-			.expect("Content-Type", /json/)
-			.expect(400)
-			.then(resp => {
-				expect(resp.body.success).toBe(false);
-			});
-
-		roommanager.unloadRoom("test1");
-
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ title: "Test" })
-			.expect("Content-Type", /json/)
-			.expect(404)
-			.then(resp => {
-				expect(resp.body).toEqual({
-					success: false,
-					error: "Room not found",
+			await request(app)
+				.patch("/api/room/test1")
+				.send({
+					permissions: {
+						0: 0,
+					},
+				})
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
 				});
-			});
+		});
 
-		done();
+		// TODO: move into multiple tests
+		it("should work", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ title: "Test" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			roommanager.unloadRoom("test1");
+
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ visibility: "unlisted" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ visibility: "invalid" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+				});
+
+			roommanager.unloadRoom("test1");
+
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ queueMode: "vote" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ queueMode: "invalid" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+				});
+
+			roommanager.unloadRoom("test1");
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ title: "Test" })
+				.expect("Content-Type", /json/)
+				.expect(404)
+				.then(resp => {
+					expect(resp.body).toEqual({
+						success: false,
+						error: "Room not found",
+					});
+				});
+		});
 	});
 
 	it("DELETE /room/:name", async done => {
