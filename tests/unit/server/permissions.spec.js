@@ -51,4 +51,8 @@ describe('Permission System', () => {
 		expect(permissions.granted(grants, 0, "playback")).toEqual(true);
 		expect(permissions.granted(grants, 0, "manage-queue")).toEqual(false);
 	});
+
+	it('should get correct validation mask', () => {
+		expect(permissions.getValidationMask(0)).toEqual(0b111111111111);
+	});
 });

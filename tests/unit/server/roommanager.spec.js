@@ -5,6 +5,7 @@ const moment = require("moment");
 const Video = require("../../../common/video.js");
 const { Room } = require("../../../models");
 const { ROLES } = require("../../../server/permissions.js");
+const permissions = require("../../../server/permissions.js");
 
 describe('Room manager: Room tests', () => {
   beforeEach(async done => {
@@ -246,6 +247,46 @@ describe('Room manager: Room tests', () => {
     let room = await roommanager.getLoadedRoom("test");
 
     expect(room.getRole({})).toEqual(ROLES.UNREGISTERED_USER);
+  });
+
+  describe("setGrants", () => {
+    it('should allow owner to set grants', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
+
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "playback")).toBe(false);
+    });
+
+    it('should now allow owner to set grants for permissions that have a higher minRole', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
+
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.UNREGISTERED_USER] |= permissions.parseIntoGrantMask(["manage-users.promote-moderator"]);
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "manage-users.promote-moderator")).toBe(false);
+    });
+
+    it('should allow moderator to set grants of unregistered user, but not registered users', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.MODERATOR);
+
+      // setup
+      room.permissions[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+
+      // test
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "playback")).toBe(false);
+      expect(permissions.granted(room.permissions, ROLES.REGISTERED_USER, "playback")).toBe(true);
+    });
   });
 });
 

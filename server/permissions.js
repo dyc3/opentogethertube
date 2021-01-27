@@ -184,4 +184,12 @@ module.exports = {
 			throw new PermissionDeniedException(permission);
 		}
 	},
+
+	/**
+	 * Get a mask of permissions that are allowed for the given role, based on stuff like minRole.
+	 * @param {Number} role
+	 */
+	getValidationMask(role) {
+		return PERMISSIONS.filter(p => role >= p.minRole).map(p => p.mask).reduce((full, mask) => full | mask);
+	},
 };

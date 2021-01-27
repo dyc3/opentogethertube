@@ -850,16 +850,29 @@ class Room {
 			[ROLES.UNREGISTERED_USER]: "configure-room.set-permissions.for-all-unregistered-users",
 		};
 		grants = _.pickBy(grants, (value, key) => Object.prototype.hasOwnProperty.call(rolePerms, key));
-		// FIXME: permissions need to be validated before applying them.
+		// permissions need to be validated before applying them.
 		this.log.info(`${ROLE_DISPLAY_NAMES[role]} (${role}) is attempting to set grants: ${JSON.stringify(grants)}`);
+		// filter out grants that the user doesn't have permissions for
+		grants = _.pickBy(grants, (value, key) => permissions.granted(this.permissions, role, rolePerms[key]));
+		// filter out invalid grants based on minRole
 		for (let r in grants) {
-			if (permissions.granted(this.permissions, role, rolePerms[r])) {
-				this.permissions[r] = grants[r];
-				this.log.info(`New grants applied for: ${ROLE_DISPLAY_NAMES[r]} (${r})`);
+			let validation = permissions.getValidationMask(r);
+			grants[r] &= validation;
+		}
+
+		// allow setting grants for above roles (even if we don't have permissions), but only for grants that we are turning off
+		for (let r in grants) {
+			if (r < 0 || r >= 4) {
+				continue;
 			}
-			else {
-				this.log.error(`Unable to apply new grants for ${ROLE_DISPLAY_NAMES[r]} (${r}): permission denied`);
-			}
+			// grants that are being disabled
+			let offmask = (this.permissions[r] ^ grants[r]) & this.permissions[r];
+			grants[parseInt(r)+1] = this.permissions[parseInt(r)+1] | offmask;
+		}
+
+		for (let r in grants) {
+			this.permissions[r] = grants[r];
+			this.log.info(`New grants applied for: ${ROLE_DISPLAY_NAMES[r]} (${r})`);
 		}
 		this._dirtyProps.push("grants");
 	}
