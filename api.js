@@ -36,7 +36,7 @@ function handleGetRoomFailure(res, err) {
 		});
 	}
 	else {
-		log.error("Unhandled exception when getting room:", err);
+		log.error(`Unhandled exception when getting room: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
 			error: "Failed to get room",
@@ -55,7 +55,7 @@ function handlePostVideoFailure(res, err) {
 		});
 	}
 	else {
-		log.error(`Unhandled exception when getting video: ${err}`);
+		log.error(`Unhandled exception when getting video: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
 			error: "Failed to get video",
