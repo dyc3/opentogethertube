@@ -464,15 +464,74 @@ describe("Room API", () => {
 		it("should add the video to the queue", async () => {
 			await roommanager.createRoom("test1", true);
 
-			let req = request(app);
-
-			await req
+			await request(app)
 				.post("/api/room/test1/queue")
 				.send({ service: "direct", id: "https://example.com/test.mp4" })
 				.expect("Content-Type", /json/)
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should add the video to the queue by url", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ url: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should add many videos to the queue", async () => {
+			let videos = [
+				{ service: "youtube", id: "fake1" },
+				{ service: "youtube", id: "fake2" },
+			];
+			let getManyVideoInfoSpy = jest.spyOn(InfoExtract, 'getManyVideoInfo').mockResolvedValue(videos);
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({
+					videos,
+				})
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			getManyVideoInfoSpy.mockRestore();
+		});
+
+		it("should fail when the room is not there", async () => {
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(404)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Room not found");
+				});
+		});
+
+		it("should fail when invalid paramenters are given", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Invalid parameters");
 				});
 		});
 
