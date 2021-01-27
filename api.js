@@ -35,6 +35,15 @@ function handleGetRoomFailure(res, err) {
 			error: "Room not found",
 		});
 	}
+	else if (err.name === "PermissionDeniedException") {
+		res.status(400).json({
+			success: false,
+			error: {
+				name: err.name,
+				message: err.message,
+			},
+		});
+	}
 	else {
 		log.error(`Unhandled exception when getting room: ${err} ${err.stack}`);
 		res.status(500).json({
