@@ -377,8 +377,7 @@ class Room {
 		// remove the item from the queue
 		let removed = this.queue.splice(matchIdx, 1)[0];
 		this._dirtyProps.push("queue");
-		if (session) {
-			let client = _.find(this.clients, { session: { id: session.id } });
+		if (session && client) {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
 		}
 		else {
