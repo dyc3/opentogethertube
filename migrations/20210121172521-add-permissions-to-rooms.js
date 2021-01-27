@@ -31,6 +31,7 @@ module.exports = {
 		}
 	},
 
+	// eslint-disable-next-line no-unused-vars
 	down: async (queryInterface, Sequelize) => {
 		await queryInterface.removeColumn('Rooms', 'permissions');
 		for (const role of Object.values(ROLES)) {
