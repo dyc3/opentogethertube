@@ -23,6 +23,14 @@ describe('Permission System', () => {
 		expect(permissions.granted(grants, 0, "chat")).toEqual(false);
 	});
 
+	it('should evaluate invalid permission as false', () => {
+		let grants = {
+			0: 1<<0 | 1<<1 | 1<<2,
+		};
+		expect(permissions.granted(grants, 0, null)).toEqual(false); // invalid because null
+		expect(permissions.granted(grants, 0, undefined)).toEqual(false); // invalid because undefined
+	});
+
 	it('should evaluate inherited permission grants accurately', () => {
 		let grants = {
 			0: 1<<0 | 1<<1 | 1<<2,

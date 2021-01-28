@@ -160,6 +160,9 @@ module.exports = {
 	 * Checks if the given role is granted the permission, given the grants.
 	 */
 	granted(grants, role, permission) {
+		if (typeof permission !== "string") {
+			return false;
+		}
 		let fullmask = this.getFullGrantMask(grants, role);
 		let checkmask = this.parseIntoGrantMask([permission]);
 		let granted = (fullmask & checkmask) === checkmask;
