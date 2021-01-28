@@ -1162,6 +1162,8 @@ module.exports = {
 				visibility: result.visibility,
 				isTemporary: false,
 				owner: result.owner,
+				permissions: result.permissions,
+				userRoles: result.userRoles,
 			});
 			this.rooms.push(room);
 			return room;
