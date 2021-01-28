@@ -250,7 +250,7 @@ describe('Room manager: Room tests', () => {
   });
 
   describe("setGrants", () => {
-    it('should allow owner to set grants', async () => {
+    it('should allow owner to set grants to deny', async () => {
       let room = await roommanager.getLoadedRoom("test");
       jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
 
@@ -259,6 +259,17 @@ describe('Room manager: Room tests', () => {
       room.setGrants(grants, {});
       expect(room.getRole).toBeCalledTimes(1);
       expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "playback")).toBe(false);
+    });
+
+    it('should allow owner to set grants to allow', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
+
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.MODERATOR, "configure-room.set-permissions.for-all-unregistered-users")).toBe(true);
     });
 
     it('should now allow owner to set grants for permissions that have a higher minRole', async () => {

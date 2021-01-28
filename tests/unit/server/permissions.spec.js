@@ -54,5 +54,6 @@ describe('Permission System', () => {
 
 	it('should get correct validation mask', () => {
 		expect(permissions.getValidationMask(0)).toEqual(0b111111111111);
+		expect(permissions.getValidationMask(3) & (1<<13 | 1<<14 | 1<<15)).toEqual(1<<13 | 1<<14 | 1<<15);
 	});
 });

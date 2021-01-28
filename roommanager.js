@@ -865,6 +865,9 @@ class Room {
 			if (r < 0 || r >= 4) {
 				continue;
 			}
+			if (grants[parseInt(r)+1]) {
+				continue;
+			}
 			// grants that are being disabled
 			let offmask = (this.permissions[r] ^ grants[r]) & this.permissions[r];
 			grants[parseInt(r)+1] = this.permissions[parseInt(r)+1] | offmask;
