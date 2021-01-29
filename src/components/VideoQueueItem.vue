@@ -22,8 +22,9 @@
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" :disabled="hasBeenAdded" v-if="isPreview" @click="addToQueue">
-					<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
+				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
+					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
+					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
 				<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
@@ -88,12 +89,13 @@ export default {
 			try {
 				let resp = await API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData());
 				this.hasError = !resp.data.success;
+				this.hasBeenAdded = true;
 			}
 			catch (e) {
 				this.hasError = true;
+				this.$events.emit("onRoomError", e.response.data.error.message);
 			}
 			this.isLoadingAdd = false;
-			this.hasBeenAdded = true;
 		},
 		async removeFromQueue() {
 			this.isLoadingAdd = true;
@@ -105,6 +107,7 @@ export default {
 			}
 			catch (e) {
 				this.hasError = true;
+				this.$events.emit("onRoomError", e.response.data.error.message);
 			}
 			this.isLoadingAdd = false;
 		},
@@ -124,6 +127,7 @@ export default {
 			}
 			catch (e) {
 				this.hasError = true;
+				this.$events.emit("onRoomError", e.response.data.error.message);
 			}
 			this.isLoadingVote = false;
 
