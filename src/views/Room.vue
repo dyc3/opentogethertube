@@ -350,7 +350,14 @@ export default {
     /** Take room settings from the UI and submit them to the server. */
     async submitRoomSettings() {
       this.isLoadingRoomSettings = true;
-      await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
+      try {
+        await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
+        this.$events.emit("notify_onSuccess", { message: `Settings applied` });
+      }
+      catch (e) {
+        console.log(e);
+        this.$events.emit("notify_onError", { message: e.response.data.error.message });
+      }
       this.isLoadingRoomSettings = false;
     },
     async claimOwnership() {
@@ -359,9 +366,11 @@ export default {
         await API.patch(`/room/${this.$route.params.roomId}`, {
           claim: true,
         });
+        this.$events.emit("notify_onSuccess", { message: `You now own the room ${this.$route.params.roomId}` });
       }
-      catch (error) {
-        console.log(error);
+      catch (e) {
+        console.log(e);
+        this.$events.emit("notify_onError", { message: e.response.data.error.message });
       }
       this.isLoadingRoomSettings = false;
     },
