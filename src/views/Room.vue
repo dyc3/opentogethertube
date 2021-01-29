@@ -119,9 +119,11 @@
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" />
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" />
                     <PermissionsEditor v-model="inputRoomSettings.permissions" :current-role="4" />
-                    <v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
+                    <div class="submit">
+                      <v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
+                      <v-btn large block color="blue" v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
+                    </div>
                   </v-form>
-                  <v-btn large block color="blue" v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -785,5 +787,11 @@ export default {
     opacity: 0.5;
     font-size: 20px;
   }
+}
+
+.room-settings .submit {
+  position: -webkit-sticky;
+  position: sticky;
+  bottom: 20px;
 }
 </style>
