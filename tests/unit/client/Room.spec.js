@@ -43,7 +43,7 @@ function createStore() {
         queue: [],
         isPlaying: false,
         playbackPosition: 0,
-        grants: 0b11111111111111111111111111111111,
+        grants: 0b1111111111111111111111111111111111111111,
         users: [],
         events: [],
       },
@@ -306,5 +306,27 @@ describe('Room UI spec', () => {
       wrapper.vm.switchToAddTab();
       expect(wrapper.vm.queueTab).toEqual(1);
     });
+  });
+
+  it('should only send room settings that the client has permissions for', async () => {
+    await wrapper.setData({
+      inputRoomSettings: {
+        title: "room title",
+        description: "room description",
+        visibility: "public",
+        queueMode: "vote",
+        permissions: { 0: 1 },
+      },
+    });
+    let settings = wrapper.vm.getRoomSettingsSubmit();
+    expect(Object.keys(settings)).toEqual([
+      "title", "description", "visibility", "queueMode", "permissions",
+    ]);
+
+    wrapper.vm.$store.state.room.grants = 1<<8 | 1<<9;
+    settings = wrapper.vm.getRoomSettingsSubmit();
+    expect(Object.keys(settings)).toEqual([
+      "title", "description", "permissions",
+    ]);
   });
 });

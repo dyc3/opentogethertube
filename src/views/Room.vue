@@ -114,10 +114,10 @@
               <v-tab-item>
                 <div class="room-settings" style="margin: 12px">
                   <v-form @submit="submitRoomSettings">
-                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" />
-                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" />
-                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" />
-                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" />
+                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-title')" />
+                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-description')" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-visibility')" />
+                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-queue-mode')" />
                     <PermissionsEditor v-model="inputRoomSettings.permissions" :current-role="4" />
                     <div class="submit">
                       <v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
@@ -350,7 +350,7 @@ export default {
     /** Take room settings from the UI and submit them to the server. */
     async submitRoomSettings() {
       this.isLoadingRoomSettings = true;
-      await API.patch(`/room/${this.$route.params.roomId}`, this.inputRoomSettings);
+      await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
       this.isLoadingRoomSettings = false;
     },
     async claimOwnership() {
@@ -582,6 +582,21 @@ export default {
     },
     switchToAddTab() {
       this.queueTab = 1;
+    },
+    getRoomSettingsSubmit() {
+      const propsToGrants = {
+        title: "set-title",
+        description: "set-description",
+        visibility: "set-visibility",
+        queueMode: "set-queue-mode",
+      };
+      let blocked = [];
+      for (let prop of Object.keys(propsToGrants)) {
+        if (!this.granted(`configure-room.${propsToGrants[prop]}`)) {
+          blocked.push(prop);
+        }
+      }
+      return _.omit(this.inputRoomSettings, blocked);
     },
   },
   mounted() {
