@@ -15,7 +15,7 @@
 				<tr v-for="item in permissions" :key="item.name">
 					<td>{{ item.name }}</td>
 					<td v-for="r in 5" :key="r">
-						<v-checkbox v-if="r-1 >= item.minRole && currentRole > r-1" v-model="item[r-1]" :disabled="getLowestGranted(item) < r-1" />
+						<v-checkbox v-if="r-1 >= item.minRole && (currentRole > r-1 || currentRole < 0) && r-1 < 4 && granted(rolePerms[r-1])" v-model="item[r-1]" :disabled="getLowestGranted(item) < r-1" />
 						<v-checkbox v-else v-model="item[r-1]" :disabled="true" />
 					</td>
 				</tr>
@@ -51,6 +51,16 @@ export default {
 		await this.$store.dispatch("updatePermissionsMetadata");
 		this.isLoading = false;
 		this.permissions = this.extractFromGrants(this.value);
+	},
+	computed: {
+		rolePerms() {
+			return {
+				3: "configure-room.set-permissions.for-moderator",
+				2: "configure-room.set-permissions.for-trusted-users",
+				1: "configure-room.set-permissions.for-all-registered-users",
+				0: "configure-room.set-permissions.for-all-unregistered-users",
+			};
+		},
 	},
 	methods: {
 		/**

@@ -118,10 +118,22 @@
                     <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-description')" />
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-visibility')" />
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-queue-mode')" />
-                    <PermissionsEditor v-model="inputRoomSettings.permissions" :current-role="4" />
+                    <PermissionsEditor v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner" v-model="inputRoomSettings.permissions" :current-role="$store.state.yourRole" />
+                    <div v-else-if="$store.state.room.isTemporary">
+                      Permissions are not available in temporary rooms.
+                    </div>
+                    <div v-else-if="!$store.state.room.hasOwner">
+                      This room needs an owner before permissions can be modified.
+                      <span v-if="!$store.state.user">
+                        Log in to claim this room.
+                      </span>
+                    </div>
+                    <div v-else>
+                      You aren't able to modify permissions in this room.
+                    </div>
                     <div class="submit">
+                      <v-btn large block color="blue" v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner" :disabled="!$store.state.user" role="submit" @click="claimOwnership">Claim Room</v-btn>
                       <v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
-                      <v-btn large block color="blue" v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
                     </div>
                   </v-form>
                 </div>
@@ -817,5 +829,9 @@ export default {
   position: -webkit-sticky;
   position: sticky;
   bottom: 20px;
+
+  .v-btn {
+    margin: 10px 0;
+  }
 }
 </style>

@@ -23,6 +23,8 @@ export default new Vuex.Store({
 		username: null,
 		/** Registered user */
 		user: null,
+		/** Current user's role */
+		yourRole: 0,
 		room: {
 			name: "",
 			title: "",
@@ -149,7 +151,9 @@ export default new Vuex.Store({
 			this.state.room = Object.assign({}, this.state.room, message);
 
 			if (!this.user) {
-				this.state.username = _.find(this.state.room.users, { isYou: true }).name;
+				let you = _.find(this.state.room.users, { isYou: true });
+				this.state.username = you.name;
+				this.state.yourRole = you.role;
 			}
 
 			Vue.prototype.$events.emit('onSync');
