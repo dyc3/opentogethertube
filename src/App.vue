@@ -82,10 +82,8 @@
         </v-row>
       </v-container>
     </v-overlay>
-    <v-snackbar app left color="red" v-model="roomError.active">
-      <v-icon>fas fa-exclamation-circle</v-icon>
-      {{ roomError.message }}
-    </v-snackbar>
+    <Notifier event="Error" color="red" icon="fas fa-exclamation-circle" />
+    <Notifier event="Success" color="green" icon="fas fa-check" />
   </v-app>
 </template>
 
@@ -96,6 +94,7 @@ import LogInForm from "@/components/LogInForm.vue";
 import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 import NavUser from "@/components/navbar/NavUser.vue";
 import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
+import Notifier from "@/components/Notifier.vue";
 
 export default {
   name: "app",
@@ -104,6 +103,7 @@ export default {
     LogInForm,
     NavUser,
     NavCreateRoom,
+    Notifier,
   },
   mixins: [RoomUtilsMixin],
   data() {
@@ -113,10 +113,6 @@ export default {
       showCreateRoomForm: false,
       showLogin: false,
       drawer: false,
-      roomError: {
-        active: false,
-        message: "",
-      },
     };
   },
   methods: {
@@ -130,10 +126,6 @@ export default {
           this.$store.commit("LOGOUT");
         }
       });
-    },
-    onRoomError(message) {
-      this.roomError.message = message;
-      this.roomError.active = true;
     },
   },
   created() {
@@ -149,7 +141,6 @@ export default {
     });
 
     this.$events.on("onAnnouncement", this.onAnnouncement);
-    this.$events.on("onRoomError", this.onRoomError);
 
     // ask the server if we are logged in or not, and update the client to reflect that status.
     API.get("/user").then(res => {

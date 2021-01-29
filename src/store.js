@@ -176,7 +176,7 @@ export default new Vuex.Store({
 		},
 		error(context, message) {
 			console.log(`Server sent error: ${message.error}`);
-			Vue.prototype.$events.emit('onRoomError', message.error);
+			Vue.prototype.$events.emit('notify_onError', { message: message.error });
 		},
 		async updatePermissionsMetadata(context) {
 			if (context.state.permsMeta.loaded) {

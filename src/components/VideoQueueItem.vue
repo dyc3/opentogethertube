@@ -90,10 +90,11 @@ export default {
 				let resp = await API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData());
 				this.hasError = !resp.data.success;
 				this.hasBeenAdded = true;
+				this.$events.emit("notify_onSuccess", { message: "Video added to queue" });
 			}
 			catch (e) {
 				this.hasError = true;
-				this.$events.emit("onRoomError", e.response.data.error.message);
+				this.$events.emit("notify_onError", { message: e.response.data.error.message });
 			}
 			this.isLoadingAdd = false;
 		},
@@ -104,10 +105,11 @@ export default {
 					data: this.getPostData(),
 				});
 				this.hasError = !resp.data.success;
+				this.$events.emit("notify_onSuccess", { message: "Video removed from queue" });
 			}
 			catch (e) {
 				this.hasError = true;
-				this.$events.emit("onRoomError", e.response.data.error.message);
+				this.$events.emit("notify_onError", { message: e.response.data.error.message });
 			}
 			this.isLoadingAdd = false;
 		},
@@ -127,7 +129,7 @@ export default {
 			}
 			catch (e) {
 				this.hasError = true;
-				this.$events.emit("onRoomError", e.response.data.error.message);
+				this.$events.emit("notify_onError", { message: e.response.data.error.message });
 			}
 			this.isLoadingVote = false;
 
