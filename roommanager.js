@@ -827,6 +827,11 @@ class Room {
 			this.userRoles[role].push(client.user.id);
 		}
 		this._dirtyProps.push("users");
+		if (!this.isTemporary) {
+			storage.updateRoom(this).catch(err => {
+				log.error(`Failed to update room: ${err} ${err.stack}`);
+			});
+		}
 	}
 
 	/**
