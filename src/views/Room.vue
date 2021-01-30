@@ -114,10 +114,10 @@
               <v-tab-item>
                 <div class="room-settings" style="margin: 12px">
                   <v-form @submit="submitRoomSettings">
-                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-title')" />
-                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-description')" />
-                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-visibility')" />
-                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="granted('configure-room.set-queue-mode')" />
+                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-title')" />
+                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-description')" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-visibility')" />
+                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" />
                     <PermissionsEditor v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner" v-model="inputRoomSettings.permissions" :current-role="$store.state.yourRole" />
                     <div v-else-if="$store.state.room.isTemporary">
                       Permissions are not available in temporary rooms.
