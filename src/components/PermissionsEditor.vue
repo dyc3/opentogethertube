@@ -7,13 +7,13 @@
 		<v-simple-table dense :key="dirty" v-if="$store.state.permsMeta.loaded">
 			<thead>
 				<tr>
-					<th class="text-left">Permission</th>
-					<th class="text-left" v-for="i in 5" :key="i">{{ $store.state.permsMeta.roles[i-1] ? $store.state.permsMeta.roles[i-1].display : 0 }}</th>
+					<th class="text-left" scope="col">Permission</th>
+					<th class="text-left" scope="col" v-for="i in 5" :key="i">{{ $store.state.permsMeta.roles[i-1] ? $store.state.permsMeta.roles[i-1].display : 0 }}</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr v-for="item in permissions" :key="item.name">
-					<td>{{ item.name }}</td>
+					<th scope="row">{{ item.name }}</th>
 					<td v-for="r in 5" :key="r">
 						<v-checkbox v-if="r-1 >= item.minRole && (currentRole > r-1 || currentRole < 0) && r-1 < 4 && granted(rolePerms[r-1])" v-model="item[r-1]" :disabled="getLowestGranted(item) < r-1" />
 						<v-checkbox v-else v-model="item[r-1]" :disabled="true" />
