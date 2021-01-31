@@ -34,10 +34,6 @@ export default {
 					answer: "Maybe, it depends on demand. Add a github issue or upvote an existing one to express your interest.",
 				},
 				{
-					question: "I see a feature listed on the home page but it's not implemented.",
-					answer: "I'm working on it.",
-				},
-				{
 					question: "I want a permanent room with a custom URL.",
 					answer: "Create one by clicking the button in the top right corner.",
 				},

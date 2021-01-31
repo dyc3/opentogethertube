@@ -22,8 +22,9 @@
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" :disabled="hasBeenAdded" v-if="isPreview" @click="addToQueue">
-					<v-icon v-if="hasBeenAdded">fas fa-check</v-icon>
+				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
+					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
+					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
 				<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
@@ -83,37 +84,55 @@ export default {
 			console.log(data);
 			return data;
 		},
-		addToQueue() {
+		async addToQueue() {
 			this.isLoadingAdd = true;
-			API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData()).then(resp => {
+			try {
+				let resp = await API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData());
 				this.hasError = !resp.data.success;
-				this.isLoadingAdd = false;
 				this.hasBeenAdded = true;
-			});
+				this.$events.emit("notify_onSuccess", { message: "Video added to queue" });
+			}
+			catch (e) {
+				this.hasError = true;
+				this.$events.emit("notify_onError", { message: e.response.data.error.message });
+			}
+			this.isLoadingAdd = false;
 		},
-		removeFromQueue() {
+		async removeFromQueue() {
 			this.isLoadingAdd = true;
-			API.delete(`/room/${this.$route.params.roomId}/queue`, {
-				data: this.getPostData(),
-			}).then(resp => {
+			try {
+				let resp = await API.delete(`/room/${this.$route.params.roomId}/queue`, {
+					data: this.getPostData(),
+				});
 				this.hasError = !resp.data.success;
-				this.isLoadingAdd = false;
-			});
+				this.$events.emit("notify_onSuccess", { message: "Video removed from queue" });
+			}
+			catch (e) {
+				this.hasError = true;
+				this.$events.emit("notify_onError", { message: e.response.data.error.message });
+			}
+			this.isLoadingAdd = false;
 		},
-		vote() {
+		async vote() {
 			this.isLoadingVote = true;
-			if (!this.item.voted) {
-				API.post(`/room/${this.$route.params.roomId}/vote`, this.getPostData()).then(() => {
-					this.isLoadingVote = false;
+			try {
+				let resp;
+				if (!this.item.voted) {
+					resp = await API.post(`/room/${this.$route.params.roomId}/vote`, this.getPostData());
 					this.item.voted = true;
-				});
-			}
-			else {
-				API.delete(`/room/${this.$route.params.roomId}/vote`, { data: this.getPostData() }).then(() => {
-					this.isLoadingVote = false;
+				}
+				else {
+					resp = await API.delete(`/room/${this.$route.params.roomId}/vote`, { data: this.getPostData() });
 					this.item.voted = false;
-				});
+				}
+				this.hasError = !resp.data.success;
 			}
+			catch (e) {
+				this.hasError = true;
+				this.$events.emit("notify_onError", { message: e.response.data.error.message });
+			}
+			this.isLoadingVote = false;
+
 		},
 		onThumbnailError() {
 			this.thumbnailHasError = true;

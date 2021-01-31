@@ -68,7 +68,7 @@
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Room Permissions (WIP)</v-card-title>
+								<v-card-title>Room Permissions</v-card-title>
 								<v-card-text>
 									Tired of random goofballs joining your room and
 									adding lots of loud videos to your chill lofi hip-hop

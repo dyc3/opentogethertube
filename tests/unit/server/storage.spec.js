@@ -2,41 +2,42 @@ const _ = require("lodash");
 const { CachedVideo } = require("../../../models");
 const storage = require("../../../storage");
 const { Room } = require("../../../models");
+const permissions = require("../../../server/permissions.js");
 
 describe('Storage: Room Spec', () => {
   beforeEach(async () => {
     await Room.destroy({ where: {} });
   });
 
-  it('should return room object without extra properties', async done => {
+  it('should return room object without extra properties', async () => {
     await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" });
 
-    storage.getRoomByName("example").then(room => {
-      expect(room).not.toBeNull();
-      expect(room).toBeDefined();
-      expect(typeof room).toEqual("object");
-      expect(room).not.toBeInstanceOf(Room);
-      expect(room.id).toBeUndefined();
-      expect(room.createdAt).toBeUndefined();
-      expect(room.updatedAt).toBeUndefined();
-      expect(room.name).toBeDefined();
-      expect(room.name).toEqual("example");
-      expect(room.title).toBeDefined();
-      expect(room.title).toEqual("Example Room");
-      expect(room.description).toBeDefined();
-      expect(room.description).toEqual("This is an example room.");
-      expect(room.visibility).toEqual("public");
-      done();
-    }).catch(err => {
-      done.fail(err);
+    let room = await storage.getRoomByName("example");
+    expect(room).not.toBeNull();
+    expect(room).toBeDefined();
+    expect(typeof room).toEqual("object");
+    expect(room).not.toBeInstanceOf(Room);
+    expect(room.id).toBeUndefined();
+    expect(room.createdAt).toBeUndefined();
+    expect(room.updatedAt).toBeUndefined();
+    expect(_.pick(room, "name", "title", "description", "visibility", "owner")).toEqual({
+      name: "example",
+      title: "Example Room",
+      description: "This is an example room.",
+      visibility: "public",
+      owner: null,
     });
+    expect(room.permissions).toBeDefined();
+    expect(typeof room.permissions).toEqual("object");
+    expect(room.userRoles).toBeDefined();
+    expect(typeof room.userRoles).toEqual("object");
   });
 
   it('should return room object from room name, case insensitive', async () => {
     await storage.saveRoom({ name: "CapitalizedExampleRoom", title: "Example Room", description: "This is an example room.", visibility: "public" });
 
     let room = await storage.getRoomByName("capitalizedexampleroom");
-    expect(room).toEqual({
+    expect(_.pick(room, "name", "title", "description", "visibility", "owner")).toEqual({
       name: "CapitalizedExampleRoom",
       title: "Example Room",
       description: "This is an example room.",
@@ -109,6 +110,45 @@ describe('Storage: Room Spec', () => {
     await storage.saveRoom({ name: "Example" });
     expect(await storage.isRoomNameTaken("example")).toBe(true);
     expect(await storage.isRoomNameTaken("exAMple")).toBe(true);
+  });
+
+  it('should save and load permissions correctly', async () => {
+    let perms = permissions.defaultPermissions();
+    perms[0] ^= permissions.parseIntoGrantMask("playback");
+    await storage.saveRoom({ name: "example", permissions: perms });
+
+    let room = await storage.getRoomByName("example");
+    expect(room.permissions).toEqual(perms);
+
+    perms[0] ^= permissions.parseIntoGrantMask("manage-queue");
+    await storage.updateRoom({ name: "example", permissions: perms });
+
+    room = await storage.getRoomByName("example");
+    expect(room.permissions).toEqual(perms);
+  });
+
+  it('should save and load userRoles correctly', async () => {
+    let userRoles = {
+      // eslint-disable-next-line array-bracket-newline
+      2: [1, 2, 3],
+      3: [4],
+      4: [8, 9],
+    };
+    await storage.saveRoom({ name: "example", userRoles });
+
+    let room = await storage.getRoomByName("example");
+    expect(room.userRoles).toEqual(userRoles);
+
+    userRoles = {
+      // eslint-disable-next-line array-bracket-newline
+      2: [1, 3],
+      3: [4, 7],
+      4: [8],
+    };
+    await storage.updateRoom({ name: "example", userRoles });
+
+    room = await storage.getRoomByName("example");
+    expect(room.userRoles).toEqual(userRoles);
   });
 });
 

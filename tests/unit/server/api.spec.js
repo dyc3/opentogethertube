@@ -364,75 +364,93 @@ describe("Room API", () => {
 			});
 	});
 
-	it("PATCH /room/:name", async done => {
-		await roommanager.createRoom("test1", true);
+	describe("PATCH /room/:name", () => {
+		it("should modify permissions", async () => {
+			await roommanager.createRoom("test1", true);
 
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ title: "Test" })
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.success).toBe(true);
-			});
-
-		roommanager.unloadRoom("test1");
-
-		await roommanager.createRoom("test1", true);
-
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ visibility: "unlisted" })
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.success).toBe(true);
-			});
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ visibility: "invalid" })
-			.expect("Content-Type", /json/)
-			.expect(400)
-			.then(resp => {
-				expect(resp.body.success).toBe(false);
-			});
-
-		roommanager.unloadRoom("test1");
-
-		await roommanager.createRoom("test1", true);
-
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ queueMode: "vote" })
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.success).toBe(true);
-			});
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ queueMode: "invalid" })
-			.expect("Content-Type", /json/)
-			.expect(400)
-			.then(resp => {
-				expect(resp.body.success).toBe(false);
-			});
-
-		roommanager.unloadRoom("test1");
-
-		await request(app)
-			.patch("/api/room/test1")
-			.send({ title: "Test" })
-			.expect("Content-Type", /json/)
-			.expect(404)
-			.then(resp => {
-				expect(resp.body).toEqual({
-					success: false,
-					error: "Room not found",
+			await request(app)
+				.patch("/api/room/test1")
+				.send({
+					permissions: {
+						0: 0,
+					},
+				})
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
 				});
-			});
+		});
 
-		done();
+		// TODO: move into multiple tests
+		it("should work", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ title: "Test" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			roommanager.unloadRoom("test1");
+
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ visibility: "unlisted" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ visibility: "invalid" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+				});
+
+			roommanager.unloadRoom("test1");
+
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ queueMode: "vote" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ queueMode: "invalid" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+				});
+
+			roommanager.unloadRoom("test1");
+
+			await request(app)
+				.patch("/api/room/test1")
+				.send({ title: "Test" })
+				.expect("Content-Type", /json/)
+				.expect(404)
+				.then(resp => {
+					expect(resp.body).toEqual({
+						success: false,
+						error: "Room not found",
+					});
+				});
+		});
 	});
 
 	it("DELETE /room/:name", async done => {
@@ -458,6 +476,436 @@ describe("Room API", () => {
 			});
 
 		done();
+	});
+
+	describe("POST /room/:name/queue", () => {
+		it("should add the video to the queue", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should add the video to the queue by url", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ url: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should add many videos to the queue", async () => {
+			let videos = [
+				{ service: "youtube", id: "fake1" },
+				{ service: "youtube", id: "fake2" },
+			];
+			let getManyVideoInfoSpy = jest.spyOn(InfoExtract, 'getManyVideoInfo').mockResolvedValue(videos);
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({
+					videos,
+				})
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			getManyVideoInfoSpy.mockRestore();
+		});
+
+		it("should fail when the room is not there", async () => {
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(404)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Room not found");
+				});
+		});
+
+		it("should fail when invalid paramenters are given", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Invalid parameters");
+				});
+		});
+
+		it("should fail with PermissionDeniedException", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.permissions[0] = 0;
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual({
+						name: "PermissionDeniedException",
+						message: "Permission denied: manage-queue.add",
+					});
+				});
+		});
+
+		it("should fail when something unexpected happens", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			jest.spyOn(room, 'addToQueue').mockRejectedValue(new Error("fake unknown error"));
+
+			await request(app)
+				.post("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(500)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Failed to get video");
+				});
+		});
+	});
+
+	describe("DELETE /room/:name/queue", () => {
+		it("should remove video from the queue", async () => {
+			await roommanager.createRoom("test1", true);
+			let video = { service: "direct", id: "https://example.com/test.mp4" };
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queue = [video];
+
+			await request(app)
+				.delete("/api/room/test1/queue")
+				.send(video)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should remove video from the queue based on url", async () => {
+			await roommanager.createRoom("test1", true);
+			let video = { url: "https://example.com/test.mp4" };
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queue = [video];
+
+			await request(app)
+				.delete("/api/room/test1/queue")
+				.send(video)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should fail when the room is not there", async () => {
+			await request(app)
+				.delete("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(404)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Room not found");
+				});
+		});
+
+		it("should fail when invalid paramenters are given", async () => {
+			await roommanager.createRoom("test1", true);
+
+			await request(app)
+				.delete("/api/room/test1/queue")
+				.send({ service: "direct" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Invalid parameters");
+				});
+		});
+
+		it("should fail with PermissionDeniedException", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.permissions[0] = 0;
+
+			await request(app)
+				.delete("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual({
+						name: "PermissionDeniedException",
+						message: "Permission denied: manage-queue.remove",
+					});
+				});
+		});
+
+		it("should fail when something unexpected happens", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			jest.spyOn(room, 'removeFromQueue').mockImplementation(() => {
+				throw new Error("fake unknown error");
+			});
+
+			await request(app)
+				.delete("/api/room/test1/queue")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(500)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Failed to get video");
+				});
+		});
+	});
+
+	describe("POST /room/:name/vote", () => {
+		it("should add vote to video", async () => {
+			await roommanager.createRoom("test1", true);
+			let video = { service: "direct", id: "https://example.com/test.mp4" };
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+			room.queue = [video];
+
+			await request(app)
+				.post("/api/room/test1/vote")
+				.send(video)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should fail when the room is not there", async () => {
+			await request(app)
+				.post("/api/room/test1/vote")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(404)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Room not found");
+				});
+		});
+
+		it("should soft fail when not in vote mode", async () => {
+			// FIXME: this bahavior unintuitive, and should probably be changed.
+			await roommanager.createRoom("test1", true);
+			let video = { service: "direct", id: "https://example.com/test.mp4" };
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queue = [video];
+
+			await request(app)
+				.post("/api/room/test1/vote")
+				.send(video)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+				});
+		});
+
+		it("should fail when invalid paramenters are given", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+
+			await request(app)
+				.post("/api/room/test1/vote")
+				.send({ service: "direct" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Invalid parameters");
+				});
+		});
+
+		it("should fail with PermissionDeniedException", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+			room.permissions[0] = 0;
+
+			await request(app)
+				.post("/api/room/test1/vote")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual({
+						name: "PermissionDeniedException",
+						message: "Permission denied: manage-queue.vote",
+					});
+				});
+		});
+
+		it("should fail when something unexpected happens", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+			jest.spyOn(room, 'voteVideo').mockImplementation(() => {
+				throw new Error("fake unknown error");
+			});
+
+			await request(app)
+				.post("/api/room/test1/vote")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(500)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Failed to get room");
+				});
+		});
+	});
+
+	describe("DELETE /room/:name/vote", () => {
+		it("should remove video vote", async () => {
+			await roommanager.createRoom("test1", true);
+			let video = { service: "direct", id: "https://example.com/test.mp4" };
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+			room.queue = [video];
+
+			await request(app)
+				.delete("/api/room/test1/vote")
+				.send(video)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should fail when the room is not there", async () => {
+			await request(app)
+				.delete("/api/room/test1/vote")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(404)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Room not found");
+				});
+		});
+
+		it("should soft fail when not in vote mode", async () => {
+			// FIXME: this bahavior unintuitive, and should probably be changed.
+			await roommanager.createRoom("test1", true);
+			let video = { service: "direct", id: "https://example.com/test.mp4" };
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queue = [video];
+
+			await request(app)
+				.delete("/api/room/test1/vote")
+				.send(video)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+				});
+		});
+
+		it("should fail when invalid paramenters are given", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+
+			await request(app)
+				.delete("/api/room/test1/vote")
+				.send({ service: "direct" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Invalid parameters");
+				});
+		});
+
+		it("should fail with PermissionDeniedException", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+			room.permissions[0] = 0;
+
+			await request(app)
+				.delete("/api/room/test1/vote")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual({
+						name: "PermissionDeniedException",
+						message: "Permission denied: manage-queue.vote",
+					});
+				});
+		});
+
+		it("should fail when something unexpected happens", async () => {
+			await roommanager.createRoom("test1", true);
+
+			let room = await roommanager.getOrLoadRoom("test1");
+			room.queueMode = "vote";
+			jest.spyOn(room, 'removeVoteVideo').mockImplementation(() => {
+				throw new Error("fake unknown error");
+			});
+
+			await request(app)
+				.delete("/api/room/test1/vote")
+				.send({ service: "direct", id: "https://example.com/test.mp4" })
+				.expect("Content-Type", /json/)
+				.expect(500)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error).toEqual("Failed to get room");
+				});
+		});
 	});
 });
 
@@ -519,6 +967,19 @@ describe("Data API", () => {
 
 		resolveQuerySpy.mockRestore();
 		done();
+	});
+
+	describe("GET /api/data/permissions", () => {
+		it("should get available permissions and roles", async () => {
+			await request(app)
+				.get("/api/data/permissions")
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.roles).toHaveLength(6);
+					expect(resp.body.permissions).toBeDefined();
+				});
+		});
 	});
 });
 

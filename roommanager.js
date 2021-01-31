@@ -8,6 +8,10 @@ const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
 const { redisClient } = require('./redisclient.js');
+const permissions = require("./server/permissions.js");
+const { ROLES, ROLE_DISPLAY_NAMES } = permissions;
+const { ImpossiblePromotionException, PermissionDeniedException } = require('./server/exceptions.js');
+const { ROLE_NAMES } = require('./server/permissions.js');
 
 const log = getLogger("roommanager");
 
@@ -44,6 +48,12 @@ class Room {
 		this.keepAlivePing = null;
 		this.owner = null;
 		this.playbackStartTime = null;
+		this.permissions = permissions.defaultPermissions();
+		this.userRoles = {
+			[ROLES.ADMINISTRATOR]: [],
+			[ROLES.MODERATOR]: [],
+			[ROLES.TRUSTED_USER]: [],
+		};
 		if (args) {
 			Object.assign(this, args);
 		}
@@ -195,6 +205,16 @@ class Room {
 	 * @param {Video|Object} video The video to add. Should contain either a `url` property, or `service` and `id` properties.
 	 */
 	addToQueue(video, session=null) {
+		let client, role;
+		if (session) {
+			client = _.find(this.clients, { session: { id: session.id } });
+			role = this.getRole(client);
+		}
+		else {
+			role = ROLES.UNREGISTERED_USER;
+		}
+		permissions.check(this.permissions, role, "manage-queue.add");
+
 		let queueItem = new Video();
 
 		if (Object.prototype.hasOwnProperty.call(video, "url")) {
@@ -210,7 +230,7 @@ class Room {
 		if (SUPPORTED_SERVICES.includes(queueItem.service)) {
 			if (_.find(this.queue, queueItem)) {
 				throw new VideoAlreadyQueuedException(queueItem.title);
-			} 
+			}
 			return InfoExtract.getVideoInfo(queueItem.service, queueItem.id).then(result => {
 				queueItem = result;
 			}).catch(err => {
@@ -222,8 +242,7 @@ class Room {
 				this.update();
 				this.sync();
 
-				if (session) {
-					let client = _.find(this.clients, { session: { id: session.id } });
+				if (session && client) {
 					this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, client.username, { video: queueItem }));
 
 					if (this.queueMode === "vote") {
@@ -242,6 +261,15 @@ class Room {
 	}
 
 	async addManyToQueue(videos, session=null) {
+		let client, role;
+		if (session) {
+			client = _.find(this.clients, { session: { id: session.id } });
+			role = this.getRole(client);
+		}
+		else {
+			role = ROLES.UNREGISTERED_USER;
+		}
+		permissions.check(this.permissions, role, "manage-queue.add");
 		videos = await InfoExtract.getManyVideoInfo(videos);
 
 		this.queue = [...this.queue, ...videos];
@@ -249,8 +277,7 @@ class Room {
 		this.update();
 		this.sync();
 
-		if (session) {
-			let client = _.find(this.clients, { session: { id: session.id } });
+		if (session && client) {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.ADD_TO_QUEUE, client.username, { count: videos.length }));
 		}
 
@@ -263,6 +290,15 @@ class Room {
 	 * @param {Object} session The user session that is voting for the video
 	 */
 	voteVideo(video, session) {
+		let client, role;
+		if (session) {
+			client = _.find(this.clients, { session: { id: session.id } });
+			role = this.getRole(client);
+		}
+		else {
+			role = ROLES.UNREGISTERED_USER;
+		}
+		permissions.check(this.permissions, role, "manage-queue.vote");
 		if (this.queueMode !== "vote") {
 			this.log.error("Room not in voting mode");
 			return false;
@@ -297,6 +333,15 @@ class Room {
 	 * @param {Object} session The user session that is voting for the video
 	 */
 	removeVoteVideo(video, session) {
+		let client, role;
+		if (session) {
+			client = _.find(this.clients, { session: { id: session.id } });
+			role = this.getRole(client);
+		}
+		else {
+			role = ROLES.UNREGISTERED_USER;
+		}
+		permissions.check(this.permissions, role, "manage-queue.vote");
 		if (this.queueMode !== "vote") {
 			this.log.error("Room not in voting mode");
 			return false;
@@ -315,6 +360,15 @@ class Room {
 	}
 
 	removeFromQueue(video, session=null) {
+		let client, role;
+		if (session) {
+			client = _.find(this.clients, { session: { id: session.id } });
+			role = this.getRole(client);
+		}
+		else {
+			role = ROLES.UNREGISTERED_USER;
+		}
+		permissions.check(this.permissions, role, "manage-queue.remove");
 		let matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id) || (item.url && video.url && item.url === video.url));
 		if (matchIdx < 0) {
 			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
@@ -323,8 +377,7 @@ class Room {
 		// remove the item from the queue
 		let removed = this.queue.splice(matchIdx, 1)[0];
 		this._dirtyProps.push("queue");
-		if (session) {
-			let client = _.find(this.clients, { session: { id: session.id } });
+		if (session && client) {
 			this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
 		}
 		else {
@@ -440,8 +493,11 @@ class Room {
 					isYou: client.socket === c.socket,
 					status: c.status,
 					isLoggedIn: c.isLoggedIn,
+					role: this.getRole(c),
 				};
 			});
+
+			syncMsg.grants = permissions.getFullGrantMask(this.permissions, this.getRole(client));
 
 			// include if the user has voted
 			if (this.queueMode === "vote") {
@@ -580,8 +636,27 @@ class Room {
 		}
 		this.clients.push(client);
 		this._dirtyProps.push("users");
-		ws.on('message', (message) => {
-			this.onMessageReceived(client, JSON.parse(message));
+		ws.on('message', message => {
+			try {
+				this.onMessageReceived(client, JSON.parse(message));
+			}
+			catch (e) {
+				if (e.name === "PermissionDeniedException") {
+					this.log.error(`${client.username}: error: ${e.message}`);
+					try {
+						client.socket.send(JSON.stringify({
+							action: "error",
+							error: e.message,
+						}));
+					}
+					catch (error) {
+						this.log.error(`Failed to send error to client: ${error.message}`);
+					}
+				}
+				else {
+					this.log.error(`Failed to process message: ${message}: ${e.message}`);
+				}
+			}
 		});
 		this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.JOIN_ROOM, client.username, {}));
 	}
@@ -592,6 +667,20 @@ class Room {
 	 * @param {Object} message The message that the client sent as a object. Should always have an `action` attribute.
 	 */
 	onMessageReceived(client, msg) {
+		const actionToPerm = {
+			"play": "playback.play-pause",
+			"pause": "playback.play-pause",
+			"seek": "playback.seek",
+			"skip": "playback.skip",
+			"chat": "chat",
+			"queue-move": "manage-queue.order",
+		};
+
+		let role = this.getRole(client);
+		if (actionToPerm[msg.action]) {
+			permissions.check(this.permissions, role, actionToPerm[msg.action]);
+		}
+
 		if (msg.action === "play") {
 			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
 		}
@@ -653,9 +742,147 @@ class Room {
 			this.log.warn("Client requested to be kicked");
 			client.socket.close();
 		}
+		else if (msg.action === "set-role") {
+			let perm;
+			switch (msg.role) {
+				case ROLES.ADMINISTRATOR:
+					perm = "manage-users.promote-admin";
+					break;
+				case ROLES.MODERATOR:
+					perm = "manage-users.promote-moderator";
+					break;
+				case ROLES.TRUSTED_USER:
+					perm = "manage-users.promote-trusted-user";
+					break;
+				default:
+					break;
+			}
+			permissions.check(this.permissions, role, perm);
+			let targetClient = _.find(this.clients, { username: msg.username });
+			let targetRole = this.getRole(targetClient);
+			if (msg.role < targetRole) {
+				let demotePerm;
+				switch (targetRole) {
+					case ROLES.ADMINISTRATOR:
+						demotePerm = "manage-users.demote-admin";
+						break;
+					case ROLES.MODERATOR:
+						demotePerm = "manage-users.demote-moderator";
+						break;
+					case ROLES.TRUSTED_USER:
+						demotePerm = "manage-users.demote-trusted-user";
+						break;
+					default:
+						log.error(`Can't demote ${ROLE_NAMES[targetRole]}`);
+						throw new PermissionDeniedException();
+				}
+				permissions.check(this.permissions, role, demotePerm);
+			}
+			this.promoteTo(targetClient, msg.role);
+		}
 		else {
 			log.warn(`[ws] UNKNOWN ACTION ${msg.action}`);
 		}
+	}
+
+	getRole(client) {
+		if (client && client.user) {
+			if (this.isOwner(client)) {
+				return ROLES.OWNER;
+			}
+			for (let i = ROLES.ADMINISTRATOR; i >= ROLES.TRUSTED_USER; i--) {
+				let set = new Set(this.userRoles[i]);
+				if (set.has(client.user.id)) {
+					return i;
+				}
+			}
+			return ROLES.REGISTERED_USER;
+		}
+		else {
+			return ROLES.UNREGISTERED_USER;
+		}
+	}
+
+	isOwner(client) {
+		return client.user && this.owner && client.user.id === this.owner.id;
+	}
+
+	/**
+	 * Sets the role of a given client. Can be used to promote or demote. The client must be a registered user.
+	 * @param {Client} client
+	 * @param {Number} role
+	 */
+	promoteTo(client, role) {
+		if (!client.user) {
+			throw new ImpossiblePromotionException();
+		}
+		for (let i = ROLES.ADMINISTRATOR; i >= ROLES.TRUSTED_USER; i--) {
+			let set = new Set(this.userRoles[i]);
+			if (set.has(client.user.id)) {
+				set.delete(client.user.id);
+			}
+			this.userRoles[i] = Array.from(set);
+		}
+		if (role >= ROLES.TRUSTED_USER) {
+			this.userRoles[role].push(client.user.id);
+		}
+		this._dirtyProps.push("users");
+		if (!this.isTemporary) {
+			storage.updateRoom(this).catch(err => {
+				log.error(`Failed to update room: ${err} ${err.stack}`);
+			});
+		}
+	}
+
+	/**
+	 * Sets grant mask for a given role.
+	 * @param {Number} role
+	 * @param {Number} mask
+	 */
+	setGrants(grants, session) {
+		let client, role;
+		if (session) {
+			client = _.find(this.clients, { session: { id: session.id } });
+			role = this.getRole(client);
+		}
+		else {
+			role = ROLES.UNREGISTERED_USER;
+		}
+		const rolePerms = {
+			[ROLES.MODERATOR]: "configure-room.set-permissions.for-moderator",
+			[ROLES.TRUSTED_USER]: "configure-room.set-permissions.for-trusted-users",
+			[ROLES.REGISTERED_USER]: "configure-room.set-permissions.for-all-registered-users",
+			[ROLES.UNREGISTERED_USER]: "configure-room.set-permissions.for-all-unregistered-users",
+		};
+		grants = _.pickBy(grants, (value, key) => Object.prototype.hasOwnProperty.call(rolePerms, key));
+		// permissions need to be validated before applying them.
+		this.log.info(`${ROLE_DISPLAY_NAMES[role]} (${role}) is attempting to set grants: ${JSON.stringify(grants)}`);
+		// filter out grants that the user doesn't have permissions for
+		grants = _.pickBy(grants, (value, key) => permissions.granted(this.permissions, role, rolePerms[key]));
+		// filter out invalid grants based on minRole
+		for (let r in grants) {
+			let validation = permissions.getValidationMask(r);
+			grants[r] &= validation;
+		}
+
+		// allow setting grants for above roles (even if we don't have permissions), but only for grants that we are turning off
+		for (let r in grants) {
+			if (r < 0 || r >= 4) {
+				continue;
+			}
+			if (grants[parseInt(r)+1]) {
+				continue;
+			}
+			// grants that are being disabled
+			let offmask = (this.permissions[r] ^ grants[r]) & this.permissions[r];
+			grants[parseInt(r)+1] = this.permissions[parseInt(r)+1] | offmask;
+		}
+
+		for (let r in grants) {
+			this.permissions[r] = grants[r];
+			this.log.info(`New grants applied for: ${ROLE_DISPLAY_NAMES[r]} (${r})`);
+		}
+		this._dirtyProps.push("grants");
 	}
 }
 
@@ -940,6 +1167,8 @@ module.exports = {
 				visibility: result.visibility,
 				isTemporary: false,
 				owner: result.owner,
+				permissions: result.permissions,
+				userRoles: result.userRoles,
 			});
 			this.rooms.push(room);
 			return room;

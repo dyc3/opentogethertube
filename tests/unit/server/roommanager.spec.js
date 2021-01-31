@@ -4,6 +4,8 @@ const storage = require("../../../storage");
 const moment = require("moment");
 const Video = require("../../../common/video.js");
 const { Room } = require("../../../models");
+const { ROLES } = require("../../../server/permissions.js");
+const permissions = require("../../../server/permissions.js");
 
 describe('Room manager: Room tests', () => {
   beforeEach(async done => {
@@ -240,6 +242,63 @@ describe('Room manager: Room tests', () => {
 
     room.sync.mockRestore();
   });
+
+  it('should get the correct role', async () => {
+    let room = await roommanager.getLoadedRoom("test");
+
+    expect(room.getRole({})).toEqual(ROLES.UNREGISTERED_USER);
+  });
+
+  describe("setGrants", () => {
+    it('should allow owner to set grants to deny', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
+
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "playback")).toBe(false);
+    });
+
+    it('should allow owner to set grants to allow', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
+
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.MODERATOR, "configure-room.set-permissions.for-all-unregistered-users")).toBe(true);
+    });
+
+    it('should now allow owner to set grants for permissions that have a higher minRole', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
+
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.UNREGISTERED_USER] |= permissions.parseIntoGrantMask(["manage-users.promote-moderator"]);
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "manage-users.promote-moderator")).toBe(false);
+    });
+
+    it('should allow moderator to set grants of unregistered user, but not registered users', async () => {
+      let room = await roommanager.getLoadedRoom("test");
+      jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.MODERATOR);
+
+      // setup
+      room.permissions[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+
+      // test
+      let grants = permissions.defaultPermissions();
+      grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+      room.setGrants(grants, {});
+      expect(room.getRole).toBeCalledTimes(1);
+      expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "playback")).toBe(false);
+      expect(permissions.granted(room.permissions, ROLES.REGISTERED_USER, "playback")).toBe(true);
+    });
+  });
 });
 
 describe('Room manager: Manager tests', () => {
@@ -277,21 +336,43 @@ describe('Room manager: Manager tests', () => {
     expect(storage.saveRoom).toBeCalled();
   });
 
-  it('should load the room from the database', done => {
+  it('should load the room from the database', async () => {
     jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({ name: "test", title: "Test Room", description: "This is a Test Room." });
     expect(roommanager.rooms.length).toEqual(0);
-    roommanager.loadRoom("test").then(room => {
-      expect(storage.getRoomByName).toBeCalled();
-      expect(room).toBeDefined();
-      expect(room.name).toBeDefined();
-      expect(room.name).toEqual("test");
-      expect(room.title).toBeDefined();
-      expect(room.title).toEqual("Test Room");
-      expect(room.description).toBeDefined();
-      expect(room.description).toEqual("This is a Test Room.");
-      expect(roommanager.rooms.length).toEqual(1);
-      done();
-    }).catch(err => done.fail(err));
+    let room = await roommanager.loadRoom("test");
+    expect(storage.getRoomByName).toBeCalled();
+    expect(room).toBeDefined();
+    expect(room.name).toBeDefined();
+    expect(room.name).toEqual("test");
+    expect(room.title).toBeDefined();
+    expect(room.title).toEqual("Test Room");
+    expect(room.description).toBeDefined();
+    expect(room.description).toEqual("This is a Test Room.");
+    expect(roommanager.rooms.length).toEqual(1);
+  });
+
+  it('should load the room from the database with permissions and userRoles', async () => {
+    let grants = permissions.defaultPermissions();
+    grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+    grants[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+    const userRoles = {
+      2: [1, 3],
+      3: [4, 7],
+      4: [8],
+    };
+    jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({
+      name: "test",
+      title: "Test Room",
+      description: "This is a Test Room.",
+      permissions: grants,
+      userRoles,
+    });
+    expect(roommanager.rooms.length).toEqual(0);
+    let room = await roommanager.loadRoom("test");
+    expect(storage.getRoomByName).toBeCalled();
+    expect(room.permissions).toEqual(grants);
+    expect(room.userRoles).toEqual(userRoles);
+    expect(roommanager.rooms.length).toEqual(1);
   });
 
   it('should unload the room from memory', done => {

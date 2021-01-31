@@ -19,8 +19,12 @@ export default new Vuex.Store({
 		},
 		joinFailureReason: null,
 		production: process.env.NODE_ENV === 'production',
+		/** Unregistered user's username  */
 		username: null,
+		/** Registered user */
 		user: null,
+		/** Current user's role */
+		yourRole: 0,
 		room: {
 			name: "",
 			title: "",
@@ -32,6 +36,7 @@ export default new Vuex.Store({
 			isPlaying: false,
 			playbackPosition: 0,
 			hasOwner: false,
+			grants: 0,
 			chatMessages: [],
 			events: [],
 		},
@@ -40,6 +45,12 @@ export default new Vuex.Store({
 		quickAdd: [],
 
 		keepAliveInterval: null,
+		/** Permissions metadata */
+		permsMeta: {
+			loaded: false,
+			roles: {},
+			permissions: [],
+		},
 	},
 	mutations:{
 		SOCKET_ONOPEN (state, event)  {
@@ -113,6 +124,13 @@ export default new Vuex.Store({
 		QUICKADD_CLEAR(state) {
 			state.quickAdd = [];
 		},
+		PERMISSIONS_METADATA(state, metadata) {
+			for (let role of metadata.roles) {
+				state.permsMeta.roles[role.id] = role;
+			}
+			state.permsMeta.permissions = metadata.permissions;
+			state.permsMeta.loaded = true;
+		},
 	},
 	actions: {
 		sendMessage(context, message) {
@@ -133,7 +151,9 @@ export default new Vuex.Store({
 			this.state.room = Object.assign({}, this.state.room, message);
 
 			if (!this.user) {
-				this.state.username = _.find(this.state.room.users, { isYou: true }).name;
+				let you = _.find(this.state.room.users, { isYou: true });
+				this.state.username = you.name;
+				this.state.yourRole = you.role;
 			}
 
 			Vue.prototype.$events.emit('onSync');
@@ -157,6 +177,18 @@ export default new Vuex.Store({
 		},
 		announcement(context, message) {
 			Vue.prototype.$events.emit('onAnnouncement', message.text);
+		},
+		error(context, message) {
+			console.log(`Server sent error: ${message.error}`);
+			Vue.prototype.$events.emit('notify_onError', { message: message.error });
+		},
+		async updatePermissionsMetadata(context) {
+			if (context.state.permsMeta.loaded) {
+				return;
+			}
+			let resp = await API.get("/data/permissions");
+			let meta = resp.data;
+			context.commit("PERMISSIONS_METADATA", meta);
 		},
 	},
 });

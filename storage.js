@@ -3,8 +3,56 @@ const moment = require("moment");
 const { Room, CachedVideo, User } = require("./models");
 const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
+const permissions = require("./server/permissions.js");
 
 const log = getLogger("storage");
+
+/**
+ * Converts a room into an object that can be stored in the database;
+ * @param {Room} room
+ */
+function roomToDb(room) {
+	let db = {
+		name: room.name,
+		title: room.title,
+		description: room.description,
+		visibility: room.visibility,
+		permissions: JSON.stringify(room.permissions),
+	};
+	if (room.owner) {
+		db.ownerId = room.owner.id;
+	}
+	if (room.userRoles) {
+		for (let i = 0; i <= 4; i++) {
+			if (i >= permissions.ROLES.TRUSTED_USER) {
+				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles[i]));
+			}
+		}
+	}
+	return db;
+}
+
+function dbToRoomArgs(db) {
+	let room = {
+		name: db.name,
+		title: db.title,
+		description: db.description,
+		visibility: db.visibility,
+		owner: db.owner,
+		permissions: permissions.defaultPermissions(),
+		userRoles: {},
+	};
+	let grants = JSON.parse(db.permissions);
+	for (let r in grants) {
+		room.permissions[parseInt(r)] = grants[r];
+	}
+	for (let i = 0; i <= 4; i++) {
+		if (i >= permissions.ROLES.TRUSTED_USER) {
+			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);
+		}
+	}
+	return room;
+}
 
 module.exports = {
 	getRoomByName(roomName) {
@@ -19,28 +67,14 @@ module.exports = {
 				log.debug(`Room ${roomName} does not exist in db.`);
 				return null;
 			}
-			return {
-				name: room.name,
-				title: room.title,
-				description: room.description,
-				visibility: room.visibility,
-				owner: room.owner,
-			};
+			return dbToRoomArgs(room);
 		}).catch(err => {
 			log.error(`Failed to get room by name: ${err}`);
 			throw err;
 		});
 	},
 	async saveRoom(room) {
-		let options = {
-			name: room.name,
-			title: room.title,
-			description: room.description,
-			visibility: room.visibility,
-		};
-		if (room.owner) {
-			options.ownerId = room.owner.id;
-		}
+		let options = roomToDb(room);
 		// HACK: search for the room to see if it exists
 		if (await this.isRoomNameTaken(options.name)) {
 			return false;
@@ -70,15 +104,8 @@ module.exports = {
 			if (!dbRoom) {
 				return false;
 			}
-			let options = {
-				name: room.name,
-				title: room.title,
-				description: room.description,
-				visibility: room.visibility,
-			};
-			if (room.owner) {
-				options.ownerId = room.owner.id;
-			}
+			let options = roomToDb(room);
+			log.debug(`updating room in database ${JSON.stringify(options)}`);
 			return dbRoom.update(options).then(() => true);
 		});
 	},

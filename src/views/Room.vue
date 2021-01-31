@@ -23,29 +23,35 @@
               />
             </v-responsive>
             <v-col class="video-controls">
-              <vue-slider id="videoSlider" v-model="sliderPosition" @change="sliderChange" :max="$store.state.room.currentSource.length" :tooltip-formatter="sliderTooltipFormatter" :disabled="currentSource.length == null"/>
+              <vue-slider
+                id="videoSlider"
+                v-model="sliderPosition"
+                @change="sliderChange"
+                :max="$store.state.room.currentSource.length"
+                :tooltip-formatter="sliderTooltipFormatter"
+                :disabled="currentSource.length == null || !granted('playback.seek')"/>
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
                       <v-icon>fas fa-angle-left</v-icon>
                     </v-btn>
                   </template>
                   <span>Rewind 10s</span>
                 </v-tooltip>
-                <v-btn @click="togglePlayback()">
+                <v-btn @click="togglePlayback()" :disabled="!granted('playback.play-pause')">
                   <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
                   <v-icon v-else>fas fa-play</v-icon>
                 </v-btn>
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on">
+                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
                       <v-icon>fas fa-angle-right</v-icon>
                     </v-btn>
                   </template>
                   <span>Skip 10s</span>
                 </v-tooltip>
-                <v-btn @click="roomSkip()">
+                <v-btn @click="roomSkip()" :disabled="!granted('playback.skip')">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
@@ -97,7 +103,7 @@
                       </v-row>
                     </v-container>
                   </div>
-                  <draggable v-model="$store.state.room.queue" @end="onQueueDragDrop" handle=".drag-handle">
+                  <draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
                     <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
                   </draggable>
                 </div>
@@ -106,15 +112,30 @@
                 <AddPreview />
               </v-tab-item>
               <v-tab-item>
-                <div class="room-settings">
+                <div class="room-settings" style="margin: 12px">
                   <v-form @submit="submitRoomSettings">
-                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" />
-                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" />
-                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" />
-                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" />
-                    <v-btn @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
+                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-title')" />
+                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-description')" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-visibility')" />
+                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" />
+                    <PermissionsEditor v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner" v-model="inputRoomSettings.permissions" :current-role="$store.state.yourRole" />
+                    <div v-else-if="$store.state.room.isTemporary">
+                      Permissions are not available in temporary rooms.
+                    </div>
+                    <div v-else-if="!$store.state.room.hasOwner">
+                      This room needs an owner before permissions can be modified.
+                      <span v-if="!$store.state.user">
+                        Log in to claim this room.
+                      </span>
+                    </div>
+                    <div v-else>
+                      You aren't able to modify permissions in this room.
+                    </div>
+                    <div class="submit">
+                      <v-btn large block color="blue" v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner" :disabled="!$store.state.user" role="submit" @click="claimOwnership">Claim Room</v-btn>
+                      <v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
+                    </div>
                   </v-form>
-                  <v-btn v-if="!$store.state.room.isTemporary && $store.state.user && !$store.state.room.hasOwner" role="submit" @click="claimOwnership">Claim Room</v-btn>
                 </div>
               </v-tab-item>
             </v-tabs-items>
@@ -142,27 +163,7 @@
                 </v-list-item>
               </v-card>
             </div>
-            <div class="user-list" v-if="$store.state.room.users">
-              <v-card>
-                <v-subheader>
-                  Users
-                  <v-btn icon x-small @click="openEditName"><v-icon>fas fa-cog</v-icon></v-btn>
-                </v-subheader>
-                <v-list-item v-if="showEditName">
-                  <v-text-field @change="onEditNameChange" placeholder="Set your name" v-model="username" :loading="setUsernameLoading" :error-messages="setUsernameFailureText"/>
-                </v-list-item>
-                <v-list-item v-for="(user, index) in $store.state.room.users" :key="index" :class="user.isLoggedIn ? 'user registered' : 'user'">
-                  <span class="name">{{ user.name }}</span>
-                  <span v-if="user.isYou" class="is-you">You</span>
-                  <v-icon class="player-status" v-if="user.status === 'buffering'">fas fa-spinner</v-icon>
-                  <v-icon class="player-status" v-else-if="user.status === 'ready'">fas fa-check</v-icon>
-                  <v-icon class="player-status" v-else-if="user.status === 'error'">fas fa-exclamation</v-icon>
-                </v-list-item>
-                <v-list-item class="nobody-here" v-if="$store.state.room.users.length === 1">
-                  There seems to be nobody else here. Invite some friends!
-                </v-list-item>
-              </v-card>
-            </div>
+            <UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
             <div class="share-invite">
               <v-card>
                 <v-subheader>
@@ -209,17 +210,23 @@ import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
+import PermissionsEditor from "@/components/PermissionsEditor.vue";
+import PermissionsMixin from "@/mixins/permissions.js";
+import UserList from "@/components/UserList.vue";
 
 export default {
   name: 'room',
   components: {
     draggable,
     VideoQueueItem,
+    PermissionsEditor,
     VueSlider,
     OmniPlayer,
     Chat,
     AddPreview,
+    UserList,
   },
+  mixins: [PermissionsMixin],
   data() {
     return {
       truePosition: 0,
@@ -227,9 +234,6 @@ export default {
       sliderTooltipFormatter: secondsToTimestamp,
       volume: 100,
 
-      username: "", // refers to the local user's username
-
-      showEditName: false,
       queueTab: 0,
       isLoadingRoomSettings: false,
       inputRoomSettings: {
@@ -237,9 +241,8 @@ export default {
         description: "",
         visibility: "",
         queueMode: "",
+        permissions: {},
       },
-      setUsernameLoading: false,
-      setUsernameFailureText: "",
 
       showJoinFailOverlay: false,
       joinFailReason: "",
@@ -359,7 +362,14 @@ export default {
     /** Take room settings from the UI and submit them to the server. */
     async submitRoomSettings() {
       this.isLoadingRoomSettings = true;
-      await API.patch(`/room/${this.$route.params.roomId}`, this.inputRoomSettings);
+      try {
+        await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
+        this.$events.emit("notify_onSuccess", { message: `Settings applied` });
+      }
+      catch (e) {
+        console.log(e);
+        this.$events.emit("notify_onError", { message: e.response.data.error.message });
+      }
       this.isLoadingRoomSettings = false;
     },
     async claimOwnership() {
@@ -368,9 +378,11 @@ export default {
         await API.patch(`/room/${this.$route.params.roomId}`, {
           claim: true,
         });
+        this.$events.emit("notify_onSuccess", { message: `You now own the room ${this.$route.params.roomId}` });
       }
-      catch (error) {
-        console.log(error);
+      catch (e) {
+        console.log(e);
+        this.$events.emit("notify_onError", { message: e.response.data.error.message });
       }
       this.isLoadingRoomSettings = false;
     },
@@ -385,23 +397,9 @@ export default {
     sliderChange() {
       this.roomSeek(this.sliderPosition);
     },
-    openEditName() {
-      this.username = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
-      this.showEditName = !this.showEditName;
-    },
+
     updateVolume() {
       this.$refs.player.setVolume(this.volume);
-    },
-    onEditNameChange() {
-      this.setUsernameLoading = true;
-      API.post("/user", { username: this.username }).then(() => {
-        this.showEditName = false;
-        this.setUsernameLoading = false;
-        this.setUsernameFailureText = "";
-      }).catch(err => {
-        this.setUsernameLoading = false;
-        this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
-      });
     },
     onPlayerApiReady() {
       console.log('internal player API is now ready');
@@ -446,22 +444,22 @@ export default {
         return;
       }
 
-      if (e.code === "Space" || e.code === "k") {
+      if ((e.code === "Space" || e.code === "k") && this.granted('playback.play-pause')) {
         this.togglePlayback();
         e.preventDefault();
       }
-      else if (e.code === "Home") {
+      else if (e.code === "Home" && this.granted('playback.seek')) {
         this.roomSeek(0);
         e.preventDefault();
       }
-      else if (e.code === "End") {
+      else if (e.code === "End" && this.granted('playback.skip')) {
         this.roomSkip();
         e.preventDefault();
       }
       else if (e.code === "KeyF") {
         this.toggleFullscreen();
       }
-      else if (e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") {
+      else if ((e.code === "ArrowLeft" || e.code === "ArrowRight" || e.code === "KeyJ" || e.code === "KeyL") && this.granted('playback.seek')) {
         let seekIncrement = 5;
         if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
           seekIncrement = 10;
@@ -495,7 +493,7 @@ export default {
         this.isLoadingRoomSettings = true;
         let res = await API.get(`/room/${this.$route.params.roomId}`);
         this.isLoadingRoomSettings = false;
-        this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode");
+        this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode", "permissions");
       }
     },
     onVideoBuffer(percent) {
@@ -531,6 +529,9 @@ export default {
       this.roomSeek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
     },
     activateTextSeek() {
+      if (!this.granted('playback.seek')) {
+        return;
+      }
       this.textSeek.active = true;
       this.textSeek.value = this.timestampDisplay;
       this.$nextTick(() => {
@@ -602,6 +603,21 @@ export default {
     },
     switchToAddTab() {
       this.queueTab = 1;
+    },
+    getRoomSettingsSubmit() {
+      const propsToGrants = {
+        title: "set-title",
+        description: "set-description",
+        visibility: "set-visibility",
+        queueMode: "set-queue-mode",
+      };
+      let blocked = [];
+      for (let prop of Object.keys(propsToGrants)) {
+        if (!this.granted(`configure-room.${propsToGrants[prop]}`)) {
+          blocked.push(prop);
+        }
+      }
+      return _.omit(this.inputRoomSettings, blocked);
     },
   },
   mounted() {
@@ -714,26 +730,11 @@ export default {
     margin-bottom: 10px;
   }
 }
-.nobody-here {
-  font-style: italic;
-  opacity: 0.5;
-  font-size: 0.9em;
-}
+
 .queue-tab-content {
   background: transparent !important;
 }
-.is-you {
-  color: $brand-color;
-  border: 1px $brand-color solid;
-  border-radius: 10px;
-  margin: 5px;
-  padding: 0 5px;
-  font-size: 10px;
-}
-.player-status {
-  margin: 0 5px;
-  font-size: 12px;
-}
+
 .bubble{
   height: 25px;
   width: 25px;
@@ -803,19 +804,6 @@ export default {
     }
   }
 }
-.user {
-  .name {
-    opacity: 0.5;
-    font-style: italic;
-  }
-
-  &.registered {
-    .name {
-      opacity: 1;
-      font-style: normal;
-    }
-  }
-}
 
 .room {
   @media (max-width: $md-max) {
@@ -834,6 +822,16 @@ export default {
   .msg {
     opacity: 0.5;
     font-size: 20px;
+  }
+}
+
+.room-settings .submit {
+  position: -webkit-sticky;
+  position: sticky;
+  bottom: 20px;
+
+  .v-btn {
+    margin: 10px 0;
   }
 }
 </style>

@@ -6,6 +6,7 @@ const _ = require("lodash");
 const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
 const { redisClient } = require('./redisclient.js');
+const permissions = require("./server/permissions.js");
 
 const log = getLogger("api");
 
@@ -34,8 +35,17 @@ function handleGetRoomFailure(res, err) {
 			error: "Room not found",
 		});
 	}
+	else if (err.name === "PermissionDeniedException") {
+		res.status(400).json({
+			success: false,
+			error: {
+				name: err.name,
+				message: err.message,
+			},
+		});
+	}
 	else {
-		log.error("Unhandled exception when getting room:", err);
+		log.error(`Unhandled exception when getting room: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
 			error: "Failed to get room",
@@ -44,14 +54,17 @@ function handleGetRoomFailure(res, err) {
 }
 
 function handlePostVideoFailure(res, err) {
-	if (err.name === "VideoAlreadyQueuedException") {
+	if (err.name === "VideoAlreadyQueuedException" || err.name === "PermissionDeniedException") {
 		res.status(400).json({
 			success: false,
-			error: err.message,
+			error: {
+				name: err.name,
+				message: err.message,
+			},
 		});
 	}
 	else {
-		log.error("Unhandled exception when getting video:", err);
+		log.error(`Unhandled exception when getting video: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
 			error: "Failed to get video",
@@ -104,6 +117,7 @@ module.exports = function(_roommanager, storage) {
 				"queueMode",
 				"queue",
 				"clients",
+				"permissions",
 			]));
 			room.hasOwner = hasOwner;
 			let clients = [];
@@ -257,6 +271,15 @@ module.exports = function(_roommanager, storage) {
 				return;
 			}
 			Object.assign(room, filtered);
+			if (req.body.permissions) {
+				let grants = {};
+				// HACK: for some reason, JSON.stringify takes Number keys (which are TOTALLY FUCKING VALID BTW)
+				// and casts them to string. This is to get them back to Number form.
+				for (let r in req.body.permissions) {
+					grants[parseInt(r)] = req.body.permissions[r];
+				}
+				room.setGrants(grants, req.session);
+			}
 			if (!room.isTemporary) {
 				if (req.body.claim && !room.owner) {
 					if (req.user) {
@@ -302,60 +325,76 @@ module.exports = function(_roommanager, storage) {
 	});
 
 	let addToQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueAdd" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before adding more videos." });
-	router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), (req, res) => {
-		roommanager.getOrLoadRoom(req.params.name).then(room => {
+	router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), async (req, res) => {
+		let room;
+		try {
+			room = await roommanager.getOrLoadRoom(req.params.name);
+		}
+		catch (err) {
+			handleGetRoomFailure(res, err);
+			return;
+		}
+
+		try {
+			let success;
 			if (req.body.videos) {
-				room.addManyToQueue(req.body.videos, req.session).then(success => {
-					res.json({
-						success,
-					});
-				});
+				success = await room.addManyToQueue(req.body.videos, req.session);
 			}
 			else if (req.body.url) {
-				room.addToQueue({ url: req.body.url }, req.session).then(success => {
-					res.json({
-						success,
-					});
-				}).catch(err => handlePostVideoFailure(res, err));
+				success = await room.addToQueue({ url: req.body.url }, req.session);
 			}
 			else if (req.body.service && req.body.id) {
-				room.addToQueue({ service: req.body.service, id: req.body.id }, req.session).then(success => {
-					res.json({
-						success,
-					});
-				}).catch(err => handlePostVideoFailure(res, err));
+				success = await room.addToQueue({ service: req.body.service, id: req.body.id }, req.session);
 			}
 			else {
 				res.status(400).json({
 					success: false,
 					error: "Invalid parameters",
 				});
+				return;
 			}
-		}).catch(err => handleGetRoomFailure(res, err));
+			res.json({
+				success,
+			});
+		}
+		catch (err) {
+			handlePostVideoFailure(res, err);
+		}
 	});
 
 	let removeFromQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueRemove" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before removing more videos." });
-	router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), (req, res) => {
-		roommanager.getOrLoadRoom(req.params.name).then(room => {
+	router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), async (req, res) => {
+		let room;
+		try {
+			room = await roommanager.getOrLoadRoom(req.params.name);
+		}
+		catch (err) {
+			handleGetRoomFailure(res, err);
+			return;
+		}
+
+		try {
+			let success;
 			if (req.body.service && req.body.id) {
-				const success = room.removeFromQueue(req.body.service === "direct" ? { service: req.body.service, url: req.body.id } : { service: req.body.service, id: req.body.id }, req.session);
-				res.json({
-					success,
-				});
+				success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
 			}
 			else if (req.body.url) {
-				const success = room.removeFromQueue({ url: req.body.url }, req.session);
-				res.json({
-					success,
-				});
+				success = room.removeFromQueue({ url: req.body.url }, req.session);
 			}
 			else {
 				res.status(400).json({
 					success: false,
 					error: "Invalid parameters",
 				});
+				return;
 			}
-		}).catch(err => handleGetRoomFailure(res, err));
+			res.json({
+				success,
+			});
+		}
+		catch (err) {
+			handlePostVideoFailure(res, err);
+		}
 	});
 
 	router.post("/room/:name/vote", (req, res) => {
@@ -425,6 +464,21 @@ module.exports = function(_roommanager, storage) {
 					},
 				});
 			}
+		});
+	});
+
+	router.get("/data/permissions", (req, res) => {
+		const { ROLES, ROLE_NAMES, ROLE_DISPLAY_NAMES, PERMISSIONS } = permissions;
+		let roles = _.values(ROLES).map(i => {
+			return {
+				id: i,
+				name: ROLE_NAMES[i],
+				display: ROLE_DISPLAY_NAMES[i],
+			};
+		});
+		res.json({
+			roles,
+			permissions: PERMISSIONS,
 		});
 	});
 

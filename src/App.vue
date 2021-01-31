@@ -82,6 +82,8 @@
         </v-row>
       </v-container>
     </v-overlay>
+    <Notifier event="Error" color="red" icon="fas fa-exclamation-circle" />
+    <Notifier event="Success" color="green" icon="fas fa-check" />
   </v-app>
 </template>
 
@@ -92,6 +94,7 @@ import LogInForm from "@/components/LogInForm.vue";
 import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 import NavUser from "@/components/navbar/NavUser.vue";
 import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
+import Notifier from "@/components/Notifier.vue";
 
 export default {
   name: "app",
@@ -100,6 +103,7 @@ export default {
     LogInForm,
     NavUser,
     NavCreateRoom,
+    Notifier,
   },
   mixins: [RoomUtilsMixin],
   data() {

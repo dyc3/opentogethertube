@@ -25,6 +25,18 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: -1,
       allowNull: false,
     },
+    permissions: {
+      type: DataTypes.TEXT,
+    },
+    "role-admin": {
+      type: DataTypes.TEXT,
+    },
+    "role-mod": {
+      type: DataTypes.TEXT,
+    },
+    "role-trusted": {
+      type: DataTypes.TEXT,
+    },
   }, {});
   // eslint-disable-next-line no-unused-vars
   Room.associate = function(models) {
