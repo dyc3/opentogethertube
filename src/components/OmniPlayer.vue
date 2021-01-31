@@ -94,30 +94,29 @@ export default {
     GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
     DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/DirectPlayer.vue"),
   },
-  computed: {
+  methods: {
     player() {
+      // This can't be a computed property because of a race condition. see #355
       if (services.includes(this.source.service)) {
         return this.$refs[this.source.service];
       }
 
       return null;
     },
-  },
-  methods: {
     play() {
-      return this.player?.play();
+      return this.player()?.play();
     },
     pause() {
-      return this.player?.pause();
+      return this.player()?.pause();
     },
     setVolume(volume) {
-      return this.player?.setVolume(volume);
+      return this.player()?.setVolume(volume);
     },
     getPosition() {
-      return this.player?.getPosition();
+      return this.player()?.getPosition();
     },
     setPosition(position) {
-      return this.player?.setPosition(position);
+      return this.player()?.setPosition(position);
     },
     onBufferProgress(percent) {
       this.$store.commit("PLAYBACK_BUFFER", percent);
