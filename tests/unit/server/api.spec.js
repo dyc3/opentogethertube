@@ -66,6 +66,7 @@ describe("Room API", () => {
 						description: "",
 						isTemporary: true,
 						visibility: "public",
+						queueMode: "manual",
 						currentSource: {},
 						users: 1,
 					});
@@ -75,6 +76,7 @@ describe("Room API", () => {
 						description: "",
 						isTemporary: true,
 						visibility: "public",
+						queueMode: "manual",
 						currentSource: {},
 						users: 0,
 					});
@@ -84,6 +86,7 @@ describe("Room API", () => {
 						description: "",
 						isTemporary: true,
 						visibility: "public",
+						queueMode: "manual",
 						currentSource: {},
 						users: 0,
 					});
@@ -111,6 +114,7 @@ describe("Room API", () => {
 						description: "",
 						isTemporary: true,
 						visibility: "public",
+						queueMode: "manual",
 						currentSource: {},
 						users: 0,
 					});
@@ -139,6 +143,7 @@ describe("Room API", () => {
 						description: "",
 						isTemporary: true,
 						visibility: "public",
+						queueMode: "manual",
 						currentSource: {},
 						users: 0,
 					});
@@ -148,6 +153,7 @@ describe("Room API", () => {
 						description: "",
 						isTemporary: true,
 						visibility: "unlisted",
+						queueMode: "manual",
 						currentSource: {},
 						users: 0,
 					});
@@ -157,6 +163,7 @@ describe("Room API", () => {
 						description: "",
 						isTemporary: true,
 						visibility: "private",
+						queueMode: "manual",
 						currentSource: {},
 						users: 0,
 					});
