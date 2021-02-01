@@ -34,7 +34,10 @@ function handleGetRoomFailure(res, err) {
 	if (err.name === "RoomNotFoundException") {
 		res.status(404).json({
 			success: false,
-			error: "Room not found",
+			error: {
+				name: err.name,
+				message: "Room not found",
+			},
 		});
 	}
 	else if (err.name === "PermissionDeniedException") {
@@ -50,7 +53,10 @@ function handleGetRoomFailure(res, err) {
 		log.error(`Unhandled exception when getting room: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
-			error: "Failed to get room",
+			error: {
+				name: "Unknown",
+				message: "Failed to get room",
+			},
 		});
 	}
 }
@@ -69,7 +75,10 @@ function handlePostVideoFailure(res, err) {
 		log.error(`Unhandled exception when getting video: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
-			error: "Failed to get video",
+			error: {
+				name: "Unknown",
+				message: "Failed to get video",
+			},
 		});
 	}
 }
