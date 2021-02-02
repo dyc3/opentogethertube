@@ -146,9 +146,8 @@ app.use((req, res, next) => {
 	next();
 });
 
-const storage = require("./storage");
 const roommanager = require("./roommanager");
-const api = require("./api")(roommanager, storage);
+const api = require("./api");
 roommanager.start(server, sessions);
 
 const bodyParser = require('body-parser');
