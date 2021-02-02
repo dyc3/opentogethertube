@@ -8,6 +8,62 @@ const usermanager = require('../../../usermanager.js');
 
 const TEST_API_KEY = "TESTAPIKEY";
 
+expect.extend({
+	toBeRoomNotFound(error) {
+		if (typeof error === "string") {
+			return {
+				message: () => `expected error to not be a string`,
+				pass: false,
+			};
+		}
+		let pass = this.equals(error, {
+			name: "RoomNotFoundException",
+			message: "Room not found",
+		});
+		if (pass) {
+			return {
+				message: () => `expected error to not be RoomNotFoundException`,
+				pass,
+			};
+		}
+		else {
+			return {
+				message: () => `expected error to be RoomNotFoundException`,
+				pass,
+			};
+		}
+	},
+
+	toBeUnknownError(error) {
+		if (typeof error === "string") {
+			return {
+				message: () => `expected error to not be a string`,
+				pass: false,
+			};
+		}
+		let pass = this.equals(error, {
+			name: "Unknown",
+			message: "Failed to get room",
+		}) ||
+		this.equals(error, {
+			name: "Unknown",
+			message: "Failed to get video",
+		});
+		if (pass) {
+			return {
+				message: () => `expected error to not be Unknown`,
+				pass,
+			};
+		}
+		else {
+			return {
+				message: () => `expected error to be Unknown`,
+				pass,
+			};
+		}
+	},
+});
+
 describe("Room API", () => {
 	beforeAll(async () => {
 		await User.destroy({ where: {} });
@@ -213,10 +269,8 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(404)
 			.then(resp => {
-				expect(resp.body).toEqual({
-					success: false,
-					error: "Room not found",
-				});
+				expect(resp.body.success).toEqual(false);
+				expect(resp.body.error).toBeRoomNotFound();
 			});
 
 		done();
@@ -452,10 +506,8 @@ describe("Room API", () => {
 				.expect("Content-Type", /json/)
 				.expect(404)
 				.then(resp => {
-					expect(resp.body).toEqual({
-						success: false,
-						error: "Room not found",
-					});
+					expect(resp.body.success).toEqual(false);
+					expect(resp.body.error).toBeRoomNotFound();
 				});
 		});
 	});
@@ -476,10 +528,8 @@ describe("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(404)
 			.then(resp => {
-				expect(resp.body).toEqual({
-					success: false,
-					error: "Room not found",
-				});
+				expect(resp.body.success).toEqual(false);
+				expect(resp.body.error).toBeRoomNotFound();
 			});
 
 		done();
@@ -541,8 +591,8 @@ describe("Room API", () => {
 				.expect("Content-Type", /json/)
 				.expect(404)
 				.then(resp => {
-					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Room not found");
+					expect(resp.body.success).toEqual(false);
+					expect(resp.body.error).toBeRoomNotFound();
 				});
 		});
 
@@ -593,7 +643,7 @@ describe("Room API", () => {
 				.expect(500)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Failed to get video");
+					expect(resp.body.error).toBeUnknownError();
 				});
 		});
 	});
@@ -641,7 +691,7 @@ describe("Room API", () => {
 				.expect(404)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Room not found");
+					expect(resp.body.error).toBeRoomNotFound();
 				});
 		});
 
@@ -694,7 +744,7 @@ describe("Room API", () => {
 				.expect(500)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Failed to get video");
+					expect(resp.body.error).toBeUnknownError();
 				});
 		});
 	});
@@ -726,7 +776,7 @@ describe("Room API", () => {
 				.expect(404)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Room not found");
+					expect(resp.body.error).toBeRoomNotFound();
 				});
 		});
 
@@ -802,7 +852,7 @@ describe("Room API", () => {
 				.expect(500)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Failed to get room");
+					expect(resp.body.error).toBeUnknownError();
 				});
 		});
 	});
@@ -834,7 +884,7 @@ describe("Room API", () => {
 				.expect(404)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Room not found");
+					expect(resp.body.error).toBeRoomNotFound();
 				});
 		});
 
@@ -910,7 +960,7 @@ describe("Room API", () => {
 				.expect(500)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
-					expect(resp.body.error).toEqual("Failed to get room");
+					expect(resp.body.error).toBeUnknownError();
 				});
 		});
 	});
