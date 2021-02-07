@@ -1079,9 +1079,11 @@ module.exports = {
 		}
 		log.silly(`Attempting to create a room with ${JSON.stringify(options)}`);
 
+		log.debug("Checking loaded rooms for matching name...");
 		if (_.find(this.rooms, room => room.name === options.name)) {
 			throw new RoomNameTakenException(options.name);
 		}
+		log.debug("Checking rooms in database for matching name...");
 		if (await storage.isRoomNameTaken(options.name)) {
 			throw new RoomNameTakenException(options.name);
 		}
