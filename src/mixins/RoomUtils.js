@@ -20,6 +20,10 @@ export default {
 					this.cancelledRoomCreation = false;
 					this.$events.fire("onRoomCreated", res.data.room);
 				}
+			}).catch(err => {
+				console.error(err);
+				this.$events.emit("notify_onError", { message: `Failed to create a new temporary room` });
+				throw err;
 			});
 		},
 		createPermRoom(options) {
@@ -36,6 +40,8 @@ export default {
 				}
 			}).catch(err => {
 				this.isLoadingCreateRoom = false;
+				console.error(err);
+				this.$events.emit("notify_onError", { message: `Failed to create a new room` });
 				throw err;
 			});
 		},
