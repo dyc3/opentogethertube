@@ -464,7 +464,7 @@ router.get("/data/previewAdd", process.env.NODE_ENV === "production" ? addPrevie
 			});
 		}
 		else {
-			log.error(`Unable to get add preview: ${err}`);
+			log.error(`Unable to get add preview: ${err} ${err.stack}`);
 			res.status(500).json({
 				success: false,
 				error: {
