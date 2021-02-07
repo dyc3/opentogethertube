@@ -202,7 +202,7 @@ class YouTubeAdapter extends ServiceAdapter {
       const res = await this.api.get("/playlistItems", {
         params: {
           key: this.apiKey,
-          part: "snippet",
+          part: "snippet,status",
           playlistId: playlistId,
           maxResults: ADD_PREVIEW_PLAYLIST_RESULTS_COUNT,
         },
@@ -210,6 +210,12 @@ class YouTubeAdapter extends ServiceAdapter {
 
       const results = [];
       for (const item of res.data.items) {
+        if (
+          item.status.privacyStatus === "private" || // the video is private
+          item.status.privacyStatus === "privacyStatusUnspecified" // the video has been deleted?
+        ) {
+          continue;
+        }
         const video = new Video({
           service: this.serviceId,
           id: item.snippet.resourceId.videoId,
