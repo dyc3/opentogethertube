@@ -11,8 +11,11 @@
     "lint-ci": "vue-cli-service --no-fix lint .",
     "test": "vue-cli-service test:unit --runInBand --detectOpenHandles --forceExit",
     "api-server": "nodemon --inspect app.js",
-    "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"npm:serve\"",
-    "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\""
+    "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"PORT=8080 npm run serve\"",
+    "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\"",
+    "optic-dev": "npx api start",
+    "optic-test": "npx api run tests",
+    "optic-api-server": "npx api run api-server"
   },
   "dependencies": {
     "@ffprobe-installer/ffprobe": "^1.0.12",
@@ -86,7 +89,8 @@
     "vue-cli-plugin-webpack-bundle-analyzer": "2.0.0",
     "vue-template-compiler": "2.6.11",
     "vuetify-loader": "1.4.3",
-    "webpack-bundle-analyzer": "3.6.0"
+    "webpack-bundle-analyzer": "3.6.0",
+    "@useoptic/cli": "^9.0.10"
   },
   "husky": {
     "pre-commit": "npm run lint"

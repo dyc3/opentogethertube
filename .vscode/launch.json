@@ -5,6 +5,19 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Launch with Optic via NPM",
+			"request": "launch",
+			"runtimeArgs": [
+				"run-script",
+				"optic-api-server"
+			],
+			"runtimeExecutable": "npm",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "pwa-node"
+		},
+		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
