@@ -93,7 +93,7 @@ module.exports = {
 				$and: Sequelize.where(Sequelize.fn('lower', Sequelize.col('name')), Sequelize.fn('lower', roomName)),
 			},
 		}).then(room => !!room).catch(err => {
-			log.exception(err);
+			log.error(err);
 			throw err;
 		});
 	},
