@@ -26,7 +26,15 @@ module.exports = {
     "storage": "db/test.sqlite",
     "logging": false,
   },
-  "production": {
+  "production": process.env.DATABASE_URL ? {
+    "url": process.env.DATABASE_URL,
+    "dialect": "postgres",
+    "logging": false,
+    "ssl": { rejectUnauthorized: false },
+    "dialectOptions": {
+      "ssl": { rejectUnauthorized: false },
+    },
+  } : {
     "username": process.env.POSTGRES_DB_USERNAME || "ott",
     "password": process.env.POSTGRES_DB_PASSWORD,
     "database": process.env.POSTGRES_DB_NAME || "db_opentogethertube_prod",
