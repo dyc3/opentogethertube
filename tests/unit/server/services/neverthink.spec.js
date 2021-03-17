@@ -110,9 +110,7 @@ describe("resolveURL", () => {
 	const adapter = new NeverthinkAdapter();
 
 	it("should resolve single video urls", async () => {
-		jest.spyOn(adapter.api, 'get').mockImplementation(link => {
-			return Promise.resolve({ data: videoSampleResponses["230987772"] });
-		});
+		jest.spyOn(adapter.api, 'get').mockResolvedValue({ data: videoSampleResponses["230987772"] });
 
 		let video = await adapter.resolveURL("https://neverthink.tv/v/230987772");
 		expect(video).toEqual(new Video({
