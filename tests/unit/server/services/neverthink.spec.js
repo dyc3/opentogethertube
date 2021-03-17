@@ -60,7 +60,11 @@ const videoSampleResponses = {
 };
 
 const samplePlaylist = {
-	videos: ["G0Z9s9yzxm0", "nt:3c736cbb6be04c2b564ddf93cb364473:gfAGzUIkyDU"],
+	videos: [
+		"G0Z9s9yzxm0",
+		"nt:3c736cbb6be04c2b564ddf93cb364473:gfAGzUIkyDU",
+		"vimeo:502630513",
+	],
 };
 
 const sampleInit = {
@@ -125,7 +129,6 @@ describe("resolveURL", () => {
 		jest.spyOn(adapter.fetch, 'get').mockResolvedValue({ data: samplePlaylist });
 
 		let videos = await adapter.resolveURL("https://neverthink.tv/playlists/167/b4f8c6a9c4b45bf16b17431ec9adbd56aa0dd4ba02ebe7720de0600b17404bd4-v5-plain.json");
-		expect(videos).toHaveLength(2);
 		expect(videos).toEqual([
 			new Video({
 				service: "youtube",
@@ -134,6 +137,10 @@ describe("resolveURL", () => {
 			new Video({
 				service: "youtube",
 				id: "gfAGzUIkyDU",
+			}),
+			new Video({
+				service: "vimeo",
+				id: "502630513",
 			}),
 		]);
 	});
@@ -143,7 +150,6 @@ describe("resolveURL", () => {
 		jest.spyOn(adapter.fetch, 'get').mockResolvedValue({ data: samplePlaylist });
 
 		let videos = await adapter.resolveURL("https://neverthink.tv/the-internet");
-		expect(videos).toHaveLength(2);
 		expect(videos).toEqual([
 			new Video({
 				service: "youtube",
@@ -152,6 +158,10 @@ describe("resolveURL", () => {
 			new Video({
 				service: "youtube",
 				id: "gfAGzUIkyDU",
+			}),
+			new Video({
+				service: "vimeo",
+				id: "502630513",
 			}),
 		]);
 	});

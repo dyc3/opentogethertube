@@ -74,6 +74,13 @@ class NeverthinkAdapter extends ServiceAdapter {
 						id: ytid,
 					});
 				}
+				else if (vid.startsWith("vimeo:")) {
+					let vimeoid = vid.split(":")[1];
+					return new Video({
+						service: "vimeo",
+						id: vimeoid,
+					});
+				}
 				else {
 					return new Video({
 						service: "youtube",
