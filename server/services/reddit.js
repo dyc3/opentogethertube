@@ -17,7 +17,7 @@ class RedditAdapter extends ServiceAdapter {
 
 	canHandleURL(link) {
 		const url = URL.parse(link);
-		return url.host.endsWith("reddit.com") && /^\/r\/.+$/.test(url.pathname);
+		return url.host.endsWith("reddit.com") && !url.pathname.includes("comments") && /^\/r\/.+$/.test(url.pathname);
 	}
 
 	isCollectionURL() {
