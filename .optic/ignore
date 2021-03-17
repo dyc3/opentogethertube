@@ -1,0 +1,15 @@
+# Default Ignore Rules
+# Learn to configure your own at https://useoptic.com/docs
+OPTIONS *
+HEAD *
+GET (.*).htm
+GET (.*).html
+GET (.*).ico
+GET (.*).css
+GET (.*).js
+GET (.*).woff
+GET (.*).png
+GET (.*).jpg
+GET (.*).jpeg
+GET (.*).svg
+GET (.*).gif
