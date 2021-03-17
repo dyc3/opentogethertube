@@ -6,6 +6,7 @@ const VimeoAdapter = require("./services/vimeo");
 const YouTubeAdapter = require("./services/youtube");
 const DirectVideoAdapter = require("./services/direct");
 const RedditAdapter = require("./services/reddit");
+const NeverthinkAdapter = require("./services/neverthink");
 const storage = require("../storage");
 const Video = require("../common/video");
 const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } = require("./exceptions");
@@ -22,6 +23,7 @@ const adapters = [
   new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
   new DirectVideoAdapter(),
   new RedditAdapter(),
+  new NeverthinkAdapter(),
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
@@ -136,11 +138,22 @@ module.exports = {
 
       try {
         const fetchedVideo = await adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
-        const video = Video.merge(cachedVideo, fetchedVideo);
-        if (adapter.isCacheSafe) {
-          this.updateCache(video);
+        if (fetchedVideo.service === cachedVideo.service) {
+          const video = Video.merge(cachedVideo, fetchedVideo);
+          if (adapter.isCacheSafe) {
+            this.updateCache(video);
+          }
+          return video;
         }
-        return video;
+        else {
+          log.info("video services don't match, must be an alias");
+          const video = fetchedVideo;
+          const newadapter = this.getServiceAdapter(video.service);
+          if (newadapter.isCacheSafe) {
+            this.updateCache(video);
+          }
+          return video;
+        }
       }
       catch (e) {
         if (e instanceof OutOfQuotaException) {
