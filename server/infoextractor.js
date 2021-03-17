@@ -5,6 +5,7 @@ const GoogleDriveAdapter = require("./services/googledrive");
 const VimeoAdapter = require("./services/vimeo");
 const YouTubeAdapter = require("./services/youtube");
 const DirectVideoAdapter = require("./services/direct");
+const RedditAdapter = require("./services/reddit");
 const storage = require("../storage");
 const Video = require("../common/video");
 const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } = require("./exceptions");
@@ -20,6 +21,7 @@ const adapters = [
   new VimeoAdapter(),
   new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
   new DirectVideoAdapter(),
+  new RedditAdapter(),
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
@@ -227,7 +229,20 @@ module.exports = {
       }
 
       const fetchResults = await adapter.resolveURL(query);
-      const completeResults = await this.getManyVideoInfo(fetchResults);
+      let resolvedResults = fetchResults.map(video => {
+        if (!video.service || !video.id) {
+          const adapter = this.getServiceAdapterForURL(video.url);
+          if (!adapter) {
+            return null;
+          }
+          return new Video({
+            service: adapter.serviceId,
+            id: adapter.getVideoId(video.url),
+          });
+        }
+        return video;
+      }).filter(video => !!video);
+      const completeResults = await this.getManyVideoInfo(resolvedResults);
       results.push(...completeResults);
     }
     else {
