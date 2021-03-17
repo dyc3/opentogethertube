@@ -220,4 +220,40 @@ describe("resolveURL", () => {
 			}),
 		]);
 	});
+
+	it("should resolve user channel url", async () => {
+		jest.spyOn(adapter.api, 'get').mockResolvedValue({
+			data: {
+				videos: validVideoLinks.slice(0, 3).map(([id]) => videoSampleResponses[id]),
+			},
+		});
+
+		let videos = await adapter.resolveURL("https://neverthink.tv/u/CoolDiamondsFTW");
+		expect(videos).toEqual([
+			new Video({
+				service: "youtube",
+				id: "G0Z9s9yzxm0",
+				title: "Pablo Rochat is back at it 🤣 #netflix",
+				description: "Please click",
+				thumbnail: "https://img.youtube.com/vi/G0Z9s9yzxm0/mqdefault.jpg",
+				length: 19,
+			}),
+			new Video({
+				service: "youtube",
+				id: "gfAGzUIkyDU",
+				title: "Sick of Roommates stealing my food",
+				description: null,
+				thumbnail: "https://img.youtube.com/vi/gfAGzUIkyDU/mqdefault.jpg",
+				length: 19,
+			}),
+			new Video({
+				service: "youtube",
+				id: "EDA3TXw6Oig",
+				title: "Robert Downey Jr. gets Chug Jugs With You",
+				description: null,
+				thumbnail: "https://img.youtube.com/vi/EDA3TXw6Oig/mqdefault.jpg",
+				length: 31,
+			}),
+		]);
+	});
 });

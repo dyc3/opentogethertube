@@ -37,28 +37,7 @@ class NeverthinkAdapter extends ServiceAdapter {
 
 	async fetchVideoInfo(id) {
 		let resp = await this.api.get(`/videos/${id}`);
-		let sid;
-		if (resp.data.origin === "yt") {
-			log.info("found youtube origin at neverthink link");
-			sid = {
-				service: "youtube",
-				id: resp.data.id,
-			};
-		}
-		else if (resp.data.origin === "nt") {
-			log.info("found neverthink origin at neverthink link, but it links back to a youtube video");
-			sid = {
-				service: "youtube",
-				id: resp.data.originalVideoId,
-			};
-		}
-		return new Video({
-			...sid,
-			title: resp.data.title,
-			description: resp.data.description,
-			length: resp.data.duration,
-			thumbnail: resp.data.thumbnailUrl,
-		});
+		return this.parseVideo(resp.data);
 	}
 
 	async resolveURL(link) {
@@ -66,6 +45,10 @@ class NeverthinkAdapter extends ServiceAdapter {
 		if (url.pathname.startsWith("/v/")) {
 			const id = this.getVideoId(link);
 			return await this.fetchVideoInfo(id);
+		}
+		else if (url.pathname.startsWith("/u/")) {
+			let user = url.pathname.replace("/u/", "");
+			return await this.getUserChannel(user);
 		}
 		else if (url.pathname.startsWith("/playlists/")) {
 			let resp = await this.fetch.get(link);
@@ -99,6 +82,40 @@ class NeverthinkAdapter extends ServiceAdapter {
 			log.info(`found playlist URL: ${playlistUrl}`);
 			return await this.resolveURL(playlistUrl);
 		}
+	}
+
+	parseVideo(data) {
+		let sid;
+		if (data.origin === "yt") {
+			log.info("found youtube origin at neverthink link");
+			sid = {
+				service: "youtube",
+				id: data.id,
+			};
+		}
+		else if (data.origin === "nt") {
+			log.info("found neverthink origin at neverthink link, but it links back to a youtube video");
+			sid = {
+				service: "youtube",
+				id: data.originalVideoId,
+			};
+		}
+		return new Video({
+			...sid,
+			title: data.title,
+			description: data.description,
+			length: data.duration,
+			thumbnail: data.thumbnailUrl,
+		});
+	}
+
+	/**
+	 * Get videos from a neverthink user's channel.
+	 * @param {string} user
+	 */
+	async getUserChannel(user) {
+		let resp = await this.api.get(`/users/${user}?include=videos`);
+		return resp.data.videos.slice(0, 50).map(this.parseVideo);
 	}
 
 	async getAllChannels() {
