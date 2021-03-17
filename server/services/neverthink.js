@@ -37,15 +37,19 @@ class NeverthinkAdapter extends ServiceAdapter {
 
 	async fetchVideoInfo(id) {
 		let resp = await this.api.get(`/videos/${id}`);
-		let sid = {
-			service: this.serviceId,
-			id: id,
-		};
+		let sid;
 		if (resp.data.origin === "yt") {
-			log.info("found youtube video at neverthink link");
+			log.info("found youtube origin at neverthink link");
 			sid = {
 				service: "youtube",
 				id: resp.data.id,
+			};
+		}
+		else if (resp.data.origin === "nt") {
+			log.info("found neverthink origin at neverthink link, but it links back to a youtube video");
+			sid = {
+				service: "youtube",
+				id: resp.data.originalVideoId,
 			};
 		}
 		return new Video({

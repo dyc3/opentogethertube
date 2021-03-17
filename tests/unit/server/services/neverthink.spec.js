@@ -4,6 +4,7 @@ const NeverthinkAdapter = require("../../../../server/services/neverthink");
 const validVideoLinks = [
 	["230987772", "https://neverthink.tv/v/230987772"],
 	["230988315", "https://neverthink.tv/v/230988315"],
+	["230983502", "https://neverthink.tv/v/230983502"],
 ];
 
 const invalidLinks = ["https://neverthink.tv"];
@@ -57,6 +58,41 @@ const videoSampleResponses = {
 			"youtubeUrl": "https://youtube.com/channel/UCMVr7QJRaSGgeyCQ1QqL0Sw",
 		},
 	},
+	"230983502": {
+		"aspectRatio": 1.777,
+		"channelId": 167,
+		"chatChannelId": "yt-EDA3TXw6Oig",
+		"deletedFromOrigin": false,
+		"description": null,
+		"duration": 31,
+		"id": "nt:b9b2d96be9244ec7c82a30c88368aab2",
+		"likeCount": 10,
+		"origin": "nt",
+		"publishedOnOriginAt": "2021-03-14T15:00:57.365Z",
+		"shareUrl": "https://neverthink.tv/v/230983502",
+		"shareId": null,
+		"thumbnailUrl": "https://img.youtube.com/vi/EDA3TXw6Oig/mqdefault.jpg",
+		"title": "Robert Downey Jr. gets Chug Jugs With You",
+		"originAccountId": 395054,
+		"urlId": "230983502",
+		"creator": {
+			"name": "merrygoat",
+			"partner": true,
+			"partneredAt": "2020-11-25T15:57:07.355Z",
+			"description": "i do music/memes.",
+			"partnerDescription": "i do music/memes.",
+			"imageUrl": "https://yt3.ggpht.com/ytc/AAUvwng7m7JYJ8JT5IJIxL3ulpMsL3Egl-RJlkSrl_uejQ=s176-c-k-c0x00ffffff-no-rj-mo",
+			"partnerImageUrl": "https://yt3.ggpht.com/ytc/AAUvwng7m7JYJ8JT5IJIxL3ulpMsL3Egl-RJlkSrl_uejQ=s176-c-k-c0x00ffffff-no-rj-mo",
+			"instagramUrl": "https://www.instagram.com/merryyygoat",
+			"instagramUsername": "merryyygoat",
+			"slug": "merrygoat",
+			"karmaTotal": 97,
+			"joinedAt": "2020-11-25T15:57:07.355Z",
+			"id": 67614,
+			"youtubeUrl": "https://youtube.com/channel/UCIzzmKEG3ojW1u9OKyvtHMA",
+		},
+		"originalVideoId": "EDA3TXw6Oig",
+	},
 };
 
 const samplePlaylist = {
@@ -77,6 +113,13 @@ const sampleInit = {
 		},
 	],
 };
+
+describe("Neverthink", () => {
+	it("should have serviceId", () => {
+		const adapter = new NeverthinkAdapter();
+		expect(adapter.serviceId).toEqual("neverthink");
+	});
+});
 
 describe("canHandleURL", () => {
 	const adapter = new NeverthinkAdapter();
@@ -109,7 +152,7 @@ describe("getVideoId", () => {
 describe("resolveURL", () => {
 	const adapter = new NeverthinkAdapter();
 
-	it("should resolve single video urls", async () => {
+	it("should resolve single video urls with youtube origin", async () => {
 		jest.spyOn(adapter.api, 'get').mockResolvedValue({ data: videoSampleResponses["230987772"] });
 
 		let video = await adapter.resolveURL("https://neverthink.tv/v/230987772");
@@ -120,6 +163,20 @@ describe("resolveURL", () => {
 			description: "Please click",
 			thumbnail: "https://img.youtube.com/vi/G0Z9s9yzxm0/mqdefault.jpg",
 			length: 19,
+		}));
+	});
+
+	it("should resolve single video urls with neverthink origin", async () => {
+		jest.spyOn(adapter.api, 'get').mockResolvedValue({ data: videoSampleResponses["230983502"] });
+
+		let video = await adapter.resolveURL("https://neverthink.tv/v/230983502");
+		expect(video).toEqual(new Video({
+			service: "youtube",
+			id: "EDA3TXw6Oig",
+			title: "Robert Downey Jr. gets Chug Jugs With You",
+			description: null,
+			thumbnail: "https://img.youtube.com/vi/EDA3TXw6Oig/mqdefault.jpg",
+			length: 31,
 		}));
 	});
 
