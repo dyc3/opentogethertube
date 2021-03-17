@@ -12,6 +12,9 @@ class NeverthinkAdapter extends ServiceAdapter {
 		baseURL: "https://neverthink.tv/api/v5/public",
 		headers: {'User-Agent': `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}`},
 	});
+	fetch = axios.create({
+		headers: {'User-Agent': `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}`},
+	})
 
 	get serviceId() {
 		return "neverthink";
@@ -35,7 +38,7 @@ class NeverthinkAdapter extends ServiceAdapter {
 	async fetchVideoInfo(id) {
 		let resp = await this.api.get(`/videos/${id}`);
 		let sid = {
-			service: "neverthink",
+			service: this.serviceId,
 			id: id,
 		};
 		if (resp.data.origin === "yt") {
@@ -61,7 +64,7 @@ class NeverthinkAdapter extends ServiceAdapter {
 			return await this.fetchVideoInfo(id);
 		}
 		else if (url.pathname.startsWith("/playlists/")) {
-			let resp = await axios.get(link);
+			let resp = await this.fetch.get(link);
 			// HACK: limit the possible array size to 50, because you can't request more than 50 videos at a time from youtube
 			return resp.data.videos.slice(0, 50).map(vid => {
 				if (vid.startsWith("nt:")) {
