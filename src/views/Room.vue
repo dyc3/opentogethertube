@@ -277,6 +277,9 @@ export default {
       return this.$store.state.production;
     },
     inviteLink() {
+      if (process.env.SHORT_URL) {
+        return `https://${process.env.SHORT_URL}/${this.$route.params.roomId}`;
+      }
       return window.location.href.split('?')[0].toLowerCase();
     },
     timestampDisplay() {
