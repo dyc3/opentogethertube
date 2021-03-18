@@ -23,6 +23,9 @@ module.exports = {
 	chainWebpack: (config) => {
 		config.plugin('define').tap(definitions => {
 			definitions[0]['process.env']['GOOGLE_DRIVE_API_KEY'] = JSON.stringify(process.env.GOOGLE_DRIVE_API_KEY);
+			if (process.env.SHORT_URL) {
+				definitions[0]['process.env']['SHORT_URL'] = JSON.stringify(process.env.SHORT_URL);
+			}
 			return definitions;
 		});
 	},
