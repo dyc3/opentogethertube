@@ -78,7 +78,7 @@ class NeverthinkAdapter extends ServiceAdapter {
 		}
 		else {
 			let channels = await this.getAllChannels();
-			let playlistUrl = _.find(channels, { urlFragment: url.pathname.replace("/", "") }).playlist.urlPlain;
+			let playlistUrl = _.find(channels, { urlFragment: url.pathname.split("/").slice(-1)[0] }).playlist.urlPlain;
 			log.info(`found playlist URL: ${playlistUrl}`);
 			return await this.resolveURL(playlistUrl);
 		}

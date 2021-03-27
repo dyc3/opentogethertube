@@ -219,6 +219,22 @@ describe("resolveURL", () => {
 				id: "502630513",
 			}),
 		]);
+
+		videos = await adapter.resolveURL("https://neverthink.tv/c/the-internet");
+		expect(videos).toEqual([
+			new Video({
+				service: "youtube",
+				id: "G0Z9s9yzxm0",
+			}),
+			new Video({
+				service: "youtube",
+				id: "gfAGzUIkyDU",
+			}),
+			new Video({
+				service: "vimeo",
+				id: "502630513",
+			}),
+		]);
 	});
 
 	it("should resolve user channel url", async () => {
