@@ -23,6 +23,28 @@
 					</v-col>
 				</v-row>
 				</v-container>
+				<v-container v-else-if="inputAddPreview.length === 0">
+					<v-row justify="center" align="center">
+						<div class="add-video-helper">
+							<h1>What can I add?</h1>
+							<h3>Single Videos</h3>
+							<ul>
+								<li><ProcessedText text="Youtube videos: https://youtube.com/watch?v=LP8GRjv6AIo" /></li>
+								<li><ProcessedText text="Vimeo videos: https://vimeo.com/94338566" /></li>
+								<li><ProcessedText text="Dailymotion videos: https://dailymotion.com/video/x31i1so" /></li>
+								<li><ProcessedText text="Any public .mp4 video: https://vjs.zencdn.net/v/oceans.mp4" /></li>
+							</ul>
+							<h3>Playlists</h3>
+							<ul>
+								<li><ProcessedText text="Youtube playlists: https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ" /></li>
+								<li><ProcessedText text="Youtube channels: https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA" /></li>
+								<li><ProcessedText text="Subreddits: https://reddit.com/r/youtubehaiku/" /></li>
+								<li><ProcessedText text="Neverthink.tv channels: https://neverthink.tv/c/meme-radar" /></li>
+							</ul>
+							<span>Or just type text to search Youtube.</span>
+						</div>
+					</v-row>
+				</v-container>
 			</v-row>
 			<div v-if="highlightedAddPreviewItem">
 				<VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
@@ -37,11 +59,13 @@
 import { API } from "@/common-http.js";
 import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
+import ProcessedText from "@/components/ProcessedText.vue";
 
 export default {
 	name: "AddPreview",
 	components: {
 		VideoQueueItem,
+		ProcessedText,
 	},
 	data() {
 		return {
@@ -53,8 +77,8 @@ export default {
 			isLoadingAddAll: false,
 
 			testVideos: [
-				["test youtube 0", "https://www.youtube.com/watch?v=WC66l5tPIF4"],
-				["test youtube 1", "https://www.youtube.com/watch?v=aI67KDJRnvQ"],
+				["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
+				["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
 				["test vimeo 0", "https://vimeo.com/94338566"],
 				["test vimeo 1", "https://vimeo.com/239423699"],
 				["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
@@ -184,4 +208,22 @@ export default {
 <style lang="scss" scoped>
 @import "../variables.scss";
 
+.add-video-helper {
+	width: 400px;
+	@media (max-width: $sm-max) {
+		width: 80%;
+	}
+
+	h1 {
+		width: 100%;
+		text-align: center;
+	}
+
+	li {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		-webkit-line-clamp: 1;
+	}
+}
 </style>
