@@ -7,6 +7,13 @@ const validVideoLinks = [
 	["230983502", "https://neverthink.tv/v/230983502"],
 ];
 
+const validChannelLinks = [
+	"https://neverthink.tv/the-internet",
+	"https://neverthink.tv/c/the-internet",
+	"https://neverth.ink/the-internet",
+	"https://neverth.ink/unusualvideos​",
+];
+
 const invalidLinks = ["https://neverthink.tv"];
 
 const videoSampleResponses = {
@@ -128,6 +135,10 @@ describe("canHandleURL", () => {
 		expect(adapter.canHandleURL(link)).toBe(true);
 	});
 
+	it.each(validChannelLinks)("Accepts %s", (link) => {
+		expect(adapter.canHandleURL(link)).toBe(true);
+	});
+
 	it.each(invalidLinks)("Rejects %s", (link) => {
 		expect(adapter.canHandleURL(link)).toBe(false);
 	});
@@ -138,6 +149,10 @@ describe("isCollectionURL", () => {
 
 	it.each(validVideoLinks.map(v => v[1]))("Non-collection: %s", (link) => {
 		expect(adapter.isCollectionURL(link)).toBe(false);
+	});
+
+	it.each(validChannelLinks)("Collection: %s", (link) => {
+		expect(adapter.isCollectionURL(link)).toBe(true);
 	});
 });
 
@@ -221,6 +236,22 @@ describe("resolveURL", () => {
 		]);
 
 		videos = await adapter.resolveURL("https://neverthink.tv/c/the-internet");
+		expect(videos).toEqual([
+			new Video({
+				service: "youtube",
+				id: "G0Z9s9yzxm0",
+			}),
+			new Video({
+				service: "youtube",
+				id: "gfAGzUIkyDU",
+			}),
+			new Video({
+				service: "vimeo",
+				id: "502630513",
+			}),
+		]);
+
+		videos = await adapter.resolveURL("https://neverth.ink/the-internet");
 		expect(videos).toEqual([
 			new Video({
 				service: "youtube",
