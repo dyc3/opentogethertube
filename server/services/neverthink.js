@@ -22,7 +22,7 @@ class NeverthinkAdapter extends ServiceAdapter {
 
 	canHandleURL(link) {
 		const url = URL.parse(link);
-		return url.host.endsWith("neverthink.tv") && url.pathname.length > 1;
+		return (url.host.endsWith("neverthink.tv") || url.host.endsWith("neverth.ink")) && url.pathname.length > 1;
 	}
 
 	isCollectionURL(link) {
