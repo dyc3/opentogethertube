@@ -30,7 +30,7 @@ wait_for_db() {
       if [ $# -gt 0 ] ; then
         npx sequelize-cli db:migrate
         if [ $? != 0 ]; then
-          echo "Failed to run database migrations" >&2
+          echo "$0: Failed to run database migrations" >&2
           exit 2
         fi
         exec "$@"
@@ -39,7 +39,7 @@ wait_for_db() {
     fi
     sleep 1
   done
-  echo "Operation timed out" >&2
+  echo "$0: Operation timed out" >&2
   exit 1
 }
 
