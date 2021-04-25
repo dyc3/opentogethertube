@@ -23,6 +23,12 @@ USAGE
 
 wait_for_db() {
   for i in `seq $TIMEOUT` ; do
+    which nc > /dev/null
+    if [ $? != 0 ]; then
+      echo "$0: netcat not found."
+      exit 3
+    fi
+
     nc -z "$WAIT_HOST_DB" "$WAIT_PORT_DB" > /dev/null 2>&1
 
     result=$?

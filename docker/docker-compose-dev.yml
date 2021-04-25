@@ -4,7 +4,7 @@ services:
     image: opentogethertube
     build:
       context: ../
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile-dev
     container_name: opentogethertube
     environment:
       - REDIS_HOST=redis_db
@@ -16,6 +16,7 @@ services:
       - DOCKER=1
     env_file: ../env/production.env
     ports:
+      - 3000:3000
       - 8080:8080
     links:
       - redis_db
@@ -24,6 +25,8 @@ services:
       - redis_db
       - postgres_db
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    volumes:
+      - ..:/usr/app
 
   redis_db:
     container_name: opentogethertube_redis
