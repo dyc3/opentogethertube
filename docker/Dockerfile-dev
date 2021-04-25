@@ -4,12 +4,13 @@ VOLUME ["/usr/app"]
 # Create app directory
 WORKDIR /usr/app/
 
+RUN apt-get update && apt-get install -y netcat && apt-get clean autoclean && rm -rf /var/lib/apt/lists/*
+
 # Environnement variable redis/postgres/webport
 ENV REDIS_PORT 6379
 # Environnement variable nodejs
 ENV NODE_ENV production
-
-RUN apt-get update && apt-get install -y netcat && apt-get clean autoclean && rm -rf /var/lib/apt/lists/*
+ENV LOG_LEVEL debug
 
 # Healthcheck API, WEB, REDIS
 HEALTHCHECK CMD ( curl -f http://localhost:8080/ || exit 1 )
