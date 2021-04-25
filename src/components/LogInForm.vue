@@ -35,7 +35,7 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn type="submit" color="primary" :loading="isLoading" @click="login" :disabled="!loginValid">Log in</v-btn>
+							<v-btn type="submit" color="primary" :loading="isLoading" @click.prevent="login" :disabled="!loginValid">Log in</v-btn>
 						</v-card-actions>
 					</v-form>
 				</v-card>
@@ -61,7 +61,7 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn type="submit" color="primary" :loading="isLoading" @click="register" :disabled="!registerValid">Register</v-btn>
+							<v-btn type="submit" color="primary" :loading="isLoading" @click.prevent="register" :disabled="!registerValid">Register</v-btn>
 						</v-card-actions>
 					</v-form>
 				</v-card>

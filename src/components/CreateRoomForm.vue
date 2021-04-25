@@ -37,6 +37,7 @@ export default {
 			rules: {
 				name: [
 					v => !!v || "Name is required",
+					v => (v && !v.includes(" ")) || "Name must not contain spaces.",
 					v => (v && v.length >= 3 && v.length <= 32) || "Name must be between 3 and 32 characters",
 					v => (v && !this.isRoomNameTaken) || "Name is already taken",
 				],

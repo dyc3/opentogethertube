@@ -97,6 +97,15 @@ const server = http.createServer(app);
 
 const { redisClient } = require('./redisclient.js');
 
+function checkRedis() {
+	let start = new Date();
+	redisClient.ping(() => {
+		let duration = new Date() - start;
+		log.info(`Latency to redis: ${duration}ms`);
+	});
+}
+checkRedis();
+
 const session = require('express-session');
 let RedisStore = require('connect-redis')(session);
 let sessionOpts = {
@@ -110,7 +119,7 @@ let sessionOpts = {
 		maxAge: 99999999999,
 	},
 };
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
 	app.set('trust proxy', 1);
 	sessionOpts.cookie.secure = true;
 }
@@ -137,7 +146,14 @@ app.use((req, res, next) => {
 		let username = uniqueNamesGenerator();
 		log.debug(`Generated name for new user (on request): ${username}`);
 		req.session.username = username;
-		req.session.save();
+		req.session.save((err) => {
+			if (err) {
+				log.error(`Failed to save session: ${err}`);
+			}
+			else {
+				log.silly("Session saved.");
+			}
+		});
 	}
 	else {
 		log.debug("User is logged in, skipping username generation");

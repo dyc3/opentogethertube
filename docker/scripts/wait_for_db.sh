@@ -23,6 +23,12 @@ USAGE
 
 wait_for_db() {
   for i in `seq $TIMEOUT` ; do
+    which nc > /dev/null
+    if [ $? != 0 ]; then
+      echo "$0: netcat not found."
+      exit 3
+    fi
+
     nc -z "$WAIT_HOST_DB" "$WAIT_PORT_DB" > /dev/null 2>&1
 
     result=$?
@@ -30,7 +36,7 @@ wait_for_db() {
       if [ $# -gt 0 ] ; then
         npx sequelize-cli db:migrate
         if [ $? != 0 ]; then
-          echo "Failed to run database migrations" >&2
+          echo "$0: Failed to run database migrations" >&2
           exit 2
         fi
         exec "$@"
@@ -39,7 +45,7 @@ wait_for_db() {
     fi
     sleep 1
   done
-  echo "Operation timed out" >&2
+  echo "$0: Operation timed out" >&2
   exit 1
 }
 

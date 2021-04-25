@@ -9,3 +9,5 @@ coverage
 db/
 dist/
 .git/
+.optic/
+node_modules/

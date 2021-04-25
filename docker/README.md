@@ -71,3 +71,12 @@ You also rebuild the docker image with the following command.
 ```bash
 docker-compose -f docker/docker-compose.yml up -d --build
 ```
+
+# Developing for OTT using Docker
+
+`docker-compose-dev.yml` is a special docker compose that is intended to assist in debugging bugs that only appear in production (which are usually bugs that occur when interacting with postgres instead of sqlite).
+
+In order to use this setup, you **must** be able to run OTT outside of docker. After that, you can start it with:
+```bash
+docker-compose -f docker/docker-compose-dev.yml up --build
+```
