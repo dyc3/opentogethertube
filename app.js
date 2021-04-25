@@ -119,7 +119,7 @@ let sessionOpts = {
 		maxAge: 99999999999,
 	},
 };
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
 	app.set('trust proxy', 1);
 	sessionOpts.cookie.secure = true;
 }
