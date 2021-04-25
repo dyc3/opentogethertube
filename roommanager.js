@@ -152,6 +152,7 @@ class Room {
 	set owner(value) {
 		this._owner = value;
 		this._dirtyProps.push("hasOwner");
+		this._dirtyProps.push("users");
 	}
 
 	get playbackStartTime() {
