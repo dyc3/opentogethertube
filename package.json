@@ -66,6 +66,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.9.0",
+    "@useoptic/cli": "^9.0.10",
     "@vue/cli-plugin-babel": "^4.4.4",
     "@vue/cli-plugin-eslint": "^4.4.4",
     "@vue/cli-plugin-unit-jest": "^4.4.4",
@@ -89,8 +90,7 @@
     "vue-cli-plugin-webpack-bundle-analyzer": "2.0.0",
     "vue-template-compiler": "2.6.11",
     "vuetify-loader": "1.4.3",
-    "webpack-bundle-analyzer": "3.6.0",
-    "@useoptic/cli": "^9.0.10"
+    "webpack-bundle-analyzer": "3.6.0"
   },
   "husky": {
     "pre-commit": "npm run lint"
