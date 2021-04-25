@@ -146,7 +146,14 @@ app.use((req, res, next) => {
 		let username = uniqueNamesGenerator();
 		log.debug(`Generated name for new user (on request): ${username}`);
 		req.session.username = username;
-		req.session.save();
+		req.session.save((err) => {
+			if (err) {
+				log.error(`Failed to save session: ${err}`);
+			}
+			else {
+				log.silly("Session saved.");
+			}
+		});
 	}
 	else {
 		log.debug("User is logged in, skipping username generation");
