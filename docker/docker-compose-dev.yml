@@ -35,6 +35,8 @@ services:
       test: "redis-cli ping"
     expose:
       - 6379
+    ports:
+      - 6380:6379
     volumes:
       - db-data-redis:/data
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
