@@ -97,6 +97,15 @@ const server = http.createServer(app);
 
 const { redisClient } = require('./redisclient.js');
 
+function checkRedis() {
+	let start = new Date();
+	redisClient.ping(() => {
+		let duration = new Date() - start;
+		log.info(`Latency to redis: ${duration}ms`);
+	});
+}
+checkRedis();
+
 const session = require('express-session');
 let RedisStore = require('connect-redis')(session);
 let sessionOpts = {
