@@ -512,6 +512,9 @@ router.post("/room/:name/undo", (req, res) => {
 router.get("/data/previewAdd", async (req, res) => {
 	let points = 5;
 	try {
+		if (!InfoExtract.isURL(req.query.input)) {
+			points *= 15;
+		}
 		let info = await rateLimiter.consume(req.ip, points);
 		setRateLimitHeaders(res, info);
 	}
