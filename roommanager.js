@@ -1131,12 +1131,14 @@ module.exports = {
 	 * Save all the loaded rooms into redis.
 	 */
 	saveAllLoadedRooms() {
-		let rooms = _.cloneDeep(this.rooms).map(room => {
-			delete room.clients;
-			delete room._dirtyProps;
-			delete room.log;
-			return room;
-		});
+		let rooms = _.cloneDeep(this.rooms)
+			.filter(room => room.clients.length > 0)
+			.map(room => {
+				delete room.clients;
+				delete room._dirtyProps;
+				delete room.log;
+				return room;
+			});
 		redisClient.set("rooms", JSON.stringify(rooms), err => {
 			if (err) {
 				log.error(`Failed to save rooms to redis: ${err} ${err.message}`);
