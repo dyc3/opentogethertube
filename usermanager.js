@@ -4,11 +4,30 @@ const securePassword = require('secure-password');
 const express = require('express');
 const passport = require('passport');
 const crypto = require('crypto');
-const rateLimit = require("express-rate-limit");
-const RateLimitStore = require('rate-limit-redis');
 const { User, Room } = require("./models");
 const roommanager = require("./roommanager");
 const { redisClient } = require('./redisclient.js');
+const { RateLimiterRedis } = require('rate-limiter-flexible');
+const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
+
+const maxWrongAttemptsByIPperDay = 100;
+const maxConsecutiveFailsByUsernameAndIP = 10;
+
+const limiterSlowBruteByIP = new RateLimiterRedis({
+  storeClient: redisClient,
+  keyPrefix: 'login_fail_ip_per_day',
+  points: maxWrongAttemptsByIPperDay,
+  duration: 60 * 60 * 24,
+  blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
+});
+
+const limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
+  storeClient: redisClient,
+  keyPrefix: 'login_fail_consecutive_username_and_ip',
+  points: maxConsecutiveFailsByUsernameAndIP,
+  duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
+  blockDuration: 60 * 60, // Block for 1 hour
+});
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -91,8 +110,35 @@ router.post("/", async (req, res) => {
 	usermanager.onUserModified(req.session, req.body.username);
 });
 
-let logInLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:UserRegister" }), windowMs: 10 * 1000, max: 5, message: "You are doing that too much." });
-router.post("/login", process.env.NODE_ENV === "production" ? logInLimiter : (req, res, next) => next(), (req, res, next) => {
+router.post("/login", async (req, res, next) => {
+	const ipAddr = req.ip;
+	const usernameIPkey = `${req.body.email ? req.body.email : req.body.username}_${ipAddr}`;
+
+	const [resUsernameAndIP, resSlowByIP] = await Promise.all([
+		limiterConsecutiveFailsByUsernameAndIP.get(usernameIPkey),
+		limiterSlowBruteByIP.get(ipAddr),
+	]);
+
+	let retrySecs = 0;
+
+	// Check if IP or Username + IP is already blocked
+	if (resSlowByIP !== null && resSlowByIP.consumedPoints > maxWrongAttemptsByIPperDay) {
+		retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
+	}
+	else if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > maxConsecutiveFailsByUsernameAndIP) {
+		retrySecs = Math.round(resUsernameAndIP.msBeforeNext / 1000) || 1;
+	}
+
+	if (retrySecs > 0) {
+		res.set('Retry-After', String(retrySecs));
+		res.status(429).json({
+			error: {
+				message: "Too many attempts.",
+			},
+		});
+		return;
+	}
+
 	passport.authenticate("local", (err, user) => {
 		if (err) {
 			res.status(401).json({
@@ -161,8 +207,20 @@ router.post("/logout", (req, res) => {
 	}
 });
 
-let registerLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:UserRegister" }), windowMs: 60 * 60 * 1000, max: 4, message: "You are doing that too much." });
-router.post("/register", process.env.NODE_ENV === "production" ? registerLimiter : (req, res, next) => next(), (req, res) => {
+router.post("/register", async (req, res) => {
+	try {
+		let info = await rateLimiter.consume(req.ip, 100);
+		setRateLimitHeaders(res, info);
+	}
+	catch (e) {
+		if (e instanceof Error) {
+			throw e;
+		}
+		else {
+			handleRateLimit(res, e);
+			return;
+		}
+	}
 	usermanager.registerUser(req.body).then(result => {
 		req.login(result, () => {
 			try {
