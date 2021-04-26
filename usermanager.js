@@ -10,8 +10,8 @@ const { redisClient } = require('./redisclient.js');
 const { RateLimiterRedis } = require('rate-limiter-flexible');
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
 
-const maxWrongAttemptsByIPperDay = 100;
-const maxConsecutiveFailsByUsernameAndIP = 10;
+const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
+const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
 
 const limiterSlowBruteByIP = new RateLimiterRedis({
   storeClient: redisClient,
