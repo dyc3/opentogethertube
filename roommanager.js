@@ -613,7 +613,7 @@ class Room {
 
 	/**
 	 * Called when a new client connects to this room.
-	 * @param {Object} ws Websocket for the client.
+	 * @param {WebSocket} ws Websocket for the client.
 	 * @param {Object} req HTTP request used to initiate the connection.
 	 */
 	async onConnectionReceived(ws, req) {
@@ -631,7 +631,10 @@ class Room {
 			socket: ws,
 			status: "joined",
 			needsFullSync: true,
+			req_ip: req.connection.remoteAddress,
+			req_forward_ip: req.headers["X-Forwarded-For"],
 		});
+		log.debug(`${req.connection.remoteAddress} connected to ${this.name}`);
 		if (req.session.passport && req.session.passport.user) {
 			// HACK: for some reason even though we import usermanager at the top of the module, it somehow doesn't exist in this context. But only sometimes? I don't know
 			let usermanager = require("./usermanager.js");
@@ -919,6 +922,8 @@ class Client {
 		this.status = "?";
 		this.needsFullSync = true;
 		this.user = null;
+		this.req_ip = null;
+		this.req_forward_ip = null;
 
 		if (args) {
 			Object.assign(this, args);
@@ -995,7 +1000,7 @@ module.exports = {
 		});
 
 		wss.on('connection', (ws, req) => {
-			log.debug("[ws] CONNECTION ESTABLISHED", ws.protocol, req.url, ws.readyState);
+			log.debug(`[ws] CONNECTION ESTABLISHED ${ws.protocol} ${req.url} ${req.ip}`);
 
 			if (!req.url.startsWith("/api/room/")) {
 				log.error("Closing connection because the connection url was invalid");

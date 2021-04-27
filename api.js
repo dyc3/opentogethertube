@@ -97,7 +97,7 @@ router.get("/room/list", (req, res) => {
 		if (room.visibility !== "public" && !isAuthorized) {
 			continue;
 		}
-		rooms.push({
+		let obj = {
 			name: room.name,
 			title: room.title,
 			description: room.description,
@@ -106,7 +106,21 @@ router.get("/room/list", (req, res) => {
 			queueMode: room.queueMode,
 			currentSource: room.currentSource,
 			users: room.clients.length,
-		});
+		};
+		if (isAuthorized) {
+			obj.queueLength = room.queue.length;
+			obj.isPlaying = room.isPlaying;
+			obj.playbackPosition = room.playbackPosition;
+			obj.clients = room.clients.map(client => {
+				return {
+					username: client.username,
+					isLoggedIn: client.isLoggedIn,
+					ip: client.req_ip,
+					forward_ip: client.req_forward_ip,
+				};
+			});
+		}
+		rooms.push(obj);
 	}
 	rooms = _.orderBy(rooms, ["users", "name"], ["desc", "asc"]);
 	res.json(rooms);
@@ -231,6 +245,7 @@ router.post("/room/create", async (req, res) => {
 		else {
 			await roommanager.createRoom(req.body);
 		}
+		log.info(`${req.body.temporary ? "Temporary" : "Permanent"} room created: name=${req.body.name} ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 		res.json({
 			success: true,
 		});
@@ -283,6 +298,7 @@ router.post("/room/generate", async (req, res) => {
 	let roomName = uuid();
 	log.debug(`Generating room: ${roomName}`);
 	await roommanager.createRoom(roomName, true);
+	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 	res.json({
 		success: true,
 		room: roomName,
