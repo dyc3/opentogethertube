@@ -1,14 +1,12 @@
 const express = require('express');
-const rateLimit = require("express-rate-limit");
-const RateLimitStore = require('rate-limit-redis');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
 const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
-const { redisClient } = require('./redisclient.js');
 const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
 const roommanager = require("./roommanager.js");
+const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
 
 const log = getLogger("api");
 
@@ -149,8 +147,7 @@ router.get("/room/:name", (req, res) => {
 	}).catch(err => handleGetRoomFailure(res, err));
 });
 
-let createRoomLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:RoomCreate" }), windowMs: 60 * 60 * 1000, max: 4, message: "You are creating too many rooms. Please try again later." });
-router.post("/room/create", process.env.NODE_ENV === "production" ? createRoomLimiter : (req, res, next) => next(), async (req, res) => {
+router.post("/room/create", async (req, res) => {
 	if (!req.body.name) {
 		log.info(req.body);
 		res.status(400).json({
@@ -206,13 +203,28 @@ router.post("/room/create", process.env.NODE_ENV === "production" ? createRoomLi
 		});
 		return;
 	}
+	let points = 50;
 	if (!req.body.temporary) {
 		req.body.temporary = false;
+		points *= 4;
 	}
 	if (!req.body.visibility) {
 		req.body.visibility = "public";
 	}
 	try {
+		try {
+			let info = await rateLimiter.consume(req.ip, points);
+			setRateLimitHeaders(res, info);
+		}
+		catch (e) {
+			if (e instanceof Error) {
+				throw e;
+			}
+			else {
+				handleRateLimit(res, e);
+				return;
+			}
+		}
 		if (req.user) {
 			await roommanager.createRoom({ ...req.body, owner: req.user });
 		}
@@ -246,7 +258,28 @@ router.post("/room/create", process.env.NODE_ENV === "production" ? createRoomLi
 	}
 });
 
-router.post("/room/generate", process.env.NODE_ENV === "production" ? createRoomLimiter : (req, res, next) => next(), async (req, res) => {
+router.post("/room/generate", async (req, res) => {
+	try {
+		let info = await rateLimiter.consume(req.ip, 50);
+		setRateLimitHeaders(res, info);
+	}
+	catch (e) {
+		if (e instanceof Error) {
+			log.error(`Unable to generate room: ${e} ${e.message}`);
+			res.status(500).json({
+				success: false,
+				error: {
+					name: "Unknown",
+					message: "An unknown error occured when creating this room. Try again later.",
+				},
+			});
+			return;
+		}
+		else {
+			handleRateLimit(res, e);
+			return;
+		}
+	}
 	let roomName = uuid();
 	log.debug(`Generating room: ${roomName}`);
 	await roommanager.createRoom(roomName, true);
@@ -333,10 +366,26 @@ router.delete("/room/:name", (req, res) => {
 	}).catch(err => handleGetRoomFailure(res, err));
 });
 
-let addToQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueAdd" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before adding more videos." });
-router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQueueLimiter : (req, res, next) => next(), async (req, res) => {
+router.post("/room/:name/queue", async (req, res) => {
 	let room;
 	try {
+		let points = 5;
+		if (req.body.videos) {
+			points = 3 * req.body.videos.length;
+		}
+		try {
+			let info = await rateLimiter.consume(req.ip, points);
+			setRateLimitHeaders(res, info);
+		}
+		catch (e) {
+			if (e instanceof Error) {
+				throw e;
+			}
+			else {
+				handleRateLimit(res, e);
+				return;
+			}
+		}
 		room = await roommanager.getOrLoadRoom(req.params.name);
 	}
 	catch (err) {
@@ -371,10 +420,23 @@ router.post("/room/:name/queue", process.env.NODE_ENV === "production" ? addToQu
 	}
 });
 
-let removeFromQueueLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:QueueRemove" }), windowMs: 30 * 1000, max: 30, message: "Wait a little bit longer before removing more videos." });
-router.delete("/room/:name/queue", process.env.NODE_ENV === "production" ? removeFromQueueLimiter : (req, res, next) => next(), async (req, res) => {
+router.delete("/room/:name/queue", async (req, res) => {
 	let room;
 	try {
+		let points = 5;
+		try {
+			let info = await rateLimiter.consume(req.ip, points);
+			setRateLimitHeaders(res, info);
+		}
+		catch (e) {
+			if (e instanceof Error) {
+				throw e;
+			}
+			else {
+				handleRateLimit(res, e);
+				return;
+			}
+		}
 		room = await roommanager.getOrLoadRoom(req.params.name);
 	}
 	catch (err) {
@@ -446,13 +508,31 @@ router.post("/room/:name/undo", (req, res) => {
 	}).catch(err => handleGetRoomFailure(res, err));
 });
 
-let addPreviewLimiter = rateLimit({ store: new RateLimitStore({ client: redisClient, resetExpiryOnChange: true, prefix: "rl:AddPreview" }), windowMs: 40 * 1000, max: 20, message: "Wait a little bit longer before requesting more add previews." });
-router.get("/data/previewAdd", process.env.NODE_ENV === "production" ? addPreviewLimiter : (req, res, next) => next(), (req, res) => {
-	log.info(`Getting queue add preview for ${req.query.input}`);
-	InfoExtract.resolveVideoQuery(req.query.input.trim(), process.env.SEARCH_PROVIDER).then(result => {
+router.get("/data/previewAdd", async (req, res) => {
+	let points = 5;
+	try {
+		if (!InfoExtract.isURL(req.query.input)) {
+			points *= 15;
+		}
+		let info = await rateLimiter.consume(req.ip, points);
+		setRateLimitHeaders(res, info);
+	}
+	catch (e) {
+		if (e instanceof Error) {
+			throw e;
+		}
+		else {
+			handleRateLimit(res, e);
+			return;
+		}
+	}
+	try {
+		log.info(`Getting queue add preview for ${req.query.input}`);
+		let result = await InfoExtract.resolveVideoQuery(req.query.input.trim(), process.env.SEARCH_PROVIDER);
 		res.json(result);
 		log.info(`Sent add preview response with ${result.length} items`);
-	}).catch(err => {
+	}
+	catch (err) {
 		if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException" || err.name === "UnsupportedMimeTypeException" || err.name === "LocalFileException" || err.name === "MissingMetadataException") {
 			log.error(`Unable to get add preview: ${err.name}`);
 			res.status(400).json({
@@ -473,7 +553,7 @@ router.get("/data/previewAdd", process.env.NODE_ENV === "production" ? addPrevie
 				},
 			});
 		}
-	});
+	}
 });
 
 router.get("/data/permissions", (req, res) => {

@@ -24,6 +24,8 @@ const WS_ERROR_INVALID_CONNECTION_URL = 4001;
 const WS_ERROR_ROOM_NOT_FOUND = 4002;
 const WS_ERROR_ROOM_UNLOADED = 4003;
 
+const ROOM_UNLOAD_AFTER = 240; // seconds
+
 /**
  * Represents a Room and all it's associated state, settings, connected clients.
  */
@@ -1046,7 +1048,7 @@ module.exports = {
 	 * @param {Room} room The room to unload.
 	 * @param {Number} time The time in seconds the room must be inactive for it to be unloaded.
 	 */
-	unloadIfEmpty(room, time=240) {
+	unloadIfEmpty(room, time=ROOM_UNLOAD_AFTER) {
 		if (room.clients.length === 0 &&
 			moment().diff(room.keepAlivePing, 'seconds') > time) {
 			this.unloadRoom(room);
@@ -1093,7 +1095,12 @@ module.exports = {
 		let newRoom = new Room(options);
 		if (options.isTemporary) {
 			// Used to delete temporary rooms after a certain amount of time with no users connected
-			newRoom.keepAlivePing = new Date();
+			if (ROOM_UNLOAD_AFTER > 10) {
+				newRoom.keepAlivePing = new Date() - (ROOM_UNLOAD_AFTER - 10);
+			}
+			else {
+				newRoom.keepAlivePing = new Date();
+			}
 		}
 		else {
 			await storage.saveRoom(newRoom);
@@ -1131,16 +1138,17 @@ module.exports = {
 	 * Save all the loaded rooms into redis.
 	 */
 	saveAllLoadedRooms() {
-		let rooms = _.cloneDeep(this.rooms).map(room => {
-			delete room.clients;
-			delete room._dirtyProps;
-			delete room.log;
-			return room;
-		});
+		let rooms = _.cloneDeep(this.rooms)
+			.filter(room => room.clients.length > 0)
+			.map(room => {
+				delete room.clients;
+				delete room._dirtyProps;
+				delete room.log;
+				return room;
+			});
 		redisClient.set("rooms", JSON.stringify(rooms), err => {
 			if (err) {
 				log.error(`Failed to save rooms to redis: ${err} ${err.message}`);
-				throw err;
 			}
 		});
 	},
