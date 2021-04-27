@@ -133,6 +133,7 @@ router.post("/login", async (req, res, next) => {
 		res.set('Retry-After', String(retrySecs));
 		res.status(429).json({
 			error: {
+				name: "TooManyRequests",
 				message: "Too many attempts.",
 			},
 		});
@@ -221,7 +222,8 @@ router.post("/register", async (req, res) => {
 			return;
 		}
 	}
-	usermanager.registerUser(req.body).then(result => {
+	try {
+		let result = await usermanager.registerUser(req.body);
 		req.login(result, () => {
 			try {
 				usermanager.onUserLogIn(result, req.session);
@@ -237,7 +239,8 @@ router.post("/register", async (req, res) => {
 				]),
 			});
 		});
-	}).catch(err => {
+	}
+	catch (err) {
 		log.error(`Unable to register user ${err} ${err.message}`);
 		if (err.name === "SequelizeUniqueConstraintError") {
 			let fields = err.fields.join(", ");
@@ -289,7 +292,7 @@ router.post("/register", async (req, res) => {
 				},
 			});
 		}
-	});
+	}
 });
 
 router.get('/auth/discord', passport.authenticate('discord'));
@@ -447,7 +450,7 @@ let usermanager = {
 
 	async registerUser({ email, username, password }) {
 		if (!this.isPasswordValid(password)) {
-			return Promise.reject(new BadPasswordError());
+			throw new BadPasswordError();
 		}
 
 		let salt = crypto.randomBytes(128);
@@ -456,23 +459,24 @@ let usermanager = {
 
 		// HACK: the unique constrait on the model is fucking broken
 		if (await this.isUsernameTaken(username)) {
-			return Promise.reject(new UsernameTakenError());
+			throw new UsernameTakenError();
 		}
 		if (await this.isEmailTaken(email)) {
-			return Promise.reject(new EmailAlreadyInUseError());
+			throw new EmailAlreadyInUseError();
 		}
 
-		return User.create({
-			email,
-			username,
-			salt,
-			hash,
-		}).then(user => {
-			return user;
-		}).catch(err => {
+		try {
+			return await User.create({
+				email,
+				username,
+				salt,
+				hash,
+			});
+		}
+		catch (err) {
 			log.error(`Failed to create new user in the database: ${err} ${err.message}`);
 			throw err;
-		});
+		}
 	},
 
 	async registerUserSocial({ username, discordId }) {
@@ -512,7 +516,6 @@ let usermanager = {
 			await socialUser.destroy();
 		}
 		await user.save();
-
 	},
 
 	/**
