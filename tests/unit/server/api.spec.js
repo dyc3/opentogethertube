@@ -193,36 +193,9 @@ describe("Room API", () => {
 				.expect(200)
 				.then(resp => {
 					expect(resp.body).toHaveLength(3);
-					expect(resp.body[0]).toEqual({
-						name: "test1",
-						title: "",
-						description: "",
-						isTemporary: true,
-						visibility: "public",
-						queueMode: "manual",
-						currentSource: {},
-						users: 0,
-					});
-					expect(resp.body[1]).toEqual({
-						name: "test2",
-						title: "",
-						description: "",
-						isTemporary: true,
-						visibility: "unlisted",
-						queueMode: "manual",
-						currentSource: {},
-						users: 0,
-					});
-					expect(resp.body[2]).toEqual({
-						name: "test3",
-						title: "",
-						description: "",
-						isTemporary: true,
-						visibility: "private",
-						queueMode: "manual",
-						currentSource: {},
-						users: 0,
-					});
+					expect(resp.body[0].name).toEqual("test1");
+					expect(resp.body[1].name).toEqual("test2");
+					expect(resp.body[2].name).toEqual("test3");
 				});
 
 			roommanager.unloadRoom("test1");
