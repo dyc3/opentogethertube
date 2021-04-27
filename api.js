@@ -3,7 +3,6 @@ const uuid = require("uuid/v4");
 const _ = require("lodash");
 const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
-const { redisClient } = require('./redisclient.js');
 const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
 const roommanager = require("./roommanager.js");
