@@ -28,6 +28,7 @@ function handleRateLimit(res, info) {
 	res.status(429).json({
 		success: false,
 		error: {
+			name: "TooManyRequests",
 			message: "Too many requests.",
 		},
 	});

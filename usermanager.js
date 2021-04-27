@@ -133,6 +133,7 @@ router.post("/login", async (req, res, next) => {
 		res.set('Retry-After', String(retrySecs));
 		res.status(429).json({
 			error: {
+				name: "TooManyRequests",
 				message: "Too many attempts.",
 			},
 		});
