@@ -135,6 +135,7 @@ module.exports = {
 
 	/**
 	 * Creates a deterministic mask given a list of string form permissions.
+	 * @param {string[]} perms
 	 */
 	parseIntoGrantMask(perms) {
 		let mask = 0;
@@ -148,6 +149,11 @@ module.exports = {
 		return mask;
 	},
 
+	/**
+	 * Get the full grant mask for a role, accounting for permission inheritance.
+	 * @param {Object} grants
+	 * @param {int} role
+	 */
 	getFullGrantMask(grants, role) {
 		let fullmask = grants[role];
 		for (let i = role - 1; i >= ROLES.UNREGISTERED_USER; i--) {
@@ -158,6 +164,9 @@ module.exports = {
 
 	/**
 	 * Checks if the given role is granted the permission, given the grants.
+	 * @param {Object} grants
+	 * @param {Number} role
+	 * @param {string} permission
 	 */
 	granted(grants, role, permission) {
 		if (typeof permission !== "string") {
@@ -177,9 +186,9 @@ module.exports = {
 
 	/**
 	 * Checks to see if the permission is granted. Throws an exception if it fails.
-	 * @param {*} grants
-	 * @param {*} role
-	 * @param {*} permission
+	 * @param {Object} grants
+	 * @param {Number} role
+	 * @param {string} permission
 	 * @throws PermissionDeniedException
 	 */
 	check(grants, role, permission) {
