@@ -8,15 +8,13 @@ const { ROLES } = require("../../../server/permissions.js");
 const permissions = require("../../../server/permissions.js");
 
 describe('Room manager: Room tests', () => {
-  beforeEach(async done => {
+  beforeEach(async () => {
     roommanager.rooms = [];
     await Room.destroy({ where: {} });
     await roommanager.createRoom("test", true);
-    roommanager.getLoadedRoom("test").then(room => {
-      room.title = "Test Room";
-      room.description = "This is a test room.";
-      done();
-    });
+    let room = await roommanager.getLoadedRoom("test");
+    room.title = "Test Room";
+    room.description = "This is a test room.";
   });
 
   afterEach(async () => {
