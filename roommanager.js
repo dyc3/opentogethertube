@@ -842,8 +842,7 @@ class Room {
 
 	/**
 	 * Sets grant mask for a given role.
-	 * @param {Number} role
-	 * @param {Number} mask
+	 * @param {permissions.Grants} grants
 	 */
 	setGrants(grants, session) {
 		let client, role;
@@ -864,7 +863,7 @@ class Room {
 		// permissions need to be validated before applying them.
 		this.log.info(`${ROLE_DISPLAY_NAMES[role]} (${role}) is attempting to set grants: ${JSON.stringify(grants)}`);
 		// filter out grants that the user doesn't have permissions for
-		grants = _.pickBy(grants, (value, key) => permissions.granted(this.permissions, role, rolePerms[key]));
+		grants = _.pickBy(grants, (value, key) => permissions.granted(this.permissions, role, rolePerms[key]) && this.permissions[key] !== grants[key]);
 		// filter out invalid grants based on minRole
 		for (let r in grants) {
 			let validation = permissions.getValidationMask(r);
