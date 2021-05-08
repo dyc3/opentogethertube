@@ -20,6 +20,14 @@ module.exports = (sequelize, DataTypes) => {
         isIn: [["public", "unlisted", "private"]],
       },
     },
+    queueMode: {
+      type: DataTypes.STRING,
+      defaultValue: "manual",
+      validate: {
+        // eslint-disable-next-line array-bracket-newline
+        isIn: [["manual", "vote"]],
+      },
+    },
     ownerId: {
       type: DataTypes.INTEGER,
       defaultValue: -1,

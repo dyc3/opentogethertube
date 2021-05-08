@@ -50,13 +50,16 @@ class Room {
 		this.keepAlivePing = null;
 		this.owner = null;
 		this.playbackStartTime = null;
-		this.permissions = permissions.defaultPermissions();
+		this.permissions = new permissions.Grants();
 		this.userRoles = {
 			[ROLES.ADMINISTRATOR]: [],
 			[ROLES.MODERATOR]: [],
 			[ROLES.TRUSTED_USER]: [],
 		};
 		if (args) {
+			if (args.permissions) {
+				args.permissions = new permissions.Grants(args.permissions);
+			}
 			Object.assign(this, args);
 		}
 
@@ -500,7 +503,7 @@ class Room {
 				};
 			});
 
-			syncMsg.grants = permissions.getFullGrantMask(this.permissions, this.getRole(client));
+			syncMsg.grants = this.permissions.masks[this.getRole(client)];
 
 			// include if the user has voted
 			if (this.queueMode === "vote") {
@@ -842,8 +845,7 @@ class Room {
 
 	/**
 	 * Sets grant mask for a given role.
-	 * @param {Number} role
-	 * @param {Number} mask
+	 * @param {permissions.Grants} grants
 	 */
 	setGrants(grants, session) {
 		let client, role;
@@ -860,35 +862,21 @@ class Room {
 			[ROLES.REGISTERED_USER]: "configure-room.set-permissions.for-all-registered-users",
 			[ROLES.UNREGISTERED_USER]: "configure-room.set-permissions.for-all-unregistered-users",
 		};
-		grants = _.pickBy(grants, (value, key) => Object.prototype.hasOwnProperty.call(rolePerms, key));
+		if (!(this.permissions instanceof permissions.Grants)) {
+			this.log.error(`room permissions have invalid type: ${typeof this.permissions}`);
+		}
+		grants = new permissions.Grants(grants);
+		grants.filterRoles(Object.keys(rolePerms));
 		// permissions need to be validated before applying them.
 		this.log.info(`${ROLE_DISPLAY_NAMES[role]} (${role}) is attempting to set grants: ${JSON.stringify(grants)}`);
 		// filter out grants that the user doesn't have permissions for
-		grants = _.pickBy(grants, (value, key) => permissions.granted(this.permissions, role, rolePerms[key]));
-		// filter out invalid grants based on minRole
-		for (let r in grants) {
-			let validation = permissions.getValidationMask(r);
-			grants[r] &= validation;
-		}
+		grants.masks = _.pickBy(grants.masks, (value, key) => this.permissions.masks[key] !== value && this.permissions.granted(role, rolePerms[key]));
 
-		// allow setting grants for above roles (even if we don't have permissions), but only for grants that we are turning off
-		for (let r in grants) {
-			if (r < 0 || r >= 4) {
-				continue;
-			}
-			if (grants[parseInt(r)+1]) {
-				continue;
-			}
-			// grants that are being disabled
-			let offmask = (this.permissions[r] ^ grants[r]) & this.permissions[r];
-			grants[parseInt(r)+1] = this.permissions[parseInt(r)+1] | offmask;
-		}
-
-		for (let r in grants) {
-			this.permissions[r] = grants[r];
+		for (let r in grants.masks) {
+			this.permissions.setRoleGrants(r, grants.masks[r]);
 			this.log.info(`New grants applied for: ${ROLE_DISPLAY_NAMES[r]} (${r})`);
+			this._dirtyProps.push("grants");
 		}
-		this._dirtyProps.push("grants");
 	}
 }
 
@@ -1159,36 +1147,39 @@ module.exports = {
 	},
 
 	/**
-	 * Loads the Room with the given name from the database. If the
-	 * room is already loaded, the promise resolves to the loaded Room.
+	 * Loads the Room with the given name from the database. This fails
+	 * if the room is already loaded.
 	 * @param {string} name The name of the room to load.
-	 * @returns {Promise} Promise that resolves to a Room.
+	 * @returns {Promise<Room>} Promise that resolves to a Room.
 	 * @throws {RoomNotFoundException}
 	 * @throws {RoomAlreadyLoadedException}
 	 */
-	loadRoom(name) {
+	async loadRoom(name) {
 		if (_.findIndex(this.rooms, r => r.name === name) >= 0) {
 			throw new RoomAlreadyLoadedException(name);
 		}
 
-		return storage.getRoomByName(name).then(result => {
-			if (!result) {
-				throw new RoomNotFoundException(name);
-			}
+		let result = await storage.getRoomByName(name);
+		if (!result) {
+			throw new RoomNotFoundException(name);
+		}
+		if (!(result.permissions instanceof permissions.Grants)) {
+			log.error(`loaded room permissions has invalid type: ${typeof result.permissions}`);
+		}
 
-			let room = new Room({
-				name: result.name,
-				title: result.title,
-				description: result.description,
-				visibility: result.visibility,
-				isTemporary: false,
-				owner: result.owner,
-				permissions: result.permissions,
-				userRoles: result.userRoles,
-			});
-			this.rooms.push(room);
-			return room;
+		let room = new Room({
+			name: result.name,
+			title: result.title,
+			description: result.description,
+			visibility: result.visibility,
+			queueMode: result.queueMode,
+			isTemporary: false,
+			owner: result.owner,
+			permissions: result.permissions,
+			userRoles: result.userRoles,
 		});
+		this.rooms.push(room);
+		return room;
 	},
 
 	/**
@@ -1215,7 +1206,7 @@ module.exports = {
 	/**
 	 * Gets the Room by name if it's loaded into memory, otherwise returns false.
 	 * @param {string} name The name of the room
-	 * @returns {(Room|boolean)}
+	 * @returns {Promise<(Room|boolean)>}
 	 */
 	getLoadedRoom(name) {
 		return new Promise(resolve => {
@@ -1233,19 +1224,19 @@ module.exports = {
 	 * Gets the loaded Room, if its loaded, otherwise grab it from the database.
 	 * If the Room can't be found it will throw a RoomNotFoundException.
 	 * @param {string} name The name of the room
+	 * @returns {Promise<Room>}
 	 * @throws {RoomNotFoundException}
 	 */
-	getOrLoadRoom(name) {
-		return this.getLoadedRoom(name).then(room => {
-			if (room) {
-				log.debug(`Found room ${room.name} in loaded rooms`);
-				return room;
-			}
-			else {
-				log.debug(`Looking for room ${name} in database`);
-				return this.loadRoom(name);
-			}
-		});
+	async getOrLoadRoom(name) {
+		let room = await this.getLoadedRoom(name);
+		if (room) {
+			log.debug(`Found room ${room.name} in loaded rooms`);
+			return room;
+		}
+		else {
+			log.debug(`Looking for room ${name} in database`);
+			return await this.loadRoom(name);
+		}
 	},
 
 	/**

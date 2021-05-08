@@ -91,6 +91,16 @@ class ImpossiblePromotionException extends Error {
 	}
 }
 
+class InvalidRoleException extends Error {
+	/**
+	 * @param {int} role
+	 */
+	constructor(role) {
+		super(`Role ${role} (type: ${typeof role}) is not valid.`);
+		this.name = "InvalidRoleException";
+	}
+}
+
 module.exports = {
 	UnsupportedServiceException,
 	InvalidAddPreviewInputException,
@@ -103,4 +113,5 @@ module.exports = {
 	IncompleteServiceAdapterException,
 	PermissionDeniedException,
 	ImpossiblePromotionException,
+	InvalidRoleException,
 };

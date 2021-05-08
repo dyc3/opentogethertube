@@ -64,4 +64,18 @@ describe('Permission System', () => {
 		expect(permissions.getValidationMask(0)).toEqual(0b111111111111);
 		expect(permissions.getValidationMask(3) & (1<<13 | 1<<14 | 1<<15)).toEqual(1<<13 | 1<<14 | 1<<15);
 	});
+
+	it('should stringify Grants', () => {
+		let grants = new permissions.Grants();
+		let str = JSON.stringify(grants);
+		expect(str).toMatch(/^\{.*\}$/);
+		expect(str.length).toBeGreaterThan(2);
+		expect(str).not.toContain("mask");
+	});
+
+	it('should guarentee that using numbers for roles works for Grants', () => {
+		let grants = new permissions.Grants({"0":4095});
+		expect(grants.masks[0]).toEqual(4095);
+		expect(grants.masks[0]).toEqual(4095);
+	});
 });

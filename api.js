@@ -126,8 +126,9 @@ router.get("/room/list", (req, res) => {
 	res.json(rooms);
 });
 
-router.get("/room/:name", (req, res) => {
-	roommanager.getOrLoadRoom(req.params.name).then(room => {
+router.get("/room/:name", async (req, res) => {
+	try {
+		let room = await roommanager.getOrLoadRoom(req.params.name);
 		let hasOwner = !!room.owner;
 		room = _.cloneDeep(_.pick(room, [
 			"name",
@@ -158,7 +159,10 @@ router.get("/room/:name", (req, res) => {
 			}
 		}
 		res.json(room);
-	}).catch(err => handleGetRoomFailure(res, err));
+	}
+	catch (e) {
+		handleGetRoomFailure(res, e);
+	}
 });
 
 router.post("/room/create", async (req, res) => {
@@ -305,72 +309,75 @@ router.post("/room/generate", async (req, res) => {
 	});
 });
 
-router.patch("/room/:name", (req, res) => {
-	roommanager.getOrLoadRoom(req.params.name).then(room => {
-		let filtered = _.pick(req.body, [
-			"title",
-			"description",
-			"visibility",
-			"queueMode",
-		]);
-		filtered = _.pickBy(filtered, n => n !== null);
-		if (filtered.visibility && !VALID_ROOM_VISIBILITY.includes(filtered.visibility)) {
-			res.status(400).json({
-				success: false,
-				error: "Invalid value for room visibility",
-			});
-			return;
-		}
-		if (filtered.queueMode && !VALID_ROOM_QUEUE_MODE.includes(filtered.queueMode)) {
-			res.status(400).json({
-				success: false,
-				error: "Invalid value for room queue mode",
-			});
-			return;
-		}
-		Object.assign(room, filtered);
-		if (req.body.permissions) {
-			let grants = {};
-			// HACK: for some reason, JSON.stringify takes Number keys (which are TOTALLY FUCKING VALID BTW)
-			// and casts them to string. This is to get them back to Number form.
-			for (let r in req.body.permissions) {
-				grants[parseInt(r)] = req.body.permissions[r];
+router.patch("/room/:name", async (req, res) => {
+	let room;
+	try {
+		room = await roommanager.getOrLoadRoom(req.params.name);
+	}
+	catch (err) {
+		handleGetRoomFailure(res, err);
+		return;
+	}
+	let filtered = _.pick(req.body, [
+		"title",
+		"description",
+		"visibility",
+		"queueMode",
+	]);
+	filtered = _.pickBy(filtered, n => n !== null);
+	if (filtered.visibility && !VALID_ROOM_VISIBILITY.includes(filtered.visibility)) {
+		res.status(400).json({
+			success: false,
+			error: "Invalid value for room visibility",
+		});
+		return;
+	}
+	if (filtered.queueMode && !VALID_ROOM_QUEUE_MODE.includes(filtered.queueMode)) {
+		res.status(400).json({
+			success: false,
+			error: "Invalid value for room queue mode",
+		});
+		return;
+	}
+	Object.assign(room, filtered);
+	if (req.body.permissions) {
+		room.setGrants(new permissions.Grants(req.body.permissions), req.session);
+	}
+	if (!room.isTemporary) {
+		if (req.body.claim && !room.owner) {
+			if (req.user) {
+				room.owner = req.user;
 			}
-			room.setGrants(grants, req.session);
-		}
-		if (!room.isTemporary) {
-			if (req.body.claim && !room.owner) {
-				if (req.user) {
-					room.owner = req.user;
-				}
-				else {
-					res.status(401).json({
-						success: false,
-						error: {
-							message: "Must be logged in to claim room ownership.",
-						},
-					});
-					return;
-				}
-			}
-
-			storage.updateRoom(room).then(success => {
-				res.status(success ? 200 : 500).json({
-					success,
-				});
-			}).catch(err => {
-				log.error(`Failed to update room: ${err} ${err.message}`);
-				res.status(500).json({
+			else {
+				res.status(401).json({
 					success: false,
+					error: {
+						message: "Must be logged in to claim room ownership.",
+					},
 				});
-			});
+				return;
+			}
 		}
-		else {
-			res.json({
+
+		try {
+			await storage.updateRoom(room);
+			res.status(200).json({
 				success: true,
 			});
 		}
-	}).catch(err => handleGetRoomFailure(res, err));
+		catch (err) {
+			log.error(`Failed to update room: ${err} ${err.message}`);
+			res.status(500).json({
+				success: false,
+			});
+			return;
+		}
+	}
+	else {
+		res.json({
+			success: true,
+		});
+	}
 });
 
 router.delete("/room/:name", (req, res) => {

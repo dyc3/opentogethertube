@@ -46,6 +46,15 @@ describe('Storage: Room Spec', () => {
     });
   });
 
+  it('should load queueMode from storage', async () => {
+    await storage.saveRoom({ name: "example", queueMode: "vote" });
+
+    let room = await storage.getRoomByName("example");
+    expect(_.pick(room, "queueMode")).toEqual({
+      queueMode: "vote",
+    });
+  });
+
   it('should create room in database', async done => {
     expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
 
@@ -114,17 +123,25 @@ describe('Storage: Room Spec', () => {
 
   it('should save and load permissions correctly', async () => {
     let perms = permissions.defaultPermissions();
-    perms[0] ^= permissions.parseIntoGrantMask("playback");
+    perms.masks[0] ^= permissions.parseIntoGrantMask(["playback"]);
     await storage.saveRoom({ name: "example", permissions: perms });
 
     let room = await storage.getRoomByName("example");
     expect(room.permissions).toEqual(perms);
 
-    perms[0] ^= permissions.parseIntoGrantMask("manage-queue");
+    perms.masks[0] ^= permissions.parseIntoGrantMask(["manage-queue"]);
     await storage.updateRoom({ name: "example", permissions: perms });
 
     room = await storage.getRoomByName("example");
     expect(room.permissions).toEqual(perms);
+  });
+
+  it('should load permissions as an instance of Grants', async () => {
+    await storage.saveRoom({ name: "example", permissions: new permissions.Grants() });
+
+    let room = await storage.getRoomByName("example");
+    expect(room.permissions).toBeInstanceOf(permissions.Grants);
+    expect(room.permissions).toEqual(new permissions.Grants());
   });
 
   it('should save and load userRoles correctly', async () => {
