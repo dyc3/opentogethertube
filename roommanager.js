@@ -1172,6 +1172,7 @@ module.exports = {
 			title: result.title,
 			description: result.description,
 			visibility: result.visibility,
+			queueMode: result.queueMode,
 			isTemporary: false,
 			owner: result.owner,
 			permissions: result.permissions,

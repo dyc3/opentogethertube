@@ -46,6 +46,15 @@ describe('Storage: Room Spec', () => {
     });
   });
 
+  it('should load queueMode from storage', async () => {
+    await storage.saveRoom({ name: "example", queueMode: "vote" });
+
+    let room = await storage.getRoomByName("example");
+    expect(_.pick(room, "queueMode")).toEqual({
+      queueMode: "vote",
+    });
+  });
+
   it('should create room in database', async done => {
     expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
 

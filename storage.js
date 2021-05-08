@@ -17,6 +17,7 @@ function roomToDb(room) {
 		title: room.title,
 		description: room.description,
 		visibility: room.visibility,
+		queueMode: room.queueMode,
 	};
 	if (room.permissions) {
 		db.permissions = room.permissions.serialize();
@@ -40,6 +41,7 @@ function dbToRoomArgs(db) {
 		title: db.title,
 		description: db.description,
 		visibility: db.visibility,
+		queueMode: db.queueMode,
 		owner: db.owner,
 		permissions: new permissions.Grants(),
 		userRoles: {},
