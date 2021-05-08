@@ -351,8 +351,8 @@ describe('Room manager: Manager tests', () => {
 
   it('should load the room from the database with permissions and userRoles', async () => {
     let grants = permissions.defaultPermissions();
-    grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
-    grants[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+    grants.masks[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+    grants.masks[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
     const userRoles = {
       2: [1, 3],
       3: [4, 7],
