@@ -21,6 +21,7 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `GOOGLE_CLIENT_ID` | Currently unused
 | `GOOGLE_CLIENT_SECRET` | Currently unused
 | `REDIS_URL` | URI to your redis server. Overrides `REDIS_HOST`, and `REDIS_PORT`. If not supplied, it will try to connect to the redis server on the local machine. | None |
+| `REDIS_TLS_URL` | Works like, but prioritized over `REDIS_URL` | None |
 | `REDIS_HOST` | Hostname or IP of the redis server. If not supplied, it will try to connect to the redis server on the local machine. | `undefined` | Hostname or IP
 | `REDIS_PORT` | Port of the redis server. If not supplied, it will try to connect to the redis server on the default port. | `undefined` | 1-65535
 | `REDIS_DB` | Specify the redis DB that OTT should use. | `undefined` |
