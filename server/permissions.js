@@ -308,14 +308,14 @@ class Grants {
 			return false;
 		}
 		let fullmask = this.masks[role];
-		let granted = (fullmask & checkmask) === checkmask;
-		if (granted) {
+		let isGranted = (fullmask & checkmask) === checkmask;
+		if (isGranted) {
 			log.info(`${permission} granted to ${ROLE_DISPLAY_NAMES[role]}`);
 		}
 		else {
 			log.error(`${permission} denied to ${ROLE_DISPLAY_NAMES[role]}`);
 		}
-		return granted;
+		return isGranted;
 	}
 
 	/**
