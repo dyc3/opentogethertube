@@ -57,6 +57,9 @@ class Room {
 			[ROLES.TRUSTED_USER]: [],
 		};
 		if (args) {
+			if (args.permissions) {
+				args.permissions = new permissions.Grants(args.permissions);
+			}
 			Object.assign(this, args);
 		}
 
@@ -500,7 +503,7 @@ class Room {
 				};
 			});
 
-			syncMsg.grants = permissions.getFullGrantMask(this.permissions, this.getRole(client));
+			syncMsg.grants = this.permissions.masks[this.getRole(client)];
 
 			// include if the user has voted
 			if (this.queueMode === "vote") {
