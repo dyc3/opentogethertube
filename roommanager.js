@@ -870,13 +870,13 @@ class Room {
 		// permissions need to be validated before applying them.
 		this.log.info(`${ROLE_DISPLAY_NAMES[role]} (${role}) is attempting to set grants: ${JSON.stringify(grants)}`);
 		// filter out grants that the user doesn't have permissions for
-		grants.masks = _.pickBy(grants.masks, (value, key) => this.permissions.granted(role, rolePerms[key]) && this.permissions.masks[key] !== value);
+		grants.masks = _.pickBy(grants.masks, (value, key) => this.permissions.masks[key] !== value && this.permissions.granted(role, rolePerms[key]));
 
 		for (let r in grants.masks) {
 			this.permissions.setRoleGrants(r, grants.masks[r]);
 			this.log.info(`New grants applied for: ${ROLE_DISPLAY_NAMES[r]} (${r})`);
+			this._dirtyProps.push("grants");
 		}
-		this._dirtyProps.push("grants");
 	}
 }
 
