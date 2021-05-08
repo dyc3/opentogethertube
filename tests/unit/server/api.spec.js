@@ -587,7 +587,7 @@ describe("Room API", () => {
 			await roommanager.createRoom("test1", true);
 
 			let room = await roommanager.getOrLoadRoom("test1");
-			room.permissions[0] = 0;
+			room.permissions.masks[0] = 0;
 
 			await request(app)
 				.post("/api/room/test1/queue")
@@ -686,7 +686,7 @@ describe("Room API", () => {
 			await roommanager.createRoom("test1", true);
 
 			let room = await roommanager.getOrLoadRoom("test1");
-			room.permissions[0] = 0;
+			room.permissions.masks[0] = 0;
 
 			await request(app)
 				.delete("/api/room/test1/queue")
@@ -793,7 +793,7 @@ describe("Room API", () => {
 
 			let room = await roommanager.getOrLoadRoom("test1");
 			room.queueMode = "vote";
-			room.permissions[0] = 0;
+			room.permissions.masks[0] = 0;
 
 			await request(app)
 				.post("/api/room/test1/vote")
@@ -901,7 +901,7 @@ describe("Room API", () => {
 
 			let room = await roommanager.getOrLoadRoom("test1");
 			room.queueMode = "vote";
-			room.permissions[0] = 0;
+			room.permissions.masks[0] = 0;
 
 			await request(app)
 				.delete("/api/room/test1/vote")
