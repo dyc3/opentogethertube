@@ -1158,36 +1158,38 @@ module.exports = {
 	},
 
 	/**
-	 * Loads the Room with the given name from the database. If the
-	 * room is already loaded, the promise resolves to the loaded Room.
+	 * Loads the Room with the given name from the database. This fails
+	 * if the room is already loaded.
 	 * @param {string} name The name of the room to load.
-	 * @returns {Promise} Promise that resolves to a Room.
+	 * @returns {Promise<Room>} Promise that resolves to a Room.
 	 * @throws {RoomNotFoundException}
 	 * @throws {RoomAlreadyLoadedException}
 	 */
-	loadRoom(name) {
+	async loadRoom(name) {
 		if (_.findIndex(this.rooms, r => r.name === name) >= 0) {
 			throw new RoomAlreadyLoadedException(name);
 		}
 
-		return storage.getRoomByName(name).then(result => {
-			if (!result) {
-				throw new RoomNotFoundException(name);
-			}
+		let result = await storage.getRoomByName(name);
+		if (!result) {
+			throw new RoomNotFoundException(name);
+		}
+		if (!(result.permissions instanceof permissions.Grants)) {
+			log.error(`loaded room permissions has invalid type: ${typeof result.permissions}`);
+		}
 
-			let room = new Room({
-				name: result.name,
-				title: result.title,
-				description: result.description,
-				visibility: result.visibility,
-				isTemporary: false,
-				owner: result.owner,
-				permissions: result.permissions,
-				userRoles: result.userRoles,
-			});
-			this.rooms.push(room);
-			return room;
+		let room = new Room({
+			name: result.name,
+			title: result.title,
+			description: result.description,
+			visibility: result.visibility,
+			isTemporary: false,
+			owner: result.owner,
+			permissions: result.permissions,
+			userRoles: result.userRoles,
 		});
+		this.rooms.push(room);
+		return room;
 	},
 
 	/**
@@ -1214,7 +1216,7 @@ module.exports = {
 	/**
 	 * Gets the Room by name if it's loaded into memory, otherwise returns false.
 	 * @param {string} name The name of the room
-	 * @returns {(Room|boolean)}
+	 * @returns {Promise<(Room|boolean)>}
 	 */
 	getLoadedRoom(name) {
 		return new Promise(resolve => {
@@ -1232,19 +1234,19 @@ module.exports = {
 	 * Gets the loaded Room, if its loaded, otherwise grab it from the database.
 	 * If the Room can't be found it will throw a RoomNotFoundException.
 	 * @param {string} name The name of the room
+	 * @returns {Promise<Room>}
 	 * @throws {RoomNotFoundException}
 	 */
-	getOrLoadRoom(name) {
-		return this.getLoadedRoom(name).then(room => {
-			if (room) {
-				log.debug(`Found room ${room.name} in loaded rooms`);
-				return room;
-			}
-			else {
-				log.debug(`Looking for room ${name} in database`);
-				return this.loadRoom(name);
-			}
-		});
+	async getOrLoadRoom(name) {
+		let room = await this.getLoadedRoom(name);
+		if (room) {
+			log.debug(`Found room ${room.name} in loaded rooms`);
+			return room;
+		}
+		else {
+			log.debug(`Looking for room ${name} in database`);
+			return await this.loadRoom(name);
+		}
 	},
 
 	/**

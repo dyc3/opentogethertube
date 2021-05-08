@@ -419,9 +419,8 @@ describe('Room manager: Manager tests', () => {
     jest.spyOn(storage, 'getRoomByName').mockImplementation().mockResolvedValue({ name: "test", title: "Test Room", description: "This is a Test Room." });
     await roommanager.loadRoom("test");
     try {
-      roommanager.loadRoom("test").then(() => {
-        done.fail();
-      });
+      await roommanager.loadRoom("test");
+      done.fail();
     }
     catch (err) {
       expect(err.name).toEqual("RoomAlreadyLoadedException");
