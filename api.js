@@ -126,8 +126,9 @@ router.get("/room/list", (req, res) => {
 	res.json(rooms);
 });
 
-router.get("/room/:name", (req, res) => {
-	roommanager.getOrLoadRoom(req.params.name).then(room => {
+router.get("/room/:name", async (req, res) => {
+	try {
+		let room = await roommanager.getOrLoadRoom(req.params.name);
 		let hasOwner = !!room.owner;
 		room = _.cloneDeep(_.pick(room, [
 			"name",
@@ -158,7 +159,10 @@ router.get("/room/:name", (req, res) => {
 			}
 		}
 		res.json(room);
-	}).catch(err => handleGetRoomFailure(res, err));
+	}
+	catch (e) {
+		handleGetRoomFailure(res, e);
+	}
 });
 
 router.post("/room/create", async (req, res) => {
