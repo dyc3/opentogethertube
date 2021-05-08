@@ -114,13 +114,13 @@ describe('Storage: Room Spec', () => {
 
   it('should save and load permissions correctly', async () => {
     let perms = permissions.defaultPermissions();
-    perms[0] ^= permissions.parseIntoGrantMask("playback");
+    perms.masks[0] ^= permissions.parseIntoGrantMask(["playback"]);
     await storage.saveRoom({ name: "example", permissions: perms });
 
     let room = await storage.getRoomByName("example");
     expect(room.permissions).toEqual(perms);
 
-    perms[0] ^= permissions.parseIntoGrantMask("manage-queue");
+    perms.masks[0] ^= permissions.parseIntoGrantMask(["manage-queue"]);
     await storage.updateRoom({ name: "example", permissions: perms });
 
     room = await storage.getRoomByName("example");

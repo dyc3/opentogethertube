@@ -104,6 +104,10 @@ const PERMISSIONS = [
 
 const permMaskMap = Object.fromEntries(PERMISSIONS.map(p => [p.name, p.mask]));
 
+/**
+ * Get the default permissions.
+ * @deprecated
+ */
 function defaultPermissions() {
 	return {
 		[ROLES.UNREGISTERED_USER]: parseIntoGrantMask([
@@ -131,6 +135,9 @@ function defaultPermissions() {
  * @param {string[]} perms
  */
 function parseIntoGrantMask(perms) {
+	if (!(perms instanceof Array)) {
+		throw new TypeError(`perms must be an array of strings, got ${typeof perms}`);
+	}
 	let mask = 0;
 	for (let perm of perms) {
 		_.forOwn(permMaskMap, (value, key) => {
@@ -217,6 +224,7 @@ function check(grants, role, permission) {
 
 /**
  * Represents permissions for all roles. Handles permission inheritance, and serialization/deserialization.
+ * If grants are not provided, the defaults will be used.
  */
 class Grants {
 	/**
