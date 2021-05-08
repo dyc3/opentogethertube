@@ -127,6 +127,14 @@ describe('Storage: Room Spec', () => {
     expect(room.permissions).toEqual(perms);
   });
 
+  it('should load permissions as an instance of Grants', async () => {
+    await storage.saveRoom({ name: "example", permissions: new permissions.Grants() });
+
+    let room = await storage.getRoomByName("example");
+    expect(room.permissions).toBeInstanceOf(permissions.Grants);
+    expect(room.permissions).toEqual(new permissions.Grants());
+  });
+
   it('should save and load userRoles correctly', async () => {
     let userRoles = {
       // eslint-disable-next-line array-bracket-newline

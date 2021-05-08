@@ -9,7 +9,7 @@ const log = getLogger("storage");
 
 /**
  * Converts a room into an object that can be stored in the database;
- * @param {Room} room
+ * @param {roommanager.Room} room
  */
 function roomToDb(room) {
 	let db = {
@@ -17,8 +17,10 @@ function roomToDb(room) {
 		title: room.title,
 		description: room.description,
 		visibility: room.visibility,
-		permissions: JSON.stringify(room.permissions),
 	};
+	if (room.permissions) {
+		db.permissions = room.permissions.serialize();
+	}
 	if (room.owner) {
 		db.ownerId = room.owner.id;
 	}
@@ -39,13 +41,10 @@ function dbToRoomArgs(db) {
 		description: db.description,
 		visibility: db.visibility,
 		owner: db.owner,
-		permissions: permissions.defaultPermissions(),
+		permissions: new permissions.Grants(),
 		userRoles: {},
 	};
-	let grants = JSON.parse(db.permissions);
-	for (let r in grants) {
-		room.permissions[parseInt(r)] = grants[r];
-	}
+	room.permissions.deserialize(db.permissions);
 	for (let i = 0; i <= 4; i++) {
 		if (i >= permissions.ROLES.TRUSTED_USER) {
 			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);

@@ -253,7 +253,7 @@ describe('Room manager: Room tests', () => {
       jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
 
       let grants = permissions.defaultPermissions();
-      grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+      grants.masks[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
       room.setGrants(grants, {});
       expect(room.getRole).toBeCalledTimes(1);
       expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "playback")).toBe(false);
@@ -264,7 +264,7 @@ describe('Room manager: Room tests', () => {
       jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
 
       let grants = permissions.defaultPermissions();
-      grants[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+      grants.masks[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
       room.setGrants(grants, {});
       expect(room.getRole).toBeCalledTimes(1);
       expect(permissions.granted(room.permissions, ROLES.MODERATOR, "configure-room.set-permissions.for-all-unregistered-users")).toBe(true);
@@ -275,7 +275,7 @@ describe('Room manager: Room tests', () => {
       jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.OWNER);
 
       let grants = permissions.defaultPermissions();
-      grants[ROLES.UNREGISTERED_USER] |= permissions.parseIntoGrantMask(["manage-users.promote-moderator"]);
+      grants.masks[ROLES.UNREGISTERED_USER] |= permissions.parseIntoGrantMask(["manage-users.promote-moderator"]);
       room.setGrants(grants, {});
       expect(room.getRole).toBeCalledTimes(1);
       expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "manage-users.promote-moderator")).toBe(false);
@@ -286,11 +286,11 @@ describe('Room manager: Room tests', () => {
       jest.spyOn(room, 'getRole').mockImplementation(() => ROLES.MODERATOR);
 
       // setup
-      room.permissions[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
+      room.permissions.masks[ROLES.MODERATOR] |= permissions.parseIntoGrantMask(["configure-room.set-permissions.for-all-unregistered-users"]);
 
       // test
       let grants = permissions.defaultPermissions();
-      grants[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
+      grants.masks[ROLES.UNREGISTERED_USER] &= ~(permissions.parseIntoGrantMask(["playback"]));
       room.setGrants(grants, {});
       expect(room.getRole).toBeCalledTimes(1);
       expect(permissions.granted(room.permissions, ROLES.UNREGISTERED_USER, "playback")).toBe(false);

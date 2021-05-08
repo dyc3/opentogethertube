@@ -109,7 +109,7 @@ const permMaskMap = Object.fromEntries(PERMISSIONS.map(p => [p.name, p.mask]));
  * @deprecated
  */
 function defaultPermissions() {
-	return {
+	return new Grants({
 		[ROLES.UNREGISTERED_USER]: parseIntoGrantMask([
 			"playback",
 			"manage-queue",
@@ -127,7 +127,7 @@ function defaultPermissions() {
 		]),
 		[ROLES.ADMINISTRATOR]: parseIntoGrantMask(["*"]),
 		[ROLES.OWNER]: parseIntoGrantMask(["*"]),
-	};
+	});
 }
 
 /**
@@ -168,10 +168,11 @@ function getFullGrantMask(grants, role) {
  * @param {Number} role
  */
 function getValidationMask(role) {
-	if (role < 0) {
+	let masks = PERMISSIONS.filter(p => role >= p.minRole).map(p => p.mask);
+	if (masks.length === 0) {
 		return parseIntoGrantMask(["*"]);
 	}
-	return PERMISSIONS.filter(p => role >= p.minRole).map(p => p.mask).reduce((full, mask) => full | mask);
+	return masks.reduce((full, mask) => full | mask);
 }
 
 /**
@@ -328,6 +329,41 @@ class Grants {
 		if (!this.granted(role, permission)) {
 			throw new PermissionDeniedException(permission);
 		}
+	}
+
+	/**
+	 * Keep only the specified roles, delete all other grant masks.
+	 * @param {Number[]} roles
+	 */
+	filterRoles(roles) {
+		for (const role in this.masks) {
+			if (Object.hasOwnProperty.call(this.masks, role)) {
+				if (!roles.includes(role)) {
+					delete this.masks[role];
+				}
+			}
+		}
+	}
+
+	/**
+	 * Serialize grants to a string. Used to store grants in the database.
+	 * @returns {string}
+	 */
+	serialize() {
+		return JSON.stringify(this.masks);
+	}
+
+	/**
+	 * Deserialize grants from a string.
+	 * @param {string} value
+	 */
+	deserialize(value) {
+		let g = JSON.parse(value);
+		this.setAllGrants(g);
+	}
+
+	toJSON() {
+		return this.masks;
 	}
 }
 

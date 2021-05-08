@@ -50,7 +50,7 @@ class Room {
 		this.keepAlivePing = null;
 		this.owner = null;
 		this.playbackStartTime = null;
-		this.permissions = permissions.defaultPermissions();
+		this.permissions = new permissions.Grants();
 		this.userRoles = {
 			[ROLES.ADMINISTRATOR]: [],
 			[ROLES.MODERATOR]: [],
@@ -859,32 +859,18 @@ class Room {
 			[ROLES.REGISTERED_USER]: "configure-room.set-permissions.for-all-registered-users",
 			[ROLES.UNREGISTERED_USER]: "configure-room.set-permissions.for-all-unregistered-users",
 		};
-		grants = _.pickBy(grants, (value, key) => Object.prototype.hasOwnProperty.call(rolePerms, key));
+		if (!(this.permissions instanceof permissions.Grants)) {
+			this.log.error(`room permissions have invalid type: ${typeof this.permissions}`);
+		}
+		grants = new permissions.Grants(grants);
+		grants.filterRoles(Object.keys(rolePerms));
 		// permissions need to be validated before applying them.
 		this.log.info(`${ROLE_DISPLAY_NAMES[role]} (${role}) is attempting to set grants: ${JSON.stringify(grants)}`);
 		// filter out grants that the user doesn't have permissions for
-		grants = _.pickBy(grants, (value, key) => permissions.granted(this.permissions, role, rolePerms[key]) && this.permissions[key] !== grants[key]);
-		// filter out invalid grants based on minRole
-		for (let r in grants) {
-			let validation = permissions.getValidationMask(r);
-			grants[r] &= validation;
-		}
+		grants.masks = _.pickBy(grants.masks, (value, key) => this.permissions.granted(role, rolePerms[key]) && this.permissions.masks[key] !== value);
 
-		// allow setting grants for above roles (even if we don't have permissions), but only for grants that we are turning off
-		for (let r in grants) {
-			if (r < 0 || r >= 4) {
-				continue;
-			}
-			if (grants[parseInt(r)+1]) {
-				continue;
-			}
-			// grants that are being disabled
-			let offmask = (this.permissions[r] ^ grants[r]) & this.permissions[r];
-			grants[parseInt(r)+1] = this.permissions[parseInt(r)+1] | offmask;
-		}
-
-		for (let r in grants) {
-			this.permissions[r] = grants[r];
+		for (let r in grants.masks) {
+			this.permissions.setRoleGrants(r, grants.masks[r]);
 			this.log.info(`New grants applied for: ${ROLE_DISPLAY_NAMES[r]} (${r})`);
 		}
 		this._dirtyProps.push("grants");
