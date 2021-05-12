@@ -107,7 +107,12 @@ function checkRedis() {
 checkRedis();
 
 if (fs.existsSync("./dist")) {
-	app.use(express.static(__dirname + "/dist", false));
+	// serve static files without creating a bunch of sessions
+	app.use(express.static(__dirname + "/dist", {
+		maxAge: "2 days",
+		redirect: false,
+		index: false,
+	}));
 }
 else {
 	log.warn("no dist folder found");
@@ -203,12 +208,7 @@ function serveBuiltFiles(req, res) {
 app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
-	app.get("/", serveBuiltFiles);
-	app.get("/faq", serveBuiltFiles);
-	app.get("/rooms", serveBuiltFiles);
-	app.get("/room/:roomId", serveBuiltFiles);
-	app.get("/privacypolicy", serveBuiltFiles);
-	app.get("/quickroom", serveBuiltFiles);
+	app.get("*", serveBuiltFiles);
 }
 else {
 	log.warn("no dist folder found");
