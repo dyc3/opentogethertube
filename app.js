@@ -172,11 +172,6 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 	extended: true,
 }));
 
-// Redirect urls with trailing slashes
-app.get('\\S+/$', (req, res) => {
-	return res.redirect(301, req.path.slice(0, -1) + req.url.slice(req.path.length));
-});
-
 app.use((req, res, next) => {
 	if (!req.path.startsWith("/api")) {
 		next();
