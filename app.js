@@ -106,6 +106,18 @@ function checkRedis() {
 }
 checkRedis();
 
+if (fs.existsSync("./dist")) {
+	// serve static files without creating a bunch of sessions
+	app.use(express.static(__dirname + "/dist", {
+		maxAge: "2 days",
+		redirect: false,
+		index: false,
+	}));
+}
+else {
+	log.warn("no dist folder found");
+}
+
 const session = require('express-session');
 let RedisStore = require('connect-redis')(session);
 let sessionOpts = {
@@ -172,11 +184,6 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 	extended: true,
 }));
 
-// Redirect urls with trailing slashes
-app.get('\\S+/$', (req, res) => {
-	return res.redirect(301, req.path.slice(0, -1) + req.url.slice(req.path.length));
-});
-
 app.use((req, res, next) => {
 	if (!req.path.startsWith("/api")) {
 		next();
@@ -201,13 +208,7 @@ function serveBuiltFiles(req, res) {
 app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
-	app.use(express.static(__dirname + "/dist", false));
-	app.get("/", serveBuiltFiles);
-	app.get("/faq", serveBuiltFiles);
-	app.get("/rooms", serveBuiltFiles);
-	app.get("/room/:roomId", serveBuiltFiles);
-	app.get("/privacypolicy", serveBuiltFiles);
-	app.get("/quickroom", serveBuiltFiles);
+	app.get("*", serveBuiltFiles);
 }
 else {
 	log.warn("no dist folder found");
