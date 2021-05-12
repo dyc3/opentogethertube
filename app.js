@@ -106,6 +106,13 @@ function checkRedis() {
 }
 checkRedis();
 
+if (fs.existsSync("./dist")) {
+	app.use(express.static(__dirname + "/dist", false));
+}
+else {
+	log.warn("no dist folder found");
+}
+
 const session = require('express-session');
 let RedisStore = require('connect-redis')(session);
 let sessionOpts = {
@@ -196,7 +203,6 @@ function serveBuiltFiles(req, res) {
 app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
-	app.use(express.static(__dirname + "/dist", false));
 	app.get("/", serveBuiltFiles);
 	app.get("/faq", serveBuiltFiles);
 	app.get("/rooms", serveBuiltFiles);
