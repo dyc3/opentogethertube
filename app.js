@@ -116,7 +116,7 @@ let sessionOpts = {
 	unset: 'keep',
 	cookie: {
 		expires: false,
-		maxAge: 2592000,
+		maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
 	},
 };
 if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
