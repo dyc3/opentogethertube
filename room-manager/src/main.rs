@@ -16,101 +16,13 @@ const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
+mod room;
+mod messages;
 
-/// do websocket handshake and start `MyWebSocket` actor
-async fn ws_index(r: HttpRequest, stream: web::Payload, room: web::Data<Addr<Room>>) -> Result<HttpResponse, Error> {
-	let res = ws::start(
-		Client {
-			id: 0,
-			hb: Instant::now(),
-			addr: room.get_ref().clone()
-		},
-		&r,
-		stream,
-	);
-	res
-}
-
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct Message(pub String);
-
-/// New chat session is created
-#[derive(Message)]
-#[rtype(usize)]
-pub struct Connect {
-	pub addr: Recipient<Message>,
-}
-
-/// Session is disconnected
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct Disconnect {
-	pub id: usize,
-}
-
-/// Send message to specific room
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct ClientMessage {
-	/// Id of the client session
-	pub id: usize,
-	/// Peer message
-	pub msg: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct Room {
-	clients: HashMap<usize, Recipient<Message>>,
-	rng: ThreadRng,
-}
-
-impl Room {
-	pub fn new() -> Room {
-		Room {
-			clients: HashMap::new(),
-			rng: rand::thread_rng(),
-		}
-	}
-
-	fn send_message(&self, message: &str) {
-		for client in &self.clients {
-			let _ = client.1.do_send(Message(message.to_owned()));
-		}
-	}
-}
-
-impl Actor for Room {
-	type Context = Context<Self>;
-}
-
-impl Handler<Connect> for Room {
-	type Result = usize;
-
-	fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
-		println!("client connected");
-		let id = self.rng.gen::<usize>();
-		self.clients.insert(id, msg.addr);
-		id
-	}
-}
-
-impl Handler<Disconnect> for Room {
-	type Result = ();
-
-	fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) -> Self::Result {
-		println!("client disconnected");
-		self.clients.remove(&msg.id);
-	}
-}
-
-impl Handler<ClientMessage> for Room {
-	type Result = ();
-
-	fn handle(&mut self, msg: ClientMessage, _: &mut Context<Self>) {
-		self.send_message(msg.msg.as_str());
-	}
-}
+use crate::messages::*;
+use crate::room::*;
+use uuid::Uuid;
+use serde::*;
 
 struct Client {
 	/// unique session id
@@ -180,10 +92,10 @@ impl Client {
 	}
 }
 
-impl Handler<Message> for Client {
+impl Handler<crate::messages::Message> for Client {
 	type Result = ();
 
-	fn handle(&mut self, msg: Message, ctx: &mut Self::Context) {
+	fn handle(&mut self, msg: crate::messages::Message, ctx: &mut Self::Context) {
 		ctx.text(msg.0);
 	}
 }
@@ -231,6 +143,34 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Client {
 	}
 }
 
+#[derive(Debug, Clone, Serialize)]
+struct RoomCreateResponse {
+	room: String,
+	success: bool,
+}
+
+fn generate_room(req: HttpRequest) -> HttpResponse {
+	HttpResponse::Ok()
+		.json(RoomCreateResponse {
+			room: Uuid::new_v4().to_string(),
+			success: true,
+		})
+}
+
+/// do websocket handshake and start `MyWebSocket` actor
+async fn ws_index(r: HttpRequest, stream: web::Payload, room: web::Data<Addr<room::Room>>) -> Result<HttpResponse, Error> {
+	let res = ws::start(
+		Client {
+			id: 0,
+			hb: Instant::now(),
+			addr: room.get_ref().clone()
+		},
+		&r,
+		stream,
+	);
+	res
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
 	std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
@@ -241,12 +181,10 @@ async fn main() -> std::io::Result<()> {
 	HttpServer::new(move || {
 		App::new()
 			.data(server.clone())
-			// enable logger
 			.wrap(middleware::Logger::default())
-			// websocket route
-			.service(web::resource("/api/room").route(web::get().to(ws_index)))
-			// static files
-			.service(fs::Files::new("/", "dist/").index_file("index.html"))
+			.service(web::resource("/api/room/generate").route(web::post().to(generate_room)))
+			.service(web::resource("/api/room/{name}").route(web::get().to(ws_index)))
+			.service(fs::Files::new("/", "../dist/").index_file("index.html"))
 	})
 	// start http server on 127.0.0.1:8080
 	.bind("127.0.0.1:3001")?
