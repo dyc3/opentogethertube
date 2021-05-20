@@ -26,6 +26,8 @@ const VALID_ROOM_VISIBILITY = [
 const VALID_ROOM_QUEUE_MODE = [
 	"manual",
 	"vote",
+	"loop",
+	"dj",
 ];
 
 function handleGetRoomFailure(res, err) {
@@ -529,6 +531,39 @@ router.post("/room/:name/undo", (req, res) => {
 	roommanager.getOrLoadRoom(req.params.name).then(room => {
 		room.undoEvent(req.body.event);
 	}).catch(err => handleGetRoomFailure(res, err));
+});
+
+router.post("/room/:name/play", async (req, res) => {
+	let room;
+	try {
+		let points = 1;
+		try {
+			let info = await rateLimiter.consume(req.ip, points);
+			setRateLimitHeaders(res, info);
+		}
+		catch (e) {
+			if (e instanceof Error) {
+				throw e;
+			}
+			else {
+				handleRateLimit(res, e);
+				return;
+			}
+		}
+		room = await roommanager.getOrLoadRoom(req.params.name);
+	}
+	catch (err) {
+		handleGetRoomFailure(res, err);
+		return;
+	}
+	// if (req.body.index) {
+
+	// }
+	// else {
+	let client = room.getClient(req.session);
+	room.play(client);
+	// }
+	res.json({success: true});
 });
 
 router.get("/data/previewAdd", async (req, res) => {

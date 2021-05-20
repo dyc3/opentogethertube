@@ -176,6 +176,28 @@ class Room {
 	}
 
 	/**
+	 * Play the video.
+	 * @param {Client} client
+	 */
+	play(client) {
+		if (client) {
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
+		}
+		else {
+			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, "API client", {}));
+		}
+	}
+
+	/**
+	 * Get the client associated with a session.
+	 * @param {Object} session
+	 * @returns Client
+	 */
+	getClient(session) {
+		return _.find(this.clients, { session: session });
+	}
+
+	/**
 	 * Modifies the room state based on the room event given, sends the event to clients, and syncs clients.
 	 * @param {RoomEvent} event
 	 */
@@ -672,7 +694,7 @@ class Room {
 
 	/**
 	 * Called when this room receives a message from one of it's users.
-	 * @param {Object} client The client that sent the message
+	 * @param {Client} client The client that sent the message
 	 * @param {Object} message The message that the client sent as a object. Should always have an `action` attribute.
 	 */
 	onMessageReceived(client, msg) {
@@ -687,11 +709,11 @@ class Room {
 
 		let role = this.getRole(client);
 		if (actionToPerm[msg.action]) {
-			permissions.check(this.permissions, role, actionToPerm[msg.action]);
+			this.permissions.check(role, actionToPerm[msg.action]);
 		}
 
 		if (msg.action === "play") {
-			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PLAY, client.username, {}));
+			this.play(client);
 		}
 		else if (msg.action === "pause") {
 			this.commitRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.PAUSE, client.username, {}));

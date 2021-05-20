@@ -1,3 +1,4 @@
+require('ts-node').register();
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
@@ -174,9 +175,14 @@ app.use((req, res, next) => {
 	next();
 });
 
-const roommanager = require("./roommanager");
+// const roommanager = require("./roommanager");
 const api = require("./api");
-roommanager.start(server, sessions);
+// roommanager.start(server, sessions);
+
+const websockets = require("./server/websockets.js");
+websockets.Setup(server, sessions);
+const clientmanager = require("./server/clientmanager.ts");
+clientmanager.Setup();
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies
