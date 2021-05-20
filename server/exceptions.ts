@@ -99,3 +99,31 @@ export class InvalidRoleException extends Error {
 		this.name = "InvalidRoleException";
 	}
 }
+
+export class RoomNotFoundException extends Error {
+	constructor(roomName: string) {
+		super(`The room "${roomName}" could not be found.`);
+		this.name = "RoomNotFoundException";
+	}
+}
+
+export class RoomAlreadyLoadedException extends Error {
+	constructor(roomName: string) {
+		super(`The room "${roomName}" is already loaded.`);
+		this.name = "RoomAlreadyLoadedException";
+	}
+}
+
+export class RoomNameTakenException extends Error {
+	constructor(roomName: string) {
+		super(`The room "${roomName}" is taken.`);
+		this.name = "RoomNameTakenException";
+	}
+}
+
+export class VideoAlreadyQueuedException extends Error {
+	constructor(title: string) {
+		super(`The video "${title}" is already in the queue`);
+		this.name = "VideoAlreadyQueuedException";
+	}
+}
