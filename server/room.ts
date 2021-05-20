@@ -147,16 +147,22 @@ export class Room implements RoomState {
 		this.throttledSync();
 	}
 
+	dequeueNext() {
+		if (this.queue.length > 0) {
+			this.currentSource = this.queue.shift()!;
+			this.markDirty("queue");
+			this.playbackPosition = 0;
+		}
+		else if (this.isPlaying) {
+			this.isPlaying = false;
+			this.playbackPosition = 0;
+			this.currentSource = null;
+		}
+	}
+
 	public async update() {
 		if (this.currentSource === null) {
-			if (this.queue.length > 0) {
-				this.currentSource = this.queue.shift()!;
-				this.markDirty("queue");
-			}
-			else if (this.isPlaying) {
-				this.isPlaying = false;
-				this.playbackPosition = 0;
-			}
+			this.dequeueNext();
 		}
 	}
 
@@ -198,6 +204,9 @@ export class Room implements RoomState {
 				await this.pause();
 			}
 		}
+		else if (request.permission === "playback.skip") {
+			await this.skip();
+		}
 		else if (request.permission === "playback.seek") {
 			await this.seek(request.value);
 		}
@@ -211,6 +220,10 @@ export class Room implements RoomState {
 	public async pause() {
 		this.log.debug("playback paused");
 		this.isPlaying = false;
+	}
+
+	public async skip() {
+		this.dequeueNext();
 	}
 
 	/**
