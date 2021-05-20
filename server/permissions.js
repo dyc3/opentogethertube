@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const { getLogger } = require("../logger.js");
-const { PermissionDeniedException, InvalidRoleException } = require("./exceptions.js");
+import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 const log = getLogger("permissions");
 
 const ROLES = {

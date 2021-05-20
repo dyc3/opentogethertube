@@ -10,7 +10,7 @@ const { getLogger } = require("./logger.js");
 const { redisClient } = require('./redisclient.js');
 const permissions = require("./server/permissions.js");
 const { ROLES, ROLE_DISPLAY_NAMES } = permissions;
-const { ImpossiblePromotionException, PermissionDeniedException } = require('./server/exceptions.js');
+import { ImpossiblePromotionException, PermissionDeniedException } from './server/exceptions';
 const { ROLE_NAMES } = require('./server/permissions.js');
 
 const log = getLogger("roommanager");

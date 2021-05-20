@@ -1,7 +1,9 @@
-class UnsupportedServiceException extends Error {
-	constructor(url) {
+import { Url } from "url";
+
+export class UnsupportedServiceException extends Error {
+	constructor(url: Url) {
 		let msg = "";
-		if (/\/*\.([a-z0-9])$/i.exec(url.path.split("?")[0])) {
+		if (/\/*\.([a-z0-9])$/i.exec(url.path!.split("?")[0])) {
 			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, the service at "${url.host}" is not yet supported.`;
 		}
 		else {
@@ -12,15 +14,15 @@ class UnsupportedServiceException extends Error {
 	}
 }
 
-class InvalidAddPreviewInputException extends Error {
-	constructor(minLength) {
+export class InvalidAddPreviewInputException extends Error {
+	constructor(minLength: number) {
 		super(`Your search query must at least ${minLength} characters, or supply a Youtube video, playlist, or channel link.`);
 		this.name = "InvalidAddPreviewInputException";
 	}
 }
 
-class OutOfQuotaException extends Error {
-	constructor(service) {
+export class OutOfQuotaException extends Error {
+	constructor(service: string) {
 		if (service === "youtube") {
 			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 50,000 quota per day.`);
 		}
@@ -34,22 +36,22 @@ class OutOfQuotaException extends Error {
 	}
 }
 
-class InvalidVideoIdException extends Error {
-	constructor(service, id) {
+export class InvalidVideoIdException extends Error {
+	constructor(service: string, id: string) {
 		super(`"${id} is an invalid ${service} video ID."`);
 		this.name = "InvalidVideoIdException";
 	}
 }
 
-class FeatureDisabledException extends Error {
-	constructor(reason) {
+export class FeatureDisabledException extends Error {
+	constructor(reason: string) {
 		super(`Sorry, this feature is disabled: ${reason}`);
 		this.name = "FeatureDisabledException";
 	}
 }
 
-class UnsupportedMimeTypeException extends Error {
-	constructor(mime) {
+export class UnsupportedMimeTypeException extends Error {
+	constructor(mime: string) {
 		if (mime.startsWith("video/")) {
 			super(`Files that are ${mime} are not supported. Mp4 videos work the best.`);
 		}
@@ -60,58 +62,40 @@ class UnsupportedMimeTypeException extends Error {
 	}
 }
 
-class LocalFileException extends Error {
+export class LocalFileException extends Error {
 	constructor() {
 		super(`The video URL provided references a local file. It is not possible to play videos on your computer, nor files located on the server. Videos must be hosted somewhere all users in the room can access.`);
 		this.name = "LocalFileException";
 	}
 }
 
-class MissingMetadataException extends Error {
+export class MissingMetadataException extends Error {
 	constructor() {
 		super(`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`);
 		this.name = "MissingMetadataException";
 	}
 }
 
-class IncompleteServiceAdapterException extends Error {
+export class IncompleteServiceAdapterException extends Error {
 }
 
-class PermissionDeniedException extends Error {
-	constructor(permission) {
+export class PermissionDeniedException extends Error {
+	constructor(permission: string) {
 		super(`Permission denied: ${permission}`);
 		this.name = "PermissionDeniedException";
 	}
 }
 
-class ImpossiblePromotionException extends Error {
+export class ImpossiblePromotionException extends Error {
 	constructor() {
 		super(`Can't promote/demote unregistered user`);
 		this.name = "ImpossiblePromotionException";
 	}
 }
 
-class InvalidRoleException extends Error {
-	/**
-	 * @param {int} role
-	 */
-	constructor(role) {
+export class InvalidRoleException extends Error {
+	constructor(role: any) {
 		super(`Role ${role} (type: ${typeof role}) is not valid.`);
 		this.name = "InvalidRoleException";
 	}
 }
-
-module.exports = {
-	UnsupportedServiceException,
-	InvalidAddPreviewInputException,
-	OutOfQuotaException,
-	InvalidVideoIdException,
-	FeatureDisabledException,
-	UnsupportedMimeTypeException,
-	LocalFileException,
-	MissingMetadataException,
-	IncompleteServiceAdapterException,
-	PermissionDeniedException,
-	ImpossiblePromotionException,
-	InvalidRoleException,
-};
