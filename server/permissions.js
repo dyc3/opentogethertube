@@ -3,7 +3,7 @@ const { getLogger } = require("../logger.js");
 import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 const log = getLogger("permissions");
 
-const ROLES = {
+export const ROLES = {
 	ADMINISTRATOR: 4,
 	MODERATOR: 3,
 	TRUSTED_USER: 2,
@@ -236,6 +236,15 @@ export class Grants {
 			grants = defaultPermissions();
 		}
 		this.setAllGrants(grants);
+	}
+
+	/**
+	 *
+	 * @param {number} role
+	 * @returns {number}
+	 */
+	getMask(role) {
+		return this.masks[role];
 	}
 
 	/**

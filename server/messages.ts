@@ -1,4 +1,5 @@
 import { QueueMode, Visibility } from "./room";
+import { Grants } from "./permissions"
 
 export type ServerMessage = ServerMessageSync
 
@@ -16,4 +17,5 @@ export interface ServerMessageSync extends ServerMessageBase {
 	queueMode?: QueueMode,
 	isPlaying?: boolean,
 	playbackPosition?: number,
+	grants?: number | Grants, // FIXME: permissions
 }

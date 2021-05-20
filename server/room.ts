@@ -7,6 +7,7 @@ import { ServerMessageSync } from "./messages";
 import _ from "lodash";
 import Video from "../common/video";
 import InfoExtract from "./infoextractor";
+import { ROLES } from "./permissions";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -49,10 +50,10 @@ export class Room implements RoomState {
 	_queueMode: QueueMode = QueueMode.Manual;
 	isTemporary: boolean = false;
 
-	currentSource: Video | null = null
+	_currentSource: Video | null = null
 	queue: Video[] = []
-	isPlaying: boolean = false
-	playbackPosition: number = 0
+	_isPlaying: boolean = false
+	_playbackPosition: number = 0
 	grants: Grants = new Grants();
 
 	_dirty: Set<keyof RoomState> = new Set();
@@ -61,6 +62,9 @@ export class Room implements RoomState {
 	constructor (options: RoomOptions) {
 		this.log = getLogger(`room/${options.name}`);
 		Object.assign(this, options);
+		if (!(this.grants instanceof Grants)) {
+			this.grants = new Grants(this.grants);
+		}
 	}
 
 	public get name() {
@@ -111,12 +115,49 @@ export class Room implements RoomState {
 		this.markDirty("queueMode");
 	}
 
+	public get currentSource() {
+		return this._currentSource;
+	}
+
+	public set currentSource(value: Video | null) {
+		this._currentSource = value;
+		this.markDirty("currentSource");
+	}
+
+	public get isPlaying() {
+		return this._isPlaying;
+	}
+
+	public set isPlaying(value: boolean) {
+		this._isPlaying = value;
+		this.markDirty("isPlaying");
+	}
+
+	public get playbackPosition() {
+		return this._playbackPosition;
+	}
+
+	public set playbackPosition(value: number) {
+		this._playbackPosition = value;
+		this.markDirty("playbackPosition");
+	}
+
 	markDirty(prop: keyof RoomState) {
 		this._dirty.add(prop);
 		this.throttledSync();
 	}
 
 	public async update() {
+		if (this.currentSource === null) {
+			if (this.queue.length > 0) {
+				this.currentSource = this.queue.shift()!;
+				this.markDirty("queue");
+			}
+			else if (this.isPlaying) {
+				this.isPlaying = false;
+				this.playbackPosition = 0;
+			}
+		}
 	}
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
@@ -136,9 +177,22 @@ export class Room implements RoomState {
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)))
 
+		// FIXME: permissions
+		msg.grants = this.grants.getMask(ROLES.OWNER);
+
 		await set(`room:${this.name}`, JSON.stringify(state));
 		await publish(`room:${this.name}`, JSON.stringify(msg));
 		this._dirty.clear();
+	}
+
+	public async play() {
+		this.log.debug("playback started");
+		this.isPlaying = true;
+	}
+
+	public async pause() {
+		this.log.debug("playback paused");
+		this.isPlaying = false;
 	}
 
 	/**
