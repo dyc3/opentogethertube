@@ -87,6 +87,13 @@ export class Client {
 				value: msg.position,
 			})
 		}
+		else if (msg.action === "queue-move") {
+			room?.processRequest({
+				permission: "manage-queue.order",
+				fromIdx: msg.currentIdx,
+				toIdx: msg.targetIdx,
+			})
+		}
 		// else {
 		// 	log.warn(`Unknown message: ${msg.action}`);
 		// 	break;

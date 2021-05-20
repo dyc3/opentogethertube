@@ -210,6 +210,15 @@ export class Room implements RoomState {
 		else if (request.permission === "playback.seek") {
 			await this.seek(request.value);
 		}
+		else if (request.permission === "manage-queue.add") {
+			await this.addToQueue(request.video);
+		}
+		else if (request.permission === "manage-queue.remove") {
+			await this.removeFromQueue(request.video);
+		}
+		else if (request.permission === "manage-queue.order") {
+			await this.reorderQueue(request.fromIdx, request.toIdx);
+		}
 	}
 
 	public async play() {
@@ -260,5 +269,28 @@ export class Room implements RoomState {
 		this.queue.push(queueItem);
 		this.markDirty("queue");
 		this.log.info(`Video added: ${JSON.stringify(queueItem)}`);
+	}
+
+	public async removeFromQueue(video: Video) {
+		let matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
+		if (matchIdx < 0) {
+			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
+			return false;
+		}
+		// remove the item from the queue
+		let removed = this.queue.splice(matchIdx, 1)[0];
+		this.markDirty("queue");
+		// if (session && client) {
+		// 	this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
+		// }
+		// else {
+		// 	this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
+		// }
+	}
+
+	public async reorderQueue(from: number, to: number) {
+		let video = this.queue.splice(from, 1)[0];
+		this.queue.splice(to, 0, video);
+		this.markDirty("queue");
 	}
 }

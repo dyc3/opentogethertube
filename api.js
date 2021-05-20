@@ -465,7 +465,7 @@ router.delete("/room/:name/queue", async (req, res) => {
 				return;
 			}
 		}
-		room = await roommanager.getOrLoadRoom(req.params.name);
+		room = await roommanager.GetRoom(req.params.name);
 	}
 	catch (err) {
 		handleGetRoomFailure(res, err);
@@ -475,10 +475,7 @@ router.delete("/room/:name/queue", async (req, res) => {
 	try {
 		let success;
 		if (req.body.service && req.body.id) {
-			success = room.removeFromQueue({ service: req.body.service, id: req.body.id }, req.session);
-		}
-		else if (req.body.url) {
-			success = room.removeFromQueue({ url: req.body.url }, req.session);
+			success = room.processRequest({ permission: "manage-queue.remove", video: {service: req.body.service, id: req.body.id} });
 		}
 		else {
 			res.status(400).json({
