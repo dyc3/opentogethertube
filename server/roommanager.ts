@@ -41,6 +41,7 @@ export default {
 	async CreateRoom(options: RoomOptions) {
 		let room = new Room(options);
 		await room.update();
+		await room.sync();
 		rooms.push(room);
 		log.info(`Room created: ${room.name}`);
 	},
