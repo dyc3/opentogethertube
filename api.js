@@ -1,12 +1,11 @@
 const express = require('express');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
-const InfoExtract = require("./server/infoextractor");
+import InfoExtract from "./server/infoextractor";
 const { getLogger } = require('./logger.js');
 const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
 import roommanager from "./server/roommanager";
-import { RoomOptions } from "./server/room";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
 
 const log = getLogger("api");
@@ -415,7 +414,7 @@ router.post("/room/:name/queue", async (req, res) => {
 				return;
 			}
 		}
-		room = await roommanager.getOrLoadRoom(req.params.name);
+		room = await roommanager.GetRoom(req.params.name);
 	}
 	catch (err) {
 		handleGetRoomFailure(res, err);

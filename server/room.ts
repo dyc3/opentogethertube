@@ -5,7 +5,8 @@ import { getLogger } from "../logger.js";
 import winston from "winston";
 import { ServerMessageSync } from "./messages";
 import _ from "lodash";
-import { Video } from "../common/video";
+import Video from "../common/video";
+import InfoExtract from "./infoextractor";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -118,6 +119,8 @@ export class Room implements RoomState {
 			return;
 		}
 
+		this.log.debug(`synchronizing dirty props: ${Array.from(this._dirty)}`)
+
 		let msg: ServerMessageSync = {
 			action: "sync",
 		}
@@ -128,5 +131,30 @@ export class Room implements RoomState {
 
 		await set(`room:${this.name}`, JSON.stringify(state));
 		await publish(`room:${this.name}`, JSON.stringify(msg));
+		this._dirty.clear();
+	}
+
+	/**
+	 * Add the video to the queue. Should only be called after permissions have been checked.
+	 * @param video
+	 */
+	public async addToQueue(video: Video) {
+		let queueItem = new Video();
+
+		if (Object.prototype.hasOwnProperty.call(video, "url")) {
+			let adapter = InfoExtract.getServiceAdapterForURL(video.url);
+			queueItem.service = adapter.serviceId;
+			queueItem.id = adapter.getVideoId(video.url);
+		}
+		else {
+			queueItem.service = video.service;
+			queueItem.id = video.id;
+		}
+
+		queueItem = await InfoExtract.getVideoInfo(queueItem.service, queueItem.id);
+
+		this.queue.push(queueItem);
+		this._dirty.add("queue");
+		this.log.info(`Video added: ${JSON.stringify(queueItem)}`);
 	}
 }

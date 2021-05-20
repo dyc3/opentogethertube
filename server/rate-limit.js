@@ -8,9 +8,9 @@ const rateLimitOpts = {
 	storeClient: redisClient,
 	points: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
 	duration: 60 * 60, // seconds
-	blockDuration: 120,
+	blockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
 	inmemoryBlockOnConsumed: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
-	inmemoryBlockDuration: 120,
+	inmemoryBlockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
 };
 const rateLimiter = new RateLimiterRedis(rateLimitOpts);
 

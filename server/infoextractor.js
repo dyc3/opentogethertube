@@ -8,7 +8,7 @@ const DirectVideoAdapter = require("./services/direct");
 const RedditAdapter = require("./services/reddit");
 const NeverthinkAdapter = require("./services/neverthink");
 const storage = require("../storage");
-const Video = require("../common/video");
+import Video from "../common/video";
 const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } = require("./exceptions");
 const { getLogger } = require("../logger");
 const { redisClient } = require("../redisclient");
@@ -29,7 +29,7 @@ const adapters = [
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
 const ENABLE_SEARCH = process.env.ENABLE_SEARCH === undefined || process.env.ENABLE_SEARCH === true || process.env.ENABLE_SEARCH === "true";
 
-module.exports = {
+export default {
   isURL(str) {
     return URL.parse(str).host !== null;
   },
@@ -124,7 +124,7 @@ module.exports = {
    * to the cache.
    * @param {string} service
    * @param {string} videoId
-   * @returns {Video}
+   * @returns {Promise<Video>}
    */
   async getVideoInfo(service, videoId) {
     const adapter = this.getServiceAdapter(service);
@@ -219,7 +219,7 @@ module.exports = {
    * used to perform a search.
    * @param {string} query
    * @param {string} searchService
-   * @returns {Video[]}
+   * @returns {Promise<Video[]>}
    */
   async resolveVideoQuery(query, searchService) {
     const results = [];

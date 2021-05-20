@@ -133,19 +133,30 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 	}
 }
 
-redisClient.on("message", function(channel, text) {
+redisSubscriber.on("message", function(channel, text) {
 	log.debug(`pubsub message: ${channel}: ${text}`);
 	if (!channel.startsWith("room:")) {
 		return;
 	}
 	let msg = JSON.parse(text) as ServerMessage;
 	if (msg.action === "sync") {
-		let state = roomStates.get(msg.name!);
+		let roomName = channel.replace("room:", "")
+
+		let state = roomStates.get(roomName!);
 		if (state === undefined) {
 			state = {} as RoomState;
 		}
 		Object.assign(state, _.omit(msg, "action"))
-		roomStates.set(msg.name!, state);
+		roomStates.set(roomName!, state);
+
+		for (let client of roomJoins.get(roomName)!) {
+			try {
+				client.Socket.send(text);
+			}
+			catch (e) {
+				log.error(`failed to send to client: ${e.message}`);
+			}
+		}
 	}
 });
 
