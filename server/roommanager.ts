@@ -1,9 +1,10 @@
 import { Room, Visibility, QueueMode, RoomOptions, RoomState } from "./room";
-import _ from "lodash";
+import _, { create } from "lodash";
 const NanoTimer = require("nanotimer");
 import { getLogger } from "../logger.js";
-import { redisClient } from "../redisclient";
+import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
+import { RoomRequest } from "./messages";
 // WARN: do NOT import clientmanager
 
 const log = getLogger("roommanager");
@@ -14,6 +15,12 @@ const redis = {
 	del: promisify(redisClient.del).bind(redisClient),
 }
 let rooms: Room[] = [];
+// const redisSubscriber = createSubscriber();
+
+function addRoom(room: Room) {
+	rooms.push(room);
+	// redisSubscriber.subscribe(`room_requests:${room.name}`);
+}
 
 export async function start() {
 	let keys = await redis.keys("room:*")
@@ -24,7 +31,7 @@ export async function start() {
 		}
 		let state = JSON.parse(text) as RoomState;
 		let room = new Room(state);
-		rooms.push(room);
+		addRoom(room);
 	}
 	log.info(`Loaded ${keys.length} rooms from redis`);
 
@@ -37,18 +44,29 @@ export async function start() {
 	}, '', '1000m');
 }
 
+async function GetRoom(roomName: string) {
+	return _.find(rooms, { name: roomName });
+}
+
 export default {
 	async CreateRoom(options: RoomOptions) {
 		let room = new Room(options);
 		await room.update();
 		await room.sync();
-		rooms.push(room);
+		addRoom(room);
 		log.info(`Room created: ${room.name}`);
 	},
 
-	async GetRoom(roomName: string) {
-		return _.find(rooms, { name: roomName });
-	},
-
+	GetRoom,
 	start,
 }
+
+// redisSubscriber.on("message", async (channel, text) => {
+// 	if (!channel.startsWith("room_requests:")) {
+// 		return
+// 	}
+// 	let roomName = text.split(":")[1];
+// 	let room = await GetRoom(roomName);
+// 	let request = JSON.parse(text) as RoomRequest;
+// 	await room.processRequest(request);
+// })

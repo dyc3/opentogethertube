@@ -75,7 +75,7 @@ class Permission {
 	}
 }
 
-const PERMISSIONS = [
+export const PERMISSIONS = [
 	new Permission({ name: "playback.play-pause", mask: 1<<0, minRole: ROLES.UNREGISTERED_USER }),
 	new Permission({ name: "playback.skip", mask: 1<<1, minRole: ROLES.UNREGISTERED_USER }),
 	new Permission({ name: "playback.seek", mask: 1<<2, minRole: ROLES.UNREGISTERED_USER }),

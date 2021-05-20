@@ -7,10 +7,11 @@ import { getLogger } from "../logger.js";
 import { json, Request } from 'express';
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
-import { ServerMessage, ServerMessageSync } from "./messages";
+import { ClientMessage, ClientMessageSeek, ServerMessage, ServerMessageSync } from "./messages";
 import { RoomState } from "./room.js";
 import { RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import roommanager
+import roommanager from "./roommanager" // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -32,11 +33,13 @@ export class Client {
 	Session: Session
 	User: any
 	UnregisteredUsername: string | null
+	room: string | null
 
 	constructor (session: Session, socket: WebSocket) {
 		this.Session = session;
 		this.Socket = socket;
 		this.UnregisteredUsername = uniqueNamesGenerator()
+		this.room = null;
 
 		this.Socket.on("close", (code, reason) => {
 			log.debug(`socket closed: ${code}, ${reason}`)
@@ -54,13 +57,40 @@ export class Client {
 		}
 	}
 
-	public OnMessage(text: string) {
-		let msg = JSON.parse(text) as ServerMessage;
-		switch (msg.action) {
-			default:
-				log.warn(`Unknown message: ${msg.action}`);
-				break;
+	public async OnMessage(text: string) {
+		log.debug(text);
+		let msg: ClientMessage = JSON.parse(text);
+		let room = await roommanager.GetRoom(this.room!);
+		if (!room) {
+			log.error(`room not found: ${this.room}`)
 		}
+		if (msg.action === "play") {
+			room?.processRequest({
+				permission: "playback.play-pause",
+				state: true,
+			})
+		}
+		else if (msg.action === "pause") {
+			room?.processRequest({
+				permission: "playback.play-pause",
+				state: false,
+			})
+		}
+		else if (msg.action === "skip") {
+			room?.processRequest({
+				permission: "playback.skip",
+			})
+		}
+		else if (msg.action === "seek") {
+			room?.processRequest({
+				permission: "playback.seek",
+				value: msg.position,
+			})
+		}
+		// else {
+		// 	log.warn(`Unknown message: ${msg.action}`);
+		// 	break;
+		// }
 	}
 
 	public OnPing(data: Buffer) {
@@ -70,6 +100,7 @@ export class Client {
 
 	public async JoinRoom(room: string) {
 		log.info(`${this.Username} joining ${room}`);
+		this.room = room;
 
 		// full sync
 		let state = roomStates.get(room);
@@ -119,8 +150,8 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 	log.debug(`connection received: ${roomName}`)
 	let client = new Client(session, socket);
 	connections.push(client);
-	socket.on("ping", client.OnPing);
-	socket.on("message", client.OnMessage);
+	socket.on("ping", (data) => client.OnPing(data));
+	socket.on("message", (data) => client.OnMessage(data as string));
 	try {
 		await client.JoinRoom(roomName);
 	}
@@ -139,10 +170,9 @@ redisSubscriber.on("message", function(channel, text) {
 	if (!channel.startsWith("room:")) {
 		return;
 	}
+	let roomName = channel.replace("room:", "")
 	let msg = JSON.parse(text) as ServerMessage;
 	if (msg.action === "sync") {
-		let roomName = channel.replace("room:", "")
-
 		let state = roomStates.get(roomName!);
 		if (state === undefined) {
 			state = {} as RoomState;

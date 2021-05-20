@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { ServerMessageSync } from "./messages";
+import { RoomRequest, ServerMessageSync } from "./messages";
 import _ from "lodash";
 import Video from "../common/video";
 import InfoExtract from "./infoextractor";
@@ -185,6 +185,24 @@ export class Room implements RoomState {
 		this._dirty.clear();
 	}
 
+	public async processRequest(request: RoomRequest) {
+		// TODO: check permissions, then proceed.
+
+		this.log.info(`processing request: ${request.permission}`)
+
+		if (request.permission === "playback.play-pause") {
+			if (request.state) {
+				await this.play();
+			}
+			else {
+				await this.pause();
+			}
+		}
+		else if (request.permission === "playback.seek") {
+			await this.seek(request.value);
+		}
+	}
+
 	public async play() {
 		this.log.debug("playback started");
 		this.isPlaying = true;
@@ -193,6 +211,18 @@ export class Room implements RoomState {
 	public async pause() {
 		this.log.debug("playback paused");
 		this.isPlaying = false;
+	}
+
+	/**
+	 * Seek to the specified position in the video.
+	 * @param value
+	 */
+	public async seek(value: number) {
+		if (value === undefined) {
+			this.log.error("seek value was undefined");
+			return
+		}
+		this.playbackPosition = value;
 	}
 
 	/**
