@@ -4,7 +4,7 @@ import { uniqueNamesGenerator } from "unique-names-generator";
 import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "../logger.js";
-import { Request } from 'express';
+import { json, Request } from 'express';
 
 const log = getLogger("clientmanager");
 let connections: Client[] = [];
@@ -15,6 +15,9 @@ enum OttWebsocketError {
 	ROOM_UNLOADED = 4003,
 }
 
+interface ClientMessage {
+	action: string
+}
 
 export class Client {
 	Socket: WebSocket
@@ -41,18 +44,24 @@ export class Client {
 			return this.UnregisteredUsername!;
 		}
 	}
-}
 
-/**
- * Called when a websocket connects.
- * @param session
- * @param socket
- */
-function OnConnect(session: Session, socket: WebSocket, req: Request) {
-	let roomName = req.url!.replace("/api/room/", "");
-	log.debug(`connection received: ${roomName}`)
-	let client = new Client(session, socket);
-	connections.push(client);
+	public OnMessage(text: string) {
+		let msg = JSON.parse(text) as ClientMessage;
+		switch (msg.action) {
+			default:
+				log.warn(`Unknown message: ${msg.action}`);
+				break;
+		}
+	}
+
+	public OnPing(data: Buffer) {
+		log.debug(`sending pong`);
+		this.Socket.pong();
+	}
+
+	public JoinRoom(room: string) {
+		log.info(`${this.Username} joining ${room}`);
+	}
 }
 
 export function Setup() {
@@ -66,6 +75,21 @@ export function Setup() {
 		}
 		OnConnect(req.session, ws, req);
 	})
+}
+
+/**
+ * Called when a websocket connects.
+ * @param session
+ * @param socket
+ */
+function OnConnect(session: Session, socket: WebSocket, req: Request) {
+	let roomName = req.url!.replace("/api/room/", "");
+	log.debug(`connection received: ${roomName}`)
+	let client = new Client(session, socket);
+	connections.push(client);
+	socket.on("ping", client.OnPing);
+	socket.on("message", client.OnMessage);
+	client.JoinRoom(roomName);
 }
 
 export default {

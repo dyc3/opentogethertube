@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "debug": "nodemon --inspect app.js",
+    "debug": "nodemon --inspect -e ts,js app.js",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint .",
     "lint-ci": "vue-cli-service --no-fix lint .",
     "test": "vue-cli-service test:unit --runInBand --detectOpenHandles --forceExit",
-    "api-server": "nodemon --inspect app.js",
+    "api-server": "nodemon --inspect -e ts,js app.js",
     "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"PORT=8080 npm run serve\"",
     "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\"",
     "optic-dev": "npx api start",
@@ -63,7 +63,8 @@
     "vuedraggable": "^2.23.2",
     "vuetify": "^2.2.19",
     "vuex": "^3.1.2",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "ws": "^7.4.5"
   },
   "devDependencies": {
     "@babel/core": "7.9.0",
