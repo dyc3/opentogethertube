@@ -5,18 +5,24 @@ import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "../logger.js";
 import { json, Request } from 'express';
+import { redisClient, createSubscriber } from "../redisclient";
+import { promisify } from "util";
+import { ServerMessage, ServerMessageSync } from "./messages";
+import { RoomState } from "./room.js";
+// WARN: do NOT import roommanager
 
 const log = getLogger("clientmanager");
+const redisSubscriber = createSubscriber();
+const get = promisify(redisClient.get).bind(redisClient);
+const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(redisSubscriber);
 let connections: Client[] = [];
+let roomStates: Map<string, RoomState> = new Map();
+let roomJoins: Map<string, Client[]> = new Map();
 
 enum OttWebsocketError {
 	INVALID_CONNECTION_URL = 4001,
 	ROOM_NOT_FOUND = 4002,
 	ROOM_UNLOADED = 4003,
-}
-
-interface ClientMessage {
-	action: string
 }
 
 export class Client {
@@ -46,7 +52,7 @@ export class Client {
 	}
 
 	public OnMessage(text: string) {
-		let msg = JSON.parse(text) as ClientMessage;
+		let msg = JSON.parse(text) as ServerMessage;
 		switch (msg.action) {
 			default:
 				log.warn(`Unknown message: ${msg.action}`);
@@ -59,8 +65,29 @@ export class Client {
 		this.Socket.pong();
 	}
 
-	public JoinRoom(room: string) {
+	public async JoinRoom(room: string) {
 		log.info(`${this.Username} joining ${room}`);
+		subscribe(`room:${room}`);
+		let clients = roomJoins.get(room);
+		if (clients === undefined) {
+			log.warn("room joins not present, creating")
+			clients = [];
+		}
+		clients.push(this);
+		roomJoins.set(room, clients);
+
+		// full sync
+		let state = roomStates.get(room);
+		if (state === undefined) {
+			log.warn("room state not present, grabbing")
+			let stateText = await get(`room:${room}`);
+			if (stateText === null) {
+				throw Error("piss and shit")
+			}
+			state = JSON.parse(stateText)!;
+		}
+		let syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
+		this.Socket.send(JSON.stringify(syncMsg));
 	}
 }
 
@@ -91,6 +118,22 @@ function OnConnect(session: Session, socket: WebSocket, req: Request) {
 	socket.on("message", client.OnMessage);
 	client.JoinRoom(roomName);
 }
+
+redisClient.on("message", function(channel, text) {
+	log.debug(`pubsub message: ${channel}: ${text}`);
+	if (!channel.startsWith("room:")) {
+		return;
+	}
+	let msg = JSON.parse(text) as ServerMessage;
+	if (msg.action === "sync") {
+		let state = roomStates.get(msg.name!);
+		if (state === undefined) {
+			state = {} as RoomState;
+		}
+		Object.assign(state, _.omit(msg, "action"))
+		roomStates.set(msg.name!, state);
+	}
+});
 
 export default {
 	Setup,

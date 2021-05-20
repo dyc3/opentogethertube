@@ -5,7 +5,8 @@ const InfoExtract = require("./server/infoextractor");
 const { getLogger } = require('./logger.js');
 const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
-const roommanager = require("./roommanager.js");
+import roommanager from "./server/roommanager";
+import { RoomOptions } from "./server/room";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
 
 const log = getLogger("api");
@@ -246,10 +247,10 @@ router.post("/room/create", async (req, res) => {
 			}
 		}
 		if (req.user) {
-			await roommanager.createRoom({ ...req.body, owner: req.user });
+			await roommanager.CreateRoom({ ...req.body, owner: req.user });
 		}
 		else {
-			await roommanager.createRoom(req.body);
+			await roommanager.CreateRoom(req.body);
 		}
 		log.info(`${req.body.temporary ? "Temporary" : "Permanent"} room created: name=${req.body.name} ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 		res.json({
@@ -303,7 +304,10 @@ router.post("/room/generate", async (req, res) => {
 	}
 	let roomName = uuid();
 	log.debug(`Generating room: ${roomName}`);
-	await roommanager.createRoom(roomName, true);
+	await roommanager.CreateRoom({
+		name: roomName,
+		isTemporary: true,
+	});
 	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 	res.json({
 		success: true,

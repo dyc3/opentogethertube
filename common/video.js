@@ -3,7 +3,7 @@ const _ = require("lodash");
 /**
  * Represents a video on any video providing service.
  */
-class Video {
+export class Video {
 	constructor(args=undefined) {
 		this.service = null;
 		this.id = null;

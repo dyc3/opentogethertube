@@ -227,7 +227,7 @@ function check(grants, role, permission) {
  * Represents permissions for all roles. Handles permission inheritance, and serialization/deserialization.
  * If grants are not provided, the defaults will be used.
  */
-class Grants {
+export class Grants {
 	/**
 	 * @param {Object|undefined} grants Opional object that maps roles to grant masks.
 	 */
