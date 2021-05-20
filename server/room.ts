@@ -109,9 +109,6 @@ export class Room implements RoomState {
 	}
 
 	public async update() {
-		this.log.info("updating");
-		let state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants");
-		await set(`room:${this.name}`, JSON.stringify(state));
 	}
 
 	public async sync() {

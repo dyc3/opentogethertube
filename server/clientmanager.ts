@@ -39,6 +39,7 @@ export class Client {
 		this.UnregisteredUsername = uniqueNamesGenerator()
 
 		this.Socket.on("close", (code, reason) => {
+			log.debug(`socket closed: ${code}, ${reason}`)
 			let idx = _.findIndex(connections, { Session: this.Session });
 			connections.splice(idx, 1)
 		})
