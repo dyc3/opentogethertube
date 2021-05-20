@@ -59,8 +59,8 @@ export class Room implements RoomState {
 	log: winston.Logger
 
 	constructor (options: RoomOptions) {
+		this.log = getLogger(`room/${options.name}`);
 		Object.assign(this, options);
-		this.log = getLogger(`room/${this.name}`);
 	}
 
 	public get name() {
@@ -69,16 +69,19 @@ export class Room implements RoomState {
 
 	public set name(value: string) {
 		this._name = value;
-		this._dirty.add("name");
+		this.markDirty("name");
 	}
 
 	public get title() {
+		// if (this._title.length === 0 && this.isTemporary) {
+		// 	return "Temporary Room";
+		// }
 		return this._title;
 	}
 
 	public set title(value: string) {
 		this._title = value;
-		this._dirty.add("title");
+		this.markDirty("title");
 	}
 
 	public get description() {
@@ -87,7 +90,7 @@ export class Room implements RoomState {
 
 	public set description(value: string) {
 		this._description = value;
-		this._dirty.add("description");
+		this.markDirty("description");
 	}
 
 	public get visibility() {
@@ -96,7 +99,7 @@ export class Room implements RoomState {
 
 	public set visibility(value: Visibility) {
 		this._visibility = value;
-		this._dirty.add("visibility");
+		this.markDirty("visibility");
 	}
 
 	public get queueMode() {
@@ -105,11 +108,18 @@ export class Room implements RoomState {
 
 	public set queueMode(value: QueueMode) {
 		this._queueMode = value;
-		this._dirty.add("queueMode");
+		this.markDirty("queueMode");
+	}
+
+	markDirty(prop: keyof RoomState) {
+		this._dirty.add(prop);
+		this.throttledSync();
 	}
 
 	public async update() {
 	}
+
+	throttledSync = _.debounce(this.sync, 50, { trailing: true })
 
 	public async sync() {
 		if (this._dirty.size === 0) {
@@ -151,7 +161,7 @@ export class Room implements RoomState {
 		queueItem = await InfoExtract.getVideoInfo(queueItem.service, queueItem.id);
 
 		this.queue.push(queueItem);
-		this._dirty.add("queue");
+		this.markDirty("queue");
 		this.log.info(`Video added: ${JSON.stringify(queueItem)}`);
 	}
 }
