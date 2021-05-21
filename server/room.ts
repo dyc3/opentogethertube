@@ -211,7 +211,9 @@ export class Room implements RoomState {
 			await this.seek(request.value);
 		}
 		else if (request.permission === "manage-queue.add") {
-			await this.addToQueue(request.video);
+			if (request.video) {
+				await this.addToQueue(request.video);
+			}
 		}
 		else if (request.permission === "manage-queue.remove") {
 			await this.removeFromQueue(request.video);

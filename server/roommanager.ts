@@ -5,6 +5,8 @@ import { getLogger } from "../logger.js";
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { RoomRequest } from "./messages";
+import storage from "../storage";
+import { RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager
 
 const log = getLogger("roommanager");
@@ -45,7 +47,17 @@ export async function start() {
 }
 
 async function GetRoom(roomName: string) {
-	return _.find(rooms, { name: roomName });
+	let room = _.find(rooms, { name: roomName });
+	if (room) {
+		return room;
+	}
+	let opts = await storage.getRoomByName(roomName);
+	if (!opts) {
+		throw new RoomNotFoundException(roomName);
+	}
+	room = new Room(opts);
+	addRoom(room);
+	return room;
 }
 
 export default {

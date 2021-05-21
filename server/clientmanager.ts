@@ -115,9 +115,10 @@ export class Client {
 			log.warn("room state not present, grabbing")
 			let stateText = await get(`room:${room}`);
 			if (stateText === null) {
-				throw new RoomNotFoundException(room);
+				await roommanager.GetRoom(room);
+				stateText = await get(`room:${room}`)
 			}
-			state = JSON.parse(stateText)!;
+			state = JSON.parse(stateText!)!;
 		}
 		let syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
 		this.Socket.send(JSON.stringify(syncMsg));

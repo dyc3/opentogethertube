@@ -1,4 +1,4 @@
-const _ = require("lodash");
+import _ from "lodash";
 
 /**
  * Represents a video on any video providing service.

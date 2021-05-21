@@ -43,10 +43,10 @@ function dbToRoomArgs(db) {
 		visibility: db.visibility,
 		queueMode: db.queueMode,
 		owner: db.owner,
-		permissions: new permissions.Grants(),
+		grants: new permissions.Grants(),
 		userRoles: {},
 	};
-	room.permissions.deserialize(db.permissions);
+	room.grants.deserialize(db.permissions);
 	for (let i = 0; i <= 4; i++) {
 		if (i >= permissions.ROLES.TRUSTED_USER) {
 			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);
