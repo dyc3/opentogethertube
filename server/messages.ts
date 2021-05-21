@@ -25,7 +25,7 @@ export interface ServerMessageUnload extends ServerMessageBase {
 	action: "unload"
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder;
+export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe;
 
 interface ClientMessageBase {
 	action: string
@@ -52,6 +52,14 @@ export interface ClientMessageOrder extends ClientMessageBase {
 	action: "queue-move"
 	currentIdx: number
 	targetIdx: number
+}
+
+export interface ClientMessageChat extends ClientMessageBase {
+	action: "chat"
+}
+
+export interface ClientMessageKickMe extends ClientMessageBase {
+	action: "kickme"
 }
 
 export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser

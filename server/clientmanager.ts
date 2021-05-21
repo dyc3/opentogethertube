@@ -104,6 +104,9 @@ export class Client {
 				toIdx: msg.targetIdx,
 			})
 		}
+		else if (msg.action === "kickme") {
+			this.Socket.close(OttWebsocketError.UNKNOWN);
+		}
 		// else {
 		// 	log.warn(`Unknown message: ${msg.action}`);
 		// 	break;
