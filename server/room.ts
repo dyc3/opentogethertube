@@ -82,9 +82,12 @@ export class Room implements RoomState {
 
 	constructor (options: RoomOptions) {
 		this.log = getLogger(`room/${options.name}`);
-		Object.assign(this, options);
+		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary"));
 		if (!(this.grants instanceof Grants)) {
 			this.grants = new Grants(this.grants);
+		}
+		else if (this.grants instanceof Number) {
+			this.grants = new Grants();
 		}
 	}
 
