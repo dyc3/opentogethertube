@@ -57,7 +57,6 @@
     "vue-events": "^3.1.0",
     "vue-fragment": "^1.5.1",
     "vue-gtag": "^1.6.1",
-    "vue-native-websocket": "^2.0.14",
     "vue-router": "^3.1.5",
     "vue-slider-component": "^3.1.1",
     "vue-youtube": "^1.4.0",

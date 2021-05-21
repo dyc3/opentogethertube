@@ -51,7 +51,7 @@
                   </template>
                   <span>Skip 10s</span>
                 </v-tooltip>
-                <v-btn @click="roomSkip()" :disabled="!granted('playback.skip')">
+                <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
@@ -68,7 +68,7 @@
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
-                <v-btn v-if="!production" @click="roomKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
+                <v-btn v-if="!production" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
               </v-row>
             </v-col>
           </div>
@@ -213,6 +213,8 @@ import Chat from "@/components/Chat.vue";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import PermissionsMixin from "@/mixins/permissions.js";
 import UserList from "@/components/UserList.vue";
+import connection from "@/util/connection";
+import api from "@/util/api";
 
 export default {
   name: 'room',
@@ -257,11 +259,16 @@ export default {
         active: false,
         value: "",
       },
+
+      api,
     };
   },
   computed: {
+    isConnected() {
+      return this.$store.state.$connection.isConnected;
+    },
     connectionStatus() {
-      return this.$store.state.socket.isConnected ? "Connected" : "Connecting...";
+      return this.$store.state.$connection.isConnected ? "Connected" : "Connecting...";
     },
     currentSource() {
       return this.$store.state.room.currentSource;
@@ -298,69 +305,27 @@ export default {
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
 
-    if (!this.$store.state.socket.isConnected) {
-      // This check prevents the client from connecting multiple times,
-      // caused by hot reloading in the dev environment.
-      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-    }
+    connection.connect(this.$route.params.roomId);
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
-    this.$disconnect();
+    connection.disconnect();
     this.$events.remove("onSync", this.rewriteUrlToRoomName);
   },
   methods: {
     /* ROOM API */
 
-    /** Send a message to play the video. */
-    roomPlay() {
-      this.$socket.sendObj({ action: "play" });
-    },
-    /** Send a message to pause the video. */
-    roomPause() {
-      this.$socket.sendObj({ action: "pause" });
-    },
+    // TODO: maybe move to util/api?
     /** Send a message to play or pause the video, depending on the current state. */
     togglePlayback() {
       if (this.$store.state.room.isPlaying) {
-        this.roomPause();
+        api.pause();
       }
       else {
-        this.roomPlay();
+        api.play();
       }
-    },
-    /** Send a message to skip the current video. */
-    roomSkip() {
-      this.$socket.sendObj({ action: "skip" });
-    },
-    roomSeek(position) {
-      this.$socket.sendObj({ action: "seek", position });
-    },
-    /**
-     * Move the video from `fromIdx` to `toIdx` in the queue.
-     * @param {Number} fromIdx
-     * @param {Number} toIdx
-     * */
-    roomQueueMove(fromIdx, toIdx) {
-      this.$socket.sendObj({
-        action: "queue-move",
-        currentIdx: fromIdx,
-        targetIdx: toIdx,
-      });
-    },
-    undoEvent(event, idx) {
-      this.$socket.sendObj({
-        action: "undo",
-        event,
-      });
-      this.$store.state.room.events.splice(idx, 1);
-    },
-    roomKickMe() {
-      this.$socket.sendObj({
-        action: "kickme",
-      });
     },
     /** Take room settings from the UI and submit them to the server. */
     async submitRoomSettings() {
@@ -398,7 +363,7 @@ export default {
       this.sliderPosition = _.clamp(this.truePosition, 0, this.$store.state.room.currentSource.length);
     },
     sliderChange() {
-      this.roomSeek(this.sliderPosition);
+      api.seek(this.sliderPosition);
     },
 
     updateVolume() {
@@ -452,11 +417,11 @@ export default {
         e.preventDefault();
       }
       else if (e.code === "Home" && this.granted('playback.seek')) {
-        this.roomSeek(0);
+        api.seek(0);
         e.preventDefault();
       }
       else if (e.code === "End" && this.granted('playback.skip')) {
-        this.roomSkip();
+        api.skip();
         e.preventDefault();
       }
       else if (e.code === "KeyF") {
@@ -488,7 +453,7 @@ export default {
       }
     },
     onQueueDragDrop(e) {
-      this.roomQueueMove(e.oldIndex, e.newIndex);
+      api.queueMove(e.oldIndex, e.newIndex);
     },
     async onTabChange() {
       if (this.queueTab === 2) {
@@ -533,7 +498,7 @@ export default {
       }
     },
     seekDelta(delta) {
-      this.roomSeek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
+      api.seek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
     },
     activateTextSeek() {
       if (!this.granted('playback.seek')) {
@@ -556,7 +521,7 @@ export default {
         this.textSeek.active = false;
         try {
           let seconds = timestampToSeconds(this.textSeek.value);
-          this.roomSeek(seconds);
+          api.seek(seconds);
         }
         catch {
           console.log("Invalid timestamp, ignoring");
@@ -564,14 +529,14 @@ export default {
       }
     },
     onRoomCreated() {
-      if (this.$store.state.socket.isConnected) {
-        this.$disconnect();
-      }
-      setTimeout(() => {
-        if (!this.$store.state.socket.isConnected) {
-          this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-        }
-      }, 100);
+      // if (this.$store.state.socket.isConnected) {
+      //   this.$disconnect();
+      // }
+      // setTimeout(() => {
+      //   if (!this.$store.state.socket.isConnected) {
+      //     this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+      //   }
+      // }, 100);
     },
     onRoomEvent(event) {
       if (event.eventType === "play") {
