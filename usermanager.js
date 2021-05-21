@@ -5,7 +5,8 @@ const express = require('express');
 const passport = require('passport');
 const crypto = require('crypto');
 const { User, Room } = require("./models");
-const roommanager = require("./roommanager");
+import roommanager from "./server/roommanager";
+import clientmanager from "./server/clientmanager";
 const { redisClient } = require('./redisclient.js');
 const { RateLimiterRedis } = require('rate-limiter-flexible');
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
@@ -586,21 +587,23 @@ let usermanager = {
 	},
 
 	onUserModified(session, newUsername=null) {
-		for (let room of roommanager.rooms) {
-			for (let client of room.clients) {
-				if (client.session.id === session.id) {
-					if (client.isLoggedIn) {
-						client.user.reload();
-					}
-					else if (newUsername) {
-						// HACK: used for unregistered users because for some reason the session doesn't want to update the username property
-						client.username = newUsername;
-					}
-					room._dirtyProps.push("users");
-					break;
-				}
-			}
-		}
+		clientmanager.onUserModified(session, newUsername);
+		// for (let room of roommanager.rooms) {
+		// 	for (let client of room.clients) {
+		// 		if (client.session.id === session.id) {
+		// 			if (client.isLoggedIn) {
+		// 				client.user.reload();
+		// 			}
+		// 			else if (newUsername) {
+		// 				// HACK: used for unregistered users because for some reason the session doesn't want to update the username property
+		// 				client.username = newUsername;
+		// 			}
+		// 			room._dirtyProps.push("users");
+		// 			break;
+		// 		}
+		// 	}
+		// }
+		// }
 	},
 
 	async isUsernameTaken(username) {
@@ -625,3 +628,4 @@ if (process.env.NODE_ENV === "test") {
 }
 
 module.exports = usermanager;
+export default usermanager;

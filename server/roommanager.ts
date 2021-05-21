@@ -1,5 +1,6 @@
-import { Room, Visibility, QueueMode, RoomOptions, RoomState } from "./room";
-import _, { create } from "lodash";
+import { Room } from "./room";
+import { Visibility, QueueMode, RoomOptions, RoomState } from "./types";
+import _ from "lodash";
 const NanoTimer = require("nanotimer");
 import { getLogger } from "../logger.js";
 import { redisClient, createSubscriber } from "../redisclient";

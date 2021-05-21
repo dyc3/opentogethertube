@@ -1,6 +1,6 @@
-import { QueueMode, Visibility } from "./room";
 import { Grants } from "./permissions"
 import Video from "../common/video";
+import { ClientInfo, QueueMode, Visibility } from "./types";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload
 
@@ -54,7 +54,7 @@ export interface ClientMessageOrder extends ClientMessageBase {
 	targetIdx: number
 }
 
-export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -68,6 +68,7 @@ export enum RoomRequestType {
 	VoteRequest,
 	PromoteRequest,
 	DemoteRequest,
+	UpdateUser,
 }
 
 interface RoomRequestBase {
@@ -77,9 +78,7 @@ interface RoomRequestBase {
 
 export interface JoinRequest {
 	type: RoomRequestType.JoinRequest
-	id: string
-	user_id?: number
-	username: string
+	info: ClientInfo
 }
 
 export interface LeaveRequest {
@@ -138,4 +137,12 @@ export interface PromoteRequest extends RoomRequestBase {
 export interface DemoteRequest extends RoomRequestBase {
 	type: RoomRequestType.DemoteRequest
 	permission: "manage-users.demote-admin" | "manage-users.demote-moderator" | "manage-users.demote-trusted-user"
+}
+
+/**
+ * Request that the room pull new information about the user.
+ */
+export interface UpdateUser {
+	type: RoomRequestType.UpdateUser
+	info: ClientInfo
 }

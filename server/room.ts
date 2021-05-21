@@ -2,35 +2,17 @@ import { Grants } from "./permissions.js";
 import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
-import winston, { info } from "winston";
+import winston from "winston";
 import { JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import _ from "lodash";
 import Video from "../common/video";
 import InfoExtract from "./infoextractor";
 import { ROLES } from "./permissions";
+import usermanager from "../usermanager";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo } from "./types";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
-
-export enum Visibility {
-	Public,
-	Unlisted,
-	Private,
-}
-
-export enum QueueMode {
-	Manual,
-	Vote,
-	Loop,
-	Dj,
-}
-
-type RoomUserInfo = {
-	name: string
-	isLoggedIn: boolean
-	status: any // TODO: make this an enum
-	role: 4
-}
 
 /**
  * Represents a User from the Room's perspective.
@@ -38,7 +20,8 @@ type RoomUserInfo = {
 export class RoomUser {
 	id: string
 	user_id?: number
-	username?: string
+	unregisteredUsername: string = ""
+	user: any
 
 	constructor(id: string) {
 		this.id = id
@@ -48,32 +31,35 @@ export class RoomUser {
 		return !!this.user_id
 	}
 
+	public get username(): string {
+		if (this.isLoggedIn) {
+			return this.user.username;
+		}
+		else {
+			return this.unregisteredUsername;
+		}
+	}
+
 	getInfo(): RoomUserInfo {
 		return {
-			name: this.username!,
+			name: this.username,
 			isLoggedIn: this.isLoggedIn,
 			status: "joined",
 			role: 4
 		}
 	}
-}
 
-export interface RoomOptions {
-	name: string
-	title: string
-	description: string
-	visibility: Visibility
-	queueMode: QueueMode
-	isTemporary: boolean
-}
-
-export interface RoomState extends RoomOptions {
-	currentSource: Video | null
-	queue: Video[]
-	isPlaying: boolean
-	playbackPosition: number
-	grants: Grants
-	users: RoomUserInfo[]
+	public async updateInfo(info: ClientInfo) {
+		if (info.user_id) {
+			this.user_id = info.user_id
+			this.user = await usermanager.getUser({ id: info.user_id });
+		}
+		else if (info.username) {
+			this.unregisteredUsername = info.username;
+			this.user_id = undefined;
+			this.user = null;
+		}
+	}
 }
 
 export class Room implements RoomState {
@@ -282,6 +268,9 @@ export class Room implements RoomState {
 		else if (request.type === RoomRequestType.LeaveRequest) {
 			await this.leaveRoom(request.id);
 		}
+		else if (request.type === RoomRequestType.UpdateUser) {
+			await this.updateUser(request.info);
+		}
 	}
 
 	public async play() {
@@ -358,9 +347,8 @@ export class Room implements RoomState {
 	}
 
 	public async joinRoom(request: JoinRequest) {
-		let user = new RoomUser(request.id)
-		user.user_id = request.user_id;
-		user.username = request.username;
+		let user = new RoomUser(request.info.id)
+		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
@@ -372,6 +360,16 @@ export class Room implements RoomState {
 				this.realusers.splice(i--, 1);
 				this.markDirty("users");
 				break
+			}
+		}
+	}
+
+	public async updateUser(info: ClientInfo) {
+		this.log.debug(`User was updated: ${info.id} ${JSON.stringify(info)}`)
+		for (let i = 0; i < this.realusers.length; i++) {
+			if (this.realusers[i].id === info.id) {
+				this.realusers[i].updateInfo(info);
+				this.markDirty("users");
 			}
 		}
 	}

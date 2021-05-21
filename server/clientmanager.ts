@@ -4,12 +4,12 @@ import { uniqueNamesGenerator } from "unique-names-generator";
 import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "../logger.js";
-import { json, Request } from 'express';
+import { Request } from 'express';
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
-import { ClientMessage, ClientMessageSeek, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
-import { RoomState } from "./room.js";
+import { ClientMessage, ClientMessageSeek, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import { RoomNotFoundException } from "./exceptions";
+import { ClientInfo, RoomState, MySession, OttWebsocketError } from "./types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager" // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 
@@ -21,26 +21,16 @@ let connections: Client[] = [];
 let roomStates: Map<string, RoomState> = new Map();
 let roomJoins: Map<string, Client[]> = new Map();
 
-enum OttWebsocketError {
-	UNKNOWN = 4000,
-	INVALID_CONNECTION_URL = 4001,
-	ROOM_NOT_FOUND = 4002,
-	ROOM_UNLOADED = 4003,
-}
-
 export class Client {
 	id: string
 	Socket: WebSocket
-	Session: Session
-	User: any
-	UnregisteredUsername: string | null
+	Session: MySession
 	room: string | null
 
-	constructor (session: Session, socket: WebSocket) {
+	constructor (session: MySession, socket: WebSocket) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
 		this.Session = session;
 		this.Socket = socket;
-		this.UnregisteredUsername = uniqueNamesGenerator()
 		this.room = null;
 
 		this.Socket.on("close", async (code, reason) => {
@@ -58,51 +48,56 @@ export class Client {
 		})
 	}
 
-	public get Username() : string {
-		if (this.User) {
-			return this.User.username;
+	get clientInfo(): ClientInfo {
+		if (this.Session.passport?.user) {
+			return {
+				id: this.id,
+				user_id: this.Session.passport.user
+			}
+		}
+		else if (this.Session.username) {
+			return {
+				id: this.id,
+				username: this.Session.username,
+			}
 		}
 		else {
-			return this.UnregisteredUsername!;
+			throw new TypeError("Session did not have username present, nor passport user id");
 		}
 	}
 
 	public async OnMessage(text: string) {
 		log.debug(text);
 		let msg: ClientMessage = JSON.parse(text);
-		let room = await roommanager.GetRoom(this.room!); // FIXME: only get room if it is loaded already.
-		if (!room) {
-			log.error(`room not found: ${this.room}`)
-		}
 		if (msg.action === "play") {
-			room?.processRequest({
+			await this.makeRoomRequest({
 				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
 				state: true,
 			})
 		}
 		else if (msg.action === "pause") {
-			room?.processRequest({
+			await this.makeRoomRequest({
 				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
 				state: false,
 			})
 		}
 		else if (msg.action === "skip") {
-			room?.processRequest({
+			await this.makeRoomRequest({
 				type: RoomRequestType.SkipRequest,
 				permission: "playback.skip",
 			})
 		}
 		else if (msg.action === "seek") {
-			room?.processRequest({
+			await this.makeRoomRequest({
 				type: RoomRequestType.SeekRequest,
 				permission: "playback.seek",
 				value: msg.position,
 			})
 		}
 		else if (msg.action === "queue-move") {
-			room?.processRequest({
+			await this.makeRoomRequest({
 				type: RoomRequestType.OrderRequest,
 				permission: "manage-queue.order",
 				fromIdx: msg.currentIdx,
@@ -121,7 +116,7 @@ export class Client {
 	}
 
 	public async JoinRoom(roomName: string) {
-		log.info(`${this.Username} joining ${roomName}`);
+		log.debug(`client id=${this.id} joining ${roomName}`);
 		this.room = roomName;
 
 		let room = await roommanager.GetRoom(roomName);
@@ -142,8 +137,7 @@ export class Client {
 		// actually join the room
 		await room.processRequest({
 			type: RoomRequestType.JoinRequest,
-			id: this.id,
-			username: this.Username,
+			info: this.clientInfo,
 		})
 		subscribe(`room:${roomName}`);
 		let clients = roomJoins.get(roomName);
@@ -153,6 +147,14 @@ export class Client {
 		}
 		clients.push(this);
 		roomJoins.set(roomName, clients);
+	}
+
+	public async makeRoomRequest(request: RoomRequest) {
+		let room = await roommanager.GetRoom(this.room!); // FIXME: only get room if it is loaded already.
+		if (!room) {
+			log.error(`room not found: ${this.room}`)
+		}
+		await room?.processRequest(request);
 	}
 }
 
@@ -177,7 +179,7 @@ export function Setup() {
 async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 	let roomName = req.url!.replace("/api/room/", "");
 	log.debug(`connection received: ${roomName}`)
-	let client = new Client(session, socket);
+	let client = new Client(session as MySession, socket);
 	connections.push(client);
 	socket.on("ping", (data) => client.OnPing(data));
 	socket.on("message", (data) => client.OnMessage(data as string));
@@ -227,6 +229,20 @@ redisSubscriber.on("message", async (channel, text) => {
 	}
 });
 
+async function onUserModified(session: MySession, newUsername: string) {
+	log.debug(`User was modified: ${session}, newUsername=${newUsername}, telling rooms`)
+	for (let client of connections) {
+		if (client.Session.id === session.id) {
+			client.Session = session;
+			await client.makeRoomRequest({
+				type: RoomRequestType.UpdateUser,
+				info: client.clientInfo,
+			})
+		}
+	}
+}
+
 export default {
 	Setup,
+	onUserModified,
 }
