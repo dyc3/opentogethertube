@@ -60,7 +60,7 @@ export class Client {
 	public async OnMessage(text: string) {
 		log.debug(text);
 		let msg: ClientMessage = JSON.parse(text);
-		let room = await roommanager.GetRoom(this.room!);
+		let room = await roommanager.GetRoom(this.room!); // FIXME: only get room if it is loaded already.
 		if (!room) {
 			log.error(`room not found: ${this.room}`)
 		}
@@ -174,7 +174,7 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 }
 
 redisSubscriber.on("message", function(channel, text) {
-	// handles sync messages published by the rooms when the state changes.
+	// handles sync messages published by the rooms.
 	log.debug(`pubsub message: ${channel}: ${text}`);
 	if (!channel.startsWith("room:")) {
 		return;
@@ -196,6 +196,11 @@ redisSubscriber.on("message", function(channel, text) {
 			catch (e) {
 				log.error(`failed to send to client: ${e.message}`);
 			}
+		}
+	}
+	else if (msg.action === "unload") {
+		for (let client of roomJoins.get(roomName)!) {
+			client.Socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
 		}
 	}
 });

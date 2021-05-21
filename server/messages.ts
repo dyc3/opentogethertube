@@ -2,7 +2,7 @@ import { QueueMode, Visibility } from "./room";
 import { Grants } from "./permissions"
 import Video from "../common/video";
 
-export type ServerMessage = ServerMessageSync
+export type ServerMessage = ServerMessageSync | ServerMessageUnload
 
 interface ServerMessageBase {
 	action: string
@@ -19,6 +19,10 @@ export interface ServerMessageSync extends ServerMessageBase {
 	isPlaying?: boolean,
 	playbackPosition?: number,
 	grants?: number | Grants, // FIXME: permissions
+}
+
+export interface ServerMessageUnload extends ServerMessageBase {
+	action: "unload"
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder;

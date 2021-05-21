@@ -14,8 +14,9 @@ const redis = {
 	keys: promisify(redisClient.keys).bind(redisClient),
 	get: promisify(redisClient.get).bind(redisClient),
 	set: promisify(redisClient.set).bind(redisClient),
-	del: promisify(redisClient.del).bind(redisClient),
+	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
 }
+const ROOM_UNLOAD_AFTER = 240; // seconds
 let rooms: Room[] = [];
 // const redisSubscriber = createSubscriber();
 
@@ -38,19 +39,30 @@ export async function start() {
 	log.info(`Loaded ${keys.length} rooms from redis`);
 
 	const nanotimer = new NanoTimer();
-	nanotimer.setInterval(async () => {
-		for (const room of rooms) {
-			await room.update();
-			await room.sync();
-		}
-	}, '', '1000m');
+	nanotimer.setInterval(update, '', '1000m');
 }
 
-async function GetRoom(roomName: string) {
+export async function update() {
+	for (const room of rooms) {
+		await room.update();
+		await room.sync();
+	}
+}
+
+export async function CreateRoom(options: RoomOptions) {
+	let room = new Room(options);
+	await room.update();
+	await room.sync();
+	addRoom(room);
+	log.info(`Room created: ${room.name}`);
+}
+
+export async function GetRoom(roomName: string) {
 	let room = _.find(rooms, { name: roomName });
 	if (room) {
 		return room;
 	}
+	// FIXME: don't load room if room is already present in redis.
 	let opts = await storage.getRoomByName(roomName);
 	if (!opts) {
 		throw new RoomNotFoundException(roomName);
@@ -60,17 +72,21 @@ async function GetRoom(roomName: string) {
 	return room;
 }
 
-export default {
-	async CreateRoom(options: RoomOptions) {
-		let room = new Room(options);
-		await room.update();
-		await room.sync();
-		addRoom(room);
-		log.info(`Room created: ${room.name}`);
-	},
+export async function UnloadRoom(roomName: string) {
+	let room = _.find(rooms, { name: roomName });
+	if (room) {
+		await room.onBeforeUnload();
+	}
+	rooms = _.remove(rooms, { name: roomName });
+	await redis.del(`room:${roomName}`);
+}
 
-	GetRoom,
+export default {
 	start,
+
+	CreateRoom,
+	GetRoom,
+	UnloadRoom,
 }
 
 // redisSubscriber.on("message", async (channel, text) => {

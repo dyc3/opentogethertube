@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { RoomRequest, ServerMessageSync } from "./messages";
+import { RoomRequest, ServerMessage, ServerMessageSync } from "./messages";
 import _ from "lodash";
 import Video from "../common/video";
 import InfoExtract from "./infoextractor";
@@ -160,6 +160,14 @@ export class Room implements RoomState {
 		}
 	}
 
+	/**
+	 * Publish a message to the client manager. In general, these messages get sent to all the clients connected, and joined to this room. However, centain messages may be directed at a specific client, depending on what they do.
+	 * @param msg The message to publish.
+	 */
+	async publish(msg: ServerMessage) {
+		await publish(`room:${this.name}`, JSON.stringify(msg));
+	}
+
 	public async update() {
 		if (this.currentSource === null) {
 			this.dequeueNext();
@@ -187,8 +195,12 @@ export class Room implements RoomState {
 		msg.grants = this.grants.getMask(ROLES.OWNER);
 
 		await set(`room:${this.name}`, JSON.stringify(state));
-		await publish(`room:${this.name}`, JSON.stringify(msg));
+		await this.publish(msg);
 		this._dirty.clear();
+	}
+
+	public async onBeforeUnload() {
+		await this.publish({ action: "unload" })
 	}
 
 	public async processRequest(request: RoomRequest) {
