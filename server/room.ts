@@ -279,6 +279,9 @@ export class Room implements RoomState {
 		else if (request.type === RoomRequestType.JoinRequest) {
 			await this.joinRoom(request);
 		}
+		else if (request.type === RoomRequestType.LeaveRequest) {
+			await this.leaveRoom(request.id);
+		}
 	}
 
 	public async play() {
@@ -361,5 +364,15 @@ export class Room implements RoomState {
 		this.realusers.push(user);
 		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
+	}
+
+	public async leaveRoom(id: string) {
+		for (let i = 0; i < this.realusers.length; i++) {
+			if (this.realusers[i].id === id) {
+				this.realusers.splice(i--, 1);
+				this.markDirty("users");
+				break
+			}
+		}
 	}
 }

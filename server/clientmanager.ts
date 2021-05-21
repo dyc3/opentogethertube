@@ -29,6 +29,7 @@ enum OttWebsocketError {
 }
 
 export class Client {
+	id: string
 	Socket: WebSocket
 	Session: Session
 	User: any
@@ -36,15 +37,24 @@ export class Client {
 	room: string | null
 
 	constructor (session: Session, socket: WebSocket) {
+		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
 		this.Session = session;
 		this.Socket = socket;
 		this.UnregisteredUsername = uniqueNamesGenerator()
 		this.room = null;
 
-		this.Socket.on("close", (code, reason) => {
+		this.Socket.on("close", async (code, reason) => {
 			log.debug(`socket closed: ${code}, ${reason}`)
-			let idx = _.findIndex(connections, { Session: this.Session });
+			let idx = _.findIndex(connections, { id: this.id });
 			connections.splice(idx, 1)
+
+			if (this.room) {
+				let room = await roommanager.GetRoom(this.room);
+				await room.processRequest({
+					type: RoomRequestType.LeaveRequest,
+					id: this.id
+				})
+			}
 		})
 	}
 
@@ -131,7 +141,7 @@ export class Client {
 		// actually join the room
 		await room.processRequest({
 			type: RoomRequestType.JoinRequest,
-			id: this.Session.id,
+			id: this.id,
 			username: this.Username,
 		})
 		subscribe(`room:${roomName}`);

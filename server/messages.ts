@@ -54,10 +54,11 @@ export interface ClientMessageOrder extends ClientMessageBase {
 	targetIdx: number
 }
 
-export type RoomRequest = JoinRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest
 
 export enum RoomRequestType {
 	JoinRequest,
+	LeaveRequest,
 	PlaybackRequest,
 	SkipRequest,
 	SeekRequest,
@@ -79,6 +80,11 @@ export interface JoinRequest {
 	id: string
 	user_id?: number
 	username: string
+}
+
+export interface LeaveRequest {
+	type: RoomRequestType.LeaveRequest
+	id: string
 }
 
 export interface PlaybackRequest extends RoomRequestBase {
