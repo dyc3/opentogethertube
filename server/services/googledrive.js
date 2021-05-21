@@ -1,7 +1,7 @@
 const URL = require("url");
 const QueryString = require("querystring");
 const axios = require("axios");
-const ServiceAdapter = require("../serviceadapter");
+import { ServiceAdapter } from "../serviceadapter";
 const { InvalidVideoIdException, OutOfQuotaException } = require("../exceptions");
 const Video = require("../../common/video");
 const { getLogger } = require("../../logger");

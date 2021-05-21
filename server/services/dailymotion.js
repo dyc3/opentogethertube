@@ -1,6 +1,6 @@
 const URL = require("url");
 const axios = require("axios");
-const ServiceAdapter = require("../serviceadapter");
+import { ServiceAdapter } from "../serviceadapter";
 const { InvalidVideoIdException } = require("../exceptions");
 const Video = require("../../common/video");
 

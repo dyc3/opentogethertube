@@ -1,6 +1,6 @@
-const { getLogger } = require('../logger.js');
-const { redisClient } = require('../redisclient.js');
-const { RateLimiterRedis } = require('rate-limiter-flexible');
+import { getLogger } from '../logger.js';
+import { redisClient } from '../redisclient.js';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
 
 const log = getLogger("api/rate-limit");
 
@@ -35,6 +35,11 @@ function handleRateLimit(res, info) {
 }
 
 module.exports = {
+	rateLimiter,
+	setRateLimitHeaders,
+	handleRateLimit,
+};
+export default {
 	rateLimiter,
 	setRateLimitHeaders,
 	handleRateLimit,

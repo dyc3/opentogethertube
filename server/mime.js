@@ -12,7 +12,7 @@ const mimeTypes = {
   "video/h264": ["h264"],
 };
 
-function getMimeType(extension) {
+export function getMimeType(extension) {
   for (const [mimeType, extensions] of Object.entries(mimeTypes)) {
     if (extensions.includes(extension)) {
       return mimeType;
@@ -20,11 +20,15 @@ function getMimeType(extension) {
   }
 }
 
-function isSupportedMimeType(mimeType) {
+export function isSupportedMimeType(mimeType) {
   return !!/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/.exec(mimeType);
 }
 
 module.exports = {
+  getMimeType,
+  isSupportedMimeType,
+};
+export default {
   getMimeType,
   isSupportedMimeType,
 };

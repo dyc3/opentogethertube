@@ -1,6 +1,6 @@
 const URL = require("url");
 const _ = require("lodash");
-const ServiceAdapter = require("../serviceadapter");
+import { ServiceAdapter } from "../serviceadapter";
 const { LocalFileException, UnsupportedMimeTypeException, MissingMetadataException } = require("../exceptions");
 const { getMimeType, isSupportedMimeType } = require("../mime");
 const ffprobe = require("../../ffprobe");

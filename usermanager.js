@@ -1,15 +1,15 @@
-const { getLogger } = require('./logger.js');
-const _ = require("lodash");
-const securePassword = require('secure-password');
-const express = require('express');
-const passport = require('passport');
-const crypto = require('crypto');
-const { User, Room } = require("./models");
+import { getLogger } from './logger.js';
+import _ from "lodash";
+import securePassword from 'secure-password';
+import express from 'express';
+import passport from 'passport';
+import crypto from 'crypto';
+import { User, Room } from "./models";
 import roommanager from "./server/roommanager";
 import clientmanager from "./server/clientmanager";
-const { redisClient } = require('./redisclient.js');
-const { RateLimiterRedis } = require('rate-limiter-flexible');
-const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
+import { redisClient } from './redisclient.js';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit.js";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;

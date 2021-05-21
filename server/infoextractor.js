@@ -1,18 +1,18 @@
-const URL = require("url");
-const _ = require("lodash");
-const DailyMotionAdapter = require("./services/dailymotion");
-const GoogleDriveAdapter = require("./services/googledrive");
-const VimeoAdapter = require("./services/vimeo");
-const YouTubeAdapter = require("./services/youtube");
-const DirectVideoAdapter = require("./services/direct");
-const RedditAdapter = require("./services/reddit");
-const NeverthinkAdapter = require("./services/neverthink");
-const storage = require("../storage");
+import URL from "url";
+import _ from "lodash";
+import DailyMotionAdapter from "./services/dailymotion";
+import GoogleDriveAdapter from "./services/googledrive";
+import VimeoAdapter from "./services/vimeo";
+import YouTubeAdapter from "./services/youtube";
+import DirectVideoAdapter from "./services/direct";
+import RedditAdapter from "./services/reddit";
+import NeverthinkAdapter from "./services/neverthink";
+import storage from "../storage";
 import Video from "../common/video";
-const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } = require("./exceptions");
-const { getLogger } = require("../logger");
-const { redisClient } = require("../redisclient");
-const { isSupportedMimeType } = require("./mime");
+import { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } from "./exceptions";
+import { getLogger } from "../logger";
+import { redisClient } from "../redisclient";
+import { isSupportedMimeType } from "./mime";
 
 const log = getLogger("infoextract");
 

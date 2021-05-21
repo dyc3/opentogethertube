@@ -1,6 +1,5 @@
-const { IncompleteServiceAdapterException } = require("./exceptions");
-
-class ServiceAdapter {
+import { IncompleteServiceAdapterException } from "./exceptions";
+export class ServiceAdapter {
   /**
    * A string that identifies this service adapter.
    */
@@ -81,5 +80,3 @@ class ServiceAdapter {
     return [];
   }
 }
-
-module.exports = ServiceAdapter;

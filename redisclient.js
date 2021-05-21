@@ -13,9 +13,9 @@ const redisOptions = (process.env.REDIS_TLS_URL || process.env.REDIS_URL) ?
 	db: process.env.REDIS_DB || undefined,
 };
 
-const redisClient = redis.createClient(redisOptions);
+export const redisClient = redis.createClient(redisOptions);
 
-function createSubscriber() {
+export function createSubscriber() {
 	return redis.createClient(redisOptions);
 }
 

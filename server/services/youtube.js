@@ -2,7 +2,7 @@ const URL = require("url");
 const QueryString = require("querystring");
 const axios = require("axios");
 const _ = require("lodash");
-const ServiceAdapter = require("../serviceadapter");
+import { ServiceAdapter } from "../serviceadapter";
 const {
   InvalidVideoIdException,
   OutOfQuotaException,
