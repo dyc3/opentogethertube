@@ -134,6 +134,7 @@ export class Client {
 			log.warn("room state not present, grabbing")
 			let stateText = await get(`room:${roomName}`);
 			state = JSON.parse(stateText!)!;
+			roomStates.set(roomName, state!);
 		}
 		let syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
 		this.Socket.send(JSON.stringify(syncMsg));
@@ -193,7 +194,7 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 	}
 }
 
-redisSubscriber.on("message", function(channel, text) {
+redisSubscriber.on("message", async (channel, text) => {
 	// handles sync messages published by the rooms.
 	log.debug(`pubsub message: ${channel}: ${text}`);
 	if (!channel.startsWith("room:")) {
@@ -204,7 +205,8 @@ redisSubscriber.on("message", function(channel, text) {
 	if (msg.action === "sync") {
 		let state = roomStates.get(roomName!);
 		if (state === undefined) {
-			state = {} as RoomState;
+			let stateText = await get(`room:${roomName}`);
+			state = JSON.parse(stateText!)! as RoomState;
 		}
 		Object.assign(state, _.omit(msg, "action"))
 		roomStates.set(roomName!, state);
