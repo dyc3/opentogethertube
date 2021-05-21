@@ -8,6 +8,7 @@ const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
 import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
+import { Role } from "./server/types";
 
 const log = getLogger("api");
 
@@ -615,8 +616,15 @@ router.get("/data/previewAdd", async (req, res) => {
 });
 
 router.get("/data/permissions", (req, res) => {
-	const { ROLES, ROLE_NAMES, ROLE_DISPLAY_NAMES, PERMISSIONS } = permissions;
-	let roles = _.values(ROLES).map(i => {
+	const { ROLE_NAMES, ROLE_DISPLAY_NAMES, PERMISSIONS } = permissions;
+	let roles = [
+		Role.Owner,
+		Role.Administrator,
+		Role.Moderator,
+		Role.TrustedUser,
+		Role.RegisteredUser,
+		Role.UnregisteredUser,
+	].map(i => {
 		return {
 			id: i,
 			name: ROLE_NAMES[i],
