@@ -66,12 +66,20 @@ export class Room implements RoomState {
 	_playbackPosition: number = 0
 	grants: Grants = new Grants();
 	realusers: RoomUser[] = []
+	userRoles: Map<Role, Set<number>>
+	owner: any
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
 
 	constructor (options: RoomOptions) {
 		this.log = getLogger(`room/${options.name}`);
+		this.userRoles = new Map([
+			[Role.TrustedUser, new Set()],
+			[Role.Moderator, new Set()],
+			[Role.Administrator, new Set()],
+		])
+
 		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary"));
 		if (!(this.grants instanceof Grants)) {
 			this.grants = new Grants(this.grants);
@@ -196,7 +204,19 @@ export class Room implements RoomState {
 		await publish(`room:${this.name}`, JSON.stringify(msg));
 	}
 
+	isOwner(user: RoomUser) {
+		return user.user && this.owner && user.user.id === this.owner.id;
+	}
+
 	getRole(user: RoomUser): Role {
+		if (this.isOwner(user)) {
+			return Role.Owner;
+		}
+		for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
+			if (this.userRoles.get(i)?.has(user.user.id)) {
+				return i;
+			}
+		}
 		if (user.isLoggedIn) {
 			return Role.RegisteredUser
 		}
