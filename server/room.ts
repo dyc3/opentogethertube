@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { RoomRequest, ServerMessage, ServerMessageSync } from "./messages";
+import { JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import _ from "lodash";
 import Video from "../common/video";
 import InfoExtract from "./infoextractor";
@@ -23,6 +23,23 @@ export enum QueueMode {
 	Vote,
 	Loop,
 	Dj,
+}
+
+/**
+ * Represents a User from the Room's perspective.
+ */
+export class RoomUser {
+	id: string
+	user_id?: number
+	username?: string
+
+	constructor(id: string) {
+		this.id = id
+	}
+
+	public get isLoggedIn() {
+		return !!this.user_id
+	}
 }
 
 export interface RoomOptions {
@@ -55,6 +72,7 @@ export class Room implements RoomState {
 	_isPlaying: boolean = false
 	_playbackPosition: number = 0
 	grants: Grants = new Grants();
+	users: RoomUser[] = []
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
@@ -206,9 +224,9 @@ export class Room implements RoomState {
 	public async processRequest(request: RoomRequest) {
 		// TODO: check permissions, then proceed.
 
-		this.log.info(`processing request: ${request.permission}`)
+		this.log.info(`processing request: ${request.type}`)
 
-		if (request.permission === "playback.play-pause") {
+		if (request.type === RoomRequestType.PlaybackRequest) {
 			if (request.state) {
 				await this.play();
 			}
@@ -216,22 +234,25 @@ export class Room implements RoomState {
 				await this.pause();
 			}
 		}
-		else if (request.permission === "playback.skip") {
+		else if (request.type === RoomRequestType.SkipRequest) {
 			await this.skip();
 		}
-		else if (request.permission === "playback.seek") {
+		else if (request.type === RoomRequestType.SeekRequest) {
 			await this.seek(request.value);
 		}
-		else if (request.permission === "manage-queue.add") {
+		else if (request.type === RoomRequestType.AddRequest) {
 			if (request.video) {
 				await this.addToQueue(request.video);
 			}
 		}
-		else if (request.permission === "manage-queue.remove") {
+		else if (request.type === RoomRequestType.RemoveRequest) {
 			await this.removeFromQueue(request.video);
 		}
-		else if (request.permission === "manage-queue.order") {
+		else if (request.type === RoomRequestType.OrderRequest) {
 			await this.reorderQueue(request.fromIdx, request.toIdx);
+		}
+		else if (request.type === RoomRequestType.JoinRequest) {
+			await this.joinRoom(request);
 		}
 	}
 
@@ -306,5 +327,13 @@ export class Room implements RoomState {
 		let video = this.queue.splice(from, 1)[0];
 		this.queue.splice(to, 0, video);
 		this.markDirty("queue");
+	}
+
+	public async joinRoom(request: JoinRequest) {
+		let user = new RoomUser(request.id)
+		user.user_id = request.user_id;
+		user.username = request.username;
+		this.users.push(user);
+		this.log.info(`${user.username} joined the room`);
 	}
 }

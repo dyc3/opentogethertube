@@ -54,27 +54,52 @@ export interface ClientMessageOrder extends ClientMessageBase {
 	targetIdx: number
 }
 
-export type RoomRequest = PlaybackRequest | SkipRequest | SeekRequest | AddRequest| RemoveRequest| OrderRequest| VoteRequest| PromoteRequest| DemoteRequest
+export type RoomRequest = JoinRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest
+
+export enum RoomRequestType {
+	JoinRequest,
+	PlaybackRequest,
+	SkipRequest,
+	SeekRequest,
+	AddRequest,
+	RemoveRequest,
+	OrderRequest,
+	VoteRequest,
+	PromoteRequest,
+	DemoteRequest,
+}
 
 interface RoomRequestBase {
+	type: RoomRequestType
 	permission: string
 }
 
+export interface JoinRequest {
+	type: RoomRequestType.JoinRequest
+	id: string
+	user_id?: number
+	username: string
+}
+
 export interface PlaybackRequest extends RoomRequestBase {
+	type: RoomRequestType.PlaybackRequest
 	permission: "playback.play-pause"
 	state: boolean
 }
 
 export interface SkipRequest extends RoomRequestBase {
+	type: RoomRequestType.SkipRequest
 	permission: "playback.skip"
 }
 
 export interface SeekRequest extends RoomRequestBase {
+	type: RoomRequestType.SeekRequest
 	permission: "playback.seek"
 	value: number
 }
 
 export interface AddRequest extends RoomRequestBase {
+	type: RoomRequestType.AddRequest
 	permission: "manage-queue.add"
 	video?: Video
 	videos?: Video[]
@@ -82,24 +107,29 @@ export interface AddRequest extends RoomRequestBase {
 }
 
 export interface RemoveRequest extends RoomRequestBase {
+	type: RoomRequestType.RemoveRequest
 	permission: "manage-queue.remove"
 	video: Video
 }
 
 export interface OrderRequest extends RoomRequestBase {
+	type: RoomRequestType.OrderRequest
 	permission: "manage-queue.order"
 	fromIdx: number
 	toIdx: number
 }
 
 export interface VoteRequest extends RoomRequestBase {
+	type: RoomRequestType.VoteRequest
 	permission: "manage-queue.vote"
 }
 
 export interface PromoteRequest extends RoomRequestBase {
+	type: RoomRequestType.PromoteRequest
 	permission: "manage-users.promote-admin" | "manage-users.promote-moderator" | "manage-users.promote-trusted-user"
 }
 
 export interface DemoteRequest extends RoomRequestBase {
+	type: RoomRequestType.DemoteRequest
 	permission: "manage-users.demote-admin" | "manage-users.demote-moderator" | "manage-users.demote-trusted-user"
 }

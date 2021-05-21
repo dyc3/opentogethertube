@@ -7,7 +7,7 @@ import { getLogger } from "../logger.js";
 import { json, Request } from 'express';
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
-import { ClientMessage, ClientMessageSeek, ServerMessage, ServerMessageSync } from "./messages";
+import { ClientMessage, ClientMessageSeek, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import { RoomState } from "./room.js";
 import { RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import roommanager
@@ -66,29 +66,34 @@ export class Client {
 		}
 		if (msg.action === "play") {
 			room?.processRequest({
+				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
 				state: true,
 			})
 		}
 		else if (msg.action === "pause") {
 			room?.processRequest({
+				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
 				state: false,
 			})
 		}
 		else if (msg.action === "skip") {
 			room?.processRequest({
+				type: RoomRequestType.SkipRequest,
 				permission: "playback.skip",
 			})
 		}
 		else if (msg.action === "seek") {
 			room?.processRequest({
+				type: RoomRequestType.SeekRequest,
 				permission: "playback.seek",
 				value: msg.position,
 			})
 		}
 		else if (msg.action === "queue-move") {
 			room?.processRequest({
+				type: RoomRequestType.OrderRequest,
 				permission: "manage-queue.order",
 				fromIdx: msg.currentIdx,
 				toIdx: msg.targetIdx,
@@ -105,33 +110,38 @@ export class Client {
 		this.Socket.pong();
 	}
 
-	public async JoinRoom(room: string) {
-		log.info(`${this.Username} joining ${room}`);
-		this.room = room;
+	public async JoinRoom(roomName: string) {
+		log.info(`${this.Username} joining ${roomName}`);
+		this.room = roomName;
 
+		let room = await roommanager.GetRoom(roomName);
+		if (!room) {
+			throw new RoomNotFoundException(roomName);
+		}
 		// full sync
-		let state = roomStates.get(room);
+		let state = roomStates.get(roomName);
 		if (state === undefined) {
 			log.warn("room state not present, grabbing")
-			let stateText = await get(`room:${room}`);
-			if (stateText === null) {
-				await roommanager.GetRoom(room);
-				stateText = await get(`room:${room}`)
-			}
+			let stateText = await get(`room:${roomName}`);
 			state = JSON.parse(stateText!)!;
 		}
 		let syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
 		this.Socket.send(JSON.stringify(syncMsg));
 
 		// actually join the room
-		subscribe(`room:${room}`);
-		let clients = roomJoins.get(room);
+		await room.processRequest({
+			type: RoomRequestType.JoinRequest,
+			id: this.Session.id,
+			username: this.Username,
+		})
+		subscribe(`room:${roomName}`);
+		let clients = roomJoins.get(roomName);
 		if (clients === undefined) {
 			log.warn("room joins not present, creating")
 			clients = [];
 		}
 		clients.push(this);
-		roomJoins.set(room, clients);
+		roomJoins.set(roomName, clients);
 	}
 }
 
