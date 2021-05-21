@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 import _ from 'lodash';
 import { API } from './common-http.js';
 import moment from 'moment';
+import connection from "@/util/connection";
 
 Vue.use(Vuex);
 
@@ -55,7 +56,7 @@ export default new Vuex.Store({
 	mutations:{
 		PLAYBACK_STATUS(state, message) {
 			state.playerStatus = message;
-			Vue.prototype.$socket.sendObj({ action: "status", status: message });
+			connection.send({ action: "status", status: message });
 		},
 		PLAYBACK_BUFFER(state, percent) {
 			state.playerBufferPercent = percent;

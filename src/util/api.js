@@ -6,19 +6,19 @@ import connection from "./connection";
 export default {
 	/** Send a message to play the video. */
 	play() {
-		this.$socket.sendObj({ action: "play" });
+		connection.send({ action: "play" });
 	},
 	/** Send a message to pause the video. */
 	pause() {
-		this.$socket.sendObj({ action: "pause" });
+		connection.send({ action: "pause" });
 	},
 
 	/** Send a message to skip the current video. */
 	skip() {
-		this.$socket.sendObj({ action: "skip" });
+		connection.send({ action: "skip" });
 	},
 	seek(position) {
-		this.$socket.sendObj({ action: "seek", position });
+		connection.send({ action: "seek", position });
 	},
 	/**
 	 * Move the video from `fromIdx` to `toIdx` in the queue.

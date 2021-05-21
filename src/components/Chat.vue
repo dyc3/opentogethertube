@@ -28,6 +28,7 @@
 
 <script>
 import ProcessedText from "@/components/ProcessedText.vue";
+import connection from "@/util/connection";
 
 export default {
   name: "chat",
@@ -47,7 +48,7 @@ export default {
   methods: {
     onInputKeyDown(e) {
       if (e.keyCode === 13 && this.inputValue.trim() !== "") {
-        this.$socket.sendObj({ action: "chat", text: this.inputValue });
+        connection.send({ action: "chat", text: this.inputValue });
         this.inputValue = "";
         this.stickToBottom = true;
       }
