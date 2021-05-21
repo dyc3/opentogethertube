@@ -173,6 +173,7 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 }
 
 redisSubscriber.on("message", function(channel, text) {
+	// handles sync messages published by the rooms when the state changes.
 	log.debug(`pubsub message: ${channel}: ${text}`);
 	if (!channel.startsWith("room:")) {
 		return;

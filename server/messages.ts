@@ -72,7 +72,9 @@ export interface SeekRequest extends RoomRequestBase {
 
 export interface AddRequest extends RoomRequestBase {
 	permission: "manage-queue.add"
-	video: Video
+	video?: Video
+	videos?: Video[]
+	url? :string
 }
 
 export interface RemoveRequest extends RoomRequestBase {

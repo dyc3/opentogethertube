@@ -422,15 +422,15 @@ router.post("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let success;
+		let roomRequest = { permission: "manage-queue.add" };
 		if (req.body.videos) {
-			success = await room.addManyToQueue(req.body.videos, req.session);
+			roomRequest.videos = req.body.videos;
 		}
 		else if (req.body.url) {
-			success = await room.addToQueue({ url: req.body.url }, req.session);
+			roomRequest.url = req.body.url;
 		}
 		else if (req.body.service && req.body.id) {
-			success = await room.addToQueue({ service: req.body.service, id: req.body.id }, req.session);
+			roomRequest.video = { service: req.body.service, id: req.body.id };
 		}
 		else {
 			res.status(400).json({
@@ -439,8 +439,9 @@ router.post("/room/:name/queue", async (req, res) => {
 			});
 			return;
 		}
+		await room.processRequest(roomRequest);
 		res.json({
-			success,
+			success: true,
 		});
 	}
 	catch (err) {
@@ -473,20 +474,18 @@ router.delete("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let success;
 		if (req.body.service && req.body.id) {
-			success = room.processRequest({ permission: "manage-queue.remove", video: {service: req.body.service, id: req.body.id} });
+			await room.processRequest({ permission: "manage-queue.remove", video: {service: req.body.service, id: req.body.id} });
+			res.json({
+				success: true,
+			});
 		}
 		else {
 			res.status(400).json({
 				success: false,
 				error: "Invalid parameters",
 			});
-			return;
 		}
-		res.json({
-			success,
-		});
 	}
 	catch (err) {
 		handlePostVideoFailure(res, err);
