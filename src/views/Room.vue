@@ -524,7 +524,11 @@ export default {
       }, 3000);
     },
     rewriteUrlToRoomName() {
+      if (this.$store.state.room.name.length === 0) {
+        return;
+      }
       if (this.$route.params.roomId !== this.$store.state.room.name) {
+        console.log(`room name does not match URL, rewriting to "${this.$store.state.room.name}"`);
         this.$router.replace({ name: "room", params: { roomId: this.$store.state.room.name } });
       }
     },
