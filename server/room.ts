@@ -7,9 +7,8 @@ import { JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessage
 import _ from "lodash";
 import Video from "../common/video";
 import InfoExtract from "./infoextractor";
-import { ROLES } from "./permissions";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo } from "./types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role } from "./types";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -37,15 +36,6 @@ export class RoomUser {
 		}
 		else {
 			return this.unregisteredUsername;
-		}
-	}
-
-	getInfo(): RoomUserInfo {
-		return {
-			name: this.username,
-			isLoggedIn: this.isLoggedIn,
-			status: "joined",
-			role: 4
 		}
 	}
 
@@ -169,7 +159,13 @@ export class Room implements RoomState {
 	get users() {
 		let infos: RoomUserInfo[] = [];
 		for (let user of this.realusers) {
-			infos.push(user.getInfo())
+			let info: RoomUserInfo = {
+				name: user.username,
+				isLoggedIn: user.isLoggedIn,
+				status: "joined",
+				role: this.getRole(user),
+			};
+			infos.push(info);
 		}
 		return infos;
 	}
@@ -200,6 +196,15 @@ export class Room implements RoomState {
 		await publish(`room:${this.name}`, JSON.stringify(msg));
 	}
 
+	getRole(user: RoomUser): Role {
+		if (user.isLoggedIn) {
+			return Role.RegisteredUser
+		}
+		else {
+			return Role.UnregisteredUser
+		}
+	}
+
 	public async update() {
 		if (this.currentSource === null) {
 			this.dequeueNext();
@@ -224,7 +229,7 @@ export class Room implements RoomState {
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)))
 
 		// FIXME: permissions
-		msg.grants = this.grants.getMask(ROLES.OWNER);
+		msg.grants = this.grants.getMask(Role.Owner);
 
 		await set(`room:${this.name}`, JSON.stringify(state));
 		await this.publish(msg);

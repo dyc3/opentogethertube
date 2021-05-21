@@ -48,5 +48,14 @@ export type RoomUserInfo = {
 	name: string
 	isLoggedIn: boolean
 	status: any // TODO: make this an enum
-	role: 4
+	role: Role
 }
+
+export enum Role {
+	Administrator = 4,
+	Moderator = 3,
+	TrustedUser = 2,
+	RegisteredUser = 1,
+	UnregisteredUser = 0,
+	Owner = -1,
+};
