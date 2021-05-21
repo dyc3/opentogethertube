@@ -2,7 +2,7 @@ import { Grants } from "./permissions.js";
 import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
-import winston from "winston";
+import winston, { info } from "winston";
 import { JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import _ from "lodash";
 import Video from "../common/video";
@@ -25,6 +25,13 @@ export enum QueueMode {
 	Dj,
 }
 
+type RoomUserInfo = {
+	name: string
+	isLoggedIn: boolean
+	status: any // TODO: make this an enum
+	role: 4
+}
+
 /**
  * Represents a User from the Room's perspective.
  */
@@ -39,6 +46,15 @@ export class RoomUser {
 
 	public get isLoggedIn() {
 		return !!this.user_id
+	}
+
+	getInfo(): RoomUserInfo {
+		return {
+			name: this.username!,
+			isLoggedIn: this.isLoggedIn,
+			status: "joined",
+			role: 4
+		}
 	}
 }
 
@@ -57,6 +73,7 @@ export interface RoomState extends RoomOptions {
 	isPlaying: boolean
 	playbackPosition: number
 	grants: Grants
+	users: RoomUserInfo[]
 }
 
 export class Room implements RoomState {
@@ -72,7 +89,7 @@ export class Room implements RoomState {
 	_isPlaying: boolean = false
 	_playbackPosition: number = 0
 	grants: Grants = new Grants();
-	users: RoomUser[] = []
+	realusers: RoomUser[] = []
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
@@ -160,6 +177,14 @@ export class Room implements RoomState {
 		this.markDirty("playbackPosition");
 	}
 
+	get users() {
+		let infos: RoomUserInfo[] = [];
+		for (let user of this.realusers) {
+			infos.push(user.getInfo())
+		}
+		return infos;
+	}
+
 	markDirty(prop: keyof RoomState) {
 		this._dirty.add(prop);
 		this.throttledSync();
@@ -205,7 +230,7 @@ export class Room implements RoomState {
 			action: "sync",
 		}
 
-		let state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants");
+		let state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)))
 
@@ -333,7 +358,8 @@ export class Room implements RoomState {
 		let user = new RoomUser(request.id)
 		user.user_id = request.user_id;
 		user.username = request.username;
-		this.users.push(user);
+		this.realusers.push(user);
+		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
 	}
 }
