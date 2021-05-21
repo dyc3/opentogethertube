@@ -13,7 +13,9 @@ export default new Vuex.Store({
 		playerBufferSpans: null,
 		fullscreen: false,
 		$connection: {
+			shouldReconnect: false,
 			isConnected: false,
+			room: null,
 		},
 		joinFailureReason: null,
 		production: process.env.NODE_ENV === 'production',

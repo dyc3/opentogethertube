@@ -305,13 +305,18 @@ export default {
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
 
-    connection.connect(this.$route.params.roomId);
+    if (!this.$store.state.$connection.isConnected) {
+      connection.connect(this.$route.params.roomId);
+    }
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
     connection.disconnect();
+    this.$events.remove("onRoomEvent", this.onRoomEvent);
+    this.$events.remove("onRoomCreated", this.onRoomCreated);
+    this.$events.remove("onChatLinkClick", this.switchToAddTab);
     this.$events.remove("onSync", this.rewriteUrlToRoomName);
   },
   methods: {
