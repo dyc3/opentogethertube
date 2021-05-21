@@ -258,6 +258,12 @@ export class Room implements RoomState {
 			if (request.video) {
 				await this.addToQueue(request.video);
 			}
+			else if (request.url) {
+				await this.addToQueue(request.url)
+			}
+			else if (request.videos) {
+				this.log.warn("TODO: add many to queue");
+			}
 		}
 		else if (request.type === RoomRequestType.RemoveRequest) {
 			await this.removeFromQueue(request.video);
@@ -306,13 +312,13 @@ export class Room implements RoomState {
 	 * Add the video to the queue. Should only be called after permissions have been checked.
 	 * @param video
 	 */
-	public async addToQueue(video: Video) {
+	public async addToQueue(video: Video | string) {
 		let queueItem = new Video();
 
-		if (Object.prototype.hasOwnProperty.call(video, "url")) {
-			let adapter = InfoExtract.getServiceAdapterForURL(video.url);
+		if (typeof video === "string") {
+			let adapter = InfoExtract.getServiceAdapterForURL(video);
 			queueItem.service = adapter.serviceId;
-			queueItem.id = adapter.getVideoId(video.url);
+			queueItem.id = adapter.getVideoId(video);
 		}
 		else {
 			queueItem.service = video.service;

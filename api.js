@@ -2,6 +2,7 @@ const express = require('express');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
 import InfoExtract from "./server/infoextractor";
+import { RoomRequestType } from "./server/messages";
 const { getLogger } = require('./logger.js');
 const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
@@ -422,7 +423,7 @@ router.post("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let roomRequest = { permission: "manage-queue.add" };
+		let roomRequest = { type: RoomRequestType.AddRequest, permission: "manage-queue.add" };
 		if (req.body.videos) {
 			roomRequest.videos = req.body.videos;
 		}
