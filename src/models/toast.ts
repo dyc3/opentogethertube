@@ -3,7 +3,14 @@
  * A toast notification.
  */
 export interface Toast {
-	id: any // FIXME: type is actually`symbol`
+	id: symbol
 	content: string
 	duration: number
+	style: ToastStyle
+}
+
+export enum ToastStyle {
+	Neutral,
+	Success,
+	Error,
 }

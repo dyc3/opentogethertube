@@ -15,7 +15,7 @@ export const toastModule: Module<ToastState, RootState> = {
 		notifications: [],
 	},
 	mutations: {
-		ADD_TOAST(state: ToastState, notification: Toast) {
+		ADD_TOAST(state: ToastState, notification: Toast & { id: any }) {
 			state.notifications.push({
 				...notification,
 				id: Symbol(),
