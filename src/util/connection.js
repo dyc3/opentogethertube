@@ -7,6 +7,7 @@ let all_sockets = [];
 function onOpen(e) {
 	console.log("socket open");
 	window.vm.$store.state.$connection.isConnected = true;
+	window.vm.$store.state.$connection.reconnect.attempts = 0;
 	window.vm.$events.fire("socket-open", e);
 }
 
@@ -19,14 +20,21 @@ function onClose(e) {
 	socket.removeEventListener("error", onError);
 	window.vm.$events.fire("socket-close", e);
 	socket = null;
-	if (window.vm.$store.state.$connection.shouldReconnect && window.vm.$store.state.$connection.room) {
-		console.log("reconnecting...");
-		connect(window.vm.$store.state.$connection.room);
+	if (window.vm.$store.state.$connection.shouldReconnect && window.vm.$store.state.$connection.room && window.vm.$store.state.$connection.reconnect.attempts < window.vm.$store.state.$connection.reconnect.maxAttempts) {
+		let delay = window.vm.$store.state.$connection.reconnect.delay + (window.vm.$store.state.$connection.reconnect.attempts * window.vm.$store.state.$connection.reconnect.delayIncrease);
+		console.debug(`waiting to reconnect: ${delay}ms`);
+		setTimeout(() => {
+			console.log(`reconnecting... ${window.vm.$store.state.$connection.reconnect.attempts}`);
+			window.vm.$store.state.$connection.reconnect.attempts++;
+			connect(window.vm.$store.state.$connection.room);
+		}, delay);
+	}
+	else {
+		console.log("Not attempting to reconnect");
 	}
 }
 
 function onMessage(e) {
-	console.log("received a message");
 	if (typeof e.data === "string") {
 		try {
 			let msg = JSON.parse(e.data);
@@ -70,6 +78,7 @@ function disconnect() {
 		return;
 	}
 	window.vm.$store.state.$connection.shouldReconnect = false;
+	window.vm.$store.state.$connection.reconnect.attempts = 0;
 	socket.close();
 }
 

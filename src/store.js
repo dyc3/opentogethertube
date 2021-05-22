@@ -17,6 +17,12 @@ export default new Vuex.Store({
 			shouldReconnect: false,
 			isConnected: false,
 			room: null,
+			reconnect: {
+				delay: 2000,
+				delayIncrease: 1000,
+				attempts: 0,
+				maxAttempts: 10,
+			},
 		},
 		joinFailureReason: null,
 		production: process.env.NODE_ENV === 'production',
