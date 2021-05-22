@@ -1,8 +1,11 @@
 {
 	"extends": "@tsconfig/node12/tsconfig.json",
 	"compilerOptions": {
-	  "preserveConstEnums": true,
-	  "allowJs": true,
+		"preserveConstEnums": true,
+		"allowJs": true,
+		"target": "es6",
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
 	},
 	"include": ["**/*.ts"],
 	"exclude": ["node_modules", "**/*.spec.ts"]
