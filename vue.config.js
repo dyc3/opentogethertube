@@ -3,6 +3,11 @@ require('dotenv').config({ path: path.resolve(process.cwd(), `env/${process.env.
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
+	pages: {
+		index: {
+			entry: 'src/main.js',
+		},
+	},
 	devServer: {
 		proxy: {
 			"^/api": {
