@@ -102,6 +102,10 @@ export default new Vuex.Store({
 				console.log("setting playback start time");
 				this.state.room.playbackStartTime = moment();
 			}
+			// FIXME: the UI needs to be able to handle null currentSource
+			if (message.currentSource === null) {
+				message.currentSource = {};
+			}
 			// HACK: this lets vue detect the changes and react to them
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
 			this.state.room = Object.assign({}, this.state.room, message);
