@@ -6,7 +6,7 @@
 		"allowSyntheticDefaultImports": true,
 		"preserveConstEnums": true,
 		"allowJs": true,
-		"target": "es6",
+		"target": "esnext",
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 		"importHelpers": true,

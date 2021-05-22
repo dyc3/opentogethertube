@@ -1,6 +1,7 @@
 module.exports = {
   env: {
     node: true,
+    es6: true,
   },
   plugins: [
     "vue",
@@ -29,7 +30,11 @@ module.exports = {
     'vue/v-on-style': ['error', 'shorthand'],
   },
   parserOptions: {
-    ecmaVersion: 6,
-    parser: 'babel-eslint'
+    ecmaVersion: "next",
+    parser: 'babel-eslint',
+    sourceType: "module",
+  },
+  ecmaFeatures: {
+    modules: true,
   },
 };

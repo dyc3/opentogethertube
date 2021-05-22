@@ -15,13 +15,13 @@ export const toastModule: Module<ToastState, RootState> = {
 		notifications: [],
 	},
 	mutations: {
-		ADD_TOAST(state: ToastState, notification: Toast & { id: any }) {
+		ADD_TOAST(state: ToastState, notification: Toast & { id?: symbol }) {
 			state.notifications.push({
 				...notification,
 				id: Symbol(),
 			});
 		},
-		REMOVE_TOAST(state: ToastState, id: any) {
+		REMOVE_TOAST(state: ToastState, id: symbol) {
 			state.notifications = _.remove(state.notifications, { id });
 		},
 	},
