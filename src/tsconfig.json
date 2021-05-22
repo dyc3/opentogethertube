@@ -1,0 +1,11 @@
+{
+	"extends": "@tsconfig/node12/tsconfig.json",
+	"compilerOptions": {
+		"preserveConstEnums": true,
+		"allowJs": true,
+		"target": "es6",
+		"allowSyntheticDefaultImports": true,
+	},
+	"include": ["**/*.ts"],
+	"exclude": ["node_modules", "**/*.spec.ts"]
+  }

@@ -1,5 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`) });
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
 	devServer: {
@@ -18,7 +19,23 @@ module.exports = {
 		},
 	},
 	configureWebpack: {
-		plugins: [],
+		resolve: {
+			extensions: [".ts", ".js"],
+		},
+		module: {
+			rules: [
+				{
+					test: /\.tsx?$/,
+					loader: 'ts-loader',
+					exclude: /node_modules/,
+					options: {
+						// disable type checker - we will use it in fork plugin
+						transpileOnly: true,
+					},
+				},
+			],
+		},
+		plugins: [new ForkTsCheckerWebpackPlugin()],
 	},
 	chainWebpack: (config) => {
 		config.plugin('define').tap(definitions => {

@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { API } from './common-http.js';
 import moment from 'moment';
 import connection from "@/util/connection";
+import { toastModule } from "@/stores/toast";
 
 Vue.use(Vuex);
 
@@ -145,5 +146,8 @@ export default new Vuex.Store({
 			let meta = resp.data;
 			context.commit("PERMISSIONS_METADATA", meta);
 		},
+	},
+	modules: {
+		toast: toastModule,
 	},
 });
