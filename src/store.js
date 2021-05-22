@@ -110,11 +110,12 @@ export default new Vuex.Store({
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
 			this.state.room = Object.assign({}, this.state.room, message);
 
-			if (!this.user) {
-				let you = _.find(this.state.room.users, { isYou: true });
-				this.state.username = you.name;
-				this.state.yourRole = you.role;
-			}
+			// FIXME: implement or create alternative
+			// if (!this.user) {
+			// 	let you = _.find(this.state.room.users, { isYou: true });
+			// 	this.state.username = you.name;
+			// 	this.state.yourRole = you.role;
+			// }
 
 			Vue.prototype.$events.emit('onSync');
 		},
