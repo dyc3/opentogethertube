@@ -49,7 +49,7 @@ export class Client {
 	}
 
 	get clientInfo(): ClientInfo {
-		if (this.Session.passport?.user) {
+		if (this.Session.passport && this.Session.passport.user) {
 			return {
 				id: this.id,
 				user_id: this.Session.passport.user
@@ -157,7 +157,7 @@ export class Client {
 		if (!room) {
 			log.error(`room not found: ${this.room}`)
 		}
-		await room?.processRequest(request);
+		await room.processRequest(request);
 	}
 }
 

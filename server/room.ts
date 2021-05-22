@@ -217,7 +217,7 @@ export class Room implements RoomState {
 		}
 		if (user.user) {
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
-				if (this.userRoles.get(i)?.has(user.user.id)) {
+				if (this.userRoles.get(i).has(user.user.id)) {
 					return i;
 				}
 			}
