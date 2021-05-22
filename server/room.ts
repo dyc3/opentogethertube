@@ -69,7 +69,7 @@ export class Room implements RoomState {
 	grants: Grants = new Grants();
 	realusers: RoomUser[] = []
 	userRoles: Map<Role, Set<number>>
-	owner: any
+	owner: User | null
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
@@ -81,8 +81,9 @@ export class Room implements RoomState {
 			[Role.Moderator, new Set()],
 			[Role.Administrator, new Set()],
 		])
+		this.owner = null;
 
-		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary"));
+		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner"));
 		if (!(this.grants instanceof Grants)) {
 			this.grants = new Grants(this.grants);
 		}
