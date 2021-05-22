@@ -9,6 +9,7 @@ import Video from "../common/video";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
 import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role } from "./types";
+import { User } from "../models/user";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -20,10 +21,11 @@ export class RoomUser {
 	id: string
 	user_id?: number
 	unregisteredUsername: string = ""
-	user: any
+	user: User | null
 
 	constructor(id: string) {
 		this.id = id
+		this.user = null
 	}
 
 	public get isLoggedIn() {
@@ -31,7 +33,7 @@ export class RoomUser {
 	}
 
 	public get username(): string {
-		if (this.isLoggedIn) {
+		if (this.isLoggedIn && this.user) {
 			return this.user.username;
 		}
 		else {
@@ -212,9 +214,11 @@ export class Room implements RoomState {
 		if (this.isOwner(user)) {
 			return Role.Owner;
 		}
-		for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
-			if (this.userRoles.get(i)?.has(user.user.id)) {
-				return i;
+		if (user.user) {
+			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
+				if (this.userRoles.get(i)?.has(user.user.id)) {
+					return i;
+				}
 			}
 		}
 		if (user.isLoggedIn) {
