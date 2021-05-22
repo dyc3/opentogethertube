@@ -3,16 +3,16 @@ import Video from "../common/video";
 import { Grants } from "./permissions.js";
 
 export enum Visibility {
-	Public,
-	Unlisted,
-	Private,
+	Public = "public",
+	Unlisted = "unlisted",
+	Private = "private",
 }
 
 export enum QueueMode {
-	Manual,
-	Vote,
-	Loop,
-	Dj,
+	Manual = "manual",
+	Vote = "vote",
+	Loop = "loop",
+	Dj = "dj",
 }
 
 export enum OttWebsocketError {

@@ -8,7 +8,7 @@ const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
 import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
-import { Role } from "./server/types";
+import { QueueMode, Role, Visibility } from "./server/types";
 
 const log = getLogger("api");
 
@@ -20,16 +20,16 @@ const RESERVED_ROOM_NAMES = [
 ];
 
 const VALID_ROOM_VISIBILITY = [
-	"public",
-	"unlisted",
-	"private",
+	Visibility.Public,
+	Visibility.Unlisted,
+	Visibility.Private,
 ];
 
 const VALID_ROOM_QUEUE_MODE = [
-	"manual",
-	"vote",
-	"loop",
-	"dj",
+	QueueMode.Manual,
+	QueueMode.Vote,
+	QueueMode.Loop,
+	QueueMode.Dj,
 ];
 
 function handleGetRoomFailure(res, err) {
@@ -132,7 +132,7 @@ router.get("/room/list", (req, res) => {
 
 router.get("/room/:name", async (req, res) => {
 	try {
-		let room = await roommanager.getOrLoadRoom(req.params.name);
+		let room = await roommanager.GetRoom(req.params.name);
 		let hasOwner = !!room.owner;
 		room = _.cloneDeep(_.pick(room, [
 			"name",
@@ -142,17 +142,18 @@ router.get("/room/:name", async (req, res) => {
 			"visibility",
 			"queueMode",
 			"queue",
-			"clients",
-			"permissions",
+			"users",
+			"grants",
 		]));
+		room.permissions = room.grants;
 		room.hasOwner = hasOwner;
-		let clients = [];
-		for (let c of room.clients) {
+		let users = [];
+		for (let c of room.users) {
 			let client = _.pick(c, ["username", "isLoggedIn"]);
 			client.name = client.username;
-			clients.push(client);
+			users.push(client);
 		}
-		room.clients = clients;
+		room.clients = users;
 		for (let video of room.queue) {
 			delete video._lastVotesChanged;
 			if (room.queueMode === "vote") {
@@ -319,7 +320,7 @@ router.post("/room/generate", async (req, res) => {
 router.patch("/room/:name", async (req, res) => {
 	let room;
 	try {
-		room = await roommanager.getOrLoadRoom(req.params.name);
+		room = await roommanager.GetRoom(req.params.name);
 	}
 	catch (err) {
 		handleGetRoomFailure(res, err);

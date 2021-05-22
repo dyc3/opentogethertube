@@ -312,6 +312,10 @@ export class Room implements RoomState {
 		}
 	}
 
+	public async setGrants(grants: Grants) {
+		this.grants.setAllGrants(grants);
+	}
+
 	public async play() {
 		this.log.debug("playback started");
 		this.isPlaying = true;
