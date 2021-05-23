@@ -1,4 +1,12 @@
-import styleVars from "@/variables.scss";
+// import styleVars from "@/variables.scss";
+// for some dumbass reason, this import stopped working
+
+const styleVars = {
+	"toast-height": "48px",
+	"toast-height-multiline": "68px",
+	"toast-margin": "8px",
+	"toast-padding": "0",
+};
 
 function stripCssUnit(text) {
 	return parseInt(text.replace("px", ""));

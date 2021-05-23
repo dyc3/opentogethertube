@@ -39,14 +39,16 @@ module.exports = {
 						transpileOnly: true,
 					},
 				},
-				{
-					test: /\.scss$/,
-					use: [
-						"style-loader",
-						"css-loader",
-						"sass-loader",
-					],
-				},
+				// this is supposed to be used to import sass variables into JS (particularly styleProxy.js), and it worked briefly. it then broke spontaneously.
+				// {
+				// 	test: /\.scss$/,
+				// 	exclude: /node_modules/,
+				// 	use: [
+				// 		"style-loader",
+				// 		"css-loader",
+				// 		"sass-loader",
+				// 	],
+				// },
 			],
 		},
 		plugins: [new ForkTsCheckerWebpackPlugin()],
