@@ -195,7 +195,7 @@ export class Room implements RoomState {
 			this.markDirty("queue");
 			this.playbackPosition = 0;
 		}
-		else {
+		else if (this.currentSource !== null) {
 			if (this.isPlaying) {
 				this.isPlaying = false;
 			}
