@@ -82,8 +82,7 @@
         </v-row>
       </v-container>
     </v-overlay>
-    <Notifier event="Error" color="red" icon="fas fa-exclamation-circle" />
-    <Notifier event="Success" color="green" icon="fas fa-check" />
+    <Notifier />
   </v-app>
 </template>
 

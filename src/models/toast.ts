@@ -5,7 +5,7 @@
 export interface Toast {
 	id: symbol
 	content: string
-	duration: number
+	duration?: number
 	style: ToastStyle
 }
 

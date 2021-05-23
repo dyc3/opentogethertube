@@ -1,44 +1,66 @@
 <template>
-	<v-snackbar app left :color="color" v-model="active">
-		<v-icon v-if="icon">{{ icon }}</v-icon>
-		{{ message }}
-	</v-snackbar>
+	<div>
+		<div v-for="(toast, index) in $store.state.toast.notifications" :key="toast.id">
+			<ToastNotification :toast="toast" :number="index"/>
+		</div>
+	</div>
 </template>
 
-<script>
+<script lang="ts">
+import { ToastStyle, Toast } from '@/models/toast';
+import { VuexMutation } from "@/models/vuex";
+import ToastNotification from "@/components/ToastNotification.vue";
+
 /**
- * Helper to allow easy popup notifications. Useful for providing visual feedback to the user.
- * Will listen to the global event bus for events on `notify_on${event}`
+ * Handles displaying all toast notifications.
  *
- * TODO: show multiple notifications at a time
  * TODO: show a little progress bar for when the notification will go away
  * TODO: add options to set timeout for each message
- * FIXME: make sure that notifications from multiple notifiers don't cover each other up
  * */
 export default {
 	name: "Notifier",
-	props: {
-		event: { type: String, required: true },
-		color: { type: String, default: "" },
-		icon: { type: String, default: "" },
+	components: {
+		ToastNotification,
 	},
 	data() {
 		return {
-			active: false,
-			message: "",
+			ToastStyle,
 		};
 	},
 	created() {
-		this.$events.on(`notify_on${this.event}`, this.onMessage);
-	},
-	destroyed() {
-		this.$events.remove(`notify_on${this.event}`, this.onMessage);
+		this.$store.subscribe((mutation: VuexMutation<Toast>) => {
+			if (mutation.type !== "ADD_TOAST") {
+				return;
+			}
+			console.log(mutation);
+			this.$forceUpdate();
+		});
+		this.$store.commit("toast/ADD_TOAST", {
+			style: ToastStyle.Neutral,
+			content: "test",
+		});
+		this.$store.commit("toast/ADD_TOAST", {
+			style: ToastStyle.Error,
+			content: "test error",
+		});
+		this.$store.commit("toast/ADD_TOAST", {
+			style: ToastStyle.Success,
+			content: "test success",
+		});
 	},
 	methods: {
-		onMessage({ message }) {
-			this.message = message;
-			this.active = true;
-		},
+
 	},
 };
 </script>
+
+<style lang="scss" scoped>
+@keyframes toast-timer {
+	0% {
+		transform: scaleX(100);
+	}
+	100% {
+		transform: scaleX(0);
+	}
+}
+</style>

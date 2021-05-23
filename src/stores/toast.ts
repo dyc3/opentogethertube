@@ -1,15 +1,13 @@
 import _ from 'lodash';
-import { Commit, Dispatch, Module } from 'vuex/types';
+import { Module } from 'vuex/types';
 
 import { Toast } from '../models/toast';
-
-interface RootState {}
 
 interface ToastState {
 	notifications: Toast[]
 }
 
-export const toastModule: Module<ToastState, RootState> = {
+export const toastModule: Module<ToastState, any> = {
 	namespaced: true,
 	state: {
 		notifications: [],
