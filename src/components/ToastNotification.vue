@@ -11,6 +11,7 @@
 		<v-icon v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
 		<v-icon v-else-if="toast.style === ToastStyle.Error">fas fa-exclamation-circle</v-icon>
 		{{ toast.content }}
+		<div class="bar" :style="{'animation-duration': `${this.toast.duration}ms`}"></div>
 	</v-snackbar>
 </template>
 
@@ -56,7 +57,33 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@keyframes toast_timer {
+	0% {
+		// transform: scaleX(1);
+		width: 100%;
+	}
+	100% {
+		// transform: scaleX(0);
+		width: 0;
+	}
+}
+
 .toast {
 	position: relative;
+
+	.bar {
+		display: block;
+		position: absolute;
+		width: 100%;
+		background: white;
+		height: 4px;
+		left: 0;
+		bottom: 0;
+
+		animation-name: toast_timer;
+		animation-timing-function: linear;
+		animation-fill-mode: forwards;
+	}
 }
+
 </style>

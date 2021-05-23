@@ -11,10 +11,7 @@ import ToastNotification from "@/components/ToastNotification.vue";
 
 /**
  * Handles displaying all toast notifications.
- *
- * TODO: show a little progress bar for when the notification will go away
- * TODO: add options to set timeout for each message
- * */
+ */
 export default {
 	name: "Notifier",
 	components: {
@@ -24,15 +21,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@keyframes toast-timer {
-	0% {
-		transform: scaleX(100);
-	}
-	100% {
-		transform: scaleX(0);
-	}
-}
-
 .toast-list {
 	display: block;
 	position: fixed;
