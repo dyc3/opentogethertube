@@ -15,6 +15,7 @@
 </template>
 
 <script lang="ts">
+import { PropType } from 'vue';
 import { Toast, ToastStyle } from '@/models/toast';
 import style from "@/styleProxy";
 
@@ -22,7 +23,7 @@ export default {
 	name: "Toast",
 	props: {
 		toast: {
-			type: Object as () => Toast,
+			type: Object as PropType<() => Toast>,
 		},
 		number: {
 			type: Number,

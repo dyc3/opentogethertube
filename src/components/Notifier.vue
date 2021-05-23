@@ -27,29 +27,24 @@ export default {
 			ToastStyle,
 		};
 	},
-	created() {
+	created(): void {
 		this.$store.subscribe((mutation: VuexMutation<Toast>) => {
 			if (mutation.type !== "ADD_TOAST") {
 				return;
 			}
-			console.log(mutation);
-			this.$forceUpdate();
 		});
-		this.$store.commit("toast/ADD_TOAST", {
+		this.$toast.add({
 			style: ToastStyle.Neutral,
 			content: "test",
 		});
-		this.$store.commit("toast/ADD_TOAST", {
+		this.$toast.add({
 			style: ToastStyle.Error,
 			content: "test error",
 		});
-		this.$store.commit("toast/ADD_TOAST", {
+		this.$toast.add({
 			style: ToastStyle.Success,
 			content: "test success",
 		});
-	},
-	methods: {
-
 	},
 };
 </script>

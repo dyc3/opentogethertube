@@ -18,6 +18,9 @@ import 'vue-slider-component/theme/default.css';
 import Fragment from 'vue-fragment';
 Vue.use(Fragment.Plugin);
 
+import toast from "@/plugins/toast";
+Vue.use(toast, { store });
+
 Vue.config.productionTip = false;
 
 window.vm = new Vue({

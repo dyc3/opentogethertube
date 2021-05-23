@@ -7,13 +7,13 @@ interface ToastState {
 	notifications: Toast[]
 }
 
-export const toastModule: Module<ToastState, any> = {
+export const toastModule: Module<ToastState, unknown> = {
 	namespaced: true,
 	state: {
 		notifications: [],
 	},
 	mutations: {
-		ADD_TOAST(state: ToastState, notification: Toast & { id?: symbol }) {
+		ADD_TOAST(state: ToastState, notification: Omit<Toast, "id">) {
 			state.notifications.push({
 				...notification,
 				id: Symbol(),
