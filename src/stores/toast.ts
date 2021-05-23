@@ -3,7 +3,7 @@ import { Module } from 'vuex/types';
 
 import { Toast } from '../models/toast';
 
-interface ToastState {
+export interface ToastState {
 	notifications: Toast[]
 }
 
