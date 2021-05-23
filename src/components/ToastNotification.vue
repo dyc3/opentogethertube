@@ -16,10 +16,10 @@
 </template>
 
 <script lang="ts">
-import { PropType } from 'vue';
+import Vue, { PropType } from 'vue';
 import { Toast, ToastStyle } from '@/models/toast';
 
-export default {
+export default Vue.extend({
 	name: "Toast",
 	props: {
 		toast: {
@@ -53,7 +53,7 @@ export default {
 			}, this.toast.duration);
 		}
 	},
-};
+});
 </script>
 
 <style lang="scss" scoped>
