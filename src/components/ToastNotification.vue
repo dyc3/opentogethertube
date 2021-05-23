@@ -50,6 +50,13 @@ export default {
 			return style.toast.height + style.toast.padding + style.toast.margin + this.padding;
 		},
 	},
+	created(): void {
+		if (this.toast.duration) {
+			setTimeout(() => {
+				this.$toast.remove(this.toast.id);
+			}, this.toast.duration);
+		}
+	},
 };
 </script>
 

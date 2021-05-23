@@ -7,6 +7,9 @@ export default {
 			add(toast: Omit<Toast, "id">): void {
 				store.commit("toast/ADD_TOAST", toast);
 			},
+			remove(id: symbol): void {
+				store.commit("toast/REMOVE_TOAST", id);
+			},
 		};
 	},
 };

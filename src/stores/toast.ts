@@ -20,7 +20,10 @@ export const toastModule: Module<ToastState, unknown> = {
 			});
 		},
 		REMOVE_TOAST(state: ToastState, id: symbol) {
-			state.notifications = _.remove(state.notifications, { id });
+			let notifs = state.notifications;
+			// FIXME: for some reason, removes multiple toasts, but should only remove one.
+			notifs = _.remove(notifs, { id });
+			state.notifications = notifs;
 		},
 	},
 };
