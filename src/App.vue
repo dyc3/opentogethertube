@@ -86,7 +86,7 @@
   </v-app>
 </template>
 
-<script>
+<script lang="ts">
 import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
@@ -138,8 +138,6 @@ export default {
         document.querySelector("html").classList.remove("scrollbarBeGone");
       }
     });
-
-    this.$events.on("onAnnouncement", this.onAnnouncement);
 
     // ask the server if we are logged in or not, and update the client to reflect that status.
     API.get("/user").then(res => {
