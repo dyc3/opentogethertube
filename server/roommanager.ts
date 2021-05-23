@@ -17,7 +17,7 @@ const redis = {
 	set: promisify(redisClient.set).bind(redisClient),
 	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
 };
-const rooms: Room[] = [];
+export const rooms: Room[] = [];
 // const redisSubscriber = createSubscriber();
 
 function addRoom(room: Room) {
@@ -90,6 +90,7 @@ export async function UnloadRoom(roomName: string): Promise<void> {
 }
 
 export default {
+	rooms,
 	start,
 
 	CreateRoom,

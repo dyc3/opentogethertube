@@ -61,6 +61,8 @@ module.exports = {
     'jest/no-truthy-falsy': 'warn',
     'jest/prefer-spy-on': 'error',
     'jest/require-top-level-describe': 'warn',
+
+    '@typescript-eslint/no-var-requires': 'warn',
   },
   parserOptions: {
     ecmaVersion: 2020,
