@@ -17,7 +17,6 @@
 <script lang="ts">
 import { PropType } from 'vue';
 import { Toast, ToastStyle } from '@/models/toast';
-import style from "@/styleProxy";
 
 export default {
 	name: "Toast",

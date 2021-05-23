@@ -7,8 +7,6 @@
 </template>
 
 <script lang="ts">
-import { ToastStyle, Toast } from '@/models/toast';
-import { VuexMutation } from "@/models/vuex";
 import ToastNotification from "@/components/ToastNotification.vue";
 
 /**
@@ -21,18 +19,6 @@ export default {
 	name: "Notifier",
 	components: {
 		ToastNotification,
-	},
-	data() {
-		return {
-			ToastStyle,
-		};
-	},
-	created(): void {
-		this.$store.subscribe((mutation: VuexMutation<Toast>) => {
-			if (mutation.type !== "ADD_TOAST") {
-				return;
-			}
-		});
 	},
 };
 </script>
