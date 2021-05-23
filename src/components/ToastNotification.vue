@@ -6,9 +6,7 @@
 		timeout="-1"
 		:color="color"
 		class="toast"
-		:style="{
-			transform: `translateY(-${toastHeight * number}px)`
-		}"
+		transform="false"
 	>
 		<v-icon v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
 		<v-icon v-else-if="toast.style === ToastStyle.Error">fas fa-exclamation-circle</v-icon>
@@ -47,9 +45,6 @@ export default {
 			}
 			return undefined;
 		},
-		toastHeight(): number {
-			return style.toast.height + style.toast.padding + style.toast.margin + this.padding;
-		},
 	},
 	created(): void {
 		if (this.toast.duration) {
@@ -62,5 +57,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
+.toast {
+	position: relative;
+}
 </style>

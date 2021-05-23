@@ -1,8 +1,8 @@
 <template>
-	<transition-group appear name="toast-list" tag="span" class="toast-list">
-		<div v-for="(toast, index) in $store.state.toast.notifications" :key="toast.id" class="toast-item">
+	<transition-group appear name="toast-list" tag="ul" class="toast-list">
+		<li v-for="(toast, index) in $store.state.toast.notifications" :key="toast.id" class="toast-item">
 			<ToastNotification :toast="toast" :number="index"/>
-		</div>
+		</li>
 	</transition-group>
 </template>
 
@@ -47,9 +47,20 @@ export default {
 	}
 }
 
+.toast-list {
+	display: block;
+	position: fixed;
+	padding: 0;
+	bottom: 0;
+}
+
+li {
+	list-style-type: none;
+}
+
 // define the animations for individual toasts
 .toast-list-move {
-	transition: all 1s ease;
+	transition: all .25s ease;
 }
 
 .toast-list-enter-active, .toast-list-leave-active {
