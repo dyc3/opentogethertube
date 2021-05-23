@@ -17,8 +17,7 @@ const redis = {
 	set: promisify(redisClient.set).bind(redisClient),
 	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
 };
-const ROOM_UNLOAD_AFTER = 240; // seconds
-let rooms: Room[] = [];
+const rooms: Room[] = [];
 // const redisSubscriber = createSubscriber();
 
 function addRoom(room: Room) {
@@ -47,6 +46,10 @@ export async function update() {
 	for (const room of rooms) {
 		await room.update();
 		await room.sync();
+
+		if (room.isStale) {
+			await UnloadRoom(room.name);
+		}
 	}
 }
 
@@ -73,12 +76,16 @@ export async function GetRoom(roomName: string) {
 	return room;
 }
 
-export async function UnloadRoom(roomName: string) {
-	const room = _.find(rooms, { name: roomName });
-	if (room) {
-		await room.onBeforeUnload();
+export async function UnloadRoom(roomName: string): Promise<void> {
+	log.info(`Unloading stale room: ${roomName}`);
+	const idx = _.findIndex(rooms, { name: roomName });
+	if (idx >= 0) {
+		await rooms[idx].onBeforeUnload();
 	}
-	rooms = _.remove(rooms, { name: roomName });
+	else {
+		throw new RoomNotFoundException(roomName);
+	}
+	rooms.splice(idx, 1);
 	await redis.del(`room:${roomName}`);
 }
 

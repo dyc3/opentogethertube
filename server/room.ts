@@ -15,6 +15,7 @@ import dayjs, { Dayjs } from 'dayjs';
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
+const ROOM_UNLOAD_AFTER = 240; // seconds
 
 /**
  * Represents a User from the Room's perspective.
@@ -76,6 +77,7 @@ export class Room implements RoomState {
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
 	_playbackStart: Dayjs | null = null;
+	_keepAlivePing: Dayjs
 
 	constructor (options: RoomOptions) {
 		this.log = getLogger(`room/${options.name}`);
@@ -85,6 +87,7 @@ export class Room implements RoomState {
 			[Role.Administrator, new Set()],
 		]);
 		this.owner = null;
+		this._keepAlivePing = dayjs();
 
 		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner"));
 		if (!(this.grants instanceof Grants)) {
@@ -239,6 +242,10 @@ export class Room implements RoomState {
 		if (this.currentSource === null) {
 			this.dequeueNext();
 		}
+
+		if (this.users.length > 0) {
+			this._keepAlivePing = dayjs();
+		}
 	}
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
@@ -268,6 +275,14 @@ export class Room implements RoomState {
 
 	public async onBeforeUnload(): Promise<void> {
 		await this.publish({ action: "unload" });
+	}
+
+	/**
+	 * If true, the room is stale, and should be unloaded.
+	 */
+	get isStale(): boolean {
+		const staleTime = dayjs().diff(this._keepAlivePing, "seconds");
+		return staleTime > ROOM_UNLOAD_AFTER;
 	}
 
 	public async processRequest(request: RoomRequest): Promise<void> {
