@@ -77,7 +77,6 @@
 <script>
 import { API } from "@/common-http.js";
 import PermissionsMixin from "@/mixins/permissions.js";
-import api from "@/util/api";
 
 /** Lists users that are connected to a room. */
 export default {
