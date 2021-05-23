@@ -82,6 +82,7 @@
 </template>
 
 <script lang="ts">
+import Vue from "vue";
 import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
@@ -90,7 +91,7 @@ import NavUser from "@/components/navbar/NavUser.vue";
 import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
 
-export default {
+export default Vue.extend({
   name: "app",
   components: {
     CreateRoomForm,
@@ -137,7 +138,7 @@ export default {
       }
     });
   },
-};
+});
 </script>
 
 <style lang="scss">
