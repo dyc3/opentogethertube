@@ -20,16 +20,16 @@ const set = promisify(redisClient.set).bind(redisClient);
 export class RoomUser {
 	id: string
 	user_id?: number
-	unregisteredUsername: string = ""
+	unregisteredUsername = ""
 	user: User | null
 
 	constructor(id: string) {
-		this.id = id
-		this.user = null
+		this.id = id;
+		this.user = null;
 	}
 
 	public get isLoggedIn() {
-		return !!this.user_id
+		return !!this.user_id;
 	}
 
 	public get username(): string {
@@ -43,7 +43,7 @@ export class RoomUser {
 
 	public async updateInfo(info: ClientInfo) {
 		if (info.user_id) {
-			this.user_id = info.user_id
+			this.user_id = info.user_id;
 			this.user = await usermanager.getUser({ id: info.user_id });
 		}
 		else if (info.username) {
@@ -55,17 +55,17 @@ export class RoomUser {
 }
 
 export class Room implements RoomState {
-	_name: string = "";
-	_title: string = "";
-	_description: string = "";
+	_name = "";
+	_title = "";
+	_description = "";
 	_visibility: Visibility = Visibility.Public;
 	_queueMode: QueueMode = QueueMode.Manual;
-	isTemporary: boolean = false;
+	isTemporary = false;
 
 	_currentSource: Video | null = null
 	queue: Video[] = []
-	_isPlaying: boolean = false
-	_playbackPosition: number = 0
+	_isPlaying = false
+	_playbackPosition = 0
 	grants: Grants = new Grants();
 	realusers: RoomUser[] = []
 	userRoles: Map<Role, Set<number>>
@@ -80,7 +80,7 @@ export class Room implements RoomState {
 			[Role.TrustedUser, new Set()],
 			[Role.Moderator, new Set()],
 			[Role.Administrator, new Set()],
-		])
+		]);
 		this.owner = null;
 
 		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner"));
@@ -149,7 +149,7 @@ export class Room implements RoomState {
 		this.markDirty("currentSource");
 	}
 
-	public get isPlaying() {
+	public get isPlaying(): boolean {
 		return this._isPlaying;
 	}
 
@@ -158,7 +158,7 @@ export class Room implements RoomState {
 		this.markDirty("isPlaying");
 	}
 
-	public get playbackPosition() {
+	public get playbackPosition(): number {
 		return this._playbackPosition;
 	}
 
@@ -167,10 +167,10 @@ export class Room implements RoomState {
 		this.markDirty("playbackPosition");
 	}
 
-	get users() {
-		let infos: RoomUserInfo[] = [];
-		for (let user of this.realusers) {
-			let info: RoomUserInfo = {
+	get users(): RoomUserInfo[] {
+		const infos: RoomUserInfo[] = [];
+		for (const user of this.realusers) {
+			const info: RoomUserInfo = {
 				name: user.username,
 				isLoggedIn: user.isLoggedIn,
 				status: "joined",
@@ -181,14 +181,14 @@ export class Room implements RoomState {
 		return infos;
 	}
 
-	markDirty(prop: keyof RoomState) {
+	markDirty(prop: keyof RoomState): void {
 		this._dirty.add(prop);
 		this.throttledSync();
 	}
 
-	dequeueNext() {
+	dequeueNext(): void {
 		if (this.queue.length > 0) {
-			this.currentSource = this.queue.shift()!;
+			this.currentSource = this.queue.shift();
 			this.markDirty("queue");
 			this.playbackPosition = 0;
 		}
@@ -203,11 +203,11 @@ export class Room implements RoomState {
 	 * Publish a message to the client manager. In general, these messages get sent to all the clients connected, and joined to this room. However, centain messages may be directed at a specific client, depending on what they do.
 	 * @param msg The message to publish.
 	 */
-	async publish(msg: ServerMessage) {
+	async publish(msg: ServerMessage): Promise<void> {
 		await publish(`room:${this.name}`, JSON.stringify(msg));
 	}
 
-	isOwner(user: RoomUser) {
+	isOwner(user: RoomUser): boolean {
 		return user.user && this.owner && user.user.id === this.owner.id;
 	}
 
@@ -223,14 +223,14 @@ export class Room implements RoomState {
 			}
 		}
 		if (user.isLoggedIn) {
-			return Role.RegisteredUser
+			return Role.RegisteredUser;
 		}
 		else {
-			return Role.UnregisteredUser
+			return Role.UnregisteredUser;
 		}
 	}
 
-	public async update() {
+	public async update(): Promise<void> {
 		if (this.currentSource === null) {
 			this.dequeueNext();
 		}
@@ -238,20 +238,20 @@ export class Room implements RoomState {
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
 
-	public async sync() {
+	public async sync(): Promise<void> {
 		if (this._dirty.size === 0) {
 			return;
 		}
 
-		this.log.debug(`synchronizing dirty props: ${Array.from(this._dirty)}`)
+		this.log.debug(`synchronizing dirty props: ${Array.from(this._dirty)}`);
 
 		let msg: ServerMessageSync = {
 			action: "sync",
-		}
+		};
 
-		let state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users");
+		const state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users");
 
-		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)))
+		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 
 		// FIXME: permissions
 		msg.grants = this.grants.getMask(Role.Owner);
@@ -261,14 +261,14 @@ export class Room implements RoomState {
 		this._dirty.clear();
 	}
 
-	public async onBeforeUnload() {
-		await this.publish({ action: "unload" })
+	public async onBeforeUnload(): Promise<void> {
+		await this.publish({ action: "unload" });
 	}
 
-	public async processRequest(request: RoomRequest) {
+	public async processRequest(request: RoomRequest): Promise<void> {
 		// TODO: check permissions, then proceed.
 
-		this.log.info(`processing request: ${request.type}`)
+		this.log.info(`processing request: ${request.type}`);
 
 		if (request.type === RoomRequestType.PlaybackRequest) {
 			if (request.state) {
@@ -289,7 +289,7 @@ export class Room implements RoomState {
 				await this.addToQueue(request.video);
 			}
 			else if (request.url) {
-				await this.addToQueue(request.url)
+				await this.addToQueue(request.url);
 			}
 			else if (request.videos) {
 				this.log.warn("TODO: add many to queue");
@@ -337,7 +337,7 @@ export class Room implements RoomState {
 	public async seek(value: number) {
 		if (value === undefined) {
 			this.log.error("seek value was undefined");
-			return
+			return;
 		}
 		this.playbackPosition = value;
 	}
@@ -350,7 +350,7 @@ export class Room implements RoomState {
 		let queueItem = new Video();
 
 		if (typeof video === "string") {
-			let adapter = InfoExtract.getServiceAdapterForURL(video);
+			const adapter = InfoExtract.getServiceAdapterForURL(video);
 			queueItem.service = adapter.serviceId;
 			queueItem.id = adapter.getVideoId(video);
 		}
@@ -367,13 +367,13 @@ export class Room implements RoomState {
 	}
 
 	public async removeFromQueue(video: Video) {
-		let matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
+		const matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
 		if (matchIdx < 0) {
 			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
 			return false;
 		}
 		// remove the item from the queue
-		let removed = this.queue.splice(matchIdx, 1)[0];
+		const removed = this.queue.splice(matchIdx, 1)[0];
 		this.markDirty("queue");
 		// if (session && client) {
 		// 	this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
@@ -384,13 +384,13 @@ export class Room implements RoomState {
 	}
 
 	public async reorderQueue(from: number, to: number) {
-		let video = this.queue.splice(from, 1)[0];
+		const video = this.queue.splice(from, 1)[0];
 		this.queue.splice(to, 0, video);
 		this.markDirty("queue");
 	}
 
 	public async joinRoom(request: JoinRequest) {
-		let user = new RoomUser(request.info.id)
+		const user = new RoomUser(request.info.id);
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.markDirty("users");
@@ -402,13 +402,13 @@ export class Room implements RoomState {
 			if (this.realusers[i].id === id) {
 				this.realusers.splice(i--, 1);
 				this.markDirty("users");
-				break
+				break;
 			}
 		}
 	}
 
 	public async updateUser(info: ClientInfo) {
-		this.log.debug(`User was updated: ${info.id} ${JSON.stringify(info)}`)
+		this.log.debug(`User was updated: ${info.id} ${JSON.stringify(info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === info.id) {
 				this.realusers[i].updateInfo(info);
