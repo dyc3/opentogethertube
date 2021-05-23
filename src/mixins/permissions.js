@@ -30,6 +30,7 @@ export default {
 			return (this.$store.state.room.grants & masks[permission]) > 0;
 		},
 		waitForMetadata() {
+			// eslint-disable-next-line @typescript-eslint/no-this-alias
 			let _this = this;
 			return new Promise(resolve => {
 				(function wait() {

@@ -23,7 +23,7 @@ export default {
 	name: "Toast",
 	props: {
 		toast: {
-			type: Object as PropType<() => Toast>,
+			type: Object as PropType<Toast>,
 		},
 		number: {
 			type: Number,

@@ -1,4 +1,3 @@
-
 /**
  * A toast notification.
  */
