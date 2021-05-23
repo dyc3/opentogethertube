@@ -135,15 +135,23 @@ export default new Vuex.Store({
 			else {
 				this.state.room.events.push(event);
 			}
-			Vue.prototype.$events.emit('onRoomEvent', message.event);
+			this.commit("toast/ADD_TOAST", {
+				style: ToastStyle.Neutral,
+				content: "TODO: room events",
+				duration: 5000,
+			});
 		},
 		announcement(context, message) {
-			Vue.prototype.$events.emit('onAnnouncement', message.text);
+			this.commit("toast/ADD_TOAST", {
+				style: ToastStyle.Neutral,
+				content: message.text,
+				duration: 5000,
+			});
 		},
 		error(context, message) {
 			// console.log(`Server sent error: ${message.error}`);
 			this.commit("toast/ADD_TOAST", {
-				style: ToastStyle.error,
+				style: ToastStyle.Error,
 				content: message.error,
 				duration: 5000,
 			});

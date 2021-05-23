@@ -20,10 +20,8 @@ export const toastModule: Module<ToastState, unknown> = {
 			});
 		},
 		REMOVE_TOAST(state: ToastState, id: symbol) {
-			// const notifs = state.notifications;
 			const idx = _.findIndex(state.notifications, { id });
 			state.notifications.splice(idx, 1);
-			// state.notifications = notifs;
 		},
 	},
 };
