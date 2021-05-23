@@ -1,6 +1,7 @@
 <template>
 	<v-snackbar
 		app left
+		absolute
 		value="true"
 		timeout="-1"
 		:color="color"
