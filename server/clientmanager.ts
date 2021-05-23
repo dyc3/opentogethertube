@@ -69,48 +69,57 @@ export class Client {
 	public async OnMessage(text: string): Promise<void> {
 		log.debug(text);
 		const msg: ClientMessage = JSON.parse(text);
+		let request: RoomRequest | null = null;
 		if (msg.action === "play") {
-			await this.makeRoomRequest({
+			request = {
 				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
 				state: true,
-			});
+			};
 		}
 		else if (msg.action === "pause") {
-			await this.makeRoomRequest({
+			request = {
 				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
 				state: false,
-			});
+			};
 		}
 		else if (msg.action === "skip") {
-			await this.makeRoomRequest({
+			request = {
 				type: RoomRequestType.SkipRequest,
 				permission: "playback.skip",
-			});
+			};
 		}
 		else if (msg.action === "seek") {
-			await this.makeRoomRequest({
+			request = {
 				type: RoomRequestType.SeekRequest,
 				permission: "playback.seek",
 				value: msg.position,
-			});
+			};
 		}
 		else if (msg.action === "queue-move") {
-			await this.makeRoomRequest({
+			request = {
 				type: RoomRequestType.OrderRequest,
 				permission: "manage-queue.order",
 				fromIdx: msg.currentIdx,
 				toIdx: msg.targetIdx,
-			});
+			};
 		}
 		else if (msg.action === "kickme") {
 			this.Socket.close(OttWebsocketError.UNKNOWN);
+			return;
 		}
 		// else {
 		// 	log.warn(`Unknown message: ${msg.action}`);
 		// 	break;
 		// }
+
+		try {
+			await this.makeRoomRequest(request);
+		}
+		catch (e) {
+			log.error(`Room request failed: ${e}`);
+		}
 	}
 
 	public OnPing(data: Buffer): void {
