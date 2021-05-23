@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import _ from 'lodash';
 import { API } from './common-http.js';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
 import { ToastStyle } from './models/toast';
@@ -98,10 +98,9 @@ export default new Vuex.Store({
 			delete message.action;
 			if (message.isPlaying !== undefined && this.state.room.isPlaying !== message.isPlaying) {
 				Vue.prototype.$events.emit(message.isPlaying ? "playVideo" : "pauseVideo");
-			}
-			if (message.playbackPosition !== undefined) {
-				console.log("setting playback start time");
-				this.state.room.playbackStartTime = moment();
+				if (message.isPlaying) {
+					this.state.room.playbackStartTime = dayjs();
+				}
 			}
 			// FIXME: the UI needs to be able to handle null currentSource
 			if (message.currentSource === null) {

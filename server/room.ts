@@ -11,6 +11,7 @@ import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import { VideoNotFoundException } from "./exceptions";
+import dayjs, { Dayjs } from 'dayjs';
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -74,6 +75,7 @@ export class Room implements RoomState {
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
+	_playbackStart: Dayjs | null = null;
 
 	constructor (options: RoomOptions) {
 		this.log = getLogger(`room/${options.name}`);
@@ -193,8 +195,10 @@ export class Room implements RoomState {
 			this.markDirty("queue");
 			this.playbackPosition = 0;
 		}
-		else if (this.isPlaying) {
-			this.isPlaying = false;
+		else {
+			if (this.isPlaying) {
+				this.isPlaying = false;
+			}
 			this.playbackPosition = 0;
 			this.currentSource = null;
 		}
@@ -317,14 +321,25 @@ export class Room implements RoomState {
 		this.grants.setAllGrants(grants);
 	}
 
-	public async play() {
+	public async play(): Promise<void> {
+		if (this.isPlaying) {
+			this.log.silly("already playing");
+			return;
+		}
 		this.log.debug("playback started");
 		this.isPlaying = true;
+		this._playbackStart = dayjs();
 	}
 
-	public async pause() {
+	public async pause(): Promise<void> {
+		if (!this.isPlaying) {
+			this.log.silly("already paused");
+			return;
+		}
 		this.log.debug("playback paused");
 		this.isPlaying = false;
+		this.playbackPosition += dayjs().diff(this._playbackStart, "millisecond") / 1000;
+		this._playbackStart = null;
 	}
 
 	public async skip(): Promise<void> {
