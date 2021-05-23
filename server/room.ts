@@ -378,6 +378,7 @@ export class Room implements RoomState {
 		// remove the item from the queue
 		const removed = this.queue.splice(matchIdx, 1)[0];
 		this.markDirty("queue");
+		this.log.info(`Video removed: ${JSON.stringify(removed)}`);
 		// if (session && client) {
 		// 	this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
 		// }

@@ -109,16 +109,16 @@ export class Client {
 			this.Socket.close(OttWebsocketError.UNKNOWN);
 			return;
 		}
-		// else {
-		// 	log.warn(`Unknown message: ${msg.action}`);
-		// 	break;
-		// }
+		else {
+			log.warn(`Unknown message: ${msg.action}`);
+			return;
+		}
 
 		try {
 			await this.makeRoomRequest(request);
 		}
 		catch (e) {
-			log.error(`Room request failed: ${e}`);
+			log.error(`Room request failed: ${e} ${e.stack}`);
 		}
 	}
 
