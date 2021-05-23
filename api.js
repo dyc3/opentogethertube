@@ -478,7 +478,7 @@ router.delete("/room/:name/queue", async (req, res) => {
 
 	try {
 		if (req.body.service && req.body.id) {
-			await room.processRequest({ permission: "manage-queue.remove", video: {service: req.body.service, id: req.body.id} });
+			await room.processRequest({ type: RoomRequestType.RemoveRequest, permission: "manage-queue.remove", video: {service: req.body.service, id: req.body.id} });
 			res.json({
 				success: true,
 			});
