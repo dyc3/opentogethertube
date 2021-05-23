@@ -1,13 +1,16 @@
 import express from "express";
 import _ from "lodash";
+import { getLogger } from '../../logger.js';
 import roommanager from "../roommanager";
 import { Visibility } from "../types";
 
 const router = express.Router();
+const log = getLogger("api/room");
 
 router.get("/list", (req, res) => {
 	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
 	if (req.get("apikey") && !isAuthorized) {
+		log.warn(`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${req.headers["x-forwarded-for"]} user-agent=${req.headers["user-agent"]}`);
 		res.status(400).json({
 			success: false,
 			error: "apikey is invalid",
