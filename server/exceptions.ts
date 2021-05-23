@@ -127,3 +127,10 @@ export class VideoAlreadyQueuedException extends Error {
 		this.name = "VideoAlreadyQueuedException";
 	}
 }
+
+export class VideoNotFoundException extends Error {
+	constructor() {
+		super(`Video not found.`);
+		this.name = "VideoNotFoundException";
+	}
+}

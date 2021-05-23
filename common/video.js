@@ -2,6 +2,7 @@ import _ from "lodash";
 
 /**
  * Represents a video on any video providing service.
+ * @deprecated
  */
 export default class Video {
 	constructor(args=undefined) {

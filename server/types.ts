@@ -1,6 +1,6 @@
 import { Session } from "express-session";
-import Video from "../common/video";
 import { Grants } from "./permissions.js";
+import { Video } from "../common/models/video";
 
 export enum Visibility {
 	Public = "public",
@@ -58,4 +58,4 @@ export enum Role {
 	RegisteredUser = 1,
 	UnregisteredUser = 0,
 	Owner = -1,
-};
+}

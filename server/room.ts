@@ -5,11 +5,12 @@ import { getLogger } from "../logger.js";
 import winston from "winston";
 import { JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import _ from "lodash";
-import Video from "../common/video";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
 import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role } from "./types";
 import { User } from "../models/user";
+import { Video, VideoId } from "../common/models/video";
+import { VideoNotFoundException } from "./exceptions";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -268,7 +269,7 @@ export class Room implements RoomState {
 	public async processRequest(request: RoomRequest): Promise<void> {
 		// TODO: check permissions, then proceed.
 
-		this.log.info(`processing request: ${request.type}`);
+		this.log.silly(`processing request: ${request.type}`);
 
 		if (request.type === RoomRequestType.PlaybackRequest) {
 			if (request.state) {
@@ -346,8 +347,11 @@ export class Room implements RoomState {
 	 * Add the video to the queue. Should only be called after permissions have been checked.
 	 * @param video
 	 */
-	public async addToQueue(video: Video | string) {
-		let queueItem = new Video();
+	public async addToQueue(video: VideoId | string) {
+		const queueItem: VideoId = {
+			service: "",
+			id: "",
+		};
 
 		if (typeof video === "string") {
 			const adapter = InfoExtract.getServiceAdapterForURL(video);
@@ -359,18 +363,17 @@ export class Room implements RoomState {
 			queueItem.id = video.id;
 		}
 
-		queueItem = await InfoExtract.getVideoInfo(queueItem.service, queueItem.id);
+		const videoComplete: Video = await InfoExtract.getVideoInfo(queueItem.service, queueItem.id);
 
-		this.queue.push(queueItem);
+		this.queue.push(videoComplete);
 		this.markDirty("queue");
 		this.log.info(`Video added: ${JSON.stringify(queueItem)}`);
 	}
 
-	public async removeFromQueue(video: Video) {
+	public async removeFromQueue(video: VideoId) {
 		const matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
 		if (matchIdx < 0) {
-			this.log.error(`Could not find video ${JSON.stringify(video)} in queue`);
-			return false;
+			throw new VideoNotFoundException();
 		}
 		// remove the item from the queue
 		const removed = this.queue.splice(matchIdx, 1)[0];
