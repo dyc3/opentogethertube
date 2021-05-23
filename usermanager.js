@@ -333,6 +333,7 @@ let usermanager = {
 	 */
 	async authCallback(email, password, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		let usermanager = require("./usermanager.js");
 		let user;
 		try {
@@ -377,6 +378,7 @@ let usermanager = {
 
 	async authCallbackDiscord(req, accessToken, refreshToken, profile, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		let usermanager = require("./usermanager.js");
 		if (req.user) {
 			log.info(`${req.user.username} already logged in, linking discord account...`);
@@ -423,6 +425,7 @@ let usermanager = {
 	 */
 	async deserializeUser(id, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		let usermanager = require("./usermanager.js");
 		try {
 			let user = await usermanager.getUser({ id });

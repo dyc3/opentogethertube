@@ -17,18 +17,18 @@ interface RoomAttributes {
   "role-trusted": string
 }
 
-interface RoomCreationAttributes extends Optional<RoomAttributes, "id"> {};
+type RoomCreationAttributes = Optional<RoomAttributes, "id">;
 
 export class Room extends Model<RoomAttributes, RoomCreationAttributes> implements RoomAttributes {
   id!: number
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   name!: string
-  title: string = ""
-  description: string = ""
+  title = ""
+  description = ""
   visibility: Visibility = Visibility.Public
   queueMode: QueueMode = QueueMode.Manual
-  ownerId: number = -1
+  ownerId = -1
   owner!: User
   permissions!: string
   "role-admin": string

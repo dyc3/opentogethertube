@@ -10,7 +10,7 @@ interface UserAttributes {
   discordId: string | null
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> {};
+type UserCreationAttributes = Optional<UserAttributes, "id">;
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   id!: number
@@ -83,7 +83,7 @@ const createModel = (sequelize: Sequelize) => {
   //   // User.hasMany(models.Room, { as: "rooms" });
   // };
   return User;
-}
+};
 
 export default createModel;
 module.exports = createModel;

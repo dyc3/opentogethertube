@@ -16,7 +16,7 @@ const redis = {
 	get: promisify(redisClient.get).bind(redisClient),
 	set: promisify(redisClient.set).bind(redisClient),
 	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
-}
+};
 const ROOM_UNLOAD_AFTER = 240; // seconds
 let rooms: Room[] = [];
 // const redisSubscriber = createSubscriber();
@@ -27,14 +27,14 @@ function addRoom(room: Room) {
 }
 
 export async function start() {
-	let keys = await redis.keys("room:*")
-	for (let roomKey of keys) {
-		let text = await redis.get(roomKey)
+	const keys = await redis.keys("room:*");
+	for (const roomKey of keys) {
+		const text = await redis.get(roomKey);
 		if (!text) {
 			continue;
 		}
-		let state = JSON.parse(text) as RoomState;
-		let room = new Room(state);
+		const state = JSON.parse(text) as RoomState;
+		const room = new Room(state);
 		addRoom(room);
 	}
 	log.info(`Loaded ${keys.length} rooms from redis`);
@@ -51,7 +51,7 @@ export async function update() {
 }
 
 export async function CreateRoom(options: RoomOptions) {
-	let room = new Room(options);
+	const room = new Room(options);
 	await room.update();
 	await room.sync();
 	addRoom(room);
@@ -64,7 +64,7 @@ export async function GetRoom(roomName: string) {
 		return room;
 	}
 	// FIXME: don't load room if room is already present in redis.
-	let opts = await storage.getRoomByName(roomName);
+	const opts = await storage.getRoomByName(roomName);
 	if (!opts) {
 		throw new RoomNotFoundException(roomName);
 	}
@@ -74,7 +74,7 @@ export async function GetRoom(roomName: string) {
 }
 
 export async function UnloadRoom(roomName: string) {
-	let room = _.find(rooms, { name: roomName });
+	const room = _.find(rooms, { name: roomName });
 	if (room) {
 		await room.onBeforeUnload();
 	}
@@ -88,7 +88,7 @@ export default {
 	CreateRoom,
 	GetRoom,
 	UnloadRoom,
-}
+};
 
 // redisSubscriber.on("message", async (channel, text) => {
 // 	if (!channel.startsWith("room_requests:")) {

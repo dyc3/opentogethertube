@@ -1,4 +1,4 @@
-import { Grants } from "./permissions"
+import { Grants } from "./permissions";
 import Video from "../common/video";
 import { ClientInfo, QueueMode, Visibility } from "./types";
 

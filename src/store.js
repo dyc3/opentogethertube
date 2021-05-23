@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import _ from 'lodash';
 import { API } from './common-http.js';
 import dayjs from 'dayjs';
 import connection from "@/util/connection";
