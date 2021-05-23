@@ -1,9 +1,12 @@
 import { Toast } from '@/models/toast';
+import { PluginObject } from 'vue/types';
 
-export default {
-	install(Vue: Vue, options: { store: any; }): void {
+type ToastPluginOptions = { store: any; }
+
+const plugin: PluginObject<ToastPluginOptions> = {
+	install(vue, options: ToastPluginOptions): void {
 		const store = options.store;
-		Vue.prototype.$toast = {
+		vue.prototype.$toast = {
 			add(toast: Omit<Toast, "id">): void {
 				store.commit("toast/ADD_TOAST", toast);
 			},
@@ -13,3 +16,4 @@ export default {
 		};
 	},
 };
+export default plugin;

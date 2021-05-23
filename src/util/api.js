@@ -32,12 +32,12 @@ export default {
 			targetIdx: toIdx,
 		});
 	},
-	undoEvent(event, idx) {
+	undoEvent(event) {
 		connection.send({
 			action: "undo",
 			event,
 		});
-		window.vm.$store.state.room.events.splice(idx, 1);
+		// window.vm.$store.state.room.events.splice(idx, 1);
 	},
 	kickMe() {
 		connection.send({

@@ -5,7 +5,7 @@ import '@mdi/font/css/materialdesignicons.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 Vue.use(Vuetify);
 
-export default new Vuetify({
+const plugin = new Vuetify({
 	icons: {
 		iconfont: "fa",
 	},
@@ -19,3 +19,4 @@ export default new Vuetify({
 		},
 	},
 });
+export default plugin;
