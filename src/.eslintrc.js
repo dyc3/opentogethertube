@@ -30,11 +30,10 @@ module.exports = {
     'vue/v-on-style': ['error', 'shorthand'],
   },
   parserOptions: {
-    ecmaVersion: "next",
-    parser: 'babel-eslint',
+    ecmaVersion: 2020,
     sourceType: "module",
-  },
-  ecmaFeatures: {
-    modules: true,
+    ecmaFeatures: {
+      modules: true,
+    },
   },
 };

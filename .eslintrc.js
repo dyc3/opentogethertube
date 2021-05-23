@@ -10,6 +10,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:vue/base',
     'plugin:vue/essential',
+    "@vue/typescript/recommended",
   ],
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
@@ -62,7 +63,7 @@ module.exports = {
     'jest/require-top-level-describe': 'warn',
   },
   parserOptions: {
-    ecmaVersion: 6,
-    parser: 'babel-eslint'
+    ecmaVersion: 2020,
+    sourceType: "module",
   }
 };
