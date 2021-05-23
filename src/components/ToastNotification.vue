@@ -4,8 +4,9 @@
 		value="true"
 		timeout="-1"
 		:color="color"
+		class="toast"
 		:style="{
-			bottom: `${toastHeight * number}px`
+			transform: `translateY(-${toastHeight * number}px)`
 		}"
 	>
 		<v-icon v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
@@ -52,6 +53,6 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
 
 </style>

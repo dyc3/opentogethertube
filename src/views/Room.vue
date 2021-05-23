@@ -215,6 +215,7 @@ import PermissionsMixin from "@/mixins/permissions.js";
 import UserList from "@/components/UserList.vue";
 import connection from "@/util/connection";
 import api from "@/util/api";
+import { ToastStyle } from "@/models/toast";
 
 export default {
   name: 'room',
@@ -337,11 +338,19 @@ export default {
       this.isLoadingRoomSettings = true;
       try {
         await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
-        this.$events.emit("notify_onSuccess", { message: `Settings applied` });
+        this.$toast.add({
+          style: ToastStyle.Success,
+          content: `Settings applied`,
+          duration: 4000,
+        });
       }
       catch (e) {
         console.log(e);
-        this.$events.emit("notify_onError", { message: e.response.data.error.message });
+        this.$toast.add({
+          style: ToastStyle.Error,
+          content: e.response.data.error.message,
+          duration: 6000,
+        });
       }
       this.isLoadingRoomSettings = false;
     },
@@ -351,11 +360,19 @@ export default {
         await API.patch(`/room/${this.$route.params.roomId}`, {
           claim: true,
         });
-        this.$events.emit("notify_onSuccess", { message: `You now own the room ${this.$route.params.roomId}` });
+        this.$toast.add({
+          style: ToastStyle.Success,
+          content: `You now own the room ${this.$route.params.roomId}.`,
+          duration: 4000,
+        });
       }
       catch (e) {
         console.log(e);
-        this.$events.emit("notify_onError", { message: e.response.data.error.message });
+        this.$toast.add({
+          style: ToastStyle.Error,
+          content: e.response.data.error.message,
+          duration: 6000,
+        });
       }
       this.isLoadingRoomSettings = false;
     },

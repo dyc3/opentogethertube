@@ -1,7 +1,9 @@
 <template>
 	<div>
 		<div v-for="(toast, index) in $store.state.toast.notifications" :key="toast.id">
-			<ToastNotification :toast="toast" :number="index"/>
+			<transition appear name="toast">
+				<ToastNotification :toast="toast" :number="index"/>
+			</transition>
 		</div>
 	</div>
 </template>
@@ -33,18 +35,6 @@ export default {
 				return;
 			}
 		});
-		this.$toast.add({
-			style: ToastStyle.Neutral,
-			content: "test",
-		});
-		this.$toast.add({
-			style: ToastStyle.Error,
-			content: "test error",
-		});
-		this.$toast.add({
-			style: ToastStyle.Success,
-			content: "test success",
-		});
 	},
 };
 </script>
@@ -57,5 +47,14 @@ export default {
 	100% {
 		transform: scaleX(0);
 	}
+}
+
+.toast-enter-active, .toast-leave-active {
+	transition-property: all;
+	transition-duration: .25s;
+}
+.toast-enter, .toast-leave-to {
+	opacity: 0;
+	bottom: -50px;
 }
 </style>

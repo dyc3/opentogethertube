@@ -5,6 +5,7 @@ import { API } from './common-http.js';
 import moment from 'moment';
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
+import { ToastStyle } from './models/toast';
 
 Vue.use(Vuex);
 
@@ -140,8 +141,12 @@ export default new Vuex.Store({
 			Vue.prototype.$events.emit('onAnnouncement', message.text);
 		},
 		error(context, message) {
-			console.log(`Server sent error: ${message.error}`);
-			Vue.prototype.$events.emit('notify_onError', { message: message.error });
+			// console.log(`Server sent error: ${message.error}`);
+			this.commit("toast/ADD_TOAST", {
+				style: ToastStyle.error,
+				content: message.error,
+				duration: 5000,
+			});
 		},
 		async updatePermissionsMetadata(context) {
 			if (context.state.permsMeta.loaded) {

@@ -39,6 +39,7 @@
 <script>
 import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/timestamp.js";
+import { ToastStyle } from '@/models/toast';
 
 export default {
 	name: "VideoQueueItem",
@@ -90,11 +91,19 @@ export default {
 				let resp = await API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData());
 				this.hasError = !resp.data.success;
 				this.hasBeenAdded = true;
-				this.$events.emit("notify_onSuccess", { message: "Video added to queue" });
+				this.$toast.add({
+					style: ToastStyle.Success,
+					content: "Video added to queue",
+					duration: 5000,
+				});
 			}
 			catch (e) {
 				this.hasError = true;
-				this.$events.emit("notify_onError", { message: e.response.data.error.message });
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: e.response.data.error.message,
+					duration: 6000,
+				});
 			}
 			this.isLoadingAdd = false;
 		},
@@ -105,11 +114,19 @@ export default {
 					data: this.getPostData(),
 				});
 				this.hasError = !resp.data.success;
-				this.$events.emit("notify_onSuccess", { message: "Video removed from queue" });
+				this.$toast.add({
+					style: ToastStyle.Success,
+					content: "Video removed from queue",
+					duration: 5000,
+				});
 			}
 			catch (e) {
 				this.hasError = true;
-				this.$events.emit("notify_onError", { message: e.response.data.error.message });
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: e.response.data.error.message,
+					duration: 6000,
+				});
 			}
 			this.isLoadingAdd = false;
 		},
@@ -129,7 +146,11 @@ export default {
 			}
 			catch (e) {
 				this.hasError = true;
-				this.$events.emit("notify_onError", { message: e.response.data.error.message });
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: e.response.data.error.message,
+					duration: 6000,
+				});
 			}
 			this.isLoadingVote = false;
 
