@@ -327,7 +327,7 @@ export class Room implements RoomState {
 		this.isPlaying = false;
 	}
 
-	public async skip() {
+	public async skip(): Promise<void> {
 		this.dequeueNext();
 	}
 
@@ -335,7 +335,7 @@ export class Room implements RoomState {
 	 * Seek to the specified position in the video.
 	 * @param value
 	 */
-	public async seek(value: number) {
+	public async seek(value: number): Promise<void> {
 		if (value === undefined) {
 			this.log.error("seek value was undefined");
 			return;
@@ -347,7 +347,7 @@ export class Room implements RoomState {
 	 * Add the video to the queue. Should only be called after permissions have been checked.
 	 * @param video
 	 */
-	public async addToQueue(video: VideoId | string) {
+	public async addToQueue(video: VideoId | string): Promise<void> {
 		const queueItem: VideoId = {
 			service: "",
 			id: "",
@@ -370,7 +370,7 @@ export class Room implements RoomState {
 		this.log.info(`Video added: ${JSON.stringify(queueItem)}`);
 	}
 
-	public async removeFromQueue(video: VideoId) {
+	public async removeFromQueue(video: VideoId): Promise<void> {
 		const matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
 		if (matchIdx < 0) {
 			throw new VideoNotFoundException();
