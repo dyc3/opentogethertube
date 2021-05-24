@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { ChatRequest, JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UpdateUser } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -12,6 +12,9 @@ import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import { VideoNotFoundException } from "./exceptions";
 import dayjs, { Dayjs } from 'dayjs';
+import { OmitTypes, PickFunctions, PickTypes } from "../common/typeutils.js";
+import { NonNever, RequiredKeys } from "ts-essentials";
+import { any } from "sequelize/types/lib/operators";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -323,52 +326,27 @@ export class Room implements RoomState {
 
 		this.log.silly(`processing request: ${request.type}`);
 
-		if (request.type === RoomRequestType.PlaybackRequest) {
-			if (request.state) {
-				await this.play();
-			}
-			else {
-				await this.pause();
-			}
-		}
-		else if (request.type === RoomRequestType.SkipRequest) {
-			await this.skip();
-		}
-		else if (request.type === RoomRequestType.SeekRequest) {
-			await this.seek(request.value);
-		}
-		else if (request.type === RoomRequestType.AddRequest) {
-			if (request.video) {
-				await this.addToQueue(request.video);
-			}
-			else if (request.url) {
-				await this.addToQueue(request.url);
-			}
-			else if (request.videos) {
-				this.log.warn("TODO: add many to queue");
-			}
-		}
-		else if (request.type === RoomRequestType.RemoveRequest) {
-			await this.removeFromQueue(request.video);
-		}
-		else if (request.type === RoomRequestType.OrderRequest) {
-			await this.reorderQueue(request.fromIdx, request.toIdx);
-		}
-		else if (request.type === RoomRequestType.JoinRequest) {
-			await this.joinRoom(request);
-		}
-		else if (request.type === RoomRequestType.LeaveRequest) {
-			await this.leaveRoom(request.client);
-		}
-		else if (request.type === RoomRequestType.UpdateUser) {
-			await this.updateUser(request.info);
-		}
-		else if (request.type === RoomRequestType.ChatRequest) {
-			await this.chat(request);
-		}
-		else {
-			this.log.error(`Unknown room request: ${(request as { type: RoomRequestType }).type}`);
-			return;
+		type RoomRequestHandlers = Omit<PickFunctions<Room, RoomRequestBase>, "processRequest">
+		const handlers: Record<RoomRequestType, keyof RoomRequestHandlers | null> = {
+			[RoomRequestType.JoinRequest]: "joinRoom",
+			[RoomRequestType.LeaveRequest]: "leaveRoom",
+			[RoomRequestType.PlaybackRequest]: "playback",
+			[RoomRequestType.SkipRequest]: "skip",
+			[RoomRequestType.SeekRequest]: "seek",
+			[RoomRequestType.AddRequest]: "addToQueue",
+			[RoomRequestType.RemoveRequest]: "removeFromQueue",
+			[RoomRequestType.OrderRequest]: "reorderQueue",
+			[RoomRequestType.VoteRequest]: null,
+			[RoomRequestType.PromoteRequest]: null,
+			[RoomRequestType.DemoteRequest]: null,
+			[RoomRequestType.UpdateUser]: "updateUser",
+			[RoomRequestType.ChatRequest]: "chat",
+		};
+
+		const handler = handlers[request.type];
+		if (handler) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			await this[handler](request as any);
 		}
 
 		if (shouldEmitEvent) {
@@ -406,7 +384,20 @@ export class Room implements RoomState {
 		this._playbackStart = null;
 	}
 
-	public async skip(): Promise<void> {
+	/**
+	 * Play or pause the video, depending on the desired state. Handles PlaybackRequest.
+	 */
+	public async playback(request: PlaybackRequest): Promise<void> {
+		if (request.state) {
+			await this.play();
+		}
+		else {
+			await this.pause();
+		}
+	}
+
+	// eslint-disable-next-line no-unused-vars
+	public async skip(request: SkipRequest): Promise<void> {
 		this.dequeueNext();
 	}
 
@@ -414,43 +405,46 @@ export class Room implements RoomState {
 	 * Seek to the specified position in the video.
 	 * @param value
 	 */
-	public async seek(value: number): Promise<void> {
-		if (value === undefined) {
+	public async seek(request: SeekRequest): Promise<void> {
+		if (request.value === undefined) {
 			this.log.error("seek value was undefined");
 			return;
 		}
-		this.playbackPosition = value;
+		this.playbackPosition = request.value;
 	}
 
 	/**
 	 * Add the video to the queue. Should only be called after permissions have been checked.
-	 * @param video
+	 * @param request
 	 */
-	public async addToQueue(video: VideoId | string): Promise<void> {
-		const queueItem: VideoId = {
-			service: "",
-			id: "",
-		};
+	public async addToQueue(request: AddRequest): Promise<void> {
+		if (request.url) {
+			const adapter = InfoExtract.getServiceAdapterForURL(request.url);
+			request.video = {} as VideoId;
+			request.video.service = adapter.serviceId;
+			request.video.id = adapter.getVideoId(request.url);
+		}
 
-		if (typeof video === "string") {
-			const adapter = InfoExtract.getServiceAdapterForURL(video);
-			queueItem.service = adapter.serviceId;
-			queueItem.id = adapter.getVideoId(video);
+		if (request.video) {
+			const video: Video = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
+			this.queue.push(video);
+			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
+		}
+		else if (request.videos) {
+			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
+			this.queue.push(...videos);
+			this.log.info(`added ${request.videos.length} videos`);
 		}
 		else {
-			queueItem.service = video.service;
-			queueItem.id = video.id;
+			this.log.error("Invalid parameters for AddRequest");
+			return;
 		}
 
-		const videoComplete: Video = await InfoExtract.getVideoInfo(queueItem.service, queueItem.id);
-
-		this.queue.push(videoComplete);
 		this.markDirty("queue");
-		this.log.info(`Video added: ${JSON.stringify(queueItem)}`);
 	}
 
-	public async removeFromQueue(video: VideoId): Promise<void> {
-		const matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
+	public async removeFromQueue(request: RemoveRequest): Promise<void> {
+		const matchIdx = _.findIndex(this.queue, item => (item.service === request.video.service && item.id === request.video.id));
 		if (matchIdx < 0) {
 			throw new VideoNotFoundException();
 		}
@@ -466,9 +460,9 @@ export class Room implements RoomState {
 		// }
 	}
 
-	public async reorderQueue(from: number, to: number): Promise<void> {
-		const video = this.queue.splice(from, 1)[0];
-		this.queue.splice(to, 0, video);
+	public async reorderQueue(request: OrderRequest): Promise<void> {
+		const video = this.queue.splice(request.fromIdx, 1)[0];
+		this.queue.splice(request.toIdx, 0, video);
 		this.markDirty("queue");
 	}
 
@@ -480,9 +474,9 @@ export class Room implements RoomState {
 		this.log.info(`${user.username} joined the room`);
 	}
 
-	public async leaveRoom(id: string): Promise<void> {
+	public async leaveRoom(request: LeaveRequest): Promise<void> {
 		for (let i = 0; i < this.realusers.length; i++) {
-			if (this.realusers[i].id === id) {
+			if (this.realusers[i].id === request.client) {
 				this.realusers.splice(i--, 1);
 				this.markDirty("users");
 				break;
@@ -490,11 +484,11 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async updateUser(info: ClientInfo): Promise<void> {
-		this.log.debug(`User was updated: ${info.id} ${JSON.stringify(info)}`);
+	public async updateUser(request: UpdateUser): Promise<void> {
+		this.log.debug(`User was updated: ${request.info.id} ${JSON.stringify(request.info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
-			if (this.realusers[i].id === info.id) {
-				this.realusers[i].updateInfo(info);
+			if (this.realusers[i].id === request.info.id) {
+				this.realusers[i].updateInfo(request.info);
 				this.markDirty("users");
 			}
 		}

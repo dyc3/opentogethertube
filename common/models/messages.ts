@@ -92,7 +92,7 @@ export enum RoomRequestType {
 	ChatRequest,
 }
 
-interface RoomRequestBase {
+export interface RoomRequestBase {
 	type: RoomRequestType
 	client: ClientId
 }
