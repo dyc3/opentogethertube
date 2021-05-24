@@ -8,7 +8,7 @@ const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
 import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
-import { QueueMode, Role, Visibility } from "./server/types";
+import { QueueMode, Role, Visibility } from "./common/models/types";
 import roomapi from "./server/api/room";
 import clientmanager from "./server/clientmanager";
 

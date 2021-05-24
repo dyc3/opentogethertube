@@ -1,5 +1,5 @@
 import { Room } from "./room";
-import { Visibility, QueueMode, RoomOptions, RoomState } from "./types";
+import { Visibility, QueueMode, RoomOptions, RoomState } from "../common/models/types";
 import _ from "lodash";
 import NanoTimer from "nanotimer";
 import { getLogger } from "../logger.js";

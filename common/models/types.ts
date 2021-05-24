@@ -1,6 +1,6 @@
 import { Session } from "express-session";
-import { Grants } from "./permissions.js";
-import { Video } from "../common/models/video";
+// import { Grants } from "../../server/permissions.js";
+import { Video } from "./video";
 
 export enum Visibility {
 	Public = "public",
@@ -62,3 +62,8 @@ export enum Role {
 }
 
 export type ClientId = string
+
+export declare class Grants {
+	masks: any
+	constructor(grants?: Grants | any);
+}

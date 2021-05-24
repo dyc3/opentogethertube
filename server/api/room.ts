@@ -2,7 +2,7 @@ import express from "express";
 import _ from "lodash";
 import { getLogger } from '../../logger.js';
 import roommanager from "../roommanager";
-import { Visibility } from "../types";
+import { Visibility } from "../../common/models/types";
 
 const router = express.Router();
 const log = getLogger("api/room");

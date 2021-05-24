@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const { getLogger } = require("../logger.js");
 import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
-import { Role } from "./types";
+import { Role } from "../common/models/types";
 const log = getLogger("permissions");
 
 const ROLE_NAMES = {
