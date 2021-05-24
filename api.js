@@ -10,6 +10,7 @@ import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
 import { QueueMode, Role, Visibility } from "./server/types";
 import roomapi from "./server/api/room";
+import clientmanager from "./server/clientmanager";
 
 const log = getLogger("api");
 
@@ -385,7 +386,9 @@ router.post("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let roomRequest = { type: RoomRequestType.AddRequest };
+		let client = clientmanager.getClient(req.session, req.params.name);
+		// FIXME: what if the client is not connected to this node?
+		let roomRequest = { type: RoomRequestType.AddRequest, client: client.id };
 		if (req.body.videos) {
 			roomRequest.videos = req.body.videos;
 		}
@@ -437,8 +440,10 @@ router.delete("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
+		let client = clientmanager.getClient(req.session, req.params.name);
+		// FIXME: what if the client is not connected to this node?
 		if (req.body.service && req.body.id) {
-			await room.processRequest({ type: RoomRequestType.RemoveRequest, video: {service: req.body.service, id: req.body.id} });
+			await room.processRequest({ type: RoomRequestType.RemoveRequest, client: client.id, video: {service: req.body.service, id: req.body.id} });
 			res.json({
 				success: true,
 			});

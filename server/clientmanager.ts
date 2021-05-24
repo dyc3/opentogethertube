@@ -162,7 +162,9 @@ export class Client {
 	}
 
 	public async makeRoomRequest(request: RoomRequest): Promise<void> {
-		const room = await roommanager.GetRoom(this.room); // FIXME: only get room if it is loaded already.
+		// FIXME: what if the room is not loaded on this node, but it's on a different node instead?
+		// FIXME: only get room if it is loaded already.
+		const room = await roommanager.GetRoom(this.room);
 		if (!room) {
 			throw new RoomNotFoundException(this.room);
 		}
@@ -256,7 +258,16 @@ async function onUserModified(session: MySession, newUsername: string) {
 	}
 }
 
+function getClient(session: Session, roomName: string): Client {
+	for (const client of connections) {
+		if (client.Session.id === session.id && client.room === roomName) {
+			return client;
+		}
+	}
+}
+
 export default {
 	Setup,
 	onUserModified,
+	getClient,
 };
