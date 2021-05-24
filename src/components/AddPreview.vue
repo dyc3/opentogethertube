@@ -13,7 +13,7 @@
 		<div v-if="!isLoadingAddPreview">
 			<v-row justify="center">
 				<div v-if="hasAddPreviewFailed">
-				{{ addPreviewLoadFailureText }}
+				{{ videosLoadFailureText }}
 				</div>
 				<v-container fill-height v-if="videos.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
 				<v-row justify="center" align="center">
@@ -61,8 +61,9 @@ import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import ProcessedText from "@/components/ProcessedText.vue";
 import { ToastStyle } from '@/models/toast';
+import Vue from "vue";
 
-export default {
+export default Vue.extend({
 	name: "AddPreview",
 	components: {
 		VideoQueueItem,
@@ -73,9 +74,9 @@ export default {
 			videos: [],
 			isLoadingAddPreview: false,
 			hasAddPreviewFailed: false,
-			addPreviewLoadFailureText: "",
 			inputAddPreview: "",
 			isLoadingAddAll: false,
+			videosLoadFailureText: "",
 
 			testVideos: [
 				["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
@@ -227,7 +228,7 @@ export default {
 			this.onInputAddPreviewChange();
 		},
 	},
-};
+});
 </script>
 
 <style lang="scss" scoped>
