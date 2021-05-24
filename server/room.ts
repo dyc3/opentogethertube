@@ -31,7 +31,7 @@ export class RoomUser {
 		this.user = null;
 	}
 
-	public get isLoggedIn() {
+	public get isLoggedIn(): boolean {
 		return !!this.user_id;
 	}
 
@@ -44,7 +44,7 @@ export class RoomUser {
 		}
 	}
 
-	public async updateInfo(info: ClientInfo) {
+	public async updateInfo(info: ClientInfo): Promise<void> {
 		if (info.user_id) {
 			this.user_id = info.user_id;
 			this.user = await usermanager.getUser({ id: info.user_id });
@@ -98,7 +98,7 @@ export class Room implements RoomState {
 		}
 	}
 
-	public get name() {
+	public get name(): string {
 		return this._name;
 	}
 
@@ -107,7 +107,7 @@ export class Room implements RoomState {
 		this.markDirty("name");
 	}
 
-	public get title() {
+	public get title(): string {
 		// if (this._title.length === 0 && this.isTemporary) {
 		// 	return "Temporary Room";
 		// }
@@ -119,7 +119,7 @@ export class Room implements RoomState {
 		this.markDirty("title");
 	}
 
-	public get description() {
+	public get description(): string {
 		return this._description;
 	}
 
@@ -128,7 +128,7 @@ export class Room implements RoomState {
 		this.markDirty("description");
 	}
 
-	public get visibility() {
+	public get visibility(): Visibility {
 		return this._visibility;
 	}
 
@@ -137,7 +137,7 @@ export class Room implements RoomState {
 		this.markDirty("visibility");
 	}
 
-	public get queueMode() {
+	public get queueMode(): QueueMode {
 		return this._queueMode;
 	}
 
@@ -146,7 +146,7 @@ export class Room implements RoomState {
 		this.markDirty("queueMode");
 	}
 
-	public get currentSource() {
+	public get currentSource(): Video | null {
 		return this._currentSource;
 	}
 
@@ -332,7 +332,7 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async setGrants(grants: Grants) {
+	public async setGrants(grants: Grants): Promise<void> {
 		this.grants.setAllGrants(grants);
 	}
 
@@ -417,13 +417,13 @@ export class Room implements RoomState {
 		// }
 	}
 
-	public async reorderQueue(from: number, to: number) {
+	public async reorderQueue(from: number, to: number): Promise<void> {
 		const video = this.queue.splice(from, 1)[0];
 		this.queue.splice(to, 0, video);
 		this.markDirty("queue");
 	}
 
-	public async joinRoom(request: JoinRequest) {
+	public async joinRoom(request: JoinRequest): Promise<void> {
 		const user = new RoomUser(request.info.id);
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
@@ -431,7 +431,7 @@ export class Room implements RoomState {
 		this.log.info(`${user.username} joined the room`);
 	}
 
-	public async leaveRoom(id: string) {
+	public async leaveRoom(id: string): Promise<void> {
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === id) {
 				this.realusers.splice(i--, 1);
@@ -441,7 +441,7 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async updateUser(info: ClientInfo) {
+	public async updateUser(info: ClientInfo): Promise<void> {
 		this.log.debug(`User was updated: ${info.id} ${JSON.stringify(info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === info.id) {
