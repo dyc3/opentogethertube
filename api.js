@@ -385,7 +385,7 @@ router.post("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let roomRequest = { type: RoomRequestType.AddRequest, permission: "manage-queue.add" };
+		let roomRequest = { type: RoomRequestType.AddRequest };
 		if (req.body.videos) {
 			roomRequest.videos = req.body.videos;
 		}
@@ -438,7 +438,7 @@ router.delete("/room/:name/queue", async (req, res) => {
 
 	try {
 		if (req.body.service && req.body.id) {
-			await room.processRequest({ type: RoomRequestType.RemoveRequest, permission: "manage-queue.remove", video: {service: req.body.service, id: req.body.id} });
+			await room.processRequest({ type: RoomRequestType.RemoveRequest, video: {service: req.body.service, id: req.body.id} });
 			res.json({
 				success: true,
 			});

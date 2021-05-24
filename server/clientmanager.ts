@@ -41,7 +41,7 @@ export class Client {
 				const room = await roommanager.GetRoom(this.room);
 				await room.processRequest({
 					type: RoomRequestType.LeaveRequest,
-					id: this.id,
+					client: this.id,
 				});
 			}
 		});
@@ -72,7 +72,6 @@ export class Client {
 		if (msg.action === "play") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				permission: "playback.play-pause",
 				client: this.id,
 				state: true,
 			};
@@ -80,7 +79,6 @@ export class Client {
 		else if (msg.action === "pause") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				permission: "playback.play-pause",
 				client: this.id,
 				state: false,
 			};
@@ -88,14 +86,12 @@ export class Client {
 		else if (msg.action === "skip") {
 			request = {
 				type: RoomRequestType.SkipRequest,
-				permission: "playback.skip",
 				client: this.id,
 			};
 		}
 		else if (msg.action === "seek") {
 			request = {
 				type: RoomRequestType.SeekRequest,
-				permission: "playback.seek",
 				client: this.id,
 				value: msg.position,
 			};
@@ -103,7 +99,6 @@ export class Client {
 		else if (msg.action === "queue-move") {
 			request = {
 				type: RoomRequestType.OrderRequest,
-				permission: "manage-queue.order",
 				client: this.id,
 				fromIdx: msg.currentIdx,
 				toIdx: msg.targetIdx,
@@ -153,6 +148,7 @@ export class Client {
 		// actually join the room
 		await room.processRequest({
 			type: RoomRequestType.JoinRequest,
+			client: this.id,
 			info: this.clientInfo,
 		});
 		subscribe(`room:${roomName}`);
@@ -253,6 +249,7 @@ async function onUserModified(session: MySession, newUsername: string) {
 			client.Session = session;
 			await client.makeRoomRequest({
 				type: RoomRequestType.UpdateUser,
+				client: client.id,
 				info: client.clientInfo,
 			});
 		}

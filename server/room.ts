@@ -7,7 +7,7 @@ import { JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessage
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role } from "./types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId } from "./types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import { VideoNotFoundException } from "./exceptions";
@@ -21,7 +21,7 @@ const ROOM_UNLOAD_AFTER = 240; // seconds
  * Represents a User from the Room's perspective.
  */
 export class RoomUser {
-	id: string
+	id: ClientId
 	user_id?: number
 	unregisteredUsername = ""
 	user: User | null
@@ -238,6 +238,14 @@ export class Room implements RoomState {
 		}
 	}
 
+	getUser(client: ClientId): RoomUser {
+		for (const user of this.realusers) {
+			if (user.id === client) {
+				return user;
+			}
+		}
+	}
+
 	public async update(): Promise<void> {
 		if (this.currentSource === null) {
 			this.dequeueNext();
@@ -286,7 +294,20 @@ export class Room implements RoomState {
 	}
 
 	public async processRequest(request: RoomRequest): Promise<void> {
-		// TODO: check permissions, then proceed.
+		const user = this.getUser(request.client);
+		const permissions = new Map([
+			[RoomRequestType.PlaybackRequest, "playback.play-pause"],
+			[RoomRequestType.SkipRequest, "playback.skip"],
+			[RoomRequestType.SeekRequest, "playback.seek"],
+			[RoomRequestType.AddRequest, "manage-queue.add"],
+			[RoomRequestType.RemoveRequest, "manage-queue.remove"],
+			[RoomRequestType.OrderRequest, "manage-queue.order"],
+			[RoomRequestType.VoteRequest, "manage-queue.vote"],
+		]);
+		const permission = permissions.get(request.type);
+		if (permission) {
+			this.grants.check(this.getRole(user), permission);
+		}
 
 		this.log.silly(`processing request: ${request.type}`);
 
@@ -325,7 +346,7 @@ export class Room implements RoomState {
 			await this.joinRoom(request);
 		}
 		else if (request.type === RoomRequestType.LeaveRequest) {
-			await this.leaveRoom(request.id);
+			await this.leaveRoom(request.client);
 		}
 		else if (request.type === RoomRequestType.UpdateUser) {
 			await this.updateUser(request.info);

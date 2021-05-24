@@ -1,6 +1,6 @@
 import { Grants } from "./permissions";
-import Video from "../common/video";
 import { ClientId, ClientInfo, QueueMode, Visibility } from "./types";
+import { VideoId } from "../common/models/video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload
 
@@ -81,61 +81,52 @@ export enum RoomRequestType {
 
 interface RoomRequestBase {
 	type: RoomRequestType
-	permission: string
 	client: ClientId
 }
 
-export interface JoinRequest {
+export interface JoinRequest extends RoomRequestBase {
 	type: RoomRequestType.JoinRequest
 	info: ClientInfo
 }
 
-export interface LeaveRequest {
+export interface LeaveRequest extends RoomRequestBase {
 	type: RoomRequestType.LeaveRequest
-	id: ClientId
 }
 
 export interface PlaybackRequest extends RoomRequestBase {
 	type: RoomRequestType.PlaybackRequest
-	permission: "playback.play-pause"
 	state: boolean
 }
 
 export interface SkipRequest extends RoomRequestBase {
 	type: RoomRequestType.SkipRequest
-	permission: "playback.skip"
 }
 
 export interface SeekRequest extends RoomRequestBase {
 	type: RoomRequestType.SeekRequest
-	permission: "playback.seek"
 	value: number
 }
 
 export interface AddRequest extends RoomRequestBase {
 	type: RoomRequestType.AddRequest
-	permission: "manage-queue.add"
-	video?: Video
-	videos?: Video[]
+	video?: VideoId
+	videos?: VideoId[]
 	url? :string
 }
 
 export interface RemoveRequest extends RoomRequestBase {
 	type: RoomRequestType.RemoveRequest
-	permission: "manage-queue.remove"
-	video: Video
+	video: VideoId
 }
 
 export interface OrderRequest extends RoomRequestBase {
 	type: RoomRequestType.OrderRequest
-	permission: "manage-queue.order"
 	fromIdx: number
 	toIdx: number
 }
 
 export interface VoteRequest extends RoomRequestBase {
 	type: RoomRequestType.VoteRequest
-	permission: "manage-queue.vote"
 }
 
 export interface PromoteRequest extends RoomRequestBase {
@@ -151,7 +142,7 @@ export interface DemoteRequest extends RoomRequestBase {
 /**
  * Request that the room pull new information about the user.
  */
-export interface UpdateUser {
+export interface UpdateUser extends RoomRequestBase {
 	type: RoomRequestType.UpdateUser
 	info: ClientInfo
 }
