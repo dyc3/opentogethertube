@@ -27,6 +27,10 @@ module.exports = {
 	configureWebpack: {
 		resolve: {
 			extensions: [".ts", ".js"],
+			alias: {
+				"common": path.resolve(__dirname, './common'),
+			},
+			modules: [path.resolve(__dirname, './common')],
 		},
 		module: {
 			rules: [

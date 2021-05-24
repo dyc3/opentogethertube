@@ -1,6 +1,6 @@
 import { Module } from 'vuex';
 import { ToastStyle } from '@/models/toast';
-import { RoomRequestType, ServerMessageEvent } from '@/common/models/messages';
+import { RoomRequestType, ServerMessageEvent } from 'common/models/messages';
 import { secondsToTimestamp } from "@/timestamp";
 
 export const module: Module<unknown, unknown> = {
