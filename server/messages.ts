@@ -82,6 +82,7 @@ export enum RoomRequestType {
 interface RoomRequestBase {
 	type: RoomRequestType
 	permission: string
+	client: ClientId
 }
 
 export interface JoinRequest {
@@ -91,7 +92,7 @@ export interface JoinRequest {
 
 export interface LeaveRequest {
 	type: RoomRequestType.LeaveRequest
-	id: string
+	id: ClientId
 }
 
 export interface PlaybackRequest extends RoomRequestBase {

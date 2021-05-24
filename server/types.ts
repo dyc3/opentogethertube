@@ -24,7 +24,7 @@ export enum OttWebsocketError {
 
 export type MySession = Session & { username?: string, passport?: { user?: number } }
 
-export type ClientInfo = { id: string, username?: string, user_id?: number }
+export type ClientInfo = { id: ClientId, username?: string, user_id?: number }
 
 export interface RoomOptions {
 	name: string
@@ -59,3 +59,5 @@ export enum Role {
 	UnregisteredUser = 0,
 	Owner = -1,
 }
+
+export type ClientId = string

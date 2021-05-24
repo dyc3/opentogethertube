@@ -1,15 +1,14 @@
 import { Session } from "express-session";
 import WebSocket from "ws";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "../logger.js";
 import { Request } from 'express';
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
-import { ClientMessage, ClientMessageSeek, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
+import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import { RoomNotFoundException } from "./exceptions";
-import { ClientInfo, RoomState, MySession, OttWebsocketError } from "./types";
+import { ClientInfo, RoomState, MySession, OttWebsocketError, ClientId } from "./types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 
@@ -22,7 +21,7 @@ const roomStates: Map<string, RoomState> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
 
 export class Client {
-	id: string
+	id: ClientId
 	Socket: WebSocket
 	Session: MySession
 	room: string | null
@@ -74,6 +73,7 @@ export class Client {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
+				client: this.id,
 				state: true,
 			};
 		}
@@ -81,6 +81,7 @@ export class Client {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
 				permission: "playback.play-pause",
+				client: this.id,
 				state: false,
 			};
 		}
@@ -88,12 +89,14 @@ export class Client {
 			request = {
 				type: RoomRequestType.SkipRequest,
 				permission: "playback.skip",
+				client: this.id,
 			};
 		}
 		else if (msg.action === "seek") {
 			request = {
 				type: RoomRequestType.SeekRequest,
 				permission: "playback.seek",
+				client: this.id,
 				value: msg.position,
 			};
 		}
@@ -101,6 +104,7 @@ export class Client {
 			request = {
 				type: RoomRequestType.OrderRequest,
 				permission: "manage-queue.order",
+				client: this.id,
 				fromIdx: msg.currentIdx,
 				toIdx: msg.targetIdx,
 			};
