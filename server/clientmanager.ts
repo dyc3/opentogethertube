@@ -6,7 +6,7 @@ import { getLogger } from "../logger.js";
 import { Request } from 'express';
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
-import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
+import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { RoomNotFoundException } from "./exceptions";
 import { ClientInfo, RoomState, MySession, OttWebsocketError, ClientId } from "./types";
 // WARN: do NOT import roommanager

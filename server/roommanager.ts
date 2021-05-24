@@ -5,7 +5,7 @@ import NanoTimer from "nanotimer";
 import { getLogger } from "../logger.js";
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
-import { RoomRequest } from "./messages";
+import { RoomRequest } from "../common/models/messages";
 import storage from "../storage";
 import { RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager

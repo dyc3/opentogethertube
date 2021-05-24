@@ -1,6 +1,6 @@
-import { Grants } from "./permissions";
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility } from "./types";
-import { VideoId } from "../common/models/video";
+import { Grants } from "../../server/permissions";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility } from "../../server/types";
+import { VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent
 

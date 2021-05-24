@@ -2,7 +2,7 @@ const express = require('express');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
 import InfoExtract from "./server/infoextractor";
-import { RoomRequestType } from "./server/messages";
+import { RoomRequestType } from "./common/models/messages";
 const { getLogger } = require('./logger.js');
 const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
