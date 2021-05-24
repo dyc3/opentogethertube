@@ -177,6 +177,7 @@ export class Room implements RoomState {
 		const infos: RoomUserInfo[] = [];
 		for (const user of this.realusers) {
 			const info: RoomUserInfo = {
+				id: user.id,
 				name: user.username,
 				isLoggedIn: user.isLoggedIn,
 				status: "joined",
@@ -240,6 +241,14 @@ export class Room implements RoomState {
 
 	getUser(client: ClientId): RoomUser {
 		for (const user of this.realusers) {
+			if (user.id === client) {
+				return user;
+			}
+		}
+	}
+
+	getUserInfo(client: ClientId): RoomUserInfo {
+		for (const user of this.users) {
 			if (user.id === client) {
 				return user;
 			}
@@ -480,10 +489,10 @@ export class Room implements RoomState {
 	}
 
 	public async chat(request: ChatRequest): Promise<void> {
-		const user = this.getUser(request.client);
+		const user = this.getUserInfo(request.client);
 		await this.publish({
 			action: "chat",
-			from: user.username,
+			from: user,
 			text: request.text,
 		});
 	}

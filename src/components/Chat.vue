@@ -6,14 +6,14 @@
       @scroll="onScroll"
       class="messages d-flex flex-column flex-grow-1 mt-2"
     >
-      <v-card
-        class="message d-flex mr-2 mb-2"
+      <v-sheet
+        class="message"
         v-for="(msg, index) in $store.state.room.chatMessages"
         :key="index"
       >
-        <div class="from">{{ msg.from }}</div>
+        <div class="from">{{ msg.from.name }}</div>
         <div class="text"><ProcessedText :text="msg.text" /></div>
-      </v-card>
+      </v-sheet>
     </div>
     <div class="d-flex justify-end">
       <v-text-field
@@ -26,7 +26,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
 import connection from "@/util/connection";
 
@@ -41,20 +41,20 @@ export default {
   }),
   updated() {
     if (this.stickToBottom) {
-      const div = this.$refs.messages;
+      const div = this.$refs.messages as Element;
       div.scrollTop = div.scrollHeight;
     }
   },
   methods: {
-    onInputKeyDown(e) {
-      if (e.keyCode === 13 && this.inputValue.trim() !== "") {
+    onInputKeyDown(e: KeyboardEvent) {
+      if (e.key === "Enter" && this.inputValue.trim() !== "") {
         connection.send({ action: "chat", text: this.inputValue });
         this.inputValue = "";
         this.stickToBottom = true;
       }
     },
     onScroll() {
-      const div = this.$refs.messages;
+      const div = this.$refs.messages as Element;
       const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
       this.stickToBottom = distToBottom === 0;
     },
@@ -72,10 +72,14 @@ export default {
   overflow-x: hidden;
 
   flex-basis: 0;
+  align-items: baseline;
 }
 
 .message {
   background-color: #444;
+  width: 100%;
+  margin: 4px;
+  padding: 3px;
 
   &:first-child {
     margin-top: auto;
@@ -83,17 +87,13 @@ export default {
 
   .from,
   .text {
+    display: inline;
     margin: 3px 5px;
     word-wrap: break-word;
   }
 
   .from {
     font-weight: bold;
-    max-width: 20%;
-  }
-
-  .text {
-    min-width: 80%;
   }
 }
 </style>

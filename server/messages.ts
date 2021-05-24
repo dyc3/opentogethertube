@@ -1,5 +1,5 @@
 import { Grants } from "./permissions";
-import { ClientId, ClientInfo, QueueMode, Visibility } from "./types";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility } from "./types";
 import { VideoId } from "../common/models/video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat
@@ -27,7 +27,7 @@ export interface ServerMessageUnload extends ServerMessageBase {
 
 export interface ServerMessageChat extends ServerMessageBase {
 	action: "chat"
-	from: string
+	from: RoomUserInfo
 	text: string
 }
 

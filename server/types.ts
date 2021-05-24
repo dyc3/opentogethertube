@@ -45,6 +45,7 @@ export interface RoomState extends RoomOptions {
 }
 
 export type RoomUserInfo = {
+	id: ClientId
 	name: string
 	isLoggedIn: boolean
 	status: any // TODO: make this an enum
