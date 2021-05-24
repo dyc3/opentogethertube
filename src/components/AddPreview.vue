@@ -60,6 +60,7 @@ import { API } from "@/common-http.js";
 import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import ProcessedText from "@/components/ProcessedText.vue";
+import { ToastStyle } from '@/models/toast';
 
 export default {
 	name: "AddPreview",
@@ -130,12 +131,21 @@ export default {
 				}
 				else {
 					console.warn("Unknown status for add preview response:", res.status);
+					this.$toast.add({
+						style: ToastStyle.Error,
+						content: `Unknown status for add preview response: ${res.status}.`,
+					});
 				}
 			}).catch(err => {
 				this.isLoadingAddPreview = false;
 				this.hasAddPreviewFailed = true;
 				this.videosLoadFailureText = "An unknown error occurred when getting add preview. Try again later.";
 				console.error("Failed to get add preview", err);
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: "Failed to get add preview. This is probably a bug, check console for details.",
+					duration: 6000,
+				});
 			});
 		},
 		requestAddPreviewDebounced: _.debounce(function() {
@@ -181,9 +191,24 @@ export default {
 			}
 		},
 		async postTestVideo(v) {
-			await API.post(`/room/${this.$route.params.roomId}/queue`, {
-				url: this.testVideos[v][1],
-			});
+			try {
+				await API.post(`/room/${this.$route.params.roomId}/queue`, {
+					url: this.testVideos[v][1],
+				});
+				this.$toast.add({
+					style: ToastStyle.Success,
+					content: `Added test video`,
+					duration: 2000,
+				});
+			}
+			catch (e) {
+				console.error(e);
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: `Failed to add test video: ${e}`,
+					duration: 4000,
+				});
+			}
 		},
 		onFocusHighlightText(e) {
 			e.target.select();
