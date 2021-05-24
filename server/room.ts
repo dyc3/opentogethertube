@@ -12,9 +12,7 @@ import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import { VideoNotFoundException } from "./exceptions";
 import dayjs, { Dayjs } from 'dayjs';
-import { OmitTypes, PickFunctions, PickTypes } from "../common/typeutils.js";
-import { NonNever, RequiredKeys } from "ts-essentials";
-import { any } from "sequelize/types/lib/operators";
+import { PickFunctions } from "../common/typeutils.js";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -334,7 +332,7 @@ export class Room implements RoomState {
 
 		this.log.silly(`processing request: ${request.type}`);
 
-		type RoomRequestHandlers = Omit<PickFunctions<Room, RoomRequestBase>, "processRequest">
+		type RoomRequestHandlers = Omit<PickFunctions<Room, RoomRequestBase>, "processRequest" | "publishRoomEvent">
 		const handlers: Record<RoomRequestType, keyof RoomRequestHandlers | null> = {
 			[RoomRequestType.JoinRequest]: "joinRoom",
 			[RoomRequestType.LeaveRequest]: "leaveRoom",
