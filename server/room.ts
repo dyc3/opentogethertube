@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
+import { ChatRequest, JoinRequest, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "./messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -303,6 +303,7 @@ export class Room implements RoomState {
 			[RoomRequestType.RemoveRequest, "manage-queue.remove"],
 			[RoomRequestType.OrderRequest, "manage-queue.order"],
 			[RoomRequestType.VoteRequest, "manage-queue.vote"],
+			[RoomRequestType.ChatRequest, "chat"],
 		]);
 		const permission = permissions.get(request.type);
 		if (permission) {
@@ -350,6 +351,12 @@ export class Room implements RoomState {
 		}
 		else if (request.type === RoomRequestType.UpdateUser) {
 			await this.updateUser(request.info);
+		}
+		else if (request.type === RoomRequestType.ChatRequest) {
+			await this.chat(request);
+		}
+		else {
+			this.log.error(`Unknown room request: ${(request as { type: RoomRequestType }).type}`);
 		}
 	}
 
@@ -470,5 +477,14 @@ export class Room implements RoomState {
 				this.markDirty("users");
 			}
 		}
+	}
+
+	public async chat(request: ChatRequest): Promise<void> {
+		const user = this.getUser(request.client);
+		await this.publish({
+			action: "chat",
+			from: user.username,
+			text: request.text,
+		});
 	}
 }

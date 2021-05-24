@@ -2,7 +2,7 @@ import { Grants } from "./permissions";
 import { ClientId, ClientInfo, QueueMode, Visibility } from "./types";
 import { VideoId } from "../common/models/video";
 
-export type ServerMessage = ServerMessageSync | ServerMessageUnload
+export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat
 
 interface ServerMessageBase {
 	action: string
@@ -23,6 +23,12 @@ export interface ServerMessageSync extends ServerMessageBase {
 
 export interface ServerMessageUnload extends ServerMessageBase {
 	action: "unload"
+}
+
+export interface ServerMessageChat extends ServerMessageBase {
+	action: "chat"
+	from: string
+	text: string
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe;
@@ -56,13 +62,14 @@ export interface ClientMessageOrder extends ClientMessageBase {
 
 export interface ClientMessageChat extends ClientMessageBase {
 	action: "chat"
+	text: string
 }
 
 export interface ClientMessageKickMe extends ClientMessageBase {
 	action: "kickme"
 }
 
-export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser | ChatRequest
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -77,6 +84,7 @@ export enum RoomRequestType {
 	PromoteRequest,
 	DemoteRequest,
 	UpdateUser,
+	ChatRequest,
 }
 
 interface RoomRequestBase {
@@ -145,4 +153,9 @@ export interface DemoteRequest extends RoomRequestBase {
 export interface UpdateUser extends RoomRequestBase {
 	type: RoomRequestType.UpdateUser
 	info: ClientInfo
+}
+
+export interface ChatRequest extends RoomRequestBase {
+	type: RoomRequestType.ChatRequest
+	text: string
 }

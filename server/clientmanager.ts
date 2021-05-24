@@ -108,8 +108,15 @@ export class Client {
 			this.Socket.close(OttWebsocketError.UNKNOWN);
 			return;
 		}
+		else if (msg.action === "chat") {
+			request = {
+				type: RoomRequestType.ChatRequest,
+				client: this.id,
+				...msg,
+			};
+		}
 		else {
-			log.warn(`Unknown message: ${msg.action}`);
+			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
 		}
 
@@ -211,6 +218,17 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 	}
 }
 
+async function broadcast(roomName: string, text: string) {
+	for (const client of roomJoins.get(roomName)) {
+		try {
+			client.Socket.send(text);
+		}
+		catch (e) {
+			log.error(`failed to send to client: ${e.message}`);
+		}
+	}
+}
+
 redisSubscriber.on("message", async (channel, text) => {
 	// handles sync messages published by the rooms.
 	log.debug(`pubsub message: ${channel}: ${text}`);
@@ -228,19 +246,18 @@ redisSubscriber.on("message", async (channel, text) => {
 		Object.assign(state, _.omit(msg, "action"));
 		roomStates.set(roomName, state);
 
-		for (const client of roomJoins.get(roomName)) {
-			try {
-				client.Socket.send(text);
-			}
-			catch (e) {
-				log.error(`failed to send to client: ${e.message}`);
-			}
-		}
+		await broadcast(roomName, text);
 	}
 	else if (msg.action === "unload") {
 		for (const client of roomJoins.get(roomName)) {
 			client.Socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
 		}
+	}
+	else if (msg.action === "chat") {
+		await broadcast(roomName, text);
+	}
+	else {
+		log.error(`Unknown server message: ${(msg as { action: string }).action}`);
 	}
 });
 
