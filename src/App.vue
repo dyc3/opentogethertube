@@ -46,6 +46,7 @@
             </v-list-item-content>
           </v-list-item>
           <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />
+          <NavUser @login="showLogin = true" @logout="logout" />
         </v-list-item-group>
       </v-list>
       <template v-slot:append>
