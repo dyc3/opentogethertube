@@ -4,5 +4,6 @@ module.exports = {
   },
   rules: {
     'no-console': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
   },
 };
