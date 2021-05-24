@@ -33,6 +33,7 @@ export interface ServerMessageChat extends ServerMessageBase {
 export interface ServerMessageEvent extends ServerMessageBase {
 	action: "event"
 	request: RoomRequest
+	user: RoomUserInfo
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe;

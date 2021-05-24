@@ -372,9 +372,11 @@ export class Room implements RoomState {
 		}
 
 		if (shouldEmitEvent) {
+			const user = this.getUserInfo(request.client);
 			await this.publish({
 				action: "event",
 				request,
+				user,
 			});
 		}
 	}
