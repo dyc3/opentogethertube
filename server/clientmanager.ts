@@ -256,6 +256,9 @@ redisSubscriber.on("message", async (channel, text) => {
 	else if (msg.action === "chat") {
 		await broadcast(roomName, text);
 	}
+	else if (msg.action === "event") {
+		await broadcast(roomName, text);
+	}
 	else {
 		log.error(`Unknown server message: ${(msg as { action: string }).action}`);
 	}

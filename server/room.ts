@@ -319,6 +319,8 @@ export class Room implements RoomState {
 			this.grants.check(this.getRole(user), permission);
 		}
 
+		const shouldEmitEvent = request.type !== RoomRequestType.VoteRequest && request.type !== RoomRequestType.UpdateUser && request.type !== RoomRequestType.ChatRequest;
+
 		this.log.silly(`processing request: ${request.type}`);
 
 		if (request.type === RoomRequestType.PlaybackRequest) {
@@ -366,6 +368,14 @@ export class Room implements RoomState {
 		}
 		else {
 			this.log.error(`Unknown room request: ${(request as { type: RoomRequestType }).type}`);
+			return;
+		}
+
+		if (shouldEmitEvent) {
+			await this.publish({
+				action: "event",
+				request,
+			});
 		}
 	}
 

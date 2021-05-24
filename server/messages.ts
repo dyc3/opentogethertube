@@ -2,7 +2,7 @@ import { Grants } from "./permissions";
 import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility } from "./types";
 import { VideoId } from "../common/models/video";
 
-export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat
+export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent
 
 interface ServerMessageBase {
 	action: string
@@ -29,6 +29,11 @@ export interface ServerMessageChat extends ServerMessageBase {
 	action: "chat"
 	from: RoomUserInfo
 	text: string
+}
+
+export interface ServerMessageEvent extends ServerMessageBase {
+	action: "event"
+	request: RoomRequest
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe;
