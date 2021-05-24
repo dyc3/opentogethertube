@@ -12,6 +12,18 @@
 		<v-icon v-else-if="toast.style === ToastStyle.Error">fas fa-exclamation-circle</v-icon>
 		{{ toast.content }}
 		<div class="bar" :style="{'animation-duration': `${this.toast.duration}ms`}"></div>
+		<template v-slot:action="{ attrs }">
+			<v-btn
+				text
+				v-bind="attrs"
+				@click="close"
+				x-small
+				icon
+				:color="`${color} darken-2`"
+			>
+				<v-icon>fas fa-times</v-icon>
+			</v-btn>
+		</template>
 	</v-snackbar>
 </template>
 
@@ -29,10 +41,11 @@ export default Vue.extend({
 			type: Number,
 		},
 	},
-	data(): { ToastStyle: typeof ToastStyle; padding: number } {
+	data(): { ToastStyle: typeof ToastStyle; padding: number; closeTimeoutId: number | null } {
 		return {
 			ToastStyle,
 			padding: 8,
+			closeTimeoutId: null,
 		};
 	},
 	computed: {
@@ -48,10 +61,18 @@ export default Vue.extend({
 	},
 	created(): void {
 		if (this.toast.duration) {
-			setTimeout(() => {
-				this.$toast.remove(this.toast.id);
+			this.closeTimeoutId = setTimeout(() => {
+				this.close();
 			}, this.toast.duration);
 		}
+	},
+	methods: {
+		close() {
+			this.$toast.remove(this.toast.id);
+		},
+	},
+	destroyed() {
+		clearTimeout(this.closeTimeoutId);
 	},
 });
 </script>
