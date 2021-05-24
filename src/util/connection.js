@@ -42,7 +42,7 @@ function onMessage(e) {
 			window.vm.$store.dispatch(msg.action, msg);
 		}
 		catch (error) {
-			console.warn("unable to parse message into JSON: ", e.data);
+			console.error("unable to process message: ", e.data, error);
 		}
 	}
 	else {
