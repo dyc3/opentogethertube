@@ -28,11 +28,12 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
+import Vue from "vue";
 import ProcessedText from "@/components/ProcessedText.vue";
 import connection from "@/util/connection";
 
-export default {
+export default Vue.extend({
   name: "chat",
   components: {
     ProcessedText,
@@ -43,12 +44,12 @@ export default {
   }),
   updated() {
     if (this.stickToBottom) {
-      const div = this.$refs.messages as Element;
+      const div = this.$refs["messages"];
       div.scrollTop = div.scrollHeight;
     }
   },
   methods: {
-    onInputKeyDown(e: KeyboardEvent) {
+    onInputKeyDown(e) {
       if (e.key === "Enter" && this.inputValue.trim() !== "") {
         connection.send({ action: "chat", text: this.inputValue });
         this.inputValue = "";
@@ -56,12 +57,12 @@ export default {
       }
     },
     onScroll() {
-      const div = this.$refs.messages as Element;
+      const div = this.$refs["messages"];
       const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
       this.stickToBottom = distToBottom === 0;
     },
   },
-};
+});
 </script>
 
 <style lang="scss" scoped>
