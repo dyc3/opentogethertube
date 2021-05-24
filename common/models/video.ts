@@ -10,3 +10,5 @@ export interface Video extends VideoId {
 	thumbnail: string
 	mime?: string
 }
+
+export type VideoMetadata = Omit<Video, keyof VideoId>
