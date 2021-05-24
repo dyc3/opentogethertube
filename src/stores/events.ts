@@ -18,7 +18,7 @@ export const module: Module<unknown, unknown> = {
 				}
 			}
 			else if (message.request.type === RoomRequestType.SkipRequest) {
-				text = `${message.user.name} skipped the video`; // TODO: include video title
+				text = `${message.user.name} skipped ${message.additional.video.title}`;
 				duration = 7000;
 			}
 			else if (message.request.type === RoomRequestType.SeekRequest) {
@@ -36,12 +36,12 @@ export const module: Module<unknown, unknown> = {
 					text = `${message.user.name} added ${message.request.videos.length} videos`;
 				}
 				else {
-					text = `${message.user.name} added ${message.request.video}`; // TODO: include video title
+					text = `${message.user.name} added ${message.additional.video.title}`;
 				}
 				duration = 7000;
 			}
 			else if (message.request.type === RoomRequestType.RemoveRequest) {
-				text = `${message.user.name} removed ${message.request.video}`; // TODO: include video title
+				text = `${message.user.name} removed ${message.additional.video.title}`;
 				duration = 7000;
 			}
 			else {

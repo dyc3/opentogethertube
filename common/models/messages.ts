@@ -1,5 +1,5 @@
 import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants } from "./types";
-import { VideoId } from "./video";
+import { Video, VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent
 
@@ -34,6 +34,12 @@ export interface ServerMessageEvent extends ServerMessageBase {
 	action: "event"
 	request: RoomRequest
 	user: RoomUserInfo
+	additional: RoomEventContext
+}
+
+interface RoomEventContext {
+	video?: Video
+	videos?: Video[]
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe;

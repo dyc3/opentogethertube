@@ -219,6 +219,16 @@ export class Room implements RoomState {
 		await publish(`room:${this.name}`, JSON.stringify(msg));
 	}
 
+	async publishRoomEvent(request: RoomRequest, additional?: unknown): Promise<void> {
+		const user = this.getUserInfo(request.client);
+		await this.publish({
+			action: "event",
+			request,
+			user,
+			additional,
+		});
+	}
+
 	isOwner(user: RoomUser): boolean {
 		return user.user && this.owner && user.user.id === this.owner.id;
 	}
@@ -322,8 +332,6 @@ export class Room implements RoomState {
 			this.grants.check(this.getRole(user), permission);
 		}
 
-		const shouldEmitEvent = request.type !== RoomRequestType.VoteRequest && request.type !== RoomRequestType.UpdateUser && request.type !== RoomRequestType.ChatRequest;
-
 		this.log.silly(`processing request: ${request.type}`);
 
 		type RoomRequestHandlers = Omit<PickFunctions<Room, RoomRequestBase>, "processRequest">
@@ -347,15 +355,6 @@ export class Room implements RoomState {
 		if (handler) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			await this[handler](request as any);
-		}
-
-		if (shouldEmitEvent) {
-			const user = this.getUserInfo(request.client);
-			await this.publish({
-				action: "event",
-				request,
-				user,
-			});
 		}
 	}
 
@@ -394,11 +393,14 @@ export class Room implements RoomState {
 		else {
 			await this.pause();
 		}
+		await this.publishRoomEvent(request);
 	}
 
 	// eslint-disable-next-line no-unused-vars
 	public async skip(request: SkipRequest): Promise<void> {
+		const current = this.currentSource;
 		this.dequeueNext();
+		await this.publishRoomEvent(request, { video: current });
 	}
 
 	/**
@@ -411,6 +413,7 @@ export class Room implements RoomState {
 			return;
 		}
 		this.playbackPosition = request.value;
+		await this.publishRoomEvent(request);
 	}
 
 	/**
@@ -429,11 +432,13 @@ export class Room implements RoomState {
 			const video: Video = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 			this.queue.push(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
+			await this.publishRoomEvent(request, { video });
 		}
 		else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 			this.queue.push(...videos);
 			this.log.info(`added ${request.videos.length} videos`);
+			await this.publishRoomEvent(request, { videos });
 		}
 		else {
 			this.log.error("Invalid parameters for AddRequest");
@@ -452,12 +457,7 @@ export class Room implements RoomState {
 		const removed = this.queue.splice(matchIdx, 1)[0];
 		this.markDirty("queue");
 		this.log.info(`Video removed: ${JSON.stringify(removed)}`);
-		// if (session && client) {
-		// 	this.sendRoomEvent(new RoomEvent(this.name, ROOM_EVENT_TYPE.REMOVE_FROM_QUEUE, client.username, { video: removed, queueIdx: matchIdx }));
-		// }
-		// else {
-		// 	this.log.warn("UNABLE TO SEND ROOM EVENT: Couldn't send room event removeFromQueue because no session information was provided.");
-		// }
+		await this.publishRoomEvent(request, { video: removed });
 	}
 
 	public async reorderQueue(request: OrderRequest): Promise<void> {
@@ -472,6 +472,7 @@ export class Room implements RoomState {
 		this.realusers.push(user);
 		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
+		await this.publishRoomEvent(request);
 	}
 
 	public async leaveRoom(request: LeaveRequest): Promise<void> {
@@ -482,6 +483,7 @@ export class Room implements RoomState {
 				break;
 			}
 		}
+		await this.publishRoomEvent(request);
 	}
 
 	public async updateUser(request: UpdateUser): Promise<void> {
