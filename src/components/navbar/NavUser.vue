@@ -25,8 +25,10 @@
   </fragment>
 </template>
 
-<script>
-export default {
-  name: 'NavUser',
-};
+<script lang="ts">
+import Vue from "vue";
+
+export default Vue.extend({
+  name: "NavUser",
+});
 </script>
