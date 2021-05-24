@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
 import { ToastStyle } from './models/toast';
+import eventModule from "@/stores/events";
 
 Vue.use(Vuex);
 
@@ -121,24 +122,6 @@ export default new Vuex.Store({
 		chat(context, message) {
 			this.state.room.chatMessages.push(message);
 		},
-		event(context, message) {
-			let event = message.event;
-			event.isVisible = true;
-			event.isUndoable = event.eventType === 'seek' || event.eventType === 'skip' || (event.eventType === 'addToQueue' && event.parameters.video) || event.eventType === 'removeFromQueue';
-			event.timeout = event.isUndoable ? 7000 : 4000;
-			if (event.eventType === 'seek' && this.state.room.events.slice(-1)[0].eventType === 'seek' && this.state.room.events.slice(-1)[0].isVisible) {
-				this.state.room.events[this.state.room.events.length - 1].parameters.position = event.parameters.position;
-				this.state.room.events[this.state.room.events.length - 1].timeout += 1;
-			}
-			else {
-				this.state.room.events.push(event);
-			}
-			this.commit("toast/ADD_TOAST", {
-				style: ToastStyle.Neutral,
-				content: "TODO: room events",
-				duration: 5000,
-			});
-		},
 		announcement(context, message) {
 			this.commit("toast/ADD_TOAST", {
 				style: ToastStyle.Neutral,
@@ -165,5 +148,6 @@ export default new Vuex.Store({
 	},
 	modules: {
 		toast: toastModule,
+		events: eventModule,
 	},
 });

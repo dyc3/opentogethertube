@@ -560,41 +560,6 @@ export default {
       //   }
       // }, 100);
     },
-    onRoomEvent(event) {
-      if (event.eventType === "play") {
-        this.snackbarText = `${event.userName} played the video`;
-      }
-      else if (event.eventType === "pause") {
-        this.snackbarText = `${event.userName} paused the video`;
-      }
-      else if (event.eventType === "skip") {
-        this.snackbarText = `${event.userName} skipped ${event.parameters.video.title}`;
-      }
-      else if (event.eventType === "seek") {
-        this.snackbarText = `${event.userName} seeked to ${secondsToTimestamp(event.parameters.position)}`;
-      }
-      else if (event.eventType === "joinRoom") {
-        this.snackbarText = `${event.userName} joined the room`;
-      }
-      else if (event.eventType === "leaveRoom") {
-        this.snackbarText = `${event.userName} left the room`;
-      }
-      else if (event.eventType === "addToQueue") {
-        if (event.parameters.count) {
-          this.snackbarText = `${event.userName} added ${event.parameters.count} videos`;
-        }
-        else {
-          this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
-        }
-      }
-      else if (event.eventType === "removeFromQueue") {
-        this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
-      }
-      else {
-        this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
-      }
-      this.snackbarActive = true;
-    },
     switchToAddTab() {
       this.queueTab = 1;
     },
