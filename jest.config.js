@@ -16,9 +16,8 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // '/node_modules/',
-    '!/src/',
+    '!/(common|src)/',
     '/tests/unit/server/',
-    '/common/',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
