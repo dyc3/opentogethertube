@@ -1,5 +1,5 @@
-const Video = require("../../../../common/video");
-const NeverthinkAdapter = require("../../../../server/services/neverthink");
+import { Video } from "../../../../common/models/video";
+import NeverthinkAdapter from "../../../../server/services/neverthink";
 
 const validVideoLinks = [
 	["230987772", "https://neverthink.tv/v/230987772"],
@@ -170,48 +170,50 @@ describe("resolveURL", () => {
 	it("should resolve single video urls with youtube origin", async () => {
 		jest.spyOn(adapter.api, 'get').mockResolvedValue({ data: videoSampleResponses["230987772"] });
 
-		let video = await adapter.resolveURL("https://neverthink.tv/v/230987772");
-		expect(video).toEqual(new Video({
+		const videos: Video[] = await adapter.resolveURL("https://neverthink.tv/v/230987772");
+		expect(videos).toHaveLength(1);
+		expect(videos[0]).toEqual({
 			service: "youtube",
 			id: "G0Z9s9yzxm0",
 			title: "Pablo Rochat is back at it 🤣 #netflix",
 			description: "Please click",
 			thumbnail: "https://img.youtube.com/vi/G0Z9s9yzxm0/mqdefault.jpg",
 			length: 19,
-		}));
+		});
 	});
 
 	it("should resolve single video urls with neverthink origin", async () => {
 		jest.spyOn(adapter.api, 'get').mockResolvedValue({ data: videoSampleResponses["230983502"] });
 
-		let video = await adapter.resolveURL("https://neverthink.tv/v/230983502");
-		expect(video).toEqual(new Video({
+		const videos: Video[] = await adapter.resolveURL("https://neverthink.tv/v/230983502");
+		expect(videos).toHaveLength(1);
+		expect(videos[0]).toEqual({
 			service: "youtube",
 			id: "EDA3TXw6Oig",
 			title: "Robert Downey Jr. gets Chug Jugs With You",
 			description: null,
 			thumbnail: "https://img.youtube.com/vi/EDA3TXw6Oig/mqdefault.jpg",
 			length: 31,
-		}));
+		});
 	});
 
 	it("should resolve playlist url", async () => {
 		jest.spyOn(adapter.fetch, 'get').mockResolvedValue({ data: samplePlaylist });
 
-		let videos = await adapter.resolveURL("https://neverthink.tv/playlists/167/b4f8c6a9c4b45bf16b17431ec9adbd56aa0dd4ba02ebe7720de0600b17404bd4-v5-plain.json");
+		const videos: Video[] = await adapter.resolveURL("https://neverthink.tv/playlists/167/b4f8c6a9c4b45bf16b17431ec9adbd56aa0dd4ba02ebe7720de0600b17404bd4-v5-plain.json");
 		expect(videos).toEqual([
-			new Video({
+			{
 				service: "youtube",
 				id: "G0Z9s9yzxm0",
-			}),
-			new Video({
+			},
+			{
 				service: "youtube",
 				id: "gfAGzUIkyDU",
-			}),
-			new Video({
+			},
+			{
 				service: "vimeo",
 				id: "502630513",
-			}),
+			},
 		]);
 	});
 
@@ -221,50 +223,50 @@ describe("resolveURL", () => {
 
 		let videos = await adapter.resolveURL("https://neverthink.tv/the-internet");
 		expect(videos).toEqual([
-			new Video({
+			{
 				service: "youtube",
 				id: "G0Z9s9yzxm0",
-			}),
-			new Video({
+			},
+			{
 				service: "youtube",
 				id: "gfAGzUIkyDU",
-			}),
-			new Video({
+			},
+			{
 				service: "vimeo",
 				id: "502630513",
-			}),
+			},
 		]);
 
 		videos = await adapter.resolveURL("https://neverthink.tv/c/the-internet");
 		expect(videos).toEqual([
-			new Video({
+			{
 				service: "youtube",
 				id: "G0Z9s9yzxm0",
-			}),
-			new Video({
+			},
+			{
 				service: "youtube",
 				id: "gfAGzUIkyDU",
-			}),
-			new Video({
+			},
+			{
 				service: "vimeo",
 				id: "502630513",
-			}),
+			},
 		]);
 
 		videos = await adapter.resolveURL("https://neverth.ink/the-internet");
 		expect(videos).toEqual([
-			new Video({
+			{
 				service: "youtube",
 				id: "G0Z9s9yzxm0",
-			}),
-			new Video({
+			},
+			{
 				service: "youtube",
 				id: "gfAGzUIkyDU",
-			}),
-			new Video({
+			},
+			{
 				service: "vimeo",
 				id: "502630513",
-			}),
+			},
 		]);
 	});
 
@@ -275,32 +277,32 @@ describe("resolveURL", () => {
 			},
 		});
 
-		let videos = await adapter.resolveURL("https://neverthink.tv/u/CoolDiamondsFTW");
+		const videos = await adapter.resolveURL("https://neverthink.tv/u/CoolDiamondsFTW");
 		expect(videos).toEqual([
-			new Video({
+			{
 				service: "youtube",
 				id: "G0Z9s9yzxm0",
 				title: "Pablo Rochat is back at it 🤣 #netflix",
 				description: "Please click",
 				thumbnail: "https://img.youtube.com/vi/G0Z9s9yzxm0/mqdefault.jpg",
 				length: 19,
-			}),
-			new Video({
+			},
+			{
 				service: "youtube",
 				id: "gfAGzUIkyDU",
 				title: "Sick of Roommates stealing my food",
 				description: null,
 				thumbnail: "https://img.youtube.com/vi/gfAGzUIkyDU/mqdefault.jpg",
 				length: 19,
-			}),
-			new Video({
+			},
+			{
 				service: "youtube",
 				id: "EDA3TXw6Oig",
 				title: "Robert Downey Jr. gets Chug Jugs With You",
 				description: null,
 				thumbnail: "https://img.youtube.com/vi/EDA3TXw6Oig/mqdefault.jpg",
 				length: 31,
-			}),
+			},
 		]);
 	});
 });

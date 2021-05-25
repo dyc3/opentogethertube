@@ -12,10 +12,6 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
     '^.+\\.jsx?$': 'babel-jest',
   },
-  transformIgnorePatterns: [
-    // '/node_modules/',
-    '/tests/unit/server/',
-  ],
   rootDir: "../../..",
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
