@@ -53,7 +53,8 @@ jobs:
     - run: npm run lint-ci
       env:
         NODE_ENV: production
-    - run: npm test
+    - run: npm test-unit-client
+    - run: npm test-unit-server
       env:
         REDIS_HOST: localhost
         REDIS_PORT: 6379

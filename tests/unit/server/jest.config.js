@@ -9,35 +9,32 @@ module.exports = {
     'vue',
   ],
   transform: {
-    '^.+\\.vue$': 'vue-jest',
-    '.+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
     '^.+\\.tsx?$': 'ts-jest',
     '^.+\\.jsx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
     // '/node_modules/',
-    '!/(common|src)/',
     '/tests/unit/server/',
   ],
+  rootDir: "../../..",
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  snapshotSerializers: ['jest-serializer-vue'],
-  testMatch: ['**/tests/unit/**/*.spec.(js|jsx|ts|tsx)|**/__tests__/*.(js|jsx|ts|tsx)'],
+  testMatch: ['**/tests/unit/server/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)'],
   testURL: 'http://localhost/',
   watchPlugins: [
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',
   ],
-  'collectCoverage': true,
-  "coverageReporters": [
+  collectCoverage: true,
+  coverageReporters: [
     "text-summary",
     "text",
     "json",
     "html",
   ],
-  'collectCoverageFrom': [
-    '**/*.{[tj]s,vue}',
+  collectCoverageFrom: [
+    '**/*.{js,ts}',
     '!**/node_modules/**',
     '!**/dist/**',
     '!**/*.config.js',
@@ -47,9 +44,8 @@ module.exports = {
     '!**/models/**',
     '!**/seeders/**',
     '!**/coverage/**',
+    '!**/tests/**',
+    '!**/src/**',
     '!app.js',
-    '!src/App.vue',
-    '!src/plugins/vuetify.js',
-    '!src/(main|router).js',
   ],
 };
