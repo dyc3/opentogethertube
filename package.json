@@ -10,8 +10,8 @@
     "lint": "vue-cli-service lint .",
     "lint-ci": "vue-cli-service --no-fix lint .",
     "test": "npm run test-unit-server && npm run test-unit-client",
-    "test-unit-client": "vue-cli-service test:unit --config ./tests/unit/client/jest.config.js --runInBand --detectOpenHandles --forceExit",
-    "test-unit-server": "jest --config ./tests/unit/server/jest.config.js --runInBand --detectOpenHandles --forceExit",
+    "test-unit-client": "vue-cli-service test:unit --config ./tests/unit/client/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit",
+    "test-unit-server": "jest --config ./tests/unit/server/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit",
     "api-server": "nodemon --inspect -e ts,js app.js",
     "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"PORT=8080 npm run serve\"",
     "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\"",
@@ -83,6 +83,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.9.0",
+    "@jest/globals": "^27.0.1",
     "@tsconfig/node12": "^1.0.7",
     "@types/jest": "^24.0.19",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
