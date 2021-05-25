@@ -80,7 +80,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     }
   }
 
-  async resolveURL(link: string, onlyProperties: (keyof VideoMetadata)[]): Promise<Video[]> {
+  async resolveURL(link: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video[]> {
     log.debug(`resolveURL: ${link}, ${onlyProperties}`);
     const url = new URL.URL(link);
 
