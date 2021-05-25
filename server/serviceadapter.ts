@@ -1,5 +1,10 @@
-import { Video, VideoId } from "../common/models/video";
+import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { IncompleteServiceAdapterException } from "./exceptions";
+
+export interface VideoRequest {
+  id: string,
+  missingInfo: (keyof VideoMetadata)[]
+}
 
 export class ServiceAdapter {
   /**
@@ -42,22 +47,22 @@ export class ServiceAdapter {
    * @param {string} url
    * @param {string[]} properties
    */
-  fetchVideoInfo(url: string, properties: string[]): Promise<Video> {
+  fetchVideoInfo(url: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getVideoInfo`);
   }
 
   /**
    * Fetches video metadata for a list of IDs.
-   * @param {VideoId[]} videos List of objects with id and missingInfo keys
+   * @param {VideoId[]} requests List of objects with id and missingInfo keys
    */
-  fetchManyVideoInfo(videos: VideoId[]): Promise<Video[]> {
+  fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getManyVideoInfo`);
   }
 
   /**
    * Fetches all videos associated with a URL.
    */
-  resolveURL(url: string, properties: string[]): Promise<Video[]> {
+  resolveURL(url: string, properties?: (keyof VideoMetadata)[]): Promise<Video | Video[]> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method resolveURL`);
   }
 
