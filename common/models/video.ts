@@ -25,7 +25,6 @@ export interface VideoDirect extends VideoId {
 	title: string
 	description: string
 	length: number
-	thumbnail: string
 	mime: string
 }
 
