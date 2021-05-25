@@ -1,57 +1,62 @@
-const URL = require("url");
-const axios = require("axios");
+import { URL } from "url";
+import axios, { AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
-const { InvalidVideoIdException } = require("../exceptions");
-const Video = require("../../common/video");
-const { getLogger } = require("../../logger");
+import { InvalidVideoIdException } from "../exceptions";
+import { Video } from "../../common/models/video";
+import { getLogger } from "../../logger";
 
 const log = getLogger("vimeo");
 
-class VimeoAdapter extends ServiceAdapter {
+interface VimeoApiVideo {
+  title: string
+  description: string
+  thumbnail_url: string
+  duration: number
+}
+
+export default class VimeoAdapter extends ServiceAdapter {
   api = axios.create({
     baseURL: "https://vimeo.com/api/oembed.json",
   });
 
-  get serviceId() {
+  get serviceId(): "vimeo" {
     return "vimeo";
   }
 
-  canHandleURL(link) {
-    const url = URL.parse(link);
+  canHandleURL(link: string): boolean {
+    const url = new URL(link);
     return url.host.endsWith("vimeo.com") && /^\/\d+$/.test(url.pathname);
   }
 
-  isCollectionURL() {
+  isCollectionURL(): boolean {
     return false;
   }
 
-  getVideoId(link) {
-    const url = URL.parse(link);
+  getVideoId(link: string): string {
+    const url = new URL(link);
     return url.pathname.split("/").slice(-1)[0].trim();
   }
 
-  async fetchVideoInfo(videoId) {
+  async fetchVideoInfo(videoId: string): Promise<Video> {
     if (!/^\d+$/.test(videoId)) {
-      return Promise.reject(
-        new InvalidVideoIdException(this.serviceId, videoId)
-      );
+      throw new InvalidVideoIdException(this.serviceId, videoId);
     }
 
     try {
-      const result = await this.api.get("", {
+      const result: AxiosResponse<VimeoApiVideo> = await this.api.get("", {
         params: {
           url: `https://vimeo.com/${videoId}`,
         },
       });
 
-      const video = new Video({
+      const video: Video = {
         service: this.serviceId,
         id: videoId,
         title: result.data.title,
         description: result.data.description,
         thumbnail: result.data.thumbnail_url,
         length: result.data.duration,
-      });
+      };
 
       return video;
     }
