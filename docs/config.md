@@ -38,3 +38,4 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `ADD_PREVIEW_PLAYLIST_RESULTS_COUNT` | Limit the number of videos that appear in the results when a playlist is used. | `40` | Integer >= 0
 | `ADD_PREVIEW_SEARCH_RESULTS_COUNT` | Limit the number of videos that appear in the results when searching for a video. | `10` | Integer >= 0
 | `SHORT_URL` | The domain to use in the copyable "Share Invite" URL. | undefined | `string` |
+| `TRUST_PROXY` | The number of reverse proxy layers to trust. | `1` | `number` |
