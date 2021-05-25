@@ -354,6 +354,9 @@ export class Room implements RoomState {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			await this[handler](request as any);
 		}
+		else {
+			this.log.error(`No room request handler: ${request.type}`);
+		}
 	}
 
 	public async setGrants(grants: Grants): Promise<void> {

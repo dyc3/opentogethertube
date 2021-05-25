@@ -14,13 +14,6 @@ import clientmanager from "./server/clientmanager";
 
 const log = getLogger("api");
 
-// These strings are not allowed to be used as room names.
-const RESERVED_ROOM_NAMES = [
-	"list",
-	"create",
-	"generate",
-];
-
 const VALID_ROOM_VISIBILITY = [
 	Visibility.Public,
 	Visibility.Unlisted,
@@ -128,118 +121,6 @@ router.get("/room/:name", async (req, res) => {
 	}
 	catch (e) {
 		handleGetRoomFailure(res, e);
-	}
-});
-
-router.post("/room/create", async (req, res) => {
-	if (!req.body.name) {
-		log.info(req.body);
-		res.status(400).json({
-			success: false,
-			error: {
-				message: "Missing argument (name)",
-			},
-		});
-		return;
-	}
-	if (RESERVED_ROOM_NAMES.includes(req.body.name)) {
-		res.status(400).json({
-			success: false,
-			error: {
-				message: "Room name not allowed (reserved)",
-			},
-		});
-		return;
-	}
-	if (req.body.name.length < 3) {
-		res.status(400).json({
-			success: false,
-			error: {
-				message: "Room name not allowed (too short, must be at least 3 characters)",
-			},
-		});
-		return;
-	}
-	if (req.body.name.length > 32) {
-		res.status(400).json({
-			success: false,
-			error: {
-				message: "Room name not allowed (too long, must be at most 32 characters)",
-			},
-		});
-		return;
-	}
-	if (!(/^[A-za-z0-9_-]+$/).exec(req.body.name)) {
-		res.status(400).json({
-			success: false,
-			error: {
-				message: "Room name not allowed (invalid characters)",
-			},
-		});
-		return;
-	}
-	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		res.status(400).json({
-			success: false,
-			error: {
-				message: "Invalid value for room visibility",
-			},
-		});
-		return;
-	}
-	let points = 50;
-	if (!req.body.temporary) {
-		req.body.temporary = false;
-		points *= 4;
-	}
-	if (!req.body.visibility) {
-		req.body.visibility = "public";
-	}
-	try {
-		try {
-			let info = await rateLimiter.consume(req.ip, points);
-			setRateLimitHeaders(res, info);
-		}
-		catch (e) {
-			if (e instanceof Error) {
-				throw e;
-			}
-			else {
-				handleRateLimit(res, e);
-				return;
-			}
-		}
-		if (req.user) {
-			await roommanager.CreateRoom({ ...req.body, owner: req.user });
-		}
-		else {
-			await roommanager.CreateRoom(req.body);
-		}
-		log.info(`${req.body.temporary ? "Temporary" : "Permanent"} room created: name=${req.body.name} ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
-		res.json({
-			success: true,
-		});
-	}
-	catch (e) {
-		if (e.name === "RoomNameTakenException") {
-			res.status(400).json({
-				success: false,
-				error: {
-					name: e.name,
-					message: "Room with that name already exists",
-				},
-			});
-		}
-		else {
-			log.error(`Unable to create room: ${e} ${e.message}`);
-			res.status(500).json({
-				success: false,
-				error: {
-					name: "Unknown",
-					message: "An unknown error occured when creating this room. Try again later.",
-				},
-			});
-		}
 	}
 });
 
