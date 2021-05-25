@@ -137,6 +137,10 @@ if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes(
 	app.set('trust proxy', process.env["TRUST_PROXY"] || 1);
 	sessionOpts.cookie.secure = true;
 }
+if (process.env.FORCE_INSECURE_COOKIES) {
+	log.warn("FORCE_INSECURE_COOKIES found, cookies will only be set on http, not https");
+	sessionOpts.cookie.secure = false;
+}
 const sessions = session(sessionOpts);
 app.use(sessions);
 
@@ -160,6 +164,9 @@ app.use((req, res, next) => {
 		let username = uniqueNamesGenerator();
 		log.debug(`Generated name for new user (on request): ${username}`);
 		log.debug(`headers: x-forwarded-proto=${req.headers["x-forwarded-proto"]} x-forwarded-for=${req.headers["x-forwarded-for"]} x-forwarded-host=${req.headers["x-forwarded-host"]}`);
+		if (req.protocol === "http" && sessionOpts.cookie.secure) {
+			log.error(`found protocol ${req.protocol} and secure cookies. cookies will not be set`);
+		}
 		req.session.username = username;
 		req.session.save((err) => {
 			if (err) {
