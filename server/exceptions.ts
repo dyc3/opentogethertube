@@ -49,6 +49,14 @@ export class InvalidVideoIdException extends OttException {
 	}
 }
 
+export class ServiceLinkParseException extends OttException {
+	name = "ServiceLinkParseException";
+
+	constructor(service: string, url: string) {
+		super(`${service}: failed to parse url: ${url}`);
+	}
+}
+
 export class FeatureDisabledException extends OttException {
 	name = "FeatureDisabledException";
 

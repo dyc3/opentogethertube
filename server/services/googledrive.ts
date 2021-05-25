@@ -1,34 +1,44 @@
-const URL = require("url");
-const QueryString = require("querystring");
-const axios = require("axios");
+import { URL } from "url";
+import axios, { AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
-const { InvalidVideoIdException, OutOfQuotaException } = require("../exceptions");
-const Video = require("../../common/video");
-const { getLogger } = require("../../logger");
+import { ServiceLinkParseException, InvalidVideoIdException, OutOfQuotaException } from "../exceptions";
+import { Video } from "../../common/models/video";
+import { getLogger } from "../../logger";
 
 const log = getLogger("googledrive");
 
-class GoogleDriveAdapter extends ServiceAdapter {
+interface GoogleDriveFile {
+  id: string
+  name: string
+  thumbnailLink: string
+  videoMediaMetadata: {
+    durationMillis: number
+  }
+  mimeType: string
+}
+
+export default class GoogleDriveAdapter extends ServiceAdapter {
+  apiKey: string
   api = axios.create({
     baseURL: "https://www.googleapis.com/drive/v3",
   });
 
-  constructor(apiKey) {
+  constructor(apiKey: string) {
     super();
     this.apiKey = apiKey;
   }
 
-  get serviceId() {
+  get serviceId(): "googledrive" {
     return "googledrive";
   }
 
-  canHandleURL(link) {
-    const url = URL.parse(link);
+  canHandleURL(link: string): boolean {
+    const url = new URL(link);
     return url.host.endsWith("drive.google.com");
   }
 
-  isCollectionURL(link) {
-    const url = URL.parse(link);
+  isCollectionURL(link: string): boolean {
+    const url = new URL(link);
     return this.isFolderURL(url);
   }
 
@@ -36,42 +46,39 @@ class GoogleDriveAdapter extends ServiceAdapter {
     return url.pathname.startsWith("/drive");
   }
 
-  getVideoId(link) {
-    const url = URL.parse(link);
+  getVideoId(link: string): string {
+    const url = new URL(link);
     return this.getVideoIdFromURL(url);
   }
 
-  getFolderId(url) {
-    if (/^\/drive\/u\/\d\/folders\//.exec(url.path)) {
-      return url.path.split("/")[5].split("?")[0].trim();
+  getFolderId(url: URL): string {
+    if (/^\/drive\/u\/\d\/folders\//.exec(url.pathname)) {
+      return url.pathname.split("/")[5].split("?")[0].trim();
     }
-    else if (url.path.startsWith("/drive/folders")) {
-      return url.path.split("/")[3].split("?")[0].trim();
+    else if (url.pathname.startsWith("/drive/folders")) {
+      return url.pathname.split("/")[3].split("?")[0].trim();
     }
     else {
-      throw new Error("Invalid google drive folder");
+      throw new ServiceLinkParseException(this.serviceId, url.toString());
     }
   }
 
-  getVideoIdFromURL(url) {
+  getVideoIdFromURL(url: URL): string {
     if (url.pathname.startsWith("/file/d/")) {
       return url.pathname.split("/")[3];
     }
     else {
-      const query = QueryString.parse(url.query);
-      return query.id;
+      return url.searchParams.get("id");
     }
   }
 
-  async fetchVideoInfo(videoId) {
+  async fetchVideoInfo(videoId: string): Promise<Video> {
     if (!/^[A-za-z0-9_-]+$/.exec(videoId)) {
-      return Promise.reject(
-        new InvalidVideoIdException(this.serviceId, videoId)
-      );
+      throw new InvalidVideoIdException(this.serviceId, videoId);
     }
 
     try {
-      const result = await this.api.get(`/files/${videoId}`, {
+      const result: AxiosResponse<GoogleDriveFile> = await this.api.get(`/files/${videoId}`, {
         params: {
           key: this.apiKey,
           fields: "id,name,mimeType,thumbnailLink,videoMediaMetadata(durationMillis)",
@@ -89,7 +96,7 @@ class GoogleDriveAdapter extends ServiceAdapter {
     }
   }
 
-  async fetchFolderVideos(folderId) {
+  async fetchFolderVideos(folderId: string): Promise<Video[]> {
     try {
       const result = await this.api.get("/files", {
         params: {
@@ -99,7 +106,7 @@ class GoogleDriveAdapter extends ServiceAdapter {
         },
       });
       log.info(`Found ${result.data.files.length} items in folder`);
-      return result.data.files.map(item => this.parseFile(item));
+      return result.data.files.map((item: GoogleDriveFile) => this.parseFile(item));
     }
     catch (err) {
       if (err.response && err.response.data.error && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
@@ -112,28 +119,28 @@ class GoogleDriveAdapter extends ServiceAdapter {
     }
   }
 
-  async resolveURL(link) {
-    const url = URL.parse(link);
+  async resolveURL(link: string): Promise<Video[]> {
+    const url = new URL(link);
 
     if (this.isFolderURL(url)) {
       const folderId = this.getFolderId(url);
-      return this.fetchFolderVideos(folderId);
+      return await this.fetchFolderVideos(folderId);
     }
     else {
       const videoId = this.getVideoIdFromURL(url);
-      return this.fetchVideoInfo(videoId);
+      return [await this.fetchVideoInfo(videoId)];
     }
   }
 
-  parseFile(file) {
-    return new Video({
+  parseFile(file: GoogleDriveFile): Video {
+    return {
       service: "googledrive",
       id: file.id,
       title: file.name,
       thumbnail: file.thumbnailLink,
       length: Math.ceil(file.videoMediaMetadata.durationMillis / 1000),
       mime: file.mimeType,
-    });
+    };
   }
 }
 
