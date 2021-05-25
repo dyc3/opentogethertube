@@ -1,13 +1,13 @@
-const redis = require('redis');
+import redis from 'redis';
 
-const redisOptions = (process.env.REDIS_TLS_URL || process.env.REDIS_URL) ?
+const redisOptions: redis.ClientOpts = (process.env.REDIS_TLS_URL || process.env.REDIS_URL) ?
 	{
 		url: process.env.REDIS_TLS_URL || process.env.REDIS_URL,
 		tls: {
 			rejectUnauthorized: false,
 		},
 } : {
-	port: process.env.REDIS_PORT || undefined,
+	port: parseInt(process.env.REDIS_PORT) || undefined,
 	host: process.env.REDIS_HOST || undefined,
 	password: process.env.REDIS_PASSWORD || undefined,
 	db: process.env.REDIS_DB || undefined,
@@ -15,7 +15,7 @@ const redisOptions = (process.env.REDIS_TLS_URL || process.env.REDIS_URL) ?
 
 export const redisClient = redis.createClient(redisOptions);
 
-export function createSubscriber() {
+export function createSubscriber(): redis.RedisClient {
 	return redis.createClient(redisOptions);
 }
 
