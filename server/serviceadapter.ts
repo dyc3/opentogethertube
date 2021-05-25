@@ -18,25 +18,22 @@ export class ServiceAdapter {
 
   /**
    * Returns true if this service adapter can handle a given link.
-   * @param {string} link
    */
-  canHandleURL(): boolean {
+  canHandleURL(link: string): boolean {
     return false;
   }
 
   /**
    * Determines whether a given URL points to a collection of videos.
-   * @param {string} url
    */
-  isCollectionURL(): boolean {
+  isCollectionURL(url: string): boolean {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method isCollectionURL`);
   }
 
   /**
    * Returns the video ID from a URL.
-   * @param {string} url
    */
-  getVideoId(): string {
+  getVideoId(url: string): string {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getVideoId`);
   }
 
@@ -45,24 +42,22 @@ export class ServiceAdapter {
    * @param {string} url
    * @param {string[]} properties
    */
-  fetchVideoInfo(): Promise<Video> {
+  fetchVideoInfo(url: string, properties: string[]): Promise<Video> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getVideoInfo`);
   }
 
   /**
    * Fetches video metadata for a list of IDs.
-   * @param {VideoId[]} requests List of objects with id and missingInfo keys
+   * @param {VideoId[]} videos List of objects with id and missingInfo keys
    */
-  fetchManyVideoInfo(): Promise<Video[]> {
+  fetchManyVideoInfo(videos: VideoId[]): Promise<Video[]> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getManyVideoInfo`);
   }
 
   /**
    * Fetches all videos associated with a URL.
-   * @param {string} url
-   * @param {string[]} properties
    */
-  resolveURL(): Promise<Video[]> {
+  resolveURL(url: string, properties: string[]): Promise<Video[]> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method resolveURL`);
   }
 
@@ -70,7 +65,7 @@ export class ServiceAdapter {
    * Searches a video service.
    * @param {string} query
    */
-  async searchVideos(): Promise<Video[]> {
+  async searchVideos(query: string): Promise<Video[]> {
     return [];
   }
 }

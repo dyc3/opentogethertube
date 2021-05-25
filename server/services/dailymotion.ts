@@ -1,19 +1,19 @@
-const URL = require("url");
-const axios = require("axios");
+import URL from "url";
+import axios from "axios";
 import { ServiceAdapter } from "../serviceadapter";
-const { InvalidVideoIdException } = require("../exceptions");
-const Video = require("../../common/video");
+import { InvalidVideoIdException } from "../exceptions";
+import { Video, VideoDefault } from "../../common/models/video";
 
-class DailyMotionAdapter extends ServiceAdapter {
+export default class DailyMotionAdapter extends ServiceAdapter {
   api = axios.create({
     baseURL: "https://api.dailymotion.com",
   });
 
-  get serviceId() {
+  get serviceId(): "dailymotion" {
     return "dailymotion";
   }
 
-  canHandleURL(link) {
+  canHandleURL(link: string): boolean {
     const url = URL.parse(link);
 
     return (
@@ -22,20 +22,18 @@ class DailyMotionAdapter extends ServiceAdapter {
     );
   }
 
-  isCollectionURL() {
+  isCollectionURL(): boolean {
     return false;
   }
 
-  getVideoId(link) {
+  getVideoId(link: string): string {
     const url = URL.parse(link);
     return url.pathname.split("/").slice(-1)[0].trim();
   }
 
-  async fetchVideoInfo(videoId) {
+  async fetchVideoInfo(videoId: string): Promise<Video> {
     if (!/^[A-za-z0-9]+$/.exec(videoId)) {
-      return Promise.reject(
-        new InvalidVideoIdException(this.serviceId, videoId)
-      );
+      throw new InvalidVideoIdException(this.serviceId, videoId);
     }
 
     const result = await this.api.get(`/video/${videoId}`, {
@@ -44,14 +42,14 @@ class DailyMotionAdapter extends ServiceAdapter {
       },
     });
 
-    const video = new Video({
+    const video: VideoDefault = {
       service: this.serviceId,
       id: videoId,
       title: result.data.title,
       description: result.data.description,
       thumbnail: result.data.thumbnail_url,
       length: result.data.duration,
-    });
+    };
 
     return video;
   }
