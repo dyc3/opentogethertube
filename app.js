@@ -133,6 +133,7 @@ let sessionOpts = {
 	},
 };
 if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
+	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
 	app.set('trust proxy', 1);
 	sessionOpts.cookie.secure = true;
 }
@@ -158,6 +159,7 @@ app.use((req, res, next) => {
 	if (!req.user && !req.session.username) {
 		let username = uniqueNamesGenerator();
 		log.debug(`Generated name for new user (on request): ${username}`);
+		log.debug(`headers: x-forwarded-proto=${req.headers["x-forwarded-proto"]} x-forwarded-for=${req.headers["x-forwarded-for"]} x-forwarded-host=${req.headers["x-forwarded-host"]}`);
 		req.session.username = username;
 		req.session.save((err) => {
 			if (err) {
