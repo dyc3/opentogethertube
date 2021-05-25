@@ -1,4 +1,4 @@
-import URL from "url";
+import { URL } from "url";
 import axios from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { InvalidVideoIdException } from "../exceptions";
@@ -14,7 +14,7 @@ export default class DailyMotionAdapter extends ServiceAdapter {
   }
 
   canHandleURL(link: string): boolean {
-    const url = URL.parse(link);
+    const url = new URL(link);
 
     return (
       (url.host.endsWith("dailymotion.com") && url.pathname.startsWith("/video/")) ||
@@ -27,7 +27,7 @@ export default class DailyMotionAdapter extends ServiceAdapter {
   }
 
   getVideoId(link: string): string {
-    const url = URL.parse(link);
+    const url = new URL(link);
     return url.pathname.split("/").slice(-1)[0].trim();
   }
 
