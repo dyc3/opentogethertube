@@ -243,7 +243,7 @@ export default {
 
       const fetchResults = await adapter.resolveURL(query);
       let resolvedResults = fetchResults.map(video => {
-        if (!video.service || !video.id) {
+        if ((!video.service || !video.id) && video.url) {
           const adapter = this.getServiceAdapterForURL(video.url);
           if (!adapter) {
             return null;
