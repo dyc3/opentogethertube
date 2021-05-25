@@ -394,7 +394,6 @@ export class Room implements RoomState {
 		await this.publishRoomEvent(request);
 	}
 
-	// eslint-disable-next-line no-unused-vars
 	public async skip(request: SkipRequest): Promise<void> {
 		const current = this.currentSource;
 		this.dequeueNext();
