@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants } from "./types";
 import { Video, VideoId } from "./video";
 

@@ -121,6 +121,7 @@ const createRoom: RequestHandler = async (req, res) => {
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	if (err instanceof OttException) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
+		// FIXME: allow for type narrowing based on err.name
 		if (err.name === "BadApiArgumentException") {
 			const e = err as BadApiArgumentException;
 			res.status(400).json({
