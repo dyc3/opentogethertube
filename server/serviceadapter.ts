@@ -62,7 +62,7 @@ export class ServiceAdapter {
   /**
    * Fetches all videos associated with a URL.
    */
-  resolveURL(url: string, properties?: (keyof VideoMetadata)[]): Promise<Video | Video[]> {
+  resolveURL(url: string, properties?: (keyof VideoMetadata)[]): Promise<Video[] | { url: string }[]> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method resolveURL`);
   }
 

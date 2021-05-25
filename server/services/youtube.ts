@@ -80,17 +80,17 @@ export default class YouTubeAdapter extends ServiceAdapter {
     }
   }
 
-  async resolveURL(link: string, onlyProperties: (keyof VideoMetadata)[]): Promise<Video | Video[]> {
+  async resolveURL(link: string, onlyProperties: (keyof VideoMetadata)[]): Promise<Video[]> {
     log.debug(`resolveURL: ${link}, ${onlyProperties}`);
     const url = new URL.URL(link);
 
     const qPlaylist = url.searchParams.get("list");
 
     if (url.pathname.startsWith("/c/") || url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/")) {
-      return this.fetchChannelVideos(this.getChannelId(url));
+      return await this.fetchChannelVideos(this.getChannelId(url));
     }
     else if (url.pathname === "/playlist") {
-      return this.fetchPlaylistVideos(qPlaylist);
+      return await this.fetchPlaylistVideos(qPlaylist);
     }
     else {
       if (qPlaylist && !knownPrivateLists.includes(qPlaylist)) {
@@ -99,11 +99,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
         }
         catch {
           log.debug("Falling back to fetching video without playlist");
-          return this.fetchVideoInfo(this.getVideoId(link), onlyProperties);
+          return [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)];
         }
       }
       else {
-        return this.fetchVideoInfo(this.getVideoId(link), onlyProperties);
+        return [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)];
       }
     }
   }
@@ -114,8 +114,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
   async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
     const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
-    const groups = await Promise.all(Object.values(groupedByMissingInfo).map(async group => {
-      return await this.videoApiRequest(group.map(request => request.id), group[0].missingInfo);
+    const groups = await Promise.all(Object.values(groupedByMissingInfo).map(group => {
+      const ids = group.map(request => request.id);
+      return this.videoApiRequest(ids, group[0].missingInfo);
     }));
     // const results = Object.values(groups.flat()[0]);
     const results = _.flatten(groups);
@@ -314,11 +315,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
             id: ids.join(","),
           },
         });
-      const results = {};
+      const results: Video[] = [];
       for (let i = 0; i < res.data.items.length; i++) {
         const item = res.data.items[i];
         const video: Video = {
-          service: "youtube",
+          service: this.serviceId,
           id: item.id,
         };
         if (item.snippet) {
@@ -338,7 +339,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
             .duration(item.contentDetails.duration)
             .asSeconds();
         }
-        results[item.id] = video;
+        results.push(video);
       }
       try {
         await storage.updateManyVideoInfo(_.values(results));
@@ -348,6 +349,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
           `Failed to cache video info, will return metadata anyway: ${err}`
         );
       }
+      return results;
     }
     catch (err) {
       if (err.response && err.response.status === 403) {
@@ -358,16 +360,15 @@ export default class YouTubeAdapter extends ServiceAdapter {
           try {
             const getLengthPromises = ids.map((id) => this.getVideoLengthFallback(id));
             const results = await Promise.all(getLengthPromises);
-            const videos = _.zip(ids, results).map(
-              (i) => ({
+            const videos: Video[] = _.zip(ids, results).map(
+              ([id, length]) => ({
                 service: "youtube",
-                id: i[0],
-                length: i[1],
+                id,
+                length,
                 // HACK: we can guess what the thumbnail url is, but this could possibly change without warning
-                thumbnail: `https://i.ytimg.com/vi/${i[0]}/default.jpg`,
+                thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
               })
             );
-            // const finalResult = _.zipObject(ids, videos);
             try {
               await storage.updateManyVideoInfo(videos);
             }
