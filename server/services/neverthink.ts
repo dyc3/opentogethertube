@@ -2,7 +2,7 @@ import _ from "lodash";
 import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
-import { Video } from "../../common/models/video";
+import { Video, VideoId } from "../../common/models/video";
 import { getLogger } from "../../logger";
 
 const log = getLogger("neverthink");
@@ -86,16 +86,21 @@ export default class NeverthinkAdapter extends ServiceAdapter {
 			const user = url.pathname.replace("/u/", "");
 			return await this.getUserChannel(user);
 		}
-		else if (url.pathname.startsWith("/playlists/")) {
+		else if (url.pathname.startsWith("/playlists/") || url.pathname.endsWith(".json")) {
 			const resp = await this.fetch.get(link);
 			// HACK: limit the possible array size to 50, because you can't request more than 50 videos at a time from youtube
 			return resp.data.videos.slice(0, 50).map((vid: string) => {
 				if (vid.startsWith("nt:")) {
-					const ytid = vid.split(":")[2];
-					return {
-						service: "youtube",
-						id: ytid,
-					};
+					const ytid: string | undefined = vid.split(":")[2];
+					if (ytid) {
+						return {
+							service: "youtube",
+							id: ytid,
+						};
+					}
+					else {
+						return;
+					}
 				}
 				else if (vid.startsWith("vimeo:")) {
 					const vimeoid = vid.split(":")[1];
@@ -110,7 +115,7 @@ export default class NeverthinkAdapter extends ServiceAdapter {
 						id: vid,
 					};
 				}
-			});
+			}).filter((vid: VideoId | undefined) => !!vid);
 		}
 		else {
 			const channels = await this.getAllChannels();
