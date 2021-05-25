@@ -38,7 +38,7 @@ module.exports = {
     "html",
   ],
   'collectCoverageFrom': [
-    '**/*.{js,vue}',
+    '**/*.{[tj]s,vue}',
     '!**/node_modules/**',
     '!**/dist/**',
     '!**/*.config.js',
