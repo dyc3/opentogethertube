@@ -18,13 +18,13 @@
 		"types": [
 			"webpack-env",
 			"jest",
-			"vuetify",
+			"vuetify"
 		],
 		"paths": {
 			"@/*": [
 				"src/*"
 			]
-		},
+		}
 	},
 	"include": [
 		"src/**/*.ts",
