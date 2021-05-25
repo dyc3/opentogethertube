@@ -41,7 +41,7 @@ export default Vue.extend({
 			type: Number,
 		},
 	},
-	data(): { ToastStyle: typeof ToastStyle; padding: number; closeTimeoutId: number | null } {
+	data(): { ToastStyle: typeof ToastStyle; padding: number; closeTimeoutId: ReturnType<typeof setTimeout> | null } {
 		return {
 			ToastStyle,
 			padding: 8,
