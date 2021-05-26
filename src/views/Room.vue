@@ -216,6 +216,7 @@ import UserList from "@/components/UserList.vue";
 import connection from "@/util/connection";
 import api from "@/util/api";
 import { ToastStyle } from "@/models/toast";
+import { PlayerStatus } from 'common/models/types';
 
 export default {
   name: 'room',
@@ -397,7 +398,7 @@ export default {
     onPlaybackChange(changeTo) {
       console.log(`onPlaybackChange: ${changeTo}`);
       if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
-        this.$store.commit("PLAYBACK_STATUS", "ready");
+        this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
       }
       this.updateVolume();
       if (changeTo === this.$store.state.room.isPlaying) {
@@ -415,7 +416,7 @@ export default {
       e.target.select();
     },
     onPlayerReady() {
-      this.$store.commit("PLAYBACK_STATUS", "ready");
+      this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
 
       if (this.currentSource.service === "vimeo") {
         this.onPlayerReady_Vimeo();
@@ -487,11 +488,11 @@ export default {
       }
     },
     onVideoBuffer(percent) {
-      this.$store.commit("PLAYBACK_STATUS", "buffering");
+      this.$store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
       this.$store.commit("PLAYBACK_BUFFER", percent);
     },
     onVideoError() {
-      this.$store.commit("PLAYBACK_STATUS", "error");
+      this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
     hideVideoControls: _.debounce(() => {
       let controlsDiv = document.getElementsByClassName("video-controls");

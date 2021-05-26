@@ -63,8 +63,10 @@ export default new Vuex.Store({
 	},
 	mutations:{
 		PLAYBACK_STATUS(state, message) {
-			state.playerStatus = message;
-			connection.send({ action: "status", status: message });
+			if (state.playerStatus !== message) {
+				state.playerStatus = message;
+				connection.send({ action: "status", status: message });
+			}
 		},
 		PLAYBACK_BUFFER(state, percent) {
 			state.playerBufferPercent = percent;

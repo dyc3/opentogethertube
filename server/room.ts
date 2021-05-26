@@ -7,7 +7,7 @@ import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, Playb
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId } from "../common/models/types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import { VideoNotFoundException } from "./exceptions";
@@ -26,6 +26,7 @@ export class RoomUser {
 	user_id?: number
 	unregisteredUsername = ""
 	user: User | null
+	playerStatus: PlayerStatus = PlayerStatus.none
 
 	constructor(id: string) {
 		this.id = id;
@@ -54,6 +55,9 @@ export class RoomUser {
 			this.unregisteredUsername = info.username;
 			this.user_id = undefined;
 			this.user = null;
+		}
+		if (info.status) {
+			this.playerStatus = info.status;
 		}
 	}
 }
@@ -181,7 +185,7 @@ export class Room implements RoomState {
 				id: user.id,
 				name: user.username,
 				isLoggedIn: user.isLoggedIn,
-				status: "joined",
+				status: user.playerStatus,
 				role: this.getRole(user),
 			};
 			infos.push(info);

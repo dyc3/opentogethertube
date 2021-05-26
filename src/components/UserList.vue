@@ -38,7 +38,7 @@
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
 						<v-icon small class="player-status" :aria-label="`${user.isYou ? 'your' : user.name} player is ${user.status}`">
-							fas fa-{{ {"buffering":"spinner", "ready":"check", "error":"exclamation" }[user.status] }}
+							fas fa-{{ { [PlayerStatus.buffering]: "spinner", [PlayerStatus.ready]: "check", [PlayerStatus.error]: "exclamation" }[user.status] }}
 						</v-icon>
 					</span>
 				</template>
@@ -77,6 +77,7 @@
 <script>
 import { API } from "@/common-http.js";
 import PermissionsMixin from "@/mixins/permissions.js";
+import { PlayerStatus } from "common/models/types";
 
 /** Lists users that are connected to a room. */
 export default {
@@ -87,6 +88,7 @@ export default {
 	mixins: [PermissionsMixin],
 	data() {
 		return {
+			PlayerStatus,
 			inputUsername: "",
 			showEditName: false,
 			setUsernameLoading: false,

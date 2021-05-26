@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Session } from "express-session";
 // import { Grants } from "../../server/permissions.js";
 import { Video } from "./video";
@@ -22,9 +23,16 @@ export enum OttWebsocketError {
 	ROOM_UNLOADED = 4003,
 }
 
+export enum PlayerStatus {
+	none = "none",
+	ready = "ready",
+	buffering = "buffering",
+	error = "error",
+}
+
 export type MySession = Session & { username?: string, passport?: { user?: number } }
 
-export type ClientInfo = { id: ClientId, username?: string, user_id?: number }
+export type ClientInfo = { id: ClientId, username?: string, user_id?: number, status?: PlayerStatus }
 
 export interface RoomOptions {
 	name: string
@@ -48,7 +56,7 @@ export type RoomUserInfo = {
 	id: ClientId
 	name: string
 	isLoggedIn: boolean
-	status: any // TODO: make this an enum
+	status: PlayerStatus
 	role: Role
 }
 

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants } from "./types";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants, PlayerStatus } from "./types";
 import { Video, VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement
@@ -48,7 +48,7 @@ interface RoomEventContext {
 	videos?: Video[]
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe;
+export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus;
 
 interface ClientMessageBase {
 	action: string
@@ -84,6 +84,11 @@ export interface ClientMessageChat extends ClientMessageBase {
 
 export interface ClientMessageKickMe extends ClientMessageBase {
 	action: "kickme"
+}
+
+export interface ClientMessagePlayerStatus extends ClientMessageBase {
+	action: "status"
+	status: PlayerStatus
 }
 
 export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser | ChatRequest

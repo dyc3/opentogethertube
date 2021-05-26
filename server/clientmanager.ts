@@ -117,6 +117,16 @@ export class Client {
 				...msg,
 			};
 		}
+		else if (msg.action === "status") {
+			request = {
+				type: RoomRequestType.UpdateUser,
+				client: this.id,
+				info: {
+					id: this.id,
+					status: msg.status,
+				},
+			};
+		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
