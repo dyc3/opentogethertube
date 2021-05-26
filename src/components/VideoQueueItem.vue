@@ -36,26 +36,39 @@
 	</v-sheet>
 </template>
 
-<script>
+<script lang="ts">
+import Vue from "vue";
 import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/timestamp.js";
 import { ToastStyle } from '@/models/toast';
+import Component from 'vue-class-component';
+import { Video } from "common/models/video";
 
-export default {
-	name: "VideoQueueItem",
+@Component({
 	props: {
 		item: { type: Object, required: true },
 		isPreview: { type: Boolean, default: false },
 	},
-	data() {
-		return {
-			isLoadingAdd: false,
-			isLoadingVote: false,
-			hasBeenAdded: false,
-			thumbnailHasError: false,
-			hasError: false,
-		};
-	},
+})
+export default class VideoQueueItem extends Vue {
+	item: Video
+	isPreview: boolean
+
+	isLoadingAdd = false
+	isLoadingVote = false
+	hasBeenAdded = false
+	thumbnailHasError = false
+	hasError = false
+	voted = false
+
+	get videoLength() {
+		return secondsToTimestamp(this.item.length);
+	}
+
+	get thumbnailSource() {
+		return !this.thumbnailHasError && this.item.thumbnail ? this.item.thumbnail : require('@/assets/placeholder.svg');
+	}
+
 	created() {
 		if (this.item.id === this.$store.state.room.currentSource.id && this.item.service === this.$store.state.room.currentSource.service) {
 			this.hasBeenAdded = true;
@@ -67,99 +80,94 @@ export default {
 				return;
 			}
 		}
-	},
-	computed:{
-		videoLength() {
-			return secondsToTimestamp(this.item.length);
-		},
-		thumbnailSource() {
-			return !this.thumbnailHasError && this.item.thumbnail ? this.item.thumbnail : require('@/assets/placeholder.svg');
-		},
-	},
-	methods: {
-		getPostData() {
-			let data = {
-				service: this.item.service,
-				id: this.item.id,
-			};
-			console.log(data);
-			return data;
-		},
-		async addToQueue() {
-			this.isLoadingAdd = true;
-			try {
-				let resp = await API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData());
-				this.hasError = !resp.data.success;
-				this.hasBeenAdded = true;
-				this.$toast.add({
-					style: ToastStyle.Success,
-					content: "Video added to queue",
-					duration: 5000,
-				});
-			}
-			catch (e) {
-				this.hasError = true;
-				this.$toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
-			}
-			this.isLoadingAdd = false;
-		},
-		async removeFromQueue() {
-			this.isLoadingAdd = true;
-			try {
-				let resp = await API.delete(`/room/${this.$route.params.roomId}/queue`, {
-					data: this.getPostData(),
-				});
-				this.hasError = !resp.data.success;
-				this.$toast.add({
-					style: ToastStyle.Success,
-					content: "Video removed from queue",
-					duration: 5000,
-				});
-			}
-			catch (e) {
-				this.hasError = true;
-				this.$toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
-			}
-			this.isLoadingAdd = false;
-		},
-		async vote() {
-			this.isLoadingVote = true;
-			try {
-				let resp;
-				if (!this.item.voted) {
-					resp = await API.post(`/room/${this.$route.params.roomId}/vote`, this.getPostData());
-					this.item.voted = true;
-				}
-				else {
-					resp = await API.delete(`/room/${this.$route.params.roomId}/vote`, { data: this.getPostData() });
-					this.item.voted = false;
-				}
-				this.hasError = !resp.data.success;
-			}
-			catch (e) {
-				this.hasError = true;
-				this.$toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
-			}
-			this.isLoadingVote = false;
+	}
 
-		},
-		onThumbnailError() {
-			this.thumbnailHasError = true;
-		},
-	},
-};
+	getPostData() {
+		let data = {
+			service: this.item.service,
+			id: this.item.id,
+		};
+		// console.log(data);
+		return data;
+	}
+
+	async addToQueue() {
+		this.isLoadingAdd = true;
+		try {
+			let resp = await API.post(`/room/${this.$route.params.roomId}/queue`, this.getPostData());
+			this.hasError = !resp.data.success;
+			this.hasBeenAdded = true;
+			this.$toast.add({
+				style: ToastStyle.Success,
+				content: "Video added to queue",
+				duration: 5000,
+			});
+		}
+		catch (e) {
+			this.hasError = true;
+			this.$toast.add({
+				style: ToastStyle.Error,
+				content: e.response.data.error.message,
+				duration: 6000,
+			});
+		}
+		this.isLoadingAdd = false;
+	}
+
+	async removeFromQueue() {
+		this.isLoadingAdd = true;
+		try {
+			let resp = await API.delete(`/room/${this.$route.params.roomId}/queue`, {
+				data: this.getPostData(),
+			});
+			this.hasError = !resp.data.success;
+			this.$toast.add({
+				style: ToastStyle.Success,
+				content: "Video removed from queue",
+				duration: 5000,
+			});
+		}
+		catch (e) {
+			this.hasError = true;
+			this.$toast.add({
+				style: ToastStyle.Error,
+				content: e.response.data.error.message,
+				duration: 6000,
+			});
+		}
+		this.isLoadingAdd = false;
+	}
+
+	async vote() {
+		this.isLoadingVote = true;
+		try {
+			let resp;
+			if (!this.voted) {
+				resp = await API.post(`/room/${this.$route.params.roomId}/vote`, this.getPostData());
+				this.voted = true;
+			}
+			else {
+				resp = await API.delete(`/room/${this.$route.params.roomId}/vote`, { data: this.getPostData() });
+				this.voted = false;
+			}
+			this.hasError = !resp.data.success;
+		}
+		catch (e) {
+			this.hasError = true;
+			this.$toast.add({
+				style: ToastStyle.Error,
+				content: e.response.data.error.message,
+				duration: 6000,
+			});
+		}
+		this.isLoadingVote = false;
+
+	}
+
+	onThumbnailError() {
+		this.thumbnailHasError = true;
+	}
+}
 </script>
 
 <style lang="scss" scoped>

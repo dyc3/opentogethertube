@@ -9,6 +9,11 @@ declare module 'vue/types/vue' {
       add: (toast: Omit<Toast, "id">) => void
       remove: (id: symbol) => void
     },
+    $route: {
+      params: {
+        roomId?: string
+      }
+    }
   }
 }
 
