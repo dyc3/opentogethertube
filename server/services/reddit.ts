@@ -20,7 +20,7 @@ export default class RedditAdapter extends ServiceAdapter {
 		return url.host.endsWith("reddit.com") && !url.pathname.includes("comments") && /^\/r\/.+$/.test(url.pathname);
 	}
 
-	isCollectionURL(): boolean {
+	isCollectionURL(link: string): boolean {
 		return true;
 	}
 

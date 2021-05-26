@@ -1,4 +1,4 @@
-const RedditAdapter = require("../../../../server/services/reddit");
+import RedditAdapter from "../../../../server/services/reddit";
 
 const subredditListResponse = {"kind": "Listing", "data": {"modhash": "", "dist": 4, "children": [
 {"kind": "t3", "data": {"approved_at_utc": null, "subreddit": "youtubehaiku", "selftext": "", "author_fullname": "t2_53ndd", "saved": false, "mod_reason_title": null, "gilded": 0, "clicked": false, "title": "Happy Birthday to this subreddit. Here's the first example of a YouTube [Haiku] from this day 9 years ago.", "link_flair_richtext": [], "subreddit_name_prefixed": "r/youtubehaiku", "hidden": false, "pwls": 6, "link_flair_css_class": "haiku", "downs": 0, "thumbnail_height": 105, "top_awarded_type": null, "hide_score": false, "name": "t3_m62yl6", "quarantine": false, "link_flair_text_color": "dark", "upvote_ratio": 0.98, "author_flair_background_color": null, "subreddit_type": "public", "ups": 4099, "total_awards_received": 7, "media_embed": {"content": "&lt;iframe width=\"356\" height=\"200\" src=\"https://www.youtube.com/embed/yr_Rpk9HR1g?feature=oembed&amp;enablejsapi=1\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen&gt;&lt;/iframe&gt;", "width": 356, "scrolling": false, "height": 200}, "thumbnail_width": 140, "author_flair_template_id": null, "is_original_content": false, "user_reports": [], "secure_media": {"type": "youtube.com", "oembed": {"provider_url": "https://www.youtube.com/", "version": "1.0", "title": "Super \u041c\u0430\u0440\u0438\u043e Brothers", "type": "video", "thumbnail_width": 480, "height": 200, "width": 356, "html": "&lt;iframe width=\"356\" height=\"200\" src=\"https://www.youtube.com/embed/yr_Rpk9HR1g?feature=oembed&amp;enablejsapi=1\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen&gt;&lt;/iframe&gt;", "author_name": "rawrderder", "provider_name": "YouTube", "thumbnail_url": "https://i.ytimg.com/vi/yr_Rpk9HR1g/hqdefault.jpg", "thumbnail_height": 360, "author_url": "https://www.youtube.com/user/rawrderder"}}, "is_reddit_media_domain": false, "is_meta": false, "category": null, "secure_media_embed": {"content": "&lt;iframe width=\"356\" height=\"200\" src=\"https://www.youtube.com/embed/yr_Rpk9HR1g?feature=oembed&amp;enablejsapi=1\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen&gt;&lt;/iframe&gt;", "width": 356, "scrolling": false, "media_domain_url": "https://www.redditmedia.com/mediaembed/m62yl6", "height": 200}, "link_flair_text": "Haiku", "can_mod_post": false, "score": 4099, "approved_by": null, "author_premium": false, "thumbnail": "https://a.thumbs.redditmedia.com/gJBuxJ4uq7H7k5dpPfmAyhMvNP694lhlkf-AgsCoJj8.jpg", "edited": false, "author_flair_css_class": null, "author_flair_richtext": [], "gildings": {"gid_1": 2}, "post_hint": "rich:video", "content_categories": ["videos"], "is_self": false, "mod_note": null, "created": 1615906025.0, "link_flair_type": "text", "wls": 6, "removed_by_category": null, "banned_by": null, "author_flair_type": "text", "domain": "youtu.be", "allow_live_comments": true, "selftext_html": null, "likes": null, "suggested_sort": null, "banned_at_utc": null, "url_overridden_by_dest": "https://youtu.be/yr_Rpk9HR1g", "view_count": null, "archived": false, "no_follow": false, "is_crosspostable": false, "pinned": false, "over_18": false, "preview": {"images": [
@@ -49,34 +49,37 @@ const invalidLinks = [
 	"https://www.reddit.com/r/youtubehaiku/comments/lpmdmj/poetry_this_is_the_most_american_thing_ive_ever/",
 ];
 
-describe("canHandleURL", () => {
-	const adapter = new RedditAdapter();
+describe("Reddit", () => {
+	describe("canHandleURL", () => {
+		const adapter = new RedditAdapter();
 
-	it.each(validLinks)("Accepts %s", (link) => {
-		expect(adapter.canHandleURL(link)).toBe(true);
+		it.each(validLinks)("Accepts %s", (link) => {
+			expect(adapter.canHandleURL(link)).toBe(true);
+		});
+
+		it.each(invalidLinks)("Rejects %s", (link) => {
+			expect(adapter.canHandleURL(link)).toBe(false);
+		});
 	});
 
-	it.each(invalidLinks)("Rejects %s", (link) => {
-		expect(adapter.canHandleURL(link)).toBe(false);
+	describe("isCollectionURL", () => {
+		const adapter = new RedditAdapter();
+
+		it("Always returns true", () => {
+			expect(adapter.isCollectionURL("")).toBe(true);
+		});
+	});
+
+	describe("resolveURL", () => {
+		const adapter = new RedditAdapter();
+
+		it("should get video urls", async () => {
+			jest.spyOn(adapter.api, 'get').mockResolvedValue({ data: subredditListResponse });
+
+			const videos = await adapter.resolveURL("https://reddit.com/r/youtubehaiku");
+
+			expect(videos).toHaveLength(4);
+		});
 	});
 });
 
-describe("isCollectionURL", () => {
-	const adapter = new RedditAdapter();
-
-	it("Always returns true", () => {
-		expect(adapter.isCollectionURL("")).toBe(true);
-	});
-});
-
-describe("resolveURL", () => {
-	const adapter = new RedditAdapter();
-
-	it("should get video urls", async () => {
-		jest.spyOn(adapter.api, 'get').mockResolvedValue({ data: subredditListResponse });
-
-		let videos = await adapter.resolveURL("https://reddit.com/r/youtubehaiku");
-
-		expect(videos).toHaveLength(4);
-	});
-});
