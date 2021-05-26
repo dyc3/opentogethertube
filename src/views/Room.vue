@@ -88,27 +88,7 @@
             </v-tabs>
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
-                <div class="video-queue">
-                  <div class="empty-queue" v-if="$store.state.room.queue.length === 0">
-                    <v-container fill-height>
-                      <v-row justify="center" align="center">
-                        <div>
-                          <div class="msg">
-                            There aren't any videos queued up.
-                          </div>
-                          <v-btn x-large block @click="switchToAddTab">
-                            Add a video
-                          </v-btn>
-                        </div>
-                      </v-row>
-                    </v-container>
-                  </div>
-                  <draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
-                    <transition-group name="video-queue">
-                      <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata.id" :item="itemdata"/>
-                    </transition-group>
-                  </draggable>
-                </div>
+                <VideoQueue @switchtab="switchToAddTab" />
               </v-tab-item>
               <v-tab-item>
                 <AddPreview />
@@ -204,11 +184,9 @@
 
 <script>
 import { API } from "@/common-http.js";
-import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import AddPreview from "@/components/AddPreview.vue";
 import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
 import _ from "lodash";
-import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
@@ -219,12 +197,12 @@ import connection from "@/util/connection";
 import api from "@/util/api";
 import { ToastStyle } from "@/models/toast";
 import { PlayerStatus } from 'common/models/types';
+import VideoQueue from "@/components/VideoQueue.vue";
 
 export default {
   name: 'room',
   components: {
-    draggable,
-    VideoQueueItem,
+    VideoQueue,
     PermissionsEditor,
     VueSlider,
     OmniPlayer,
@@ -477,9 +455,6 @@ export default {
         document.documentElement.requestFullscreen();
       }
     },
-    onQueueDragDrop(e) {
-      api.queueMove(e.oldIndex, e.newIndex);
-    },
     async onTabChange() {
       if (this.queueTab === 2) {
         // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
@@ -680,7 +655,7 @@ export default {
     }
   }
 }
-.video-queue, .video-add {
+.video-add {
   margin: 0 10px;
   min-height: 500px;
 }
@@ -778,15 +753,6 @@ export default {
   width: 90px;
 }
 
-.empty-queue {
-  height: 300px;
-
-  .msg {
-    opacity: 0.5;
-    font-size: 20px;
-  }
-}
-
 .room-settings .submit {
   position: -webkit-sticky;
   position: sticky;
@@ -795,17 +761,5 @@ export default {
   .v-btn {
     margin: 10px 0;
   }
-}
-
-// Transition animation
-.video-queue-enter-active, .video-queue-leave-active {
-  transition: all 0.2s;
-}
-.video-queue-enter, .video-queue.leave-to {
-  opacity: 0;
-  transform: translateX(-30px) scaleY(0);
-}
-.video-queue-move {
-  transition: transform 0.2s;
 }
 </style>
