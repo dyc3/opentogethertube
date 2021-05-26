@@ -43,7 +43,7 @@ export interface ServerMessageAnnouncement extends ServerMessageBase {
 	text: string
 }
 
-interface RoomEventContext {
+export interface RoomEventContext {
 	video?: Video
 	videos?: Video[]
 	prevPosition?: number

@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomEventContext, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -221,7 +221,7 @@ export class Room implements RoomState {
 		await publish(`room:${this.name}`, JSON.stringify(msg));
 	}
 
-	async publishRoomEvent(request: RoomRequest, additional?: unknown): Promise<void> {
+	async publishRoomEvent(request: RoomRequest, additional?: RoomEventContext): Promise<void> {
 		const user = this.getUserInfo(request.client);
 		await this.publish({
 			action: "event",
@@ -267,6 +267,15 @@ export class Room implements RoomState {
 			if (user.id === client) {
 				return user;
 			}
+		}
+	}
+
+	get realPlaybackPosition(): number {
+		if (this._playbackStart) {
+			return this.playbackPosition + (dayjs().diff(this._playbackStart, "millisecond") / 1000);
+		}
+		else {
+			return this.playbackPosition;
 		}
 	}
 
@@ -385,7 +394,7 @@ export class Room implements RoomState {
 		}
 		this.log.debug("playback paused");
 		this.isPlaying = false;
-		this.playbackPosition += dayjs().diff(this._playbackStart, "millisecond") / 1000;
+		this.playbackPosition = this.realPlaybackPosition;
 		this._playbackStart = null;
 	}
 
@@ -404,8 +413,9 @@ export class Room implements RoomState {
 
 	public async skip(request: SkipRequest): Promise<void> {
 		const current = this.currentSource;
+		const prevPosition = this.realPlaybackPosition;
 		this.dequeueNext();
-		await this.publishRoomEvent(request, { video: current });
+		await this.publishRoomEvent(request, { video: current, prevPosition });
 	}
 
 	/**
@@ -519,6 +529,14 @@ export class Room implements RoomState {
 					client: request.client,
 					value: request.event.additional.prevPosition,
 				});
+				break;
+			case RoomRequestType.SkipRequest:
+				if (this.currentSource) {
+					this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
+					this.markDirty("queue");
+				}
+				this.currentSource = request.event.additional.video;
+				this.playbackPosition = request.event.additional.prevPosition;
 				break;
 			default:
 				this.log.error(`Event ${request.event.request.type} is not undoable, ignoring`);
