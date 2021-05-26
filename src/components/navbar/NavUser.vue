@@ -27,8 +27,8 @@
 
 <script lang="ts">
 import Vue from "vue";
+import Component from 'vue-class-component';
 
-export default Vue.extend({
-  name: "NavUser",
-});
+@Component
+export default class NavUser extends Vue {}
 </script>
