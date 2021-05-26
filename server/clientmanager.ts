@@ -212,7 +212,7 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 		if (e instanceof RoomNotFoundException) {
 			socket.close(OttWebsocketError.ROOM_NOT_FOUND);
 		}
- else {
+		else {
 			socket.close(OttWebsocketError.UNKNOWN);
 		}
 	}
