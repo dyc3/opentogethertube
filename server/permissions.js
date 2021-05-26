@@ -368,7 +368,7 @@ export class Grants {
 	}
 }
 
-module.exports = {
+const _exp = {
 	ROLE_NAMES,
 	ROLE_DISPLAY_NAMES,
 	PERMISSIONS,
@@ -381,3 +381,5 @@ module.exports = {
 	granted,
 	check,
 };
+module.exports = _exp;
+export default _exp;

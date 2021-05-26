@@ -1,8 +1,8 @@
-const permissions = require("../../../server/permissions.js");
+import permissions from "../../../server/permissions.js";
 
 describe('Permission System', () => {
 	it('should parse exact permissions list into correct grant mask', () => {
-		let grantMask = permissions.parseIntoGrantMask([
+		const grantMask = permissions.parseIntoGrantMask([
 			"playback.play-pause",
 			"manage-queue.add",
 			"chat",
@@ -11,12 +11,12 @@ describe('Permission System', () => {
 	});
 
 	it('should parse wildcard permissions list into correct grant mask', () => {
-		let grantMask = permissions.parseIntoGrantMask(["playback"]);
+		const grantMask = permissions.parseIntoGrantMask(["playback"]);
 		expect(grantMask).toEqual(1<<0 | 1<<1 | 1<<2);
 	});
 
 	it('should evaluate permission grants accurately', () => {
-		let grants = {
+		const grants = {
 			0: 1<<0 | 1<<1 | 1<<2,
 		};
 		expect(permissions.granted(grants, 0, "playback.play-pause")).toEqual(true);
@@ -24,7 +24,7 @@ describe('Permission System', () => {
 	});
 
 	it('should evaluate invalid permission as false', () => {
-		let grants = {
+		const grants = {
 			0: 1<<0 | 1<<1 | 1<<2,
 		};
 		expect(permissions.granted(grants, 0, null)).toEqual(false); // invalid because null
@@ -32,7 +32,7 @@ describe('Permission System', () => {
 	});
 
 	it('should evaluate inherited permission grants accurately', () => {
-		let grants = {
+		const grants = {
 			0: 1<<0 | 1<<1 | 1<<2,
 			1: 1<<3 | 1<<4 | 1<<7,
 			2: 1<<8,
@@ -51,7 +51,7 @@ describe('Permission System', () => {
 	});
 
 	it('should evaluate multiple/wildcard permission grants correctly', () => {
-		let grants = {
+		const grants = {
 			0: 1<<0 | 1<<1 | 1<<2,
 			1: 1<<3 | 1<<4 | 1<<7,
 			2: 1<<8,
@@ -66,15 +66,15 @@ describe('Permission System', () => {
 	});
 
 	it('should stringify Grants', () => {
-		let grants = new permissions.Grants();
-		let str = JSON.stringify(grants);
+		const grants = new permissions.Grants();
+		const str = JSON.stringify(grants);
 		expect(str).toMatch(/^\{.*\}$/);
 		expect(str.length).toBeGreaterThan(2);
 		expect(str).not.toContain("mask");
 	});
 
 	it('should guarentee that using numbers for roles works for Grants', () => {
-		let grants = new permissions.Grants({"0":4095});
+		const grants = new permissions.Grants({"0":4095});
 		expect(grants.masks[0]).toEqual(4095);
 		expect(grants.masks[0]).toEqual(4095);
 	});
