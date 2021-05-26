@@ -104,7 +104,9 @@
                     </v-container>
                   </div>
                   <draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
-                    <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
+                    <transition-group name="video-queue">
+                      <VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata.id" :item="itemdata"/>
+                    </transition-group>
                   </draggable>
                 </div>
               </v-tab-item>
@@ -793,5 +795,17 @@ export default {
   .v-btn {
     margin: 10px 0;
   }
+}
+
+// Transition animation
+.video-queue-enter-active, .video-queue-leave-active {
+  transition: all 0.2s;
+}
+.video-queue-enter, .video-queue.leave-to {
+  opacity: 0;
+  transform: translateX(-30px) scaleY(0);
+}
+.video-queue-move {
+  transition: transform 0.2s;
 }
 </style>
