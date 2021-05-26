@@ -2,7 +2,7 @@
 import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants } from "./types";
 import { Video, VideoId } from "./video";
 
-export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent
+export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement
 
 interface ServerMessageBase {
 	action: string
@@ -36,6 +36,11 @@ export interface ServerMessageEvent extends ServerMessageBase {
 	request: RoomRequest
 	user: RoomUserInfo
 	additional: RoomEventContext
+}
+
+export interface ServerMessageAnnouncement extends ServerMessageBase {
+	action: "announcement"
+	text: string
 }
 
 interface RoomEventContext {

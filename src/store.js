@@ -126,7 +126,7 @@ export default new Vuex.Store({
 			this.commit("toast/ADD_TOAST", {
 				style: ToastStyle.Neutral,
 				content: message.text,
-				duration: 5000,
+				duration: 15000,
 			});
 		},
 		error(context, message) {

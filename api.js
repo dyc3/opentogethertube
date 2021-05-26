@@ -11,6 +11,8 @@ const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/
 import { QueueMode, Role, Visibility } from "./common/models/types";
 import roomapi from "./server/api/room";
 import clientmanager from "./server/clientmanager";
+import { redisClient } from "./redisclient";
+import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
 
 const log = getLogger("api");
 
@@ -485,8 +487,8 @@ router.get("/data/permissions", (req, res) => {
 });
 
 router.post("/announce", (req, res) => {
-	if (req.body.apikey) {
-		if (req.body.apikey !== process.env.OPENTOGETHERTUBE_API_KEY) {
+	if (req.get("apikey")) {
+		if (req.get("apikey") !== process.env.OPENTOGETHERTUBE_API_KEY) {
 			res.status(400).json({
 				success: false,
 				error: "apikey is invalid",
@@ -510,13 +512,19 @@ router.post("/announce", (req, res) => {
 	}
 
 	try {
-		roommanager.sendAnnouncement(req.body.text);
+		redisClient.publish(ANNOUNCEMENT_CHANNEL, JSON.stringify({
+			action: "announcement",
+			text: req.body.text,
+		}));
 	}
 	catch (error) {
 		log.error(`An unknown error occurred while sending an announcement: ${error}`);
 		res.status(500).json({
 			success: false,
-			error: "Unknown, check logs",
+			error: {
+				name: "Unknown",
+				message: "Unknown, check logs",
+			},
 		});
 		return;
 	}

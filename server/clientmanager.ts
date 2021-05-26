@@ -11,6 +11,7 @@ import { RoomNotFoundException } from "./exceptions";
 import { ClientInfo, RoomState, MySession, OttWebsocketError, ClientId } from "../common/models/types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
+import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -19,6 +20,7 @@ const subscribe: (channel: string) => Promise<string> = promisify(redisSubscribe
 const connections: Client[] = [];
 const roomStates: Map<string, RoomState> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
+subscribe(ANNOUNCEMENT_CHANNEL);
 
 export class Client {
 	id: ClientId
@@ -232,35 +234,47 @@ async function broadcast(roomName: string, text: string) {
 redisSubscriber.on("message", async (channel, text) => {
 	// handles sync messages published by the rooms.
 	log.debug(`pubsub message: ${channel}: ${text}`);
-	if (!channel.startsWith("room:")) {
-		return;
-	}
-	const roomName = channel.replace("room:", "");
 	const msg = JSON.parse(text) as ServerMessage;
-	if (msg.action === "sync") {
-		let state = roomStates.get(roomName);
-		if (state === undefined) {
-			const stateText = await get(`room:${roomName}`);
-			state = JSON.parse(stateText) as RoomState;
-		}
-		Object.assign(state, _.omit(msg, "action"));
-		roomStates.set(roomName, state);
+	if (channel.startsWith("room:")) {
+		const roomName = channel.replace("room:", "");
+		if (msg.action === "sync") {
+			let state = roomStates.get(roomName);
+			if (state === undefined) {
+				const stateText = await get(`room:${roomName}`);
+				state = JSON.parse(stateText) as RoomState;
+			}
+			Object.assign(state, _.omit(msg, "action"));
+			roomStates.set(roomName, state);
 
-		await broadcast(roomName, text);
-	}
-	else if (msg.action === "unload") {
-		for (const client of roomJoins.get(roomName)) {
-			client.Socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+			await broadcast(roomName, text);
+		}
+		else if (msg.action === "unload") {
+			for (const client of roomJoins.get(roomName)) {
+				client.Socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+			}
+		}
+		else if (msg.action === "chat") {
+			await broadcast(roomName, text);
+		}
+		else if (msg.action === "event") {
+			await broadcast(roomName, text);
+		}
+		else {
+			log.error(`Unknown server message: ${(msg as { action: string }).action}`);
 		}
 	}
-	else if (msg.action === "chat") {
-		await broadcast(roomName, text);
-	}
-	else if (msg.action === "event") {
-		await broadcast(roomName, text);
+	else if (channel === ANNOUNCEMENT_CHANNEL) {
+		for (const client of connections) {
+			try {
+				client.Socket.send(text);
+			}
+			catch (e) {
+				log.error(`failed to send to client: ${e.message}`);
+			}
+		}
 	}
 	else {
-		log.error(`Unknown server message: ${(msg as { action: string }).action}`);
+		log.error(`Unhandled message from redis channel: ${channel}`);
 	}
 });
 
