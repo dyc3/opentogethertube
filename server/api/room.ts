@@ -5,6 +5,8 @@ import { Visibility } from "../../common/models/types";
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit.js";
 import { BadApiArgumentException, OttException } from "../exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
+import clientmanager from "../clientmanager";
+import { RoomRequestType, UndoRequest } from "../../common/models/messages";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -118,6 +120,20 @@ const createRoom: RequestHandler = async (req, res) => {
 	});
 };
 
+const undoEvent: RequestHandler = async (req, res) => {
+	const client = clientmanager.getClient(req.session, req.params.name);
+	const request: UndoRequest = {
+		type: RoomRequestType.UndoRequest,
+		client: client.id,
+		event: req.body.data.event,
+	};
+
+	await client.makeRoomRequest(request);
+	res.json({
+		success: true,
+	});
+};
+
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	if (err instanceof OttException) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
@@ -156,9 +172,20 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	}
 };
 
+// HACK: Ideally, this error handling would be handled with a proper express error handler.
+// I was not able to figure out how to make it work in this context, so this is what we are stuck with.
 router.post("/create", async (req, res, next) => {
 	try {
 		await createRoom(req, res, next);
+	}
+	catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.post("/:name/undo", async (req, res, next) => {
+	try {
+		await undoEvent(req, res, next);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);

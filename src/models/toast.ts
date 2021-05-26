@@ -1,4 +1,7 @@
 /* eslint-disable no-unused-vars */
+
+import { ServerMessageEvent } from "common/models/messages";
+
 /**
  * A toast notification.
  */
@@ -7,6 +10,7 @@ export interface Toast {
 	content: string
 	duration?: number
 	style: ToastStyle
+	event?: ServerMessageEvent
 }
 
 export enum ToastStyle {

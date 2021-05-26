@@ -377,12 +377,6 @@ router.delete("/room/:name/vote", (req, res) => {
 	}).catch(err => handleGetRoomFailure(res, err));
 });
 
-router.post("/room/:name/undo", (req, res) => {
-	roommanager.getOrLoadRoom(req.params.name).then(room => {
-		room.undoEvent(req.body.event);
-	}).catch(err => handleGetRoomFailure(res, err));
-});
-
 router.post("/room/:name/play", async (req, res) => {
 	let room;
 	try {

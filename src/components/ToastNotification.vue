@@ -15,6 +15,13 @@
 		<template v-slot:action="{ attrs }">
 			<v-btn
 				text
+				v-if="undoable"
+				@click="undo"
+			>
+				undo
+			</v-btn>
+			<v-btn
+				text
 				v-bind="attrs"
 				@click="close"
 				x-small
@@ -30,9 +37,12 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import { Toast, ToastStyle } from '@/models/toast';
+import { RoomRequestType } from 'common/models/messages';
+import Component from 'vue-class-component';
+import api from '@/util/api';
+import { API } from '@/common-http';
 
-export default Vue.extend({
-	name: "Toast",
+@Component({
 	props: {
 		toast: {
 			type: Object as PropType<Toast>,
@@ -41,40 +51,63 @@ export default Vue.extend({
 			type: Number,
 		},
 	},
-	data(): { ToastStyle: typeof ToastStyle; padding: number; closeTimeoutId: ReturnType<typeof setTimeout> | null } {
-		return {
-			ToastStyle,
-			padding: 8,
-			closeTimeoutId: null,
-		};
-	},
-	computed: {
-		color(): string | undefined {
-			if (this.toast.style === ToastStyle.Success) {
-				return "green";
-			}
-			else if (this.toast.style === ToastStyle.Error) {
-				return "red";
-			}
-			return undefined;
-		},
-	},
+})
+export default class ToastNotification extends Vue {
+	toast: Toast
+	number: number
+
+	padding = 8
+	closeTimeoutId: ReturnType<typeof setTimeout> | null = null
+	ToastStyle = ToastStyle
+
+	get color(): string | undefined {
+		if (this.toast.style === ToastStyle.Success) {
+			return "green";
+		}
+		else if (this.toast.style === ToastStyle.Error) {
+			return "red";
+		}
+		return undefined;
+	}
+
+	get undoable(): boolean {
+		if (!this.toast.event) {
+			return false;
+		}
+		let eventType = this.toast.event.request.type;
+		return eventType === RoomRequestType.SeekRequest || eventType === RoomRequestType.SkipRequest || eventType === RoomRequestType.AddRequest || eventType === RoomRequestType.RemoveRequest;
+	}
+
 	created(): void {
 		if (this.toast.duration) {
 			this.closeTimeoutId = setTimeout(() => {
 				this.close();
 			}, this.toast.duration);
 		}
-	},
-	methods: {
-		close() {
-			this.$toast.remove(this.toast.id);
-		},
-	},
+	}
+
 	destroyed() {
 		clearTimeout(this.closeTimeoutId);
-	},
-});
+	}
+
+	close() {
+		this.$toast.remove(this.toast.id);
+	}
+
+	async undo() {
+		try {
+			await API.post(`/room/${this.$route.params.roomId}/undo`, { data: { event: this.toast.event } });
+			this.close();
+		}
+		catch (err) {
+			this.$toast.add({
+				style: ToastStyle.Error,
+				content: err.message,
+				duration: 4000,
+			});
+		}
+	}
+}
 </script>
 
 <style lang="scss" scoped>

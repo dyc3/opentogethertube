@@ -46,6 +46,7 @@ export interface ServerMessageAnnouncement extends ServerMessageBase {
 interface RoomEventContext {
 	video?: Video
 	videos?: Video[]
+	prevPosition?: number
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus;
@@ -91,7 +92,7 @@ export interface ClientMessagePlayerStatus extends ClientMessageBase {
 	status: PlayerStatus
 }
 
-export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser | ChatRequest
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser | ChatRequest | UndoRequest
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -107,6 +108,7 @@ export enum RoomRequestType {
 	DemoteRequest,
 	UpdateUser,
 	ChatRequest,
+	UndoRequest,
 }
 
 export interface RoomRequestBase {
@@ -180,4 +182,9 @@ export interface UpdateUser extends RoomRequestBase {
 export interface ChatRequest extends RoomRequestBase {
 	type: RoomRequestType.ChatRequest
 	text: string
+}
+
+export interface UndoRequest extends RoomRequestBase {
+	type: RoomRequestType.UndoRequest
+	event: ServerMessageEvent
 }

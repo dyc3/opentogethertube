@@ -1,4 +1,5 @@
 import connection from "./connection";
+import { API } from '@/common-http';
 
 /**
  * Defines the HTTP and websocket api, and provides methods for using it.
@@ -32,12 +33,12 @@ export default {
 			targetIdx: toIdx,
 		});
 	},
-	undoEvent(event) {
-		connection.send({
-			action: "undo",
-			event,
-		});
-		// window.vm.$store.state.room.events.splice(idx, 1);
+	async undoEvent(event) {
+		// connection.send({
+		// 	action: "undo",
+		// 	event,
+		// });
+		await API.post(`/room/${this.$route.params.roomId}/undo`, { data: { event } });
 	},
 	kickMe() {
 		connection.send({

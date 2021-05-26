@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UpdateUser } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -351,6 +351,7 @@ export class Room implements RoomState {
 			[RoomRequestType.DemoteRequest]: null,
 			[RoomRequestType.UpdateUser]: "updateUser",
 			[RoomRequestType.ChatRequest]: "chat",
+			[RoomRequestType.UndoRequest]: "undo",
 		};
 
 		const handler = handlers[request.type];
@@ -416,8 +417,9 @@ export class Room implements RoomState {
 			this.log.error("seek value was undefined");
 			return;
 		}
+		const prev = this.playbackPosition;
 		this.playbackPosition = request.value;
-		await this.publishRoomEvent(request);
+		await this.publishRoomEvent(request, { prevPosition: prev });
 	}
 
 	/**
@@ -507,5 +509,20 @@ export class Room implements RoomState {
 			from: user,
 			text: request.text,
 		});
+	}
+
+	public async undo(request: UndoRequest): Promise<void> {
+		switch (request.event.request.type) {
+			case RoomRequestType.SeekRequest:
+				await this.processRequest({
+					type: request.event.request.type,
+					client: request.client,
+					value: request.event.additional.prevPosition,
+				});
+				break;
+			default:
+				this.log.error(`Event ${request.event.request.type} is not undoable, ignoring`);
+				break;
+		}
 	}
 }

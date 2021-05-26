@@ -52,7 +52,7 @@ export const module: Module<unknown, unknown> = {
 				style: ToastStyle.Neutral,
 				content: text,
 				duration,
-				event: message.request,
+				event: message,
 			});
 		},
 	},
