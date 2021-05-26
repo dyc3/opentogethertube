@@ -39,7 +39,6 @@ import Vue, { PropType } from 'vue';
 import { Toast, ToastStyle } from '@/models/toast';
 import { RoomRequestType } from 'common/models/messages';
 import Component from 'vue-class-component';
-import api from '@/util/api';
 import { API } from '@/common-http';
 
 @Component({
