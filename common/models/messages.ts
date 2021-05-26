@@ -47,6 +47,7 @@ export interface RoomEventContext {
 	video?: Video
 	videos?: Video[]
 	prevPosition?: number
+	queueIdx?: number
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus;

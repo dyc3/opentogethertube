@@ -473,7 +473,7 @@ export class Room implements RoomState {
 		const removed = this.queue.splice(matchIdx, 1)[0];
 		this.markDirty("queue");
 		this.log.info(`Video removed: ${JSON.stringify(removed)}`);
-		await this.publishRoomEvent(request, { video: removed });
+		await this.publishRoomEvent(request, { video: removed, queueIdx: matchIdx });
 	}
 
 	public async reorderQueue(request: OrderRequest): Promise<void> {
@@ -537,6 +537,27 @@ export class Room implements RoomState {
 				}
 				this.currentSource = request.event.additional.video;
 				this.playbackPosition = request.event.additional.prevPosition;
+				break;
+			case RoomRequestType.AddRequest:
+				if (this.queue.length > 0) {
+					const removeReq: RemoveRequest = {
+						type: RoomRequestType.RemoveRequest,
+						client: request.client,
+						video: request.event.request.video,
+					};
+					await this.processRequest(removeReq);
+				}
+				else {
+					this.currentSource = null;
+				}
+				break;
+			case RoomRequestType.RemoveRequest:
+				// eslint-disable-next-line no-case-declarations
+				const newQueue = this.queue.splice(0, request.event.additional.queueIdx);
+				newQueue.push(request.event.request.video);
+				newQueue.push(...this.queue);
+				this.queue = newQueue;
+				this.markDirty("queue");
 				break;
 			default:
 				this.log.error(`Event ${request.event.request.type} is not undoable, ignoring`);
