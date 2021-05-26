@@ -28,41 +28,42 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from "vue";
 import ProcessedText from "@/components/ProcessedText.vue";
 import connection from "@/util/connection";
+import Component from 'vue-class-component';
 
-export default Vue.extend({
-  name: "chat",
+@Component({
   components: {
     ProcessedText,
   },
-  data: () => ({
-    inputValue: "",
-    stickToBottom: true,
-  }),
+})
+export default class Chat extends Vue {
+  inputValue = ""
+  stickToBottom = true
+
   updated() {
     if (this.stickToBottom) {
-      const div = this.$refs["messages"];
+      const div = this.$refs["messages"] as Element;
       div.scrollTop = div.scrollHeight;
     }
-  },
-  methods: {
-    onInputKeyDown(e) {
-      if (e.key === "Enter" && this.inputValue.trim() !== "") {
-        connection.send({ action: "chat", text: this.inputValue });
-        this.inputValue = "";
-        this.stickToBottom = true;
-      }
-    },
-    onScroll() {
-      const div = this.$refs["messages"];
-      const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
-      this.stickToBottom = distToBottom === 0;
-    },
-  },
-});
+  }
+
+  onInputKeyDown(e) {
+    if (e.key === "Enter" && this.inputValue.trim() !== "") {
+      connection.send({ action: "chat", text: this.inputValue });
+      this.inputValue = "";
+      this.stickToBottom = true;
+    }
+  }
+
+  onScroll() {
+    const div = this.$refs["messages"] as Element;
+    const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
+    this.stickToBottom = distToBottom === 0;
+  }
+}
 </script>
 
 <style lang="scss" scoped>
