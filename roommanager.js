@@ -7,7 +7,7 @@ const InfoExtract = require("./server/infoextractor");
 const storage = require("./storage");
 const Video = require("./common/video.js");
 const { getLogger } = require("./logger.js");
-const { redisClient } = require('./redisclient.js');
+const { redisClient } = require('./redisclient');
 const permissions = require("./server/permissions.js");
 const { ROLES, ROLE_DISPLAY_NAMES } = permissions;
 import { ImpossiblePromotionException, PermissionDeniedException } from './server/exceptions';

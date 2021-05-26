@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import { User, Room } from "./models";
 import roommanager from "./server/roommanager";
 import clientmanager from "./server/clientmanager";
-import { redisClient } from './redisclient.js';
+import { redisClient } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit.js";
 

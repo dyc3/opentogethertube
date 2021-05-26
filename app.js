@@ -96,7 +96,7 @@ log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
 const app = express();
 const server = http.createServer(app);
 
-const { redisClient } = require('./redisclient.js');
+const { redisClient } = require('./redisclient');
 
 function checkRedis() {
 	let start = new Date();
