@@ -10,7 +10,7 @@ import usermanager from "../usermanager";
 import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
-import { VideoNotFoundException } from "./exceptions";
+import { VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import dayjs, { Dayjs } from 'dayjs';
 import { PickFunctions } from "../common/typeutils.js";
 
@@ -445,6 +445,14 @@ export class Room implements RoomState {
 		}
 
 		if (request.video) {
+			if (this.currentSource && this.currentSource.service === request.video.service && this.currentSource.id === request.video.id) {
+				throw new VideoAlreadyQueuedException();
+			}
+			const matchIdx = _.findIndex(this.queue, item => (item.service === request.video.service && item.id === request.video.id));
+			if (matchIdx >= 0) {
+				throw new VideoAlreadyQueuedException();
+			}
+
 			const video: Video = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 			this.queue.push(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
@@ -452,8 +460,25 @@ export class Room implements RoomState {
 		}
 		else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
+
+			for (let i = 0; i < videos.length; i++) {
+				const video = videos[i];
+				if (this.currentSource && this.currentSource.service === video.service && this.currentSource.id === video.id) {
+					videos.splice(i--, 1);
+					continue;
+				}
+				const matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
+				if (matchIdx >= 0) {
+					videos.splice(i--, 1);
+					continue;
+				}
+			}
+			if (videos.length === 0) {
+				throw new VideoAlreadyQueuedException();
+			}
+
 			this.queue.push(...videos);
-			this.log.info(`added ${request.videos.length} videos`);
+			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, { videos });
 		}
 		else {

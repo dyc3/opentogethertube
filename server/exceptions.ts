@@ -147,8 +147,8 @@ export class RoomNameTakenException extends OttException {
 export class VideoAlreadyQueuedException extends OttException {
 	name = "VideoAlreadyQueuedException";
 
-	constructor(title: string) {
-		super(`The video "${title}" is already in the queue`);
+	constructor() {
+		super(`Video(s) are already in the queue`);
 	}
 }
 

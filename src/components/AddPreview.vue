@@ -164,7 +164,20 @@ export default Vue.extend({
 		},
 		async addAllToQueue() {
 			this.isLoadingAddAll = true;
-			await API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.videos });
+			try {
+				await API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.videos });
+			}
+			catch (err) {
+				let message = `${err}`;
+				if (err.response) {
+					message = `${err.response.data.error.message}`;
+				}
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: `Failed to all videos: ${message}`,
+					duration: 4000,
+				});
+			}
 			this.isLoadingAddAll = false;
 		},
 		onInputAddPreviewChange() {
