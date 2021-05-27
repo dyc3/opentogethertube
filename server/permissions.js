@@ -4,6 +4,16 @@ import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 import { Role } from "../common/models/types";
 const log = getLogger("permissions");
 
+/** @deprecated */
+const ROLES = {
+	ADMINISTRATOR: Role.Administrator,
+	MODERATOR: Role.Moderator,
+	TRUSTED_USER: Role.TrustedUser,
+	REGISTERED_USER: Role.RegisteredUser,
+	UNREGISTERED_USER: Role.UnregisteredUser,
+	OWNER: Role.Owner,
+};
+
 const ROLE_NAMES = {
 	[Role.Administrator]: "admin",
 	[Role.Moderator]: "mod",
@@ -369,6 +379,7 @@ export class Grants {
 }
 
 const _exp = {
+	ROLES,
 	ROLE_NAMES,
 	ROLE_DISPLAY_NAMES,
 	PERMISSIONS,
