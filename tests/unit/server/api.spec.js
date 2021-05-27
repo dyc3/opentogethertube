@@ -1,6 +1,5 @@
 const request = require('supertest');
-const roommanager = require('../../../roommanager.js');
-jest.spyOn(roommanager, "getAllLoadedRooms").mockReturnValue(Promise.resolve([]));
+import roommanager from '../../../server/roommanager';
 const app = require('../../../app.js').app;
 const InfoExtract = require('../../../server/infoextractor');
 const { Room, User } = require("../../../models");
