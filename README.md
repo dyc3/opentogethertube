@@ -7,7 +7,7 @@
 
 The easy way to watch videos with your friends.
 
-http://opentogethertube.com/
+https://opentogethertube.com/
 
 # Deployment
 
