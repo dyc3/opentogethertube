@@ -1,18 +1,18 @@
 import { getLogger } from '../logger.js';
-import { redisClient } from '../redisclient';
-import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { redisClientSync } from '../redisclient';
+import { IRateLimiterStoreOptions, RateLimiterMemory, RateLimiterRedis } from 'rate-limiter-flexible';
 
 const log = getLogger("api/rate-limit");
 
-const rateLimitOpts = {
-	storeClient: redisClient,
+const rateLimitOpts: IRateLimiterStoreOptions = {
+	storeClient: redisClientSync,
 	points: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
 	duration: 60 * 60, // seconds
 	blockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
 	inmemoryBlockOnConsumed: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
 	inmemoryBlockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
 };
-export const rateLimiter = new RateLimiterRedis(rateLimitOpts);
+export const rateLimiter = process.env.NODE_ENV === "test" ? new RateLimiterMemory(rateLimitOpts) : new RateLimiterRedis(rateLimitOpts);
 
 export function setRateLimitHeaders(res, info) {
 	res.set('X-RateLimit-Limit', rateLimitOpts.points);

@@ -9,7 +9,7 @@ import roommanager from "./server/roommanager";
 import clientmanager from "./server/clientmanager";
 import { redisClient } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit.js";
+import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
