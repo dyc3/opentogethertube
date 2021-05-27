@@ -27,7 +27,7 @@ function roomToDb(room) {
 	}
 	if (room.userRoles) {
 		for (let i = 0; i <= 4; i++) {
-			if (i >= permissions.ROLES.TRUSTED_USER) {
+			if (i >= 2) { // trusted user, FIXME: replace with Role enum
 				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles[i]));
 			}
 		}
@@ -48,7 +48,7 @@ function dbToRoomArgs(db) {
 	};
 	room.grants.deserialize(db.permissions);
 	for (let i = 0; i <= 4; i++) {
-		if (i >= permissions.ROLES.TRUSTED_USER) {
+		if (i >= 2) { // trusted user, FIXME: replace with Role enum
 			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);
 		}
 	}

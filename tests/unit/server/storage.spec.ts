@@ -1,8 +1,8 @@
-const _ = require("lodash");
-const { CachedVideo } = require("../../../models");
-const storage = require("../../../storage");
-const { Room } = require("../../../models");
-const permissions = require("../../../server/permissions.js");
+import _ from "lodash";
+const { CachedVideo, Room } = require("../../../models");
+import storage from "../../../storage";
+import permissions from "../../../server/permissions.js";
+import { Visibility, QueueMode } from "../../../common/models/types";
 
 describe('Storage: Room Spec', () => {
   beforeEach(async () => {
@@ -10,9 +10,9 @@ describe('Storage: Room Spec', () => {
   });
 
   it('should return room object without extra properties', async () => {
-    await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" });
+    await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: Visibility.Public });
 
-    let room = await storage.getRoomByName("example");
+    const room = await storage.getRoomByName("example");
     expect(room).not.toBeNull();
     expect(room).toBeDefined();
     expect(typeof room).toEqual("object");
@@ -24,7 +24,7 @@ describe('Storage: Room Spec', () => {
       name: "example",
       title: "Example Room",
       description: "This is an example room.",
-      visibility: "public",
+      visibility: Visibility.Public,
       owner: null,
     });
     expect(room.permissions).toBeDefined();
@@ -34,31 +34,31 @@ describe('Storage: Room Spec', () => {
   });
 
   it('should return room object from room name, case insensitive', async () => {
-    await storage.saveRoom({ name: "CapitalizedExampleRoom", title: "Example Room", description: "This is an example room.", visibility: "public" });
+    await storage.saveRoom({ name: "CapitalizedExampleRoom", title: "Example Room", description: "This is an example room.", visibility: Visibility.Public });
 
-    let room = await storage.getRoomByName("capitalizedexampleroom");
+    const room = await storage.getRoomByName("capitalizedexampleroom");
     expect(_.pick(room, "name", "title", "description", "visibility", "owner")).toEqual({
       name: "CapitalizedExampleRoom",
       title: "Example Room",
       description: "This is an example room.",
-      visibility: "public",
+      visibility: Visibility.Public,
       owner: null,
     });
   });
 
   it('should load queueMode from storage', async () => {
-    await storage.saveRoom({ name: "example", queueMode: "vote" });
+    await storage.saveRoom({ name: "example", queueMode: QueueMode.Vote });
 
-    let room = await storage.getRoomByName("example");
+    const room = await storage.getRoomByName("example");
     expect(_.pick(room, "queueMode")).toEqual({
-      queueMode: "vote",
+      queueMode: QueueMode.Vote,
     });
   });
 
   it('should create room in database', async done => {
     expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
 
-    expect(await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "public" })).toBe(true);
+    expect(await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: Visibility.Public })).toBe(true);
 
     Room.findOne({ where: { name: "example" }}).then(room => {
       expect(room).toBeInstanceOf(Room);
@@ -86,7 +86,7 @@ describe('Storage: Room Spec', () => {
     expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
     expect(await storage.saveRoom({ name: "example" })).toBe(true);
 
-    expect(await storage.updateRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: "unlisted" })).toBe(true);
+    expect(await storage.updateRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: Visibility.Unlisted })).toBe(true);
 
     Room.findOne({ where: { name: "example" }}).then(room => {
       expect(room).toBeInstanceOf(Room);
@@ -105,7 +105,7 @@ describe('Storage: Room Spec', () => {
   });
 
   it('should fail to update if provided properties does not include name', () => {
-    return expect(storage.updateRoom({ title: "Example Room", description: "This is an example room.", visibility: "unlisted" })).rejects.toThrow();
+    return expect(storage.updateRoom({ title: "Example Room", description: "This is an example room.", visibility: Visibility.Unlisted })).rejects.toThrow();
   });
 
   it('should return true if room name is taken', async () => {
@@ -122,7 +122,7 @@ describe('Storage: Room Spec', () => {
   });
 
   it('should save and load permissions correctly', async () => {
-    let perms = permissions.defaultPermissions();
+    const perms = permissions.defaultPermissions();
     perms.masks[0] ^= permissions.parseIntoGrantMask(["playback"]);
     await storage.saveRoom({ name: "example", permissions: perms });
 
@@ -139,7 +139,7 @@ describe('Storage: Room Spec', () => {
   it('should load permissions as an instance of Grants', async () => {
     await storage.saveRoom({ name: "example", permissions: new permissions.Grants() });
 
-    let room = await storage.getRoomByName("example");
+    const room = await storage.getRoomByName("example");
     expect(room.permissions).toBeInstanceOf(permissions.Grants);
     expect(room.permissions).toEqual(new permissions.Grants());
   });
@@ -175,7 +175,7 @@ describe('Storage: CachedVideos Spec', () => {
   });
 
   it('should create or update cached video without failing', async () => {
-    let video = {
+    const video = {
       service: "youtube",
       id: "-29I-VbvPLQ",
       title: "tmp181mfK",
@@ -187,7 +187,7 @@ describe('Storage: CachedVideos Spec', () => {
   });
 
   it('should fail validation, no null allowed for service', async () => {
-    let video = {
+    const video = {
       service: null,
       id: "-29I-VbvPLQ",
       title: "tmp181mfK",
@@ -199,7 +199,7 @@ describe('Storage: CachedVideos Spec', () => {
   });
 
   it('should fail validation, no null allowed for serviceId', async () => {
-    let video = {
+    const video = {
       service: "youtube",
       id: null,
       title: "tmp181mfK",
@@ -226,7 +226,7 @@ describe('Storage: CachedVideos Spec', () => {
   });
 
   it('should create or update multiple videos without failing', async () => {
-    let videos = [
+    const videos = [
       {
         service: "fakeservice",
         id: "abc123",
@@ -257,7 +257,7 @@ describe('Storage: CachedVideos Spec', () => {
   });
 
   it('should get multiple videos without failing', async () => {
-    let videos = [
+    const videos = [
       {
         service: "fakeservice",
         id: "abc123",
@@ -285,6 +285,9 @@ describe('Storage: CachedVideos Spec', () => {
       },
     ];
     await CachedVideo.bulkCreate(_.cloneDeep(videos).map(video => {
+      // FIXME: remove ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       video.serviceId = video.id;
       delete video.id;
       return video;
@@ -293,7 +296,7 @@ describe('Storage: CachedVideos Spec', () => {
   });
 
   it('should return the same number of videos as requested even when some are not in the database', async () => {
-    let videos = [
+    const videos = [
       {
         service: "fakeservice",
         id: "abc123",
@@ -319,6 +322,9 @@ describe('Storage: CachedVideos Spec', () => {
       },
     ];
     await CachedVideo.bulkCreate(_.cloneDeep(videos).splice(0, 3).map(video => {
+      // FIXME: remove ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       video.serviceId = video.id;
       delete video.id;
       return video;
@@ -338,7 +344,7 @@ describe('Storage: CachedVideos: bulk inserts/updates', () => {
 
   it('should create 2 entries and update 3 entries', async () => {
     // setup
-    let existingVideos = [
+    const existingVideos = [
       {
         service: "fakeservice",
         serviceId: "abc123",
@@ -355,12 +361,12 @@ describe('Storage: CachedVideos: bulk inserts/updates', () => {
         title: "existing video 3",
       },
     ];
-    for (let video of existingVideos) {
+    for (const video of existingVideos) {
       await CachedVideo.create(video);
     }
 
     // test
-    let videos = [
+    const videos = [
       {
         service: "fakeservice",
         id: "abc123",

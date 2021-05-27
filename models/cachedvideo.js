@@ -21,3 +21,5 @@ module.exports = (sequelize, DataTypes) => {
   };
   return CachedVideo;
 };
+
+export default module.exports;
