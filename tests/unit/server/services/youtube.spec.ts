@@ -309,9 +309,8 @@ describe("resolveURL", () => {
         title: "Chris Chan: A Comprehensive History - Part 1",
         description: "(1982-2000)",
         thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
-        // length expected to be null because the youtube api doesn't return video length in playlist items
+        // length expected to be undefined because the youtube api doesn't return video length in playlist items
         // feature requested here: https://issuetracker.google.com/issues/173420445
-        length: null, // 2425,
       },
       {
         service: "youtube",
@@ -319,7 +318,6 @@ describe("resolveURL", () => {
         title: "Chris Chan: A Comprehensive History - Part 2",
         description: "(2000-2004)",
         thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
-        length: null, //2403,
       },
     ]);
     expect(apiGet).toHaveBeenCalledTimes(1);
@@ -417,8 +415,8 @@ describe("videoApiRequest", () => {
   it("should use the fallback when out of quota, and onlyProperties contains length", async () => {
     apiGet.mockRejectedValue({ response: { status: 403 } });
     const fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
-    const video = await adapter.videoApiRequest("BTZ5KVRUy1Q", ["length"]);
-    expect(video).toEqual({
+    const videos = await adapter.videoApiRequest("BTZ5KVRUy1Q", ["length"]);
+    expect(videos[0]).toEqual({
       "BTZ5KVRUy1Q": {
         service: "youtube",
         id: "BTZ5KVRUy1Q",
