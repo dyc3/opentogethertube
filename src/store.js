@@ -6,6 +6,7 @@ import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
 import { ToastStyle } from './models/toast';
 import eventModule from "@/stores/events";
+import { QueueMode } from '../common/models/types';
 
 Vue.use(Vuex);
 
@@ -39,7 +40,7 @@ export default new Vuex.Store({
 			title: "",
 			description: "",
 			isTemporary: false,
-			queueMode: "manual",
+			queueMode: QueueMode.Manual,
 			currentSource: {},
 			queue: [],
 			isPlaying: false,
