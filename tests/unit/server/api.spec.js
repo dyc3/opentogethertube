@@ -65,7 +65,7 @@ expect.extend({
 	},
 });
 
-describe("Room API", () => {
+describe.skip("Room API", () => {
 	beforeAll(async () => {
 		await User.destroy({ where: {} });
 
