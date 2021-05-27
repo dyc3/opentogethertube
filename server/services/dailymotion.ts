@@ -22,7 +22,7 @@ export default class DailyMotionAdapter extends ServiceAdapter {
     );
   }
 
-  isCollectionURL(): boolean {
+  isCollectionURL(link: string): boolean {
     return false;
   }
 
