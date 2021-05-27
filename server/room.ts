@@ -86,7 +86,7 @@ export class Room implements RoomState {
 	_keepAlivePing: Dayjs
 	votes: Map<string, Set<ClientId>> = new Map();
 
-	constructor (options: RoomOptions) {
+	constructor (options: Partial<RoomOptions>) {
 		this.log = getLogger(`room/${options.name}`);
 		this.userRoles = new Map([
 			[Role.TrustedUser, new Set()],
