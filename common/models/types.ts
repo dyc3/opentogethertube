@@ -50,6 +50,7 @@ export interface RoomState extends RoomOptions {
 	playbackPosition: number
 	grants: Grants
 	users: RoomUserInfo[]
+	voteCounts: Map<string, number>
 }
 
 export type RoomUserInfo = {

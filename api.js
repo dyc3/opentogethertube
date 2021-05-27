@@ -343,40 +343,6 @@ router.delete("/room/:name/queue", async (req, res) => {
 	}
 });
 
-router.post("/room/:name/vote", (req, res) => {
-	roommanager.getOrLoadRoom(req.params.name).then(room => {
-		if (req.body.service && req.body.id) {
-			let success = room.voteVideo({ service: req.body.service, id: req.body.id }, req.session);
-			res.json({
-				success,
-			});
-		}
-		else {
-			res.status(400).json({
-				success: false,
-				error: "Invalid parameters",
-			});
-		}
-	}).catch(err => handleGetRoomFailure(res, err));
-});
-
-router.delete("/room/:name/vote", (req, res) => {
-	roommanager.getOrLoadRoom(req.params.name).then(room => {
-		if (req.body.service && req.body.id) {
-			let success = room.removeVoteVideo({ service: req.body.service, id: req.body.id }, req.session);
-			res.json({
-				success,
-			});
-		}
-		else {
-			res.status(400).json({
-				success: false,
-				error: "Invalid parameters",
-			});
-		}
-	}).catch(err => handleGetRoomFailure(res, err));
-});
-
 router.post("/room/:name/play", async (req, res) => {
 	let room;
 	try {

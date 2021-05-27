@@ -17,8 +17,8 @@
 		</div>
 		<div style="display: flex; justify-content: center; flex-direction: column">
 			<div class="button-container">
-				<v-btn @click="vote" :loading="isLoadingVote" :color="item.voted ? 'red' : 'green'" v-if="!isPreview && $store.state.room.queueMode === 'vote'">
-					<span>{{ item.votes ? item.votes : 0 }}</span>
+				<v-btn @click="vote" :loading="isLoadingVote" :color="voted ? 'red' : 'green'" v-if="!isPreview && $store.state.room.queueMode === QueueMode.Vote">
+					<span>{{ votes }}</span>
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
@@ -42,7 +42,8 @@ import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/timestamp.js";
 import { ToastStyle } from '@/models/toast';
 import Component from 'vue-class-component';
-import { Video } from "common/models/video";
+import { Video, VideoId } from "common/models/video";
+import { QueueMode } from "common/models/types";
 
 @Component({
 	props: {
@@ -60,13 +61,18 @@ export default class VideoQueueItem extends Vue {
 	thumbnailHasError = false
 	hasError = false
 	voted = false
+	QueueMode = QueueMode
 
-	get videoLength() {
+	get videoLength(): string {
 		return secondsToTimestamp(this.item.length);
 	}
 
-	get thumbnailSource() {
+	get thumbnailSource(): string {
 		return !this.thumbnailHasError && this.item.thumbnail ? this.item.thumbnail : require('@/assets/placeholder.svg');
+	}
+
+	get votes() {
+		return this.$store.state.room.voteCounts.get(this.item.service + this.item.id) ?? 0;
 	}
 
 	created() {
@@ -82,7 +88,7 @@ export default class VideoQueueItem extends Vue {
 		}
 	}
 
-	getPostData() {
+	getPostData(): VideoId {
 		let data = {
 			service: this.item.service,
 			id: this.item.id,

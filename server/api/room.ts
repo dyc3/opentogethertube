@@ -134,6 +134,46 @@ const undoEvent: RequestHandler = async (req, res) => {
 	});
 };
 
+const addVote: RequestHandler = async (req, res) => {
+	if (!req.body.service) {
+		throw new BadApiArgumentException("service", "missing");
+	}
+	if (!req.body.id) {
+		throw new BadApiArgumentException("id", "missing");
+	}
+
+	const client = clientmanager.getClient(req.session, req.params.name);
+	await client.makeRoomRequest({
+		type: RoomRequestType.VoteRequest,
+		client: client.id,
+		video: { service: req.body.service, id: req.body.id },
+		add: true,
+	});
+	res.json({
+		success: true,
+	});
+};
+
+const removeVote: RequestHandler = async (req, res) => {
+	if (!req.body.service) {
+		throw new BadApiArgumentException("service", "missing");
+	}
+	if (!req.body.id) {
+		throw new BadApiArgumentException("id", "missing");
+	}
+
+	const client = clientmanager.getClient(req.session, req.params.name);
+	await client.makeRoomRequest({
+		type: RoomRequestType.VoteRequest,
+		client: client.id,
+		video: { service: req.body.service, id: req.body.id },
+		add: false,
+	});
+	res.json({
+		success: true,
+	});
+};
+
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	if (err instanceof OttException) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
@@ -186,6 +226,24 @@ router.post("/create", async (req, res, next) => {
 router.post("/:name/undo", async (req, res, next) => {
 	try {
 		await undoEvent(req, res, next);
+	}
+	catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.post("/:name/vote", async (req, res, next) => {
+	try {
+		await addVote(req, res, next);
+	}
+	catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.delete("/:name/vote", async (req, res, next) => {
+	try {
+		await removeVote(req, res, next);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);

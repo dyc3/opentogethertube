@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomEventContext, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomEventContext, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -12,7 +12,8 @@ import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import { VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import dayjs, { Dayjs } from 'dayjs';
-import { PickFunctions } from "../common/typeutils.js";
+import { PickFunctions } from "../common/typeutils";
+import { replacer } from "../common/serialize";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -83,6 +84,7 @@ export class Room implements RoomState {
 	log: winston.Logger
 	_playbackStart: Dayjs | null = null;
 	_keepAlivePing: Dayjs
+	votes: Map<string, Set<ClientId>> = new Map();
 
 	constructor (options: RoomOptions) {
 		this.log = getLogger(`room/${options.name}`);
@@ -218,7 +220,7 @@ export class Room implements RoomState {
 	 * @param msg The message to publish.
 	 */
 	async publish(msg: ServerMessage): Promise<void> {
-		await publish(`room:${this.name}`, JSON.stringify(msg));
+		await publish(`room:${this.name}`, JSON.stringify(msg, replacer));
 	}
 
 	async publishRoomEvent(request: RoomRequest, additional?: RoomEventContext): Promise<void> {
@@ -279,6 +281,14 @@ export class Room implements RoomState {
 		}
 	}
 
+	get voteCounts(): Map<string, number> {
+		const counts = new Map();
+		for (const [vid, votes] of this.votes.entries()) {
+			counts.set(vid, votes.size);
+		}
+		return counts;
+	}
+
 	public async update(): Promise<void> {
 		if (this.currentSource === null) {
 			this.dequeueNext();
@@ -302,14 +312,14 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
-		const state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users");
+		const state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 
 		// FIXME: permissions
 		msg.grants = this.grants.getMask(Role.Owner);
 
-		await set(`room:${this.name}`, JSON.stringify(state));
+		await set(`room:${this.name}`, JSON.stringify(state, replacer));
 		await this.publish(msg);
 		this._dirty.clear();
 	}
@@ -355,7 +365,7 @@ export class Room implements RoomState {
 			[RoomRequestType.AddRequest]: "addToQueue",
 			[RoomRequestType.RemoveRequest]: "removeFromQueue",
 			[RoomRequestType.OrderRequest]: "reorderQueue",
-			[RoomRequestType.VoteRequest]: null,
+			[RoomRequestType.VoteRequest]: "vote",
 			[RoomRequestType.PromoteRequest]: null,
 			[RoomRequestType.DemoteRequest]: null,
 			[RoomRequestType.UpdateUser]: "updateUser",
@@ -588,5 +598,28 @@ export class Room implements RoomState {
 				this.log.error(`Event ${request.event.request.type} is not undoable, ignoring`);
 				break;
 		}
+	}
+
+	public async vote(request: VoteRequest): Promise<void> {
+		const key = request.video.service + request.video.id;
+		if (this.votes.has(key)) {
+			const votes = this.votes.get(key);
+			if (request.add) {
+				votes.add(request.client);
+			}
+			else {
+				votes.delete(request.client);
+			}
+		}
+		else {
+			if (request.add) {
+				this.votes.set(key, new Set(request.client));
+			}
+			// TODO: throw exceptions for invalid votes instead of ignoring them
+			// else {
+			// 	throw new VoteNotFoundException();
+			// }
+		}
+		this.markDirty("voteCounts");
 	}
 }

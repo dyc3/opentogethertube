@@ -7,6 +7,7 @@ import { toastModule } from "@/stores/toast";
 import { ToastStyle } from './models/toast';
 import eventModule from "@/stores/events";
 import { QueueMode } from '../common/models/types';
+import { deserializeMap } from '../common/serialize';
 
 Vue.use(Vuex);
 
@@ -108,6 +109,11 @@ export default new Vuex.Store({
 			// FIXME: the UI needs to be able to handle null currentSource
 			if (message.currentSource === null) {
 				message.currentSource = {};
+			}
+			if (message.voteCounts) {
+				console.log("before", message.voteCounts);
+				message.voteCounts = deserializeMap(message.voteCounts);
+				console.log("after", message.voteCounts);
 			}
 			// HACK: this lets vue detect the changes and react to them
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats

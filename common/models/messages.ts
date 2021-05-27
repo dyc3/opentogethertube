@@ -160,6 +160,8 @@ export interface OrderRequest extends RoomRequestBase {
 
 export interface VoteRequest extends RoomRequestBase {
 	type: RoomRequestType.VoteRequest
+	video: VideoId,
+	add: boolean
 }
 
 export interface PromoteRequest extends RoomRequestBase {
