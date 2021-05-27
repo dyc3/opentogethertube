@@ -18,7 +18,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
     return false;
   }
 
-  isCollectionURL(): boolean {
+  isCollectionURL(link: string): boolean {
     return false;
   }
 
