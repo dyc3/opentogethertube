@@ -45,10 +45,10 @@ export default {
 			action: "kickme",
 		});
 	},
-	promoteUser(username, role) {
+	promoteUser(clientId, role) {
 		connection.send({
 			action: "set-role",
-			username,
+			clientId,
 			role,
 		});
 	},

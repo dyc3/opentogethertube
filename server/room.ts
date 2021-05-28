@@ -1,19 +1,19 @@
-import { Grants } from "./permissions.js";
+import permissions, { Grants } from "./permissions.js";
 import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, RemoveRequest, RoomEventContext, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomEventContext, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
 import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
-import { VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import dayjs, { Dayjs } from 'dayjs';
 import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
+import { ImpossiblePromotionException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -326,7 +326,7 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
-		const state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts");
+		const state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "owner");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 
@@ -380,8 +380,7 @@ export class Room implements RoomState {
 			[RoomRequestType.RemoveRequest]: "removeFromQueue",
 			[RoomRequestType.OrderRequest]: "reorderQueue",
 			[RoomRequestType.VoteRequest]: "vote",
-			[RoomRequestType.PromoteRequest]: null,
-			[RoomRequestType.DemoteRequest]: null,
+			[RoomRequestType.PromoteRequest]: "promoteUser",
 			[RoomRequestType.UpdateUser]: "updateUser",
 			[RoomRequestType.ChatRequest]: "chat",
 			[RoomRequestType.UndoRequest]: "undo",
@@ -635,5 +634,68 @@ export class Room implements RoomState {
 			// }
 		}
 		this.markDirty("voteCounts");
+	}
+
+	public async promoteUser(request: PromoteRequest): Promise<void> {
+		const user = this.getUser(request.client);
+		const targetUser = this.getUser(request.targetClientId);
+
+		let perm;
+		switch (request.role) {
+			case Role.Administrator:
+				perm = "manage-users.promote-admin";
+				break;
+			case Role.Moderator:
+				perm = "manage-users.promote-moderator";
+				break;
+			case Role.TrustedUser:
+				perm = "manage-users.promote-trusted-user";
+				break;
+			default:
+				break;
+		}
+		this.grants.check(this.getRole(user), perm);
+		const targetCurrentRole = this.getRole(targetUser);
+		if (request.role < targetCurrentRole) {
+			let demotePerm;
+			switch (targetCurrentRole) {
+				case Role.Administrator:
+					demotePerm = "manage-users.demote-admin";
+					break;
+				case Role.Moderator:
+					demotePerm = "manage-users.demote-moderator";
+					break;
+				case Role.TrustedUser:
+					demotePerm = "manage-users.demote-trusted-user";
+					break;
+				default:
+					this.log.error(`Can't demote ${permissions.ROLE_NAMES[targetCurrentRole]}`);
+					throw new ImpossiblePromotionException();
+			}
+			this.grants.check(request.role, demotePerm);
+		}
+
+		if (targetCurrentRole === Role.UnregisteredUser) {
+			throw new ImpossiblePromotionException();
+		}
+		for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
+			const set = this.userRoles.get(i);
+			if (set.has(targetUser.user_id)) {
+				set.delete(targetUser.user_id);
+			}
+			this.userRoles[i] = Array.from(set);
+		}
+		if (request.role >= Role.TrustedUser) {
+			this.userRoles.get(request.role).add(targetUser.user_id);
+		}
+		this.markDirty("users");
+		// if (!this.isTemporary) {
+		// 	try {
+		// 		await storage.updateRoom(this);
+		// 	}
+		// 	catch (err) {
+		// 		this.log.error(`Failed to update room: ${err} ${err.stack}`);
+		// 	}
+		// }
 	}
 }

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants, PlayerStatus } from "./types";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants, PlayerStatus, Role } from "./types";
 import { Video, VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement
@@ -50,7 +50,7 @@ export interface RoomEventContext {
 	queueIdx?: number
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus;
+export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote;
 
 interface ClientMessageBase {
 	action: string
@@ -93,7 +93,13 @@ export interface ClientMessagePlayerStatus extends ClientMessageBase {
 	status: PlayerStatus
 }
 
-export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | DemoteRequest | UpdateUser | ChatRequest | UndoRequest
+export interface ClientMessagePromote extends ClientMessageBase {
+	action: "set-role"
+	clientId: ClientId
+	role: Role
+}
+
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -106,7 +112,6 @@ export enum RoomRequestType {
 	OrderRequest,
 	VoteRequest,
 	PromoteRequest,
-	DemoteRequest,
 	UpdateUser,
 	ChatRequest,
 	UndoRequest,
@@ -166,12 +171,8 @@ export interface VoteRequest extends RoomRequestBase {
 
 export interface PromoteRequest extends RoomRequestBase {
 	type: RoomRequestType.PromoteRequest
-	permission: "manage-users.promote-admin" | "manage-users.promote-moderator" | "manage-users.promote-trusted-user"
-}
-
-export interface DemoteRequest extends RoomRequestBase {
-	type: RoomRequestType.DemoteRequest
-	permission: "manage-users.demote-admin" | "manage-users.demote-moderator" | "manage-users.demote-trusted-user"
+	targetClientId: ClientId
+	role: Role
 }
 
 /**

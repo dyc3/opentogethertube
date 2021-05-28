@@ -127,6 +127,14 @@ export class Client {
 				},
 			};
 		}
+		else if (msg.action === "set-role") {
+			request = {
+				type: RoomRequestType.PromoteRequest,
+				client: this.id,
+				targetClientId: msg.clientId,
+				role: msg.role,
+			};
+		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
