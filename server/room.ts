@@ -447,8 +447,8 @@ export class Room implements RoomState {
 	 * @param value
 	 */
 	public async seek(request: SeekRequest): Promise<void> {
-		if (request.value === undefined) {
-			this.log.error("seek value was undefined");
+		if (request.value === undefined || request.value === null) {
+			this.log.error("seek value was undefined or null");
 			return;
 		}
 		const prev = this.playbackPosition;

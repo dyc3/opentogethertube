@@ -70,5 +70,27 @@ describe("Room", () => {
 				});
 			});
 		});
+
+		describe("SeekRequest", () => {
+			it("should seek", async () => {
+				room.playbackPosition = 10;
+				await room.processRequest({
+					type: RoomRequestType.SeekRequest,
+					client: user.id,
+					value: 15,
+				});
+				expect(room.playbackPosition).toEqual(15);
+			});
+
+			it.each([undefined, null])("should not seek if value is %s", async (v) => {
+				room.playbackPosition = 10;
+				await room.processRequest({
+					type: RoomRequestType.SeekRequest,
+					client: user.id,
+					value: v,
+				});
+				expect(room.playbackPosition).toEqual(10);
+			});
+		});
 	});
 });
