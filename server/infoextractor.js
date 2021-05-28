@@ -20,7 +20,7 @@ const adapters = [
   new DailyMotionAdapter(),
   new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY),
   new VimeoAdapter(),
-  new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
+  new YouTubeAdapter(process.env.YOUTUBE_API_KEY),
   new DirectVideoAdapter(),
   new RedditAdapter(),
   new NeverthinkAdapter(),
@@ -45,7 +45,7 @@ export default {
   async getCachedVideo(service, videoId) {
     try {
       const result = await storage.getVideoInfo(service, videoId);
-      const video = new Video(result);
+      const video = result;
       const missingInfo = storage
         .getVideoInfoFields(video.service)
         .filter(p => !video[p]);
@@ -248,10 +248,10 @@ export default {
           if (!adapter) {
             return null;
           }
-          return new Video({
+          return {
             service: adapter.serviceId,
             id: adapter.getVideoId(video.url),
-          });
+          };
         }
         return video;
       }).filter(video => !!video);
