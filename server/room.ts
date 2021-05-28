@@ -297,6 +297,20 @@ export class Room implements RoomState {
 		if (this.users.length > 0) {
 			this._keepAlivePing = dayjs();
 		}
+
+		// sort queue according to queue mode
+		if (this.queueMode === QueueMode.Vote) {
+			const _oldOrder = _.clone(this.queue);
+			this.queue = _.orderBy(this.queue, [
+				video => {
+					const votes = this.votes.get(video.service + video.id);
+					return votes ? votes.size : 0;
+				},
+			], ["desc"]);
+			if (this.queue.length > 0 && !this.queue.every((value, index) => _.isEqual(value, _oldOrder[index]))) {
+				this.markDirty("queue");
+			}
+		}
 	}
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
