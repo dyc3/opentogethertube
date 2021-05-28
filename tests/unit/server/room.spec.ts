@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { RoomRequestType } from "../../../common/models/messages";
 import { Room, RoomUser } from "../../../server/room";
 
@@ -22,19 +23,34 @@ describe("Room", () => {
 			room.realusers = [user];
 		});
 
-		it("PlaybackRequest", async () => {
-			await room.processRequest({
-				type: RoomRequestType.PlaybackRequest,
-				client: user.id,
-				state: true,
+		describe("PlaybackRequest", () => {
+			it("should play and pause", async () => {
+				await room.processRequest({
+					type: RoomRequestType.PlaybackRequest,
+					client: user.id,
+					state: true,
+				});
+				expect(room.isPlaying).toEqual(true);
+				await room.processRequest({
+					type: RoomRequestType.PlaybackRequest,
+					client: user.id,
+					state: false,
+				});
+				expect(room.isPlaying).toEqual(false);
 			});
-			expect(room.isPlaying).toEqual(true);
-			await room.processRequest({
-				type: RoomRequestType.PlaybackRequest,
-				client: user.id,
-				state: false,
+
+			it("should advance playback position", async () => {
+				room.isPlaying = true;
+				room._playbackStart = dayjs().subtract(5, "second");
+				await room.processRequest({
+					type: RoomRequestType.PlaybackRequest,
+					client: user.id,
+					state: false,
+				});
+				expect(room.isPlaying).toEqual(false);
+				expect(room.playbackPosition).toBeCloseTo(5);
+				expect(room.playbackPosition).toBeGreaterThanOrEqual(5);
 			});
-			expect(room.isPlaying).toEqual(false);
 		});
 
 		describe("SkipRequest", () => {
