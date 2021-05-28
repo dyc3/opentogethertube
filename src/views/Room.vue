@@ -175,10 +175,6 @@
         <v-btn to="/rooms">Find Another Room</v-btn>
       </v-layout>
     </v-overlay>
-    <v-snackbar v-if="$store.state.room.events.length > 0" :key="$store.state.room.events.length" v-model="$store.state.room.events[$store.state.room.events.length - 1].isVisible" :timeout="$store.state.room.events[$store.state.room.events.length - 1].timeout">
-      {{ snackbarText }}
-      <v-btn @click="undoEvent($store.state.room.events[$store.state.room.events.length - 1], $store.state.room.events.length - 1)" v-if="$store.state.room.events[$store.state.room.events.length - 1].isUndoable">Undo</v-btn>
-    </v-snackbar>
   </div>
 </template>
 
