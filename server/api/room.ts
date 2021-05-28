@@ -2,7 +2,7 @@ import _ from "lodash";
 import { getLogger } from '../../logger.js';
 import roommanager from "../roommanager";
 import { Visibility } from "../../common/models/types";
-import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit.js";
+import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit";
 import { BadApiArgumentException, OttException } from "../exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";

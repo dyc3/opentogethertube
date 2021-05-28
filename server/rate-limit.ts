@@ -1,11 +1,11 @@
 import { getLogger } from '../logger.js';
-import { redisClientSync } from '../redisclient';
+import { redisClient } from '../redisclient';
 import { IRateLimiterStoreOptions, RateLimiterMemory, RateLimiterRedis } from 'rate-limiter-flexible';
 
 const log = getLogger("api/rate-limit");
 
 const rateLimitOpts: IRateLimiterStoreOptions = {
-	storeClient: redisClientSync,
+	storeClient: redisClient,
 	points: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
 	duration: 60 * 60, // seconds
 	blockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
