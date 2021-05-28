@@ -55,6 +55,9 @@ export async function update(): Promise<void> {
 }
 
 export async function CreateRoom(options: RoomOptions): Promise<void> {
+	if (!options.isTemporary) {
+		await storage.saveRoom(options);
+	}
 	const room = new Room(options);
 	await room.update();
 	await room.sync();

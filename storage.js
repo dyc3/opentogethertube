@@ -332,3 +332,4 @@ module.exports = {
 		return fields;
 	},
 };
+export default module.exports;

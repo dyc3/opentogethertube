@@ -14,6 +14,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import { ImpossiblePromotionException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
+import storage from "./../storage";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -349,6 +350,16 @@ export class Room implements RoomState {
 
 		await set(`room:${this.name}`, JSON.stringify(state, replacer));
 		await this.publish(msg);
+
+		let settings: Partial<Omit<RoomOptions, "name" | "isTemporary">> = _.pick(this, "title", "description", "visibility", "queueMode", "grants", "userRoles", "owner");
+		settings = Object.assign({}, _.pick(settings, Array.from(this._dirty)));
+		if (!_.isEmpty(settings)) {
+			await storage.updateRoom({
+				name: this.name,
+				...settings,
+			});
+		}
+
 		this._dirty.clear();
 	}
 
