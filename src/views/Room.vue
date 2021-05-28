@@ -275,7 +275,7 @@ export default {
     },
   },
   async created() {
-    this.$store.subscribeAction((action, state) => {
+    this.$store.subscribeAction((action) => {
       if (action.type === "sync") {
         this.rewriteUrlToRoomName();
       }
