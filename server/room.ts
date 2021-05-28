@@ -573,6 +573,7 @@ export class Room implements RoomState {
 	}
 
 	public async leaveRoom(request: LeaveRequest): Promise<void> {
+		const removed = this.getUserInfo(request.client);
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === request.client) {
 				this.realusers.splice(i--, 1);
@@ -580,7 +581,7 @@ export class Room implements RoomState {
 				break;
 			}
 		}
-		await this.publishRoomEvent(request);
+		await this.publishRoomEvent(request, { user: removed });
 	}
 
 	public async updateUser(request: UpdateUser): Promise<void> {

@@ -29,7 +29,7 @@ export const module: Module<unknown, unknown> = {
 				text = `${message.user.name} joined the room`;
 			}
 			else if (message.request.type === RoomRequestType.LeaveRequest) {
-				text = `${message.user.name} left the room`;
+				text = `${message.additional.user.name} left the room`;
 			}
 			else if (message.request.type === RoomRequestType.AddRequest) {
 				if (message.request.videos) {

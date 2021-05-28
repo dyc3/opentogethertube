@@ -92,4 +92,5 @@ export interface RoomEventContext {
 	videos?: Video[]
 	prevPosition?: number
 	queueIdx?: number
+	user?: RoomUserInfo
 }
