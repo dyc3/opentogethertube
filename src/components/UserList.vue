@@ -26,18 +26,18 @@
 			<v-tooltip top v-if="$store.state.permsMeta.loaded">
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
-						<v-icon small class="role" :aria-label="`${user.isYou ? 'you' : user.name} is ${$store.state.permsMeta.roles[user.role].display}`">
+						<v-icon small class="role" :aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${$store.state.permsMeta.roles[user.role].display}`">
 							fas fa-{{ {"2":"thumbs-up", "3":"chevron-up", "4":"star", "-1":"star" }[user.role] }}
 						</v-icon>
 					</span>
 				</template>
 				<span>{{ $store.state.permsMeta.roles[user.role].display }}</span>
 			</v-tooltip>
-			<span v-if="user.isYou" class="is-you">You</span>
+			<span v-if="user.id === $store.state.users.you.id" class="is-you">You</span>
 			<v-tooltip top>
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
-						<v-icon small class="player-status" :aria-label="`${user.isYou ? 'your' : user.name} player is ${user.status}`">
+						<v-icon small class="player-status" :aria-label="`${user.id === $store.state.users.you.id ? 'your' : user.name} player is ${user.status}`">
 							fas fa-{{ { [PlayerStatus.buffering]: "spinner", [PlayerStatus.ready]: "check", [PlayerStatus.error]: "exclamation" }[user.status] }}
 						</v-icon>
 					</span>
@@ -45,7 +45,7 @@
 				<span>{{ user.status }}</span>
 			</v-tooltip>
 
-			<div style="margin-left:auto" v-if="!user.isYou">
+			<div style="margin-left:auto" v-if="user.id !== $store.state.users.you.id">
 				<v-menu right offset-y>
 					<template v-slot:activator="{ on, attrs }">
 						<v-btn depressed tile v-bind="attrs" v-on="on">

@@ -3,11 +3,11 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomEventContext, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable } from "../common/models/types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from 'dayjs';
@@ -70,21 +70,21 @@ export class Room implements RoomState {
 	_visibility: Visibility = Visibility.Public;
 	_queueMode: QueueMode = QueueMode.Manual;
 	isTemporary = false;
+	_owner: User | null
+	grants: Grants = new Grants();
+	userRoles: Map<Role, Set<number>>
 
 	_currentSource: Video | null = null
 	queue: Video[] = []
 	_isPlaying = false
 	_playbackPosition = 0
-	grants: Grants = new Grants();
 	realusers: RoomUser[] = []
-	userRoles: Map<Role, Set<number>>
-	_owner: User | null
+	votes: Map<string, Set<ClientId>> = new Map();
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
 	_playbackStart: Dayjs | null = null;
 	_keepAlivePing: Dayjs
-	votes: Map<string, Set<ClientId>> = new Map();
 
 	constructor (options: Partial<RoomOptions>) {
 		this.log = getLogger(`room/${options.name}`);
@@ -187,6 +187,7 @@ export class Room implements RoomState {
 	public set owner(value: User | null) {
 		this._owner = value;
 		this.markDirty("hasOwner");
+		this.markDirty("users");
 	}
 
 	get users(): RoomUserInfo[] {
@@ -349,6 +350,13 @@ export class Room implements RoomState {
 		await set(`room:${this.name}`, JSON.stringify(state, replacer));
 		await this.publish(msg);
 		this._dirty.clear();
+	}
+
+	public async syncUser(info: RoomUserInfo): Promise<void> {
+		await this.publish({
+			action: "user",
+			user: info,
+		});
 	}
 
 	public async onBeforeUnload(): Promise<void> {
@@ -550,6 +558,7 @@ export class Room implements RoomState {
 		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
 		await this.publishRoomEvent(request);
+		await this.syncUser(this.getUserInfo(user.id));
 	}
 
 	public async leaveRoom(request: LeaveRequest): Promise<void> {
@@ -569,6 +578,7 @@ export class Room implements RoomState {
 			if (this.realusers[i].id === request.info.id) {
 				this.realusers[i].updateInfo(request.info);
 				this.markDirty("users");
+				await this.syncUser(this.getUserInfo(this.realusers[i].id));
 			}
 		}
 	}
@@ -702,6 +712,7 @@ export class Room implements RoomState {
 			this.userRoles.get(request.role).add(targetUser.user_id);
 		}
 		this.markDirty("users");
+		await this.syncUser(this.getUserInfo(targetUser.id));
 		// if (!this.isTemporary) {
 		// 	try {
 		// 		await storage.updateRoom(this);

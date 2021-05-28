@@ -197,6 +197,15 @@ export class Client {
 		}
 		await room.processRequest(request);
 	}
+
+	public sendObj(obj: any): void {
+		try {
+			this.Socket.send(JSON.stringify(obj));
+		}
+		catch (e) {
+			log.error(`failed to send to client: ${e.message}`);
+		}
+	}
 }
 
 export function Setup(): void {
@@ -276,6 +285,15 @@ redisSubscriber.on("message", async (channel, text) => {
 		}
 		else if (msg.action === "event") {
 			await broadcast(roomName, text);
+		}
+		else if (msg.action === "user") {
+			for (const client of roomJoins.get(roomName)) {
+				if (msg.user.id === client.id) {
+					msg.user.isYou = true;
+					client.sendObj(msg);
+					break;
+				}
+			}
 		}
 		else {
 			log.error(`Unknown server message: ${(msg as { action: string }).action}`);

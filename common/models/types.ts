@@ -86,3 +86,10 @@ export declare class Grants {
 	masks: any
 	constructor(grants?: Grants | any);
 }
+
+export interface RoomEventContext {
+	video?: Video
+	videos?: Video[]
+	prevPosition?: number
+	queueIdx?: number
+}

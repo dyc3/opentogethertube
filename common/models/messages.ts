@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants, PlayerStatus, Role } from "./types";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants, PlayerStatus, Role, RoomEventContext } from "./types";
 import { Video, VideoId } from "./video";
 
-export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement
+export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement | ServerMessageUser
 
 interface ServerMessageBase {
 	action: string
@@ -43,11 +43,13 @@ export interface ServerMessageAnnouncement extends ServerMessageBase {
 	text: string
 }
 
-export interface RoomEventContext {
-	video?: Video
-	videos?: Video[]
-	prevPosition?: number
-	queueIdx?: number
+export interface ServerMessageUser extends ServerMessageBase {
+	action: "user"
+	user: UserInfo
+}
+
+export interface UserInfo extends Omit<RoomUserInfo, "status"> {
+	isYou?: boolean
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote;
