@@ -59,7 +59,14 @@ export default {
 			this.isLoadingCreateRoom = false;
 		},
 		onRoomCreated(roomName) {
-			this.$router.push(`/room/${roomName}`);
+			try {
+				this.$router.push(`/room/${roomName}`);
+			}
+			catch (e) {
+				if (e.name !== "NavigationDuplicated") {
+					throw e;
+				}
+			}
 		},
 	},
 };
