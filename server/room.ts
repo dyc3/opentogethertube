@@ -304,7 +304,7 @@ export class Room implements RoomState {
 	}
 
 	public async update(): Promise<void> {
-		if (this.currentSource === null || this.realPlaybackPosition > this.currentSource.length) {
+		if (this.currentSource === null || (this.isPlaying && this.realPlaybackPosition > this.currentSource.length)) {
 			this.dequeueNext();
 		}
 
