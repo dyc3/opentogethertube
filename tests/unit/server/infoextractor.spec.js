@@ -4,7 +4,7 @@ const { getMimeType } = require("../../../server/mime");
 const YouTubeAdapter = require("../../../server/services/youtube");
 const Video = require("../../../common/video");
 const { UnsupportedMimeTypeException, OutOfQuotaException } = require("../../../server/exceptions");
-const ServiceAdapter = require("../../../server/serviceadapter");
+import { ServiceAdapter } from "../../../server/serviceadapter";
 const { redisClient } = require("../../../redisclient");
 const _ = require("lodash");
 
