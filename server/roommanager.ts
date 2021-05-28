@@ -42,7 +42,7 @@ export async function start() {
 	nanotimer.setInterval(update, '', '1000m');
 }
 
-export async function update() {
+export async function update(): Promise<void> {
 	for (const room of rooms) {
 		await room.update();
 		await room.sync();
@@ -53,7 +53,7 @@ export async function update() {
 	}
 }
 
-export async function CreateRoom(options: RoomOptions) {
+export async function CreateRoom(options: RoomOptions): Promise<void> {
 	const room = new Room(options);
 	await room.update();
 	await room.sync();
@@ -61,7 +61,7 @@ export async function CreateRoom(options: RoomOptions) {
 	log.info(`Room created: ${room.name}`);
 }
 
-export async function GetRoom(roomName: string) {
+export async function GetRoom(roomName: string): Promise<Room> {
 	let room = _.find(rooms, { name: roomName });
 	if (room) {
 		return room;
