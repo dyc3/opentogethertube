@@ -35,8 +35,6 @@ export default new Vuex.Store({
 		username: null,
 		/** Registered user */
 		user: null,
-		/** Current user's role */
-		yourRole: 0,
 		room: {
 			name: "",
 			title: "",
@@ -117,13 +115,6 @@ export default new Vuex.Store({
 			// HACK: this lets vue detect the changes and react to them
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
 			this.state.room = Object.assign({}, this.state.room, message);
-
-			// FIXME: implement or create alternative
-			// if (!this.user) {
-			// 	let you = _.find(this.state.room.users, { isYou: true });
-			// 	this.state.username = you.name;
-			// 	this.state.yourRole = you.role;
-			// }
 		},
 		chat(context, message) {
 			this.state.room.chatMessages.push(message);
