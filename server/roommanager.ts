@@ -7,7 +7,7 @@ import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { RoomRequest } from "../common/models/messages";
 import storage from "../storage";
-import { RoomNotFoundException } from "./exceptions";
+import { RoomAlreadyLoadedException, RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager
 
 const log = getLogger("roommanager");
@@ -16,6 +16,7 @@ const redis = {
 	get: promisify(redisClient.get).bind(redisClient),
 	set: promisify(redisClient.set).bind(redisClient),
 	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
+	exists: promisify(redisClient.exists).bind(redisClient),
 };
 export const rooms: Room[] = [];
 // const redisSubscriber = createSubscriber();
@@ -62,16 +63,29 @@ export async function CreateRoom(options: RoomOptions): Promise<void> {
 }
 
 export async function GetRoom(roomName: string): Promise<Room> {
-	let room = _.find(rooms, { name: roomName });
-	if (room) {
-		return room;
+	for (const room of rooms) {
+		if (room.name.toLowerCase() === roomName.toLowerCase()) {
+			log.debug("found room in room manager");
+			return room;
+		}
 	}
-	// FIXME: don't load room if room is already present in redis.
+
 	const opts = await storage.getRoomByName(roomName);
-	if (!opts) {
+	if (opts) {
+		if (await redis.exists(opts.name)) {
+			log.debug("found room in database, but room is already in redis");
+			throw new RoomAlreadyLoadedException(opts.name);
+		}
+	}
+	else {
+		if (await redis.exists(opts.name)) {
+			log.debug("found room in redis, not loading");
+			throw new RoomAlreadyLoadedException(opts.name);
+		}
+		log.debug("room not found in room manager, nor redis, nor database");
 		throw new RoomNotFoundException(roomName);
 	}
-	room = new Room(opts);
+	const room = new Room(opts);
 	addRoom(room);
 	return room;
 }

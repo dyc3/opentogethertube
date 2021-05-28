@@ -279,10 +279,13 @@ export default {
     },
   },
   async created() {
-    this.$events.on("onRoomEvent", this.onRoomEvent);
+    this.$store.subscribeAction((action, state) => {
+      if (action.type === "sync") {
+        this.rewriteUrlToRoomName();
+      }
+    });
     this.$events.on("onRoomCreated", this.onRoomCreated);
     this.$events.on("onChatLinkClick", this.switchToAddTab);
-    this.$events.on("onSync", this.rewriteUrlToRoomName);
 
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
@@ -296,10 +299,8 @@ export default {
   destroyed() {
     clearInterval(this.i_timestampUpdater);
     connection.disconnect();
-    this.$events.remove("onRoomEvent", this.onRoomEvent);
     this.$events.remove("onRoomCreated", this.onRoomCreated);
     this.$events.remove("onChatLinkClick", this.switchToAddTab);
-    this.$events.remove("onSync", this.rewriteUrlToRoomName);
   },
   methods: {
     /* ROOM API */

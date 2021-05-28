@@ -47,7 +47,7 @@ export default new Vuex.Store({
 			isPlaying: false,
 			playbackPosition: 0,
 			hasOwner: false,
-			grants: 0,
+			grants: new Map(),
 			chatMessages: [],
 			events: [],
 		},
@@ -111,9 +111,7 @@ export default new Vuex.Store({
 				message.currentSource = {};
 			}
 			if (message.voteCounts) {
-				console.log("before", message.voteCounts);
 				message.voteCounts = deserializeMap(message.voteCounts);
-				console.log("after", message.voteCounts);
 			}
 			// HACK: this lets vue detect the changes and react to them
 			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats

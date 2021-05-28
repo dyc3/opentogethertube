@@ -147,19 +147,19 @@ export class Client {
 
 	public async JoinRoom(roomName: string): Promise<void> {
 		log.debug(`client id=${this.id} joining ${roomName}`);
-		this.room = roomName;
 
 		const room = await roommanager.GetRoom(roomName);
 		if (!room) {
 			throw new RoomNotFoundException(roomName);
 		}
+		this.room = room.name;
 		// full sync
-		let state = roomStates.get(roomName);
+		let state = roomStates.get(room.name);
 		if (state === undefined) {
 			log.warn("room state not present, grabbing");
-			const stateText = await get(`room:${roomName}`);
+			const stateText = await get(`room:${room.name}`);
 			state = JSON.parse(stateText);
-			roomStates.set(roomName, state);
+			roomStates.set(room.name, state);
 		}
 		const syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
 		this.Socket.send(JSON.stringify(syncMsg));
@@ -170,14 +170,14 @@ export class Client {
 			client: this.id,
 			info: this.clientInfo,
 		});
-		subscribe(`room:${roomName}`);
-		let clients = roomJoins.get(roomName);
+		subscribe(`room:${room.name}`);
+		let clients = roomJoins.get(room.name);
 		if (clients === undefined) {
 			log.warn("room joins not present, creating");
 			clients = [];
 		}
 		clients.push(this);
-		roomJoins.set(roomName, clients);
+		roomJoins.set(room.name, clients);
 	}
 
 	public async makeRoomRequest(request: RoomRequest): Promise<void> {
