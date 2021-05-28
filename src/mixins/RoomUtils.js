@@ -8,9 +8,6 @@ export default {
 			cancelledRoomCreation: false,
 		};
 	},
-	created() {
-		this.$events.on("onRoomCreated", this.onRoomCreated);
-	},
 	methods: {
 		createTempRoom() {
 			this.isLoadingCreateRoom = true;
@@ -20,6 +17,7 @@ export default {
 					this.isLoadingCreateRoom = false;
 					this.cancelledRoomCreation = false;
 					this.$events.fire("onRoomCreated", res.data.room);
+					this.goToRoom(res.data.room);
 				}
 			}).catch(err => {
 				console.error(err);
@@ -42,6 +40,7 @@ export default {
 					this.isLoadingCreateRoom = false;
 					this.cancelledRoomCreation = false;
 					this.$events.fire("onRoomCreated", options.name);
+					this.goToRoom(options.name);
 				}
 			}).catch(err => {
 				this.isLoadingCreateRoom = false;
@@ -58,7 +57,7 @@ export default {
 			this.cancelledRoomCreation = true;
 			this.isLoadingCreateRoom = false;
 		},
-		onRoomCreated(roomName) {
+		goToRoom(roomName) {
 			try {
 				this.$router.push(`/room/${roomName}`);
 			}
