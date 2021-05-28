@@ -7,7 +7,7 @@ import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, Playb
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus } from "../common/models/types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from 'dayjs';
@@ -78,7 +78,7 @@ export class Room implements RoomState {
 	grants: Grants = new Grants();
 	realusers: RoomUser[] = []
 	userRoles: Map<Role, Set<number>>
-	owner: User | null
+	_owner: User | null
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
@@ -180,6 +180,15 @@ export class Room implements RoomState {
 		this.markDirty("playbackPosition");
 	}
 
+	public get owner(): User | null {
+		return this._owner;
+	}
+
+	public set owner(value: User | null) {
+		this._owner = value;
+		this.markDirty("hasOwner");
+	}
+
 	get users(): RoomUserInfo[] {
 		const infos: RoomUserInfo[] = [];
 		for (const user of this.realusers) {
@@ -235,6 +244,10 @@ export class Room implements RoomState {
 
 	isOwner(user: RoomUser): boolean {
 		return user.user && this.owner && user.user.id === this.owner.id;
+	}
+
+	get hasOwner(): boolean {
+		return !!this.owner;
 	}
 
 	getRole(user: RoomUser): Role {
@@ -326,7 +339,7 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
-		const state: RoomState = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "owner");
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 

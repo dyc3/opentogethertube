@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { Session } from "express-session";
+import { User } from "models/user";
 // import { Grants } from "../../server/permissions.js";
 import { Video } from "./video";
 
@@ -41,17 +42,26 @@ export interface RoomOptions {
 	visibility: Visibility
 	queueMode: QueueMode
 	isTemporary: boolean
+	owner: User | null,
+	grants: Grants
 }
 
-export interface RoomState extends RoomOptions {
+export interface RoomState extends RoomOptions, RoomStateComputed {
 	currentSource: Video | null
 	queue: Video[]
 	isPlaying: boolean
 	playbackPosition: number
-	grants: Grants
 	users: RoomUserInfo[]
+	votes: Map<string, Set<ClientId>>
+}
+
+export interface RoomStateComputed {
+	hasOwner: boolean
 	voteCounts: Map<string, number>
 }
+
+// Only these should be sent to clients, all others should be considered unsafe
+export type RoomStateSyncable = Omit<RoomState, "owner" | "votes">
 
 export type RoomUserInfo = {
 	id: ClientId

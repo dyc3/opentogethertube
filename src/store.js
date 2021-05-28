@@ -123,8 +123,6 @@ export default new Vuex.Store({
 			// 	this.state.username = you.name;
 			// 	this.state.yourRole = you.role;
 			// }
-
-			Vue.prototype.$events.emit('onSync');
 		},
 		chat(context, message) {
 			this.state.room.chatMessages.push(message);

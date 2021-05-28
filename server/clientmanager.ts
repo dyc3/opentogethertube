@@ -8,7 +8,7 @@ import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { RoomNotFoundException } from "./exceptions";
-import { ClientInfo, RoomState, MySession, OttWebsocketError, ClientId } from "../common/models/types";
+import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable } from "../common/models/types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
@@ -18,7 +18,7 @@ const redisSubscriber = createSubscriber();
 const get = promisify(redisClient.get).bind(redisClient);
 const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(redisSubscriber);
 const connections: Client[] = [];
-const roomStates: Map<string, RoomState> = new Map();
+const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
 subscribe(ANNOUNCEMENT_CHANNEL);
 
@@ -228,7 +228,7 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 		await client.JoinRoom(roomName);
 	}
 	catch (e) {
-		log.error(`Failed to join room: ${e.message}`);
+		log.error(`Failed to join room: ${e.stack}`);
 		if (e instanceof RoomNotFoundException) {
 			socket.close(OttWebsocketError.ROOM_NOT_FOUND);
 		}
@@ -259,7 +259,7 @@ redisSubscriber.on("message", async (channel, text) => {
 			let state = roomStates.get(roomName);
 			if (state === undefined) {
 				const stateText = await get(`room:${roomName}`);
-				state = JSON.parse(stateText) as RoomState;
+				state = JSON.parse(stateText) as RoomStateSyncable;
 			}
 			Object.assign(state, _.omit(msg, "action"));
 			roomStates.set(roomName, state);

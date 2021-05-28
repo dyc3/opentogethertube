@@ -78,7 +78,7 @@ export async function GetRoom(roomName: string): Promise<Room> {
 		}
 	}
 	else {
-		if (await redis.exists(opts.name)) {
+		if (await redis.exists(roomName)) {
 			log.debug("found room in redis, not loading");
 			throw new RoomAlreadyLoadedException(opts.name);
 		}
