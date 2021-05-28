@@ -48,7 +48,6 @@ export default new Vuex.Store({
 			hasOwner: false,
 			grants: new Map(),
 			chatMessages: [],
-			events: [],
 		},
 
 		// used for prompting the user if they want to add the video they came from or the video linked to the queue
