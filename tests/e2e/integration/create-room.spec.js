@@ -1,3 +1,5 @@
+import faker from "faker";
+
 describe("Creating Rooms", () => {
 	it("should create a temporary room", () => {
 		cy.visit(Cypress.config().baseUrl);
@@ -26,5 +28,54 @@ describe("Creating Rooms", () => {
 		});
 		cy.get("h1").contains(roomName).scrollIntoView().should("be.visible").should("have.text", roomName);
 		cy.get("#connectStatus").should("have.text", "Connected");
+	});
+
+	describe("Room Ownership", () => {
+		let userCreds = null;
+		before(() => {
+			userCreds = {
+				email: faker.internet.email(),
+				username: faker.internet.userName(faker.name.firstName(), faker.name.lastName()),
+				password: faker.internet.password(12),
+			};
+			cy.request("POST", "/api/user/register", userCreds);
+		});
+
+		beforeEach(() => {
+			cy.clearCookies();
+			cy.reload();
+		});
+
+		function createRoom() {
+			cy.visit(Cypress.config().baseUrl);
+			cy.contains("Create Room").click();
+			cy.get('[role="menu"]').contains('[role="menuitem"]', "Create Permanent Room").click();
+
+			let roomName = Math.random().toString(36).substring(2);
+			cy.get('form').find("input").first().type(roomName);
+			cy.get('form').submit();
+
+			cy.wait(500);
+			cy.location("pathname").should((path) => {
+				expect(path).to.include("room");
+			});
+		}
+
+		it("should create a room then claim", () => {
+			createRoom();
+			cy.request("POST", "/api/user/login", userCreds);
+			cy.reload();
+
+			cy.contains("Settings").click();
+			cy.contains("button", "Claim Room").should("be.visible").click();
+			cy.wait(200);
+			cy.contains("button", "Save").scrollIntoView().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+		});
+
+		it.skip("should create a room that is already claimed", () => {
+			cy.request("POST", "/api/user/login", userCreds);
+			cy.reload();
+			createRoom();
+		});
 	});
 });
