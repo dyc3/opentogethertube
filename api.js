@@ -10,7 +10,6 @@ import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit");
 import { QueueMode, Role, Visibility } from "./common/models/types";
 import roomapi from "./server/api/room";
-import devapi from "./server/api/dev";
 import clientmanager from "./server/clientmanager";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
@@ -87,7 +86,9 @@ const router = express.Router();
 
 router.use("/room", roomapi);
 if (process.env.NODE_ENV === "development") {
-	router.use("/dev", devapi);
+	(async () => {
+		router.use("/dev", (await import("./server/api/dev")).default);
+	})();
 }
 
 router.get("/room/:name", async (req, res) => {
