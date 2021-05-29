@@ -734,13 +734,13 @@ export class Room implements RoomState {
 		}
 		this.markDirty("users");
 		await this.syncUser(this.getUserInfo(targetUser.id));
-		// if (!this.isTemporary) {
-		// 	try {
-		// 		await storage.updateRoom(this);
-		// 	}
-		// 	catch (err) {
-		// 		this.log.error(`Failed to update room: ${err} ${err.stack}`);
-		// 	}
-		// }
+		if (!this.isTemporary) {
+			try {
+				await storage.updateRoom(this);
+			}
+			catch (err) {
+				this.log.error(`Failed to update room: ${err} ${err.stack}`);
+			}
+		}
 	}
 }
