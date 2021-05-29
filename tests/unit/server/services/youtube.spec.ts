@@ -432,6 +432,7 @@ describe("Youtube", () => {
 			const fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
 			expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(new OutOfQuotaException("youtube"));
 			expect(fallbackSpy).toHaveBeenCalledTimes(0);
+			fallbackSpy.mockClear();
 		});
 
 		it("should reject when the function fails for unknown reason", async () => {
