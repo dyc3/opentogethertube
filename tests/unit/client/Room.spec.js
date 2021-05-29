@@ -75,7 +75,7 @@ function mountNewInstance(store) {
   });
 }
 
-describe('Room UI spec', () => {
+describe.skip('Room UI spec', () => {
   let wrapper;
   let store;
 

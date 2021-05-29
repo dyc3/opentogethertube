@@ -21,7 +21,7 @@ const testVideo = {
 	thumbnail: "https://example.com/img.png",
 };
 
-describe("VideoQueueItem", () => {
+describe.skip("VideoQueueItem", () => {
 	it("should show add button when queueMode is manual and isPreview", () => {
 		let store = new Vuex.Store({
 			state: {
