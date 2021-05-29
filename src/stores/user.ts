@@ -16,10 +16,15 @@ export const usersModule: Module<UsersState, unknown> = {
 			isYou: true,
 		},
 	},
+	mutations: {
+		SET_YOU(state, payload) {
+			state.you = Object.assign(state.you, payload);
+		},
+	},
 	actions: {
 		user(context, message: ServerMessageUser) {
 			if (message.user.isYou) {
-				context.state.you = Object.assign(context.state.you, message.user);
+				context.commit("SET_YOU", message.user);
 			}
 		},
 	},
