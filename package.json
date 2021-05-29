@@ -111,6 +111,7 @@
     "eslint": "^6.7.2",
     "eslint-plugin-jest": "23.13.2",
     "eslint-plugin-vue": "6.1.2",
+    "faker": "^5.5.3",
     "fork-ts-checker-webpack-plugin": "^6.2.10",
     "husky": "4.2.3",
     "node-sass": "^5.0.0",
