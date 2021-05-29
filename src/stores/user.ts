@@ -14,6 +14,7 @@ export const usersModule: Module<UsersState, unknown> = {
 			isLoggedIn: false,
 			role: Role.UnregisteredUser,
 			isYou: true,
+			grants: 4194303,
 		},
 	},
 	mutations: {

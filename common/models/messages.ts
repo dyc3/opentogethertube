@@ -50,6 +50,7 @@ export interface ServerMessageUser extends ServerMessageBase {
 
 export interface UserInfo extends Omit<RoomUserInfo, "status"> {
 	isYou?: boolean
+	grants: number
 }
 
 export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote;

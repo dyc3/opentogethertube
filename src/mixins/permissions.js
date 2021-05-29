@@ -27,7 +27,7 @@ export default {
 				"manage-users.promote-trusted-user": 1<<20,
 				"manage-users.demote-trusted-user": 1<<21,
 			};
-			return (this.$store.state.room.grants & masks[permission]) > 0;
+			return (this.$store.state.users.you.grants & masks[permission]) > 0;
 		},
 		waitForMetadata() {
 			// eslint-disable-next-line @typescript-eslint/no-this-alias

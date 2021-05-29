@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, UserInfo, VoteRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -369,10 +369,6 @@ export class Room implements RoomState {
 		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
-
-		// FIXME: permissions
-		msg.grants = this.grants.getMask(Role.Owner);
-
 		await set(`room:${this.name}`, JSON.stringify(state, replacer));
 		await this.publish(msg);
 
@@ -392,7 +388,10 @@ export class Room implements RoomState {
 		this.log.debug(`syncing user: ${info.name}`);
 		await this.publish({
 			action: "user",
-			user: info,
+			user: {
+				grants: this.grants.getMask(Role.Owner),
+				...info,
+			},
 		});
 	}
 

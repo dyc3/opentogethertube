@@ -46,7 +46,6 @@ export default new Vuex.Store({
 			isPlaying: false,
 			playbackPosition: 0,
 			hasOwner: false,
-			grants: new Map(),
 			chatMessages: [],
 		},
 

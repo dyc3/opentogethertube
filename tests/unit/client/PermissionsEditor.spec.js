@@ -25,11 +25,15 @@ function createStore() {
 				queue: [],
 				isPlaying: false,
 				playbackPosition: 0,
-				grants: 0b11111111111111111111111111111111,
 				users: [],
 				events: [],
 			},
 			quickAdd: [],
+			users: {
+				you: {
+					grants: 0b1111111111111111111111111111111111111111,
+				},
+			},
 			permsMeta: {
 				loaded: true,
 				roles: {
