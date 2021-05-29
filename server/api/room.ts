@@ -49,19 +49,6 @@ router.get("/list", (req, res) => {
 			currentSource: room.currentSource,
 			users: room.users.length,
 		};
-		// if (isAuthorized) {
-		// 	obj.queueLength = room.queue.length;
-		// 	obj.isPlaying = room.isPlaying;
-		// 	obj.playbackPosition = room.playbackPosition;
-		// 	obj.clients = room.clients.map(client => {
-		// 		return {
-		// 			username: client.username,
-		// 			isLoggedIn: client.isLoggedIn,
-		// 			ip: client.req_ip,
-		// 			forward_ip: client.req_forward_ip,
-		// 		};
-		// 	});
-		// }
 		rooms.push(obj);
 	}
 	rooms = _.orderBy(rooms, ["users", "name"], ["desc", "asc"]);

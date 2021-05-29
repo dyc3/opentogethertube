@@ -591,22 +591,6 @@ let usermanager = {
 
 	onUserModified(session, newUsername=null) {
 		clientmanager.onUserModified(session, newUsername);
-		// for (let room of roommanager.rooms) {
-		// 	for (let client of room.clients) {
-		// 		if (client.session.id === session.id) {
-		// 			if (client.isLoggedIn) {
-		// 				client.user.reload();
-		// 			}
-		// 			else if (newUsername) {
-		// 				// HACK: used for unregistered users because for some reason the session doesn't want to update the username property
-		// 				client.username = newUsername;
-		// 			}
-		// 			room._dirtyProps.push("users");
-		// 			break;
-		// 		}
-		// 	}
-		// }
-		// }
 	},
 
 	async isUsernameTaken(username) {
