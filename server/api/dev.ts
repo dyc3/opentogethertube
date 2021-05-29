@@ -1,5 +1,5 @@
 import { getLogger } from '../../logger.js';
-import express, { RequestHandler, ErrorRequestHandler } from "express";
+import express from "express";
 import { rateLimiter } from "../rate-limit";
 
 const router = express.Router();
