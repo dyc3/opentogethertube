@@ -166,6 +166,7 @@ router.post("/room/generate", async (req, res) => {
 });
 
 router.patch("/room/:name", async (req, res) => {
+	// FIXME: should send a room request to update the room settings
 	let room;
 	try {
 		room = await roommanager.GetRoom(req.params.name);
@@ -203,6 +204,13 @@ router.patch("/room/:name", async (req, res) => {
 		if (req.body.claim && !room.owner) {
 			if (req.user) {
 				room.owner = req.user;
+				// HACK: force the room to send the updated user info to the client
+				for (let user of room.realusers) {
+					if (user.user_id === room.owner.id) {
+						room.syncUser(room.getUserInfo(user.id));
+						break;
+					}
+				}
 			}
 			else {
 				res.status(401).json({

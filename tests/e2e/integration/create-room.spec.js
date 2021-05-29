@@ -65,6 +65,10 @@ describe("Creating Rooms", () => {
 			});
 		}
 
+		function checkPermissionsEditor() {
+			cy.contains("Permissions Editor").should("contain", "Viewing as: Owner");
+		}
+
 		it("should create a room then claim", () => {
 			createRoom();
 			cy.request("POST", "/api/user/login", userCreds);
@@ -74,6 +78,7 @@ describe("Creating Rooms", () => {
 			cy.contains("button", "Claim Room").should("be.visible").click();
 			cy.wait(200);
 			cy.contains("button", "Save").scrollIntoView().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+			checkPermissionsEditor();
 		});
 
 		it("should create a room that is already claimed", () => {
@@ -86,6 +91,7 @@ describe("Creating Rooms", () => {
 			cy.contains("button", "Claim Room").should("not.exist");
 
 			cy.get(".user").should("have.class", "role-owner");
+			checkPermissionsEditor();
 		});
 	});
 });
