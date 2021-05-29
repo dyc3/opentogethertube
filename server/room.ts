@@ -102,6 +102,9 @@ export class Room implements RoomState {
 			this.grants = options.grants;
 		}
 		else if (options.grants) {
+			for (const rid in options.grants) {
+				options.grants[parseInt(rid)] = options.grants[rid];
+			}
 			this.grants = new Grants(options.grants);
 		}
 		if (!(this.grants instanceof Grants)) {

@@ -46,7 +46,9 @@ function dbToRoomArgs(db) {
 		grants: new permissions.Grants(),
 		userRoles: {},
 	};
-	room.grants.deserialize(db.permissions);
+	if (db.permissions) {
+		room.grants.deserialize(db.permissions);
+	}
 	for (let i = 0; i <= 4; i++) {
 		if (i >= 2) { // trusted user, FIXME: replace with Role enum
 			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);
