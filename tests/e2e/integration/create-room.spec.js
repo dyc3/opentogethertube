@@ -1,6 +1,10 @@
 import faker from "faker";
 
 describe("Creating Rooms", () => {
+	beforeEach(() => {
+		cy.request("POST", "/api/dev/reset-rate-limit");
+	});
+
 	it("should create a temporary room", () => {
 		cy.visit(Cypress.config().baseUrl);
 		cy.contains("Create Room").should("be.visible").click();
