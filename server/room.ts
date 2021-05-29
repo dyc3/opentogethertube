@@ -113,6 +113,9 @@ export class Room implements RoomState {
 		else if (this.grants instanceof Number) {
 			this.grants = new Grants();
 		}
+		if (!this.grants) {
+			this.grants = new Grants();
+		}
 		if (options.userRoles) {
 			for (let role = Role.TrustedUser; role <= Role.Administrator; role++) {
 				if (options.userRoles[role]) {
