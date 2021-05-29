@@ -149,6 +149,7 @@ export class Client {
 		}
 	}
 
+	// eslint-disable-next-line no-unused-vars
 	public OnPing(data: Buffer): void {
 		log.debug(`sending pong`);
 		this.Socket.pong();

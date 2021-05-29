@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
 import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { IncompleteServiceAdapterException } from "./exceptions";
 
@@ -53,7 +55,7 @@ export class ServiceAdapter {
 
   /**
    * Fetches video metadata for a list of IDs.
-   * @param {VideoId[]} requests List of objects with id and missingInfo keys
+   * @param requests List of objects with id and missingInfo keys
    */
   fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getManyVideoInfo`);
