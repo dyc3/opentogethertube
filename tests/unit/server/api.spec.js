@@ -942,7 +942,7 @@ describe.skip("Room API", () => {
 
 describe("Data API", () => {
 	it("GET /data/previewAdd", async done => {
-		let resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockReturnValue(Promise.resolve([]));
+		let resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockReturnValue(Promise.resolve([]));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -955,7 +955,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })));
+		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -969,7 +969,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "InvalidAddPreviewInputException", message: "error message" })));
+		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "InvalidAddPreviewInputException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -983,7 +983,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })));
+		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })));
 
 		await request(app)
 			.get("/api/data/previewAdd")
