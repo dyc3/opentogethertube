@@ -1,11 +1,10 @@
 import { Room } from "./room";
-import { Visibility, QueueMode, RoomOptions, RoomState } from "../common/models/types";
+import { RoomOptions, RoomState } from "../common/models/types";
 import _ from "lodash";
 import NanoTimer from "nanotimer";
 import { getLogger } from "../logger.js";
-import { redisClient, createSubscriber } from "../redisclient";
+import { redisClient } from "../redisclient";
 import { promisify } from "util";
-import { RoomRequest } from "../common/models/messages";
 import storage from "../storage";
 import { RoomAlreadyLoadedException, RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager
@@ -15,15 +14,14 @@ const redis = {
 	keys: promisify(redisClient.keys).bind(redisClient),
 	get: promisify(redisClient.get).bind(redisClient),
 	set: promisify(redisClient.set).bind(redisClient),
+	// eslint-disable-next-line no-unused-vars
 	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
 	exists: promisify(redisClient.exists).bind(redisClient),
 };
 export const rooms: Room[] = [];
-// const redisSubscriber = createSubscriber();
 
 function addRoom(room: Room) {
 	rooms.push(room);
-	// redisSubscriber.subscribe(`room_requests:${room.name}`);
 }
 
 export async function start() {

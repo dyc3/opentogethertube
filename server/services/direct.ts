@@ -5,7 +5,7 @@ import { LocalFileException, UnsupportedMimeTypeException, MissingMetadataExcept
 import { getMimeType, isSupportedMimeType } from "../mime";
 import ffprobe from "../../ffprobe";
 import { getLogger } from "../../logger";
-import { Video, VideoDirect } from "../../common/models/video";
+import { VideoDirect } from "../../common/models/video";
 
 const log = getLogger("direct");
 
@@ -18,6 +18,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
     return false;
   }
 
+  // eslint-disable-next-line no-unused-vars
   isCollectionURL(link: string): boolean {
     return false;
   }

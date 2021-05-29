@@ -1,7 +1,6 @@
 import { URL } from "url";
 import axios from "axios";
 import { ServiceAdapter } from "../serviceadapter";
-import { Video } from "../../common/models/video";
 import { getLogger } from "../../logger";
 
 const log = getLogger("reddit");
@@ -20,6 +19,7 @@ export default class RedditAdapter extends ServiceAdapter {
 		return url.host.endsWith("reddit.com") && !url.pathname.includes("comments") && /^\/r\/.+$/.test(url.pathname);
 	}
 
+	// eslint-disable-next-line no-unused-vars
 	isCollectionURL(link: string): boolean {
 		return true;
 	}

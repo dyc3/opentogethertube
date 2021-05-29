@@ -1,4 +1,4 @@
-import URL, { Url, URLSearchParams } from "url";
+import URL from "url";
 import QueryString from "querystring";
 import axios from "axios";
 import _ from "lodash";

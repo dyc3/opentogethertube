@@ -28,6 +28,7 @@ export default class VimeoAdapter extends ServiceAdapter {
     return url.host.endsWith("vimeo.com") && /^\/\d+$/.test(url.pathname);
   }
 
+  // eslint-disable-next-line no-unused-vars
   isCollectionURL(link: string): boolean {
     return false;
   }

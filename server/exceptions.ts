@@ -7,7 +7,7 @@ export class OttException extends Error {}
 export class UnsupportedServiceException extends OttException {
 	constructor(url: Url) {
 		let msg = "";
-		if (/\/*\.([a-z0-9])$/i.exec(url.path!.split("?")[0])) {
+		if (/\/*\.([a-z0-9])$/i.exec(url.path.split("?")[0])) {
 			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, the service at "${url.host}" is not yet supported.`;
 		}
 		else {

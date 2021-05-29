@@ -134,7 +134,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 
   parseFile(file: GoogleDriveFile): Video {
     return {
-      service: "googledrive",
+      service: this.serviceId,
       id: file.id,
       title: file.name,
       thumbnail: file.thumbnailLink,
