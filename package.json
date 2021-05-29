@@ -15,7 +15,7 @@
     "test-e2e": "start-server-and-test optic-dev http-get://localhost:8080 cy:run",
     "cy:run": "cypress run --config-file cypress.json --headless",
     "cy:open": "cypress open --config-file cypress.json",
-    "api-server": "nodemon --inspect -e ts,js app.js",
+    "api-server": "nodemon --ignore 'src/*' --ignore 'tests/*' --inspect -e ts,js app.js",
     "dev": "NODE_ENV=development concurrently \"npm:api-server\" \"PORT=8080 npm run serve\"",
     "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\"",
     "optic-dev": "npx api start",
