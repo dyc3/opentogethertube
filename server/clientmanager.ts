@@ -336,6 +336,12 @@ function getClient(session: Session, roomName: string): Client {
 	}
 }
 
+setInterval(() => {
+	for (const client of connections) {
+		client.Socket.ping();
+	}
+}, 10000);
+
 export default {
 	Setup,
 	onUserModified,
