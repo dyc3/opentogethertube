@@ -698,7 +698,7 @@ export class Room implements RoomState {
 		const targetUser = this.getUser(request.targetClientId);
 		this.log.info(`${user.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
 
-		let perm;
+		let perm: string | undefined;
 		switch (request.role) {
 			case Role.Administrator:
 				perm = "manage-users.promote-admin";
