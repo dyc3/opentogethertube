@@ -44,6 +44,7 @@ export interface RoomOptions {
 	isTemporary: boolean
 	owner: User | null,
 	grants: Grants
+	userRoles: Map<Role, Set<number>>
 }
 
 export interface RoomState extends RoomOptions, RoomStateComputed {
@@ -61,7 +62,7 @@ export interface RoomStateComputed {
 }
 
 // Only these should be sent to clients, all others should be considered unsafe
-export type RoomStateSyncable = Omit<RoomState, "owner" | "votes">
+export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles">
 
 export type RoomUserInfo = {
 	id: ClientId

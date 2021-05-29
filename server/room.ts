@@ -98,11 +98,24 @@ export class Room implements RoomState {
 		this._keepAlivePing = dayjs();
 
 		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner"));
+		if (options.grants instanceof Grants) {
+			this.grants = options.grants;
+		}
+		else if (options.grants) {
+			this.grants = new Grants(options.grants);
+		}
 		if (!(this.grants instanceof Grants)) {
 			this.grants = new Grants(this.grants);
 		}
 		else if (this.grants instanceof Number) {
 			this.grants = new Grants();
+		}
+		if (options.userRoles) {
+			for (let role = Role.TrustedUser; role <= Role.Administrator; role++) {
+				if (options.userRoles[role]) {
+					this.userRoles[role] = new Set(options.userRoles[role]);
+				}
+			}
 		}
 	}
 
