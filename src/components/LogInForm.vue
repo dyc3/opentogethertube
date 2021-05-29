@@ -120,7 +120,7 @@ export default class LogInForm extends Vue {
 	]
 	retypePasswordRules = [
 		v => !!v || "Please retype your password",
-		v => v === this.password || "Passwords must match",
+		v => this.comparePassword(v) || "Passwords must match",
 	]
 
 	created() {
@@ -221,6 +221,11 @@ export default class LogInForm extends Vue {
 			}
 		}
 		this.isLoading = false;
+	}
+
+	comparePassword(v) {
+		// HACK: required because otherwise this.password is undefined for some reason in the validation rule's context
+		return this.password === v;
 	}
 }
 </script>
