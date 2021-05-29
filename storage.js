@@ -1,5 +1,5 @@
 const _ = require("lodash");
-const moment = require("moment");
+const dayjs = require("dayjs");
 const { Room, CachedVideo, User } = require("./models");
 const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
@@ -125,9 +125,9 @@ module.exports = {
 				log.info(`Cache missed: ${service} ${id}`);
 				return { service, id };
 			}
-			const origCreatedAt = moment(cachedVideo.createdAt);
-			const lastUpdatedAt = moment(cachedVideo.updatedAt);
-			const today = moment();
+			const origCreatedAt = dayjs(cachedVideo.createdAt);
+			const lastUpdatedAt = dayjs(cachedVideo.updatedAt);
+			const today = dayjs();
 			// We check for changes every at an interval of 30 days, unless the original cache date was
 			// less than 7 days ago, then the interval is 7 days. The reason for this is that the uploader
 			// is unlikely to change the video info after a week of the original upload. Since we don't store
@@ -197,9 +197,9 @@ module.exports = {
 				}
 			}
 			return foundVideos.map(cachedVideo => {
-				const origCreatedAt = moment(cachedVideo.createdAt);
-				const lastUpdatedAt = moment(cachedVideo.updatedAt);
-				const today = moment();
+				const origCreatedAt = dayjs(cachedVideo.createdAt);
+				const lastUpdatedAt = dayjs(cachedVideo.updatedAt);
+				const today = dayjs();
 				// We check for changes every at an interval of 30 days, unless the original cache date was
 				// less than 7 days ago, then the interval is 7 days. The reason for this is that the uploader
 				// is unlikely to change the video info after a week of the original upload. Since we don't store

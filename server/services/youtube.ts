@@ -6,7 +6,6 @@ import { RedisClient } from "redis";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { InvalidVideoIdException, OutOfQuotaException } from "../exceptions";
 import { getLogger } from "../../logger";
-import moment from "moment";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
 import storage from "../../storage";
 
@@ -335,9 +334,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
           }
         }
         if (item.contentDetails) {
-          video.length = moment
-            .duration(item.contentDetails.duration)
-            .asSeconds();
+          video.length = this.parseVideoLength(item.contentDetails.duration);
         }
         results.push(video);
       }
@@ -474,6 +471,26 @@ export default class YouTubeAdapter extends ServiceAdapter {
     }
     const extracted = matches[0].split(":")[1].substring(1);
     return extracted;
+  }
+
+  /**
+   * Parse youtube's unconventional video duration format into seconds.
+   * Examples: PT40M25S
+   */
+  parseVideoLength(duration: string): number {
+    let match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+
+    match = match.slice(1).map((x) => {
+      if (x !== null) {
+        return x.replace(/\D/, '');
+      }
+    });
+
+    const hours = (parseInt(match[0]) || 0);
+    const minutes = (parseInt(match[1]) || 0);
+    const seconds = (parseInt(match[2]) || 0);
+
+    return hours * 3600 + minutes * 60 + seconds;
   }
 }
 
