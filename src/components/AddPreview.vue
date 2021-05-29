@@ -1,6 +1,6 @@
 <template>
 	<div class="video-add">
-		<v-row>
+		<v-row class="mb-6">
 			<v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
 			<div v-if="!production">
 				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{ v[0] }}</v-btn>
