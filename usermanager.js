@@ -565,32 +565,17 @@ let usermanager = {
 
 	onUserLogIn(user, session) {
 		log.info(`${user.username} (id: ${user.id}) has logged in.`);
-		for (let room of roommanager.rooms) {
-			for (let client of room.clients) {
-				if (client.session.id === session.id) {
-					client.user = user;
-					room._dirtyProps.push("users");
-					break;
-				}
-			}
-		}
+		clientmanager.onUserModified(session);
 	},
 
 	onUserLogOut(user, session) {
 		log.info(`${user.username} (id: ${user.id}) has logged out.`);
-		for (let room of roommanager.rooms) {
-			for (let client of room.clients) {
-				if (client.session.id === session.id) {
-					client.user = null;
-					room._dirtyProps.push("users");
-					break;
-				}
-			}
-		}
+		clientmanager.onUserModified(session);
 	},
 
+	// eslint-disable-next-line no-unused-vars
 	onUserModified(session, newUsername=null) {
-		clientmanager.onUserModified(session, newUsername);
+		clientmanager.onUserModified(session);
 	},
 
 	async isUsernameTaken(username) {

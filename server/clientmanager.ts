@@ -326,8 +326,8 @@ async function onRedisMessage(channel: string, text: string) {
 
 redisSubscriber.on("message", onRedisMessage);
 
-async function onUserModified(session: MySession, newUsername: string) {
-	log.debug(`User was modified: ${session}, newUsername=${newUsername}, telling rooms`);
+async function onUserModified(session: MySession) {
+	log.debug(`User was modified: ${session}, telling rooms`);
 	for (const client of connections) {
 		if (client.Session.id === session.id) {
 			client.Session = session;
