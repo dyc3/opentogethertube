@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { Session } from "express-session";
 import { User } from "models/user";
-// import { Grants } from "../../server/permissions.js";
 import { Video } from "./video";
 
 export enum Visibility {
