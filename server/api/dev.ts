@@ -3,7 +3,7 @@ import express from "express";
 import { rateLimiter } from "../rate-limit";
 
 const router = express.Router();
-const log = getLogger("api/room");
+const log = getLogger("api/dev");
 
 router.post("/reset-rate-limit", async (req, res) => {
 	await rateLimiter.delete(req.ip);
