@@ -218,7 +218,7 @@ router.patch("/room/:name", async (req, res) => {
 			});
 		}
 		catch (err) {
-			log.error(`Failed to update room: ${err} ${err.message}`);
+			log.error(`Failed to update room: ${err} ${err.stack}`);
 			res.status(500).json({
 				success: false,
 			});
