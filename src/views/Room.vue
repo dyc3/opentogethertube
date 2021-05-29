@@ -25,13 +25,13 @@
             <v-col class="video-controls">
               <vue-slider
                 id="videoSlider"
+                interval="0.1"
+                lazy="true"
                 v-model="sliderPosition"
                 :max="$store.state.room.currentSource.length"
                 :tooltip-formatter="sliderTooltipFormatter"
                 :disabled="currentSource.length == null || !granted('playback.seek')"
                 @change="sliderChange"
-                @drag-start="sliderDragStart"
-                @drag-end="sliderDragEnd"
               />
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
@@ -231,7 +231,6 @@ export default {
       joinFailReason: "",
       snackbarActive: false,
       snackbarText: "",
-      sliderDragging: false,
 
       i_timestampUpdater: null,
 
@@ -370,13 +369,6 @@ export default {
       if (!this.sliderDragging) {
         api.seek(this.sliderPosition);
       }
-    },
-    sliderDragStart() {
-      this.sliderDragging = true;
-    },
-    sliderDragEnd() {
-      this.sliderDragging = false;
-      api.seek(this.sliderPosition);
     },
 
     updateVolume() {
