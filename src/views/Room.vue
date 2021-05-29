@@ -25,8 +25,8 @@
             <v-col class="video-controls">
               <vue-slider
                 id="videoSlider"
-                interval="0.1"
-                lazy="true"
+                :interval="0.1"
+                :lazy="true"
                 v-model="sliderPosition"
                 :max="$store.state.room.currentSource.length"
                 :tooltip-formatter="sliderTooltipFormatter"
