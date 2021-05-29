@@ -42,15 +42,17 @@ const createModel = (sequelize: Sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
-      // validate: {
-      //   isEmail: {
-      //     args: [
-      //       {
-      //         require_tld: process.env.NODE_ENV === 'production',
-      //       },
-      //     ],
-      //   },
-      // },
+      validate: {
+        isEmail: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore because I think the type annotation is wrong.
+          args: [
+            {
+              require_tld: process.env.NODE_ENV === 'production',
+            },
+          ],
+        },
+      },
     },
     salt: {
       type: DataTypes.BLOB,
