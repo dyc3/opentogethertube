@@ -19,8 +19,8 @@ function roomToDb(room) {
 		visibility: room.visibility,
 		queueMode: room.queueMode,
 	};
-	if (room.permissions) {
-		db.permissions = room.permissions.serialize();
+	if (room.grants) {
+		db.permissions = room.grants.serialize();
 	}
 	if (room.owner) {
 		db.ownerId = room.owner.id;
