@@ -418,12 +418,10 @@ describe("Youtube", () => {
 			const fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
 			const videos = await adapter.videoApiRequest("BTZ5KVRUy1Q", ["length"]);
 			expect(videos[0]).toEqual({
-				"BTZ5KVRUy1Q": {
-					service: "youtube",
-					id: "BTZ5KVRUy1Q",
-					length: 10,
-					thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg",
-				},
+				service: "youtube",
+				id: "BTZ5KVRUy1Q",
+				length: 10,
+				thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg",
 			});
 			expect(fallbackSpy).toHaveBeenCalledTimes(1);
 			fallbackSpy.mockClear();
