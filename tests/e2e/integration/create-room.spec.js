@@ -76,10 +76,16 @@ describe("Creating Rooms", () => {
 			cy.contains("button", "Save").scrollIntoView().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
 		});
 
-		it.skip("should create a room that is already claimed", () => {
+		it("should create a room that is already claimed", () => {
 			cy.request("POST", "/api/user/login", userCreds);
 			cy.reload();
+
 			createRoom();
+			cy.contains("Settings").click();
+			cy.contains("button", "Save").scrollIntoView().should("be.visible");
+			cy.contains("button", "Claim Room").should("not.exist");
+
+			cy.get(".user").should("have.class", "role-owner");
 		});
 	});
 });
