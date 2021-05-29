@@ -173,12 +173,7 @@ export class Client {
 		this.Socket.send(JSON.stringify(syncMsg));
 
 		// actually join the room
-		await room.processRequest({
-			type: RoomRequestType.JoinRequest,
-			client: this.id,
-			info: this.clientInfo,
-		});
-		subscribe(`room:${room.name}`);
+		await subscribe(`room:${room.name}`);
 		let clients = roomJoins.get(room.name);
 		if (clients === undefined) {
 			log.warn("room joins not present, creating");
@@ -186,6 +181,11 @@ export class Client {
 		}
 		clients.push(this);
 		roomJoins.set(room.name, clients);
+		await room.processRequest({
+			type: RoomRequestType.JoinRequest,
+			client: this.id,
+			info: this.clientInfo,
+		});
 	}
 
 	public async makeRoomRequest(request: RoomRequest): Promise<void> {

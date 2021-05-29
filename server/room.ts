@@ -364,6 +364,7 @@ export class Room implements RoomState {
 	}
 
 	public async syncUser(info: RoomUserInfo): Promise<void> {
+		this.log.debug(`syncing user: ${info.name}`);
 		await this.publish({
 			action: "user",
 			user: info,
