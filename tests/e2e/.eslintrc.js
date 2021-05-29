@@ -7,5 +7,6 @@ module.exports = {
   },
   rules: {
     strict: "off",
+    "jest/expect-expect": "off",
   },
 };
