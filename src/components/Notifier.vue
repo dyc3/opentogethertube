@@ -35,6 +35,11 @@ export default class Notifier extends Vue {
 	position: fixed;
 	padding: 0;
 	bottom: 0;
+	pointer-events: none;
+
+	.v-stackbar, button {
+		pointer-events: auto;
+	}
 }
 
 li {
