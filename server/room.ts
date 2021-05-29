@@ -483,8 +483,9 @@ export class Room implements RoomState {
 			this.log.error("seek value was undefined or null");
 			return;
 		}
-		const prev = this.playbackPosition;
+		const prev = this.realPlaybackPosition;
 		this.playbackPosition = request.value;
+		this._playbackStart = dayjs();
 		await this.publishRoomEvent(request, { prevPosition: prev });
 	}
 
