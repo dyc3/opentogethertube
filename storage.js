@@ -28,7 +28,7 @@ function roomToDb(room) {
 	if (room.userRoles) {
 		for (let i = 0; i <= 4; i++) {
 			if (i >= 2) { // trusted user, FIXME: replace with Role enum
-				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles[i]));
+				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles.get(i)));
 			}
 		}
 	}
