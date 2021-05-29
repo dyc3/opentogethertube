@@ -48,7 +48,7 @@ describe("Room", () => {
 					state: false,
 				});
 				expect(room.isPlaying).toEqual(false);
-				expect(room.playbackPosition).toBeCloseTo(5);
+				expect(room.playbackPosition).toBeCloseTo(5, 1);
 				expect(room.playbackPosition).toBeGreaterThanOrEqual(5);
 			});
 		});
