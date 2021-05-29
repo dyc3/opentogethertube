@@ -3,11 +3,11 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, UserInfo, VoteRequest } from "../common/models/messages";
+import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext } from "../common/models/types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext, RoomStateStorable } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from 'dayjs';
@@ -71,7 +71,7 @@ export class Room implements RoomState {
 	_visibility: Visibility = Visibility.Public;
 	_queueMode: QueueMode = QueueMode.Manual;
 	isTemporary = false;
-	_owner: User | null
+	_owner: User | null = null
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>
 
@@ -97,7 +97,7 @@ export class Room implements RoomState {
 		this.owner = null;
 		this._keepAlivePing = dayjs();
 
-		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner"));
+		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner", "currentSource", "queue", "playbackPosition", "isPlaying"));
 		if (options.grants instanceof Grants) {
 			this.grants = options.grants;
 		}
@@ -117,11 +117,25 @@ export class Room implements RoomState {
 			this.grants = new Grants();
 		}
 		if (options.userRoles) {
-			for (let role = Role.TrustedUser; role <= Role.Administrator; role++) {
-				if (options.userRoles[role]) {
-					this.userRoles[role] = new Set(options.userRoles[role]);
+			if (Array.isArray(options.userRoles)) {
+				for (const [role, ids] of options.userRoles) {
+					this.userRoles.set(role, new Set(ids));
 				}
 			}
+			else {
+				for (let role = Role.TrustedUser; role <= Role.Administrator; role++) {
+					if (options.userRoles[role]) {
+						this.userRoles.set(role, new Set(options.userRoles[role]));
+					}
+				}
+			}
+		}
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		if (options._playbackStart) {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			this._playbackStart = dayjs(options._playbackStart);
 		}
 	}
 
@@ -355,6 +369,15 @@ export class Room implements RoomState {
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
 
+	/**
+	 * Serialize the room's state so that it can be stored in redis
+	 */
+	public serializeState(): string {
+		const state: RoomStateStorable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "userRoles", "owner", "_playbackStart");
+
+		return JSON.stringify(state, replacer);
+	}
+
 	public async sync(): Promise<void> {
 		if (this._dirty.size === 0) {
 			return;
@@ -369,7 +392,7 @@ export class Room implements RoomState {
 		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
-		await set(`room:${this.name}`, JSON.stringify(state, replacer));
+		await set(`room:${this.name}`, this.serializeState());
 		await this.publish(msg);
 
 		let settings: Partial<Omit<RoomOptions, "name" | "isTemporary">> = _.pick(this, "title", "description", "visibility", "queueMode", "grants", "userRoles", "owner");
