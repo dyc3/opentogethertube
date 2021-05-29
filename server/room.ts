@@ -216,12 +216,14 @@ export class Room implements RoomState {
 			this.currentSource = this.queue.shift();
 			this.markDirty("queue");
 			this.playbackPosition = 0;
+			this._playbackStart = dayjs();
 		}
 		else if (this.currentSource !== null) {
 			if (this.isPlaying) {
 				this.isPlaying = false;
 			}
 			this.playbackPosition = 0;
+			this._playbackStart = dayjs();
 			this.currentSource = null;
 		}
 	}
