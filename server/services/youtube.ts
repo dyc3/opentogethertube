@@ -1,5 +1,4 @@
-import URL from "url";
-import QueryString from "querystring";
+import { URL } from "url";
 import axios from "axios";
 import _ from "lodash";
 import { RedisClient } from "redis";
@@ -42,15 +41,14 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   canHandleURL(link: string): boolean {
-    const url = URL.parse(link);
-    const query = QueryString.parse(url.query);
+    const url = new URL(link);
 
     if (url.host.endsWith("youtube.com")) {
-      return (url.pathname.startsWith("/watch") && !!query.v) ||
+      return (url.pathname.startsWith("/watch") && !!url.searchParams.get("v")) ||
         (url.pathname.startsWith("/channel/") && url.pathname.length > 9) ||
         (url.pathname.startsWith("/user/") && url.pathname.length > 6) ||
         (url.pathname.startsWith("/c/") && url.pathname.length > 3) ||
-        (url.pathname.startsWith("/playlist") && !!query.list);
+        (url.pathname.startsWith("/playlist") && !!url.searchParams.get("list"));
     }
     else if (url.host.endsWith("youtu.be")) {
       return url.pathname.length > 1;
@@ -61,7 +59,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   isCollectionURL(link: string): boolean {
-    const url = new URL.URL(link);
+    const url = new URL(link);
     return url.pathname.startsWith("/channel/") ||
       url.pathname.startsWith("/c/") ||
       url.pathname.startsWith("/user/") ||
@@ -70,7 +68,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   getVideoId(link: string): string {
-    const url = new URL.URL(link);
+    const url = new URL(link);
     if (url.host.endsWith("youtu.be")) {
       return url.pathname.replace("/", "").trim();
     }
@@ -81,7 +79,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
   async resolveURL(link: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video[]> {
     log.debug(`resolveURL: ${link}, ${onlyProperties}`);
-    const url = new URL.URL(link);
+    const url = new URL(link);
 
     const qPlaylist = url.searchParams.get("list");
 
@@ -411,7 +409,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     return null;
   }
 
-  getChannelId(url: URL.URL): YoutubeChannelData {
+  getChannelId(url: URL): YoutubeChannelData {
     const channelId = (/\/(?!(?:c(?:|hannel)|user)\/)([a-z0-9_-]+)/gi).exec(url.pathname)[1];
     if (url.pathname.startsWith("/channel/")) {
       return { channel: channelId };
@@ -481,7 +479,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     let match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
 
     match = match.slice(1).map((x) => {
-      if (x !== null) {
+      if (x !== null && x !== undefined) {
         return x.replace(/\D/, '');
       }
     });
