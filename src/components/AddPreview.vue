@@ -1,57 +1,55 @@
 <template>
 	<div class="video-add">
-		<div>
+		<v-row>
 			<v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
 			<div v-if="!production">
 				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{ v[0] }}</v-btn>
 			</div>
 			<v-btn v-if="videos.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
-		</div>
+		</v-row>
 		<v-row v-if="isLoadingAddPreview" justify="center">
 			<v-progress-circular indeterminate/>
 		</v-row>
-		<div v-if="!isLoadingAddPreview">
-			<v-row justify="center">
-				<div v-if="hasAddPreviewFailed">
+		<v-row justify="center" v-if="!isLoadingAddPreview">
+			<div v-if="hasAddPreviewFailed">
 				{{ videosLoadFailureText }}
-				</div>
-				<v-container fill-height v-if="videos.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
-				<v-row justify="center" align="center">
-					<v-col cols="12">
-						Search YouTube for "{{ inputAddPreview }}" by pressing enter, or by clicking search.<br>
-						<v-btn @click="requestAddPreviewExplicit">Search</v-btn>
-					</v-col>
-				</v-row>
-				</v-container>
-				<v-container v-else-if="inputAddPreview.length === 0">
-					<v-row justify="center" align="center">
-						<div class="add-video-helper">
-							<h1>What can I add?</h1>
-							<h3>Single Videos</h3>
-							<ul>
-								<li><ProcessedText text="Youtube videos: https://youtube.com/watch?v=LP8GRjv6AIo" /></li>
-								<li><ProcessedText text="Vimeo videos: https://vimeo.com/94338566" /></li>
-								<li><ProcessedText text="Dailymotion videos: https://dailymotion.com/video/x31i1so" /></li>
-								<li><ProcessedText text="Any public .mp4 video: https://vjs.zencdn.net/v/oceans.mp4" /></li>
-							</ul>
-							<h3>Playlists</h3>
-							<ul>
-								<li><ProcessedText text="Youtube playlists: https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ" /></li>
-								<li><ProcessedText text="Youtube channels: https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA" /></li>
-								<li><ProcessedText text="Subreddits: https://reddit.com/r/youtubehaiku/" /></li>
-								<li><ProcessedText text="Neverthink.tv channels: https://neverthink.tv/c/meme-radar" /></li>
-							</ul>
-							<span>Or just type text to search Youtube.</span>
-						</div>
-					</v-row>
-				</v-container>
-			</v-row>
-			<div v-if="highlightedAddPreviewItem">
-				<VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
-				<h4>Playlist</h4>
 			</div>
-			<VideoQueueItem v-for="(itemdata, index) in videos" :key="index" :item="itemdata" is-preview/>
+			<v-container fill-height v-if="videos.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
+			<v-row justify="center" align="center">
+				<v-col cols="12">
+					Search YouTube for "{{ inputAddPreview }}" by pressing enter, or by clicking search.<br>
+					<v-btn @click="requestAddPreviewExplicit">Search</v-btn>
+				</v-col>
+			</v-row>
+			</v-container>
+			<v-container v-else-if="inputAddPreview.length === 0">
+				<v-row justify="center" align="center">
+					<div class="add-video-helper">
+						<h1>What can I add?</h1>
+						<h3>Single Videos</h3>
+						<ul>
+							<li><ProcessedText text="Youtube videos: https://youtube.com/watch?v=LP8GRjv6AIo" /></li>
+							<li><ProcessedText text="Vimeo videos: https://vimeo.com/94338566" /></li>
+							<li><ProcessedText text="Dailymotion videos: https://dailymotion.com/video/x31i1so" /></li>
+							<li><ProcessedText text="Any public .mp4 video: https://vjs.zencdn.net/v/oceans.mp4" /></li>
+						</ul>
+						<h3>Playlists</h3>
+						<ul>
+							<li><ProcessedText text="Youtube playlists: https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ" /></li>
+							<li><ProcessedText text="Youtube channels: https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA" /></li>
+							<li><ProcessedText text="Subreddits: https://reddit.com/r/youtubehaiku/" /></li>
+							<li><ProcessedText text="Neverthink.tv channels: https://neverthink.tv/c/meme-radar" /></li>
+						</ul>
+						<span>Or just type text to search Youtube.</span>
+					</div>
+				</v-row>
+			</v-container>
+		</v-row>
+		<div v-if="highlightedAddPreviewItem">
+			<VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
+			<h4>Playlist</h4>
 		</div>
+		<VideoQueueItem v-for="(itemdata, index) in videos" :key="index" :item="itemdata" is-preview/>
 	</div>
 </template>
 
@@ -246,6 +244,11 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import "../variables.scss";
+
+.video-add {
+  margin: 0 20px;
+  min-height: 500px;
+}
 
 .add-video-helper {
 	width: 400px;

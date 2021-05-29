@@ -665,10 +665,7 @@ export default {
     }
   }
 }
-.video-add {
-  margin: 0 10px;
-  min-height: 500px;
-}
+
 .user-invite-container {
   padding: 0 10px;
   min-height: 500px;
