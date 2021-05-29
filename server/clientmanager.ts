@@ -258,7 +258,7 @@ async function broadcast(roomName: string, text: string) {
 	}
 }
 
-redisSubscriber.on("message", async (channel, text) => {
+async function onRedisMessage(channel: string, text: string) {
 	// handles sync messages published by the rooms.
 	log.debug(`pubsub message: ${channel}: ${text}`);
 	const msg = JSON.parse(text) as ServerMessage;
@@ -270,7 +270,15 @@ redisSubscriber.on("message", async (channel, text) => {
 				const stateText = await get(`room:${roomName}`);
 				state = JSON.parse(stateText) as RoomStateSyncable;
 			}
-			Object.assign(state, _.omit(msg, "action"));
+			const filtered = _.omit(msg, "action");
+			if (state) {
+				Object.assign(state, filtered);
+			}
+			else {
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore
+				state = filtered;
+			}
 			roomStates.set(roomName, state);
 
 			await broadcast(roomName, text);
@@ -312,7 +320,9 @@ redisSubscriber.on("message", async (channel, text) => {
 	else {
 		log.error(`Unhandled message from redis channel: ${channel}`);
 	}
-});
+}
+
+redisSubscriber.on("message", onRedisMessage);
 
 async function onUserModified(session: MySession, newUsername: string) {
 	log.debug(`User was modified: ${session}, newUsername=${newUsername}, telling rooms`);
