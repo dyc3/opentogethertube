@@ -58,6 +58,10 @@ jobs:
       env:
         REDIS_HOST: localhost
         REDIS_PORT: 6379
+    - run: npm test-e2e
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
   deploy-docker:
     runs-on: ubuntu-latest
     name: Deploy docker image
