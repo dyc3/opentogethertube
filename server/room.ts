@@ -691,7 +691,9 @@ export class Room implements RoomState {
 			default:
 				break;
 		}
-		this.grants.check(this.getRole(user), perm);
+		if (perm) {
+			this.grants.check(this.getRole(user), perm);
+		}
 		const targetCurrentRole = this.getRole(targetUser);
 		if (request.role < targetCurrentRole) {
 			let demotePerm;
@@ -709,7 +711,7 @@ export class Room implements RoomState {
 					this.log.error(`Can't demote ${permissions.ROLE_NAMES[targetCurrentRole]}`);
 					throw new ImpossiblePromotionException();
 			}
-			this.grants.check(request.role, demotePerm);
+			this.grants.check(this.getRole(user), demotePerm);
 		}
 
 		if (targetCurrentRole === Role.UnregisteredUser) {
