@@ -3,6 +3,9 @@
 		<li v-for="(toast, index) in $store.state.toast.notifications" :key="toast.id" class="toast-item">
 			<ToastNotification :toast="toast" :number="index"/>
 		</li>
+		<v-btn block color="primary" key="closeall" @click="closeAll" v-if="$store.state.toast.notifications.length > 1">
+			Close All
+		</v-btn>
 	</transition-group>
 </template>
 
@@ -16,6 +19,11 @@ export default {
 	name: "Notifier",
 	components: {
 		ToastNotification,
+	},
+	methods: {
+		closeAll() {
+			this.$store.commit("toast/CLEAR_ALL_TOASTS");
+		},
 	},
 };
 </script>

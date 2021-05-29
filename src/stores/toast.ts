@@ -23,5 +23,8 @@ export const toastModule: Module<ToastState, unknown> = {
 			const idx = _.findIndex(state.notifications, { id });
 			state.notifications.splice(idx, 1);
 		},
+		CLEAR_ALL_TOASTS(state: ToastState) {
+			state.notifications = [];
+		},
 	},
 };
