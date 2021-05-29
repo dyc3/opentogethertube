@@ -77,6 +77,7 @@ import { API } from "@/common-http.js";
 import isEmail from 'validator/es/lib/isEmail';
 
 @Component({
+	name: "LogInForm",
 	watch: {
 		email() {
 			this.logInFailureMessage = "";

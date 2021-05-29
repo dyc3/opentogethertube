@@ -46,6 +46,7 @@ import { Video, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
 
 @Component({
+	name: "VideoQueueItem",
 	props: {
 		item: { type: Object, required: true },
 		isPreview: { type: Boolean, default: false },

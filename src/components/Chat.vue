@@ -35,6 +35,7 @@ import connection from "@/util/connection";
 import Component from 'vue-class-component';
 
 @Component({
+  name: "Chat",
   components: {
     ProcessedText,
   },

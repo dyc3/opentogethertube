@@ -18,6 +18,7 @@ import ToastNotification from "@/components/ToastNotification.vue";
  * Handles displaying all toast notifications.
  */
 @Component({
+	name: "Notifier",
 	components: {
 		ToastNotification,
 	},

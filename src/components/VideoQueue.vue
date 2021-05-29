@@ -31,6 +31,7 @@ import api from "@/util/api";
 import PermissionsMixin from "@/mixins/permissions.js";
 
 @Component({
+	name: "VideoQueue",
 	components: {
 		draggable,
 		VideoQueueItem,

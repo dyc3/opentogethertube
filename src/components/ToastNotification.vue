@@ -42,6 +42,7 @@ import Component from 'vue-class-component';
 import { API } from '@/common-http';
 
 @Component({
+	name: "ToastNotification",
 	props: {
 		toast: {
 			type: Object as PropType<Toast>,

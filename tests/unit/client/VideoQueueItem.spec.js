@@ -29,6 +29,7 @@ describe("VideoQueueItem", () => {
 					currentSource: {},
 					queue: [],
 					queueMode: "manual",
+					voteCounts: new Map(),
 				},
 			},
 		});
@@ -54,6 +55,7 @@ describe("VideoQueueItem", () => {
 					currentSource: {},
 					queue: [testVideo],
 					queueMode: "manual",
+					voteCounts: new Map(),
 				},
 			},
 		});
@@ -79,6 +81,7 @@ describe("VideoQueueItem", () => {
 					currentSource: testVideo,
 					queue: [],
 					queueMode: "manual",
+					voteCounts: new Map(),
 				},
 			},
 		});
@@ -104,6 +107,7 @@ describe("VideoQueueItem", () => {
 					currentSource: {},
 					queue: [],
 					queueMode: "manual",
+					voteCounts: new Map(),
 				},
 			},
 		});
@@ -130,6 +134,7 @@ describe("VideoQueueItem", () => {
 					currentSource: {},
 					queue: [],
 					queueMode: "vote",
+					voteCounts: new Map(),
 				},
 			},
 		});
@@ -160,6 +165,7 @@ describe("VideoQueueItem", () => {
 						currentSource: {},
 						queue: [],
 						queueMode: "manual",
+						voteCounts: new Map(),
 					},
 				},
 			});
