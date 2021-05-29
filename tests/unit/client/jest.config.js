@@ -22,7 +22,7 @@ module.exports = {
   rootDir: "../../..",
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^common$': '<rootDir>/common/$1',
+    '^common/(.*)$': '<rootDir>/common/$1',
   },
   snapshotSerializers: ['jest-serializer-vue'],
   testMatch: ['**/tests/unit/client/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)'],
