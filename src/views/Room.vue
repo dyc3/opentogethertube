@@ -29,6 +29,8 @@
                 :max="$store.state.room.currentSource.length"
                 :tooltip-formatter="sliderTooltipFormatter"
                 :disabled="currentSource.length == null || !granted('playback.seek')"
+                @change="sliderChange"
+                @drag-start="sliderDragStart"
                 @drag-end="sliderDragEnd"
               />
               <v-row no-gutters align="center">
@@ -229,6 +231,7 @@ export default {
       joinFailReason: "",
       snackbarActive: false,
       snackbarText: "",
+      sliderDragging: false,
 
       i_timestampUpdater: null,
 
@@ -363,7 +366,16 @@ export default {
       this.truePosition = this.$store.state.room.isPlaying ? calculateCurrentPosition(this.$store.state.room.playbackStartTime, new Date(), this.$store.state.room.playbackPosition) : this.$store.state.room.playbackPosition;
       this.sliderPosition = _.clamp(this.truePosition, 0, this.$store.state.room.currentSource.length);
     },
+    sliderChange() {
+      if (!this.sliderDragging) {
+        api.seek(this.sliderPosition);
+      }
+    },
+    sliderDragStart() {
+      this.sliderDragging = true;
+    },
     sliderDragEnd() {
+      this.sliderDragging = false;
       api.seek(this.sliderPosition);
     },
 
