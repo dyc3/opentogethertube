@@ -675,6 +675,7 @@ export class Room implements RoomState {
 	public async promoteUser(request: PromoteRequest): Promise<void> {
 		const user = this.getUser(request.client);
 		const targetUser = this.getUser(request.targetClientId);
+		this.log.info(`${user.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
 
 		let perm;
 		switch (request.role) {
