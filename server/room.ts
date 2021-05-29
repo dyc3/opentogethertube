@@ -323,6 +323,10 @@ export class Room implements RoomState {
 	}
 
 	public async update(): Promise<void> {
+		if (this.currentSource === undefined) {
+			this.currentSource = null; // sanity check
+		}
+
 		if (this.currentSource === null || (this.isPlaying && this.realPlaybackPosition > this.currentSource.length)) {
 			this.dequeueNext();
 		}
@@ -529,6 +533,10 @@ export class Room implements RoomState {
 			}
 
 			const video: Video = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
+			if (video === undefined) {
+				this.log.error("video was undefined, which is bad");
+				throw new Error("video was undefined");
+			}
 			this.queue.push(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			await this.publishRoomEvent(request, { video });
@@ -538,6 +546,10 @@ export class Room implements RoomState {
 
 			for (let i = 0; i < videos.length; i++) {
 				const video = videos[i];
+				if (video === undefined) {
+					this.log.error("video was undefined, which is bad");
+					throw new Error("video was undefined");
+				}
 				if (this.currentSource && this.currentSource.service === video.service && this.currentSource.id === video.id) {
 					videos.splice(i--, 1);
 					continue;
