@@ -1,3 +1,4 @@
+require('ts-node').register();
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
@@ -95,7 +96,7 @@ log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
 const app = express();
 const server = http.createServer(app);
 
-const { redisClient } = require('./redisclient.js');
+const { redisClient } = require('./redisclient');
 
 function checkRedis() {
 	let start = new Date();
@@ -132,8 +133,13 @@ let sessionOpts = {
 	},
 };
 if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
-	app.set('trust proxy', 1);
+	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
+	app.set('trust proxy', process.env["TRUST_PROXY"] || 1);
 	sessionOpts.cookie.secure = true;
+}
+if (process.env.FORCE_INSECURE_COOKIES) {
+	log.warn("FORCE_INSECURE_COOKIES found, cookies will only be set on http, not https");
+	sessionOpts.cookie.secure = false;
 }
 const sessions = session(sessionOpts);
 app.use(sessions);
@@ -157,6 +163,10 @@ app.use((req, res, next) => {
 	if (!req.user && !req.session.username) {
 		let username = uniqueNamesGenerator();
 		log.debug(`Generated name for new user (on request): ${username}`);
+		log.debug(`headers: x-forwarded-proto=${req.headers["x-forwarded-proto"]} x-forwarded-for=${req.headers["x-forwarded-for"]} x-forwarded-host=${req.headers["x-forwarded-host"]}`);
+		if (req.protocol === "http" && sessionOpts.cookie.secure) {
+			log.error(`found protocol ${req.protocol} and secure cookies. cookies will not be set`);
+		}
 		req.session.username = username;
 		req.session.save((err) => {
 			if (err) {
@@ -174,9 +184,14 @@ app.use((req, res, next) => {
 	next();
 });
 
-const roommanager = require("./roommanager");
 const api = require("./api");
-roommanager.start(server, sessions);
+
+const websockets = require("./server/websockets.js");
+websockets.Setup(server, sessions);
+const clientmanager = require("./server/clientmanager.ts");
+clientmanager.Setup();
+const roommanager = require("./server/roommanager");
+roommanager.start();
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies

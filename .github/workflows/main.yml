@@ -3,7 +3,8 @@ name: CI/CD
 on:
   pull_request:
   push:
-    branches: master
+    branches:
+    - master
     paths-ignore:
     - '.vscode/**'
     - 'docs/**'
@@ -53,7 +54,13 @@ jobs:
     - run: npm run lint-ci
       env:
         NODE_ENV: production
-    - run: npm test
+    - run: npm run test-unit-client
+    - run: npm run test-unit-server
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+    - run: npx sequelize-cli db:migrate
+    - run: npm run test-e2e
       env:
         REDIS_HOST: localhost
         REDIS_PORT: 6379

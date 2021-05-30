@@ -1,5 +1,5 @@
 const _ = require("lodash");
-const moment = require("moment");
+const dayjs = require("dayjs");
 const { Room, CachedVideo, User } = require("./models");
 const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
@@ -19,16 +19,16 @@ function roomToDb(room) {
 		visibility: room.visibility,
 		queueMode: room.queueMode,
 	};
-	if (room.permissions) {
-		db.permissions = room.permissions.serialize();
+	if (room.grants) {
+		db.permissions = room.grants.serialize();
 	}
 	if (room.owner) {
 		db.ownerId = room.owner.id;
 	}
 	if (room.userRoles) {
 		for (let i = 0; i <= 4; i++) {
-			if (i >= permissions.ROLES.TRUSTED_USER) {
-				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles[i]));
+			if (i >= 2) { // trusted user, FIXME: replace with Role enum
+				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(Array.from(room.userRoles.get(i)));
 			}
 		}
 	}
@@ -43,12 +43,14 @@ function dbToRoomArgs(db) {
 		visibility: db.visibility,
 		queueMode: db.queueMode,
 		owner: db.owner,
-		permissions: new permissions.Grants(),
+		grants: new permissions.Grants(),
 		userRoles: {},
 	};
-	room.permissions.deserialize(db.permissions);
+	if (db.permissions) {
+		room.grants.deserialize(db.permissions);
+	}
 	for (let i = 0; i <= 4; i++) {
-		if (i >= permissions.ROLES.TRUSTED_USER) {
+		if (i >= 2) { // trusted user, FIXME: replace with Role enum
 			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);
 		}
 	}
@@ -123,9 +125,9 @@ module.exports = {
 				log.info(`Cache missed: ${service} ${id}`);
 				return { service, id };
 			}
-			const origCreatedAt = moment(cachedVideo.createdAt);
-			const lastUpdatedAt = moment(cachedVideo.updatedAt);
-			const today = moment();
+			const origCreatedAt = dayjs(cachedVideo.createdAt);
+			const lastUpdatedAt = dayjs(cachedVideo.updatedAt);
+			const today = dayjs();
 			// We check for changes every at an interval of 30 days, unless the original cache date was
 			// less than 7 days ago, then the interval is 7 days. The reason for this is that the uploader
 			// is unlikely to change the video info after a week of the original upload. Since we don't store
@@ -195,9 +197,9 @@ module.exports = {
 				}
 			}
 			return foundVideos.map(cachedVideo => {
-				const origCreatedAt = moment(cachedVideo.createdAt);
-				const lastUpdatedAt = moment(cachedVideo.updatedAt);
-				const today = moment();
+				const origCreatedAt = dayjs(cachedVideo.createdAt);
+				const lastUpdatedAt = dayjs(cachedVideo.updatedAt);
+				const today = dayjs();
 				// We check for changes every at an interval of 30 days, unless the original cache date was
 				// less than 7 days ago, then the interval is 7 days. The reason for this is that the uploader
 				// is unlikely to change the video info after a week of the original upload. Since we don't store
@@ -332,3 +334,4 @@ module.exports = {
 		return fields;
 	},
 };
+export default module.exports;

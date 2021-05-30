@@ -12,7 +12,7 @@ Vue.use(Vuetify);
 import VueEvents from 'vue-events';
 localVue.use(VueEvents);
 
-describe("Notifier component", () => {
+describe.skip("Notifier component", () => {
 	it("should activate when message received and set message text", async () => {
 		let wrapper = mount(Notifier, {
 			localVue,

@@ -1,10 +1,5 @@
 <template>
   <v-app id="app">
-    <div class="announcement-container">
-      <v-alert class="announcement" type="warning" border="left" dismissible close-label="Close Announcement" v-model="showAnnouncement" transition="scroll-y-transition">
-        SYSTEM: {{ announcement }}
-      </v-alert>
-    </div>
     <v-app-bar app :absolute="!$store.state.fullscreen" :inverted-scroll="$store.state.fullscreen">
       <v-app-bar-nav-icon @click="drawer = true" />
       <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
@@ -51,6 +46,7 @@
             </v-list-item-content>
           </v-list-item>
           <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />
+          <NavUser @login="showLogin = true" @logout="logout" />
         </v-list-item-group>
       </v-list>
       <template v-slot:append>
@@ -82,12 +78,12 @@
         </v-row>
       </v-container>
     </v-overlay>
-    <Notifier event="Error" color="red" icon="fas fa-exclamation-circle" />
-    <Notifier event="Success" color="green" icon="fas fa-check" />
+    <Notifier />
   </v-app>
 </template>
 
-<script>
+<script lang="ts">
+import Vue from "vue";
 import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
@@ -96,7 +92,7 @@ import NavUser from "@/components/navbar/NavUser.vue";
 import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
 
-export default {
+export default Vue.extend({
   name: "app",
   components: {
     CreateRoomForm,
@@ -108,18 +104,12 @@ export default {
   mixins: [RoomUtilsMixin],
   data() {
     return {
-      announcement: null,
-      showAnnouncement: false,
       showCreateRoomForm: false,
       showLogin: false,
       drawer: false,
     };
   },
   methods: {
-    onAnnouncement(text) {
-      this.showAnnouncement = true;
-      this.announcement = text;
-    },
     logout() {
       API.post("/user/logout").then(res => {
         if (res.data.success) {
@@ -140,8 +130,6 @@ export default {
       }
     });
 
-    this.$events.on("onAnnouncement", this.onAnnouncement);
-
     // ask the server if we are logged in or not, and update the client to reflect that status.
     API.get("/user").then(res => {
       if (res.data.loggedIn) {
@@ -151,7 +139,7 @@ export default {
       }
     });
   },
-};
+});
 </script>
 
 <style lang="scss">
@@ -168,18 +156,6 @@ export default {
 
 .vue-slider-process {
   background: $brand-color !important;
-}
-
-.announcement-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 10000;
-
-  .announcement {
-    margin: 10px;
-  }
 }
 
 .text-muted {

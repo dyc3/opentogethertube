@@ -1,6 +1,6 @@
 const Video = require("../../../common/video.js");
 
-describe('Video spec', () => {
+describe.skip('Video spec', () => {
 	it('should merge videos without failing', () => {
 		let a = new Video({ service: "fake", id: "123", title: "fake title" });
 		let b = new Video({ service: "fake", id: "123", title: "fake title", length: 10 });

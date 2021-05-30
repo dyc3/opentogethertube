@@ -10,6 +10,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:vue/base',
     'plugin:vue/essential',
+    "@vue/typescript/recommended",
   ],
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
@@ -60,9 +61,20 @@ module.exports = {
     'jest/no-truthy-falsy': 'warn',
     'jest/prefer-spy-on': 'error',
     'jest/require-top-level-describe': 'warn',
+
+    '@typescript-eslint/no-var-requires': 'warn',
   },
   parserOptions: {
-    ecmaVersion: 6,
-    parser: 'babel-eslint'
-  }
+    ecmaVersion: 2020,
+    sourceType: "module",
+  },
+  overrides: [
+    {
+      files: ["*.js"],
+      rules: {
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-var-requires": "off",
+      }
+    }
+  ]
 };

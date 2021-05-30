@@ -26,26 +26,26 @@
 			<v-tooltip top v-if="$store.state.permsMeta.loaded">
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
-						<v-icon small class="role" :aria-label="`${user.isYou ? 'you' : user.name} is ${$store.state.permsMeta.roles[user.role].display}`">
+						<v-icon small class="role" :aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${$store.state.permsMeta.roles[user.role].display}`">
 							fas fa-{{ {"2":"thumbs-up", "3":"chevron-up", "4":"star", "-1":"star" }[user.role] }}
 						</v-icon>
 					</span>
 				</template>
 				<span>{{ $store.state.permsMeta.roles[user.role].display }}</span>
 			</v-tooltip>
-			<span v-if="user.isYou" class="is-you">You</span>
+			<span v-if="user.id === $store.state.users.you.id" class="is-you">You</span>
 			<v-tooltip top>
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
-						<v-icon small class="player-status" :aria-label="`${user.isYou ? 'your' : user.name} player is ${user.status}`">
-							fas fa-{{ {"buffering":"spinner", "ready":"check", "error":"exclamation" }[user.status] }}
+						<v-icon small class="player-status" :aria-label="`${user.id === $store.state.users.you.id ? 'your' : user.name} player is ${user.status}`">
+							fas fa-{{ { [PlayerStatus.buffering]: "spinner", [PlayerStatus.ready]: "check", [PlayerStatus.error]: "exclamation" }[user.status] }}
 						</v-icon>
 					</span>
 				</template>
 				<span>{{ user.status }}</span>
 			</v-tooltip>
 
-			<div style="margin-left:auto" v-if="!user.isYou">
+			<div style="margin-left:auto" v-if="user.id !== $store.state.users.you.id">
 				<v-menu right offset-y>
 					<template v-slot:activator="{ on, attrs }">
 						<v-btn depressed tile v-bind="attrs" v-on="on">
@@ -56,7 +56,7 @@
 					<v-list>
 						<div class="user-promotion" v-if="$store.state.permsMeta.loaded" :key="$store.state.permsMeta.loaded">
 							<div v-for="role in 4" :key="user.role + role">
-								<v-list-item @click="promoteUser(user.name, role)" v-if="user.role !== role && (role <= 1 || granted(roleToPermission(role))) && (user.role > 0 && user.role <= 1 || granted(roleToPermission(user.role, demote=true)))">
+								<v-list-item @click="api.promoteUser(user.id, role)" v-if="user.role !== role && (role <= 1 || granted(roleToPermission(role))) && (user.role > 0 && user.role <= 1 || granted(roleToPermission(user.role, demote=true)))">
 									{{ user.role > role ? "Demote" : "Promote" }} to {{ $store.state.permsMeta.roles[role].display }}
 								</v-list-item>
 							</div>
@@ -77,6 +77,8 @@
 <script>
 import { API } from "@/common-http.js";
 import PermissionsMixin from "@/mixins/permissions.js";
+import { PlayerStatus } from "common/models/types";
+import api from "@/util/api";
 
 /** Lists users that are connected to a room. */
 export default {
@@ -87,10 +89,12 @@ export default {
 	mixins: [PermissionsMixin],
 	data() {
 		return {
+			PlayerStatus,
 			inputUsername: "",
 			showEditName: false,
 			setUsernameLoading: false,
 			setUsernameFailureText: "",
+			api,
 		};
 	},
 	async created() {
@@ -115,13 +119,6 @@ export default {
 				this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
 			}
 			this.setUsernameLoading = false;
-		},
-		promoteUser(username, role) {
-			this.$socket.sendObj({
-				action: "set-role",
-				username,
-				role,
-			});
 		},
 		/** Gets the appropriate permission name for the role and promotion/demotion. */
 		roleToPermission(role, demote=false) {

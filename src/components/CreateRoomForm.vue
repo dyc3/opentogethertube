@@ -60,7 +60,8 @@ export default {
 		};
 	},
 	methods: {
-		submit() {
+		submit(e) {
+			e.preventDefault();
 			this.$refs.form.validate();
 			if (!this.isValid) {
 				return;

@@ -1,6 +1,7 @@
 module.exports = {
   env: {
     node: true,
+    es6: true,
   },
   plugins: [
     "vue",
@@ -27,9 +28,14 @@ module.exports = {
     'vue/no-v-html': 'error',
     'vue/v-bind-style': ['error', 'shorthand'],
     'vue/v-on-style': ['error', 'shorthand'],
+
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
   parserOptions: {
-    ecmaVersion: 6,
-    parser: 'babel-eslint'
+    ecmaVersion: 2020,
+    sourceType: "module",
+    ecmaFeatures: {
+      modules: true,
+    },
   },
 };

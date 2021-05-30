@@ -1,4 +1,5 @@
 import { API } from "@/common-http.js";
+import { ToastStyle } from "@/models/toast";
 
 export default {
 	data() {
@@ -6,9 +7,6 @@ export default {
 			isLoadingCreateRoom: false,
 			cancelledRoomCreation: false,
 		};
-	},
-	created() {
-		this.$events.on("onRoomCreated", this.onRoomCreated);
 	},
 	methods: {
 		createTempRoom() {
@@ -19,10 +17,15 @@ export default {
 					this.isLoadingCreateRoom = false;
 					this.cancelledRoomCreation = false;
 					this.$events.fire("onRoomCreated", res.data.room);
+					this.goToRoom(res.data.room);
 				}
 			}).catch(err => {
 				console.error(err);
-				this.$events.emit("notify_onError", { message: `Failed to create a new temporary room` });
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: `Failed to create a new temporary room`,
+					duration: 6000,
+				});
 				throw err;
 			});
 		},
@@ -37,11 +40,16 @@ export default {
 					this.isLoadingCreateRoom = false;
 					this.cancelledRoomCreation = false;
 					this.$events.fire("onRoomCreated", options.name);
+					this.goToRoom(options.name);
 				}
 			}).catch(err => {
 				this.isLoadingCreateRoom = false;
 				console.error(err);
-				this.$events.emit("notify_onError", { message: `Failed to create a new room` });
+				this.$toast.add({
+					style: ToastStyle.Error,
+					content: `Failed to create a new room`,
+					duration: 6000,
+				});
 				throw err;
 			});
 		},
@@ -49,8 +57,15 @@ export default {
 			this.cancelledRoomCreation = true;
 			this.isLoadingCreateRoom = false;
 		},
-		onRoomCreated(roomName) {
-			this.$router.push(`/room/${roomName}`);
+		goToRoom(roomName) {
+			try {
+				this.$router.push(`/room/${roomName}`);
+			}
+			catch (e) {
+				if (e.name !== "NavigationDuplicated") {
+					throw e;
+				}
+			}
 		},
 	},
 };

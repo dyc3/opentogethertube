@@ -6,14 +6,16 @@
       @scroll="onScroll"
       class="messages d-flex flex-column flex-grow-1 mt-2"
     >
-      <v-card
-        class="message d-flex mr-2 mb-2"
-        v-for="(msg, index) in $store.state.room.chatMessages"
-        :key="index"
-      >
-        <div class="from">{{ msg.from }}</div>
-        <div class="text"><ProcessedText :text="msg.text" /></div>
-      </v-card>
+      <transition-group name="message">
+        <div
+          class="message"
+          v-for="(msg, index) in $store.state.room.chatMessages"
+          :key="index"
+        >
+          <div class="from">{{ msg.from.name }}</div>
+          <div class="text"><ProcessedText :text="msg.text" /></div>
+        </div>
+      </transition-group>
     </div>
     <div class="d-flex justify-end">
       <v-text-field
@@ -26,39 +28,43 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import Vue from "vue";
 import ProcessedText from "@/components/ProcessedText.vue";
+import connection from "@/util/connection";
+import Component from 'vue-class-component';
 
-export default {
-  name: "chat",
+@Component({
+  name: "Chat",
   components: {
     ProcessedText,
   },
-  data: () => ({
-    inputValue: "",
-    stickToBottom: true,
-  }),
+})
+export default class Chat extends Vue {
+  inputValue = ""
+  stickToBottom = true
+
   updated() {
     if (this.stickToBottom) {
-      const div = this.$refs.messages;
+      const div = this.$refs["messages"] as Element;
       div.scrollTop = div.scrollHeight;
     }
-  },
-  methods: {
-    onInputKeyDown(e) {
-      if (e.keyCode === 13 && this.inputValue.trim() !== "") {
-        this.$socket.sendObj({ action: "chat", text: this.inputValue });
-        this.inputValue = "";
-        this.stickToBottom = true;
-      }
-    },
-    onScroll() {
-      const div = this.$refs.messages;
-      const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
-      this.stickToBottom = distToBottom === 0;
-    },
-  },
-};
+  }
+
+  onInputKeyDown(e) {
+    if (e.key === "Enter" && this.inputValue.trim() !== "") {
+      connection.send({ action: "chat", text: this.inputValue });
+      this.inputValue = "";
+      this.stickToBottom = true;
+    }
+  }
+
+  onScroll() {
+    const div = this.$refs["messages"] as Element;
+    const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
+    this.stickToBottom = distToBottom === 0;
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -71,10 +77,12 @@ export default {
   overflow-x: hidden;
 
   flex-basis: 0;
+  align-items: baseline;
 }
 
 .message {
-  background-color: #444;
+  margin: 4px;
+  padding: 3px;
 
   &:first-child {
     margin-top: auto;
@@ -82,17 +90,25 @@ export default {
 
   .from,
   .text {
+    display: inline;
     margin: 3px 5px;
     word-wrap: break-word;
   }
 
   .from {
     font-weight: bold;
-    max-width: 20%;
   }
+}
 
-  .text {
-    min-width: 80%;
-  }
+// Transition animation
+.message-enter-active, .message-leave-active {
+  transition: all 0.2s;
+}
+.message-enter, .message.leave-to {
+  opacity: 0;
+  transform: translateX(-30px) scaleY(0);
+}
+.message-move {
+  transition: transform 0.2s;
 }
 </style>

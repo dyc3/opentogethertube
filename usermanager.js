@@ -1,14 +1,14 @@
-const { getLogger } = require('./logger.js');
-const _ = require("lodash");
-const securePassword = require('secure-password');
-const express = require('express');
-const passport = require('passport');
-const crypto = require('crypto');
-const { User, Room } = require("./models");
-const roommanager = require("./roommanager");
-const { redisClient } = require('./redisclient.js');
-const { RateLimiterRedis } = require('rate-limiter-flexible');
-const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit.js");
+import { getLogger } from './logger.js';
+import _ from "lodash";
+import securePassword from 'secure-password';
+import express from 'express';
+import passport from 'passport';
+import crypto from 'crypto';
+import { User, Room } from "./models";
+import clientmanager from "./server/clientmanager";
+import { redisClient } from './redisclient';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
@@ -332,6 +332,7 @@ let usermanager = {
 	 */
 	async authCallback(email, password, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		let usermanager = require("./usermanager.js");
 		let user;
 		try {
@@ -376,6 +377,7 @@ let usermanager = {
 
 	async authCallbackDiscord(req, accessToken, refreshToken, profile, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		let usermanager = require("./usermanager.js");
 		if (req.user) {
 			log.info(`${req.user.username} already logged in, linking discord account...`);
@@ -422,6 +424,7 @@ let usermanager = {
 	 */
 	async deserializeUser(id, done) {
 		// HACK: required to use usermanager inside passport callbacks that are inside usermanager. This is because `this` becomes `global` inside these callbacks for some fucking reason
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		let usermanager = require("./usermanager.js");
 		try {
 			let user = await usermanager.getUser({ id });
@@ -561,46 +564,17 @@ let usermanager = {
 
 	onUserLogIn(user, session) {
 		log.info(`${user.username} (id: ${user.id}) has logged in.`);
-		for (let room of roommanager.rooms) {
-			for (let client of room.clients) {
-				if (client.session.id === session.id) {
-					client.user = user;
-					room._dirtyProps.push("users");
-					break;
-				}
-			}
-		}
+		clientmanager.onUserModified(session);
 	},
 
 	onUserLogOut(user, session) {
 		log.info(`${user.username} (id: ${user.id}) has logged out.`);
-		for (let room of roommanager.rooms) {
-			for (let client of room.clients) {
-				if (client.session.id === session.id) {
-					client.user = null;
-					room._dirtyProps.push("users");
-					break;
-				}
-			}
-		}
+		clientmanager.onUserModified(session);
 	},
 
+	// eslint-disable-next-line no-unused-vars
 	onUserModified(session, newUsername=null) {
-		for (let room of roommanager.rooms) {
-			for (let client of room.clients) {
-				if (client.session.id === session.id) {
-					if (client.isLoggedIn) {
-						client.user.reload();
-					}
-					else if (newUsername) {
-						// HACK: used for unregistered users because for some reason the session doesn't want to update the username property
-						client.username = newUsername;
-					}
-					room._dirtyProps.push("users");
-					break;
-				}
-			}
-		}
+		clientmanager.onUserModified(session);
 	},
 
 	async isUsernameTaken(username) {
@@ -625,3 +599,4 @@ if (process.env.NODE_ENV === "test") {
 }
 
 module.exports = usermanager;
+export default usermanager;

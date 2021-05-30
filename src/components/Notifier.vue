@@ -1,44 +1,63 @@
 <template>
-	<v-snackbar app left :color="color" v-model="active">
-		<v-icon v-if="icon">{{ icon }}</v-icon>
-		{{ message }}
-	</v-snackbar>
+	<transition-group appear name="toast-list" tag="ul" class="toast-list">
+		<li v-for="(toast, index) in $store.state.toast.notifications" :key="toast.id" class="toast-item">
+			<ToastNotification :toast="toast" :number="index"/>
+		</li>
+		<v-btn block color="primary" key="closeall" @click="closeAll" v-if="$store.state.toast.notifications.length > 1">
+			Close All
+		</v-btn>
+	</transition-group>
 </template>
 
-<script>
+<script lang="ts">
+import Vue from 'vue';
+import Component from 'vue-class-component';
+import ToastNotification from "@/components/ToastNotification.vue";
+
 /**
- * Helper to allow easy popup notifications. Useful for providing visual feedback to the user.
- * Will listen to the global event bus for events on `notify_on${event}`
- *
- * TODO: show multiple notifications at a time
- * TODO: show a little progress bar for when the notification will go away
- * TODO: add options to set timeout for each message
- * FIXME: make sure that notifications from multiple notifiers don't cover each other up
- * */
-export default {
+ * Handles displaying all toast notifications.
+ */
+@Component({
 	name: "Notifier",
-	props: {
-		event: { type: String, required: true },
-		color: { type: String, default: "" },
-		icon: { type: String, default: "" },
+	components: {
+		ToastNotification,
 	},
-	data() {
-		return {
-			active: false,
-			message: "",
-		};
-	},
-	created() {
-		this.$events.on(`notify_on${this.event}`, this.onMessage);
-	},
-	destroyed() {
-		this.$events.remove(`notify_on${this.event}`, this.onMessage);
-	},
-	methods: {
-		onMessage({ message }) {
-			this.message = message;
-			this.active = true;
-		},
-	},
-};
+})
+export default class Notifier extends Vue {
+	closeAll() {
+		this.$store.commit("toast/CLEAR_ALL_TOASTS");
+	}
+}
 </script>
+
+<style lang="scss" scoped>
+.toast-list {
+	display: block;
+	position: fixed;
+	padding: 0;
+	bottom: 0;
+	pointer-events: none;
+
+	.v-stackbar, button {
+		pointer-events: auto;
+	}
+}
+
+li {
+	list-style-type: none;
+}
+
+// define the animations for individual toasts
+.toast-list-move {
+	transition: all .25s ease;
+}
+
+.toast-list-enter-active, .toast-list-leave-active {
+	transition: all .25s;
+}
+.toast-list-enter, .toast-list-leave-to {
+	opacity: 0;
+	transform: translateY(50px);
+	// bottom: -50px;
+}
+</style>

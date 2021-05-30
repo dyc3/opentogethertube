@@ -25,11 +25,14 @@
             <v-col class="video-controls">
               <vue-slider
                 id="videoSlider"
+                :interval="0.1"
+                :lazy="true"
                 v-model="sliderPosition"
-                @change="sliderChange"
                 :max="$store.state.room.currentSource.length"
                 :tooltip-formatter="sliderTooltipFormatter"
-                :disabled="currentSource.length == null || !granted('playback.seek')"/>
+                :disabled="currentSource.length == null || !granted('playback.seek')"
+                @change="sliderChange"
+              />
               <v-row no-gutters align="center">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
@@ -51,7 +54,7 @@
                   </template>
                   <span>Skip 10s</span>
                 </v-tooltip>
-                <v-btn @click="roomSkip()" :disabled="!granted('playback.skip')">
+                <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
                   <v-icon>fas fa-fast-forward</v-icon>
                 </v-btn>
                 <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
@@ -68,7 +71,7 @@
                 <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                   <v-icon>fas fa-compress</v-icon>
                 </v-btn>
-                <v-btn v-if="!production" @click="roomKickMe()" :disabled="!this.$store.state.socket.isConnected">Kick me</v-btn>
+                <v-btn v-if="!production" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
               </v-row>
             </v-col>
           </div>
@@ -88,25 +91,7 @@
             </v-tabs>
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
-                <div class="video-queue">
-                  <div class="empty-queue" v-if="$store.state.room.queue.length === 0">
-                    <v-container fill-height>
-                      <v-row justify="center" align="center">
-                        <div>
-                          <div class="msg">
-                            There aren't any videos queued up.
-                          </div>
-                          <v-btn x-large block @click="switchToAddTab">
-                            Add a video
-                          </v-btn>
-                        </div>
-                      </v-row>
-                    </v-container>
-                  </div>
-                  <draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
-                    <VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="index" :item="itemdata"/>
-                  </draggable>
-                </div>
+                <VideoQueue @switchtab="switchToAddTab" />
               </v-tab-item>
               <v-tab-item>
                 <AddPreview />
@@ -118,7 +103,7 @@
                     <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-description')" />
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-visibility')" />
                     <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" />
-                    <PermissionsEditor v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner" v-model="inputRoomSettings.permissions" :current-role="$store.state.yourRole" />
+                    <PermissionsEditor v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner" v-model="inputRoomSettings.permissions" :current-role="$store.state.users.you.role" />
                     <div v-else-if="$store.state.room.isTemporary">
                       Permissions are not available in temporary rooms.
                     </div>
@@ -193,32 +178,30 @@
         <v-btn to="/rooms">Find Another Room</v-btn>
       </v-layout>
     </v-overlay>
-    <v-snackbar v-if="$store.state.room.events.length > 0" :key="$store.state.room.events.length" v-model="$store.state.room.events[$store.state.room.events.length - 1].isVisible" :timeout="$store.state.room.events[$store.state.room.events.length - 1].timeout">
-      {{ snackbarText }}
-      <v-btn @click="undoEvent($store.state.room.events[$store.state.room.events.length - 1], $store.state.room.events.length - 1)" v-if="$store.state.room.events[$store.state.room.events.length - 1].isUndoable">Undo</v-btn>
-    </v-snackbar>
   </div>
 </template>
 
 <script>
 import { API } from "@/common-http.js";
-import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import AddPreview from "@/components/AddPreview.vue";
 import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
 import _ from "lodash";
-import draggable from 'vuedraggable';
 import VueSlider from 'vue-slider-component';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import PermissionsMixin from "@/mixins/permissions.js";
 import UserList from "@/components/UserList.vue";
+import connection from "@/util/connection";
+import api from "@/util/api";
+import { ToastStyle } from "@/models/toast";
+import { PlayerStatus } from 'common/models/types';
+import VideoQueue from "@/components/VideoQueue.vue";
 
 export default {
   name: 'room',
   components: {
-    draggable,
-    VideoQueueItem,
+    VideoQueue,
     PermissionsEditor,
     VueSlider,
     OmniPlayer,
@@ -257,11 +240,16 @@ export default {
         active: false,
         value: "",
       },
+
+      api,
     };
   },
   computed: {
+    isConnected() {
+      return this.$store.state.$connection.isConnected;
+    },
     connectionStatus() {
-      return this.$store.state.socket.isConnected ? "Connected" : "Connecting...";
+      return this.$store.state.$connection.isConnected ? "Connected" : "Connecting...";
     },
     currentSource() {
       return this.$store.state.room.currentSource;
@@ -290,88 +278,60 @@ export default {
     },
   },
   async created() {
-    this.$events.on("onRoomEvent", this.onRoomEvent);
+    this.$store.subscribeAction((action) => {
+      if (action.type === "sync") {
+        this.rewriteUrlToRoomName();
+      }
+    });
     this.$events.on("onRoomCreated", this.onRoomCreated);
     this.$events.on("onChatLinkClick", this.switchToAddTab);
-    this.$events.on("onSync", this.rewriteUrlToRoomName);
 
     window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
 
-    if (!this.$store.state.socket.isConnected) {
-      // This check prevents the client from connecting multiple times,
-      // caused by hot reloading in the dev environment.
-      this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+    if (!this.$store.state.$connection.isConnected) {
+      connection.connect(this.$route.params.roomId);
     }
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
-    this.$disconnect();
-    this.$events.remove("onSync", this.rewriteUrlToRoomName);
+    connection.disconnect();
+    this.$events.remove("onRoomCreated", this.onRoomCreated);
+    this.$events.remove("onChatLinkClick", this.switchToAddTab);
   },
   methods: {
     /* ROOM API */
 
-    /** Send a message to play the video. */
-    roomPlay() {
-      this.$socket.sendObj({ action: "play" });
-    },
-    /** Send a message to pause the video. */
-    roomPause() {
-      this.$socket.sendObj({ action: "pause" });
-    },
+    // TODO: maybe move to util/api?
     /** Send a message to play or pause the video, depending on the current state. */
     togglePlayback() {
       if (this.$store.state.room.isPlaying) {
-        this.roomPause();
+        api.pause();
       }
       else {
-        this.roomPlay();
+        api.play();
       }
-    },
-    /** Send a message to skip the current video. */
-    roomSkip() {
-      this.$socket.sendObj({ action: "skip" });
-    },
-    roomSeek(position) {
-      this.$socket.sendObj({ action: "seek", position });
-    },
-    /**
-     * Move the video from `fromIdx` to `toIdx` in the queue.
-     * @param {Number} fromIdx
-     * @param {Number} toIdx
-     * */
-    roomQueueMove(fromIdx, toIdx) {
-      this.$socket.sendObj({
-        action: "queue-move",
-        currentIdx: fromIdx,
-        targetIdx: toIdx,
-      });
-    },
-    undoEvent(event, idx) {
-      this.$socket.sendObj({
-        action: "undo",
-        event,
-      });
-      this.$store.state.room.events.splice(idx, 1);
-    },
-    roomKickMe() {
-      this.$socket.sendObj({
-        action: "kickme",
-      });
     },
     /** Take room settings from the UI and submit them to the server. */
     async submitRoomSettings() {
       this.isLoadingRoomSettings = true;
       try {
         await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
-        this.$events.emit("notify_onSuccess", { message: `Settings applied` });
+        this.$toast.add({
+          style: ToastStyle.Success,
+          content: `Settings applied`,
+          duration: 4000,
+        });
       }
       catch (e) {
         console.log(e);
-        this.$events.emit("notify_onError", { message: e.response.data.error.message });
+        this.$toast.add({
+          style: ToastStyle.Error,
+          content: e.response.data.error.message,
+          duration: 6000,
+        });
       }
       this.isLoadingRoomSettings = false;
     },
@@ -381,11 +341,19 @@ export default {
         await API.patch(`/room/${this.$route.params.roomId}`, {
           claim: true,
         });
-        this.$events.emit("notify_onSuccess", { message: `You now own the room ${this.$route.params.roomId}` });
+        this.$toast.add({
+          style: ToastStyle.Success,
+          content: `You now own the room ${this.$route.params.roomId}.`,
+          duration: 4000,
+        });
       }
       catch (e) {
         console.log(e);
-        this.$events.emit("notify_onError", { message: e.response.data.error.message });
+        this.$toast.add({
+          style: ToastStyle.Error,
+          content: e.response.data.error.message,
+          duration: 6000,
+        });
       }
       this.isLoadingRoomSettings = false;
     },
@@ -398,7 +366,9 @@ export default {
       this.sliderPosition = _.clamp(this.truePosition, 0, this.$store.state.room.currentSource.length);
     },
     sliderChange() {
-      this.roomSeek(this.sliderPosition);
+      if (!this.sliderDragging) {
+        api.seek(this.sliderPosition);
+      }
     },
 
     updateVolume() {
@@ -410,7 +380,7 @@ export default {
     onPlaybackChange(changeTo) {
       console.log(`onPlaybackChange: ${changeTo}`);
       if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
-        this.$store.commit("PLAYBACK_STATUS", "ready");
+        this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
       }
       this.updateVolume();
       if (changeTo === this.$store.state.room.isPlaying) {
@@ -428,7 +398,7 @@ export default {
       e.target.select();
     },
     onPlayerReady() {
-      this.$store.commit("PLAYBACK_STATUS", "ready");
+      this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
 
       if (this.currentSource.service === "vimeo") {
         this.onPlayerReady_Vimeo();
@@ -452,11 +422,11 @@ export default {
         e.preventDefault();
       }
       else if (e.code === "Home" && this.granted('playback.seek')) {
-        this.roomSeek(0);
+        api.seek(0);
         e.preventDefault();
       }
       else if (e.code === "End" && this.granted('playback.skip')) {
-        this.roomSkip();
+        api.skip();
         e.preventDefault();
       }
       else if (e.code === "KeyF") {
@@ -487,9 +457,6 @@ export default {
         document.documentElement.requestFullscreen();
       }
     },
-    onQueueDragDrop(e) {
-      this.roomQueueMove(e.oldIndex, e.newIndex);
-    },
     async onTabChange() {
       if (this.queueTab === 2) {
         // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
@@ -500,11 +467,11 @@ export default {
       }
     },
     onVideoBuffer(percent) {
-      this.$store.commit("PLAYBACK_STATUS", "buffering");
+      this.$store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
       this.$store.commit("PLAYBACK_BUFFER", percent);
     },
     onVideoError() {
-      this.$store.commit("PLAYBACK_STATUS", "error");
+      this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
     hideVideoControls: _.debounce(() => {
       let controlsDiv = document.getElementsByClassName("video-controls");
@@ -524,12 +491,16 @@ export default {
       }, 3000);
     },
     rewriteUrlToRoomName() {
+      if (this.$store.state.room.name.length === 0) {
+        return;
+      }
       if (this.$route.params.roomId !== this.$store.state.room.name) {
+        console.log(`room name does not match URL, rewriting to "${this.$store.state.room.name}"`);
         this.$router.replace({ name: "room", params: { roomId: this.$store.state.room.name } });
       }
     },
     seekDelta(delta) {
-      this.roomSeek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
+      api.seek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
     },
     activateTextSeek() {
       if (!this.granted('playback.seek')) {
@@ -552,7 +523,7 @@ export default {
         this.textSeek.active = false;
         try {
           let seconds = timestampToSeconds(this.textSeek.value);
-          this.roomSeek(seconds);
+          api.seek(seconds);
         }
         catch {
           console.log("Invalid timestamp, ignoring");
@@ -560,49 +531,14 @@ export default {
       }
     },
     onRoomCreated() {
-      if (this.$store.state.socket.isConnected) {
-        this.$disconnect();
-      }
-      setTimeout(() => {
-        if (!this.$store.state.socket.isConnected) {
-          this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-        }
-      }, 100);
-    },
-    onRoomEvent(event) {
-      if (event.eventType === "play") {
-        this.snackbarText = `${event.userName} played the video`;
-      }
-      else if (event.eventType === "pause") {
-        this.snackbarText = `${event.userName} paused the video`;
-      }
-      else if (event.eventType === "skip") {
-        this.snackbarText = `${event.userName} skipped ${event.parameters.video.title}`;
-      }
-      else if (event.eventType === "seek") {
-        this.snackbarText = `${event.userName} seeked to ${secondsToTimestamp(event.parameters.position)}`;
-      }
-      else if (event.eventType === "joinRoom") {
-        this.snackbarText = `${event.userName} joined the room`;
-      }
-      else if (event.eventType === "leaveRoom") {
-        this.snackbarText = `${event.userName} left the room`;
-      }
-      else if (event.eventType === "addToQueue") {
-        if (event.parameters.count) {
-          this.snackbarText = `${event.userName} added ${event.parameters.count} videos`;
-        }
-        else {
-          this.snackbarText = `${event.userName} added ${event.parameters.video.title}`;
-        }
-      }
-      else if (event.eventType === "removeFromQueue") {
-        this.snackbarText = `${event.userName} removed ${event.parameters.video.title}`;
-      }
-      else {
-        this.snackbarText = `${event.userName} triggered event ${event.eventType}`;
-      }
-      this.snackbarActive = true;
+      // if (this.$store.state.socket.isConnected) {
+      //   this.$disconnect();
+      // }
+      // setTimeout(() => {
+      //   if (!this.$store.state.socket.isConnected) {
+      //     this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
+      //   }
+      // }, 100);
     },
     switchToAddTab() {
       this.queueTab = 1;
@@ -721,10 +657,7 @@ export default {
     }
   }
 }
-.video-queue, .video-add {
-  margin: 0 10px;
-  min-height: 500px;
-}
+
 .user-invite-container {
   padding: 0 10px;
   min-height: 500px;
@@ -817,15 +750,6 @@ export default {
 .textseek {
   display: inline-flex;
   width: 90px;
-}
-
-.empty-queue {
-  height: 300px;
-
-  .msg {
-    opacity: 0.5;
-    font-size: 20px;
-  }
 }
 
 .room-settings .submit {

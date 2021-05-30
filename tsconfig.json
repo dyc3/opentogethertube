@@ -1,0 +1,37 @@
+{
+	// "extends": "@tsconfig/node12/tsconfig.json",
+	"compilerOptions": {
+		"lib": ["es2019", "es2020.promise", "es2020.bigint", "es2020.string", "DOM"],
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"preserveConstEnums": true,
+		"allowJs": true,
+		"target": "esnext",
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"importHelpers": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"sourceMap": true,
+		"baseUrl": ".",
+		"noImplicitThis": true,
+		"types": [
+			"webpack-env",
+			"jest",
+			"vuetify"
+		],
+		"paths": {
+			"@/*": [
+				"src/*"
+			]
+		}
+	},
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"src/**/*.vue",
+		"tests/**/*.ts",
+		"tests/**/*.tsx"
+	],
+	"exclude": ["node_modules"]
+}

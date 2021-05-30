@@ -11,15 +11,6 @@ Vue.use(VueGtag, {
 import VueEvents from 'vue-events';
 Vue.use(VueEvents);
 
-import VueNativeWebsocket from "vue-native-websocket";
-Vue.use(VueNativeWebsocket, `ws://${window.location.host}/api`, {
-  store: store,
-  format: 'json',
-  reconnection: true,
-  reconnectionDelay: 3000,
-  connectManually: true,
- });
-
 import vuetify from '@/plugins/vuetify';
 
 import 'vue-slider-component/theme/default.css';
@@ -27,9 +18,12 @@ import 'vue-slider-component/theme/default.css';
 import Fragment from 'vue-fragment';
 Vue.use(Fragment.Plugin);
 
+import toast from "@/plugins/toast";
+Vue.use(toast, { store });
+
 Vue.config.productionTip = false;
 
-new Vue({
+window.vm = new Vue({
   vuetify,
   store,
   router,

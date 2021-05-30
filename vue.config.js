@@ -1,7 +1,14 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 require('dotenv').config({ path: path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`) });
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
+	pages: {
+		index: {
+			entry: 'src/main.js',
+		},
+	},
 	devServer: {
 		proxy: {
 			"^/api": {
@@ -18,7 +25,37 @@ module.exports = {
 		},
 	},
 	configureWebpack: {
-		plugins: [],
+		resolve: {
+			extensions: [".ts", ".js"],
+			alias: {
+				"common": path.resolve(__dirname, './common'),
+			},
+			modules: [path.resolve(__dirname, './common')],
+		},
+		module: {
+			rules: [
+				{
+					test: /\.tsx?$/,
+					loader: 'ts-loader',
+					exclude: /node_modules/,
+					options: {
+						// disable type checker - we will use it in fork plugin
+						transpileOnly: true,
+					},
+				},
+				// this is supposed to be used to import sass variables into JS (particularly styleProxy.js), and it worked briefly. it then broke spontaneously.
+				// {
+				// 	test: /\.scss$/,
+				// 	exclude: /node_modules/,
+				// 	use: [
+				// 		"style-loader",
+				// 		"css-loader",
+				// 		"sass-loader",
+				// 	],
+				// },
+			],
+		},
+		plugins: [new ForkTsCheckerWebpackPlugin()],
 	},
 	chainWebpack: (config) => {
 		config.plugin('define').tap(definitions => {

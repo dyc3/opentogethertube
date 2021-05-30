@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export function secondsToTimestamp(seconds) {    //formats seconds into mm:ss if less than an hour, hh:mm:ss if greater than an hour
 	const posSeconds = Math.abs(seconds);
@@ -8,7 +8,7 @@ export function secondsToTimestamp(seconds) {    //formats seconds into mm:ss if
 }
 
 export function calculateCurrentPosition(start_time, now_time, offset) {
-	return offset + moment(now_time).diff(start_time, "seconds");
+	return offset + dayjs(now_time).diff(start_time, "milliseconds") / 1000;
 }
 
 export function timestampToSeconds(timestamp) {

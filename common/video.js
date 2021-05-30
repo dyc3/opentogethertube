@@ -1,9 +1,10 @@
-const _ = require("lodash");
+import _ from "lodash";
 
 /**
  * Represents a video on any video providing service.
+ * @deprecated
  */
-class Video {
+export default class Video {
 	constructor(args=undefined) {
 		this.service = null;
 		this.id = null;
@@ -48,5 +49,3 @@ class Video {
 		return Object.assign(_.cloneDeep(a), _.pickBy(b, x => x));
 	}
 }
-
-module.exports = Video;

@@ -34,10 +34,11 @@ import PermissionsMixin from "@/mixins/permissions.js";
 export default {
 	name: "permissions-editor",
 	props: {
-		value: { type: Object, required: true, default: () => {} },
+		value: { type: Object, required: true },
 		currentRole: { type: Number, default: 4 },
 	},
 	mixins: [PermissionsMixin],
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	data() {
 		return {
 			permissions: [],

@@ -71,147 +71,13 @@
 </template>
 
 <script>
+import Vue from "vue";
+import Component from 'vue-class-component';
 import { API } from "@/common-http.js";
 import isEmail from 'validator/es/lib/isEmail';
 
-export default {
-	name: "LogIn",
-	data() {
-		return {
-			email: "",
-			username: "",
-			password: "",
-			password2: "",
-
-			mode: "",
-			isLoading: false,
-			logInFailureMessage: "",
-			registerFailureMessage: "",
-
-			loginValid: false,
-			registerValid: false,
-			registerFieldErrors: {
-				email: "",
-				username: "",
-				password: "",
-				password2: "",
-			},
-
-			emailRules: [
-				v => !!v || "Email is required",
-				v => v && isEmail(v) || "Must be a valid email",
-			],
-			usernameRules: [
-				// eslint-disable-next-line array-bracket-newline
-				v => !!v || "Username is required",
-			],
-			passwordRules: [
-				v => !!v || "Password is required",
-				v => v && v.length >= 10 || process.env.NODE_ENV === "development" && v === "1" || "Password must be at least 10 characters long",
-			],
-			retypePasswordRules: [
-				v => !!v || "Please retype your password",
-				v => v === this.password || "Passwords must match",
-			],
-		};
-	},
-	created() {
-		if (this.$store.state.username) {
-			this.username = this.$store.state.username;
-		}
-	},
-	methods: {
-		login() {
-			this.$refs.loginForm.validate();
-			if (!this.loginValid) {
-				return;
-			}
-
-			this.isLoading = true;
-			this.logInFailureMessage = "";
-			API.post("/user/login", { email: this.email, password: this.password }).then(resp => {
-				this.isLoading = false;
-				if (resp.data.success) {
-					console.log("Log in success");
-					this.$store.commit("LOGIN", resp.data.user);
-					this.$emit("shouldClose");
-					this.email = "";
-					this.password = "";
-				}
-				else {
-					console.log("Log in failed");
-					this.logInFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
-				}
-			}).catch(err => {
-				this.isLoading = false;
-				if (err.response && !err.response.data.success) {
-					if (err.response.data.error) {
-						this.logInFailureMessage = err.response.data.error.message;
-					}
-					else {
-						this.logInFailureMessage = "Failed to log in, but the server didn't say why. Report this as a bug.";
-					}
-				}
-				else {
-					console.log("could not log in", err, err.response);
-					this.logInFailureMessage = "Failed to log in, and I don't know why. Report this as a bug.";
-				}
-			});
-		},
-		register() {
-			this.$refs.registerForm.validate();
-			if (!this.registerValid) {
-				return;
-			}
-
-			this.isLoading = true;
-			this.registerFailureMessage = "";
-			this.registerFieldErrors = {
-				email: "",
-				username: "",
-				password: "",
-				password2: "",
-			};
-			API.post("/user/register", { email: this.email, username: this.username, password: this.password }).then(resp => {
-				this.isLoading = false;
-				if (resp.data.success) {
-					console.log("Registeration success");
-					this.$store.commit("LOGIN", resp.data.user);
-					this.$emit("shouldClose");
-					this.email = "";
-					this.username = "";
-					this.password = "";
-					this.password2 = "";
-				}
-				else {
-					console.log("Registeration failed");
-					this.registerFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
-				}
-			}).catch(err => {
-				this.isLoading = false;
-				if (err.response && !err.response.data.success) {
-					if (err.response.data.error) {
-						if (err.response.data.error.name === "AlreadyInUse") {
-							if (err.response.data.error.fields.includes("email")) {
-								this.registerFieldErrors.email = "Already in use.";
-							}
-							if (err.response.data.error.fields.includes("username")) {
-								this.registerFieldErrors.username = "Already in use.";
-							}
-						}
-						this.registerFailureMessage = err.response.data.error.message;
-					}
-					else {
-						this.registerFailureMessage = "Failed to register, but the server didn't say why. Report this as a bug.";
-					}
-				}
-				else {
-					console.log("could not register", err);
-					this.registerFailureMessage = "Failed to register, and I don't know why. Check the console and report this as a bug.";
-				}
-			});
-		},
-	},
+@Component({
+	name: "LogInForm",
 	watch: {
 		email() {
 			this.logInFailureMessage = "";
@@ -220,7 +86,149 @@ export default {
 			this.logInFailureMessage = "";
 		},
 	},
-};
+})
+export default class LogInForm extends Vue {
+	email = ""
+	username = ""
+	password = ""
+	password2 = ""
+
+	mode = ""
+	isLoading = false
+	logInFailureMessage = ""
+	registerFailureMessage = ""
+
+	loginValid = false
+	registerValid = false
+	registerFieldErrors = {
+		email: "",
+		username: "",
+		password: "",
+		password2: "",
+	}
+
+	emailRules = [
+		v => !!v || "Email is required",
+		v => v && isEmail(v) || "Must be a valid email",
+	]
+	usernameRules = [
+		// eslint-disable-next-line array-bracket-newline
+		v => !!v || "Username is required",
+	]
+	passwordRules = [
+		v => !!v || "Password is required",
+		v => v && v.length >= 10 || process.env.NODE_ENV === "development" && v === "1" || "Password must be at least 10 characters long",
+	]
+	retypePasswordRules = [
+		v => !!v || "Please retype your password",
+		v => this.comparePassword(v) || "Passwords must match",
+	]
+
+	created() {
+		if (this.$store.state.username) {
+			this.username = this.$store.state.username;
+		}
+	}
+
+	async login() {
+		this.$refs.loginForm.validate();
+		if (!this.loginValid) {
+			return;
+		}
+
+		this.isLoading = true;
+		this.logInFailureMessage = "";
+		try {
+			let resp = await API.post("/user/login", { email: this.email, password: this.password });
+			if (resp.data.success) {
+				console.log("Log in success");
+				this.$store.commit("LOGIN", resp.data.user);
+				this.$emit("shouldClose");
+				this.email = "";
+				this.password = "";
+			}
+			else {
+				console.log("Log in failed");
+				this.logInFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
+			}
+		}
+		catch (err) {
+			if (err.response && !err.response.data.success) {
+				if (err.response.data.error) {
+					this.logInFailureMessage = err.response.data.error.message;
+				}
+				else {
+					this.logInFailureMessage = "Failed to log in, but the server didn't say why. Report this as a bug.";
+				}
+			}
+			else {
+				console.log("could not log in", err, err.response);
+				this.logInFailureMessage = "Failed to log in, and I don't know why. Report this as a bug.";
+			}
+		}
+		this.isLoading = false;
+	}
+
+	async register() {
+		this.$refs.registerForm.validate();
+		if (!this.registerValid) {
+			return;
+		}
+
+		this.isLoading = true;
+		this.registerFailureMessage = "";
+		this.registerFieldErrors = {
+			email: "",
+			username: "",
+			password: "",
+			password2: "",
+		};
+		try {
+			let resp = await API.post("/user/register", { email: this.email, username: this.username, password: this.password });
+			if (resp.data.success) {
+				console.log("Registeration success");
+				this.$store.commit("LOGIN", resp.data.user);
+				this.$emit("shouldClose");
+				this.email = "";
+				this.username = "";
+				this.password = "";
+				this.password2 = "";
+			}
+			else {
+				console.log("Registeration failed");
+				this.registerFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
+			}
+		}
+		catch (err) {
+			if (err.response && !err.response.data.success) {
+				if (err.response.data.error) {
+					if (err.response.data.error.name === "AlreadyInUse") {
+						if (err.response.data.error.fields.includes("email")) {
+							this.registerFieldErrors.email = "Already in use.";
+						}
+						if (err.response.data.error.fields.includes("username")) {
+							this.registerFieldErrors.username = "Already in use.";
+						}
+					}
+					this.registerFailureMessage = err.response.data.error.message;
+				}
+				else {
+					this.registerFailureMessage = "Failed to register, but the server didn't say why. Report this as a bug.";
+				}
+			}
+			else {
+				console.log("could not register", err);
+				this.registerFailureMessage = "Failed to register, and I don't know why. Check the console and report this as a bug.";
+			}
+		}
+		this.isLoading = false;
+	}
+
+	comparePassword(v) {
+		// HACK: required because otherwise this.password is undefined for some reason in the validation rule's context
+		return this.password === v;
+	}
+}
 </script>
 
 <style lang="scss" scoped>

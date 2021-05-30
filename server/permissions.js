@@ -1,33 +1,35 @@
 const _ = require("lodash");
 const { getLogger } = require("../logger.js");
-const { PermissionDeniedException, InvalidRoleException } = require("./exceptions.js");
+import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
+import { Role } from "../common/models/types";
 const log = getLogger("permissions");
 
+/** @deprecated */
 const ROLES = {
-	ADMINISTRATOR: 4,
-	MODERATOR: 3,
-	TRUSTED_USER: 2,
-	REGISTERED_USER: 1,
-	UNREGISTERED_USER: 0,
-	OWNER: -1,
+	ADMINISTRATOR: Role.Administrator,
+	MODERATOR: Role.Moderator,
+	TRUSTED_USER: Role.TrustedUser,
+	REGISTERED_USER: Role.RegisteredUser,
+	UNREGISTERED_USER: Role.UnregisteredUser,
+	OWNER: Role.Owner,
 };
 
 const ROLE_NAMES = {
-	[ROLES.ADMINISTRATOR]: "admin",
-	[ROLES.MODERATOR]: "mod",
-	[ROLES.TRUSTED_USER]: "trusted",
-	[ROLES.REGISTERED_USER]: "registered",
-	[ROLES.UNREGISTERED_USER]: "unregistered",
-	[ROLES.OWNER]: "owner",
+	[Role.Administrator]: "admin",
+	[Role.Moderator]: "mod",
+	[Role.TrustedUser]: "trusted",
+	[Role.RegisteredUser]: "registered",
+	[Role.UnregisteredUser]: "unregistered",
+	[Role.Owner]: "owner",
 };
 
 const ROLE_DISPLAY_NAMES = {
-	[ROLES.ADMINISTRATOR]: "Administrator",
-	[ROLES.MODERATOR]: "Moderator",
-	[ROLES.TRUSTED_USER]: "Trusted User",
-	[ROLES.REGISTERED_USER]: "Registered User",
-	[ROLES.UNREGISTERED_USER]: "Unregistered User",
-	[ROLES.OWNER]: "Owner",
+	[Role.Administrator]: "Administrator",
+	[Role.Moderator]: "Moderator",
+	[Role.TrustedUser]: "Trusted User",
+	[Role.RegisteredUser]: "Registered User",
+	[Role.UnregisteredUser]: "Unregistered User",
+	[Role.Owner]: "Owner",
 };
 
 // TODO: create dynamically
@@ -70,36 +72,36 @@ class Permission {
 	constructor(args) {
 		this.name = "";
 		this.mask = 0;
-		this.minRole = ROLES.UNREGISTERED_USER;
+		this.minRole = Role.UnregisteredUser;
 		Object.assign(this, args);
 	}
 }
 
-const PERMISSIONS = [
-	new Permission({ name: "playback.play-pause", mask: 1<<0, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "playback.skip", mask: 1<<1, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "playback.seek", mask: 1<<2, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "manage-queue.add", mask: 1<<3, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "manage-queue.remove", mask: 1<<4, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "manage-queue.order", mask: 1<<5, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "manage-queue.vote", mask: 1<<6, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "chat", mask: 1<<7, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "configure-room.set-title", mask: 1<<8, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "configure-room.set-description", mask: 1<<9, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "configure-room.set-visibility", mask: 1<<10, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "configure-room.set-queue-mode", mask: 1<<11, minRole: ROLES.UNREGISTERED_USER }),
-	new Permission({ name: "configure-room.set-permissions.for-moderator", mask: 1<<12, minRole: ROLES.ADMINISTRATOR }),
-	new Permission({ name: "configure-room.set-permissions.for-trusted-users", mask: 1<<13, minRole: ROLES.MODERATOR }),
-	new Permission({ name: "configure-room.set-permissions.for-all-registered-users", mask: 1<<14, minRole: ROLES.TRUSTED_USER }),
-	new Permission({ name: "configure-room.set-permissions.for-all-unregistered-users", mask: 1<<15, minRole: ROLES.REGISTERED_USER }),
+export const PERMISSIONS = [
+	new Permission({ name: "playback.play-pause", mask: 1<<0, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "playback.skip", mask: 1<<1, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "playback.seek", mask: 1<<2, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.add", mask: 1<<3, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.remove", mask: 1<<4, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.order", mask: 1<<5, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.vote", mask: 1<<6, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "chat", mask: 1<<7, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "configure-room.set-title", mask: 1<<8, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "configure-room.set-description", mask: 1<<9, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "configure-room.set-visibility", mask: 1<<10, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "configure-room.set-queue-mode", mask: 1<<11, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "configure-room.set-permissions.for-moderator", mask: 1<<12, minRole: Role.Administrator }),
+	new Permission({ name: "configure-room.set-permissions.for-trusted-users", mask: 1<<13, minRole: Role.Moderator }),
+	new Permission({ name: "configure-room.set-permissions.for-all-registered-users", mask: 1<<14, minRole: Role.TrustedUser }),
+	new Permission({ name: "configure-room.set-permissions.for-all-unregistered-users", mask: 1<<15, minRole: Role.RegisteredUser }),
 	// Permission to promote a user TO admin
-	new Permission({ name: "manage-users.promote-admin", mask: 1<<16, minRole: ROLES.ADMINISTRATOR }),
+	new Permission({ name: "manage-users.promote-admin", mask: 1<<16, minRole: Role.Administrator }),
 	// Permission to demote a user FROM admin
-	new Permission({ name: "manage-users.demote-admin", mask: 1<<17, minRole: ROLES.ADMINISTRATOR }),
-	new Permission({ name: "manage-users.promote-moderator", mask: 1<<18, minRole: ROLES.MODERATOR }),
-	new Permission({ name: "manage-users.demote-moderator", mask: 1<<19, minRole: ROLES.MODERATOR }),
-	new Permission({ name: "manage-users.promote-trusted-user", mask: 1<<20, minRole: ROLES.TRUSTED_USER }),
-	new Permission({ name: "manage-users.demote-trusted-user", mask: 1<<21, minRole: ROLES.TRUSTED_USER }),
+	new Permission({ name: "manage-users.demote-admin", mask: 1<<17, minRole: Role.Administrator }),
+	new Permission({ name: "manage-users.promote-moderator", mask: 1<<18, minRole: Role.Moderator }),
+	new Permission({ name: "manage-users.demote-moderator", mask: 1<<19, minRole: Role.Moderator }),
+	new Permission({ name: "manage-users.promote-trusted-user", mask: 1<<20, minRole: Role.TrustedUser }),
+	new Permission({ name: "manage-users.demote-trusted-user", mask: 1<<21, minRole: Role.TrustedUser }),
 ];
 
 const permMaskMap = Object.fromEntries(PERMISSIONS.map(p => [p.name, p.mask]));
@@ -110,7 +112,7 @@ const permMaskMap = Object.fromEntries(PERMISSIONS.map(p => [p.name, p.mask]));
  */
 function defaultPermissions() {
 	return new Grants({
-		[ROLES.UNREGISTERED_USER]: parseIntoGrantMask([
+		[Role.UnregisteredUser]: parseIntoGrantMask([
 			"playback",
 			"manage-queue",
 			"chat",
@@ -119,14 +121,14 @@ function defaultPermissions() {
 			"configure-room.set-visibility",
 			"configure-room.set-queue-mode",
 		]),
-		[ROLES.REGISTERED_USER]: parseIntoGrantMask([]),
-		[ROLES.TRUSTED_USER]: parseIntoGrantMask([]),
-		[ROLES.MODERATOR]: parseIntoGrantMask([
+		[Role.RegisteredUser]: parseIntoGrantMask([]),
+		[Role.TrustedUser]: parseIntoGrantMask([]),
+		[Role.Moderator]: parseIntoGrantMask([
 			"manage-users.promote-trusted-user",
 			"manage-users.demote-trusted-user",
 		]),
-		[ROLES.ADMINISTRATOR]: parseIntoGrantMask(["*"]),
-		[ROLES.OWNER]: parseIntoGrantMask(["*"]),
+		[Role.Administrator]: parseIntoGrantMask(["*"]),
+		[Role.Owner]: parseIntoGrantMask(["*"]),
 	});
 }
 
@@ -157,7 +159,7 @@ function parseIntoGrantMask(perms) {
  */
 function getFullGrantMask(grants, role) {
 	let fullmask = grants[role];
-	for (let i = role - 1; i >= ROLES.UNREGISTERED_USER; i--) {
+	for (let i = role - 1; i >= Role.UnregisteredUser; i--) {
 		fullmask |= grants[i];
 	}
 	return fullmask;
@@ -227,7 +229,7 @@ function check(grants, role, permission) {
  * Represents permissions for all roles. Handles permission inheritance, and serialization/deserialization.
  * If grants are not provided, the defaults will be used.
  */
-class Grants {
+export class Grants {
 	/**
 	 * @param {Object|undefined} grants Opional object that maps roles to grant masks.
 	 */
@@ -236,6 +238,15 @@ class Grants {
 			grants = defaultPermissions();
 		}
 		this.setAllGrants(grants);
+	}
+
+	/**
+	 *
+	 * @param {number} role
+	 * @returns {number}
+	 */
+	getMask(role) {
+		return this.masks[role];
 	}
 
 	/**
@@ -284,7 +295,7 @@ class Grants {
 
 	_processInheiritance() {
 		let fullmask = 0;
-		for (let i = ROLES.UNREGISTERED_USER; i <= ROLES.ADMINISTRATOR; i++) {
+		for (let i = Role.UnregisteredUser; i <= Role.Administrator; i++) {
 			fullmask |= this.masks[i];
 			this.masks[i] = fullmask;
 		}
@@ -367,7 +378,7 @@ class Grants {
 	}
 }
 
-module.exports = {
+const _exp = {
 	ROLES,
 	ROLE_NAMES,
 	ROLE_DISPLAY_NAMES,
@@ -381,3 +392,5 @@ module.exports = {
 	granted,
 	check,
 };
+module.exports = _exp;
+export default _exp;

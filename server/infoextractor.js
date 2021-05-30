@@ -1,18 +1,18 @@
-const URL = require("url");
-const _ = require("lodash");
-const DailyMotionAdapter = require("./services/dailymotion");
-const GoogleDriveAdapter = require("./services/googledrive");
-const VimeoAdapter = require("./services/vimeo");
-const YouTubeAdapter = require("./services/youtube");
-const DirectVideoAdapter = require("./services/direct");
-const RedditAdapter = require("./services/reddit");
-const NeverthinkAdapter = require("./services/neverthink");
-const storage = require("../storage");
-const Video = require("../common/video");
-const { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } = require("./exceptions");
-const { getLogger } = require("../logger");
-const { redisClient } = require("../redisclient");
-const { isSupportedMimeType } = require("./mime");
+import URL from "url";
+import _ from "lodash";
+import DailyMotionAdapter from "./services/dailymotion";
+import GoogleDriveAdapter from "./services/googledrive";
+import VimeoAdapter from "./services/vimeo";
+import YouTubeAdapter from "./services/youtube";
+import DirectVideoAdapter from "./services/direct";
+import RedditAdapter from "./services/reddit";
+import NeverthinkAdapter from "./services/neverthink";
+import storage from "../storage";
+import Video from "../common/video";
+import { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } from "./exceptions";
+import { getLogger } from "../logger";
+import { redisClient } from "../redisclient";
+import { isSupportedMimeType } from "./mime";
 
 const log = getLogger("infoextract");
 
@@ -20,7 +20,7 @@ const adapters = [
   new DailyMotionAdapter(),
   new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY),
   new VimeoAdapter(),
-  new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
+  new YouTubeAdapter(process.env.YOUTUBE_API_KEY),
   new DirectVideoAdapter(),
   new RedditAdapter(),
   new NeverthinkAdapter(),
@@ -29,7 +29,7 @@ const adapters = [
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
 const ENABLE_SEARCH = process.env.ENABLE_SEARCH === undefined || process.env.ENABLE_SEARCH === true || process.env.ENABLE_SEARCH === "true";
 
-module.exports = {
+export default {
   isURL(str) {
     return URL.parse(str).host !== null;
   },
@@ -45,7 +45,7 @@ module.exports = {
   async getCachedVideo(service, videoId) {
     try {
       const result = await storage.getVideoInfo(service, videoId);
-      const video = new Video(result);
+      const video = result;
       const missingInfo = storage
         .getVideoInfoFields(video.service)
         .filter(p => !video[p]);
@@ -124,7 +124,7 @@ module.exports = {
    * to the cache.
    * @param {string} service
    * @param {string} videoId
-   * @returns {Video}
+   * @returns {Promise<Video>}
    */
   async getVideoInfo(service, videoId) {
     const adapter = this.getServiceAdapter(service);
@@ -219,7 +219,7 @@ module.exports = {
    * used to perform a search.
    * @param {string} query
    * @param {string} searchService
-   * @returns {Video[]}
+   * @returns {Promise<Video[]>}
    */
   async resolveVideoQuery(query, searchService) {
     const results = [];
@@ -243,15 +243,15 @@ module.exports = {
 
       const fetchResults = await adapter.resolveURL(query);
       let resolvedResults = fetchResults.map(video => {
-        if (!video.service || !video.id) {
+        if ((!video.service || !video.id) && video.url) {
           const adapter = this.getServiceAdapterForURL(video.url);
           if (!adapter) {
             return null;
           }
-          return new Video({
+          return {
             service: adapter.serviceId,
             id: adapter.getVideoId(video.url),
-          });
+          };
         }
         return video;
       }).filter(video => !!video);
