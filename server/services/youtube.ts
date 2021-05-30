@@ -84,10 +84,10 @@ export default class YouTubeAdapter extends ServiceAdapter {
     const qPlaylist = url.searchParams.get("list");
 
     if (url.pathname.startsWith("/c/") || url.pathname.startsWith("/channel/") || url.pathname.startsWith("/user/")) {
-      return await this.fetchChannelVideos(this.getChannelId(url));
+      return this.fetchChannelVideos(this.getChannelId(url));
     }
     else if (url.pathname === "/playlist") {
-      return await this.fetchPlaylistVideos(qPlaylist);
+      return this.fetchPlaylistVideos(qPlaylist);
     }
     else {
       if (qPlaylist && !knownPrivateLists.includes(qPlaylist)) {

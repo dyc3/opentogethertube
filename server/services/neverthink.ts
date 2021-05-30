@@ -84,7 +84,7 @@ export default class NeverthinkAdapter extends ServiceAdapter {
 		}
 		else if (url.pathname.startsWith("/u/")) {
 			const user = url.pathname.replace("/u/", "");
-			return await this.getUserChannel(user);
+			return this.getUserChannel(user);
 		}
 		else if (url.pathname.startsWith("/playlists/") || url.pathname.endsWith(".json")) {
 			const resp = await this.fetch.get(link);
@@ -121,7 +121,7 @@ export default class NeverthinkAdapter extends ServiceAdapter {
 			const channels = await this.getAllChannels();
 			const playlistUrl = _.find(channels, { urlFragment: url.pathname.split("/").slice(-1)[0] }).playlist.urlPlain;
 			log.info(`found playlist URL: ${playlistUrl}`);
-			return await this.resolveURL(playlistUrl);
+			return this.resolveURL(playlistUrl);
 		}
 	}
 
