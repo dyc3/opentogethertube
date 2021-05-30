@@ -1,5 +1,5 @@
 import { URL } from "url";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
 import { RedisClient } from "redis";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
@@ -19,6 +19,84 @@ interface YoutubeChannelData {
   channel?: string
   user?: string
   customUrl?: string
+}
+
+interface YoutubeApiVideoListResponse {
+  kind: "youtube#videoListResponse";
+  etag: string;
+  nextPageToken: string;
+  prevPageToken: string;
+  pageInfo: YoutubeApiPageInfo;
+  items: YoutubeApiVideo[];
+}
+
+interface YoutubeApiPageInfo {
+  totalResults: number;
+  resultsPerPage: number;
+}
+
+interface YoutubeApiVideo {
+  kind: "youtube#video";
+  etag: string;
+  id: string;
+  snippet?: {
+    publishedAt: string;
+    channelId: string;
+    title: string;
+    description: string;
+    thumbnails: {
+      medium: YoutubeThumbnailInfo;
+      default: YoutubeThumbnailInfo;
+    };
+    channelTitle: string;
+    tags: string[];
+    categoryId: string;
+    liveBroadcastContent: string;
+    defaultLanguage: string;
+    localized: {
+      title: string;
+      description: string;
+    };
+    defaultAudioLanguage: string;
+  };
+  contentDetails?: {
+    duration: string;
+    dimension: string;
+    definition: string;
+    caption: string;
+    licensedContent: boolean;
+    regionRestriction: {
+      allowed?: (string)[] | null;
+      blocked?: (string)[] | null;
+    };
+    projection: string;
+    hasCustomThumbnail: boolean;
+  };
+  status?: {
+    uploadStatus: string;
+    failureReason: string;
+    rejectionReason: string;
+    privacyStatus: string;
+    publishAt: string;
+    license: string;
+    embeddable: boolean;
+    publicStatsViewable: boolean;
+    madeForKids: boolean;
+    selfDeclaredMadeForKids: boolean;
+  };
+  statistics?: {
+    viewCount: number;
+    likeCount: number;
+    dislikeCount: number;
+    favoriteCount: number;
+    commentCount: number;
+  };
+}
+
+interface YoutubeThumbnailInfo {
+  url: string;
+  width: number;
+  height: number;
 }
 
 export default class YouTubeAdapter extends ServiceAdapter {
@@ -282,7 +360,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     const parts = this.getNeededParts(onlyProperties);
     log.silly(`Requesting ${parts.length} parts for ${ids.length} videos`);
     try {
-      const res = await this.api
+      const res: AxiosResponse<YoutubeApiVideoListResponse> = await this.api
         .get("/videos", {
           params: {
             key: this.apiKey,
@@ -291,8 +369,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
           },
         });
       const results: Video[] = [];
-      for (let i = 0; i < res.data.items.length; i++) {
-        const item = res.data.items[i];
+      for (const item of res.data.items) {
         const video: Video = {
           service: this.serviceId,
           id: item.id,
