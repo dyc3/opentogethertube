@@ -437,6 +437,17 @@ export class Room implements RoomState {
 		return staleTime > ROOM_UNLOAD_AFTER;
 	}
 
+	public isVideoInQueue(video: VideoId): boolean {
+		if (this.currentSource && this.currentSource.service === video.service && this.currentSource.id === video.id) {
+			return true;
+		}
+		const matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
+		if (matchIdx >= 0) {
+			return true;
+		}
+		return false;
+	}
+
 	public async processRequest(request: RoomRequest): Promise<void> {
 		const user = this.getUser(request.client);
 		const permissions = new Map([
@@ -556,11 +567,7 @@ export class Room implements RoomState {
 		}
 
 		if (request.video) {
-			if (this.currentSource && this.currentSource.service === request.video.service && this.currentSource.id === request.video.id) {
-				throw new VideoAlreadyQueuedException();
-			}
-			const matchIdx = _.findIndex(this.queue, item => (item.service === request.video.service && item.id === request.video.id));
-			if (matchIdx >= 0) {
+			if (this.isVideoInQueue(request.video)) {
 				throw new VideoAlreadyQueuedException();
 			}
 
@@ -582,12 +589,7 @@ export class Room implements RoomState {
 					this.log.error("video was undefined, which is bad");
 					throw new Error("video was undefined");
 				}
-				if (this.currentSource && this.currentSource.service === video.service && this.currentSource.id === video.id) {
-					videos.splice(i--, 1);
-					continue;
-				}
-				const matchIdx = _.findIndex(this.queue, item => (item.service === video.service && item.id === video.id));
-				if (matchIdx >= 0) {
+				if (this.isVideoInQueue(video)) {
 					videos.splice(i--, 1);
 					continue;
 				}
