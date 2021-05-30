@@ -151,9 +151,6 @@ export class Room implements RoomState {
 	}
 
 	public get title(): string {
-		// if (this._title.length === 0 && this.isTemporary) {
-		// 	return "Temporary Room";
-		// }
 		return this._title;
 	}
 
