@@ -12,6 +12,7 @@ import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable }
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
+import { uniqueNamesGenerator } from 'unique-names-generator';
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -64,7 +65,11 @@ export class Client {
 			};
 		}
 		else {
-			throw new TypeError("Session did not have username present, nor passport user id");
+			log.error("Session did not have username present, nor passport user id. Generating username...");
+			return {
+				id: this.id,
+				username: uniqueNamesGenerator(),
+			};
 		}
 	}
 
