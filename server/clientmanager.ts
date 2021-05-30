@@ -8,7 +8,7 @@ import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { RoomNotFoundException } from "./exceptions";
-import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, RoomStateStorable } from "../common/models/types";
+import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable } from "../common/models/types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";

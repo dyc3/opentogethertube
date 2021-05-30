@@ -5,7 +5,6 @@ import express from 'express';
 import passport from 'passport';
 import crypto from 'crypto';
 import { User, Room } from "./models";
-import roommanager from "./server/roommanager";
 import clientmanager from "./server/clientmanager";
 import { redisClient } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
