@@ -279,29 +279,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       }
     }
 
-    let parts = [];
-    if (onlyProperties) {
-      if (
-        onlyProperties.includes("title") ||
-        onlyProperties.includes("description") ||
-        onlyProperties.includes("thumbnail")
-      ) {
-        parts.push("snippet");
-      }
-      if (onlyProperties.includes("length")) {
-        parts.push("contentDetails");
-      }
-
-      if (parts.length === 0) {
-        log.error(
-          `onlyProperties must have valid values or be null! Found ${onlyProperties}`
-        );
-        throw new Error("onlyProperties must have valid values or be null!");
-      }
-    }
-    else {
-      parts = ["snippet", "contentDetails"];
-    }
+    const parts = this.getNeededParts(onlyProperties);
     log.silly(`Requesting ${parts.length} parts for ${ids.length} videos`);
     try {
       const res = await this.api
@@ -386,7 +364,31 @@ export default class YouTubeAdapter extends ServiceAdapter {
         throw err;
       }
     }
+  }
 
+  private getNeededParts(onlyProperties?: (keyof VideoMetadata)[]) {
+    let parts = [];
+    if (onlyProperties) {
+      if (onlyProperties.includes("title") ||
+        onlyProperties.includes("description") ||
+        onlyProperties.includes("thumbnail")) {
+        parts.push("snippet");
+      }
+      if (onlyProperties.includes("length")) {
+        parts.push("contentDetails");
+      }
+
+      if (parts.length === 0) {
+        log.error(
+          `onlyProperties must have valid values or be null! Found ${onlyProperties}`
+        );
+        throw new Error("onlyProperties must have valid values or be null!");
+      }
+    }
+    else {
+      parts = ["snippet", "contentDetails"];
+    }
+    return parts;
   }
 
   async getVideoLengthFallback(id: string): Promise<number> {
