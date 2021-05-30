@@ -331,23 +331,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
             `Attempting youtube fallback method for ${ids.length} videos`
           );
           try {
-            const getLengthPromises = ids.map((id) => this.getVideoLengthFallback(id));
-            const results = await Promise.all(getLengthPromises);
-            const videos: Video[] = _.zip(ids, results).map(
-              ([id, length]) => ({
-                service: "youtube",
-                id,
-                length,
-                // HACK: we can guess what the thumbnail url is, but this could possibly change without warning
-                thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
-              })
-            );
-            try {
-              await storage.updateManyVideoInfo(videos);
-            }
-            catch (err) {
-              log.error(`Failed to cache video info, returning result anyway: ${err}`);
-            }
+            const videos: Video[] = await this.getManyVideoLengthsFallback(ids);
             return videos;
           }
           catch (err) {
@@ -364,6 +348,27 @@ export default class YouTubeAdapter extends ServiceAdapter {
         throw err;
       }
     }
+  }
+
+  private async getManyVideoLengthsFallback(ids: string[]) {
+    const getLengthPromises = ids.map((id) => this.getVideoLengthFallback(id));
+    const results = await Promise.all(getLengthPromises);
+    const videos: Video[] = _.zip(ids, results).map(
+      ([id, length]) => ({
+        service: "youtube",
+        id,
+        length,
+        // HACK: we can guess what the thumbnail url is, but this could possibly change without warning
+        thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
+      })
+    );
+    try {
+      await storage.updateManyVideoInfo(videos);
+    }
+    catch (err) {
+      log.error(`Failed to cache video info, returning result anyway: ${err}`);
+    }
+    return videos;
   }
 
   private getNeededParts(onlyProperties?: (keyof VideoMetadata)[]) {
