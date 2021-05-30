@@ -238,6 +238,8 @@ export class Grants {
 			grants = defaultPermissions();
 		}
 		this.setAllGrants(grants);
+		// HACK: force owner to always have all permissions
+		this.setRoleGrants(Role.Owner, parseIntoGrantMask(["*"]));
 	}
 
 	/**
