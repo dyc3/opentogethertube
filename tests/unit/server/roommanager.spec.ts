@@ -3,7 +3,7 @@ import roommanager from "../../../server/roommanager";
 // @ts-ignore
 import { Room as DbRoom } from "../../../models";
 import { Room } from "../../../server/room";
-import { Role } from "../../../common/models/types";
+import { QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
 
 describe("Room manager", () => {
@@ -13,13 +13,22 @@ describe("Room manager", () => {
 
 	describe("creating a room", () => {
 		it("should never save null to permissions or user role columns", async () => {
-			await roommanager.CreateRoom({ name: "test", isTemporary: false });
+			await roommanager.CreateRoom({ name: "test", isTemporary: false, title: "asdf1234" });
 			const room = await DbRoom.findOne({ where: { name: "test" } });
 			expect(room.permissions).not.toBeNull();
 			expect(room.permissions).toEqual('{"0":4095,"1":4095,"2":4095,"3":3149823,"4":4194303,"-1":4194303}');
 			expect(room["role-admin"]).not.toBeNull();
 			expect(room["role-mod"]).not.toBeNull();
 			expect(room["role-trusted"]).not.toBeNull();
+		});
+
+		it("should be able to load saved settings from database", async () => {
+			await roommanager.CreateRoom({ name: "test", isTemporary: false, title: "asdf1234", description: "0987asdf", visibility: Visibility.Unlisted, queueMode: QueueMode.Vote });
+			const room = await DbRoom.findOne({ where: { name: "test" } });
+			expect(room.title).toEqual("asdf1234");
+			expect(room.description).toEqual("0987asdf");
+			expect(room.visibility).toEqual(Visibility.Unlisted);
+			expect(room.queueMode).toEqual(QueueMode.Vote);
 		});
 	});
 

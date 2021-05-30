@@ -23,13 +23,13 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
   id!: number
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
-  name!: string
-  title = ""
-  description = ""
-  visibility: Visibility = Visibility.Public
-  queueMode: QueueMode = QueueMode.Manual
-  ownerId = -1
-  owner!: User
+  name: string
+  title: string
+  description: string
+  visibility: Visibility
+  queueMode: QueueMode
+  ownerId: number
+  owner: User
   permissions!: string
   "role-admin": string
   "role-mod": string
@@ -56,18 +56,18 @@ const createModel = (sequelize: Sequelize) => {
     description: DataTypes.TEXT,
     visibility: {
       type: DataTypes.STRING,
-      defaultValue: "public",
+      defaultValue: Visibility.Public,
       validate: {
         // eslint-disable-next-line array-bracket-newline
-        isIn: [["public", "unlisted", "private"]],
+        isIn: [[Visibility.Public, Visibility.Unlisted, Visibility.Private]],
       },
     },
     queueMode: {
       type: DataTypes.STRING,
-      defaultValue: "manual",
+      defaultValue: QueueMode.Manual,
       validate: {
         // eslint-disable-next-line array-bracket-newline
-        isIn: [["manual", "vote"]],
+        isIn: [[QueueMode.Manual, QueueMode.Vote]],
       },
     },
     ownerId: {
