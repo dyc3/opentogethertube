@@ -124,7 +124,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 
     if (this.isFolderURL(url)) {
       const folderId = this.getFolderId(url);
-      return await this.fetchFolderVideos(folderId);
+      return this.fetchFolderVideos(folderId);
     }
     else {
       const videoId = this.getVideoIdFromURL(url);
