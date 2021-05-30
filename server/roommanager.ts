@@ -102,6 +102,7 @@ export async function UnloadRoom(roomName: string): Promise<void> {
 	}
 	rooms.splice(idx, 1);
 	await redis.del(`room:${roomName}`);
+	await redis.del(`room-sync:${roomName}`);
 }
 
 export default {

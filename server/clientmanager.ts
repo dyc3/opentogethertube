@@ -8,7 +8,7 @@ import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { RoomNotFoundException } from "./exceptions";
-import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable } from "../common/models/types";
+import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, RoomStateStorable } from "../common/models/types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
@@ -167,7 +167,7 @@ export class Client {
 		let state = roomStates.get(room.name);
 		if (state === undefined) {
 			log.warn("room state not present, grabbing");
-			const stateText = await get(`room:${room.name}`);
+			const stateText = await get(`room-sync:${room.name}`);
 			state = JSON.parse(stateText);
 			roomStates.set(room.name, state);
 		}
@@ -267,9 +267,9 @@ async function onRedisMessage(channel: string, text: string) {
 	if (channel.startsWith("room:")) {
 		const roomName = channel.replace("room:", "");
 		if (msg.action === "sync") {
-			let state = roomStates.get(roomName);
+			let state: RoomStateSyncable = roomStates.get(roomName);
 			if (state === undefined) {
-				const stateText = await get(`room:${roomName}`);
+				const stateText = await get(`room-sync:${roomName}`);
 				state = JSON.parse(stateText) as RoomStateSyncable;
 			}
 			const filtered = _.omit(msg, "action");

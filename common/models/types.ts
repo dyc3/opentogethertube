@@ -61,7 +61,7 @@ export interface RoomStateComputed {
 }
 
 // Only these should be sent to clients, all others should be considered unsafe
-export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles">
+export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "grants">
 
 // Only these should be stored in redis
 export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">

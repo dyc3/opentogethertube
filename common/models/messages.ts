@@ -18,7 +18,6 @@ export interface ServerMessageSync extends ServerMessageBase {
 	queueMode?: QueueMode,
 	isPlaying?: boolean,
 	playbackPosition?: number,
-	grants?: number | Grants, // FIXME: permissions
 }
 
 export interface ServerMessageUnload extends ServerMessageBase {

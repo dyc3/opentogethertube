@@ -378,6 +378,12 @@ export class Room implements RoomState {
 		return JSON.stringify(state, replacer);
 	}
 
+	public serializeSyncableState(): string {
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "users", "grants", "hasOwner", "voteCounts");
+
+		return JSON.stringify(state, replacer);
+	}
+
 	public async sync(): Promise<void> {
 		if (this._dirty.size === 0) {
 			return;
@@ -393,6 +399,7 @@ export class Room implements RoomState {
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 		await set(`room:${this.name}`, this.serializeState());
+		await set(`room-sync:${this.name}`, this.serializeSyncableState());
 		await this.publish(msg);
 
 		let settings: Partial<Omit<RoomOptions, "name" | "isTemporary">> = _.pick(this, "title", "description", "visibility", "queueMode", "grants", "userRoles", "owner");
