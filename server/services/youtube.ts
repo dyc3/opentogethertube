@@ -370,26 +370,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
         });
       const results: Video[] = [];
       for (const item of res.data.items) {
-        const video: Video = {
-          service: this.serviceId,
-          id: item.id,
-        };
-        if (item.snippet) {
-          video.title = item.snippet.title;
-          video.description = item.snippet.description;
-          if (item.snippet.thumbnails) {
-            if (item.snippet.thumbnails.medium) {
-              video.thumbnail = item.snippet.thumbnails.medium.url;
-            }
-            else {
-              video.thumbnail = item.snippet.thumbnails.default.url;
-            }
-          }
-        }
-        if (item.contentDetails) {
-          video.length = this.parseVideoLength(item.contentDetails.duration);
-        }
-        results.push(video);
+        results.push(this.parseVideoItem(item));
       }
       try {
         await storage.updateManyVideoInfo(_.values(results));
@@ -425,6 +406,29 @@ export default class YouTubeAdapter extends ServiceAdapter {
         throw err;
       }
     }
+  }
+
+  private parseVideoItem(item: YoutubeApiVideo) {
+    const video: Video = {
+      service: this.serviceId,
+      id: item.id,
+    };
+    if (item.snippet) {
+      video.title = item.snippet.title;
+      video.description = item.snippet.description;
+      if (item.snippet.thumbnails) {
+        if (item.snippet.thumbnails.medium) {
+          video.thumbnail = item.snippet.thumbnails.medium.url;
+        }
+        else {
+          video.thumbnail = item.snippet.thumbnails.default.url;
+        }
+      }
+    }
+    if (item.contentDetails) {
+      video.length = this.parseVideoLength(item.contentDetails.duration);
+    }
+    return video;
   }
 
   private async getManyVideoLengthsFallback(ids: string[]) {
