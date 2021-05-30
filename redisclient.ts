@@ -7,7 +7,7 @@ const redisOptions: redis.ClientOpts = (process.env.REDIS_TLS_URL || process.env
 			rejectUnauthorized: false,
 		},
 } : {
-	port: parseInt(process.env.REDIS_PORT) || undefined,
+	port: parseInt(process.env.REDIS_PORT, 10) || undefined,
 	host: process.env.REDIS_HOST || undefined,
 	password: process.env.REDIS_PASSWORD || undefined,
 	db: process.env.REDIS_DB || undefined,

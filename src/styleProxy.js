@@ -9,7 +9,7 @@ const styleVars = {
 };
 
 function stripCssUnit(text) {
-	return parseInt(text.replace("px", ""));
+	return parseInt(text.replace("px", ""), 10);
 }
 
 export default {

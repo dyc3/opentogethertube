@@ -12,8 +12,8 @@ const log = getLogger("youtube");
 
 const knownPrivateLists = ["LL", "WL"];
 
-const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_PLAYLIST_RESULTS_COUNT) || 40;
-const ADD_PREVIEW_SEARCH_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_SEARCH_RESULTS_COUNT) || 10;
+const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_PLAYLIST_RESULTS_COUNT, 10) || 40;
+const ADD_PREVIEW_SEARCH_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_SEARCH_RESULTS_COUNT, 10) || 10;
 
 interface YoutubeChannelData {
   channel?: string
@@ -404,7 +404,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       const extracted = match.split(":")[1].substring(r === 1 ? 2 : 1);
       log.silly(`MATCH ${match}`);
       log.debug(`EXTRACTED ${extracted}`);
-      return parseInt(extracted);
+      return parseInt(extracted, 10);
     }
     return null;
   }
@@ -484,9 +484,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
       }
     });
 
-    const hours = (parseInt(match[0]) || 0);
-    const minutes = (parseInt(match[1]) || 0);
-    const seconds = (parseInt(match[2]) || 0);
+    const hours = (parseInt(match[0], 10) || 0);
+    const minutes = (parseInt(match[1], 10) || 0);
+    const seconds = (parseInt(match[2], 10) || 0);
 
     return hours * 3600 + minutes * 60 + seconds;
   }
