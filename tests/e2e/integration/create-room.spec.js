@@ -1,4 +1,5 @@
 import faker from "faker";
+import uuid from "uuid";
 
 describe("Creating Rooms", () => {
 	beforeEach(() => {
@@ -22,7 +23,7 @@ describe("Creating Rooms", () => {
 		cy.contains("Create Room").should("be.visible").click();
 		cy.get('[role="menu"]').contains('[role="menuitem"]', "Create Permanent Room").should("be.visible").click();
 
-		let roomName = Math.random().toString(36).substring(2);
+		let roomName = uuid.v4().substring(0, 20);
 		cy.get('form').find("input").first().type(roomName);
 		cy.get('form').submit();
 
@@ -55,7 +56,7 @@ describe("Creating Rooms", () => {
 			cy.contains("Create Room").click();
 			cy.get('[role="menu"]').contains('[role="menuitem"]', "Create Permanent Room").click();
 
-			let roomName = Math.random().toString(36).substring(2);
+			let roomName = uuid.v4().substring(0, 20);
 			cy.get('form').find("input").first().type(roomName);
 			cy.get('form').submit();
 
