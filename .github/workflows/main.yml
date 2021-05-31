@@ -12,6 +12,33 @@ on:
     - '**/*.md'
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get npm cache directory
+      id: npm-cache
+      run: |
+        echo "::set-output name=dir::$(npm config get cache)"
+    - uses: actions/cache@v1
+      with:
+        path: ${{ steps.npm-cache.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        check-latest: true
+    - run: npm ci
+    - run: npm run lint-ci
+      env:
+        NODE_ENV: production
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -51,9 +78,6 @@ jobs:
       env:
         NODE_ENV: test
     - run: npm run build --if-present
-    - run: npm run lint-ci
-      env:
-        NODE_ENV: production
     - run: npm run test-unit-client
     - run: npm run test-unit-server
       env:
@@ -68,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy docker image
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: test
+    needs: [test, lint]
     steps:
     - uses: actions/checkout@v1
     - name: Log in to Dockerhub
