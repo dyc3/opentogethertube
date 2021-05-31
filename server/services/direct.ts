@@ -18,7 +18,6 @@ export default class DirectVideoAdapter extends ServiceAdapter {
     return false;
   }
 
-  // eslint-disable-next-line no-unused-vars
   isCollectionURL(link: string): boolean {
     return false;
   }

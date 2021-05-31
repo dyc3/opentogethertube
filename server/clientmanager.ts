@@ -17,7 +17,6 @@ import { uniqueNamesGenerator } from 'unique-names-generator';
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
 const get = promisify(redisClient.get).bind(redisClient);
-// eslint-disable-next-line no-unused-vars
 const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(redisSubscriber);
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
@@ -154,7 +153,6 @@ export class Client {
 		}
 	}
 
-	// eslint-disable-next-line no-unused-vars
 	public OnPing(data: Buffer): void {
 		log.debug(`sending pong`);
 		this.Socket.pong();

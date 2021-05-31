@@ -14,7 +14,6 @@ const redis = {
 	keys: promisify(redisClient.keys).bind(redisClient),
 	get: promisify(redisClient.get).bind(redisClient),
 	set: promisify(redisClient.set).bind(redisClient),
-	// eslint-disable-next-line no-unused-vars
 	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
 	exists: promisify(redisClient.exists).bind(redisClient),
 };

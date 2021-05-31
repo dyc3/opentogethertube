@@ -19,7 +19,6 @@ export default class RedditAdapter extends ServiceAdapter {
 		return url.host.endsWith("reddit.com") && !url.pathname.includes("comments") && /^\/r\/.+$/.test(url.pathname);
 	}
 
-	// eslint-disable-next-line no-unused-vars
 	isCollectionURL(link: string): boolean {
 		return true;
 	}

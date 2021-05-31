@@ -32,7 +32,7 @@ const ROLE_DISPLAY_NAMES = {
 	[Role.Owner]: "Owner",
 };
 
-// TODO: create dynamically
+/** @deprecated */
 const PERMISSION_HEIRARCHY = {
 	PLAYBACK: {
 		PLAYPAUSE: 1<<0,
@@ -154,7 +154,7 @@ function parseIntoGrantMask(perms) {
 /**
  * Get the full grant mask for a role, accounting for permission inheritance.
  * @param {Object} grants
- * @param {Number} role
+ * @param {Role} role
  * @deprecated
  */
 function getFullGrantMask(grants, role) {
@@ -191,7 +191,7 @@ function isRoleValid(role) {
 }
 
 /**
- * @param {string|Number} role
+ * @param {Role} role
  */
 function _normalizeRoleId(role) {
 	if (typeof role === "string") {
@@ -203,7 +203,7 @@ function _normalizeRoleId(role) {
 /**
  * Checks if the given role is granted the permission, given the grants.
  * @param {Object} grants
- * @param {Number} role
+ * @param {Role} role
  * @param {string} permission
  * @deprecated
  */
@@ -215,7 +215,7 @@ function granted(grants, role, permission) {
 /**
  * Checks to see if the permission is granted. Throws an exception if it fails.
  * @param {Object} grants
- * @param {Number} role
+ * @param {Role} role
  * @param {string} permission
  * @throws PermissionDeniedException
  * @deprecated
@@ -244,7 +244,7 @@ export class Grants {
 
 	/**
 	 *
-	 * @param {number} role
+	 * @param {Role} role
 	 * @returns {number}
 	 */
 	getMask(role) {
@@ -280,7 +280,7 @@ export class Grants {
 	}
 
 	/**
-	 * @param {Number} role
+	 * @param {Role} role
 	 * @param {string[]|Number} permissions
 	 * @throws InvalidRoleException
 	 */
@@ -305,7 +305,7 @@ export class Grants {
 
 	/**
 	 * Checks if the given role is granted the permission, given the grants.
-	 * @param {Number} role
+	 * @param {Role} role
 	 * @param {string|Permission} permission
 	 */
 	granted(role, permission) {
@@ -333,7 +333,7 @@ export class Grants {
 
 	/**
 	 * Checks to see if the permission is granted. Throws an exception if it fails.
-	 * @param {Number} role
+	 * @param {Role} role
 	 * @param {string|Permission} permission
 	 * @throws PermissionDeniedException
 	 */
@@ -346,7 +346,7 @@ export class Grants {
 
 	/**
 	 * Keep only the specified roles, delete all other grant masks.
-	 * @param {Number[]} roles
+	 * @param {Role[]} roles
 	 */
 	filterRoles(roles) {
 		for (const role in this.masks) {

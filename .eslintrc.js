@@ -74,7 +74,21 @@ module.exports = {
       rules: {
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-unused-vars": "off",
       }
-    }
+    },
+    {
+      files: ["*.ts"],
+      rules: {
+        "no-unused-vars": "off",
+      }
+    },
+    {
+      files: ["migrations/**"],
+      rules: {
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+      },
+    },
   ]
 };
