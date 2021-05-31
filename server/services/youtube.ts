@@ -3,7 +3,7 @@ import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
 import { RedisClient } from "redis";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import { InvalidVideoIdException, OutOfQuotaException } from "../exceptions";
+import { InvalidVideoIdException, OutOfQuotaException, UnsupportedVideoType } from "../exceptions";
 import { getLogger } from "../../logger";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
 import storage from "../../storage";
@@ -369,8 +369,17 @@ export default class YouTubeAdapter extends ServiceAdapter {
           },
         });
       const results: Video[] = [];
+      let foundLivestream = false;
       for (const item of res.data.items) {
+        if (item.snippet.liveBroadcastContent !== "none") {
+          log.debug(`found liveBroadcastContent=${item.snippet.liveBroadcastContent}, skipping`);
+          foundLivestream = true;
+          continue;
+        }
         results.push(this.parseVideoItem(item));
+      }
+      if (results.length === 0 && foundLivestream) {
+        throw new UnsupportedVideoType("livestream");
       }
       try {
         await storage.updateManyVideoInfo(_.values(results));
@@ -530,6 +539,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       videoEmbeddable: true,
       videoSyndicated: true,
       q: query,
+      eventType: "none",
     };
 
     try {
