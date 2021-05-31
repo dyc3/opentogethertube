@@ -30,7 +30,7 @@ export default new Vuex.Store({
 				maxAttempts: 10,
 			},
 		},
-		joinFailureReason: null,
+		joinFailureReason: "",
 		production: process.env.NODE_ENV === 'production',
 		/** Unregistered user's username  */
 		username: null,
@@ -94,15 +94,17 @@ export default new Vuex.Store({
 			state.permsMeta.loaded = true;
 		},
 		JOIN_ROOM_FAILED(state, code) {
+			let reason;
 			if (code === OttWebsocketError.ROOM_NOT_FOUND) {
-				state.joinFailureReason = "Room not found.";
+				reason = "Room not found.";
 			}
 			else if (code === OttWebsocketError.ROOM_UNLOADED) {
-				state.joinFailureReason = "Room was unloaded.";
+				reason = "Room was unloaded.";
 			}
 			else {
-				state.joinFailureReason = "Something happened, but we don't know what. Please report this as a bug.";
+				reason = "Something happened, but we don't know what. Please report this as a bug.";
 			}
+			state.joinFailureReason = reason;
 			console.log(`Join room failed: ${state.joinFailureReason}`);
 			state.$connection.shouldReconnect = false;
 			state.$connection.attempts = 0;

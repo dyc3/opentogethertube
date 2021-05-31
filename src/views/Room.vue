@@ -174,7 +174,7 @@
     <v-overlay :value="showJoinFailOverlay">
       <v-layout column>
         <h1>Failed to join room</h1>
-        <span>{{ joinFailReason }}</span>
+        <span>{{ $store.state.joinFailureReason }}</span>
         <v-btn to="/rooms">Find Another Room</v-btn>
       </v-layout>
     </v-overlay>
@@ -227,8 +227,6 @@ export default {
         permissions: {},
       },
 
-      showJoinFailOverlay: false,
-      joinFailReason: "",
       snackbarActive: false,
       snackbarText: "",
 
@@ -275,6 +273,9 @@ export default {
     },
     lengthDisplay() {
       return secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
+    },
+    showJoinFailOverlay() {
+      return !!this.$store.state.joinFailureReason;
     },
   },
   async created() {
@@ -560,15 +561,14 @@ export default {
     },
   },
   mounted() {
+    console.log(this.$store.state.joinFailReason);
+    console.log(this.showJoinFailOverlay);
+    console.log(this.joinFailReason);
     this.$events.on("playVideo", () => {
       this.$refs.player.play();
     });
     this.$events.on("pauseVideo", () => {
       this.$refs.player.pause();
-    });
-    this.$events.on("roomJoinFailure", eventData => {
-      this.showJoinFailOverlay = true;
-      this.joinFailReason = eventData.reason;
     });
 
     document.onmousemove = () => {
