@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Session } from "express-session";
 import { User } from "models/user";
 import { Video } from "./video";
