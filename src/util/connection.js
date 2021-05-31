@@ -5,7 +5,7 @@ let reconnectTimer = null;
 // window.vm.$events.on("socket-error", (e) => {
 // });
 
-function onOpen(e) {
+function onOpen() {
 	console.log("socket open");
 	window.vm.$store.state.$connection.isConnected = true;
 	window.vm.$store.state.$connection.reconnect.attempts = 0;
