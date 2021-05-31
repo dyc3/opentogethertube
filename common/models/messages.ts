@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, Grants, PlayerStatus, Role, RoomEventContext } from "./types";
-import { Video, VideoId } from "./video";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext } from "./types";
+import { VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement | ServerMessageUser
 

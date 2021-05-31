@@ -22,7 +22,7 @@ export default class DailyMotionAdapter extends ServiceAdapter {
     );
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isCollectionURL(link: string): boolean {
     return false;
   }

@@ -572,7 +572,6 @@ let usermanager = {
 		clientmanager.onUserModified(session);
 	},
 
-	// eslint-disable-next-line no-unused-vars
 	onUserModified(session, newUsername=null) {
 		clientmanager.onUserModified(session);
 	},
