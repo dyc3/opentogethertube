@@ -1,4 +1,5 @@
 {
+	"projectId": "3utpz8",
 	"baseUrl": "http://localhost:8080/",
 	"downloadsFolder": "tests/e2e/downloads",
 	"fixturesFolder": "tests/e2e/fixtures",
