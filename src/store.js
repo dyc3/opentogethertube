@@ -9,6 +9,7 @@ import { ToastStyle } from './models/toast';
 import eventModule from "@/stores/events";
 import { QueueMode } from '../common/models/types';
 import { deserializeMap } from '../common/serialize';
+import { OttWebsocketError } from "common/models/types";
 
 Vue.use(Vuex);
 
@@ -29,7 +30,7 @@ export default new Vuex.Store({
 				maxAttempts: 10,
 			},
 		},
-		joinFailureReason: null,
+		joinFailureReason: "",
 		production: process.env.NODE_ENV === 'production',
 		/** Unregistered user's username  */
 		username: null,
@@ -91,6 +92,22 @@ export default new Vuex.Store({
 			}
 			state.permsMeta.permissions = metadata.permissions;
 			state.permsMeta.loaded = true;
+		},
+		JOIN_ROOM_FAILED(state, code) {
+			let reason;
+			if (code === OttWebsocketError.ROOM_NOT_FOUND) {
+				reason = "Room not found.";
+			}
+			else if (code === OttWebsocketError.ROOM_UNLOADED) {
+				reason = "Room was unloaded.";
+			}
+			else {
+				reason = "Something happened, but we don't know what. Please report this as a bug.";
+			}
+			state.joinFailureReason = reason;
+			console.log(`Join room failed: ${state.joinFailureReason}`);
+			state.$connection.shouldReconnect = false;
+			state.$connection.attempts = 0;
 		},
 	},
 	actions: {

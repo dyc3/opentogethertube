@@ -426,7 +426,13 @@ export default class YouTubeAdapter extends ServiceAdapter {
       }
     }
     if (item.contentDetails) {
-      video.length = this.parseVideoLength(item.contentDetails.duration);
+      try {
+        video.length = this.parseVideoLength(item.contentDetails.duration);
+      }
+      catch (e) {
+        log.error(`Failed to parse video length. input: "${item.contentDetails.duration}" (type ${typeof item.contentDetails.duration})`);
+        throw e;
+      }
     }
     return video;
   }

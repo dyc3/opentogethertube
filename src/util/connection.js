@@ -5,22 +5,26 @@ let reconnectTimer = null;
 // window.vm.$events.on("socket-error", (e) => {
 // });
 
-function onOpen(e) {
+function onOpen() {
 	console.log("socket open");
 	window.vm.$store.state.$connection.isConnected = true;
 	window.vm.$store.state.$connection.reconnect.attempts = 0;
-	window.vm.$events.fire("socket-open", e);
+	window.vm.$store.state.joinFailureReason = null;
 }
 
 function onClose(e) {
-	console.log("socket closed");
+	console.log("socket closed: ", e);
 	window.vm.$store.state.$connection.isConnected = false;
 	socket.removeEventListener("open", onOpen);
 	socket.removeEventListener("close", onClose);
 	socket.removeEventListener("message", onMessage);
 	socket.removeEventListener("error", onError);
-	window.vm.$events.fire("socket-close", e);
 	socket = null;
+	if (e.code >= 4000) {
+		console.log(`socket close code: ${e.code}. Not attempting to reconnect.`);
+		window.vm.$store.commit("JOIN_ROOM_FAILED", e.code);
+		return;
+	}
 	if (window.vm.$store.state.$connection.shouldReconnect && window.vm.$store.state.$connection.room && window.vm.$store.state.$connection.reconnect.attempts < window.vm.$store.state.$connection.reconnect.maxAttempts) {
 		let delay = window.vm.$store.state.$connection.reconnect.delay + (window.vm.$store.state.$connection.reconnect.attempts * window.vm.$store.state.$connection.reconnect.delayIncrease);
 		console.debug(`waiting to reconnect: ${delay}ms`);
@@ -52,7 +56,6 @@ function onMessage(e) {
 
 function onError(e) {
 	console.log("socket error", e);
-	window.vm.$events.fire("socket-error", e);
 }
 
 function connect(roomName, reconnect=false) {

@@ -242,11 +242,12 @@ async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 		await client.JoinRoom(roomName);
 	}
 	catch (e) {
-		log.error(`Failed to join room: ${e.stack}`);
 		if (e instanceof RoomNotFoundException) {
+			log.info(`Failed to join room: ${e}`);
 			socket.close(OttWebsocketError.ROOM_NOT_FOUND);
 		}
 		else {
+			log.error(`Failed to join room: ${e.stack}`);
 			socket.close(OttWebsocketError.UNKNOWN);
 		}
 	}
