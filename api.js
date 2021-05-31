@@ -381,7 +381,7 @@ router.get("/data/previewAdd", async (req, res) => {
 		log.info(`Sent add preview response with ${result.length} items`);
 	}
 	catch (err) {
-		if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException" || err.name === "UnsupportedMimeTypeException" || err.name === "LocalFileException" || err.name === "MissingMetadataException") {
+		if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException" || err.name === "UnsupportedMimeTypeException" || err.name === "LocalFileException" || err.name === "MissingMetadataException" || err.name === "UnsupportedVideoType") {
 			log.error(`Unable to get add preview: ${err.name}`);
 			res.status(400).json({
 				success: false,

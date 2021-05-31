@@ -171,3 +171,11 @@ export class BadApiArgumentException extends OttException {
 		this.reason = reason;
 	}
 }
+
+export class UnsupportedVideoType extends OttException {
+	name = "UnsupportedVideoType"
+
+	constructor(type: string) {
+		super(`Unsupported video type: ${type}`);
+	}
+}
