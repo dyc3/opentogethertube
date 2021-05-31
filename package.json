@@ -107,6 +107,7 @@
     "core-js": "3.6.4",
     "css-loader": "^5.2.5",
     "cypress": "^7.4.0",
+    "cypress-iframe": "^1.0.1",
     "eslint": "^6.7.2",
     "eslint-plugin-jest": "23.13.2",
     "eslint-plugin-vue": "6.1.2",

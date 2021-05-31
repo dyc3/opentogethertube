@@ -572,7 +572,7 @@ let usermanager = {
 		clientmanager.onUserModified(session);
 	},
 
-	onUserModified(session, newUsername=null) {
+	onUserModified(session) {
 		clientmanager.onUserModified(session);
 	},
 
