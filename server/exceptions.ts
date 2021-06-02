@@ -179,3 +179,11 @@ export class UnsupportedVideoType extends OttException {
 		super(`Unsupported video type: ${type}`);
 	}
 }
+
+export class ClientNotFoundInRoomException extends OttException {
+	name = "ClientNotFoundInRoomException"
+
+	constructor(roomName: string) {
+		super(`The server was unable to find a client in the room "${roomName}" associated with the session. This might mean that your browser isn't saving cookies, try refreshing. If you aren't connected to the room, reconnect to the room and try again. This could also mean that the room does not exist at all.`);
+	}
+}

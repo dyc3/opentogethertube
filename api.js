@@ -39,7 +39,7 @@ function handleGetRoomFailure(res, err) {
 			},
 		});
 	}
-	else if (err.name === "PermissionDeniedException") {
+	else if (err.name === "PermissionDeniedException" || err.name === "ClientNotFoundInRoomException") {
 		res.status(400).json({
 			success: false,
 			error: {
@@ -61,7 +61,7 @@ function handleGetRoomFailure(res, err) {
 }
 
 function handlePostVideoFailure(res, err) {
-	if (err.name === "VideoAlreadyQueuedException" || err.name === "PermissionDeniedException") {
+	if (err.name === "VideoAlreadyQueuedException" || err.name === "PermissionDeniedException" || err.name === "ClientNotFoundInRoomException") {
 		res.status(400).json({
 			success: false,
 			error: {

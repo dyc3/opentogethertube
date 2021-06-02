@@ -286,7 +286,10 @@ export class Room implements RoomState {
 		return !!this.owner;
 	}
 
-	getRole(user: RoomUser): Role {
+	getRole(user?: RoomUser): Role {
+		if (!user) {
+			return Role.UnregisteredUser;
+		}
 		if (this.isOwner(user)) {
 			return Role.Owner;
 		}
@@ -305,7 +308,7 @@ export class Room implements RoomState {
 		}
 	}
 
-	getUser(client: ClientId): RoomUser {
+	getUser(client: ClientId): RoomUser | undefined {
 		for (const user of this.realusers) {
 			if (user.id === client) {
 				return user;
