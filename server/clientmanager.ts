@@ -7,7 +7,7 @@ import { Request } from 'express';
 import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
-import { RoomNotFoundException } from "./exceptions";
+import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
 import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable } from "../common/models/types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
@@ -350,6 +350,7 @@ function getClient(session: Session, roomName: string): Client {
 			return client;
 		}
 	}
+	throw new ClientNotFoundInRoomException(roomName);
 }
 
 setInterval(() => {
