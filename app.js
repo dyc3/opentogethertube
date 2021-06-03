@@ -127,6 +127,7 @@ let sessionOpts = {
 	resave: false,
 	saveUninitialized: true,
 	unset: 'keep',
+	proxy: process.env.NODE_ENV === "production",
 	cookie: {
 		expires: false,
 		maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
@@ -134,7 +135,7 @@ let sessionOpts = {
 };
 if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
 	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
-	app.set('trust proxy', process.env["TRUST_PROXY"] || 1);
+	app.set('trust proxy', parseInt(process.env["TRUST_PROXY"], 10) || 1);
 	sessionOpts.cookie.secure = true;
 }
 if (process.env.FORCE_INSECURE_COOKIES) {
