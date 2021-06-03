@@ -62,6 +62,7 @@ function handleGetRoomFailure(res, err) {
 
 function handlePostVideoFailure(res, err) {
 	if (err.name === "VideoAlreadyQueuedException" || err.name === "PermissionDeniedException" || err.name === "ClientNotFoundInRoomException") {
+		log.warn(`Failed to post video: ${err.name}`);
 		res.status(400).json({
 			success: false,
 			error: {
