@@ -371,7 +371,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       const results: Video[] = [];
       let foundLivestream = false;
       for (const item of res.data.items) {
-        if (item.snippet.liveBroadcastContent !== "none") {
+        if (item.snippet && item.snippet.liveBroadcastContent !== "none") {
           log.debug(`found liveBroadcastContent=${item.snippet.liveBroadcastContent}, skipping`);
           foundLivestream = true;
           continue;
