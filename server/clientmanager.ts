@@ -73,7 +73,7 @@ export class Client {
 	}
 
 	public async OnMessage(text: string): Promise<void> {
-		log.debug(text);
+		log.silly(`client message: ${text}`);
 		const msg: ClientMessage = JSON.parse(text);
 		let request: RoomRequest | null = null;
 		if (msg.action === "play") {
@@ -266,7 +266,7 @@ async function broadcast(roomName: string, text: string) {
 
 async function onRedisMessage(channel: string, text: string) {
 	// handles sync messages published by the rooms.
-	log.debug(`pubsub message: ${channel}: ${text}`);
+	log.silly(`pubsub message: ${channel}: ${text.substr(0, 200)}`);
 	const msg = JSON.parse(text) as ServerMessage;
 	if (channel.startsWith("room:")) {
 		const roomName = channel.replace("room:", "");
