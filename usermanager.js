@@ -44,7 +44,7 @@ router.get("/", (req, res) => {
 	}
 	else {
 		res.json({
-			username: req.session.username,
+			username: req.auth.username,
 			loggedIn: false,
 		});
 	}

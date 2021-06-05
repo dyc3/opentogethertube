@@ -12,6 +12,31 @@ function createSession(): SessionInfo {
 	};
 }
 
+export async function authTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+	log.silly("validating auth token");
+	const token: AuthToken = req.headers.authorization.split(" ")[1];
+	req.authInfo = {
+		token,
+	};
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	if (!await tokens.validate(req.authInfo.token)) {
+		res.json({
+			success: false,
+			error: {
+				name: "MissingToken",
+				message: "Missing auth token. Get a token from /api/auth/grant first.",
+			},
+		});
+		return;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	req.auth = await tokens.getSessionInfo(req.authInfo.token);
+	next();
+}
+
 router.get("/grant", async (req, res) => {
 	if (req.headers.authorization) {
 		log.debug("authorization header found");
@@ -42,4 +67,5 @@ router.get("/grant", async (req, res) => {
 
 export default {
 	router,
+	authTokenMiddleware,
 };
