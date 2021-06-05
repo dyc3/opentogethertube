@@ -6,6 +6,13 @@ import { uniqueNamesGenerator } from 'unique-names-generator';
 const router = express.Router();
 const log = getLogger("api/auth");
 
+declare module "express" {
+	export interface Request {
+		token?: AuthToken;
+		ottsession?: SessionInfo;
+	}
+}
+
 function createSession(): SessionInfo {
 	return {
 		username: uniqueNamesGenerator(),
@@ -14,7 +21,7 @@ function createSession(): SessionInfo {
 
 export async function authTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
 	log.silly("validating auth token");
-	if (req.headers.authorization.startsWith("Bearer")) {
+	if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
 		const token: AuthToken = req.headers.authorization.split(" ")[1];
 		req.token = token;
 	}
