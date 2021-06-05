@@ -48,6 +48,7 @@ describe("Creating Rooms", () => {
 
 		beforeEach(() => {
 			cy.clearCookies();
+			cy.clearLocalStorage();
 			cy.reload();
 		});
 

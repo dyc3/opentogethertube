@@ -4,6 +4,7 @@ describe("User login/registration", () => {
 	beforeEach(() => {
 		cy.request("POST", "/api/dev/reset-rate-limit");
 		cy.clearCookies();
+		cy.clearLocalStorage();
 		cy.visit("/");
 	});
 
