@@ -12,15 +12,14 @@ function createSession(): SessionInfo {
 	};
 }
 
-export async function authTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function authTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
 	log.silly("validating auth token");
-	const token: AuthToken = req.headers.authorization.split(" ")[1];
-	req.authInfo = {
-		token,
-	};
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	if (!await tokens.validate(req.authInfo.token)) {
+	if (req.headers.authorization.startsWith("Bearer")) {
+		const token: AuthToken = req.headers.authorization.split(" ")[1];
+		req.token = token;
+	}
+
+	if (!await tokens.validate(req.token)) {
 		res.json({
 			success: false,
 			error: {
@@ -31,9 +30,7 @@ export async function authTokenMiddleware(req: express.Request, res: express.Res
 		return;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	req.auth = await tokens.getSessionInfo(req.authInfo.token);
+	req.ottsession = await tokens.getSessionInfo(req.token);
 	next();
 }
 
