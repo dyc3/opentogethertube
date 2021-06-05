@@ -151,7 +151,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallb
 passport.use(new DiscordStrategy({
 	clientID: process.env.DISCORD_CLIENT_ID || "NONE",
 	clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
-	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/user/auth/discord/callback`,
+	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/auth/discord/callback`,
 	scope: ["identify"],
 	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
