@@ -2,6 +2,8 @@ import { getLogger } from '../../logger.js';
 import express from "express";
 import tokens, { AuthToken, SessionInfo } from './tokens';
 import { uniqueNamesGenerator } from 'unique-names-generator';
+import passport from "passport";
+import { User } from "../../models/user";
 
 const router = express.Router();
 const log = getLogger("api/auth");
@@ -10,6 +12,7 @@ declare module "express" {
 	export interface Request {
 		token?: AuthToken;
 		ottsession?: SessionInfo;
+		user?: User
 	}
 }
 
@@ -67,6 +70,14 @@ router.get("/grant", async (req, res) => {
 	res.json({
 		token,
 	});
+});
+
+router.get('/discord', passport.authenticate('discord'));
+router.get('/discord/callback', passport.authenticate('discord', {
+	failureRedirect: '/',
+}), (req: express.Request, res) => {
+	log.info(`${req.user.username} logged in via social login.`);
+	res.redirect('/'); // Successful auth
 });
 
 export default {

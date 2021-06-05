@@ -295,14 +295,6 @@ router.post("/register", async (req, res) => {
 	}
 });
 
-router.get('/auth/discord', passport.authenticate('discord'));
-router.get('/auth/discord/callback', passport.authenticate('discord', {
-	failureRedirect: '/',
-}), (req, res) => {
-	log.info(`${req.user.username} logged in via social login.`);
-	res.redirect('/'); // Successful auth
-});
-
 class BadPasswordError extends Error {
 	constructor() {
 		super("Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.");
