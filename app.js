@@ -8,6 +8,7 @@ const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const DiscordStrategy = require('passport-discord').Strategy;
+const BearerStrategy = require('passport-http-bearer').Strategy;
 const validator = require('validator');
 
 const log = getLogger("app");
@@ -154,6 +155,13 @@ passport.use(new DiscordStrategy({
 	scope: ["identify"],
 	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
+const tokens = require("./server/auth/tokens");
+passport.use(new BearerStrategy((token, done) => {
+	if (!tokens.validate(token)) {
+		return done(null, false);
+	}
+	return done(null, tokens.getSessionInfo(token));
+}));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
