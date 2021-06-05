@@ -13,6 +13,7 @@ import roomapi from "./server/api/room";
 import clientmanager from "./server/clientmanager";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
+import auth from "./server/auth";
 
 const log = getLogger("api");
 
@@ -85,6 +86,7 @@ function handlePostVideoFailure(res, err) {
 
 const router = express.Router();
 
+router.use("/auth", auth.router);
 router.use("/room", roomapi);
 if (process.env.NODE_ENV === "development") {
 	(async () => {
