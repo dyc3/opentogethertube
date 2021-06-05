@@ -229,7 +229,6 @@ function serveBuiltFiles(req, res) {
 	});
 }
 
-app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
 	app.get("*", serveBuiltFiles);
