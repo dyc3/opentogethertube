@@ -238,12 +238,24 @@ export class Room implements RoomState {
 		return infos;
 	}
 
-	markDirty(prop: keyof RoomState): void {
+	private markDirty(prop: keyof RoomState): void {
 		this._dirty.add(prop);
 		this.throttledSync();
 	}
 
 	dequeueNext(): void {
+		this.log.debug(`dequeuing next video. mode: ${this.queueMode}`);
+		if (this.currentSource !== null) {
+			if (this.queueMode === QueueMode.Dj) {
+				this.playbackPosition = 0;
+				this._playbackStart = dayjs();
+				return;
+			}
+			else if (this.queueMode === QueueMode.Loop) {
+				this.queue.push(this.currentSource);
+				this.markDirty("queue");
+			}
+		}
 		if (this.queue.length > 0) {
 			this.currentSource = this.queue.shift();
 			this.markDirty("queue");

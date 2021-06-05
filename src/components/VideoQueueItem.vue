@@ -2,7 +2,7 @@
 	<v-sheet class="mt-2 video" hover>
 		<div class="img-container">
 			<v-img :src="thumbnailSource" :lazy-src="require('@/assets/placeholder.svg')" aspect-ratio="1.8" @error="onThumbnailError">
-				<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode === 'manual'">
+				<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
 					<v-icon>fas fa-align-justify</v-icon>
 				</span>
 				<span class="video-length">{{ videoLength }}</span>

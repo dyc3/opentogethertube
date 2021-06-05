@@ -102,7 +102,21 @@
                     <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-title')" />
                     <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-description')" />
                     <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-visibility')" />
-                    <v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" />
+                    <v-select label="Queue Mode" :items="[
+                      { name: 'manual', value: QueueMode.Manual, description: 'Default normal behavior, works how you would expect it to. You can manually reorder items in the queue.' },
+                      { name: 'vote', value: QueueMode.Vote, description: 'The highest voted video gets played next.' },
+                      { name: 'loop', value: QueueMode.Loop, description: 'When the video ends, put it at the end of the queue.' },
+                    ]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" >
+                      <template v-slot:item="data">
+                        <v-list-item-content>
+                          <v-list-item-title>{{ data.item.name }}</v-list-item-title>
+                          <v-list-item-subtitle>{{ data.item.description }}</v-list-item-subtitle>
+                        </v-list-item-content>
+                      </template>
+                      <template v-slot:selection="data">
+                        <v-list-item-title>{{ data.item.name }}</v-list-item-title>
+                      </template>
+                    </v-select>
                     <PermissionsEditor v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner" v-model="inputRoomSettings.permissions" :current-role="$store.state.users.you.role" />
                     <div v-else-if="$store.state.room.isTemporary">
                       Permissions are not available in temporary rooms.
@@ -195,7 +209,7 @@ import UserList from "@/components/UserList.vue";
 import connection from "@/util/connection";
 import api from "@/util/api";
 import { ToastStyle } from "@/models/toast";
-import { PlayerStatus } from 'common/models/types';
+import { PlayerStatus, QueueMode } from 'common/models/types';
 import VideoQueue from "@/components/VideoQueue.vue";
 
 export default {
@@ -240,6 +254,7 @@ export default {
       },
 
       api,
+      QueueMode,
     };
   },
   computed: {

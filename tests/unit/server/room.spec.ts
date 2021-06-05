@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { RoomRequestType } from "../../../common/models/messages";
+import { QueueMode } from "../../../common/models/types";
 import { Room, RoomUser } from "../../../server/room";
 
 describe("Room", () => {
@@ -107,6 +108,76 @@ describe("Room", () => {
 				});
 				expect(room.playbackPosition).toEqual(10);
 			});
+		});
+	});
+
+	describe("auto dequeuing next video", () => {
+		let room: Room;
+
+		beforeEach(() => {
+			room = new Room({ name: "test" });
+			room.currentSource = {
+				service: "test",
+				id: "video",
+			};
+			room.queue = [
+				{
+					service: "test",
+					id: "video2",
+				},
+			];
+		});
+
+		it.each([QueueMode.Manual, QueueMode.Vote])("should consume the current item when mode is %s", (mode) => {
+			room.queueMode = mode;
+			room.dequeueNext();
+			expect(room.currentSource).toEqual({
+				service: "test",
+				id: "video2",
+			});
+			expect(room.queue).toHaveLength(0);
+		});
+
+		it.each([QueueMode.Loop])("should requeue the current item when mode is %s", (mode) => {
+			room.queueMode = mode;
+			room.dequeueNext();
+			expect(room.currentSource).toEqual({
+				service: "test",
+				id: "video2",
+			});
+			expect(room.queue).toHaveLength(1);
+			expect(room.queue[0]).toEqual({
+				service: "test",
+				id: "video",
+			});
+		});
+
+		it.each([QueueMode.Dj])("should restart the current item when mode is %s", (mode) => {
+			room.queueMode = mode;
+			room.playbackPosition = 10;
+			room.dequeueNext();
+			expect(room.currentSource).toEqual({
+				service: "test",
+				id: "video",
+			});
+			expect(room.playbackPosition).toEqual(0);
+			expect(room.queue).toHaveLength(1);
+			expect(room.queue[0]).toEqual({
+				service: "test",
+				id: "video2",
+			});
+		});
+
+		it.each([QueueMode.Loop])("should requeue the current item when mode is %s, with empty queue", (mode) => {
+			room.queueMode = mode;
+			room.queue = [];
+			expect(room.queue).toHaveLength(0);
+			room.dequeueNext();
+			expect(room.currentSource).toEqual({
+				service: "test",
+				id: "video",
+			});
+			expect(room.queue).toHaveLength(0);
 		});
 	});
 });
