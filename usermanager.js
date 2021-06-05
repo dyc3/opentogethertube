@@ -44,7 +44,7 @@ router.get("/", (req, res) => {
 	}
 	else {
 		res.json({
-			username: req.auth.username,
+			username: req.ottsession.username,
 			loggedIn: false,
 		});
 	}
