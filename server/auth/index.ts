@@ -1,9 +1,10 @@
 import { getLogger } from '../../logger.js';
 import express from "express";
-import tokens, { AuthToken, SessionInfo } from './tokens';
+import tokens, { SessionInfo } from './tokens';
 import { uniqueNamesGenerator } from 'unique-names-generator';
 import passport from "passport";
 import { User } from "../../models/user";
+import { AuthToken } from "../../common/models/types";
 
 const router = express.Router();
 const log = getLogger("api/auth");

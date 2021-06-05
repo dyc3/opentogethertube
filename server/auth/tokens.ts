@@ -1,11 +1,10 @@
 import crypto from 'crypto';
 import { redisClientAsync } from "../../redisclient";
-// import usermanager from '../../usermanager';
+import { AuthToken } from "../../common/models/types";
 
 const PREFIX = "auth";
 const EXPIRATION_TIME = 90 * 24 * 60 * 60; // 3 months, in seconds
 
-export type AuthToken = string
 export type SessionInfo = { username: string } | { user_id: number }
 
 export async function validate(token: AuthToken): Promise<boolean> {
