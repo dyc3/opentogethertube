@@ -118,7 +118,7 @@ export default Vue.extend({
       });
     },
   },
-  created() {
+  async created() {
     document.addEventListener('fullscreenchange', () => {
       if (document.fullscreenElement) {
         this.$store.state.fullscreen = true;
@@ -130,8 +130,10 @@ export default Vue.extend({
       }
     });
 
+    await this.$store.dispatch("getNewToken");
+
     // ask the server if we are logged in or not, and update the client to reflect that status.
-    API.get("/user").then(res => {
+    await API.get("/user").then(res => {
       if (res.data.loggedIn) {
         let user = res.data;
         delete user.loggedIn;
