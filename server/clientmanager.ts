@@ -8,7 +8,7 @@ import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
-import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable } from "../common/models/types";
+import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, AuthToken } from "../common/models/types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
@@ -28,6 +28,7 @@ export class Client {
 	Socket: WebSocket
 	Session: MySession
 	room: string | null
+	token: AuthToken | null = null
 
 	constructor (session: MySession, socket: WebSocket) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
