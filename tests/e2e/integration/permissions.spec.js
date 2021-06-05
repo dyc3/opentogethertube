@@ -33,6 +33,7 @@ describe("promotion and demotion", () => {
 
 	beforeEach(() => {
 		cy.clearCookies();
+		cy.clearLocalStorage();
 		cy.request("POST", "/api/dev/reset-rate-limit");
 		cy.request("POST", "/api/user/login", userCreds);
 		roomName = uuid.v4().substring(0, 20);
