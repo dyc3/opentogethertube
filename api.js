@@ -74,7 +74,22 @@ function handlePostVideoFailure(res, err) {
 const router = express.Router();
 
 router.use("/auth", auth.router);
-router.use(passport.authenticate("bearer"));
+router.use((req, res, next) => {
+	passport.authenticate("bearer", (err, user, info) => {
+		// We are intentionally ignoring the case where authentication fails, because
+		// we want to allow users who are not logged in to an actual account to
+		// be able to use the website.
+
+		// log.error(`bearer auth error: ${err}`);
+		if (err) {
+			next(err);
+			return;
+		}
+		// log.debug(`bearer auth user: ${user}`);
+		// log.debug(`bearer auth info: ${info}`);
+		next();
+	})(req, res, next);
+});
 router.use(auth.authTokenMiddleware);
 router.use("/user", usermanager.router);
 router.use("/room", roomapi);
