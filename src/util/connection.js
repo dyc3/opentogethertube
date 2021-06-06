@@ -10,6 +10,7 @@ function onOpen() {
 	window.vm.$store.state.$connection.isConnected = true;
 	window.vm.$store.state.$connection.reconnect.attempts = 0;
 	window.vm.$store.state.joinFailureReason = null;
+	send({ action: "auth", token: window.localStorage.getItem("token") });
 }
 
 function onClose(e) {
