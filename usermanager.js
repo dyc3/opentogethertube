@@ -9,6 +9,7 @@ import clientmanager from "./server/clientmanager";
 import { redisClient } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
+import tokens from "./server/auth/tokens";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
@@ -99,15 +100,15 @@ router.post("/", async (req, res) => {
 		});
 	}
 	else {
-		oldUsername = req.session.username;
-		req.session.username = req.body.username;
-		req.session.save();
+		oldUsername = req.ottsession.username;
+		req.ottsession.username = req.body.username;
+		await tokens.setSessionInfo(req.token, req.ottsession);
 		res.json({
 			success: true,
 		});
 	}
 	log.info(`${oldUsername} changed username to ${req.body.username}`);
-	usermanager.onUserModified(req.session, req.body.username);
+	usermanager.onUserModified(req.token);
 });
 
 router.post("/login", async (req, res, next) => {
@@ -564,8 +565,8 @@ let usermanager = {
 		clientmanager.onUserModified(session);
 	},
 
-	onUserModified(session) {
-		clientmanager.onUserModified(session);
+	onUserModified(token) {
+		clientmanager.onUserModified(token);
 	},
 
 	async isUsernameTaken(username) {
