@@ -6,7 +6,7 @@ import { getLogger } from "../logger.js";
 import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import storage from "../storage";
-import { RoomAlreadyLoadedException, RoomNotFoundException } from "./exceptions";
+import { RoomAlreadyLoadedException, RoomNameTakenException, RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager
 
 const log = getLogger("roommanager");
@@ -52,6 +52,20 @@ export async function update(): Promise<void> {
 }
 
 export async function CreateRoom(options: Partial<RoomOptions>): Promise<void> {
+	for (const room of rooms) {
+		if (options.name.toLowerCase() === room.name.toLowerCase()) {
+			log.warn("can't create room, already loaded");
+			throw new RoomNameTakenException(options.name);
+		}
+	}
+	if (await redis.exists(`room:${options.name}`)) {
+		log.warn("can't create room, already in redis");
+		throw new RoomNameTakenException(options.name);
+	}
+	if (await storage.isRoomNameTaken(options.name)) {
+		log.warn("can't create room, already exists in database");
+		throw new RoomNameTakenException(options.name);
+	}
 	const room = new Room(options);
 	if (!room.isTemporary) {
 		await storage.saveRoom(room);
@@ -72,15 +86,15 @@ export async function GetRoom(roomName: string): Promise<Room> {
 
 	const opts = await storage.getRoomByName(roomName);
 	if (opts) {
-		if (await redis.exists(opts.name)) {
+		if (await redis.exists(`room:${opts.name}`)) {
 			log.debug("found room in database, but room is already in redis");
 			throw new RoomAlreadyLoadedException(opts.name);
 		}
 	}
 	else {
-		if (await redis.exists(roomName)) {
+		if (await redis.exists(`room:${roomName}`)) {
 			log.debug("found room in redis, not loading");
-			throw new RoomAlreadyLoadedException(opts.name);
+			throw new RoomAlreadyLoadedException(roomName);
 		}
 		log.debug("room not found in room manager, nor redis, nor database");
 		throw new RoomNotFoundException(roomName);
@@ -92,7 +106,13 @@ export async function GetRoom(roomName: string): Promise<Room> {
 
 export async function UnloadRoom(roomName: string): Promise<void> {
 	log.info(`Unloading stale room: ${roomName}`);
-	const idx = _.findIndex(rooms, { name: roomName });
+	let idx = -1;
+	for (let i = 0; i < rooms.length; i++) {
+		if (rooms[i].name.toLowerCase() === roomName.toLowerCase()) {
+			idx = i;
+			break;
+		}
+	}
 	if (idx >= 0) {
 		await rooms[idx].onBeforeUnload();
 	}
@@ -104,6 +124,16 @@ export async function UnloadRoom(roomName: string): Promise<void> {
 	await redis.del(`room-sync:${roomName}`);
 }
 
+/**
+ * Clear all rooms off of this node.
+ * Does not "unload" rooms. Intended to only be used in tests.
+ */
+export function clearRooms(): void {
+	while (rooms.length > 0) {
+		rooms.shift();
+	}
+}
+
 export default {
 	rooms,
 	start,
@@ -111,6 +141,7 @@ export default {
 	CreateRoom,
 	GetRoom,
 	UnloadRoom,
+	clearRooms,
 };
 
 // redisSubscriber.on("message", async (channel, text) => {
