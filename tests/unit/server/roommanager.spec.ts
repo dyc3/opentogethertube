@@ -10,8 +10,13 @@ import { redisClient } from "../../../redisclient";
 describe("Room manager", () => {
 	beforeEach(async done => {
 		await DbRoom.destroy({ where: {} });
+		for (const room of roommanager.rooms) {
+			console.log("room", room.name);
+			await roommanager.UnloadRoom(room.name);
+		}
+		roommanager.clearRooms();
 		// FIXME: mock redis functions instead of needing to use redis for these tests
-		redisClient.del("room:*", "room-sync:*", () => {
+		redisClient.eval("return redis.call('DEL', unpack(redis.call('KEYS', ARGV[1] .. '*')))", 0, "room:", () => {
 			done();
 		});
 	});

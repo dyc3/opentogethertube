@@ -124,6 +124,16 @@ export async function UnloadRoom(roomName: string): Promise<void> {
 	await redis.del(`room-sync:${roomName}`);
 }
 
+/**
+ * Clear all rooms off of this node.
+ * Does not "unload" rooms. Intended to only be used in tests.
+ */
+export function clearRooms(): void {
+	while (rooms.length > 0) {
+		rooms.shift();
+	}
+}
+
 export default {
 	rooms,
 	start,
@@ -131,6 +141,7 @@ export default {
 	CreateRoom,
 	GetRoom,
 	UnloadRoom,
+	clearRooms,
 };
 
 // redisSubscriber.on("message", async (channel, text) => {
