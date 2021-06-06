@@ -9,7 +9,6 @@ import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit");
 import { Role } from "./common/models/types";
 import roomapi from "./server/api/room";
-import clientmanager from "./server/clientmanager";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
 import auth from "./server/auth";
