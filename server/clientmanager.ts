@@ -45,6 +45,7 @@ export class Client {
 				const room = await roommanager.GetRoom(this.room);
 				await room.processRequest({
 					type: RoomRequestType.LeaveRequest,
+					token: this.token,
 					client: this.id,
 				});
 			}
@@ -80,34 +81,34 @@ export class Client {
 		if (msg.action === "play") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				client: this.id,
+				token: this.token,
 				state: true,
 			};
 		}
 		else if (msg.action === "pause") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				client: this.id,
+				token: this.token,
 				state: false,
 			};
 		}
 		else if (msg.action === "skip") {
 			request = {
 				type: RoomRequestType.SkipRequest,
-				client: this.id,
+				token: this.token,
 			};
 		}
 		else if (msg.action === "seek") {
 			request = {
 				type: RoomRequestType.SeekRequest,
-				client: this.id,
+				token: this.token,
 				value: msg.position,
 			};
 		}
 		else if (msg.action === "queue-move") {
 			request = {
 				type: RoomRequestType.OrderRequest,
-				client: this.id,
+				token: this.token,
 				fromIdx: msg.currentIdx,
 				toIdx: msg.targetIdx,
 			};
@@ -119,14 +120,14 @@ export class Client {
 		else if (msg.action === "chat") {
 			request = {
 				type: RoomRequestType.ChatRequest,
-				client: this.id,
+				token: this.token,
 				...msg,
 			};
 		}
 		else if (msg.action === "status") {
 			request = {
 				type: RoomRequestType.UpdateUser,
-				client: this.id,
+				token: this.token,
 				info: {
 					id: this.id,
 					status: msg.status,
@@ -136,13 +137,27 @@ export class Client {
 		else if (msg.action === "set-role") {
 			request = {
 				type: RoomRequestType.PromoteRequest,
-				client: this.id,
+				token: this.token,
 				targetClientId: msg.clientId,
 				role: msg.role,
 			};
 		}
 		else if (msg.action === "auth") {
 			this.token = msg.token;
+			log.debug("received auth token, joining room");
+			try {
+				await this.JoinRoom(this.room);
+			}
+			catch (e) {
+				if (e instanceof RoomNotFoundException) {
+					log.info(`Failed to join room: ${e}`);
+					this.Socket.close(OttWebsocketError.ROOM_NOT_FOUND);
+				}
+				else {
+					log.error(`Failed to join room: ${e.stack}`);
+					this.Socket.close(OttWebsocketError.UNKNOWN);
+				}
+			}
 		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
@@ -190,9 +205,9 @@ export class Client {
 		}
 		clients.push(this);
 		roomJoins.set(room.name, clients);
-		await room.processRequest({
+		await this.makeRoomRequest({
 			type: RoomRequestType.JoinRequest,
-			client: this.id,
+			token: this.token,
 			info: this.clientInfo,
 		});
 	}
@@ -237,24 +252,12 @@ export function Setup(): void {
  */
 async function OnConnect(session: Session, socket: WebSocket, req: Request) {
 	const roomName = req.url.replace("/api/room/", "");
-	log.debug(`connection received: ${roomName}`);
+	log.debug(`connection received: ${roomName}, waiting for auth token...`);
 	const client = new Client(session as MySession, socket);
+	client.room = roomName;
 	connections.push(client);
 	socket.on("ping", (data) => client.OnPing(data));
 	socket.on("message", (data) => client.OnMessage(data as string));
-	try {
-		await client.JoinRoom(roomName);
-	}
-	catch (e) {
-		if (e instanceof RoomNotFoundException) {
-			log.info(`Failed to join room: ${e}`);
-			socket.close(OttWebsocketError.ROOM_NOT_FOUND);
-		}
-		else {
-			log.error(`Failed to join room: ${e.stack}`);
-			socket.close(OttWebsocketError.UNKNOWN);
-		}
-	}
 }
 
 async function broadcast(roomName: string, text: string) {
@@ -334,14 +337,13 @@ async function onRedisMessage(channel: string, text: string) {
 
 redisSubscriber.on("message", onRedisMessage);
 
-async function onUserModified(session: MySession) {
-	log.debug(`User was modified: ${session}, telling rooms`);
+async function onUserModified(token: AuthToken): Promise<void> {
+	log.debug(`User was modified, telling rooms`);
 	for (const client of connections) {
-		if (client.Session.id === session.id) {
-			client.Session = session;
+		if (client.token === token) {
 			await client.makeRoomRequest({
 				type: RoomRequestType.UpdateUser,
-				client: client.id,
+				token: token,
 				info: client.clientInfo,
 			});
 		}

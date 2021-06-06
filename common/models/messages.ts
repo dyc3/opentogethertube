@@ -125,7 +125,8 @@ export enum RoomRequestType {
 
 export interface RoomRequestBase {
 	type: RoomRequestType
-	client: ClientId
+	token?: AuthToken
+	client?: ClientId
 }
 
 export interface JoinRequest extends RoomRequestBase {
@@ -135,6 +136,7 @@ export interface JoinRequest extends RoomRequestBase {
 
 export interface LeaveRequest extends RoomRequestBase {
 	type: RoomRequestType.LeaveRequest
+	client: ClientId
 }
 
 export interface PlaybackRequest extends RoomRequestBase {
