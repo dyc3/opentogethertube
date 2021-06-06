@@ -346,7 +346,7 @@ export class Room implements RoomState {
 			this.currentSource = null; // sanity check
 		}
 
-		if (this.currentSource === null || (this.isPlaying && this.realPlaybackPosition > this.currentSource.length)) {
+		if ((this.currentSource === null && this.queue.length > 0) || (this.isPlaying && this.realPlaybackPosition > this.currentSource.length)) {
 			this.dequeueNext();
 		}
 
