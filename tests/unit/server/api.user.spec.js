@@ -77,21 +77,26 @@ describe("User API", () => {
 			onUserModifiedSpy.mockRestore();
 		});
 
-		it("should change the unregistered user's name without failing", done => {
-			request(app)
+		it("should change the unregistered user's name without failing", async () => {
+			let resp = await request(app)
 				.post("/api/user")
 				.set("Authorization", `Bearer ${token}`)
 				.send({ username: "new username" })
 				.expect("Content-Type", /json/)
-				.expect(200)
-				.then(resp => {
-					expect(resp.body.success).toBe(true);
-					expect(onUserModifiedSpy).toBeCalled();
-					done();
-				});
+				.expect(200);
+
+			expect(resp.body.success).toBe(true);
+			expect(onUserModifiedSpy).toBeCalled();
+
+			resp = await request(app)
+				.get("/api/user")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+
+			expect(resp.body.username).toBe("new username");
 		});
 
-		it("should change the registered user's name without failing", async done => {
+		it("should change the registered user's name without failing", async () => {
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
@@ -111,8 +116,14 @@ describe("User API", () => {
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
 					expect(onUserModifiedSpy).toBeCalled();
-					done();
 				});
+
+			let resp = await request(app)
+				.get("/api/user")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+
+			expect(resp.body.username).toBe("new username");
 		});
 
 		it("should not change the registered user's name if it's already in use", async () => {
