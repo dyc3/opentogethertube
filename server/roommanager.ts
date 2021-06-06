@@ -6,7 +6,7 @@ import { getLogger } from "../logger.js";
 import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import storage from "../storage";
-import { RoomAlreadyLoadedException, RoomNotFoundException } from "./exceptions";
+import { RoomAlreadyLoadedException, RoomNameTakenException, RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager
 
 const log = getLogger("roommanager");
@@ -52,6 +52,20 @@ export async function update(): Promise<void> {
 }
 
 export async function CreateRoom(options: Partial<RoomOptions>): Promise<void> {
+	for (const room of rooms) {
+		if (options.name.toLowerCase() === room.name.toLowerCase()) {
+			log.warn("can't create room, already loaded");
+			throw new RoomNameTakenException(options.name);
+		}
+	}
+	if (await redis.exists(`room:${options.name}`)) {
+		log.warn("can't create room, already in redis");
+		throw new RoomNameTakenException(options.name);
+	}
+	if (await storage.isRoomNameTaken(options.name)) {
+		log.warn("can't create room, already exists in database");
+		throw new RoomNameTakenException(options.name);
+	}
 	const room = new Room(options);
 	if (!room.isTemporary) {
 		await storage.saveRoom(room);
@@ -72,15 +86,15 @@ export async function GetRoom(roomName: string): Promise<Room> {
 
 	const opts = await storage.getRoomByName(roomName);
 	if (opts) {
-		if (await redis.exists(opts.name)) {
+		if (await redis.exists(`room:${opts.name}`)) {
 			log.debug("found room in database, but room is already in redis");
 			throw new RoomAlreadyLoadedException(opts.name);
 		}
 	}
 	else {
-		if (await redis.exists(roomName)) {
+		if (await redis.exists(`room:${roomName}`)) {
 			log.debug("found room in redis, not loading");
-			throw new RoomAlreadyLoadedException(opts.name);
+			throw new RoomAlreadyLoadedException(roomName);
 		}
 		log.debug("room not found in room manager, nor redis, nor database");
 		throw new RoomNotFoundException(roomName);
