@@ -141,6 +141,9 @@ export class Client {
 				role: msg.role,
 			};
 		}
+		else if (msg.action === "auth") {
+			this.token = msg.token;
+		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
@@ -345,9 +348,12 @@ async function onUserModified(session: MySession) {
 	}
 }
 
-function getClient(session: Session, roomName: string): Client {
+function getClient(token: AuthToken, roomName: string): Client {
 	for (const client of connections) {
-		if (client.Session.id === session.id && client.room === roomName) {
+		if (!client.token) {
+			continue;
+		}
+		if (client.token === token && client.room === roomName) {
 			return client;
 		}
 	}
