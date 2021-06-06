@@ -23,6 +23,7 @@ describe("promotion and demotion", () => {
 	];
 
 	before(() => {
+		cy.ottEnsureToken();
 		userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(faker.name.firstName(), faker.name.lastName()),
@@ -32,6 +33,7 @@ describe("promotion and demotion", () => {
 	});
 
 	beforeEach(() => {
+		cy.ottEnsureToken();
 		cy.clearCookies();
 		cy.clearLocalStorage();
 		cy.request("POST", "/api/dev/reset-rate-limit");
