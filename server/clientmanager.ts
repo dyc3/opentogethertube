@@ -158,6 +158,7 @@ export class Client {
 					this.Socket.close(OttWebsocketError.UNKNOWN);
 				}
 			}
+			return;
 		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
