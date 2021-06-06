@@ -5,10 +5,15 @@ import { Room as DbRoom } from "../../../models";
 import { Room } from "../../../server/room";
 import { QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
+import { redisClient } from "../../../redisclient";
 
 describe("Room manager", () => {
-	beforeEach(async () => {
+	beforeEach(async done => {
 		await DbRoom.destroy({ where: {} });
+		// FIXME: mock redis functions instead of needing to use redis for these tests
+		redisClient.del("room:*", "room-sync:*", () => {
+			done();
+		});
 	});
 
 	describe("creating a room", () => {
