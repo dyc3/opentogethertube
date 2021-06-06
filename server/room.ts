@@ -31,7 +31,7 @@ export class RoomUser {
 	user: User | null
 	playerStatus: PlayerStatus = PlayerStatus.none
 
-	constructor(id: string) {
+	constructor(id: ClientId) {
 		this.id = id;
 		this.user = null;
 	}
