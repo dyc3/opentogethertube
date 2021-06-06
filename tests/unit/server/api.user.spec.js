@@ -4,6 +4,7 @@ const usermanager = require('../../../usermanager.js');
 const { User } = require("../../../models");
 
 describe("User API", () => {
+	let token;
 	beforeEach(async () => {
 		await User.destroy({ where: {} });
 
@@ -18,32 +19,34 @@ describe("User API", () => {
 			username: "test user",
 			password: "test1234",
 		});
+
+		let resp = await request(app)
+			.get("/api/auth/grant")
+			.expect(200);
+		token = resp.body.token;
 	});
 
 	describe("GET /user", () => {
-		it("should not fail be default", done => {
-			request(app)
+		it("should not fail by default", async () => {
+			let resp = await request(app)
 				.get("/api/user")
+				.set("Authorization", `Bearer ${token}`)
 				.expect("Content-Type", /json/)
-				.expect(200)
-				.then(resp => {
-					expect(resp.body.username).toBeDefined();
-					expect(resp.body.loggedIn).toBe(false);
-					done();
-				});
+				.expect(200);
+			expect(resp.body.username).toBeDefined();
+			expect(resp.body.loggedIn).toBe(false);
 		});
 
-		it("should have the forced test user logged in", async done => {
-			let cookies;
-			await request(app)
+		it("should have the forced test user logged in", async () => {
+			let resp = await request(app)
 				.get("/api/user/test/forceLogin")
-				.expect(200)
-				.then(resp => {
-					cookies = resp.header["set-cookie"];
-				});
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			let cookies = resp.header["set-cookie"];
 
 			await request(app)
 				.get("/api/user")
+				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.expect("Content-Type", /json/)
 				.expect(200)
@@ -55,7 +58,6 @@ describe("User API", () => {
 						loggedIn: true,
 						discordLinked: false,
 					});
-					done();
 				});
 		});
 	});
@@ -78,6 +80,7 @@ describe("User API", () => {
 		it("should change the unregistered user's name without failing", done => {
 			request(app)
 				.post("/api/user")
+				.set("Authorization", `Bearer ${token}`)
 				.send({ username: "new username" })
 				.expect("Content-Type", /json/)
 				.expect(200)
@@ -92,6 +95,7 @@ describe("User API", () => {
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
 				.expect(200)
 				.then(resp => {
 					cookies = resp.header["set-cookie"];
@@ -99,6 +103,7 @@ describe("User API", () => {
 
 			await request(app)
 				.post("/api/user")
+				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ username: "new username" })
 				.expect("Content-Type", /json/)
@@ -110,10 +115,11 @@ describe("User API", () => {
 				});
 		});
 
-		it("should not change the registered user's name if it's already in use", async done => {
+		it("should not change the registered user's name if it's already in use", async () => {
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
 				.expect(200)
 				.then(resp => {
 					cookies = resp.header["set-cookie"];
@@ -121,6 +127,7 @@ describe("User API", () => {
 
 			await request(app)
 				.post("/api/user")
+				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ username: "test user" })
 				.expect("Content-Type", /json/)
@@ -130,7 +137,6 @@ describe("User API", () => {
 					expect(resp.body.error).toBeDefined();
 					expect(resp.body.error.name).toEqual("UsernameTaken");
 					expect(onUserModifiedSpy).not.toBeCalled();
-					done();
 				});
 		});
 	});
@@ -154,6 +160,7 @@ describe("User API", () => {
 			it("should log in the test user", async () => {
 				await request(app)
 					.post("/api/user/login")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "test@localhost", password: "test1234" })
 					.then(resp => {
 						expect(resp.body).toEqual({
@@ -170,6 +177,7 @@ describe("User API", () => {
 			it("should not log in the test user with wrong credentials", async () => {
 				await request(app)
 					.post("/api/user/login")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "notreal@localhost", password: "test1234" })
 					.then(resp => {
 						expect(resp.body.success).toBe(false);
@@ -177,6 +185,7 @@ describe("User API", () => {
 					});
 				await request(app)
 					.post("/api/user/login")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "test@localhost", password: "wrong" })
 					.then(resp => {
 						expect(resp.body.success).toBe(false);
@@ -204,6 +213,7 @@ describe("User API", () => {
 				let cookies;
 				await request(app)
 					.get("/api/user/test/forceLogin")
+					.set("Authorization", `Bearer ${token}`)
 					.expect(200)
 					.then(resp => {
 						cookies = resp.header["set-cookie"];
@@ -211,6 +221,7 @@ describe("User API", () => {
 
 				await request(app)
 					.post("/api/user/logout")
+					.set("Authorization", `Bearer ${token}`)
 					.set("Cookie", cookies)
 					.expect("Content-Type", /json/)
 					.expect(200)
@@ -222,6 +233,7 @@ describe("User API", () => {
 			it("should fail if the user is not logged in", async () => {
 				await request(app)
 					.post("/api/user/logout")
+					.set("Authorization", `Bearer ${token}`)
 					.expect("Content-Type", /json/)
 					.expect(200)
 					.then(resp => {
@@ -248,6 +260,7 @@ describe("User API", () => {
 			it("should register user", async () => {
 				await request(app)
 					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "register@localhost", username: "registered", password: "test1234" })
 					.expect(200)
 					.expect("Content-Type", /json/)
@@ -266,6 +279,7 @@ describe("User API", () => {
 			it("should not register user if email is already in use", async () => {
 				await request(app)
 					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "test@localhost", username: "registered", password: "test1234" })
 					.expect(400)
 					.expect("Content-Type", /json/)
@@ -280,6 +294,7 @@ describe("User API", () => {
 			it("should not register user if username is already in use", async () => {
 				await request(app)
 					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "register@localhost", username: "test user", password: "test1234" })
 					.expect(400)
 					.expect("Content-Type", /json/)
@@ -294,6 +309,7 @@ describe("User API", () => {
 			it("should not register user if email is invalid", async () => {
 				await request(app)
 					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "bad", username: "bad email user", password: "test1234" })
 					.expect(400)
 					.expect("Content-Type", /json/)
@@ -308,6 +324,7 @@ describe("User API", () => {
 			it("should not register user if username is invalid", async () => {
 				await request(app)
 					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "badusername@localhost", username: "", password: "test1234" })
 					.expect(400)
 					.expect("Content-Type", /json/)
@@ -322,6 +339,7 @@ describe("User API", () => {
 			it("should not register user if password is not good enough", async () => {
 				await request(app)
 					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "badpassword@localhost", username: "bad password", password: "a" })
 					.expect(400)
 					.expect("Content-Type", /json/)
