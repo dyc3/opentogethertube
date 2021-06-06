@@ -196,9 +196,7 @@ router.post("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let client = clientmanager.getClient(req.session, req.params.name);
-		// FIXME: what if the client is not connected to this node?
-		let roomRequest = { type: RoomRequestType.AddRequest, client: client.id };
+		let roomRequest = { type: RoomRequestType.AddRequest, token: req.token };
 		if (req.body.videos) {
 			roomRequest.videos = req.body.videos;
 		}
@@ -250,10 +248,8 @@ router.delete("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let client = clientmanager.getClient(req.session, req.params.name);
-		// FIXME: what if the client is not connected to this node?
 		if (req.body.service && req.body.id) {
-			await room.processRequest({ type: RoomRequestType.RemoveRequest, client: client.id, video: {service: req.body.service, id: req.body.id} });
+			await room.processRequest({ type: RoomRequestType.RemoveRequest, token: req.token, video: {service: req.body.service, id: req.body.id} });
 			res.json({
 				success: true,
 			});

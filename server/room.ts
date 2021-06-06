@@ -284,6 +284,7 @@ export class Room implements RoomState {
 
 	async publishRoomEvent(request: RoomRequest, additional?: RoomEventContext): Promise<void> {
 		const user = this.getUserInfo(request.client);
+		delete request.token;
 		await this.publish({
 			action: "event",
 			request,
@@ -352,6 +353,14 @@ export class Room implements RoomState {
 		for (const user of this.users) {
 			if (user.id === client) {
 				return user;
+			}
+		}
+	}
+
+	getClientId(token: AuthToken): ClientId {
+		for (const user of this.realusers) {
+			if (user.token === token) {
+				return user.id;
 			}
 		}
 	}
@@ -483,7 +492,6 @@ export class Room implements RoomState {
 	}
 
 	public async processRequest(request: RoomRequest): Promise<void> {
-		const user = this.getUser(request.client);
 		const permissions = new Map([
 			[RoomRequestType.PlaybackRequest, "playback.play-pause"],
 			[RoomRequestType.SkipRequest, "playback.skip"],
@@ -496,7 +504,7 @@ export class Room implements RoomState {
 		]);
 		const permission = permissions.get(request.type);
 		if (permission) {
-			this.grants.check(this.getRole(user), permission);
+			this.grants.check(await this.getRoleFromToken(request.token), permission);
 		}
 
 		this.log.silly(`processing request: ${request.type}`);
@@ -665,6 +673,7 @@ export class Room implements RoomState {
 
 	public async joinRoom(request: JoinRequest): Promise<void> {
 		const user = new RoomUser(request.info.id);
+		user.token = request.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.markDirty("users");
@@ -699,7 +708,7 @@ export class Room implements RoomState {
 	}
 
 	public async chat(request: ChatRequest): Promise<void> {
-		const user = this.getUserInfo(request.client);
+		const user = this.getUserInfo(this.getClientId(request.token));
 		await this.publish({
 			action: "chat",
 			from: user,
