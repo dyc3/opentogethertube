@@ -7,7 +7,7 @@ import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveReques
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext, RoomStateStorable, RoomSettings } from "../common/models/types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext, RoomStateStorable, RoomSettings, AuthToken } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from 'dayjs';
@@ -15,7 +15,7 @@ import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import { ImpossiblePromotionException, OttException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import storage from "./../storage";
-import roommanager from "./roommanager.js";
+import tokens from "./auth/tokens";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -26,6 +26,7 @@ const ROOM_UNLOAD_AFTER = 240; // seconds
  */
 export class RoomUser {
 	id: ClientId
+	token: AuthToken
 	user_id?: number
 	unregisteredUsername = ""
 	user: User | null
@@ -314,6 +315,24 @@ export class Room implements RoomState {
 			}
 		}
 		if (user.isLoggedIn) {
+			return Role.RegisteredUser;
+		}
+		else {
+			return Role.UnregisteredUser;
+		}
+	}
+
+	async getRoleFromToken(token: AuthToken): Promise<Role> {
+		const session = await tokens.getSessionInfo(token);
+		if (session.user_id) {
+			if (this.owner.id === session.user_id) {
+				return Role.Owner;
+			}
+			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
+				if (this.userRoles.get(i).has(session.user_id)) {
+					return i;
+				}
+			}
 			return Role.RegisteredUser;
 		}
 		else {
