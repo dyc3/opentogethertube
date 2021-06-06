@@ -409,7 +409,12 @@ let usermanager = {
 	 */
 	async serializeUser(user, done) {
 		log.silly(`serializeUser: ${JSON.stringify(user)}`);
-		done(null, user.user_id);
+		if (user.user_id) {
+			done(null, user.user_id);
+		}
+		else {
+			done(null, user.id);
+		}
 	},
 
 	/**
