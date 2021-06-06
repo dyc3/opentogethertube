@@ -75,8 +75,11 @@ const createRoom: RequestHandler = async (req, res) => {
 		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY}`);
 	}
 	let points = 50;
-	if (!req.body.temporary) {
-		req.body.temporary = false;
+	if (req.body.temporary !== undefined) {
+		req.body.isTemporary = req.body.temporary;
+	}
+	if (!req.body.isTemporary) {
+		req.body.isTemporary = false;
 		points *= 4;
 	}
 	if (!req.body.visibility) {
@@ -101,7 +104,7 @@ const createRoom: RequestHandler = async (req, res) => {
 	else {
 		await roommanager.CreateRoom(req.body);
 	}
-	log.info(`${req.body.temporary ? "Temporary" : "Permanent"} room created: name=${req.body.name} ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
+	log.info(`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${req.body.name} ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 	res.json({
 		success: true,
 	});
