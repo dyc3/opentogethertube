@@ -407,8 +407,9 @@ let usermanager = {
 	 * Converts a User into their user id.
 	 * Used for persistent session storage.
 	 */
-	serializeUser(user, done) {
-		done(null, user.id);
+	async serializeUser(user, done) {
+		log.silly(`serializeUser: ${JSON.stringify(user)}`);
+		done(null, user.user_id);
 	},
 
 	/**

@@ -156,16 +156,19 @@ passport.use(new DiscordStrategy({
 	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
 const tokens = require("./server/auth/tokens");
-passport.use(new BearerStrategy((token, done) => {
+passport.use(new BearerStrategy(async (token, done) => {
 	if (!tokens.validate(token)) {
 		return done(null, false);
 	}
-	return done(null, tokens.getSessionInfo(token));
+	let ottsession = await tokens.getSessionInfo(token);
+	if (ottsession.user_id) {
+		return done(null, ottsession);
+	}
+	return done(null, false);
 }));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(usermanager.passportErrorHandler);
 
 app.use((req, res, next) => {

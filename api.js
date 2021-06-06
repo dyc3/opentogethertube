@@ -13,6 +13,7 @@ import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
 import auth from "./server/auth";
 import usermanager from "./usermanager";
+import passport from 'passport';
 
 const log = getLogger("api");
 
@@ -73,6 +74,7 @@ function handlePostVideoFailure(res, err) {
 const router = express.Router();
 
 router.use("/auth", auth.router);
+router.use(passport.authenticate("bearer"));
 router.use(auth.authTokenMiddleware);
 router.use("/user", usermanager.router);
 router.use("/room", roomapi);
