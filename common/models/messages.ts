@@ -1,4 +1,4 @@
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext, RoomSettings } from "./types";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext, RoomSettings, AuthToken } from "./types";
 import { VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement | ServerMessageUser
@@ -51,7 +51,7 @@ export interface UserInfo extends Omit<RoomUserInfo, "status"> {
 	grants: number
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote;
+export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote | ClientMessageAuthenticate;
 
 interface ClientMessageBase {
 	action: string
@@ -98,6 +98,11 @@ export interface ClientMessagePromote extends ClientMessageBase {
 	action: "set-role"
 	clientId: ClientId
 	role: Role
+}
+
+export interface ClientMessageAuthenticate extends ClientMessageBase {
+	action: "auth"
+	token: AuthToken
 }
 
 export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest
