@@ -106,7 +106,13 @@ export async function GetRoom(roomName: string): Promise<Room> {
 
 export async function UnloadRoom(roomName: string): Promise<void> {
 	log.info(`Unloading stale room: ${roomName}`);
-	const idx = _.findIndex(rooms, { name: roomName });
+	let idx = -1;
+	for (let i = 0; i < rooms.length; i++) {
+		if (rooms[i].name.toLowerCase() === roomName.toLowerCase()) {
+			idx = i;
+			break;
+		}
+	}
 	if (idx >= 0) {
 		await rooms[idx].onBeforeUnload();
 	}
