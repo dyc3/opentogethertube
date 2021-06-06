@@ -3,6 +3,7 @@ import uuid from "uuid";
 
 describe("Creating Rooms", () => {
 	beforeEach(() => {
+		cy.ottEnsureToken();
 		cy.request("POST", "/api/dev/reset-rate-limit");
 	});
 

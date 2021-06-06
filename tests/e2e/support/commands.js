@@ -23,3 +23,11 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add("ottEnsureToken", () => {
+	cy.request("/api/auth/grant").then(resp => {
+		window.localStorage.setItem("token", resp.body.token);
+	});
+});
+
+export {};
