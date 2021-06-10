@@ -283,7 +283,8 @@ export class Room implements RoomState {
 	}
 
 	async publishRoomEvent(request: RoomRequest, additional?: RoomEventContext): Promise<void> {
-		const user = this.getUserInfo(request.client);
+		// const user = this.getUserInfo(request.client);
+		const user = await this.getUserInfoFromToken(request.token);
 		delete request.token;
 		await this.publish({
 			action: "event",
@@ -354,6 +355,23 @@ export class Room implements RoomState {
 			if (user.id === client) {
 				return user;
 			}
+		}
+	}
+
+	async getUserInfoFromToken(token: AuthToken): Promise<Pick<RoomUserInfo, "name" | "isLoggedIn">> {
+		const session = await tokens.getSessionInfo(token);
+		if (session.user_id) {
+			const user = await User.findByPk(session.user_id);
+			return {
+				name: user.username,
+				isLoggedIn: true,
+			};
+		}
+		else {
+			return {
+				name: session.username,
+				isLoggedIn: false,
+			};
 		}
 	}
 

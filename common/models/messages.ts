@@ -32,7 +32,7 @@ export interface ServerMessageChat extends ServerMessageBase {
 export interface ServerMessageEvent extends ServerMessageBase {
 	action: "event"
 	request: RoomRequest
-	user: RoomUserInfo
+	user: Pick<RoomUserInfo, "name" | "isLoggedIn">
 	additional: RoomEventContext
 }
 
