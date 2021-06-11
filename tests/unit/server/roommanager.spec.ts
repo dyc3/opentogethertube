@@ -11,7 +11,6 @@ describe("Room manager", () => {
 	beforeEach(async done => {
 		await DbRoom.destroy({ where: {} });
 		for (const room of roommanager.rooms) {
-			console.log("room", room.name);
 			await roommanager.UnloadRoom(room.name);
 		}
 		roommanager.clearRooms();

@@ -1,9 +1,22 @@
 import dayjs from "dayjs";
+import tokens from "../../../server/auth/tokens";
 import { RoomRequestType } from "../../../common/models/messages";
 import { QueueMode } from "../../../common/models/types";
 import { Room, RoomUser } from "../../../server/room";
 
 describe("Room", () => {
+	beforeAll(() => {
+		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			username: "test",
+		});
+		jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+	});
+
+	afterAll(() => {
+		tokens.getSessionInfo.mockRestore();
+		tokens.validate.mockRestore();
+	});
+
 	it("should control playback with play/pause", async () => {
 		const room = new Room({ name: "test" });
 		await room.play();
@@ -20,6 +33,7 @@ describe("Room", () => {
 
 		beforeEach(() => {
 			user = new RoomUser("user");
+			user.token = "asdf1234";
 			room = new Room({ name: "test" });
 			room.realusers = [user];
 		});

@@ -6,6 +6,7 @@ const { Room, User } = require("../../../models");
 const usermanager = require('../../../usermanager.js');
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
 import { redisClient } from "../../../redisclient";
+import tokens from "../../../server/auth/tokens";
 
 const TEST_API_KEY = "TESTAPIKEY";
 
@@ -941,11 +942,24 @@ describe.skip("Room API", () => {
 });
 
 describe("Data API", () => {
+	beforeAll(() => {
+		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			username: "test",
+		});
+		jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+	});
+
+	afterAll(() => {
+		tokens.getSessionInfo.mockRestore();
+		tokens.validate.mockRestore();
+	});
+
 	it("GET /data/previewAdd", async done => {
 		let resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockReturnValue(Promise.resolve([]));
 
 		await request(app)
 			.get("/api/data/previewAdd")
+			.set({ "Authorization": "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(200)
@@ -959,6 +973,7 @@ describe("Data API", () => {
 
 		await request(app)
 			.get("/api/data/previewAdd")
+			.set({ "Authorization": "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -973,6 +988,7 @@ describe("Data API", () => {
 
 		await request(app)
 			.get("/api/data/previewAdd")
+			.set({ "Authorization": "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -987,6 +1003,7 @@ describe("Data API", () => {
 
 		await request(app)
 			.get("/api/data/previewAdd")
+			.set({ "Authorization": "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -1004,6 +1021,7 @@ describe("Data API", () => {
 		it("should get available permissions and roles", async () => {
 			await request(app)
 				.get("/api/data/permissions")
+				.set({ "Authorization": "Bearer foobar" })
 				.expect("Content-Type", /json/)
 				.expect(200)
 				.then(resp => {
@@ -1019,6 +1037,10 @@ describe("Announcements API", () => {
 
 	beforeAll(() => {
 		process.env.OPENTOGETHERTUBE_API_KEY = TEST_API_KEY;
+		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			username: "test",
+		});
+		jest.spyOn(tokens, 'validate').mockResolvedValue(true);
 	});
 
 	beforeEach(() => {
@@ -1029,9 +1051,15 @@ describe("Announcements API", () => {
 		publishSpy.mockRestore();
 	});
 
+	afterAll(() => {
+		tokens.getSessionInfo.mockRestore();
+		tokens.validate.mockRestore();
+	});
+
 	it("should send an announcement", async () => {
 		await request(app)
 			.post("/api/announce")
+			.set({ "Authorization": "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
@@ -1047,6 +1075,7 @@ describe("Announcements API", () => {
 	it("should not send announcement if the api key does not match", async () => {
 		await request(app)
 			.post("/api/announce")
+			.set({ "Authorization": "Bearer foobar" })
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -1061,6 +1090,7 @@ describe("Announcements API", () => {
 
 		await request(app)
 			.post("/api/announce")
+			.set({ "Authorization": "Bearer foobar" })
 			.set("apikey", "wrong key")
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
@@ -1077,6 +1107,7 @@ describe("Announcements API", () => {
 	it("should not send an announcement if no text is provided", async () => {
 		await request(app)
 			.post("/api/announce")
+			.set({ "Authorization": "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -1096,6 +1127,7 @@ describe("Announcements API", () => {
 
 		await request(app)
 			.post("/api/announce")
+			.set({ "Authorization": "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
