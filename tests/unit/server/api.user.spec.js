@@ -221,19 +221,14 @@ describe("User API", () => {
 			});
 
 			it("should log out the test uesr", async () => {
-				let cookies;
 				await request(app)
 					.get("/api/user/test/forceLogin")
 					.set("Authorization", `Bearer ${token}`)
-					.expect(200)
-					.then(resp => {
-						cookies = resp.header["set-cookie"];
-					});
+					.expect(200);
 
 				await request(app)
 					.post("/api/user/logout")
 					.set("Authorization", `Bearer ${token}`)
-					.set("Cookie", cookies)
 					.expect("Content-Type", /json/)
 					.expect(200)
 					.then(resp => {
