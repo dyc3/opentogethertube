@@ -41,6 +41,23 @@ Cypress.Commands.add("ottCreateUser", userCreds => {
 			},
 		}).then(resp => {
 			cy.wrap(resp).its("isOkStatusCode").should("be.true");
+			cy.wrap(resp).its("body").its("success").should("be.true");
+		});
+	});
+});
+
+Cypress.Commands.add("ottLogin", userCreds => {
+	cy.window().then(win => {
+		cy.request({
+			method: "POST",
+			url: "/api/user/login",
+			body: userCreds,
+			headers: {
+				Authorization: `Bearer ${win.localStorage.token}`,
+			},
+		}).then(resp => {
+			cy.wrap(resp).its("isOkStatusCode").should("be.true");
+			cy.wrap(resp).its("body").its("success").should("be.true");
 		});
 	});
 });

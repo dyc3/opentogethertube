@@ -157,7 +157,7 @@ passport.use(new DiscordStrategy({
 }, usermanager.authCallbackDiscord));
 const tokens = require("./server/auth/tokens");
 passport.use(new BearerStrategy(async (token, done) => {
-	if (!tokens.validate(token)) {
+	if (!await tokens.validate(token)) {
 		return done(null, false);
 	}
 	let ottsession = await tokens.getSessionInfo(token);

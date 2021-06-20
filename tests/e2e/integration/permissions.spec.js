@@ -29,15 +29,16 @@ describe("promotion and demotion", () => {
 			username: faker.internet.userName(faker.name.firstName(), faker.name.lastName()),
 			password: faker.internet.password(12),
 		};
-		cy.request("POST", "/api/user/register", userCreds);
+		cy.ottCreateUser(userCreds);
 	});
 
 	beforeEach(() => {
-		cy.ottEnsureToken();
 		cy.clearCookies();
 		cy.clearLocalStorage();
+		cy.ottEnsureToken();
 		cy.request("POST", "/api/dev/reset-rate-limit");
-		cy.request("POST", "/api/user/login", userCreds);
+		cy.request("POST", "/api/dev/reset-rate-limit/user");
+		cy.ottLogin(userCreds);
 		roomName = uuid.v4().substring(0, 20);
 		cy.request("POST", "/api/room/create", { name: roomName, temporary: false });
 		cy.visit(`/room/${roomName}`);
