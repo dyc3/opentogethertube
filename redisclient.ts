@@ -25,7 +25,7 @@ export function createSubscriber(): redis.RedisClient {
 export const redisClientAsync = {
 	get: promisify(redisClient.get).bind(redisClient) as ((key: string) => Promise<string>),
 	set: promisify(redisClient.set).bind(redisClient) as ((key: string, value: string, mode?: string, duration?: number) => Promise<"OK">),
-	del: promisify(redisClient.del).bind(redisClient) as ((...keys: string[]) => Promise<number>),
+	del: promisify(redisClient.del).bind(redisClient) as ((key: string) => Promise<number>),
 	exists: promisify(redisClient.exists).bind(redisClient) as ((key: string) => Promise<number>),
 	keys: promisify(redisClient.keys).bind(redisClient) as ((pattern: string) => Promise<string[]>),
 
@@ -35,7 +35,9 @@ export const redisClientAsync = {
 	 */
 	async delPattern(...patterns: string[]): Promise<void> {
 		for (const pattern of patterns) {
-			await this.del(...(await this.keys(pattern)));
+			for (const key of await this.keys(pattern)) {
+				await this.del(key);
+			}
 		}
 	},
 };
