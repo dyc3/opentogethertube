@@ -350,6 +350,14 @@ export class Room implements RoomState {
 		}
 	}
 
+	getUserFromToken(token: AuthToken): RoomUser | undefined {
+		for (const user of this.realusers) {
+			if (user.token === token) {
+				return user;
+			}
+		}
+	}
+
 	getUserInfo(client: ClientId): RoomUserInfo {
 		for (const user of this.users) {
 			if (user.id === client) {
@@ -811,7 +819,7 @@ export class Room implements RoomState {
 	}
 
 	public async promoteUser(request: PromoteRequest): Promise<void> {
-		const user = this.getUser(request.client);
+		const user = this.getUserFromToken(request.token);
 		const targetUser = this.getUser(request.targetClientId);
 		this.log.info(`${user.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
 
