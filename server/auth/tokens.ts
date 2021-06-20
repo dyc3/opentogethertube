@@ -5,7 +5,7 @@ import { AuthToken } from "../../common/models/types";
 const PREFIX = "auth";
 const EXPIRATION_TIME = 90 * 24 * 60 * 60; // 3 months, in seconds
 
-export type SessionInfo = { username: string } | { user_id: number }
+export type SessionInfo = { isLoggedIn: false, username: string } | { isLoggedIn: true, user_id: number }
 
 export async function validate(token: AuthToken): Promise<boolean> {
 	return await redisClientAsync.exists(`${PREFIX}:${token}`) > 0;

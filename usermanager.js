@@ -10,6 +10,7 @@ import { redisClient, redisClientAsync } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
 import tokens from "./server/auth/tokens";
+import nocache from "nocache";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
@@ -34,7 +35,7 @@ const pwd = securePassword();
 const log = getLogger("usermanager");
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", nocache(), (req, res) => {
 	if (req.user) {
 		let user = {
 			username: req.user.username,
@@ -51,7 +52,7 @@ router.get("/", (req, res) => {
 	}
 });
 
-router.post("/", async (req, res) => {
+router.post("/", nocache(), async (req, res) => {
 	if (!req.body.username) {
 		res.status(400).json({
 			success: false,
@@ -152,7 +153,7 @@ router.post("/login", async (req, res, next) => {
 			return;
 		}
 		if (user) {
-			req.login(user, (err) => {
+			req.login(user, async (err) => {
 				if (err) {
 					log.error("Unknown error when logging in");
 					res.status(500).json({
@@ -163,7 +164,8 @@ router.post("/login", async (req, res, next) => {
 					});
 					return;
 				}
-				req.session.save();
+				req.ottsession = { isLoggedIn: true, user_id: user.id };
+				await tokens.setSessionInfo(req.token, req.ottsession);
 				try {
 					usermanager.onUserLogIn(user, req.session);
 				}
