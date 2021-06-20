@@ -75,6 +75,7 @@ const router = express.Router();
 
 router.use("/auth", auth.router);
 router.use((req, res, next) => {
+	// eslint-disable-next-line no-unused-vars
 	passport.authenticate("bearer", (err, user, info) => {
 		// We are intentionally ignoring the case where authentication fails, because
 		// we want to allow users who are not logged in to an actual account to
