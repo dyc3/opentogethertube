@@ -15,7 +15,7 @@ import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import { ImpossiblePromotionException, OttException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import storage from "./../storage";
-import tokens from "./auth/tokens";
+import tokens, { SessionInfo } from "./auth/tokens";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -359,13 +359,16 @@ export class Room implements RoomState {
 	}
 
 	async getUserInfoFromToken(token: AuthToken): Promise<Pick<RoomUserInfo, "name" | "isLoggedIn">> {
-		const session = await tokens.getSessionInfo(token);
+		if (!token) {
+			throw new Error("token is a required parameter.");
+		}
+		const session: SessionInfo = await tokens.getSessionInfo(token);
 		if (!session) {
 			this.log.error("Session info for auth token was not found.");
 			throw new Error("Session info not found.");
 		}
-		if (session.user_id) {
-			const user = await User.findByPk(session.user_id);
+		if (session.isLoggedIn) {
+			const user = await usermanager.getUser({ id: session.user_id });
 			return {
 				name: user.username,
 				isLoggedIn: true,
@@ -373,7 +376,9 @@ export class Room implements RoomState {
 		}
 		else {
 			return {
-				name: session.username,
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore
+				name: session.username, // Typescript bug? even though the type is being narrowed here, its not working correctly.
 				isLoggedIn: false,
 			};
 		}
