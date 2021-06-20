@@ -6,7 +6,7 @@ describe("Creating Rooms", () => {
 		cy.clearCookies();
 		cy.clearLocalStorage();
 		cy.ottEnsureToken();
-		cy.request("POST", "/api/dev/reset-rate-limit");
+		cy.ottResetRateLimit();
 	});
 
 	it("should create a temporary room", () => {
@@ -42,14 +42,17 @@ describe("Creating Rooms", () => {
 		let userCreds = null;
 		before(() => {
 			cy.ottEnsureToken();
-			cy.request("POST", "/api/dev/reset-rate-limit/user");
+			cy.ottRequest({
+				method: "POST",
+				url: "/api/dev/reset-rate-limit/user",
+			});
 			userCreds = {
 				email: faker.internet.email(),
 				username: faker.internet.userName(),
 				password: faker.internet.password(12),
 			};
 			cy.ottCreateUser(userCreds);
-			cy.request("POST", "/api/dev/reset-rate-limit");
+			cy.ottResetRateLimit();
 		});
 
 		beforeEach(() => {
