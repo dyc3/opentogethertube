@@ -5,8 +5,11 @@ import { uniqueNamesGenerator } from 'unique-names-generator';
 import passport from "passport";
 import { User } from "../../models/user";
 import { AuthToken } from "../../common/models/types";
+import nocache from "nocache";
+import usermanager from "../../usermanager";
 
 const router = express.Router();
+router.use(nocache());
 const log = getLogger("api/auth");
 
 declare module "express" {
@@ -19,6 +22,7 @@ declare module "express" {
 
 function createSession(): SessionInfo {
 	return {
+		isLoggedIn: false,
 		username: uniqueNamesGenerator(),
 	};
 }
@@ -42,6 +46,9 @@ export async function authTokenMiddleware(req: express.Request, res: express.Res
 	}
 
 	req.ottsession = await tokens.getSessionInfo(req.token);
+	if (req.ottsession && req.ottsession.isLoggedIn) {
+		req.user = await usermanager.getUser({ id: req.ottsession.user_id });
+	}
 	next();
 }
 

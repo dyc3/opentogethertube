@@ -34,6 +34,9 @@ describe("User login/registration", () => {
 			password: faker.internet.password(12),
 		};
 		cy.ottCreateUser(userCreds);
+		cy.clearCookies();
+		cy.clearLocalStorage();
+		cy.ottEnsureToken();
 
 		// test
 		cy.contains("button", "Log In").click();
@@ -42,6 +45,32 @@ describe("User login/registration", () => {
 		cy.get("form").contains("Log in").parent().submit();
 		cy.wait(500);
 		cy.get("form").contains("Log in").parent().should("not.be.visible");
+		cy.contains("button", userCreds.username).should("be.visible");
+	});
+
+	it("should keep the user logged in when the page is refreshed", () => {
+		// setup
+		let userCreds = {
+			email: faker.internet.email(),
+			username: faker.internet.userName(),
+			password: faker.internet.password(12),
+		};
+		cy.ottCreateUser(userCreds);
+		cy.clearCookies();
+		cy.clearLocalStorage();
+		cy.ottEnsureToken();
+
+		// log in
+		cy.contains("button", "Log In").click();
+		cy.get("form").contains("Log in").parent().contains("label", "Email").siblings("input").click().type(userCreds.email);
+		cy.get("form").contains("Log in").parent().contains("label", "Password").siblings("input").click().type(userCreds.password);
+		cy.get("form").contains("Log in").parent().submit();
+		cy.wait(500);
+		cy.get("form").contains("Log in").parent().should("not.be.visible");
+		cy.contains("button", userCreds.username).should("be.visible");
+
+		// check if we stay logged in
+		cy.visit("/");
 		cy.contains("button", userCreds.username).should("be.visible");
 	});
 });

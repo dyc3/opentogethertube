@@ -49,6 +49,7 @@
     "lodash": "^4.17.21",
     "material-design-icons-iconfont": "^5.0.1",
     "nanotimer": "^0.3.15",
+    "nocache": "^3.0.0",
     "passport": "^0.4.1",
     "passport-discord": "^0.1.4",
     "passport-google": "^0.3.0",
