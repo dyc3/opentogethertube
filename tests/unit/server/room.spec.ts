@@ -43,12 +43,14 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.PlaybackRequest,
 					client: user.id,
+					token: user.token,
 					state: true,
 				});
 				expect(room.isPlaying).toEqual(true);
 				await room.processRequest({
 					type: RoomRequestType.PlaybackRequest,
 					client: user.id,
+					token: user.token,
 					state: false,
 				});
 				expect(room.isPlaying).toEqual(false);
@@ -60,6 +62,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.PlaybackRequest,
 					client: user.id,
+					token: user.token,
 					state: false,
 				});
 				expect(room.isPlaying).toEqual(false);
@@ -80,6 +83,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SkipRequest,
 					client: user.id,
+					token: user.token,
 				});
 				expect(room.currentSource).toBeNull();
 			});
@@ -94,6 +98,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SkipRequest,
 					client: user.id,
+					token: user.token,
 				});
 				expect(room.currentSource).toEqual({
 					service: "test",
@@ -108,6 +113,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SeekRequest,
 					client: user.id,
+					token: user.token,
 					value: 15,
 				});
 				expect(room.playbackPosition).toEqual(15);
@@ -118,6 +124,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SeekRequest,
 					client: user.id,
+					token: user.token,
 					value: v,
 				});
 				expect(room.playbackPosition).toEqual(10);
