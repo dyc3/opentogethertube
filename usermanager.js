@@ -11,6 +11,7 @@ import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
 import tokens from "./server/auth/tokens";
 import nocache from "nocache";
+import { uniqueNamesGenerator } from 'unique-names-generator';
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
@@ -192,10 +193,12 @@ router.post("/login", async (req, res, next) => {
 	})(req, res, next);
 });
 
-router.post("/logout", (req, res) => {
+router.post("/logout", async (req, res) => {
 	if (req.user) {
 		let user = req.user;
 		req.logout();
+		req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
+		await tokens.setSessionInfo(req.token, req.ottsession);
 		usermanager.onUserLogOut(user, req.session);
 		res.json({
 			success: true,
