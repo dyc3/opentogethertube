@@ -34,24 +34,25 @@ Cypress.Commands.add("ottRequest", options => {
 	if (options.headers === undefined) {
 		options.headers = {};
 	}
-	cy.window().then(win => {
+	return cy.window().then(win => {
 		options.headers.Authorization = `Bearer ${win.localStorage.token}`;
-		cy.request(options).then(resp => {
+		return cy.request(options).then(resp => {
 			cy.wrap(resp).its("isOkStatusCode").should("be.true");
 			cy.wrap(resp).its("body").its("success").should("be.true");
+			return cy.wrap(resp);
 		});
 	});
 });
 
 Cypress.Commands.add("ottResetRateLimit", () => {
-	cy.ottRequest({
+	return cy.ottRequest({
 		method: "POST",
 		url: "/api/dev/reset-rate-limit",
 	});
 });
 
 Cypress.Commands.add("ottCreateUser", userCreds => {
-	cy.ottRequest({
+	return cy.ottRequest({
 		method: "POST",
 		url: "/api/user/register",
 		body: userCreds,
@@ -59,7 +60,7 @@ Cypress.Commands.add("ottCreateUser", userCreds => {
 });
 
 Cypress.Commands.add("ottLogin", userCreds => {
-	cy.ottRequest({
+	return cy.ottRequest({
 		method: "POST",
 		url: "/api/user/login",
 		body: userCreds,

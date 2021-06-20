@@ -5,8 +5,11 @@ describe("User login/registration", () => {
 		cy.clearCookies();
 		cy.clearLocalStorage();
 		cy.ottEnsureToken();
-		cy.request("POST", "/api/dev/reset-rate-limit");
-		cy.request("POST", "/api/dev/reset-rate-limit/user");
+		cy.ottResetRateLimit();
+		cy.ottRequest({
+			method: "POST",
+			url: "/api/dev/reset-rate-limit/user",
+		});
 		cy.visit("/");
 	});
 
