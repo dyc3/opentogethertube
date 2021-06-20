@@ -30,35 +30,39 @@ Cypress.Commands.add("ottEnsureToken", () => {
 	});
 });
 
-Cypress.Commands.add("ottCreateUser", userCreds => {
+Cypress.Commands.add("ottRequest", options => {
+	if (options.headers === undefined) {
+		options.headers = {};
+	}
 	cy.window().then(win => {
-		cy.request({
-			method: "POST",
-			url: "/api/user/register",
-			body: userCreds,
-			headers: {
-				Authorization: `Bearer ${win.localStorage.token}`,
-			},
-		}).then(resp => {
+		options.headers.Authorization = `Bearer ${win.localStorage.token}`;
+		cy.request(options).then(resp => {
 			cy.wrap(resp).its("isOkStatusCode").should("be.true");
 			cy.wrap(resp).its("body").its("success").should("be.true");
 		});
 	});
 });
 
+Cypress.Commands.add("ottResetRateLimit", () => {
+	cy.ottRequest({
+		method: "POST",
+		url: "/api/dev/reset-rate-limit",
+	});
+});
+
+Cypress.Commands.add("ottCreateUser", userCreds => {
+	cy.ottRequest({
+		method: "POST",
+		url: "/api/user/register",
+		body: userCreds,
+	});
+});
+
 Cypress.Commands.add("ottLogin", userCreds => {
-	cy.window().then(win => {
-		cy.request({
-			method: "POST",
-			url: "/api/user/login",
-			body: userCreds,
-			headers: {
-				Authorization: `Bearer ${win.localStorage.token}`,
-			},
-		}).then(resp => {
-			cy.wrap(resp).its("isOkStatusCode").should("be.true");
-			cy.wrap(resp).its("body").its("success").should("be.true");
-		});
+	cy.ottRequest({
+		method: "POST",
+		url: "/api/user/login",
+		body: userCreds,
 	});
 });
 
