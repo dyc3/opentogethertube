@@ -35,7 +35,7 @@ export async function authTokenMiddleware(req: express.Request, res: express.Res
 	}
 
 	if (!await tokens.validate(req.token)) {
-		res.json({
+		res.status(400).json({
 			success: false,
 			error: {
 				name: "MissingToken",
