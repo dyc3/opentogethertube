@@ -6,6 +6,7 @@ describe("User login/registration", () => {
 		cy.clearLocalStorage();
 		cy.ottEnsureToken();
 		cy.request("POST", "/api/dev/reset-rate-limit");
+		cy.request("POST", "/api/dev/reset-rate-limit/user");
 		cy.visit("/");
 	});
 
@@ -23,5 +24,35 @@ describe("User login/registration", () => {
 		cy.wait(500);
 		cy.get("form").contains("Register").parent().should("not.be.visible");
 		cy.contains("button", username).should("be.visible");
+	});
+
+	it("should log in an existing user", () => {
+		// setup
+		let userCreds = {
+			email: faker.internet.email(),
+			username: faker.internet.userName(),
+			password: faker.internet.password(12),
+		};
+		cy.window().then(win => {
+			cy.request({
+				method: "POST",
+				url: "/api/user/register",
+				body: userCreds,
+				headers: {
+					Authorization: `Bearer ${win.localStorage.token}`,
+				},
+			}).then(resp => {
+				expect(resp.status).to.eq(200);
+			});
+		});
+
+		// test
+		cy.contains("button", "Log In").click();
+		cy.get("form").contains("Log in").parent().contains("label", "Email").siblings("input").click().type(userCreds.email);
+		cy.get("form").contains("Log in").parent().contains("label", "Password").siblings("input").click().type(userCreds.password);
+		cy.get("form").contains("Log in").parent().submit();
+		cy.wait(500);
+		cy.get("form").contains("Log in").parent().should("not.be.visible");
+		cy.contains("button", userCreds.username).should("be.visible");
 	});
 });

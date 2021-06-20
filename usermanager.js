@@ -6,7 +6,7 @@ import passport from 'passport';
 import crypto from 'crypto';
 import { User, Room } from "./models";
 import clientmanager from "./server/clientmanager";
-import { redisClient } from './redisclient';
+import { redisClient, redisClientAsync } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
 import tokens from "./server/auth/tokens";
@@ -583,6 +583,13 @@ let usermanager = {
 	async isEmailTaken(email) {
 		// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
 		return await User.findOne({ where: { email }}).then(room => room ? true : false).catch(() => false);
+	},
+
+	/**
+	 * Clears all user manager rate limiters. Intended only to be used during development and automated testing.
+	 */
+	async clearAllRateLimiting() {
+		await redisClientAsync.delPattern("login_fail_ip_per_day:*", "login_fail_consecutive_username_and_ip:*");
 	},
 };
 
