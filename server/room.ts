@@ -360,6 +360,10 @@ export class Room implements RoomState {
 
 	async getUserInfoFromToken(token: AuthToken): Promise<Pick<RoomUserInfo, "name" | "isLoggedIn">> {
 		const session = await tokens.getSessionInfo(token);
+		if (!session) {
+			this.log.error("Session info for auth token was not found.");
+			throw new Error("Session info not found.");
+		}
 		if (session.user_id) {
 			const user = await User.findByPk(session.user_id);
 			return {

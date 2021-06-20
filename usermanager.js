@@ -225,6 +225,7 @@ router.post("/register", async (req, res) => {
 	}
 	try {
 		let result = await usermanager.registerUser(req.body);
+		log.info(`User registered: ${result.id}`);
 		req.login(result, () => {
 			try {
 				usermanager.onUserLogIn(result, req.session);
