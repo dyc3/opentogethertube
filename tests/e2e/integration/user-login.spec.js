@@ -33,18 +33,7 @@ describe("User login/registration", () => {
 			username: faker.internet.userName(),
 			password: faker.internet.password(12),
 		};
-		cy.window().then(win => {
-			cy.request({
-				method: "POST",
-				url: "/api/user/register",
-				body: userCreds,
-				headers: {
-					Authorization: `Bearer ${win.localStorage.token}`,
-				},
-			}).then(resp => {
-				expect(resp.status).to.eq(200);
-			});
-		});
+		cy.ottCreateUser(userCreds);
 
 		// test
 		cy.contains("button", "Log In").click();

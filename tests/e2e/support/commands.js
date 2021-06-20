@@ -30,4 +30,19 @@ Cypress.Commands.add("ottEnsureToken", () => {
 	});
 });
 
+Cypress.Commands.add("ottCreateUser", userCreds => {
+	cy.window().then(win => {
+		cy.request({
+			method: "POST",
+			url: "/api/user/register",
+			body: userCreds,
+			headers: {
+				Authorization: `Bearer ${win.localStorage.token}`,
+			},
+		}).then(resp => {
+			cy.wrap(resp).its("isOkStatusCode").should("be.true");
+		});
+	});
+});
+
 export {};
