@@ -30,7 +30,7 @@ export enum PlayerStatus {
 }
 
 export type AuthToken = string
-export type MySession = Session & { username?: string, passport?: { user?: number } }
+export type MySession = Session & { username?: string, passport?: { user?: number }, token?: string }
 
 export type ClientInfo = { id: ClientId, username?: string, user_id?: number, status?: PlayerStatus }
 

@@ -231,7 +231,9 @@ router.post("/register", async (req, res) => {
 	try {
 		let result = await usermanager.registerUser(req.body);
 		log.info(`User registered: ${result.id}`);
-		req.login(result, () => {
+		req.login(result, async () => {
+			req.ottsession = { isLoggedIn: true, user_id: result.id };
+			await tokens.setSessionInfo(req.token, req.ottsession);
 			try {
 				usermanager.onUserLogIn(result, req.session);
 			}
