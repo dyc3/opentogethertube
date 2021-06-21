@@ -4,7 +4,7 @@ import tokens, { SessionInfo } from './tokens';
 import { uniqueNamesGenerator } from 'unique-names-generator';
 import passport from "passport";
 import { User } from "../../models/user";
-import { AuthToken } from "../../common/models/types";
+import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
 import usermanager from "../../usermanager";
 
@@ -45,6 +45,7 @@ export async function authTokenMiddleware(req: express.Request, res: express.Res
 		return;
 	}
 
+	(req.session as MySession).token = req.token;
 	req.ottsession = await tokens.getSessionInfo(req.token);
 	if (req.ottsession && req.ottsession.isLoggedIn) {
 		req.user = await usermanager.getUser({ id: req.ottsession.user_id });
@@ -83,7 +84,8 @@ router.get("/grant", async (req, res) => {
 router.get('/discord', passport.authenticate('discord'));
 router.get('/discord/callback', passport.authenticate('discord', {
 	failureRedirect: '/',
-}), (req: express.Request, res) => {
+}), async (req: express.Request, res) => {
+	await tokens.setSessionInfo((req.session as MySession).token, { isLoggedIn: true, user_id: req.user.id });
 	log.info(`${req.user.username} logged in via social login.`);
 	res.redirect('/'); // Successful auth
 });
