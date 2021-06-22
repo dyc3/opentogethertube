@@ -603,7 +603,10 @@ let usermanager = {
 
 if (process.env.NODE_ENV === "test") {
 	router.get("/test/forceLogin", async (req, res) => {
-		req.login(await usermanager.getUser({ email: "forced@localhost" }), (err) => {
+		const user = await usermanager.getUser({ email: "forced@localhost" });
+		req.login(user, async (err) => {
+			req.ottsession = { isLoggedIn: true, user_id: user.id };
+			await tokens.setSessionInfo(req.token, req.ottsession);
 			res.json({
 				success: !!err,
 			});
