@@ -450,7 +450,6 @@ let usermanager = {
 		if (err) {
 			log.error(`Error in middleware ${err}, logging user out.`);
 			req.logout();
-			req.session.save();
 			next();
 		}
 		else {
