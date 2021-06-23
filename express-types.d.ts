@@ -25,7 +25,7 @@ declare module "express" {
 			req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
 			res: Response<ResBody, Locals>,
 			next: NextFunction,
-		): void;
+		): void | Promise<void>;
 	}
 }
 
