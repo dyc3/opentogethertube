@@ -84,7 +84,8 @@ router.get("/grant", async (req, res) => {
 router.get('/discord', passport.authenticate('discord'));
 router.get('/discord/callback', passport.authenticate('discord', {
 	failureRedirect: '/',
-}), async (req: express.Request, res) => {
+}), async (_req, res) => {
+	const req = _req as express.Request;
 	await tokens.setSessionInfo((req.session as MySession).token, { isLoggedIn: true, user_id: req.user.id });
 	log.info(`${req.user.username} logged in via social login.`);
 	res.redirect('/'); // Successful auth
