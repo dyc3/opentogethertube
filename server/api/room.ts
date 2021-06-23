@@ -110,7 +110,7 @@ const createRoom: RequestHandler = async (req, res) => {
 	});
 };
 
-const undoEvent: RequestHandler = async (req: express.Request, res) => {
+const undoEvent = async (req: express.Request, res) => {
 	const client = clientmanager.getClient(req.token, req.params.name);
 	const request: UndoRequest = {
 		type: RoomRequestType.UndoRequest,
@@ -125,7 +125,7 @@ const undoEvent: RequestHandler = async (req: express.Request, res) => {
 	});
 };
 
-const addVote: RequestHandler = async (req: express.Request, res) => {
+const addVote = async (req: express.Request, res) => {
 	if (!req.body.service) {
 		throw new BadApiArgumentException("service", "missing");
 	}
@@ -146,7 +146,7 @@ const addVote: RequestHandler = async (req: express.Request, res) => {
 	});
 };
 
-const removeVote: RequestHandler = async (req: express.Request, res) => {
+const removeVote = async (req: express.Request, res) => {
 	if (!req.body.service) {
 		throw new BadApiArgumentException("service", "missing");
 	}
@@ -218,7 +218,7 @@ router.post("/create", async (req, res, next) => {
 
 router.post("/:name/undo", async (req, res, next) => {
 	try {
-		await undoEvent(req, res, next);
+		await undoEvent(req as express.Request, res);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);
@@ -227,7 +227,7 @@ router.post("/:name/undo", async (req, res, next) => {
 
 router.post("/:name/vote", async (req, res, next) => {
 	try {
-		await addVote(req, res, next);
+		await addVote(req as express.Request, res);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);
@@ -236,7 +236,7 @@ router.post("/:name/vote", async (req, res, next) => {
 
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
-		await removeVote(req, res, next);
+		await removeVote(req as express.Request, res);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);
