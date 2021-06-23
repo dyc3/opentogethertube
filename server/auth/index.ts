@@ -3,7 +3,6 @@ import express from "express";
 import tokens, { SessionInfo } from './tokens';
 import { uniqueNamesGenerator } from 'unique-names-generator';
 import passport from "passport";
-import { User } from "../../models/user";
 import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
 import usermanager from "../../usermanager";
@@ -11,14 +10,6 @@ import usermanager from "../../usermanager";
 const router = express.Router();
 router.use(nocache());
 const log = getLogger("api/auth");
-
-declare module "express" {
-	export interface Request {
-		token?: AuthToken;
-		ottsession?: SessionInfo;
-		user?: User
-	}
-}
 
 function createSession(): SessionInfo {
 	return {
