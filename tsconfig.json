@@ -24,7 +24,8 @@
 			"@/*": [
 				"src/*"
 			]
-		}
+		},
+		"outDir": "ts-out",
 	},
 	"include": [
 		"**/*.ts",
@@ -34,5 +35,5 @@
 		"tests/**/*.ts",
 		"tests/**/*.tsx"
 	],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "dist", "ts-out"]
 }
