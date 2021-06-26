@@ -145,7 +145,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 		}
 	}
 
-	const client = clientmanager.getClient(req.session, req.params.name);
+	const client = clientmanager.getClient(req.token, req.params.name);
 	// FIXME: what if the client is not connected to this node?
 	const roomRequest: ApplySettingsRequest = {
 		type: RoomRequestType.ApplySettingsRequest,
