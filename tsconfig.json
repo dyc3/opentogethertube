@@ -25,7 +25,7 @@
 				"src/*"
 			]
 		},
-		"outDir": "ts-out",
+		"outDir": "ts-out"
 	},
 	"include": [
 		"**/*.ts",
