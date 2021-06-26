@@ -1,4 +1,6 @@
-require('ts-node').register();
+require('ts-node').register({
+	transpileOnly: true,
+});
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
