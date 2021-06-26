@@ -223,7 +223,7 @@ router.patch("/room/:name", async (req, res) => {
 	}
 	Object.assign(room, filtered);
 	if (req.body.permissions) {
-		room.setGrants(new permissions.Grants(req.body.permissions), req.session);
+		room.setGrants(new permissions.Grants(req.body.permissions));
 	}
 	if (!room.isTemporary) {
 		if (req.body.claim && !room.owner) {

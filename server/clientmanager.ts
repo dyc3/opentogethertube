@@ -1,4 +1,4 @@
-import { Session } from "express-session";
+import express from "express";
 import WebSocket from "ws";
 import _ from "lodash";
 import { wss } from "./websockets.js";
@@ -13,6 +13,7 @@ import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, 
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import { uniqueNamesGenerator } from 'unique-names-generator';
+import { SessionInfo } from "./auth/tokens.js";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -26,11 +27,11 @@ subscribe(ANNOUNCEMENT_CHANNEL);
 export class Client {
 	id: ClientId
 	Socket: WebSocket
-	Session: MySession
+	Session: SessionInfo
 	room: string | null
 	token: AuthToken | null = null
 
-	constructor (session: MySession, socket: WebSocket) {
+	constructor (session: SessionInfo, socket: WebSocket) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
 		this.Session = session;
 		this.Socket = socket;
@@ -53,13 +54,13 @@ export class Client {
 	}
 
 	get clientInfo(): ClientInfo {
-		if (this.Session.passport && this.Session.passport.user) {
+		if (this.Session.isLoggedIn) {
 			return {
 				id: this.id,
-				user_id: this.Session.passport.user,
+				user_id: this.Session.user_id,
 			};
 		}
-		else if (this.Session.username) {
+		else if (this.Session.isLoggedIn === false) {
 			return {
 				id: this.id,
 				username: this.Session.username,
@@ -236,25 +237,24 @@ export class Client {
 export function Setup(): void {
 	log.debug("setting up client manager...");
 	const server = wss as WebSocket.Server;
-	server.on("connection", async (ws, req: Request & { session: Session }) => {
+	server.on("connection", async (ws, req: Request & { session: MySession }) => {
 		if (!req.url.startsWith("/api/room/")) {
 			log.error("Rejecting connection because the connection url was invalid");
 			ws.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid connection url");
 			return;
 		}
-		await OnConnect(req.session, ws, req);
+		await OnConnect(ws, req);
 	});
 }
 
 /**
  * Called when a websocket connects.
- * @param session
  * @param socket
  */
-async function OnConnect(session: Session, socket: WebSocket, req: Request) {
+async function OnConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
-	const client = new Client(session as MySession, socket);
+	const client = new Client(req.ottsession, socket);
 	client.room = roomName;
 	connections.push(client);
 	socket.on("ping", (data) => client.OnPing(data));
