@@ -3,7 +3,10 @@ import uuid from "uuid";
 
 describe("Creating Rooms", () => {
 	beforeEach(() => {
-		cy.request("POST", "/api/dev/reset-rate-limit");
+		cy.clearCookies();
+		cy.clearLocalStorage();
+		cy.ottEnsureToken();
+		cy.ottResetRateLimit();
 	});
 
 	it("should create a temporary room", () => {
@@ -38,16 +41,24 @@ describe("Creating Rooms", () => {
 	describe("Room Ownership", () => {
 		let userCreds = null;
 		before(() => {
+			cy.ottEnsureToken();
+			cy.ottRequest({
+				method: "POST",
+				url: "/api/dev/reset-rate-limit/user",
+			});
 			userCreds = {
 				email: faker.internet.email(),
-				username: faker.internet.userName(faker.name.firstName(), faker.name.lastName()),
+				username: faker.internet.userName(),
 				password: faker.internet.password(12),
 			};
-			cy.request("POST", "/api/user/register", userCreds);
+			cy.ottCreateUser(userCreds);
+			cy.ottResetRateLimit();
 		});
 
 		beforeEach(() => {
 			cy.clearCookies();
+			cy.clearLocalStorage();
+			cy.ottEnsureToken();
 			cy.reload();
 		});
 
@@ -72,7 +83,7 @@ describe("Creating Rooms", () => {
 
 		it("should create a room then claim", () => {
 			createRoom();
-			cy.request("POST", "/api/user/login", userCreds);
+			cy.ottLogin(userCreds);
 			cy.reload();
 
 			cy.contains("Settings").click();
@@ -83,7 +94,7 @@ describe("Creating Rooms", () => {
 		});
 
 		it("should create a room that is already claimed", () => {
-			cy.request("POST", "/api/user/login", userCreds);
+			cy.ottLogin(userCreds);
 			cy.reload();
 
 			createRoom();

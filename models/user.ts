@@ -13,14 +13,14 @@ interface UserAttributes {
 type UserCreationAttributes = Optional<UserAttributes, "id">;
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-  id!: number
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-  username!: string
-  email!: string | null
-  salt!: Buffer | null
-  hash!: Buffer | null
-  discordId!: string | null
+  id: number
+  public readonly createdAt: Date;
+  public readonly updatedAt: Date;
+  username: string
+  email: string | null
+  salt: Buffer | null
+  hash: Buffer | null
+  discordId: string | null
 }
 
 const createModel = (sequelize: Sequelize) => {

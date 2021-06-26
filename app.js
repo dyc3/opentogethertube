@@ -1,4 +1,6 @@
-require('ts-node').register();
+require('ts-node').register({
+	transpileOnly: true,
+});
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
@@ -8,6 +10,7 @@ const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const DiscordStrategy = require('passport-discord').Strategy;
+const BearerStrategy = require('passport-http-bearer').Strategy;
 const validator = require('validator');
 
 const log = getLogger("app");
@@ -150,14 +153,24 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallb
 passport.use(new DiscordStrategy({
 	clientID: process.env.DISCORD_CLIENT_ID || "NONE",
 	clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
-	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/user/auth/discord/callback`,
+	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/auth/discord/callback`,
 	scope: ["identify"],
 	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
+const tokens = require("./server/auth/tokens");
+passport.use(new BearerStrategy(async (token, done) => {
+	if (!await tokens.validate(token)) {
+		return done(null, false);
+	}
+	let ottsession = await tokens.getSessionInfo(token);
+	if (ottsession.user_id) {
+		return done(null, ottsession);
+	}
+	return done(null, false);
+}));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(usermanager.passportErrorHandler);
 
 app.use((req, res, next) => {
@@ -221,7 +234,6 @@ function serveBuiltFiles(req, res) {
 	});
 }
 
-app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
 	app.get("*", serveBuiltFiles);

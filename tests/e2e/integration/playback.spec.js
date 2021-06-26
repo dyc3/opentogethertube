@@ -2,8 +2,9 @@ import 'cypress-iframe';
 
 describe("Video playback", () => {
 	beforeEach(() => {
-		cy.request("POST", "/api/dev/reset-rate-limit");
-		cy.request("POST", "/api/room/generate").then(resp => {
+		cy.ottEnsureToken();
+		cy.ottResetRateLimit();
+		cy.ottRequest({ method: "POST", url: "/api/room/generate" }).then(resp => {
 			cy.visit(`/room/${resp.body.room}`);
 		});
 	});

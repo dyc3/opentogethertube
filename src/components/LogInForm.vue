@@ -15,7 +15,7 @@
 							<v-row>
 								<v-col cols="12" md="6">
 									<v-container>
-										<v-btn x-large block href="/api/user/auth/discord" color="#7289DA">Log in with Discord</v-btn>
+										<v-btn x-large block href="/api/auth/discord" color="#7289DA">Log in with Discord</v-btn>
 										<!-- TODO: <v-btn x-large block>Log in with Google</v-btn> -->
 									</v-container>
 								</v-col>

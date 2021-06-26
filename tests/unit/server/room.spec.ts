@@ -1,9 +1,22 @@
 import dayjs from "dayjs";
+import tokens from "../../../server/auth/tokens";
 import { RoomRequestType } from "../../../common/models/messages";
 import { QueueMode } from "../../../common/models/types";
 import { Room, RoomUser } from "../../../server/room";
 
 describe("Room", () => {
+	beforeAll(() => {
+		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			username: "test",
+		});
+		jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+	});
+
+	afterAll(() => {
+		tokens.getSessionInfo.mockRestore();
+		tokens.validate.mockRestore();
+	});
+
 	it("should control playback with play/pause", async () => {
 		const room = new Room({ name: "test" });
 		await room.play();
@@ -20,6 +33,7 @@ describe("Room", () => {
 
 		beforeEach(() => {
 			user = new RoomUser("user");
+			user.token = "asdf1234";
 			room = new Room({ name: "test" });
 			room.realusers = [user];
 		});
@@ -29,12 +43,14 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.PlaybackRequest,
 					client: user.id,
+					token: user.token,
 					state: true,
 				});
 				expect(room.isPlaying).toEqual(true);
 				await room.processRequest({
 					type: RoomRequestType.PlaybackRequest,
 					client: user.id,
+					token: user.token,
 					state: false,
 				});
 				expect(room.isPlaying).toEqual(false);
@@ -46,6 +62,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.PlaybackRequest,
 					client: user.id,
+					token: user.token,
 					state: false,
 				});
 				expect(room.isPlaying).toEqual(false);
@@ -66,6 +83,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SkipRequest,
 					client: user.id,
+					token: user.token,
 				});
 				expect(room.currentSource).toBeNull();
 			});
@@ -80,6 +98,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SkipRequest,
 					client: user.id,
+					token: user.token,
 				});
 				expect(room.currentSource).toEqual({
 					service: "test",
@@ -94,6 +113,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SeekRequest,
 					client: user.id,
+					token: user.token,
 					value: 15,
 				});
 				expect(room.playbackPosition).toEqual(15);
@@ -104,6 +124,7 @@ describe("Room", () => {
 				await room.processRequest({
 					type: RoomRequestType.SeekRequest,
 					client: user.id,
+					token: user.token,
 					value: v,
 				});
 				expect(room.playbackPosition).toEqual(10);

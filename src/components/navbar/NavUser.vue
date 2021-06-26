@@ -10,7 +10,7 @@
         </v-btn>
       </template>
       <v-list two-line max-width="400">
-        <v-list-item href="/api/user/auth/discord" target="_blank" v-if="!$store.state.user.discordLinked">
+        <v-list-item href="/api/auth/discord" target="_blank" v-if="!$store.state.user.discordLinked">
           <v-list-item-content>
             <v-list-item-title>Link Discord</v-list-item-title>
           </v-list-item-content>
