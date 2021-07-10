@@ -1,5 +1,5 @@
-import faker from "faker";
-import uuid from "uuid";
+// import faker from "faker";
+// import uuid from "uuid";
 import { QueueMode, Visibility } from "../../../common/models/types";
 
 describe("Room settings", () => {
