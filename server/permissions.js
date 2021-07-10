@@ -373,6 +373,8 @@ export class Grants {
 	deserialize(value) {
 		let g = JSON.parse(value);
 		this.setAllGrants(g);
+		// HACK: force owner to always have all permissions.
+		this.setRoleGrants(Role.Owner, parseIntoGrantMask(["*"]));
 	}
 
 	toJSON() {
