@@ -895,14 +895,11 @@ export class Room implements RoomState {
 
 		// special handling required for permissions
 		if (request.settings.grants) {
-			const newGrants = request.settings.grants;
-			for (const role in newGrants.masks) {
-				if (!Object.hasOwnProperty.call(roleToPerms, role)) {
-					this.log.debug(`not applying permissions for role: ${role}`);
-					delete newGrants.masks[role];
+			for (const role in request.settings.grants.masks) {
+				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+					this.grants.setRoleGrants(role as unknown as Role, request.settings.grants.masks[role]);
 				}
 			}
-			this.grants.setAllGrants(newGrants);
 		}
 	}
 }

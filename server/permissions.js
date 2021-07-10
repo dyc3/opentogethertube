@@ -252,6 +252,7 @@ export class Grants {
 	}
 
 	/**
+	 * Clears all grant masks and replaces them with `grants`.
 	 * @param {Object} grants Opional object that maps roles to grant masks.
 	 */
 	setAllGrants(grants) {
