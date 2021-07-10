@@ -5,7 +5,6 @@ import InfoExtract from "./server/infoextractor";
 import { RoomRequestType } from "./common/models/messages";
 const { getLogger } = require('./logger.js');
 const permissions = require("./server/permissions.js");
-const storage = require("./storage.js");
 import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit");
 import { Role } from "./common/models/types";
