@@ -9,6 +9,7 @@ import clientmanager from "../clientmanager";
 import { ApplySettingsRequest, RoomRequestType, UndoRequest } from "../../common/models/messages";
 import { User } from "../../models/user";
 import storage from "../../storage";
+import { Grants } from "../permissions.js";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -131,6 +132,8 @@ const patchRoom: RequestHandler = async (req, res) => {
 		req.body.grants = req.body.permissions;
 		delete req.body.permissions;
 	}
+
+	req.body.grants = new Grants(req.body.grants);
 
 	const room = await roommanager.GetRoom(req.params.name);
 	if (req.body.claim) {

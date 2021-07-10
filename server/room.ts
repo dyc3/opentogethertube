@@ -15,6 +15,7 @@ import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import { ImpossiblePromotionException, OttException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import storage from "./../storage";
+import roommanager from "./roommanager.js";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -838,6 +839,36 @@ export class Room implements RoomState {
 		const user = this.getUser(request.client);
 		const userrole = this.getRole(user);
 
+		// TODO: have clients only send properties that they actually intend to change.
+		// For now, we'll determine what the request is trying to change here, and delete the identical fields from the request.
+		for (const prop in request.settings) {
+			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+				if (this[prop] === request.settings[prop]) {
+					this.log.silly(`deleting ${prop} from request because it did not change`);
+					delete request.settings[prop];
+				}
+			}
+		}
+		if (request.settings.grants) {
+			for (const role in request.settings.grants.masks) {
+				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+					if (request.settings.grants.masks[role] === this.grants.masks[role]) {
+						this.log.silly(`deleting permissions for role ${role} from request because it did not change`);
+						delete request.settings.grants.masks[role];
+					}
+				}
+				else {
+					this.log.silly(`deleting permissions for role ${role} from request because that role's permissions can't change`);
+					delete request.settings.grants.masks[role];
+				}
+			}
+			if (Object.keys(request.settings.grants.masks).length === 0) {
+				this.log.silly(`deleting grants prop from request because it is empty`);
+				delete request.settings.grants;
+			}
+		}
+
+		// check permissions
 		for (const prop in request.settings) {
 			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
 				this.grants.check(userrole, propsToPerms[prop]);
