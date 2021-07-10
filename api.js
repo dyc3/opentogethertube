@@ -8,26 +8,13 @@ const permissions = require("./server/permissions.js");
 const storage = require("./storage.js");
 import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit");
-import { QueueMode, Role, Visibility } from "./common/models/types";
+import { Role } from "./common/models/types";
 import roomapi from "./server/api/room";
 import clientmanager from "./server/clientmanager";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
 
 const log = getLogger("api");
-
-const VALID_ROOM_VISIBILITY = [
-	Visibility.Public,
-	Visibility.Unlisted,
-	Visibility.Private,
-];
-
-const VALID_ROOM_QUEUE_MODE = [
-	QueueMode.Manual,
-	QueueMode.Vote,
-	QueueMode.Loop,
-	QueueMode.Dj,
-];
 
 function handleGetRoomFailure(res, err) {
 	if (err.name === "RoomNotFoundException") {
@@ -165,85 +152,6 @@ router.post("/room/generate", async (req, res) => {
 		success: true,
 		room: roomName,
 	});
-});
-
-router.patch("/room/:name", async (req, res) => {
-	// FIXME: should send a room request to update the room settings
-	let room;
-	try {
-		room = await roommanager.GetRoom(req.params.name);
-	}
-	catch (err) {
-		handleGetRoomFailure(res, err);
-		return;
-	}
-	let filtered = _.pick(req.body, [
-		"title",
-		"description",
-		"visibility",
-		"queueMode",
-	]);
-	filtered = _.pickBy(filtered, n => n !== null);
-	if (filtered.visibility && !VALID_ROOM_VISIBILITY.includes(filtered.visibility)) {
-		res.status(400).json({
-			success: false,
-			error: "Invalid value for room visibility",
-		});
-		return;
-	}
-	if (filtered.queueMode && !VALID_ROOM_QUEUE_MODE.includes(filtered.queueMode)) {
-		res.status(400).json({
-			success: false,
-			error: "Invalid value for room queue mode",
-		});
-		return;
-	}
-	Object.assign(room, filtered);
-	if (req.body.permissions) {
-		room.setGrants(new permissions.Grants(req.body.permissions), req.session);
-	}
-	if (!room.isTemporary) {
-		if (req.body.claim && !room.owner) {
-			if (req.user) {
-				room.owner = req.user;
-				// HACK: force the room to send the updated user info to the client
-				for (let user of room.realusers) {
-					if (user.user_id === room.owner.id) {
-						room.syncUser(room.getUserInfo(user.id));
-						break;
-					}
-				}
-			}
-			else {
-				res.status(401).json({
-					success: false,
-					error: {
-						message: "Must be logged in to claim room ownership.",
-					},
-				});
-				return;
-			}
-		}
-
-		try {
-			await storage.updateRoom(room);
-			res.status(200).json({
-				success: true,
-			});
-		}
-		catch (err) {
-			log.error(`Failed to update room: ${err} ${err.stack}`);
-			res.status(500).json({
-				success: false,
-			});
-			return;
-		}
-	}
-	else {
-		res.json({
-			success: true,
-		});
-	}
 });
 
 router.delete("/room/:name", (req, res) => {

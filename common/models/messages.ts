@@ -1,4 +1,4 @@
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext } from "./types";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext, RoomSettings } from "./types";
 import { VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement | ServerMessageUser
@@ -100,7 +100,7 @@ export interface ClientMessagePromote extends ClientMessageBase {
 	role: Role
 }
 
-export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -116,6 +116,7 @@ export enum RoomRequestType {
 	UpdateUser,
 	ChatRequest,
 	UndoRequest,
+	ApplySettingsRequest,
 }
 
 export interface RoomRequestBase {
@@ -192,4 +193,9 @@ export interface ChatRequest extends RoomRequestBase {
 export interface UndoRequest extends RoomRequestBase {
 	type: RoomRequestType.UndoRequest
 	event: ServerMessageEvent
+}
+
+export interface ApplySettingsRequest extends RoomRequestBase {
+	type: RoomRequestType.ApplySettingsRequest,
+	settings: Partial<RoomSettings>
 }
