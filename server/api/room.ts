@@ -1,12 +1,15 @@
 import _ from "lodash";
 import { getLogger } from '../../logger.js';
 import roommanager from "../roommanager";
-import { Visibility } from "../../common/models/types";
+import { QueueMode, Visibility } from "../../common/models/types";
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit";
 import { BadApiArgumentException, OttException } from "../exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
-import { RoomRequestType, UndoRequest } from "../../common/models/messages";
+import { ApplySettingsRequest, RoomRequestType, UndoRequest } from "../../common/models/messages";
+import { User } from "../../models/user";
+import storage from "../../storage";
+import { Grants } from "../permissions.js";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -22,6 +25,13 @@ const VALID_ROOM_VISIBILITY = [
 	Visibility.Public,
 	Visibility.Unlisted,
 	Visibility.Private,
+];
+
+const VALID_ROOM_QUEUE_MODE = [
+	QueueMode.Manual,
+	QueueMode.Vote,
+	QueueMode.Loop,
+	QueueMode.Dj,
 ];
 
 router.get("/list", (req, res) => {
@@ -105,6 +115,81 @@ const createRoom: RequestHandler = async (req, res) => {
 		await roommanager.CreateRoom(req.body);
 	}
 	log.info(`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${req.body.name} ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
+	res.json({
+		success: true,
+	});
+};
+
+const patchRoom: RequestHandler = async (req, res) => {
+	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
+		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY}`);
+	}
+	if (req.body.queueMode && !VALID_ROOM_QUEUE_MODE.includes(req.body.queueMode)) {
+		throw new BadApiArgumentException("queueMode", `must be one of ${VALID_ROOM_QUEUE_MODE}`);
+	}
+
+	if (req.body.permissions) {
+		req.body.grants = req.body.permissions;
+		delete req.body.permissions;
+	}
+
+	req.body.grants = new Grants(req.body.grants);
+
+	const room = await roommanager.GetRoom(req.params.name);
+	if (req.body.claim) {
+		if (room.isTemporary) {
+			throw new BadApiArgumentException("claim", `Can't claim temporary rooms.`);
+		}
+		else if (room.owner) {
+			throw new BadApiArgumentException("claim", `Room already has owner.`);
+		}
+	}
+
+	const client = clientmanager.getClient(req.session, req.params.name);
+	// FIXME: what if the client is not connected to this node?
+	const roomRequest: ApplySettingsRequest = {
+		type: RoomRequestType.ApplySettingsRequest,
+		client: client.id,
+		settings: req.body,
+	};
+
+	await room.processRequest(roomRequest);
+
+	if (!room.isTemporary) {
+		if (req.body.claim && !room.owner) {
+			if (req.user) {
+				room.owner = req.user as User;
+				// HACK: force the room to send the updated user info to the client
+				for (const user of room.realusers) {
+					if (user.user_id === room.owner.id) {
+						room.syncUser(room.getUserInfo(user.id));
+						break;
+					}
+				}
+			}
+			else {
+				res.status(401).json({
+					success: false,
+					error: {
+						message: "Must be logged in to claim room ownership.",
+					},
+				});
+				return;
+			}
+		}
+
+		try {
+			await storage.updateRoom(room);
+		}
+		catch (err) {
+			log.error(`Failed to update room: ${err} ${err.stack}`);
+			res.status(500).json({
+				success: false,
+			});
+			return;
+		}
+	}
+
 	res.json({
 		success: true,
 	});
@@ -207,6 +292,15 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 router.post("/create", async (req, res, next) => {
 	try {
 		await createRoom(req, res, next);
+	}
+	catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.patch("/:name", async (req, res, next) => {
+	try {
+		await patchRoom(req, res, next);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);

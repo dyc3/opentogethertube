@@ -252,6 +252,7 @@ export class Grants {
 	}
 
 	/**
+	 * Clears all grant masks and replaces them with `grants`.
 	 * @param {Object} grants Opional object that maps roles to grant masks.
 	 */
 	setAllGrants(grants) {
@@ -373,6 +374,8 @@ export class Grants {
 	deserialize(value) {
 		let g = JSON.parse(value);
 		this.setAllGrants(g);
+		// HACK: force owner to always have all permissions.
+		this.setRoleGrants(Role.Owner, parseIntoGrantMask(["*"]));
 	}
 
 	toJSON() {

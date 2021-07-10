@@ -33,18 +33,31 @@ export type MySession = Session & { username?: string, passport?: { user?: numbe
 
 export type ClientInfo = { id: ClientId, username?: string, user_id?: number, status?: PlayerStatus }
 
-export interface RoomOptions {
-	name: string
+/**
+ * Settings that can be set through the "settings" UI.
+ */
+export interface RoomSettings {
 	title: string
 	description: string
 	visibility: Visibility
 	queueMode: QueueMode
-	isTemporary: boolean
-	owner: User | null,
 	grants: Grants
+}
+
+/**
+ * Things that can be used in `Room`'s constructor. These must be remembered.
+ */
+export interface RoomOptions extends RoomSettings {
+	name: string
+	isTemporary: boolean
+	owner: User | null
 	userRoles: Map<Role, Set<number>>
 }
 
+/**
+ * Things that Rooms need to remember, but can safely be forgotten when the room is unloaded.
+ * This rule does not necessarily apply to inherited fields.
+ */
 export interface RoomState extends RoomOptions, RoomStateComputed {
 	currentSource: Video | null
 	queue: Video[]

@@ -3,18 +3,19 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
+import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext, RoomStateStorable } from "../common/models/types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext, RoomStateStorable, RoomSettings } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from 'dayjs';
 import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
-import { ImpossiblePromotionException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
+import { ImpossiblePromotionException, OttException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import storage from "./../storage";
+import roommanager from "./roommanager.js";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -496,6 +497,7 @@ export class Room implements RoomState {
 			[RoomRequestType.UpdateUser]: "updateUser",
 			[RoomRequestType.ChatRequest]: "chat",
 			[RoomRequestType.UndoRequest]: "undo",
+			[RoomRequestType.ApplySettingsRequest]: "applySettings",
 		};
 
 		const handler = handlers[request.type];
@@ -816,6 +818,87 @@ export class Room implements RoomState {
 			}
 			catch (err) {
 				this.log.error(`Failed to update room: ${err} ${err.stack}`);
+			}
+		}
+	}
+
+	public async applySettings(request: ApplySettingsRequest): Promise<void> {
+		const propsToPerms: Record<keyof Omit<RoomSettings, "grants">, string> = {
+			"title": "configure-room.set-title",
+			"description": "configure-room.set-description",
+			"visibility": "configure-room.set-visibility",
+			"queueMode": "configure-room.set-queue-mode",
+		};
+		const roleToPerms: Record<Exclude<Role, Role.Owner | Role.Administrator>, string> = {
+			[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",
+			[Role.RegisteredUser]: "configure-room.set-permissions.for-all-registered-users",
+			[Role.TrustedUser]: "configure-room.set-permissions.for-trusted-users",
+			[Role.Moderator]: "configure-room.set-permissions.for-moderator",
+		};
+
+		const user = this.getUser(request.client);
+		const userrole = this.getRole(user);
+
+		// TODO: have clients only send properties that they actually intend to change.
+		// For now, we'll determine what the request is trying to change here, and delete the identical fields from the request.
+		for (const prop in request.settings) {
+			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+				if (this[prop] === request.settings[prop]) {
+					this.log.silly(`deleting ${prop} from request because it did not change`);
+					delete request.settings[prop];
+				}
+			}
+		}
+		if (request.settings.grants) {
+			for (const role in request.settings.grants.masks) {
+				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+					if (request.settings.grants.masks[role] === this.grants.masks[role]) {
+						this.log.silly(`deleting permissions for role ${role} from request because it did not change`);
+						delete request.settings.grants.masks[role];
+					}
+				}
+				else {
+					this.log.silly(`deleting permissions for role ${role} from request because that role's permissions can't change`);
+					delete request.settings.grants.masks[role];
+				}
+			}
+			if (Object.keys(request.settings.grants.masks).length === 0) {
+				this.log.silly(`deleting grants prop from request because it is empty`);
+				delete request.settings.grants;
+			}
+		}
+
+		// check permissions
+		for (const prop in request.settings) {
+			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+				this.grants.check(userrole, propsToPerms[prop]);
+			}
+		}
+
+		if (request.settings.grants) {
+			const newGrants = request.settings.grants;
+			for (const role in newGrants.masks) {
+				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+					this.grants.check(userrole, roleToPerms[role]);
+				}
+			}
+		}
+
+		// Now that we've checked permissions, it's now safe to apply the settings.
+
+		// apply the simple ones
+		for (const prop in request.settings) {
+			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+				this[prop] = request.settings[prop];
+			}
+		}
+
+		// special handling required for permissions
+		if (request.settings.grants) {
+			for (const role in request.settings.grants.masks) {
+				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+					this.grants.setRoleGrants(role as unknown as Role, request.settings.grants.masks[role]);
+				}
 			}
 		}
 	}
