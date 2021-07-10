@@ -2,7 +2,7 @@
   <div>
     <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
       <v-col v-if="!$store.state.fullscreen">
-        <h1>{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
+        <h1 class="room-title">{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
         <span id="connectStatus">{{ connectionStatus }}</span>
       </v-col>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
@@ -101,12 +101,12 @@
                   <v-form @submit="submitRoomSettings">
                     <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-title')" />
                     <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-description')" />
-                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-visibility')" />
+                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-visibility')" data-cy="select-visibility" />
                     <v-select label="Queue Mode" :items="[
                       { name: 'manual', value: QueueMode.Manual, description: 'Default normal behavior, works how you would expect it to. You can manually reorder items in the queue.' },
                       { name: 'vote', value: QueueMode.Vote, description: 'The highest voted video gets played next.' },
                       { name: 'loop', value: QueueMode.Loop, description: 'When the video ends, put it at the end of the queue.' },
-                    ]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" >
+                    ]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" data-cy="select-queueMode">
                       <template v-slot:item="data">
                         <v-list-item-content>
                           <v-list-item-title>{{ data.item.name }}</v-list-item-title>
