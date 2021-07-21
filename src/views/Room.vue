@@ -429,7 +429,7 @@ export default {
       }
     },
     onKeyDown(e) {
-      if (e.target.nodeName === "INPUT") {
+      if (e.target.nodeName === "INPUT" || e.target.nodeName === "TEXTAREA") {
         return;
       }
 
