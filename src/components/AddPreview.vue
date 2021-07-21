@@ -1,7 +1,7 @@
 <template>
 	<div class="video-add">
 		<v-row class="mb-6">
-			<v-text-field clearable placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
+			<v-textarea clearable auto-grow rows="1" placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" />
 			<div v-if="!production">
 				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{ v[0] }}</v-btn>
 			</div>
@@ -194,6 +194,10 @@ export default Vue.extend({
 			this.requestAddPreviewDebounced();
 		},
 		onInputAddPreviewKeyDown(e) {
+			if (e.keyCode === 13) {
+				e.preventDefault();
+			}
+
 			if (_.trim(this.inputAddPreview).length === 0 || this.isAddPreviewInputUrl) {
 				return;
 			}

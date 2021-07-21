@@ -222,9 +222,22 @@ export default {
    * @returns {Promise<Video[]>}
    */
   async resolveVideoQuery(query, searchService) {
-    const results = [];
+    let results = [];
 
-    if (this.isURL(query)) {
+    if (query.includes("\n")) {
+      let lines = query.trim().split("\n").filter(line => this.isURL(line));
+
+      let videoIds = lines.map(line => {
+        const adapter = this.getServiceAdapterForURL(line);
+        return {
+          service: adapter.serviceId,
+          id: adapter.getVideoId(line),
+        };
+      });
+
+      results = this.getManyVideoInfo(videoIds);
+    }
+    else if (this.isURL(query)) {
       const adapter = this.getServiceAdapterForURL(query);
 
       if (!adapter) {
