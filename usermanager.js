@@ -168,7 +168,7 @@ router.post("/login", async (req, res, next) => {
 				req.ottsession = { isLoggedIn: true, user_id: user.id };
 				await tokens.setSessionInfo(req.token, req.ottsession);
 				try {
-					usermanager.onUserLogIn(user, req.session);
+					usermanager.onUserLogIn(user, req.token);
 				}
 				catch (err) {
 					log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
@@ -199,7 +199,7 @@ router.post("/logout", async (req, res) => {
 		req.logout();
 		req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
 		await tokens.setSessionInfo(req.token, req.ottsession);
-		usermanager.onUserLogOut(user, req.session);
+		usermanager.onUserLogOut(user, req.token);
 		res.json({
 			success: true,
 		});
@@ -235,7 +235,7 @@ router.post("/register", async (req, res) => {
 			req.ottsession = { isLoggedIn: true, user_id: result.id };
 			await tokens.setSessionInfo(req.token, req.ottsession);
 			try {
-				usermanager.onUserLogIn(result, req.session);
+				usermanager.onUserLogIn(result, req.token);
 			}
 			catch (err) {
 				log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
@@ -568,14 +568,14 @@ let usermanager = {
 		return conditions.reduce((acc, curr) => acc + curr) >= 2 && !!/^(?=.{8,})/.exec(password);
 	},
 
-	onUserLogIn(user, session) {
+	onUserLogIn(user, token) {
 		log.info(`${user.username} (id: ${user.id}) has logged in.`);
-		clientmanager.onUserModified(session);
+		clientmanager.onUserModified(token);
 	},
 
-	onUserLogOut(user, session) {
+	onUserLogOut(user, token) {
 		log.info(`${user.username} (id: ${user.id}) has logged out.`);
-		clientmanager.onUserModified(session);
+		clientmanager.onUserModified(token);
 	},
 
 	onUserModified(token) {

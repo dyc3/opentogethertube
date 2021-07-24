@@ -5,7 +5,6 @@ const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { uniqueNamesGenerator } = require('unique-names-generator');
 const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -128,7 +127,7 @@ let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
 	secret: process.env.SESSION_SECRET || "opentogethertube",
 	resave: false,
-	saveUninitialized: true,
+	saveUninitialized: false,
 	unset: 'keep',
 	proxy: process.env.NODE_ENV === "production",
 	cookie: {
@@ -172,31 +171,6 @@ passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
 app.use(usermanager.passportErrorHandler);
-
-app.use((req, res, next) => {
-	if (!req.user && !req.session.username) {
-		let username = uniqueNamesGenerator();
-		log.debug(`Generated name for new user (on request): ${username}`);
-		log.debug(`headers: x-forwarded-proto=${req.headers["x-forwarded-proto"]} x-forwarded-for=${req.headers["x-forwarded-for"]} x-forwarded-host=${req.headers["x-forwarded-host"]}`);
-		if (req.protocol === "http" && sessionOpts.cookie.secure) {
-			log.error(`found protocol ${req.protocol} and secure cookies. cookies will not be set`);
-		}
-		req.session.username = username;
-		req.session.save((err) => {
-			if (err) {
-				log.error(`Failed to save session: ${err}`);
-			}
-			else {
-				log.silly("Session saved.");
-			}
-		});
-	}
-	else {
-		log.debug("User is logged in, skipping username generation");
-	}
-
-	next();
-});
 
 const api = require("./api");
 
