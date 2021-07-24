@@ -7,7 +7,7 @@ import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveReques
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
-import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext, RoomStateStorable, RoomSettings } from "../common/models/types";
+import { ClientInfo, QueueMode, Visibility, RoomOptions, RoomState, RoomUserInfo, Role, ClientId, PlayerStatus, RoomStateSyncable, RoomEventContext, RoomStateStorable, RoomSettings, AuthToken } from "../common/models/types";
 import { User } from "../models/user";
 import { Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from 'dayjs';
@@ -15,7 +15,7 @@ import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import { ImpossiblePromotionException, OttException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import storage from "./../storage";
-import roommanager from "./roommanager.js";
+import tokens, { SessionInfo } from "./auth/tokens";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -26,12 +26,13 @@ const ROOM_UNLOAD_AFTER = 240; // seconds
  */
 export class RoomUser {
 	id: ClientId
+	token: AuthToken
 	user_id?: number
 	unregisteredUsername = ""
 	user: User | null
 	playerStatus: PlayerStatus = PlayerStatus.none
 
-	constructor(id: string) {
+	constructor(id: ClientId) {
 		this.id = id;
 		this.user = null;
 	}
@@ -282,7 +283,9 @@ export class Room implements RoomState {
 	}
 
 	async publishRoomEvent(request: RoomRequest, additional?: RoomEventContext): Promise<void> {
-		const user = this.getUserInfo(request.client);
+		// const user = this.getUserInfo(request.client);
+		const user = await this.getUserInfoFromToken(request.token);
+		delete request.token;
 		await this.publish({
 			action: "event",
 			request,
@@ -321,9 +324,35 @@ export class Room implements RoomState {
 		}
 	}
 
+	async getRoleFromToken(token: AuthToken): Promise<Role> {
+		const session = await tokens.getSessionInfo(token);
+		if (session.user_id) {
+			if (this.owner.id === session.user_id) {
+				return Role.Owner;
+			}
+			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
+				if (this.userRoles.get(i).has(session.user_id)) {
+					return i;
+				}
+			}
+			return Role.RegisteredUser;
+		}
+		else {
+			return Role.UnregisteredUser;
+		}
+	}
+
 	getUser(client: ClientId): RoomUser | undefined {
 		for (const user of this.realusers) {
 			if (user.id === client) {
+				return user;
+			}
+		}
+	}
+
+	getUserFromToken(token: AuthToken): RoomUser | undefined {
+		for (const user of this.realusers) {
+			if (user.token === token) {
 				return user;
 			}
 		}
@@ -333,6 +362,40 @@ export class Room implements RoomState {
 		for (const user of this.users) {
 			if (user.id === client) {
 				return user;
+			}
+		}
+	}
+
+	async getUserInfoFromToken(token: AuthToken): Promise<Pick<RoomUserInfo, "name" | "isLoggedIn">> {
+		if (!token) {
+			throw new Error("token is a required parameter.");
+		}
+		const session: SessionInfo = await tokens.getSessionInfo(token);
+		if (!session) {
+			this.log.error("Session info for auth token was not found.");
+			throw new Error("Session info not found.");
+		}
+		if (session.isLoggedIn) {
+			const user = await usermanager.getUser({ id: session.user_id });
+			return {
+				name: user.username,
+				isLoggedIn: true,
+			};
+		}
+		else {
+			return {
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore
+				name: session.username, // Typescript bug? even though the type is being narrowed here, its not working correctly.
+				isLoggedIn: false,
+			};
+		}
+	}
+
+	getClientId(token: AuthToken): ClientId {
+		for (const user of this.realusers) {
+			if (user.token === token) {
+				return user.id;
 			}
 		}
 	}
@@ -464,7 +527,6 @@ export class Room implements RoomState {
 	}
 
 	public async processRequest(request: RoomRequest): Promise<void> {
-		const user = this.getUser(request.client);
 		const permissions = new Map([
 			[RoomRequestType.PlaybackRequest, "playback.play-pause"],
 			[RoomRequestType.SkipRequest, "playback.skip"],
@@ -477,7 +539,7 @@ export class Room implements RoomState {
 		]);
 		const permission = permissions.get(request.type);
 		if (permission) {
-			this.grants.check(this.getRole(user), permission);
+			this.grants.check(await this.getRoleFromToken(request.token), permission);
 		}
 
 		this.log.silly(`processing request: ${request.type}`);
@@ -646,6 +708,7 @@ export class Room implements RoomState {
 
 	public async joinRoom(request: JoinRequest): Promise<void> {
 		const user = new RoomUser(request.info.id);
+		user.token = request.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.markDirty("users");
@@ -680,7 +743,7 @@ export class Room implements RoomState {
 	}
 
 	public async chat(request: ChatRequest): Promise<void> {
-		const user = this.getUserInfo(request.client);
+		const user = this.getUserInfo(this.getClientId(request.token));
 		await this.publish({
 			action: "chat",
 			from: user,
@@ -756,7 +819,7 @@ export class Room implements RoomState {
 	}
 
 	public async promoteUser(request: PromoteRequest): Promise<void> {
-		const user = this.getUser(request.client);
+		const user = this.getUserFromToken(request.token);
 		const targetUser = this.getUser(request.targetClientId);
 		this.log.info(`${user.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
 

@@ -9,9 +9,11 @@ import roommanager from "./server/roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit");
 import { Role } from "./common/models/types";
 import roomapi from "./server/api/room";
-import clientmanager from "./server/clientmanager";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
+import auth from "./server/auth";
+import usermanager from "./usermanager";
+import passport from 'passport';
 
 const log = getLogger("api");
 
@@ -71,7 +73,28 @@ function handlePostVideoFailure(res, err) {
 
 const router = express.Router();
 
+router.use("/auth", auth.router);
+router.use((req, res, next) => {
+	// eslint-disable-next-line no-unused-vars
+	passport.authenticate("bearer", (err, user, info) => {
+		// We are intentionally ignoring the case where authentication fails, because
+		// we want to allow users who are not logged in to an actual account to
+		// be able to use the website.
+
+		// log.error(`bearer auth error: ${err}`);
+		if (err) {
+			next(err);
+			return;
+		}
+		// log.debug(`bearer auth user: ${user}`);
+		// log.debug(`bearer auth info: ${info}`);
+		next();
+	})(req, res, next);
+});
+router.use(auth.authTokenMiddleware);
+router.use("/user", usermanager.router);
 router.use("/room", roomapi);
+
 if (process.env.NODE_ENV === "development") {
 	(async () => {
 		router.use("/dev", (await import("./server/api/dev")).default);
@@ -190,9 +213,7 @@ router.post("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let client = clientmanager.getClient(req.session, req.params.name);
-		// FIXME: what if the client is not connected to this node?
-		let roomRequest = { type: RoomRequestType.AddRequest, client: client.id };
+		let roomRequest = { type: RoomRequestType.AddRequest, token: req.token };
 		if (req.body.videos) {
 			roomRequest.videos = req.body.videos;
 		}
@@ -244,10 +265,8 @@ router.delete("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let client = clientmanager.getClient(req.session, req.params.name);
-		// FIXME: what if the client is not connected to this node?
 		if (req.body.service && req.body.id) {
-			await room.processRequest({ type: RoomRequestType.RemoveRequest, client: client.id, video: {service: req.body.service, id: req.body.id} });
+			await room.processRequest({ type: RoomRequestType.RemoveRequest, token: req.token, video: {service: req.body.service, id: req.body.id} });
 			res.json({
 				success: true,
 			});

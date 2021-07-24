@@ -1,13 +1,15 @@
-require('ts-node').register();
+require('ts-node').register({
+	transpileOnly: true,
+});
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { uniqueNamesGenerator } = require('unique-names-generator');
 const { getLogger, setLogLevel } = require('./logger.js');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const DiscordStrategy = require('passport-discord').Strategy;
+const BearerStrategy = require('passport-http-bearer').Strategy;
 const validator = require('validator');
 
 const log = getLogger("app");
@@ -125,7 +127,7 @@ let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
 	secret: process.env.SESSION_SECRET || "opentogethertube",
 	resave: false,
-	saveUninitialized: true,
+	saveUninitialized: false,
 	unset: 'keep',
 	proxy: process.env.NODE_ENV === "production",
 	cookie: {
@@ -150,40 +152,25 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallb
 passport.use(new DiscordStrategy({
 	clientID: process.env.DISCORD_CLIENT_ID || "NONE",
 	clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
-	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/user/auth/discord/callback`,
+	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/auth/discord/callback`,
 	scope: ["identify"],
 	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
+const tokens = require("./server/auth/tokens");
+passport.use(new BearerStrategy(async (token, done) => {
+	if (!await tokens.validate(token)) {
+		return done(null, false);
+	}
+	let ottsession = await tokens.getSessionInfo(token);
+	if (ottsession.user_id) {
+		return done(null, ottsession);
+	}
+	return done(null, false);
+}));
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(usermanager.passportErrorHandler);
-
-app.use((req, res, next) => {
-	if (!req.user && !req.session.username) {
-		let username = uniqueNamesGenerator();
-		log.debug(`Generated name for new user (on request): ${username}`);
-		log.debug(`headers: x-forwarded-proto=${req.headers["x-forwarded-proto"]} x-forwarded-for=${req.headers["x-forwarded-for"]} x-forwarded-host=${req.headers["x-forwarded-host"]}`);
-		if (req.protocol === "http" && sessionOpts.cookie.secure) {
-			log.error(`found protocol ${req.protocol} and secure cookies. cookies will not be set`);
-		}
-		req.session.username = username;
-		req.session.save((err) => {
-			if (err) {
-				log.error(`Failed to save session: ${err}`);
-			}
-			else {
-				log.silly("Session saved.");
-			}
-		});
-	}
-	else {
-		log.debug("User is logged in, skipping username generation");
-	}
-
-	next();
-});
 
 const api = require("./api");
 
@@ -221,7 +208,6 @@ function serveBuiltFiles(req, res) {
 	});
 }
 
-app.use("/api/user", usermanager.router);
 app.use("/api", api);
 if (fs.existsSync("./dist")) {
 	app.get("*", serveBuiltFiles);

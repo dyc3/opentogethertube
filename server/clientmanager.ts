@@ -1,4 +1,4 @@
-import { Session } from "express-session";
+import express from "express";
 import WebSocket from "ws";
 import _ from "lodash";
 import { wss } from "./websockets.js";
@@ -8,11 +8,12 @@ import { redisClient, createSubscriber } from "../redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
-import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable } from "../common/models/types";
+import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, AuthToken } from "../common/models/types";
 // WARN: do NOT import roommanager
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import { uniqueNamesGenerator } from 'unique-names-generator';
+import tokens, { SessionInfo } from "./auth/tokens";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -26,10 +27,11 @@ subscribe(ANNOUNCEMENT_CHANNEL);
 export class Client {
 	id: ClientId
 	Socket: WebSocket
-	Session: MySession
+	Session: SessionInfo
 	room: string | null
+	token: AuthToken | null = null
 
-	constructor (session: MySession, socket: WebSocket) {
+	constructor (session: SessionInfo, socket: WebSocket) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
 		this.Session = session;
 		this.Socket = socket;
@@ -44,6 +46,7 @@ export class Client {
 				const room = await roommanager.GetRoom(this.room);
 				await room.processRequest({
 					type: RoomRequestType.LeaveRequest,
+					token: this.token,
 					client: this.id,
 				});
 			}
@@ -51,13 +54,13 @@ export class Client {
 	}
 
 	get clientInfo(): ClientInfo {
-		if (this.Session.passport && this.Session.passport.user) {
+		if (this.Session.isLoggedIn) {
 			return {
 				id: this.id,
-				user_id: this.Session.passport.user,
+				user_id: this.Session.user_id,
 			};
 		}
-		else if (this.Session.username) {
+		else if (this.Session.isLoggedIn === false) {
 			return {
 				id: this.id,
 				username: this.Session.username,
@@ -79,34 +82,34 @@ export class Client {
 		if (msg.action === "play") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				client: this.id,
+				token: this.token,
 				state: true,
 			};
 		}
 		else if (msg.action === "pause") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				client: this.id,
+				token: this.token,
 				state: false,
 			};
 		}
 		else if (msg.action === "skip") {
 			request = {
 				type: RoomRequestType.SkipRequest,
-				client: this.id,
+				token: this.token,
 			};
 		}
 		else if (msg.action === "seek") {
 			request = {
 				type: RoomRequestType.SeekRequest,
-				client: this.id,
+				token: this.token,
 				value: msg.position,
 			};
 		}
 		else if (msg.action === "queue-move") {
 			request = {
 				type: RoomRequestType.OrderRequest,
-				client: this.id,
+				token: this.token,
 				fromIdx: msg.currentIdx,
 				toIdx: msg.targetIdx,
 			};
@@ -118,14 +121,14 @@ export class Client {
 		else if (msg.action === "chat") {
 			request = {
 				type: RoomRequestType.ChatRequest,
-				client: this.id,
+				token: this.token,
 				...msg,
 			};
 		}
 		else if (msg.action === "status") {
 			request = {
 				type: RoomRequestType.UpdateUser,
-				client: this.id,
+				token: this.token,
 				info: {
 					id: this.id,
 					status: msg.status,
@@ -135,10 +138,28 @@ export class Client {
 		else if (msg.action === "set-role") {
 			request = {
 				type: RoomRequestType.PromoteRequest,
-				client: this.id,
+				token: this.token,
 				targetClientId: msg.clientId,
 				role: msg.role,
 			};
+		}
+		else if (msg.action === "auth") {
+			this.token = msg.token;
+			log.debug("received auth token, joining room");
+			try {
+				await this.JoinRoom(this.room);
+			}
+			catch (e) {
+				if (e instanceof RoomNotFoundException) {
+					log.info(`Failed to join room: ${e}`);
+					this.Socket.close(OttWebsocketError.ROOM_NOT_FOUND);
+				}
+				else {
+					log.error(`Failed to join room: ${e.stack}`);
+					this.Socket.close(OttWebsocketError.UNKNOWN);
+				}
+			}
+			return;
 		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
@@ -160,6 +181,9 @@ export class Client {
 
 	public async JoinRoom(roomName: string): Promise<void> {
 		log.debug(`client id=${this.id} joining ${roomName}`);
+		if (!this.Session) {
+			this.Session = await tokens.getSessionInfo(this.token);
+		}
 
 		const room = await roommanager.GetRoom(roomName);
 		if (!room) {
@@ -186,9 +210,9 @@ export class Client {
 		}
 		clients.push(this);
 		roomJoins.set(room.name, clients);
-		await room.processRequest({
+		await this.makeRoomRequest({
 			type: RoomRequestType.JoinRequest,
-			client: this.id,
+			token: this.token,
 			info: this.clientInfo,
 		});
 	}
@@ -216,41 +240,28 @@ export class Client {
 export function Setup(): void {
 	log.debug("setting up client manager...");
 	const server = wss as WebSocket.Server;
-	server.on("connection", async (ws, req: Request & { session: Session }) => {
+	server.on("connection", async (ws, req: Request & { session: MySession }) => {
 		if (!req.url.startsWith("/api/room/")) {
 			log.error("Rejecting connection because the connection url was invalid");
 			ws.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid connection url");
 			return;
 		}
-		await OnConnect(req.session, ws, req);
+		await OnConnect(ws, req);
 	});
 }
 
 /**
  * Called when a websocket connects.
- * @param session
  * @param socket
  */
-async function OnConnect(session: Session, socket: WebSocket, req: Request) {
+async function OnConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
-	log.debug(`connection received: ${roomName}`);
-	const client = new Client(session as MySession, socket);
+	log.debug(`connection received: ${roomName}, waiting for auth token...`);
+	const client = new Client(req.ottsession, socket);
+	client.room = roomName;
 	connections.push(client);
 	socket.on("ping", (data) => client.OnPing(data));
 	socket.on("message", (data) => client.OnMessage(data as string));
-	try {
-		await client.JoinRoom(roomName);
-	}
-	catch (e) {
-		if (e instanceof RoomNotFoundException) {
-			log.info(`Failed to join room: ${e}`);
-			socket.close(OttWebsocketError.ROOM_NOT_FOUND);
-		}
-		else {
-			log.error(`Failed to join room: ${e.stack}`);
-			socket.close(OttWebsocketError.UNKNOWN);
-		}
-	}
 }
 
 async function broadcast(roomName: string, text: string) {
@@ -330,23 +341,25 @@ async function onRedisMessage(channel: string, text: string) {
 
 redisSubscriber.on("message", onRedisMessage);
 
-async function onUserModified(session: MySession) {
-	log.debug(`User was modified: ${session}, telling rooms`);
+async function onUserModified(token: AuthToken): Promise<void> {
+	log.debug(`User was modified, telling rooms`);
 	for (const client of connections) {
-		if (client.Session.id === session.id) {
-			client.Session = session;
+		if (client.token === token) {
 			await client.makeRoomRequest({
 				type: RoomRequestType.UpdateUser,
-				client: client.id,
+				token: token,
 				info: client.clientInfo,
 			});
 		}
 	}
 }
 
-function getClient(session: Session, roomName: string): Client {
+function getClient(token: AuthToken, roomName: string): Client {
 	for (const client of connections) {
-		if (client.Session.id === session.id && client.room === roomName) {
+		if (!client.token) {
+			continue;
+		}
+		if (client.token === token && client.room === roomName) {
 			return client;
 		}
 	}

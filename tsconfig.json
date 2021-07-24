@@ -24,14 +24,16 @@
 			"@/*": [
 				"src/*"
 			]
-		}
+		},
+		"outDir": "ts-out"
 	},
 	"include": [
+		"**/*.ts",
 		"src/**/*.ts",
 		"src/**/*.tsx",
 		"src/**/*.vue",
 		"tests/**/*.ts",
 		"tests/**/*.tsx"
 	],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "dist", "ts-out"]
 }

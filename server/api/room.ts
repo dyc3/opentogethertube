@@ -145,7 +145,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 		}
 	}
 
-	const client = clientmanager.getClient(req.session, req.params.name);
+	const client = clientmanager.getClient(req.token, req.params.name);
 	// FIXME: what if the client is not connected to this node?
 	const roomRequest: ApplySettingsRequest = {
 		type: RoomRequestType.ApplySettingsRequest,
@@ -195,10 +195,11 @@ const patchRoom: RequestHandler = async (req, res) => {
 	});
 };
 
-const undoEvent: RequestHandler = async (req, res) => {
-	const client = clientmanager.getClient(req.session, req.params.name);
+const undoEvent = async (req: express.Request, res) => {
+	const client = clientmanager.getClient(req.token, req.params.name);
 	const request: UndoRequest = {
 		type: RoomRequestType.UndoRequest,
+		token: req.token,
 		client: client.id,
 		event: req.body.data.event,
 	};
@@ -209,7 +210,7 @@ const undoEvent: RequestHandler = async (req, res) => {
 	});
 };
 
-const addVote: RequestHandler = async (req, res) => {
+const addVote = async (req: express.Request, res) => {
 	if (!req.body.service) {
 		throw new BadApiArgumentException("service", "missing");
 	}
@@ -217,9 +218,10 @@ const addVote: RequestHandler = async (req, res) => {
 		throw new BadApiArgumentException("id", "missing");
 	}
 
-	const client = clientmanager.getClient(req.session, req.params.name);
+	const client = clientmanager.getClient(req.token, req.params.name);
 	await client.makeRoomRequest({
 		type: RoomRequestType.VoteRequest,
+		token: req.token,
 		client: client.id,
 		video: { service: req.body.service, id: req.body.id },
 		add: true,
@@ -229,7 +231,7 @@ const addVote: RequestHandler = async (req, res) => {
 	});
 };
 
-const removeVote: RequestHandler = async (req, res) => {
+const removeVote = async (req: express.Request, res) => {
 	if (!req.body.service) {
 		throw new BadApiArgumentException("service", "missing");
 	}
@@ -237,9 +239,10 @@ const removeVote: RequestHandler = async (req, res) => {
 		throw new BadApiArgumentException("id", "missing");
 	}
 
-	const client = clientmanager.getClient(req.session, req.params.name);
+	const client = clientmanager.getClient(req.token, req.params.name);
 	await client.makeRoomRequest({
 		type: RoomRequestType.VoteRequest,
+		token: req.token,
 		client: client.id,
 		video: { service: req.body.service, id: req.body.id },
 		add: false,
@@ -309,7 +312,7 @@ router.patch("/:name", async (req, res, next) => {
 
 router.post("/:name/undo", async (req, res, next) => {
 	try {
-		await undoEvent(req, res, next);
+		await undoEvent(req as express.Request, res);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);
@@ -318,7 +321,7 @@ router.post("/:name/undo", async (req, res, next) => {
 
 router.post("/:name/vote", async (req, res, next) => {
 	try {
-		await addVote(req, res, next);
+		await addVote(req as express.Request, res);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);
@@ -327,7 +330,7 @@ router.post("/:name/vote", async (req, res, next) => {
 
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
-		await removeVote(req, res, next);
+		await removeVote(req as express.Request, res);
 	}
 	catch (e) {
 		errorHandler(e, req, res, next);

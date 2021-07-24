@@ -6,9 +6,12 @@ import passport from 'passport';
 import crypto from 'crypto';
 import { User, Room } from "./models";
 import clientmanager from "./server/clientmanager";
-import { redisClient } from './redisclient';
+import { redisClient, redisClientAsync } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
+import tokens from "./server/auth/tokens";
+import nocache from "nocache";
+import { uniqueNamesGenerator } from 'unique-names-generator';
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
@@ -33,7 +36,7 @@ const pwd = securePassword();
 const log = getLogger("usermanager");
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", nocache(), (req, res) => {
 	if (req.user) {
 		let user = {
 			username: req.user.username,
@@ -44,13 +47,13 @@ router.get("/", (req, res) => {
 	}
 	else {
 		res.json({
-			username: req.session.username,
+			username: req.ottsession.username,
 			loggedIn: false,
 		});
 	}
 });
 
-router.post("/", async (req, res) => {
+router.post("/", nocache(), async (req, res) => {
 	if (!req.body.username) {
 		res.status(400).json({
 			success: false,
@@ -99,15 +102,15 @@ router.post("/", async (req, res) => {
 		});
 	}
 	else {
-		oldUsername = req.session.username;
-		req.session.username = req.body.username;
-		req.session.save();
+		oldUsername = req.ottsession.username;
+		req.ottsession.username = req.body.username;
+		await tokens.setSessionInfo(req.token, req.ottsession);
 		res.json({
 			success: true,
 		});
 	}
 	log.info(`${oldUsername} changed username to ${req.body.username}`);
-	usermanager.onUserModified(req.session, req.body.username);
+	usermanager.onUserModified(req.token);
 });
 
 router.post("/login", async (req, res, next) => {
@@ -151,7 +154,7 @@ router.post("/login", async (req, res, next) => {
 			return;
 		}
 		if (user) {
-			req.login(user, (err) => {
+			req.login(user, async (err) => {
 				if (err) {
 					log.error("Unknown error when logging in");
 					res.status(500).json({
@@ -162,9 +165,10 @@ router.post("/login", async (req, res, next) => {
 					});
 					return;
 				}
-				req.session.save();
+				req.ottsession = { isLoggedIn: true, user_id: user.id };
+				await tokens.setSessionInfo(req.token, req.ottsession);
 				try {
-					usermanager.onUserLogIn(user, req.session);
+					usermanager.onUserLogIn(user, req.token);
 				}
 				catch (err) {
 					log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
@@ -189,11 +193,13 @@ router.post("/login", async (req, res, next) => {
 	})(req, res, next);
 });
 
-router.post("/logout", (req, res) => {
+router.post("/logout", async (req, res) => {
 	if (req.user) {
 		let user = req.user;
 		req.logout();
-		usermanager.onUserLogOut(user, req.session);
+		req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
+		await tokens.setSessionInfo(req.token, req.ottsession);
+		usermanager.onUserLogOut(user, req.token);
 		res.json({
 			success: true,
 		});
@@ -224,9 +230,12 @@ router.post("/register", async (req, res) => {
 	}
 	try {
 		let result = await usermanager.registerUser(req.body);
-		req.login(result, () => {
+		log.info(`User registered: ${result.id}`);
+		req.login(result, async () => {
+			req.ottsession = { isLoggedIn: true, user_id: result.id };
+			await tokens.setSessionInfo(req.token, req.ottsession);
 			try {
-				usermanager.onUserLogIn(result, req.session);
+				usermanager.onUserLogIn(result, req.token);
 			}
 			catch (err) {
 				log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
@@ -293,14 +302,6 @@ router.post("/register", async (req, res) => {
 			});
 		}
 	}
-});
-
-router.get('/auth/discord', passport.authenticate('discord'));
-router.get('/auth/discord/callback', passport.authenticate('discord', {
-	failureRedirect: '/',
-}), (req, res) => {
-	log.info(`${req.user.username} logged in via social login.`);
-	res.redirect('/'); // Successful auth
 });
 
 class BadPasswordError extends Error {
@@ -414,8 +415,14 @@ let usermanager = {
 	 * Converts a User into their user id.
 	 * Used for persistent session storage.
 	 */
-	serializeUser(user, done) {
-		done(null, user.id);
+	async serializeUser(user, done) {
+		log.silly(`serializeUser: ${JSON.stringify(user)}`);
+		if (user.user_id) {
+			done(null, user.user_id);
+		}
+		else {
+			done(null, user.id);
+		}
 	},
 
 	/**
@@ -443,7 +450,6 @@ let usermanager = {
 		if (err) {
 			log.error(`Error in middleware ${err}, logging user out.`);
 			req.logout();
-			req.session.save();
 			next();
 		}
 		else {
@@ -562,18 +568,18 @@ let usermanager = {
 		return conditions.reduce((acc, curr) => acc + curr) >= 2 && !!/^(?=.{8,})/.exec(password);
 	},
 
-	onUserLogIn(user, session) {
+	onUserLogIn(user, token) {
 		log.info(`${user.username} (id: ${user.id}) has logged in.`);
-		clientmanager.onUserModified(session);
+		clientmanager.onUserModified(token);
 	},
 
-	onUserLogOut(user, session) {
+	onUserLogOut(user, token) {
 		log.info(`${user.username} (id: ${user.id}) has logged out.`);
-		clientmanager.onUserModified(session);
+		clientmanager.onUserModified(token);
 	},
 
-	onUserModified(session) {
-		clientmanager.onUserModified(session);
+	onUserModified(token) {
+		clientmanager.onUserModified(token);
 	},
 
 	async isUsernameTaken(username) {
@@ -585,11 +591,21 @@ let usermanager = {
 		// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
 		return await User.findOne({ where: { email }}).then(room => room ? true : false).catch(() => false);
 	},
+
+	/**
+	 * Clears all user manager rate limiters. Intended only to be used during development and automated testing.
+	 */
+	async clearAllRateLimiting() {
+		await redisClientAsync.delPattern("login_fail_ip_per_day:*", "login_fail_consecutive_username_and_ip:*");
+	},
 };
 
 if (process.env.NODE_ENV === "test") {
 	router.get("/test/forceLogin", async (req, res) => {
-		req.login(await usermanager.getUser({ email: "forced@localhost" }), (err) => {
+		const user = await usermanager.getUser({ email: "forced@localhost" });
+		req.login(user, async (err) => {
+			req.ottsession = { isLoggedIn: true, user_id: user.id };
+			await tokens.setSessionInfo(req.token, req.ottsession);
 			res.json({
 				success: !!err,
 			});

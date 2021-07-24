@@ -1,4 +1,4 @@
-import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext, RoomSettings } from "./types";
+import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext, RoomSettings, AuthToken } from "./types";
 import { VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement | ServerMessageUser
@@ -32,7 +32,7 @@ export interface ServerMessageChat extends ServerMessageBase {
 export interface ServerMessageEvent extends ServerMessageBase {
 	action: "event"
 	request: RoomRequest
-	user: RoomUserInfo
+	user: Pick<RoomUserInfo, "name" | "isLoggedIn">
 	additional: RoomEventContext
 }
 
@@ -51,7 +51,7 @@ export interface UserInfo extends Omit<RoomUserInfo, "status"> {
 	grants: number
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote;
+export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote | ClientMessageAuthenticate;
 
 interface ClientMessageBase {
 	action: string
@@ -100,6 +100,11 @@ export interface ClientMessagePromote extends ClientMessageBase {
 	role: Role
 }
 
+export interface ClientMessageAuthenticate extends ClientMessageBase {
+	action: "auth"
+	token: AuthToken
+}
+
 export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest
 
 export enum RoomRequestType {
@@ -121,7 +126,8 @@ export enum RoomRequestType {
 
 export interface RoomRequestBase {
 	type: RoomRequestType
-	client: ClientId
+	token?: AuthToken
+	client?: ClientId
 }
 
 export interface JoinRequest extends RoomRequestBase {
@@ -131,6 +137,7 @@ export interface JoinRequest extends RoomRequestBase {
 
 export interface LeaveRequest extends RoomRequestBase {
 	type: RoomRequestType.LeaveRequest
+	client: ClientId
 }
 
 export interface PlaybackRequest extends RoomRequestBase {
