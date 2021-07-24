@@ -13,7 +13,7 @@ import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, 
 import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import { uniqueNamesGenerator } from 'unique-names-generator';
-import { SessionInfo } from "./auth/tokens.js";
+import tokens, { SessionInfo } from "./auth/tokens";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -181,6 +181,9 @@ export class Client {
 
 	public async JoinRoom(roomName: string): Promise<void> {
 		log.debug(`client id=${this.id} joining ${roomName}`);
+		if (!this.Session) {
+			this.Session = await tokens.getSessionInfo(this.token);
+		}
 
 		const room = await roommanager.GetRoom(roomName);
 		if (!room) {
