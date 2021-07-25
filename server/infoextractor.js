@@ -20,7 +20,7 @@ const adapters = [
   new DailyMotionAdapter(),
   new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY),
   new VimeoAdapter(),
-  new YouTubeAdapter(process.env.YOUTUBE_API_KEY),
+  new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
   new DirectVideoAdapter(),
   new RedditAdapter(),
   new NeverthinkAdapter(),
