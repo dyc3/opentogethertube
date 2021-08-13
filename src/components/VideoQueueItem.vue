@@ -1,7 +1,7 @@
 <template>
 	<v-sheet class="mt-2 video" hover>
 		<div class="img-container">
-			<v-img :src="thumbnailSource" :lazy-src="require('@/assets/placeholder.svg')" aspect-ratio="1.8" @error="onThumbnailError">
+			<v-img :src="thumbnailSource" :lazy-src="require('@/assets/placeholder.png')" aspect-ratio="1.8" @error="onThumbnailError">
 				<span class="drag-handle" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
 					<v-icon>fas fa-align-justify</v-icon>
 				</span>
@@ -69,7 +69,7 @@ export default class VideoQueueItem extends Vue {
 	}
 
 	get thumbnailSource(): string {
-		return !this.thumbnailHasError && this.item.thumbnail ? this.item.thumbnail : require('@/assets/placeholder.svg');
+		return !this.thumbnailHasError && this.item.thumbnail ? this.item.thumbnail : require('@/assets/placeholder.png');
 	}
 
 	get votes() {

@@ -2,7 +2,7 @@
   <v-app id="app">
     <v-app-bar app :absolute="!$store.state.fullscreen" :inverted-scroll="$store.state.fullscreen">
       <v-app-bar-nav-icon @click="drawer = true" />
-      <v-img :src="require('@/assets/logo.svg')" max-width="32" max-height="32" contain style="margin-right: 8px" />
+      <v-img :src="require('@/assets/logo128.png')" max-width="32" max-height="32" contain style="margin-right: 8px" />
       <v-toolbar-title>
         <router-link class="link-invis" style="margin-right: 10px" to="/">
           OpenTogetherTube
