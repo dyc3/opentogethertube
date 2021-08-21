@@ -328,7 +328,7 @@ export class Room implements RoomState {
 	async getRoleFromToken(token: AuthToken): Promise<Role> {
 		const session = await tokens.getSessionInfo(token);
 		if (session.user_id) {
-			if (this.owner.id === session.user_id) {
+			if (this.owner !== null && this.owner.id === session.user_id) {
 				return Role.Owner;
 			}
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
