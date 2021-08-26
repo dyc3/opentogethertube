@@ -84,7 +84,7 @@
     "vuetify": "^2.5.0",
     "vuex": "^3.6.2",
     "winston": "^3.2.1",
-    "ws": "^7.4.5"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "@babel/core": "7.9.0",
