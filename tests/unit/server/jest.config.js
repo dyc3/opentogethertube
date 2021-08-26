@@ -44,4 +44,5 @@ module.exports = {
     '!**/src/**',
     '!app.js',
   ],
+  setupFilesAfterEnv: ['./tests/unit/server/jest.setup.redis-mock.js'],
 };
