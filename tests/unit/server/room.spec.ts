@@ -1,13 +1,14 @@
 import dayjs from "dayjs";
 import tokens from "../../../server/auth/tokens";
 import { RoomRequestType } from "../../../common/models/messages";
-import { QueueMode } from "../../../common/models/types";
+import { QueueMode, Role } from "../../../common/models/types";
 import { Room, RoomUser } from "../../../server/room";
 
 describe("Room", () => {
 	beforeAll(() => {
 		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
 			username: "test",
+			isLoggedIn: false,
 		});
 		jest.spyOn(tokens, 'validate').mockResolvedValue(true);
 	});
@@ -200,5 +201,22 @@ describe("Room", () => {
 			});
 			expect(room.queue).toHaveLength(0);
 		});
+	});
+
+	it("should be able to get role in unowned room", async () => {
+		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			username: "test",
+			isLoggedIn: false,
+		});
+
+		const room = new Room({ name: "test" });
+		expect(await room.getRoleFromToken("fake")).toEqual(Role.UnregisteredUser);
+
+		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			user_id: -1,
+			isLoggedIn: true,
+		});
+
+		expect(await room.getRoleFromToken("fake")).toEqual(Role.RegisteredUser);
 	});
 });
