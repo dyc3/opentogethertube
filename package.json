@@ -119,6 +119,7 @@
     "husky": "4.2.3",
     "node-sass": "^5.0.0",
     "nodemon": "^2.0.4",
+    "redis-mock": "^0.56.3",
     "sass": "^1.32.0",
     "sass-loader": "^10.0.0",
     "sqlite3": "4.1.1",

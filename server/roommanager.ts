@@ -3,20 +3,12 @@ import { RoomOptions, RoomState } from "../common/models/types";
 import _ from "lodash";
 import NanoTimer from "nanotimer";
 import { getLogger } from "../logger.js";
-import { redisClient } from "../redisclient";
-import { promisify } from "util";
+import { redisClientAsync } from "../redisclient";
 import storage from "../storage";
 import { RoomAlreadyLoadedException, RoomNameTakenException, RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager
 
 const log = getLogger("roommanager");
-const redis = {
-	keys: promisify(redisClient.keys).bind(redisClient),
-	get: promisify(redisClient.get).bind(redisClient),
-	set: promisify(redisClient.set).bind(redisClient),
-	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
-	exists: promisify(redisClient.exists).bind(redisClient),
-};
 export const rooms: Room[] = [];
 
 function addRoom(room: Room) {
@@ -24,9 +16,9 @@ function addRoom(room: Room) {
 }
 
 export async function start() {
-	const keys = await redis.keys("room:*");
+	const keys = await redisClientAsync.keys("room:*");
 	for (const roomKey of keys) {
-		const text = await redis.get(roomKey);
+		const text = await redisClientAsync.get(roomKey);
 		if (!text) {
 			continue;
 		}
@@ -58,7 +50,7 @@ export async function CreateRoom(options: Partial<RoomOptions>): Promise<void> {
 			throw new RoomNameTakenException(options.name);
 		}
 	}
-	if (await redis.exists(`room:${options.name}`)) {
+	if (await redisClientAsync.exists(`room:${options.name}`)) {
 		log.warn("can't create room, already in redis");
 		throw new RoomNameTakenException(options.name);
 	}
@@ -86,13 +78,13 @@ export async function GetRoom(roomName: string): Promise<Room> {
 
 	const opts = await storage.getRoomByName(roomName);
 	if (opts) {
-		if (await redis.exists(`room:${opts.name}`)) {
+		if (await redisClientAsync.exists(`room:${opts.name}`)) {
 			log.debug("found room in database, but room is already in redis");
 			throw new RoomAlreadyLoadedException(opts.name);
 		}
 	}
 	else {
-		if (await redis.exists(`room:${roomName}`)) {
+		if (await redisClientAsync.exists(`room:${roomName}`)) {
 			log.debug("found room in redis, not loading");
 			throw new RoomAlreadyLoadedException(roomName);
 		}
@@ -120,8 +112,8 @@ export async function UnloadRoom(roomName: string): Promise<void> {
 		throw new RoomNotFoundException(roomName);
 	}
 	rooms.splice(idx, 1);
-	await redis.del(`room:${roomName}`);
-	await redis.del(`room-sync:${roomName}`);
+	await redisClientAsync.del(`room:${roomName}`);
+	await redisClientAsync.del(`room-sync:${roomName}`);
 }
 
 /**

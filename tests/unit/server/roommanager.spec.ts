@@ -5,19 +5,14 @@ import { Room as DbRoom } from "../../../models";
 import { Room } from "../../../server/room";
 import { QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
-import { redisClient } from "../../../redisclient";
 
 describe("Room manager", () => {
-	beforeEach(async done => {
+	beforeEach(async () => {
 		await DbRoom.destroy({ where: {} });
 		for (const room of roommanager.rooms) {
 			await roommanager.UnloadRoom(room.name);
 		}
 		roommanager.clearRooms();
-		// FIXME: mock redis functions instead of needing to use redis for these tests
-		redisClient.eval("return redis.call('DEL', unpack(redis.call('KEYS', ARGV[1] .. '*')))", 0, "room:", () => {
-			done();
-		});
 	});
 
 	describe("creating a room", () => {
