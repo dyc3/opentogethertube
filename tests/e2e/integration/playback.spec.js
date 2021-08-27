@@ -11,7 +11,7 @@ describe("Video playback", () => {
 
 	it("should add and play a video", () => {
 		cy.contains("button", "Add a video").click();
-		cy.get('.video-add input[type="text"]').type("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+		cy.get('[data-cy="add-preview-input"]').type("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 		cy.get('.video button').click();
 		cy.get("#ytcontainer").should("exist").scrollIntoView();
 		cy.wait(500);
