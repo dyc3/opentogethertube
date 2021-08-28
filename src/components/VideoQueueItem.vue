@@ -22,14 +22,15 @@
 					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
+				<v-btn @click="playNow" v-if="$store.state.room.queueMode !== QueueMode.Vote">
+					<v-icon>fas fa-play</v-icon>
+					<span>Play Now</span>
+				</v-btn>
+				<v-btn :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
-				</v-btn>
-				<v-btn @click="playNow">
-					<v-icon style="margin-right: 5px">fas fa-play</v-icon>
-					<span>Play Now</span>
+					<span>Add to Queue</span>
 				</v-btn>
 				<v-btn icon :loading="isLoadingAdd" v-if="!isPreview" @click="removeFromQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
@@ -255,7 +256,12 @@ export default class VideoQueueItem extends Vue {
 		}
 
 		> button {
-			margin: 0 10px;
+			margin: 0 5px;
+
+			.v-icon {
+				font-size: 18px;
+				margin-right: 5px;
+			}
 		}
 	}
 
