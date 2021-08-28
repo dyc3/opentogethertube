@@ -51,7 +51,7 @@ export interface UserInfo extends Omit<RoomUserInfo, "status"> {
 	grants: number
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote | ClientMessageAuthenticate;
+export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote | ClientMessageAuthenticate | ClientMessagePlayNow;
 
 interface ClientMessageBase {
 	action: string
@@ -103,6 +103,11 @@ export interface ClientMessagePromote extends ClientMessageBase {
 export interface ClientMessageAuthenticate extends ClientMessageBase {
 	action: "auth"
 	token: AuthToken
+}
+
+export interface ClientMessagePlayNow extends ClientMessageBase {
+	action: "play-now",
+	video: VideoId,
 }
 
 export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest | PlayNowRequest
