@@ -22,7 +22,7 @@ module.exports = {
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',
   ],
-  collectCoverage: true,
+  // collectCoverage: true,
   coverageReporters: [
     "text-summary",
     "text",
