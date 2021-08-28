@@ -8,11 +8,12 @@ import DirectVideoAdapter from "./services/direct";
 import RedditAdapter from "./services/reddit";
 import NeverthinkAdapter from "./services/neverthink";
 import storage from "../storage";
-import Video from "../common/video";
 import { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } from "./exceptions";
 import { getLogger } from "../logger";
 import { redisClient } from "../redisclient";
 import { isSupportedMimeType } from "./mime";
+import { Video, VideoId, VideoMetadata } from "../common/models/video";
+import { ServiceAdapter } from "./serviceadapter";
 
 const log = getLogger("infoextract");
 
@@ -27,10 +28,14 @@ const adapters = [
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
-const ENABLE_SEARCH = process.env.ENABLE_SEARCH === undefined || process.env.ENABLE_SEARCH === true || process.env.ENABLE_SEARCH === "true";
+const ENABLE_SEARCH = process.env.ENABLE_SEARCH === undefined || process.env.ENABLE_SEARCH === "true";
+
+function mergeVideo(a: Video, b: Video): Video {
+  return Object.assign(a, _.pickBy(b, x => !!x));
+}
 
 export default {
-  isURL(str) {
+  isURL(str: string): boolean {
     return URL.parse(str).host !== null;
   },
 
@@ -38,11 +43,8 @@ export default {
    * Returns a cached video and an array with property names. The property names indicate which
    * properties are still missing from the cache. On a cache miss, this function will return an empty
    * video object.
-   * @param {string} service
-   * @param {string} videoId
-   * @returns {[Video, string[]]}
    */
-  async getCachedVideo(service, videoId) {
+  async getCachedVideo(service: string, videoId: string): Promise<[Video, (keyof VideoMetadata)[]]> {
     try {
       const result = await storage.getVideoInfo(service, videoId);
       const video = result;
@@ -64,10 +66,8 @@ export default {
 
   /**
    * Writes video info objects to the database.
-   * @param {Video} videos
-   * @returns {Promise}
    */
-  async updateCache(videos) {
+  async updateCache(videos: Video[] | Video): Promise<void> {
     if (Array.isArray(videos)) {
       return storage.updateManyVideoInfo(videos);
     }
@@ -76,7 +76,7 @@ export default {
     }
   },
 
-  getCachedSearchResults(service, query) {
+  getCachedSearchResults(service: string, query: string): Promise<Video[]> {
     return new Promise((resolve, reject) => {
       redisClient.get(`search:${service}:${query}`, (err, value) => {
         if (err) {
@@ -93,7 +93,7 @@ export default {
     });
   },
 
-  cacheSearchResults(service, query, results) {
+  cacheSearchResults(service: string, query: string, results: Video[]): void {
     redisClient.set(`search:${service}:${query}`, JSON.stringify(results), "EX", 60 * 60 * 24, (err) => {
       if (err) {
         log.error(`Failed to cache search results: ${err}`);
@@ -103,29 +103,23 @@ export default {
 
   /**
    * Returns the adapter instance for a given service name.
-   * @param {string} service
-   * @returns {ServiceAdapter}
    */
-  getServiceAdapter(service) {
+  getServiceAdapter(service: string): ServiceAdapter {
     return adapters.find(adapter => adapter.serviceId === service);
   },
 
   /**
    * Returns the adapter that can handle a given URL.
-   * @param {string} url
-   * @returns {ServiceAdapter}
    */
-  getServiceAdapterForURL(url) {
+  getServiceAdapterForURL(url: string): ServiceAdapter {
     return adapters.find(adapter => adapter.canHandleURL(url));
   },
 
   /**
    * Returns metadata for a single video. Uses cached info if possible and writes newly fetched info
    * to the cache.
-   * @param {string} service
-   * @param {string} videoId
    */
-  async getVideoInfo(service, videoId) {
+  async getVideoInfo(service: string, videoId: string): Promise<Video> {
     const adapter = this.getServiceAdapter(service);
     const [cachedVideo, missingInfo] = await this.getCachedVideo(service, videoId);
 
@@ -138,7 +132,7 @@ export default {
       try {
         const fetchedVideo = await adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
         if (fetchedVideo.service === cachedVideo.service) {
-          const video = Video.merge(cachedVideo, fetchedVideo);
+          const video = mergeVideo(cachedVideo, fetchedVideo);
           if (adapter.isCacheSafe) {
             this.updateCache(video);
           }
@@ -173,7 +167,7 @@ export default {
     }
   },
 
-  async getManyVideoInfo(videos) {
+  async getManyVideoInfo(videos: VideoId[]): Promise<Video[]> {
     const grouped = _.groupBy(videos, "service");
     const results = await Promise.all(Object.entries(grouped).map(async ([service, serviceVideos]) => {
       // Handle each service separately
@@ -194,7 +188,7 @@ export default {
       return cachedVideos.map(video => {
         const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
         if (fetchedVideo) {
-          return Video.merge(video, fetchedVideo);
+          return mergeVideo(video, fetchedVideo);
         }
         else {
           return video;
@@ -216,17 +210,14 @@ export default {
    * video or a video collection, or search terms to run against an API. If query is a URL, a service
    * adapter will automatically be selected to handle it. If it is not a URL, searchService will be
    * used to perform a search.
-   * @param {string} query
-   * @param {string} searchService
-   * @returns {Promise<Video[]>}
    */
-  async resolveVideoQuery(query, searchService) {
+  async resolveVideoQuery(query: string, searchService: string): Promise<Video[]> {
     let results = [];
 
     if (query.includes("\n")) {
-      let lines = query.trim().split("\n").filter(line => this.isURL(line));
+      const lines = query.trim().split("\n").filter(line => this.isURL(line));
 
-      let videoIds = lines.map(line => {
+      const videoIds = lines.map(line => {
         const adapter = this.getServiceAdapterForURL(line);
         return {
           service: adapter.serviceId,
@@ -234,7 +225,7 @@ export default {
         };
       });
 
-      results = this.getManyVideoInfo(videoIds);
+      results = await this.getManyVideoInfo(videoIds);
     }
     else if (this.isURL(query)) {
       const adapter = this.getServiceAdapterForURL(query);
@@ -254,7 +245,7 @@ export default {
       }
 
       const fetchResults = await adapter.resolveURL(query);
-      let resolvedResults = fetchResults.map(video => {
+      const resolvedResults = fetchResults.map(video => {
         if ((!video.service || !video.id) && video.url) {
           const adapter = this.getServiceAdapterForURL(video.url);
           if (!adapter) {
@@ -285,11 +276,8 @@ export default {
 
   /**
    * Performs a search on a given video service.
-   * @param {string} service
-   * @param {string} query
-   * @returns {Video[]}
    */
-  async searchVideos(service, query) {
+  async searchVideos(service: string, query: string): Promise<Video[]> {
     if (!ENABLE_SEARCH) {
       throw new FeatureDisabledException("Searching has been disabled by an administrator.");
     }
