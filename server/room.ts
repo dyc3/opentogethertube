@@ -327,7 +327,7 @@ export class Room implements RoomState {
 
 	async getRoleFromToken(token: AuthToken): Promise<Role> {
 		const session = await tokens.getSessionInfo(token);
-		if (session.user_id) {
+		if (session && session.user_id) {
 			if (this.owner !== null && this.owner.id === session.user_id) {
 				return Role.Owner;
 			}
@@ -1004,5 +1004,8 @@ export class Room implements RoomState {
 		}
 		this.queue.unshift(this.currentSource);
 		this.currentSource = videoToPlay;
+		this.markDirty("queue");
+		this.playbackPosition = 0;
+		this._playbackStart = dayjs();
 	}
 }

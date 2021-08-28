@@ -52,4 +52,13 @@ export default {
 			role,
 		});
 	},
+	/**
+	 * @param {VideoId} video
+	 */
+	playNow(video) {
+		connection.send({
+			action: "play-now",
+			video,
+		});
+	},
 };

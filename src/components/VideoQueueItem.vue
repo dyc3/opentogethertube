@@ -27,7 +27,11 @@
 					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
+				<v-btn @click="playNow">
+					<v-icon style="margin-right: 5px">fas fa-play</v-icon>
+					<span>Play Now</span>
+				</v-btn>
+				<v-btn icon :loading="isLoadingAdd" v-if="!isPreview" @click="removeFromQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 					<v-icon v-else>fas fa-trash</v-icon>
 				</v-btn>
@@ -44,6 +48,7 @@ import { ToastStyle } from '@/models/toast';
 import Component from 'vue-class-component';
 import { Video, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
+import api from "@/util/api";
 
 @Component({
 	name: "VideoQueueItem",
@@ -171,6 +176,10 @@ export default class VideoQueueItem extends Vue {
 
 	}
 
+	playNow() {
+		api.playNow(this.item);
+	}
+
 	onThumbnailError() {
 		this.thumbnailHasError = true;
 	}
@@ -243,6 +252,10 @@ export default class VideoQueueItem extends Vue {
 			.vote-text {
 				display: none;
 			}
+		}
+
+		> button {
+			margin: 0 10px;
 		}
 	}
 

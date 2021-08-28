@@ -196,6 +196,24 @@ describe("Room", () => {
 				}
 				expect(room.currentSource).toEqual(videoToPlay);
 			});
+
+			it("should reset playback position to 0", async () => {
+				jest.spyOn(infoextractor, 'getVideoInfo').mockResolvedValue(videoToPlay);
+				room.currentSource = {
+					service: "test",
+					id: "asdf123",
+				};
+				room.playbackPosition = 10;
+				room.queue = [videoToPlay];
+				await room.processRequest({
+					type: RoomRequestType.PlayNowRequest,
+					client: user.id,
+					token: user.token,
+					video: videoToPlay,
+				});
+				expect(room.currentSource).toEqual(videoToPlay);
+				expect(room.playbackPosition).toEqual(0);
+			});
 		});
 	});
 
