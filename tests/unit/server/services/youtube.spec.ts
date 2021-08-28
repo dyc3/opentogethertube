@@ -15,6 +15,8 @@ const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
 	["3kw2_89ym31W", "https://www.youtube.com/watch?v=3kw2_89ym31W"],
 	["3kw2_89ym31W", "https://youtu.be/3kw2_89ym31W"],
+	["R5i-cktCTb4", "https://youtube.com/shorts/R5i-cktCTb4?feature=share"],
+	["DMfu0KiqWnk", "https://studio.youtube.com/video/DMfu0KiqWnk/edit"],
 ];
 
 const invalidLinks = [

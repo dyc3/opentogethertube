@@ -126,7 +126,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
         (url.pathname.startsWith("/channel/") && url.pathname.length > 9) ||
         (url.pathname.startsWith("/user/") && url.pathname.length > 6) ||
         (url.pathname.startsWith("/c/") && url.pathname.length > 3) ||
-        (url.pathname.startsWith("/playlist") && !!url.searchParams.get("list"));
+        (url.pathname.startsWith("/playlist") && !!url.searchParams.get("list")) ||
+        url.pathname.startsWith("/shorts/") ||
+        (url.host === "studio.youtube.com" && url.pathname.startsWith("/video/"));
     }
     else if (url.host.endsWith("youtu.be")) {
       return url.pathname.length > 1;
@@ -150,8 +152,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
     if (url.host.endsWith("youtu.be")) {
       return url.pathname.replace("/", "").trim();
     }
-    else {
+    else if (url.pathname.startsWith("/watch")) {
       return url.searchParams.get("v").trim();
+    }
+    else {
+      return url.pathname.split("/")[2];
     }
   }
 
