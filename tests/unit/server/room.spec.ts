@@ -3,6 +3,8 @@ import tokens from "../../../server/auth/tokens";
 import { RoomRequestType } from "../../../common/models/messages";
 import { QueueMode, Role } from "../../../common/models/types";
 import { Room, RoomUser } from "../../../server/room";
+import infoextractor from "../../../server/infoextractor";
+import { Video } from "../../../common/models/video";
 
 describe("Room", () => {
 	beforeAll(() => {
@@ -129,6 +131,70 @@ describe("Room", () => {
 					value: v,
 				});
 				expect(room.playbackPosition).toEqual(10);
+			});
+		});
+
+		describe("PlayNowRequest", () => {
+			const videoToPlay: Video = {
+				service: "test",
+				id: "video",
+				title: "play me now",
+				description: "test",
+				thumbnail: "test",
+				length: 10,
+			};
+
+			it("should place the requested video in currentSource", async () => {
+				jest.spyOn(infoextractor, 'getVideoInfo').mockResolvedValue(videoToPlay);
+				await room.processRequest({
+					type: RoomRequestType.PlayNowRequest,
+					client: user.id,
+					token: user.token,
+					video: videoToPlay,
+				});
+				expect(room.currentSource).toEqual(videoToPlay);
+			});
+
+			it("should remove the video from the queue", async () => {
+				jest.spyOn(infoextractor, 'getVideoInfo').mockResolvedValue(videoToPlay);
+				room.currentSource = {
+					service: "test",
+					id: "asdf123",
+				};
+				room.queue = [videoToPlay];
+				await room.processRequest({
+					type: RoomRequestType.PlayNowRequest,
+					client: user.id,
+					token: user.token,
+					video: videoToPlay,
+				});
+				for (const video of room.queue) {
+					expect(video).not.toEqual(videoToPlay);
+				}
+				expect(room.currentSource).toEqual(videoToPlay);
+			});
+
+			it("should push the currently playing video into the queue", async () => {
+				jest.spyOn(infoextractor, 'getVideoInfo').mockResolvedValue(videoToPlay);
+				room.currentSource = {
+					service: "test",
+					id: "asdf123",
+				};
+				room.queue = [videoToPlay];
+				await room.processRequest({
+					type: RoomRequestType.PlayNowRequest,
+					client: user.id,
+					token: user.token,
+					video: videoToPlay,
+				});
+				expect(room.queue[0]).toEqual({
+					service: "test",
+					id: "asdf123",
+				});
+				for (const video of room.queue) {
+					expect(video).not.toEqual(videoToPlay);
+				}
+				expect(room.currentSource).toEqual(videoToPlay);
 			});
 		});
 	});
