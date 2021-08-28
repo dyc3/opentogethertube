@@ -17,9 +17,9 @@
 		</div>
 		<div style="display: flex; justify-content: center; flex-direction: column">
 			<div class="button-container">
-				<v-btn @click="vote" :loading="isLoadingVote" :color="voted ? 'red' : 'green'" v-if="!isPreview && $store.state.room.queueMode === QueueMode.Vote">
+				<v-btn class="button-with-icon" @click="vote" :loading="isLoadingVote" :color="voted ? 'red' : 'green'" v-if="!isPreview && $store.state.room.queueMode === QueueMode.Vote">
 					<span>{{ votes }}</span>
-					<v-icon style="font-size: 18px; margin: 0 4px">fas fa-thumbs-up</v-icon>
+					<v-icon>fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
 				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
@@ -27,10 +27,31 @@
 					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" v-else @click="removeFromQueue">
+				<v-btn icon :loading="isLoadingAdd" v-if="!isPreview" @click="removeFromQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 					<v-icon v-else>fas fa-trash</v-icon>
 				</v-btn>
+				<v-menu offset-y>
+					<template v-slot:activator="{ on, attrs }">
+						<v-btn icon v-bind="attrs" v-on="on">
+							<v-icon>fas fa-ellipsis-v</v-icon>
+						</v-btn>
+					</template>
+					<v-list>
+						<v-list-item class="button-with-icon" @click="playNow" v-if="$store.state.room.queueMode !== QueueMode.Vote">
+							<v-icon>fas fa-play</v-icon>
+							<span>Play Now</span>
+						</v-list-item>
+						<v-list-item class="button-with-icon" @click="moveToTop" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
+							<v-icon>fas fa-sort-amount-up</v-icon>
+							<span>Play Next</span>
+						</v-list-item>
+						<v-list-item class="button-with-icon" @click="moveToBottom" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
+							<v-icon>fas fa-sort-amount-down-alt</v-icon>
+							<span>Play Last</span>
+						</v-list-item>
+					</v-list>
+				</v-menu>
 			</div>
 		</div>
 	</v-sheet>
@@ -44,17 +65,20 @@ import { ToastStyle } from '@/models/toast';
 import Component from 'vue-class-component';
 import { Video, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
+import api from "@/util/api";
 
 @Component({
 	name: "VideoQueueItem",
 	props: {
 		item: { type: Object, required: true },
 		isPreview: { type: Boolean, default: false },
+		index: { type: Number, required: false },
 	},
 })
 export default class VideoQueueItem extends Vue {
 	item: Video
 	isPreview: boolean
+	index: number
 
 	isLoadingAdd = false
 	isLoadingVote = false
@@ -171,6 +195,24 @@ export default class VideoQueueItem extends Vue {
 
 	}
 
+	playNow() {
+		api.playNow(this.item);
+	}
+
+	/**
+	 * Moves the video to the top of the queue.
+	 */
+	moveToTop() {
+		api.queueMove(this.index, 0);
+	}
+
+	/**
+	 * Moves the video to the bottom of the queue.
+	 */
+	moveToBottom() {
+		api.queueMove(this.index, this.$store.state.room.queue.length - 1);
+	}
+
 	onThumbnailError() {
 		this.thumbnailHasError = true;
 	}
@@ -244,6 +286,10 @@ export default class VideoQueueItem extends Vue {
 				display: none;
 			}
 		}
+
+		> button {
+			margin: 0 5px;
+		}
 	}
 
 	.drag-handle {
@@ -270,6 +316,13 @@ export default class VideoQueueItem extends Vue {
 		.drag-handle {
 			opacity: 1;
 		}
+	}
+}
+
+.button-with-icon {
+	.v-icon {
+		font-size: 18px;
+		margin: 0 5px;
 	}
 }
 

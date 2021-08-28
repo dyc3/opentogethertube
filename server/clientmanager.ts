@@ -161,6 +161,12 @@ export class Client {
 			}
 			return;
 		}
+		else if (msg.action === "play-now") {
+			request = {
+				type: RoomRequestType.PlayNowRequest,
+				video: msg.video,
+			};
+		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;

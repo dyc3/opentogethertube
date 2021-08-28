@@ -51,7 +51,7 @@ export interface UserInfo extends Omit<RoomUserInfo, "status"> {
 	grants: number
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote | ClientMessageAuthenticate;
+export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote | ClientMessageAuthenticate | ClientMessagePlayNow;
 
 interface ClientMessageBase {
 	action: string
@@ -105,7 +105,12 @@ export interface ClientMessageAuthenticate extends ClientMessageBase {
 	token: AuthToken
 }
 
-export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest
+export interface ClientMessagePlayNow extends ClientMessageBase {
+	action: "play-now",
+	video: VideoId,
+}
+
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest | PlayNowRequest
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -122,6 +127,7 @@ export enum RoomRequestType {
 	ChatRequest,
 	UndoRequest,
 	ApplySettingsRequest,
+	PlayNowRequest,
 }
 
 export interface RoomRequestBase {
@@ -205,4 +211,12 @@ export interface UndoRequest extends RoomRequestBase {
 export interface ApplySettingsRequest extends RoomRequestBase {
 	type: RoomRequestType.ApplySettingsRequest,
 	settings: Partial<RoomSettings>
+}
+
+/**
+ * Request that the room play a video immediately, pushing the current video to the queue. If the video is already in the queue, it will be removed from the queue and start playing. If the video is already playing, this will be ignored.
+ */
+export interface PlayNowRequest extends RoomRequestBase {
+	type: RoomRequestType.PlayNowRequest,
+	video: VideoId
 }

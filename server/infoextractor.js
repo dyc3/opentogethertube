@@ -40,7 +40,7 @@ export default {
    * video object.
    * @param {string} service
    * @param {string} videoId
-   * @returns {[string, string[]]}
+   * @returns {[Video, string[]]}
    */
   async getCachedVideo(service, videoId) {
     try {
@@ -124,7 +124,6 @@ export default {
    * to the cache.
    * @param {string} service
    * @param {string} videoId
-   * @returns {Promise<Video>}
    */
   async getVideoInfo(service, videoId) {
     const adapter = this.getServiceAdapter(service);

@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest } from "../common/models/messages";
+import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest, PlayNowRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -327,7 +327,7 @@ export class Room implements RoomState {
 
 	async getRoleFromToken(token: AuthToken): Promise<Role> {
 		const session = await tokens.getSessionInfo(token);
-		if (session.user_id) {
+		if (session && session.user_id) {
 			if (this.owner !== null && this.owner.id === session.user_id) {
 				return Role.Owner;
 			}
@@ -564,6 +564,7 @@ export class Room implements RoomState {
 			[RoomRequestType.ChatRequest]: "chat",
 			[RoomRequestType.UndoRequest]: "undo",
 			[RoomRequestType.ApplySettingsRequest]: "applySettings",
+			[RoomRequestType.PlayNowRequest]: "playNow",
 		};
 
 		const handler = handlers[request.type];
@@ -971,5 +972,40 @@ export class Room implements RoomState {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Request that the room play a video immediately, pushing the current video to the queue. If the video is already in the queue, it will be removed from the queue and start playing. If the video is already playing, this will be ignored.
+	 */
+	public async playNow(request: PlayNowRequest): Promise<void> {
+		if (this.currentSource !== null && this.currentSource.service === request.video.service && this.currentSource.id === request.video.id) {
+			// already playing, ignore
+			return;
+		}
+
+		const role = await this.getRoleFromToken(request.token);
+
+		// First, we need to determine what permissions we need to check for this request.
+		const alreadyInQueue = this.isVideoInQueue(request.video); // So we don't need to calculate this again later.
+		if (alreadyInQueue) {
+			this.grants.check(role, "manage-queue.order");
+		}
+		else {
+			this.grants.check(role, "manage-queue.add");
+		}
+
+		let videoToPlay: Video;
+		if (alreadyInQueue) {
+			const queueIdx = _.findIndex(this.queue, item => (item.service === request.video.service && item.id === request.video.id));
+			videoToPlay = this.queue.splice(queueIdx, 1)[0];
+		}
+		else {
+			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
+		}
+		this.queue.unshift(this.currentSource);
+		this.currentSource = videoToPlay;
+		this.markDirty("queue");
+		this.playbackPosition = 0;
+		this._playbackStart = dayjs();
 	}
 }
