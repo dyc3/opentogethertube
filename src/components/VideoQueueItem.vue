@@ -298,7 +298,7 @@ export default class VideoQueueItem extends Vue {
 .button-with-icon {
 	.v-icon {
 		font-size: 18px;
-		margin-right: 5px;
+		margin: 0 5px;
 	}
 }
 
