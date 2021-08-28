@@ -16,7 +16,7 @@
 		</div>
 		<draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
 			<transition-group name="video-queue">
-				<VideoQueueItem v-for="itemdata in $store.state.room.queue" :key="itemdata.id" :item="itemdata"/>
+				<VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="itemdata.id" :item="itemdata" :index="index" />
 			</transition-group>
 		</draggable>
 	</div>

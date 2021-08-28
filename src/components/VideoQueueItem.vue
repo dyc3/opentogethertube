@@ -42,6 +42,14 @@
 							<v-icon>fas fa-play</v-icon>
 							<span>Play Now</span>
 						</v-list-item>
+						<v-list-item class="button-with-icon" @click="moveToTop" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
+							<v-icon>fas fa-sort-amount-up</v-icon>
+							<span>Play Next</span>
+						</v-list-item>
+						<v-list-item class="button-with-icon" @click="moveToBottom" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
+							<v-icon>fas fa-sort-amount-down-alt</v-icon>
+							<span>Play Last</span>
+						</v-list-item>
 					</v-list>
 				</v-menu>
 			</div>
@@ -64,11 +72,13 @@ import api from "@/util/api";
 	props: {
 		item: { type: Object, required: true },
 		isPreview: { type: Boolean, default: false },
+		index: { type: Number, required: false },
 	},
 })
 export default class VideoQueueItem extends Vue {
 	item: Video
 	isPreview: boolean
+	index: number
 
 	isLoadingAdd = false
 	isLoadingVote = false
@@ -187,6 +197,20 @@ export default class VideoQueueItem extends Vue {
 
 	playNow() {
 		api.playNow(this.item);
+	}
+
+	/**
+	 * Moves the video to the top of the queue.
+	 */
+	moveToTop() {
+		api.queueMove(this.index, 0);
+	}
+
+	/**
+	 * Moves the video to the bottom of the queue.
+	 */
+	moveToBottom() {
+		api.queueMove(this.index, this.$store.state.room.queue.length - 1);
 	}
 
 	onThumbnailError() {
