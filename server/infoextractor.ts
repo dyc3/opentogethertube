@@ -76,21 +76,9 @@ export default {
     }
   },
 
-  getCachedSearchResults(service: string, query: string): Promise<Video[]> {
-    return new Promise((resolve, reject) => {
-      redisClient.get(`search:${service}:${query}`, (err, value) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        if (!value) {
-          resolve(null);
-          return;
-        }
-
-        resolve(JSON.parse(value));
-      });
-    });
+  async getCachedSearchResults(service: string, query: string): Promise<Video[]> {
+    const value = await redisClientAsync.get(`search:${service}:${query}`);
+    return JSON.parse(value);
   },
 
   async cacheSearchResults(service: string, query: string, results: Video[]): Promise<void> {
