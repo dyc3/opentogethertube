@@ -13,7 +13,7 @@ import { Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from 'dayjs';
 import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
-import { ImpossiblePromotionException, OttException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
+import { ImpossiblePromotionException, VideoAlreadyQueuedException, VideoNotFoundException } from "./exceptions";
 import storage from "./../storage";
 import tokens, { SessionInfo } from "./auth/tokens";
 import statistics, { Counter } from "./statistics";

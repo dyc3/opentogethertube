@@ -1,8 +1,7 @@
 import { Url } from "url";
+import { OttException } from "../common/exceptions";
 
 // export type OttException = UnsupportedServiceException | InvalidAddPreviewInputException | OutOfQuotaException | InvalidVideoIdException | FeatureDisabledException | UnsupportedMimeTypeException | LocalFileException | MissingMetadataException | IncompleteServiceAdapterException | PermissionDeniedException | ImpossiblePromotionException | InvalidRoleException | RoomNotFoundException | RoomAlreadyLoadedException | RoomNameTakenException | VideoAlreadyQueuedException | VideoNotFoundException | BadApiArgumentException
-
-export class OttException extends Error {}
 
 export class UnsupportedServiceException extends OttException {
 	constructor(url: Url) {
@@ -96,27 +95,11 @@ export class MissingMetadataException extends OttException {
 export class IncompleteServiceAdapterException extends OttException {
 }
 
-export class PermissionDeniedException extends OttException {
-	name = "PermissionDeniedException";
-
-	constructor(permission: string) {
-		super(`Permission denied: ${permission}`);
-	}
-}
-
 export class ImpossiblePromotionException extends OttException {
 	name = "ImpossiblePromotionException";
 
 	constructor() {
 		super(`Can't promote/demote unregistered user`);
-	}
-}
-
-export class InvalidRoleException extends OttException {
-	name = "InvalidRoleException";
-
-	constructor(role: any) {
-		super(`Role ${role} (type: ${typeof role}) is not valid.`);
 	}
 }
 
