@@ -2,14 +2,6 @@ import YouTubeAdapter from "../../../../server/services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../../server/exceptions";
 import { redisClient } from "../../../../redisclient";
-import { Callback } from "redis";
-
-jest
-	.spyOn(redisClient, "get")
-	.mockImplementation((key: string, callback?: Callback<string>) => {
-		callback(null, null); return true;
-	});
-jest.spyOn(redisClient, "set").mockImplementation();
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],

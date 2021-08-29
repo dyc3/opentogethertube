@@ -10,7 +10,7 @@ import NeverthinkAdapter from "./services/neverthink";
 import storage from "../storage";
 import { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } from "./exceptions";
 import { getLogger } from "../logger";
-import { redisClient } from "../redisclient";
+import { redisClient, redisClientAsync } from "../redisclient";
 import { isSupportedMimeType } from "./mime";
 import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
@@ -93,12 +93,8 @@ export default {
     });
   },
 
-  cacheSearchResults(service: string, query: string, results: Video[]): void {
-    redisClient.set(`search:${service}:${query}`, JSON.stringify(results), "EX", 60 * 60 * 24, (err) => {
-      if (err) {
-        log.error(`Failed to cache search results: ${err}`);
-      }
-    });
+  async cacheSearchResults(service: string, query: string, results: Video[]): Promise<void> {
+    await redisClientAsync.set(`search:${service}:${query}`, JSON.stringify(results), "EX", 60 * 60 * 24);
   },
 
   /**

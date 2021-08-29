@@ -4,7 +4,7 @@ const { getMimeType } = require("../../../server/mime");
 const YouTubeAdapter = require("../../../server/services/youtube");
 const { UnsupportedMimeTypeException, OutOfQuotaException } = require("../../../server/exceptions");
 import { ServiceAdapter } from "../../../server/serviceadapter";
-const { redisClient } = require("../../../redisclient");
+const { redisClientAsync } = require("../../../redisclient");
 const _ = require("lodash");
 
 class TestAdapter extends ServiceAdapter {
@@ -67,15 +67,12 @@ describe("InfoExtractor", () => {
 		};
 
 		it("should use cached search results", async () => {
-			let redisGet = jest.spyOn(redisClient, "get")
-				.mockImplementation((key, callback) => callback(null, JSON.stringify([_.pick(vid, "service", "id")])));
-			let redisSet = jest.spyOn(redisClient, "set").mockImplementation();
+			await redisClientAsync.set("search:fakeservice:asdf", JSON.stringify([vid]));
 			let adapter = new TestAdapter();
 			let getAdapterSpy = jest.spyOn(InfoExtractor, 'getServiceAdapter').mockReturnValue(adapter);
-			let getCacheSpy = jest.spyOn(InfoExtractor, 'getCachedSearchResults');
+			let getCacheSpy = jest.spyOn(InfoExtractor, 'getCachedSearchResults').mockResolvedValue([vid]);
 			let getManyVideoInfoSpy = jest.spyOn(InfoExtractor, 'getManyVideoInfo').mockResolvedValue([vid]);
 			let results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
-			expect(redisGet).toBeCalledTimes(1);
 			expect(getAdapterSpy).toBeCalledTimes(0);
 			expect(getCacheSpy).toBeCalledTimes(1);
 			expect(getManyVideoInfoSpy).toBeCalledTimes(1);
@@ -84,14 +81,9 @@ describe("InfoExtractor", () => {
 			getManyVideoInfoSpy.mockRestore();
 			getCacheSpy.mockRestore();
 			getAdapterSpy.mockRestore();
-			redisGet.mockRestore();
-			redisSet.mockRestore();
 		});
 
 		it("should cache fresh search results", async () => {
-			let redisGet = jest.spyOn(redisClient, "get")
-				.mockImplementation((key, callback) => callback(null, null));
-			let redisSet = jest.spyOn(redisClient, "set").mockImplementation();
 			let adapter = new TestAdapter();
 			let getAdapterSpy = jest.spyOn(InfoExtractor, 'getServiceAdapter').mockReturnValue(adapter);
 			let getCacheSpy = jest.spyOn(InfoExtractor, 'getCachedSearchResults').mockResolvedValue(null);
@@ -110,14 +102,11 @@ describe("InfoExtractor", () => {
 			expect(getAdapterSpy).toBeCalledTimes(1);
 			expect(getManyVideoInfoSpy).toBeCalledTimes(1);
 			expect(searchSpy).toBeCalledTimes(1);
-			expect(redisSet).toBeCalledTimes(1);
-			expect(redisSet.mock.calls[0][0]).toEqual(`search:${adapter.serviceId}:asdf`);
+			expect((await redisClientAsync.get(`search:${adapter.serviceId}:asdf`)).length).toBeGreaterThan(0);
 
 			getManyVideoInfoSpy.mockRestore();
 			searchSpy.mockRestore();
 			getCacheSpy.mockRestore();
-			redisGet.mockRestore();
-			redisSet.mockRestore();
 		});
 
 	});
@@ -253,7 +242,7 @@ describe("InfoExtractor", () => {
 			storageGetManyVideoInfo.mockRestore();
 		});
 
-		let vids = [
+		const vids = [
 			{
 				service: "fakeservice",
 				id: "asdf",
