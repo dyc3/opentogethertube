@@ -393,7 +393,7 @@ describe('Storage: CachedVideos: bulk inserts/updates', () => {
         title: "test video 5",
       },
     ];
-    expect(await storage.updateManyVideoInfo(videos)).toBe(true);
+    await storage.updateManyVideoInfo(videos);
 
     expect(await storage.getVideoInfo("fakeservice", "abc123")).toEqual(videos[0]);
     expect(await storage.getVideoInfo("fakeservice", "abc456")).toEqual(videos[1]);
