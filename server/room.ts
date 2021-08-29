@@ -1,4 +1,4 @@
-import permissions, { Grants } from "./permissions.js";
+import permissions, { Grants } from "../common/permissions";
 import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";

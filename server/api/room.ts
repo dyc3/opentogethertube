@@ -9,7 +9,7 @@ import clientmanager from "../clientmanager";
 import { ApplySettingsRequest, RoomRequestType, UndoRequest } from "../../common/models/messages";
 import { User } from "../../models/user";
 import storage from "../../storage";
-import { Grants } from "../permissions.js";
+import { Grants } from "../../common/permissions";
 
 const router = express.Router();
 const log = getLogger("api/room");

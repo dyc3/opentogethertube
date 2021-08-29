@@ -1,4 +1,4 @@
-import permissions from "../../../server/permissions.js";
+import permissions from "../../../common/permissions";
 
 describe('Permission System', () => {
 	it('should parse exact permissions list into correct grant mask', () => {
