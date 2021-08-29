@@ -11,7 +11,7 @@
     "lint-ci": "vue-cli-service --no-fix lint .",
     "test": "npm run test-unit-server && npm run test-unit-client",
     "test-unit-client": "vue-cli-service test:unit --config ./tests/unit/client/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit",
-    "test-unit-server": "jest --config ./tests/unit/server/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit",
+    "test-unit-server": "jest --config ./tests/unit/server/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage",
     "test-e2e": "start-server-and-test optic-dev http-get://localhost:8080 cy:run",
     "cy:run": "cypress run --config-file cypress.json --headless",
     "cy:open": "cypress open --config-file cypress.json",

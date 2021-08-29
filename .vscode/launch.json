@@ -26,13 +26,12 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Jest All",
-			"program": "${workspaceFolder}/node_modules/.bin/vue-cli-service",
+			"name": "Jest Server Unit Tests",
+			"program": "${workspaceFolder}/node_modules/.bin/jest",
 			"args": [
-				"test:unit",
 				"--runInBand",
 				"--config",
-				"jest.config.js",
+				"./tests/unit/server/jest.config.js",
 			],
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
