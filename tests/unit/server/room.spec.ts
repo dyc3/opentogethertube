@@ -5,6 +5,7 @@ import { QueueMode, Role } from "../../../common/models/types";
 import { Room, RoomUser } from "../../../server/room";
 import infoextractor from "../../../server/infoextractor";
 import { Video } from "../../../common/models/video";
+import permissions from "../../../common/permissions";
 
 describe("Room", () => {
 	beforeAll(() => {
@@ -39,6 +40,8 @@ describe("Room", () => {
 			user.token = "asdf1234";
 			room = new Room({ name: "test" });
 			room.realusers = [user];
+			// because we aren't testing the permission system, grant all the permissions
+			room.grants.setRoleGrants(Role.UnregisteredUser, permissions.parseIntoGrantMask(["*"]));
 		});
 
 		describe("PlaybackRequest", () => {

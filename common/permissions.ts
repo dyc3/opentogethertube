@@ -1,8 +1,19 @@
 const _ = require("lodash");
 const { getLogger } = require("../logger.js");
-import { PermissionDeniedException, InvalidRoleException } from "./exceptions.ts";
+import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 import { Role } from "./models/types";
 const log = getLogger("permissions");
+
+export type GrantMask = number;
+export type PermissionName = string;
+/**
+ * The old format for mapping roles to grant masks
+ * @deprecated
+ */
+export type OldRoleGrants = {
+	[P in keyof typeof Role]?: GrantMask
+}
+export type RoleGrants = Map<Role, GrantMask>;
 
 /** @deprecated */
 const ROLES = {
@@ -14,7 +25,7 @@ const ROLES = {
 	OWNER: Role.Owner,
 };
 
-const ROLE_NAMES = {
+const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Administrator]: "admin",
 	[Role.Moderator]: "mod",
 	[Role.TrustedUser]: "trusted",
@@ -23,7 +34,7 @@ const ROLE_NAMES = {
 	[Role.Owner]: "owner",
 };
 
-const ROLE_DISPLAY_NAMES = {
+const ROLE_DISPLAY_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Administrator]: "Administrator",
 	[Role.Moderator]: "Moderator",
 	[Role.TrustedUser]: "Trusted User",
@@ -68,8 +79,12 @@ const PERMISSION_HEIRARCHY = {
 	},
 };
 
-class Permission {
-	constructor(args) {
+export class Permission {
+	name: PermissionName
+	mask: GrantMask
+	minRole: Role
+
+	constructor(args: Partial<{name: PermissionName, mask: GrantMask, minRole: Role}>) {
 		this.name = "";
 		this.mask = 0;
 		this.minRole = Role.UnregisteredUser;
@@ -104,13 +119,13 @@ export const PERMISSIONS = [
 	new Permission({ name: "manage-users.demote-trusted-user", mask: 1<<21, minRole: Role.TrustedUser }),
 ];
 
-const permMaskMap = Object.fromEntries(PERMISSIONS.map(p => [p.name, p.mask]));
+const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));
 
 /**
  * Get the default permissions.
  * @deprecated
  */
-function defaultPermissions() {
+function defaultPermissions(): Grants {
 	return new Grants({
 		[Role.UnregisteredUser]: parseIntoGrantMask([
 			"playback",
@@ -134,15 +149,14 @@ function defaultPermissions() {
 
 /**
  * Creates a deterministic mask given a list of string form permissions.
- * @param {string[]} perms
  */
-function parseIntoGrantMask(perms) {
+function parseIntoGrantMask(perms: PermissionName[]): GrantMask {
 	if (!(perms instanceof Array)) {
 		throw new TypeError(`perms must be an array of strings, got ${typeof perms}`);
 	}
 	let mask = 0;
-	for (let perm of perms) {
-		_.forOwn(permMaskMap, (value, key) => {
+	for (const perm of perms) {
+		permMaskMap.forEach((value, key) => {
 			if (key.startsWith(perm) || perm === "*") {
 				mask |= value;
 			}
@@ -153,11 +167,9 @@ function parseIntoGrantMask(perms) {
 
 /**
  * Get the full grant mask for a role, accounting for permission inheritance.
- * @param {Object} grants
- * @param {Role} role
  * @deprecated
  */
-function getFullGrantMask(grants, role) {
+function getFullGrantMask(grants: Grants, role: Role): GrantMask {
 	let fullmask = grants[role];
 	for (let i = role - 1; i >= Role.UnregisteredUser; i--) {
 		fullmask |= grants[i];
@@ -167,10 +179,9 @@ function getFullGrantMask(grants, role) {
 
 /**
  * Get a mask of permissions that are allowed for the given role, based on stuff like minRole.
- * @param {Number} role
  */
-function getValidationMask(role) {
-	let masks = PERMISSIONS.filter(p => role >= p.minRole).map(p => p.mask);
+function getValidationMask(role: Role): GrantMask {
+	const masks = PERMISSIONS.filter(p => role >= p.minRole).map(p => p.mask);
 	if (masks.length === 0) {
 		return parseIntoGrantMask(["*"]);
 	}
@@ -179,21 +190,17 @@ function getValidationMask(role) {
 
 /**
  * Check if the given role is valid.
- * @param {Number} role
  */
-function isRoleValid(role) {
+function isRoleValid(role: Role) {
 	if (typeof role === "number") {
-		return -1 <= role <= 4;
+		return -1 <= role && role <= 4;
 	}
 	else {
 		return false;
 	}
 }
 
-/**
- * @param {Role} role
- */
-function _normalizeRoleId(role) {
+function _normalizeRoleId(role: Role | string | number): Role {
 	if (typeof role === "string") {
 		role = parseInt(role);
 	}
@@ -202,25 +209,19 @@ function _normalizeRoleId(role) {
 
 /**
  * Checks if the given role is granted the permission, given the grants.
- * @param {Object} grants
- * @param {Role} role
- * @param {string} permission
  * @deprecated
  */
-function granted(grants, role, permission) {
+function granted(grants: Grants, role: Role, permission: PermissionName): boolean {
 	const g = new Grants(grants);
 	return g.granted(role, permission);
 }
 
 /**
  * Checks to see if the permission is granted. Throws an exception if it fails.
- * @param {Object} grants
- * @param {Role} role
- * @param {string} permission
  * @throws PermissionDeniedException
  * @deprecated
  */
-function check(grants, role, permission) {
+function check(grants: Grants, role: Role, permission: PermissionName): void {
 	const g = new Grants(grants);
 	g.check(role, permission);
 }
@@ -230,10 +231,12 @@ function check(grants, role, permission) {
  * If grants are not provided, the defaults will be used.
  */
 export class Grants {
+	masks: RoleGrants;
+
 	/**
 	 * @param {Object|undefined} grants Opional object that maps roles to grant masks.
 	 */
-	constructor(grants=undefined) {
+	constructor(grants: Grants | RoleGrants | OldRoleGrants | undefined=undefined) {
 		if (!grants) {
 			grants = defaultPermissions();
 		}
@@ -242,26 +245,30 @@ export class Grants {
 		this.setRoleGrants(Role.Owner, parseIntoGrantMask(["*"]));
 	}
 
-	/**
-	 *
-	 * @param {Role} role
-	 * @returns {number}
-	 */
-	getMask(role) {
-		return this.masks[role];
+	getMask(role: Role): GrantMask {
+		return this.masks.get(role);
 	}
 
 	/**
 	 * Clears all grant masks and replaces them with `grants`.
-	 * @param {Object} grants Opional object that maps roles to grant masks.
+	 * @param grants Opional object that maps roles to grant masks.
 	 */
-	setAllGrants(grants) {
-		this.masks = {};
+	setAllGrants(grants: RoleGrants | Grants | OldRoleGrants | [Role, GrantMask][]): void {
+		this.masks = new Map();
+		if (Array.isArray(grants)) {
+			grants = new Map(grants);
+		}
 		if (grants instanceof Grants) {
 			this.setAllGrants(grants.masks);
 		}
+		else if (grants instanceof Map) {
+			for (const role of grants.keys()) {
+				this.setRoleGrants(role, grants.get(role));
+			}
+		}
 		else {
-			for (const role in grants) {
+			for (const r in grants) {
+				const role = _normalizeRoleId(r);
 				if (Object.hasOwnProperty.call(grants, role)) {
 					this.setRoleGrants(role, grants[role]);
 				}
@@ -270,10 +277,9 @@ export class Grants {
 	}
 
 	/**
-	 * @param {string[]|Number} permissions
-	 * @returns {Number} Grant bitmask
+	 * @returns Grant bitmask
 	 */
-	_normalizePermissionsInput(permissions) {
+	_normalizePermissionsInput(permissions: PermissionName[] | GrantMask): GrantMask {
 		if (permissions instanceof Array) {
 			permissions = parseIntoGrantMask(permissions);
 		}
@@ -281,37 +287,33 @@ export class Grants {
 	}
 
 	/**
-	 * @param {Role} role
-	 * @param {string[]|Number} permissions
 	 * @throws InvalidRoleException
 	 */
-	setRoleGrants(role, permissions) {
+	setRoleGrants(role: Role, permissions: PermissionName[] | GrantMask): void {
 		role = _normalizeRoleId(role);
 		if (!isRoleValid(role)) {
 			throw new InvalidRoleException(role);
 		}
 		permissions = this._normalizePermissionsInput(permissions);
 		const validation = getValidationMask(role);
-		this.masks[role] = permissions & validation;
+		this.masks.set(role, permissions & validation);
 		this._processInheiritance();
 	}
 
-	_processInheiritance() {
-		let fullmask = 0;
+	_processInheiritance(): void {
+		let fullmask: GrantMask = 0;
 		for (let i = Role.UnregisteredUser; i <= Role.Administrator; i++) {
-			fullmask |= this.masks[i];
-			this.masks[i] = fullmask;
+			fullmask |= this.getMask(i);
+			this.masks.set(i, fullmask);
 		}
 	}
 
 	/**
 	 * Checks if the given role is granted the permission, given the grants.
-	 * @param {Role} role
-	 * @param {string|Permission} permission
 	 */
-	granted(role, permission) {
+	granted(role: Role, permission: Permission | PermissionName): boolean {
 		role = _normalizeRoleId(role);
-		let checkmask;
+		let checkmask: GrantMask;
 		if (permission instanceof Permission) {
 			checkmask = permission.mask;
 		}
@@ -321,8 +323,8 @@ export class Grants {
 		else {
 			return false;
 		}
-		let fullmask = this.masks[role];
-		let isGranted = (fullmask & checkmask) === checkmask;
+		const fullmask = this.getMask(role);
+		const isGranted = (fullmask & checkmask) === checkmask;
 		if (isGranted) {
 			log.info(`${permission} granted to ${ROLE_DISPLAY_NAMES[role]}`);
 		}
@@ -334,52 +336,52 @@ export class Grants {
 
 	/**
 	 * Checks to see if the permission is granted. Throws an exception if it fails.
-	 * @param {Role} role
-	 * @param {string|Permission} permission
 	 * @throws PermissionDeniedException
 	 */
-	check(role, permission) {
+	check(role: Role, permission: Permission | PermissionName): void {
 		role = _normalizeRoleId(role);
 		if (!this.granted(role, permission)) {
-			throw new PermissionDeniedException(permission);
+			let name: string;
+			if (permission instanceof Permission) {
+				name = permission.name;
+			}
+			else {
+				name = permission;
+			}
+			throw new PermissionDeniedException(name);
 		}
 	}
 
 	/**
 	 * Keep only the specified roles, delete all other grant masks.
-	 * @param {Role[]} roles
 	 */
-	filterRoles(roles) {
-		for (const role in this.masks) {
-			if (Object.hasOwnProperty.call(this.masks, role)) {
-				if (!roles.includes(role)) {
-					delete this.masks[role];
-				}
+	filterRoles(roles: Role[]): void {
+		for (const role of this.masks.keys()) {
+			if (!roles.includes(role)) {
+				this.masks.delete(role);
 			}
 		}
 	}
 
 	/**
 	 * Serialize grants to a string. Used to store grants in the database.
-	 * @returns {string}
 	 */
-	serialize() {
-		return JSON.stringify(this.masks);
+	serialize(): string {
+		return JSON.stringify([...this.masks]);
 	}
 
 	/**
 	 * Deserialize grants from a string.
-	 * @param {string} value
 	 */
-	deserialize(value) {
-		let g = JSON.parse(value);
+	deserialize(value: string): void {
+		const g = JSON.parse(value);
 		this.setAllGrants(g);
 		// HACK: force owner to always have all permissions.
 		this.setRoleGrants(Role.Owner, parseIntoGrantMask(["*"]));
 	}
 
-	toJSON() {
-		return this.masks;
+	toJSON(): [Role, GrantMask][] {
+		return [...this.masks];
 	}
 }
 
