@@ -3,13 +3,14 @@ import { getLogger } from '../../logger.js';
 import roommanager from "../roommanager";
 import { QueueMode, Visibility } from "../../common/models/types";
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit";
-import { BadApiArgumentException, OttException } from "../exceptions";
+import { BadApiArgumentException } from "../exceptions";
+import { OttException } from "../../common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
 import { ApplySettingsRequest, RoomRequestType, UndoRequest } from "../../common/models/messages";
 import { User } from "../../models/user";
 import storage from "../../storage";
-import { Grants } from "../permissions.js";
+import { Grants } from "../../common/permissions";
 
 const router = express.Router();
 const log = getLogger("api/room");

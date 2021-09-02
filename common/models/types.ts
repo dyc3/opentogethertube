@@ -1,6 +1,7 @@
 import { Session } from "express-session";
 import { User } from "models/user";
 import { Video } from "./video";
+import { Grants } from "../permissions";
 
 export enum Visibility {
 	Public = "public",
@@ -97,11 +98,6 @@ export enum Role {
 }
 
 export type ClientId = string
-
-export declare class Grants {
-	masks: any
-	constructor(grants?: Grants | any);
-}
 
 export interface RoomEventContext {
 	video?: Video

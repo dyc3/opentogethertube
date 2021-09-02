@@ -1,7 +1,7 @@
 import _ from "lodash";
 const { CachedVideo, Room } = require("../../../models");
 import storage from "../../../storage";
-import permissions from "../../../server/permissions.js";
+import permissions from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
 
 describe.skip('Storage: Room Spec', () => {
