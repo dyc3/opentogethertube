@@ -364,6 +364,22 @@ export class Grants {
 	}
 
 	/**
+	 * Get a list of all roles that are present in the grants.
+	 * @returns
+	 */
+	getRoles(): Role[] {
+		return Array.from(this.masks.keys());
+	}
+
+	get isEmpty(): boolean {
+		return this.masks.size === 0;
+	}
+
+	deleteRole(role: Role): void {
+		this.masks.delete(role);
+	}
+
+	/**
 	 * Serialize grants to a string. Used to store grants in the database.
 	 */
 	serialize(): string {

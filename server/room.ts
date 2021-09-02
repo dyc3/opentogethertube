@@ -916,19 +916,19 @@ export class Room implements RoomState {
 			}
 		}
 		if (request.settings.grants) {
-			for (const role in request.settings.grants.masks) {
+			for (const role of request.settings.grants.getRoles()) {
 				if (Object.hasOwnProperty.call(roleToPerms, role)) {
-					if (request.settings.grants.masks[role] === this.grants.masks[role]) {
+					if (request.settings.grants.getMask(role) === this.grants.getMask(role)) {
 						this.log.silly(`deleting permissions for role ${role} from request because it did not change`);
-						delete request.settings.grants.masks[role];
+						request.settings.grants.deleteRole(role);
 					}
 				}
 				else {
 					this.log.silly(`deleting permissions for role ${role} from request because that role's permissions can't change`);
-					delete request.settings.grants.masks[role];
+					request.settings.grants.deleteRole(role);
 				}
 			}
-			if (Object.keys(request.settings.grants.masks).length === 0) {
+			if (request.settings.grants.isEmpty) {
 				this.log.silly(`deleting grants prop from request because it is empty`);
 				delete request.settings.grants;
 			}
@@ -943,7 +943,7 @@ export class Room implements RoomState {
 
 		if (request.settings.grants) {
 			const newGrants = request.settings.grants;
-			for (const role in newGrants.masks) {
+			for (const role of newGrants.getRoles()) {
 				if (Object.hasOwnProperty.call(roleToPerms, role)) {
 					this.grants.check(userrole, roleToPerms[role]);
 				}
@@ -961,9 +961,9 @@ export class Room implements RoomState {
 
 		// special handling required for permissions
 		if (request.settings.grants) {
-			for (const role in request.settings.grants.masks) {
+			for (const role of request.settings.grants.getRoles()) {
 				if (Object.hasOwnProperty.call(roleToPerms, role)) {
-					this.grants.setRoleGrants(role as unknown as Role, request.settings.grants.masks[role]);
+					this.grants.setRoleGrants(role, request.settings.grants.getMask(role));
 				}
 			}
 		}
