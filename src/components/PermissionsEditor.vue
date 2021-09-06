@@ -34,7 +34,7 @@ import PermissionsMixin from "@/mixins/permissions.js";
 export default {
 	name: "permissions-editor",
 	props: {
-		value: { type: Object, required: true },
+		value: { type: [Object, Array], required: true },
 		currentRole: { type: Number, default: 4 },
 	},
 	mixins: [PermissionsMixin],
@@ -124,7 +124,12 @@ export default {
 			await this.waitForMetadata();
 			if (this.shouldAcceptExternalUpdate) {
 				this.dirty = false;
-				this.permissions = this.extractFromGrants(this.value);
+				// HACK: coerce to OldRoleGrants format
+				let grants = this.value;
+				if (Array.isArray(grants)) {
+					grants = _.fromPairs(grants);
+				}
+				this.permissions = this.extractFromGrants(grants);
 			}
 			else {
 				this.shouldAcceptExternalUpdate = true;
