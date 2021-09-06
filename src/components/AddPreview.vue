@@ -1,16 +1,18 @@
 <template>
 	<div class="video-add">
-		<v-row class="mb-6">
+		<v-row>
 			<v-textarea clearable auto-grow rows="1" placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" data-cy="add-preview-input" />
+		</v-row>
+		<v-row>
 			<div v-if="!production">
 				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{ v[0] }}</v-btn>
 			</div>
 			<v-btn v-if="videos.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
 		</v-row>
-		<v-row v-if="isLoadingAddPreview" justify="center">
+		<v-row class="mt-6" v-if="isLoadingAddPreview" justify="center">
 			<v-progress-circular indeterminate/>
 		</v-row>
-		<v-row justify="center" v-if="!isLoadingAddPreview">
+		<v-row class="mt-6" justify="center" v-if="!isLoadingAddPreview">
 			<div v-if="hasAddPreviewFailed">
 				{{ videosLoadFailureText }}
 			</div>
