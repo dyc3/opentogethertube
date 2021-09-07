@@ -508,7 +508,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       if (matches === null) {
         continue;
       }
-      const match = matches[0];
+      const match: string = matches[0];
       const extracted = match.split(":")[1].substring(r === 1 ? 2 : 1);
       log.silly(`MATCH ${match}`);
       log.debug(`EXTRACTED ${extracted}`);
@@ -585,7 +585,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
    * Examples: PT40M25S
    */
   parseVideoLength(duration: string): number {
-    let match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    let match = /PT(\d+H)?(\d+M)?(\d+S)?/.exec(duration);
 
     match = match.slice(1).map((x) => {
       if (x !== null && x !== undefined) {

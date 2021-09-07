@@ -2,32 +2,10 @@ module.exports = {
   env: {
     node: true,
     es6: true,
+    browser: true,
   },
-  plugins: [
-    "vue",
-  ],
-  'extends': [
-    'plugin:vue/base',
-    'plugin:vue/essential',
-  ],
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'vue/attribute-hyphenation': ['error', 'always'],
-    'vue/html-self-closing': ['error', {
-      'html': {
-        'void': 'any',
-        'normal': 'never',
-        'component': 'always',
-      },
-      'svg': 'always',
-    }],
-    'vue/mustache-interpolation-spacing': ['error', 'always'],
-    'vue/no-multi-spaces': ['warn', {
-      'ignoreProperties': false,
-    }],
-    'vue/no-v-html': 'error',
-    'vue/v-bind-style': ['error', 'shorthand'],
-    'vue/v-on-style': ['error', 'shorthand'],
 
     '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
@@ -38,4 +16,54 @@ module.exports = {
       modules: true,
     },
   },
+  overrides: [
+    {
+      files: ["*.vue"],
+      parser: "vue-eslint-parser",
+      parserOptions: {
+        parser: "@typescript-eslint/parser",
+        ecmaVersion: 2020,
+        sourceType: "module",
+        ecmaFeatures: {
+          legacyDecorators: true,
+        },
+      },
+      plugins: [
+        "vue",
+      ],
+      extends: [
+        'plugin:vue/base',
+        'plugin:vue/essential',
+      ],
+      rules: {
+        'vue/attribute-hyphenation': ['error', 'always'],
+        'vue/html-self-closing': ['error', {
+          'html': {
+            'void': 'any',
+            'normal': 'never',
+            'component': 'always',
+          },
+          'svg': 'always',
+        }],
+        'vue/mustache-interpolation-spacing': ['error', 'always'],
+        'vue/no-multi-spaces': ['warn', {
+          'ignoreProperties': false,
+        }],
+        'vue/no-v-html': 'error',
+        'vue/v-bind-style': ['error', 'shorthand'],
+        'vue/v-on-style': ['error', 'shorthand'],
+      },
+    },
+    {
+      files: ["*.ts", "*.tsx"],
+      parser: "@typescript-eslint/parser",
+      parserOptions: {
+        parser: "babel-eslint",
+				project: ["./tsconfig.json"],
+        ecmaFeatures: {
+          legacyDecorators: true,
+        }
+			},
+    },
+  ]
 };

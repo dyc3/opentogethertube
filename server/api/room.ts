@@ -159,7 +159,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 	if (!room.isTemporary) {
 		if (req.body.claim && !room.owner) {
 			if (req.user) {
-				room.owner = req.user as User;
+				room.owner = req.user;
 				// HACK: force the room to send the updated user info to the client
 				for (const user of room.realusers) {
 					if (user.user_id === room.owner.id) {

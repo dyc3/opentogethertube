@@ -245,7 +245,7 @@ export class Client {
 
 export function Setup(): void {
 	log.debug("setting up client manager...");
-	const server = wss as WebSocket.Server;
+	const server = wss;
 	server.on("connection", async (ws, req: Request & { session: MySession }) => {
 		if (!req.url.startsWith("/api/room/")) {
 			log.error("Rejecting connection because the connection url was invalid");
