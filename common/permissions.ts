@@ -1,5 +1,5 @@
-const _ = require("lodash");
-const { getLogger } = require("../logger.js");
+import _ from "lodash";
+import { getLogger } from "../logger.js";
 import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 import { Role } from "./models/types";
 const log = getLogger("permissions");
