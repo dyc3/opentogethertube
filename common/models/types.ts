@@ -80,6 +80,9 @@ export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" 
 // Only these should be stored in redis
 export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">
 
+// Only these should be stored in persistent storage
+export type RoomStatePersistable = Omit<RoomState, "currentSource" | "queue" | "isPlaying" | "playbackPosition">
+
 export type RoomUserInfo = {
 	id: ClientId
 	name: string

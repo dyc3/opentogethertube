@@ -123,10 +123,10 @@ const createRoom: RequestHandler = async (req, res) => {
 
 const patchRoom: RequestHandler = async (req, res) => {
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY}`);
+		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY.toString()}`);
 	}
 	if (req.body.queueMode && !VALID_ROOM_QUEUE_MODE.includes(req.body.queueMode)) {
-		throw new BadApiArgumentException("queueMode", `must be one of ${VALID_ROOM_QUEUE_MODE}`);
+		throw new BadApiArgumentException("queueMode", `must be one of ${VALID_ROOM_QUEUE_MODE.toString()}`);
 	}
 
 	if (req.body.permissions) {
@@ -183,7 +183,12 @@ const patchRoom: RequestHandler = async (req, res) => {
 			await storage.updateRoom(room);
 		}
 		catch (err) {
-			log.error(`Failed to update room: ${err} ${err.stack}`);
+			if (err instanceof Error) {
+				log.error(`Failed to update room: ${err.message} ${err.stack}`);
+			}
+			else {
+				log.error(`Failed to update room`);
+			}
 			res.status(500).json({
 				success: false,
 			});

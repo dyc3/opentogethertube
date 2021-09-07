@@ -407,7 +407,12 @@ export default class YouTubeAdapter extends ServiceAdapter {
             return videos;
           }
           catch (err) {
-            log.error(`Youtube fallback failed ${err}`);
+            if (err instanceof Error) {
+              log.error(`Youtube fallback failed ${err.message} ${err.stack}`);
+            }
+            else {
+              log.error(`Youtube fallback failed, but threw non Error`);
+            }
             throw err;
           }
         }
@@ -467,7 +472,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
       await storage.updateManyVideoInfo(videos);
     }
     catch (err) {
-      log.error(`Failed to cache video info, returning result anyway: ${err}`);
+      if (err instanceof Error) {
+        log.error(`Failed to cache video info, returning result anyway: ${err.message} ${err.stack}`);
+      }
     }
     return videos;
   }
@@ -486,7 +493,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
       if (parts.length === 0) {
         log.error(
-          `onlyProperties must have valid values or be null! Found ${onlyProperties}`
+          `onlyProperties must have valid values or be null! Found ${onlyProperties.toString()}`
         );
         throw new Error("onlyProperties must have valid values or be null!");
       }

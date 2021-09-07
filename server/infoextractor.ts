@@ -59,7 +59,12 @@ export default {
       return [video, missingInfo];
     }
     catch (e) {
-      log.error(`Failed to get video metadata: ${e}`);
+      if (e instanceof Error) {
+        log.error(`Failed to get video metadata: ${e.message} ${e.stack}`);
+      }
+      else {
+        log.error(`Failed to get video metadata`);
+      }
       throw e;
     }
   },

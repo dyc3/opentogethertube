@@ -1,5 +1,5 @@
 import { Room } from "./room";
-import { RoomOptions, RoomState } from "../common/models/types";
+import { RoomOptions, RoomState, RoomStatePersistable } from "../common/models/types";
 import _ from "lodash";
 import NanoTimer from "nanotimer";
 import { getLogger } from "../logger.js";
@@ -76,7 +76,7 @@ export async function GetRoom(roomName: string): Promise<Room> {
 		}
 	}
 
-	const opts = await storage.getRoomByName(roomName);
+	const opts = await storage.getRoomByName(roomName) as RoomStatePersistable;
 	if (opts) {
 		if (await redisClientAsync.exists(`room:${opts.name}`)) {
 			log.debug("found room in database, but room is already in redis");
