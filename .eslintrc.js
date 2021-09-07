@@ -87,6 +87,8 @@ module.exports = {
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/switch-exhaustiveness-check": "error",
         "@typescript-eslint/restrict-template-expressions": "warn",
+        "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+        "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
 
         "@typescript-eslint/no-unsafe-call": "off", // TODO: switch to warn
         "@typescript-eslint/no-unsafe-member-access": "off", // TODO: switch to warn

@@ -60,7 +60,8 @@ export class Client {
 				user_id: this.Session.user_id,
 			};
 		}
-		else if (this.Session.isLoggedIn === false) {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
+		else if (this.Session.isLoggedIn === false) { // this is a workaround because typescript doesn't narrow the type correctly
 			return {
 				id: this.id,
 				username: this.Session.username,
