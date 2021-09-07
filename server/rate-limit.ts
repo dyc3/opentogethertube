@@ -21,7 +21,7 @@ export function setRateLimitHeaders(res, info) {
 }
 
 export function handleRateLimit(res, info) {
-	log.debug(`Rate limit hit: ${info}`);
+	log.debug(`Rate limit hit: ${JSON.stringify(info)}`);
 	const secs = Math.round(info.msBeforeNext / 1000) || 1;
 	res.set('Retry-After', String(secs));
 	setRateLimitHeaders(res, info);

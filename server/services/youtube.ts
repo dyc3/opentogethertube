@@ -161,7 +161,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   async resolveURL(link: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video[]> {
-    log.debug(`resolveURL: ${link}, ${onlyProperties}`);
+    log.debug(`resolveURL: ${link}, ${onlyProperties?.toString()}`);
     const url = new URL(link);
 
     const qPlaylist = url.searchParams.get("list");
@@ -239,12 +239,14 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return this.fetchPlaylistVideos(uploadsPlaylistId);
     }
     catch (err) {
-      if (err.response && err.response.status === 403) {
+      if (axios.isAxiosError(err) && err.response.status === 403) {
         log.error("Error when getting channel upload playlist ID: Out of quota");
         throw new OutOfQuotaException(this.serviceId);
       }
       else {
-        log.error(`Error when getting channel upload playlist ID: ${err}`);
+        if (err instanceof Error) {
+          log.error(`Error when getting channel upload playlist ID: ${err.message} ${err.stack}`);
+        }
         throw err;
       }
     }
@@ -276,7 +278,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     const key = `ytchannel:${idProp}:${idValue}`;
     this.redisClient.set(key, playlistId, (err) => {
       if (err) {
-        log.error(`Failed to cache playlist ID: ${err}`);
+        log.error(`Failed to cache playlist ID: ${err.message} ${err.stack}`);
       }
       else {
         log.info(`Cached playlist ${key}`);
@@ -390,9 +392,16 @@ export default class YouTubeAdapter extends ServiceAdapter {
         await storage.updateManyVideoInfo(_.values(results));
       }
       catch (err) {
-        log.error(
-          `Failed to cache video info, will return metadata anyway: ${err}`
-        );
+        if (err instanceof Error) {
+          log.error(
+            `Failed to cache video info, will return metadata anyway: ${err.message} ${err.stack}`
+          );
+        }
+        else {
+          log.error(
+            `Failed to cache video info, will return metadata anyway`
+          );
+        }
       }
       return results;
     }
@@ -407,7 +416,12 @@ export default class YouTubeAdapter extends ServiceAdapter {
             return videos;
           }
           catch (err) {
-            log.error(`Youtube fallback failed ${err}`);
+            if (err instanceof Error) {
+              log.error(`Youtube fallback failed ${err.message} ${err.stack}`);
+            }
+            else {
+              log.error(`Youtube fallback failed, but threw non Error`);
+            }
             throw err;
           }
         }
@@ -467,7 +481,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
       await storage.updateManyVideoInfo(videos);
     }
     catch (err) {
-      log.error(`Failed to cache video info, returning result anyway: ${err}`);
+      if (err instanceof Error) {
+        log.error(`Failed to cache video info, returning result anyway: ${err.message} ${err.stack}`);
+      }
     }
     return videos;
   }
@@ -486,7 +502,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
       if (parts.length === 0) {
         log.error(
-          `onlyProperties must have valid values or be null! Found ${onlyProperties}`
+          `onlyProperties must have valid values or be null! Found ${onlyProperties.toString()}`
         );
         throw new Error("onlyProperties must have valid values or be null!");
       }
@@ -508,7 +524,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       if (matches === null) {
         continue;
       }
-      const match = matches[0];
+      const match: string = matches[0];
       const extracted = match.split(":")[1].substring(r === 1 ? 2 : 1);
       log.silly(`MATCH ${match}`);
       log.debug(`EXTRACTED ${extracted}`);
@@ -585,9 +601,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
    * Examples: PT40M25S
    */
   parseVideoLength(duration: string): number {
-    let match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-
-    match = match.slice(1).map((x) => {
+    let match = /PT(\d+H)?(\d+M)?(\d+S)?/.exec(duration).slice(1).map((x) => {
       if (x !== null && x !== undefined) {
         return x.replace(/\D/, '');
       }

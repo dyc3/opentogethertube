@@ -1,16 +1,11 @@
 module.exports = {
   root: true,
   env: {
-    node: true
+    node: true,
+    es6: true,
   },
-  plugins: [
-    "jest",
-  ],
-  'extends': [
+  extends: [
     'eslint:recommended',
-    'plugin:vue/base',
-    'plugin:vue/essential',
-    "@vue/typescript/recommended",
   ],
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
@@ -43,25 +38,6 @@ module.exports = {
     'eqeqeq': ["error", "always"],
     'no-unused-vars': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
 
-    // HACK: this rule is required, otherwise travis-ci will fail (for some reason)
-    // even through when run locally, no linting errors occur.
-    "vue/no-parsing-error": ["error", {
-      "invalid-first-character-of-tag-name": false,
-    }],
-
-    'jest/consistent-test-it': ["error", {"fn": "it"}],
-    'jest/expect-expect': 'warn',
-    'jest/no-duplicate-hooks': 'error',
-    'jest/no-focused-tests': 'error',
-    'jest/no-identical-title': 'error',
-    'jest/no-if': 'error',
-    'jest/no-expect-resolves': 'error',
-    'jest/no-export': 'error',
-    'jest/no-standalone-expect': 'error',
-    'jest/no-truthy-falsy': 'warn',
-    'jest/prefer-spy-on': 'error',
-    'jest/require-top-level-describe': 'warn',
-
     '@typescript-eslint/no-var-requires': 'warn',
   },
   parserOptions: {
@@ -78,9 +54,45 @@ module.exports = {
       }
     },
     {
-      files: ["*.ts"],
+      files: ["*.vue"],
+      parser: "vue-eslint-parser",
+      parserOptions: {
+          parser: "@typescript-eslint/parser",
+          ecmaVersion: 2020,
+          sourceType: "module"
+      },
+      extends: [
+        "plugin:vue/base",
+        "plugin:vue/essential",
+        "@vue/typescript/recommended",
+      ],
+      rules: {
+        // HACK: this rule is required, otherwise travis-ci will fail (for some reason)
+        // even through when run locally, no linting errors occur.
+        "vue/no-parsing-error": ["error", {
+          "invalid-first-character-of-tag-name": false,
+        }],
+      }
+    },
+    {
+      files: ["*.ts", "*.tsx"],
+      parser: "@typescript-eslint/parser",
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: "module",
+        project: ["./tsconfig.json"],
+			},
       rules: {
         "no-unused-vars": "off",
+        "@typescript-eslint/adjacent-overload-signatures": "error",
+        "@typescript-eslint/switch-exhaustiveness-check": "error",
+        "@typescript-eslint/restrict-template-expressions": "warn",
+        "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+        "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
+
+        "@typescript-eslint/no-unsafe-call": "off", // TODO: switch to warn
+        "@typescript-eslint/no-unsafe-member-access": "off", // TODO: switch to warn
+        "@typescript-eslint/no-unsafe-assignment": "off", // TODO: switch to warn
       }
     },
     {

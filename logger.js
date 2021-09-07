@@ -1,5 +1,6 @@
-const { createLogger, format, transports } = require('winston');
-const colors = require('ansi-colors');
+import winston from 'winston';
+const { createLogger, format, transports } = winston;
+import colors from 'ansi-colors';
 
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
 	if (roomEvent) {
@@ -71,11 +72,9 @@ else {
 	}));
 }
 
-module.exports = {
-	getLogger(namespace) {
-		return logger.child({ namespace });
-	},
-	setLogLevel(level) {
-		logger.level = level;
-	},
-};
+export function getLogger(namespace) {
+	return logger.child({ namespace });
+}
+export function setLogLevel(level) {
+	logger.level = level;
+}

@@ -286,7 +286,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBe(false);
+				expect(resp.body.success).toEqual(false);
 			});
 
 		await request(app)
@@ -295,7 +295,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBe(false);
+				expect(resp.body.success).toEqual(false);
 				expect(resp.body.error.message).toContain("Missing argument");
 			});
 
@@ -305,7 +305,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBe(false);
+				expect(resp.body.success).toEqual(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -315,7 +315,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBe(false);
+				expect(resp.body.success).toEqual(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -325,7 +325,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBe(false);
+				expect(resp.body.success).toEqual(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -335,7 +335,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBe(false);
+				expect(resp.body.success).toEqual(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -345,7 +345,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
-				expect(resp.body.success).toBe(false);
+				expect(resp.body.success).toEqual(false);
 				expect(resp.body.error.message).toContain("not allowed");
 			});
 
@@ -356,7 +356,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toEqual(true);
 				expect(roommanager.rooms[0].name).toBe("testnoowner");
 				expect(roommanager.rooms[0].owner).toBeNull();
 			});
@@ -378,7 +378,7 @@ describe.skip("Room API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body.success).toBeTruthy();
+				expect(resp.body.success).toEqual(true);
 				expect(roommanager.rooms[0].name).toBe("testowner");
 				expect(roommanager.rooms[0].owner.email).toBe("forced@localhost");
 			});

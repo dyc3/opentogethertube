@@ -38,7 +38,7 @@ const VALID_ROOM_QUEUE_MODE = [
 router.get("/list", (req, res) => {
 	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
 	if (req.get("apikey") && !isAuthorized) {
-		log.warn(`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${req.headers["x-forwarded-for"]} user-agent=${req.headers["user-agent"]}`);
+		log.warn(`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${req.headers["x-forwarded-for"].toString()} user-agent=${req.headers["user-agent"]}`);
 		res.status(400).json({
 			success: false,
 			error: "apikey is invalid",
@@ -83,7 +83,7 @@ const createRoom: RequestHandler = async (req, res) => {
 		throw new BadApiArgumentException("name", "not allowed (invalid characters)");
 	}
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY}`);
+		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY.toString()}`);
 	}
 	let points = 50;
 	if (req.body.temporary !== undefined) {
@@ -123,10 +123,10 @@ const createRoom: RequestHandler = async (req, res) => {
 
 const patchRoom: RequestHandler = async (req, res) => {
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY}`);
+		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY.toString()}`);
 	}
 	if (req.body.queueMode && !VALID_ROOM_QUEUE_MODE.includes(req.body.queueMode)) {
-		throw new BadApiArgumentException("queueMode", `must be one of ${VALID_ROOM_QUEUE_MODE}`);
+		throw new BadApiArgumentException("queueMode", `must be one of ${VALID_ROOM_QUEUE_MODE.toString()}`);
 	}
 
 	if (req.body.permissions) {
@@ -159,7 +159,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 	if (!room.isTemporary) {
 		if (req.body.claim && !room.owner) {
 			if (req.user) {
-				room.owner = req.user as User;
+				room.owner = req.user;
 				// HACK: force the room to send the updated user info to the client
 				for (const user of room.realusers) {
 					if (user.user_id === room.owner.id) {
@@ -183,7 +183,12 @@ const patchRoom: RequestHandler = async (req, res) => {
 			await storage.updateRoom(room);
 		}
 		catch (err) {
-			log.error(`Failed to update room: ${err} ${err.stack}`);
+			if (err instanceof Error) {
+				log.error(`Failed to update room: ${err.message} ${err.stack}`);
+			}
+			else {
+				log.error(`Failed to update room`);
+			}
 			res.status(500).json({
 				success: false,
 			});

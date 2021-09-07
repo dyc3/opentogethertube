@@ -60,7 +60,8 @@ export class Client {
 				user_id: this.Session.user_id,
 			};
 		}
-		else if (this.Session.isLoggedIn === false) {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
+		else if (this.Session.isLoggedIn === false) { // this is a workaround because typescript doesn't narrow the type correctly
 			return {
 				id: this.id,
 				username: this.Session.username,
@@ -151,11 +152,13 @@ export class Client {
 			}
 			catch (e) {
 				if (e instanceof RoomNotFoundException) {
-					log.info(`Failed to join room: ${e}`);
+					log.info(`Failed to join room: ${e.message}`);
 					this.Socket.close(OttWebsocketError.ROOM_NOT_FOUND);
 				}
 				else {
-					log.error(`Failed to join room: ${e.stack}`);
+					if (e instanceof Error) {
+						log.error(`Failed to join room: ${e.stack}`);
+					}
 					this.Socket.close(OttWebsocketError.UNKNOWN);
 				}
 			}
@@ -176,7 +179,12 @@ export class Client {
 			await this.makeRoomRequest(request);
 		}
 		catch (e) {
-			log.error(`Room request failed: ${e} ${e.stack}`);
+			if (e instanceof Error) {
+				log.error(`Room request ${request.type} failed: ${e.message} ${e.stack}`);
+			}
+			else {
+				log.error(`Room request ${request.type} failed`);
+			}
 		}
 	}
 
@@ -238,14 +246,19 @@ export class Client {
 			this.Socket.send(JSON.stringify(obj));
 		}
 		catch (e) {
-			log.error(`failed to send to client: ${e.message}`);
+			if (e instanceof Error) {
+				log.error(`failed to send to client: ${e.message}`);
+			}
+			else {
+				log.error(`failed to send to client`);
+			}
 		}
 	}
 }
 
 export function Setup(): void {
 	log.debug("setting up client manager...");
-	const server = wss as WebSocket.Server;
+	const server = wss;
 	server.on("connection", async (ws, req: Request & { session: MySession }) => {
 		if (!req.url.startsWith("/api/room/")) {
 			log.error("Rejecting connection because the connection url was invalid");
@@ -276,7 +289,12 @@ async function broadcast(roomName: string, text: string) {
 			client.Socket.send(text);
 		}
 		catch (e) {
-			log.error(`failed to send to client: ${e.message}`);
+			if (e instanceof Error) {
+				log.error(`failed to send to client: ${e.message}`);
+			}
+			else {
+				log.error(`failed to send to client`);
+			}
 		}
 	}
 }
@@ -336,7 +354,12 @@ async function onRedisMessage(channel: string, text: string) {
 				client.Socket.send(text);
 			}
 			catch (e) {
-				log.error(`failed to send to client: ${e.message}`);
+				if (e instanceof Error) {
+					log.error(`failed to send to client: ${e.message}`);
+				}
+				else {
+					log.error(`failed to send to client`);
+				}
 			}
 		}
 	}

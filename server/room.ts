@@ -466,7 +466,7 @@ export class Room implements RoomState {
 			return;
 		}
 
-		this.log.debug(`synchronizing dirty props: ${Array.from(this._dirty)}`);
+		this.log.debug(`synchronizing dirty props: ${Array.from(this._dirty).toString()}`);
 
 		let msg: ServerMessageSync = {
 			action: "sync",
@@ -882,8 +882,14 @@ export class Room implements RoomState {
 			try {
 				await storage.updateRoom(this);
 			}
-			catch (err) {
-				this.log.error(`Failed to update room: ${err} ${err.stack}`);
+			catch (err: unknown) {
+				if (err instanceof Error) {
+					this.log.error(`Failed to update room: ${err.message} ${err.stack}`);
+				}
+				else {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					this.log.error(`Failed to update room, and the error thrown was not Error: ${err}`);
+				}
 			}
 		}
 	}

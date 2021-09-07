@@ -18,5 +18,6 @@ declare module 'vue/types/vue' {
 }
 
 declare module "*.vue" {
+  // eslint-disable-next-line no-undef
   export default Vue;
 }
