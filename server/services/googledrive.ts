@@ -1,5 +1,5 @@
 import { URL } from "url";
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { ServiceLinkParseException, InvalidVideoIdException, OutOfQuotaException } from "../exceptions";
 import { Video } from "../../common/models/video";
@@ -8,6 +8,7 @@ import { getLogger } from "../../logger";
 const log = getLogger("googledrive");
 
 interface GoogleDriveFile {
+  "kind": "drive#file",
   id: string
   name: string
   thumbnailLink: string
@@ -15,6 +16,20 @@ interface GoogleDriveFile {
     durationMillis: number
   }
   mimeType: string
+}
+
+interface GoogleDriveListResponse {
+  kind: "drive#fileList",
+  nextPageToken: string,
+  incompleteSearch: boolean,
+  files: GoogleDriveFile[],
+}
+
+interface GoogleDriveErrorResponse {
+  error: {
+    message: string,
+    errors: unknown[],
+  }
 }
 
 export default class GoogleDriveAdapter extends ServiceAdapter {
@@ -89,8 +104,15 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
       return video;
     }
     catch (err) {
-      if (err.response && err.response.data.error) {
-        log.error(`Failed to get video metadata: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<GoogleDriveErrorResponse>;
+        log.error(`Failed to get video metadata: ${error.response.data.error.message} ${JSON.stringify(error.response.data.error.errors)}`);
+      }
+      else if (err instanceof Error) {
+        log.error(`Failed to get video metadata: ${err.message} ${err.stack}`);
+      }
+      else {
+        log.error(`Failed to get video metadata`);
       }
       throw err;
     }
@@ -98,7 +120,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 
   async fetchFolderVideos(folderId: string): Promise<Video[]> {
     try {
-      const result = await this.api.get("/files", {
+      const result: AxiosResponse<GoogleDriveListResponse> = await this.api.get("/files", {
         params: {
           key: this.apiKey,
           q: `${folderId}+in+parents`,
@@ -109,11 +131,20 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
       return result.data.files.map((item: GoogleDriveFile) => this.parseFile(item));
     }
     catch (err) {
-      if (err.response && err.response.data.error && err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
-        throw new OutOfQuotaException(this.serviceId);
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<GoogleDriveErrorResponse>;
+        if (err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
+          throw new OutOfQuotaException(this.serviceId);
+        }
+        else {
+          log.error(`Failed to get google drive folder: ${error.response.data.error.message} ${JSON.stringify(error.response.data.error.errors)}`);
+        }
       }
-      if (err.response && err.response.data.error) {
-        log.error(`Failed to get google drive folder: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
+      else if (err instanceof Error) {
+        log.error(`Failed to get google drive folder: ${err.message} ${err.stack}`);
+      }
+      else {
+        log.error(`Failed to get google drive folder`);
       }
       throw err;
     }

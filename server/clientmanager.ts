@@ -151,11 +151,13 @@ export class Client {
 			}
 			catch (e) {
 				if (e instanceof RoomNotFoundException) {
-					log.info(`Failed to join room: ${e}`);
+					log.info(`Failed to join room: ${e.message}`);
 					this.Socket.close(OttWebsocketError.ROOM_NOT_FOUND);
 				}
 				else {
-					log.error(`Failed to join room: ${e.stack}`);
+					if (e instanceof Error) {
+						log.error(`Failed to join room: ${e.stack}`);
+					}
 					this.Socket.close(OttWebsocketError.UNKNOWN);
 				}
 			}
@@ -176,7 +178,12 @@ export class Client {
 			await this.makeRoomRequest(request);
 		}
 		catch (e) {
-			log.error(`Room request failed: ${e} ${e.stack}`);
+			if (e instanceof Error) {
+				log.error(`Room request ${request.type} failed: ${e.message} ${e.stack}`);
+			}
+			else {
+				log.error(`Room request ${request.type} failed`);
+			}
 		}
 	}
 

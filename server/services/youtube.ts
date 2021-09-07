@@ -161,7 +161,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   async resolveURL(link: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video[]> {
-    log.debug(`resolveURL: ${link}, ${onlyProperties}`);
+    log.debug(`resolveURL: ${link}, ${onlyProperties.toString()}`);
     const url = new URL(link);
 
     const qPlaylist = url.searchParams.get("list");
@@ -390,9 +390,16 @@ export default class YouTubeAdapter extends ServiceAdapter {
         await storage.updateManyVideoInfo(_.values(results));
       }
       catch (err) {
-        log.error(
-          `Failed to cache video info, will return metadata anyway: ${err}`
-        );
+        if (err instanceof Error) {
+          log.error(
+            `Failed to cache video info, will return metadata anyway: ${err.message} ${err.stack}`
+          );
+        }
+        else {
+          log.error(
+            `Failed to cache video info, will return metadata anyway`
+          );
+        }
       }
       return results;
     }
@@ -592,9 +599,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
    * Examples: PT40M25S
    */
   parseVideoLength(duration: string): number {
-    let match = /PT(\d+H)?(\d+M)?(\d+S)?/.exec(duration);
-
-    match = match.slice(1).map((x) => {
+    let match = /PT(\d+H)?(\d+M)?(\d+S)?/.exec(duration).slice(1).map((x) => {
       if (x !== null && x !== undefined) {
         return x.replace(/\D/, '');
       }

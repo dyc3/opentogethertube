@@ -28,7 +28,7 @@ export default class RedditAdapter extends ServiceAdapter {
 		if (!url.pathname.endsWith(".json")) {
 			url.pathname += ".json";
 		}
-		log.info(`Requesting posts: ${url}`);
+		log.info(`Requesting posts: ${url.toString()}`);
 		const resp = await this.api.get(url.toString());
 		const videos = [];
 		for (const post of resp.data.data.children.map(p => p.data)) {
