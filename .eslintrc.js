@@ -4,9 +4,6 @@ module.exports = {
     node: true,
     es6: true,
   },
-  plugins: [
-    "jest",
-  ],
   extends: [
     'eslint:recommended',
   ],
@@ -40,19 +37,6 @@ module.exports = {
     'eol-last': ["error", "always"],
     'eqeqeq': ["error", "always"],
     'no-unused-vars': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
-
-    'jest/consistent-test-it': ["error", {"fn": "it"}],
-    'jest/expect-expect': 'warn',
-    'jest/no-duplicate-hooks': 'error',
-    'jest/no-focused-tests': 'error',
-    'jest/no-identical-title': 'error',
-    'jest/no-if': 'error',
-    'jest/no-expect-resolves': 'error',
-    'jest/no-export': 'error',
-    'jest/no-standalone-expect': 'error',
-    'jest/no-truthy-falsy': 'warn',
-    'jest/prefer-spy-on': 'error',
-    'jest/require-top-level-describe': 'warn',
 
     '@typescript-eslint/no-var-requires': 'warn',
   },
