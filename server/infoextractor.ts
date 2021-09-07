@@ -116,7 +116,7 @@ export default {
       return cachedVideo;
     }
     else {
-      log.warn(`MISSING INFO for ${cachedVideo.service}:${cachedVideo.id}: ${missingInfo}`);
+      log.warn(`MISSING INFO for ${cachedVideo.service}:${cachedVideo.id}: ${missingInfo.toString()}`);
 
       try {
         const fetchedVideo = await adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
@@ -149,7 +149,12 @@ export default {
           }
         }
         else {
-          log.error(`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}: ${e}`);
+          if (e instanceof Error) {
+            log.error(`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}: ${e.message} ${e.stack}`);
+          }
+          else {
+            log.error(`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}`);
+          }
           throw e;
         }
       }

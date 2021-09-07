@@ -245,7 +245,12 @@ export class Client {
 			this.Socket.send(JSON.stringify(obj));
 		}
 		catch (e) {
-			log.error(`failed to send to client: ${e.message}`);
+			if (e instanceof Error) {
+				log.error(`failed to send to client: ${e.message}`);
+			}
+			else {
+				log.error(`failed to send to client`);
+			}
 		}
 	}
 }
@@ -283,7 +288,12 @@ async function broadcast(roomName: string, text: string) {
 			client.Socket.send(text);
 		}
 		catch (e) {
-			log.error(`failed to send to client: ${e.message}`);
+			if (e instanceof Error) {
+				log.error(`failed to send to client: ${e.message}`);
+			}
+			else {
+				log.error(`failed to send to client`);
+			}
 		}
 	}
 }
@@ -343,7 +353,12 @@ async function onRedisMessage(channel: string, text: string) {
 				client.Socket.send(text);
 			}
 			catch (e) {
-				log.error(`failed to send to client: ${e.message}`);
+				if (e instanceof Error) {
+					log.error(`failed to send to client: ${e.message}`);
+				}
+				else {
+					log.error(`failed to send to client`);
+				}
 			}
 		}
 	}

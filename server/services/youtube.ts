@@ -239,12 +239,14 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return this.fetchPlaylistVideos(uploadsPlaylistId);
     }
     catch (err) {
-      if (err.response && err.response.status === 403) {
+      if (axios.isAxiosError(err) && err.response.status === 403) {
         log.error("Error when getting channel upload playlist ID: Out of quota");
         throw new OutOfQuotaException(this.serviceId);
       }
       else {
-        log.error(`Error when getting channel upload playlist ID: ${err}`);
+        if (err instanceof Error) {
+          log.error(`Error when getting channel upload playlist ID: ${err.message} ${err.stack}`);
+        }
         throw err;
       }
     }
@@ -276,7 +278,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     const key = `ytchannel:${idProp}:${idValue}`;
     this.redisClient.set(key, playlistId, (err) => {
       if (err) {
-        log.error(`Failed to cache playlist ID: ${err}`);
+        log.error(`Failed to cache playlist ID: ${err.message} ${err.stack}`);
       }
       else {
         log.info(`Cached playlist ${key}`);

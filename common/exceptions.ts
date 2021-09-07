@@ -1,3 +1,5 @@
+import { Role } from "./models/types";
+
 export class OttException extends Error {}
 
 export class PermissionDeniedException extends OttException {
@@ -11,7 +13,7 @@ export class PermissionDeniedException extends OttException {
 export class InvalidRoleException extends OttException {
 	name = "InvalidRoleException";
 
-	constructor(role: any) {
-		super(`Role ${role} (type: ${typeof role}) is not valid.`);
+	constructor(role: Role) {
+		super(`Role ${role.toString()} (type: ${typeof role}) is not valid.`);
 	}
 }
