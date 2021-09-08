@@ -255,7 +255,12 @@ export class Room implements RoomState {
 			}
 		}
 		if (this.queue.length > 0) {
-			this.currentSource = this.queue.shift();
+			let dequeued: Video | null | undefined = this.queue.shift();
+			// FIXME: replace with nullish coalescing operator
+			if (dequeued === undefined) {
+				dequeued = null;
+			}
+			this.currentSource = dequeued;
 			this.markDirty("queue");
 			this.playbackPosition = 0;
 			this._playbackStart = dayjs();
@@ -278,8 +283,10 @@ export class Room implements RoomState {
 		await publish(`room:${this.name}`, JSON.stringify(msg, replacer));
 	}
 
-	async publishRoomEvent(request: RoomRequest, additional?: RoomEventContext): Promise<void> {
-		// const user = this.getUserInfo(request.client);
+	async publishRoomEvent(request: RoomRequest, additional: RoomEventContext): Promise<void> {
+		if (!request.token) {
+			throw new Error("Request must have a token");
+		}
 		const user = await this.getUserInfoFromToken(request.token);
 		delete request.token;
 		await this.publish({
@@ -331,7 +338,12 @@ export class Room implements RoomState {
 				return Role.Owner;
 			}
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
-				if (this.userRoles.get(i).has(session.user_id)) {
+				let userids = this.userRoles.get(i);
+				// FIXME: replace with optional chaining
+				if (!userids) {
+					userids = new Set<number>();
+				}
+				if (userids.has(session.user_id)) {
 					return i;
 				}
 			}
@@ -364,6 +376,7 @@ export class Room implements RoomState {
 				return user;
 			}
 		}
+		throw new Error(`No such user in room: ${client}`);
 	}
 
 	async getUserInfoFromToken(token: AuthToken): Promise<Pick<RoomUserInfo, "name" | "isLoggedIn">> {
@@ -398,6 +411,7 @@ export class Room implements RoomState {
 				return user.id;
 			}
 		}
+		throw new Error(`No such user with token in room`);
 	}
 
 	get realPlaybackPosition(): number {
@@ -541,7 +555,7 @@ export class Room implements RoomState {
 			[RoomRequestType.ChatRequest, "chat"],
 		]);
 		const permission = permissions.get(request.type);
-		if (permission) {
+		if (permission && request.token) {
 			this.grants.check(await this.getRoleFromToken(request.token), permission);
 		}
 
@@ -611,14 +625,16 @@ export class Room implements RoomState {
 		else {
 			await this.pause();
 		}
-		await this.publishRoomEvent(request);
+		await this.publishRoomEvent(request, { state: request.state });
 	}
 
 	public async skip(request: SkipRequest): Promise<void> {
 		const current = this.currentSource;
 		const prevPosition = this.realPlaybackPosition;
 		this.dequeueNext();
-		await this.publishRoomEvent(request, { video: current, prevPosition });
+		if (current) {
+			await this.publishRoomEvent(request, { video: current, prevPosition });
+		}
 		await statistics.bumpCounter(Counter.VideosSkipped);
 	}
 
@@ -634,7 +650,7 @@ export class Room implements RoomState {
 		const prev = this.realPlaybackPosition;
 		this.playbackPosition = request.value;
 		this._playbackStart = dayjs();
-		await this.publishRoomEvent(request, { prevPosition: prev });
+		await this.publishRoomEvent(request, { value: request.value, prevPosition: prev });
 	}
 
 	/**
@@ -715,12 +731,12 @@ export class Room implements RoomState {
 
 	public async joinRoom(request: JoinRequest): Promise<void> {
 		const user = new RoomUser(request.info.id);
-		user.token = request.token;
+		user.token = request.token ? request.token : ""; // FIXME: room request should probably guarentee that token exists
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
-		await this.publishRoomEvent(request);
+		await this.publishRoomEvent(request, {});
 		await this.syncUser(this.getUserInfo(user.id));
 		// HACK: force the client to receive the correct playback position
 		await this.publish({ action: "sync", playbackPosition: this.realPlaybackPosition });

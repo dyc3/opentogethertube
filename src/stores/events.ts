@@ -10,42 +10,49 @@ export const module: Module<unknown, unknown> = {
 			let duration = 5000;
 			if (message.request.type === RoomRequestType.PlaybackRequest) {
 				duration = 3000;
-				if (message.request.state) {
-					text = `${message.user.name} played the video`;
-				}
-				else {
-					text = `${message.user.name} paused the video`;
+				if (message.additional && "state" in message.additional) {
+					if (message.additional.state) {
+						text = `${message.user.name} played the video`;
+					}
+					else {
+						text = `${message.user.name} paused the video`;
+					}
 				}
 			}
 			else if (message.request.type === RoomRequestType.SkipRequest) {
-				text = `${message.user.name} skipped ${message.additional.video.title}`;
+				if (message.additional && "video" in message.additional) {
+					text = `${message.user.name} skipped ${message.additional.video.title}`;
+				}
 				duration = 7000;
 			}
 			else if (message.request.type === RoomRequestType.SeekRequest) {
-				text = `${message.user.name} seeked to ${secondsToTimestamp(message.request.value)}`;
+				if ("value" in message.additional) {
+					text = `${message.user.name} seeked to ${secondsToTimestamp(message.additional.value)}`;
+				}
 				duration = 7000;
 			}
 			else if (message.request.type === RoomRequestType.JoinRequest) {
 				text = `${message.user.name} joined the room`;
 			}
 			else if (message.request.type === RoomRequestType.LeaveRequest) {
-				text = `${message.additional.user.name} left the room`;
+				if ("user" in message.additional) {
+					text = `${message.additional.user.name} left the room`;
+				}
 			}
 			else if (message.request.type === RoomRequestType.AddRequest) {
-				if (message.request.videos) {
-					text = `${message.user.name} added ${message.request.videos.length} videos`;
+				if ("videos" in message.additional) {
+					text = `${message.user.name} added ${message.additional.videos.length} videos`;
 				}
-				else {
+				else if ("video" in message.additional) {
 					text = `${message.user.name} added ${message.additional.video.title}`;
 				}
 				duration = 7000;
 			}
 			else if (message.request.type === RoomRequestType.RemoveRequest) {
-				text = `${message.user.name} removed ${message.additional.video.title}`;
+				if ("video" in message.additional) {
+					text = `${message.user.name} removed ${message.additional.video.title}`;
+				}
 				duration = 7000;
-			}
-			else {
-				text = `${message.user.name} triggered event ${message.request.type}`;
 			}
 
 			this.commit("toast/ADD_TOAST", {
