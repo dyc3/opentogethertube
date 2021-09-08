@@ -103,10 +103,20 @@ export enum Role {
 
 export type ClientId = string
 
-export interface RoomEventContext {
-	video?: Video
-	videos?: Video[]
-	prevPosition?: number
+export type RoomEventContext = {
+	video: Video
+} | {
+	videos: Video[]
+} | {
+	video: Video,
+	prevPosition: number,
+} | {
+	value: number,
+	prevPosition: number,
+} | {
 	queueIdx?: number
-	user?: RoomUserInfo
-}
+} | {
+	user: RoomUserInfo
+} | {
+	state: boolean
+} | {}

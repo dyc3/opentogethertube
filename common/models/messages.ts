@@ -1,5 +1,5 @@
 import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext, RoomSettings, AuthToken } from "./types";
-import { VideoId } from "./video";
+import { Video, VideoId } from "./video";
 
 export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement | ServerMessageUser
 
@@ -31,10 +31,68 @@ export interface ServerMessageChat extends ServerMessageBase {
 
 export interface ServerMessageEvent extends ServerMessageBase {
 	action: "event"
-	request: RoomRequest
+	request: Omit<RoomRequest, "token">
 	user: Pick<RoomUserInfo, "name" | "isLoggedIn">
 	additional: RoomEventContext
 }
+
+// export type ServerMessageEvent = ServerMessageEventJoin | ServerMessageEventLeave | ServerMessageEventPlayback | ServerMessageEventSeek | ServerMessageEventSkip | ServerMessageEventAddVideo | ServerMessageEventRemoveVideo;
+
+// interface ServerMessageEventBase extends ServerMessageBase {
+// 	action: "event"
+// 	requestType: RoomRequestType
+// 	user: Pick<RoomUserInfo, "name" | "isLoggedIn">
+// }
+
+// interface ServerMessageEventJoin extends ServerMessageEventBase {
+// 	requestType: RoomRequestType.JoinRequest
+// 	additional: undefined
+// }
+
+// interface ServerMessageEventLeave extends ServerMessageEventBase {
+// 	requestType: RoomRequestType.LeaveRequest
+// 	additional: {
+// 		user: Pick<RoomUserInfo, "name" | "isLoggedIn">
+// 	}
+// }
+
+// interface ServerMessageEventPlayback extends ServerMessageEventBase {
+// 	requestType: RoomRequestType.PlaybackRequest
+// 	additional: {
+// 		state: boolean
+// 	}
+// }
+
+// interface ServerMessageEventSeek extends ServerMessageEventBase {
+// 	requestType: RoomRequestType.SeekRequest
+// 	additional: {
+// 		value: number,
+// 		prevPosition: number,
+// 	}
+// }
+
+// interface ServerMessageEventSkip extends ServerMessageEventBase {
+// 	requestType: RoomRequestType.SkipRequest
+// 	additional: {
+// 		video: Video,
+// 	}
+// }
+
+// interface ServerMessageEventAddVideo extends ServerMessageEventBase {
+// 	requestType: RoomRequestType.AddRequest
+// 	additional: {
+// 		video: Video,
+// 	} | {
+// 		videos: Video[],
+// 	}
+// }
+
+// interface ServerMessageEventRemoveVideo extends ServerMessageEventBase {
+// 	requestType: RoomRequestType.RemoveRequest
+// 	additional: {
+// 		video: Video,
+// 	}
+// }
 
 export interface ServerMessageAnnouncement extends ServerMessageBase {
 	action: "announcement"
