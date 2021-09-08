@@ -291,7 +291,7 @@ export class Room implements RoomState {
 	}
 
 	isOwner(user: RoomUser): boolean {
-		return user.user && this.owner && user.user.id === this.owner.id;
+		return !!user.user && !!this.owner && user.user.id === this.owner.id;
 	}
 
 	get hasOwner(): boolean {
@@ -307,7 +307,11 @@ export class Room implements RoomState {
 		}
 		if (user.user) {
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
-				if (this.userRoles.get(i).has(user.user.id)) {
+				let userids = this.userRoles.get(i);
+				if (!userids) {
+					userids = new Set<number>();
+				}
+				if (userids.has(user.user.id)) {
 					return i;
 				}
 			}
