@@ -21,6 +21,7 @@ export enum OttWebsocketError {
 	INVALID_CONNECTION_URL = 4001,
 	ROOM_NOT_FOUND = 4002,
 	ROOM_UNLOADED = 4003,
+	MISSING_AUTH = 4004,
 }
 
 export enum PlayerStatus {

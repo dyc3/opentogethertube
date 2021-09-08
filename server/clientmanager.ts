@@ -28,14 +28,14 @@ export class Client {
 	id: ClientId
 	Socket: WebSocket
 	Session: SessionInfo
-	room: string | null
+	room: string
 	token: AuthToken | null = null
 
-	constructor (session: SessionInfo, socket: WebSocket) {
+	constructor (session: SessionInfo, socket: WebSocket, roomName: string) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
 		this.Session = session;
 		this.Socket = socket;
-		this.room = null;
+		this.room = roomName;
 
 		this.Socket.on("close", async (code, reason) => {
 			log.debug(`socket closed: ${code}, ${reason}`);
@@ -43,35 +43,31 @@ export class Client {
 			connections.splice(idx, 1);
 
 			if (this.room) {
-				const room = await roommanager.GetRoom(this.room);
-				await room.processRequest({
-					type: RoomRequestType.LeaveRequest,
-					token: this.token,
-					client: this.id,
-				});
+				if (this.token) {
+					// only send leave if the client has actually joined the room
+					const room = await roommanager.GetRoom(this.room);
+					await room.processRequest({
+						type: RoomRequestType.LeaveRequest,
+						token: this.token,
+						client: this.id,
+					});
+				}
 			}
 		});
 	}
 
 	get clientInfo(): ClientInfo {
-		if (this.Session.isLoggedIn) {
+		let session = this.Session;
+		if (session.isLoggedIn) {
 			return {
 				id: this.id,
-				user_id: this.Session.user_id,
-			};
-		}
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
-		else if (this.Session.isLoggedIn === false) { // this is a workaround because typescript doesn't narrow the type correctly
-			return {
-				id: this.id,
-				username: this.Session.username,
+				user_id: session.user_id,
 			};
 		}
 		else {
-			log.error("Session did not have username present, nor passport user id. Generating username...");
 			return {
 				id: this.id,
-				username: uniqueNamesGenerator(),
+				username: session.username,
 			};
 		}
 	}
@@ -80,6 +76,33 @@ export class Client {
 		log.silly(`client message: ${text}`);
 		const msg: ClientMessage = JSON.parse(text);
 		let request: RoomRequest | null = null;
+		if (this.token === null) {
+			if (msg.action === "auth") {
+				this.token = msg.token;
+				log.debug("received auth token, joining room");
+				try {
+					await this.JoinRoom(this.room);
+				}
+				catch (e) {
+					if (e instanceof RoomNotFoundException) {
+						log.info(`Failed to join room: ${e.message}`);
+						this.Socket.close(OttWebsocketError.ROOM_NOT_FOUND);
+					}
+					else {
+						if (e instanceof Error) {
+							log.error(`Failed to join room: ${e.stack}`);
+						}
+						this.Socket.close(OttWebsocketError.UNKNOWN);
+					}
+				}
+				return;
+			}
+			else {
+				log.error(`received message before auth: ${text}`);
+				this.Socket.close(OttWebsocketError.MISSING_AUTH);
+				return;
+			}
+		}
 		if (msg.action === "play") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
@@ -144,26 +167,6 @@ export class Client {
 				role: msg.role,
 			};
 		}
-		else if (msg.action === "auth") {
-			this.token = msg.token;
-			log.debug("received auth token, joining room");
-			try {
-				await this.JoinRoom(this.room);
-			}
-			catch (e) {
-				if (e instanceof RoomNotFoundException) {
-					log.info(`Failed to join room: ${e.message}`);
-					this.Socket.close(OttWebsocketError.ROOM_NOT_FOUND);
-				}
-				else {
-					if (e instanceof Error) {
-						log.error(`Failed to join room: ${e.stack}`);
-					}
-					this.Socket.close(OttWebsocketError.UNKNOWN);
-				}
-			}
-			return;
-		}
 		else if (msg.action === "play-now") {
 			request = {
 				type: RoomRequestType.PlayNowRequest,
@@ -194,6 +197,9 @@ export class Client {
 	}
 
 	public async JoinRoom(roomName: string): Promise<void> {
+		if (!this.token) {
+			throw new Error("No token, client needs to send auth message first");
+		}
 		log.debug(`client id=${this.id} joining ${roomName}`);
 		if (!this.Session) {
 			this.Session = await tokens.getSessionInfo(this.token);
@@ -209,8 +215,9 @@ export class Client {
 		if (state === undefined) {
 			log.warn("room state not present, grabbing");
 			const stateText = await get(`room-sync:${room.name}`);
-			state = JSON.parse(stateText);
-			roomStates.set(room.name, state);
+			let loadedstate = JSON.parse(stateText);
+			roomStates.set(room.name, loadedstate);
+			state = loadedstate;
 		}
 		const syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
 		this.Socket.send(JSON.stringify(syncMsg));
@@ -275,16 +282,24 @@ export function Setup(): void {
  */
 async function OnConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
+	if (!req.ottsession) {
+		log.error("Rejecting connection because the session was not present");
+		socket.close(OttWebsocketError.UNKNOWN, "Invalid session");
+		return;
+	}
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
-	const client = new Client(req.ottsession, socket);
-	client.room = roomName;
+	const client = new Client(req.ottsession, socket, roomName);
 	connections.push(client);
 	socket.on("ping", (data) => client.OnPing(data));
 	socket.on("message", (data) => client.OnMessage(data as string));
 }
 
 async function broadcast(roomName: string, text: string) {
-	for (const client of roomJoins.get(roomName)) {
+	let clients = roomJoins.get(roomName);
+	if (!clients) {
+		return;
+	}
+	for (const client of clients) {
 		try {
 			client.Socket.send(text);
 		}
@@ -306,7 +321,7 @@ async function onRedisMessage(channel: string, text: string) {
 	if (channel.startsWith("room:")) {
 		const roomName = channel.replace("room:", "");
 		if (msg.action === "sync") {
-			let state: RoomStateSyncable = roomStates.get(roomName);
+			let state = roomStates.get(roomName);
 			if (state === undefined) {
 				const stateText = await get(`room-sync:${roomName}`);
 				state = JSON.parse(stateText) as RoomStateSyncable;
@@ -316,16 +331,15 @@ async function onRedisMessage(channel: string, text: string) {
 				Object.assign(state, filtered);
 			}
 			else {
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore
-				state = filtered;
+				state = filtered as RoomStateSyncable;
 			}
 			roomStates.set(roomName, state);
 
 			await broadcast(roomName, text);
 		}
 		else if (msg.action === "unload") {
-			for (const client of roomJoins.get(roomName)) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+			for (const client of roomJoins.get(roomName) as Client[]) {
 				client.Socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
 			}
 		}
@@ -336,7 +350,8 @@ async function onRedisMessage(channel: string, text: string) {
 			await broadcast(roomName, text);
 		}
 		else if (msg.action === "user") {
-			for (const client of roomJoins.get(roomName)) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+			for (const client of roomJoins.get(roomName) as Client[]) {
 				if (msg.user.id === client.id) {
 					msg.user.isYou = true;
 					client.sendObj(msg);
