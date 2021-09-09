@@ -27,13 +27,12 @@ subscribe(ANNOUNCEMENT_CHANNEL);
 export class Client {
 	id: ClientId
 	Socket: WebSocket
-	Session: SessionInfo
+	Session?: SessionInfo
 	room: string
 	token: AuthToken | null = null
 
-	constructor (session: SessionInfo, socket: WebSocket, roomName: string) {
+	constructor (socket: WebSocket, roomName: string) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
-		this.Session = session;
 		this.Socket = socket;
 		this.room = roomName;
 
@@ -57,17 +56,19 @@ export class Client {
 	}
 
 	get clientInfo(): ClientInfo {
-		let session = this.Session;
-		if (session.isLoggedIn) {
+		if (!this.Session) {
+			throw new Error("session info not present");
+		}
+		if (this.Session.isLoggedIn) {
 			return {
 				id: this.id,
-				user_id: session.user_id,
+				user_id: this.Session.user_id,
 			};
 		}
 		else {
 			return {
 				id: this.id,
-				username: session.username,
+				username: this.Session.username,
 			};
 		}
 	}
@@ -79,6 +80,7 @@ export class Client {
 		if (this.token === null) {
 			if (msg.action === "auth") {
 				this.token = msg.token;
+				this.Session = await tokens.getSessionInfo(this.token);
 				log.debug("received auth token, joining room");
 				try {
 					await this.JoinRoom(this.room);
@@ -170,6 +172,7 @@ export class Client {
 		else if (msg.action === "play-now") {
 			request = {
 				type: RoomRequestType.PlayNowRequest,
+				token: this.token,
 				video: msg.video,
 			};
 		}
@@ -282,13 +285,8 @@ export function Setup(): void {
  */
 async function OnConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
-	if (!req.ottsession) {
-		log.error("Rejecting connection because the session was not present");
-		socket.close(OttWebsocketError.UNKNOWN, "Invalid session");
-		return;
-	}
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
-	const client = new Client(req.ottsession, socket, roomName);
+	const client = new Client(socket, roomName);
 	connections.push(client);
 	socket.on("ping", (data) => client.OnPing(data));
 	socket.on("message", (data) => client.OnMessage(data as string));

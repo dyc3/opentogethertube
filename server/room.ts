@@ -1,4 +1,4 @@
-import permissions, { Grants } from "../common/permissions";
+import permissions, { Grants, PermissionName } from "../common/permissions";
 import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
@@ -555,7 +555,7 @@ export class Room implements RoomState {
 			[RoomRequestType.ChatRequest, "chat"],
 		]);
 		const permission = permissions.get(request.type);
-		if (permission && request.token) {
+		if (permission) {
 			this.grants.check(await this.getRoleFromToken(request.token), permission);
 		}
 
@@ -775,28 +775,40 @@ export class Room implements RoomState {
 	}
 
 	public async undo(request: UndoRequest): Promise<void> {
-		switch (request.event.request.type) {
+		let subrequest: RoomRequest = {
+			token: request.token,
+			client: request.client,
+			...request.event.request,
+		} as RoomRequest;
+
+		switch (subrequest.type) {
 			case RoomRequestType.SeekRequest:
-				await this.processRequest({
-					type: request.event.request.type,
-					client: request.client,
-					value: request.event.additional.prevPosition,
-				});
+				if ("prevPosition" in request.event.additional) {
+					await this.processRequest({
+						type: subrequest.type,
+						token: request.token,
+						client: request.client,
+						value: request.event.additional.prevPosition,
+					});
+				}
 				break;
 			case RoomRequestType.SkipRequest:
-				if (this.currentSource) {
-					this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
-					this.markDirty("queue");
+				if ("prevPosition" in request.event.additional && "video" in request.event.additional) {
+					if (this.currentSource) {
+						this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
+						this.markDirty("queue");
+					}
+					this.currentSource = request.event.additional.video;
+					this.playbackPosition = request.event.additional.prevPosition;
 				}
-				this.currentSource = request.event.additional.video;
-				this.playbackPosition = request.event.additional.prevPosition;
 				break;
 			case RoomRequestType.AddRequest:
 				if (this.queue.length > 0) {
 					const removeReq: RemoveRequest = {
 						type: RoomRequestType.RemoveRequest,
+						token: request.token,
 						client: request.client,
-						video: request.event.request.video,
+						video: subrequest.video,
 					};
 					await this.processRequest(removeReq);
 				}
@@ -805,12 +817,13 @@ export class Room implements RoomState {
 				}
 				break;
 			case RoomRequestType.RemoveRequest:
-				// eslint-disable-next-line no-case-declarations
-				const newQueue = this.queue.splice(0, request.event.additional.queueIdx);
-				newQueue.push(request.event.request.video);
-				newQueue.push(...this.queue);
-				this.queue = newQueue;
-				this.markDirty("queue");
+				if ("queueIdx" in request.event.additional) {
+					const newQueue = this.queue.splice(0, request.event.additional.queueIdx);
+					newQueue.push(subrequest.video);
+					newQueue.push(...this.queue);
+					this.queue = newQueue;
+					this.markDirty("queue");
+				}
 				break;
 			default:
 				this.log.error(`Event ${request.event.request.type} is not undoable, ignoring`);
@@ -846,7 +859,7 @@ export class Room implements RoomState {
 		const targetUser = this.getUser(request.targetClientId);
 		this.log.info(`${user.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
 
-		let perm: string | undefined;
+		let perm: PermissionName | undefined;
 		switch (request.role) {
 			case Role.Administrator:
 				perm = "manage-users.promote-admin";
