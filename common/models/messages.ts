@@ -190,7 +190,7 @@ export enum RoomRequestType {
 
 export interface RoomRequestBase {
 	type: RoomRequestType
-	token?: AuthToken
+	token: AuthToken
 	client?: ClientId
 }
 

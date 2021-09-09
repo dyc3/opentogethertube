@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { getLogger } from '../../logger.js';
 import roommanager from "../roommanager";
-import { QueueMode, Visibility } from "../../common/models/types";
+import { AuthToken, QueueMode, Visibility } from "../../common/models/types";
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit";
 import { BadApiArgumentException } from "../exceptions";
 import { OttException } from "../../common/exceptions";
@@ -34,6 +34,10 @@ const VALID_ROOM_QUEUE_MODE = [
 	QueueMode.Loop,
 	QueueMode.Dj,
 ];
+
+function isTokenPresent(token?: AuthToken): token is AuthToken {
+	return !!token;
+}
 
 router.get("/list", (req, res) => {
 	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
@@ -122,6 +126,9 @@ const createRoom: RequestHandler = async (req, res) => {
 };
 
 const patchRoom: RequestHandler = async (req, res) => {
+	if (!isTokenPresent(req.token)) {
+		throw new Error("Missing auth token");
+	}
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
 		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY.toString()}`);
 	}
@@ -150,6 +157,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 	// FIXME: what if the client is not connected to this node?
 	const roomRequest: ApplySettingsRequest = {
 		type: RoomRequestType.ApplySettingsRequest,
+		token: req.token,
 		client: client.id,
 		settings: req.body,
 	};
