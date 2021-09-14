@@ -9,11 +9,20 @@ The easy way to watch videos with your friends.
 
 https://opentogethertube.com/
 
+Features:
+ - Support for Youtube, Vimeo, Dailymotion videos
+ - Support for self-hosted .mp4 videos
+ - Support for copying Youtube playlists or channels
+ - Drag and drop video queue ordering
+ - Voting mode
+ - Room permissions
+ - Permanent rooms with custom urls
+
 # Deployment
 
 ### Prerequisites
 
-This project targets node 12.
+This project targets node 14.
 
 ### Setup
 
