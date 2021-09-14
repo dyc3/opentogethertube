@@ -99,16 +99,16 @@ interface YoutubeThumbnailInfo {
   height: number;
 }
 
-interface YoutubeErrorResponse {
+export interface YoutubeErrorResponse {
   error: {
     code: number;
     message: string;
     status: string;
-    errors: [{
+    errors: {
       message: string;
       domain: string;
       reason: string;
-    }]
+    }[]
   }
 }
 
