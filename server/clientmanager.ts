@@ -68,6 +68,7 @@ export class Client {
 		else {
 			return {
 				id: this.id,
+				// @ts-expect-error FIXME: remove this comment when strict-null-checks are enabled
 				username: this.Session.username,
 			};
 		}
