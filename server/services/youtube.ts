@@ -99,6 +99,23 @@ interface YoutubeThumbnailInfo {
   height: number;
 }
 
+interface YoutubeErrorResponse {
+  error: {
+    code: number;
+    message: string;
+    status: string;
+    errors: [{
+      message: string;
+      domain: string;
+      reason: string;
+    }]
+  }
+}
+
+function isYoutubeApiError(response: AxiosResponse<any>): response is AxiosResponse<YoutubeErrorResponse> {
+  return "error" in response.data;
+}
+
 export default class YouTubeAdapter extends ServiceAdapter {
   apiKey: string
   redisClient: RedisClient
@@ -406,28 +423,39 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return results;
     }
     catch (err) {
-      if (err.response && err.response.status === 403) {
-        if (!onlyProperties || onlyProperties.includes("length")) {
-          log.warn(
-            `Attempting youtube fallback method for ${ids.length} videos`
-          );
-          try {
-            const videos: Video[] = await this.getManyVideoLengthsFallback(ids);
-            return videos;
-          }
-          catch (err) {
-            if (err instanceof Error) {
-              log.error(`Youtube fallback failed ${err.message} ${err.stack}`);
+      if (axios.isAxiosError(err)) {
+        if (isYoutubeApiError(err.response)) {
+          if (err.response.status === 403) {
+            if (!onlyProperties || onlyProperties.includes("length")) {
+              log.warn(
+                `Attempting youtube fallback method for ${ids.length} videos`
+              );
+              try {
+                const videos: Video[] = await this.getManyVideoLengthsFallback(ids);
+                return videos;
+              }
+              catch (err) {
+                if (err instanceof Error) {
+                  log.error(`Youtube fallback failed ${err.message} ${err.stack}`);
+                }
+                else {
+                  log.error(`Youtube fallback failed, but threw non Error`);
+                }
+                throw err;
+              }
             }
             else {
-              log.error(`Youtube fallback failed, but threw non Error`);
+              log.warn("No fallback method for requested metadata properties");
+              throw new OutOfQuotaException("youtube");
             }
+          }
+          else {
+            log.error(`videoApiRequest failed: http status ${err.response.status}, response: ${JSON.stringify(err.response.data)}`);
             throw err;
           }
         }
         else {
-          log.warn("No fallback method for requested metadata properties");
-          throw new OutOfQuotaException("youtube");
+          throw err;
         }
       }
       else {
