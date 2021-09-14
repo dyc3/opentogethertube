@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - master
+    - main
     paths-ignore:
     - '.vscode/**'
     - 'docs/**'
@@ -43,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [14.x, 16.x]
     continue-on-error: true
     services:
       redis:
