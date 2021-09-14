@@ -1,7 +1,8 @@
-import YouTubeAdapter from "../../../../server/services/youtube";
+import YouTubeAdapter, { YoutubeErrorResponse } from "../../../../server/services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../../server/exceptions";
 import { redisClient } from "../../../../redisclient";
+import { AxiosError } from "axios";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -402,13 +403,14 @@ describe("Youtube", () => {
 	describe("videoApiRequest", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = jest.spyOn(adapter.api, "get");
+		const outOfQuotaResponse = { isAxiosError: true, response: { status: 403, data: { error: { code: 403, message: "", errors: [], status: "" } } } } as AxiosError<YoutubeErrorResponse>;
 
 		beforeEach(() => {
 			apiGet.mockReset();
 		});
 
 		it("should use the fallback when out of quota, and onlyProperties contains length", async () => {
-			apiGet.mockRejectedValue({ response: { status: 403 } });
+			apiGet.mockRejectedValue(outOfQuotaResponse);
 			const fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
 			const videos = await adapter.videoApiRequest("BTZ5KVRUy1Q", ["length"]);
 			expect(videos[0]).toEqual({
@@ -422,7 +424,7 @@ describe("Youtube", () => {
 		});
 
 		it("should not use the fallback when out of quota, and onlyProperties does NOT contain length", async () => {
-			apiGet.mockRejectedValue({ response: { status: 403 } });
+			apiGet.mockRejectedValue(outOfQuotaResponse);
 			const fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
 			expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(new OutOfQuotaException("youtube"));
 			expect(fallbackSpy).toHaveBeenCalledTimes(0);
