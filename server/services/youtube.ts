@@ -161,7 +161,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   async resolveURL(link: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video[]> {
-    log.debug(`resolveURL: ${link}, ${onlyProperties?.toString()}`);
+    log.debug(`resolveURL: ${link}, ${(onlyProperties ? onlyProperties.toString() : "")}`);
     const url = new URL(link);
 
     const qPlaylist = url.searchParams.get("list");
