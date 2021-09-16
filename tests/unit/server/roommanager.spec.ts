@@ -68,7 +68,7 @@ describe("Room manager", () => {
 			expect(loadedRoom.isPlaying).toEqual(room.isPlaying);
 			expect(loadedRoom.playbackPosition).toEqual(room.playbackPosition);
 			expect(loadedRoom._playbackStart).toEqual(room._playbackStart);
-			expect(loadedRoom.realPlaybackPosition).toBeCloseTo(20, 1);
+			expect(loadedRoom.realPlaybackPosition).toBeCloseTo(20, 0);
 		});
 	});
 });
