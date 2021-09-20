@@ -37,7 +37,7 @@
     "@types/validator": "^13.1.3",
     "@types/ws": "^7.4.4",
     "@vimeo/player": "^2.10.0",
-    "@vue/cli": "^3.12.1",
+    "@vue/cli": "^4.5.13",
     "ansi-colors": "^4.1.1",
     "axios": "^0.21.1",
     "connect-redis": "^4.0.4",
