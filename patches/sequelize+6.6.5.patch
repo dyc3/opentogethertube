@@ -1,0 +1,20 @@
+diff --git a/node_modules/sequelize/lib/model.js b/node_modules/sequelize/lib/model.js
+index 595d181..fb07cfe 100644
+--- a/node_modules/sequelize/lib/model.js
++++ b/node_modules/sequelize/lib/model.js
+@@ -1071,6 +1071,7 @@ class Model {
+   }
+ 
+   static refreshAttributes() {
++    console.log(`sequelize: (model: ${this.getTableName()}) refreshAttributes()`);
+     const attributeManipulation = {};
+ 
+     this.prototype._customGetters = {};
+@@ -1139,6 +1140,7 @@ class Model {
+     this.uniqueKeys = {};
+ 
+     _.each(this.rawAttributes, (definition, name) => {
++      console.log(`processing rawAttribute: ${name}`);
+       definition.type = this.sequelize.normalizeDataType(definition.type);
+ 
+       definition.Model = this;

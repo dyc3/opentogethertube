@@ -23,7 +23,8 @@
     "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\"",
     "optic-dev": "npx api start",
     "optic-test": "npx api run tests",
-    "optic-api-server": "npx api run api-server"
+    "optic-api-server": "npx api run api-server",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@ffprobe-installer/ffprobe": "^1.2.0",
@@ -122,6 +123,7 @@
     "husky": "4.2.3",
     "node-sass": "^6.0.1",
     "nodemon": "^2.0.12",
+    "patch-package": "^6.4.7",
     "redis-mock": "^0.56.3",
     "sass": "^1.40.0",
     "sass-loader": "^10.0.0",
