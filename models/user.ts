@@ -73,7 +73,15 @@ const createModel = (sequelize: Sequelize) => {
     sequelize,
     modelName: "User",
     validate: {
-      ensureCredentials() {
+      ensureCredentials(this: User) {
+        if (this.email !== this.getDataValue("email")) {
+          let descriptor = Object.getOwnPropertyDescriptor(this, "email");
+          throw new Error(`Encountered weird bug! email attribute does not match the internal dataValue!
+          getOwnPropertyDescriptor for email = ${JSON.stringify(descriptor)}
+          get function: ${typeof descriptor.get} ${descriptor.get?.toString()}
+          set function: ${typeof descriptor.set}
+          `);
+        }
         if ((!this.email || !this.hash || !this.salt) && !this.discordId) {
           throw new Error('Incomplete login credentials. Requires social login or email/password.');
         }
