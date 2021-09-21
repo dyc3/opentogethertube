@@ -146,15 +146,12 @@ const patchRoom: RequestHandler = async (req, res) => {
 		}
 	}
 
-	const client = clientmanager.getClient(req.token, req.params.name);
-	// FIXME: what if the client is not connected to this node?
 	const roomRequest: ApplySettingsRequest = {
 		type: RoomRequestType.ApplySettingsRequest,
-		client: client.id,
 		settings: req.body,
 	};
 
-	await room.processRequest(roomRequest);
+	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 
 	if (!room.isTemporary) {
 		if (req.body.claim && !room.owner) {
@@ -205,8 +202,6 @@ const undoEvent = async (req: express.Request, res) => {
 	const client = clientmanager.getClient(req.token, req.params.name);
 	const request: UndoRequest = {
 		type: RoomRequestType.UndoRequest,
-		token: req.token,
-		client: client.id,
 		event: req.body.data.event,
 	};
 
@@ -227,8 +222,6 @@ const addVote = async (req: express.Request, res) => {
 	const client = clientmanager.getClient(req.token, req.params.name);
 	await client.makeRoomRequest({
 		type: RoomRequestType.VoteRequest,
-		token: req.token,
-		client: client.id,
 		video: { service: req.body.service, id: req.body.id },
 		add: true,
 	});
@@ -248,8 +241,6 @@ const removeVote = async (req: express.Request, res) => {
 	const client = clientmanager.getClient(req.token, req.params.name);
 	await client.makeRoomRequest({
 		type: RoomRequestType.VoteRequest,
-		token: req.token,
-		client: client.id,
 		video: { service: req.body.service, id: req.body.id },
 		add: false,
 	});

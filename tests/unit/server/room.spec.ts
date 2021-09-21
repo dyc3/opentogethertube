@@ -46,31 +46,25 @@ describe("Room", () => {
 
 		describe("PlaybackRequest", () => {
 			it("should play and pause", async () => {
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.PlaybackRequest,
-					client: user.id,
-					token: user.token,
 					state: true,
-				});
+				}, { token: user.token });
 				expect(room.isPlaying).toEqual(true);
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.PlaybackRequest,
-					client: user.id,
-					token: user.token,
 					state: false,
-				});
+				}, { token: user.token });
 				expect(room.isPlaying).toEqual(false);
 			});
 
 			it("should advance playback position", async () => {
 				room.isPlaying = true;
 				room._playbackStart = dayjs().subtract(5, "second");
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.PlaybackRequest,
-					client: user.id,
-					token: user.token,
 					state: false,
-				});
+				}, { token: user.token });
 				expect(room.isPlaying).toEqual(false);
 				expect(room.playbackPosition).toBeCloseTo(5, 1);
 				expect(room.playbackPosition).toBeGreaterThanOrEqual(5);
@@ -86,11 +80,9 @@ describe("Room", () => {
 			});
 
 			it("skip with empty queue", async () => {
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.SkipRequest,
-					client: user.id,
-					token: user.token,
-				});
+				}, { token: user.token });
 				expect(room.currentSource).toBeNull();
 			});
 
@@ -101,11 +93,9 @@ describe("Room", () => {
 						id: "video2",
 					},
 				];
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.SkipRequest,
-					client: user.id,
-					token: user.token,
-				});
+				}, { token: user.token });
 				expect(room.currentSource).toEqual({
 					service: "test",
 					id: "video2",
@@ -116,23 +106,19 @@ describe("Room", () => {
 		describe("SeekRequest", () => {
 			it("should seek", async () => {
 				room.playbackPosition = 10;
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.SeekRequest,
-					client: user.id,
-					token: user.token,
 					value: 15,
-				});
+				}, { token: user.token });
 				expect(room.playbackPosition).toEqual(15);
 			});
 
 			it.each([undefined, null])("should not seek if value is %s", async (v) => {
 				room.playbackPosition = 10;
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.SeekRequest,
-					client: user.id,
-					token: user.token,
 					value: v,
-				});
+				}, { token: user.token });
 				expect(room.playbackPosition).toEqual(10);
 			});
 		});
@@ -149,12 +135,10 @@ describe("Room", () => {
 
 			it("should place the requested video in currentSource", async () => {
 				jest.spyOn(infoextractor, 'getVideoInfo').mockResolvedValue(videoToPlay);
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.PlayNowRequest,
-					client: user.id,
-					token: user.token,
 					video: videoToPlay,
-				});
+				}, { token: user.token });
 				expect(room.currentSource).toEqual(videoToPlay);
 			});
 
@@ -165,12 +149,10 @@ describe("Room", () => {
 					id: "asdf123",
 				};
 				room.queue = [videoToPlay];
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.PlayNowRequest,
-					client: user.id,
-					token: user.token,
 					video: videoToPlay,
-				});
+				}, { token: user.token });
 				for (const video of room.queue) {
 					expect(video).not.toEqual(videoToPlay);
 				}
@@ -184,12 +166,10 @@ describe("Room", () => {
 					id: "asdf123",
 				};
 				room.queue = [videoToPlay];
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.PlayNowRequest,
-					client: user.id,
-					token: user.token,
 					video: videoToPlay,
-				});
+				}, { token: user.token });
 				expect(room.queue[0]).toEqual({
 					service: "test",
 					id: "asdf123",
@@ -208,12 +188,10 @@ describe("Room", () => {
 				};
 				room.playbackPosition = 10;
 				room.queue = [videoToPlay];
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.PlayNowRequest,
-					client: user.id,
-					token: user.token,
 					video: videoToPlay,
-				});
+				}, { token: user.token });
 				expect(room.currentSource).toEqual(videoToPlay);
 				expect(room.playbackPosition).toEqual(0);
 			});
