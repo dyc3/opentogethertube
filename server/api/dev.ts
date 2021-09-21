@@ -39,15 +39,14 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 
 	const room = await roommanager.GetRoom(req.params.name);
 	try {
-		await room.processRequest({
+		await room.processUnauthorizedRequest({
 			type: RoomRequestType.JoinRequest,
-			client: "fake",
 			token: token,
 			info: {
 				id: "fake",
 				user_id: user ? user.id : undefined,
 			},
-		});
+		}, { token: token });
 		res.json({ success: true });
 	}
 	catch (e) {

@@ -213,7 +213,7 @@ router.post("/room/:name/queue", async (req, res) => {
 	}
 
 	try {
-		let roomRequest = { type: RoomRequestType.AddRequest, token: req.token };
+		let roomRequest = { type: RoomRequestType.AddRequest };
 		if (req.body.videos) {
 			roomRequest.videos = req.body.videos;
 		}
@@ -230,7 +230,7 @@ router.post("/room/:name/queue", async (req, res) => {
 			});
 			return;
 		}
-		await room.processRequest(roomRequest);
+		await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 		res.json({
 			success: true,
 		});
@@ -266,7 +266,7 @@ router.delete("/room/:name/queue", async (req, res) => {
 
 	try {
 		if (req.body.service && req.body.id) {
-			await room.processRequest({ type: RoomRequestType.RemoveRequest, token: req.token, video: {service: req.body.service, id: req.body.id} });
+			await room.processUnauthorizedRequest({ type: RoomRequestType.RemoveRequest, video: {service: req.body.service, id: req.body.id} }, { token: req.token });
 			res.json({
 				success: true,
 			});

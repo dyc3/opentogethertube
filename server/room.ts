@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest, PlayNowRequest } from "../common/models/messages";
+import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest, PlayNowRequest, RoomRequestAuthorization, RoomRequestContext } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -17,6 +17,7 @@ import { ImpossiblePromotionException, VideoAlreadyQueuedException, VideoNotFoun
 import storage from "./../storage";
 import tokens, { SessionInfo } from "./auth/tokens";
 import statistics, { Counter } from "./statistics";
+import { OttException } from "../common/exceptions";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -278,10 +279,8 @@ export class Room implements RoomState {
 		await publish(`room:${this.name}`, JSON.stringify(msg, replacer));
 	}
 
-	async publishRoomEvent(request: RoomRequest, additional?: RoomEventContext): Promise<void> {
-		// const user = this.getUserInfo(request.client);
-		const user = await this.getUserInfoFromToken(request.token);
-		delete request.token;
+	async publishRoomEvent(request: RoomRequest, context: RoomRequestContext, additional?: RoomEventContext): Promise<void> {
+		const user = this.getUserInfo(context.clientId);
 		await this.publish({
 			action: "event",
 			request,
@@ -322,7 +321,11 @@ export class Room implements RoomState {
 
 	async getRoleFromToken(token: AuthToken): Promise<Role> {
 		const session = await tokens.getSessionInfo(token);
-		if (session && session.user_id) {
+		return this.getRoleFromSession(session);
+	}
+
+	getRoleFromSession(session: SessionInfo): Role {
+		if (session && "user_id" in session) {
 			if (this.owner !== null && this.owner.id === session.user_id) {
 				return Role.Owner;
 			}
@@ -525,7 +528,33 @@ export class Room implements RoomState {
 		return false;
 	}
 
-	public async processRequest(request: RoomRequest): Promise<void> {
+	public async deriveRequestContext(authorization: RoomRequestAuthorization): Promise<RoomRequestContext> {
+		for (const user of this.realusers) {
+			if (user.token === authorization.token) {
+				return {
+					username: user.username,
+					role: await this.getRoleFromToken(authorization.token),
+					clientId: user.id,
+				};
+			}
+		}
+
+		let session = await tokens.getSessionInfo(authorization.token);
+		if (!session) {
+			throw new Error("Invalid token, unauthorized request");
+		}
+
+		return {
+			username: session.username,
+			role: this.getRoleFromSession(session),
+		};
+	}
+
+	public async processUnauthorizedRequest(request: RoomRequest, authorization: RoomRequestAuthorization): Promise<void> {
+		await this.processRequest(request, await this.deriveRequestContext(authorization));
+	}
+
+	public async processRequest(request: RoomRequest, context: RoomRequestContext): Promise<void> {
 		const permissions = new Map([
 			[RoomRequestType.PlaybackRequest, "playback.play-pause"],
 			[RoomRequestType.SkipRequest, "playback.skip"],
@@ -538,12 +567,12 @@ export class Room implements RoomState {
 		]);
 		const permission = permissions.get(request.type);
 		if (permission) {
-			this.grants.check(await this.getRoleFromToken(request.token), permission);
+			this.grants.check(context.role, permission);
 		}
 
 		this.log.silly(`processing request: ${request.type}`);
 
-		type RoomRequestHandlers = Omit<PickFunctions<Room, RoomRequestBase>, "processRequest" | "publishRoomEvent">
+		type RoomRequestHandlers = Omit<PickFunctions<Room, RoomRequestBase, RoomRequestContext>, "processRequest" | "publishRoomEvent">
 		const handlers: Record<RoomRequestType, keyof RoomRequestHandlers | null> = {
 			[RoomRequestType.JoinRequest]: "joinRoom",
 			[RoomRequestType.LeaveRequest]: "leaveRoom",
@@ -565,7 +594,7 @@ export class Room implements RoomState {
 		const handler = handlers[request.type];
 		if (handler) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			await this[handler](request as any);
+			await this[handler](request as any, context);
 		}
 		else {
 			this.log.error(`No room request handler: ${request.type}`);
@@ -600,21 +629,21 @@ export class Room implements RoomState {
 	/**
 	 * Play or pause the video, depending on the desired state. Handles PlaybackRequest.
 	 */
-	public async playback(request: PlaybackRequest): Promise<void> {
+	public async playback(request: PlaybackRequest, context: RoomRequestContext): Promise<void> {
 		if (request.state) {
 			await this.play();
 		}
 		else {
 			await this.pause();
 		}
-		await this.publishRoomEvent(request);
+		await this.publishRoomEvent(request, context);
 	}
 
-	public async skip(request: SkipRequest): Promise<void> {
+	public async skip(request: SkipRequest, context: RoomRequestContext): Promise<void> {
 		const current = this.currentSource;
 		const prevPosition = this.realPlaybackPosition;
 		this.dequeueNext();
-		await this.publishRoomEvent(request, { video: current, prevPosition });
+		await this.publishRoomEvent(request, context, { video: current, prevPosition });
 		await statistics.bumpCounter(Counter.VideosSkipped);
 	}
 
@@ -622,7 +651,7 @@ export class Room implements RoomState {
 	 * Seek to the specified position in the video.
 	 * @param value
 	 */
-	public async seek(request: SeekRequest): Promise<void> {
+	public async seek(request: SeekRequest, context: RoomRequestContext): Promise<void> {
 		if (request.value === undefined || request.value === null) {
 			this.log.error("seek value was undefined or null");
 			return;
@@ -630,14 +659,14 @@ export class Room implements RoomState {
 		const prev = this.realPlaybackPosition;
 		this.playbackPosition = request.value;
 		this._playbackStart = dayjs();
-		await this.publishRoomEvent(request, { prevPosition: prev });
+		await this.publishRoomEvent(request, context, { prevPosition: prev });
 	}
 
 	/**
 	 * Add the video to the queue. Should only be called after permissions have been checked.
 	 * @param request
 	 */
-	public async addToQueue(request: AddRequest): Promise<void> {
+	public async addToQueue(request: AddRequest, context: RoomRequestContext): Promise<void> {
 		if (request.url) {
 			const adapter = InfoExtract.getServiceAdapterForURL(request.url);
 			request.video = {} as VideoId;
@@ -657,7 +686,7 @@ export class Room implements RoomState {
 			}
 			this.queue.push(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
-			await this.publishRoomEvent(request, { video });
+			await this.publishRoomEvent(request, context, { video });
 			await statistics.bumpCounter(Counter.VideosQueued);
 		}
 		else if (request.videos) {
@@ -680,7 +709,7 @@ export class Room implements RoomState {
 
 			this.queue.push(...videos);
 			this.log.info(`added ${videos.length} videos`);
-			await this.publishRoomEvent(request, { videos });
+			await this.publishRoomEvent(request, context, { videos });
 			await statistics.bumpCounter(Counter.VideosQueued, videos.length);
 		}
 		else {
@@ -691,7 +720,7 @@ export class Room implements RoomState {
 		this.markDirty("queue");
 	}
 
-	public async removeFromQueue(request: RemoveRequest): Promise<void> {
+	public async removeFromQueue(request: RemoveRequest, context: RoomRequestContext): Promise<void> {
 		const matchIdx = _.findIndex(this.queue, item => (item.service === request.video.service && item.id === request.video.id));
 		if (matchIdx < 0) {
 			throw new VideoNotFoundException();
@@ -700,7 +729,7 @@ export class Room implements RoomState {
 		const removed = this.queue.splice(matchIdx, 1)[0];
 		this.markDirty("queue");
 		this.log.info(`Video removed: ${JSON.stringify(removed)}`);
-		await this.publishRoomEvent(request, { video: removed, queueIdx: matchIdx });
+		await this.publishRoomEvent(request, context, { video: removed, queueIdx: matchIdx });
 	}
 
 	public async reorderQueue(request: OrderRequest): Promise<void> {
@@ -709,32 +738,35 @@ export class Room implements RoomState {
 		this.markDirty("queue");
 	}
 
-	public async joinRoom(request: JoinRequest): Promise<void> {
+	public async joinRoom(request: JoinRequest, context: RoomRequestContext): Promise<void> {
 		const user = new RoomUser(request.info.id);
 		user.token = request.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
-		await this.publishRoomEvent(request);
+		await this.publishRoomEvent(request, context);
 		await this.syncUser(this.getUserInfo(user.id));
 		// HACK: force the client to receive the correct playback position
 		await this.publish({ action: "sync", playbackPosition: this.realPlaybackPosition });
 	}
 
-	public async leaveRoom(request: LeaveRequest): Promise<void> {
-		const removed = this.getUserInfo(request.client);
+	public async leaveRoom(request: LeaveRequest, context: RoomRequestContext): Promise<void> {
+		if (context.clientId === undefined) {
+			throw new Error("context.clientId was undefined");
+		}
+		const removed = this.getUserInfo(context.clientId);
 		for (let i = 0; i < this.realusers.length; i++) {
-			if (this.realusers[i].id === request.client) {
+			if (this.realusers[i].id === context.clientId) {
 				this.realusers.splice(i--, 1);
 				this.markDirty("users");
 				break;
 			}
 		}
-		await this.publishRoomEvent(request, { user: removed });
+		await this.publishRoomEvent(request, context, { user: removed });
 	}
 
-	public async updateUser(request: UpdateUser): Promise<void> {
+	public async updateUser(request: UpdateUser, context: RoomRequestContext): Promise<void> {
 		this.log.debug(`User was updated: ${request.info.id} ${JSON.stringify(request.info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === request.info.id) {
@@ -745,8 +777,8 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async chat(request: ChatRequest): Promise<void> {
-		const user = this.getUserInfo(this.getClientId(request.token));
+	public async chat(request: ChatRequest, context: RoomRequestContext): Promise<void> {
+		const user = this.getUserInfo(context.clientId);
 		await this.publish({
 			action: "chat",
 			from: user,
@@ -754,14 +786,13 @@ export class Room implements RoomState {
 		});
 	}
 
-	public async undo(request: UndoRequest): Promise<void> {
+	public async undo(request: UndoRequest, context: RoomRequestContext): Promise<void> {
 		switch (request.event.request.type) {
 			case RoomRequestType.SeekRequest:
 				await this.processRequest({
 					type: request.event.request.type,
-					client: request.client,
 					value: request.event.additional.prevPosition,
-				});
+				}, context);
 				break;
 			case RoomRequestType.SkipRequest:
 				if (this.currentSource) {
@@ -775,10 +806,9 @@ export class Room implements RoomState {
 				if (this.queue.length > 0) {
 					const removeReq: RemoveRequest = {
 						type: RoomRequestType.RemoveRequest,
-						client: request.client,
 						video: request.event.request.video,
 					};
-					await this.processRequest(removeReq);
+					await this.processRequest(removeReq, context);
 				}
 				else {
 					this.currentSource = null;
@@ -798,20 +828,23 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async vote(request: VoteRequest): Promise<void> {
+	public async vote(request: VoteRequest, context: RoomRequestContext): Promise<void> {
+		if (!context.clientId) {
+			throw new OttException("Can't vote if not connected to room.");
+		}
 		const key = request.video.service + request.video.id;
 		if (this.votes.has(key)) {
 			const votes = this.votes.get(key);
 			if (request.add) {
-				votes.add(request.client);
+				votes.add(context.clientId);
 			}
 			else {
-				votes.delete(request.client);
+				votes.delete(context.clientId);
 			}
 		}
 		else {
 			if (request.add) {
-				this.votes.set(key, new Set(request.client));
+				this.votes.set(key, new Set(context.clientId));
 			}
 			// TODO: throw exceptions for invalid votes instead of ignoring them
 			// else {
@@ -821,10 +854,9 @@ export class Room implements RoomState {
 		this.markDirty("voteCounts");
 	}
 
-	public async promoteUser(request: PromoteRequest): Promise<void> {
-		const user = this.getUserFromToken(request.token);
+	public async promoteUser(request: PromoteRequest, context: RoomRequestContext): Promise<void> {
 		const targetUser = this.getUser(request.targetClientId);
-		this.log.info(`${user.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
+		this.log.info(`${context.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
 
 		let perm: string | undefined;
 		switch (request.role) {
@@ -841,7 +873,7 @@ export class Room implements RoomState {
 				break;
 		}
 		if (perm) {
-			this.grants.check(this.getRole(user), perm);
+			this.grants.check(context.role, perm);
 		}
 		const targetCurrentRole = this.getRole(targetUser);
 		if (request.role < targetCurrentRole) {
@@ -860,7 +892,7 @@ export class Room implements RoomState {
 					this.log.error(`Can't demote ${permissions.ROLE_NAMES[targetCurrentRole]}`);
 					throw new ImpossiblePromotionException();
 			}
-			this.grants.check(this.getRole(user), demotePerm);
+			this.grants.check(context.role, demotePerm);
 		}
 
 		if (targetCurrentRole === Role.UnregisteredUser) {
@@ -894,7 +926,7 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async applySettings(request: ApplySettingsRequest): Promise<void> {
+	public async applySettings(request: ApplySettingsRequest, context: RoomRequestContext): Promise<void> {
 		const propsToPerms: Record<keyof Omit<RoomSettings, "grants">, string> = {
 			"title": "configure-room.set-title",
 			"description": "configure-room.set-description",
@@ -907,9 +939,6 @@ export class Room implements RoomState {
 			[Role.TrustedUser]: "configure-room.set-permissions.for-trusted-users",
 			[Role.Moderator]: "configure-room.set-permissions.for-moderator",
 		};
-
-		const user = this.getUser(request.client);
-		const userrole = this.getRole(user);
 
 		// TODO: have clients only send properties that they actually intend to change.
 		// For now, we'll determine what the request is trying to change here, and delete the identical fields from the request.
@@ -943,7 +972,7 @@ export class Room implements RoomState {
 		// check permissions
 		for (const prop in request.settings) {
 			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
-				this.grants.check(userrole, propsToPerms[prop]);
+				this.grants.check(context.role, propsToPerms[prop]);
 			}
 		}
 
@@ -951,7 +980,7 @@ export class Room implements RoomState {
 			const newGrants = request.settings.grants;
 			for (const role of newGrants.getRoles()) {
 				if (Object.hasOwnProperty.call(roleToPerms, role)) {
-					this.grants.check(userrole, roleToPerms[role]);
+					this.grants.check(context.role, roleToPerms[role]);
 				}
 			}
 		}
@@ -978,21 +1007,19 @@ export class Room implements RoomState {
 	/**
 	 * Request that the room play a video immediately, pushing the current video to the queue. If the video is already in the queue, it will be removed from the queue and start playing. If the video is already playing, this will be ignored.
 	 */
-	public async playNow(request: PlayNowRequest): Promise<void> {
+	public async playNow(request: PlayNowRequest, context: RoomRequestContext): Promise<void> {
 		if (this.currentSource !== null && this.currentSource.service === request.video.service && this.currentSource.id === request.video.id) {
 			// already playing, ignore
 			return;
 		}
 
-		const role = await this.getRoleFromToken(request.token);
-
 		// First, we need to determine what permissions we need to check for this request.
 		const alreadyInQueue = this.isVideoInQueue(request.video); // So we don't need to calculate this again later.
 		if (alreadyInQueue) {
-			this.grants.check(role, "manage-queue.order");
+			this.grants.check(context.role, "manage-queue.order");
 		}
 		else {
-			this.grants.check(role, "manage-queue.add");
+			this.grants.check(context.role, "manage-queue.add");
 		}
 
 		let videoToPlay: Video;

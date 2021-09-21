@@ -44,10 +44,10 @@ export class Client {
 
 			if (this.room) {
 				const room = await roommanager.GetRoom(this.room);
-				await room.processRequest({
+				await room.processUnauthorizedRequest({
 					type: RoomRequestType.LeaveRequest,
+				}, {
 					token: this.token,
-					client: this.id,
 				});
 			}
 		});
@@ -83,34 +83,29 @@ export class Client {
 		if (msg.action === "play") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				token: this.token,
 				state: true,
 			};
 		}
 		else if (msg.action === "pause") {
 			request = {
 				type: RoomRequestType.PlaybackRequest,
-				token: this.token,
 				state: false,
 			};
 		}
 		else if (msg.action === "skip") {
 			request = {
 				type: RoomRequestType.SkipRequest,
-				token: this.token,
 			};
 		}
 		else if (msg.action === "seek") {
 			request = {
 				type: RoomRequestType.SeekRequest,
-				token: this.token,
 				value: msg.position,
 			};
 		}
 		else if (msg.action === "queue-move") {
 			request = {
 				type: RoomRequestType.OrderRequest,
-				token: this.token,
 				fromIdx: msg.currentIdx,
 				toIdx: msg.targetIdx,
 			};
@@ -122,14 +117,12 @@ export class Client {
 		else if (msg.action === "chat") {
 			request = {
 				type: RoomRequestType.ChatRequest,
-				token: this.token,
 				...msg,
 			};
 		}
 		else if (msg.action === "status") {
 			request = {
 				type: RoomRequestType.UpdateUser,
-				token: this.token,
 				info: {
 					id: this.id,
 					status: msg.status,
@@ -139,7 +132,6 @@ export class Client {
 		else if (msg.action === "set-role") {
 			request = {
 				type: RoomRequestType.PromoteRequest,
-				token: this.token,
 				targetClientId: msg.clientId,
 				role: msg.role,
 			};
@@ -238,7 +230,9 @@ export class Client {
 		if (!room) {
 			throw new RoomNotFoundException(this.room);
 		}
-		await room.processRequest(request);
+		await room.processUnauthorizedRequest(request, {
+			token: this.token,
+		});
 	}
 
 	public sendObj(obj: any): void {
@@ -376,7 +370,6 @@ async function onUserModified(token: AuthToken): Promise<void> {
 		if (client.token === token) {
 			await client.makeRoomRequest({
 				type: RoomRequestType.UpdateUser,
-				token: token,
 				info: client.clientInfo,
 			});
 		}

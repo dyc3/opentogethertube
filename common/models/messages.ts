@@ -110,6 +110,23 @@ export interface ClientMessagePlayNow extends ClientMessageBase {
 	video: VideoId,
 }
 
+/**
+ * Provides a user's authorization for a room request. This is NOT safe to send to the client.
+ */
+export interface RoomRequestAuthorization {
+	token: AuthToken
+}
+
+/**
+ * When a room request is authorized, this information can be safely derived from the token. This information is safe to send to the client.
+ */
+export interface RoomRequestContext {
+	username: string
+	role: Role
+	/** If the user is connected to the room, then we can use it's client id to identify the websocket connection. */
+	clientId?: ClientId
+}
+
 export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest | PlayNowRequest
 
 export enum RoomRequestType {
@@ -132,18 +149,19 @@ export enum RoomRequestType {
 
 export interface RoomRequestBase {
 	type: RoomRequestType
-	token?: AuthToken
-	client?: ClientId
 }
 
 export interface JoinRequest extends RoomRequestBase {
 	type: RoomRequestType.JoinRequest
+	/**
+	 * We need to know the user's token when they join the room in order to authorize their later requests without pinging redis.
+	 */
+	token: AuthToken
 	info: ClientInfo
 }
 
 export interface LeaveRequest extends RoomRequestBase {
 	type: RoomRequestType.LeaveRequest
-	client: ClientId
 }
 
 export interface PlaybackRequest extends RoomRequestBase {
