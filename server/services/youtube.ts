@@ -3,17 +3,18 @@ import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
 import { RedisClient } from "redis";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import { InvalidVideoIdException, OutOfQuotaException, UnsupportedVideoType } from "../exceptions";
+import { BadApiArgumentException, InvalidVideoIdException, OutOfQuotaException, UnsupportedVideoType } from "../exceptions";
 import { getLogger } from "../../logger";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
 import storage from "../../storage";
+import { OttException } from "common/exceptions";
 
 const log = getLogger("youtube");
 
 const knownPrivateLists = ["LL", "WL"];
 
-const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_PLAYLIST_RESULTS_COUNT, 10) || 40;
-const ADD_PREVIEW_SEARCH_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_SEARCH_RESULTS_COUNT, 10) || 10;
+const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_PLAYLIST_RESULTS_COUNT ?? "", 10) || 40;
+const ADD_PREVIEW_SEARCH_RESULTS_COUNT = parseInt(process.env.ADD_PREVIEW_SEARCH_RESULTS_COUNT ?? "", 10) || 10;
 
 interface YoutubeChannelData {
   channel?: string
@@ -112,6 +113,8 @@ export interface YoutubeErrorResponse {
   }
 }
 
+export type YoutubeApiPart = "id" | "snippet" | "contentDetails" | "status" | "statistics";
+
 function isYoutubeApiError(response: AxiosResponse<any>): response is AxiosResponse<YoutubeErrorResponse> {
   return "error" in response.data;
 }
@@ -157,11 +160,12 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
   isCollectionURL(link: string): boolean {
     const url = new URL(link);
+    let qList = url.searchParams.get("list");
     return url.pathname.startsWith("/channel/") ||
       url.pathname.startsWith("/c/") ||
       url.pathname.startsWith("/user/") ||
       url.pathname.startsWith("/playlist") ||
-      (!!url.searchParams.get("list") && !knownPrivateLists.includes(url.searchParams.get("list")));
+      (!!qList && !knownPrivateLists.includes(qList));
   }
 
   getVideoId(link: string): string {
@@ -170,7 +174,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return url.pathname.replace("/", "").trim();
     }
     else if (url.pathname.startsWith("/watch")) {
-      return url.searchParams.get("v").trim();
+      let videoId = url.searchParams.get("v");
+      if (!videoId) {
+        throw new BadApiArgumentException("input", "No video ID found in URL");
+      }
+      return videoId.trim();
     }
     else {
       return url.pathname.split("/")[2];
@@ -187,7 +195,12 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return this.fetchChannelVideos(this.getChannelId(url));
     }
     else if (url.pathname === "/playlist") {
-      return this.fetchPlaylistVideos(qPlaylist);
+      if (qPlaylist) {
+        return this.fetchPlaylistVideos(qPlaylist);
+      }
+      else {
+        throw new BadApiArgumentException("input", "Link is missing playlist ID");
+      }
     }
     else {
       if (qPlaylist && !knownPrivateLists.includes(qPlaylist)) {
@@ -206,7 +219,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   async fetchVideoInfo(id: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video> {
-    return (await this.videoApiRequest([id], onlyProperties))[0];
+    return (await this.videoApiRequest([id], onlyProperties))[0] as Video;
   }
 
   async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
@@ -216,7 +229,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return this.videoApiRequest(ids, group[0].missingInfo);
     }));
     // const results = Object.values(groups.flat()[0]);
-    const results = _.flatten(groups);
+    const results: Video[] = _.flatten(groups) as Video[];
     return results;
   }
 
@@ -256,7 +269,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return this.fetchPlaylistVideos(uploadsPlaylistId);
     }
     catch (err) {
-      if (axios.isAxiosError(err) && err.response.status === 403) {
+      if (axios.isAxiosError(err) && err.response && err.response.status === 403) {
         log.error("Error when getting channel upload playlist ID: Out of quota");
         throw new OutOfQuotaException(this.serviceId);
       }
@@ -314,7 +327,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
         },
       });
 
-      const results = [];
+      const results: Video[] = [];
       for (const item of res.data.items) {
         if (
           item.status.privacyStatus === "private" || // the video is private
@@ -342,7 +355,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
       return results;
     }
     catch (err) {
-      if (err.response && err.response.status === 403) {
+      if (axios.isAxiosError(err) && err.response && isYoutubeApiError(err.response) && err.response.status === 403) {
         throw new OutOfQuotaException(this.serviceId);
       }
       else {
@@ -370,7 +383,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     return playlist;
   }
 
-  async videoApiRequest(ids: string | string[], onlyProperties?: (keyof VideoMetadata)[]): Promise<Video[]> {
+  async videoApiRequest(ids: string | string[], onlyProperties?: (keyof VideoMetadata)[]): Promise<Partial<Video>[]> {
     if (!Array.isArray(ids)) {
       ids = [ids];
     }
@@ -424,14 +437,14 @@ export default class YouTubeAdapter extends ServiceAdapter {
     }
     catch (err) {
       if (axios.isAxiosError(err)) {
-        if (isYoutubeApiError(err.response)) {
+        if (err.response && isYoutubeApiError(err.response)) {
           if (err.response.status === 403) {
             if (!onlyProperties || onlyProperties.includes("length")) {
               log.warn(
                 `Attempting youtube fallback method for ${ids.length} videos`
               );
               try {
-                const videos: Video[] = await this.getManyVideoLengthsFallback(ids);
+                const videos: Partial<Video>[] = await this.getManyVideoLengthsFallback(ids);
                 return videos;
               }
               catch (err) {
@@ -496,7 +509,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   private async getManyVideoLengthsFallback(ids: string[]) {
     const getLengthPromises = ids.map((id) => this.getVideoLengthFallback(id));
     const results = await Promise.all(getLengthPromises);
-    const videos: Video[] = _.zip(ids, results).map(
+    const videos: Partial<Video>[] = _.zip(ids, results).map(
       ([id, length]) => ({
         service: "youtube",
         id,
@@ -517,7 +530,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   private getNeededParts(onlyProperties?: (keyof VideoMetadata)[]) {
-    let parts = [];
+    let parts: YoutubeApiPart[] = [];
     if (onlyProperties) {
       if (onlyProperties.includes("title") ||
         onlyProperties.includes("description") ||
@@ -541,7 +554,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
     return parts;
   }
 
-  async getVideoLengthFallback(id: string): Promise<number> {
+  async getVideoLengthFallback(id: string): Promise<number | undefined> {
     const url = `https://youtube.com/watch?v=${id}`;
     const res = await this.fallbackApi.get(url);
     const regexs = [
@@ -558,11 +571,14 @@ export default class YouTubeAdapter extends ServiceAdapter {
       log.debug(`EXTRACTED ${extracted}`);
       return parseInt(extracted, 10);
     }
-    return null;
   }
 
   getChannelId(url: URL): YoutubeChannelData {
-    const channelId = (/\/(?!(?:c(?:|hannel)|user)\/)([a-z0-9_-]+)/gi).exec(url.pathname)[1];
+    const match = (/\/(?!(?:c(?:|hannel)|user)\/)([a-z0-9_-]+)/gi).exec(url.pathname);
+    if (match === null) {
+      throw new OttException("Invalid channel url");
+    }
+    const channelId = match[1];
     if (url.pathname.startsWith("/channel/")) {
       return { channel: channelId };
     }
@@ -612,13 +628,13 @@ export default class YouTubeAdapter extends ServiceAdapter {
   /**
    * Workaround for #285. Feature was requested here: https://issuetracker.google.com/issues/165676622
    */
-  async getChannelIdFromYoutubeCustomUrl(customUrl: string): Promise<string | null> {
+  async getChannelIdFromYoutubeCustomUrl(customUrl: string): Promise<string | undefined> {
     log.debug("web scraping to find channel id");
     const res = await this.fallbackApi.get(`https://youtube.com/c/${customUrl}`);
     const regex = /externalId":"UC[A-Za-z0-9_-]{22}/;
     const matches = res.data.match(regex);
     if (matches === null) {
-      return null;
+      return undefined;
     }
     const extracted = matches[0].split(":")[1].substring(1);
     return extracted;
@@ -629,15 +645,19 @@ export default class YouTubeAdapter extends ServiceAdapter {
    * Examples: PT40M25S
    */
   parseVideoLength(duration: string): number {
-    let match = /PT(\d+H)?(\d+M)?(\d+S)?/.exec(duration).slice(1).map((x) => {
+    let match = /PT(\d+H)?(\d+M)?(\d+S)?/.exec(duration)?.slice(1).map((x) => {
       if (x !== null && x !== undefined) {
         return x.replace(/\D/, '');
       }
     });
 
-    const hours = (parseInt(match[0], 10) || 0);
-    const minutes = (parseInt(match[1], 10) || 0);
-    const seconds = (parseInt(match[2], 10) || 0);
+    if (match === undefined) {
+      throw new Error(`Failed to parse duration: ${duration}`);
+    }
+
+    const hours = (parseInt(match[0] ?? "0", 10) || 0);
+    const minutes = (parseInt(match[1] ?? "0", 10) || 0);
+    const seconds = (parseInt(match[2] ?? "0", 10) || 0);
 
     return hours * 3600 + minutes * 60 + seconds;
   }
