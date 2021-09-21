@@ -153,12 +153,15 @@ export interface RoomRequestBase {
 
 export interface JoinRequest extends RoomRequestBase {
 	type: RoomRequestType.JoinRequest
+	/**
+	 * We need to know the user's token when they join the room in order to authorize their later requests without pinging redis.
+	 */
+	token: AuthToken
 	info: ClientInfo
 }
 
 export interface LeaveRequest extends RoomRequestBase {
 	type: RoomRequestType.LeaveRequest
-	client: ClientId
 }
 
 export interface PlaybackRequest extends RoomRequestBase {
