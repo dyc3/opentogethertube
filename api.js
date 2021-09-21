@@ -14,6 +14,7 @@ import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
 import auth from "./server/auth";
 import usermanager from "./usermanager";
 import passport from 'passport';
+import statusapi from "./server/api/status";
 
 const log = getLogger("api");
 
@@ -74,6 +75,7 @@ function handlePostVideoFailure(res, err) {
 const router = express.Router();
 
 router.use("/auth", auth.router);
+router.use("/status", statusapi);
 router.use((req, res, next) => {
 	// eslint-disable-next-line no-unused-vars
 	passport.authenticate("bearer", (err, user, info) => {
