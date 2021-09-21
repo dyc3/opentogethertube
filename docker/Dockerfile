@@ -39,8 +39,10 @@ RUN rm -rf public src .browserslistrc .eslintrc.js .gitignore jest.config.js pos
 
 RUN mkdir env && touch env/production.env
 
+RUN apk update -q && apk --no-cache add curl -q
+
 # Healthcheck API, WEB, REDIS
-HEALTHCHECK CMD ( curl -f http://localhost:8080/ || exit 1 )
+HEALTHCHECK --interval=30s --timeout=3s CMD ( curl -f http://localhost:8080/api/status || exit 1 )
 
 # Start Server
 CMD ["/bin/sh", "wait_for_db.sh", "postgres_db:5432", "--", "npm", "run", "start"]
