@@ -574,7 +574,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
   }
 
   getChannelId(url: URL): YoutubeChannelData {
-    const match = (/\/(?!(?:c(?:|hannel)|user)\/)([a-z0-9_-]+)/gi).exec(url.pathname);
+    const match = (/\/(?!(?:c(?:hannel)?|user)\/)([a-z0-9_-]+)/gi).exec(url.pathname);
     if (match === null) {
       throw new OttException("Invalid channel url");
     }
