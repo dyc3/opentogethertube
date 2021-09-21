@@ -40,9 +40,9 @@ describe("Room manager", () => {
 		it("should save and load all needed props from redis", async () => {
 			await roommanager.CreateRoom({ name: "test", isTemporary: true });
 			const room = await roommanager.GetRoom("test");
-			room.userRoles.get(Role.TrustedUser).add(8).add(10).add(12);
-			room.userRoles.get(Role.Moderator).add(87).add(23);
-			room.userRoles.get(Role.Administrator).add(9);
+			room.userRoles.get(Role.TrustedUser)?.add(8).add(10).add(12);
+			room.userRoles.get(Role.Moderator)?.add(87).add(23);
+			room.userRoles.get(Role.Administrator)?.add(9);
 			room.grants.setRoleGrants(Role.UnregisteredUser, 1234);
 			room.currentSource = { service: "fake", id: "video" };
 			room.queue = [

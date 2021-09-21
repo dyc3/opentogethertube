@@ -24,8 +24,8 @@ describe('Permission System', () => {
 
 	it('should evaluate invalid permission as false', () => {
 		const grants: Grants = new Grants(new Map([[Role.UnregisteredUser, 1<<0 | 1<<1 | 1<<2]]));
-		expect(grants.granted(Role.UnregisteredUser, null)).toEqual(false); // invalid because null
-		expect(grants.granted(Role.UnregisteredUser, undefined)).toEqual(false); // invalid because undefined
+		expect(grants.granted(Role.UnregisteredUser, null as unknown as PermissionName)).toEqual(false); // invalid because null
+		expect(grants.granted(Role.UnregisteredUser, undefined as unknown as PermissionName)).toEqual(false); // invalid because undefined
 	});
 
 	it('should evaluate inherited permission grants accurately', () => {
