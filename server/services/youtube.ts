@@ -7,7 +7,7 @@ import { BadApiArgumentException, InvalidVideoIdException, OutOfQuotaException, 
 import { getLogger } from "../../logger";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
 import storage from "../../storage";
-import { OttException } from "common/exceptions";
+import { OttException } from "../../common/exceptions";
 
 const log = getLogger("youtube");
 
