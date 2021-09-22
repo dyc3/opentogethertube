@@ -117,8 +117,7 @@ describe("Room", () => {
 				room.playbackPosition = 10;
 				await room.processUnauthorizedRequest({
 					type: RoomRequestType.SeekRequest,
-					// @ts-expect-error because we want to test undefined, but the type system should not allow it normally
-					value: v,
+					value: v as unknown as number,
 				}, { token: user.token });
 				expect(room.playbackPosition).toEqual(10);
 			});
