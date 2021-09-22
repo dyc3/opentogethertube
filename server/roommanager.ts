@@ -43,7 +43,7 @@ export async function update(): Promise<void> {
 	}
 }
 
-export async function CreateRoom(options: Partial<RoomOptions>): Promise<void> {
+export async function CreateRoom(options: Partial<RoomOptions> & { name: string }): Promise<void> {
 	for (const room of rooms) {
 		if (options.name.toLowerCase() === room.name.toLowerCase()) {
 			log.warn("can't create room, already loaded");
