@@ -17,7 +17,6 @@ import tokens, { SessionInfo } from "./auth/tokens";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
-const get = promisify(redisClient.get).bind(redisClient);
 const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(redisSubscriber);
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
@@ -26,23 +25,22 @@ subscribe(ANNOUNCEMENT_CHANNEL);
 
 export class Client {
 	id: ClientId
-	Socket: WebSocket
-	Session: SessionInfo
-	room: string | null
+	socket: WebSocket
+	session?: SessionInfo
+	room: string
 	token: AuthToken | null = null
 
-	constructor (session: SessionInfo, socket: WebSocket) {
+	constructor (roomName: string, socket: WebSocket) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
-		this.Session = session;
-		this.Socket = socket;
-		this.room = null;
+		this.socket = socket;
+		this.room = roomName;
 
-		this.Socket.on("close", async (code, reason) => {
+		this.socket.on("close", async (code, reason) => {
 			log.debug(`socket closed: ${code}, ${reason}`);
 			const idx = _.findIndex(connections, { id: this.id });
 			connections.splice(idx, 1);
 
-			if (this.room && this.token) {
+			if (this.token) {
 				const room = await roommanager.GetRoom(this.room);
 				await room.processUnauthorizedRequest({
 					type: RoomRequestType.LeaveRequest,
@@ -54,17 +52,20 @@ export class Client {
 	}
 
 	get clientInfo(): ClientInfo {
-		if (this.Session.isLoggedIn) {
+		if (!this.session) {
+			throw new Error("No session info present");
+		}
+		if (this.session.isLoggedIn) {
 			return {
 				id: this.id,
-				user_id: this.Session.user_id,
+				user_id: this.session.user_id,
 			};
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
-		else if (this.Session.isLoggedIn === false) { // this is a workaround because typescript doesn't narrow the type correctly
+		else if (this.session.isLoggedIn === false) { // this is a workaround because typescript doesn't narrow the type correctly
 			return {
 				id: this.id,
-				username: this.Session.username,
+				username: this.session.username,
 			};
 		}
 		else {
@@ -111,7 +112,7 @@ export class Client {
 			};
 		}
 		else if (msg.action === "kickme") {
-			this.Socket.close(OttWebsocketError.UNKNOWN);
+			this.socket.close(OttWebsocketError.UNKNOWN);
 			return;
 		}
 		else if (msg.action === "chat") {
@@ -138,9 +139,6 @@ export class Client {
 		}
 		else if (msg.action === "auth") {
 			this.token = msg.token;
-			if (!this.room) {
-				throw new Error("Client does not have room");
-			}
 			log.debug("received auth token, joining room");
 			try {
 				await this.JoinRoom(this.room);
@@ -148,13 +146,13 @@ export class Client {
 			catch (e) {
 				if (e instanceof RoomNotFoundException) {
 					log.info(`Failed to join room: ${e.message}`);
-					this.Socket.close(OttWebsocketError.ROOM_NOT_FOUND);
+					this.socket.close(OttWebsocketError.ROOM_NOT_FOUND);
 				}
 				else {
 					if (e instanceof Error) {
 						log.error(`Failed to join room: ${e.stack}`);
 					}
-					this.Socket.close(OttWebsocketError.UNKNOWN);
+					this.socket.close(OttWebsocketError.UNKNOWN);
 				}
 			}
 			return;
@@ -185,7 +183,7 @@ export class Client {
 
 	public OnPing(data: Buffer): void {
 		log.debug(`sending pong`);
-		this.Socket.pong();
+		this.socket.pong();
 	}
 
 	public async JoinRoom(roomName: string): Promise<void> {
@@ -193,8 +191,8 @@ export class Client {
 		if (!this.token) {
 			throw new Error("No token present");
 		}
-		if (!this.Session) {
-			this.Session = await tokens.getSessionInfo(this.token);
+		if (!this.session) {
+			this.session = await tokens.getSessionInfo(this.token);
 		}
 
 		const room = await roommanager.GetRoom(roomName);
@@ -211,7 +209,7 @@ export class Client {
 			roomStates.set(room.name, state);
 		}
 		const syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
-		this.Socket.send(JSON.stringify(syncMsg));
+		this.socket.send(JSON.stringify(syncMsg));
 
 		// actually join the room
 		await subscribe(`room:${room.name}`);
@@ -233,9 +231,6 @@ export class Client {
 		if (!this.token) {
 			throw new Error("No token present");
 		}
-		if (!this.room) {
-			throw new Error("Client does not have room");
-		}
 		// FIXME: what if the room is not loaded on this node, but it's on a different node instead?
 		// FIXME: only get room if it is loaded already.
 		const room = await roommanager.GetRoom(this.room);
@@ -249,7 +244,7 @@ export class Client {
 
 	public sendObj(obj: any): void {
 		try {
-			this.Socket.send(JSON.stringify(obj));
+			this.socket.send(JSON.stringify(obj));
 		}
 		catch (e) {
 			if (e instanceof Error) {
@@ -282,8 +277,7 @@ export function Setup(): void {
 async function OnConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
-	const client = new Client(req.ottsession, socket);
-	client.room = roomName;
+	const client = new Client(roomName, socket);
 	connections.push(client);
 	socket.on("ping", (data) => client.OnPing(data));
 	socket.on("message", (data) => client.OnMessage(data as string));
@@ -296,7 +290,7 @@ async function broadcast(roomName: string, text: string) {
 	}
 	for (const client of clients) {
 		try {
-			client.Socket.send(text);
+			client.socket.send(text);
 		}
 		catch (e) {
 			if (e instanceof Error) {
@@ -342,7 +336,7 @@ async function onRedisMessage(channel: string, text: string) {
 				return;
 			}
 			for (const client of clients) {
-				client.Socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+				client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
 			}
 		}
 		else if (msg.action === "chat") {
@@ -371,7 +365,7 @@ async function onRedisMessage(channel: string, text: string) {
 	else if (channel === ANNOUNCEMENT_CHANNEL) {
 		for (const client of connections) {
 			try {
-				client.Socket.send(text);
+				client.socket.send(text);
 			}
 			catch (e) {
 				if (e instanceof Error) {
@@ -416,7 +410,7 @@ function getClient(token: AuthToken, roomName: string): Client {
 
 setInterval(() => {
 	for (const client of connections) {
-		client.Socket.ping();
+		client.socket.ping();
 	}
 }, 10000);
 
