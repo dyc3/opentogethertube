@@ -5,7 +5,7 @@ import { LocalFileException, UnsupportedMimeTypeException, MissingMetadataExcept
 import { getMimeType, isSupportedMimeType } from "../mime";
 import ffprobe from "../../ffprobe";
 import { getLogger } from "../../logger";
-import { VideoDirect } from "../../common/models/video";
+import { Video } from "../../common/models/video";
 
 const log = getLogger("direct");
 
@@ -29,16 +29,16 @@ export default class DirectVideoAdapter extends ServiceAdapter {
   canHandleURL(link: string): boolean {
     const url = URL.parse(link);
     return /\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4])$/.test(
-      url.path.split("?")[0]
+      (url.path ?? "/").split("?")[0]
     );
   }
 
-  async fetchVideoInfo(link: string): Promise<VideoDirect> {
+  async fetchVideoInfo(link: string): Promise<Video> {
     const url = URL.parse(link);
     if (url.protocol === "file:") {
       throw new LocalFileException();
     }
-    const fileName = url.pathname.split("/").slice(-1)[0].trim();
+    const fileName = (url.pathname ?? "").split("/").slice(-1)[0].trim();
     const extension = fileName.split(".").slice(-1)[0];
     const mime = getMimeType(extension);
     if (!isSupportedMimeType(mime)) {
@@ -50,7 +50,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
       log.error("Video duration could not be determined");
       throw new MissingMetadataException();
     }
-    const video: VideoDirect = {
+    const video: Video = {
       service: this.serviceId,
       id: link,
       title: fileName,

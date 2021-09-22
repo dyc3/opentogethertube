@@ -2,7 +2,7 @@ import { URL } from "url";
 import axios from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { InvalidVideoIdException } from "../exceptions";
-import { Video, VideoDefault } from "../../common/models/video";
+import { Video } from "../../common/models/video";
 
 export default class DailyMotionAdapter extends ServiceAdapter {
   api = axios.create({
@@ -43,7 +43,7 @@ export default class DailyMotionAdapter extends ServiceAdapter {
       },
     });
 
-    const video: VideoDefault = {
+    const video: Video = {
       service: this.serviceId,
       id: videoId,
       title: result.data.title,
