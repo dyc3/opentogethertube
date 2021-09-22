@@ -4,7 +4,7 @@ import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "../logger.js";
 import { Request } from 'express';
-import { redisClient, createSubscriber } from "../redisclient";
+import { redisClient, createSubscriber, redisClientAsync } from "../redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
@@ -42,7 +42,7 @@ export class Client {
 			const idx = _.findIndex(connections, { id: this.id });
 			connections.splice(idx, 1);
 
-			if (this.room) {
+			if (this.room && this.token) {
 				const room = await roommanager.GetRoom(this.room);
 				await room.processUnauthorizedRequest({
 					type: RoomRequestType.LeaveRequest,
@@ -138,6 +138,9 @@ export class Client {
 		}
 		else if (msg.action === "auth") {
 			this.token = msg.token;
+			if (!this.room) {
+				throw new Error("Client does not have room");
+			}
 			log.debug("received auth token, joining room");
 			try {
 				await this.JoinRoom(this.room);
@@ -187,6 +190,9 @@ export class Client {
 
 	public async JoinRoom(roomName: string): Promise<void> {
 		log.debug(`client id=${this.id} joining ${roomName}`);
+		if (!this.token) {
+			throw new Error("No token present");
+		}
 		if (!this.Session) {
 			this.Session = await tokens.getSessionInfo(this.token);
 		}
@@ -200,8 +206,8 @@ export class Client {
 		let state = roomStates.get(room.name);
 		if (state === undefined) {
 			log.warn("room state not present, grabbing");
-			const stateText = await get(`room-sync:${room.name}`);
-			state = JSON.parse(stateText);
+			const stateText = await redisClientAsync.get(`room-sync:${room.name}`);
+			state = JSON.parse(stateText) as RoomStateSyncable;
 			roomStates.set(room.name, state);
 		}
 		const syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
@@ -224,6 +230,12 @@ export class Client {
 	}
 
 	public async makeRoomRequest(request: RoomRequest): Promise<void> {
+		if (!this.token) {
+			throw new Error("No token present");
+		}
+		if (!this.room) {
+			throw new Error("Client does not have room");
+		}
 		// FIXME: what if the room is not loaded on this node, but it's on a different node instead?
 		// FIXME: only get room if it is loaded already.
 		const room = await roommanager.GetRoom(this.room);
@@ -278,7 +290,11 @@ async function OnConnect(socket: WebSocket, req: express.Request) {
 }
 
 async function broadcast(roomName: string, text: string) {
-	for (const client of roomJoins.get(roomName)) {
+	const clients = roomJoins.get(roomName);
+	if (!clients) {
+		return;
+	}
+	for (const client of clients) {
 		try {
 			client.Socket.send(text);
 		}
@@ -300,9 +316,9 @@ async function onRedisMessage(channel: string, text: string) {
 	if (channel.startsWith("room:")) {
 		const roomName = channel.replace("room:", "");
 		if (msg.action === "sync") {
-			let state: RoomStateSyncable = roomStates.get(roomName);
+			let state = roomStates.get(roomName);
 			if (state === undefined) {
-				const stateText = await get(`room-sync:${roomName}`);
+				const stateText = await redisClientAsync.get(`room-sync:${roomName}`);
 				state = JSON.parse(stateText) as RoomStateSyncable;
 			}
 			const filtered = _.omit(msg, "action");
@@ -310,16 +326,22 @@ async function onRedisMessage(channel: string, text: string) {
 				Object.assign(state, filtered);
 			}
 			else {
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore
+				// @ts-expect-error
 				state = filtered;
+			}
+			if (!state) {
+				throw new Error("state is still undefined, can't broadcast to clients");
 			}
 			roomStates.set(roomName, state);
 
 			await broadcast(roomName, text);
 		}
 		else if (msg.action === "unload") {
-			for (const client of roomJoins.get(roomName)) {
+			const clients = roomJoins.get(roomName);
+			if (!clients) {
+				return;
+			}
+			for (const client of clients) {
 				client.Socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
 			}
 		}
@@ -330,7 +352,11 @@ async function onRedisMessage(channel: string, text: string) {
 			await broadcast(roomName, text);
 		}
 		else if (msg.action === "user") {
-			for (const client of roomJoins.get(roomName)) {
+			const clients = roomJoins.get(roomName);
+			if (!clients) {
+				return;
+			}
+			for (const client of clients) {
 				if (msg.user.id === client.id) {
 					msg.user.isYou = true;
 					client.sendObj(msg);
