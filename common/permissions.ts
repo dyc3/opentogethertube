@@ -246,7 +246,7 @@ export class Grants {
 	}
 
 	getMask(role: Role): GrantMask {
-		return this.masks.get(role);
+		return this.masks.get(role)!;
 	}
 
 	/**
@@ -263,14 +263,18 @@ export class Grants {
 		}
 		else if (grants instanceof Map) {
 			for (const role of grants.keys()) {
-				this.setRoleGrants(role, grants.get(role));
+				let mask = grants.get(role);
+				if (!mask) {
+					continue;
+				}
+				this.setRoleGrants(role, mask);
 			}
 		}
 		else {
 			for (const r in grants) {
 				const role = _normalizeRoleId(r);
 				if (Object.hasOwnProperty.call(grants, role)) {
-					this.setRoleGrants(role, grants[role]);
+					this.setRoleGrants(role, grants[role]!);
 				}
 			}
 		}

@@ -14,20 +14,21 @@ import { redisClient, redisClientAsync } from "../redisclient";
 import { isSupportedMimeType } from "./mime";
 import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
+import { OttException } from "../common/exceptions";
 
 const log = getLogger("infoextract");
 
 const adapters = [
   new DailyMotionAdapter(),
-  new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY),
+  new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY ?? "not-provided"),
   new VimeoAdapter(),
-  new YouTubeAdapter(process.env.YOUTUBE_API_KEY, redisClient),
+  new YouTubeAdapter(process.env.YOUTUBE_API_KEY ?? "not-provided", redisClient),
   new DirectVideoAdapter(),
   new RedditAdapter(),
   new NeverthinkAdapter(),
 ];
 
-const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH) || 3;
+const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH ?? "3") || 3;
 const ENABLE_SEARCH = process.env.ENABLE_SEARCH === undefined || process.env.ENABLE_SEARCH === "true";
 
 function mergeVideo(a: Video, b: Video): Video {
@@ -94,14 +95,22 @@ export default {
    * Returns the adapter instance for a given service name.
    */
   getServiceAdapter(service: string): ServiceAdapter {
-    return adapters.find(adapter => adapter.serviceId === service);
+    const adapter = adapters.find(adapter => adapter.serviceId === service);
+    if (!adapter) {
+      throw new OttException(`Unkonwn service: ${service}`);
+    }
+    return adapter;
   },
 
   /**
    * Returns the adapter that can handle a given URL.
    */
   getServiceAdapterForURL(url: string): ServiceAdapter {
-    return adapters.find(adapter => adapter.canHandleURL(url));
+    const adapter = adapters.find(adapter => adapter.canHandleURL(url));
+    if (!adapter) {
+      throw new OttException(`Unkonwn service: ${url}`);
+    }
+    return adapter;
   },
 
   /**
@@ -206,7 +215,7 @@ export default {
    * used to perform a search.
    */
   async resolveVideoQuery(query: string, searchService: string): Promise<Video[]> {
-    let results = [];
+    let results: Video[] = [];
 
     if (query.includes("\n")) {
       const lines = query.trim().split("\n").filter(line => this.isURL(line));

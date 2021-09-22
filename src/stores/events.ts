@@ -17,7 +17,7 @@ export const module: Module<unknown, unknown> = {
 					text = `${message.user.name} paused the video`;
 				}
 			}
-			else if (message.request.type === RoomRequestType.SkipRequest) {
+			else if (message.request.type === RoomRequestType.SkipRequest && message.additional.video) {
 				text = `${message.user.name} skipped ${message.additional.video.title}`;
 				duration = 7000;
 			}
@@ -28,20 +28,28 @@ export const module: Module<unknown, unknown> = {
 			else if (message.request.type === RoomRequestType.JoinRequest) {
 				text = `${message.user.name} joined the room`;
 			}
-			else if (message.request.type === RoomRequestType.LeaveRequest) {
+			else if (message.request.type === RoomRequestType.LeaveRequest && message.additional.user) {
 				text = `${message.additional.user.name} left the room`;
 			}
 			else if (message.request.type === RoomRequestType.AddRequest) {
 				if (message.request.videos) {
 					text = `${message.user.name} added ${message.request.videos.length} videos`;
 				}
-				else {
+				else if (message.additional.video) {
 					text = `${message.user.name} added ${message.additional.video.title}`;
+				}
+				else {
+					text = `${message.user.name} added a video`;
 				}
 				duration = 7000;
 			}
 			else if (message.request.type === RoomRequestType.RemoveRequest) {
-				text = `${message.user.name} removed ${message.additional.video.title}`;
+				if (message.additional.video) {
+					text = `${message.user.name} removed ${message.additional.video.title}`;
+				}
+				else {
+					text = `${message.user.name} removed a video`;
+				}
 				duration = 7000;
 			}
 			else {

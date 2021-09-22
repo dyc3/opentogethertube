@@ -403,7 +403,7 @@ describe("Youtube", () => {
 	describe("videoApiRequest", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = jest.spyOn(adapter.api, "get");
-		const outOfQuotaResponse = { isAxiosError: true, response: { status: 403, data: { error: { code: 403, message: "", errors: [], status: "" } } } } as AxiosError<YoutubeErrorResponse>;
+		const outOfQuotaResponse = { isAxiosError: true, response: { status: 403, data: { error: { code: 403, message: "", errors: [], status: "" } } } } as unknown as AxiosError<YoutubeErrorResponse>;
 
 		beforeEach(() => {
 			apiGet.mockReset();

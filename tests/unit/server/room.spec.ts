@@ -117,7 +117,7 @@ describe("Room", () => {
 				room.playbackPosition = 10;
 				await room.processUnauthorizedRequest({
 					type: RoomRequestType.SeekRequest,
-					value: v,
+					value: v as unknown as number,
 				}, { token: user.token });
 				expect(room.playbackPosition).toEqual(10);
 			});

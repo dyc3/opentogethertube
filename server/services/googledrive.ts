@@ -28,8 +28,12 @@ interface GoogleDriveListResponse {
 interface GoogleDriveErrorResponse {
   error: {
     message: string,
-    errors: unknown[],
+    errors: { reason: string }[],
   }
+}
+
+function isGoogleDriveApiError(response: AxiosResponse<any> | undefined): response is AxiosResponse<GoogleDriveErrorResponse> {
+  return !!response && "error" in response.data;
 }
 
 export default class GoogleDriveAdapter extends ServiceAdapter {
@@ -83,7 +87,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
       return url.pathname.split("/")[3];
     }
     else {
-      return url.searchParams.get("id");
+      return url.searchParams.get("id") ?? "";
     }
   }
 
@@ -104,9 +108,8 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
       return video;
     }
     catch (err) {
-      if (axios.isAxiosError(err)) {
-        const error = err as AxiosError<GoogleDriveErrorResponse>;
-        log.error(`Failed to get video metadata: ${error.response.data.error.message} ${JSON.stringify(error.response.data.error.errors)}`);
+      if (axios.isAxiosError(err) && isGoogleDriveApiError(err.response)) {
+        log.error(`Failed to get video metadata: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
       }
       else if (err instanceof Error) {
         log.error(`Failed to get video metadata: ${err.message} ${err.stack}`);
@@ -131,13 +134,12 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
       return result.data.files.map((item: GoogleDriveFile) => this.parseFile(item));
     }
     catch (err) {
-      if (axios.isAxiosError(err)) {
-        const error = err as AxiosError<GoogleDriveErrorResponse>;
+      if (axios.isAxiosError(err) && isGoogleDriveApiError(err.response)) {
         if (err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
           throw new OutOfQuotaException(this.serviceId);
         }
         else {
-          log.error(`Failed to get google drive folder: ${error.response.data.error.message} ${JSON.stringify(error.response.data.error.errors)}`);
+          log.error(`Failed to get google drive folder: ${err.response.data.error.message} ${JSON.stringify(err.response.data.error.errors)}`);
         }
       }
       else if (err instanceof Error) {
