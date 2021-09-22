@@ -87,7 +87,9 @@ export default class ToastNotification extends Vue {
 	}
 
 	destroyed() {
-		clearTimeout(this.closeTimeoutId);
+		if (this.closeTimeoutId) {
+			clearTimeout(this.closeTimeoutId);
+		}
 	}
 
 	close() {

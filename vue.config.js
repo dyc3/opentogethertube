@@ -41,6 +41,7 @@ module.exports = {
 					options: {
 						// disable type checker - we will use it in fork plugin
 						transpileOnly: true,
+						happyPackMode: true,
 					},
 				},
 				// this is supposed to be used to import sass variables into JS (particularly styleProxy.js), and it worked briefly. it then broke spontaneously.

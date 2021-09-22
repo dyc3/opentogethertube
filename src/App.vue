@@ -122,11 +122,11 @@ export default Vue.extend({
     document.addEventListener('fullscreenchange', () => {
       if (document.fullscreenElement) {
         this.$store.state.fullscreen = true;
-        document.querySelector("html").classList.add("scrollbarBeGone");
+        document.querySelector("html")?.classList.add("scrollbarBeGone");
       }
       else {
         this.$store.state.fullscreen = false;
-        document.querySelector("html").classList.remove("scrollbarBeGone");
+        document.querySelector("html")?.classList.remove("scrollbarBeGone");
       }
     });
 
