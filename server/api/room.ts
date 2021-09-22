@@ -11,6 +11,7 @@ import { ApplySettingsRequest, RoomRequestType, UndoRequest } from "../../common
 import { User } from "../../models/user";
 import storage from "../../storage";
 import { Grants } from "../../common/permissions";
+import { Video } from "common/models/video.js";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -35,22 +36,39 @@ const VALID_ROOM_QUEUE_MODE = [
 	QueueMode.Dj,
 ];
 
+interface RoomListItem {
+	name: string;
+	title: string;
+	description: string;
+	isTemporary: boolean;
+	visibility: Visibility;
+	queueMode: QueueMode;
+	currentSource: Video | null;
+	users: number;
+}
+
+interface ApiRoomCreateOptions {
+	name: string;
+	isTemporary?: boolean;
+	visibility?: Visibility;
+}
+
 router.get("/list", (req, res) => {
 	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
 	if (req.get("apikey") && !isAuthorized) {
-		log.warn(`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${req.headers["x-forwarded-for"].toString()} user-agent=${req.headers["user-agent"]}`);
+		log.warn(`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${(req.headers["x-forwarded-for"] ?? "not-present").toString()} user-agent=${req.headers["user-agent"]}`);
 		res.status(400).json({
 			success: false,
 			error: "apikey is invalid",
 		});
 		return;
 	}
-	let rooms = [];
+	let rooms: RoomListItem[] = [];
 	for (const room of roommanager.rooms) {
 		if (room.visibility !== Visibility.Public && !isAuthorized) {
 			continue;
 		}
-		const obj = {
+		const obj: RoomListItem = {
 			name: room.name,
 			title: room.title,
 			description: room.description,
@@ -67,6 +85,12 @@ router.get("/list", (req, res) => {
 });
 
 const createRoom: RequestHandler = async (req, res) => {
+	function isValidCreateRoom(body: any): body is ApiRoomCreateOptions {
+		return !!body.name;
+	}
+	if (!isValidCreateRoom(req.body)) {
+		throw new BadApiArgumentException("body", "invalid schema");
+	}
 	if (!req.body.name) {
 		throw new BadApiArgumentException("name", "missing");
 	}
@@ -121,6 +145,9 @@ const createRoom: RequestHandler = async (req, res) => {
 };
 
 const patchRoom: RequestHandler = async (req, res) => {
+	if (!req.token) {
+		throw new OttException("Missing token");
+	}
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
 		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY.toString()}`);
 	}
@@ -198,6 +225,9 @@ const patchRoom: RequestHandler = async (req, res) => {
 };
 
 const undoEvent = async (req: express.Request, res) => {
+	if (!req.token) {
+		throw new OttException("Missing token");
+	}
 	const client = clientmanager.getClient(req.token, req.params.name);
 	const request: UndoRequest = {
 		type: RoomRequestType.UndoRequest,
@@ -211,6 +241,9 @@ const undoEvent = async (req: express.Request, res) => {
 };
 
 const addVote = async (req: express.Request, res) => {
+	if (!req.token) {
+		throw new OttException("Missing token");
+	}
 	if (!req.body.service) {
 		throw new BadApiArgumentException("service", "missing");
 	}
@@ -230,6 +263,9 @@ const addVote = async (req: express.Request, res) => {
 };
 
 const removeVote = async (req: express.Request, res) => {
+	if (!req.token) {
+		throw new OttException("Missing token");
+	}
 	if (!req.body.service) {
 		throw new BadApiArgumentException("service", "missing");
 	}
