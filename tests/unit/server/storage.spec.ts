@@ -3,6 +3,7 @@ const { CachedVideo, Room } = require("../../../models");
 import storage from "../../../storage";
 import permissions from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
+import { Video } from "../../../common/models/video";
 
 describe.skip('Storage: Room Spec', () => {
   beforeEach(async () => {
@@ -285,12 +286,11 @@ describe('Storage: CachedVideos Spec', () => {
       },
     ];
     await CachedVideo.bulkCreate(_.cloneDeep(videos).map(video => {
-      // FIXME: remove ts-ignore
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      video.serviceId = video.id;
-      delete video.id;
-      return video;
+      const videoStorable: Omit<Video, "id"> & { serviceId: string } = {
+        serviceId: video.id,
+        ..._.omit(video, "id"),
+      };
+      return videoStorable;
     }));
     expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
   });
@@ -322,12 +322,11 @@ describe('Storage: CachedVideos Spec', () => {
       },
     ];
     await CachedVideo.bulkCreate(_.cloneDeep(videos).splice(0, 3).map(video => {
-      // FIXME: remove ts-ignore
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      video.serviceId = video.id;
-      delete video.id;
-      return video;
+      const videoStorable: Omit<Video, "id"> & { serviceId: string } = {
+        serviceId: video.id,
+        ..._.omit(video, "id"),
+      };
+      return videoStorable;
     }));
     expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
   });
