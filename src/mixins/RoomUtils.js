@@ -34,7 +34,7 @@ export default {
 			this.cancelledRoomCreation = false;
 			return API.post(`/room/create`, {
 				...options,
-				temporary: false,
+				isTemporary: false,
 			}).then(() => {
 				if (!this.cancelledRoomCreation) {
 					this.isLoadingCreateRoom = false;

@@ -46,7 +46,7 @@ describe("promotion and demotion", () => {
 		cy.ottRequest({
 			method: "POST",
 			url: "/api/room/create",
-			body: { name: roomName, temporary: false },
+			body: { name: roomName, isTemporary: false },
 		});
 		cy.visit(`/room/${roomName}`);
 		cy.ottRequest({

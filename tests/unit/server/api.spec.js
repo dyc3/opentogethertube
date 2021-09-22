@@ -254,7 +254,7 @@ describe.skip("Room API", () => {
 	it("POST /room/create", async done => {
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "test1", temporary: true, visibility: "public" })
+			.send({ name: "test1", isTemporary: true, visibility: "public" })
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
@@ -268,7 +268,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "test1", temporary: true, visibility: "unlisted" })
+			.send({ name: "test1", isTemporary: true, visibility: "unlisted" })
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
@@ -282,7 +282,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "test1", temporary: true, visibility: "invalid" })
+			.send({ name: "test1", isTemporary: true, visibility: "invalid" })
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
@@ -291,7 +291,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ temporary: true })
+			.send({ isTemporary: true })
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
@@ -301,7 +301,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "a", temporary: true })
+			.send({ name: "a", isTemporary: true })
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
@@ -311,7 +311,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "list", temporary: true })
+			.send({ name: "list", isTemporary: true })
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
@@ -321,7 +321,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "create", temporary: true })
+			.send({ name: "create", isTemporary: true })
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
@@ -331,7 +331,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "generate", temporary: true })
+			.send({ name: "generate", isTemporary: true })
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
@@ -341,7 +341,7 @@ describe.skip("Room API", () => {
 
 		await request(app)
 			.post("/api/room/create")
-			.send({ name: "?><>J", temporary: true })
+			.send({ name: "?><>J", isTemporary: true })
 			.expect("Content-Type", /json/)
 			.expect(400)
 			.then(resp => {
