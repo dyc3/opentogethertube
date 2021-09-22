@@ -77,6 +77,15 @@ router.get('/discord/callback', passport.authenticate('discord', {
 	failureRedirect: '/',
 }), async (_req, res) => {
 	const req = _req as express.Request;
+	if (!req.user) {
+		res.status(400).json({
+			success: false,
+			error: {
+				message: "no user found on request",
+			},
+		});
+		return;
+	}
 	await tokens.setSessionInfo((req.session as MySession).token, { isLoggedIn: true, user_id: req.user.id });
 	log.info(`${req.user.username} logged in via social login.`);
 	res.redirect('/'); // Successful auth

@@ -18,6 +18,7 @@ export function getMimeType(extension: string): string {
       return mimeType;
     }
   }
+  throw new Error(`Unknown extension: ${extension}`);
 }
 
 export function isSupportedMimeType(mimeType: string): boolean {
