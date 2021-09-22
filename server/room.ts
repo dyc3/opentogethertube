@@ -256,7 +256,7 @@ export class Room implements RoomState {
 			}
 		}
 		if (this.queue.length > 0) {
-			this.currentSource = this.queue.shift();
+			this.currentSource = this.queue.shift() ?? null;
 			this.markDirty("queue");
 			this.playbackPosition = 0;
 			this._playbackStart = dayjs();
@@ -280,17 +280,20 @@ export class Room implements RoomState {
 	}
 
 	async publishRoomEvent(request: RoomRequest, context: RoomRequestContext, additional?: RoomEventContext): Promise<void> {
+		if (context.clientId === undefined) {
+			throw new Error("context.clientId was undefined");
+		}
 		const user = this.getUserInfo(context.clientId);
 		await this.publish({
 			action: "event",
 			request,
 			user,
-			additional,
+			additional: additional ?? {},
 		});
 	}
 
 	isOwner(user: RoomUser): boolean {
-		return user.user && this.owner && user.user.id === this.owner.id;
+		return !!user.user && !!this.owner && user.user.id === this.owner.id;
 	}
 
 	get hasOwner(): boolean {
@@ -306,7 +309,7 @@ export class Room implements RoomState {
 		}
 		if (user.user) {
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
-				if (this.userRoles.get(i).has(user.user.id)) {
+				if (this.userRoles.get(i)?.has(user.user.id)) {
 					return i;
 				}
 			}
@@ -330,7 +333,7 @@ export class Room implements RoomState {
 				return Role.Owner;
 			}
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
-				if (this.userRoles.get(i).has(session.user_id)) {
+				if (this.userRoles.get(i)?.has(session.user_id)) {
 					return i;
 				}
 			}
@@ -363,6 +366,7 @@ export class Room implements RoomState {
 				return user;
 			}
 		}
+		throw new Error("Client not found");
 	}
 
 	async getUserInfoFromToken(token: AuthToken): Promise<Pick<RoomUserInfo, "name" | "isLoggedIn">> {
@@ -397,6 +401,7 @@ export class Room implements RoomState {
 				return user.id;
 			}
 		}
+		throw new Error("Client not found");
 	}
 
 	get realPlaybackPosition(): number {
@@ -421,8 +426,8 @@ export class Room implements RoomState {
 			this.currentSource = null; // sanity check
 		}
 
-		if ((this.currentSource === null && this.queue.length > 0) || (this.currentSource && this.isPlaying && this.realPlaybackPosition > this.currentSource.length)) {
-			if (this.currentSource && this.isPlaying && this.realPlaybackPosition > this.currentSource.length) {
+		if ((this.currentSource === null && this.queue.length > 0) || (this.currentSource && this.isPlaying && this.realPlaybackPosition > (this.currentSource.length ?? 0))) {
+			if (this.currentSource && this.isPlaying && this.realPlaybackPosition > (this.currentSource.length ?? 0)) {
 				await statistics.bumpCounter(Counter.VideosWatched);
 			}
 			this.dequeueNext();
@@ -640,6 +645,9 @@ export class Room implements RoomState {
 	}
 
 	public async skip(request: SkipRequest, context: RoomRequestContext): Promise<void> {
+		if (!this.currentSource) {
+			return;
+		}
 		const current = this.currentSource;
 		const prevPosition = this.realPlaybackPosition;
 		this.dequeueNext();
@@ -732,7 +740,7 @@ export class Room implements RoomState {
 		await this.publishRoomEvent(request, context, { video: removed, queueIdx: matchIdx });
 	}
 
-	public async reorderQueue(request: OrderRequest): Promise<void> {
+	public async reorderQueue(request: OrderRequest, context: RoomRequestContext): Promise<void> {
 		const video = this.queue.splice(request.fromIdx, 1)[0];
 		this.queue.splice(request.toIdx, 0, video);
 		this.markDirty("queue");
@@ -778,6 +786,9 @@ export class Room implements RoomState {
 	}
 
 	public async chat(request: ChatRequest, context: RoomRequestContext): Promise<void> {
+		if (context.clientId === undefined) {
+			throw new Error("context.clientId was undefined");
+		}
 		const user = this.getUserInfo(context.clientId);
 		await this.publish({
 			action: "chat",
@@ -787,23 +798,28 @@ export class Room implements RoomState {
 	}
 
 	public async undo(request: UndoRequest, context: RoomRequestContext): Promise<void> {
+		// FIXME: room event type definitions suck ass, and needs to be reworked
 		switch (request.event.request.type) {
 			case RoomRequestType.SeekRequest:
-				await this.processRequest({
-					type: request.event.request.type,
-					value: request.event.additional.prevPosition,
-				}, context);
+				if (request.event.additional.prevPosition) {
+					await this.processRequest({
+						type: request.event.request.type,
+						value: request.event.additional.prevPosition,
+					}, context);
+				}
 				break;
 			case RoomRequestType.SkipRequest:
 				if (this.currentSource) {
 					this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
 					this.markDirty("queue");
 				}
-				this.currentSource = request.event.additional.video;
-				this.playbackPosition = request.event.additional.prevPosition;
+				if (request.event.additional.video && request.event.additional.prevPosition) {
+					this.currentSource = request.event.additional.video;
+					this.playbackPosition = request.event.additional.prevPosition;
+				}
 				break;
 			case RoomRequestType.AddRequest:
-				if (this.queue.length > 0) {
+				if (this.queue.length > 0 && request.event.request.video) {
 					const removeReq: RemoveRequest = {
 						type: RoomRequestType.RemoveRequest,
 						video: request.event.request.video,
@@ -834,7 +850,7 @@ export class Room implements RoomState {
 		}
 		const key = request.video.service + request.video.id;
 		if (this.votes.has(key)) {
-			const votes = this.votes.get(key);
+			const votes = this.votes.get(key)!;
 			if (request.add) {
 				votes.add(context.clientId);
 			}
@@ -856,6 +872,9 @@ export class Room implements RoomState {
 
 	public async promoteUser(request: PromoteRequest, context: RoomRequestContext): Promise<void> {
 		const targetUser = this.getUser(request.targetClientId);
+		if (!targetUser) {
+			throw new OttException("Client not found.");
+		}
 		this.log.info(`${context.username} is attempting to promote ${targetUser.username} to role ${request.role}`);
 
 		let perm: string | undefined;
@@ -898,15 +917,19 @@ export class Room implements RoomState {
 		if (targetCurrentRole === Role.UnregisteredUser) {
 			throw new ImpossiblePromotionException();
 		}
-		for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
-			const set = this.userRoles.get(i);
-			if (set.has(targetUser.user_id)) {
-				set.delete(targetUser.user_id);
+		if (targetUser.user_id !== undefined) {
+			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
+				const set = this.userRoles.get(i);
+				if (set) {
+					if (set.has(targetUser.user_id)) {
+						set.delete(targetUser.user_id);
+					}
+					this.userRoles[i] = Array.from(set);
+				}
 			}
-			this.userRoles[i] = Array.from(set);
-		}
-		if (request.role >= Role.TrustedUser) {
-			this.userRoles.get(request.role).add(targetUser.user_id);
+			if (request.role >= Role.TrustedUser) {
+				this.userRoles.get(request.role)?.add(targetUser.user_id);
+			}
 		}
 		this.markDirty("users");
 		await this.syncUser(this.getUserInfo(targetUser.id));
@@ -1030,7 +1053,9 @@ export class Room implements RoomState {
 		else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 		}
-		this.queue.unshift(this.currentSource);
+		if (this.currentSource) {
+			this.queue.unshift(this.currentSource);
+		}
 		this.currentSource = videoToPlay;
 		this.markDirty("queue");
 		this.playbackPosition = 0;

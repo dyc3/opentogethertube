@@ -119,10 +119,13 @@ export default class NeverthinkAdapter extends ServiceAdapter {
 		}
 		else {
 			const channels = await this.getAllChannels();
-			const playlistUrl = _.find(channels, { urlFragment: url.pathname.split("/").slice(-1)[0] }).playlist.urlPlain;
-			log.info(`found playlist URL: ${playlistUrl}`);
-			return this.resolveURL(playlistUrl);
+			const playlistUrl = _.find(channels, { urlFragment: url.pathname.split("/").slice(-1)[0] })?.playlist.urlPlain;
+			if (playlistUrl) {
+				log.info(`found playlist URL: ${playlistUrl}`);
+				return this.resolveURL(playlistUrl);
+			}
 		}
+		throw new Error("Unable to resolve URL");
 	}
 
 	parseVideo(data: NeverthinkApiVideo): Video {
@@ -141,6 +144,9 @@ export default class NeverthinkAdapter extends ServiceAdapter {
 				id: data.originalVideoId,
 			};
 		}
+		else {
+			throw new Error("Unable to parse video");
+		}
 		return {
 			...sid,
 			title: data.title,
@@ -155,7 +161,7 @@ export default class NeverthinkAdapter extends ServiceAdapter {
 	 */
 	async getUserChannel(user: string): Promise<Video[]> {
 		const resp: AxiosResponse<NeverthinkChannelFull> = await this.api.get(`/users/${user}?include=videos`);
-		return resp.data.videos.slice(0, 50).map(this.parseVideo);
+		return resp.data.videos?.slice(0, 50).map(this.parseVideo) ?? [];
 	}
 
 	async getAllChannels(): Promise<NeverthinkChannelSummary[]> {

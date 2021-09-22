@@ -40,7 +40,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
     }
     const fileName = (url.pathname ?? "").split("/").slice(-1)[0].trim();
     const extension = fileName.split(".").slice(-1)[0];
-    const mime = getMimeType(extension);
+    const mime = getMimeType(extension) ?? "unknown";
     if (!isSupportedMimeType(mime)) {
       throw new UnsupportedMimeTypeException(mime);
     }

@@ -30,7 +30,7 @@ export default class RedditAdapter extends ServiceAdapter {
 		}
 		log.info(`Requesting posts: ${url.toString()}`);
 		const resp = await this.api.get(url.toString());
-		const videos = [];
+		const videos: { url: string }[] = [];
 		for (const post of resp.data.data.children.map(p => p.data)) {
 			videos.push({
 				url: post.url,

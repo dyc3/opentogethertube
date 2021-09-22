@@ -12,7 +12,7 @@ const mimeTypes = {
   "video/h264": ["h264"],
 };
 
-export function getMimeType(extension: string): string {
+export function getMimeType(extension: string): string | undefined {
   for (const [mimeType, extensions] of Object.entries(mimeTypes)) {
     if (extensions.includes(extension)) {
       return mimeType;
