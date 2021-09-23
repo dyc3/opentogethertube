@@ -262,6 +262,7 @@ export default {
       },
 
       orientation: screen.orientation.type,
+      videoControlsHideTimeout: null,
 
       api,
       QueueMode,
@@ -414,6 +415,12 @@ export default {
       if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
         this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
       }
+      if (!changeTo) {
+        this.showVideoControls();
+      }
+      else {
+        this.activateVideoControls();
+      }
       this.updateVolume();
       if (changeTo === this.$store.state.room.isPlaying) {
         return;
@@ -510,13 +517,35 @@ export default {
     onVideoError() {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
-    hideVideoControls: _.debounce(() => {
+    hideVideoControls() {
       let controlsDiv = document.getElementsByClassName("video-controls");
       if (controlsDiv.length) {
         controlsDiv = controlsDiv[0];
         controlsDiv.classList.add("hide");
       }
-    }, 3000),
+      if (this.videoControlsHideTimeout) {
+        clearTimeout(this.videoControlsHideTimeout);
+      }
+    },
+    showVideoControls() {
+      let controlsDiv = document.getElementsByClassName("video-controls");
+      if (controlsDiv.length) {
+        controlsDiv = controlsDiv[0];
+        controlsDiv.classList.remove("hide");
+      }
+      if (this.videoControlsHideTimeout) {
+        clearTimeout(this.videoControlsHideTimeout);
+      }
+    },
+    /**
+     * Show the video controls, then hide them after a delay.
+     */
+    activateVideoControls() {
+      this.showVideoControls();
+      this.videoControlsHideTimeout = setTimeout(() => {
+        this.hideVideoControls();
+      }, 3000);
+    },
     copyInviteLink() {
       let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
       textfield.select();
@@ -624,12 +653,9 @@ export default {
     });
 
     document.onmousemove = () => {
-      let controlsDiv = document.getElementsByClassName("video-controls");
-      if (controlsDiv.length) {
-        controlsDiv = controlsDiv[0];
-        controlsDiv.classList.remove("hide");
+      if (this.$store.state.room.isPlaying) {
+        this.activateVideoControls();
       }
-      this.hideVideoControls();
     };
 
     if (this.$store.state.quickAdd.length > 0) {
