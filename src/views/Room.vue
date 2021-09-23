@@ -808,6 +808,7 @@ export default {
 
   .video-container {
     margin: 0;
+    height: 100vh;
   }
 
   .video-subcontainer {
