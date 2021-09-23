@@ -22,12 +22,15 @@
 					<v-icon>fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" v-if="isPreview" @click="addToQueue">
+				<v-btn icon v-if="$store.state.room.queueMode === QueueMode.Dj" @click="playNow">
+					<v-icon>fas fa-play</v-icon>
+				</v-btn>
+				<v-btn icon :loading="isLoadingAdd" v-if="isPreview && $store.state.room.queueMode !== QueueMode.Dj" @click="addToQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
 					<v-icon v-else>fas fa-plus</v-icon>
 				</v-btn>
-				<v-btn icon :loading="isLoadingAdd" v-if="!isPreview" @click="removeFromQueue">
+				<v-btn icon :loading="isLoadingAdd" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Dj" @click="removeFromQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 					<v-icon v-else>fas fa-trash</v-icon>
 				</v-btn>
@@ -42,13 +45,23 @@
 							<v-icon>fas fa-play</v-icon>
 							<span>Play Now</span>
 						</v-list-item>
-						<v-list-item class="button-with-icon" @click="moveToTop" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
+						<v-list-item class="button-with-icon" @click="moveToTop" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote && $store.state.room.queueMode !== QueueMode.Dj">
 							<v-icon>fas fa-sort-amount-up</v-icon>
 							<span>Play Next</span>
 						</v-list-item>
 						<v-list-item class="button-with-icon" @click="moveToBottom" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
 							<v-icon>fas fa-sort-amount-down-alt</v-icon>
 							<span>Play Last</span>
+						</v-list-item>
+						<v-btn icon :loading="isLoadingAdd" v-if="isPreview && $store.state.room.queueMode === QueueMode.Dj" @click="addToQueue">
+							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
+							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
+							<v-icon v-else>fas fa-plus</v-icon>
+							<span>Add</span>
+						</v-btn>
+						<v-list-item class="button-with-icon" @click="removeFromQueue" v-if="!isPreview && $store.state.room.queueMode === QueueMode.Dj">
+							<v-icon>fas fa-trash</v-icon>
+							<span>Remove</span>
 						</v-list-item>
 					</v-list>
 				</v-menu>
