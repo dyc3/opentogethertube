@@ -746,11 +746,12 @@ export default {
   bottom: 0;
 
   background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0));
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 
   &.hide {
     opacity: 0;
-    transition: opacity 0.5s;
+    transition: all 0.5s;
+    bottom: -100%;
   }
 }
 
