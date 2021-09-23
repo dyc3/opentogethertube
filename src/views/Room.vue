@@ -106,6 +106,7 @@
                       { name: 'manual', value: QueueMode.Manual, description: 'Default normal behavior, works how you would expect it to. You can manually reorder items in the queue.' },
                       { name: 'vote', value: QueueMode.Vote, description: 'The highest voted video gets played next.' },
                       { name: 'loop', value: QueueMode.Loop, description: 'When the video ends, put it at the end of the queue.' },
+                      { name: 'dj', value: QueueMode.Dj, description: 'When the video ends, start the same video from the beginning. Good for looping background music.' },
                     ]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" data-cy="select-queueMode">
                       <template v-slot:item="data">
                         <v-list-item-content>
