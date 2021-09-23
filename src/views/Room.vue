@@ -162,7 +162,10 @@
                   }}
                 </v-list-item>
                 <v-list-item>
-                  Device Orientation: {{ this.orientation }}
+                  <span>Is Mobile: {{ this.isMobile }}</span>
+                </v-list-item>
+                <v-list-item>
+                  <span>Device Orientation: {{ this.orientation }}</span>
                 </v-list-item>
               </v-card>
             </div>
@@ -297,6 +300,9 @@ export default {
     },
     showJoinFailOverlay() {
       return !!this.$store.state.joinFailureReason;
+    },
+    isMobile() {
+      return window.matchMedia("only screen and (max-width: 760px)").matches;
     },
   },
   async created() {
