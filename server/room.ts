@@ -281,7 +281,8 @@ export class Room implements RoomState {
 
 	async publishRoomEvent(request: RoomRequest, context: RoomRequestContext, additional?: RoomEventContext): Promise<void> {
 		if (context.clientId === undefined) {
-			throw new Error("context.clientId was undefined");
+			this.log.warn("context.clientId was undefined, not publishing event");
+			return;
 		}
 		const user = this.getUserInfo(context.clientId);
 		await this.publish({
