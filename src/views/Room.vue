@@ -218,6 +218,7 @@ import api from "@/util/api";
 import { ToastStyle } from "@/models/toast";
 import { PlayerStatus, QueueMode } from 'common/models/types';
 import VideoQueue from "@/components/VideoQueue.vue";
+import goTo from 'vuetify/lib/services/goto';
 
 export default {
   name: 'room',
@@ -591,6 +592,19 @@ export default {
     },
     onScreenOrientationChange() {
       this.orientation = screen.orientation.type;
+
+      if (this.isMobile) {
+        if (this.orientation.startsWith("landscape")) {
+          document.documentElement.requestFullscreen();
+          goTo(0, {
+            duration: 250,
+            easing: 'easeInOutCubic',
+          });
+        }
+        else {
+          document.exitFullscreen();
+        }
+      }
     },
   },
   mounted() {
