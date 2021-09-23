@@ -21,6 +21,7 @@
                 @error="onVideoError"
                 @buffer-spans="spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)"
               />
+              <div id="mouse-event-swallower" class="hide"></div>
               <v-col class="video-controls">
                 <vue-slider
                   id="videoSlider"
@@ -517,25 +518,35 @@ export default {
     onVideoError() {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
-    hideVideoControls() {
+    setVideoControlsVisibility(visible) {
       let controlsDiv = document.getElementsByClassName("video-controls");
+      let swallowerDiv = document.getElementById("mouse-event-swallower");
       if (controlsDiv.length) {
         controlsDiv = controlsDiv[0];
-        controlsDiv.classList.add("hide");
+        if (visible) {
+          controlsDiv.classList.remove("hide");
+        }
+        else {
+          controlsDiv.classList.add("hide");
+        }
+      }
+      if (swallowerDiv) {
+        if (visible) {
+          swallowerDiv.classList.add("hide");
+        }
+        else {
+          swallowerDiv.classList.remove("hide");
+        }
       }
       if (this.videoControlsHideTimeout) {
         clearTimeout(this.videoControlsHideTimeout);
       }
     },
+    hideVideoControls() {
+      this.setVideoControlsVisibility(false);
+    },
     showVideoControls() {
-      let controlsDiv = document.getElementsByClassName("video-controls");
-      if (controlsDiv.length) {
-        controlsDiv = controlsDiv[0];
-        controlsDiv.classList.remove("hide");
-      }
-      if (this.videoControlsHideTimeout) {
-        clearTimeout(this.videoControlsHideTimeout);
-      }
+      this.setVideoControlsVisibility(true);
     },
     /**
      * Show the video controls, then hide them after a delay.
@@ -746,6 +757,17 @@ export default {
   &.hide {
     opacity: 0;
     transition: opacity 0.5s;
+  }
+}
+
+#mouse-event-swallower {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+
+  &.hide {
+    display: none;
   }
 }
 
