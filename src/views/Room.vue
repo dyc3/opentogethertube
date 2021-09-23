@@ -161,6 +161,9 @@
                       .join(" ")
                   }}
                 </v-list-item>
+                <v-list-item>
+                  Device Orientation: {{ this.orientation }}
+                </v-list-item>
               </v-card>
             </div>
             <UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
@@ -254,6 +257,8 @@ export default {
         value: "",
       },
 
+      orientation: screen.orientation.type,
+
       api,
       QueueMode,
     };
@@ -311,12 +316,15 @@ export default {
     }
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
+
+    screen.orientation.addEventListener('change', this.onScreenOrientationChange);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
     connection.disconnect();
     this.$events.remove("onRoomCreated", this.onRoomCreated);
     this.$events.remove("onChatLinkClick", this.switchToAddTab);
+    screen.orientation.removeEventListener('change', this.onScreenOrientationChange);
   },
   methods: {
     /* ROOM API */
@@ -574,6 +582,9 @@ export default {
         }
       }
       return _.omit(this.inputRoomSettings, blocked);
+    },
+    onScreenOrientationChange() {
+      this.orientation = screen.orientation.type;
     },
   },
   mounted() {
