@@ -3,10 +3,12 @@
 import fs from 'fs';
 import path from 'path';
 import Sequelize from 'sequelize';
+import { getLogger } from '../logger';
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const configs = require(__dirname + '/../config/config.js');
 const db = {};
+const log = getLogger('db');
 
 let config;
 if (env === 'production') {
@@ -20,6 +22,7 @@ if (env === 'production') {
 else {
   config = configs[env];
 }
+config.logging = msg => log.silly(msg);
 
 let sequelize;
 if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
