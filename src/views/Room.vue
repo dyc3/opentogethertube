@@ -417,7 +417,7 @@ export default {
         this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
       }
       if (!changeTo) {
-        this.showVideoControls();
+        this.setVideoControlsVisibility(true);
       }
       else {
         this.activateVideoControls();
@@ -542,19 +542,13 @@ export default {
         clearTimeout(this.videoControlsHideTimeout);
       }
     },
-    hideVideoControls() {
-      this.setVideoControlsVisibility(false);
-    },
-    showVideoControls() {
-      this.setVideoControlsVisibility(true);
-    },
     /**
      * Show the video controls, then hide them after a delay.
      */
     activateVideoControls() {
-      this.showVideoControls();
+      this.setVideoControlsVisibility(true);
       this.videoControlsHideTimeout = setTimeout(() => {
-        this.hideVideoControls();
+        this.setVideoControlsVisibility(false);
       }, 3000);
     },
     copyInviteLink() {
