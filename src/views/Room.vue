@@ -487,6 +487,11 @@ export default {
       }
       else {
         document.documentElement.requestFullscreen();
+        if (this.isMobile) {
+          // force the device into landscape mode to get the user to rotate the device
+          // but still allow exiting fullscreen by rotating the device back to portrait
+          screen.orientation.lock('landscape').then(() => screen.orientation.unlock());
+        }
       }
     },
     async onTabChange() {
