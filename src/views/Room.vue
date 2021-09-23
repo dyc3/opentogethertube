@@ -21,59 +21,59 @@
                 @error="onVideoError"
                 @buffer-spans="spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)"
               />
+              <v-col class="video-controls">
+                <vue-slider
+                  id="videoSlider"
+                  :interval="0.1"
+                  :lazy="true"
+                  v-model="sliderPosition"
+                  :max="$store.state.room.currentSource.length"
+                  :tooltip-formatter="sliderTooltipFormatter"
+                  :disabled="currentSource.length == null || !granted('playback.seek')"
+                  @change="sliderChange"
+                />
+                <v-row no-gutters align="center">
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
+                        <v-icon>fas fa-angle-left</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Rewind 10s</span>
+                  </v-tooltip>
+                  <v-btn @click="togglePlayback()" :disabled="!granted('playback.play-pause')">
+                    <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
+                    <v-icon v-else>fas fa-play</v-icon>
+                  </v-btn>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
+                        <v-icon>fas fa-angle-right</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Skip 10s</span>
+                  </v-tooltip>
+                  <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
+                    <v-icon>fas fa-fast-forward</v-icon>
+                  </v-btn>
+                  <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
+                  <div>
+                    <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
+                    <span v-else class="timestamp" @click="activateTextSeek">
+                      {{ timestampDisplay }}
+                    </span>
+                    <span>/</span>
+                    <span class="video-length">
+                      {{ lengthDisplay }}
+                    </span>
+                  </div>
+                  <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
+                    <v-icon>fas fa-compress</v-icon>
+                  </v-btn>
+                  <v-btn v-if="!production" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
+                </v-row>
+              </v-col>
             </v-responsive>
-            <v-col class="video-controls">
-              <vue-slider
-                id="videoSlider"
-                :interval="0.1"
-                :lazy="true"
-                v-model="sliderPosition"
-                :max="$store.state.room.currentSource.length"
-                :tooltip-formatter="sliderTooltipFormatter"
-                :disabled="currentSource.length == null || !granted('playback.seek')"
-                @change="sliderChange"
-              />
-              <v-row no-gutters align="center">
-                <v-tooltip bottom>
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
-                      <v-icon>fas fa-angle-left</v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Rewind 10s</span>
-                </v-tooltip>
-                <v-btn @click="togglePlayback()" :disabled="!granted('playback.play-pause')">
-                  <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
-                  <v-icon v-else>fas fa-play</v-icon>
-                </v-btn>
-                <v-tooltip bottom>
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
-                      <v-icon>fas fa-angle-right</v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Skip 10s</span>
-                </v-tooltip>
-                <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
-                  <v-icon>fas fa-fast-forward</v-icon>
-                </v-btn>
-                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
-                <div>
-                  <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
-                  <span v-else class="timestamp" @click="activateTextSeek">
-                    {{ timestampDisplay }}
-                  </span>
-                  <span>/</span>
-                  <span class="video-length">
-                    {{ lengthDisplay }}
-                  </span>
-                </div>
-                <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
-                  <v-icon>fas fa-compress</v-icon>
-                </v-btn>
-                <v-btn v-if="!production" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
-              </v-row>
-            </v-col>
           </div>
           <div cols="12" :xl="$store.state.fullscreen ? 3 : 5" md="4" class="chat-container">
             <Chat class="chat" />
@@ -710,6 +710,19 @@ export default {
   }
 }
 
+.video-controls {
+  position: absolute;
+  bottom: 0;
+
+  background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0));
+  transition: opacity 0.2s;
+
+  &.hide {
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+}
+
 .user-invite-container {
   padding: 0 10px;
   min-height: 500px;
@@ -768,17 +781,6 @@ export default {
     .player {
       border: none;
       border-right: 1px solid #666;
-    }
-  }
-
-  .video-controls {
-    position: sticky;
-    bottom: 0;
-    background: $background-color;
-    transition: opacity 0.2s;
-
-    &.hide {
-      opacity: 0;
     }
   }
 
