@@ -534,7 +534,7 @@ export class Room implements RoomState {
 		return false;
 	}
 
-	public async deriveRequestContext(authorization: RoomRequestAuthorization): Promise<RoomRequestContext> {
+	public async deriveRequestContext(authorization: RoomRequestAuthorization, request: RoomRequest): Promise<RoomRequestContext> {
 		for (const user of this.realusers) {
 			if (user.token === authorization.token) {
 				return {
@@ -553,11 +553,13 @@ export class Room implements RoomState {
 		return {
 			username: session.username,
 			role: this.getRoleFromSession(session),
+			// we don't have the client id for join requests because the info hasn't been added to the room yet
+			clientId: request.type === RoomRequestType.JoinRequest ? request.info.id : undefined,
 		};
 	}
 
 	public async processUnauthorizedRequest(request: RoomRequest, authorization: RoomRequestAuthorization): Promise<void> {
-		await this.processRequest(request, await this.deriveRequestContext(authorization));
+		await this.processRequest(request, await this.deriveRequestContext(authorization, request));
 	}
 
 	public async processRequest(request: RoomRequest, context: RoomRequestContext): Promise<void> {
