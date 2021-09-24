@@ -578,7 +578,7 @@ export class Room implements RoomState {
 			this.grants.check(context.role, permission);
 		}
 
-		this.log.silly(`processing request: ${request.type}`);
+		this.log.debug(`processing request: ${request.type} for ${context.username} (client: ${context.clientId})`);
 
 		type RoomRequestHandlers = Omit<PickFunctions<Room, RoomRequestBase, RoomRequestContext>, "processRequest" | "publishRoomEvent">
 		const handlers: Record<RoomRequestType, keyof RoomRequestHandlers | null> = {
@@ -855,14 +855,17 @@ export class Room implements RoomState {
 		if (this.votes.has(key)) {
 			const votes = this.votes.get(key)!;
 			if (request.add) {
+				this.log.debug(`Adding client ${context.clientId} vote for ${key}`);
 				votes.add(context.clientId);
 			}
 			else {
+				this.log.debug(`Deleting client ${context.clientId} vote for ${key}`);
 				votes.delete(context.clientId);
 			}
 		}
 		else {
 			if (request.add) {
+				this.log.debug(`Adding client ${context.clientId} vote for ${key}`);
 				this.votes.set(key, new Set(context.clientId));
 			}
 			// TODO: throw exceptions for invalid votes instead of ignoring them
