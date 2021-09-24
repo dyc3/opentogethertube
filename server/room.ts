@@ -855,25 +855,21 @@ export class Room implements RoomState {
 		if (this.votes.has(key)) {
 			const votes = this.votes.get(key)!;
 			if (request.add) {
-				this.log.debug(`Adding client ${context.clientId} vote for ${key}`);
 				votes.add(context.clientId);
 			}
 			else {
-				this.log.debug(`Deleting client ${context.clientId} vote for ${key}`);
 				votes.delete(context.clientId);
 			}
 		}
 		else {
 			if (request.add) {
-				this.log.debug(`Adding client ${context.clientId} vote for ${key}`);
-				this.votes.set(key, new Set(context.clientId));
+				this.votes.set(key, new Set([context.clientId]));
 			}
 			// TODO: throw exceptions for invalid votes instead of ignoring them
 			// else {
 			// 	throw new VoteNotFoundException();
 			// }
 		}
-		this.log.debug(`Votes: ${JSON.stringify(Array.from(this.votes.get(key)!))}`);
 		this.markDirty("voteCounts");
 	}
 
