@@ -196,6 +196,19 @@ describe("Room", () => {
 				expect(room.playbackPosition).toEqual(0);
 			});
 		});
+
+		describe("VoteRequest", () => {
+			it("should only cast one vote when a video is voted for the first time", async() => {
+				await room.processRequest({
+					type: RoomRequestType.VoteRequest,
+					video: { service: "fakeservice", id: "abc123" },
+					add: true,
+				}, { username:"test", role: Role.Owner, clientId: "1234" });
+				expect(Array.from(room.votes.get("fakeserviceabc123")!)).toEqual(["1234"]);
+
+			});
+	});
+
 	});
 
 	describe("auto dequeuing next video", () => {
