@@ -873,6 +873,7 @@ export class Room implements RoomState {
 			// 	throw new VoteNotFoundException();
 			// }
 		}
+		this.log.debug(`Votes: ${JSON.stringify(this.votes.get(key)!)}`);
 		this.markDirty("voteCounts");
 	}
 
