@@ -21,59 +21,60 @@
                 @error="onVideoError"
                 @buffer-spans="spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)"
               />
+              <div id="mouse-event-swallower" class="hide"></div>
+              <v-col class="video-controls">
+                <vue-slider
+                  id="videoSlider"
+                  :interval="0.1"
+                  :lazy="true"
+                  v-model="sliderPosition"
+                  :max="$store.state.room.currentSource.length"
+                  :tooltip-formatter="sliderTooltipFormatter"
+                  :disabled="currentSource.length == null || !granted('playback.seek')"
+                  @change="sliderChange"
+                />
+                <v-row no-gutters align="center">
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
+                        <v-icon>fas fa-angle-left</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Rewind 10s</span>
+                  </v-tooltip>
+                  <v-btn @click="togglePlayback()" :disabled="!granted('playback.play-pause')">
+                    <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
+                    <v-icon v-else>fas fa-play</v-icon>
+                  </v-btn>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
+                        <v-icon>fas fa-angle-right</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Skip 10s</span>
+                  </v-tooltip>
+                  <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
+                    <v-icon>fas fa-fast-forward</v-icon>
+                  </v-btn>
+                  <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
+                  <div>
+                    <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
+                    <span v-else class="timestamp" @click="activateTextSeek">
+                      {{ timestampDisplay }}
+                    </span>
+                    <span>/</span>
+                    <span class="video-length">
+                      {{ lengthDisplay }}
+                    </span>
+                  </div>
+                  <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
+                    <v-icon>fas fa-compress</v-icon>
+                  </v-btn>
+                  <v-btn v-if="!production" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
+                </v-row>
+              </v-col>
             </v-responsive>
-            <v-col class="video-controls">
-              <vue-slider
-                id="videoSlider"
-                :interval="0.1"
-                :lazy="true"
-                v-model="sliderPosition"
-                :max="$store.state.room.currentSource.length"
-                :tooltip-formatter="sliderTooltipFormatter"
-                :disabled="currentSource.length == null || !granted('playback.seek')"
-                @change="sliderChange"
-              />
-              <v-row no-gutters align="center">
-                <v-tooltip bottom>
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(-10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
-                      <v-icon>fas fa-angle-left</v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Rewind 10s</span>
-                </v-tooltip>
-                <v-btn @click="togglePlayback()" :disabled="!granted('playback.play-pause')">
-                  <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
-                  <v-icon v-else>fas fa-play</v-icon>
-                </v-btn>
-                <v-tooltip bottom>
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
-                      <v-icon>fas fa-angle-right</v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Skip 10s</span>
-                </v-tooltip>
-                <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
-                  <v-icon>fas fa-fast-forward</v-icon>
-                </v-btn>
-                <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
-                <div>
-                  <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
-                  <span v-else class="timestamp" @click="activateTextSeek">
-                    {{ timestampDisplay }}
-                  </span>
-                  <span>/</span>
-                  <span class="video-length">
-                    {{ lengthDisplay }}
-                  </span>
-                </div>
-                <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
-                  <v-icon>fas fa-compress</v-icon>
-                </v-btn>
-                <v-btn v-if="!production" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
-              </v-row>
-            </v-col>
           </div>
           <div cols="12" :xl="$store.state.fullscreen ? 3 : 5" md="4" class="chat-container">
             <Chat class="chat" />
@@ -161,6 +162,12 @@
                       .join(" ")
                   }}
                 </v-list-item>
+                <v-list-item>
+                  <span>Is Mobile: {{ this.isMobile }}</span>
+                </v-list-item>
+                <v-list-item>
+                  <span>Device Orientation: {{ this.orientation }}</span>
+                </v-list-item>
               </v-card>
             </div>
             <UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
@@ -212,6 +219,7 @@ import api from "@/util/api";
 import { ToastStyle } from "@/models/toast";
 import { PlayerStatus, QueueMode } from 'common/models/types';
 import VideoQueue from "@/components/VideoQueue.vue";
+import goTo from 'vuetify/lib/services/goto';
 
 export default {
   name: 'room',
@@ -254,6 +262,9 @@ export default {
         value: "",
       },
 
+      orientation: screen.orientation.type,
+      videoControlsHideTimeout: null,
+
       api,
       QueueMode,
     };
@@ -293,6 +304,9 @@ export default {
     showJoinFailOverlay() {
       return !!this.$store.state.joinFailureReason;
     },
+    isMobile() {
+      return window.matchMedia("only screen and (max-width: 760px)").matches;
+    },
   },
   async created() {
     this.$store.subscribeAction((action) => {
@@ -311,12 +325,15 @@ export default {
     }
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
+
+    screen.orientation.addEventListener('change', this.onScreenOrientationChange);
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
     connection.disconnect();
     this.$events.remove("onRoomCreated", this.onRoomCreated);
     this.$events.remove("onChatLinkClick", this.switchToAddTab);
+    screen.orientation.removeEventListener('change', this.onScreenOrientationChange);
   },
   methods: {
     /* ROOM API */
@@ -399,6 +416,12 @@ export default {
       if (this.currentSource.service === "youtube" || this.currentSource.service === "dailymotion") {
         this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
       }
+      if (!changeTo) {
+        this.setVideoControlsVisibility(true);
+      }
+      else {
+        this.activateVideoControls();
+      }
       this.updateVolume();
       if (changeTo === this.$store.state.room.isPlaying) {
         return;
@@ -472,6 +495,11 @@ export default {
       }
       else {
         document.documentElement.requestFullscreen();
+        if (this.isMobile) {
+          // force the device into landscape mode to get the user to rotate the device
+          // but still allow exiting fullscreen by rotating the device back to portrait
+          screen.orientation.lock('landscape').then(() => screen.orientation.unlock());
+        }
       }
     },
     async onTabChange() {
@@ -490,13 +518,39 @@ export default {
     onVideoError() {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
-    hideVideoControls: _.debounce(() => {
+    setVideoControlsVisibility(visible) {
       let controlsDiv = document.getElementsByClassName("video-controls");
+      let swallowerDiv = document.getElementById("mouse-event-swallower");
       if (controlsDiv.length) {
         controlsDiv = controlsDiv[0];
-        controlsDiv.classList.add("hide");
+        if (visible) {
+          controlsDiv.classList.remove("hide");
+        }
+        else {
+          controlsDiv.classList.add("hide");
+        }
       }
-    }, 3000),
+      if (swallowerDiv) {
+        if (visible) {
+          swallowerDiv.classList.add("hide");
+        }
+        else {
+          swallowerDiv.classList.remove("hide");
+        }
+      }
+      if (this.videoControlsHideTimeout) {
+        clearTimeout(this.videoControlsHideTimeout);
+      }
+    },
+    /**
+     * Show the video controls, then hide them after a delay.
+     */
+    activateVideoControls() {
+      this.setVideoControlsVisibility(true);
+      this.videoControlsHideTimeout = setTimeout(() => {
+        this.setVideoControlsVisibility(false);
+      }, 3000);
+    },
     copyInviteLink() {
       let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
       textfield.select();
@@ -575,6 +629,22 @@ export default {
       }
       return _.omit(this.inputRoomSettings, blocked);
     },
+    onScreenOrientationChange() {
+      this.orientation = screen.orientation.type;
+
+      if (this.isMobile) {
+        if (this.orientation.startsWith("landscape")) {
+          document.documentElement.requestFullscreen();
+          goTo(0, {
+            duration: 250,
+            easing: 'easeInOutCubic',
+          });
+        }
+        else {
+          document.exitFullscreen();
+        }
+      }
+    },
   },
   mounted() {
     console.log(this.$store.state.joinFailReason);
@@ -588,12 +658,9 @@ export default {
     });
 
     document.onmousemove = () => {
-      let controlsDiv = document.getElementsByClassName("video-controls");
-      if (controlsDiv.length) {
-        controlsDiv = controlsDiv[0];
-        controlsDiv.classList.remove("hide");
+      if (this.$store.state.room.isPlaying) {
+        this.activateVideoControls();
       }
-      this.hideVideoControls();
     };
 
     if (this.$store.state.quickAdd.length > 0) {
@@ -674,6 +741,31 @@ export default {
   }
 }
 
+.video-controls {
+  position: absolute;
+  bottom: 0;
+
+  background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0));
+  transition: all 0.2s;
+
+  &.hide {
+    opacity: 0;
+    transition: all 0.5s;
+    bottom: -100%;
+  }
+}
+
+#mouse-event-swallower {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+
+  &.hide {
+    display: none;
+  }
+}
+
 .user-invite-container {
   padding: 0 10px;
   min-height: 500px;
@@ -716,6 +808,7 @@ export default {
 
   .video-container {
     margin: 0;
+    height: 100vh;
   }
 
   .video-subcontainer {
@@ -732,17 +825,6 @@ export default {
     .player {
       border: none;
       border-right: 1px solid #666;
-    }
-  }
-
-  .video-controls {
-    position: sticky;
-    bottom: 0;
-    background: $background-color;
-    transition: opacity 0.2s;
-
-    &.hide {
-      opacity: 0;
     }
   }
 
