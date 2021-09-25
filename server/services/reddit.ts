@@ -27,6 +27,7 @@ export interface RedditPostData {
 	is_video: boolean,
 	permalink: string,
 	url: string,
+	thumbnail: string,
 }
 
 export interface RedditVideoPostData extends RedditPostData {
@@ -109,16 +110,20 @@ export default class RedditAdapter extends ServiceAdapter {
 		else if (thing.kind === "t3") {
 			if (thing.data.is_video && "media" in thing.data) {
 				videos.push({
-					service: "hls",
+					service: "direct",
 					id: thing.data.media.reddit_video.hls_url,
 					title: thing.data.title,
+					description: thing.data.selftext,
 					length: thing.data.media.reddit_video.duration,
+					thumbnail: thing.data.thumbnail,
 				});
 			}
 			else {
-				videos.push({
-					url: thing.data.url,
-				});
+				if (thing.data.url.length > 0) {
+					videos.push({
+						url: thing.data.url,
+					});
+				}
 			}
 		}
 		return videos;
