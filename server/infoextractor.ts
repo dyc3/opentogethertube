@@ -248,19 +248,28 @@ export default {
       }
 
       const fetchResults = await adapter.resolveURL(query);
-      const resolvedResults = fetchResults.map(video => {
-        if ((!video.service || !video.id) && video.url) {
-          const adapter = this.getServiceAdapterForURL(video.url);
-          if (!adapter) {
-            return null;
+      const resolvedResults: VideoId[] = [];
+      for (let video of fetchResults) {
+        if ("url" in video) {
+          try {
+            const adapter = this.getServiceAdapterForURL(video.url);
+            if (!adapter) {
+              continue;
+            }
+            resolvedResults.push({
+              service: adapter.serviceId,
+              id: adapter.getVideoId(video.url),
+            });
           }
-          return {
-            service: adapter.serviceId,
-            id: adapter.getVideoId(video.url),
-          };
+          catch (e) {
+            log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
+            continue;
+          }
         }
-        return video;
-      }).filter(video => !!video);
+        else {
+          resolvedResults.push(video);
+        }
+      }
       const completeResults = await this.getManyVideoInfo(resolvedResults);
       results.push(...completeResults);
     }
