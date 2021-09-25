@@ -97,7 +97,7 @@ describe("Reddit", () => {
 				service: "direct",
 				id: "https://v.redd.it/a7p2kpeni4gz/HLSPlaylist.m3u8?a=1635169212%2CNjk1ODA4ZmZjOTQzODQ2MTU5NjNjZjExOTIwY2YwZWQ3YjZjYTQ0MjAxZDYyYjZiMTgzZmQ2NWEzNmI5ZWJhOQ%3D%3D&amp;v=1&amp;f=sd",
 				title: "A Look at Eclipses Through History and Why People Used to Be Afraid of Them",
-				description: "",
+				description: "/r/space/comments/6u34g5/a_look_at_eclipses_through_history_and_why_people/",
 				length: 98,
 				thumbnail: "https://a.thumbs.redditmedia.com/_IGr0RTbElak-7UR6HAH55RZQgdu3u0YQE5wWcjPJt8.jpg",
 			});

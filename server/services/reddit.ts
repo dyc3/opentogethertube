@@ -113,7 +113,7 @@ export default class RedditAdapter extends ServiceAdapter {
 					service: "direct",
 					id: thing.data.media.reddit_video.hls_url,
 					title: thing.data.title,
-					description: thing.data.selftext,
+					description: thing.data.permalink,
 					length: thing.data.media.reddit_video.duration,
 					thumbnail: thing.data.thumbnail,
 				});
