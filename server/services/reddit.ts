@@ -111,6 +111,8 @@ export default class RedditAdapter extends ServiceAdapter {
 				videos.push({
 					service: "hls",
 					id: thing.data.media.reddit_video.hls_url,
+					title: thing.data.title,
+					length: thing.data.media.reddit_video.duration,
 				});
 			}
 			else {

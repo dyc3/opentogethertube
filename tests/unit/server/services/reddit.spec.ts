@@ -96,6 +96,8 @@ describe("Reddit", () => {
 			expect(videos[0]).toEqual({
 				service: "hls",
 				id: "https://v.redd.it/a7p2kpeni4gz/HLSPlaylist.m3u8?a=1635169212%2CNjk1ODA4ZmZjOTQzODQ2MTU5NjNjZjExOTIwY2YwZWQ3YjZjYTQ0MjAxZDYyYjZiMTgzZmQ2NWEzNmI5ZWJhOQ%3D%3D&amp;v=1&amp;f=sd",
+				title: "A Look at Eclipses Through History and Why People Used to Be Afraid of Them",
+				length: 98,
 			});
 		});
 
