@@ -10,6 +10,8 @@ export interface VideoMetadata {
 	thumbnail: string
 	mime: string
 	highlight?: true
+	hls_url?: string
+	dash_url?: string
 }
 
 export type Video = VideoId & Partial<VideoMetadata>
