@@ -86,6 +86,7 @@ export default Vue.extend({
 				["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
 				["test direct 0", "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4"],
 				["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
+				["test hls 0", "https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8"],
 			],
 		};
 	},
