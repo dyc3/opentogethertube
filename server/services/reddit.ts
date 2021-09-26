@@ -1,9 +1,10 @@
 import { URL } from "url";
 import axios from "axios";
-import { ServiceAdapter } from "../serviceadapter";
+import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { getLogger } from "../../logger";
-import { Video } from "../../common/models/video";
+import { Video, VideoMetadata } from "../../common/models/video";
 import e from "express";
+import { InvalidVideoIdException } from "../exceptions";
 
 const log = getLogger("reddit");
 
@@ -28,6 +29,7 @@ export interface RedditPostData {
 	permalink: string,
 	url: string,
 	thumbnail: string,
+	id: string,
 }
 
 export interface RedditVideoPostData extends RedditPostData {
@@ -70,13 +72,17 @@ export default class RedditAdapter extends ServiceAdapter {
 		return "reddit";
 	}
 
+	get isCacheSafe() {
+		return false;
+	}
+
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
 		return url.host.endsWith("reddit.com") && /^\/r\/.+$/.test(url.pathname);
 	}
 
 	isCollectionURL(link: string): boolean {
-		return true;
+		return !link.includes("comments");
 	}
 
 	async resolveURL(link: string): Promise<(Video | { url: string })[]> {
@@ -110,8 +116,8 @@ export default class RedditAdapter extends ServiceAdapter {
 		else if (thing.kind === "t3") {
 			if (thing.data.is_video && "media" in thing.data) {
 				videos.push({
-					service: "direct",
-					id: thing.data.media.reddit_video.hls_url,
+					service: "reddit",
+					id: thing.data.id,
 					title: thing.data.title,
 					description: thing.data.permalink,
 					length: thing.data.media.reddit_video.duration,
@@ -127,6 +133,25 @@ export default class RedditAdapter extends ServiceAdapter {
 			}
 		}
 		return videos;
+	}
+
+	getVideoId(url: string): string {
+		let fragments = url.split("/");
+		let idx = fragments.indexOf("comments");
+		return fragments[idx + 1];
+	}
+
+	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+		let resp = await this.fetchRedditUrl(`https://reddit.com/comments/${id}.json`);
+		let video = this.extractVideos(resp[0])[0];
+		if ("url" in video) {
+			throw new InvalidVideoIdException(this.serviceId, id);
+		}
+		return video;
+	}
+
+	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
+		return Promise.all(requests.map(req => this.fetchVideoInfo(req.id, req.missingInfo)));
 	}
 }
 

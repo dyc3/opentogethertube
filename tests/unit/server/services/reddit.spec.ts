@@ -44,13 +44,17 @@ const sampleVideoPost: RedditPost = {"kind":"t3", "data":{"approved_at_utc":null
 ], "variants":{}, "id":"xl1TVfMQVWdlZoPBA_ZmjtnCyF7bFhufFgqvOXArANI"},
 ], "enabled":false}, "all_awardings":[], "awarders":[], "media_only":false, "can_gild":true, "spoiler":false, "locked":false, "author_flair_text":null, "treatment_tags":[], "visited":false, "removed_by":null, "num_reports":null, "distinguished":null, "subreddit_id":"t5_2qh87", "author_is_blocked":false, "mod_reason_by":null, "removal_reason":null, "link_flair_background_color":"", "id":"6u34g5", "is_robot_indexable":true, "num_duplicates":2, "report_reasons":null, "author":"timemagazine", "discussion_type":null, "num_comments":1015, "send_replies":true, "media":{"reddit_video":{"fallback_url":"https://v.redd.it/a7p2kpeni4gz/DASH_9_6_M?source=fallback", "height":1080, "width":1920, "scrubber_media_url":"https://v.redd.it/a7p2kpeni4gz/DASH_600_K", "dash_url":"https://v.redd.it/a7p2kpeni4gz/DASHPlaylist.mpd?a=1635169212%2CMGE5Y2ZmNTc5YTZhNjc1NTBlNGE1MzA5MjllYzMwYTJjMjEyM2E2Zjk5MTQ1ZTliNzNhODhkNzk0MDc3MGNkYw%3D%3D&amp;v=1&amp;f=sd", "duration":98, "hls_url":"https://v.redd.it/a7p2kpeni4gz/HLSPlaylist.m3u8?a=1635169212%2CNjk1ODA4ZmZjOTQzODQ2MTU5NjNjZjExOTIwY2YwZWQ3YjZjYTQ0MjAxZDYyYjZiMTgzZmQ2NWEzNmI5ZWJhOQ%3D%3D&amp;v=1&amp;f=sd", "is_gif":false, "transcoding_status":"completed"}}, "contest_mode":false, "author_patreon_flair":false, "author_flair_text_color":null, "permalink":"/r/space/comments/6u34g5/a_look_at_eclipses_through_history_and_why_people/", "whitelist_status":"all_ads", "stickied":false, "url":"https://v.redd.it/a7p2kpeni4gz", "subreddit_subscribers":19029764, "created_utc":1502900316, "num_crossposts":3, "mod_reports":[], "is_video":true}} as RedditPost;
 
+const singlePostLinks = [
+	["https://reddit.com/r/space/comments/6u34g5/a_look_at_eclipses_through_history_and_why_people/", "6u34g5"],
+	["https://www.reddit.com/r/youtubehaiku/comments/lpmdmj/poetry_this_is_the_most_american_thing_ive_ever/", "lpmdmj"],
+	["https://www.reddit.com/r/youtubehaiku/comments/lpmdmj/", "lpmdmj"],
+];
+
 const validLinks = [
 	"https://reddit.com/r/youtubehaiku",
 	"https://www.reddit.com/r/youtubehaiku/new",
 	"https://www.reddit.com/r/youtubehaiku/top.json?t=year",
-	"https://reddit.com/r/space/comments/6u34g5/a_look_at_eclipses_through_history_and_why_people/",
-	"https://www.reddit.com/r/youtubehaiku/comments/lpmdmj/poetry_this_is_the_most_american_thing_ive_ever/",
-];
+].concat(singlePostLinks.map(([link, id]) => link));
 
 const invalidLinks = ["https://reddit.com"];
 
@@ -94,8 +98,8 @@ describe("Reddit", () => {
 			const videos = adapter.extractVideos(sampleVideoPost);
 			expect(videos).toHaveLength(1);
 			expect(videos[0]).toEqual({
-				service: "direct",
-				id: "https://v.redd.it/a7p2kpeni4gz/HLSPlaylist.m3u8?a=1635169212%2CNjk1ODA4ZmZjOTQzODQ2MTU5NjNjZjExOTIwY2YwZWQ3YjZjYTQ0MjAxZDYyYjZiMTgzZmQ2NWEzNmI5ZWJhOQ%3D%3D&amp;v=1&amp;f=sd",
+				service: "reddit",
+				id: "6u34g5",
 				title: "A Look at Eclipses Through History and Why People Used to Be Afraid of Them",
 				description: "/r/space/comments/6u34g5/a_look_at_eclipses_through_history_and_why_people/",
 				length: 98,
@@ -110,6 +114,11 @@ describe("Reddit", () => {
 				url: "https://youtu.be/yr_Rpk9HR1g",
 			});
 		});
+	});
+
+	it.each(singlePostLinks)("should be able to get the video id from %s", ([link, id]) => {
+		const adapter = new RedditAdapter();
+		expect(adapter.getVideoId(link)).toEqual(id);
 	});
 });
 
