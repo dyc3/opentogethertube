@@ -48,15 +48,24 @@ const singlePostLinks = [
 	["https://reddit.com/r/space/comments/6u34g5/a_look_at_eclipses_through_history_and_why_people/", "6u34g5"],
 	["https://www.reddit.com/r/youtubehaiku/comments/lpmdmj/poetry_this_is_the_most_american_thing_ive_ever/", "lpmdmj"],
 	["https://www.reddit.com/r/youtubehaiku/comments/lpmdmj/", "lpmdmj"],
+	["https://www.reddit.com/comments/lpmdmj/", "lpmdmj"],
 ];
 
-const validLinks = [
+const subredditLinks = [
 	"https://reddit.com/r/youtubehaiku",
 	"https://www.reddit.com/r/youtubehaiku/new",
 	"https://www.reddit.com/r/youtubehaiku/top.json?t=year",
-].concat(singlePostLinks.map(([link, id]) => link));
+];
 
-const invalidLinks = ["https://reddit.com"];
+const validLinks = [...subredditLinks].concat(singlePostLinks.map(([link, id]) => link));
+
+const invalidLinks = [
+	"https://reddit.com",
+	"https://reddit.com/r",
+	"https://reddit.com/r/",
+	"https://www.reddit.com/comments",
+	"https://www.reddit.com/comments/",
+];
 
 describe("Reddit", () => {
 	describe("canHandleURL", () => {
@@ -74,8 +83,19 @@ describe("Reddit", () => {
 	describe("isCollectionURL", () => {
 		const adapter = new RedditAdapter();
 
-		it("Always returns true", () => {
-			expect(adapter.isCollectionURL("")).toBe(true);
+		it.each(subredditLinks)("should be collection url: %s", (link) => {
+			expect(adapter.isCollectionURL(link)).toEqual(true);
+		});
+
+		it.each(singlePostLinks.map(l => l[0]))("should not be collection url: %s", (link) => {
+			expect(adapter.isCollectionURL(link)).toEqual(false);
+		});
+	});
+
+	describe("getVideoId", () => {
+		it.each(singlePostLinks)("should be able to get the video id from %s", (link, id) => {
+			const adapter = new RedditAdapter();
+			expect(adapter.getVideoId(link)).toEqual(id);
 		});
 	});
 
@@ -104,6 +124,7 @@ describe("Reddit", () => {
 				description: "/r/space/comments/6u34g5/a_look_at_eclipses_through_history_and_why_people/",
 				length: 98,
 				thumbnail: "https://a.thumbs.redditmedia.com/_IGr0RTbElak-7UR6HAH55RZQgdu3u0YQE5wWcjPJt8.jpg",
+				hls_url: "https://v.redd.it/a7p2kpeni4gz/HLSPlaylist.m3u8?a=1635169212%2CNjk1ODA4ZmZjOTQzODQ2MTU5NjNjZjExOTIwY2YwZWQ3YjZjYTQ0MjAxZDYyYjZiMTgzZmQ2NWEzNmI5ZWJhOQ%3D%3D&amp;v=1&amp;f=sd",
 			});
 		});
 
@@ -114,11 +135,6 @@ describe("Reddit", () => {
 				url: "https://youtu.be/yr_Rpk9HR1g",
 			});
 		});
-	});
-
-	it.each(singlePostLinks)("should be able to get the video id from %s", ([link, id]) => {
-		const adapter = new RedditAdapter();
-		expect(adapter.getVideoId(link)).toEqual(id);
 	});
 });
 
