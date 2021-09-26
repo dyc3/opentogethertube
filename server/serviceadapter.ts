@@ -46,10 +46,8 @@ export class ServiceAdapter {
 
   /**
    * Fetches video metadata from the API.
-   * @param {string} url
-   * @param {string[]} properties
    */
-  fetchVideoInfo(url: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+  fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
     throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getVideoInfo`);
   }
 
