@@ -3,7 +3,6 @@ import axios from "axios";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { getLogger } from "../../logger";
 import { Video, VideoMetadata } from "../../common/models/video";
-import e from "express";
 import { InvalidVideoIdException } from "../exceptions";
 
 const log = getLogger("reddit");
@@ -93,9 +92,7 @@ export default class RedditAdapter extends ServiceAdapter {
 		log.info(`Requesting posts: ${url.toString()}`);
 		const resp = await this.fetchRedditUrl(url.toString());
 		const fetchResult = Array.isArray(resp) ? resp : [resp];
-		const videos = this.extractVideos(fetchResult[0]);
-
-		return videos;
+		return this.extractVideos(fetchResult[0]);
 	}
 
 	async fetchRedditUrl(link: string): Promise<RedditListing<RedditListableThing>[] | RedditListing<RedditListableThing>> {
