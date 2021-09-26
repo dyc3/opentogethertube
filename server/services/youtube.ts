@@ -645,7 +645,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
    * Examples: PT40M25S
    */
   parseVideoLength(duration: string): number {
-    let match = /PT(\d+H)?(\d+M)?(\d+S)?/.exec(duration)?.slice(1).map((x) => {
+    let match = /P(\d+D)?T(\d+H)?(\d+M)?(\d+S)?/.exec(duration)?.slice(1).map((x) => {
       if (x !== null && x !== undefined) {
         return x.replace(/\D/, '');
       }
@@ -655,11 +655,12 @@ export default class YouTubeAdapter extends ServiceAdapter {
       throw new Error(`Failed to parse duration: ${duration}`);
     }
 
-    const hours = (parseInt(match[0] ?? "0", 10) || 0);
-    const minutes = (parseInt(match[1] ?? "0", 10) || 0);
-    const seconds = (parseInt(match[2] ?? "0", 10) || 0);
+    const days = (parseInt(match[0] ?? "0", 10) || 0);
+    const hours = (parseInt(match[1] ?? "0", 10) || 0);
+    const minutes = (parseInt(match[2] ?? "0", 10) || 0);
+    const seconds = (parseInt(match[3] ?? "0", 10) || 0);
 
-    return hours * 3600 + minutes * 60 + seconds;
+    return days * (24 * 3600) + hours * 3600 + minutes * 60 + seconds;
   }
 }
 
