@@ -194,6 +194,7 @@ export default Vue.extend({
 				return;
 			}
 			this.isLoadingAddPreview = true;
+			this.videos = [];
 			this.requestAddPreviewDebounced();
 		},
 		onInputAddPreviewKeyDown(e) {
