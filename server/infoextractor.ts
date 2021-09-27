@@ -284,7 +284,10 @@ export default {
       results.push(...searchResults);
     }
 
-    this.updateCache(results);
+    this.updateCache(results.filter(video => {
+      const adapter = this.getServiceAdapter(video.service);
+      return adapter.isCacheSafe;
+    }));
     return results;
   },
 
