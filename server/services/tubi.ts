@@ -1,10 +1,14 @@
 import { URL } from "url";
 import axios from "axios";
+import { getLogger } from "../../logger";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { Video, VideoMetadata } from "common/models/video";
 
+const log = getLogger("tubi");
+
 interface TubiVideoResponse {
 	id: string,
+	type: "k"
 	title: string,
 	description: string,
 	thumbnails: string[],
@@ -14,7 +18,30 @@ interface TubiVideoResponse {
 			duration: number,
 		}
 		type: string,
-	}[]
+	}[],
+	episode_number: string,
+	series_id: string,
+}
+
+interface TubiSeries {
+	id: string,
+	type: "s",
+	seasons: TubiSeason[]
+}
+
+interface TubiSeason {
+	id: string,
+	type: "a",
+	title: string,
+	episodeIds: string[],
+}
+
+interface TubiSeriesInfo {
+	video: {
+		byId: {
+			[id: string]: TubiVideoResponse | TubiSeries
+		}
+	}
 }
 
 export default class TubiAdapter extends ServiceAdapter {
@@ -31,7 +58,7 @@ export default class TubiAdapter extends ServiceAdapter {
 	}
 
 	canHandleURL(link: string): boolean {
-		return /https?:\/\/(?:www\.)?tubitv\.com\/(?:video|movies|tv-shows|oz\/videos)\/([0-9]+)/.test(link);
+		return /https?:\/\/(?:www\.)?tubitv\.com\/(?:video|movies|tv-shows|oz\/videos|series)\/([0-9]+)/.test(link);
 	}
 
 	isCollectionURL(link: string): boolean {
@@ -50,9 +77,7 @@ export default class TubiAdapter extends ServiceAdapter {
 		throw new Error(`Unable to get video id from ${url}`);
 	}
 
-	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
-		let resp = await this.api.get(`https://tubitv.com/oz/videos/${id}/content`);
-		let data = resp.data as TubiVideoResponse;
+	extractVideo(data: TubiVideoResponse): Video {
 		return {
 			service: this.serviceId,
 			id: data.id,
@@ -62,5 +87,48 @@ export default class TubiAdapter extends ServiceAdapter {
 			length: data.video_resources[0].manifest.duration,
 			hls_url: data.video_resources[0].manifest.url,
 		};
+	}
+
+	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+		let resp = await this.api.get(`https://tubitv.com/oz/videos/${id}/content`);
+		let data = resp.data as TubiVideoResponse;
+		return this.extractVideo(data);
+	}
+
+	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
+		return Promise.all(requests.map(req => this.fetchVideoInfo(req.id, req.missingInfo)));
+	}
+
+	async fetchSeriesInfo(id: string): Promise<Video[]> {
+		let resp = await this.api.get(`https://tubitv.com/series/${id}`);
+		let match = /window\.__data\s*=\s*({.+?});\s*<\/script>/.exec(resp.data)?.[1];
+		if (!match) {
+			throw new Error(`Unable to get series info from ${id}`);
+		}
+
+		let corrected = match.split(":undefined").join(":null"); // because replaceAll isn't available here?
+		let data = JSON.parse(corrected) as TubiSeriesInfo;
+
+		let videos: Video[] = [];
+		let series = data.video.byId[id.padStart(5, "0")] as TubiSeries;
+		for (let season of series.seasons) {
+			for (let episode of season.episodeIds) {
+				let video = data.video.byId[episode] as TubiVideoResponse;
+				videos.push(this.extractVideo(video));
+			}
+		}
+
+		return videos;
+	}
+
+	async resolveURL(url: string): Promise<Video[]> {
+		if (this.isCollectionURL(url)) {
+			let path = new URL(url).pathname.split("/");
+			return await this.fetchSeriesInfo(path[2]);
+		}
+		else {
+			let id = this.getVideoId(url);
+			return [await this.fetchVideoInfo(id)];
+		}
 	}
 }
