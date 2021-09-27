@@ -95,10 +95,6 @@ export default class TubiAdapter extends ServiceAdapter {
 		return this.extractVideo(data);
 	}
 
-	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
-		return Promise.all(requests.map(req => this.fetchVideoInfo(req.id, req.missingInfo)));
-	}
-
 	async fetchSeriesInfo(id: string): Promise<Video[]> {
 		let resp = await this.api.get(`https://tubitv.com/series/${id}`);
 		let match = /window\.__data\s*=\s*({.+?});\s*<\/script>/.exec(resp.data)?.[1];
