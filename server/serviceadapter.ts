@@ -13,7 +13,7 @@ export class ServiceAdapter {
    * A string that identifies this service adapter.
    */
   get serviceId(): string {
-    throw new IncompleteServiceAdapterException(`Service adapter ${this.constructor.name} does note have a serviceId property`);
+    throw new IncompleteServiceAdapterException(`Service adapter ${this.constructor.name} does not have a serviceId property`);
   }
 
   /**
@@ -48,7 +48,7 @@ export class ServiceAdapter {
    * Fetches video metadata from the API.
    */
   fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
-    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getVideoInfo`);
+    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method fetchVideoInfo`);
   }
 
   /**
@@ -56,7 +56,7 @@ export class ServiceAdapter {
    * @param requests List of objects with id and missingInfo keys
    */
   fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
-    throw new IncompleteServiceAdapterException(`Service ${this.serviceId} does not implement method getManyVideoInfo`);
+    return Promise.all(requests.map(req => this.fetchVideoInfo(req.id, req.missingInfo)));
   }
 
   /**

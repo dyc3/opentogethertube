@@ -1,6 +1,6 @@
 <template>
-	<div class="reddit">
-		<video id="redditplayer" class="video-js vjs-default-skin" :key="redditPostId">
+	<div class="generichls">
+		<video id="generichlsplayer" class="video-js vjs-default-skin" :key="videoid">
 		</video>
 	</div>
 </template>
@@ -9,9 +9,9 @@
 import videojs from "video.js";
 
 export default {
-	name: "RedditPlayer",
+	name: "GenericHlsPlayer",
 	props: {
-		redditPostId: { type: String, required: true },
+		videoid: { type: String, required: true },
 		hlsUrl: { type: String, required: true },
 		thumbnail: { type: String },
 	},
@@ -33,11 +33,11 @@ export default {
 	},
 	methods: {
 		play() {
-			console.log("RedditPlayer: play()");
+			console.log("GenericHlsPlayer: play()");
 			return this.player.play();
 		},
 		pause() {
-			console.log("RedditPlayer: pause()");
+			console.log("GenericHlsPlayer: pause()");
 			return this.player.pause();
 		},
 		setVolume(volume) {
@@ -50,7 +50,7 @@ export default {
 			return this.player.currentTime(position);
 		},
 		async loadVideoSource() {
-			console.log("RedditPlayer: loading video source:", this.hlsUrl);
+			console.log("GenericHlsPlayer: loading video source:", this.hlsUrl);
 
 			this.player.src({
 				src: this.hlsUrl,
@@ -62,14 +62,13 @@ export default {
 			}
 		},
 		beginNewVideo() {
-			this.player = videojs(document.getElementById("redditplayer"), {
+			this.player = videojs(document.getElementById("generichlsplayer"), {
 				controls: false,
 				responsive: true,
 				loop: false,
 				preload: "auto",
 				poster: this.thumbnail,
 			});
-			window.redditplayer = this.player;
 			// required for iOS
 			// this.player.setPlaysinline(true);
 			if (!this.hasEmittedApiReady) {
@@ -99,7 +98,7 @@ export default {
 					"pause",
 					"ratechange",
 				]) {
-					this.player.on(event, () => console.log("RedditPlayer event:", event));
+					this.player.on(event, () => console.log("TubiPlayer event:", event));
 				}
 				videojs.log.level("debug");
 			}

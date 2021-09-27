@@ -147,10 +147,6 @@ export default class RedditAdapter extends ServiceAdapter {
 		}
 		return video;
 	}
-
-	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
-		return Promise.all(requests.map(req => this.fetchVideoInfo(req.id, req.missingInfo)));
-	}
 }
 
 module.exports = RedditAdapter;

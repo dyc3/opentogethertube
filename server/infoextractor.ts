@@ -15,6 +15,7 @@ import { isSupportedMimeType } from "./mime";
 import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
 import { OttException } from "../common/exceptions";
+import TubiAdapter from "./services/tubi";
 
 const log = getLogger("infoextract");
 
@@ -26,6 +27,7 @@ const adapters = [
   new DirectVideoAdapter(),
   new RedditAdapter(),
   new NeverthinkAdapter(),
+  new TubiAdapter(),
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH ?? "3") || 3;
@@ -282,7 +284,10 @@ export default {
       results.push(...searchResults);
     }
 
-    this.updateCache(results);
+    this.updateCache(results.filter(video => {
+      const adapter = this.getServiceAdapter(video.service);
+      return adapter.isCacheSafe;
+    }));
     return results;
   },
 
