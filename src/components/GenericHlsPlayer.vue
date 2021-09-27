@@ -1,6 +1,6 @@
 <template>
-	<div class="tubi">
-		<video id="tubiplayer" class="video-js vjs-default-skin" :key="videoid">
+	<div class="generichls">
+		<video id="generichlsplayer" class="video-js vjs-default-skin" :key="videoid">
 		</video>
 	</div>
 </template>
@@ -9,7 +9,7 @@
 import videojs from "video.js";
 
 export default {
-	name: "TubiPlayer",
+	name: "GenericHlsPlayer",
 	props: {
 		videoid: { type: String, required: true },
 		hlsUrl: { type: String, required: true },
@@ -33,11 +33,11 @@ export default {
 	},
 	methods: {
 		play() {
-			console.log("TubiPlayer: play()");
+			console.log("GenericHlsPlayer: play()");
 			return this.player.play();
 		},
 		pause() {
-			console.log("TubiPlayer: pause()");
+			console.log("GenericHlsPlayer: pause()");
 			return this.player.pause();
 		},
 		setVolume(volume) {
@@ -50,7 +50,7 @@ export default {
 			return this.player.currentTime(position);
 		},
 		async loadVideoSource() {
-			console.log("TubiPlayer: loading video source:", this.hlsUrl);
+			console.log("GenericHlsPlayer: loading video source:", this.hlsUrl);
 
 			this.player.src({
 				src: this.hlsUrl,
@@ -62,14 +62,13 @@ export default {
 			}
 		},
 		beginNewVideo() {
-			this.player = videojs(document.getElementById("tubiplayer"), {
+			this.player = videojs(document.getElementById("generichlsplayer"), {
 				controls: false,
 				responsive: true,
 				loop: false,
 				preload: "auto",
 				poster: this.thumbnail,
 			});
-			window.TubiPlayer = this.player;
 			// required for iOS
 			// this.player.setPlaysinline(true);
 			if (!this.hasEmittedApiReady) {

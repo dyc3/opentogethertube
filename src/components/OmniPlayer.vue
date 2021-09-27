@@ -64,10 +64,10 @@
       @buffer-progress="onBufferProgress"
       @buffer-spans="timespans => $emit('buffer-spans', timespans)"
     />
-    <RedditPlayer
+    <GenericHlsPlayer
       v-else-if="source.service == 'reddit'"
       ref="reddit"
-      :reddit-post-id="source.id"
+      :videoid="source.id"
       :hls-url="source.hls_url"
       :thumbnail="source.thumbnail"
       class="player"
@@ -80,7 +80,7 @@
       @buffer-progress="onBufferProgress"
       @buffer-spans="timespans => $emit('buffer-spans', timespans)"
     />
-    <TubiPlayer
+    <GenericHlsPlayer
       v-else-if="source.service == 'tubi'"
       ref="tubi"
       :videoid="source.id"
@@ -127,8 +127,7 @@ export default {
     DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
     GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
     DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/DirectPlayer.vue"),
-    RedditPlayer: () => import(/* webpackChunkName: "reddit" */"@/components/RedditPlayer.vue"),
-    TubiPlayer: () => import(/* webpackChunkName: "tubi" */"@/components/TubiPlayer.vue"),
+    GenericHlsPlayer: () => import(/* webpackChunkName: "hls" */"@/components/GenericHlsPlayer.vue"),
   },
   methods: {
     player() {
