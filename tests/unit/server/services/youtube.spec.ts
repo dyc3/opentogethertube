@@ -84,6 +84,31 @@ function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
 	};
 }
 
+function mockPlaylistItems(id: string): unknown {
+	let path = `${FIXTURE_DIRECTORY}/playlistItems/${id}.json`;
+	if (fs.existsSync(path)) {
+		let content = fs.readFileSync(path, "utf8");
+		return JSON.parse(content);
+	}
+	else {
+		// TODO: replace with real error response in a fixture
+		return {
+			error: {
+				code: 404,
+				message: "playlist not found",
+				status: "asdf",
+				errors: [
+					{
+						message: "asdf",
+						domain: "asdf",
+						reason: "asdf",
+					},
+				],
+			},
+		};
+	}
+}
+
 async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promise<AxiosResponse<any>> {
 	const template = {
 		status: 200,
@@ -95,6 +120,12 @@ async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promis
 		return {
 			...template,
 			data: mockVideoList(config?.params.id.split(",")),
+		};
+	}
+	else if (path === "/playlistItems") {
+		return {
+			...template,
+			data: mockPlaylistItems(config?.params.playlistId),
 		};
 	}
 	throw new Error(`unexpected path: ${path}`);
@@ -167,15 +198,21 @@ describe("Youtube", () => {
 
 	describe("resolveURL", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
-		const apiGet = jest.spyOn(adapter.api, "get");
+		let apiGet: jest.SpyInstance;
 
-		beforeEach(() => {
-			apiGet.mockReset();
+		beforeAll(() => {
+			apiGet = jest.spyOn(adapter.api, 'get').mockImplementation(mockYoutubeApi);
 		});
 
-		it.each(["https://youtube.com/watch?v=%s", "https://youtu.be/%s"].map(x => x.replace("%s", "BTZ5KVRUy1Q")))("Resolves single video URL: %s", async (link) => {
-			apiGet.mockResolvedValue({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
+		beforeEach(() => {
+			apiGet.mockClear();
+		});
 
+		it.each([
+			"https://youtube.com/watch?v=%s",
+			"https://youtu.be/%s",
+			"https://youtube.com/shorts/%s",
+		].map(x => x.replace("%s", "BTZ5KVRUy1Q")))("Resolves single video URL: %s", async (link) => {
 			const videos = await adapter.resolveURL(link);
 			expect(videos).toHaveLength(1);
 			expect(videos[0]).toEqual({
@@ -190,9 +227,6 @@ describe("Youtube", () => {
 		});
 
 		it.each(["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "zgxj_0xPleg").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")))("Resolves single video URL with playlist, with video in the playlist: %s", async (link) => {
-			apiGet.mockReset();
-			apiGet
-				.mockResolvedValueOnce({ data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) });
 			const fetchSpy = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
 			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
 			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
@@ -228,10 +262,6 @@ describe("Youtube", () => {
 		});
 
 		it.each(["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "BTZ5KVRUy1Q").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")))("Resolves single video URL with playlist, with video NOT in the playlist: %s", async (link) => {
-			apiGet.mockReset();
-			apiGet
-				.mockResolvedValueOnce({ data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) })
-				.mockResolvedValueOnce({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
 			const fetchSpy = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
 			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
 			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
@@ -293,7 +323,6 @@ describe("Youtube", () => {
 		});
 
 		it.each(["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`))("Ignores the WL and LL private playlists", async (link) => {
-			apiGet.mockResolvedValue({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
 			const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
 			const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
 			const videos: Video[] = await adapter.resolveURL(link);
@@ -314,9 +343,6 @@ describe("Youtube", () => {
 		});
 
 		it("Resolves playlist", async () => {
-			apiGet.mockReset();
-			apiGet
-				.mockResolvedValueOnce({ data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) });
 			const fetchVideoWithPlaylist = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
 			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
 			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
