@@ -43,30 +43,6 @@ const youtubeVideoListSampleResponses = {
 		'{"kind":"youtube#videoListResponse","etag":"E6XF5WoCgCZmgde_LxQp3pGvSjw","items":[{"kind":"youtube#video","etag":"Szxkj--dpuPKhvGe4F9NT5qJDQ0","id":"zgxj_0xPleg","status":{ "privacyStatus": "public" },"snippet":{"publishedAt":"2019-02-24T21:32:40Z","channelId":"UC_3pplzbKMZsP5zBH_6SVJQ","title":"Chris Chan: A Comprehensive History - Part 1","description":"(1982-2000)","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/hqdefault.jpg","width":480,"height":360},"standard":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/sddefault.jpg","width":640,"height":480},"maxres":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/maxresdefault.jpg","width":1280,"height":720}},"channelTitle":"GenoSamuel2.1","tags":["chris chan","cwc","geno samuel","lolcow","christian weston chandler","sonichu","kiwi farms","documentary"],"categoryId":"27","liveBroadcastContent":"none","defaultLanguage":"en","localized":{"title":"Chris Chan: A Comprehensive History - Part 1","description":"(1982-2000)"},"defaultAudioLanguage":"en"},"contentDetails":{"duration":"PT40M25S","dimension":"2d","definition":"hd","caption":"true","licensedContent":false,"contentRating":{},"projection":"rectangular"}},{"kind":"youtube#video","etag":"RdhsLFF7ucTX87GY2FVg60F2Euk","id":"_3QMqssyBwQ","snippet":{"publishedAt":"2019-03-02T23:00:05Z","channelId":"UC_3pplzbKMZsP5zBH_6SVJQ","title":"Chris Chan: A Comprehensive History - Part 2","description":"(2000-2004)","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/hqdefault.jpg","width":480,"height":360},"standard":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/sddefault.jpg","width":640,"height":480},"maxres":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/maxresdefault.jpg","width":1280,"height":720}},"channelTitle":"GenoSamuel2.1","tags":["cwc","chris chan","lolcow","trolls","documentary","geno samuel","christian weston chandler","autism","sonichu"],"categoryId":"27","liveBroadcastContent":"none","defaultLanguage":"en","localized":{"title":"Chris Chan: A Comprehensive History - Part 2","description":"(2000-2004)"},"defaultAudioLanguage":"en-US"},"contentDetails":{"duration":"PT40M3S","dimension":"2d","definition":"hd","caption":"true","licensedContent":false,"contentRating":{},"projection":"rectangular"}}],"pageInfo":{"totalResults":2,"resultsPerPage":2}}',
 };
 
-const youtubePlaylistItemsSampleResponses = {
-	"PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm": '{"kind": "youtube#playlistItemListResponse","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/cnSEbcCodxUd20zl5d_GdkwUYHA\\"","nextPageToken": "CAIQAA","pageInfo": {"totalResults": 30,"resultsPerPage": 2},"items": [{"kind": "youtube#playlistItem","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/NuyI91BSe5o9qLD3tvex5k06aRA\\"","id": "UExBQnFFWXE2SDN2cENtc215VW5IbmZNT2VBbmpCZFNObS4wMTcyMDhGQUE4NTIzM0Y5","status":{ "privacyStatus": "public" },"snippet": {"publishedAt": "2019-03-10T02:57:27.000Z","channelId": "UC_3pplzbKMZsP5zBH_6SVJQ","title": "Chris Chan: A Comprehensive History - Part 1","description": "(1982-2000)","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/zgxj_0xPleg/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg","width": 320,"height": 180}},"channelTitle": "GenoSamuel2.1","playlistId": "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm","position": 0,"resourceId": {"kind": "youtube#video","videoId": "zgxj_0xPleg"}}}, {"kind": "youtube#playlistItem","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/yhZlmlB3rT2tcC0HpcPP0XuiTpc\\"","id": "UExBQnFFWXE2SDN2cENtc215VW5IbmZNT2VBbmpCZFNObS41NkI0NEY2RDEwNTU3Q0M2","status":{ "privacyStatus": "public" },"snippet": {"publishedAt": "2019-03-02T15:25:25.000Z","channelId": "UC_3pplzbKMZsP5zBH_6SVJQ","title": "Chris Chan: A Comprehensive History - Part 2","description": "(2000-2004)","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg","width": 120,"height": 90}},"channelTitle": "GenoSamuel2.1","playlistId": "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm","position": 1,"resourceId": {"kind": "youtube#video","videoId": "_3QMqssyBwQ"}}}]}',
-};
-
-const channelInfoSampleResponses = [
-	{
-		data: {
-			items: [
-				{
-					contentDetails: {
-						relatedPlaylists: { uploads: "channeluploadplaylistid" },
-					},
-				},
-			],
-		},
-	},
-];
-
-const emptyPlaylistItemsResponse = {
-	data: {
-		items: [],
-	},
-};
-
 const FIXTURE_DIRECTORY = "./tests/unit/server/fixtures/services/youtube";
 
 function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
@@ -408,12 +384,8 @@ describe("Youtube", () => {
 		});
 
 		it("Resolves channel URLs", async () => {
-			const channelId = "89hasd9h2lalskh8";
+			const channelId = "UCL7DDQWP6x7wy0O6L5ZIgxg";
 			const channelURL = `https://www.youtube.com/channel/${channelId}`;
-
-			apiGet
-				.mockResolvedValueOnce(channelInfoSampleResponses[0])
-				.mockResolvedValueOnce(emptyPlaylistItemsResponse);
 
 			await adapter.resolveURL(channelURL);
 			expect(apiGet).toHaveBeenCalledTimes(2);
@@ -422,18 +394,14 @@ describe("Youtube", () => {
 			});
 			expect(apiGet).toHaveBeenNthCalledWith(2, "/playlistItems", {
 				params: expect.objectContaining({
-					playlistId: "channeluploadplaylistid",
+					playlistId: "UUL7DDQWP6x7wy0O6L5ZIgxg",
 				}),
 			});
 		});
 
-		it("Resolves user URLs", async () => {
-			const userName = "someuserthatdoesntactuallyexists";
+		it("Resolves legacy user URLs", async () => {
+			const userName = "vinesauce";
 			const channelURL = `https://www.youtube.com/user/${userName}`;
-
-			apiGet
-				.mockResolvedValueOnce(channelInfoSampleResponses[0])
-				.mockResolvedValueOnce(emptyPlaylistItemsResponse);
 
 			await adapter.resolveURL(channelURL);
 			expect(apiGet).toHaveBeenCalledTimes(2);
@@ -442,7 +410,7 @@ describe("Youtube", () => {
 			});
 			expect(apiGet).toHaveBeenNthCalledWith(2, "/playlistItems", {
 				params: expect.objectContaining({
-					playlistId: "channeluploadplaylistid",
+					playlistId: "UUzORJV8l3FWY4cFO8ot-F2w",
 				}),
 			});
 		});

@@ -1,0 +1,111 @@
+{
+	"kind": "youtube#playlistItemListResponse",
+	"etag": "gAc5OGFk7mpW4HlZRM5An3AvnXo",
+	"nextPageToken": "EAAaBlBUOkNBSQ",
+	"items": [
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "yXlacNuWXPmaZtmpxbrmxogxU-o",
+		"id": "VVVMN0REUVdQNng3d3kwTzZMNVpJZ3hnLnl2b3lVRWxRbTJV",
+		"snippet": {
+		  "publishedAt": "2021-09-23T04:44:46Z",
+		  "channelId": "UCL7DDQWP6x7wy0O6L5ZIgxg",
+		  "title": "Jermalympics 2021",
+		  "description": "The moment you've all been waiting for!\n\nEditor:\nJack Clishem\nhttps://twitter.com/JackClishem\n\nMain Channel\nhttp://www.youtube.com/jerma985\n\nTwitch Stream:\nhttp://www.twitch.tv/jerma985",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/yvoyUElQm2U/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/yvoyUElQm2U/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/yvoyUElQm2U/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/yvoyUElQm2U/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/yvoyUElQm2U/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "2ndJerma",
+		  "playlistId": "UUL7DDQWP6x7wy0O6L5ZIgxg",
+		  "position": 0,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "yvoyUElQm2U"
+		  },
+		  "videoOwnerChannelTitle": "2ndJerma",
+		  "videoOwnerChannelId": "UCL7DDQWP6x7wy0O6L5ZIgxg"
+		},
+		"status": {
+		  "privacyStatus": "public"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "GiSFaPlamQ3kmGHQ1g3DnUbqHBs",
+		"id": "VVVMN0REUVdQNng3d3kwTzZMNVpJZ3hnLmdqWV9fYVBuQVBR",
+		"snippet": {
+		  "publishedAt": "2021-09-20T19:58:58Z",
+		  "channelId": "UCL7DDQWP6x7wy0O6L5ZIgxg",
+		  "title": "Resident Evil VIII - Magnum Opus",
+		  "description": "I am not throwin' away my... SHOT        \n\nThumbnail: \nhttps://twitter.com/Sturnerart\n\nEditor:\nHoly Mackerel The Third\nhttps://www.youtube.com/channel/UCWQfOwdO0OfuKTb6p4-P1Ag\n\nMain Channel\nhttp://www.youtube.com/jerma985\n\nTwitch Stream:\nhttp://www.twitch.tv/jerma985",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/gjY__aPnAPQ/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/gjY__aPnAPQ/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/gjY__aPnAPQ/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/gjY__aPnAPQ/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/gjY__aPnAPQ/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "2ndJerma",
+		  "playlistId": "UUL7DDQWP6x7wy0O6L5ZIgxg",
+		  "position": 1,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "gjY__aPnAPQ"
+		  },
+		  "videoOwnerChannelTitle": "2ndJerma",
+		  "videoOwnerChannelId": "UCL7DDQWP6x7wy0O6L5ZIgxg"
+		},
+		"status": {
+		  "privacyStatus": "public"
+		}
+	  }
+	],
+	"pageInfo": {
+	  "totalResults": 690,
+	  "resultsPerPage": 2
+	}
+}
