@@ -106,7 +106,8 @@ export default class TubiAdapter extends ServiceAdapter {
 		let data = JSON.parse(corrected) as TubiSeriesInfo;
 
 		let videos: Video[] = [];
-		let series = data.video.byId[id.padStart(5, "0")] as TubiSeries;
+		// sometimes the id has an extra zero prepended? weird
+		let series = (data.video.byId[`0${id}`] ?? data.video.byId[id]) as TubiSeries;
 		for (let season of series.seasons) {
 			for (let episode of season.episodeIds) {
 				let video = data.video.byId[episode] as TubiVideoResponse;

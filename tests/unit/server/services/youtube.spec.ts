@@ -1,8 +1,9 @@
-import YouTubeAdapter, { YoutubeErrorResponse } from "../../../../server/services/youtube";
+import YouTubeAdapter, { YoutubeErrorResponse, YoutubeApiVideoListResponse, YoutubeApiVideo } from "../../../../server/services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../../server/exceptions";
 import { redisClient } from "../../../../redisclient";
-import { AxiosError } from "axios";
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import fs from "fs";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -31,40 +32,74 @@ const validCollectionLinks = [
 	"https://youtu.be/3kw2_89ym31W?list=PL4d83g68ij3l45kj6345hFaEHvzLovtb",
 ];
 
-const youtubeVideoListSampleResponses = {
-	BTZ5KVRUy1Q:
-		'{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}]}',
-	I3O9J02G67I:
-		'{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Ly8EM_vOONCLOEzI8TMYnzfG37k\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
-	"BTZ5KVRUy1Q,I3O9J02G67I":
-		'{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 2,"resultsPerPage": 2},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}, {"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
-	"zgxj_0xPleg,_3QMqssyBwQ":
-		'{"kind":"youtube#videoListResponse","etag":"E6XF5WoCgCZmgde_LxQp3pGvSjw","items":[{"kind":"youtube#video","etag":"Szxkj--dpuPKhvGe4F9NT5qJDQ0","id":"zgxj_0xPleg","status":{ "privacyStatus": "public" },"snippet":{"publishedAt":"2019-02-24T21:32:40Z","channelId":"UC_3pplzbKMZsP5zBH_6SVJQ","title":"Chris Chan: A Comprehensive History - Part 1","description":"(1982-2000)","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/hqdefault.jpg","width":480,"height":360},"standard":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/sddefault.jpg","width":640,"height":480},"maxres":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/maxresdefault.jpg","width":1280,"height":720}},"channelTitle":"GenoSamuel2.1","tags":["chris chan","cwc","geno samuel","lolcow","christian weston chandler","sonichu","kiwi farms","documentary"],"categoryId":"27","liveBroadcastContent":"none","defaultLanguage":"en","localized":{"title":"Chris Chan: A Comprehensive History - Part 1","description":"(1982-2000)"},"defaultAudioLanguage":"en"},"contentDetails":{"duration":"PT40M25S","dimension":"2d","definition":"hd","caption":"true","licensedContent":false,"contentRating":{},"projection":"rectangular"}},{"kind":"youtube#video","etag":"RdhsLFF7ucTX87GY2FVg60F2Euk","id":"_3QMqssyBwQ","snippet":{"publishedAt":"2019-03-02T23:00:05Z","channelId":"UC_3pplzbKMZsP5zBH_6SVJQ","title":"Chris Chan: A Comprehensive History - Part 2","description":"(2000-2004)","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/hqdefault.jpg","width":480,"height":360},"standard":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/sddefault.jpg","width":640,"height":480},"maxres":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/maxresdefault.jpg","width":1280,"height":720}},"channelTitle":"GenoSamuel2.1","tags":["cwc","chris chan","lolcow","trolls","documentary","geno samuel","christian weston chandler","autism","sonichu"],"categoryId":"27","liveBroadcastContent":"none","defaultLanguage":"en","localized":{"title":"Chris Chan: A Comprehensive History - Part 2","description":"(2000-2004)"},"defaultAudioLanguage":"en-US"},"contentDetails":{"duration":"PT40M3S","dimension":"2d","definition":"hd","caption":"true","licensedContent":false,"contentRating":{},"projection":"rectangular"}}],"pageInfo":{"totalResults":2,"resultsPerPage":2}}',
-};
+const FIXTURE_DIRECTORY = "./tests/unit/server/fixtures/services/youtube";
 
-const youtubePlaylistItemsSampleResponses = {
-	"PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm": '{"kind": "youtube#playlistItemListResponse","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/cnSEbcCodxUd20zl5d_GdkwUYHA\\"","nextPageToken": "CAIQAA","pageInfo": {"totalResults": 30,"resultsPerPage": 2},"items": [{"kind": "youtube#playlistItem","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/NuyI91BSe5o9qLD3tvex5k06aRA\\"","id": "UExBQnFFWXE2SDN2cENtc215VW5IbmZNT2VBbmpCZFNObS4wMTcyMDhGQUE4NTIzM0Y5","status":{ "privacyStatus": "public" },"snippet": {"publishedAt": "2019-03-10T02:57:27.000Z","channelId": "UC_3pplzbKMZsP5zBH_6SVJQ","title": "Chris Chan: A Comprehensive History - Part 1","description": "(1982-2000)","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/zgxj_0xPleg/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg","width": 320,"height": 180}},"channelTitle": "GenoSamuel2.1","playlistId": "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm","position": 0,"resourceId": {"kind": "youtube#video","videoId": "zgxj_0xPleg"}}}, {"kind": "youtube#playlistItem","etag": "\\"SJZWTG6xR0eGuCOh2bX6w3s4F94/yhZlmlB3rT2tcC0HpcPP0XuiTpc\\"","id": "UExBQnFFWXE2SDN2cENtc215VW5IbmZNT2VBbmpCZFNObS41NkI0NEY2RDEwNTU3Q0M2","status":{ "privacyStatus": "public" },"snippet": {"publishedAt": "2019-03-02T15:25:25.000Z","channelId": "UC_3pplzbKMZsP5zBH_6SVJQ","title": "Chris Chan: A Comprehensive History - Part 2","description": "(2000-2004)","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg","width": 120,"height": 90}},"channelTitle": "GenoSamuel2.1","playlistId": "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm","position": 1,"resourceId": {"kind": "youtube#video","videoId": "_3QMqssyBwQ"}}}]}',
-};
-
-const channelInfoSampleResponses = [
-	{
-		data: {
-			items: [
-				{
-					contentDetails: {
-						relatedPlaylists: { uploads: "channeluploadplaylistid" },
-					},
-				},
-			],
+function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
+	// TODO: filter out parts that are not specified in the parts parameter
+	return {
+		kind: "youtube#videoListResponse",
+		etag: `not real etag: ${ids.join(",")}`,
+		nextPageToken: "next",
+		prevPageToken: "prev",
+		pageInfo: {
+			totalResults: ids.length,
+			resultsPerPage: ids.length,
 		},
-	},
-];
+		items: ids.map(id => JSON.parse(fs.readFileSync(`${FIXTURE_DIRECTORY}/${id}.json`, "utf8")) as YoutubeApiVideo),
+	};
+}
 
-const emptyPlaylistItemsResponse = {
-	data: {
-		items: [],
-	},
-};
+function mockPlaylistItems(id: string): unknown {
+	let path = `${FIXTURE_DIRECTORY}/playlistItems/${id}.json`;
+	if (fs.existsSync(path)) {
+		let content = fs.readFileSync(path, "utf8");
+		return JSON.parse(content);
+	}
+	throw new Error("playlistNotFound");
+}
+
+function mockChannel(id: string): unknown {
+	let path = `${FIXTURE_DIRECTORY}/channels/${id}.json`;
+	if (!fs.existsSync(path)) {
+		path = `${FIXTURE_DIRECTORY}/channels/empty.json`;
+	}
+	let content = fs.readFileSync(path, "utf8");
+	return JSON.parse(content);
+}
+
+async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promise<AxiosResponse<any>> {
+	const template = {
+		status: 200,
+		statusText: "OK",
+		headers: {},
+		config: {},
+	};
+	if (path === "/videos") {
+		return {
+			...template,
+			data: mockVideoList(config?.params.id.split(",")),
+		};
+	}
+	else if (path === "/playlistItems") {
+		try {
+			return {
+				...template,
+				data: mockPlaylistItems(config?.params.playlistId),
+			};
+		}
+		catch (e) {
+			let content = fs.readFileSync(`${FIXTURE_DIRECTORY}/errors/${e.message}.json`, "utf8");
+			return JSON.parse(content);
+		}
+	}
+	else if (path === "/channels") {
+		return {
+			...template,
+			data: mockChannel(config?.params.id ?? config?.params.forUsername),
+		};
+	}
+	throw new Error(`unexpected path: ${path}`);
+}
 
 describe("Youtube", () => {
 	describe("canHandleURL", () => {
@@ -104,14 +139,12 @@ describe("Youtube", () => {
 
 	describe("fetchVideoInfo", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
-		const apiGet = jest.fn();
+		let apiGet: jest.SpyInstance;
 		const videoId = "BTZ5KVRUy1Q";
-		apiGet.mockReturnValue(
-			Promise.resolve({
-				data: JSON.parse(youtubeVideoListSampleResponses[videoId]),
-			})
-		);
-		adapter.api.get = apiGet;
+
+		beforeAll(() => {
+			apiGet = jest.spyOn(adapter.api, 'get').mockImplementation(mockYoutubeApi);
+		});
 
 		beforeEach(() => {
 			apiGet.mockClear();
@@ -126,11 +159,6 @@ describe("Youtube", () => {
 			expect(apiGet).toBeCalled();
 		});
 
-		// it("Returns a video", async () => {
-		//   const video = await adapter.fetchVideoInfo(videoId);
-		//   expect(video).toBeInstanceOf(Video);
-		// });
-
 		it("Throws an error if videoId is invalid", () => {
 			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(
 				InvalidVideoIdException
@@ -140,15 +168,21 @@ describe("Youtube", () => {
 
 	describe("resolveURL", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
-		const apiGet = jest.spyOn(adapter.api, "get");
+		let apiGet: jest.SpyInstance;
 
-		beforeEach(() => {
-			apiGet.mockReset();
+		beforeAll(() => {
+			apiGet = jest.spyOn(adapter.api, 'get').mockImplementation(mockYoutubeApi);
 		});
 
-		it.each(["https://youtube.com/watch?v=%s", "https://youtu.be/%s"].map(x => x.replace("%s", "BTZ5KVRUy1Q")))("Resolves single video URL: %s", async (link) => {
-			apiGet.mockResolvedValue({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
+		beforeEach(() => {
+			apiGet.mockClear();
+		});
 
+		it.each([
+			"https://youtube.com/watch?v=%s",
+			"https://youtu.be/%s",
+			"https://youtube.com/shorts/%s",
+		].map(x => x.replace("%s", "BTZ5KVRUy1Q")))("Resolves single video URL: %s", async (link) => {
 			const videos = await adapter.resolveURL(link);
 			expect(videos).toHaveLength(1);
 			expect(videos[0]).toEqual({
@@ -163,9 +197,6 @@ describe("Youtube", () => {
 		});
 
 		it.each(["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "zgxj_0xPleg").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")))("Resolves single video URL with playlist, with video in the playlist: %s", async (link) => {
-			apiGet.mockReset();
-			apiGet
-				.mockResolvedValueOnce({ data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) });
 			const fetchSpy = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
 			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
 			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
@@ -201,10 +232,6 @@ describe("Youtube", () => {
 		});
 
 		it.each(["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "BTZ5KVRUy1Q").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")))("Resolves single video URL with playlist, with video NOT in the playlist: %s", async (link) => {
-			apiGet.mockReset();
-			apiGet
-				.mockResolvedValueOnce({ data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) })
-				.mockResolvedValueOnce({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
 			const fetchSpy = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
 			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
 			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
@@ -248,10 +275,6 @@ describe("Youtube", () => {
 		});
 
 		it("Recovers after not being able to fetch playlist information for a video", async () => {
-			apiGet
-				.mockRejectedValueOnce({})
-				.mockResolvedValueOnce({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
-
 			const link = "https://youtube.com/watch?v=BTZ5KVRUy1Q&list=fakelistid";
 			const videos = await adapter.resolveURL(link);
 			expect(videos).toHaveLength(1);
@@ -266,7 +289,6 @@ describe("Youtube", () => {
 		});
 
 		it.each(["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`))("Ignores the WL and LL private playlists", async (link) => {
-			apiGet.mockResolvedValue({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
 			const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
 			const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
 			const videos: Video[] = await adapter.resolveURL(link);
@@ -287,9 +309,6 @@ describe("Youtube", () => {
 		});
 
 		it("Resolves playlist", async () => {
-			apiGet.mockReset();
-			apiGet
-				.mockResolvedValueOnce({ data: JSON.parse(youtubePlaylistItemsSampleResponses["PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"]) });
 			const fetchVideoWithPlaylist = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
 			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
 			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
@@ -324,12 +343,8 @@ describe("Youtube", () => {
 		});
 
 		it("Resolves channel URLs", async () => {
-			const channelId = "89hasd9h2lalskh8";
+			const channelId = "UCL7DDQWP6x7wy0O6L5ZIgxg";
 			const channelURL = `https://www.youtube.com/channel/${channelId}`;
-
-			apiGet
-				.mockResolvedValueOnce(channelInfoSampleResponses[0])
-				.mockResolvedValueOnce(emptyPlaylistItemsResponse);
 
 			await adapter.resolveURL(channelURL);
 			expect(apiGet).toHaveBeenCalledTimes(2);
@@ -338,18 +353,14 @@ describe("Youtube", () => {
 			});
 			expect(apiGet).toHaveBeenNthCalledWith(2, "/playlistItems", {
 				params: expect.objectContaining({
-					playlistId: "channeluploadplaylistid",
+					playlistId: "UUL7DDQWP6x7wy0O6L5ZIgxg",
 				}),
 			});
 		});
 
-		it("Resolves user URLs", async () => {
-			const userName = "someuserthatdoesntactuallyexists";
+		it("Resolves legacy user URLs", async () => {
+			const userName = "vinesauce";
 			const channelURL = `https://www.youtube.com/user/${userName}`;
-
-			apiGet
-				.mockResolvedValueOnce(channelInfoSampleResponses[0])
-				.mockResolvedValueOnce(emptyPlaylistItemsResponse);
 
 			await adapter.resolveURL(channelURL);
 			expect(apiGet).toHaveBeenCalledTimes(2);
@@ -358,7 +369,7 @@ describe("Youtube", () => {
 			});
 			expect(apiGet).toHaveBeenNthCalledWith(2, "/playlistItems", {
 				params: expect.objectContaining({
-					playlistId: "channeluploadplaylistid",
+					playlistId: "UUzORJV8l3FWY4cFO8ot-F2w",
 				}),
 			});
 		});

@@ -22,7 +22,7 @@ interface YoutubeChannelData {
   customUrl?: string
 }
 
-interface YoutubeApiVideoListResponse {
+export interface YoutubeApiVideoListResponse {
   kind: "youtube#videoListResponse";
   etag: string;
   nextPageToken: string;
@@ -36,7 +36,7 @@ interface YoutubeApiPageInfo {
   resultsPerPage: number;
 }
 
-interface YoutubeApiVideo {
+export interface YoutubeApiVideo {
   kind: "youtube#video";
   etag: string;
   id: string;
