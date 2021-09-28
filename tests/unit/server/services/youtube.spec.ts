@@ -109,6 +109,31 @@ function mockPlaylistItems(id: string): unknown {
 	}
 }
 
+function mockChannel(id: string): unknown {
+	let path = `${FIXTURE_DIRECTORY}/channels/${id}.json`;
+	if (fs.existsSync(path)) {
+		let content = fs.readFileSync(path, "utf8");
+		return JSON.parse(content);
+	}
+	else {
+		// TODO: replace with real error response in a fixture
+		return {
+			error: {
+				code: 404,
+				message: "channel not found",
+				status: "asdf",
+				errors: [
+					{
+						message: "asdf",
+						domain: "asdf",
+						reason: "asdf",
+					},
+				],
+			},
+		};
+	}
+}
+
 async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promise<AxiosResponse<any>> {
 	const template = {
 		status: 200,
@@ -126,6 +151,12 @@ async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promis
 		return {
 			...template,
 			data: mockPlaylistItems(config?.params.playlistId),
+		};
+	}
+	else if (path === "/channels") {
+		return {
+			...template,
+			data: mockChannel(config?.params.id ?? config?.params.forUsername),
 		};
 	}
 	throw new Error(`unexpected path: ${path}`);
