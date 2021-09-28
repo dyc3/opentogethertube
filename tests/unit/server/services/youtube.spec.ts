@@ -1,8 +1,9 @@
-import YouTubeAdapter, { YoutubeErrorResponse } from "../../../../server/services/youtube";
+import YouTubeAdapter, { YoutubeErrorResponse, YoutubeApiVideoListResponse, YoutubeApiVideo } from "../../../../server/services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../../server/exceptions";
 import { redisClient } from "../../../../redisclient";
-import { AxiosError } from "axios";
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import fs from "fs";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -66,6 +67,39 @@ const emptyPlaylistItemsResponse = {
 	},
 };
 
+const FIXTURE_DIRECTORY = "./tests/unit/server/fixtures/services/youtube";
+
+function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
+	// TODO: filter out parts that are not specified in the parts parameter
+	return {
+		kind: "youtube#videoListResponse",
+		etag: `not real etag: ${ids.join(",")}`,
+		nextPageToken: "next",
+		prevPageToken: "prev",
+		pageInfo: {
+			totalResults: ids.length,
+			resultsPerPage: ids.length,
+		},
+		items: ids.map(id => JSON.parse(fs.readFileSync(`${FIXTURE_DIRECTORY}/${id}.json`, "utf8")) as YoutubeApiVideo),
+	};
+}
+
+async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promise<AxiosResponse<any>> {
+	const template = {
+		status: 200,
+		statusText: "OK",
+		headers: {},
+		config: {},
+	};
+	if (path === "/videos") {
+		return {
+			...template,
+			data: mockVideoList(config?.params.id.split(",")),
+		};
+	}
+	throw new Error(`unexpected path: ${path}`);
+}
+
 describe("Youtube", () => {
 	describe("canHandleURL", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
@@ -104,14 +138,12 @@ describe("Youtube", () => {
 
 	describe("fetchVideoInfo", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
-		const apiGet = jest.fn();
+		let apiGet: jest.SpyInstance;
 		const videoId = "BTZ5KVRUy1Q";
-		apiGet.mockReturnValue(
-			Promise.resolve({
-				data: JSON.parse(youtubeVideoListSampleResponses[videoId]),
-			})
-		);
-		adapter.api.get = apiGet;
+
+		beforeAll(() => {
+			apiGet = jest.spyOn(adapter.api, 'get').mockImplementation(mockYoutubeApi);
+		});
 
 		beforeEach(() => {
 			apiGet.mockClear();
@@ -125,11 +157,6 @@ describe("Youtube", () => {
 			await adapter.fetchVideoInfo(videoId);
 			expect(apiGet).toBeCalled();
 		});
-
-		// it("Returns a video", async () => {
-		//   const video = await adapter.fetchVideoInfo(videoId);
-		//   expect(video).toBeInstanceOf(Video);
-		// });
 
 		it("Throws an error if videoId is invalid", () => {
 			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(
