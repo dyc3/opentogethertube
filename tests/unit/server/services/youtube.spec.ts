@@ -32,17 +32,6 @@ const validCollectionLinks = [
 	"https://youtu.be/3kw2_89ym31W?list=PL4d83g68ij3l45kj6345hFaEHvzLovtb",
 ];
 
-const youtubeVideoListSampleResponses = {
-	BTZ5KVRUy1Q:
-		'{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}]}',
-	I3O9J02G67I:
-		'{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Ly8EM_vOONCLOEzI8TMYnzfG37k\\"","pageInfo": {"totalResults": 1,"resultsPerPage": 1},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
-	"BTZ5KVRUy1Q,I3O9J02G67I":
-		'{"kind": "youtube#videoListResponse","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/dqnBDym87ibK6816BZIGb9MCLYI\\"","pageInfo": {"totalResults": 2,"resultsPerPage": 2},"items": [{"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/UyysisXjek5qf_mfkU7W8pFnmPs\\"","id": "BTZ5KVRUy1Q", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-08-26T11:32:44.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpIwT4T4","description": "tmpIwT4T4","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/default.jpg","width": 120,"height": 90},"medium": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg","width": 320,"height": 180},"high": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/BTZ5KVRUy1Q/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpIwT4T4","description": "tmpIwT4T4"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": true,"projection": "rectangular"}}, {"kind": "youtube#video","etag": "\\"j6xRRd8dTPVVptg711_CSPADRfg/Xz7huLjXglgWYbMv-lMOshzynvk\\"","id": "I3O9J02G67I", "status":{ "privacyStatus": "public" }, "snippet": {"publishedAt": "2019-07-26T13:02:54.000Z","channelId": "UCsLiV4WJfkTEHH0b9PmRklw","title": "tmpATT2Cp","description": "tmpATT2Cp","thumbnails": {"default": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/default.jpg","width": 120,"height": 90},"high": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/hqdefault.jpg","width": 480,"height": 360},"standard": {"url": "https://i.ytimg.com/vi/I3O9J02G67I/sddefault.jpg","width": 640,"height": 480}},"channelTitle": "Webdriver Torso","categoryId": "22","liveBroadcastContent": "none","localized": {"title": "tmpATT2Cp","description": "tmpATT2Cp"}},"contentDetails": {"duration": "PT10S","dimension": "2d","definition": "sd","caption": "false","licensedContent": false,"projection": "rectangular"}}]}',
-	"zgxj_0xPleg,_3QMqssyBwQ":
-		'{"kind":"youtube#videoListResponse","etag":"E6XF5WoCgCZmgde_LxQp3pGvSjw","items":[{"kind":"youtube#video","etag":"Szxkj--dpuPKhvGe4F9NT5qJDQ0","id":"zgxj_0xPleg","status":{ "privacyStatus": "public" },"snippet":{"publishedAt":"2019-02-24T21:32:40Z","channelId":"UC_3pplzbKMZsP5zBH_6SVJQ","title":"Chris Chan: A Comprehensive History - Part 1","description":"(1982-2000)","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/hqdefault.jpg","width":480,"height":360},"standard":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/sddefault.jpg","width":640,"height":480},"maxres":{"url":"https://i.ytimg.com/vi/zgxj_0xPleg/maxresdefault.jpg","width":1280,"height":720}},"channelTitle":"GenoSamuel2.1","tags":["chris chan","cwc","geno samuel","lolcow","christian weston chandler","sonichu","kiwi farms","documentary"],"categoryId":"27","liveBroadcastContent":"none","defaultLanguage":"en","localized":{"title":"Chris Chan: A Comprehensive History - Part 1","description":"(1982-2000)"},"defaultAudioLanguage":"en"},"contentDetails":{"duration":"PT40M25S","dimension":"2d","definition":"hd","caption":"true","licensedContent":false,"contentRating":{},"projection":"rectangular"}},{"kind":"youtube#video","etag":"RdhsLFF7ucTX87GY2FVg60F2Euk","id":"_3QMqssyBwQ","snippet":{"publishedAt":"2019-03-02T23:00:05Z","channelId":"UC_3pplzbKMZsP5zBH_6SVJQ","title":"Chris Chan: A Comprehensive History - Part 2","description":"(2000-2004)","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/hqdefault.jpg","width":480,"height":360},"standard":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/sddefault.jpg","width":640,"height":480},"maxres":{"url":"https://i.ytimg.com/vi/_3QMqssyBwQ/maxresdefault.jpg","width":1280,"height":720}},"channelTitle":"GenoSamuel2.1","tags":["cwc","chris chan","lolcow","trolls","documentary","geno samuel","christian weston chandler","autism","sonichu"],"categoryId":"27","liveBroadcastContent":"none","defaultLanguage":"en","localized":{"title":"Chris Chan: A Comprehensive History - Part 2","description":"(2000-2004)"},"defaultAudioLanguage":"en-US"},"contentDetails":{"duration":"PT40M3S","dimension":"2d","definition":"hd","caption":"true","licensedContent":false,"contentRating":{},"projection":"rectangular"}}],"pageInfo":{"totalResults":2,"resultsPerPage":2}}',
-};
-
 const FIXTURE_DIRECTORY = "./tests/unit/server/fixtures/services/youtube";
 
 function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
@@ -66,48 +55,16 @@ function mockPlaylistItems(id: string): unknown {
 		let content = fs.readFileSync(path, "utf8");
 		return JSON.parse(content);
 	}
-	else {
-		// TODO: replace with real error response in a fixture
-		return {
-			error: {
-				code: 404,
-				message: "playlist not found",
-				status: "asdf",
-				errors: [
-					{
-						message: "asdf",
-						domain: "asdf",
-						reason: "asdf",
-					},
-				],
-			},
-		};
-	}
+	throw new Error("playlistNotFound");
 }
 
 function mockChannel(id: string): unknown {
 	let path = `${FIXTURE_DIRECTORY}/channels/${id}.json`;
-	if (fs.existsSync(path)) {
-		let content = fs.readFileSync(path, "utf8");
-		return JSON.parse(content);
+	if (!fs.existsSync(path)) {
+		path = `${FIXTURE_DIRECTORY}/channels/empty.json`;
 	}
-	else {
-		// TODO: replace with real error response in a fixture
-		return {
-			error: {
-				code: 404,
-				message: "channel not found",
-				status: "asdf",
-				errors: [
-					{
-						message: "asdf",
-						domain: "asdf",
-						reason: "asdf",
-					},
-				],
-			},
-		};
-	}
+	let content = fs.readFileSync(path, "utf8");
+	return JSON.parse(content);
 }
 
 async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promise<AxiosResponse<any>> {
@@ -124,10 +81,16 @@ async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promis
 		};
 	}
 	else if (path === "/playlistItems") {
-		return {
-			...template,
-			data: mockPlaylistItems(config?.params.playlistId),
-		};
+		try {
+			return {
+				...template,
+				data: mockPlaylistItems(config?.params.playlistId),
+			};
+		}
+		catch (e) {
+			let content = fs.readFileSync(`${FIXTURE_DIRECTORY}/errors/${e.message}.json`, "utf8");
+			return JSON.parse(content);
+		}
 	}
 	else if (path === "/channels") {
 		return {
@@ -312,10 +275,6 @@ describe("Youtube", () => {
 		});
 
 		it("Recovers after not being able to fetch playlist information for a video", async () => {
-			apiGet
-				.mockRejectedValueOnce({})
-				.mockResolvedValueOnce({ data: JSON.parse(youtubeVideoListSampleResponses["BTZ5KVRUy1Q"]) });
-
 			const link = "https://youtube.com/watch?v=BTZ5KVRUy1Q&list=fakelistid";
 			const videos = await adapter.resolveURL(link);
 			expect(videos).toHaveLength(1);
