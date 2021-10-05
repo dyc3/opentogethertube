@@ -18,7 +18,7 @@ module.exports = {
 			log.error("Failed to grab file info: uri contains unescaped double quote, which is a banned character");
 			throw new Error("Unescaped double quote found in uri");
 		}
-		const { error, stdout } = await exec(`${FFPROBE_PATH} -v quiet -i "${uri}" -print_format json -show_streams`);
+		const { error, stdout } = await exec(`${FFPROBE_PATH} -v quiet -i "${uri}" -print_format json -show_streams -show_format`);
 		if (error) {
 			log.error(`Failed to probe file info: ${error}`);
 			throw error;

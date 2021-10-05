@@ -28,7 +28,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 
   canHandleURL(link: string): boolean {
     const url = URL.parse(link);
-    return /\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4])$/.test(
+    return /\/*\.(mp4(|v)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|m3u8?)$/.test(
       (url.path ?? "/").split("?")[0]
     );
   }
@@ -46,7 +46,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
     }
     const fileInfo = await ffprobe.getFileInfo(link);
     const videoStream = _.find(fileInfo.streams, { codec_type: "video" });
-    if (!videoStream.duration) {
+    if (!videoStream.duration && !fileInfo.format.duration) {
       log.error("Video duration could not be determined");
       throw new MissingMetadataException();
     }
@@ -56,7 +56,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
       title: fileName,
       description: `Full Link: ${link}`,
       mime,
-      length: Math.ceil(videoStream.duration),
+      length: Math.ceil(videoStream.duration ?? fileInfo.format.duration),
     };
 
     return video;

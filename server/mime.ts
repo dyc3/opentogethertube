@@ -10,6 +10,7 @@ const mimeTypes = {
   "video/ogg": ["ogv"],
   "video/x-m4v": ["m4v"],
   "video/h264": ["h264"],
+  "application/x-mpegURL": ["m3u", "m3u8"],
 };
 
 export function getMimeType(extension: string): string | undefined {
@@ -21,6 +22,9 @@ export function getMimeType(extension: string): string | undefined {
 }
 
 export function isSupportedMimeType(mimeType: string): boolean {
+  if (mimeType === "application/x-mpegURL") {
+    return true;
+  }
   return !!/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/.exec(mimeType);
 }
 
