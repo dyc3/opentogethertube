@@ -1,0 +1,47 @@
+name: Service Support Request
+description: Request support for a video service, source, or format
+title: 'Service support: X'
+labels: [enhancement, service support request]
+body:
+  - type: input
+    id: service-name
+    attributes:
+      label: Service Name / Video Format
+      description: The name of the service or video format.
+      placeholder: 'e.g. YouTube'
+    validations:
+      required: true
+  - type: input
+    id: service-homepage
+    attributes:
+      label: URL of homepage
+      description: Required if applicable
+      placeholder: 'e.g. https://www.youtube.com'
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Sample video URLs
+      description: Please provide valid example video URLs, one per line. If video URLs can appear in multiple formats, please include as many as you can find. You can also include links to example playlists, channels, users, etc.
+      placeholder: |
+        Videos:
+        - https://www.youtube.com/watch?v=dQw4w9WgXcQ
+        - https://youtu.be/dQw4w9WgXcQ
+
+        Playlists:
+        - https://www.youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm
+  - type: checkboxes
+    attributes:
+      label: About the service
+      description: Please select all that apply. Most of these statements are not applicable if you are requesting a video format.
+      options:
+        - label: Service has a public API
+        - label: Service is a paid/subscription service
+        - label: Service requires an API key
+        - label: You can access the service via a browser (mobile app not required)
+        - label: Service provides an iframe embed
+        - label: Iframe video playback can be controlled via javascript
+  - type: markdown
+    attributes:
+      value: |
+        React with 👍 if you are interested in this.
