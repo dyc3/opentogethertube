@@ -651,6 +651,7 @@ export default {
      * Computes the `process` property of the playback position slider.
      * Used to show colored intervals in the slider.
      * Intervals will be layared in the order of they are listed. The last interval will appear on the top.
+     * Values are from 0 to 100, regardless of min and max values of the slider.
      */
     getSliderProcesses(dotsPos) {
       let processes = [];
@@ -658,8 +659,8 @@ export default {
       // show buffered spans
       if (this.$store.state.playerBufferSpans) {
         for (let i = 0; i < this.$store.state.playerBufferSpans.length; i++) {
-          let start = this.$store.state.playerBufferSpans.start(i);
-          let end = this.$store.state.playerBufferSpans.end(i);
+          let start = this.$store.state.playerBufferSpans.start(i) / this.$store.state.room.currentSource.length;
+          let end = this.$store.state.playerBufferSpans.end(i) / this.$store.state.room.currentSource.length;
           processes.push([
             start, end, { backgroundColor: "#f00" },
           ]);
@@ -667,7 +668,7 @@ export default {
       }
       else if (this.$store.state.playerBufferPercent) {
         processes.push([
-          0, this.$store.state.playerBufferPercent * this.$store.state.room.currentSource.length, { backgroundColor: "#0f0" },
+          0, this.$store.state.playerBufferPercent * 100, { backgroundColor: "#0f0" },
         ]);
       }
 
