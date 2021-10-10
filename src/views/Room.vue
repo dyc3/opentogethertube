@@ -656,19 +656,20 @@ export default {
     getSliderProcesses(dotsPos) {
       let processes = [];
 
+      const bufferedColor = "#e9be57";
       // show buffered spans
       if (this.$store.state.playerBufferSpans) {
         for (let i = 0; i < this.$store.state.playerBufferSpans.length; i++) {
           let start = this.$store.state.playerBufferSpans.start(i) / this.$store.state.room.currentSource.length;
           let end = this.$store.state.playerBufferSpans.end(i) / this.$store.state.room.currentSource.length;
           processes.push([
-            start, end, { backgroundColor: "#f00" },
+            start, end, { backgroundColor: bufferedColor },
           ]);
         }
       }
       else if (this.$store.state.playerBufferPercent) {
         processes.push([
-          0, this.$store.state.playerBufferPercent * 100, { backgroundColor: "#0f0" },
+          0, this.$store.state.playerBufferPercent * 100, { backgroundColor: bufferedColor },
         ]);
       }
 
