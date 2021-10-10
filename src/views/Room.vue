@@ -736,6 +736,13 @@ export default {
       }
     }
   },
+  updated() {
+    let slider = document.getElementById("videoSlider");
+    slider.removeEventListener("mousemove", this.updateSeekPreview);
+    slider.removeEventListener("mouseleave", this.resetSeekPreview);
+    slider.addEventListener("mousemove", this.updateSeekPreview);
+    slider.addEventListener("mouseleave", this.resetSeekPreview);
+  },
   watch: {
     volume() {
       this.updateVolume();
