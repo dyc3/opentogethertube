@@ -34,6 +34,7 @@
                   :process="getSliderProcesses"
                   @change="sliderChange"
                   :drag-on-click="true"
+                  tooltip="hover"
                 />
                 <v-row no-gutters align="center">
                   <v-tooltip bottom>
