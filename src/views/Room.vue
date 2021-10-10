@@ -665,6 +665,11 @@ export default {
           ]);
         }
       }
+      else if (this.$store.state.playerBufferPercent) {
+        processes.push([
+          0, this.$store.state.playerBufferPercent * this.$store.state.room.currentSource.length, { backgroundColor: "#0f0" },
+        ]);
+      }
 
       // show video progress
       processes.push([
