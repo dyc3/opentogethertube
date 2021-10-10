@@ -74,6 +74,10 @@ export default new Vuex.Store({
 		PLAYBACK_BUFFER_SPANS(state, spans) {
 			state.playerBufferSpans = spans;
 		},
+		PLAYBACK_BUFFER_RESET(state) {
+			state.playerBufferPercent = null;
+			state.playerBufferSpans = null;
+		},
 		LOGIN(state, user) {
 			state.user = user;
 		},
@@ -126,6 +130,9 @@ export default new Vuex.Store({
 			// FIXME: the UI needs to be able to handle null currentSource
 			if (message.currentSource === null) {
 				message.currentSource = {};
+			}
+			if ("currentSource" in message) {
+				this.commit("PLAYBACK_BUFFER_RESET");
 			}
 			if (message.voteCounts) {
 				message.voteCounts = deserializeMap(message.voteCounts);

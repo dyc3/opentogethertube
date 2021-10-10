@@ -31,7 +31,10 @@
                   :max="$store.state.room.currentSource.length"
                   :tooltip-formatter="sliderTooltipFormatter"
                   :disabled="currentSource.length == null || !granted('playback.seek')"
+                  :process="getSliderProcesses"
                   @change="sliderChange"
+                  :drag-on-click="true"
+                  tooltip="hover"
                 />
                 <v-row no-gutters align="center">
                   <v-tooltip bottom>
@@ -57,7 +60,12 @@
                   <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
                     <v-icon>fas fa-fast-forward</v-icon>
                   </v-btn>
-                  <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px"/>
+                  <vue-slider
+                    v-model="volume"
+                    style="width: 150px; margin-left: 10px; margin-right: 20px"
+                    :process="(dotsPos) => [[0, dotsPos[0], { backgroundColor:'#ffb300' }]]"
+                    :drag-on-click="true"
+                  />
                   <div>
                     <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
                     <span v-else class="timestamp" @click="activateTextSeek">
@@ -209,6 +217,7 @@ import AddPreview from "@/components/AddPreview.vue";
 import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
 import _ from "lodash";
 import VueSlider from 'vue-slider-component';
+import 'vue-slider-component/theme/default.css';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
@@ -238,6 +247,7 @@ export default {
       truePosition: 0,
       sliderPosition: 0,
       sliderTooltipFormatter: secondsToTimestamp,
+      seekPreview: null,
       volume: 100,
 
       queueTab: 0,
@@ -645,6 +655,55 @@ export default {
         }
       }
     },
+    /**
+     * Computes the `process` property of the playback position slider.
+     * Used to show colored intervals in the slider.
+     * Intervals will be layared in the order of they are listed. The last interval will appear on the top.
+     * Values are from 0 to 100, regardless of min and max values of the slider.
+     */
+    getSliderProcesses(dotsPos) {
+      let processes = [];
+
+      const bufferedColor = "#e9be57";
+      // show buffered spans
+      if (this.$store.state.playerBufferSpans) {
+        for (let i = 0; i < this.$store.state.playerBufferSpans.length; i++) {
+          let start = this.$store.state.playerBufferSpans.start(i) / this.$store.state.room.currentSource.length;
+          let end = this.$store.state.playerBufferSpans.end(i) / this.$store.state.room.currentSource.length;
+          processes.push([
+            start, end, { backgroundColor: bufferedColor },
+          ]);
+        }
+      }
+      else if (this.$store.state.playerBufferPercent) {
+        processes.push([
+          0, this.$store.state.playerBufferPercent * 100, { backgroundColor: bufferedColor },
+        ]);
+      }
+
+      // show seek preview, if present
+      if (this.seekPreview) {
+        processes.push([
+          0, this.seekPreview * 100, { backgroundColor: "#00b3ff" },
+        ]);
+      }
+
+      // show video progress
+      processes.push([
+          0, dotsPos[0], { backgroundColor: "#ffb300" },
+      ]);
+
+      return processes;
+    },
+    updateSeekPreview(e) {
+      let slider = document.getElementById("videoSlider");
+      let sliderRect = slider.getBoundingClientRect();
+      let sliderPos = e.clientX - sliderRect.left;
+      this.seekPreview = sliderPos / sliderRect.width;
+    },
+    resetSeekPreview() {
+      this.seekPreview = null;
+    },
   },
   mounted() {
     console.log(this.$store.state.joinFailReason);
@@ -662,6 +721,10 @@ export default {
         this.activateVideoControls();
       }
     };
+
+    let slider = document.getElementById("videoSlider");
+    slider.addEventListener("mousemove", this.updateSeekPreview);
+    slider.addEventListener("mouseleave", this.resetSeekPreview);
 
     if (this.$store.state.quickAdd.length > 0) {
       for (let video of this.$store.state.quickAdd) {
