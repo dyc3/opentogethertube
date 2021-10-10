@@ -247,6 +247,7 @@ export default {
       truePosition: 0,
       sliderPosition: 0,
       sliderTooltipFormatter: secondsToTimestamp,
+      seekPreview: null,
       volume: 100,
 
       queueTab: 0,
@@ -680,12 +681,28 @@ export default {
         ]);
       }
 
+      // show seek preview, if present
+      if (this.seekPreview) {
+        processes.push([
+          0, this.seekPreview * 100, { backgroundColor: "#00b3ff" },
+        ]);
+      }
+
       // show video progress
       processes.push([
           0, dotsPos[0], { backgroundColor: "#ffb300" },
       ]);
 
       return processes;
+    },
+    updateSeekPreview(e) {
+      let slider = document.getElementById("videoSlider");
+      let sliderRect = slider.getBoundingClientRect();
+      let sliderPos = e.clientX - sliderRect.left;
+      this.seekPreview = sliderPos / sliderRect.width;
+    },
+    resetSeekPreview() {
+      this.seekPreview = null;
     },
   },
   mounted() {
@@ -704,6 +721,10 @@ export default {
         this.activateVideoControls();
       }
     };
+
+    let slider = document.getElementById("videoSlider");
+    slider.addEventListener("mousemove", this.updateSeekPreview);
+    slider.addEventListener("mouseleave", this.resetSeekPreview);
 
     if (this.$store.state.quickAdd.length > 0) {
       for (let video of this.$store.state.quickAdd) {
