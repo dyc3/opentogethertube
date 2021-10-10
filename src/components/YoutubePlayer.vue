@@ -167,6 +167,8 @@ export default {
 					this.queuedVolume = null;
 				}
 			}
+
+			this.$store.commit("PLAYBACK_BUFFER", this.player.getVideoLoadedFraction());
 		},
 		onError() {
 			this.$emit("error");
