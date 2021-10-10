@@ -156,10 +156,6 @@ export default Vue.extend({
   margin: 0 4px;
 }
 
-.vue-slider-process {
-  background: $brand-color !important;
-}
-
 .text-muted {
   opacity: 0.7;
 }
