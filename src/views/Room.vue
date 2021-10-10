@@ -33,6 +33,7 @@
                   :disabled="currentSource.length == null || !granted('playback.seek')"
                   :process="getSliderProcesses"
                   @change="sliderChange"
+                  :drag-on-click="true"
                 />
                 <v-row no-gutters align="center">
                   <v-tooltip bottom>
@@ -58,7 +59,12 @@
                   <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
                     <v-icon>fas fa-fast-forward</v-icon>
                   </v-btn>
-                  <vue-slider v-model="volume" style="width: 150px; margin-left: 10px; margin-right: 20px" :process="(dotsPos) => [[0, dotsPos[0], { backgroundColor:'#ffb300' }]]"/>
+                  <vue-slider
+                    v-model="volume"
+                    style="width: 150px; margin-left: 10px; margin-right: 20px"
+                    :process="(dotsPos) => [[0, dotsPos[0], { backgroundColor:'#ffb300' }]]"
+                    :drag-on-click="true"
+                  />
                   <div>
                     <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
                     <span v-else class="timestamp" @click="activateTextSeek">
