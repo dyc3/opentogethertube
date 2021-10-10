@@ -209,6 +209,7 @@ import AddPreview from "@/components/AddPreview.vue";
 import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
 import _ from "lodash";
 import VueSlider from 'vue-slider-component';
+import 'vue-slider-component/theme/default.css';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";

@@ -13,8 +13,6 @@ Vue.use(VueEvents);
 
 import vuetify from '@/plugins/vuetify';
 
-import 'vue-slider-component/theme/default.css';
-
 import Fragment from 'vue-fragment';
 Vue.use(Fragment.Plugin);
 
