@@ -168,7 +168,9 @@ export default {
 				}
 			}
 
-			this.$store.commit("PLAYBACK_BUFFER", this.player.getVideoLoadedFraction());
+			if (this.$store) {
+				this.$store.commit("PLAYBACK_BUFFER", this.player.getVideoLoadedFraction());
+			}
 		},
 		onError() {
 			this.$emit("error");
