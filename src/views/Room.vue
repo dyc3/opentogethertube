@@ -696,7 +696,6 @@ export default {
       return processes;
     },
     updateSeekPreview(e) {
-      console.log(e);
       let slider = document.getElementById("videoSlider");
       let sliderRect = slider.getBoundingClientRect();
       let sliderPos = e.clientX - sliderRect.left;
@@ -723,12 +722,9 @@ export default {
       }
     };
 
-    // HACK: Workaround to make sure we grab the correct slider element. On first page load, the slider is there, but it is replaced and the event listeners are effectively removed.
-    setTimeout(() => {
-      const slider = document.getElementById("videoSlider");
-      slider.addEventListener("mousemove", this.updateSeekPreview);
-      slider.addEventListener("mouseleave", this.resetSeekPreview);
-    }, 100);
+    let slider = document.getElementById("videoSlider");
+    slider.addEventListener("mousemove", this.updateSeekPreview);
+    slider.addEventListener("mouseleave", this.resetSeekPreview);
 
     if (this.$store.state.quickAdd.length > 0) {
       for (let video of this.$store.state.quickAdd) {
@@ -739,6 +735,13 @@ export default {
         ]));
       }
     }
+  },
+  updated() {
+    let slider = document.getElementById("videoSlider");
+    slider.removeEventListener("mousemove", this.updateSeekPreview);
+    slider.removeEventListener("mouseleave", this.resetSeekPreview);
+    slider.addEventListener("mousemove", this.updateSeekPreview);
+    slider.addEventListener("mouseleave", this.resetSeekPreview);
   },
   watch: {
     volume() {
