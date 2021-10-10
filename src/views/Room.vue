@@ -31,6 +31,7 @@
                   :max="$store.state.room.currentSource.length"
                   :tooltip-formatter="sliderTooltipFormatter"
                   :disabled="currentSource.length == null || !granted('playback.seek')"
+                  :process="getSliderProcesses"
                   @change="sliderChange"
                 />
                 <v-row no-gutters align="center">
@@ -645,6 +646,32 @@ export default {
           document.exitFullscreen();
         }
       }
+    },
+    /**
+     * Computes the `process` property of the playback position slider.
+     * Used to show colored intervals in the slider.
+     * Intervals will be layared in the order of they are listed. The last interval will appear on the top.
+     */
+    getSliderProcesses(dotsPos) {
+      let processes = [];
+
+      // show buffered spans
+      if (this.$store.state.playerBufferSpans) {
+        for (let i = 0; i < this.$store.state.playerBufferSpans.length; i++) {
+          let start = this.$store.state.playerBufferSpans.start(i);
+          let end = this.$store.state.playerBufferSpans.end(i);
+          processes.push([
+            start, end, { backgroundColor: "#f00" },
+          ]);
+        }
+      }
+
+      // show video progress
+      processes.push([
+          0, dotsPos[0], { backgroundColor: "#ffb300" },
+      ]);
+
+      return processes;
     },
   },
   mounted() {
