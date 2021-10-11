@@ -64,6 +64,7 @@
     "sequelize": "^6.6.2",
     "sequelize-cli": "^5.5.1",
     "sequelize-typescript": "^2.1.0",
+    "sponsorblock-api": "^0.2.2",
     "ts-essentials": "^7.0.1",
     "ts-loader": "^9.2.2",
     "ts-node": "^9.1.1",
