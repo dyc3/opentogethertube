@@ -29,7 +29,7 @@
 
 <script>
 import _ from "lodash";
-import PermissionsMixin from "@/mixins/permissions.js";
+import PermissionsMixin from "@/mixins/permissions";
 
 export default {
 	name: "permissions-editor",

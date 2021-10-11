@@ -72,12 +72,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import _ from "lodash";
-import Component from "vue-class-component";
+import Component, { mixins } from "vue-class-component";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http.js";
 import { Visibility, QueueMode, RoomSettings } from 'common/models/types';
-import PermissionsMixin from "@/mixins/permissions.js";
+import PermissionsMixin from "@/mixins/permissions";
 
 @Component({
 	name: 'RoomSettings',
@@ -86,7 +86,7 @@ import PermissionsMixin from "@/mixins/permissions.js";
 	},
 	mixins: [PermissionsMixin],
 })
-export default class RoomSettingsForm extends Vue {
+export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 	Visibility = Visibility;
 	QueueMode = QueueMode;
 
@@ -123,7 +123,6 @@ export default class RoomSettingsForm extends Vue {
 		};
 		let blocked: (keyof RoomSettings)[] = [];
 		for (let prop of Object.keys(propsToGrants)) {
-			// @ts-expect-error I need to convert the permissions mixin to typescript, and have this class extend it in order for typescript shut up.
 			if (!this.granted(`configure-room.${propsToGrants[prop]}`)) {
 				blocked.push(prop as keyof typeof propsToGrants);
 			}
