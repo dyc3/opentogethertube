@@ -111,7 +111,7 @@
 						{{ new Date().getFullYear() }} - <a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> - Made in America - Special Thanks to <a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
 					</v-row>
 					<v-row no-gutters align="center" justify="center">
-						<router-link to="/privacypolicy">Privacy Policy</router-link>
+						<router-link class="side-pad" to="/privacypolicy">Privacy Policy</router-link><router-link class="side-pad" to="/attribution">Attribution</router-link>
 					</v-row>
 				</v-container>
 			</v-footer>
