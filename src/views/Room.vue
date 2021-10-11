@@ -546,16 +546,30 @@ export default {
       }
 
       // show seek preview, if present
-      if (this.seekPreview) {
-        processes.push([
-          0, this.seekPreview * 100, { backgroundColor: "#00b3ff" },
-        ]);
-      }
+      processes.push([
+        0, (this.seekPreview ?? 0) * 100, { backgroundColor: "#00b3ff" },
+      ]);
 
       // show video progress
       processes.push([
           0, dotsPos[0], { backgroundColor: "#ffb300" },
       ]);
+
+      // show sponsorblock segments
+      const colorMap = new Map([
+        ["sponsor", "#00d400"],
+        ["selfpromo", "#ffff00"],
+        ["interaction", "#cc00ff"],
+        ["intro", "#00ffff"],
+        ["outro", "#0202ed"],
+      ]);
+      for (const segment of this.$store.state.room.videoSegments) {
+        let start = segment.startTime / segment.videoDuration * 100;
+        let end = segment.endTime / segment.videoDuration * 100;
+        processes.push([
+          start, end, { backgroundColor: colorMap.get(segment.category) ?? "#ff0000" },
+        ]);
+      }
 
       return processes;
     },
