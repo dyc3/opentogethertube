@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from '../../../src/timestamp';
+import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from '../../../src/util/timestamp';
 
 describe('secondsToTimestamp spec', () => {
 	it('handles positive values', () => {
