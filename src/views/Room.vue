@@ -178,7 +178,7 @@
 <script>
 import { API } from "@/common-http.js";
 import AddPreview from "@/components/AddPreview.vue";
-import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
+import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/util/timestamp";
 import _ from "lodash";
 import VueSlider from 'vue-slider-component';
 import 'vue-slider-component/theme/default.css';

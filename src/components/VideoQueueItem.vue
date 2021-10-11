@@ -73,7 +73,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { API } from "@/common-http.js";
-import { secondsToTimestamp } from "@/timestamp.js";
+import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from '@/models/toast';
 import Component from 'vue-class-component';
 import { Video, VideoId } from "common/models/video";
@@ -102,7 +102,7 @@ export default class VideoQueueItem extends Vue {
 	QueueMode = QueueMode
 
 	get videoLength(): string {
-		return secondsToTimestamp(this.item.length);
+		return secondsToTimestamp(this.item?.length ?? 0);
 	}
 
 	get thumbnailSource(): string {
