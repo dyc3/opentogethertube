@@ -97,6 +97,7 @@ export class Room implements RoomState {
 	 * Used to defer grabbing sponsorblock segments to keep video dequeueing from blocking.
 	 */
 	wantSponsorBlock = false
+	dontSkipSegmentsUntil: number | null = null
 
 	constructor (options: Partial<RoomOptions>) {
 		this.log = getLogger(`room/${options.name}`);
@@ -476,6 +477,19 @@ export class Room implements RoomState {
 			await this.fetchSponsorBlockSegments();
 			this.wantSponsorBlock = false;
 		}
+
+		if (this.dontSkipSegmentsUntil && this.realPlaybackPosition >= this.dontSkipSegmentsUntil) {
+			this.dontSkipSegmentsUntil = null;
+		}
+
+		if (this.isPlaying && this.videoSegments.length > 0 && this.dontSkipSegmentsUntil === null) {
+			const segment = this.getSegmentForTime(this.realPlaybackPosition);
+			if (segment) {
+				this.log.silly(`Segment ${segment.category} is now playing, skipping`);
+				this.playbackPosition = segment.endTime;
+				this._playbackStart = dayjs();
+			}
+		}
 	}
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
@@ -571,6 +585,14 @@ export class Room implements RoomState {
 		this.videoSegments = await sponsorBlock.getSegments(this.currentSource.id, [
 			"sponsor", 'intro', 'outro', 'interaction', 'selfpromo', 'preview',
 		]);
+	}
+
+	getSegmentForTime(time: number): Segment | undefined {
+		for (const segment of this.videoSegments) {
+			if (time >= segment.startTime && time <= segment.endTime) {
+				return segment;
+			}
+		}
 	}
 
 	public async deriveRequestContext(authorization: RoomRequestAuthorization, request: RoomRequest): Promise<RoomRequestContext> {
@@ -710,6 +732,14 @@ export class Room implements RoomState {
 		this.playbackPosition = request.value;
 		this._playbackStart = dayjs();
 		await this.publishRoomEvent(request, context, { prevPosition: prev });
+
+		const segment = this.getSegmentForTime(this.playbackPosition);
+		if (segment !== undefined) {
+			this.dontSkipSegmentsUntil = segment.endTime;
+		}
+		else {
+			this.dontSkipSegmentsUntil = null;
+		}
 	}
 
 	/**
