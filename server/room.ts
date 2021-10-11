@@ -18,6 +18,8 @@ import storage from "./../storage";
 import tokens, { SessionInfo } from "./auth/tokens";
 import statistics, { Counter } from "./statistics";
 import { OttException } from "../common/exceptions";
+import { getSponsorBlock } from "./sponsorblock";
+import { Segment } from "sponsorblock-api";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -85,11 +87,16 @@ export class Room implements RoomState {
 	_playbackPosition = 0
 	realusers: RoomUser[] = []
 	votes: Map<string, Set<ClientId>> = new Map();
+	_videoSegments: Segment[] = []
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
 	_playbackStart: Dayjs | null = null;
 	_keepAlivePing: Dayjs
+	/**
+	 * Used to defer grabbing sponsorblock segments to keep video dequeueing from blocking.
+	 */
+	wantSponsorBlock = false
 
 	constructor (options: Partial<RoomOptions>) {
 		this.log = getLogger(`room/${options.name}`);
@@ -222,6 +229,15 @@ export class Room implements RoomState {
 		this.markDirty("users");
 	}
 
+	public get videoSegments(): Segment[] {
+		return this._videoSegments;
+	}
+
+	public set videoSegments(value: Segment[]) {
+		this._videoSegments = value;
+		this.markDirty("videoSegments");
+	}
+
 	get users(): RoomUserInfo[] {
 		const infos: RoomUserInfo[] = [];
 		for (const user of this.realusers) {
@@ -268,6 +284,10 @@ export class Room implements RoomState {
 			this.playbackPosition = 0;
 			this._playbackStart = dayjs();
 			this.currentSource = null;
+		}
+
+		if (this.currentSource) {
+			this.wantSponsorBlock = true;
 		}
 	}
 
@@ -451,6 +471,11 @@ export class Room implements RoomState {
 				this.markDirty("queue");
 			}
 		}
+
+		if (this.wantSponsorBlock) {
+			await this.fetchSponsorBlockSegments();
+			this.wantSponsorBlock = false;
+		}
 	}
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
@@ -459,13 +484,13 @@ export class Room implements RoomState {
 	 * Serialize the room's state so that it can be stored in redis
 	 */
 	public serializeState(): string {
-		const state: RoomStateStorable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "userRoles", "owner", "_playbackStart");
+		const state: RoomStateStorable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "userRoles", "owner", "_playbackStart", "videoSegments");
 
 		return JSON.stringify(state, replacer);
 	}
 
 	public serializeSyncableState(): string {
-		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "users", "grants", "hasOwner", "voteCounts");
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "users", "grants", "hasOwner", "voteCounts", "videoSegments");
 
 		return JSON.stringify(state, replacer);
 	}
@@ -481,7 +506,7 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
-		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner");
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner", "videoSegments");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 		await set(`room:${this.name}`, this.serializeState());
@@ -532,6 +557,20 @@ export class Room implements RoomState {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Grabs video segments from Sponsorblock for the current video.
+	 */
+	async fetchSponsorBlockSegments(): Promise<void> {
+		if (!this.currentSource || this.currentSource.service !== "youtube") {
+			return;
+		}
+		this.log.info(`fetching sponsorblock segments for ${this.currentSource.service}:${this.currentSource.id}`);
+		const sponsorBlock = await getSponsorBlock();
+		this.videoSegments = await sponsorBlock.getSegments(this.currentSource.id, [
+			"sponsor", 'intro', 'outro', 'interaction', 'selfpromo', 'preview',
+		]);
 	}
 
 	public async deriveRequestContext(authorization: RoomRequestAuthorization, request: RoomRequest): Promise<RoomRequestContext> {
