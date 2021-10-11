@@ -143,17 +143,7 @@
               </v-card>
             </div>
             <UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
-            <div class="share-invite">
-              <v-card>
-                <v-subheader>
-                  Share Invite
-                </v-subheader>
-                <v-card-text>
-                  Copy this link and share it with your friends!
-                  <v-text-field outlined ref="inviteLinkText" :value="inviteLink" append-outer-icon="fa-clipboard" :success-messages="copyInviteLinkSuccessText" @focus="onFocusHighlightText" @click:append-outer="copyInviteLink" />
-                </v-card-text>
-              </v-card>
-            </div>
+            <ShareInvite />
           </v-col>
         </v-row>
       </v-col>
@@ -192,6 +182,7 @@ import { PlayerStatus, QueueMode } from 'common/models/types';
 import VideoQueue from "@/components/VideoQueue.vue";
 import goTo from 'vuetify/lib/services/goto';
 import RoomSettings from "@/components/RoomSettings.vue";
+import ShareInvite from "@/components/ShareInvite.vue";
 
 export default {
   name: 'room',
@@ -203,6 +194,7 @@ export default {
     AddPreview,
     UserList,
     RoomSettings,
+    ShareInvite,
   },
   mixins: [PermissionsMixin],
   data() {
@@ -219,8 +211,6 @@ export default {
       snackbarText: "",
 
       i_timestampUpdater: null,
-
-      copyInviteLinkSuccessText: "",
 
       textSeek: {
         active: false,
@@ -253,12 +243,6 @@ export default {
      */
     production() {
       return this.$store.state.production;
-    },
-    inviteLink() {
-      if (process.env.SHORT_URL) {
-        return `https://${process.env.SHORT_URL}/${this.$route.params.roomId}`;
-      }
-      return window.location.href.split('?')[0].toLowerCase();
     },
     timestampDisplay() {
       return secondsToTimestamp(this.truePosition);
@@ -355,9 +339,6 @@ export default {
       else {
         this.$refs.player.pause();
       }
-    },
-    onFocusHighlightText(e) {
-      e.target.select();
     },
     onPlayerReady() {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
@@ -467,16 +448,6 @@ export default {
       this.setVideoControlsVisibility(true);
       this.videoControlsHideTimeout = setTimeout(() => {
         this.setVideoControlsVisibility(false);
-      }, 3000);
-    },
-    copyInviteLink() {
-      let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
-      textfield.select();
-      document.execCommand("copy");
-      this.copyInviteLinkSuccessText = "Copied!";
-      setTimeout(() => {
-        this.copyInviteLinkSuccessText = "";
-        textfield.blur();
       }, 3000);
     },
     rewriteUrlToRoomName() {
