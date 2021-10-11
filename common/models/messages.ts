@@ -1,7 +1,7 @@
 import { ClientId, ClientInfo, QueueMode, RoomUserInfo, Visibility, PlayerStatus, Role, RoomEventContext, RoomSettings, AuthToken } from "./types";
 import { VideoId } from "./video";
 
-export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageAnnouncement | ServerMessageUser
+export type ServerMessage = ServerMessageSync | ServerMessageUnload | ServerMessageChat | ServerMessageEvent | ServerMessageEventCustom | ServerMessageAnnouncement | ServerMessageUser
 
 interface ServerMessageBase {
 	action: string
@@ -34,6 +34,12 @@ export interface ServerMessageEvent extends ServerMessageBase {
 	request: RoomRequest
 	user: Pick<RoomUserInfo, "name" | "isLoggedIn">
 	additional: RoomEventContext
+}
+
+export interface ServerMessageEventCustom extends ServerMessageBase {
+	action: "eventcustom"
+	text: string
+	duration?: number
 }
 
 export interface ServerMessageAnnouncement extends ServerMessageBase {

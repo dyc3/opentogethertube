@@ -488,6 +488,10 @@ export class Room implements RoomState {
 				this.log.silly(`Segment ${segment.category} is now playing, skipping`);
 				this.playbackPosition = segment.endTime;
 				this._playbackStart = dayjs();
+				await this.publish({
+					action: "eventcustom",
+					text: `Skipped ${segment.category}`,
+				});
 			}
 		}
 	}
