@@ -1,17 +1,20 @@
 import dayjs from 'dayjs';
 
-export function secondsToTimestamp(seconds) {    //formats seconds into mm:ss if less than an hour, hh:mm:ss if greater than an hour
+/**
+ * Formats seconds into mm:ss if less than an hour, hh:mm:ss if greater than an hour
+ */
+export function secondsToTimestamp(seconds: number): string {
 	const posSeconds = Math.abs(seconds);
 	const timeString = new Date(posSeconds * 1000).toISOString();
 	const subTimeString = posSeconds >= 3600 ? timeString.substr(11, 8) : timeString.substr(14, 5);
 	return seconds < 0 ? "-" + subTimeString : subTimeString;
 }
 
-export function calculateCurrentPosition(start_time, now_time, offset) {
+export function calculateCurrentPosition(start_time: dayjs.ConfigType, now_time: dayjs.ConfigType, offset: number): number {
 	return offset + dayjs(now_time).diff(start_time, "milliseconds") / 1000;
 }
 
-export function timestampToSeconds(timestamp) {
+export function timestampToSeconds(timestamp: string): number {
 	if (!timestamp) {
 		throw new Error("Invalid timestamp");
 	}

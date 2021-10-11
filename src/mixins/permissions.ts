@@ -1,6 +1,8 @@
-export default {
+import Vue from 'vue';
+
+export default Vue.extend({
 	methods: {
-		granted(permission) {
+		granted(permission): boolean {
 			// TODO: find some way to reuse server code
 			// TODO: get permissions masks from data api
 			const masks = {
@@ -29,7 +31,7 @@ export default {
 			};
 			return (this.$store.state.users.you.grants & masks[permission]) > 0;
 		},
-		waitForMetadata() {
+		waitForMetadata(): Promise<void> {
 			// eslint-disable-next-line @typescript-eslint/no-this-alias
 			let _this = this;
 			return new Promise(resolve => {
@@ -42,4 +44,4 @@ export default {
 			});
 		},
 	},
-};
+});

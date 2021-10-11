@@ -106,46 +106,10 @@
                 <AddPreview />
               </v-tab-item>
               <v-tab-item>
-                <div class="room-settings" style="margin: 12px">
-                  <v-form @submit="submitRoomSettings">
-                    <v-text-field label="Title" v-model="inputRoomSettings.title" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-title')" />
-                    <v-text-field label="Description" v-model="inputRoomSettings.description" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-description')" />
-                    <v-select label="Visibility" :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="inputRoomSettings.visibility" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-visibility')" data-cy="select-visibility" />
-                    <v-select label="Queue Mode" :items="[
-                      { name: 'manual', value: QueueMode.Manual, description: 'Default normal behavior, works how you would expect it to. You can manually reorder items in the queue.' },
-                      { name: 'vote', value: QueueMode.Vote, description: 'The highest voted video gets played next.' },
-                      { name: 'loop', value: QueueMode.Loop, description: 'When the video ends, put it at the end of the queue.' },
-                      { name: 'dj', value: QueueMode.Dj, description: 'When the video ends, start the same video from the beginning. Good for looping background music.' },
-                    ]" v-model="inputRoomSettings.queueMode" :loading="isLoadingRoomSettings" :disabled="!granted('configure-room.set-queue-mode')" data-cy="select-queueMode">
-                      <template v-slot:item="data">
-                        <v-list-item-content>
-                          <v-list-item-title>{{ data.item.name }}</v-list-item-title>
-                          <v-list-item-subtitle>{{ data.item.description }}</v-list-item-subtitle>
-                        </v-list-item-content>
-                      </template>
-                      <template v-slot:selection="data">
-                        <v-list-item-title>{{ data.item.name }}</v-list-item-title>
-                      </template>
-                    </v-select>
-                    <PermissionsEditor v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner" v-model="inputRoomSettings.permissions" :current-role="$store.state.users.you.role" />
-                    <div v-else-if="$store.state.room.isTemporary">
-                      Permissions are not available in temporary rooms.
-                    </div>
-                    <div v-else-if="!$store.state.room.hasOwner">
-                      This room needs an owner before permissions can be modified.
-                      <span v-if="!$store.state.user">
-                        Log in to claim this room.
-                      </span>
-                    </div>
-                    <div v-else>
-                      You aren't able to modify permissions in this room.
-                    </div>
-                    <div class="submit">
-                      <v-btn large block color="blue" v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner" :disabled="!$store.state.user" role="submit" @click="claimOwnership">Claim Room</v-btn>
-                      <v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
-                    </div>
-                  </v-form>
-                </div>
+                <RoomSettings
+                  ref="settings"
+                />
+                  <!-- v-if="queueTab === 2 /* HACK: force the component to mount when the tab becomes active, and destroy it when the tab is not active. */" -->
               </v-tab-item>
             </v-tabs-items>
           </v-col>
@@ -179,17 +143,7 @@
               </v-card>
             </div>
             <UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
-            <div class="share-invite">
-              <v-card>
-                <v-subheader>
-                  Share Invite
-                </v-subheader>
-                <v-card-text>
-                  Copy this link and share it with your friends!
-                  <v-text-field outlined ref="inviteLinkText" :value="inviteLink" append-outer-icon="fa-clipboard" :success-messages="copyInviteLinkSuccessText" @focus="onFocusHighlightText" @click:append-outer="copyInviteLink" />
-                </v-card-text>
-              </v-card>
-            </div>
+            <ShareInvite />
           </v-col>
         </v-row>
       </v-col>
@@ -214,32 +168,33 @@
 <script>
 import { API } from "@/common-http.js";
 import AddPreview from "@/components/AddPreview.vue";
-import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/timestamp.js";
+import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/util/timestamp";
 import _ from "lodash";
 import VueSlider from 'vue-slider-component';
 import 'vue-slider-component/theme/default.css';
 import OmniPlayer from "@/components/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
-import PermissionsEditor from "@/components/PermissionsEditor.vue";
-import PermissionsMixin from "@/mixins/permissions.js";
+import PermissionsMixin from "@/mixins/permissions";
 import UserList from "@/components/UserList.vue";
 import connection from "@/util/connection";
 import api from "@/util/api";
-import { ToastStyle } from "@/models/toast";
 import { PlayerStatus, QueueMode } from 'common/models/types';
 import VideoQueue from "@/components/VideoQueue.vue";
 import goTo from 'vuetify/lib/services/goto';
+import RoomSettings from "@/components/RoomSettings.vue";
+import ShareInvite from "@/components/ShareInvite.vue";
 
 export default {
   name: 'room',
   components: {
     VideoQueue,
-    PermissionsEditor,
     VueSlider,
     OmniPlayer,
     Chat,
     AddPreview,
     UserList,
+    RoomSettings,
+    ShareInvite,
   },
   mixins: [PermissionsMixin],
   data() {
@@ -251,21 +206,11 @@ export default {
       volume: 100,
 
       queueTab: 0,
-      isLoadingRoomSettings: false,
-      inputRoomSettings: {
-        title: "",
-        description: "",
-        visibility: "",
-        queueMode: "",
-        permissions: {},
-      },
 
       snackbarActive: false,
       snackbarText: "",
 
       i_timestampUpdater: null,
-
-      copyInviteLinkSuccessText: "",
 
       textSeek: {
         active: false,
@@ -298,12 +243,6 @@ export default {
      */
     production() {
       return this.$store.state.production;
-    },
-    inviteLink() {
-      if (process.env.SHORT_URL) {
-        return `https://${process.env.SHORT_URL}/${this.$route.params.roomId}`;
-      }
-      return window.location.href.split('?')[0].toLowerCase();
     },
     timestampDisplay() {
       return secondsToTimestamp(this.truePosition);
@@ -358,49 +297,6 @@ export default {
         api.play();
       }
     },
-    /** Take room settings from the UI and submit them to the server. */
-    async submitRoomSettings() {
-      this.isLoadingRoomSettings = true;
-      try {
-        await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
-        this.$toast.add({
-          style: ToastStyle.Success,
-          content: `Settings applied`,
-          duration: 4000,
-        });
-      }
-      catch (e) {
-        console.log(e);
-        this.$toast.add({
-          style: ToastStyle.Error,
-          content: e.response.data.error.message,
-          duration: 6000,
-        });
-      }
-      this.isLoadingRoomSettings = false;
-    },
-    async claimOwnership() {
-      this.isLoadingRoomSettings = true;
-      try {
-        await API.patch(`/room/${this.$route.params.roomId}`, {
-          claim: true,
-        });
-        this.$toast.add({
-          style: ToastStyle.Success,
-          content: `You now own the room ${this.$route.params.roomId}.`,
-          duration: 4000,
-        });
-      }
-      catch (e) {
-        console.log(e);
-        this.$toast.add({
-          style: ToastStyle.Error,
-          content: e.response.data.error.message,
-          duration: 6000,
-        });
-      }
-      this.isLoadingRoomSettings = false;
-    },
 
     /* OTHER */
 
@@ -443,9 +339,6 @@ export default {
       else {
         this.$refs.player.pause();
       }
-    },
-    onFocusHighlightText(e) {
-      e.target.select();
     },
     onPlayerReady() {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
@@ -513,12 +406,8 @@ export default {
       }
     },
     async onTabChange() {
-      if (this.queueTab === 2) {
-        // FIXME: we have to make an API request becuase visibility is not sent in sync messages.
-        this.isLoadingRoomSettings = true;
-        let res = await API.get(`/room/${this.$route.params.roomId}`);
-        this.isLoadingRoomSettings = false;
-        this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode", "permissions");
+      if ("settings" in this.$refs && this.queueTab === 2) {
+        await this.$refs["settings"].loadRoomSettings();
       }
     },
     onVideoBuffer(percent) {
@@ -559,16 +448,6 @@ export default {
       this.setVideoControlsVisibility(true);
       this.videoControlsHideTimeout = setTimeout(() => {
         this.setVideoControlsVisibility(false);
-      }, 3000);
-    },
-    copyInviteLink() {
-      let textfield = this.$refs.inviteLinkText.$el.querySelector('input');
-      textfield.select();
-      document.execCommand("copy");
-      this.copyInviteLinkSuccessText = "Copied!";
-      setTimeout(() => {
-        this.copyInviteLinkSuccessText = "";
-        textfield.blur();
       }, 3000);
     },
     rewriteUrlToRoomName() {
@@ -623,21 +502,6 @@ export default {
     },
     switchToAddTab() {
       this.queueTab = 1;
-    },
-    getRoomSettingsSubmit() {
-      const propsToGrants = {
-        title: "set-title",
-        description: "set-description",
-        visibility: "set-visibility",
-        queueMode: "set-queue-mode",
-      };
-      let blocked = [];
-      for (let prop of Object.keys(propsToGrants)) {
-        if (!this.granted(`configure-room.${propsToGrants[prop]}`)) {
-          blocked.push(prop);
-        }
-      }
-      return _.omit(this.inputRoomSettings, blocked);
     },
     onScreenOrientationChange() {
       this.orientation = screen.orientation.type;
@@ -918,15 +782,5 @@ export default {
 .textseek {
   display: inline-flex;
   width: 90px;
-}
-
-.room-settings .submit {
-  position: -webkit-sticky;
-  position: sticky;
-  bottom: 20px;
-
-  .v-btn {
-    margin: 10px 0;
-  }
 }
 </style>

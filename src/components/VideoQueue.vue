@@ -28,7 +28,7 @@ import Component from 'vue-class-component';
 import draggable from 'vuedraggable';
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";
-import PermissionsMixin from "@/mixins/permissions.js";
+import PermissionsMixin from "@/mixins/permissions";
 
 @Component({
 	name: "VideoQueue",

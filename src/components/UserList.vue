@@ -76,7 +76,7 @@
 
 <script>
 import { API } from "@/common-http.js";
-import PermissionsMixin from "@/mixins/permissions.js";
+import PermissionsMixin from "@/mixins/permissions";
 import { PlayerStatus } from "common/models/types";
 import api from "@/util/api";
 
