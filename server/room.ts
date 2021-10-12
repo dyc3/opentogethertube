@@ -19,7 +19,7 @@ import tokens, { SessionInfo } from "./auth/tokens";
 import statistics, { Counter } from "./statistics";
 import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
-import { Segment } from "sponsorblock-api";
+import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -485,8 +485,20 @@ export class Room implements RoomState {
 
 		if (this.autoSkipSegments) {
 			if (this.wantSponsorBlock) {
-				await this.fetchSponsorBlockSegments();
-				this.wantSponsorBlock = false;
+				try {
+					await this.fetchSponsorBlockSegments();
+				}
+				catch (e) {
+					if (e instanceof SponsorblockResponseError) {
+						this.log.error(`Failed to grab sponsorblock segments: ${e.name} ${e.status} ${e.message}`);
+					}
+					else {
+						this.log.error(`Failed to grab sponsorblock segments`);
+					}
+				}
+				finally {
+					this.wantSponsorBlock = false;
+				}
 			}
 
 			if (this.dontSkipSegmentsUntil && this.realPlaybackPosition >= this.dontSkipSegmentsUntil) {
