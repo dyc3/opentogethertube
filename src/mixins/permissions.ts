@@ -28,6 +28,7 @@ export default Vue.extend({
 				"manage-users.demote-moderator": 1<<19,
 				"manage-users.promote-trusted-user": 1<<20,
 				"manage-users.demote-trusted-user": 1<<21,
+				"configure-room.set-auto-skip": 1<<22,
 			};
 			return (this.$store.state.users.you.grants & masks[permission]) > 0;
 		},

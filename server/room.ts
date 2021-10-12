@@ -18,6 +18,8 @@ import storage from "./../storage";
 import tokens, { SessionInfo } from "./auth/tokens";
 import statistics, { Counter } from "./statistics";
 import { OttException } from "../common/exceptions";
+import { getSponsorBlock } from "./sponsorblock";
+import { Segment } from "sponsorblock-api";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -78,6 +80,7 @@ export class Room implements RoomState {
 	_owner: User | null = null
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>
+	_autoSkipSegments = true;
 
 	_currentSource: Video | null = null
 	queue: Video[] = []
@@ -85,11 +88,17 @@ export class Room implements RoomState {
 	_playbackPosition = 0
 	realusers: RoomUser[] = []
 	votes: Map<string, Set<ClientId>> = new Map();
+	_videoSegments: Segment[] = []
 
 	_dirty: Set<keyof RoomState> = new Set();
 	log: winston.Logger
 	_playbackStart: Dayjs | null = null;
 	_keepAlivePing: Dayjs
+	/**
+	 * Used to defer grabbing sponsorblock segments to keep video dequeueing from blocking.
+	 */
+	wantSponsorBlock = false
+	dontSkipSegmentsUntil: number | null = null
 
 	constructor (options: Partial<RoomOptions>) {
 		this.log = getLogger(`room/${options.name}`);
@@ -101,7 +110,7 @@ export class Room implements RoomState {
 		this.owner = null;
 		this._keepAlivePing = dayjs();
 
-		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner", "currentSource", "queue", "playbackPosition", "isPlaying"));
+		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner", "currentSource", "queue", "playbackPosition", "isPlaying", "autoSkipSegments"));
 		if (options.grants instanceof Grants) {
 			this.grants = options.grants;
 		}
@@ -185,6 +194,15 @@ export class Room implements RoomState {
 		this.markDirty("queueMode");
 	}
 
+	public get autoSkipSegments(): boolean {
+		return this._autoSkipSegments;
+	}
+
+	public set autoSkipSegments(value: boolean) {
+		this._autoSkipSegments = value;
+		this.markDirty("autoSkipSegments");
+	}
+
 	public get currentSource(): Video | null {
 		return this._currentSource;
 	}
@@ -220,6 +238,15 @@ export class Room implements RoomState {
 		this._owner = value;
 		this.markDirty("hasOwner");
 		this.markDirty("users");
+	}
+
+	public get videoSegments(): Segment[] {
+		return this._videoSegments;
+	}
+
+	public set videoSegments(value: Segment[]) {
+		this._videoSegments = value;
+		this.markDirty("videoSegments");
 	}
 
 	get users(): RoomUserInfo[] {
@@ -268,6 +295,10 @@ export class Room implements RoomState {
 			this.playbackPosition = 0;
 			this._playbackStart = dayjs();
 			this.currentSource = null;
+		}
+
+		if (this.autoSkipSegments && this.currentSource) {
+			this.wantSponsorBlock = true;
 		}
 	}
 
@@ -451,6 +482,30 @@ export class Room implements RoomState {
 				this.markDirty("queue");
 			}
 		}
+
+		if (this.autoSkipSegments) {
+			if (this.wantSponsorBlock) {
+				await this.fetchSponsorBlockSegments();
+				this.wantSponsorBlock = false;
+			}
+
+			if (this.dontSkipSegmentsUntil && this.realPlaybackPosition >= this.dontSkipSegmentsUntil) {
+				this.dontSkipSegmentsUntil = null;
+			}
+
+			if (this.isPlaying && this.videoSegments.length > 0 && this.dontSkipSegmentsUntil === null) {
+				const segment = this.getSegmentForTime(this.realPlaybackPosition);
+				if (segment) {
+					this.log.silly(`Segment ${segment.category} is now playing, skipping`);
+					this.playbackPosition = segment.endTime;
+					this._playbackStart = dayjs();
+					await this.publish({
+						action: "eventcustom",
+						text: `Skipped ${segment.category}`,
+					});
+				}
+			}
+		}
 	}
 
 	throttledSync = _.debounce(this.sync, 50, { trailing: true })
@@ -459,13 +514,13 @@ export class Room implements RoomState {
 	 * Serialize the room's state so that it can be stored in redis
 	 */
 	public serializeState(): string {
-		const state: RoomStateStorable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "userRoles", "owner", "_playbackStart");
+		const state: RoomStateStorable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "userRoles", "owner", "_playbackStart", "videoSegments", "autoSkipSegments");
 
 		return JSON.stringify(state, replacer);
 	}
 
 	public serializeSyncableState(): string {
-		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "users", "grants", "hasOwner", "voteCounts");
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "users", "grants", "hasOwner", "voteCounts", "videoSegments", "autoSkipSegments");
 
 		return JSON.stringify(state, replacer);
 	}
@@ -481,7 +536,7 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
-		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner");
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner", "videoSegments", "autoSkipSegments");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 		await set(`room:${this.name}`, this.serializeState());
@@ -532,6 +587,28 @@ export class Room implements RoomState {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Grabs video segments from Sponsorblock for the current video.
+	 */
+	async fetchSponsorBlockSegments(): Promise<void> {
+		if (!this.currentSource || this.currentSource.service !== "youtube") {
+			return;
+		}
+		this.log.info(`fetching sponsorblock segments for ${this.currentSource.service}:${this.currentSource.id}`);
+		const sponsorBlock = await getSponsorBlock();
+		this.videoSegments = await sponsorBlock.getSegments(this.currentSource.id, [
+			"sponsor", 'intro', 'outro', 'interaction', 'selfpromo', 'preview',
+		]);
+	}
+
+	getSegmentForTime(time: number): Segment | undefined {
+		for (const segment of this.videoSegments) {
+			if (time >= segment.startTime && time <= segment.endTime) {
+				return segment;
+			}
+		}
 	}
 
 	public async deriveRequestContext(authorization: RoomRequestAuthorization, request: RoomRequest): Promise<RoomRequestContext> {
@@ -671,6 +748,14 @@ export class Room implements RoomState {
 		this.playbackPosition = request.value;
 		this._playbackStart = dayjs();
 		await this.publishRoomEvent(request, context, { prevPosition: prev });
+
+		const segment = this.getSegmentForTime(this.playbackPosition);
+		if (segment !== undefined) {
+			this.dontSkipSegmentsUntil = segment.endTime;
+		}
+		else {
+			this.dontSkipSegmentsUntil = null;
+		}
 	}
 
 	/**
@@ -958,6 +1043,7 @@ export class Room implements RoomState {
 			"description": "configure-room.set-description",
 			"visibility": "configure-room.set-visibility",
 			"queueMode": "configure-room.set-queue-mode",
+			"autoSkipSegments": "configure-room.set-auto-skip",
 		};
 		const roleToPerms: Record<Exclude<Role, Role.Owner | Role.Administrator>, string> = {
 			[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",
@@ -1027,6 +1113,11 @@ export class Room implements RoomState {
 					this.grants.setRoleGrants(role, request.settings.grants.getMask(role));
 				}
 			}
+		}
+
+		// go grab segments if being enabled while a video is playing
+		if (this.autoSkipSegments && this.videoSegments.length === 0 && this.currentSource) {
+			this.wantSponsorBlock = true;
 		}
 	}
 

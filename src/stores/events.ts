@@ -1,6 +1,6 @@
 import { Module } from 'vuex';
 import { ToastStyle } from '@/models/toast';
-import { RoomRequestType, ServerMessageEvent } from 'common/models/messages';
+import { RoomRequestType, ServerMessageEvent, ServerMessageEventCustom } from 'common/models/messages';
 import { secondsToTimestamp } from "@/util/timestamp";
 
 export const module: Module<unknown, unknown> = {
@@ -61,6 +61,13 @@ export const module: Module<unknown, unknown> = {
 				content: text,
 				duration,
 				event: message,
+			});
+		},
+		eventcustom(context, message: ServerMessageEventCustom) {
+			this.commit("toast/ADD_TOAST", {
+				style: ToastStyle.Neutral,
+				content: message.text,
+				duration: message.duration ?? 3000,
 			});
 		},
 	},

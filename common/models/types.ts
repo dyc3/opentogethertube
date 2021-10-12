@@ -2,6 +2,7 @@ import { Session } from "express-session";
 import { User } from "models/user";
 import { Video } from "./video";
 import { Grants } from "../permissions";
+import type { Segment } from "sponsorblock-api";
 
 export enum Visibility {
 	Public = "public",
@@ -44,6 +45,7 @@ export interface RoomSettings {
 	visibility: Visibility
 	queueMode: QueueMode
 	grants: Grants
+	autoSkipSegments: boolean
 }
 
 /**
@@ -67,6 +69,7 @@ export interface RoomState extends RoomOptions, RoomStateComputed {
 	playbackPosition: number
 	users: RoomUserInfo[]
 	votes: Map<string, Set<ClientId>>
+	videoSegments: Segment[]
 }
 
 export interface RoomStateComputed {

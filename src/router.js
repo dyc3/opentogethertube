@@ -41,6 +41,11 @@ export default new Router({
       component: () => import(/* webpackChunkName: "legal" */ './views/Privacy.vue'),
     },
     {
+      path: '/attribution',
+      name: 'attribution',
+      component: () => import(/* webpackChunkName: "legal" */ './views/Attribution.vue'),
+    },
+    {
       path: '/r/:roomId',
       redirect: '/room/:roomId',
     },

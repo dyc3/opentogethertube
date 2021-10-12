@@ -15,6 +15,7 @@ interface RoomAttributes {
   "role-admin": string
   "role-mod": string
   "role-trusted": string
+  autoSkipSegments: boolean
 }
 
 type RoomCreationAttributes = Optional<RoomAttributes, "id">;
@@ -34,6 +35,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
   "role-admin": string
   "role-mod": string
   "role-trusted": string
+  autoSkipSegments: boolean
 }
 
 const createModel = (sequelize: Sequelize) => {
@@ -86,6 +88,11 @@ const createModel = (sequelize: Sequelize) => {
     },
     "role-trusted": {
       type: DataTypes.TEXT,
+    },
+    autoSkipSegments: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
     },
   }, {
     sequelize,

@@ -342,7 +342,7 @@ async function onRedisMessage(channel: string, text: string) {
 		else if (msg.action === "chat") {
 			await broadcast(roomName, text);
 		}
-		else if (msg.action === "event") {
+		else if (msg.action === "event" || msg.action === "eventcustom") {
 			await broadcast(roomName, text);
 		}
 		else if (msg.action === "user") {

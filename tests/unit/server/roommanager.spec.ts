@@ -20,7 +20,7 @@ describe("Room manager", () => {
 			await roommanager.CreateRoom({ name: "test", isTemporary: false, title: "asdf1234" });
 			const room = await DbRoom.findOne({ where: { name: "test" } });
 			expect(room.permissions).not.toBeNull();
-			expect(room.permissions).toEqual('[[0,4095],[1,4095],[2,4095],[3,3149823],[4,4194303],[-1,4194303]]');
+			expect(room.permissions).toMatch(/^\[(\[-?\d+,\d+\],?)+\]$/);
 			expect(room["role-admin"]).not.toBeNull();
 			expect(room["role-mod"]).not.toBeNull();
 			expect(room["role-trusted"]).not.toBeNull();
