@@ -297,7 +297,7 @@ export class Room implements RoomState {
 			this.currentSource = null;
 		}
 
-		if (this.currentSource) {
+		if (this.autoSkipSegments && this.currentSource) {
 			this.wantSponsorBlock = true;
 		}
 	}
@@ -483,25 +483,27 @@ export class Room implements RoomState {
 			}
 		}
 
-		if (this.wantSponsorBlock) {
-			await this.fetchSponsorBlockSegments();
-			this.wantSponsorBlock = false;
-		}
+		if (this.autoSkipSegments) {
+			if (this.wantSponsorBlock) {
+				await this.fetchSponsorBlockSegments();
+				this.wantSponsorBlock = false;
+			}
 
-		if (this.dontSkipSegmentsUntil && this.realPlaybackPosition >= this.dontSkipSegmentsUntil) {
-			this.dontSkipSegmentsUntil = null;
-		}
+			if (this.dontSkipSegmentsUntil && this.realPlaybackPosition >= this.dontSkipSegmentsUntil) {
+				this.dontSkipSegmentsUntil = null;
+			}
 
-		if (this.isPlaying && this.videoSegments.length > 0 && this.dontSkipSegmentsUntil === null) {
-			const segment = this.getSegmentForTime(this.realPlaybackPosition);
-			if (segment) {
-				this.log.silly(`Segment ${segment.category} is now playing, skipping`);
-				this.playbackPosition = segment.endTime;
-				this._playbackStart = dayjs();
-				await this.publish({
-					action: "eventcustom",
-					text: `Skipped ${segment.category}`,
-				});
+			if (this.isPlaying && this.videoSegments.length > 0 && this.dontSkipSegmentsUntil === null) {
+				const segment = this.getSegmentForTime(this.realPlaybackPosition);
+				if (segment) {
+					this.log.silly(`Segment ${segment.category} is now playing, skipping`);
+					this.playbackPosition = segment.endTime;
+					this._playbackStart = dayjs();
+					await this.publish({
+						action: "eventcustom",
+						text: `Skipped ${segment.category}`,
+					});
+				}
 			}
 		}
 	}
@@ -1111,6 +1113,11 @@ export class Room implements RoomState {
 					this.grants.setRoleGrants(role, request.settings.grants.getMask(role));
 				}
 			}
+		}
+
+		// go grab segments if being enabled while a video is playing
+		if (this.autoSkipSegments && this.videoSegments.length === 0 && this.currentSource) {
+			this.wantSponsorBlock = true;
 		}
 	}
 
