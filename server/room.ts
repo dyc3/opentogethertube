@@ -110,7 +110,7 @@ export class Room implements RoomState {
 		this.owner = null;
 		this._keepAlivePing = dayjs();
 
-		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner", "currentSource", "queue", "playbackPosition", "isPlaying"));
+		Object.assign(this, _.pick(options, "name", "title", "description", "visibility", "queueMode", "isTemporary", "owner", "currentSource", "queue", "playbackPosition", "isPlaying", "autoSkipSegments"));
 		if (options.grants instanceof Grants) {
 			this.grants = options.grants;
 		}

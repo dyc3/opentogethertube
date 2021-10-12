@@ -18,6 +18,7 @@ function roomToDb(room) {
 		description: room.description,
 		visibility: room.visibility,
 		queueMode: room.queueMode,
+		autoSkipSegments: room.autoSkipSegments,
 	};
 	if (room.grants) {
 		db.permissions = room.grants.serialize();
@@ -45,6 +46,7 @@ function dbToRoomArgs(db) {
 		owner: db.owner,
 		grants: new permissions.Grants(),
 		userRoles: {},
+		autoSkipSegments: db.autoSkipSegments,
 	};
 	if (db.permissions) {
 		room.grants.deserialize(db.permissions);
