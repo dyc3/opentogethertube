@@ -44,6 +44,10 @@
 					<v-list-item-title>{{ data.item.name }}</v-list-item-title>
 				</template>
 			</v-select>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegments"
+				label="Auto-skip sponsored segments, intros, self-promos, etc. using SponsorBlock data."
+			/>
 			<PermissionsEditor
 				v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner"
 				v-model="inputRoomSettings.grants"
@@ -78,6 +82,7 @@ import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http.js";
 import { Visibility, QueueMode, RoomSettings } from 'common/models/types';
 import PermissionsMixin from "@/mixins/permissions";
+import type { Grants } from 'common/permissions';
 
 @Component({
 	name: 'RoomSettings',
@@ -91,12 +96,13 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 	QueueMode = QueueMode;
 
 	isLoadingRoomSettings = false
-	inputRoomSettings = {
+	inputRoomSettings: RoomSettings = {
 		title: '',
 		description: '',
 		visibility: Visibility.Public,
 		queueMode: QueueMode.Manual,
-		grants: {},
+		grants: {} as Grants,
+		autoSkipSegments: true,
 	}
 
 	mounted() {
@@ -111,7 +117,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 		if (res.data.permissions && !res.data.grants) {
 			res.data.grants = res.data.permissions;
 		}
-		this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode", "grants");
+		this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode", "grants", "autoSkipSegments");
 	}
 
 	getRoomSettingsSubmit() {
@@ -120,6 +126,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 			description: "set-description",
 			visibility: "set-visibility",
 			queueMode: "set-queue-mode",
+			autoSkipSegments: "set-auto-skip",
 		};
 		let blocked: (keyof RoomSettings)[] = [];
 		for (let prop of Object.keys(propsToGrants)) {

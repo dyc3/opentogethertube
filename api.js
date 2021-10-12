@@ -117,6 +117,7 @@ router.get("/room/:name", async (req, res) => {
 			"queue",
 			"users",
 			"grants",
+			"autoSkipSegments",
 		]));
 		room.permissions = room.grants;
 		room.hasOwner = hasOwner;
