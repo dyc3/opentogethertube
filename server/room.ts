@@ -80,6 +80,7 @@ export class Room implements RoomState {
 	_owner: User | null = null
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>
+	_autoSkipSegments = true;
 
 	_currentSource: Video | null = null
 	queue: Video[] = []
@@ -191,6 +192,15 @@ export class Room implements RoomState {
 	public set queueMode(value: QueueMode) {
 		this._queueMode = value;
 		this.markDirty("queueMode");
+	}
+
+	public get autoSkipSegments(): boolean {
+		return this._autoSkipSegments;
+	}
+
+	public set autoSkipSegments(value: boolean) {
+		this._autoSkipSegments = value;
+		this.markDirty("autoSkipSegments");
 	}
 
 	public get currentSource(): Video | null {
@@ -502,13 +512,13 @@ export class Room implements RoomState {
 	 * Serialize the room's state so that it can be stored in redis
 	 */
 	public serializeState(): string {
-		const state: RoomStateStorable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "userRoles", "owner", "_playbackStart", "videoSegments");
+		const state: RoomStateStorable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "userRoles", "owner", "_playbackStart", "videoSegments", "autoSkipSegments");
 
 		return JSON.stringify(state, replacer);
 	}
 
 	public serializeSyncableState(): string {
-		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "users", "grants", "hasOwner", "voteCounts", "videoSegments");
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "users", "grants", "hasOwner", "voteCounts", "videoSegments", "autoSkipSegments");
 
 		return JSON.stringify(state, replacer);
 	}
@@ -524,7 +534,7 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
-		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner", "videoSegments");
+		const state: RoomStateSyncable = _.pick(this, "name", "title", "description", "isTemporary", "visibility", "queueMode", "currentSource", "queue", "isPlaying", "playbackPosition", "grants", "users", "voteCounts", "hasOwner", "videoSegments", "autoSkipSegments");
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 		await set(`room:${this.name}`, this.serializeState());
@@ -1031,6 +1041,7 @@ export class Room implements RoomState {
 			"description": "configure-room.set-description",
 			"visibility": "configure-room.set-visibility",
 			"queueMode": "configure-room.set-queue-mode",
+			"autoSkipSegments": "configure-room.set-auto-skip",
 		};
 		const roleToPerms: Record<Exclude<Role, Role.Owner | Role.Administrator>, string> = {
 			[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",

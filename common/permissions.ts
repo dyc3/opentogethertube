@@ -117,6 +117,7 @@ export const PERMISSIONS = [
 	new Permission({ name: "manage-users.demote-moderator", mask: 1<<19, minRole: Role.Moderator }),
 	new Permission({ name: "manage-users.promote-trusted-user", mask: 1<<20, minRole: Role.TrustedUser }),
 	new Permission({ name: "manage-users.demote-trusted-user", mask: 1<<21, minRole: Role.TrustedUser }),
+	new Permission({ name: "configure-room.set-auto-skip", mask: 1<<22, minRole: Role.RegisteredUser }),
 ];
 
 const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));
@@ -135,6 +136,7 @@ function defaultPermissions(): Grants {
 			"configure-room.set-description",
 			"configure-room.set-visibility",
 			"configure-room.set-queue-mode",
+			"configure-room.set-auto-skip",
 		]),
 		[Role.RegisteredUser]: parseIntoGrantMask([]),
 		[Role.TrustedUser]: parseIntoGrantMask([]),

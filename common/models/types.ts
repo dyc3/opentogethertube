@@ -45,6 +45,7 @@ export interface RoomSettings {
 	visibility: Visibility
 	queueMode: QueueMode
 	grants: Grants
+	autoSkipSegments: boolean
 }
 
 /**
