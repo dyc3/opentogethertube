@@ -8,7 +8,7 @@
       >
         <v-icon>fas fa-chevron-right</v-icon>
       </v-btn>
-      <h4>Chat</h4>
+      <h4>{{ $t('room.chat') }}</h4>
     </div>
     <div
       ref="messages"

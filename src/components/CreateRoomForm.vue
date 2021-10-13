@@ -12,7 +12,7 @@
 			</v-card-text>
 			<v-card-actions>
 				<v-spacer />
-				<v-btn text @click="submit" role="Submit" :loading="isSubmitting" :disabled="!isValid" color="primary">Create Room</v-btn>
+				<v-btn text @click="submit" role="Submit" :loading="isSubmitting" :disabled="!isValid" color="primary">{{ $t("room.create") }}</v-btn>
 				<v-btn text @click="$emit('cancel')">Cancel</v-btn>
 			</v-card-actions>
 		</v-form>

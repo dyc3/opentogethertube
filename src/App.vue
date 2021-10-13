@@ -25,7 +25,8 @@
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-btn text v-on="on">
-              <v-icon class="side-pad">fas fa-plus-square</v-icon>Create Room
+              <v-icon class="side-pad">fas fa-plus-square</v-icon>
+              {{ $t("room.create") }}
             </v-btn>
           </template>
           <v-list two-line max-width="400">

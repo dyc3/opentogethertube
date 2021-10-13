@@ -124,11 +124,11 @@
           <v-col cols="12" md="8" sm="12">
             <v-tabs grow v-model="queueTab" @change="onTabChange">
               <v-tab>
-                Queue
+                {{ $t('room.tabs.queue') }}
                 <span class="bubble">{{ $store.state.room.queue.length <= 99 ? $store.state.room.queue.length : "99+" }}</span>
               </v-tab>
-              <v-tab>Add</v-tab>
-              <v-tab>Settings</v-tab>
+              <v-tab>{{ $t('room.tabs.add') }}</v-tab>
+              <v-tab>{{ $t('room.tabs.settings') }}</v-tab>
             </v-tabs>
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
