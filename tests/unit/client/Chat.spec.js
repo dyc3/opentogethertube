@@ -3,6 +3,7 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import Chat from "@/components/Chat.vue";
 import Vuex from 'vuex';
+import i18n from '../../../src/i18n';
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
@@ -25,6 +26,7 @@ function mountNewInstance(store) {
 	return mount(Chat, {
 		store,
 		localVue,
+		i18n,
 		stubs: ["ProcessedText", "v-icon"],
 	});
 }

@@ -2,7 +2,7 @@ module.exports = {
   presets: ['@vue/app'],
   env: {
     test: {
-      plugins: ['@babel/plugin-transform-modules-commonjs'],
+      plugins: ['@babel/plugin-transform-modules-commonjs', "require-context-hook"],
     },
   },
 };

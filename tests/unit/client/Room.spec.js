@@ -5,6 +5,7 @@ import VueEvents from 'vue-events';
 import Vuetify from 'vuetify';
 import VueSlider from 'vue-slider-component';
 import Room from '@/views/Room';
+import i18n from '../../../src/i18n';
 
 jest.useFakeTimers();
 
@@ -60,6 +61,7 @@ function mountNewInstance(store) {
   return shallowMount(Room, {
     store,
     localVue,
+    i18n,
     mocks: {
       $route,
       $connect: jest.fn(),
