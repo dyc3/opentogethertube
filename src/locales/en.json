@@ -1,0 +1,15 @@
+{
+  "room": {
+    "create": "Create Room",
+    "chat": "Chat",
+    "no-video": {
+      "title": "No video is playing.",
+      "text": "Click \"Add\" below to add a video."
+    },
+    "tabs": {
+      "queue": "Queue",
+      "add": "Add",
+      "settings": "Settings"
+    }
+  }
+}

@@ -19,11 +19,18 @@ module.exports = {
 	},
 	transpileDependencies: ["vuetify"],
 	pluginOptions: {
-		webpackBundleAnalyzer: {
-			analyzerHost: "0.0.0.0",
-			openAnalyzer: false,
-		},
-	},
+      webpackBundleAnalyzer: {
+        analyzerHost: '0.0.0.0',
+        openAnalyzer: false,
+      },
+      i18n: {
+        locale: 'en',
+        fallbackLocale: 'en',
+        localeDir: 'locales',
+        enableInSFC: false,
+        enableBridge: false,
+      },
+    },
 	configureWebpack: {
 		resolve: {
 			extensions: [".ts", ".js"],
