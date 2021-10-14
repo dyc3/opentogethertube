@@ -110,7 +110,7 @@ export default class VideoQueueItem extends Vue {
 	}
 
 	get votes() {
-		return this.$store.state.room.voteCounts.get(this.item.service + this.item.id) ?? 0;
+		return this.$store.state.room.voteCounts?.get(this.item.service + this.item.id) ?? 0;
 	}
 
 	created() {
