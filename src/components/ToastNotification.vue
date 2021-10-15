@@ -1,6 +1,6 @@
 <template>
 	<v-snackbar
-		app left
+		app right
 		absolute
 		value="true"
 		timeout="-1"
@@ -133,7 +133,7 @@ export default class ToastNotification extends Vue {
 		width: 100%;
 		background: white;
 		height: 4px;
-		left: 0;
+		right: 0;
 		bottom: 0;
 
 		animation-name: toast_timer;
