@@ -2,6 +2,7 @@
 import { Sequelize, Model, DataTypes, Optional } from 'sequelize';
 import { QueueMode, Visibility } from '../common/models/types';
 import { User } from './user';
+import { ROOM_NAME_REGEX } from "../common/constants";
 
 interface RoomAttributes {
   id: number
@@ -50,7 +51,7 @@ const createModel = (sequelize: Sequelize) => {
       allowNull: false,
       unique: true,
       validate: {
-        is: /^[a-z0-9_-]+$/i,
+        is: ROOM_NAME_REGEX,
         len: [3, 32],
       },
     },

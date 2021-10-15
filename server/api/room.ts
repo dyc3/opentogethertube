@@ -12,6 +12,7 @@ import { User } from "../../models/user";
 import storage from "../../storage";
 import { Grants } from "../../common/permissions";
 import { Video } from "common/models/video.js";
+import { ROOM_NAME_REGEX } from "../../common/constants";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -103,7 +104,7 @@ const createRoom: RequestHandler = async (req, res) => {
 	if (req.body.name.length > 32) {
 		throw new BadApiArgumentException("name", "not allowed (too long, must be at most 32 characters)");
 	}
-	if (!(/^[A-za-z0-9_-]+$/).exec(req.body.name)) {
+	if (!ROOM_NAME_REGEX.exec(req.body.name)) {
 		throw new BadApiArgumentException("name", "not allowed (invalid characters)");
 	}
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {

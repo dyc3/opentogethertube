@@ -21,6 +21,7 @@
 
 <script>
 import RoomUtilsMixin from "@/mixins/RoomUtils.js";
+import { ROOM_NAME_REGEX } from "common/constants";
 
 export default {
 	name: "CreateRoomForm",
@@ -39,6 +40,7 @@ export default {
 					v => !!v || "Name is required",
 					v => (v && !v.includes(" ")) || "Name must not contain spaces.",
 					v => (v && v.length >= 3 && v.length <= 32) || "Name must be between 3 and 32 characters",
+					v => (v && ROOM_NAME_REGEX.test(v)) || "Name must only contain alphanumeric characters, dashes, and underscores",
 					v => (v && !this.isRoomNameTaken) || "Name is already taken",
 				],
 				// eslint-disable-next-line array-bracket-newline
