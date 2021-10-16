@@ -90,7 +90,7 @@ const createRoom: RequestHandler = async (req, res) => {
 		return !!body.name;
 	}
 	if (!isValidCreateRoom(req.body)) {
-		throw new BadApiArgumentException("body", "invalid schema");
+		throw new BadApiArgumentException("name", "missing");
 	}
 	if (!req.body.name) {
 		throw new BadApiArgumentException("name", "missing");
