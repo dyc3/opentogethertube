@@ -2,7 +2,7 @@ const request = require('supertest');
 import roommanager from '../../../server/roommanager';
 const app = require('../../../app.js').app;
 const InfoExtract = require('../../../server/infoextractor');
-const { Room, User } = require("../../../models");
+const { User } = require("../../../models");
 const usermanager = require('../../../usermanager.js');
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
 import { redisClient } from "../../../redisclient";
