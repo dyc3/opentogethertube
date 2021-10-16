@@ -126,6 +126,12 @@ export function clearRooms(): void {
 	}
 }
 
+/** Unload all rooms off of this node. Intended to only be used in tests. */
+export async function unloadAllRooms(): Promise<void> {
+	const names = rooms.map(r => r.name);
+	await Promise.all(names.map(UnloadRoom));
+}
+
 export default {
 	rooms,
 	start,
@@ -134,6 +140,7 @@ export default {
 	GetRoom,
 	UnloadRoom,
 	clearRooms,
+	unloadAllRooms,
 };
 
 // redisSubscriber.on("message", async (channel, text) => {

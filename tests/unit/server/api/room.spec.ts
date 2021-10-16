@@ -119,4 +119,69 @@ describe("Room API", () => {
 			expect(resp.body.error).toBeRoomNotFound();
 		});
 	});
+
+	describe("POST /room/create", () => {
+		beforeAll(async () => {
+			jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+				username: "test",
+			});
+			jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+		});
+
+		afterAll(() => {
+			tokens.getSessionInfo.mockRestore();
+			tokens.validate.mockRestore();
+		});
+
+		afterEach(async () => {
+			try {
+				await roommanager.unloadAllRooms();
+			}
+			catch (e) {
+				if (!(e instanceof RoomNotFoundException)) {
+					throw e;
+				}
+			}
+		});
+
+		it.each([Visibility.Public, Visibility.Unlisted])("should create %s room", async (visibility: Visibility) => {
+			let resp = await request(app)
+				.post("/api/room/create")
+				.send({ name: "test1", isTemporary: true, visibility: visibility })
+				.expect("Content-Type", /json/)
+				.expect(200);
+			expect(resp.body.success).toBe(true);
+			expect(roommanager.rooms[0]).toMatchObject({
+				name: "test1",
+				isTemporary: true,
+				visibility: visibility,
+			});
+		});
+
+		it.each([
+			[{ arg: "name", reason: "missing" }, { isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (reserved)" }, { name: "list", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (reserved)" }, { name: "create", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (reserved)" }, { name: "generate", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc<", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc[", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc]", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc!", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc!", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (too short, must be at least 3 characters)" }, { name: "ab", isTemporary: true }],
+			[{ arg: "name", reason: "not allowed (too long, must be at most 32 characters)" }, { name: "abababababababababababababababababababababababababababababababababab", isTemporary: true }],
+			[{ arg: "visibility", reason: "must be one of public,unlisted,private" }, { name: "test1", isTemporary: true, visibility: "invalid" }],
+		])("should fail to create room for validation errors: %s", async (error, body) => {
+			let resp = await request(app)
+				.post("/api/room/create")
+				.send(body)
+				.expect("Content-Type", /json/)
+				.expect(400);
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toMatchObject({
+				name: "BadApiArgumentException",
+				...error,
+			});
+		});
+	});
 });
