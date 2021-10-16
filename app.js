@@ -11,6 +11,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const DiscordStrategy = require('passport-discord').Strategy;
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const validator = require('validator');
+const { OpticMiddleware } = require('@useoptic/express-middleware');
 
 const log = getLogger("app");
 
@@ -185,6 +186,10 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 	extended: true,
+}));
+
+app.use(OpticMiddleware({
+	enabled: process.env.NODE_ENV !== "production",
 }));
 
 app.use((req, res, next) => {
