@@ -206,51 +206,6 @@ describe.skip("Room API", () => {
 		});
 	});
 
-	it("GET /room/:name", async done => {
-		await roommanager.createRoom("test1", true);
-
-		await request(app)
-			.get("/api/room/test1")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.name).toBe("test1");
-				expect(resp.body.title).toBe("");
-				expect(resp.body.description).toBe("");
-				expect(resp.body.queueMode).toBe("manual");
-				expect(resp.body.visibility).toBe("public");
-			});
-
-		roommanager.unloadRoom("test1");
-
-		await roommanager.createRoom("test1", true, "unlisted");
-
-		await request(app)
-			.get("/api/room/test1")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.then(resp => {
-				expect(resp.body.name).toBe("test1");
-				expect(resp.body.title).toBe("");
-				expect(resp.body.description).toBe("");
-				expect(resp.body.queueMode).toBe("manual");
-				expect(resp.body.visibility).toBe("unlisted");
-			});
-
-		roommanager.unloadRoom("test1", true);
-
-		await request(app)
-			.get("/api/room/test1")
-			.expect("Content-Type", /json/)
-			.expect(404)
-			.then(resp => {
-				expect(resp.body.success).toEqual(false);
-				expect(resp.body.error).toBeRoomNotFound();
-			});
-
-		done();
-	});
-
 	it("POST /room/create", async done => {
 		await request(app)
 			.post("/api/room/create")
