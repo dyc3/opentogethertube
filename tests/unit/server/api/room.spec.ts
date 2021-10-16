@@ -1,9 +1,11 @@
+import _ from 'lodash';
 import { QueueMode, Visibility } from '../../../../common/models/types';
 import request from 'supertest';
 import tokens from "../../../../server/auth/tokens";
 import roommanager from '../../../../server/roommanager';
 import { RoomNotFoundException } from '../../../../server/exceptions';
 const app = require('../../../../app.js').app;
+const { Room, User } = require("../../../../models");
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -182,6 +184,44 @@ describe("Room API", () => {
 				name: "BadApiArgumentException",
 				...error,
 			});
+		});
+
+		it("should create permanent room without owner", async () => {
+			let resp = await request(app)
+				.post("/api/room/create")
+				.send({ name: "testnoowner", isTemporary: false })
+				.expect("Content-Type", /json/)
+				.expect(200);
+			expect(resp.body.success).toEqual(true);
+			expect(roommanager.rooms[0]).toMatchObject({
+				name: "testnoowner",
+				owner: null,
+			});
+			await roommanager.UnloadRoom("testnoowner");
+			await Room.destroy({ where: { name: "testnoowner" } });
+		});
+
+		it("should create permanent room with owner", async () => {
+			let user = await User.findOne({ where: { email: "forced@localhost" } });
+			jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+				isLoggedIn: true,
+				user_id: user.id,
+			});
+			let resp = await request(app)
+				.post("/api/room/create")
+				.send({ name: "testowner" })
+				.expect("Content-Type", /json/)
+				.expect(200);
+			expect(resp.body.success).toEqual(true);
+			expect(_.pick(roommanager.rooms[0], "name", "owner.id", "owner.email")).toMatchObject({
+				name: "testowner",
+				owner: {
+					id: user.id,
+					email: user.email,
+				},
+			});
+			await roommanager.UnloadRoom("testowner");
+			await Room.destroy({ where: { name: "testowner" } });
 		});
 	});
 });
