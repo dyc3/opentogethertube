@@ -563,12 +563,14 @@ export default {
         ["intro", "#00ffff"],
         ["outro", "#0202ed"],
       ]);
-      for (const segment of this.$store.state.room.videoSegments) {
-        let start = segment.startTime / segment.videoDuration * 100;
-        let end = segment.endTime / segment.videoDuration * 100;
-        processes.push([
-          start, end, { backgroundColor: colorMap.get(segment.category) ?? "#ff0000" },
-        ]);
+      if ("videoSegments" in this.$store.state.room) {
+        for (const segment of this.$store.state.room.videoSegments) {
+          let start = segment.startTime / segment.videoDuration * 100;
+          let end = segment.endTime / segment.videoDuration * 100;
+          processes.push([
+            start, end, { backgroundColor: colorMap.get(segment.category) ?? "#ff0000" },
+          ]);
+        }
       }
 
       return processes;
