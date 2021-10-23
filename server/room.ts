@@ -300,6 +300,9 @@ export class Room implements RoomState {
 		if (this.autoSkipSegments && this.currentSource) {
 			this.wantSponsorBlock = true;
 		}
+		if (!this.currentSource && this.videoSegments.length > 0) {
+			this.videoSegments = [];
+		}
 	}
 
 	/**
@@ -606,6 +609,9 @@ export class Room implements RoomState {
 	 */
 	async fetchSponsorBlockSegments(): Promise<void> {
 		if (!this.currentSource || this.currentSource.service !== "youtube") {
+			if (this.videoSegments.length > 0) {
+				this.videoSegments = [];
+			}
 			return;
 		}
 		this.log.info(`fetching sponsorblock segments for ${this.currentSource.service}:${this.currentSource.id}`);
