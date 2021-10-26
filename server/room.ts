@@ -751,6 +751,7 @@ export class Room implements RoomState {
 		this.dequeueNext();
 		await this.publishRoomEvent(request, context, { video: current, prevPosition });
 		await statistics.bumpCounter(Counter.VideosSkipped);
+		this.videoSegments = [];
 	}
 
 	/**
