@@ -3,7 +3,8 @@ import { redisClientAsync } from "../../redisclient";
 import { AuthToken } from "../../common/models/types";
 
 const PREFIX = "auth";
-const EXPIRATION_TIME = 90 * 24 * 60 * 60; // 3 months, in seconds
+const EXPIRATION_TIME = 14 * 24 * 60 * 60; // 14 days in seconds
+const EXPIRATION_TIME_LOGGED_IN = 120 * 24 * 60 * 60 * 2; // 120 days in seconds
 
 export type SessionInfo = { isLoggedIn: false, username: string } | { isLoggedIn: true, user_id: number }
 
@@ -26,7 +27,8 @@ export async function getSessionInfo(token: AuthToken): Promise<SessionInfo> {
 }
 
 export async function setSessionInfo(token: AuthToken, session: SessionInfo): Promise<void> {
-	await redisClientAsync.set(`${PREFIX}:${token}`, JSON.stringify(session), "EX", EXPIRATION_TIME);
+	const expiration = session.isLoggedIn ? EXPIRATION_TIME_LOGGED_IN : EXPIRATION_TIME;
+	await redisClientAsync.set(`${PREFIX}:${token}`, JSON.stringify(session), "EX", expiration);
 }
 
 module.exports = {
