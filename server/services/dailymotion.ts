@@ -17,7 +17,7 @@ export default class DailyMotionAdapter extends ServiceAdapter {
     const url = new URL(link);
 
     return (
-      (url.host.endsWith("dailymotion.com") && url.pathname.startsWith("/video/")) ||
+      (url.host.endsWith("dailymotion.com") && (url.pathname.startsWith("/video/") || url.pathname.startsWith("/embed/video/"))) ||
       (url.host.endsWith("dai.ly") && url.pathname.length > 1)
     );
   }

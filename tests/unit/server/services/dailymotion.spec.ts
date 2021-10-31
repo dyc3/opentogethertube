@@ -5,6 +5,7 @@ const validVideoLinks = [
 	["jriwl35", "https://www.dailymotion.com/video/jriwl35"],
 	["jriwl35", "https://dailymotion.com/video/jriwl35"],
 	["jriwl35", "https://dai.ly/jriwl35"],
+	["k4n9fchBAWl3NmwfLhV", "https://www.dailymotion.com/embed/video/k4n9fchBAWl3NmwfLhV?autoplay=false&queue-enable=false"],
 ];
 
 const invalidLinks = [
