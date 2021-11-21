@@ -491,6 +491,7 @@ export class Room implements RoomState {
 
 		if (this.autoSkipSegments) {
 			if (this.wantSponsorBlock) {
+				this.wantSponsorBlock = false; // Disable this before the request to avoid spamming the sponsorblock if the request takes too long.
 				try {
 					await this.fetchSponsorBlockSegments();
 				}
@@ -501,9 +502,6 @@ export class Room implements RoomState {
 					else {
 						this.log.error(`Failed to grab sponsorblock segments`);
 					}
-				}
-				finally {
-					this.wantSponsorBlock = false;
 				}
 			}
 
