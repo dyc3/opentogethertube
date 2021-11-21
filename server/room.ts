@@ -287,6 +287,9 @@ export class Room implements RoomState {
 			this.markDirty("queue");
 			this.playbackPosition = 0;
 			this._playbackStart = dayjs();
+			if (this.videoSegments.length > 0) {
+				this.videoSegments = [];
+			}
 		}
 		else if (this.currentSource !== null) {
 			if (this.isPlaying) {
