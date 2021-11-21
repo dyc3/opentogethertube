@@ -385,9 +385,10 @@ async function onRedisMessage(channel: string, text: string) {
 redisSubscriber.on("message", onRedisMessage);
 
 async function onUserModified(token: AuthToken): Promise<void> {
-	log.debug(`User was modified, telling rooms`);
+	log.debug(`User was modified, pulling info and telling rooms`);
 	for (const client of connections) {
 		if (client.token === token) {
+			client.session = await tokens.getSessionInfo(token);
 			await client.makeRoomRequest({
 				type: RoomRequestType.UpdateUser,
 				info: client.clientInfo,

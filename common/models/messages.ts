@@ -19,6 +19,11 @@ export interface ServerMessageSync extends ServerMessageBase {
 	playbackPosition?: number,
 }
 
+/**
+ * The server has unloaded the room, and all clients should be disconnected, and not try to reconnect.
+ * This message is not actually sent through the websocket, but instead tells the client manager to disconnect all clients
+ * with the appropriate status code.
+ */
 export interface ServerMessageUnload extends ServerMessageBase {
 	action: "unload"
 }
@@ -95,6 +100,9 @@ export interface ClientMessageKickMe extends ClientMessageBase {
 	action: "kickme"
 }
 
+/**
+ * Inform the server of the client's video player status.
+ */
 export interface ClientMessagePlayerStatus extends ClientMessageBase {
 	action: "status"
 	status: PlayerStatus
@@ -215,7 +223,7 @@ export interface PromoteRequest extends RoomRequestBase {
 }
 
 /**
- * Request that the room pull new information about the user.
+ * Request that the client manager pull new information about the user, and inform rooms.
  */
 export interface UpdateUser extends RoomRequestBase {
 	type: RoomRequestType.UpdateUser
