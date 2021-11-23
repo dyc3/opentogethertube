@@ -79,7 +79,7 @@
                   <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
                     <v-icon>fas fa-compress</v-icon>
                   </v-btn>
-                  <v-btn v-if="!production" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
+                  <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
                 </v-row>
               </v-col>
             </v-responsive>
@@ -114,7 +114,7 @@
             </v-tabs-items>
           </v-col>
           <v-col col="4" md="4" sm="12" class="user-invite-container">
-            <div v-if="!production" class="debug-container">
+            <div v-if="debugMode" class="debug-container">
               <v-card>
                 <v-subheader>
                   Debug
@@ -199,6 +199,8 @@ export default {
   mixins: [PermissionsMixin],
   data() {
     return {
+      debugMode: !this.production,
+
       truePosition: 0,
       sliderPosition: 0,
       sliderTooltipFormatter: secondsToTimestamp,
@@ -391,6 +393,11 @@ export default {
         this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
         e.preventDefault();
       }
+      else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
+        this.debugMode = !this.debugMode;
+        e.preventDefault();
+      }
+      console.log(e);
     },
     toggleFullscreen() {
       if (document.fullscreenElement) {
