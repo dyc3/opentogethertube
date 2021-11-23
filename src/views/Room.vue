@@ -21,8 +21,8 @@
                 @error="onVideoError"
                 @buffer-spans="spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)"
               />
-              <div id="mouse-event-swallower" class="hide"></div>
-              <v-col class="video-controls">
+              <div id="mouse-event-swallower" :class="{ 'hide': controlsVisible }"></div>
+              <v-col :class="{ 'video-controls': true, 'hide': !controlsVisible }">
                 <vue-slider
                   id="videoSlider"
                   :interval="0.1"
@@ -141,7 +141,7 @@
                   <span>Device Orientation: {{ this.orientation }}</span>
                 </v-list-item>
                 <v-list-item>
-                  <span>Video controls: timeoutId: {{ this.videoControlsHideTimeout }} visible: {{ this.debugLastControlsVisibility }}</span>
+                  <span>Video controls: timeoutId: {{ this.videoControlsHideTimeout }} visible: {{ this.controlsVisible }}</span>
                 </v-list-item>
               </v-card>
             </div>
@@ -203,7 +203,7 @@ export default {
   data() {
     return {
       debugMode: !this.production,
-      debugLastControlsVisibility: true,
+      controlsVisible: true,
 
       truePosition: 0,
       sliderPosition: 0,
@@ -429,26 +429,7 @@ export default {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
     setVideoControlsVisibility(visible) {
-      this.debugLastControlsVisibility = visible;
-      let controlsDiv = document.getElementsByClassName("video-controls");
-      let swallowerDiv = document.getElementById("mouse-event-swallower");
-      if (controlsDiv.length) {
-        controlsDiv = controlsDiv[0];
-        if (visible) {
-          controlsDiv.classList.remove("hide");
-        }
-        else {
-          controlsDiv.classList.add("hide");
-        }
-      }
-      if (swallowerDiv) {
-        if (visible) {
-          swallowerDiv.classList.add("hide");
-        }
-        else {
-          swallowerDiv.classList.remove("hide");
-        }
-      }
+      this.controlsVisible = visible;
       if (this.videoControlsHideTimeout) {
         clearTimeout(this.videoControlsHideTimeout);
         this.videoControlsHideTimeout = null;
