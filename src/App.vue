@@ -15,6 +15,10 @@
           <v-icon class="side-pad">fas fa-bug</v-icon>
           Report a bug
         </v-btn>
+        <v-btn text href="https://github.com/sponsors/dyc3" target="_blank">
+          <v-icon class="side-pad">fas fa-heart</v-icon>
+          Support Me!
+        </v-btn>
       </v-toolbar-items>
       <v-spacer />
       <v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
@@ -55,6 +59,14 @@
             </v-list-item-icon>
             <v-list-item-content>
               Report a bug
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
+            <v-list-item-icon>
+              <v-icon>fas fa-heart</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              Support me!
             </v-list-item-content>
           </v-list-item>
           <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />

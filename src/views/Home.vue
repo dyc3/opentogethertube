@@ -107,6 +107,29 @@
 			</v-row>
 			<v-row>
 				<v-col>
+					<h1>Support Development</h1>
+					<v-row>
+						<v-col>
+							<p>
+								<strong>OpenTogetherTube would not be possible without the help of contributors and supporters like you.</strong> Get involved with development by contributing your ideas or code, or show your support by becoming a sponsor. All donations are used to pay for hosting costs, for the development of OpenTogetherTube, and to keep OpenTogetherTube ad-free.
+							</p>
+						</v-col>
+						<v-col>
+							<h3>How Can I Help?</h3>
+							<v-btn x-large block color="red" href="https://github.com/sponsors/dyc3" target="_blank" >
+								<v-icon class="side-pad">fas fa-heart</v-icon>
+								Become a Sponsor
+							</v-btn>
+							<v-btn x-large block color="blue" href="https://github.com/sponsors/dyc3" target="_blank" >
+								<v-icon class="side-pad">fas fa-code</v-icon>
+								Contribute
+							</v-btn>
+						</v-col>
+					</v-row>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col>
 					<em style="opacity: 0.5">Disclaimer: The OpenTogetherTube project is not associated with TogetherTube nor Watch2Gether.</em>
 				</v-col>
 			</v-row>
