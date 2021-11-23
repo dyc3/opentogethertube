@@ -116,7 +116,7 @@
             <div v-if="debugMode" class="debug-container">
               <v-card>
                 <v-subheader>
-                  Debug
+                  Debug (prod: {{ this.production }})
                 </v-subheader>
                 <v-list-item>
                   Player status: {{ this.$store.state.playerStatus }}
@@ -203,7 +203,7 @@ export default {
   mixins: [PermissionsMixin],
   data() {
     return {
-      debugMode: !this.production,
+      debugMode: false,
       controlsVisible: true,
 
       truePosition: 0,
@@ -281,6 +281,11 @@ export default {
     }
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
+
+    // HACK: for some reason, if we initialize debugMode as `!this.production` in data, debugMode is always true on page load in production.
+    if (!this.production) {
+      this.debugMode = true;
+    }
 
     screen.orientation.addEventListener('change', this.onScreenOrientationChange);
   },
