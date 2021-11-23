@@ -109,7 +109,6 @@
                 <RoomSettings
                   ref="settings"
                 />
-                  <!-- v-if="queueTab === 2 /* HACK: force the component to mount when the tab becomes active, and destroy it when the tab is not active. */" -->
               </v-tab-item>
             </v-tabs-items>
           </v-col>
