@@ -20,7 +20,12 @@
 		<v-container class="content">
 			<v-row>
 				<v-col>
-					<h1>Simple and Easy.</h1>
+					<h1>Remote Watch Parties Just Got a Lot Easier</h1>
+					<p>
+						<strong>OpenTogetherTube</strong> is a real-time video syncronization platform.
+						It's easy to use and has no sign up required. Just create a room, add videos and
+						invite your friends. BOOM! You're ready to binge videos with your friends until 3AM.
+					</p>
 					<p>
 						The original TogetherTube was loved for it's simple interface,
 						and how easy it was to start watching videos right away.
