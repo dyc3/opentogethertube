@@ -11,6 +11,10 @@
       <v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
         <v-btn text to="/rooms">Browse</v-btn>
         <v-btn text to="/faq">FAQ</v-btn>
+        <v-btn text href="https://github.com/dyc3/opentogethertube/issues/new/choose" target="_blank">
+          <v-icon class="side-pad">fas fa-bug</v-icon>
+          Report a bug
+        </v-btn>
       </v-toolbar-items>
       <v-spacer />
       <v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
@@ -43,6 +47,14 @@
           <v-list-item to="/faq">
             <v-list-item-content>
               FAQ
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item href="https://github.com/dyc3/opentogethertube/issues/new/choose" target="_blank">
+            <v-list-item-icon>
+              <v-icon>fas fa-bug</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              Report a bug
             </v-list-item-content>
           </v-list-item>
           <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />
