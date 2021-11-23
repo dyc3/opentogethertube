@@ -393,6 +393,11 @@ export default {
         this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
         e.preventDefault();
       }
+      else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
+        this.debugMode = !this.debugMode;
+        e.preventDefault();
+      }
+      console.log(e);
     },
     toggleFullscreen() {
       if (document.fullscreenElement) {
