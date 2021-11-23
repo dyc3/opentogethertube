@@ -407,7 +407,6 @@ export default {
         this.debugMode = !this.debugMode;
         e.preventDefault();
       }
-      console.log(e);
     },
     toggleFullscreen() {
       if (document.fullscreenElement) {
@@ -597,7 +596,7 @@ export default {
     });
 
     document.onmousemove = () => {
-      if (this.$store.state.room.isPlaying) {
+      if (this.$store.state.room.isPlaying || !this.controlsVisible) {
         this.activateVideoControls();
       }
     };
