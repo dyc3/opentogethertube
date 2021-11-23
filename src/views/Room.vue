@@ -140,6 +140,9 @@
                 <v-list-item>
                   <span>Device Orientation: {{ this.orientation }}</span>
                 </v-list-item>
+                <v-list-item>
+                  <span>Video controls: timeoutId: {{ this.videoControlsHideTimeout }} visible: {{ this.debugLastControlsVisibility }}</span>
+                </v-list-item>
               </v-card>
             </div>
             <UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
@@ -200,6 +203,7 @@ export default {
   data() {
     return {
       debugMode: !this.production,
+      debugLastControlsVisibility: true,
 
       truePosition: 0,
       sliderPosition: 0,
@@ -425,6 +429,7 @@ export default {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
     setVideoControlsVisibility(visible) {
+      this.debugLastControlsVisibility = visible;
       let controlsDiv = document.getElementsByClassName("video-controls");
       let swallowerDiv = document.getElementById("mouse-event-swallower");
       if (controlsDiv.length) {
@@ -446,6 +451,7 @@ export default {
       }
       if (this.videoControlsHideTimeout) {
         clearTimeout(this.videoControlsHideTimeout);
+        this.videoControlsHideTimeout = null;
       }
     },
     /**
