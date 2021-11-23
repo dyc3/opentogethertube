@@ -186,6 +186,8 @@ import goTo from 'vuetify/lib/services/goto';
 import RoomSettings from "@/components/RoomSettings.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 
+const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
+
 export default {
   name: 'room',
   components: {
@@ -435,13 +437,13 @@ export default {
       }
     },
     /**
-     * Show the video controls, then hide them after a delay.
+     * Show the video controls, then hide them after `VIDEO_CONTROLS_HIDE_TIMEOUT` milliseconds.
      */
     activateVideoControls() {
       this.setVideoControlsVisibility(true);
       this.videoControlsHideTimeout = setTimeout(() => {
         this.setVideoControlsVisibility(false);
-      }, 3000);
+      }, VIDEO_CONTROLS_HIDE_TIMEOUT);
     },
     rewriteUrlToRoomName() {
       if (this.$store.state.room.name.length === 0) {
