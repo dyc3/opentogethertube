@@ -20,7 +20,12 @@
 		<v-container class="content">
 			<v-row>
 				<v-col>
-					<h1>Simple and Easy.</h1>
+					<h1>Remote Watch Parties Just Got a Lot Easier</h1>
+					<p>
+						<strong>OpenTogetherTube</strong> is a real-time video syncronization platform.
+						It's easy to use and has no sign up required. Just create a room, add videos and
+						invite your friends. BOOM! You're ready to binge videos with your friends until 3AM.
+					</p>
 					<p>
 						The original TogetherTube was loved for it's simple interface,
 						and how easy it was to start watching videos right away.
@@ -96,6 +101,29 @@
 									way to binge watch that new channel with your friends.
 								</v-card-text>
 							</v-card>
+						</v-col>
+					</v-row>
+				</v-col>
+			</v-row>
+			<v-row>
+				<v-col>
+					<h1>Support Development</h1>
+					<v-row>
+						<v-col>
+							<p>
+								<strong>OpenTogetherTube would not be possible without the help of contributors and supporters like you.</strong> Get involved with development by contributing your ideas or code, or show your support by becoming a sponsor. All donations are used to pay for hosting costs, for the development of OpenTogetherTube, and to keep OpenTogetherTube ad-free.
+							</p>
+						</v-col>
+						<v-col>
+							<h3>How Can I Help?</h3>
+							<v-btn x-large block color="red" href="https://github.com/sponsors/dyc3" target="_blank" >
+								<v-icon class="side-pad">fas fa-heart</v-icon>
+								Become a Sponsor
+							</v-btn>
+							<v-btn x-large block color="blue" href="https://github.com/sponsors/dyc3" target="_blank" >
+								<v-icon class="side-pad">fas fa-code</v-icon>
+								Contribute
+							</v-btn>
 						</v-col>
 					</v-row>
 				</v-col>
