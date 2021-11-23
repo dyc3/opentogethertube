@@ -21,8 +21,8 @@
                 @error="onVideoError"
                 @buffer-spans="spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)"
               />
-              <div id="mouse-event-swallower" class="hide"></div>
-              <v-col class="video-controls">
+              <div id="mouse-event-swallower" :class="{ 'hide': controlsVisible }"></div>
+              <v-col :class="{ 'video-controls': true, 'hide': !controlsVisible }">
                 <vue-slider
                   id="videoSlider"
                   :interval="0.1"
@@ -109,7 +109,6 @@
                 <RoomSettings
                   ref="settings"
                 />
-                  <!-- v-if="queueTab === 2 /* HACK: force the component to mount when the tab becomes active, and destroy it when the tab is not active. */" -->
               </v-tab-item>
             </v-tabs-items>
           </v-col>
@@ -139,6 +138,9 @@
                 </v-list-item>
                 <v-list-item>
                   <span>Device Orientation: {{ this.orientation }}</span>
+                </v-list-item>
+                <v-list-item>
+                  <span>Video controls: timeoutId: {{ this.videoControlsHideTimeout }} visible: {{ this.controlsVisible }}</span>
                 </v-list-item>
               </v-card>
             </div>
@@ -184,6 +186,8 @@ import goTo from 'vuetify/lib/services/goto';
 import RoomSettings from "@/components/RoomSettings.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 
+const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
+
 export default {
   name: 'room',
   components: {
@@ -200,6 +204,7 @@ export default {
   data() {
     return {
       debugMode: !this.production,
+      controlsVisible: true,
 
       truePosition: 0,
       sliderPosition: 0,
@@ -425,37 +430,20 @@ export default {
       this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
     },
     setVideoControlsVisibility(visible) {
-      let controlsDiv = document.getElementsByClassName("video-controls");
-      let swallowerDiv = document.getElementById("mouse-event-swallower");
-      if (controlsDiv.length) {
-        controlsDiv = controlsDiv[0];
-        if (visible) {
-          controlsDiv.classList.remove("hide");
-        }
-        else {
-          controlsDiv.classList.add("hide");
-        }
-      }
-      if (swallowerDiv) {
-        if (visible) {
-          swallowerDiv.classList.add("hide");
-        }
-        else {
-          swallowerDiv.classList.remove("hide");
-        }
-      }
+      this.controlsVisible = visible;
       if (this.videoControlsHideTimeout) {
         clearTimeout(this.videoControlsHideTimeout);
+        this.videoControlsHideTimeout = null;
       }
     },
     /**
-     * Show the video controls, then hide them after a delay.
+     * Show the video controls, then hide them after `VIDEO_CONTROLS_HIDE_TIMEOUT` milliseconds.
      */
     activateVideoControls() {
       this.setVideoControlsVisibility(true);
       this.videoControlsHideTimeout = setTimeout(() => {
         this.setVideoControlsVisibility(false);
-      }, 3000);
+      }, VIDEO_CONTROLS_HIDE_TIMEOUT);
     },
     rewriteUrlToRoomName() {
       if (this.$store.state.room.name.length === 0) {
