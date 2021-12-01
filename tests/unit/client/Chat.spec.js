@@ -25,7 +25,7 @@ function mountNewInstance(store) {
 	return mount(Chat, {
 		store,
 		localVue,
-		stubs: ["ProcessedText"],
+		stubs: ["ProcessedText", "v-icon"],
 	});
 }
 
@@ -39,7 +39,7 @@ describe("Chat component", () => {
 	});
 
 	it("should render required elements", () => {
-		expect(wrapper.find(".chat-header").text()).toEqual("Chat");
+		expect(wrapper.find(".chat-header h4").text()).toEqual("Chat");
 		expect(wrapper.find(".messages").exists()).toBe(true);
 		expect(wrapper.find("input").exists()).toBe(true);
 	});
