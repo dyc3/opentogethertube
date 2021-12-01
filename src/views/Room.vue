@@ -3,7 +3,19 @@
     <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
       <v-col v-if="!$store.state.fullscreen">
         <h1 class="room-title">{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
-        <span id="connectStatus">{{ connectionStatus }}</span>
+        <div class="d-flex flex-row">
+          <span id="connectStatus">{{ connectionStatus }}</span>
+          <div class="flex-grow-1"><!-- Spacer --></div>
+          <v-btn
+            class="chat-open-button"
+            icon
+            small
+            v-if="!chatVisible"
+            @click="chatVisible = true"
+          >
+            <v-icon>far fa-comment-alt</v-icon>
+          </v-btn>
+        </div>
       </v-col>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
         <v-row
