@@ -111,7 +111,7 @@
           >
             <Chat
               class="chat"
-              @close="closeChat"
+              @close="chatVisible = false"
             />
           </div>
         </v-row>
@@ -610,10 +610,6 @@ export default {
     },
     resetSeekPreview() {
       this.seekPreview = null;
-    },
-
-    closeChat() {
-      this.chatVisible = false;
     },
   },
   mounted() {
