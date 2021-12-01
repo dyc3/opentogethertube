@@ -29,7 +29,12 @@
             class="video-subcontainer"
             :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }"
           >
-            <v-responsive :aspect-ratio="16/9" class="player-container" :key="currentSource.service">
+            <v-responsive
+              class="player-container"
+              :key="currentSource.service"
+              :aspect-ratio="16/9"
+              :max-height="$store.state.fullscreen ? '100vh' : '90vh'"
+            >
               <OmniPlayer
                 ref="player"
                 :source="currentSource"
@@ -806,6 +811,16 @@ export default {
       .chat-container {
         width: calc(100% / 12 * 3);
       }
+
+      @media only screen and (max-aspect-ratio: 16/9) {
+        .video-subcontainer {
+          width: 100%;
+        }
+
+        .chat-container {
+          display: none;
+        }
+      }
     }
   }
 
@@ -815,16 +830,6 @@ export default {
     .player {
       border: none;
       border-right: 1px solid #666;
-    }
-  }
-
-  @media only screen and (max-aspect-ratio: 16/9) {
-    .video-subcontainer {
-      width: 100%;
-    }
-
-    .chat-container {
-      display: none;
     }
   }
 }
