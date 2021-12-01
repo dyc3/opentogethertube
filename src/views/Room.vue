@@ -3,12 +3,38 @@
     <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
       <v-col v-if="!$store.state.fullscreen">
         <h1 class="room-title">{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
-        <span id="connectStatus">{{ connectionStatus }}</span>
+        <div class="d-flex flex-row">
+          <span id="connectStatus">{{ connectionStatus }}</span>
+          <div class="flex-grow-1"><!-- Spacer --></div>
+          <v-btn
+            class="chat-open-button"
+            icon
+            small
+            v-if="!chatVisible"
+            @click="chatVisible = true"
+          >
+            <v-icon>far fa-comment-alt</v-icon>
+          </v-btn>
+        </div>
       </v-col>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
-        <v-row no-gutters class="video-container">
-          <div class="video-subcontainer" cols="12" :xl="$store.state.fullscreen ? 9 : 7" md="8" :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
-            <v-responsive :aspect-ratio="16/9" class="player-container" :key="currentSource.service">
+        <v-row
+          no-gutters
+          :class="{
+            'video-container': true,
+            'chat-visible': chatVisible,
+          }"
+        >
+          <div
+            class="video-subcontainer"
+            :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }"
+          >
+            <v-responsive
+              class="player-container"
+              :key="currentSource.service"
+              :aspect-ratio="16/9"
+              :max-height="$store.state.fullscreen ? '100vh' : '90vh'"
+            >
               <OmniPlayer
                 ref="player"
                 :source="currentSource"
@@ -84,8 +110,14 @@
               </v-col>
             </v-responsive>
           </div>
-          <div cols="12" :xl="$store.state.fullscreen ? 3 : 5" md="4" class="chat-container">
-            <Chat class="chat" />
+          <div
+            class="chat-container"
+            v-if="chatVisible"
+          >
+            <Chat
+              class="chat"
+              @close="chatVisible = false"
+            />
           </div>
         </v-row>
         <v-row no-gutters>
@@ -226,6 +258,7 @@ export default {
 
       orientation: screen.orientation.type,
       videoControlsHideTimeout: null,
+      chatVisible: true,
 
       api,
       QueueMode,
@@ -659,15 +692,32 @@ export default {
   }
 
   .video-subcontainer {
-    width: calc(100% / 12 * 8);
+    width: 100%;
   }
 
-  .chat-container {
-    width: calc(100% / 12 * 4);
+  &.chat-visible {
+    .video-subcontainer {
+      width: calc(100% / 12 * 8);
+    }
 
-    .chat {
-      min-height: 400px;
-      height: 100%;
+    .chat-container {
+      width: calc(100% / 12 * 4);
+
+      .chat {
+        min-height: 400px;
+        height: 100%;
+      }
+    }
+
+    @media (min-width: $xl-min) {
+      .video-subcontainer {
+        width: calc(100% / 12 * 7);
+        max-height: 100vh;
+      }
+
+      .chat-container {
+        width: calc(100% / 12 * 5);
+      }
     }
   }
 
@@ -677,16 +727,6 @@ export default {
     }
 
     margin: 0;
-  }
-
-  @media (min-width: $xl-min) {
-    .video-subcontainer {
-      width: calc(100% / 12 * 7);
-    }
-
-    .chat-container {
-      width: calc(100% / 12 * 5);
-    }
   }
 }
 
@@ -758,14 +798,30 @@ export default {
   .video-container {
     margin: 0;
     height: 100vh;
-  }
 
-  .video-subcontainer {
-    width: calc(100% / 12 * 9);
-  }
+    .video-subcontainer {
+      width: 100%;
+    }
 
-  .chat-container {
-    width: calc(100% / 12 * 3);
+    &.chat-visible {
+      .video-subcontainer {
+        width: calc(100% / 12 * 9);
+      }
+
+      .chat-container {
+        width: calc(100% / 12 * 3);
+      }
+
+      @media only screen and (max-aspect-ratio: 16/9) {
+        .video-subcontainer {
+          width: 100%;
+        }
+
+        .chat-container {
+          display: none;
+        }
+      }
+    }
   }
 
   .player-container {
@@ -774,16 +830,6 @@ export default {
     .player {
       border: none;
       border-right: 1px solid #666;
-    }
-  }
-
-  @media only screen and (max-aspect-ratio: 16/9) {
-    .video-subcontainer {
-      width: 100%;
-    }
-
-    .chat-container {
-      display: none;
     }
   }
 }

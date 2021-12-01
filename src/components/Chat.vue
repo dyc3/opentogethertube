@@ -1,6 +1,15 @@
 <template>
   <div class="d-flex flex-column">
-    <h4 class="chat-header">Chat</h4>
+    <div class="chat-header d-flex flex-row">
+      <v-btn
+        icon
+        x-small
+        @click="$emit('close')"
+      >
+        <v-icon>fas fa-chevron-right</v-icon>
+      </v-btn>
+      <h4>Chat</h4>
+    </div>
     <div
       ref="messages"
       @scroll="onScroll"
