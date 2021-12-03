@@ -39,3 +39,4 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `ADD_PREVIEW_SEARCH_RESULTS_COUNT` | Limit the number of videos that appear in the results when searching for a video. | `10` | Integer >= 0
 | `SHORT_URL` | The domain to use in the copyable "Share Invite" URL. | undefined | `string` |
 | `TRUST_PROXY` | The number of reverse proxy layers to trust. | `1` | `number` |
+| `FFPROBE_PATH` | The path to the command `ffprobe`. You probably don't need to set this unless you are having problems with the ffprobe that is install automatically. | (see [@ffprobe-installer/ffprobe](https://github.com/SavageCore/node-ffprobe-installer)) | `string` |
