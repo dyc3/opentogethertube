@@ -93,7 +93,7 @@ export class Room implements RoomState {
 	votes: Map<string, Set<ClientId>> = new Map();
 	_videoSegments: Segment[] = []
 
-	_dirty: Set<keyof RoomState> = new Set();
+	_dirty: Set<keyof RoomStateSyncable> = new Set();
 	log: winston.Logger
 	_playbackStart: Dayjs | null = null;
 	_keepAlivePing: Dayjs
@@ -267,7 +267,7 @@ export class Room implements RoomState {
 		return infos;
 	}
 
-	private markDirty(prop: keyof RoomState): void {
+	private markDirty(prop: keyof RoomStateSyncable): void {
 		this._dirty.add(prop);
 		this.throttledSync();
 	}
