@@ -87,10 +87,13 @@ export class Room implements RoomState {
 	_isPlaying = false
 	_playbackPosition = 0
 	realusers: RoomUser[] = []
+	/**
+	 * Map of videos in the format service + id to a set of client votes.
+	 */
 	votes: Map<string, Set<ClientId>> = new Map();
 	_videoSegments: Segment[] = []
 
-	_dirty: Set<keyof RoomState> = new Set();
+	_dirty: Set<keyof RoomStateSyncable> = new Set();
 	log: winston.Logger
 	_playbackStart: Dayjs | null = null;
 	_keepAlivePing: Dayjs
@@ -264,7 +267,7 @@ export class Room implements RoomState {
 		return infos;
 	}
 
-	private markDirty(prop: keyof RoomState): void {
+	private markDirty(prop: keyof RoomStateSyncable): void {
 		this._dirty.add(prop);
 		this.throttledSync();
 	}
@@ -872,6 +875,17 @@ export class Room implements RoomState {
 			throw new Error("context.clientId was undefined");
 		}
 		const removed = this.getUserInfo(context.clientId);
+		// We must publish the event before removing the user, otherwise publishing the event will fail because the user is gone.
+		await this.publishRoomEvent(request, context, { user: removed });
+
+		if (this.queueMode === QueueMode.Vote) {
+			this.log.debug(`removing votes for leaving client ${context.clientId}`);
+			this.votes.forEach(value => {
+				if (value.delete(removed.id)) {
+					this.markDirty("voteCounts");
+				}
+			});
+		}
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === context.clientId) {
 				this.realusers.splice(i--, 1);
@@ -879,7 +893,6 @@ export class Room implements RoomState {
 				break;
 			}
 		}
-		await this.publishRoomEvent(request, context, { user: removed });
 	}
 
 	public async updateUser(request: UpdateUser, context: RoomRequestContext): Promise<void> {
