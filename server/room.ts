@@ -20,6 +20,7 @@ import statistics, { Counter } from "./statistics";
 import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
+import { Mutex } from "@divine/synchronization";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -84,6 +85,7 @@ export class Room implements RoomState {
 
 	_currentSource: Video | null = null
 	queue: Video[] = []
+	_queueMutex = new Mutex();
 	_isPlaying = false
 	_playbackPosition = 0
 	realusers: RoomUser[] = []
@@ -278,12 +280,16 @@ export class Room implements RoomState {
 				return;
 			}
 			else if (this.queueMode === QueueMode.Loop) {
+				this._queueMutex.lock();
 				this.queue.push(this.currentSource);
+				this._queueMutex.unlock();
 				this.markDirty("queue");
 			}
 		}
 		if (this.queue.length > 0) {
+			this._queueMutex.lock();
 			this.currentSource = this.queue.shift() ?? null;
+			this._queueMutex.unlock();
 			this.markDirty("queue");
 			this.playbackPosition = 0;
 			this._playbackStart = dayjs();
@@ -823,7 +829,9 @@ export class Room implements RoomState {
 				throw new VideoAlreadyQueuedException();
 			}
 
+			this._queueMutex.lock();
 			this.queue.push(...videos);
+			this._queueMutex.unlock();
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
 			await statistics.bumpCounter(Counter.VideosQueued, videos.length);
@@ -837,20 +845,24 @@ export class Room implements RoomState {
 	}
 
 	public async removeFromQueue(request: RemoveRequest, context: RoomRequestContext): Promise<void> {
+		this._queueMutex.lock();
 		const matchIdx = _.findIndex(this.queue, item => (item.service === request.video.service && item.id === request.video.id));
 		if (matchIdx < 0) {
 			throw new VideoNotFoundException();
 		}
 		// remove the item from the queue
 		const removed = this.queue.splice(matchIdx, 1)[0];
+		this._queueMutex.unlock();
 		this.markDirty("queue");
 		this.log.info(`Video removed: ${JSON.stringify(removed)}`);
 		await this.publishRoomEvent(request, context, { video: removed, queueIdx: matchIdx });
 	}
 
 	public async reorderQueue(request: OrderRequest, context: RoomRequestContext): Promise<void> {
+		this._queueMutex.lock();
 		const video = this.queue.splice(request.fromIdx, 1)[0];
 		this.queue.splice(request.toIdx, 0, video);
+		this._queueMutex.unlock();
 		this.markDirty("queue");
 	}
 
@@ -918,7 +930,9 @@ export class Room implements RoomState {
 				break;
 			case RoomRequestType.SkipRequest:
 				if (this.currentSource) {
+					this._queueMutex.lock();
 					this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
+					this._queueMutex.unlock();
 					this.markDirty("queue");
 				}
 				if (request.event.additional.video && request.event.additional.prevPosition) {
@@ -939,11 +953,13 @@ export class Room implements RoomState {
 				}
 				break;
 			case RoomRequestType.RemoveRequest:
+				this._queueMutex.lock();
 				// eslint-disable-next-line no-case-declarations
 				const newQueue = this.queue.splice(0, request.event.additional.queueIdx);
 				newQueue.push(request.event.request.video);
 				newQueue.push(...this.queue);
 				this.queue = newQueue;
+				this._queueMutex.unlock();
 				this.markDirty("queue");
 				break;
 			default:
