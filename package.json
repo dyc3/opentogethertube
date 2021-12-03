@@ -23,6 +23,7 @@
     "optic-api-server": "npx api run api-server"
   },
   "dependencies": {
+    "@divine/synchronization": "^1.2.1",
     "@ffprobe-installer/ffprobe": "^1.0.12",
     "@fortawesome/fontawesome-free": "^5.12.1",
     "@mdi/font": "^3.9.97",
