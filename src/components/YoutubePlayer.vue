@@ -42,6 +42,7 @@ export default {
 		return {
 			YT: null,
 			player: null,
+			resizeObserver: null,
 			debug: {
 				YoutubeState: null,
 			},
@@ -79,11 +80,12 @@ export default {
 				},
 			});
 		}
-		window.addEventListener('resize', this.onResize);
 		this.fitToContainer();
+
+		this.resizeObserver = new ResizeObserver(this.fitToContainer);
+		this.resizeObserver.observe(this.$el);
 	},
 	beforeDestroy() {
-		window.removeEventListener('resize', this.onResize);
 		if (this.player && this.player.destroy) {
 			this.player.destroy();
 			delete this.player;
