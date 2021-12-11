@@ -1,2 +1,2 @@
-tests/unit/server/fixtures/* linguist-vendored
+tests/unit/server/fixtures/** linguist-vendored
 docs/* linguist-documentation
