@@ -1203,5 +1203,9 @@ export class Room implements RoomState {
 		this.markDirty("queue");
 		this.playbackPosition = 0;
 		this._playbackStart = dayjs();
+		this.videoSegments = [];
+		if (this.autoSkipSegments) {
+			this.wantSponsorBlock = true;
+		}
 	}
 }
