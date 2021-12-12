@@ -452,7 +452,7 @@ export class Room implements RoomState {
 	}
 
 	get realPlaybackPosition(): number {
-		if (this._playbackStart) {
+		if (this._playbackStart && this.isPlaying) {
 			return this.playbackPosition + (dayjs().diff(this._playbackStart, "millisecond") / 1000);
 		}
 		else {
@@ -734,9 +734,10 @@ export class Room implements RoomState {
 			return;
 		}
 		this.log.debug("playback paused");
-		this.isPlaying = false;
+		// The order of the following lines matter.
 		this.playbackPosition = this.realPlaybackPosition;
 		this._playbackStart = null;
+		this.isPlaying = false;
 	}
 
 	/**
