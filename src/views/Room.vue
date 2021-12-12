@@ -306,12 +306,8 @@ export default {
     this.$events.on("onRoomCreated", this.onRoomCreated);
     this.$events.on("onChatLinkClick", this.switchToAddTab);
 
-    window.removeEventListener('keydown', this.onKeyDown);
     window.addEventListener('keydown', this.onKeyDown);
-
-    if (!this.$store.state.$connection.isConnected) {
-      connection.connect(this.$route.params.roomId);
-    }
+    screen.orientation.addEventListener('change', this.onScreenOrientationChange);
 
     this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
 
@@ -320,7 +316,9 @@ export default {
       this.debugMode = true;
     }
 
-    screen.orientation.addEventListener('change', this.onScreenOrientationChange);
+    if (!this.$store.state.$connection.isConnected) {
+      connection.connect(this.$route.params.roomId);
+    }
   },
   destroyed() {
     clearInterval(this.i_timestampUpdater);
@@ -328,6 +326,7 @@ export default {
     this.$events.remove("onRoomCreated", this.onRoomCreated);
     this.$events.remove("onChatLinkClick", this.switchToAddTab);
     screen.orientation.removeEventListener('change', this.onScreenOrientationChange);
+    window.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
     /* ROOM API */
