@@ -316,6 +316,7 @@ export default {
       this.debugMode = true;
     }
 
+    await this.$store.dispatch("user/waitForToken");
     if (!this.$store.state.$connection.isConnected) {
       connection.connect(this.$route.params.roomId);
     }
