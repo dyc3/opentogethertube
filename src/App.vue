@@ -154,6 +154,7 @@ export default Vue.extend({
       }
     });
 
+    await this.$store.dispatch("settings/load");
     await this.$store.dispatch("getNewToken");
 
     // ask the server if we are logged in or not, and update the client to reflect that status.

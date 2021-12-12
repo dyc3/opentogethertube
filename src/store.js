@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
 import { usersModule } from "@/stores/user";
+import { settingsModule } from "@/stores/settings";
 import { ToastStyle } from './models/toast';
 import eventModule from "@/stores/events";
 import { QueueMode } from '../common/models/types';
@@ -175,5 +176,6 @@ export default new Vuex.Store({
 		toast: toastModule,
 		events: eventModule,
 		users: usersModule,
+		settings: settingsModule,
 	},
 });
