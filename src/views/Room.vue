@@ -315,6 +315,7 @@ export default {
     if (!this.production) {
       this.debugMode = true;
     }
+    this.volume = this.$store.state.settings.volume;
 
     await this.$store.dispatch("user/waitForToken");
     if (!this.$store.state.$connection.isConnected) {
@@ -658,6 +659,7 @@ export default {
   watch: {
     volume() {
       this.updateVolume();
+      this.$store.commit("settings/UPDATE", { volume: this.volume });
     },
     async truePosition(newPosition) {
       let currentTime = await this.$refs.player.getPosition();
