@@ -8,9 +8,10 @@ import { redisClient, createSubscriber, redisClientAsync } from "../redisclient"
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
+import { InvalidTokenException } from "../common/exceptions";
 import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, AuthToken } from "../common/models/types";
 // WARN: do NOT import roommanager
-import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via the HTTP API to other nodes.
+import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via RPC to other nodes.
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import { uniqueNamesGenerator } from 'unique-names-generator';
 import tokens, { SessionInfo } from "./auth/tokens";
@@ -148,6 +149,10 @@ export class Client {
 					log.info(`Failed to join room: ${e.message}`);
 					this.socket.close(OttWebsocketError.ROOM_NOT_FOUND);
 				}
+				else if (e instanceof InvalidTokenException) {
+					log.info(`Failed to join room: ${e.message}`);
+					this.socket.close(OttWebsocketError.MISSING_TOKEN);
+				}
 				else {
 					if (e instanceof Error) {
 						log.error(`Failed to join room: ${e.stack}`);
@@ -189,7 +194,8 @@ export class Client {
 	public async JoinRoom(roomName: string): Promise<void> {
 		log.debug(`client id=${this.id} joining ${roomName}`);
 		if (!this.token) {
-			throw new Error("No token present");
+			log.error("No token present, cannot join room");
+			throw new InvalidTokenException();
 		}
 		if (!this.session) {
 			this.session = await tokens.getSessionInfo(this.token);

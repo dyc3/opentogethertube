@@ -17,3 +17,11 @@ export class InvalidRoleException extends OttException {
 		super(`Role ${role.toString()} (type: ${typeof role}) is not valid.`);
 	}
 }
+
+export class InvalidTokenException extends OttException {
+	name = "InvalidTokenException";
+
+	constructor() {
+		super(`Invalid or missing token.`);
+	}
+}
