@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import Vuetify from 'vuetify';
 import AddPreview from "@/components/AddPreview.vue";
 import VueEvents from 'vue-events';
+import VBtn from "vuetify/lib/components/VBtn";
 
 // HACK: import globally to prevent it from yelling at us
 // https://github.com/vuetifyjs/vuetify/issues/4964
@@ -61,9 +62,10 @@ describe("AddPreview", () => {
 		await wrapper.destroy();
 	});
 
-	it('should render test buttons when in dev environment', () => {
+	it('should render test buttons when in dev environment', async () => {
 		store.state.production = false;
-		const testVideoButtons = wrapper.find('.video-add').findAll({ name: 'v-btn' });
+		await wrapper.vm.$nextTick();
+		const testVideoButtons = wrapper.find('.video-add').findAllComponents(VBtn);
 		expect(testVideoButtons.length).toBeGreaterThanOrEqual(1);
 		expect(testVideoButtons.at(0).text()).toEqual('test youtube 0');
 		expect(testVideoButtons.at(1).text()).toEqual('test youtube 1');
@@ -72,7 +74,7 @@ describe("AddPreview", () => {
 
 	it('should NOT render test buttons when in production environment', () => {
 		store.state.production = true;
-		const testVideoButtons = wrapper.find('.video-add').findAll({ name: 'v-btn' });
+		const testVideoButtons = wrapper.find('.video-add').findAllComponents(VBtn);
 		expect(testVideoButtons.length).toEqual(0);
 	});
 
@@ -86,18 +88,21 @@ describe("AddPreview", () => {
 		expect(wrapper.vm.isAddPreviewInputUrl).toEqual(false);
 	});
 
-	it('should request add previews when input is URL', () => {
+	it('should request add previews when input is URL', async () => {
 		jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
 
 		wrapper.setData({ inputAddPreview: "https://example.com" });
+		await wrapper.vm.$nextTick();
 		expect(wrapper.vm.requestAddPreviewDebounced).toBeCalled();
 		wrapper.vm.requestAddPreviewDebounced.mockClear();
 
 		wrapper.setData({ inputAddPreview: "       " });
+		await wrapper.vm.$nextTick();
 		expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
 		wrapper.vm.requestAddPreviewDebounced.mockClear();
 
 		wrapper.setData({ inputAddPreview: "how to get smaller toes" });
+		await wrapper.vm.$nextTick();
 		expect(wrapper.vm.requestAddPreviewDebounced).not.toBeCalled();
 		wrapper.vm.requestAddPreviewDebounced.mockClear();
 	});
