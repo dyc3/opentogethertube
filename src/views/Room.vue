@@ -316,6 +316,7 @@ export default {
       this.debugMode = true;
     }
     this.volume = this.$store.state.settings.volume;
+    this.chatVisible = this.$store.state.settings.chatVisible;
 
     await this.$store.dispatch("user/waitForToken");
     if (!this.$store.state.$connection.isConnected) {
@@ -660,6 +661,9 @@ export default {
     volume() {
       this.updateVolume();
       this.$store.commit("settings/UPDATE", { volume: this.volume });
+    },
+    chatVisible(value) {
+      this.$store.commit("settings/UPDATE", { chatVisible: value });
     },
     async truePosition(newPosition) {
       let currentTime = await this.$refs.player.getPosition();
