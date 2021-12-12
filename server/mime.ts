@@ -11,6 +11,12 @@ const mimeTypes = {
   "video/x-m4v": ["m4v"],
   "video/h264": ["h264"],
   "application/x-mpegURL": ["m3u", "m3u8"],
+  "audio/mpeg": ["mp3", "mp2", "mpga", "mpega", "mp2a"],
+  "audio/x-wav": ["wav"],
+  "audio/ogg": ["oga", "ogg", "spx"],
+  "audio/aac": ["aac"],
+  "audio/flac": ["flac"],
+  "audio/x-aiff": ["aif", "aiff", "aifc"],
 };
 
 export function getMimeType(extension: string): string | undefined {
@@ -25,7 +31,13 @@ export function isSupportedMimeType(mimeType: string): boolean {
   if (mimeType === "application/x-mpegURL") {
     return true;
   }
-  return !!/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/.exec(mimeType);
+  if (/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/.exec(mimeType)) {
+    return true;
+  }
+  if (/^audio\/(?!x-aiff)(?!x-wav)(?!aac)(?!flac)[a-z0-9-]+$/.exec(mimeType)) {
+    return true;
+  }
+  return false;
 }
 
 module.exports = {
