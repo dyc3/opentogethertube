@@ -19,6 +19,10 @@ describe("Direct", () => {
 			"ogv",
 			"m4v",
 			"h264",
+			"m3u",
+			"m3u8",
+			"ogg",
+			"mp3",
 		];
 
 		const adapter = new DirectVideoAdapter();
@@ -28,8 +32,33 @@ describe("Direct", () => {
 			expect(adapter.canHandleURL(url)).toBe(true);
 		});
 
-		it("Rejects unsupported extensions", () => {
-			const url = "https://example.com/test.jpg";
+		const unsupportedExtensions = [
+			"jpg",
+			"jpeg",
+			"png",
+			"gif",
+			"bmp",
+			"tiff",
+			"tif",
+			"psd",
+			"pdf",
+			"doc",
+			"docx",
+			"xls",
+			"xlsx",
+			"ppt",
+			"pptx",
+			"zip",
+			"rar",
+			"7z",
+			"tar",
+			"gz",
+			"mp3v",
+			"wav",
+		];
+
+		it.each(unsupportedExtensions)("Rejects %s links", (extension) => {
+			const url = `https://example.com/test.${extension}`;
 			expect(adapter.canHandleURL(url)).toBe(false);
 		});
 	});
