@@ -1,5 +1,3 @@
-comment: false
-
 coverage:
   precision: 4
 
@@ -8,6 +6,7 @@ coverage:
       default:
         target: 50%
         threshold: 1%
+        informational: true
     patch:
       default:
         target: 60%
