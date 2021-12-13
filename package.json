@@ -2,6 +2,7 @@
   "name": "opentogethertube",
   "version": "0.2.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "node app.js",
     "debug": "nodemon --inspect -e ts,js app.js",
