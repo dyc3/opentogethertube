@@ -40,7 +40,6 @@
 							<li><ProcessedText text="Youtube playlists: https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ" /></li>
 							<li><ProcessedText text="Youtube channels: https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA" /></li>
 							<li><ProcessedText text="Subreddits: https://reddit.com/r/youtubehaiku/" /></li>
-							<li><ProcessedText text="Neverthink.tv channels: https://neverthink.tv/c/meme-radar" /></li>
 						</ul>
 						<span>Or just type text to search Youtube.</span>
 					</div>

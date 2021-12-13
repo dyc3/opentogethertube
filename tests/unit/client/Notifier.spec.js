@@ -2,6 +2,8 @@ import Vue from 'vue';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import Notifier from "@/components/Notifier.vue";
+import Vuex from 'vuex';
+import { toastModule } from "@/stores/toast";
 
 const localVue = createLocalVue();
 
@@ -12,17 +14,30 @@ Vue.use(Vuetify);
 import VueEvents from 'vue-events';
 localVue.use(VueEvents);
 
-describe.skip("Notifier component", () => {
-	it("should activate when message received and set message text", async () => {
+localVue.use(Vuex);
+
+function createStore() {
+	return new Vuex.Store({
+		modules: {
+			toast: toastModule,
+		},
+	});
+}
+
+describe("Notifier component", () => {
+	it("should render toast notifications", async () => {
 		let wrapper = mount(Notifier, {
 			localVue,
-			props: {
-				event: "test",
-			},
+			store: createStore(),
+			stubs: ['router-link', 'v-icon'],
 		});
-		wrapper.vm.onMessage({ message: "test" });
-		expect(wrapper.vm.active).toBe(true);
-		expect(wrapper.vm.message).toEqual("test");
+
+		wrapper.vm.$store.commit('toast/ADD_TOAST', { content: 'test' });
+		await wrapper.vm.$nextTick();
+		const toast = wrapper.find('.toast-item');
+		expect(toast.exists()).toBe(true);
+		expect(toast.text()).toContain('test');
+
 		await wrapper.destroy();
 	});
 });
