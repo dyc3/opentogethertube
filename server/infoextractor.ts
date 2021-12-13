@@ -6,7 +6,6 @@ import VimeoAdapter from "./services/vimeo";
 import YouTubeAdapter from "./services/youtube";
 import DirectVideoAdapter from "./services/direct";
 import RedditAdapter from "./services/reddit";
-import NeverthinkAdapter from "./services/neverthink";
 import storage from "../storage";
 import { UnsupportedMimeTypeException, OutOfQuotaException, UnsupportedServiceException, InvalidAddPreviewInputException, FeatureDisabledException } from "./exceptions";
 import { getLogger } from "../logger";
@@ -26,7 +25,6 @@ const adapters = [
   new YouTubeAdapter(process.env.YOUTUBE_API_KEY ?? "not-provided", redisClient),
   new DirectVideoAdapter(),
   new RedditAdapter(),
-  new NeverthinkAdapter(),
   new TubiAdapter(),
 ];
 
