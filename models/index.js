@@ -33,6 +33,7 @@ if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
     dialectOptions: {
       ssl: { rejectUnauthorized: false },
     },
+    logging: msg => log.silly(msg),
   });
 }
 else if (config.use_env_variable) {
