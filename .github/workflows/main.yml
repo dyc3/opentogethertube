@@ -79,6 +79,8 @@ jobs:
         NODE_ENV: test
     - run: npm run build --if-present
     - run: npm run test-unit-client
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v2
     - run: npm run test-unit-server
       env:
         REDIS_HOST: localhost
