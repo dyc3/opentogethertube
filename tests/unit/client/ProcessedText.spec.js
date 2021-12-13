@@ -60,7 +60,7 @@ describe("ProcessedText component", () => {
 		]);
 	});
 
-	it("should fire event when link is clicked", () => {
+	it("should fire event when link is clicked", async () => {
 		let wrapper = mount(ProcessedText, {
 			localVue,
 			propsData: { text: "https://example.com/" },
@@ -69,6 +69,7 @@ describe("ProcessedText component", () => {
 		let eventStub = jest.fn();
 		wrapper.vm.$events.on("onChatLinkClick", eventStub);
 		wrapper.vm.processText();
+		await wrapper.vm.$nextTick();
 		wrapper.find(".link").trigger("click");
 		expect(eventStub).toBeCalledWith("https://example.com/");
 	});

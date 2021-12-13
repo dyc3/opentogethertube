@@ -44,12 +44,14 @@ describe("Chat component", () => {
 		expect(wrapper.find("input").exists()).toBe(true);
 	});
 
-	it("should render chat messages", () => {
+	it("should render chat messages", async () => {
 		wrapper.vm.$store.state.room.chatMessages = [{ from: "user", text: "test" }];
+		await wrapper.vm.$nextTick();
 		expect(wrapper.findAll(".message")).toHaveLength(1);
 
 		wrapper.setData({ stickToBottom: false });
 		wrapper.vm.$store.state.room.chatMessages = [{ from: "user", text: "test" }, { from: "user", text: "test" }];
+		await wrapper.vm.$nextTick();
 		expect(wrapper.findAll(".message")).toHaveLength(2);
 	});
 
