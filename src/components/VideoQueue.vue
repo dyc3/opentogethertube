@@ -14,7 +14,7 @@
 				</v-row>
 			</v-container>
 		</div>
-		<div class="queue-controls">
+		<div class="queue-controls" v-if="$store.state.room.queue.length > 0">
 			<v-btn icon @click="api.shuffle()">
 				<v-icon>fas fa-random</v-icon>
 			</v-btn>
