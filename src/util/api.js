@@ -1,5 +1,6 @@
 import connection from "./connection";
 import { API } from '@/common-http';
+import { RoomRequestType } from 'common/models/messages';
 
 /**
  * Defines the HTTP and websocket api, and provides methods for using it.
@@ -59,6 +60,14 @@ export default {
 		connection.send({
 			action: "play-now",
 			video,
+		});
+	},
+	shuffle() {
+		connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.ShuffleRequest,
+			},
 		});
 	},
 };

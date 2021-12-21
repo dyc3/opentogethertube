@@ -3,7 +3,7 @@ import { redisClient } from "../redisclient";
 import { promisify } from "util";
 import { getLogger } from "../logger.js";
 import winston from "winston";
-import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest, PlayNowRequest, RoomRequestAuthorization, RoomRequestContext } from "../common/models/messages";
+import { AddRequest, ApplySettingsRequest, ChatRequest, JoinRequest, LeaveRequest, OrderRequest, PlaybackRequest, PromoteRequest, RemoveRequest, RoomRequest, RoomRequestBase, RoomRequestType, SeekRequest, ServerMessage, ServerMessageSync, SkipRequest, UndoRequest, UpdateUser, VoteRequest, PlayNowRequest, RoomRequestAuthorization, RoomRequestContext, ShuffleRequest } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "../usermanager";
@@ -702,6 +702,7 @@ export class Room implements RoomState {
 			[RoomRequestType.UndoRequest]: "undo",
 			[RoomRequestType.ApplySettingsRequest]: "applySettings",
 			[RoomRequestType.PlayNowRequest]: "playNow",
+			[RoomRequestType.ShuffleRequest]: "shuffle",
 		};
 
 		const handler = handlers[request.type];
@@ -1208,5 +1209,13 @@ export class Room implements RoomState {
 		if (this.autoSkipSegments) {
 			this.wantSponsorBlock = true;
 		}
+	}
+
+	public async shuffle(request: ShuffleRequest, context: RoomRequestContext): Promise<void> {
+		this.grants.check(context.role, "manage-queue.order");
+		this._queueMutex.lock();
+		this.queue = _.shuffle(this.queue);
+		this._queueMutex.unlock();
+		this.markDirty("queue");
 	}
 }

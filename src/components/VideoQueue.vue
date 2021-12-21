@@ -14,6 +14,11 @@
 				</v-row>
 			</v-container>
 		</div>
+		<div class="queue-controls">
+			<v-btn icon @click="api.shuffle()">
+				<v-icon>fas fa-random</v-icon>
+			</v-btn>
+		</div>
 		<draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
 			<transition-group name="video-queue">
 				<VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="itemdata.id" :item="itemdata" :index="index" />
@@ -37,6 +42,11 @@ import PermissionsMixin from "@/mixins/permissions";
 		VideoQueueItem,
 	},
 	mixins: [PermissionsMixin],
+	data() {
+		return {
+			api,
+		};
+	},
 })
 export default class VideoQueue extends Vue {
 	onQueueDragDrop(e) {
@@ -58,6 +68,10 @@ export default class VideoQueue extends Vue {
     opacity: 0.5;
     font-size: 20px;
   }
+}
+
+.queue-controls {
+	margin-top: 6px;
 }
 
 // Transition animation

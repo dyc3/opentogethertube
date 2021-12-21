@@ -168,6 +168,9 @@ export class Client {
 				video: msg.video,
 			};
 		}
+		else if (msg.action === "req") {
+			request = msg.request;
+		}
 		else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;

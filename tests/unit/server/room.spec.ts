@@ -205,9 +205,33 @@ describe("Room", () => {
 					add: true,
 				}, { username:"test", role: Role.Owner, clientId: "1234" });
 				expect(Array.from(room.votes.get("fakeserviceabc123")!)).toEqual(["1234"]);
-
 			});
-	});
+		});
+
+		describe("ShuffleRequest", () => {
+			beforeEach(() => {
+				room.queue = [
+					{ service: "fakeservice", id: "video1" },
+					{ service: "fakeservice", id: "video2" },
+					{ service: "fakeservice", id: "video3" },
+					{ service: "fakeservice", id: "video4" },
+					{ service: "fakeservice", id: "video5" },
+				];
+			});
+			it("should not leave videos in the same order", async() => {
+				await room.processRequest({
+					type: RoomRequestType.ShuffleRequest,
+				}, { username:"test", role: Role.Owner, clientId: "1234" });
+				expect(room.queue).not.toEqual([
+					{ service: "fakeservice", id: "video1" },
+					{ service: "fakeservice", id: "video2" },
+					{ service: "fakeservice", id: "video3" },
+					{ service: "fakeservice", id: "video4" },
+					{ service: "fakeservice", id: "video5" },
+				]);
+				expect(room.queue).toHaveLength(5);
+			});
+		});
 
 	});
 
