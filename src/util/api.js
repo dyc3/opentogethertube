@@ -8,19 +8,42 @@ import { RoomRequestType } from 'common/models/messages';
 export default {
 	/** Send a message to play the video. */
 	play() {
-		connection.send({ action: "play" });
+		connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.PlaybackRequest,
+				state: true,
+			},
+		});
 	},
 	/** Send a message to pause the video. */
 	pause() {
-		connection.send({ action: "pause" });
+		connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.PlaybackRequest,
+				state: false,
+			},
+		});
 	},
 
 	/** Send a message to skip the current video. */
 	skip() {
-		connection.send({ action: "skip" });
+		connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.SkipRequest,
+			},
+		});
 	},
 	seek(position) {
-		connection.send({ action: "seek", position });
+		connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.SeekRequest,
+				value: position,
+			},
+		});
 	},
 	/**
 	 * Move the video from `fromIdx` to `toIdx` in the queue.
@@ -29,9 +52,12 @@ export default {
 	 * */
 	queueMove(fromIdx, toIdx) {
 		connection.send({
-			action: "queue-move",
-			currentIdx: fromIdx,
-			targetIdx: toIdx,
+			action: "req",
+			request: {
+				type: RoomRequestType.OrderRequest,
+				fromIdx,
+				toIdx,
+			},
 		});
 	},
 	async undoEvent(event) {
@@ -48,9 +74,21 @@ export default {
 	},
 	promoteUser(clientId, role) {
 		connection.send({
-			action: "set-role",
-			clientId,
-			role,
+			action: "req",
+			request: {
+				type: RoomRequestType.PromoteRequest,
+				targetClientId: clientId,
+				role,
+			},
+		});
+	},
+	chat(text) {
+		connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.ChatRequest,
+				text,
+			},
 		});
 	},
 	/**
@@ -58,8 +96,11 @@ export default {
 	 */
 	playNow(video) {
 		connection.send({
-			action: "play-now",
-			video,
+			action: "req",
+			request: {
+				type: RoomRequestType.PlayNowRequest,
+				video,
+			},
 		});
 	},
 	shuffle() {
