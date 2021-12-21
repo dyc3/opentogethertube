@@ -141,7 +141,7 @@ export interface RoomRequestContext {
 	clientId?: ClientId
 }
 
-export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest | PlayNowRequest
+export type RoomRequest = JoinRequest | LeaveRequest | PlaybackRequest | SkipRequest | SeekRequest | AddRequest | RemoveRequest | OrderRequest | VoteRequest | PromoteRequest | UpdateUser | ChatRequest | UndoRequest | ApplySettingsRequest | PlayNowRequest | ShuffleRequest
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -159,6 +159,7 @@ export enum RoomRequestType {
 	UndoRequest,
 	ApplySettingsRequest,
 	PlayNowRequest,
+	ShuffleRequest,
 }
 
 export interface RoomRequestBase {
@@ -251,4 +252,8 @@ export interface ApplySettingsRequest extends RoomRequestBase {
 export interface PlayNowRequest extends RoomRequestBase {
 	type: RoomRequestType.PlayNowRequest,
 	video: VideoId
+}
+
+export interface ShuffleRequest extends RoomRequestBase {
+	type: RoomRequestType.ShuffleRequest,
 }
