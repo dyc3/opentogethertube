@@ -62,44 +62,10 @@ export interface UserInfo extends Omit<RoomUserInfo, "status"> {
 	grants: number
 }
 
-export type ClientMessage = ClientMessagePlay | ClientMessagePause | ClientMessageSkip | ClientMessageSeek | ClientMessageOrder | ClientMessageChat | ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessagePromote | ClientMessageAuthenticate | ClientMessagePlayNow | ClientMessageRoomRequest;
+export type ClientMessage = ClientMessageKickMe | ClientMessagePlayerStatus | ClientMessageAuthenticate | ClientMessageRoomRequest;
 
 interface ClientMessageBase {
 	action: string
-}
-
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessagePlay extends ClientMessageBase {
-	action: "play"
-}
-
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessagePause extends ClientMessageBase {
-	action: "pause"
-}
-
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessageSkip extends ClientMessageBase {
-	action: "skip"
-}
-
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessageSeek extends ClientMessageBase {
-	action: "seek"
-	position: number
-}
-
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessageOrder extends ClientMessageBase {
-	action: "queue-move"
-	currentIdx: number
-	targetIdx: number
-}
-
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessageChat extends ClientMessageBase {
-	action: "chat"
-	text: string
 }
 
 export interface ClientMessageKickMe extends ClientMessageBase {
@@ -114,22 +80,9 @@ export interface ClientMessagePlayerStatus extends ClientMessageBase {
 	status: PlayerStatus
 }
 
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessagePromote extends ClientMessageBase {
-	action: "set-role"
-	clientId: ClientId
-	role: Role
-}
-
 export interface ClientMessageAuthenticate extends ClientMessageBase {
 	action: "auth"
 	token: AuthToken
-}
-
-/** @deprecated We can use `ClientMessageRoomRequest` instead. */
-export interface ClientMessagePlayNow extends ClientMessageBase {
-	action: "play-now",
-	video: VideoId,
 }
 
 export interface ClientMessageRoomRequest extends ClientMessageBase {

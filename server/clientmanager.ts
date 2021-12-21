@@ -82,45 +82,9 @@ export class Client {
 		log.silly(`client message: ${text}`);
 		const msg: ClientMessage = JSON.parse(text);
 		let request: RoomRequest | null = null;
-		if (msg.action === "play") {
-			request = {
-				type: RoomRequestType.PlaybackRequest,
-				state: true,
-			};
-		}
-		else if (msg.action === "pause") {
-			request = {
-				type: RoomRequestType.PlaybackRequest,
-				state: false,
-			};
-		}
-		else if (msg.action === "skip") {
-			request = {
-				type: RoomRequestType.SkipRequest,
-			};
-		}
-		else if (msg.action === "seek") {
-			request = {
-				type: RoomRequestType.SeekRequest,
-				value: msg.position,
-			};
-		}
-		else if (msg.action === "queue-move") {
-			request = {
-				type: RoomRequestType.OrderRequest,
-				fromIdx: msg.currentIdx,
-				toIdx: msg.targetIdx,
-			};
-		}
-		else if (msg.action === "kickme") {
+		if (msg.action === "kickme") {
 			this.socket.close(OttWebsocketError.UNKNOWN);
 			return;
-		}
-		else if (msg.action === "chat") {
-			request = {
-				type: RoomRequestType.ChatRequest,
-				...msg,
-			};
 		}
 		else if (msg.action === "status") {
 			request = {
@@ -129,13 +93,6 @@ export class Client {
 					id: this.id,
 					status: msg.status,
 				},
-			};
-		}
-		else if (msg.action === "set-role") {
-			request = {
-				type: RoomRequestType.PromoteRequest,
-				targetClientId: msg.clientId,
-				role: msg.role,
 			};
 		}
 		else if (msg.action === "auth") {
@@ -161,12 +118,6 @@ export class Client {
 				}
 			}
 			return;
-		}
-		else if (msg.action === "play-now") {
-			request = {
-				type: RoomRequestType.PlayNowRequest,
-				video: msg.video,
-			};
 		}
 		else if (msg.action === "req") {
 			request = msg.request;

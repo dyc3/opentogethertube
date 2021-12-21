@@ -40,13 +40,19 @@
 <script lang="ts">
 import Vue from "vue";
 import ProcessedText from "@/components/ProcessedText.vue";
-import connection from "@/util/connection";
+import api from "@/util/api";
 import Component from 'vue-class-component';
 
 @Component({
   name: "Chat",
   components: {
     ProcessedText,
+  },
+  data() {
+    return {
+      inputValue: "",
+      api,
+    };
   },
 })
 export default class Chat extends Vue {
@@ -62,7 +68,7 @@ export default class Chat extends Vue {
 
   onInputKeyDown(e) {
     if (e.key === "Enter" && this.inputValue.trim() !== "") {
-      connection.send({ action: "chat", text: this.inputValue });
+      api.chat(this.inputValue);
       this.inputValue = "";
       this.stickToBottom = true;
     }
