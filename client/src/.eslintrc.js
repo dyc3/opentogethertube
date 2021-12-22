@@ -1,6 +1,5 @@
 module.exports = {
   env: {
-    node: true,
     es6: true,
     browser: true,
   },
@@ -28,27 +27,29 @@ module.exports = {
           legacyDecorators: true,
         },
       },
-      plugins: [
-        "vue",
-      ],
+      plugins: ["vue"],
       extends: [
         'plugin:vue/base',
         'plugin:vue/essential',
       ],
       rules: {
         'vue/attribute-hyphenation': ['error', 'always'],
-        'vue/html-self-closing': ['error', {
-          'html': {
-            'void': 'any',
-            'normal': 'never',
-            'component': 'always',
+        'vue/html-self-closing': [
+          'error', {
+            'html': {
+              'void': 'any',
+              'normal': 'never',
+              'component': 'always',
+            },
+            'svg': 'always',
           },
-          'svg': 'always',
-        }],
+        ],
         'vue/mustache-interpolation-spacing': ['error', 'always'],
-        'vue/no-multi-spaces': ['warn', {
-          'ignoreProperties': false,
-        }],
+        'vue/no-multi-spaces': [
+          'warn', {
+            'ignoreProperties': false,
+          },
+        ],
         'vue/no-v-html': 'error',
         'vue/v-bind-style': ['error', 'shorthand'],
         'vue/v-on-style': ['error', 'shorthand'],
@@ -62,8 +63,8 @@ module.exports = {
 				project: ["./tsconfig.json"],
         ecmaFeatures: {
           legacyDecorators: true,
-        }
+        },
 			},
     },
-  ]
+  ],
 };
