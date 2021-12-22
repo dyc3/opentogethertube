@@ -1,17 +1,17 @@
 const express = require('express');
 const uuid = require("uuid/v4");
 const _ = require("lodash");
-import InfoExtract from "./server/infoextractor";
-import { RoomRequestType } from "./common/models/messages";
+import InfoExtract from "./infoextractor";
+import { RoomRequestType } from "../common/models/messages";
 const { getLogger } = require('./logger.js');
-const permissions = require("./common/permissions");
-import roommanager from "./server/roommanager";
+const permissions = require("../common/permissions");
+import roommanager from "./roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./rate-limit");
-import { Role } from "./common/models/types";
+import { Role } from "../common/models/types";
 import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
-import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
-import auth from "./server/auth";
+import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
+import auth from "./auth";
 import usermanager from "./usermanager";
 import passport from 'passport';
 import statusapi from "./api/status";
@@ -99,7 +99,7 @@ router.use("/room", roomapi);
 
 if (process.env.NODE_ENV === "development") {
 	(async () => {
-		router.use("/dev", (await import("./server/api/dev")).default);
+		router.use("/dev", (await import("./api/dev")).default);
 	})();
 }
 

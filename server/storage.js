@@ -3,7 +3,7 @@ const dayjs = require("dayjs");
 const { Room, CachedVideo, User } = require("./models");
 const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
-const permissions = require("./common/permissions");
+const permissions = require("../common/permissions");
 
 const log = getLogger("storage");
 

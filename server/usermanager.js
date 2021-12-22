@@ -5,11 +5,11 @@ import express from 'express';
 import passport from 'passport';
 import crypto from 'crypto';
 import { User, Room } from "./models";
-import clientmanager from "./server/clientmanager";
+import clientmanager from "./clientmanager";
 import { redisClient, redisClientAsync } from './redisclient';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./server/rate-limit";
-import tokens from "./server/auth/tokens";
+import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./rate-limit";
+import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from 'unique-names-generator';
 

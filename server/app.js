@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === "example") {
 	process.exit(1);
 }
 
-const config_path = path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`);
+const config_path = path.resolve(process.cwd(), `../env/${process.env.NODE_ENV}.env`);
 log.info(`Reading config from ${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(config_path)) {
 	log.error(`No config found! Things will break! ${config_path}`);
@@ -157,7 +157,7 @@ passport.use(new DiscordStrategy({
 	scope: ["identify"],
 	passReqToCallback: true,
 }, usermanager.authCallbackDiscord));
-const tokens = require("./server/auth/tokens");
+const tokens = require("./auth/tokens");
 passport.use(new BearerStrategy(async (token, done) => {
 	if (!await tokens.validate(token)) {
 		return done(null, false);
@@ -175,11 +175,11 @@ app.use(usermanager.passportErrorHandler);
 
 const api = require("./api");
 
-const websockets = require("./server/websockets.js");
+const websockets = require("./websockets.js");
 websockets.Setup(server, sessions);
-const clientmanager = require("./server/clientmanager.ts");
+const clientmanager = require("./clientmanager");
 clientmanager.Setup();
-const roommanager = require("./server/roommanager");
+const roommanager = require("./roommanager");
 roommanager.start();
 
 const bodyParser = require('body-parser');
