@@ -4,9 +4,9 @@
 	"license": "AGPL-3.0-or-later",
 	"scripts": {
 		"start": "node app.js",
+		"debug": "nodemon --ignore 'tests/*' --inspect -e ts,js app.js",
 		"lint": "tsc --noEmit && eslint --fix .",
-		"lint-ci": "tsc --noEmit && eslint .",
-		"api-server": "nodemon --ignore 'src/*' --ignore 'tests/*' --inspect -e ts,js app.js"
+		"lint-ci": "tsc --noEmit && eslint ."
 	},
 	"dependencies": {
 		"@divine/synchronization": "^1.2.1",
