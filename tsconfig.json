@@ -26,7 +26,8 @@
 			]
 		},
 		"outDir": "ts-out",
-		"strictNullChecks": true
+		"strictNullChecks": true,
+		"module": "esnext"
 	},
 	"include": [
 		"**/*.ts",
