@@ -1,6 +1,7 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
+		"baseUrl": ".",
 		"types": [
 			"webpack-env",
 			"jest",
@@ -9,6 +10,9 @@
 		"paths": {
 			"@/*": [
 				"src/*"
+			],
+			"common/*": [
+				"../common/*"
 			]
 		}
 	},
