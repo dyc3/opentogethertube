@@ -6,13 +6,13 @@
 		"serve": "vue-cli-service serve",
 		"build": "vue-cli-service build",
 		"lint": "tsc --noEmit && vue-cli-service lint .",
-    	"lint-ci": "tsc --noEmit && vue-cli-service --no-fix lint ."
+		"lint-ci": "tsc --noEmit && vue-cli-service --no-fix lint ."
 	},
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^5.12.1",
-    	"@mdi/font": "^3.9.97",
+		"@mdi/font": "^3.9.97",
 		"@vimeo/player": "^2.10.0",
-    	"@vue/cli": "^4.5.13",
+		"@vue/cli": "^4.5.13",
 		"load-script": "^1.0.0",
 		"material-design-icons-iconfont": "^5.0.1",
 		"ts-loader": "^9.2.2",
