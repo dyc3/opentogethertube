@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
-require('dotenv').config({ path: path.resolve(process.cwd(), `env/${process.env.NODE_ENV}.env`) });
+require('dotenv').config({ path: path.resolve(process.cwd(), `../env/${process.env.NODE_ENV}.env`) });
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
