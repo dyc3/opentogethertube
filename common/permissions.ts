@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { getLogger } from "../logger.js";
+import { getLogger } from "../server/logger.js";
 import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 import { Role } from "./models/types";
 const log = getLogger("permissions");

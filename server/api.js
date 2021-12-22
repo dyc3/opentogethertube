@@ -6,15 +6,15 @@ import { RoomRequestType } from "./common/models/messages";
 const { getLogger } = require('./logger.js');
 const permissions = require("./common/permissions");
 import roommanager from "./server/roommanager";
-const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./server/rate-limit");
+const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./rate-limit");
 import { Role } from "./common/models/types";
-import roomapi from "./server/api/room";
+import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "./common/constants";
 import auth from "./server/auth";
 import usermanager from "./usermanager";
 import passport from 'passport';
-import statusapi from "./server/api/status";
+import statusapi from "./api/status";
 
 const log = getLogger("api");
 

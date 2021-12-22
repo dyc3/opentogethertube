@@ -1,5 +1,5 @@
-import { getLogger } from '../logger.js';
-import { redisClient } from '../redisclient';
+import { getLogger } from './logger.js';
+import { redisClient } from './redisclient';
 import { IRateLimiterStoreOptions, RateLimiterMemory, RateLimiterRedis } from 'rate-limiter-flexible';
 
 const log = getLogger("api/rate-limit");

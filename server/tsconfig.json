@@ -1,0 +1,14 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+	},
+	"include": [
+		"**/*.ts",
+		"tests/**/*.ts",
+		"tests/**/*.tsx"
+	],
+	"exclude": ["node_modules", "dist", "ts-out"],
+	"files": [
+		"./express-types.d.ts"
+	]
+}

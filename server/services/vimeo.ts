@@ -3,7 +3,7 @@ import axios, { AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { InvalidVideoIdException } from "../exceptions";
 import { Video } from "../../common/models/video";
-import { getLogger } from "../../logger";
+import { getLogger } from "../logger";
 
 const log = getLogger("vimeo");
 

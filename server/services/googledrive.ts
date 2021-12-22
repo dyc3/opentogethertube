@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { ServiceLinkParseException, InvalidVideoIdException, OutOfQuotaException } from "../exceptions";
 import { Video } from "../../common/models/video";
-import { getLogger } from "../../logger";
+import { getLogger } from "../logger";
 
 const log = getLogger("googledrive");
 

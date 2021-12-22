@@ -4,9 +4,9 @@ import _ from "lodash";
 import { RedisClient } from "redis";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { BadApiArgumentException, InvalidVideoIdException, OutOfQuotaException, UnsupportedVideoType } from "../exceptions";
-import { getLogger } from "../../logger";
+import { getLogger } from "../logger";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
-import storage from "../../storage";
+import storage from "../storage";
 import { OttException } from "../../common/exceptions";
 
 const log = getLogger("youtube");

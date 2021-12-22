@@ -1,6 +1,6 @@
 import { User as UserAccount } from "./models/user";
 import { AuthToken } from "./common/models/types";
-import { SessionInfo } from './server/auth/tokens';
+import { SessionInfo } from './auth/tokens';
 import * as core from "express-serve-static-core";
 
 declare global {

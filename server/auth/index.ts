@@ -1,11 +1,11 @@
-import { getLogger } from '../../logger.js';
+import { getLogger } from '../logger.js';
 import express from "express";
 import tokens, { SessionInfo } from './tokens';
 import { uniqueNamesGenerator } from 'unique-names-generator';
 import passport from "passport";
 import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
-import usermanager from "../../usermanager";
+import usermanager from "../usermanager";
 
 const router = express.Router();
 router.use(nocache());

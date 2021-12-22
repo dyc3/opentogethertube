@@ -1,8 +1,8 @@
 'use strict';
 import { Sequelize, Model, DataTypes, Optional } from 'sequelize';
-import { QueueMode, Visibility } from '../common/models/types';
+import { QueueMode, Visibility } from '../../common/models/types';
 import { User } from './user';
-import { ROOM_NAME_REGEX } from "../common/constants";
+import { ROOM_NAME_REGEX } from "../../common/constants";
 
 interface RoomAttributes {
   id: number

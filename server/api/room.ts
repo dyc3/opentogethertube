@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { getLogger } from '../../logger.js';
+import { getLogger } from '../logger.js';
 import roommanager from "../roommanager";
 import { QueueMode, Visibility } from "../../common/models/types";
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit";
@@ -8,8 +8,7 @@ import { OttException } from "../../common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
 import { ApplySettingsRequest, RoomRequestType, UndoRequest } from "../../common/models/messages";
-import { User } from "../../models/user";
-import storage from "../../storage";
+import storage from "../storage";
 import { Grants } from "../../common/permissions";
 import { Video } from "common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";

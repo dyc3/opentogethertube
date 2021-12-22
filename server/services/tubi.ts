@@ -1,6 +1,6 @@
 import { URL } from "url";
 import axios from "axios";
-import { getLogger } from "../../logger";
+import { getLogger } from "../logger";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { Video, VideoMetadata } from "common/models/video";
 

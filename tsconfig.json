@@ -16,15 +16,8 @@
 		"baseUrl": ".",
 		"noImplicitThis": true,
 		"types": [
-			"webpack-env",
-			"jest",
-			"vuetify"
+			"jest"
 		],
-		"paths": {
-			"@/*": [
-				"src/*"
-			]
-		},
 		"outDir": "ts-out",
 		"strictNullChecks": true
 	},
@@ -36,5 +29,8 @@
 		"tests/**/*.ts",
 		"tests/**/*.tsx"
 	],
-	"exclude": ["node_modules", "dist", "ts-out"]
+	"exclude": ["node_modules", "dist", "ts-out"],
+	"references": [
+		{ "path": "./common" },
+	]
 }
