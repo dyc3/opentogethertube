@@ -46,6 +46,7 @@
 		"babel-jest": "25.2.6",
 		"core-js": "3.6.4",
 		"css-loader": "^5.2.5",
+		"eslint-plugin-vue": "6.1.2",
 		"fork-ts-checker-webpack-plugin": "^6.2.10",
 		"sass": "^1.41.1",
 		"sass-loader": "^10.0.0",
