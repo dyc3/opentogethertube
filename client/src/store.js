@@ -8,8 +8,8 @@ import { usersModule } from "@/stores/user";
 import { settingsModule } from "@/stores/settings";
 import { ToastStyle } from './models/toast';
 import eventModule from "@/stores/events";
-import { QueueMode } from '../common/models/types';
-import { deserializeMap } from '../common/serialize';
+import { QueueMode } from '../../common/models/types';
+import { deserializeMap } from '../../common/serialize';
 import { OttWebsocketError } from "common/models/types";
 
 Vue.use(Vuex);
