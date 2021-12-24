@@ -7,7 +7,7 @@ const { getLogger } = require('./logger.js');
 const permissions = require("../common/permissions");
 import roommanager from "./roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./rate-limit");
-import { Role } from "../common/models/types";
+import { QueueMode, Role } from "../common/models/types";
 import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
@@ -130,7 +130,7 @@ router.get("/room/:name", async (req, res) => {
 		room.clients = users;
 		for (let video of room.queue) {
 			delete video._lastVotesChanged;
-			if (room.queueMode === "vote") {
+			if (room.queueMode === QueueMode.Vote) {
 				video.votes = video.votes ? video.votes.length : 0;
 			}
 			else {
