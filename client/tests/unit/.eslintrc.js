@@ -3,9 +3,7 @@ module.exports = {
     jest: true,
     browser: true,
   },
-  plugins: [
-    "jest",
-  ],
+  plugins: ["jest"],
   rules: {
     'no-console': 'off',
     '@typescript-eslint/no-empty-function': 'off',
