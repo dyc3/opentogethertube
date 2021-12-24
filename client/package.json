@@ -6,7 +6,8 @@
 		"serve": "vue-cli-service serve",
 		"build": "vue-cli-service build",
 		"lint": "tsc --noEmit && vue-cli-service lint .",
-		"lint-ci": "tsc --noEmit && vue-cli-service --no-fix lint ."
+		"lint-ci": "tsc --noEmit && vue-cli-service --no-fix lint .",
+		"test": "vue-cli-service test:unit --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit"
 	},
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^5.12.1",

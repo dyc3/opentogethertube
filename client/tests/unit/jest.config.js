@@ -19,13 +19,13 @@ module.exports = {
     '!/(common|src)/',
     '/tests/unit/server/',
   ],
-  rootDir: "../../..",
+  rootDir: "../..",
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^common/(.*)$': '<rootDir>/common/$1',
+    '^common/(.*)$': '<rootDir>/../common/$1',
   },
   snapshotSerializers: ['jest-serializer-vue'],
-  testMatch: ['**/tests/unit/client/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)'],
+  testMatch: ['**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)'],
   testURL: 'http://localhost/',
   watchPlugins: [
     'jest-watch-typeahead/filename',
