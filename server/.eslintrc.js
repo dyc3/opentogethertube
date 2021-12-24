@@ -1,5 +1,4 @@
 module.exports = {
-  root: true,
   env: {
     node: true,
     es6: true,
@@ -54,27 +53,6 @@ module.exports = {
       }
     },
     {
-      files: ["*.vue"],
-      parser: "vue-eslint-parser",
-      parserOptions: {
-          parser: "@typescript-eslint/parser",
-          ecmaVersion: 2020,
-          sourceType: "module"
-      },
-      extends: [
-        "plugin:vue/base",
-        "plugin:vue/essential",
-        "@vue/typescript/recommended",
-      ],
-      rules: {
-        // HACK: this rule is required, otherwise travis-ci will fail (for some reason)
-        // even through when run locally, no linting errors occur.
-        "vue/no-parsing-error": ["error", {
-          "invalid-first-character-of-tag-name": false,
-        }],
-      }
-    },
-    {
       files: ["*.ts", "*.tsx"],
       parser: "@typescript-eslint/parser",
       parserOptions: {
@@ -94,6 +72,13 @@ module.exports = {
         "@typescript-eslint/no-unsafe-member-access": "off", // TODO: switch to warn
         "@typescript-eslint/no-unsafe-assignment": "off", // TODO: switch to warn
       }
+    },
+    {
+      files: ["migrations/**"],
+      rules: {
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+      },
     },
   ]
 };
