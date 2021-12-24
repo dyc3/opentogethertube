@@ -1,7 +1,7 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
-		"target": "esnext",
+		"target": "es2018",
 		"baseUrl": ".",
 	},
 	"exclude": ["node_modules", "dist", "ts-out"]
