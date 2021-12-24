@@ -12,11 +12,11 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
     '^.+\\.jsx?$': 'babel-jest',
   },
-  rootDir: "../../..",
+  rootDir: "../..",
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testMatch: ['**/tests/unit/server/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)'],
+  testMatch: ['**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)'],
   testURL: 'http://localhost/',
   watchPlugins: [
     'jest-watch-typeahead/filename',
@@ -44,5 +44,5 @@ module.exports = {
     '!**/src/**',
     '!app.js',
   ],
-  setupFilesAfterEnv: ['./tests/unit/server/jest.setup.redis-mock.js'],
+  setupFilesAfterEnv: ['./tests/unit/jest.setup.redis-mock.js'],
 };

@@ -1,7 +1,7 @@
 const request = require('supertest');
-const app = require('../../../app.js').app;
-const usermanager = require('../../../usermanager.js');
-const { User } = require("../../../models");
+const app = require('../../app.js').app;
+const usermanager = require('../../usermanager.js');
+const { User } = require("../../models");
 
 describe("User API", () => {
 	let token;

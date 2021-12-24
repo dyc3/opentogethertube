@@ -1,10 +1,10 @@
-import InfoExtractor from "../../../server/infoextractor";
-const storage = require("../../../storage");
-const { getMimeType } = require("../../../server/mime");
-const YouTubeAdapter = require("../../../server/services/youtube");
-const { UnsupportedMimeTypeException, OutOfQuotaException } = require("../../../server/exceptions");
-import { ServiceAdapter } from "../../../server/serviceadapter";
-const { redisClientAsync } = require("../../../redisclient");
+import InfoExtractor from "../../infoextractor";
+const storage = require("../../storage");
+const { getMimeType } = require("../../mime");
+const YouTubeAdapter = require("../../services/youtube");
+const { UnsupportedMimeTypeException, OutOfQuotaException } = require("../../exceptions");
+import { ServiceAdapter } from "../../serviceadapter";
+const { redisClientAsync } = require("../../redisclient");
 const _ = require("lodash");
 
 class TestAdapter extends ServiceAdapter {

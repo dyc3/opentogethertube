@@ -6,7 +6,8 @@
 		"start": "node app.js",
 		"debug": "nodemon --ignore 'tests/*' --inspect -e ts,js app.js",
 		"lint": "tsc --noEmit && eslint --fix .",
-		"lint-ci": "tsc --noEmit && eslint ."
+		"lint-ci": "tsc --noEmit && eslint .",
+		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
 	},
 	"dependencies": {
 		"@divine/synchronization": "^1.2.1",

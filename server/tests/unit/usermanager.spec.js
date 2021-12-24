@@ -1,4 +1,4 @@
-const usermanager = require('../../../usermanager.js');
+const usermanager = require('../../usermanager.js');
 
 describe('Usermanager spec', () => {
 	it("should check passwords correctly", () => {

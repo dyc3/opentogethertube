@@ -1,7 +1,7 @@
-import YouTubeAdapter, { YoutubeErrorResponse, YoutubeApiVideoListResponse, YoutubeApiVideo } from "../../../../server/services/youtube";
+import YouTubeAdapter, { YoutubeErrorResponse, YoutubeApiVideoListResponse, YoutubeApiVideo } from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
-import { InvalidVideoIdException, OutOfQuotaException } from "../../../../server/exceptions";
-import { redisClient } from "../../../../redisclient";
+import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
+import { redisClient } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import fs from "fs";
 

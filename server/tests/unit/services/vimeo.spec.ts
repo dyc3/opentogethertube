@@ -1,5 +1,5 @@
-import VimeoAdapter from "../../../../server/services/vimeo";
-import { InvalidVideoIdException } from "../../../../server/exceptions";
+import VimeoAdapter from "../../../services/vimeo";
+import { InvalidVideoIdException } from "../../../exceptions";
 
 const validVideoLinks = [["283918572", "https://vimeo.com/283918572"]];
 

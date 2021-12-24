@@ -1,8 +1,8 @@
-import roommanager from "../../../server/roommanager";
+import roommanager from "../../roommanager";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { Room as DbRoom } from "../../../models";
-import { Room } from "../../../server/room";
+import { Room as DbRoom } from "../../models";
+import { Room } from "../../room";
 import { QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
 

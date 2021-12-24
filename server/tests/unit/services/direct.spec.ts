@@ -1,7 +1,7 @@
-jest.mock("../../../../ffprobe");
+jest.mock("../../../ffprobe");
 
-import DirectVideoAdapter from "../../../../server/services/direct";
-import ffprobe from "../../../../ffprobe";
+import DirectVideoAdapter from "../../../services/direct";
+import ffprobe from "../../../ffprobe";
 
 describe("Direct", () => {
 	describe("canHandleURL", () => {
