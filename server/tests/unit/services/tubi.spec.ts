@@ -1,4 +1,4 @@
-import TubiAdapter from "../../../../server/services/tubi";
+import TubiAdapter from "../../../services/tubi";
 import fs from "fs";
 import { AxiosResponse } from "axios";
 
@@ -25,7 +25,7 @@ const invalidLinks = [
 	"https://tubitv.com/movies/",
 ];
 
-const FIXTURE_DIRECTORY = "./tests/unit/server/fixtures/services/tubi";
+const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/tubi";
 
 describe("Tubi TV", () => {
 	const adapter = new TubiAdapter();

@@ -32,7 +32,7 @@ const validCollectionLinks = [
 	"https://youtu.be/3kw2_89ym31W?list=PL4d83g68ij3l45kj6345hFaEHvzLovtb",
 ];
 
-const FIXTURE_DIRECTORY = "./tests/unit/server/fixtures/services/youtube";
+const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/youtube";
 
 function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
 	// TODO: filter out parts that are not specified in the parts parameter

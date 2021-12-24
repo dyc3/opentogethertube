@@ -1,9 +1,9 @@
 const request = require('supertest');
 import roommanager from '../../roommanager';
-const app = require('../../../app.js').app;
+const app = require('../../app.js').app;
 const InfoExtract = require('../../infoextractor');
 const { User } = require("../../models");
-const usermanager = require('../..usermanager.js');
+const usermanager = require('../../usermanager.js');
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
 import { redisClient } from "../../redisclient";
 import tokens from "../../auth/tokens";
