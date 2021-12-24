@@ -15,7 +15,7 @@
 </template>
 
 <script>
-const urlRegex = /(http(?:|s)?:\/\/[^\s]+)/;
+const urlRegex = /(https?:\/\/[^\s]+)/;
 
 export default {
 	name: "ProcessedText",
