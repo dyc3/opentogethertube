@@ -9,14 +9,11 @@
     "client"
   ],
   "scripts": {
-    "start": "node app.js",
-    "debug": "nodemon --inspect -e ts,js app.js",
+    "start": "yarn workspace ott-server start",
     "serve": "yarn workspace ott-client serve",
     "lint": "yarn workspace ott-server lint && yarn workspace ott-client lint",
     "lint-ci": "yarn workspace ott-server lint-ci && yarn workspace ott-client lint-ci",
-    "test": "npm run test-unit-server && npm run test-unit-client",
-    "test-unit-client": "vue-cli-service test:unit --config ./tests/unit/client/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit",
-    "test-unit-server": "jest --config ./tests/unit/server/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage",
+    "test": "yarn workspace ott-server test && yarn workspace ott-client test",
     "test-e2e": "start-server-and-test optic-dev http-get://localhost:8080 cy:run",
     "cy:run": "cypress run --config-file cypress.json --headless",
     "cy:open": "cypress open --config-file cypress.json",
