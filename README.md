@@ -13,7 +13,7 @@ https://opentogethertube.com/
 
 ### Prerequisites
 
-This project targets node 12.
+This project targets node 14.
 
 ### Setup
 
