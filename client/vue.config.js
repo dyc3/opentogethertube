@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.resolve(process.cwd(), `../env/${process.e
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
+	lintOnSave: process.env.NODE_ENV !== 'production',
 	pages: {
 		index: {
 			entry: 'src/main.js',
