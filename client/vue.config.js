@@ -21,8 +21,15 @@ module.exports = {
 	transpileDependencies: ["vuetify"],
 	pluginOptions: {
 		webpackBundleAnalyzer: {
-			analyzerHost: "0.0.0.0",
+			analyzerHost: '0.0.0.0',
 			openAnalyzer: false,
+		},
+		i18n: {
+			locale: 'en',
+			fallbackLocale: 'en',
+			localeDir: 'locales',
+			enableInSFC: true,
+			enableBridge: false,
 		},
 	},
 	configureWebpack: {

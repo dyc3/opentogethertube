@@ -3,16 +3,14 @@
 		<v-container class="hero" fluid fill-height grid-list-md text-xs-center>
 			<v-row align="center" justify="center" no-gutters>
 				<div class="hero-text" cols="12" sm="10" md="8" lg="6">
-					<h1>Enjoy Together.</h1>
+					<h1>{{ $t("landing.hero.title") }}</h1>
 					<span>
-						Real-time syncronized playback. Optional voting system.<br>
-						Dark theme. No sign up required. All Open Source.<br>
-						It's never been easier to watch videos together.
+						{{ $t("landing.hero.description") }}
 					</span>
 					<div class="hero-buttons">
-						<v-btn elevation="12" x-large @click="createTempRoom">Create Room</v-btn>
-						<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
-						<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">View Source</v-btn>
+						<v-btn elevation="12" x-large @click="createTempRoom">{{ $t("landing.hero.btns.create") }}</v-btn>
+						<v-btn elevation="12" x-large to="/rooms">{{ $t("landing.hero.btns.browse") }}</v-btn>
+						<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">{{ $t("landing.hero.btns.source") }}</v-btn>
 					</div>
 				</div>
 			</v-row>
@@ -192,6 +190,7 @@ export default {
 	.hero-text {
 		display: flex;
 		flex-direction: column;
+		width: 30%;
 
 		.hero-buttons {
 			display: flex;
