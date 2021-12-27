@@ -13,7 +13,7 @@ https://opentogethertube.com/
 
 ### Prerequisites
 
-This project targets node 14.
+This project targets node 14 and up.
 
 ### Setup
 
@@ -31,7 +31,8 @@ sudo apt install redis
 
 3. Install dependencies.
 ```
-npm install
+npm install -g yarn
+yarn
 ```
 
 4. Copy and fill out the configuration file
@@ -43,24 +44,24 @@ cp env/example.env env/production.env
 
 5. Build Vue files so they can be served statically.
 ```
-npm run build
+yarn run build
 ```
 
 6. Run database migrations
 ```
-NODE_ENV=production-sqlite npx sequelize-cli db:migrate
+NODE_ENV=production-sqlite yarn workspace ott-server run sequelize-cli db:migrate
 ```
 
 7. Run the server.
 ```
-NODE_ENV=production npm start
+NODE_ENV=production yarn start
 ```
 
 You can also specify the port the server will listen on by setting the
 `PORT` environment variable.
 
 ```
-PORT=8080 NODE_ENV=production npm start
+PORT=8080 NODE_ENV=production yarn start
 ```
 
 ## Docker
@@ -69,21 +70,21 @@ See the [Docker README](docker/README.md)
 
 # Contributing
 
-Contributions are welcome. The current iteration is named "Firework", and you can
-see what's currently being worked on under the "projects" tab.
+Contributions are welcome! Check out issues that have the "good first issue" label.
 
 ## Setting up your dev environment
 
 ### Prerequisites
 
-This project targets the lastest LTS version of node.js.
+This project targets node 14 and up.
 
 ### Setup
 
 1. Fork this repo and clone it.
 2. In a terminal, navigate to the `opentogethertube` folder and run
 ```
-npm install
+npm install -g yarn
+yarn
 ```
 3. Next you need to set up your configuration. Start by copying the example
 config in the `env` folder to a new file called `development.env`
@@ -98,7 +99,7 @@ cp env/example.env env/development.env
 8. Open `env/development.env` and replace `API_KEY_GOES_HERE` with the appropriate api key.
 9. Initialize your local database.
 ```
-npx sequelize-cli db:migrate
+yarn workspace ott-server run sequelize-cli db:migrate
 ```
 10. Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
 
@@ -106,7 +107,7 @@ npx sequelize-cli db:migrate
 
 To run the test suite, run
 ```
-npm test
+yarn test
 ```
 
 ## How to run
@@ -115,11 +116,11 @@ This project has 2 main components: the client and the server. You can run
 both of them simultaneously using the command
 #### Linux / Mac
 ```
-npm run dev
+yarn run dev
 ```
 #### Windows
 ```
-npm run dev-windows
+yarn run dev-windows
 ```
 
 Sometimes, you may want to run them seperately so you can use breakpoints to
@@ -127,4 +128,4 @@ debug. Using VSCode, this is trivial.
 
 To start the server: `Debug > Select "Launch Program" > Start`
 
-To start the client: `npm run serve`
+To start the client: `yarn workspace ott-client serve`
