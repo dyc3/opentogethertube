@@ -11,12 +11,12 @@ COPY . .
 RUN apk update -q && apk --no-cache add libc6-compat python make g++ autoconf automake libtool -q
 
 # Install app dependencies
-RUN npm install
+RUN yarn
 
 # Build the application for deployement
-RUN npm run build
+RUN yarn run build
 
-RUN rm -rf node_modules && npm install --only=production
+RUN rm -rf node_modules && yarn install --production=true
 
 ### Deployement server nginx ###
 FROM node:14-alpine3.11 as production-stage
@@ -35,7 +35,7 @@ COPY --from=build-stage /usr/app/ /usr/app/
 COPY --from=build-stage /usr/app/docker/scripts/wait_for_db.sh /usr/app/wait_for_db.sh
 
 # Remove all the unnecessary files
-RUN rm -rf public src .browserslistrc .eslintrc.js .gitignore jest.config.js postcss.config.js vue.config.js babel.config.js docker-compose.yml /root/.npm
+RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitignore postcss.config.js client/vue.config.js client/babel.config.js docker-compose.yml /root/.npm
 
 RUN mkdir env && touch env/production.env
 
