@@ -1,11 +1,11 @@
 name: "OpenTogetherTube"
 tasks:
   start:
-    command: npm run dev
+    command: yarn run dev
     inboundUrl: http://localhost:3000
   api-server:
-    command: npm run api-server
+    command: yarn run api-server
     inboundUrl: http://localhost:3000
   tests:
-    command: npm run test
+    command: yarn run test
     inboundUrl: http://localhost:3000

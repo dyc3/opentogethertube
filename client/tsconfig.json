@@ -1,0 +1,28 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"target": "es2018",
+		"baseUrl": ".",
+		"types": [
+			"webpack-env",
+			"jest",
+			"vuetify"
+		],
+		"paths": {
+			"@/*": [
+				"src/*"
+			],
+			"common/*": [
+				"../common/*"
+			]
+		}
+	},
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"src/**/*.vue",
+		"tests/**/*.ts",
+		"tests/**/*.tsx"
+	],
+	"exclude": ["node_modules", "dist", "ts-out"]
+}

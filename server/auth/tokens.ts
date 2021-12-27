@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { redisClientAsync } from "../../redisclient";
+import { redisClientAsync } from "../redisclient";
 import { AuthToken } from "../../common/models/types";
 
 const PREFIX = "auth";

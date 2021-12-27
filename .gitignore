@@ -1,7 +1,6 @@
 .DS_Store
 node_modules
 /dist
-/db
 /env
 /coverage
 /logs

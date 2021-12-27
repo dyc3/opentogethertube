@@ -2,9 +2,9 @@ import { Room } from "./room";
 import { RoomOptions, RoomState, RoomStatePersistable } from "../common/models/types";
 import _ from "lodash";
 import NanoTimer from "nanotimer";
-import { getLogger } from "../logger.js";
-import { redisClientAsync } from "../redisclient";
-import storage from "../storage";
+import { getLogger } from "./logger.js";
+import { redisClientAsync } from "./redisclient";
+import storage from "./storage";
 import { RoomAlreadyLoadedException, RoomNameTakenException, RoomNotFoundException } from "./exceptions";
 // WARN: do NOT import clientmanager
 

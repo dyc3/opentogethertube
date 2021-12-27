@@ -1,5 +1,5 @@
 import { SponsorBlock } from 'sponsorblock-api';
-import { redisClientAsync } from '../redisclient';
+import { redisClientAsync } from './redisclient';
 import uuid from 'uuid';
 
 const SPONSORBLOCK_USERID_KEY = `sponsorblock-userid`;

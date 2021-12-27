@@ -1,5 +1,0 @@
-node_modules/*
-dist/*
-db/*
-coverage/*
-tests/unit/server/fixtures/*

@@ -1,5 +1,5 @@
-import { getLogger } from "../logger.js";
-import { redisClientAsync } from "../redisclient";
+import { getLogger } from "./logger.js";
+import { redisClientAsync } from "./redisclient";
 
 const log = getLogger("statistics");
 

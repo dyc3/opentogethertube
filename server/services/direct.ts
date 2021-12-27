@@ -3,8 +3,8 @@ import _ from "lodash";
 import { ServiceAdapter } from "../serviceadapter";
 import { LocalFileException, UnsupportedMimeTypeException, MissingMetadataException } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
-import ffprobe from "../../ffprobe";
-import { getLogger } from "../../logger";
+import ffprobe from "../ffprobe";
+import { getLogger } from "../logger";
 import { Video } from "../../common/models/video";
 
 const log = getLogger("direct");

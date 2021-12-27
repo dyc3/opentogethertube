@@ -95,12 +95,5 @@ module.exports = {
         "@typescript-eslint/no-unsafe-assignment": "off", // TODO: switch to warn
       }
     },
-    {
-      files: ["migrations/**"],
-      rules: {
-        "no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars": "off",
-      },
-    },
   ]
 };

@@ -1,7 +1,7 @@
 import { URL } from "url";
 import axios from "axios";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import { getLogger } from "../../logger";
+import { getLogger } from "../logger";
 import { Video, VideoMetadata } from "../../common/models/video";
 import { InvalidVideoIdException } from "../exceptions";
 

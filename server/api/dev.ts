@@ -1,9 +1,9 @@
-import { getLogger } from '../../logger.js';
+import { getLogger } from '../logger.js';
 import express from "express";
 import { rateLimiter } from "../rate-limit";
 import roommanager from "../roommanager";
 import { RoomRequestType } from '../../common/models/messages';
-import usermanager from '../../usermanager.js';
+import usermanager from '../usermanager.js';
 import faker from "faker";
 import tokens from "../auth/tokens";
 
