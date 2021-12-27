@@ -110,9 +110,9 @@ function checkRedis() {
 }
 checkRedis();
 
-if (fs.existsSync("./dist")) {
+if (fs.existsSync("../client/dist")) {
 	// serve static files without creating a bunch of sessions
-	app.use(express.static(__dirname + "/dist", {
+	app.use(express.static(__dirname + "/../client/dist", {
 		maxAge: "2 days",
 		redirect: false,
 		index: false,
@@ -202,7 +202,7 @@ app.use((req, res, next) => {
 });
 
 function serveBuiltFiles(req, res) {
-	fs.readFile("dist/index.html", (err, contents) => {
+	fs.readFile("../client/dist/index.html", (err, contents) => {
 		res.setHeader("Content-type", "text/html");
 		if (contents) {
 			res.send(contents.toString());
@@ -214,7 +214,7 @@ function serveBuiltFiles(req, res) {
 }
 
 app.use("/api", api);
-if (fs.existsSync("./dist")) {
+if (fs.existsSync("../client/dist")) {
 	app.get("*", serveBuiltFiles);
 }
 else {
