@@ -75,6 +75,7 @@ import Vue from "vue";
 import Component from 'vue-class-component';
 import { API } from "@/common-http.js";
 import isEmail from 'validator/es/lib/isEmail';
+import { USERNAME_LENGTH_MAX } from "common/constants";
 
 @Component({
 	name: "LogInForm",
@@ -112,8 +113,8 @@ export default class LogInForm extends Vue {
 		v => v && isEmail(v) || "Must be a valid email",
 	]
 	usernameRules = [
-		// eslint-disable-next-line array-bracket-newline
 		v => !!v || "Username is required",
+		v => !!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX || `Username must be between 1 and ${USERNAME_LENGTH_MAX} characters`,
 	]
 	passwordRules = [
 		v => !!v || "Password is required",
