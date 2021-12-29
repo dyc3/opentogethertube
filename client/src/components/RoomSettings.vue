@@ -74,7 +74,6 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
 import _ from "lodash";
 import Component, { mixins } from "vue-class-component";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
