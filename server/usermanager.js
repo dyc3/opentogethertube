@@ -12,6 +12,8 @@ import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./rate-limit"
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from 'unique-names-generator';
+import { USERNAME_LENGTH_MAX } from '../common/constants';
+import { LengthOutOfRangeException } from './exceptions';
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
@@ -59,6 +61,17 @@ router.post("/", nocache(), async (req, res) => {
 			success: false,
 			error: {
 				message: "Missing argument (username)",
+			},
+		});
+		return;
+	}
+	if (req.body.username.length > USERNAME_LENGTH_MAX) {
+		// throw new LengthOutOfRangeException("Username length", { max: USERNAME_LENGTH_MAX });
+		res.status(400).json({
+			success: false,
+			error: {
+				name: "LengthOutOfRangeException",
+				message: `Username length must be less than or equal to ${USERNAME_LENGTH_MAX}`,
 			},
 		});
 		return;
@@ -283,7 +296,7 @@ router.post("/register", async (req, res) => {
 				},
 			});
 		}
-		else if (err.name === "SequelizeValidationError" || err.name === "BadPasswordError") {
+		else if (err.name === "SequelizeValidationError" || err.name === "BadPasswordError" || err.name === "LengthOutOfRangeException") {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -460,6 +473,9 @@ let usermanager = {
 	async registerUser({ email, username, password }) {
 		if (!this.isPasswordValid(password)) {
 			throw new BadPasswordError();
+		}
+		if (username.length > USERNAME_LENGTH_MAX) {
+			throw new LengthOutOfRangeException("Username length", { max: USERNAME_LENGTH_MAX });
 		}
 
 		let salt = crypto.randomBytes(128);

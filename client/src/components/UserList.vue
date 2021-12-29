@@ -13,6 +13,7 @@
 				placeholder="Set your name"
 				:loading="setUsernameLoading"
 				:error-messages="setUsernameFailureText"
+				:counter="USERNAME_LENGTH_MAX"
 				/>
 		</v-list-item>
 		<div v-if="!$store.state.permsMeta.loaded">
@@ -79,6 +80,7 @@ import { API } from "@/common-http.js";
 import PermissionsMixin from "@/mixins/permissions";
 import { PlayerStatus } from "common/models/types";
 import api from "@/util/api";
+import { USERNAME_LENGTH_MAX } from "common/constants";
 
 /** Lists users that are connected to a room. */
 export default {
@@ -95,6 +97,7 @@ export default {
 			setUsernameLoading: false,
 			setUsernameFailureText: "",
 			api,
+			USERNAME_LENGTH_MAX,
 		};
 	},
 	async created() {
