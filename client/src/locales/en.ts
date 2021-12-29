@@ -1,4 +1,4 @@
-{
+export default {
   "landing": {
     "hero": {
       "title": "Enjoy Together.",
@@ -6,8 +6,8 @@
       "btns": {
         "create": "Create Room",
         "browse": "Browse Rooms",
-        "source": "View Source"
-      }
-    }
-  }
-}
+        "source": "View Source",
+      },
+    },
+  },
+};
