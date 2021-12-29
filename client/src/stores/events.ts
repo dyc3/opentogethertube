@@ -1,3 +1,5 @@
+// Ignoring because this rule is wrong. all the template strings in here use strings.
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Module } from 'vuex';
 import { ToastStyle } from '@/models/toast';
 import { RoomRequestType, ServerMessageEvent, ServerMessageEventCustom } from 'common/models/messages';
