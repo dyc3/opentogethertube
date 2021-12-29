@@ -170,3 +170,21 @@ export class ClientNotFoundInRoomException extends OttException {
 		super(`The server was unable to find a client in the room "${roomName}" associated with the session. This might mean that your browser isn't saving cookies, try refreshing. If you aren't connected to the room, reconnect to the room and try again. This could also mean that the room does not exist at all.`);
 	}
 }
+
+/**
+ * Used to indicate that something is too short or too long.
+ */
+export class LengthOutOfRangeException extends OttException {
+	name = "LengthOutOfRangeException"
+
+	constructor(thing: string, range: Partial<{ min: number, max: number }>) {
+		super("LengthOutOfRangeException");
+		if ("min" in range && "max" in range) {
+			this.message = `${thing} must be between ${range.min} and ${range.max}.`;
+		} else if ("max" in range) {
+			this.message = `${thing} must be less than or equal to ${range.max}.`;
+		} else if ("min" in range) {
+			this.message = `${thing} must be greater than or equal to ${range.min}.`;
+		}
+	}
+}
