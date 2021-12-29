@@ -5,6 +5,7 @@ import Vuetify from 'vuetify';
 import AddPreview from "@/components/AddPreview.vue";
 import VueEvents from 'vue-events';
 import VBtn from "vuetify/lib/components/VBtn";
+import { i18n } from "@/i18n";
 
 // HACK: import globally to prevent it from yelling at us
 // https://github.com/vuetifyjs/vuetify/issues/4964
@@ -45,6 +46,7 @@ function mountNewInstance(store) {
 	return shallowMount(AddPreview, {
 		store,
 		localVue,
+		i18n,
 		stubs: ['router-link'],
 	});
 }

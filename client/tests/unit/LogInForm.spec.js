@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 import { shallowMount, mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import LogInForm from '@/components/LogInForm.vue';
+import { i18n } from "@/i18n";
 
 // HACK: import globally to prevent it from yelling at us
 // https://github.com/vuetifyjs/vuetify/issues/4964
@@ -29,6 +30,7 @@ describe("Login form", () => {
 			store,
 			localVue,
 			vuetify,
+			i18n,
 			stubs: ['router-link'],
 		});
 		expect(wrapper.exists()).toBe(true);

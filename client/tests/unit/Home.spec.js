@@ -3,6 +3,7 @@ import { shallowMount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import Home from "@/views/Home.vue";
 import VueEvents from 'vue-events';
+import { i18n } from "@/i18n";
 
 // HACK: import globally to prevent it from yelling at us
 // https://github.com/vuetifyjs/vuetify/issues/4964
@@ -22,6 +23,7 @@ describe("Home view", () => {
 		let wrapper = shallowMount(Home, {
 			localVue,
 			vuetify,
+			i18n,
 			stubs: ['router-link'],
 		});
 		expect(wrapper.exists()).toBe(true);
