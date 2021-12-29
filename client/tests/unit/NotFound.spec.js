@@ -8,6 +8,7 @@ import NotFound from "@/views/NotFound.vue";
 Vue.use(Vuetify);
 
 describe("NotFound view", () => {
+	// eslint-disable-next-line jest/expect-expect
 	it("should render without failing", () => {
 		shallowMount(NotFound);
 	});

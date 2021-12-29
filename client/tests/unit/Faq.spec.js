@@ -8,6 +8,7 @@ import Faq from "@/views/Faq.vue";
 Vue.use(Vuetify);
 
 describe("FAQ view", () => {
+	// eslint-disable-next-line jest/expect-expect
 	it("should render without failing", () => {
 		shallowMount(Faq);
 	});

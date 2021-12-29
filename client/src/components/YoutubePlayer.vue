@@ -12,7 +12,9 @@ import DebugPlayerWatcher from "./debug/DebugPlayerWatcher.vue";
 import { getSdk } from "@/util/playerHelper.js";
 
 const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";
+// TODO: convert to ts and use an enum for this.
 // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const YT_STATUS_UNSTARTED = -1;
 const YT_STATUS_ENDED = 0;
 const YT_STATUS_PLAYING = 1;

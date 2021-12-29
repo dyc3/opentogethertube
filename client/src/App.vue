@@ -79,9 +79,9 @@
         </div>
       </template>
     </v-navigation-drawer>
-    <v-content>
+    <v-main>
       <router-view/>
-    </v-content>
+    </v-main>
     <v-container>
       <v-dialog v-model="showCreateRoomForm" persistent max-width="600">
         <CreateRoomForm @roomCreated="showCreateRoomForm = false" @cancel="showCreateRoomForm = false" />

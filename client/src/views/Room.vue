@@ -620,9 +620,6 @@ export default {
     },
   },
   mounted() {
-    console.log(this.$store.state.joinFailReason);
-    console.log(this.showJoinFailOverlay);
-    console.log(this.joinFailReason);
     this.$events.on("playVideo", () => {
       this.$refs.player.play();
     });
