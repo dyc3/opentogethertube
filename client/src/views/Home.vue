@@ -190,7 +190,7 @@ export default {
 	.hero-text {
 		display: flex;
 		flex-direction: column;
-		width: 30%;
+		max-width: 600px;
 
 		.hero-buttons {
 			display: flex;
