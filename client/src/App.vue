@@ -158,13 +158,17 @@ export default Vue.extend({
     await this.$store.dispatch("getNewToken");
 
     // ask the server if we are logged in or not, and update the client to reflect that status.
-    await API.get("/user").then(res => {
-      if (res.data.loggedIn) {
-        let user = res.data;
-        delete user.loggedIn;
+    let resp = await API.get("/user");
+    if (resp.data.loggedIn) {
+      let user = resp.data;
+      delete user.loggedIn;
+      try {
         this.$store.commit("LOGIN", user);
       }
-    });
+      catch (e) {
+        console.error("Failed to store user info in vuex. User is still logged in.", e);
+      }
+    }
   },
 });
 </script>
