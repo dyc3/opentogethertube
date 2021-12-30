@@ -122,12 +122,12 @@ export default {
   name: "omniplayer",
   props: ["source"],
   components: {
-    YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/YoutubePlayer.vue"),
-    VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/VimeoPlayer.vue"),
-    DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/DailymotionPlayer.vue"),
-    GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/GoogleDrivePlayer.vue"),
-    DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/DirectPlayer.vue"),
-    GenericHlsPlayer: () => import(/* webpackChunkName: "hls" */"@/components/GenericHlsPlayer.vue"),
+    YoutubePlayer: () => import(/* webpackChunkName: "youtube" */"@/components/players/YoutubePlayer.vue"),
+    VimeoPlayer: () => import(/* webpackChunkName: "vimeo" */"@/components/players/VimeoPlayer.vue"),
+    DailymotionPlayer: () => import(/* webpackChunkName: "dailymotion" */"@/components/players/DailymotionPlayer.vue"),
+    GoogleDrivePlayer: () => import(/* webpackChunkName: "googledrive" */"@/components/players/GoogleDrivePlayer.vue"),
+    DirectPlayer: () => import(/* webpackChunkName: "direct" */"@/components/players/DirectPlayer.vue"),
+    GenericHlsPlayer: () => import(/* webpackChunkName: "hls" */"@/components/players/GenericHlsPlayer.vue"),
   },
   methods: {
     player() {

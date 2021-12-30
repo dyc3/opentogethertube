@@ -206,7 +206,7 @@ import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from
 import _ from "lodash";
 import VueSlider from 'vue-slider-component';
 import 'vue-slider-component/theme/default.css';
-import OmniPlayer from "@/components/OmniPlayer.vue";
+import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import PermissionsMixin from "@/mixins/permissions";
 import UserList from "@/components/UserList.vue";

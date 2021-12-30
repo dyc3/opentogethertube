@@ -8,7 +8,7 @@
 
 <script>
 import _ from "lodash";
-import DebugPlayerWatcher from "./debug/DebugPlayerWatcher.vue";
+import DebugPlayerWatcher from "@/components/debug/DebugPlayerWatcher.vue";
 import { getSdk } from "@/util/playerHelper.js";
 
 const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { shallowMount } from '@vue/test-utils';
-import YoutubePlayer from "@/components/YoutubePlayer.vue";
+import YoutubePlayer from "@/components/players/YoutubePlayer.vue";
 // we need to import the mocks so mounting the component doesn't fail.
 // eslint-disable-next-line no-unused-vars
 import ResizeObserver from './__mocks__/ResizeObserver';
