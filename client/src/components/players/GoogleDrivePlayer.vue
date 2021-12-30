@@ -1,7 +1,6 @@
 <template>
 	<div class="googledrive">
 		<video id="gdriveplayer" class="video-js vjs-default-skin" :key="videoId">
-			<!-- <source :src="videoSource" :type="$store.state.room.currentSource.mime" /> -->
 		</video>
 	</div>
 </template>

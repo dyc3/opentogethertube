@@ -38,20 +38,25 @@ export default class ShareInvite extends Vue {
 		return window.location.href.split('?')[0].toLowerCase();
 	}
 
-	copyInviteLink() {
-		// @ts-expect-error $el actually does exist
-		let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector('input');
-		if (!textfield) {
-			console.error("failed to copy link: input not found");
-			return;
+	async copyInviteLink() {
+		if (navigator.clipboard) {
+			await navigator.clipboard.writeText(this.inviteLink);
 		}
-		textfield.select();
-		document.execCommand("copy");
+		else {
+			// @ts-expect-error $el actually does exist
+			let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector('input');
+			if (!textfield) {
+				console.error("failed to copy link: input not found");
+				return;
+			}
+			textfield.select();
+			document.execCommand("copy");
+			setTimeout(() => {
+				this.copyInviteLinkSuccessText = "";
+				textfield?.blur();
+			}, 3000);
+		}
 		this.copyInviteLinkSuccessText = "Copied!";
-		setTimeout(() => {
-			this.copyInviteLinkSuccessText = "";
-			textfield?.blur();
-		}, 3000);
 	}
 
 	onFocusHighlightText(e) {

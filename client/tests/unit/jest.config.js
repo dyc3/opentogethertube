@@ -45,15 +45,11 @@ module.exports = {
     '!**/*.config.js',
     '!**/*.eslintrc.js',
     '!**/coverage/**',
-    '!**/config/**',
-    '!**/migrations/**',
-    '!**/models/**',
-    '!**/seeders/**',
-    '!**/server/**',
     '!**/tests/**',
     '!src/App.vue',
     '!src/plugins/vuetify.js',
     '!src/(main|router).js',
     '!*.js',
+    '!src/components/players/**', // Ignore players because coverage for these is not really useful signal, and it's really hard to write unit tests for them. Better to write e2e integration tests for them.
   ],
 };
