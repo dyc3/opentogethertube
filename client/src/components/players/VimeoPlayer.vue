@@ -30,25 +30,24 @@ export default {
 		this.updateIframe();
 	},
 	methods: {
-		updateIframe() {
-			axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${this.videoId}&responsive=true&portrait=false&controls=false&playsinline=1`).then(res => {
-				this.iframe = res.data.html;
-				setTimeout(() => {
-					this.player.on("play", () => this.$emit("playing"));
-					this.player.on("pause", () => this.$emit("paused"));
-					this.player.on("loaded", () => this.$emit("ready"));
-					this.player.on("bufferstart", () => {
-						this.isBuffering = true;
-						this.$emit("buffering");
-					});
-					this.player.on("bufferend", () => {
-						this.isBuffering = false;
-						this.$emit("ready");
-					});
-					this.player.on("error", () => this.$emit("error"));
-					this.$emit("apiready");
-				}, 0);
-			});
+		async updateIframe() {
+			let resp = await axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${this.videoId}&responsive=true&portrait=false&controls=false&playsinline=1`);
+			this.iframe = resp.data.html;
+			setTimeout(() => {
+				this.player.on("play", () => this.$emit("playing"));
+				this.player.on("pause", () => this.$emit("paused"));
+				this.player.on("loaded", () => this.$emit("ready"));
+				this.player.on("bufferstart", () => {
+					this.isBuffering = true;
+					this.$emit("buffering");
+				});
+				this.player.on("bufferend", () => {
+					this.isBuffering = false;
+					this.$emit("ready");
+				});
+				this.player.on("error", () => this.$emit("error"));
+				this.$emit("apiready");
+			}, 0);
 		},
 		play() {
 			return this.player.play();
