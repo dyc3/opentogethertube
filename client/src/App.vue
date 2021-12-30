@@ -162,12 +162,7 @@ export default Vue.extend({
     if (resp.data.loggedIn) {
       let user = resp.data;
       delete user.loggedIn;
-      try {
-        this.$store.commit("LOGIN", user);
-      }
-      catch (e) {
-        console.error("Failed to store user info in vuex. User is still logged in.", e);
-      }
+      this.$store.commit("LOGIN", user);
     }
   },
 });
