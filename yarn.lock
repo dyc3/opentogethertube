@@ -2982,6 +2982,16 @@
   resolved "https://registry.yarnpkg.com/@types/validator/-/validator-13.7.0.tgz#fa25263656d234473025c2d48249a900053c355a"
   integrity sha512-+jBxVvXVuggZOrm04NR8z+5+bgoW4VZyLzUO+hmPPW1mVFL/HaitLAkizfv4yg9TbG8lkfHWVMQ11yDqrVVCzA==
 
+"@types/video.js@^7.3.29":
+  version "7.3.29"
+  resolved "https://registry.yarnpkg.com/@types/video.js/-/video.js-7.3.29.tgz#f3ed29c10540e908ed3d62efb08a06f9776ebb62"
+  integrity sha512-7xP5O3tQC6dm5xljwwvDvMKTumlu/cag4k5FwezMUazoCAbni0t3NB5ToavQlNAH5OKLLP3/ZEJbPqP6ShocIA==
+
+"@types/vimeo__player@^2.16.0":
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/@types/vimeo__player/-/vimeo__player-2.16.0.tgz#e02bb5e93d166f958deb98b5b87010626072b47e"
+  integrity sha512-VOVx0hW72PwBUeQFYjKZR3v7P+WwwkQ9nx5yovGwT3GYmmgL7nBIxie44cvqyA33HYJTTxtIhkpLOdK33WoCnA==
+
 "@types/web@0.0.36":
   version "0.0.36"
   resolved "https://registry.yarnpkg.com/@types/web/-/web-0.0.36.tgz#62ead6fe8152eb9f4ac1c04d704797541cd17a79"
