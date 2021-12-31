@@ -2,7 +2,7 @@
   <div>
     <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
       <v-col v-if="!$store.state.fullscreen">
-        <h1 class="room-title">{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? "Temporary Room" : $store.state.room.name) }}</h1>
+        <h1 class="room-title">{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}</h1>
         <div class="d-flex flex-row">
           <span id="connectStatus">{{ connectionStatus }}</span>
           <div class="flex-grow-1"><!-- Spacer --></div>
@@ -124,11 +124,11 @@
           <v-col cols="12" md="8" sm="12">
             <v-tabs grow v-model="queueTab" @change="onTabChange">
               <v-tab>
-                Queue
-                <span class="bubble">{{ $store.state.room.queue.length <= 99 ? $store.state.room.queue.length : "99+" }}</span>
+                {{ $t("room.tabs.queue") }}
+                <span class="bubble">{{ $store.state.room.queue.length <= 99 ? $n($store.state.room.queue.length) : "99+" }}</span>
               </v-tab>
-              <v-tab>Add</v-tab>
-              <v-tab>Settings</v-tab>
+              <v-tab>{{ $t("room.tabs.add") }}</v-tab>
+              <v-tab>{{ $t("room.tabs.settings") }}</v-tab>
             </v-tabs>
             <v-tabs-items v-model="queueTab" class="queue-tab-content">
               <v-tab-item>
@@ -269,7 +269,7 @@ export default {
       return this.$store.state.$connection.isConnected;
     },
     connectionStatus() {
-      return this.$store.state.$connection.isConnected ? "Connected" : "Connecting...";
+      return this.$store.state.$connection.isConnected ? this.$t("room.con-status.connected") : this.$t("room.con-status.connecting");
     },
     currentSource() {
       return this.$store.state.room.currentSource;
