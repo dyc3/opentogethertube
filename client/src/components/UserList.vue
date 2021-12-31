@@ -1,7 +1,7 @@
 <template>
 	<v-card class="user-list">
 		<v-subheader>
-			Users
+			{{ $t("room.users.title") }}
 			<v-btn icon x-small @click="openEditName">
 				<v-icon>fas fa-cog</v-icon>
 			</v-btn>
@@ -10,7 +10,7 @@
 			<v-text-field
 				v-model="inputUsername"
 				@change="onEditNameChange"
-				placeholder="Set your name"
+				:placeholder="$t('room.users.set')"
 				:loading="setUsernameLoading"
 				:error-messages="setUsernameFailureText"
 				:counter="USERNAME_LENGTH_MAX"
@@ -70,7 +70,7 @@
 			</div>
 		</v-list-item>
 		<v-list-item class="nobody-here" v-if="users.length === 1">
-			There seems to be nobody else here. Invite some friends!
+			{{ $t("room.users.empty") }}
 		</v-list-item>
 	</v-card>
 </template>

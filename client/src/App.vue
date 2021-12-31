@@ -9,15 +9,15 @@
         </router-link>
       </v-toolbar-title>
       <v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
-        <v-btn text to="/rooms">Browse</v-btn>
-        <v-btn text to="/faq">FAQ</v-btn>
+        <v-btn text to="/rooms">{{ $t("nav.browse") }}</v-btn>
+        <v-btn text to="/faq">{{ $t("nav.faq") }}</v-btn>
         <v-btn text href="https://github.com/dyc3/opentogethertube/issues/new/choose" target="_blank">
           <v-icon class="side-pad">fas fa-bug</v-icon>
-          Report a bug
+          {{ $t("nav.bug") }}
         </v-btn>
         <v-btn text href="https://github.com/sponsors/dyc3" target="_blank">
           <v-icon class="side-pad">fas fa-heart</v-icon>
-          Support Me!
+          {{ $t("nav.support") }}
         </v-btn>
       </v-toolbar-items>
       <v-spacer />
@@ -25,7 +25,8 @@
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-btn text v-on="on">
-              <v-icon class="side-pad">fas fa-plus-square</v-icon>Create Room
+              <v-icon class="side-pad">fas fa-plus-square</v-icon>
+              {{ $t("nav.create.title") }}
             </v-btn>
           </template>
           <v-list two-line max-width="400">
@@ -40,17 +41,17 @@
         <v-list-item-group>
           <v-list-item to="/">
             <v-list-item-content>
-              Home
+              {{ $t("nav.home") }}
             </v-list-item-content>
           </v-list-item>
           <v-list-item to="/rooms">
             <v-list-item-content>
-              Browse
+              {{ $t("nav.browse") }}
             </v-list-item-content>
           </v-list-item>
           <v-list-item to="/faq">
             <v-list-item-content>
-              FAQ
+              {{ $t("nav.faq") }}
             </v-list-item-content>
           </v-list-item>
           <v-list-item href="https://github.com/dyc3/opentogethertube/issues/new/choose" target="_blank">
@@ -58,7 +59,7 @@
               <v-icon>fas fa-bug</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              Report a bug
+              {{ $t("nav.bug") }}
             </v-list-item-content>
           </v-list-item>
           <v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
@@ -66,7 +67,7 @@
               <v-icon>fas fa-heart</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              Support me!
+              {{ $t("nav.support") }}
             </v-list-item-content>
           </v-list-item>
           <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />
