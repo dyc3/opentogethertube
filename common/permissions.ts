@@ -332,10 +332,10 @@ export class Grants {
 		const fullmask = this.getMask(role);
 		const isGranted = (fullmask & checkmask) === checkmask;
 		if (isGranted) {
-			log.info(`${permission.toString()} granted to ${ROLE_DISPLAY_NAMES[role]}`);
+			log.debug(`${permission.toString()} granted to ${ROLE_DISPLAY_NAMES[role]}`);
 		}
 		else {
-			log.error(`${permission.toString()} denied to ${ROLE_DISPLAY_NAMES[role]}`);
+			log.info(`${permission.toString()} denied to ${ROLE_DISPLAY_NAMES[role]}`);
 		}
 		return isGranted;
 	}
