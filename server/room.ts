@@ -506,7 +506,15 @@ export class Room implements RoomState {
 				}
 				catch (e) {
 					if (e instanceof SponsorblockResponseError) {
-						this.log.error(`Failed to grab sponsorblock segments: ${e.name} ${e.status} ${e.message}`);
+						if (e.status === 429) {
+							this.log.error(`Request to sponsorblock was ratelimited. ${e.message}`);
+						}
+						else if (e.status === 404) {
+							this.log.debug("No sponsorblock segments available for this video.");
+						}
+						else {
+							this.log.error(`Failed to grab sponsorblock segments: ${e.name} ${e.status} ${e.message}`);
+						}
 					}
 					else {
 						this.log.error(`Failed to grab sponsorblock segments`);
