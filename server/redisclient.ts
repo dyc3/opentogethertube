@@ -30,6 +30,7 @@ export const redisClientAsync = {
 	keys: promisify(redisClient.keys).bind(redisClient) as ((pattern: string) => Promise<string[]>),
 	incr: promisify(redisClient.incr).bind(redisClient) as ((key: string) => Promise<number>),
 	incrby: promisify(redisClient.incrby).bind(redisClient) as ((key: string, amount: number) => Promise<number>),
+	publish: promisify(redisClient.publish).bind(redisClient) as ((channel: string, message: string) => Promise<number>),
 
 	/**
 	 * Deletes keys that match the specified pattern. Probably very slow. Not for use in production.

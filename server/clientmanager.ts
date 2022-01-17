@@ -4,15 +4,14 @@ import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "./logger.js";
 import { Request } from 'express';
-import { redisClient, createSubscriber, redisClientAsync } from "./redisclient";
+import { createSubscriber, redisClientAsync } from "./redisclient";
 import { promisify } from "util";
 import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
 import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
 import { InvalidTokenException } from "../common/exceptions";
 import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, AuthToken } from "../common/models/types";
-// WARN: do NOT import roommanager
-import roommanager from "./roommanager"; // this is temporary because these modules are supposed to be completely isolated. In the future, it should send room requests via RPC to other nodes.
-import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
+import roommanager from "./roommanager";
+import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import { uniqueNamesGenerator } from 'unique-names-generator';
 import tokens, { SessionInfo } from "./auth/tokens";
 
@@ -191,15 +190,27 @@ export class Client {
 		if (!this.token) {
 			throw new Error("No token present");
 		}
-		// FIXME: what if the room is not loaded on this node, but it's on a different node instead?
-		// FIXME: only get room if it is loaded already.
-		const room = await roommanager.GetRoom(this.room);
-		if (!room) {
-			throw new RoomNotFoundException(this.room);
+		try {
+			// Happy path: avoid serializing and deserializing the request if its not needed.
+			const room = await roommanager.GetRoom(this.room, {
+				mustAlreadyBeLoaded: true,
+			});
+			await room.processUnauthorizedRequest(request, {
+				token: this.token,
+			});
 		}
-		await room.processUnauthorizedRequest(request, {
-			token: this.token,
-		});
+		catch (e) {
+			if (e instanceof RoomNotFoundException) {
+				// Room not found on this Node, pass it along
+				await redisClientAsync.publish(`${ROOM_REQUEST_CHANNEL_PREFIX}:${this.room}`, JSON.stringify({
+					request,
+					token: this.token,
+				}));
+			}
+			else {
+				throw e;
+			}
+		}
 	}
 
 	public sendObj(obj: any): void {
