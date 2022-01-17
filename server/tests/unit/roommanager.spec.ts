@@ -3,8 +3,12 @@ import roommanager from "../../roommanager";
 // @ts-ignore
 import { Room as DbRoom } from "../../models";
 import { Room } from "../../room";
-import { QueueMode, Role, Visibility } from "../../../common/models/types";
+import { AuthToken, QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
+import { RoomNotFoundException } from "../../exceptions";
+import storage from "../../storage";
+import { ROOM_REQUEST_CHANNEL_PREFIX } from "../../../common/constants";
+import { RoomRequest, RoomRequestType } from "../../../common/models/messages";
 
 describe("Room manager", () => {
 	beforeEach(async () => {
@@ -69,6 +73,101 @@ describe("Room manager", () => {
 			expect(loadedRoom.playbackPosition).toEqual(room.playbackPosition);
 			expect(loadedRoom._playbackStart).toEqual(room._playbackStart);
 			expect(loadedRoom.realPlaybackPosition).toBeCloseTo(20, 1);
+		});
+	});
+
+	it("should not load the room if it is not already loaded in memory", async () => {
+		const getRoomByNameSpy = jest.spyOn(storage, 'getRoomByName').mockImplementation().mockReturnValue(null);
+		expect(roommanager.GetRoom("test", {
+			mustAlreadyBeLoaded: true,
+		})).rejects.toThrow(RoomNotFoundException);
+		expect(getRoomByNameSpy).not.toHaveBeenCalled();
+		await roommanager.CreateRoom({ name: "test", isTemporary: true });
+		const room = roommanager.GetRoom("test", {
+			mustAlreadyBeLoaded: true,
+		});
+		expect(room).toBeDefined();
+		expect(getRoomByNameSpy).not.toHaveBeenCalled();
+		getRoomByNameSpy.mockRestore();
+	});
+
+	describe("remoteRoomRequestHandler", () => {
+		let getRoomSpy: jest.SpyInstance;
+
+		beforeEach(() => {
+			getRoomSpy = jest.spyOn(roommanager, 'GetRoom');
+		});
+
+		afterEach(() => {
+			getRoomSpy.mockRestore();
+		});
+
+		it("should handle room requests from redis pubsub", async () => {
+			await roommanager.CreateRoom({ name: "test", isTemporary: true });
+			const room = await roommanager.GetRoom("test");
+			jest.spyOn(room, 'processUnauthorizedRequest').mockImplementation();
+			getRoomSpy.mockClear();
+			const msg: { request: RoomRequest, token: AuthToken } = {
+				request: {
+					type: RoomRequestType.ShuffleRequest,
+				},
+				token: "asdf",
+			};
+			await roommanager.remoteRoomRequestHandler(`${ROOM_REQUEST_CHANNEL_PREFIX}:test`, JSON.stringify(msg));
+			expect(getRoomSpy).toBeCalledTimes(1);
+			expect(room.processUnauthorizedRequest).toBeCalledTimes(1);
+		});
+
+		it("should ignore room not found", async () => {
+			await roommanager.CreateRoom({ name: "test", isTemporary: true });
+			const room = await roommanager.GetRoom("test");
+			jest.spyOn(room, 'processUnauthorizedRequest').mockImplementation();
+			getRoomSpy.mockClear();
+			getRoomSpy.mockImplementation(() => {
+				throw new RoomNotFoundException("test");
+			});
+			const msg: { request: RoomRequest, token: AuthToken } = {
+				request: {
+					type: RoomRequestType.ShuffleRequest,
+				},
+				token: "asdf",
+			};
+			await roommanager.remoteRoomRequestHandler(`${ROOM_REQUEST_CHANNEL_PREFIX}:test`, JSON.stringify(msg));
+			expect(getRoomSpy).toBeCalledTimes(1);
+			expect(room.processUnauthorizedRequest).toBeCalledTimes(0);
+		});
+
+		it("should log all other exceptions", async () => {
+			await roommanager.CreateRoom({ name: "test", isTemporary: true });
+			const room = await roommanager.GetRoom("test");
+			jest.spyOn(room, 'processUnauthorizedRequest').mockImplementation();
+			let logErrorSpy = jest.spyOn(roommanager.log, "error").mockImplementation();
+			getRoomSpy.mockClear();
+			getRoomSpy.mockImplementation(() => {
+				throw new Error("other error");
+			});
+			const msg: { request: RoomRequest, token: AuthToken } = {
+				request: {
+					type: RoomRequestType.ShuffleRequest,
+				},
+				token: "asdf",
+			};
+			await roommanager.remoteRoomRequestHandler(`${ROOM_REQUEST_CHANNEL_PREFIX}:test`, JSON.stringify(msg));
+			expect(getRoomSpy).toBeCalledTimes(1);
+			expect(room.processUnauthorizedRequest).toBeCalledTimes(0);
+			expect(logErrorSpy).toBeCalledTimes(1);
+			logErrorSpy.mockRestore();
+		});
+
+		it("should ignore invalid channel names", async () => {
+			const msg: { request: RoomRequest, token: AuthToken } = {
+				request: {
+					type: RoomRequestType.ShuffleRequest,
+				},
+				token: "asdf",
+			};
+			await roommanager.remoteRoomRequestHandler(`asdfsadf`, JSON.stringify(msg));
+			expect(getRoomSpy).toBeCalledTimes(0);
 		});
 	});
 });

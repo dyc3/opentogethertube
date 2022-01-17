@@ -1,14 +1,17 @@
 import { Room } from "./room";
-import { RoomOptions, RoomState, RoomStatePersistable } from "../common/models/types";
+import { AuthToken, RoomOptions, RoomState, RoomStatePersistable } from "../common/models/types";
+import { ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import _ from "lodash";
 import NanoTimer from "nanotimer";
 import { getLogger } from "./logger.js";
-import { redisClientAsync } from "./redisclient";
+import { redisClientAsync, createSubscriber } from "./redisclient";
 import storage from "./storage";
 import { RoomAlreadyLoadedException, RoomNameTakenException, RoomNotFoundException } from "./exceptions";
+import { RoomRequest, RoomRequestContext } from "common/models/messages";
 // WARN: do NOT import clientmanager
 
-const log = getLogger("roommanager");
+export const log = getLogger("roommanager");
+const redisSubscriber = createSubscriber();
 export const rooms: Room[] = [];
 
 function addRoom(room: Room) {
@@ -68,12 +71,26 @@ export async function CreateRoom(options: Partial<RoomOptions> & { name: string 
 	log.info(`Room created: ${room.name}`);
 }
 
-export async function GetRoom(roomName: string): Promise<Room> {
+/**
+ * Get a room by name, or load it from storage if it's not loaded.
+ * @param roomName
+ * @param options
+ * @param options.mustAlreadyBeLoaded If true, will throw if the room is not already loaded in the current Node.
+ * @returns
+ */
+export async function GetRoom(roomName: string, options: { mustAlreadyBeLoaded?: boolean }={}): Promise<Room> {
+	_.defaults(options, {
+		mustAlreadyBeLoaded: false
+	});
 	for (const room of rooms) {
 		if (room.name.toLowerCase() === roomName.toLowerCase()) {
 			log.debug("found room in room manager");
 			return room;
 		}
+	}
+
+	if (options.mustAlreadyBeLoaded) {
+		throw new RoomNotFoundException(roomName);
 	}
 
 	const opts = await storage.getRoomByName(roomName) as RoomStatePersistable;
@@ -132,8 +149,34 @@ export async function unloadAllRooms(): Promise<void> {
 	await Promise.all(names.map(UnloadRoom));
 }
 
-export default {
+export async function remoteRoomRequestHandler(channel: string, text: string) {
+	if (!channel.startsWith(`${ROOM_REQUEST_CHANNEL_PREFIX}:`)) {
+		return;
+	}
+	let roomName = channel.split(":")[1];
+	try {
+		// HACK: using roommanager.GetRoom() here instead of just GetRoom() so it can be mocked in tests
+		let room = await roommanager.GetRoom(roomName, { mustAlreadyBeLoaded: true });
+		let requestUnauthorized = JSON.parse(text) as { request: RoomRequest; token: AuthToken; };
+		await room.processUnauthorizedRequest(requestUnauthorized.request, {
+			token: requestUnauthorized.token,
+		});
+	}
+	catch (e) {
+		if (e instanceof RoomNotFoundException) {
+			// Room not found on this Node, ignore
+		}
+		else {
+			log.error(`Failed to process room request: ${e.name} ${e.message} ${e.stack}`);
+		}
+	}
+}
+
+redisSubscriber.on("message", remoteRoomRequestHandler);
+
+const roommanager = {
 	rooms,
+	log,
 	start,
 
 	CreateRoom,
@@ -141,14 +184,7 @@ export default {
 	UnloadRoom,
 	clearRooms,
 	unloadAllRooms,
-};
+	remoteRoomRequestHandler,
+}
 
-// redisSubscriber.on("message", async (channel, text) => {
-// 	if (!channel.startsWith("room_requests:")) {
-// 		return
-// 	}
-// 	let roomName = text.split(":")[1];
-// 	let room = await GetRoom(roomName);
-// 	let request = JSON.parse(text) as RoomRequest;
-// 	await room.processRequest(request);
-// })
+export default roommanager;
