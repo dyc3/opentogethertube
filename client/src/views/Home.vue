@@ -118,7 +118,7 @@
 								<v-icon class="side-pad">fas fa-heart</v-icon>
 								Become a Sponsor
 							</v-btn>
-							<v-btn x-large block color="blue" href="https://github.com/sponsors/dyc3" target="_blank" >
+							<v-btn x-large block color="blue" class="mt-2" href="https://github.com/dyc3/opentogethertube" target="_blank" >
 								<v-icon class="side-pad">fas fa-code</v-icon>
 								Contribute
 							</v-btn>
