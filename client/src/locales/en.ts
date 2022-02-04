@@ -42,6 +42,8 @@ export default {
     },
   },
   "video": {
+    "add-explanation": "Add to the queue.",
+    "playnow": "Play Now",
     "playnow-explanation": "Play this video now, pushing the current video to the top of the queue.",
   },
 };

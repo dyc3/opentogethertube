@@ -36,11 +36,24 @@
 					</template>
 					<span>{{ $t("video.playnow-explanation") }}</span>
 				</v-tooltip>
-				<v-btn icon :loading="isLoadingAdd" v-if="isPreview && $store.state.room.queueMode !== QueueMode.Dj" @click="addToQueue">
-					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
-					<v-icon v-else>fas fa-plus</v-icon>
-				</v-btn>
+				<v-tooltip top>
+					<template v-slot:activator="{ on, attrs }">
+						<v-btn
+							icon
+							:loading="isLoadingAdd"
+							@click="addToQueue"
+							v-on="on"
+							v-bind="attrs"
+							v-if="isPreview && $store.state.room.queueMode !== QueueMode.Dj"
+						>
+							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
+							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
+							<v-icon v-else>fas fa-plus</v-icon>
+						</v-btn>
+					</template>
+					<span>{{ $t("video.add-explanation") }}</span>
+				</v-tooltip>
+
 				<v-btn icon :loading="isLoadingAdd" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Dj" @click="removeFromQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 					<v-icon v-else>fas fa-trash</v-icon>
@@ -54,7 +67,7 @@
 					<v-list>
 						<v-list-item class="button-with-icon" @click="playNow" v-if="$store.state.room.queueMode !== QueueMode.Vote">
 							<v-icon>fas fa-play</v-icon>
-							<span>Play Now</span>
+							<span>{{ $t("video.playnow") }}</span>
 						</v-list-item>
 						<v-list-item class="button-with-icon" @click="moveToTop" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote && $store.state.room.queueMode !== QueueMode.Dj">
 							<v-icon>fas fa-sort-amount-up</v-icon>
