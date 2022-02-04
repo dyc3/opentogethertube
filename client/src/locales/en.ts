@@ -41,4 +41,7 @@ export default {
       "empty": "There seems to be nobody else here. Invite some friends!",
     },
   },
+  "video": {
+    "playnow-explanation": "Play this video now, pushing the current video to the top of the queue.",
+  },
 };

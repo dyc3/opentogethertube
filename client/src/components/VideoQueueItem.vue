@@ -15,16 +15,27 @@
 				<div v-if="item.service === 'googledrive'" class="experimental">Experimental support for this service! Expect it to break a lot.</div>
 			</div>
 		</div>
-		<div style="display: flex; justify-content: center; flex-direction: column">
+		<div class="d-flex" style="justify-content: center; flex-direction: column">
 			<div class="button-container">
 				<v-btn class="button-with-icon" @click="vote" :loading="isLoadingVote" :color="voted ? 'red' : 'green'" v-if="!isPreview && $store.state.room.queueMode === QueueMode.Vote">
 					<span>{{ votes }}</span>
 					<v-icon>fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-btn icon v-if="$store.state.room.queueMode === QueueMode.Dj" @click="playNow">
-					<v-icon>fas fa-play</v-icon>
-				</v-btn>
+				<v-tooltip top>
+					<template v-slot:activator="{ on, attrs }">
+						<v-btn
+							icon
+							@click="playNow"
+							v-on="on"
+							v-bind="attrs"
+							v-if="$store.state.room.queueMode !== QueueMode.Vote"
+						>
+							<v-icon>fas fa-play</v-icon>
+						</v-btn>
+					</template>
+					<span>{{ $t("video.playnow-explanation") }}</span>
+				</v-tooltip>
 				<v-btn icon :loading="isLoadingAdd" v-if="isPreview && $store.state.room.queueMode !== QueueMode.Dj" @click="addToQueue">
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
