@@ -41,12 +41,22 @@ export class Client {
 			connections.splice(idx, 1);
 
 			if (this.token) {
-				const room = await roommanager.GetRoom(this.room);
-				await room.processUnauthorizedRequest({
-					type: RoomRequestType.LeaveRequest,
-				}, {
-					token: this.token,
-				});
+				try {
+					const room = await roommanager.GetRoom(this.room);
+					await room.processUnauthorizedRequest({
+						type: RoomRequestType.LeaveRequest,
+					}, {
+						token: this.token,
+					});
+				}
+				catch (e) {
+					if (e instanceof Error) {
+						log.warn(`Failed to make leave request: "${e.name}: ${e.message}" This is not a critical error, so we will continue.`);
+					}
+					else {
+						log.warn(`Failed to make leave request. This is not a critical error, so we will continue.`);
+					}
+				}
 			}
 		});
 	}
