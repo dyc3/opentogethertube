@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import ProcessedText from "@/components/ProcessedText.vue";
+import { i18n } from "@/i18n";
 
 const localVue = createLocalVue();
 
@@ -16,6 +17,7 @@ describe("ProcessedText component", () => {
 	it("should render nothing", () => {
 		let wrapper = mount(ProcessedText, {
 			localVue,
+			i18n,
 			propsData: { text: "" },
 			mounted: jest.fn(),
 		});
