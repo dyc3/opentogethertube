@@ -1,13 +1,13 @@
 <template>
 	<div class="video-add">
 		<v-row>
-			<v-textarea clearable auto-grow rows="1" placeholder="Type to search YouTube or enter a Video URL to add to the queue" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" data-cy="add-preview-input" />
+			<v-textarea clearable auto-grow rows="1" :placeholder="$t('add-preview.placeholder')" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" data-cy="add-preview-input" />
 		</v-row>
 		<v-row>
 			<div v-if="!production">
 				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{ v[0] }}</v-btn>
 			</div>
-			<v-btn v-if="videos.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">Add All</v-btn>
+			<v-btn v-if="videos.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">{{ $t("add-preview.add-all") }}</v-btn>
 		</v-row>
 		<v-row class="mt-6" v-if="isLoadingAddPreview" justify="center">
 			<v-progress-circular indeterminate/>
@@ -19,36 +19,36 @@
 			<v-container fill-height v-if="videos.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
 			<v-row justify="center" align="center">
 				<v-col cols="12">
-					Search YouTube for "{{ inputAddPreview }}" by pressing enter, or by clicking search.<br>
-					<v-btn @click="requestAddPreviewExplicit">Search</v-btn>
+					{{ $t("add-preview.search-for", {search: inputAddPreview}) }}<br>
+					<v-btn @click="requestAddPreviewExplicit">{{ $t("add-preview.search") }}</v-btn>
 				</v-col>
 			</v-row>
 			</v-container>
 			<v-container v-else-if="inputAddPreview.length === 0">
 				<v-row justify="center" align="center">
 					<div class="add-video-helper">
-						<h1>What can I add?</h1>
-						<h3>Single Videos</h3>
+						<h1>{{ $t("add-preview.title") }}</h1>
+						<h3>{{ $t("add-preview.single-videos") }}</h3>
 						<ul>
-							<li><ProcessedText text="Youtube videos: https://youtube.com/watch?v=LP8GRjv6AIo" /></li>
-							<li><ProcessedText text="Vimeo videos: https://vimeo.com/94338566" /></li>
-							<li><ProcessedText text="Dailymotion videos: https://dailymotion.com/video/x31i1so" /></li>
-							<li><ProcessedText text="Any public .mp4 video: https://vjs.zencdn.net/v/oceans.mp4" /></li>
+							<li><ProcessedText :text="$t('add-preview.platforms.youtube-videos', {url: 'https://youtube.com/watch?v=LP8GRjv6AIo'})" /></li>
+							<li><ProcessedText :text="$t('add-preview.platforms.vimeo-videos', {url: 'https://vimeo.com/94338566'})" /></li>
+							<li><ProcessedText :text="$t('add-preview.platforms.dailymotion-videos', {url: 'https://dailymotion.com/video/x31i1so'})" /></li>
+							<li><ProcessedText :text="$t('add-preview.platforms.any-mp4-videos', {url: 'https://vjs.zencdn.net/v/oceans.mp4'})" /></li>
 						</ul>
-						<h3>Playlists</h3>
+						<h3>{{ $t("add-preview.playlists") }}</h3>
 						<ul>
-							<li><ProcessedText text="Youtube playlists: https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ" /></li>
-							<li><ProcessedText text="Youtube channels: https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA" /></li>
-							<li><ProcessedText text="Subreddits: https://reddit.com/r/youtubehaiku/" /></li>
+							<li><ProcessedText :text="$t('add-preview.platforms.youtube-playlists', {url: 'https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ'})" /></li>
+							<li><ProcessedText :text="$t('add-preview.platforms.youtube-channels', {url: 'https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA'})" /></li>
+							<li><ProcessedText :text="$t('add-preview.platforms.subreddits', {url: 'https://reddit.com/r/youtubehaiku/'})" /></li>
 						</ul>
-						<span>Or just type text to search Youtube.</span>
+						<span>{{ $t("add-preview.text") }}</span>
 					</div>
 				</v-row>
 			</v-container>
 		</v-row>
 		<div v-if="highlightedAddPreviewItem">
 			<VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
-			<h4>Playlist</h4>
+			<h4>{{ $t("add-preview.playlist") }}</h4>
 		</div>
 		<VideoQueueItem v-for="(itemdata, index) in videos" :key="index" :item="itemdata" is-preview/>
 	</div>
@@ -134,17 +134,17 @@ export default Vue.extend({
 					console.warn("Unknown status for add preview response:", res.status);
 					this.$toast.add({
 						style: ToastStyle.Error,
-						content: `Unknown status for add preview response: ${res.status}.`,
+						content: this.$t('add-preview.messages.unknown-status', {status: res.status}),
 					});
 				}
 			}).catch(err => {
 				this.isLoadingAddPreview = false;
 				this.hasAddPreviewFailed = true;
-				this.videosLoadFailureText = "An unknown error occurred when getting add preview. Try again later.";
+				this.videosLoadFailureText = this.$t('add-preview.messages.unknown-error');
 				console.error("Failed to get add preview", err);
 				this.$toast.add({
 					style: ToastStyle.Error,
-					content: "Failed to get add preview. This is probably a bug, check console for details.",
+					content: this.$t('add-preview.messages.failed-to-get-add-preview'),
 					duration: 6000,
 				});
 			});
@@ -174,7 +174,7 @@ export default Vue.extend({
 				}
 				this.$toast.add({
 					style: ToastStyle.Error,
-					content: `Failed to all videos: ${message}`,
+					content: this.$t('add-preview.messages.failed-to-all-videos', {message: message}),
 					duration: 4000,
 				});
 			}

@@ -1,7 +1,7 @@
 <template>
 	<v-container>
 		<p>
-			Uses SponsorBlock data from <a href="https://sponsor.ajay.app">https://sponsor.ajay.app</a>
+			{{ $t("attribution.sponsorblock-text") }} <a href="https://sponsor.ajay.app">https://sponsor.ajay.app</a>
 		</p>
 	</v-container>
 </template>

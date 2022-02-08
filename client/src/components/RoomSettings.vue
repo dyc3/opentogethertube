@@ -2,32 +2,32 @@
 	<div class="room-settings" style="margin: 12px">
 		<v-form @submit="submitRoomSettings">
 			<v-text-field
-				label="Title"
+				:label="$t('room-settings.title')"
 				v-model="inputRoomSettings.title"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-title')"
 			/>
 			<v-text-field
-				label="Description"
+				:label="$t('room-settings.description')"
 				v-model="inputRoomSettings.description"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-description')"
 			/>
 			<v-select
-				label="Visibility"
-				:items="[{ text: 'public' }, { text: 'unlisted' }]"
+				:label="$t('room-settings.visibility')"
+				:items="[{ text: $t('room-settings.public'), value: 'public'}, { text: $t('room-settings.unlisted'), value: 'unlisted'}]"
 				v-model="inputRoomSettings.visibility"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-visibility')"
 				data-cy="select-visibility"
 			/>
 			<v-select
-				label="Queue Mode"
+				:label="$t('room-settings.queue-mode')"
 				:items="[
-					{ name: 'manual', value: QueueMode.Manual, description: 'Default normal behavior, works how you would expect it to. You can manually reorder items in the queue.' },
-					{ name: 'vote', value: QueueMode.Vote, description: 'The highest voted video gets played next.' },
-					{ name: 'loop', value: QueueMode.Loop, description: 'When the video ends, put it at the end of the queue.' },
-					{ name: 'dj', value: QueueMode.Dj, description: 'When the video ends, start the same video from the beginning. Good for looping background music.' },
+					{ name: $t('room-settings.manual'), value: QueueMode.Manual, description: $t('room-settings.manual-hint') },
+					{ name: $t('room-settings.vote'), value: QueueMode.Vote, description: $t('room-settings.vote-hint') },
+					{ name: $t('room-settings.loop'), value: QueueMode.Loop, description: $t('room-settings.loop-hint') },
+					{ name: $t('room-settings.dj'), value: QueueMode.Dj, description: $t('room-settings.dj-hint') },
 				]"
 				v-model="inputRoomSettings.queueMode"
 				:loading="isLoadingRoomSettings"
@@ -46,7 +46,7 @@
 			</v-select>
 			<v-checkbox
 				v-model="inputRoomSettings.autoSkipSegments"
-				label="Auto-skip sponsored segments, intros, self-promos, etc. using SponsorBlock data."
+				:label="$t('room-settings.auto-skip-text')"
 			/>
 			<PermissionsEditor
 				v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner"
@@ -54,20 +54,20 @@
 				:current-role="$store.state.users.you.role"
 			/>
 			<div v-else-if="$store.state.room.isTemporary">
-				Permissions are not available in temporary rooms.
+				{{ $t("room-settings.permissions-not-available") }}
 			</div>
 			<div v-else-if="!$store.state.room.hasOwner">
-				This room needs an owner before permissions can be modified.
+				{{ $t("room-settings.room-needs-owner") }}
 				<span v-if="!$store.state.user">
-					Log in to claim this room.
+					{{ $t("room-settings.login-to-claim") }}
 				</span>
 			</div>
 			<div v-else>
-				You aren't able to modify permissions in this room.
+				{{ $t("room-settings.arent-able-to-modify-permissions") }}
 			</div>
 			<div class="submit">
 				<v-btn large block color="blue" v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner" :disabled="!$store.state.user" role="submit" @click="claimOwnership">Claim Room</v-btn>
-				<v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">Save</v-btn>
+				<v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">{{ $t("actions.save") }}</v-btn>
 			</div>
 		</v-form>
 	</div>
@@ -146,7 +146,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 			await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
 			this.$toast.add({
 				style: ToastStyle.Success,
-				content: `Settings applied`,
+				content: this.$t("room-settings.settings-applied") as string,
 				duration: 4000,
 			});
 		}
@@ -169,7 +169,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 			});
 			this.$toast.add({
 				style: ToastStyle.Success,
-				content: `You now own the room ${this.$route.params.roomId}.`,
+				content: this.$t("room-settings.now-own-the-room", {room: this.$route.params.roomId}) as string,
 				duration: 4000,
 			});
 		}

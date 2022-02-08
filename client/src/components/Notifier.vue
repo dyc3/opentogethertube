@@ -4,7 +4,7 @@
 			<ToastNotification :toast="toast" :number="index"/>
 		</li>
 		<v-btn block color="primary" key="closeall" @click="closeAll" v-if="$store.state.toast.notifications.length > 1">
-			Close All
+			{{ $t("actions.close-all") }}
 		</v-btn>
 	</transition-group>
 </template>
