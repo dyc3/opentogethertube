@@ -34,6 +34,14 @@
           </v-list>
         </v-menu>
         <NavUser @login="showLogin = true" @logout="logout" />
+        <v-select
+          solo
+          flat
+          style="margin-top: 5px; width: 100px"
+          :items="locales"
+          @change="setLocale"
+          :value="$i18n.locale"
+        />
       </v-toolbar-items>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" absolute temporary>
@@ -72,6 +80,13 @@
           </v-list-item>
           <NavCreateRoom @createtemp="createTempRoom" @createperm="showCreateRoomForm = true" />
           <NavUser @login="showLogin = true" @logout="logout" />
+          <v-select
+            solo
+            flat
+            :items="locales"
+            @change="setLocale"
+            :value="$i18n.locale"
+          />
         </v-list-item-group>
       </v-list>
       <template v-slot:append>
@@ -116,6 +131,7 @@ import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 import NavUser from "@/components/navbar/NavUser.vue";
 import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
+import { loadLanguageAsync } from "@/i18n";
 
 export default Vue.extend({
   name: "app",
@@ -132,6 +148,13 @@ export default Vue.extend({
       showCreateRoomForm: false,
       showLogin: false,
       drawer: false,
+
+      locales: [
+        {
+          text: "🇺🇸",
+          value: "en",
+        },
+      ],
     };
   },
   methods: {
@@ -141,6 +164,9 @@ export default Vue.extend({
           this.$store.commit("LOGOUT");
         }
       });
+    },
+    async setLocale(locale: string) {
+      await loadLanguageAsync(locale);
     },
   },
   async created() {
