@@ -3,6 +3,7 @@ import { Module } from 'vuex/types';
 export interface SettingsState {
 	volume: number;
 	chatVisible: boolean;
+	locale: string;
 }
 
 export const settingsModule: Module<SettingsState, unknown> = {
@@ -10,6 +11,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 	state: {
 		volume: 100,
 		chatVisible: true,
+		locale: 'en',
 	},
 	mutations: {
 		UPDATE(state, settings: Partial<SettingsState>) {
