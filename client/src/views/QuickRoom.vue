@@ -3,7 +3,7 @@
 		<v-dialog v-model="showLoading" persistent max-width="600">
 			<v-card>
 				<v-card-text>
-					Making a temporary room for you...
+					{{ $t("quick-room.text") }}
 					<v-progress-linear indeterminate />
 				</v-card-text>
 			</v-card>

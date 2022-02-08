@@ -1,21 +1,21 @@
 <template>
 	<v-sheet>
 		<v-tabs v-model="mode">
-			<v-tab key="login">Log In</v-tab>
-			<v-tab key="register">Register</v-tab>
+			<v-tab key="login">{{ $t("login-form.login") }}</v-tab>
+			<v-tab key="register">{{ $t("login-form.register") }}</v-tab>
 		</v-tabs>
 		<v-tabs-items v-model="mode">
 			<v-tab-item>
 				<v-card>
 					<v-form ref="loginForm" @submit.prevent="login" v-model="loginValid" :lazy-validation="false">
 						<v-card-title>
-							Log in
+							{{ $t("login-form.login") }}
 						</v-card-title>
 						<v-card-text>
 							<v-row>
 								<v-col cols="12" md="6">
 									<v-container>
-										<v-btn x-large block href="/api/auth/discord" color="#7289DA">Log in with Discord</v-btn>
+										<v-btn x-large block href="/api/auth/discord" color="#7289DA">{{ $t("login-form.login-discord") }}</v-btn>
 										<!-- TODO: <v-btn x-large block>Log in with Google</v-btn> -->
 									</v-container>
 								</v-col>
@@ -23,8 +23,8 @@
 								<v-col cols="12" md="6" style="margin-left: -1px">
 									<v-container>
 										<v-row>
-											<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="logInFailureMessage" :rules="emailRules" />
-											<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="logInFailureMessage" />
+											<v-text-field :loading="isLoading" :label="$t('login-form.email')" required v-model="email" :error-messages="logInFailureMessage" :rules="emailRules" />
+											<v-text-field :loading="isLoading" :label="$t('login-form.password')" type="password" required v-model="password" :error-messages="logInFailureMessage" />
 										</v-row>
 										<v-row v-if="logInFailureMessage">
 											{{ logInFailureMessage }}
@@ -35,7 +35,7 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn type="submit" color="primary" :loading="isLoading" @click.prevent="login" :disabled="!loginValid">Log in</v-btn>
+							<v-btn type="submit" color="primary" :loading="isLoading" @click.prevent="login" :disabled="!loginValid">{{ $t("login-form.login") }}</v-btn>
 						</v-card-actions>
 					</v-form>
 				</v-card>
@@ -44,15 +44,15 @@
 				<v-card>
 					<v-form ref="registerForm" @submit.prevent="register" v-model="registerValid" :lazy-validation="false">
 						<v-card-title>
-							Register
+							{{ $t("login-form.register") }}
 						</v-card-title>
 						<v-card-text>
 							<v-container>
 								<v-row>
-									<v-text-field :loading="isLoading" label="Email" required v-model="email" :error-messages="registerFieldErrors.email" :rules="emailRules" />
-									<v-text-field :loading="isLoading" label="Username" required v-model="username" :error-messages="registerFieldErrors.username" :rules="usernameRules" />
-									<v-text-field :loading="isLoading" label="Password" type="password" required v-model="password" :error-messages="registerFieldErrors.password" :rules="passwordRules" counter />
-									<v-text-field :loading="isLoading" label="Retype Password" type="password" required v-model="password2" :error-messages="registerFieldErrors.password2" :rules="retypePasswordRules" />
+									<v-text-field :loading="isLoading" :label="$t('login-form.email')" required v-model="email" :error-messages="registerFieldErrors.email" :rules="emailRules" />
+									<v-text-field :loading="isLoading" :label="$t('login-form.username')" required v-model="username" :error-messages="registerFieldErrors.username" :rules="usernameRules" />
+									<v-text-field :loading="isLoading" :label="$t('login-form.password')" type="password" required v-model="password" :error-messages="registerFieldErrors.password" :rules="passwordRules" counter />
+									<v-text-field :loading="isLoading" :label="$t('login-form.retype-password')" type="password" required v-model="password2" :error-messages="registerFieldErrors.password2" :rules="retypePasswordRules" />
 								</v-row>
 								<v-row v-if="registerFailureMessage">
 									{{ registerFailureMessage }}
@@ -61,7 +61,7 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn type="submit" color="primary" :loading="isLoading" @click.prevent="register" :disabled="!registerValid">Register</v-btn>
+							<v-btn type="submit" color="primary" :loading="isLoading" @click.prevent="register" :disabled="!registerValid">{{ $t("login-form.register") }}</v-btn>
 						</v-card-actions>
 					</v-form>
 				</v-card>
@@ -109,20 +109,20 @@ export default class LogInForm extends Vue {
 	}
 
 	emailRules = [
-		v => !!v || "Email is required",
-		v => v && isEmail(v) || "Must be a valid email",
+		v => !!v || this.$t('login-form.rules.email-required'),
+		v => v && isEmail(v) || this.$t('login-form.rules.valid-email'),
 	]
 	usernameRules = [
-		v => !!v || "Username is required",
-		v => !!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX || `Username must be between 1 and ${USERNAME_LENGTH_MAX} characters`,
+		v => !!v || this.$t('login-form.rules.username-required'),
+		v => !!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX || this.$t('login-form.rules.username-length', {length: USERNAME_LENGTH_MAX}),
 	]
 	passwordRules = [
-		v => !!v || "Password is required",
-		v => v && v.length >= 10 || process.env.NODE_ENV === "development" && v === "1" || "Password must be at least 10 characters long",
+		v => !!v || this.$t('login-form.rules.password-required'),
+		v => v && v.length >= 10 || process.env.NODE_ENV === "development" && v === "1" || this.$t('login-form.rules.password-length'),
 	]
 	retypePasswordRules = [
-		v => !!v || "Please retype your password",
-		v => this.comparePassword(v) || "Passwords must match",
+		v => !!v || this.$t('login-form.rules.retype-password'),
+		v => this.comparePassword(v) || this.$t('login-form.rules.passwords-match'),
 	]
 
 	created() {
@@ -150,7 +150,7 @@ export default class LogInForm extends Vue {
 			}
 			else {
 				console.log("Log in failed");
-				this.logInFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
+				this.logInFailureMessage = this.$t('login-form.errors.something-weird-happened');
 			}
 		}
 		catch (err) {
@@ -159,12 +159,12 @@ export default class LogInForm extends Vue {
 					this.logInFailureMessage = err.response.data.error.message;
 				}
 				else {
-					this.logInFailureMessage = "Failed to log in, but the server didn't say why. Report this as a bug.";
+					this.logInFailureMessage = this.$t('login-form.errors.login-failed-noserver');
 				}
 			}
 			else {
 				console.log("could not log in", err, err.response);
-				this.logInFailureMessage = "Failed to log in, and I don't know why. Report this as a bug.";
+				this.logInFailureMessage = this.$t('login-form.errors.login-failed');
 			}
 		}
 		this.isLoading = false;
@@ -197,7 +197,7 @@ export default class LogInForm extends Vue {
 			}
 			else {
 				console.log("Registeration failed");
-				this.registerFailureMessage = "Something weird happened, but you might be logged in? Refresh the page.";
+				this.registerFailureMessage = this.$t('login-form.errors.something-weird-happened');
 			}
 		}
 		catch (err) {
@@ -205,21 +205,21 @@ export default class LogInForm extends Vue {
 				if (err.response.data.error) {
 					if (err.response.data.error.name === "AlreadyInUse") {
 						if (err.response.data.error.fields.includes("email")) {
-							this.registerFieldErrors.email = "Already in use.";
+							this.registerFieldErrors.email = this.$t('login-form.errors.in-use');
 						}
 						if (err.response.data.error.fields.includes("username")) {
-							this.registerFieldErrors.username = "Already in use.";
+							this.registerFieldErrors.username = this.$t('login-form.errors.in-use');
 						}
 					}
 					this.registerFailureMessage = err.response.data.error.message;
 				}
 				else {
-					this.registerFailureMessage = "Failed to register, but the server didn't say why. Report this as a bug.";
+					this.registerFailureMessage = this.$t('login-form.errors.register-failed-noserver');
 				}
 			}
 			else {
 				console.log("could not register", err);
-				this.registerFailureMessage = "Failed to register, and I don't know why. Check the console and report this as a bug.";
+				this.registerFailureMessage = this.$t('login-form.errors.register-failed');
 			}
 		}
 		this.isLoading = false;

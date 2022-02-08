@@ -1,19 +1,19 @@
 <template>
 	<v-card>
 		<v-form ref="form" @submit="submit" v-model="isValid">
-			<v-card-title>Create a Permanent Room</v-card-title>
+			<v-card-title>{{ $t("create-room-form.card-title") }}</v-card-title>
 			<v-card-text>
-				<v-text-field label="Name" hint="Used in the room URL. Can't be changed later." v-model="options.name" required counter="32" :rules="rules.name" @keydown="() => isRoomNameTaken = false" />
-				<v-text-field label="Title" hint="Optional" v-model="options.title" />
-				<v-text-field label="Description" hint="Optional" v-model="options.description" />
-				<v-select label="Visibility" hint="Controls whether or not the room shows up in the room list." :items="[{ text: 'public' }, { text: 'unlisted' }]" v-model="options.visibility" :rules="rules.visibility" />
-				<v-select label="Queue Mode" :items="[{ text: 'manual' }, { text: 'vote' }]" v-model="options.queueMode" :rules="rules.queueMode" />
+				<v-text-field :label="$t('create-room-form.name')" :hint="$t('create-room-form.name-hint')" v-model="options.name" required counter="32" :rules="rules.name" @keydown="() => isRoomNameTaken = false" />
+				<v-text-field :label="$t('create-room-form.title')" :hint="$t('create-room-form.title-hint')" v-model="options.title" />
+				<v-text-field :label="$t('create-room-form.description')" :hint="$t('create-room-form.description-hint')" v-model="options.description" />
+				<v-select :label="$t('create-room-form.visibility')" :hint="$t('create-room-form.visibility-hint')" :items="[{ text: $t('create-room-form.public'), value: 'public' }, { text: $t('create-room-form.unlisted'), value: 'unlisted' }]" v-model="options.visibility" :rules="rules.visibility" />
+				<v-select :label="$t('create-room-form.queue-mode')" :items="[{ text: $t('create-room-form.manual'), value: 'manual' }, { text: $t('create-room-form.vote'), value: 'vote' }]" v-model="options.queueMode" :rules="rules.queueMode" />
 				<div :key="error">{{ error }}</div>
 			</v-card-text>
 			<v-card-actions>
 				<v-spacer />
-				<v-btn text @click="submit" role="Submit" :loading="isSubmitting" :disabled="!isValid" color="primary">Create Room</v-btn>
-				<v-btn text @click="$emit('cancel')">Cancel</v-btn>
+				<v-btn text @click="submit" role="Submit" :loading="isSubmitting" :disabled="!isValid" color="primary">{{ $t("create-room-form.create-room") }}</v-btn>
+				<v-btn text @click="$emit('cancel')">{{ $t("actions.cancel") }}</v-btn>
 			</v-card-actions>
 		</v-form>
 	</v-card>
@@ -37,21 +37,21 @@ export default {
 			},
 			rules: {
 				name: [
-					v => !!v || "Name is required",
-					v => (v && !v.includes(" ")) || "Name must not contain spaces.",
-					v => (v && v.length >= 3 && v.length <= 32) || "Name must be between 3 and 32 characters",
-					v => (v && ROOM_NAME_REGEX.test(v)) || "Name must only contain alphanumeric characters, dashes, and underscores",
-					v => (v && !this.isRoomNameTaken) || "Name is already taken",
+					v => !!v || this.$t('create-room-form.rules.name.name-required'),
+					v => (v && !v.includes(" ")) || this.$t('create-room-form.rules.name.no-spaces'),
+					v => (v && v.length >= 3 && v.length <= 32) || this.$t('create-room-form.rules.name.length'),
+					v => (v && ROOM_NAME_REGEX.test(v)) || this.$t('create-room-form.rules.name.alphanumeric'),
+					v => (v && !this.isRoomNameTaken) || this.$t('create-room-form.rules.name.taken'),
 				],
 				// eslint-disable-next-line array-bracket-newline
 				visibility: [
 					// eslint-disable-next-line array-bracket-newline
-					v => (v && ["public", "unlisted"].includes(v)) || "Invalid Visibility",
+					v => (v && ["public", "unlisted"].includes(v)) || this.$t('create-room-form.rules.invalid-visibility'),
 				],
 				// eslint-disable-next-line array-bracket-newline
 				queueMode: [
 					// eslint-disable-next-line array-bracket-newline
-					v => (v && ["manual", "vote"].includes(v)) || "Invalid Queue Mode",
+					v => (v && ["manual", "vote"].includes(v)) || this.$t('create-room-form.rules.invalid-queue'),
 				],
 			},
 
@@ -87,7 +87,7 @@ export default {
 						this.error = err.response.data.error.message;
 					}
 					else {
-						this.error = "An unknown error occurred. Try again later.";
+						this.error = this.$t('create-room-form.unknown-error');
 					}
 				}
 				else {

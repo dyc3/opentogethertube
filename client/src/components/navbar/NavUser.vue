@@ -1,7 +1,7 @@
 <template>
   <fragment>
     <v-btn text @click="$emit('login')" v-if="!$store.state.user">
-      Log In
+      {{ $t("nav.login") }}
     </v-btn>
     <v-menu offset-y v-if="$store.state.user">
       <template v-slot:activator="{ on }">
@@ -12,12 +12,12 @@
       <v-list two-line max-width="400">
         <v-list-item href="/api/auth/discord" target="_blank" v-if="!$store.state.user.discordLinked">
           <v-list-item-content>
-            <v-list-item-title>Link Discord</v-list-item-title>
+            <v-list-item-title>{{ $t("nav.link-discord") }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-list-item @click="$emit('logout')">
           <v-list-item-content>
-            <v-list-item-title>Log Out</v-list-item-title>
+            <v-list-item-title>{{ $t("nav.logout") }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>

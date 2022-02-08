@@ -18,85 +18,68 @@
 		<v-container class="content">
 			<v-row>
 				<v-col>
-					<h1>Remote Watch Parties Just Got a Lot Easier</h1>
+					<h1>{{ $t("landing.intro.title") }}</h1>
 					<p>
-						<strong>OpenTogetherTube</strong> is a real-time video syncronization platform.
-						It's easy to use and has no sign up required. Just create a room, add videos and
-						invite your friends. BOOM! You're ready to binge videos with your friends until 3AM.
+						<strong>{{ $t("landing.intro.name") }}</strong> {{ $t("landing.intro.text1") }}
 					</p>
 					<p>
-						The original TogetherTube was loved for it's simple interface,
-						and how easy it was to start watching videos right away.
-						OpenTogetherTube aims to be just as easy, and then improve on
-						top of that to make it even better.
+						{{ $t("landing.intro.text2") }}
 					</p>
 					<p>
-						Currently, you can watch online videos with your friends from Youtube, Vimeo, Dailymotion, direct links to .mp4 videos, and
-						<a href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request">more are on the way</a>.
+						{{ $t("landing.intro.text3") }}
+						<a href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request">{{ $t("landing.intro.link") }}</a>.
 					</p>
 				</v-col>
 			</v-row>
 			<v-row>
 				<v-col>
-					<h1>Core Features</h1>
+					<h1>{{ $t("landing.features.title") }}</h1>
 					<v-row dense class="features">
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Syncronized Playback</v-card-title>
+								<v-card-title>{{ $t("landing.features.syncronized-playback.title") }}</v-card-title>
 								<v-card-text>
-									You hit play, and the video plays for everybody
-									in the room. Simple as that.
+									{{ $t("landing.features.syncronized-playback.text") }}
 								</v-card-text>
 							</v-card>
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Permanent Rooms</v-card-title>
+								<v-card-title>{{ $t("landing.features.permanent-rooms.title") }}</v-card-title>
 								<v-card-text>
-									You and the squad come here often? Avoid the hastle
-									of sending out a new link every time. Permanent
-									rooms get a custom url that doesn't change.
+									{{ $t("landing.features.permanent-rooms.text") }}
 								</v-card-text>
 							</v-card>
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Dark Theme</v-card-title>
+								<v-card-title>{{ $t("landing.features.dark-theme.title") }}</v-card-title>
 								<v-card-text>
-									Watching Vine compilations late at night?
-									OpenTogetherTube has a dark theme by default so
-									your eyes won't suffer.
+									{{ $t("landing.features.dark-theme.text") }}
 								</v-card-text>
 							</v-card>
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Room Permissions</v-card-title>
+								<v-card-title>{{ $t("landing.features.room-permissions.title") }}</v-card-title>
 								<v-card-text>
-									Tired of random goofballs joining your room and
-									adding lots of loud videos to your chill lofi hip-hop
-									listening session? Just block them from adding videos.
+									{{ $t("landing.features.room-permissions.text") }}
 								</v-card-text>
 							</v-card>
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Voting System</v-card-title>
+								<v-card-title>{{ $t("landing.features.voting-system.title") }}</v-card-title>
 								<v-card-text>
-									Can't decide what to watch next? Switch the queue
-									to the vote system and let democracy do what it
-									does best.
+									{{ $t("landing.features.voting-system.text") }}
 								</v-card-text>
 							</v-card>
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>Playlist Copying</v-card-title>
+								<v-card-title>{{ $t("landing.features.playlist-copying.title") }}</v-card-title>
 								<v-card-text>
-									Add entire playlists or channels to the video queue
-									all at once so you don't have to sit there adding
-									each video to the queue one by one. It's the best
-									way to binge watch that new channel with your friends.
+									{{ $t("landing.features.playlist-copying.text") }}
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -105,22 +88,22 @@
 			</v-row>
 			<v-row>
 				<v-col>
-					<h1>Support Development</h1>
+					<h1>{{ $t("landing.support.title") }}</h1>
 					<v-row>
 						<v-col>
 							<p>
-								<strong>OpenTogetherTube would not be possible without the help of contributors and supporters like you.</strong> Get involved with development by contributing your ideas or code, or show your support by becoming a sponsor. All donations are used to pay for hosting costs, for the development of OpenTogetherTube, and to keep OpenTogetherTube ad-free.
+								<strong>{{ $t("landing.support.description1") }}</strong> {{ $t("landing.support.description2") }}
 							</p>
 						</v-col>
 						<v-col>
-							<h3>How Can I Help?</h3>
+							<h3>{{ $t("landing.support.how") }}</h3>
 							<v-btn x-large block color="red" href="https://github.com/sponsors/dyc3" target="_blank" >
 								<v-icon class="side-pad">fas fa-heart</v-icon>
-								Become a Sponsor
+								{{ $t("landing.support.sponsor") }}
 							</v-btn>
 							<v-btn x-large block color="blue" class="mt-2" href="https://github.com/dyc3/opentogethertube" target="_blank" >
 								<v-icon class="side-pad">fas fa-code</v-icon>
-								Contribute
+								{{ $t("landing.support.contribute") }}
 							</v-btn>
 						</v-col>
 					</v-row>
@@ -128,16 +111,16 @@
 			</v-row>
 			<v-row>
 				<v-col>
-					<em style="opacity: 0.5">Disclaimer: The OpenTogetherTube project is not associated with TogetherTube nor Watch2Gether.</em>
+					<em style="opacity: 0.5">{{ $t("footer.disclaimer") }}</em>
 				</v-col>
 			</v-row>
 			<v-footer>
 				<v-container pa-0>
 					<v-row no-gutters align="center" justify="center">
-						{{ new Date().getFullYear() }} - <a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> - Made in America - Special Thanks to <a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
+						{{ new Date().getFullYear() }} - <a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> - {{ $t("footer.made-in") }} - {{ $t("footer.thanks-to") }} <a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
 					</v-row>
 					<v-row no-gutters align="center" justify="center">
-						<router-link class="side-pad" to="/privacypolicy">Privacy Policy</router-link><router-link class="side-pad" to="/attribution">Attribution</router-link>
+						<router-link class="side-pad" to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link><router-link class="side-pad" to="/attribution">{{ $t("footer.attribution") }}</router-link>
 					</v-row>
 				</v-container>
 			</v-footer>

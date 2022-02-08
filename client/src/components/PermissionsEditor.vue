@@ -1,13 +1,13 @@
 <template>
 	<v-container fluid>
-		Permissions Editor<br>
-		All permissions granted to less privileged users are automatically granted to more privileged users.<br>
-		Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.<br>
-		Viewing as: {{ $store.state.permsMeta.roles ? $store.state.permsMeta.roles[currentRole].display : "" }}<br>
+		{{ $t("permissions-editor.title") }}<br>
+		{{ $t("permissions-editor.text1") }}<br>
+		{{ $t("permissions-editor.text2") }}<br>
+		{{ $t("permissions-editor.viewing-as") }}: {{ $store.state.permsMeta.roles ? $store.state.permsMeta.roles[currentRole].display : "" }}<br>
 		<v-simple-table dense :key="dirty" v-if="$store.state.permsMeta.loaded">
 			<thead>
 				<tr>
-					<th class="text-left" scope="col">Permission</th>
+					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
 					<th class="text-left" scope="col" v-for="i in 5" :key="i">{{ $store.state.permsMeta.roles[i-1] ? $store.state.permsMeta.roles[i-1].display : 0 }}</th>
 				</tr>
 			</thead>

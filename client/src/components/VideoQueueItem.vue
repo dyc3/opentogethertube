@@ -12,7 +12,7 @@
 			<div>
 				<div class="video-title" no-gutters>{{ item.title }}</div>
 				<div class="description text-truncate" no-gutters>{{ item.description }}</div>
-				<div v-if="item.service === 'googledrive'" class="experimental">Experimental support for this service! Expect it to break a lot.</div>
+				<div v-if="item.service === 'googledrive'" class="experimental">{{ $t("video-queue-item.experimental") }}</div>
 			</div>
 		</div>
 		<div class="d-flex" style="justify-content: center; flex-direction: column">
@@ -71,21 +71,21 @@
 						</v-list-item>
 						<v-list-item class="button-with-icon" @click="moveToTop" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote && $store.state.room.queueMode !== QueueMode.Dj">
 							<v-icon>fas fa-sort-amount-up</v-icon>
-							<span>Play Next</span>
+							<span>{{ $t("video-queue-item.play-next") }}</span>
 						</v-list-item>
 						<v-list-item class="button-with-icon" @click="moveToBottom" v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote">
 							<v-icon>fas fa-sort-amount-down-alt</v-icon>
-							<span>Play Last</span>
+							<span>{{ $t("video-queue-item.play-last") }}</span>
 						</v-list-item>
 						<v-btn icon :loading="isLoadingAdd" v-if="isPreview && $store.state.room.queueMode === QueueMode.Dj" @click="addToQueue">
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
 							<v-icon v-else>fas fa-plus</v-icon>
-							<span>Add</span>
+							<span>{{ $t("video-queue-item.add") }}</span>
 						</v-btn>
 						<v-list-item class="button-with-icon" @click="removeFromQueue" v-if="!isPreview && $store.state.room.queueMode === QueueMode.Dj">
 							<v-icon>fas fa-trash</v-icon>
-							<span>Remove</span>
+							<span>{{ $t("video-queue-item.remove") }}</span>
 						</v-list-item>
 					</v-list>
 				</v-menu>
@@ -167,7 +167,7 @@ export default class VideoQueueItem extends Vue {
 			this.hasBeenAdded = true;
 			this.$toast.add({
 				style: ToastStyle.Success,
-				content: "Video added to queue",
+				content: this.$t('video-queue-item.messages.video-added') as string,
 				duration: 5000,
 			});
 		}
@@ -191,7 +191,7 @@ export default class VideoQueueItem extends Vue {
 			this.hasError = !resp.data.success;
 			this.$toast.add({
 				style: ToastStyle.Success,
-				content: "Video removed from queue",
+				content: this.$t('video-queue-item.messages.video-removed') as string,
 				duration: 5000,
 			});
 		}
