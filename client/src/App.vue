@@ -167,6 +167,7 @@ export default Vue.extend({
     },
     async setLocale(locale: string) {
       await loadLanguageAsync(locale);
+      this.$store.commit("settings/UPDATE", { locale });
     },
   },
   async created() {
@@ -183,6 +184,7 @@ export default Vue.extend({
 
     await this.$store.dispatch("settings/load");
     await this.$store.dispatch("getNewToken");
+    await this.setLocale(this.$store.state.settings.locale);
 
     // ask the server if we are logged in or not, and update the client to reflect that status.
     let resp = await API.get("/user");
