@@ -7,7 +7,7 @@
 					<template v-slot:activator="{ on, attrs }">
 						<span v-bind="attrs" v-on="on">{{ item.text }}</span>
 					</template>
-					<span>{{ $t("processed-text.text") }}</span>
+					<span>{{ $t("processed-text.link-hint") }}</span>
 				</v-tooltip>
 			</a>
 		</span>

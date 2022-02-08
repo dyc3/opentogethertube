@@ -218,7 +218,7 @@ export default {
     },
   },
   "processed-text": {
-    "text": "Click to copy this link to the add tab.",
+    "link-hint": "Click to copy this link to the add tab.",
   },
   "video-queue": {
     "no-videos": "There aren't any videos queued up.",

@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import Vuetify from 'vuetify';
 import QuickRoom from "@/views/QuickRoom.vue";
 import VueEvents from 'vue-events';
+import { i18n } from "@/i18n";
 
 // HACK: import globally to prevent it from yelling at us
 // https://github.com/vuetifyjs/vuetify/issues/4964
@@ -51,6 +52,7 @@ describe("Home view", () => {
 		wrapper = shallowMount(QuickRoom, {
 			store,
 			localVue,
+			i18n,
 			mocks: {
 				$route,
 				$connect: jest.fn(),
