@@ -12,8 +12,7 @@
 					ref="inviteLinkText"
 					:value="inviteLink"
 					append-outer-icon="fa-clipboard"
-					:success="copySuccess"
-					:success-messages="$t('share-invite.copied')"
+					:success-messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
 					@click:append-outer="copyInviteLink"
 				/>
