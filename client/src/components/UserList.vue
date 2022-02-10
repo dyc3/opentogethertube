@@ -17,7 +17,7 @@
 				/>
 		</v-list-item>
 		<div v-if="!$store.state.permsMeta.loaded">
-			Waiting for permissions metadata...
+			{{ $t("room.users.waiting-for-permissions") }}
 		</div>
 		<v-list-item
 			v-for="(user, index) in users"
@@ -34,7 +34,7 @@
 				</template>
 				<span>{{ $store.state.permsMeta.roles[user.role].display }}</span>
 			</v-tooltip>
-			<span v-if="user.id === $store.state.users.you.id" class="is-you">You</span>
+			<span v-if="user.id === $store.state.users.you.id" class="is-you">{{ $t("room.users.you") }}</span>
 			<v-tooltip top>
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
@@ -58,7 +58,7 @@
 						<div class="user-promotion" v-if="$store.state.permsMeta.loaded" :key="$store.state.permsMeta.loaded">
 							<div v-for="role in 4" :key="user.role + role">
 								<v-list-item @click="api.promoteUser(user.id, role)" v-if="user.role !== role && (role <= 1 || granted(roleToPermission(role))) && (user.role > 0 && user.role <= 1 || granted(roleToPermission(user.role, demote=true)))">
-									{{ user.role > role ? "Demote" : "Promote" }} to {{ $store.state.permsMeta.roles[role].display }}
+									{{ user.role > role ? $t("room.users.demote") : $t("room.users.promote") }} to {{ $store.state.permsMeta.roles[role].display }}
 								</v-list-item>
 							</div>
 						</div>

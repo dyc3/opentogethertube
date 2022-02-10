@@ -7,8 +7,8 @@
     </v-row>
     <v-row v-if="rooms.length == 0 && !isLoading" align="center" justify="center" style="width: 100%">
       <div>
-        <h1>No rooms right now...</h1>
-        <v-btn elevation="12" x-large @click="createRoom">Create Room</v-btn>
+        <h1>{{ $t("room-list.no-rooms") }}</h1>
+        <v-btn elevation="12" x-large @click="createRoom">{{ $t("room-list.create") }}</v-btn>
       </div>
     </v-row>
     <v-row v-if="!isLoading">
@@ -20,10 +20,10 @@
           <v-card-title v-text="room.isTemporary ? 'Temporary Room' : room.name" />
           <v-card-text>
             <div class="description" v-if="room.description">{{ room.description }}</div>
-            <div class="description empty" v-else>No description.</div>
+            <div class="description empty" v-else>{{ $t("room-list.no-description") }}</div>
 
             <div class="video-title" v-if="room.currentSource && room.currentSource.title">{{ room.currentSource.title }}</div>
-            <div class="video-title empty" v-else>Nothing playing.</div>
+            <div class="video-title empty" v-else>{{ $t("room-list.nothing-playing") }}</div>
           </v-card-text>
         </v-card>
       </v-col>

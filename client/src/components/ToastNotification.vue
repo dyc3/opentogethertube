@@ -18,7 +18,7 @@
 				v-if="undoable"
 				@click="undo"
 			>
-				undo
+				{{ $t("actions.undo") }}
 			</v-btn>
 			<v-btn
 				text

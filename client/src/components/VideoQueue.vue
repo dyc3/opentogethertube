@@ -5,10 +5,10 @@
 				<v-row justify="center" align="center">
 					<div>
 						<div class="msg">
-							There aren't any videos queued up.
+							{{ $t("video-queue.no-videos") }}
 						</div>
 						<v-btn x-large block @click="$emit('switchtab')">
-							Add a video
+							{{ $t("video-queue.add-video") }}
 						</v-btn>
 					</div>
 				</v-row>

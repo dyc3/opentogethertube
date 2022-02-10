@@ -99,8 +99,8 @@
     <v-container v-else fluid fill-height>
       <v-row justify="center" align="center">
         <v-col cols="auto">
-          <h1>No video is playing.</h1>
-          <span>Click "Add" below to add a video.</span>
+          <h1>{{ $t("video.no-video") }}</h1>
+          <span>{{ $t("video.no-video-text") }}</span>
         </v-col>
       </v-row>
     </v-container>

@@ -113,7 +113,7 @@
         <v-row align="center" justify="center">
           <v-col cols="12" sm="4">
             <v-progress-circular indeterminate />
-            <v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">Cancel</v-btn>
+            <v-btn elevation="12" x-large @click="cancelRoom" style="margin-top: 24px">{{ $t("actions.cancel") }}</v-btn>
           </v-col>
         </v-row>
       </v-container>

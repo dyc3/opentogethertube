@@ -2,10 +2,10 @@
 	<div class="share-invite">
 		<v-card>
 			<v-subheader>
-				Share Invite
+				{{ $t("share-invite.title") }}
 			</v-subheader>
 			<v-card-text>
-				Copy this link and share it with your friends!
+				{{ $t("share-invite.text") }}
 				<v-text-field
 					readonly
 					outlined

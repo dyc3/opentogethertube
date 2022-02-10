@@ -69,23 +69,33 @@
                         <v-icon>fas fa-angle-left</v-icon>
                       </v-btn>
                     </template>
-                    <span>Rewind 10s</span>
+                    <span>{{ $t("room.rewind") }}</span>
                   </v-tooltip>
-                  <v-btn @click="togglePlayback()" :disabled="!granted('playback.play-pause')">
-                    <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
-                    <v-icon v-else>fas fa-play</v-icon>
-                  </v-btn>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="togglePlayback()" v-bind="attrs" v-on="on" :disabled="!granted('playback.play-pause')">
+                        <v-icon v-if="$store.state.room.isPlaying">fas fa-pause</v-icon>
+                        <v-icon v-else>fas fa-play</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $t("room.play-pause") }}</span>
+                  </v-tooltip>
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
                       <v-btn @click="seekDelta(10)" v-bind="attrs" v-on="on" :disabled="!granted('playback.seek')">
                         <v-icon>fas fa-angle-right</v-icon>
                       </v-btn>
                     </template>
-                    <span>Skip 10s</span>
+                    <span>{{ $t("room.skip") }}</span>
                   </v-tooltip>
-                  <v-btn @click="api.skip()" :disabled="!granted('playback.skip')">
-                    <v-icon>fas fa-fast-forward</v-icon>
-                  </v-btn>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="api.skip()" v-bind="attrs" v-on="on" :disabled="!granted('playback.skip')">
+                        <v-icon>fas fa-fast-forward</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $t("room.next-video") }}</span>
+                  </v-tooltip>
                   <vue-slider
                     v-model="volume"
                     style="width: 150px; margin-left: 10px; margin-right: 20px"
@@ -102,10 +112,15 @@
                       {{ lengthDisplay }}
                     </span>
                   </div>
-                  <v-btn @click="toggleFullscreen()" style="margin-left: 10px">
-                    <v-icon>fas fa-compress</v-icon>
-                  </v-btn>
-                  <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">Kick me</v-btn>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="toggleFullscreen()" v-bind="attrs" v-on="on" style="margin-left: 10px">
+                        <v-icon>fas fa-compress</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $t("room.toggle-fullscreen") }}</span>
+                  </v-tooltip>
+                  <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
                 </v-row>
               </v-col>
             </v-responsive>
@@ -185,15 +200,15 @@
     <v-footer>
       <v-container pa-0>
         <v-row no-gutters align="center" justify="center">
-          <router-link to="/privacypolicy">Privacy Policy</router-link>
+          <router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
         </v-row>
       </v-container>
     </v-footer>
     <v-overlay :value="showJoinFailOverlay">
       <v-layout column>
-        <h1>Failed to join room</h1>
+        <h1>{{ $t("room.con-status.failed") }}</h1>
         <span>{{ $store.state.joinFailureReason }}</span>
-        <v-btn to="/rooms">Find Another Room</v-btn>
+        <v-btn to="/rooms">{{ $t("room.con-status.find-another") }}</v-btn>
       </v-layout>
     </v-overlay>
   </div>

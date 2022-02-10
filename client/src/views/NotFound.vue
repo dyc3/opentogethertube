@@ -2,10 +2,10 @@
 	<v-container fill-height>
 		<v-row justify="center">
 			<v-col align="center">
-				<h1>Page Not Found</h1>
-				<v-btn elevation="12" x-large to="/">Home</v-btn>
+				<h1>{{ $t("not-found.title") }}</h1>
+				<v-btn elevation="12" x-large to="/">{{ $t("not-found.home") }}</v-btn>
 				<v-spacer />
-				<v-btn elevation="12" x-large to="/rooms">Browse Rooms</v-btn>
+				<v-btn elevation="12" x-large to="/rooms">{{ $t("not-found.browse") }}</v-btn>
 			</v-col>
 		</v-row>
 	</v-container>

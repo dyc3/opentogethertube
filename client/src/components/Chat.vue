@@ -8,7 +8,7 @@
       >
         <v-icon>fas fa-chevron-right</v-icon>
       </v-btn>
-      <h4>Chat</h4>
+      <h4>{{ $t("chat.title") }}</h4>
     </div>
     <div
       ref="messages"
@@ -28,7 +28,7 @@
     </div>
     <div class="d-flex justify-end">
       <v-text-field
-        placeholder="Type your message here..."
+        :placeholder="$t('chat.type-here')"
         @keydown="onInputKeyDown"
         v-model="inputValue"
         autocomplete="off"
