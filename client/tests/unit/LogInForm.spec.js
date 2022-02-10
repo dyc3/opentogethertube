@@ -41,6 +41,7 @@ describe("Login form", () => {
 			store,
 			localVue,
 			vuetify,
+			i18n,
 			stubs: ['router-link'],
 		});
 
@@ -55,6 +56,7 @@ describe("Login form", () => {
 			store,
 			localVue,
 			vuetify,
+			i18n,
 			stubs: ['router-link'],
 		});
 
