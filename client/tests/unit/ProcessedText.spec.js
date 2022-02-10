@@ -26,6 +26,7 @@ describe("ProcessedText component", () => {
 	it("should just render text as is", () => {
 		let wrapper = mount(ProcessedText, {
 			localVue,
+			i18n,
 			propsData: { text: "test text" },
 			mounted: jest.fn(),
 		});
@@ -37,6 +38,7 @@ describe("ProcessedText component", () => {
 	it("should render just the link", () => {
 		let wrapper = mount(ProcessedText, {
 			localVue,
+			i18n,
 			propsData: { text: "https://example.com/" },
 			mounted: jest.fn(),
 		});
@@ -48,6 +50,7 @@ describe("ProcessedText component", () => {
 	it("should render text and link", () => {
 		let wrapper = mount(ProcessedText, {
 			localVue,
+			i18n,
 			propsData: { text: "peter https://example.com/ griffin" },
 			mounted: jest.fn(),
 		});
@@ -63,6 +66,7 @@ describe("ProcessedText component", () => {
 	it("should fire event when link is clicked", async () => {
 		let wrapper = mount(ProcessedText, {
 			localVue,
+			i18n,
 			propsData: { text: "https://example.com/" },
 			mounted: jest.fn(),
 		});

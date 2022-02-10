@@ -36,6 +36,7 @@ describe("ShareInvite component", () => {
 	it("should use window.location if SHORT_URL not provided", () => {
 		let wrapper = mount(ShareInvite, {
 			localVue,
+			i18n,
 			mocks: {
 				$route,
 			},
@@ -48,6 +49,7 @@ describe("ShareInvite component", () => {
 		process.env.SHORT_URL = "example.com";
 		let wrapper = mount(ShareInvite, {
 			localVue,
+			i18n,
 			mocks: {
 				$route,
 			},
