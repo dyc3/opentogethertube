@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
 import ShareInvite from "@/components/ShareInvite.vue";
+import { i18n } from "@/i18n";
 
 const localVue = createLocalVue();
 
@@ -25,6 +26,7 @@ describe("ShareInvite component", () => {
 		process.env.SHORT_URL = "example.com";
 		let wrapper = mount(ShareInvite, {
 			localVue,
+			i18n,
 			mocks: {
 				$route,
 			},
