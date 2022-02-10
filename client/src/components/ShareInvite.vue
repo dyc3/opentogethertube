@@ -12,7 +12,8 @@
 					ref="inviteLinkText"
 					:value="inviteLink"
 					append-outer-icon="fa-clipboard"
-					:success-messages="copyInviteLinkSuccessText"
+					:success="copySuccess"
+					:success-messages="$t('share-invite.copied')"
 					@focus="onFocusHighlightText"
 					@click:append-outer="copyInviteLink"
 				/>
@@ -29,7 +30,7 @@ import Component from 'vue-class-component';
 	name: "ShareInvite",
 })
 export default class ShareInvite extends Vue {
-	copyInviteLinkSuccessText = ""
+	copySuccess = false;
 
 	get inviteLink() {
 		if (process.env.SHORT_URL) {
@@ -52,11 +53,11 @@ export default class ShareInvite extends Vue {
 			textfield.select();
 			document.execCommand("copy");
 			setTimeout(() => {
-				this.copyInviteLinkSuccessText = "";
+				this.copySuccess = false;
 				textfield?.blur();
 			}, 3000);
 		}
-		this.copyInviteLinkSuccessText = "Copied!";
+		this.copySuccess = true;
 	}
 
 	onFocusHighlightText(e) {
