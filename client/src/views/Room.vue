@@ -829,16 +829,6 @@ export default {
       .chat-container {
         width: calc(100% / 12 * 3);
       }
-
-      @media only screen and (max-aspect-ratio: 16/9) {
-        .video-subcontainer {
-          width: 100%;
-        }
-
-        .chat-container {
-          display: none;
-        }
-      }
     }
   }
 
