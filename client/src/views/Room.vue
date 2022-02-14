@@ -197,13 +197,6 @@
         </v-row>
       </v-col>
     </v-container>
-    <v-footer>
-      <v-container pa-0>
-        <v-row no-gutters align="center" justify="center">
-          <router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
-        </v-row>
-      </v-container>
-    </v-footer>
     <v-overlay :value="showJoinFailOverlay">
       <v-layout column>
         <h1>{{ $t("room.con-status.failed") }}</h1>

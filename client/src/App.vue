@@ -98,16 +98,23 @@
     <v-main>
       <router-view/>
     </v-main>
-    <v-container>
-      <v-dialog v-model="showCreateRoomForm" persistent max-width="600">
-        <CreateRoomForm @roomCreated="showCreateRoomForm = false" @cancel="showCreateRoomForm = false" />
-      </v-dialog>
-    </v-container>
-    <v-container>
-      <v-dialog v-model="showLogin" max-width="600">
-        <LogInForm @shouldClose="showLogin = false" />
-      </v-dialog>
-    </v-container>
+    <v-footer>
+				<v-container pa-0>
+					<em style="opacity: 0.5">{{ $t("footer.disclaimer") }}</em>
+					<v-row no-gutters align="center" justify="center">
+						{{ new Date().getFullYear() }} - <a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> - {{ $t("footer.made-in") }} - {{ $t("footer.thanks-to") }} <a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
+					</v-row>
+					<v-row no-gutters align="center" justify="center">
+						<router-link class="side-pad" to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link><router-link class="side-pad" to="/attribution">{{ $t("footer.attribution") }}</router-link>
+					</v-row>
+				</v-container>
+		</v-footer>
+    <v-dialog v-model="showCreateRoomForm" persistent max-width="600">
+      <CreateRoomForm @roomCreated="showCreateRoomForm = false" @cancel="showCreateRoomForm = false" />
+    </v-dialog>
+    <v-dialog v-model="showLogin" max-width="600">
+      <LogInForm @shouldClose="showLogin = false" />
+    </v-dialog>
     <v-overlay :value="isLoadingCreateRoom">
       <v-container fill-height>
         <v-row align="center" justify="center">

@@ -109,21 +109,6 @@
 					</v-row>
 				</v-col>
 			</v-row>
-			<v-row>
-				<v-col>
-					<em style="opacity: 0.5">{{ $t("footer.disclaimer") }}</em>
-				</v-col>
-			</v-row>
-			<v-footer>
-				<v-container pa-0>
-					<v-row no-gutters align="center" justify="center">
-						{{ new Date().getFullYear() }} - <a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> - {{ $t("footer.made-in") }} - {{ $t("footer.thanks-to") }} <a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
-					</v-row>
-					<v-row no-gutters align="center" justify="center">
-						<router-link class="side-pad" to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link><router-link class="side-pad" to="/attribution">{{ $t("footer.attribution") }}</router-link>
-					</v-row>
-				</v-container>
-			</v-footer>
 		</v-container>
 	</div>
 </template>
