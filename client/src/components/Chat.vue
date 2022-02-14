@@ -15,6 +15,7 @@
 			@scroll="onScroll"
 			class="messages d-flex flex-column flex-grow-1 mt-2"
 		>
+			<div class="d-flex flex-grow-1"><!-- Spacer --></div>
 			<transition-group name="message">
 				<div
 					class="message"

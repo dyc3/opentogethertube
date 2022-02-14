@@ -123,16 +123,16 @@
                   <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
                 </v-row>
               </v-col>
+              <div
+                class="chat-container"
+                v-if="chatVisible"
+              >
+                <Chat
+                  class="chat"
+                  @close="chatVisible = false"
+                />
+              </div>
             </v-responsive>
-          </div>
-          <div
-            class="chat-container"
-            v-if="chatVisible"
-          >
-            <Chat
-              class="chat"
-              @close="chatVisible = false"
-            />
           </div>
         </v-row>
         <v-row no-gutters>
@@ -748,9 +748,12 @@ export default {
   }
 }
 
+$video-controls-height: 80px;
+
 .video-controls {
   position: absolute;
   bottom: 0;
+  height: $video-controls-height;
 
   background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0));
   transition: all 0.2s;
@@ -801,6 +804,13 @@ export default {
 }
 .chat-container {
   padding: 5px 10px;
+
+  position: absolute;
+  // top: -$video-controls-height;
+  bottom: $video-controls-height;
+  right: 0;
+  width: 250px;
+  height: 800px;
 }
 
 .flip-list-move {
