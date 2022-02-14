@@ -1,3 +1,4 @@
+import '@/installCompositionApi.js';
 import Vue from 'vue';
 import { mount, createLocalVue } from '@vue/test-utils';
 import Vuetify from 'vuetify';
