@@ -6,15 +6,6 @@
         <div class="d-flex flex-row">
           <span id="connectStatus">{{ connectionStatus }}</span>
           <div class="flex-grow-1"><!-- Spacer --></div>
-          <v-btn
-            class="chat-open-button"
-            icon
-            small
-            v-if="!chatVisible"
-            @click="chatVisible = true"
-          >
-            <v-icon>far fa-comment-alt</v-icon>
-          </v-btn>
         </div>
       </v-col>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
@@ -22,7 +13,6 @@
           no-gutters
           :class="{
             'video-container': true,
-            'chat-visible': chatVisible,
           }"
         >
           <div
@@ -271,7 +261,6 @@ export default {
 
       orientation: screen.orientation.type,
       videoControlsHideTimeout: null,
-      chatVisible: true,
 
       api,
       QueueMode,
@@ -337,7 +326,6 @@ export default {
       this.debugMode = true;
     }
     this.volume = this.$store.state.settings.volume;
-    this.chatVisible = this.$store.state.settings.chatVisible;
 
     await this.$store.dispatch("user/waitForToken");
     if (!this.$store.state.$connection.isConnected) {
@@ -684,9 +672,6 @@ export default {
       this.updateVolume();
       this.$store.commit("settings/UPDATE", { volume: this.volume });
     },
-    chatVisible(value) {
-      this.$store.commit("settings/UPDATE", { chatVisible: value });
-    },
     async truePosition(newPosition) {
       let currentTime = await this.$refs.player.getPosition();
 
@@ -724,19 +709,6 @@ $in-video-chat-width: 250px;
 
   .video-subcontainer {
     width: 100%;
-  }
-
-  &.chat-visible {
-    .video-subcontainer {
-      width: calc(100% / 12 * 8);
-    }
-
-    @media (min-width: $xl-min) {
-      .video-subcontainer {
-        width: calc(100% / 12 * 7);
-        max-height: 100vh;
-      }
-    }
   }
 
   @media (max-width: $md-max) {
@@ -832,16 +804,6 @@ $in-video-chat-width: 250px;
 
     .video-subcontainer {
       width: 100%;
-    }
-
-    &.chat-visible {
-      .video-subcontainer {
-        width: calc(100% / 12 * 9);
-      }
-
-      .chat-container {
-        width: calc(100% / 12 * 3);
-      }
     }
   }
 
