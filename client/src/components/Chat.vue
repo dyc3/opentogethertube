@@ -228,6 +228,7 @@ $chat-message-bg: $background-color;
 
 	.messages {
 		overflow-y: auto;
+		pointer-events: auto;
 	}
 }
 
