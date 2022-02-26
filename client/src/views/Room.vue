@@ -17,6 +17,7 @@
             'video-container': true,
           }"
         >
+          <div class="flex-grow-1"><!-- Spacer --></div>
           <div
             class="video-subcontainer"
             :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }"
@@ -124,6 +125,7 @@
               </div>
             </v-responsive>
           </div>
+          <div class="flex-grow-1"><!-- Spacer --></div>
         </v-row>
         <v-row no-gutters>
           <v-col cols="12" md="8" sm="12">
@@ -692,6 +694,11 @@ $video-controls-height: 80px;
 $in-video-chat-width: 250px;
 
 .video-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  max-height: 80vh;
+
   .player {
     position: absolute;
     top: 0;
@@ -708,7 +715,10 @@ $in-video-chat-width: 250px;
   }
 
   .video-subcontainer {
-    width: 100%;
+    display: flex;
+    flex-grow: 1;
+    width: 70vw;
+    max-height: 80vh;
   }
 
   @media (max-width: $md-max) {
@@ -801,9 +811,11 @@ $in-video-chat-width: 250px;
   .video-container {
     margin: 0;
     height: 100vh;
+    max-height: 100vh;
 
     .video-subcontainer {
       width: 100%;
+      max-height: 100vh;
     }
   }
 
