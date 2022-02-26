@@ -2,10 +2,12 @@
   <div>
     <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
       <v-col v-if="!$store.state.fullscreen">
-        <h1 class="room-title">{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}</h1>
-        <div class="d-flex flex-row">
-          <span id="connectStatus">{{ connectionStatus }}</span>
+        <div class="room-header">
+          <h1 class="room-title">
+            {{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}
+          </h1>
           <div class="flex-grow-1"><!-- Spacer --></div>
+          <span id="connectStatus">{{ connectionStatus }}</span>
         </div>
       </v-col>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
@@ -690,8 +692,6 @@ $video-controls-height: 80px;
 $in-video-chat-width: 250px;
 
 .video-container {
-  margin: 10px;
-
   .player {
     position: absolute;
     top: 0;
@@ -826,5 +826,13 @@ $in-video-chat-width: 250px;
 .textseek {
   display: inline-flex;
   width: 90px;
+}
+
+.room-header {
+  display: flex;
+  flex-direction: row;
+  > * {
+    align-self: flex-end;
+  }
 }
 </style>
