@@ -41,24 +41,28 @@ describe("Chat component", () => {
 		wrapper = mountNewInstance(store);
 	});
 
-	it("should render required elements", () => {
+	it("should render required elements", async () => {
+		wrapper.vm.setActivated(true);
+		await wrapper.vm.$nextTick();
 		expect(wrapper.find(".chat-header h4").text()).toEqual("Chat");
 		expect(wrapper.find(".messages").exists()).toBe(true);
 		expect(wrapper.find("input").exists()).toBe(true);
 	});
 
 	it("should render chat messages", async () => {
-		wrapper.vm.$store.state.room.chatMessages = [{ from: "user", text: "test" }];
+		wrapper.vm.onChatReceived({ from: "user", text: "test" });
 		await wrapper.vm.$nextTick();
 		expect(wrapper.findAll(".message")).toHaveLength(1);
 
 		wrapper.setData({ stickToBottom: false });
-		wrapper.vm.$store.state.room.chatMessages = [{ from: "user", text: "test" }, { from: "user", text: "test" }];
+		wrapper.vm.onChatReceived({ from: "user", text: "test" });
 		await wrapper.vm.$nextTick();
 		expect(wrapper.findAll(".message")).toHaveLength(2);
 	});
 
 	it.skip("should send chat message when enter is pressed", async () => {
+		wrapper.vm.setActivated(true);
+		await wrapper.vm.$nextTick();
 		wrapper.setData({ inputValue: "test" });
 		await wrapper.find("input").trigger("keydown.enter");
 		// expect(wrapper.vm.$socket.sendObj).toHaveBeenCalledWith({ action: "chat", text: "test" });
@@ -67,6 +71,8 @@ describe("Chat component", () => {
 	});
 
 	it("should not send chat message when other keys are pressed", async () => {
+		wrapper.vm.setActivated(true);
+		await wrapper.vm.$nextTick();
 		wrapper.setData({ inputValue: "test" });
 		await wrapper.find("input").trigger("keydown", {
 			key: 'a',
@@ -76,6 +82,8 @@ describe("Chat component", () => {
 	});
 
 	it("should not send chat message when message length is 0", async () => {
+		wrapper.vm.setActivated(true);
+		await wrapper.vm.$nextTick();
 		wrapper.setData({ inputValue: "" });
 		await wrapper.find("input").trigger("keydown.enter");
 		// expect(wrapper.vm.$socket.sendObj).not.toHaveBeenCalled();
@@ -88,11 +96,11 @@ describe("Chat component", () => {
 	});
 
 	it("should stick to the bottom when scrolled to the bottom", async () => {
-		wrapper.vm.$store.state.room.chatMessages = [
-			{ from: "user", text: "test" },
-			{ from: "user", text: "test" },
-			{ from: "user", text: "test" },
-		];
+		wrapper.vm.setActivated(true);
+		await wrapper.vm.$nextTick();
+		wrapper.vm.onChatReceived({ from: "user", text: "test" });
+		wrapper.vm.onChatReceived({ from: "user", text: "test" });
+		wrapper.vm.onChatReceived({ from: "user", text: "test" });
 		Object.defineProperty(wrapper.vm.$refs.messages, 'scrollHeight', { configurable: true, writable: true, value: 100 });
 		Object.defineProperty(wrapper.vm.$refs.messages, 'clientHeight', { configurable: true, writable: true, value: 30 });
 		Object.defineProperty(wrapper.vm.$refs.messages, 'scrollTop', { configurable: true, writable: true, value: 50 });
