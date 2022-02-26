@@ -91,6 +91,8 @@ export default Chat;
 </script>
 
 <style lang="scss" scoped>
+@import "../variables.scss";
+
 .chat-header {
 	border-bottom: 1px solid #666;
 }
@@ -105,7 +107,9 @@ export default Chat;
 
 .message {
 	margin: 4px;
+	margin-left: 0;
 	padding: 3px;
+	padding-left: 0;
 
 	&:first-child {
 		margin-top: auto;
@@ -120,6 +124,11 @@ export default Chat;
 
 	.from {
 		font-weight: bold;
+		margin-left: 0;
+	}
+
+	@media screen and (max-width: $md-max) {
+		font-size: 0.8em;
 	}
 }
 
