@@ -179,6 +179,7 @@ const Chat = defineComponent({
 			activated,
 			chatMessagePast,
 			chatMessageRecent,
+			deactivateOnBlur,
 
 			onInputKeyDown,
 			onScroll,
