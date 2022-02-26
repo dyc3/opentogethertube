@@ -1,8 +1,7 @@
 <template>
 	<div
 		:class="{
-			'd-flex': true,
-			'flex-column': true,
+			'chat': true,
 			'activated': activated,
 		}"
 	>
@@ -37,13 +36,14 @@
 			</transition-group>
 		</div>
 		<Transition
-			v-if="activated"
 			name="input"
 		>
 			<div
 				class="input-box"
+				v-if="activated"
 			>
 				<v-text-field
+					solo
 					:placeholder="$t('chat.type-here')"
 					@keydown="onInputKeyDown"
 					v-model="inputValue"
@@ -148,6 +148,18 @@ export default Chat;
 <style lang="scss" scoped>
 @import "../variables.scss";
 
+.chat {
+	display: flex;
+	flex-direction: column;
+	margin: 4px;
+	padding: 3px;
+	transition: all 0.2 ease;
+
+	&.activated {
+		background: rgba($color: #000000, $alpha: 0.8);
+	}
+}
+
 .chat-header {
 	border-bottom: 1px solid #666;
 }
@@ -156,6 +168,7 @@ export default Chat;
 	display: flex;
 	justify-self: end;
 	flex-shrink: 1;
+	height: 50px;
 }
 
 .messages {
@@ -167,10 +180,8 @@ export default Chat;
 }
 
 .message {
-	margin: 4px;
-	margin-left: 0;
-	padding: 3px;
-	padding-left: 0;
+	margin: 2px 0;
+	padding: 2px 0;
 
 	&:first-child {
 		margin-top: auto;
@@ -210,6 +221,7 @@ export default Chat;
 }
 .input-enter, .input-leave-to {
 	opacity: 0;
-	transform: scaleY(0);
+	transform: translateY(-30px) scaleY(0);
+	height: 0;
 }
 </style>
