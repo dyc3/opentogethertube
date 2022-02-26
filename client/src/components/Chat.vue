@@ -16,7 +16,7 @@
 			class="messages d-flex flex-column flex-grow-1 mt-2"
 		>
 			<div class="d-flex flex-grow-1"><!-- Spacer --></div>
-			<transition-group name="message">
+			<transition-group name="message" style="width: 100%">
 				<div
 					class="message"
 					v-for="(msg, index) in $store.state.room.chatMessages"
