@@ -454,8 +454,8 @@ export default {
         e.preventDefault();
       }
       else if (e.code === "KeyT") {
-        this.$refs.chat.focusChatInput();
         e.preventDefault();
+        this.$refs.chat.setActivated(true);
       }
       else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
         this.debugMode = !this.debugMode;

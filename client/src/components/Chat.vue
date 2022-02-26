@@ -1,6 +1,15 @@
 <template>
-	<div class="d-flex flex-column">
-		<div class="chat-header d-flex flex-row">
+	<div
+		:class="{
+			'd-flex': true,
+			'flex-column': true,
+			'activated': activated,
+		}"
+	>
+		<div
+			class="chat-header d-flex flex-row"
+			v-if="activated"
+		>
 			<v-btn
 				icon
 				x-small
@@ -27,27 +36,63 @@
 				</div>
 			</transition-group>
 		</div>
-		<div class="d-flex justify-end">
-			<v-text-field
-				:placeholder="$t('chat.type-here')"
-				@keydown="onInputKeyDown"
-				v-model="inputValue"
-				autocomplete="off"
-				ref="chatInput"
-			/>
-		</div>
+		<Transition
+			v-if="activated"
+			name="input"
+		>
+			<div
+				class="input-box"
+			>
+				<v-text-field
+					:placeholder="$t('chat.type-here')"
+					@keydown="onInputKeyDown"
+					v-model="inputValue"
+					autocomplete="off"
+					ref="chatInput"
+					@blur="setActivated(false)"
+				/>
+			</div>
+		</Transition>
 	</div>
 </template>
 
 <script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
 import api from "@/util/api";
-import { defineComponent, onUpdated, ref, Ref } from "@vue/composition-api";
+import { defineComponent, onUpdated, ref, Ref, nextTick } from "@vue/composition-api";
+
+const MSG_SHOW_TIMEOUT = 6000;
 
 let inputValue = ref("");
 let stickToBottom = ref(true);
+/**
+ * When chat is activated, all messages are shown. and the
+ * user can scroll through message history, type in chat, etc.
+ * When chat is NOT activated, when messages are received,
+ * they appear and fade away after a set amount of time.
+ */
+let activated = ref(false);
 let messages = ref();
 let chatInput: Ref<HTMLInputElement | undefined> = ref();
+
+function focusChatInput() {
+	chatInput.value?.focus();
+}
+
+function isActivated(): boolean {
+	return activated.value;
+}
+
+async function setActivated(value: boolean): Promise<void> {
+	activated.value = value;
+	if (value) {
+		await nextTick();
+		focusChatInput();
+	}
+	else {
+		chatInput.value?.blur();
+	}
+}
 
 const Chat = defineComponent({
 	name: "Chat",
@@ -63,7 +108,7 @@ const Chat = defineComponent({
 				stickToBottom.value = true;
 			}
 			else if (e.key === "Escape") {
-				chatInput.value?.blur();
+				setActivated(false);
 			}
 		}
 
@@ -80,17 +125,16 @@ const Chat = defineComponent({
 			}
 		});
 
-		function focusChatInput() {
-			chatInput.value?.focus();
-		}
-
 		return {
 			inputValue,
 			stickToBottom,
+			activated,
 
 			onInputKeyDown,
 			onScroll,
 			focusChatInput,
+			isActivated,
+			setActivated,
 
 			messages,
 			chatInput,
@@ -106,6 +150,12 @@ export default Chat;
 
 .chat-header {
 	border-bottom: 1px solid #666;
+}
+
+.input-box {
+	display: flex;
+	justify-self: end;
+	flex-shrink: 1;
 }
 
 .messages {
@@ -153,5 +203,13 @@ export default Chat;
 }
 .message-move {
 	transition: transform 0.2s;
+}
+
+.input-enter-active, .input-leave-active {
+	transition: all 0.2s ease;
+}
+.input-enter, .input-leave-to {
+	opacity: 0;
+	transform: scaleY(0);
 }
 </style>
