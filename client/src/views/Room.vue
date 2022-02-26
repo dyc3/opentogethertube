@@ -127,9 +127,7 @@
                 class="in-video-chat"
               >
                 <Chat
-                  class="chat"
                   ref="chat"
-                  @close="chatVisible = false"
                 />
               </div>
             </v-responsive>

@@ -12,9 +12,9 @@
 			<v-btn
 				icon
 				x-small
-				@click="$emit('close')"
+				@click="setActivated(false)"
 			>
-				<v-icon>fas fa-chevron-right</v-icon>
+				<v-icon>fas fa-chevron-down</v-icon>
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
 		</div>
@@ -58,10 +58,22 @@
 					v-model="inputValue"
 					autocomplete="off"
 					ref="chatInput"
-					@blur="setActivated(false)"
+					@blur="deactivateOnBlur && setActivated(false)"
 				/>
 			</div>
 		</Transition>
+		<div
+			class="manual-activate"
+			v-if="!activated"
+		>
+			<v-btn
+				icon
+				x-small
+				@click="setActivated(true, manual=true)"
+			>
+				<v-icon>far fa-comment-alt</v-icon>
+			</v-btn>
+		</div>
 	</div>
 </template>
 
@@ -82,6 +94,7 @@ let stickToBottom = ref(true);
  * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
  */
 let activated = ref(false);
+let deactivateOnBlur = ref(false);
 /**
  * All past chat messages. They are are no longer
  * shown when deactivated.
@@ -103,9 +116,15 @@ function isActivated(): boolean {
 	return activated.value;
 }
 
-async function setActivated(value: boolean): Promise<void> {
+async function setActivated(value: boolean, manual=false): Promise<void> {
 	activated.value = value;
 	if (value) {
+		if (manual) {
+			deactivateOnBlur.value = false;
+		}
+		else {
+			deactivateOnBlur.value = true;
+		}
 		await nextTick();
 		focusChatInput();
 	}
@@ -128,7 +147,6 @@ const Chat = defineComponent({
 	components: {
 		ProcessedText,
 	},
-	emits: ["close"],
 	setup() {
 		function onInputKeyDown(e: KeyboardEvent): void {
 			if (e.key === "Enter" && inputValue.value.trim() !== "") {
@@ -261,6 +279,13 @@ $chat-message-bg: $background-color;
 	@media screen and (max-width: $md-max) {
 		font-size: 0.8em;
 	}
+}
+
+.manual-activate {
+	display: flex;
+	align-self: flex-end;
+	justify-self: end;
+	pointer-events: auto;
 }
 
 // Transition animation
