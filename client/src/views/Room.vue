@@ -124,8 +124,7 @@
                 </v-row>
               </v-col>
               <div
-                class="chat-container"
-                v-if="chatVisible"
+                class="in-video-chat"
               >
                 <Chat
                   class="chat"
@@ -691,6 +690,9 @@ export default {
 <style lang="scss" scoped>
 @import "../variables.scss";
 
+$video-controls-height: 80px;
+$in-video-chat-width: 250px;
+
 .video-container {
   margin: 10px;
 
@@ -718,37 +720,22 @@ export default {
       width: calc(100% / 12 * 8);
     }
 
-    .chat-container {
-      width: calc(100% / 12 * 4);
-
-      .chat {
-        min-height: 400px;
-        height: 100%;
-      }
-    }
-
     @media (min-width: $xl-min) {
       .video-subcontainer {
         width: calc(100% / 12 * 7);
         max-height: 100vh;
       }
-
-      .chat-container {
-        width: calc(100% / 12 * 5);
-      }
     }
   }
 
   @media (max-width: $md-max) {
-    .video-subcontainer, .chat-container {
+    .video-subcontainer {
       width: 100%;
     }
 
     margin: 0;
   }
 }
-
-$video-controls-height: 80px;
 
 .video-controls {
   position: absolute;
@@ -802,15 +789,20 @@ $video-controls-height: 80px;
   text-align: center;
   line-height: 1.8;
 }
-.chat-container {
+
+.in-video-chat {
   padding: 5px 10px;
 
   position: absolute;
   // top: -$video-controls-height;
   bottom: $video-controls-height;
   right: 0;
-  width: 250px;
+  width: $in-video-chat-width;
   height: 800px;
+
+  .chat {
+    height: 100%;
+  }
 }
 
 .flip-list-move {
