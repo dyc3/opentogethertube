@@ -38,6 +38,7 @@
 					v-for="(msg, index) in chatMessageRecent"
 					:key="chatMessagePast.length + index"
 				>
+					<!-- FIXME: reduce duplicated code by moving this to another component, preferably in this same file.  -->
 					<div class="from">{{ msg.from.name }}</div>
 					<div class="text"><ProcessedText :text="msg.text" /></div>
 				</div>
@@ -70,7 +71,7 @@ import api from "@/util/api";
 import { defineComponent, onUpdated, ref, Ref, nextTick } from "@vue/composition-api";
 import type { ChatMessage } from "common/models/types";
 
-const MSG_SHOW_TIMEOUT = 6000;
+const MSG_SHOW_TIMEOUT = 20000;
 
 let inputValue = ref("");
 let stickToBottom = ref(true);
@@ -180,6 +181,8 @@ export default Chat;
 <style lang="scss" scoped>
 @import "../variables.scss";
 
+$chat-message-bg: $background-color;
+
 .chat {
 	display: flex;
 	flex-direction: column;
@@ -188,7 +191,18 @@ export default Chat;
 	transition: all 0.2 ease;
 
 	&.activated {
-		background: rgba($color: #000000, $alpha: 0.8);
+		background: rgba($color: $background-color, $alpha: 0.8);
+	}
+}
+
+.activated {
+	.message {
+		opacity: 1;
+
+		&.recent {
+			background: transparent;
+			transition-duration: 0.2s;
+		}
 	}
 }
 
@@ -214,14 +228,16 @@ export default Chat;
 .message {
 	margin: 2px 0;
 	padding: 2px 0;
+	opacity: 0;
+	transition: all 1s ease;
 
 	&:first-child {
 		margin-top: auto;
 	}
 
 	&.recent {
-		opacity: 0.5;
-		transition: opacity 0.2s ease;
+		opacity: 1;
+		background: rgba($color: $background-color, $alpha: 1);
 	}
 
 	.from,
