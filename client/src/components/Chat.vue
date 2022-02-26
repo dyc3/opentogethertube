@@ -33,6 +33,7 @@
 				@keydown="onInputKeyDown"
 				v-model="inputValue"
 				autocomplete="off"
+				ref="chatInput"
 			/>
 		</div>
 	</div>
@@ -41,11 +42,12 @@
 <script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
 import api from "@/util/api";
-import { defineComponent, onUpdated, ref } from "@vue/composition-api";
+import { defineComponent, onUpdated, ref, Ref } from "@vue/composition-api";
 
 let inputValue = ref("");
 let stickToBottom = ref(true);
 let messages = ref();
+let chatInput: Ref<HTMLInputElement | undefined> = ref();
 
 const Chat = defineComponent({
 	name: "Chat",
@@ -59,6 +61,9 @@ const Chat = defineComponent({
 				api.chat(inputValue.value);
 				inputValue.value = "";
 				stickToBottom.value = true;
+			}
+			else if (e.key === "Escape") {
+				chatInput.value?.blur();
 			}
 		}
 
@@ -75,14 +80,20 @@ const Chat = defineComponent({
 			}
 		});
 
+		function focusChatInput() {
+			chatInput.value?.focus();
+		}
+
 		return {
 			inputValue,
 			stickToBottom,
 
 			onInputKeyDown,
 			onScroll,
+			focusChatInput,
 
 			messages,
+			chatInput,
 		};
 	},
 });

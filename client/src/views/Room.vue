@@ -128,6 +128,7 @@
               >
                 <Chat
                   class="chat"
+                  ref="chat"
                   @close="chatVisible = false"
                 />
               </div>
@@ -450,6 +451,10 @@ export default {
       }
       else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
         this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
+        e.preventDefault();
+      }
+      else if (e.code === "KeyT") {
+        this.$refs.chat.focusChatInput();
         e.preventDefault();
       }
       else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
