@@ -27,8 +27,16 @@
 			<transition-group name="message" style="width: 100%">
 				<div
 					class="message"
-					v-for="(msg, index) in $store.state.room.chatMessages"
+					v-for="(msg, index) in chatMessagePast"
 					:key="index"
+				>
+					<div class="from">{{ msg.from.name }}</div>
+					<div class="text"><ProcessedText :text="msg.text" /></div>
+				</div>
+				<div
+					class="message recent"
+					v-for="(msg, index) in chatMessageRecent"
+					:key="chatMessagePast.length + index"
 				>
 					<div class="from">{{ msg.from.name }}</div>
 					<div class="text"><ProcessedText :text="msg.text" /></div>
@@ -60,6 +68,7 @@
 import ProcessedText from "@/components/ProcessedText.vue";
 import api from "@/util/api";
 import { defineComponent, onUpdated, ref, Ref, nextTick } from "@vue/composition-api";
+import type { ChatMessage } from "common/models/types";
 
 const MSG_SHOW_TIMEOUT = 6000;
 
@@ -69,9 +78,19 @@ let stickToBottom = ref(true);
  * When chat is activated, all messages are shown. and the
  * user can scroll through message history, type in chat, etc.
  * When chat is NOT activated, when messages are received,
- * they appear and fade away after a set amount of time.
+ * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
  */
 let activated = ref(false);
+/**
+ * All past chat messages. They are are no longer
+ * shown when deactivated.
+ */
+let chatMessagePast: Ref<ChatMessage[]> = ref([]);
+/**
+ * All recent chat messages that are currently shown when deactivated.
+ * They will fade away after `MSG_SHOW_TIMEOUT` ms, and moved into `chatMessagePast`.
+ */
+let chatMessageRecent: Ref<ChatMessage[]> = ref([]);
 let messages = ref();
 let chatInput: Ref<HTMLInputElement | undefined> = ref();
 
@@ -94,6 +113,15 @@ async function setActivated(value: boolean): Promise<void> {
 	}
 }
 
+function onChatReceived(msg: ChatMessage): void {
+	chatMessageRecent.value.push(msg);
+	setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
+}
+
+function expireChatMessage() {
+	chatMessagePast.value.push(chatMessageRecent.value.splice(0, 1)[0]);
+}
+
 const Chat = defineComponent({
 	name: "Chat",
 	components: {
@@ -106,6 +134,7 @@ const Chat = defineComponent({
 				api.chat(inputValue.value);
 				inputValue.value = "";
 				stickToBottom.value = true;
+				setActivated(false);
 			}
 			else if (e.key === "Escape") {
 				setActivated(false);
@@ -129,12 +158,15 @@ const Chat = defineComponent({
 			inputValue,
 			stickToBottom,
 			activated,
+			chatMessagePast,
+			chatMessageRecent,
 
 			onInputKeyDown,
 			onScroll,
 			focusChatInput,
 			isActivated,
 			setActivated,
+			onChatReceived,
 
 			messages,
 			chatInput,
@@ -185,6 +217,11 @@ export default Chat;
 
 	&:first-child {
 		margin-top: auto;
+	}
+
+	&.recent {
+		opacity: 0.5;
+		transition: opacity 0.2s ease;
 	}
 
 	.from,

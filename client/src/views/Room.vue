@@ -317,6 +317,14 @@ export default {
       if (action.type === "sync") {
         this.rewriteUrlToRoomName();
       }
+      else if (action.type === "chat") {
+        /*
+         * HACK: passes along the chat message to the chat component.
+         * FIXME: Ideally, the chat component would subscribe to the vuex store itself, but we need to upgrade vuex to 4.0.0 to do that.
+        */
+        this.$refs.chat.onChatReceived(action.payload);
+
+      }
     });
     this.$events.on("onRoomCreated", this.onRoomCreated);
     this.$events.on("onChatLinkClick", this.switchToAddTab);
