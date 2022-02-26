@@ -189,9 +189,11 @@ $chat-message-bg: $background-color;
 	margin: 4px;
 	padding: 3px;
 	transition: all 0.2 ease;
+	pointer-events: none;
 
 	&.activated {
 		background: rgba($color: $background-color, $alpha: 0.8);
+		pointer-events: auto;
 	}
 }
 
@@ -203,6 +205,10 @@ $chat-message-bg: $background-color;
 			background: transparent;
 			transition-duration: 0.2s;
 		}
+	}
+
+	.messages {
+		overflow-y: auto;
 	}
 }
 
@@ -218,8 +224,8 @@ $chat-message-bg: $background-color;
 }
 
 .messages {
-	overflow-y: auto;
-	overflow-x: hidden;
+	overflow: hidden;
+	pointer-events: none;
 
 	flex-basis: 0;
 	align-items: baseline;

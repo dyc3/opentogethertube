@@ -807,11 +807,11 @@ $in-video-chat-width: 250px;
   padding: 5px 10px;
 
   position: absolute;
-  // top: -$video-controls-height;
   bottom: $video-controls-height;
   right: 0;
   width: $in-video-chat-width;
-  height: 800px;
+  height: 200px;
+  pointer-events: none;
 
   .chat {
     height: 100%;
