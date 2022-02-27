@@ -54,6 +54,8 @@
 			>
 				<v-text-field
 					solo
+					dense
+					single-line
 					:placeholder="$t('chat.type-here')"
 					@keydown="onInputKeyDown"
 					v-model="inputValue"
@@ -247,7 +249,7 @@ $chat-message-bg: $background-color;
 	display: flex;
 	justify-self: end;
 	flex-shrink: 1;
-	height: 50px;
+	height: 40px;
 }
 
 .messages {
