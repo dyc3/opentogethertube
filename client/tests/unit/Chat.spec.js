@@ -60,6 +60,17 @@ describe("Chat component", () => {
 		expect(wrapper.findAll(".message")).toHaveLength(2);
 	});
 
+	it("should deactivate chat when escape is pressed", async () => {
+		wrapper.vm.setActivated(true);
+		expect(wrapper.vm.isActivated()).toEqual(true);
+		let input = wrapper.find("input");
+		expect(input.exists()).toBe(true);
+		await input.trigger("keydown", {
+			key: "Escape",
+		});
+		expect(wrapper.vm.isActivated()).toEqual(false);
+	});
+
 	it.skip("should send chat message when enter is pressed", async () => {
 		wrapper.vm.setActivated(true);
 		await wrapper.vm.$nextTick();
