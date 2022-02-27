@@ -112,15 +112,15 @@ describe("Chat component", () => {
 		wrapper.vm.onChatReceived({ from: "user", text: "test" });
 		wrapper.vm.onChatReceived({ from: "user", text: "test" });
 		wrapper.vm.onChatReceived({ from: "user", text: "test" });
-		Object.defineProperty(wrapper.vm.$refs.messages, 'scrollHeight', { configurable: true, writable: true, value: 100 });
-		Object.defineProperty(wrapper.vm.$refs.messages, 'clientHeight', { configurable: true, writable: true, value: 30 });
-		Object.defineProperty(wrapper.vm.$refs.messages, 'scrollTop', { configurable: true, writable: true, value: 50 });
+		Object.defineProperty(wrapper.vm.messages, 'scrollHeight', { configurable: true, writable: true, value: 100 });
+		Object.defineProperty(wrapper.vm.messages, 'clientHeight', { configurable: true, writable: true, value: 30 });
+		Object.defineProperty(wrapper.vm.messages, 'scrollTop', { configurable: true, writable: true, value: 50 });
 		await wrapper.find(".messages").trigger("scroll");
 		expect(wrapper.vm.stickToBottom).toEqual(false);
 
-		wrapper.vm.$refs.messages.scrollHeight = 100;
-		wrapper.vm.$refs.messages.clientHeight = 30;
-		wrapper.vm.$refs.messages.scrollTop = 70;
+		wrapper.vm.messages.scrollHeight = 100;
+		wrapper.vm.messages.clientHeight = 30;
+		wrapper.vm.messages.scrollTop = 70;
 		await wrapper.find(".messages").trigger("scroll");
 		expect(wrapper.vm.stickToBottom).toEqual(true);
 	});
