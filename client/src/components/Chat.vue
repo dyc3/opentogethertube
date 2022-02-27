@@ -162,13 +162,17 @@ const Chat = defineComponent({
 	},
 	setup() {
 		function onInputKeyDown(e: KeyboardEvent): void {
-			if (e.key === "Enter" && inputValue.value.trim() !== "") {
-				api.chat(inputValue.value);
+			if (e.key === "Enter") {
+				e.preventDefault();
+				if (inputValue.value.trim() !== "") {
+					api.chat(inputValue.value);
+				}
 				inputValue.value = "";
 				stickToBottom.value = true;
 				setActivated(false);
 			}
 			else if (e.key === "Escape") {
+				e.preventDefault();
 				setActivated(false);
 			}
 		}
