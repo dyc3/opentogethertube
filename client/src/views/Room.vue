@@ -691,7 +691,8 @@ export default {
 @import "../variables.scss";
 
 $video-controls-height: 80px;
-$in-video-chat-width: 250px;
+$in-video-chat-width: 400px;
+$in-video-chat-width-small: 250px;
 
 .video-container {
   display: flex;
@@ -791,6 +792,9 @@ $in-video-chat-width: 250px;
   right: 0;
   width: $in-video-chat-width;
   height: 200px;
+  @media screen and (max-width: $sm-max) {
+    width: $in-video-chat-width-small;
+  }
   pointer-events: none;
 
   .chat {
