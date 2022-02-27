@@ -2,7 +2,6 @@ import { Module } from 'vuex/types';
 
 export interface SettingsState {
 	volume: number;
-	chatVisible: boolean;
 	locale: string;
 }
 
@@ -10,7 +9,6 @@ export const settingsModule: Module<SettingsState, unknown> = {
 	namespaced: true,
 	state: {
 		volume: 100,
-		chatVisible: true,
 		locale: 'en',
 	},
 	mutations: {

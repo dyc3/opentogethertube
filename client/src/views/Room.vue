@@ -2,19 +2,12 @@
   <div>
     <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
       <v-col v-if="!$store.state.fullscreen">
-        <h1 class="room-title">{{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}</h1>
-        <div class="d-flex flex-row">
-          <span id="connectStatus">{{ connectionStatus }}</span>
+        <div class="room-header">
+          <h1 class="room-title">
+            {{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}
+          </h1>
           <div class="flex-grow-1"><!-- Spacer --></div>
-          <v-btn
-            class="chat-open-button"
-            icon
-            small
-            v-if="!chatVisible"
-            @click="chatVisible = true"
-          >
-            <v-icon>far fa-comment-alt</v-icon>
-          </v-btn>
+          <span id="connectStatus">{{ connectionStatus }}</span>
         </div>
       </v-col>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
@@ -22,9 +15,9 @@
           no-gutters
           :class="{
             'video-container': true,
-            'chat-visible': chatVisible,
           }"
         >
+          <div class="flex-grow-1"><!-- Spacer --></div>
           <div
             class="video-subcontainer"
             :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }"
@@ -123,17 +116,16 @@
                   <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
                 </v-row>
               </v-col>
+              <div
+                class="in-video-chat"
+              >
+                <Chat
+                  ref="chat"
+                />
+              </div>
             </v-responsive>
           </div>
-          <div
-            class="chat-container"
-            v-if="chatVisible"
-          >
-            <Chat
-              class="chat"
-              @close="chatVisible = false"
-            />
-          </div>
+          <div class="flex-grow-1"><!-- Spacer --></div>
         </v-row>
         <v-row no-gutters>
           <v-col cols="12" md="8" sm="12">
@@ -273,7 +265,6 @@ export default {
 
       orientation: screen.orientation.type,
       videoControlsHideTimeout: null,
-      chatVisible: true,
 
       api,
       QueueMode,
@@ -317,6 +308,14 @@ export default {
       if (action.type === "sync") {
         this.rewriteUrlToRoomName();
       }
+      else if (action.type === "chat") {
+        /*
+         * HACK: passes along the chat message to the chat component.
+         * FIXME: Ideally, the chat component would subscribe to the vuex store itself, but we need to upgrade vuex to 4.0.0 to do that.
+        */
+        this.$refs.chat.onChatReceived(action.payload);
+
+      }
     });
     this.$events.on("onRoomCreated", this.onRoomCreated);
     this.$events.on("onChatLinkClick", this.switchToAddTab);
@@ -331,7 +330,6 @@ export default {
       this.debugMode = true;
     }
     this.volume = this.$store.state.settings.volume;
-    this.chatVisible = this.$store.state.settings.chatVisible;
 
     await this.$store.dispatch("user/waitForToken");
     if (!this.$store.state.$connection.isConnected) {
@@ -452,6 +450,10 @@ export default {
       else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
         this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
         e.preventDefault();
+      }
+      else if (e.code === "KeyT") {
+        e.preventDefault();
+        this.$refs.chat.setActivated(true);
       }
       else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
         this.debugMode = !this.debugMode;
@@ -674,9 +676,6 @@ export default {
       this.updateVolume();
       this.$store.commit("settings/UPDATE", { volume: this.volume });
     },
-    chatVisible(value) {
-      this.$store.commit("settings/UPDATE", { chatVisible: value });
-    },
     async truePosition(newPosition) {
       let currentTime = await this.$refs.player.getPosition();
 
@@ -691,8 +690,15 @@ export default {
 <style lang="scss" scoped>
 @import "../variables.scss";
 
+$video-controls-height: 80px;
+$in-video-chat-width: 400px;
+$in-video-chat-width-small: 250px;
+
 .video-container {
-  margin: 10px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  max-height: 80vh;
 
   .player {
     position: absolute;
@@ -710,37 +716,14 @@ export default {
   }
 
   .video-subcontainer {
-    width: 100%;
-  }
-
-  &.chat-visible {
-    .video-subcontainer {
-      width: calc(100% / 12 * 8);
-    }
-
-    .chat-container {
-      width: calc(100% / 12 * 4);
-
-      .chat {
-        min-height: 400px;
-        height: 100%;
-      }
-    }
-
-    @media (min-width: $xl-min) {
-      .video-subcontainer {
-        width: calc(100% / 12 * 7);
-        max-height: 100vh;
-      }
-
-      .chat-container {
-        width: calc(100% / 12 * 5);
-      }
-    }
+    display: flex;
+    flex-grow: 1;
+    width: 70vw;
+    max-height: 80vh;
   }
 
   @media (max-width: $md-max) {
-    .video-subcontainer, .chat-container {
+    .video-subcontainer {
       width: 100%;
     }
 
@@ -751,6 +734,7 @@ export default {
 .video-controls {
   position: absolute;
   bottom: 0;
+  height: $video-controls-height;
 
   background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0));
   transition: all 0.2s;
@@ -799,8 +783,24 @@ export default {
   text-align: center;
   line-height: 1.8;
 }
-.chat-container {
+
+.in-video-chat {
   padding: 5px 10px;
+
+  position: absolute;
+  bottom: $video-controls-height;
+  right: 0;
+  width: $in-video-chat-width;
+  height: 70%;
+  min-height: 70px;
+  @media screen and (max-width: $sm-max) {
+    width: $in-video-chat-width-small;
+  }
+  pointer-events: none;
+
+  .chat {
+    height: 100%;
+  }
 }
 
 .flip-list-move {
@@ -816,19 +816,11 @@ export default {
   .video-container {
     margin: 0;
     height: 100vh;
+    max-height: 100vh;
 
     .video-subcontainer {
       width: 100%;
-    }
-
-    &.chat-visible {
-      .video-subcontainer {
-        width: calc(100% / 12 * 9);
-      }
-
-      .chat-container {
-        width: calc(100% / 12 * 3);
-      }
+      max-height: 100vh;
     }
   }
 
@@ -851,5 +843,13 @@ export default {
 .textseek {
   display: inline-flex;
   width: 90px;
+}
+
+.room-header {
+  display: flex;
+  flex-direction: row;
+  > * {
+    align-self: flex-end;
+  }
 }
 </style>

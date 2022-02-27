@@ -113,3 +113,8 @@ export interface RoomEventContext {
 	queueIdx?: number
 	user?: RoomUserInfo
 }
+
+export interface ChatMessage {
+	from: RoomUserInfo
+	text: string
+}
