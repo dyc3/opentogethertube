@@ -792,6 +792,7 @@ $in-video-chat-width-small: 250px;
   right: 0;
   width: $in-video-chat-width;
   height: 200px;
+  min-height: 200px;
   @media screen and (max-width: $sm-max) {
     width: $in-video-chat-width-small;
   }
