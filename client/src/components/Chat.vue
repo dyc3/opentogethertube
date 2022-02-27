@@ -263,7 +263,7 @@ $chat-message-bg: $background-color;
 
 	&.recent {
 		opacity: 1;
-		background: rgba($color: $background-color, $alpha: 1);
+		background: rgba($color: $background-color, $alpha: 0.6);
 	}
 
 	.from,
@@ -276,6 +276,7 @@ $chat-message-bg: $background-color;
 	.from {
 		font-weight: bold;
 		margin-left: 0;
+		padding: 0 4px;
 	}
 
 	@media screen and (max-width: $sm-max) {
