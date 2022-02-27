@@ -46,6 +46,7 @@
 		</div>
 		<Transition
 			name="input"
+			@after-enter="enforceStickToBottom"
 		>
 			<div
 				class="input-box"
@@ -142,6 +143,16 @@ function expireChatMessage() {
 	chatMessagePast.value.push(chatMessageRecent.value.splice(0, 1)[0]);
 }
 
+/**
+ * Performs the necessary actions to enact the stickToBottom behavior.
+ */
+function enforceStickToBottom() {
+	const div=messages.value as HTMLDivElement;
+	if (stickToBottom.value) {
+		div.scrollTop=div.scrollHeight;
+	}
+}
+
 const Chat = defineComponent({
 	name: "Chat",
 	components: {
@@ -166,12 +177,7 @@ const Chat = defineComponent({
 			stickToBottom.value = distToBottom === 0;
 		}
 
-		onUpdated(() => {
-			const div = messages.value as HTMLDivElement;
-			if (stickToBottom.value) {
-				div.scrollTop = div.scrollHeight;
-			}
-		});
+		onUpdated(enforceStickToBottom);
 
 		return {
 			inputValue,
@@ -187,6 +193,7 @@ const Chat = defineComponent({
 			isActivated,
 			setActivated,
 			onChatReceived,
+			enforceStickToBottom,
 
 			messages,
 			chatInput,
