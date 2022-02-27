@@ -278,7 +278,7 @@ $chat-message-bg: $background-color;
 		margin-left: 0;
 	}
 
-	@media screen and (max-width: $md-max) {
+	@media screen and (max-width: $sm-max) {
 		font-size: 0.8em;
 	}
 }
