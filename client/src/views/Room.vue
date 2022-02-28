@@ -1,15 +1,13 @@
 <template>
   <div>
     <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
-      <v-col v-if="!$store.state.fullscreen">
-        <div class="room-header">
-          <h1 class="room-title">
-            {{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}
-          </h1>
-          <div class="flex-grow-1"><!-- Spacer --></div>
-          <span id="connectStatus">{{ connectionStatus }}</span>
-        </div>
-      </v-col>
+      <div class="room-header" v-if="!$store.state.fullscreen">
+        <h1 class="room-title">
+          {{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}
+        </h1>
+        <div class="flex-grow-1"><!-- Spacer --></div>
+        <span id="connectStatus">{{ connectionStatus }}</span>
+      </div>
       <v-col :style="{ padding: ($store.state.fullscreen ? 0 : 'inherit') }">
         <v-row
           no-gutters
@@ -690,6 +688,7 @@ export default {
 <style lang="scss" scoped>
 @import "../variables.scss";
 
+$video-player-max-height: 75vh;
 $video-controls-height: 80px;
 $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
@@ -698,7 +697,7 @@ $in-video-chat-width-small: 250px;
   display: flex;
   align-items: center;
   margin-bottom: 10px;
-  max-height: 80vh;
+  max-height: $video-player-max-height;
 
   .player {
     position: absolute;
@@ -718,8 +717,8 @@ $in-video-chat-width-small: 250px;
   .video-subcontainer {
     display: flex;
     flex-grow: 1;
-    width: 70vw;
-    max-height: 80vh;
+    width: 80vw;
+    max-height: $video-player-max-height;
   }
 
   @media (max-width: $md-max) {
@@ -848,6 +847,7 @@ $in-video-chat-width-small: 250px;
 .room-header {
   display: flex;
   flex-direction: row;
+  margin: 0 10px;
   > * {
     align-self: flex-end;
   }
