@@ -6,6 +6,7 @@ import { Room, RoomUser } from "../../../server/room";
 import infoextractor from "../../../server/infoextractor";
 import { Video } from "../../../common/models/video";
 import permissions from "../../../common/permissions";
+import _ from "lodash";
 
 describe("Room", () => {
 	beforeAll(() => {
@@ -209,6 +210,8 @@ describe("Room", () => {
 		});
 
 		describe("ShuffleRequest", () => {
+			let shuffleSpy;
+
 			beforeEach(() => {
 				room.queue = [
 					{ service: "fakeservice", id: "video1" },
@@ -217,18 +220,18 @@ describe("Room", () => {
 					{ service: "fakeservice", id: "video4" },
 					{ service: "fakeservice", id: "video5" },
 				];
+				shuffleSpy = jest.spyOn(_, 'shuffle');
 			});
+
+			afterEach(() => {
+				shuffleSpy.mockRestore();
+			});
+
 			it("should not leave videos in the same order", async() => {
 				await room.processRequest({
 					type: RoomRequestType.ShuffleRequest,
 				}, { username:"test", role: Role.Owner, clientId: "1234" });
-				expect(room.queue).not.toEqual([
-					{ service: "fakeservice", id: "video1" },
-					{ service: "fakeservice", id: "video2" },
-					{ service: "fakeservice", id: "video3" },
-					{ service: "fakeservice", id: "video4" },
-					{ service: "fakeservice", id: "video5" },
-				]);
+				expect(shuffleSpy).toHaveBeenCalled();
 				expect(room.queue).toHaveLength(5);
 			});
 		});
