@@ -94,10 +94,12 @@
                     :drag-on-click="true"
                   />
                   <div>
-                    <v-text-field class="textseek" v-if="textSeek.active" v-model="textSeek.value" ref="textseek" solo hide-details dense @keydown="textSeekOnKeyDown" />
-                    <span v-else class="timestamp" @click="activateTextSeek">
-                      {{ timestampDisplay }}
-                    </span>
+                    <ClickToEdit
+                      v-model="truePosition"
+                      @change="(value) => api.seek(value)"
+                      :value-formatter="secondsToTimestamp"
+                      :value-parser="timestampToSeconds"
+                    />
                     <span>/</span>
                     <span class="video-length">
                       {{ lengthDisplay }}
@@ -222,6 +224,7 @@ import VideoQueue from "@/components/VideoQueue.vue";
 import goTo from 'vuetify/lib/services/goto';
 import RoomSettings from "@/components/RoomSettings.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
+import ClickToEdit from "@/components/ClickToEdit.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -236,6 +239,7 @@ export default {
     UserList,
     RoomSettings,
     ShareInvite,
+    ClickToEdit,
   },
   mixins: [PermissionsMixin],
   data() {
@@ -256,16 +260,13 @@ export default {
 
       i_timestampUpdater: null,
 
-      textSeek: {
-        active: false,
-        value: "",
-      },
-
       orientation: screen.orientation.type,
       videoControlsHideTimeout: null,
 
       api,
       QueueMode,
+      timestampToSeconds,
+      secondsToTimestamp,
     };
   },
   computed: {
@@ -510,34 +511,6 @@ export default {
     },
     seekDelta(delta) {
       api.seek(_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length));
-    },
-    activateTextSeek() {
-      if (!this.granted('playback.seek')) {
-        return;
-      }
-      this.textSeek.active = true;
-      this.textSeek.value = this.timestampDisplay;
-      this.$nextTick(() => {
-        this.$refs.textseek.focus();
-        this.$refs.textseek.$el.getElementsByTagName('INPUT')[0].addEventListener("focusout", () => {
-          this.textSeek.active = false;
-        });
-      });
-    },
-    textSeekOnKeyDown(e) {
-      if (e.code === "Escape") {
-        this.textSeek.active = false;
-      }
-      else if (e.keyCode === 13) {
-        this.textSeek.active = false;
-        try {
-          let seconds = timestampToSeconds(this.textSeek.value);
-          api.seek(seconds);
-        }
-        catch {
-          console.log("Invalid timestamp, ignoring");
-        }
-      }
     },
     onRoomCreated() {
       // if (this.$store.state.socket.isConnected) {
@@ -837,11 +810,6 @@ $in-video-chat-width-small: 250px;
   @media (max-width: $md-max) {
     padding: 0;
   }
-}
-
-.textseek {
-  display: inline-flex;
-  width: 90px;
 }
 
 .room-header {
