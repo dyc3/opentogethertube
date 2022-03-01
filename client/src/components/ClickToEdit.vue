@@ -25,7 +25,7 @@
 <script lang="ts">
 import { defineComponent, ref, toRefs, nextTick, Ref } from '@vue/composition-api';
 
-const editor = ref();
+const editor = ref<HTMLInputElement | undefined>();
 const editing = ref(false);
 const valueDirty = ref();
 const display: Ref<HTMLDivElement | undefined> = ref();
@@ -44,7 +44,7 @@ function valueParserDefault(value: string): number {
  */
 const ClickToEdit = defineComponent({
 	name: 'ClickToEdit',
-	emits: ['change'],
+	emits: ['change', 'input'],
 	props: {
 		value: {
 			type: [String, Number],
@@ -60,7 +60,7 @@ const ClickToEdit = defineComponent({
 		},
 	},
 	setup(props, { emit }) {
-		const { value} = toRefs(props);
+		const { value } = toRefs(props);
 		const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
 		const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
 
@@ -76,7 +76,7 @@ const ClickToEdit = defineComponent({
 			}
 			editing.value = true;
 			await nextTick();
-			editor.value.focus();
+			editor.value?.focus();
 		}
 
 		function apply() {
@@ -88,6 +88,7 @@ const ClickToEdit = defineComponent({
 			}
 			editing.value = false;
 			emit("change", value.value);
+			emit("input", value.value);
 		}
 
 		function abort() {

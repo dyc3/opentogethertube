@@ -11,8 +11,8 @@ module.exports = {
   transform: {
     '^.+\\.vue$': '@vue/vue2-jest',
     '.+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
-    '^.+\\.ts$': 'ts-jest',
-    '^.+\\.js$': 'babel-jest',
+    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.jsx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
     // '/node_modules/',
@@ -25,7 +25,7 @@ module.exports = {
     '^common/(.*)$': '<rootDir>/../common/$1',
   },
   snapshotSerializers: ['jest-serializer-vue'],
-  testMatch: ['**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)'],
+  testMatch: ['**/tests/unit/**/*.spec.(js|jsx|ts|tsx)|**/__tests__/*.(js|jsx|ts|tsx)'],
   testURL: 'http://localhost/',
   watchPlugins: [
     'jest-watch-typeahead/filename',
@@ -39,7 +39,7 @@ module.exports = {
     "html",
   ],
   collectCoverageFrom: [
-    '**/*.{js,ts,vue}',
+    '**/*.{js,jsx,ts,tsx,vue}',
     '!**/node_modules/**',
     '!**/dist/**',
     '!**/*.config.js',
