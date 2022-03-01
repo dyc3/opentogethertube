@@ -2,7 +2,6 @@ import { Room } from "./room";
 import { AuthToken, RoomOptions, RoomState, RoomStatePersistable } from "../common/models/types";
 import { ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import _ from "lodash";
-import NanoTimer from "nanotimer";
 import { getLogger } from "./logger.js";
 import { redisClientAsync, createSubscriber } from "./redisclient";
 import storage from "./storage";
@@ -31,8 +30,7 @@ export async function start() {
 	}
 	log.info(`Loaded ${keys.length} rooms from redis`);
 
-	const nanotimer = new NanoTimer();
-	nanotimer.setInterval(update, '', '1000m');
+	setInterval(update, 1000);
 }
 
 export async function update(): Promise<void> {
