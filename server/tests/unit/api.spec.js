@@ -772,7 +772,7 @@ describe("Data API", () => {
 		tokens.validate.mockRestore();
 	});
 
-	it("GET /data/previewAdd", async done => {
+	it("GET /data/previewAdd", async () => {
 		let resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockReturnValue(Promise.resolve([]));
 
 		await request(app)
@@ -832,7 +832,6 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		done();
 	});
 
 	describe("GET /api/data/permissions", () => {

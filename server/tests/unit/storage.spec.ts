@@ -56,25 +56,21 @@ describe.skip('Storage: Room Spec', () => {
     });
   });
 
-  it('should create room in database', async done => {
+  it('should create room in database', async () => {
     expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
 
     expect(await storage.saveRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: Visibility.Public })).toBe(true);
 
-    Room.findOne({ where: { name: "example" }}).then(room => {
-      expect(room).toBeInstanceOf(Room);
-      expect(room.id).toBeDefined();
-      expect(room.name).toBeDefined();
-      expect(room.name).toEqual("example");
-      expect(room.title).toBeDefined();
-      expect(room.title).toEqual("Example Room");
-      expect(room.description).toBeDefined();
-      expect(room.description).toEqual("This is an example room.");
-      expect(room.visibility).toEqual("public");
-      done();
-    }).catch(err => {
-      done.fail(err);
-    });
+    let room = Room.findOne({ where: { name: "example" }});
+    expect(room).toBeInstanceOf(Room);
+    expect(room.id).toBeDefined();
+    expect(room.name).toBeDefined();
+    expect(room.name).toEqual("example");
+    expect(room.title).toBeDefined();
+    expect(room.title).toEqual("Example Room");
+    expect(room.description).toBeDefined();
+    expect(room.description).toEqual("This is an example room.");
+    expect(room.visibility).toEqual("public");
   });
 
   it('should not create room if name matches existing room, case insensitive', async () => {
@@ -83,26 +79,22 @@ describe.skip('Storage: Room Spec', () => {
     expect(await storage.saveRoom({ name: "capitalizedexampleroom", visibility: "public" })).toBe(false);
   });
 
-  it('should update the matching room in the database with the provided properties', async done => {
+  it('should update the matching room in the database with the provided properties', async () => {
     expect(await Room.findOne({ where: { name: "example" }})).toBeNull();
     expect(await storage.saveRoom({ name: "example" })).toBe(true);
 
     expect(await storage.updateRoom({ name: "example", title: "Example Room", description: "This is an example room.", visibility: Visibility.Unlisted })).toBe(true);
 
-    Room.findOne({ where: { name: "example" }}).then(room => {
-      expect(room).toBeInstanceOf(Room);
-      expect(room.id).toBeDefined();
-      expect(room.name).toBeDefined();
-      expect(room.name).toEqual("example");
-      expect(room.title).toBeDefined();
-      expect(room.title).toEqual("Example Room");
-      expect(room.description).toBeDefined();
-      expect(room.description).toEqual("This is an example room.");
-      expect(room.visibility).toEqual("unlisted");
-      done();
-    }).catch(err => {
-      done.fail(err);
-    });
+    let room = await Room.findOne({ where: { name: "example" }});
+    expect(room).toBeInstanceOf(Room);
+    expect(room.id).toBeDefined();
+    expect(room.name).toBeDefined();
+    expect(room.name).toEqual("example");
+    expect(room.title).toBeDefined();
+    expect(room.title).toEqual("Example Room");
+    expect(room.description).toBeDefined();
+    expect(room.description).toEqual("This is an example room.");
+    expect(room.visibility).toEqual("unlisted");
   });
 
   it('should fail to update if provided properties does not include name', () => {
