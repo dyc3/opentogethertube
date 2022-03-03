@@ -107,6 +107,9 @@
                   </div>
                   <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
                   <div class="flex-grow-1"><!-- Spacer --></div>
+                  <v-btn @click="rotateRoomLayout">
+                    layout
+                  </v-btn>
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
                       <v-btn @click="toggleFullscreen()" v-bind="attrs" v-on="on" style="margin-left: 10px">
@@ -226,6 +229,7 @@ import goTo from 'vuetify/lib/services/goto';
 import RoomSettings from "@/components/RoomSettings.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClickToEdit from "@/components/ClickToEdit.vue";
+import { RoomLayoutMode } from "@/stores/settings";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -266,6 +270,7 @@ export default {
 
       api,
       QueueMode,
+      RoomLayoutMode,
       timestampToSeconds,
       secondsToTimestamp,
     };
@@ -606,6 +611,12 @@ export default {
     },
     resetSeekPreview() {
       this.seekPreview = null;
+    },
+
+    rotateRoomLayout() {
+      let layouts = Object.keys(RoomLayoutMode);
+      let newLayout = layouts[(layouts.indexOf(this.$store.state.settings.roomLayout) + 1) % layouts.length];
+      this.$store.commit("settings/UPDATE", { roomLayout: newLayout });
     },
   },
   mounted() {
