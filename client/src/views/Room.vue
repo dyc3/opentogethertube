@@ -1,6 +1,15 @@
 <template>
   <div>
-    <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
+    <v-container
+      fluid
+      :class="{
+        room: true,
+        fullscreen: $store.state.fullscreen,
+        'layout-default': $store.state.settings.roomLayout === RoomLayoutMode.default,
+        'layout-theater': $store.state.settings.roomLayout === RoomLayoutMode.theater,
+      }"
+      v-if="!showJoinFailOverlay"
+    >
       <div class="room-header" v-if="!$store.state.fullscreen">
         <h1 class="room-title">
           {{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}
@@ -675,6 +684,7 @@ export default {
 @import "../variables.scss";
 
 $video-player-max-height: 75vh;
+$video-player-max-height-theater: 90vh;
 $video-controls-height: 80px;
 $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
@@ -683,7 +693,6 @@ $in-video-chat-width-small: 250px;
   display: flex;
   align-items: center;
   margin-bottom: 10px;
-  max-height: $video-player-max-height;
 
   .player {
     position: absolute;
@@ -703,8 +712,6 @@ $in-video-chat-width-small: 250px;
   .video-subcontainer {
     display: flex;
     flex-grow: 1;
-    width: 80vw;
-    max-height: $video-player-max-height;
   }
 
   @media (max-width: $md-max) {
@@ -713,6 +720,34 @@ $in-video-chat-width-small: 250px;
     }
 
     margin: 0;
+  }
+}
+
+.layout-default {
+  .video-container {
+    max-height: $video-player-max-height;
+  }
+
+  .video-subcontainer {
+    width: 80vw;
+    max-height: $video-player-max-height;
+  }
+}
+
+.layout-theater {
+  padding: 0;
+
+  .video-container {
+    max-height: $video-player-max-height-theater;
+  }
+
+  .video-subcontainer {
+    width: 100%;
+    max-height: $video-player-max-height-theater;
+  }
+
+  .room-title {
+    font-size: 24px;
   }
 }
 
