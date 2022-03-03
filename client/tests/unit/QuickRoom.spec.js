@@ -1,9 +1,9 @@
-import Vue from 'vue';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
-import Vuex from 'vuex';
-import Vuetify from 'vuetify';
+import Vue from "vue";
+import { shallowMount, createLocalVue } from "@vue/test-utils";
+import Vuex from "vuex";
+import Vuetify from "vuetify";
 import QuickRoom from "@/views/QuickRoom.vue";
-import VueEvents from 'vue-events';
+import VueEvents from "vue-events";
 import { i18n } from "@/i18n";
 
 // HACK: import globally to prevent it from yelling at us
@@ -15,7 +15,7 @@ localVue.use(Vuex);
 localVue.use(VueEvents);
 
 const $route = {
-	path: 'http://localhost:8080/quickroom',
+	path: "http://localhost:8080/quickroom",
 };
 
 describe("Home view", () => {
@@ -58,10 +58,7 @@ describe("Home view", () => {
 				$connect: jest.fn(),
 				$disconnect: jest.fn(),
 			},
-			stubs: [
-				'youtube',
-				'router-link',
-			],
+			stubs: ["youtube", "router-link"],
 		});
 
 		expect(mutations.QUICKADD_ADD).toHaveBeenCalledWith(state, {

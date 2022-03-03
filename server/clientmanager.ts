@@ -11,7 +11,7 @@ import {
 	RoomRequest,
 	RoomRequestType,
 	ServerMessage,
-	ServerMessageSync
+	ServerMessageSync,
 } from "../common/models/messages";
 import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
 import { InvalidTokenException } from "../common/exceptions";
@@ -21,7 +21,7 @@ import {
 	OttWebsocketError,
 	ClientId,
 	RoomStateSyncable,
-	AuthToken
+	AuthToken,
 } from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
@@ -66,14 +66,12 @@ export class Client {
 							token: this.token,
 						}
 					);
-				}
- catch (e) {
+				} catch (e) {
 					if (e instanceof Error) {
 						log.warn(
 							`Failed to make leave request: "${e.name}: ${e.message}" This is not a critical error, so we will continue.`
 						);
-					}
- else {
+					} else {
 						log.warn(
 							`Failed to make leave request. This is not a critical error, so we will continue.`
 						);
@@ -100,8 +98,7 @@ export class Client {
 				id: this.id,
 				username: this.session.username,
 			};
-		}
- else {
+		} else {
 			log.error(
 				"Session did not have username present, nor passport user id. Generating username..."
 			);
@@ -119,8 +116,7 @@ export class Client {
 		if (msg.action === "kickme") {
 			this.socket.close(OttWebsocketError.UNKNOWN);
 			return;
-		}
- else if (msg.action === "status") {
+		} else if (msg.action === "status") {
 			request = {
 				type: RoomRequestType.UpdateUser,
 				info: {
@@ -128,23 +124,19 @@ export class Client {
 					status: msg.status,
 				},
 			};
-		}
- else if (msg.action === "auth") {
+		} else if (msg.action === "auth") {
 			this.token = msg.token;
 			log.debug("received auth token, joining room");
 			try {
 				await this.JoinRoom(this.room);
-			}
- catch (e) {
+			} catch (e) {
 				if (e instanceof RoomNotFoundException) {
 					log.info(`Failed to join room: ${e.message}`);
 					this.socket.close(OttWebsocketError.ROOM_NOT_FOUND);
-				}
- else if (e instanceof InvalidTokenException) {
+				} else if (e instanceof InvalidTokenException) {
 					log.info(`Failed to join room: ${e.message}`);
 					this.socket.close(OttWebsocketError.MISSING_TOKEN);
-				}
- else {
+				} else {
 					if (e instanceof Error) {
 						log.error(`Failed to join room: ${e.stack}`);
 					}
@@ -152,23 +144,19 @@ export class Client {
 				}
 			}
 			return;
-		}
- else if (msg.action === "req") {
+		} else if (msg.action === "req") {
 			request = msg.request;
-		}
- else {
+		} else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
 		}
 
 		try {
 			await this.makeRoomRequest(request);
-		}
- catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`Room request ${request.type} failed: ${e.message} ${e.stack}`);
-			}
- else {
+			} else {
 				log.error(`Room request ${request.type} failed`);
 			}
 		}
@@ -236,8 +224,7 @@ export class Client {
 			await room.processUnauthorizedRequest(request, {
 				token: this.token,
 			});
-		}
- catch (e) {
+		} catch (e) {
 			if (e instanceof RoomNotFoundException) {
 				// Room not found on this Node, pass it along
 				await redisClientAsync.publish(
@@ -247,8 +234,7 @@ export class Client {
 						token: this.token,
 					})
 				);
-			}
- else {
+			} else {
 				throw e;
 			}
 		}
@@ -257,12 +243,10 @@ export class Client {
 	public sendObj(obj: any): void {
 		try {
 			this.socket.send(JSON.stringify(obj));
-		}
- catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`failed to send to client: ${e.message}`);
-			}
- else {
+			} else {
 				log.error(`failed to send to client`);
 			}
 		}
@@ -303,12 +287,10 @@ async function broadcast(roomName: string, text: string) {
 	for (const client of clients) {
 		try {
 			client.socket.send(text);
-		}
- catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`failed to send to client: ${e.message}`);
-			}
- else {
+			} else {
 				log.error(`failed to send to client`);
 			}
 		}
@@ -330,8 +312,7 @@ async function onRedisMessage(channel: string, text: string) {
 			const filtered = _.omit(msg, "action");
 			if (state) {
 				Object.assign(state, filtered);
-			}
- else {
+			} else {
 				// @ts-expect-error
 				state = filtered;
 			}
@@ -341,8 +322,7 @@ async function onRedisMessage(channel: string, text: string) {
 			roomStates.set(roomName, state);
 
 			await broadcast(roomName, text);
-		}
- else if (msg.action === "unload") {
+		} else if (msg.action === "unload") {
 			const clients = roomJoins.get(roomName);
 			if (!clients) {
 				return;
@@ -350,14 +330,11 @@ async function onRedisMessage(channel: string, text: string) {
 			for (const client of clients) {
 				client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
 			}
-		}
- else if (msg.action === "chat") {
+		} else if (msg.action === "chat") {
 			await broadcast(roomName, text);
-		}
- else if (msg.action === "event" || msg.action === "eventcustom") {
+		} else if (msg.action === "event" || msg.action === "eventcustom") {
 			await broadcast(roomName, text);
-		}
- else if (msg.action === "user") {
+		} else if (msg.action === "user") {
 			const clients = roomJoins.get(roomName);
 			if (!clients) {
 				return;
@@ -369,27 +346,22 @@ async function onRedisMessage(channel: string, text: string) {
 					break;
 				}
 			}
-		}
- else {
+		} else {
 			log.error(`Unknown server message: ${(msg as { action: string }).action}`);
 		}
-	}
- else if (channel === ANNOUNCEMENT_CHANNEL) {
+	} else if (channel === ANNOUNCEMENT_CHANNEL) {
 		for (const client of connections) {
 			try {
 				client.socket.send(text);
-			}
- catch (e) {
+			} catch (e) {
 				if (e instanceof Error) {
 					log.error(`failed to send to client: ${e.message}`);
-				}
- else {
+				} else {
 					log.error(`failed to send to client`);
 				}
 			}
 		}
-	}
- else {
+	} else {
 		log.error(`Unhandled message from redis channel: ${channel}`);
 	}
 }

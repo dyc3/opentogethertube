@@ -32,8 +32,7 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 			password: faker.internet.password(12),
 		});
 		await tokens.setSessionInfo(token, { isLoggedIn: true, user_id: user.id });
-	}
- else {
+	} else {
 		await tokens.setSessionInfo(token, { isLoggedIn: false, username: "fake_user" });
 	}
 
@@ -51,8 +50,7 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 			{ token: token }
 		);
 		res.json({ success: true });
-	}
- catch (e) {
+	} catch (e) {
 		res.json({
 			success: false,
 			error: {

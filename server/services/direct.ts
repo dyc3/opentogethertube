@@ -4,7 +4,7 @@ import { ServiceAdapter } from "../serviceadapter";
 import {
 	LocalFileException,
 	UnsupportedMimeTypeException,
-	MissingMetadataException
+	MissingMetadataException,
 } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
 import ffprobe from "../ffprobe";
@@ -45,8 +45,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 				throw new MissingMetadataException();
 			}
 			return videoStream.duration ?? fileInfo.format.duration;
-		}
- else {
+		} else {
 			log.debug("No video stream found, assuming audio only");
 			const audioStream = _.find(fileInfo.streams, { codec_type: "audio" });
 			if (!audioStream) {

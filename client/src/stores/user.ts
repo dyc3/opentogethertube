@@ -1,10 +1,10 @@
-import { ServerMessageUser, UserInfo } from 'common/models/messages';
-import { Role } from 'common/models/types';
-import { Module } from 'vuex/types';
+import { ServerMessageUser, UserInfo } from "common/models/messages";
+import { Role } from "common/models/types";
+import { Module } from "vuex/types";
 import { API } from "@/common-http";
 
 export interface UsersState {
-	you: UserInfo
+	you: UserInfo;
 }
 
 export const usersModule: Module<UsersState, unknown> = {
@@ -45,8 +45,8 @@ export const usersModule: Module<UsersState, unknown> = {
 			if (context.getters.token) {
 				return;
 			}
-			return new Promise<void>((resolve) => {
-				this.subscribe((mutation) => {
+			return new Promise<void>(resolve => {
+				this.subscribe(mutation => {
 					if (mutation.type === "SET_AUTH_TOKEN") {
 						resolve();
 					}

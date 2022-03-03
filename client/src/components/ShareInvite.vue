@@ -22,8 +22,8 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import Component from 'vue-class-component';
+import Vue from "vue";
+import Component from "vue-class-component";
 
 @Component({
 	name: "ShareInvite",
@@ -35,16 +35,16 @@ export default class ShareInvite extends Vue {
 		if (process.env.SHORT_URL) {
 			return `https://${process.env.SHORT_URL}/${this.$route.params.roomId}`;
 		}
-		return window.location.href.split('?')[0].toLowerCase();
+		return window.location.href.split("?")[0].toLowerCase();
 	}
 
 	async copyInviteLink() {
 		if (navigator.clipboard) {
 			await navigator.clipboard.writeText(this.inviteLink);
 		}
-		else {
+ else {
 			// @ts-expect-error $el actually does exist
-			let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector('input');
+			let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector("input");
 			if (!textfield) {
 				console.error("failed to copy link: input not found");
 				return;
@@ -65,6 +65,4 @@ export default class ShareInvite extends Vue {
 }
 </script>
 
-<style lang="scss">
-
-</style>
+<style lang="scss"></style>

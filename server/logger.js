@@ -63,8 +63,7 @@ if (process.env.NODE_ENV !== "production") {
 			silent: process.env.NODE_ENV === "test",
 		})
 	);
-}
- else {
+} else {
 	logger.add(
 		new transports.Console({
 			format: format.combine(customColorizer(), myFormat),

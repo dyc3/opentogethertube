@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const path = require('path');
-require('dotenv').config({ path: path.resolve(process.cwd(), `../env/${process.env.NODE_ENV}.env`) });
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const path = require("path");
+require("dotenv").config({
+	path: path.resolve(process.cwd(), `../env/${process.env.NODE_ENV}.env`),
+});
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 module.exports = {
-	lintOnSave: process.env.NODE_ENV !== 'production',
+	lintOnSave: process.env.NODE_ENV !== "production",
 	pages: {
 		index: {
-			entry: 'src/main.js',
+			entry: "src/main.js",
 		},
 	},
 	devServer: {
@@ -21,13 +23,13 @@ module.exports = {
 	transpileDependencies: ["vuetify"],
 	pluginOptions: {
 		webpackBundleAnalyzer: {
-			analyzerHost: '0.0.0.0',
+			analyzerHost: "0.0.0.0",
 			openAnalyzer: false,
 		},
 		i18n: {
-			locale: 'en',
-			fallbackLocale: 'en',
-			localeDir: 'locales',
+			locale: "en",
+			fallbackLocale: "en",
+			localeDir: "locales",
 			enableInSFC: true,
 			enableBridge: false,
 		},
@@ -36,15 +38,15 @@ module.exports = {
 		resolve: {
 			extensions: [".ts", ".js"],
 			alias: {
-				"common": path.resolve(__dirname, '../common'),
+				common: path.resolve(__dirname, "../common"),
 			},
-			modules: [path.resolve(__dirname, '../common')],
+			modules: [path.resolve(__dirname, "../common")],
 		},
 		module: {
 			rules: [
 				{
 					test: /\.tsx?$/,
-					loader: 'ts-loader',
+					loader: "ts-loader",
 					exclude: /node_modules/,
 					options: {
 						// disable type checker - we will use it in fork plugin
@@ -66,11 +68,13 @@ module.exports = {
 		},
 		plugins: [new ForkTsCheckerWebpackPlugin()],
 	},
-	chainWebpack: (config) => {
-		config.plugin('define').tap(definitions => {
-			definitions[0]['process.env']['GOOGLE_DRIVE_API_KEY'] = JSON.stringify(process.env.GOOGLE_DRIVE_API_KEY);
+	chainWebpack: config => {
+		config.plugin("define").tap(definitions => {
+			definitions[0]["process.env"]["GOOGLE_DRIVE_API_KEY"] = JSON.stringify(
+				process.env.GOOGLE_DRIVE_API_KEY
+			);
 			if (process.env.SHORT_URL) {
-				definitions[0]['process.env']['SHORT_URL'] = JSON.stringify(process.env.SHORT_URL);
+				definitions[0]["process.env"]["SHORT_URL"] = JSON.stringify(process.env.SHORT_URL);
 			}
 			return definitions;
 		});

@@ -1,8 +1,12 @@
 // Ignoring because this rule is wrong. all the template strings in here use strings.
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Module } from 'vuex';
-import { ToastStyle } from '@/models/toast';
-import { RoomRequestType, ServerMessageEvent, ServerMessageEventCustom } from 'common/models/messages';
+import { Module } from "vuex";
+import { ToastStyle } from "@/models/toast";
+import {
+	RoomRequestType,
+	ServerMessageEvent,
+	ServerMessageEventCustom
+} from "common/models/messages";
 import { secondsToTimestamp } from "@/util/timestamp";
 
 export const module: Module<unknown, unknown> = {
@@ -15,46 +19,54 @@ export const module: Module<unknown, unknown> = {
 				if (message.request.state) {
 					text = `${message.user.name} played the video`;
 				}
-				else {
+ else {
 					text = `${message.user.name} paused the video`;
 				}
 			}
-			else if (message.request.type === RoomRequestType.SkipRequest && message.additional.video) {
+ else if (
+				message.request.type === RoomRequestType.SkipRequest &&
+				message.additional.video
+			) {
 				text = `${message.user.name} skipped ${message.additional.video.title}`;
 				duration = 7000;
 			}
-			else if (message.request.type === RoomRequestType.SeekRequest) {
-				text = `${message.user.name} seeked to ${secondsToTimestamp(message.request.value)}`;
+ else if (message.request.type === RoomRequestType.SeekRequest) {
+				text = `${message.user.name} seeked to ${secondsToTimestamp(
+					message.request.value
+				)}`;
 				duration = 7000;
 			}
-			else if (message.request.type === RoomRequestType.JoinRequest) {
+ else if (message.request.type === RoomRequestType.JoinRequest) {
 				text = `${message.user.name} joined the room`;
 			}
-			else if (message.request.type === RoomRequestType.LeaveRequest && message.additional.user) {
+ else if (
+				message.request.type === RoomRequestType.LeaveRequest &&
+				message.additional.user
+			) {
 				text = `${message.additional.user.name} left the room`;
 			}
-			else if (message.request.type === RoomRequestType.AddRequest) {
+ else if (message.request.type === RoomRequestType.AddRequest) {
 				if (message.request.videos) {
 					text = `${message.user.name} added ${message.request.videos.length} videos`;
 				}
-				else if (message.additional.video) {
+ else if (message.additional.video) {
 					text = `${message.user.name} added ${message.additional.video.title}`;
 				}
-				else {
+ else {
 					text = `${message.user.name} added a video`;
 				}
 				duration = 7000;
 			}
-			else if (message.request.type === RoomRequestType.RemoveRequest) {
+ else if (message.request.type === RoomRequestType.RemoveRequest) {
 				if (message.additional.video) {
 					text = `${message.user.name} removed ${message.additional.video.title}`;
 				}
-				else {
+ else {
 					text = `${message.user.name} removed a video`;
 				}
 				duration = 7000;
 			}
-			else {
+ else {
 				text = `${message.user.name} triggered event ${message.request.type}`;
 			}
 

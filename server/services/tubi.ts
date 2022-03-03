@@ -72,8 +72,7 @@ export default class TubiAdapter extends ServiceAdapter {
 		const path = parsed.pathname.split("/");
 		if (path[1] === "tv-shows" || path[1] === "movies") {
 			return path[2];
-		}
- else if (path[1] === "oz") {
+		} else if (path[1] === "oz") {
 			return path[3];
 		}
 		throw new Error(`Unable to get video id from ${url}`);
@@ -124,8 +123,7 @@ export default class TubiAdapter extends ServiceAdapter {
 		if (this.isCollectionURL(url)) {
 			let path = new URL(url).pathname.split("/");
 			return await this.fetchSeriesInfo(path[2]);
-		}
- else {
+		} else {
 			let id = this.getVideoId(url);
 			return [await this.fetchVideoInfo(id)];
 		}

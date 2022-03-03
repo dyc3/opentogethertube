@@ -1,6 +1,6 @@
-import Vue from 'vue';
-import { mount, createLocalVue } from '@vue/test-utils';
-import Vuetify from 'vuetify';
+import Vue from "vue";
+import { mount, createLocalVue } from "@vue/test-utils";
+import Vuetify from "vuetify";
 import ShareInvite from "@/components/ShareInvite.vue";
 import { i18n } from "@/i18n";
 
@@ -11,11 +11,11 @@ const localVue = createLocalVue();
 Vue.use(Vuetify);
 
 const $route = {
-	path: 'http://localhost:8080/room/ligma',
+	path: "http://localhost:8080/room/ligma",
 	params: {
-		roomId: 'ligma',
+		roomId: "ligma",
 	},
-  };
+};
 
 describe("ShareInvite component", () => {
 	beforeEach(() => {

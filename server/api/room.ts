@@ -17,17 +17,11 @@ const router = express.Router();
 const log = getLogger("api/room");
 
 // These strings are not allowed to be used as room names.
-const RESERVED_ROOM_NAMES = [
-"list", "create", "generate"
-];
+const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
 
-const VALID_ROOM_VISIBILITY = [
-Visibility.Public, Visibility.Unlisted, Visibility.Private
-];
+const VALID_ROOM_VISIBILITY = [Visibility.Public, Visibility.Unlisted, Visibility.Private];
 
-const VALID_ROOM_QUEUE_MODE = [
-QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj
-];
+const VALID_ROOM_QUEUE_MODE = [QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj];
 
 interface RoomListItem {
 	name: string;
@@ -128,20 +122,17 @@ const createRoom: RequestHandler = async (req, res) => {
 	try {
 		const info = await rateLimiter.consume(req.ip, points);
 		setRateLimitHeaders(res, info);
-	}
- catch (e) {
+	} catch (e) {
 		if (e instanceof Error) {
 			throw e;
-		}
- else {
+		} else {
 			handleRateLimit(res, e);
 			return;
 		}
 	}
 	if (req.user) {
 		await roommanager.CreateRoom({ ...req.body, owner: req.user });
-	}
- else {
+	} else {
 		await roommanager.CreateRoom(req.body);
 	}
 	log.info(
@@ -182,8 +173,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 	if (req.body.claim) {
 		if (room.isTemporary) {
 			throw new BadApiArgumentException("claim", `Can't claim temporary rooms.`);
-		}
- else if (room.owner) {
+		} else if (room.owner) {
 			throw new BadApiArgumentException("claim", `Room already has owner.`);
 		}
 	}
@@ -206,8 +196,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 						break;
 					}
 				}
-			}
- else {
+			} else {
 				res.status(401).json({
 					success: false,
 					error: {
@@ -220,12 +209,10 @@ const patchRoom: RequestHandler = async (req, res) => {
 
 		try {
 			await storage.updateRoom(room);
-		}
- catch (err) {
+		} catch (err) {
 			if (err instanceof Error) {
 				log.error(`Failed to update room: ${err.message} ${err.stack}`);
-			}
- else {
+			} else {
 				log.error(`Failed to update room`);
 			}
 			res.status(500).json({
@@ -315,8 +302,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 					reason: e.reason,
 				},
 			});
-		}
- else {
+		} else {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -325,8 +311,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 				},
 			});
 		}
-	}
- else {
+	} else {
 		log.error(`Unhandled exception: path=${req.path} ${err.name} ${err.message} ${err.stack}`);
 		res.status(500).json({
 			success: false,
@@ -343,8 +328,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 router.post("/create", async (req, res, next) => {
 	try {
 		await createRoom(req, res, next);
-	}
- catch (e) {
+	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -352,8 +336,7 @@ router.post("/create", async (req, res, next) => {
 router.patch("/:name", async (req, res, next) => {
 	try {
 		await patchRoom(req, res, next);
-	}
- catch (e) {
+	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -361,8 +344,7 @@ router.patch("/:name", async (req, res, next) => {
 router.post("/:name/undo", async (req, res, next) => {
 	try {
 		await undoEvent(req as express.Request, res);
-	}
- catch (e) {
+	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -370,8 +352,7 @@ router.post("/:name/undo", async (req, res, next) => {
 router.post("/:name/vote", async (req, res, next) => {
 	try {
 		await addVote(req as express.Request, res);
-	}
- catch (e) {
+	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -379,8 +360,7 @@ router.post("/:name/vote", async (req, res, next) => {
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
 		await removeVote(req as express.Request, res);
-	}
- catch (e) {
+	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });

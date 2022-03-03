@@ -17,7 +17,7 @@
 
 <script>
 export default {
-	name: 'faq',
+	name: "faq",
 	data() {
 		return {
 			questions: this.$t("faq.questions"),
@@ -26,6 +26,4 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

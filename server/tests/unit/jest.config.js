@@ -1,8 +1,6 @@
 module.exports = {
 	preset: "@vue/cli-plugin-unit-jest/presets/typescript-and-babel",
-	moduleFileExtensions: [
-"js", "jsx", "ts", "tsx", "json", "vue"
-],
+	moduleFileExtensions: ["js", "jsx", "ts", "tsx", "json", "vue"],
 	transform: {
 		"^.+\\.tsx?$": "ts-jest",
 		"^.+\\.jsx?$": "babel-jest",
@@ -15,9 +13,7 @@ module.exports = {
 	testURL: "http://localhost/",
 	watchPlugins: ["jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
 	// collectCoverage: true,
-	coverageReporters: [
-"text-summary", "text", "json", "html"
-],
+	coverageReporters: ["text-summary", "text", "json", "html"],
 	collectCoverageFrom: [
 		"**/*.{js,ts}",
 		"!**/node_modules/**",

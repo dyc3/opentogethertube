@@ -4,7 +4,7 @@ import { ServiceAdapter } from "../serviceadapter";
 import {
 	ServiceLinkParseException,
 	InvalidVideoIdException,
-	OutOfQuotaException
+	OutOfQuotaException,
 } from "../exceptions";
 import { Video } from "../../common/models/video";
 import { getLogger } from "../logger";
@@ -79,11 +79,9 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 	getFolderId(url: URL): string {
 		if (/^\/drive\/u\/\d\/folders\//.exec(url.pathname)) {
 			return url.pathname.split("/")[5].split("?")[0].trim();
-		}
- else if (url.pathname.startsWith("/drive/folders")) {
+		} else if (url.pathname.startsWith("/drive/folders")) {
 			return url.pathname.split("/")[3].split("?")[0].trim();
-		}
- else {
+		} else {
 			throw new ServiceLinkParseException(this.serviceId, url.toString());
 		}
 	}
@@ -91,8 +89,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 	getVideoIdFromURL(url: URL): string {
 		if (url.pathname.startsWith("/file/d/")) {
 			return url.pathname.split("/")[3];
-		}
- else {
+		} else {
 			return url.searchParams.get("id") ?? "";
 		}
 	}
@@ -112,19 +109,16 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 
 			const video = this.parseFile(result.data);
 			return video;
-		}
- catch (err) {
+		} catch (err) {
 			if (axios.isAxiosError(err) && isGoogleDriveApiError(err.response)) {
 				log.error(
 					`Failed to get video metadata: ${
 						err.response.data.error.message
 					} ${JSON.stringify(err.response.data.error.errors)}`
 				);
-			}
- else if (err instanceof Error) {
+			} else if (err instanceof Error) {
 				log.error(`Failed to get video metadata: ${err.message} ${err.stack}`);
-			}
- else {
+			} else {
 				log.error(`Failed to get video metadata`);
 			}
 			throw err;
@@ -142,24 +136,20 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 			});
 			log.info(`Found ${result.data.files.length} items in folder`);
 			return result.data.files.map((item: GoogleDriveFile) => this.parseFile(item));
-		}
- catch (err) {
+		} catch (err) {
 			if (axios.isAxiosError(err) && isGoogleDriveApiError(err.response)) {
 				if (err.response.data.error.errors[0].reason === "dailyLimitExceeded") {
 					throw new OutOfQuotaException(this.serviceId);
-				}
- else {
+				} else {
 					log.error(
 						`Failed to get google drive folder: ${
 							err.response.data.error.message
 						} ${JSON.stringify(err.response.data.error.errors)}`
 					);
 				}
-			}
- else if (err instanceof Error) {
+			} else if (err instanceof Error) {
 				log.error(`Failed to get google drive folder: ${err.message} ${err.stack}`);
-			}
- else {
+			} else {
 				log.error(`Failed to get google drive folder`);
 			}
 			throw err;
@@ -172,8 +162,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 		if (this.isFolderURL(url)) {
 			const folderId = this.getFolderId(url);
 			return this.fetchFolderVideos(folderId);
-		}
- else {
+		} else {
 			const videoId = this.getVideoIdFromURL(url);
 			return [await this.fetchVideoInfo(videoId)];
 		}

@@ -114,8 +114,7 @@ export default class RedditAdapter extends ServiceAdapter {
 			for (const listedThing of thing.data.children) {
 				videos.push(...this.extractVideos(listedThing));
 			}
-		}
- else if (thing.kind === "t3") {
+		} else if (thing.kind === "t3") {
 			if (thing.data.is_video && "media" in thing.data) {
 				videos.push({
 					service: "reddit",
@@ -126,8 +125,7 @@ export default class RedditAdapter extends ServiceAdapter {
 					thumbnail: thing.data.thumbnail,
 					hls_url: thing.data.media.reddit_video.hls_url,
 				});
-			}
- else {
+			} else {
 				if (thing.data.url.length > 0) {
 					videos.push({
 						url: thing.data.url,

@@ -1,12 +1,12 @@
 <template>
-  <p>{{ $t('hello') }}</p>
+	<p>{{ $t("hello") }}</p>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue from "vue";
 
 export default Vue.extend({
-  name: 'HelloI18n',
+	name: "HelloI18n",
 });
 </script>
 

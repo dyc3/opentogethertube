@@ -12,7 +12,7 @@ import {
 	OutOfQuotaException,
 	UnsupportedServiceException,
 	InvalidAddPreviewInputException,
-	FeatureDisabledException
+	FeatureDisabledException,
 } from "./exceptions";
 import { getLogger } from "./logger";
 import { redisClient, redisClientAsync } from "./redisclient";
@@ -70,12 +70,10 @@ export default {
 			}
 
 			return [video, missingInfo];
-		}
- catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`Failed to get video metadata: ${e.message} ${e.stack}`);
-			}
- else {
+			} else {
 				log.error(`Failed to get video metadata`);
 			}
 			throw e;
@@ -88,8 +86,7 @@ export default {
 	async updateCache(videos: Video[] | Video): Promise<void> {
 		if (Array.isArray(videos)) {
 			return storage.updateManyVideoInfo(videos);
-		}
- else {
+		} else {
 			return storage.updateVideoInfo(videos);
 		}
 	},
@@ -140,8 +137,7 @@ export default {
 
 		if (missingInfo.length === 0) {
 			return cachedVideo;
-		}
- else {
+		} else {
 			log.warn(
 				`MISSING INFO for ${cachedVideo.service}:${
 					cachedVideo.id
@@ -156,8 +152,7 @@ export default {
 						this.updateCache(video);
 					}
 					return video;
-				}
- else {
+				} else {
 					log.info("video services don't match, must be an alias");
 					const video = fetchedVideo;
 					const newadapter = this.getServiceAdapter(video.service);
@@ -166,8 +161,7 @@ export default {
 					}
 					return video;
 				}
-			}
- catch (e) {
+			} catch (e) {
 				if (e instanceof OutOfQuotaException) {
 					log.error("Failed to get video info: Out of quota");
 					if (
@@ -177,18 +171,15 @@ export default {
 							`Returning incomplete cached result for ${cachedVideo.service}:${cachedVideo.id}`
 						);
 						return cachedVideo;
-					}
- else {
+					} else {
 						throw e;
 					}
-				}
- else {
+				} else {
 					if (e instanceof Error) {
 						log.error(
 							`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}: ${e.message} ${e.stack}`
 						);
-					}
- else {
+					} else {
 						log.error(
 							`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}`
 						);
@@ -224,8 +215,7 @@ export default {
 					const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
 					if (fetchedVideo) {
 						return mergeVideo(video, fetchedVideo);
-					}
- else {
+					} else {
 						return video;
 					}
 				});
@@ -267,8 +257,7 @@ export default {
 			});
 
 			results = await this.getManyVideoInfo(videoIds);
-		}
- else if (this.isURL(query)) {
+		} else if (this.isURL(query)) {
 			const adapter = this.getServiceAdapterForURL(query);
 
 			if (!adapter) {
@@ -293,20 +282,17 @@ export default {
 							service: adapter.serviceId,
 							id: adapter.getVideoId(video.url),
 						});
-					}
- catch (e) {
+					} catch (e) {
 						log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
 						continue;
 					}
-				}
- else {
+				} else {
 					resolvedResults.push(video);
 				}
 			}
 			const completeResults = await this.getManyVideoInfo(resolvedResults);
 			results.push(...completeResults);
-		}
- else {
+		} else {
 			if (query.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
 				throw new InvalidAddPreviewInputException(ADD_PREVIEW_SEARCH_MIN_LENGTH);
 			}

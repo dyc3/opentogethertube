@@ -3,7 +3,7 @@ import { redisClient } from "./redisclient";
 import {
 	IRateLimiterStoreOptions,
 	RateLimiterMemory,
-	RateLimiterRedis
+	RateLimiterRedis,
 } from "rate-limiter-flexible";
 
 const log = getLogger("api/rate-limit");

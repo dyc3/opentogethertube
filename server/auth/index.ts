@@ -59,12 +59,10 @@ router.get("/grant", async (req, res) => {
 					token,
 				});
 				return;
-			}
- else {
+			} else {
 				log.debug("token invalid");
 			}
-		}
- else {
+		} else {
 			log.debug(`authorization header incorrect format: ${req.headers.authorization}`);
 		}
 	}

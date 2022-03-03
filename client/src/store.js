@@ -1,15 +1,15 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import { API } from './common-http.js';
-import dayjs from 'dayjs';
+import Vue from "vue";
+import Vuex from "vuex";
+import { API } from "./common-http.js";
+import dayjs from "dayjs";
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
 import { usersModule } from "@/stores/user";
 import { settingsModule } from "@/stores/settings";
-import { ToastStyle } from './models/toast';
+import { ToastStyle } from "./models/toast";
 import eventModule from "@/stores/events";
-import { QueueMode } from '../../common/models/types';
-import { deserializeMap } from '../../common/serialize';
+import { QueueMode } from "../../common/models/types";
+import { deserializeMap } from "../../common/serialize";
 import { OttWebsocketError } from "common/models/types";
 
 Vue.use(Vuex);
@@ -32,7 +32,7 @@ export default new Vuex.Store({
 			},
 		},
 		joinFailureReason: "",
-		production: process.env.NODE_ENV === 'production',
+		production: process.env.NODE_ENV === "production",
 		/** Unregistered user's username  */
 		username: null,
 		/** Registered user */
@@ -62,7 +62,7 @@ export default new Vuex.Store({
 			permissions: [],
 		},
 	},
-	mutations:{
+	mutations: {
 		PLAYBACK_STATUS(state, message) {
 			if (state.playerStatus !== message) {
 				state.playerStatus = message;
@@ -103,13 +103,14 @@ export default new Vuex.Store({
 			if (code === OttWebsocketError.ROOM_NOT_FOUND) {
 				reason = "Room not found.";
 			}
-			else if (code === OttWebsocketError.ROOM_UNLOADED) {
+ else if (code === OttWebsocketError.ROOM_UNLOADED) {
 				reason = "Room was unloaded.";
 			}
-			else if (code === OttWebsocketError.MISSING_TOKEN) {
-				reason = "A token was not provided. Refresh the page and try again. Otherwise, please open an issue on GitHub.";
+ else if (code === OttWebsocketError.MISSING_TOKEN) {
+				reason =
+					"A token was not provided. Refresh the page and try again. Otherwise, please open an issue on GitHub.";
 			}
-			else {
+ else {
 				reason = "Something happened, but we don't know what. Please report this as a bug.";
 			}
 			state.joinFailureReason = reason;
@@ -122,7 +123,10 @@ export default new Vuex.Store({
 		sync(context, message) {
 			console.debug("SYNC", message);
 			delete message.action;
-			if (message.isPlaying !== undefined && this.state.room.isPlaying !== message.isPlaying) {
+			if (
+				message.isPlaying !== undefined &&
+				this.state.room.isPlaying !== message.isPlaying
+			) {
 				Vue.prototype.$events.emit(message.isPlaying ? "playVideo" : "pauseVideo");
 				if (message.isPlaying) {
 					this.state.room.playbackStartTime = dayjs();

@@ -1,8 +1,8 @@
-import Vue from 'vue';
-import { mount, createLocalVue } from '@vue/test-utils';
-import Vuetify from 'vuetify';
+import Vue from "vue";
+import { mount, createLocalVue } from "@vue/test-utils";
+import Vuetify from "vuetify";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import Vuex from 'vuex';
+import Vuex from "vuex";
 import _ from "lodash";
 
 const localVue = createLocalVue();

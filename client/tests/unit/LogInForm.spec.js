@@ -1,8 +1,8 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import { shallowMount, mount, createLocalVue } from '@vue/test-utils';
-import Vuetify from 'vuetify';
-import LogInForm from '@/components/LogInForm.vue';
+import Vue from "vue";
+import Vuex from "vuex";
+import { shallowMount, mount, createLocalVue } from "@vue/test-utils";
+import Vuetify from "vuetify";
+import LogInForm from "@/components/LogInForm.vue";
 import { i18n } from "@/i18n";
 
 // HACK: import globally to prevent it from yelling at us
@@ -31,7 +31,7 @@ describe("Login form", () => {
 			localVue,
 			vuetify,
 			i18n,
-			stubs: ['router-link'],
+			stubs: ["router-link"],
 		});
 		expect(wrapper.exists()).toBe(true);
 	});
@@ -42,10 +42,12 @@ describe("Login form", () => {
 			localVue,
 			vuetify,
 			i18n,
-			stubs: ['router-link'],
+			stubs: ["router-link"],
 		});
 
-		let passwordFields = wrapper.findAll(".v-input").filter(e => e.find("label").text.lower().includes("password"));
+		let passwordFields = wrapper
+			.findAll(".v-input")
+			.filter(e => e.find("label").text.lower().includes("password"));
 		for (let i = 0; i < passwordFields.length; i++) {
 			expect(passwordFields.at(i).find("input").type).toEqual("password");
 		}
@@ -57,7 +59,7 @@ describe("Login form", () => {
 			localVue,
 			vuetify,
 			i18n,
-			stubs: ['router-link'],
+			stubs: ["router-link"],
 		});
 
 		let fields = wrapper.findAll(".v-input");

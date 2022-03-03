@@ -14,12 +14,10 @@ let config;
 if (env === "production") {
 	if (process.env.DB_MODE === "postgres" || process.env.DOCKER) {
 		config = configs[env];
-	}
- else if (process.env.DB_MODE === "sqlite") {
+	} else if (process.env.DB_MODE === "sqlite") {
 		config = configs["production-sqlite"];
 	}
-}
- else {
+} else {
 	config = configs[env];
 }
 config.logging = msg => log.silly(msg);
@@ -35,11 +33,9 @@ if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
 		},
 		logging: msg => log.silly(msg),
 	});
-}
- else if (config.use_env_variable) {
+} else if (config.use_env_variable) {
 	sequelize = new Sequelize(process.env[config.use_env_variable], config);
-}
- else {
+} else {
 	sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 

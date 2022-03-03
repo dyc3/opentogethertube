@@ -34,14 +34,14 @@ export default {
 	},
 	methods: {
 		updateIframe() {
-			this.player = new this.DM.player(document.getElementById('dailymotion-player'), {
+			this.player = new this.DM.player(document.getElementById("dailymotion-player"), {
 				video: this.videoId,
 				width: "100%",
 				height: "100%",
 				params: {
-					api: 1,
-					autoplay: false,
-					controls: false,
+					"api": 1,
+					"autoplay": false,
+					"controls": false,
 					"ui-logo": false,
 					"ui-start-screen-info": false,
 				},

@@ -46,8 +46,7 @@ router.get("/", nocache(), (req, res) => {
 			discordLinked: !!req.user.discordId,
 		};
 		res.json(user);
-	}
- else {
+	} else {
 		res.json({
 			username: req.ottsession.username,
 			loggedIn: false,
@@ -86,8 +85,7 @@ router.post("/", nocache(), async (req, res) => {
 				throw new UsernameTakenError();
 			}
 			await req.user.save();
-		}
- catch (err) {
+		} catch (err) {
 			if (
 				err.name === "SequelizeUniqueConstraintError" ||
 				err.name === "UsernameTakenError"
@@ -101,8 +99,7 @@ router.post("/", nocache(), async (req, res) => {
 					},
 				});
 				return;
-			}
- else {
+			} else {
 				log.error(`Unknown error occurred when saving user to database ${err.message}`);
 				res.status(500).json({
 					success: false,
@@ -116,8 +113,7 @@ router.post("/", nocache(), async (req, res) => {
 		res.json({
 			success: true,
 		});
-	}
- else {
+	} else {
 		oldUsername = req.ottsession.username;
 		req.ottsession.username = req.body.username;
 		await tokens.setSessionInfo(req.token, req.ottsession);
@@ -143,8 +139,7 @@ router.post("/login", async (req, res, next) => {
 	// Check if IP or Username + IP is already blocked
 	if (resSlowByIP !== null && resSlowByIP.consumedPoints > maxWrongAttemptsByIPperDay) {
 		retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
-	}
- else if (
+	} else if (
 		resUsernameAndIP !== null &&
 		resUsernameAndIP.consumedPoints > maxConsecutiveFailsByUsernameAndIP
 	) {
@@ -188,8 +183,7 @@ router.post("/login", async (req, res, next) => {
 				await tokens.setSessionInfo(req.token, req.ottsession);
 				try {
 					usermanager.onUserLogIn(user, req.token);
-				}
- catch (err) {
+				} catch (err) {
 					log.error(
 						`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
 					);
@@ -199,8 +193,7 @@ router.post("/login", async (req, res, next) => {
 					user: _.pick(user, ["email", "username"]),
 				});
 			});
-		}
- else {
+		} else {
 			res.status(401).json({
 				success: false,
 				error: {
@@ -221,8 +214,7 @@ router.post("/logout", async (req, res) => {
 		res.json({
 			success: true,
 		});
-	}
- else {
+	} else {
 		res.json({
 			success: false,
 			error: {
@@ -236,12 +228,10 @@ router.post("/register", async (req, res) => {
 	try {
 		let info = await rateLimiter.consume(req.ip, 100);
 		setRateLimitHeaders(res, info);
-	}
- catch (e) {
+	} catch (e) {
 		if (e instanceof Error) {
 			throw e;
-		}
- else {
+		} else {
 			handleRateLimit(res, e);
 			return;
 		}
@@ -254,8 +244,7 @@ router.post("/register", async (req, res) => {
 			await tokens.setSessionInfo(req.token, req.ottsession);
 			try {
 				usermanager.onUserLogIn(result, req.token);
-			}
- catch (err) {
+			} catch (err) {
 				log.error(
 					`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
 				);
@@ -265,8 +254,7 @@ router.post("/register", async (req, res) => {
 				user: _.pick(result, ["email", "username"]),
 			});
 		});
-	}
- catch (err) {
+	} catch (err) {
 		log.error(`Unable to register user ${err} ${err.message}`);
 		if (err.name === "SequelizeUniqueConstraintError") {
 			let fields = err.fields.join(", ");
@@ -279,8 +267,7 @@ router.post("/register", async (req, res) => {
 					message: `${fields} ${err.fields.length > 1 ? "are" : "is"} already in use.`,
 				},
 			});
-		}
- else if (err.name === "UsernameTakenError") {
+		} else if (err.name === "UsernameTakenError") {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -289,8 +276,7 @@ router.post("/register", async (req, res) => {
 					message: "Username is already in use.",
 				},
 			});
-		}
- else if (err.name === "EmailAlreadyInUseError") {
+		} else if (err.name === "EmailAlreadyInUseError") {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -299,8 +285,7 @@ router.post("/register", async (req, res) => {
 					message: "Email is already associated with an account.",
 				},
 			});
-		}
- else if (
+		} else if (
 			err.name === "SequelizeValidationError" ||
 			err.name === "BadPasswordError" ||
 			err.name === "LengthOutOfRangeException"
@@ -312,8 +297,7 @@ router.post("/register", async (req, res) => {
 					message: err.message,
 				},
 			});
-		}
- else {
+		} else {
 			res.status(500).json({
 				success: false,
 				error: {
@@ -361,12 +345,10 @@ let usermanager = {
 		let user;
 		try {
 			user = await usermanager.getUser({ email });
-		}
- catch (err) {
+		} catch (err) {
 			if (err.message === "User not found") {
 				done(new Error("Email or password is incorrect."));
-			}
- else {
+			} else {
 				log.error(`Auth callback failed: ${err}`);
 				done(new Error("An unknown error occurred. This is a bug."));
 			}
@@ -411,8 +393,7 @@ let usermanager = {
 			try {
 				await usermanager.connectSocial(req.user, { discordId: profile.id });
 				return done(null, req.user);
-			}
- catch (err) {
+			} catch (err) {
 				return done(err, req.user);
 			}
 		}
@@ -421,8 +402,7 @@ let usermanager = {
 			if (user) {
 				return done(null, user);
 			}
-		}
- catch (e) {
+		} catch (e) {
 			log.warn("Couldn't find existing user for discord profile, making a new one...");
 			try {
 				let user = await usermanager.registerUserSocial({
@@ -432,8 +412,7 @@ let usermanager = {
 				if (user) {
 					return done(null, user);
 				}
-			}
- catch (error) {
+			} catch (error) {
 				log.error(`Unable to create new social user: ${error}`);
 				return done(error);
 			}
@@ -448,8 +427,7 @@ let usermanager = {
 		log.silly(`serializeUser: ${JSON.stringify(user)}`);
 		if (user.user_id) {
 			done(null, user.user_id);
-		}
- else {
+		} else {
 			done(null, user.id);
 		}
 	},
@@ -465,8 +443,7 @@ let usermanager = {
 		try {
 			let user = await usermanager.getUser({ id });
 			done(null, user);
-		}
- catch (err) {
+		} catch (err) {
 			log.error(`Unable to deserialize user id=${id} ${err}`);
 			done(err, false);
 		}
@@ -480,8 +457,7 @@ let usermanager = {
 			log.error(`Error in middleware ${err}, logging user out.`);
 			req.logout();
 			next();
-		}
- else {
+		} else {
 			next();
 		}
 	},
@@ -513,8 +489,7 @@ let usermanager = {
 				salt,
 				hash,
 			});
-		}
- catch (err) {
+		} catch (err) {
 			log.error(`Failed to create new user in the database: ${err} ${err.message}`);
 			throw err;
 		}
@@ -532,8 +507,7 @@ let usermanager = {
 		options = _.pick(options, "discordId");
 		if (options) {
 			user.discordId = options.discordId;
-		}
- else {
+		} else {
 			log.warn("Can't connect social logins, none were provided");
 			return;
 		}
@@ -541,8 +515,7 @@ let usermanager = {
 		try {
 			socialUser = await this.getUser(options);
 			log.warn("Detected duplicate accounts for social login!");
-		}
- catch (error) {
+		} catch (error) {
 			log.info("No account merging required.");
 		}
 		if (socialUser) {
@@ -578,11 +551,9 @@ let usermanager = {
 		let where = {};
 		if (email) {
 			where = { email };
-		}
- else if (id) {
+		} else if (id) {
 			where = { id };
-		}
- else if (discordId) {
+		} else if (discordId) {
 			where = { discordId };
 		}
 		let user = await User.findOne({ where });

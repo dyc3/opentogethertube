@@ -7,7 +7,7 @@ import {
 	BadApiArgumentException,
 	InvalidVideoIdException,
 	OutOfQuotaException,
-	UnsupportedVideoType
+	UnsupportedVideoType,
 } from "../exceptions";
 import { getLogger } from "../logger";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
@@ -160,11 +160,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				url.pathname.startsWith("/shorts/") ||
 				(url.host === "studio.youtube.com" && url.pathname.startsWith("/video/"))
 			);
-		}
- else if (url.host.endsWith("youtu.be")) {
+		} else if (url.host.endsWith("youtu.be")) {
 			return url.pathname.length > 1;
-		}
- else {
+		} else {
 			return false;
 		}
 	}
@@ -185,15 +183,13 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		const url = new URL(link);
 		if (url.host.endsWith("youtu.be")) {
 			return url.pathname.replace("/", "").trim();
-		}
- else if (url.pathname.startsWith("/watch")) {
+		} else if (url.pathname.startsWith("/watch")) {
 			let videoId = url.searchParams.get("v");
 			if (!videoId) {
 				throw new BadApiArgumentException("input", "No video ID found in URL");
 			}
 			return videoId.trim();
-		}
- else {
+		} else {
 			return url.pathname.split("/")[2];
 		}
 	}
@@ -210,26 +206,21 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			url.pathname.startsWith("/user/")
 		) {
 			return this.fetchChannelVideos(this.getChannelId(url));
-		}
- else if (url.pathname === "/playlist") {
+		} else if (url.pathname === "/playlist") {
 			if (qPlaylist) {
 				return this.fetchPlaylistVideos(qPlaylist);
-			}
- else {
+			} else {
 				throw new BadApiArgumentException("input", "Link is missing playlist ID");
 			}
-		}
- else {
+		} else {
 			if (qPlaylist && !knownPrivateLists.includes(qPlaylist)) {
 				try {
 					return await this.fetchVideoWithPlaylist(this.getVideoId(link), qPlaylist);
-				}
- catch {
+				} catch {
 					log.debug("Falling back to fetching video without playlist");
 					return [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)];
 				}
-			}
- else {
+			} else {
 				return [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)];
 			}
 		}
@@ -289,13 +280,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			);
 
 			return this.fetchPlaylistVideos(uploadsPlaylistId);
-		}
- catch (err) {
+		} catch (err) {
 			if (axios.isAxiosError(err) && err.response && err.response.status === 403) {
 				log.error("Error when getting channel upload playlist ID: Out of quota");
 				throw new OutOfQuotaException(this.serviceId);
-			}
- else {
+			} else {
 				if (err instanceof Error) {
 					log.error(
 						`Error when getting channel upload playlist ID: ${err.message} ${err.stack}`
@@ -341,8 +330,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		this.redisClient.set(key, playlistId, err => {
 			if (err) {
 				log.error(`Failed to cache playlist ID: ${err.message} ${err.stack}`);
-			}
- else {
+			} else {
 				log.info(`Cached playlist ${key}`);
 			}
 		});
@@ -376,8 +364,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				if (item.snippet.thumbnails) {
 					if (item.snippet.thumbnails.medium) {
 						video.thumbnail = item.snippet.thumbnails.medium.url;
-					}
- else {
+					} else {
 						video.thumbnail = item.snippet.thumbnails.default.url;
 					}
 				}
@@ -385,8 +372,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			}
 
 			return results;
-		}
- catch (err) {
+		} catch (err) {
 			if (
 				axios.isAxiosError(err) &&
 				err.response &&
@@ -394,8 +380,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				err.response.status === 403
 			) {
 				throw new OutOfQuotaException(this.serviceId);
-			}
- else {
+			} else {
 				throw err;
 			}
 		}
@@ -461,20 +446,17 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			}
 			try {
 				await storage.updateManyVideoInfo(_.values(results));
-			}
- catch (err) {
+			} catch (err) {
 				if (err instanceof Error) {
 					log.error(
 						`Failed to cache video info, will return metadata anyway: ${err.message} ${err.stack}`
 					);
-				}
- else {
+				} else {
 					log.error(`Failed to cache video info, will return metadata anyway`);
 				}
 			}
 			return results;
-		}
- catch (err) {
+		} catch (err) {
 			if (axios.isAxiosError(err)) {
 				if (err.response && isYoutubeApiError(err.response)) {
 					if (err.response.status === 403) {
@@ -484,25 +466,21 @@ export default class YouTubeAdapter extends ServiceAdapter {
 								const videos: Partial<Video>[] =
 									await this.getManyVideoLengthsFallback(ids);
 								return videos;
-							}
- catch (err) {
+							} catch (err) {
 								if (err instanceof Error) {
 									log.error(
 										`Youtube fallback failed ${err.message} ${err.stack}`
 									);
-								}
- else {
+								} else {
 									log.error(`Youtube fallback failed, but threw non Error`);
 								}
 								throw err;
 							}
-						}
- else {
+						} else {
 							log.warn("No fallback method for requested metadata properties");
 							throw new OutOfQuotaException("youtube");
 						}
-					}
- else {
+					} else {
 						log.error(
 							`videoApiRequest failed: http status ${
 								err.response.status
@@ -510,12 +488,10 @@ export default class YouTubeAdapter extends ServiceAdapter {
 						);
 						throw err;
 					}
-				}
- else {
+				} else {
 					throw err;
 				}
-			}
- else {
+			} else {
 				throw err;
 			}
 		}
@@ -532,8 +508,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			if (item.snippet.thumbnails) {
 				if (item.snippet.thumbnails.medium) {
 					video.thumbnail = item.snippet.thumbnails.medium.url;
-				}
- else {
+				} else {
 					video.thumbnail = item.snippet.thumbnails.default.url;
 				}
 			}
@@ -541,8 +516,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		if (item.contentDetails) {
 			try {
 				video.length = this.parseVideoLength(item.contentDetails.duration);
-			}
- catch (e) {
+			} catch (e) {
 				log.error(
 					`Failed to parse video length. input: "${
 						item.contentDetails.duration
@@ -566,8 +540,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}));
 		try {
 			await storage.updateManyVideoInfo(videos);
-		}
- catch (err) {
+		} catch (err) {
 			if (err instanceof Error) {
 				log.error(
 					`Failed to cache video info, returning result anyway: ${err.message} ${err.stack}`
@@ -597,8 +570,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				);
 				throw new Error("onlyProperties must have valid values or be null!");
 			}
-		}
- else {
+		} else {
 			parts = ["snippet", "contentDetails"];
 		}
 		return parts;
@@ -607,9 +579,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	async getVideoLengthFallback(id: string): Promise<number | undefined> {
 		const url = `https://youtube.com/watch?v=${id}`;
 		const res = await this.fallbackApi.get(url);
-		const regexs = [
-/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/, /lengthSeconds":"\d+/
-];
+		const regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/, /lengthSeconds":"\d+/];
 		for (let r = 0; r < regexs.length; r++) {
 			const matches = res.data.match(regexs[r]);
 			if (matches === null) {
@@ -631,11 +601,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		const channelId = match[1];
 		if (url.pathname.startsWith("/channel/")) {
 			return { channel: channelId };
-		}
- else if (url.pathname.startsWith("/user/")) {
+		} else if (url.pathname.startsWith("/user/")) {
 			return { user: channelId };
-		}
- else {
+		} else {
 			return { customUrl: channelId };
 		}
 	}
@@ -664,12 +632,10 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				id: searchResult.id.videoId,
 			}));
 			return results;
-		}
- catch (err) {
+		} catch (err) {
 			if (err.response && err.response.status === 403) {
 				throw new OutOfQuotaException(this.serviceId);
-			}
- else {
+			} else {
 				throw err;
 			}
 		}

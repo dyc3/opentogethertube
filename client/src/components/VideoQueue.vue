@@ -19,9 +19,19 @@
 				<v-icon>fas fa-random</v-icon>
 			</v-btn>
 		</div>
-		<draggable v-model="$store.state.room.queue" :move="() => this.granted('manage-queue.order')" @end="onQueueDragDrop" handle=".drag-handle">
+		<draggable
+			v-model="$store.state.room.queue"
+			:move="() => this.granted('manage-queue.order')"
+			@end="onQueueDragDrop"
+			handle=".drag-handle"
+		>
 			<transition-group name="video-queue">
-				<VideoQueueItem v-for="(itemdata, index) in $store.state.room.queue" :key="itemdata.id" :item="itemdata" :index="index" />
+				<VideoQueueItem
+					v-for="(itemdata, index) in $store.state.room.queue"
+					:key="itemdata.id"
+					:item="itemdata"
+					:index="index"
+				/>
 			</transition-group>
 		</draggable>
 	</div>
@@ -29,8 +39,8 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Component from 'vue-class-component';
-import draggable from 'vuedraggable';
+import Component from "vue-class-component";
+import draggable from "vuedraggable";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";
 import PermissionsMixin from "@/mixins/permissions";
@@ -62,12 +72,12 @@ export default class VideoQueue extends Vue {
 }
 
 .empty-queue {
-  height: 300px;
+	height: 300px;
 
-  .msg {
-    opacity: 0.5;
-    font-size: 20px;
-  }
+	.msg {
+		opacity: 0.5;
+		font-size: 20px;
+	}
 }
 
 .queue-controls {
@@ -75,14 +85,16 @@ export default class VideoQueue extends Vue {
 }
 
 // Transition animation
-.video-queue-enter-active, .video-queue-leave-active {
-  transition: all 0.2s;
+.video-queue-enter-active,
+.video-queue-leave-active {
+	transition: all 0.2s;
 }
-.video-queue-enter, .video-queue.leave-to {
-  opacity: 0;
-  transform: translateX(-30px) scaleY(0);
+.video-queue-enter,
+.video-queue.leave-to {
+	opacity: 0;
+	transform: translateX(-30px) scaleY(0);
 }
 .video-queue-move {
-  transition: transform 0.2s;
+	transition: transform 0.2s;
 }
 </style>

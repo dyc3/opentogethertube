@@ -339,7 +339,8 @@ module.exports = {
 				}),
 			},
 		}).then(async foundVideos => {
-			let [toUpdate, toCreate] = _.partition(videos, video => _.find(foundVideos, { service: video.service, serviceId: video.serviceId })
+			let [toUpdate, toCreate] = _.partition(videos, video =>
+				_.find(foundVideos, { service: video.service, serviceId: video.serviceId })
 			);
 			log.debug(
 				`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`

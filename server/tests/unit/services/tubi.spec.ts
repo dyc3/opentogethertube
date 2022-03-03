@@ -51,8 +51,7 @@ describe("Tubi TV", () => {
 			let data;
 			try {
 				data = JSON.parse(fixtureText);
-			}
- catch (e) {
+			} catch (e) {
 				data = fixtureText;
 			}
 			let resp: AxiosResponse = {

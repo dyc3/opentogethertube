@@ -1,28 +1,56 @@
 <template>
 	<div class="video-add">
 		<v-row>
-			<v-textarea clearable auto-grow rows="1" :placeholder="$t('add-preview.placeholder')" v-model="inputAddPreview" @keydown="onInputAddPreviewKeyDown" @focus="onFocusHighlightText" :loading="isLoadingAddPreview" data-cy="add-preview-input" />
+			<v-textarea
+				clearable
+				auto-grow
+				rows="1"
+				:placeholder="$t('add-preview.placeholder')"
+				v-model="inputAddPreview"
+				@keydown="onInputAddPreviewKeyDown"
+				@focus="onFocusHighlightText"
+				:loading="isLoadingAddPreview"
+				data-cy="add-preview-input"
+			/>
 		</v-row>
 		<v-row>
 			<div v-if="!production">
-				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{ v[0] }}</v-btn>
+				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{
+					v[0]
+				}}</v-btn>
 			</div>
-			<v-btn v-if="videos.length > 1" @click="addAllToQueue()" :loading="isLoadingAddAll" :disabled="isLoadingAddAll">{{ $t("add-preview.add-all") }}</v-btn>
+			<v-btn
+				v-if="videos.length > 1"
+				@click="addAllToQueue()"
+				:loading="isLoadingAddAll"
+				:disabled="isLoadingAddAll"
+				>{{ $t("add-preview.add-all") }}</v-btn
+			>
 		</v-row>
 		<v-row class="mt-6" v-if="isLoadingAddPreview" justify="center">
-			<v-progress-circular indeterminate/>
+			<v-progress-circular indeterminate />
 		</v-row>
 		<v-row class="mt-6" justify="center" v-if="!isLoadingAddPreview">
 			<div v-if="hasAddPreviewFailed">
 				{{ videosLoadFailureText }}
 			</div>
-			<v-container fill-height v-if="videos.length == 0 && inputAddPreview.length > 0 && !hasAddPreviewFailed && !isAddPreviewInputUrl">
-			<v-row justify="center" align="center">
-				<v-col cols="12">
-					{{ $t("add-preview.search-for", {search: inputAddPreview}) }}<br>
-					<v-btn @click="requestAddPreviewExplicit">{{ $t("add-preview.search") }}</v-btn>
-				</v-col>
-			</v-row>
+			<v-container
+				fill-height
+				v-if="
+					videos.length == 0 &&
+					inputAddPreview.length > 0 &&
+					!hasAddPreviewFailed &&
+					!isAddPreviewInputUrl
+				"
+			>
+				<v-row justify="center" align="center">
+					<v-col cols="12">
+						{{ $t("add-preview.search-for", { search: inputAddPreview }) }}<br />
+						<v-btn @click="requestAddPreviewExplicit">{{
+							$t("add-preview.search")
+						}}</v-btn>
+					</v-col>
+				</v-row>
 			</v-container>
 			<v-container v-else-if="inputAddPreview.length === 0">
 				<v-row justify="center" align="center">
@@ -30,16 +58,72 @@
 						<h1>{{ $t("add-preview.title") }}</h1>
 						<h3>{{ $t("add-preview.single-videos") }}</h3>
 						<ul>
-							<li><ProcessedText :text="$t('add-preview.platforms.youtube-videos', {url: 'https://youtube.com/watch?v=LP8GRjv6AIo'})" /></li>
-							<li><ProcessedText :text="$t('add-preview.platforms.vimeo-videos', {url: 'https://vimeo.com/94338566'})" /></li>
-							<li><ProcessedText :text="$t('add-preview.platforms.dailymotion-videos', {url: 'https://dailymotion.com/video/x31i1so'})" /></li>
-							<li><ProcessedText :text="$t('add-preview.platforms.any-mp4-videos', {url: 'https://vjs.zencdn.net/v/oceans.mp4'})" /></li>
+							<li>
+								<ProcessedText
+									:text="
+										$t('add-preview.platforms.youtube-videos', {
+											url: 'https://youtube.com/watch?v=LP8GRjv6AIo',
+										})
+									"
+								/>
+							</li>
+							<li>
+								<ProcessedText
+									:text="
+										$t('add-preview.platforms.vimeo-videos', {
+											url: 'https://vimeo.com/94338566',
+										})
+									"
+								/>
+							</li>
+							<li>
+								<ProcessedText
+									:text="
+										$t('add-preview.platforms.dailymotion-videos', {
+											url: 'https://dailymotion.com/video/x31i1so',
+										})
+									"
+								/>
+							</li>
+							<li>
+								<ProcessedText
+									:text="
+										$t('add-preview.platforms.any-mp4-videos', {
+											url: 'https://vjs.zencdn.net/v/oceans.mp4',
+										})
+									"
+								/>
+							</li>
 						</ul>
 						<h3>{{ $t("add-preview.playlists") }}</h3>
 						<ul>
-							<li><ProcessedText :text="$t('add-preview.platforms.youtube-playlists', {url: 'https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ'})" /></li>
-							<li><ProcessedText :text="$t('add-preview.platforms.youtube-channels', {url: 'https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA'})" /></li>
-							<li><ProcessedText :text="$t('add-preview.platforms.subreddits', {url: 'https://reddit.com/r/youtubehaiku/'})" /></li>
+							<li>
+								<ProcessedText
+									:text="
+										$t('add-preview.platforms.youtube-playlists', {
+											url: 'https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ',
+										})
+									"
+								/>
+							</li>
+							<li>
+								<ProcessedText
+									:text="
+										$t('add-preview.platforms.youtube-channels', {
+											url: 'https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA',
+										})
+									"
+								/>
+							</li>
+							<li>
+								<ProcessedText
+									:text="
+										$t('add-preview.platforms.subreddits', {
+											url: 'https://reddit.com/r/youtubehaiku/',
+										})
+									"
+								/>
+							</li>
 						</ul>
 						<span>{{ $t("add-preview.text") }}</span>
 					</div>
@@ -47,10 +131,19 @@
 			</v-container>
 		</v-row>
 		<div v-if="highlightedAddPreviewItem">
-			<VideoQueueItem :item="highlightedAddPreviewItem" is-preview style="margin-bottom: 20px"/>
+			<VideoQueueItem
+				:item="highlightedAddPreviewItem"
+				is-preview
+				style="margin-bottom: 20px"
+			/>
 			<h4>{{ $t("add-preview.playlist") }}</h4>
 		</div>
-		<VideoQueueItem v-for="(itemdata, index) in videos" :key="index" :item="itemdata" is-preview/>
+		<VideoQueueItem
+			v-for="(itemdata, index) in videos"
+			:key="index"
+			:item="itemdata"
+			is-preview
+		/>
 	</div>
 </template>
 
@@ -59,7 +152,7 @@ import { API } from "@/common-http.js";
 import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import ProcessedText from "@/components/ProcessedText.vue";
-import { ToastStyle } from '@/models/toast';
+import { ToastStyle } from "@/models/toast";
 import Vue from "vue";
 
 export default Vue.extend({
@@ -83,9 +176,15 @@ export default Vue.extend({
 				["test vimeo 0", "https://vimeo.com/94338566"],
 				["test vimeo 1", "https://vimeo.com/239423699"],
 				["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
-				["test direct 0", "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4"],
+				[
+					"test direct 0",
+					"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+				],
 				["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
-				["test hls 0", "https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8"],
+				[
+					"test hls 0",
+					"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+				],
 			],
 		};
 	},
@@ -95,9 +194,9 @@ export default Vue.extend({
 		},
 		isAddPreviewInputUrl() {
 			try {
-				return !!(new URL(this.inputAddPreview).host);
+				return !!new URL(this.inputAddPreview).host;
 			}
-			catch (e) {
+ catch (e) {
 				return false;
 			}
 		},
@@ -116,40 +215,54 @@ export default Vue.extend({
 	},
 	methods: {
 		async requestAddPreview() {
-			await API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, { validateStatus: status => status < 500 }).then(res => {
-				this.isLoadingAddPreview = false;
-				if (res.status === 200) {
-					this.hasAddPreviewFailed = false;
-					this.videos = res.data;
-					console.log(`Got add preview with ${this.videos.length}`);
-				}
-				else if (res.status === 400) {
-					this.hasAddPreviewFailed = true;
-					this.videosLoadFailureText = res.data.error.message;
-					if (res.data.error.name === "FeatureDisabledException" && !this.isAddPreviewInputUrl) {
-						window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(this.inputAddPreview)}`, "_blank");
+			await API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, {
+				validateStatus: status => status < 500,
+			})
+				.then(res => {
+					this.isLoadingAddPreview = false;
+					if (res.status === 200) {
+						this.hasAddPreviewFailed = false;
+						this.videos = res.data;
+						console.log(`Got add preview with ${this.videos.length}`);
 					}
-				}
-				else {
-					console.warn("Unknown status for add preview response:", res.status);
+ else if (res.status === 400) {
+						this.hasAddPreviewFailed = true;
+						this.videosLoadFailureText = res.data.error.message;
+						if (
+							res.data.error.name === "FeatureDisabledException" &&
+							!this.isAddPreviewInputUrl
+						) {
+							window.open(
+								`https://www.youtube.com/results?search_query=${encodeURIComponent(
+									this.inputAddPreview
+								)}`,
+								"_blank"
+							);
+						}
+					}
+ else {
+						console.warn("Unknown status for add preview response:", res.status);
+						this.$toast.add({
+							style: ToastStyle.Error,
+							content: this.$t("add-preview.messages.unknown-status", {
+								status: res.status,
+							}),
+						});
+					}
+				})
+				.catch(err => {
+					this.isLoadingAddPreview = false;
+					this.hasAddPreviewFailed = true;
+					this.videosLoadFailureText = this.$t("add-preview.messages.unknown-error");
+					console.error("Failed to get add preview", err);
 					this.$toast.add({
 						style: ToastStyle.Error,
-						content: this.$t('add-preview.messages.unknown-status', {status: res.status}),
+						content: this.$t("add-preview.messages.failed-to-get-add-preview"),
+						duration: 6000,
 					});
-				}
-			}).catch(err => {
-				this.isLoadingAddPreview = false;
-				this.hasAddPreviewFailed = true;
-				this.videosLoadFailureText = this.$t('add-preview.messages.unknown-error');
-				console.error("Failed to get add preview", err);
-				this.$toast.add({
-					style: ToastStyle.Error,
-					content: this.$t('add-preview.messages.failed-to-get-add-preview'),
-					duration: 6000,
 				});
-			});
 		},
-		requestAddPreviewDebounced: _.debounce(function() {
+		requestAddPreviewDebounced: _.debounce(function () {
 			// HACK: can't use an arrow function here because it will make `this` undefined
 			this.requestAddPreview();
 		}, 500),
@@ -167,14 +280,16 @@ export default Vue.extend({
 			try {
 				await API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.videos });
 			}
-			catch (err) {
+ catch (err) {
 				let message = `${err}`;
 				if (err.response) {
 					message = `${err.response.data.error.message}`;
 				}
 				this.$toast.add({
 					style: ToastStyle.Error,
-					content: this.$t('add-preview.messages.failed-to-all-videos', {message: message}),
+					content: this.$t("add-preview.messages.failed-to-all-videos", {
+						message: message,
+					}),
 					duration: 4000,
 				});
 			}
@@ -220,7 +335,7 @@ export default Vue.extend({
 					duration: 2000,
 				});
 			}
-			catch (e) {
+ catch (e) {
 				console.error(e);
 				this.$toast.add({
 					style: ToastStyle.Error,
@@ -253,8 +368,8 @@ export default Vue.extend({
 @import "../variables.scss";
 
 .video-add {
-  margin: 0 20px;
-  min-height: 500px;
+	margin: 0 20px;
+	min-height: 500px;
 }
 
 .add-video-helper {

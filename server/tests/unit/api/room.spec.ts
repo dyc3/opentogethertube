@@ -24,8 +24,7 @@ expect.extend({
 				message: () => `expected error to not be RoomNotFoundException`,
 				pass,
 			};
-		}
- else {
+		} else {
 			return {
 				message: () => `expected error to be RoomNotFoundException`,
 				pass,
@@ -54,8 +53,7 @@ expect.extend({
 				message: () => `expected error to not be Unknown`,
 				pass,
 			};
-		}
- else {
+		} else {
 			return {
 				message: () => `expected error to be Unknown`,
 				pass,
@@ -81,8 +79,7 @@ describe("Room API", () => {
 		afterEach(async () => {
 			try {
 				await roommanager.UnloadRoom("test1");
-			}
- catch (e) {
+			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
 				}
@@ -142,8 +139,7 @@ describe("Room API", () => {
 		afterEach(async () => {
 			try {
 				await roommanager.unloadAllRooms();
-			}
- catch (e) {
+			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
 				}

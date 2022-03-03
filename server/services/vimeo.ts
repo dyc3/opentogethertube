@@ -59,8 +59,7 @@ export default class VimeoAdapter extends ServiceAdapter {
 			};
 
 			return video;
-		}
- catch (err) {
+		} catch (err) {
 			if (err.response && err.response.status === 403) {
 				log.error("Failed to get video info: Embedding for this video is disabled!");
 			}

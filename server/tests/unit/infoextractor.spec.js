@@ -327,9 +327,7 @@ describe("InfoExtractor: Cache", () => {
 					id: "94L1GMA2wjk4",
 					title: "example",
 				},
-				[
-"description", "thumbnail", "length"
-],
+				["description", "thumbnail", "length"],
 			]);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			storage.getVideoInfo.mockReset();
@@ -347,9 +345,7 @@ describe("InfoExtractor: Cache", () => {
 					id: "https://example.com/asdf.mp4",
 					title: "asdf.mp4",
 				},
-				[
-"description", "thumbnail", "length", "mime"
-],
+				["description", "thumbnail", "length", "mime"],
 			]);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			storage.getVideoInfo.mockReset();
@@ -369,9 +365,7 @@ describe("InfoExtractor: Cache", () => {
 					title: "asdf.mp4",
 					mime: "video/mp4",
 				},
-				[
-"description", "thumbnail", "length"
-],
+				["description", "thumbnail", "length"],
 			]);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			storage.getVideoInfo.mockReset();

@@ -13,13 +13,11 @@
 
 <script>
 export default {
-	name: 'not-found',
+	name: "not-found",
 	data() {
 		return {};
 	},
 };
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

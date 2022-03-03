@@ -1,7 +1,7 @@
 import RedditAdapter, {
 	RedditListableThing,
 	RedditListing,
-	RedditPost
+	RedditPost,
 } from "../../../../server/services/reddit";
 
 const subredditListResponse: RedditListing<RedditListableThing> = {

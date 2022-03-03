@@ -8,7 +8,7 @@ import storage from "./storage";
 import {
 	RoomAlreadyLoadedException,
 	RoomNameTakenException,
-	RoomNotFoundException
+	RoomNotFoundException,
 } from "./exceptions";
 import { RoomRequest, RoomRequestContext } from "common/models/messages";
 // WARN: do NOT import clientmanager
@@ -104,8 +104,7 @@ export async function GetRoom(
 			log.debug("found room in database, but room is already in redis");
 			throw new RoomAlreadyLoadedException(opts.name);
 		}
-	}
- else {
+	} else {
 		if (await redisClientAsync.exists(`room:${roomName}`)) {
 			log.debug("found room in redis, not loading");
 			throw new RoomAlreadyLoadedException(roomName);
@@ -129,8 +128,7 @@ export async function UnloadRoom(roomName: string): Promise<void> {
 	}
 	if (idx >= 0) {
 		await rooms[idx].onBeforeUnload();
-	}
- else {
+	} else {
 		throw new RoomNotFoundException(roomName);
 	}
 	rooms.splice(idx, 1);
@@ -166,12 +164,10 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 		await room.processUnauthorizedRequest(requestUnauthorized.request, {
 			token: requestUnauthorized.token,
 		});
-	}
- catch (e) {
+	} catch (e) {
 		if (e instanceof RoomNotFoundException) {
 			// Room not found on this Node, ignore
-		}
- else {
+		} else {
 			log.error(`Failed to process room request: ${e.name} ${e.message} ${e.stack}`);
 		}
 	}

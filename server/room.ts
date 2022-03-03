@@ -26,7 +26,7 @@ import {
 	PlayNowRequest,
 	RoomRequestAuthorization,
 	RoomRequestContext,
-	ShuffleRequest
+	ShuffleRequest,
 } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
@@ -45,7 +45,7 @@ import {
 	RoomEventContext,
 	RoomStateStorable,
 	RoomSettings,
-	AuthToken
+	AuthToken,
 } from "../common/models/types";
 import { User } from "./models/user";
 import { Video, VideoId } from "../common/models/video";
@@ -55,7 +55,7 @@ import { replacer } from "../common/serialize";
 import {
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
-	VideoNotFoundException
+	VideoNotFoundException,
 } from "./exceptions";
 import storage from "./storage";
 import tokens, { SessionInfo } from "./auth/tokens";
@@ -92,8 +92,7 @@ export class RoomUser {
 	public get username(): string {
 		if (this.isLoggedIn && this.user) {
 			return this.user.username;
-		}
- else {
+		} else {
 			return this.unregisteredUsername;
 		}
 	}
@@ -102,8 +101,7 @@ export class RoomUser {
 		if (info.user_id) {
 			this.user_id = info.user_id;
 			this.user = await usermanager.getUser({ id: info.user_id });
-		}
- else if (info.username) {
+		} else if (info.username) {
 			this.unregisteredUsername = info.username;
 			this.user_id = undefined;
 			this.user = null;
@@ -178,14 +176,12 @@ export class Room implements RoomState {
 		);
 		if (options.grants instanceof Grants) {
 			this.grants = options.grants;
-		}
- else if (options.grants) {
+		} else if (options.grants) {
 			this.grants = new Grants(options.grants);
 		}
 		if (!(this.grants instanceof Grants)) {
 			this.grants = new Grants(this.grants);
-		}
- else if (this.grants instanceof Number) {
+		} else if (this.grants instanceof Number) {
 			this.grants = new Grants();
 		}
 		if (!this.grants) {
@@ -196,8 +192,7 @@ export class Room implements RoomState {
 				for (const [role, ids] of options.userRoles) {
 					this.userRoles.set(role, new Set(ids));
 				}
-			}
- else {
+			} else {
 				for (let role = Role.TrustedUser; role <= Role.Administrator; role++) {
 					if (options.userRoles[role]) {
 						this.userRoles.set(role, new Set(options.userRoles[role]));
@@ -341,8 +336,7 @@ export class Room implements RoomState {
 				this.playbackPosition = 0;
 				this._playbackStart = dayjs();
 				return;
-			}
- else if (this.queueMode === QueueMode.Loop) {
+			} else if (this.queueMode === QueueMode.Loop) {
 				this._queueMutex.lock();
 				this.queue.push(this.currentSource);
 				this._queueMutex.unlock();
@@ -359,8 +353,7 @@ export class Room implements RoomState {
 			if (this.videoSegments.length > 0) {
 				this.videoSegments = [];
 			}
-		}
- else if (this.currentSource !== null) {
+		} else if (this.currentSource !== null) {
 			if (this.isPlaying) {
 				this.isPlaying = false;
 			}
@@ -427,8 +420,7 @@ export class Room implements RoomState {
 		}
 		if (user.isLoggedIn) {
 			return Role.RegisteredUser;
-		}
- else {
+		} else {
 			return Role.UnregisteredUser;
 		}
 	}
@@ -449,8 +441,7 @@ export class Room implements RoomState {
 				}
 			}
 			return Role.RegisteredUser;
-		}
- else {
+		} else {
 			return Role.UnregisteredUser;
 		}
 	}
@@ -497,8 +488,7 @@ export class Room implements RoomState {
 				name: user.username,
 				isLoggedIn: true,
 			};
-		}
- else {
+		} else {
 			return {
 				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 				// @ts-ignore
@@ -520,8 +510,7 @@ export class Room implements RoomState {
 	get realPlaybackPosition(): number {
 		if (this._playbackStart && this.isPlaying) {
 			return this.playbackPosition + dayjs().diff(this._playbackStart, "millisecond") / 1000;
-		}
- else {
+		} else {
 			return this.playbackPosition;
 		}
 	}
@@ -585,22 +574,18 @@ export class Room implements RoomState {
 				this.wantSponsorBlock = false; // Disable this before the request to avoid spamming the sponsorblock if the request takes too long.
 				try {
 					await this.fetchSponsorBlockSegments();
-				}
- catch (e) {
+				} catch (e) {
 					if (e instanceof SponsorblockResponseError) {
 						if (e.status === 429) {
 							this.log.error(`Request to sponsorblock was ratelimited. ${e.message}`);
-						}
- else if (e.status === 404) {
+						} else if (e.status === 404) {
 							this.log.debug("No sponsorblock segments available for this video.");
-						}
- else {
+						} else {
 							this.log.error(
 								`Failed to grab sponsorblock segments: ${e.name} ${e.status} ${e.message}`
 							);
 						}
-					}
- else {
+					} else {
 						this.log.error(`Failed to grab sponsorblock segments`);
 					}
 				}
@@ -896,8 +881,7 @@ export class Room implements RoomState {
 		if (handler) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			await this[handler](request as any, context);
-		}
- else {
+		} else {
 			this.log.error(`No room request handler: ${request.type}`);
 		}
 	}
@@ -934,8 +918,7 @@ export class Room implements RoomState {
 	public async playback(request: PlaybackRequest, context: RoomRequestContext): Promise<void> {
 		if (request.state) {
 			await this.play();
-		}
- else {
+		} else {
 			await this.pause();
 		}
 		await this.publishRoomEvent(request, context);
@@ -970,8 +953,7 @@ export class Room implements RoomState {
 		const segment = this.getSegmentForTime(this.playbackPosition);
 		if (segment !== undefined) {
 			this.dontSkipSegmentsUntil = segment.endTime;
-		}
- else {
+		} else {
 			this.dontSkipSegmentsUntil = null;
 		}
 	}
@@ -1005,8 +987,7 @@ export class Room implements RoomState {
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			await this.publishRoomEvent(request, context, { video });
 			await statistics.bumpCounter(Counter.VideosQueued);
-		}
- else if (request.videos) {
+		} else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 
 			for (let i = 0; i < videos.length; i++) {
@@ -1030,8 +1011,7 @@ export class Room implements RoomState {
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
 			await statistics.bumpCounter(Counter.VideosQueued, videos.length);
-		}
- else {
+		} else {
 			this.log.error("Invalid parameters for AddRequest");
 			return;
 		}
@@ -1161,8 +1141,7 @@ export class Room implements RoomState {
 						video: request.event.request.video,
 					};
 					await this.processRequest(removeReq, context);
-				}
- else {
+				} else {
 					this.currentSource = null;
 				}
 				break;
@@ -1191,12 +1170,10 @@ export class Room implements RoomState {
 			const votes = this.votes.get(key)!;
 			if (request.add) {
 				votes.add(context.clientId);
-			}
- else {
+			} else {
 				votes.delete(context.clientId);
 			}
-		}
- else {
+		} else {
 			if (request.add) {
 				this.votes.set(key, new Set([context.clientId]));
 			}
@@ -1276,12 +1253,10 @@ export class Room implements RoomState {
 		if (!this.isTemporary) {
 			try {
 				await storage.updateRoom(this);
-			}
- catch (err: unknown) {
+			} catch (err: unknown) {
 				if (err instanceof Error) {
 					this.log.error(`Failed to update room: ${err.message} ${err.stack}`);
-				}
- else {
+				} else {
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					this.log.error(
 						`Failed to update room, and the error thrown was not Error: ${err}`
@@ -1328,8 +1303,7 @@ export class Room implements RoomState {
 						);
 						request.settings.grants.deleteRole(role);
 					}
-				}
- else {
+				} else {
 					this.log.silly(
 						`deleting permissions for role ${role} from request because that role's permissions can't change`
 					);
@@ -1399,8 +1373,7 @@ export class Room implements RoomState {
 		const alreadyInQueue = this.isVideoInQueue(request.video); // So we don't need to calculate this again later.
 		if (alreadyInQueue) {
 			this.grants.check(context.role, "manage-queue.order");
-		}
- else {
+		} else {
 			this.grants.check(context.role, "manage-queue.add");
 		}
 
@@ -1411,8 +1384,7 @@ export class Room implements RoomState {
 				item => item.service === request.video.service && item.id === request.video.id
 			);
 			videoToPlay = this.queue.splice(queueIdx, 1)[0];
-		}
- else {
+		} else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 		}
 		if (this.currentSource) {

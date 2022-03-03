@@ -27,8 +27,7 @@ expect.extend({
 				message: () => `expected error to not be RoomNotFoundException`,
 				pass,
 			};
-		}
- else {
+		} else {
 			return {
 				message: () => `expected error to be RoomNotFoundException`,
 				pass,
@@ -57,8 +56,7 @@ expect.extend({
 				message: () => `expected error to not be Unknown`,
 				pass,
 			};
-		}
- else {
+		} else {
 			return {
 				message: () => `expected error to be Unknown`,
 				pass,
@@ -795,7 +793,9 @@ describe("Data API", () => {
 		resolveQuerySpy = jest
 			.spyOn(InfoExtract.default, "resolveVideoQuery")
 			.mockImplementation(
-				() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })
+				() =>
+					new Promise((resolve, reject) =>
+						reject({ name: "UnsupportedServiceException", message: "error message" })
 					)
 			);
 
@@ -813,7 +813,9 @@ describe("Data API", () => {
 
 		resolveQuerySpy.mockRestore();
 		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(
-			() => new Promise((resolve, reject) => reject({
+			() =>
+				new Promise((resolve, reject) =>
+					reject({
 						name: "InvalidAddPreviewInputException",
 						message: "error message",
 					})
@@ -836,7 +838,9 @@ describe("Data API", () => {
 		resolveQuerySpy = jest
 			.spyOn(InfoExtract.default, "resolveVideoQuery")
 			.mockImplementation(
-				() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })
+				() =>
+					new Promise((resolve, reject) =>
+						reject({ name: "OutOfQuotaException", message: "error message" })
 					)
 			);
 

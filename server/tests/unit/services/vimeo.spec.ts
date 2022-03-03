@@ -3,9 +3,7 @@ import { InvalidVideoIdException } from "../../../exceptions";
 
 const validVideoLinks = [["283918572", "https://vimeo.com/283918572"]];
 
-const invalidLinks = [
-"https://example.com", "https://vimeo.com", "https://vimeo.com/lkjsads"
-];
+const invalidLinks = ["https://example.com", "https://vimeo.com", "https://vimeo.com/lkjsads"];
 
 describe("Vimeo", () => {
 	describe("canHandleURL", () => {

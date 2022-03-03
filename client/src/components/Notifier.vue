@@ -1,17 +1,27 @@
 <template>
 	<transition-group appear name="toast-list" tag="ul" class="toast-list">
-		<li v-for="(toast, index) in $store.state.toast.notifications" :key="toast.id" class="toast-item">
-			<ToastNotification :toast="toast" :number="index"/>
+		<li
+			v-for="(toast, index) in $store.state.toast.notifications"
+			:key="toast.id"
+			class="toast-item"
+		>
+			<ToastNotification :toast="toast" :number="index" />
 		</li>
-		<v-btn block color="primary" key="closeall" @click="closeAll" v-if="$store.state.toast.notifications.length > 1">
+		<v-btn
+			block
+			color="primary"
+			key="closeall"
+			@click="closeAll"
+			v-if="$store.state.toast.notifications.length > 1"
+		>
 			{{ $t("actions.close-all") }}
 		</v-btn>
 	</transition-group>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import Component from 'vue-class-component';
+import Vue from "vue";
+import Component from "vue-class-component";
 import ToastNotification from "@/components/ToastNotification.vue";
 
 /**
@@ -40,7 +50,8 @@ export default class Notifier extends Vue {
 	pointer-events: none;
 	z-index: 1000;
 
-	.v-stackbar, button {
+	.v-stackbar,
+	button {
 		pointer-events: auto;
 	}
 }
@@ -51,13 +62,15 @@ li {
 
 // define the animations for individual toasts
 .toast-list-move {
-	transition: all .25s ease;
+	transition: all 0.25s ease;
 }
 
-.toast-list-enter-active, .toast-list-leave-active {
-	transition: all .25s;
+.toast-list-enter-active,
+.toast-list-leave-active {
+	transition: all 0.25s;
 }
-.toast-list-enter, .toast-list-leave-to {
+.toast-list-enter,
+.toast-list-leave-to {
 	opacity: 0;
 	transform: translateY(50px);
 	// bottom: -50px;

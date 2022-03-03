@@ -42,13 +42,15 @@ const isOfficial = process.env.OTT_HOSTNAME === "opentogethertube.com";
 const configValidators = {
 	OTT_HOSTNAME: {
 		required: process.env.NODE_ENV === "production",
-		validator: value => validator.isIP(value) ||
+		validator: value =>
+			validator.isIP(value) ||
 			validator.isURL(value, { disallow_auth: true }) ||
 			value.includes("localhost"),
 	},
 	DISCORD_CLIENT_ID: {
 		required: process.env.NODE_ENV === "production" && isOfficial,
-		validator: value => !isOfficial || (value.length >= 18 && validator.isNumeric(value, { no_symbols: true })),
+		validator: value =>
+			!isOfficial || (value.length >= 18 && validator.isNumeric(value, { no_symbols: true })),
 	},
 	DISCORD_CLIENT_SECRET: {
 		required: process.env.NODE_ENV === "production" && isOfficial,
@@ -56,21 +58,21 @@ const configValidators = {
 	},
 	OPENTOGETHERTUBE_API_KEY: {
 		required: false,
-		validator: value => process.env.NODE_ENV !== "production" ||
+		validator: value =>
+			process.env.NODE_ENV !== "production" ||
 			(value !== "GENERATE_YOUR_OWN_API_KEY" && value.length >= 40),
 	},
 	SESSION_SECRET: {
 		required: process.env.NODE_ENV === "production",
-		validator: value => process.env.NODE_ENV !== "production" ||
+		validator: value =>
+			process.env.NODE_ENV !== "production" ||
 			!isOfficial ||
 			(value !== "GENERATE_YOUR_OWN_SECRET" && value.length >= 80),
 	},
 	// eslint-disable-next-line array-bracket-newline
 	LOG_LEVEL: {
 		required: false,
-		validator: value => [
-"silly", "debug", "info", "warn", "error"
-].includes(value),
+		validator: value => ["silly", "debug", "info", "warn", "error"].includes(value),
 	},
 	YOUTUBE_API_KEY: {
 		required: process.env.NODE_ENV === "production",
@@ -107,8 +109,7 @@ for (let configVar in configValidators) {
 	if (rules.required && !process.env[configVar]) {
 		log.error(`${configVar} is required, but it was not found.`);
 		configCalidationFailed = true;
-	}
- else if (process.env[configVar] && !rules.validator(process.env[configVar])) {
+	} else if (process.env[configVar] && !rules.validator(process.env[configVar])) {
 		log.error(`${configVar} is invalid.`);
 		configCalidationFailed = true;
 	}
@@ -169,8 +170,7 @@ if (fs.existsSync("../client/dist")) {
 			index: false,
 		})
 	);
-}
- else {
+} else {
 	log.warn("no dist folder found");
 }
 
@@ -273,8 +273,7 @@ function serveBuiltFiles(req, res) {
 		res.setHeader("Content-type", "text/html");
 		if (contents) {
 			res.send(contents.toString());
-		}
- else {
+		} else {
 			res.status(500).send("Failed to serve page, try again later.");
 		}
 	});
@@ -283,8 +282,7 @@ function serveBuiltFiles(req, res) {
 app.use("/api", api);
 if (fs.existsSync("../client/dist")) {
 	app.get("*", serveBuiltFiles);
-}
- else {
+} else {
 	log.warn("no dist folder found");
 }
 

@@ -1,7 +1,7 @@
 import YouTubeAdapter, {
 	YoutubeErrorResponse,
 	YoutubeApiVideoListResponse,
-	YoutubeApiVideo
+	YoutubeApiVideo,
 } from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
@@ -50,7 +50,8 @@ function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
 			resultsPerPage: ids.length,
 		},
 		items: ids.map(
-			id => JSON.parse(
+			id =>
+				JSON.parse(
 					fs.readFileSync(`${FIXTURE_DIRECTORY}/${id}.json`, "utf8")
 				) as YoutubeApiVideo
 		),
@@ -90,20 +91,17 @@ async function mockYoutubeApi(
 			...template,
 			data: mockVideoList(config?.params.id.split(",")),
 		};
-	}
- else if (path === "/playlistItems") {
+	} else if (path === "/playlistItems") {
 		try {
 			return {
 				...template,
 				data: mockPlaylistItems(config?.params.playlistId),
 			};
-		}
- catch (e) {
+		} catch (e) {
 			let content = fs.readFileSync(`${FIXTURE_DIRECTORY}/errors/${e.message}.json`, "utf8");
 			return JSON.parse(content);
 		}
-	}
- else if (path === "/channels") {
+	} else if (path === "/channels") {
 		return {
 			...template,
 			data: mockChannel(config?.params.id ?? config?.params.forUsername),
@@ -205,7 +203,8 @@ describe("Youtube", () => {
 		});
 
 		it.each(
-			["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "zgxj_0xPleg").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
+			["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x =>
+				x.replace("%s", "zgxj_0xPleg").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
 			)
 		)("Resolves single video URL with playlist, with video in the playlist: %s", async link => {
 			const fetchSpy = jest.spyOn(adapter, "fetchVideoWithPlaylist");
@@ -243,7 +242,8 @@ describe("Youtube", () => {
 		});
 
 		it.each(
-			["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "BTZ5KVRUy1Q").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
+			["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x =>
+				x.replace("%s", "BTZ5KVRUy1Q").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
 			)
 		)(
 			"Resolves single video URL with playlist, with video NOT in the playlist: %s",

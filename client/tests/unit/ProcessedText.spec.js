@@ -1,6 +1,6 @@
-import Vue from 'vue';
-import { mount, createLocalVue } from '@vue/test-utils';
-import Vuetify from 'vuetify';
+import Vue from "vue";
+import { mount, createLocalVue } from "@vue/test-utils";
+import Vuetify from "vuetify";
 import ProcessedText from "@/components/ProcessedText.vue";
 import { i18n } from "@/i18n";
 
@@ -10,7 +10,7 @@ const localVue = createLocalVue();
 // https://github.com/vuetifyjs/vuetify/issues/4964
 Vue.use(Vuetify);
 
-import VueEvents from 'vue-events';
+import VueEvents from "vue-events";
 localVue.use(VueEvents);
 
 describe("ProcessedText component", () => {

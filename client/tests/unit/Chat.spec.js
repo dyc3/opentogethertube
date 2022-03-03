@@ -1,9 +1,9 @@
-import '@/installCompositionApi.js';
-import Vue from 'vue';
-import { mount, createLocalVue } from '@vue/test-utils';
-import Vuetify from 'vuetify';
+import "@/installCompositionApi.js";
+import Vue from "vue";
+import { mount, createLocalVue } from "@vue/test-utils";
+import Vuetify from "vuetify";
 import Chat from "@/components/Chat.vue";
-import Vuex from 'vuex';
+import Vuex from "vuex";
 import { i18n } from "@/i18n";
 
 const localVue = createLocalVue();
@@ -86,7 +86,7 @@ describe("Chat component", () => {
 		await wrapper.vm.$nextTick();
 		wrapper.setData({ inputValue: "test" });
 		await wrapper.find("input").trigger("keydown", {
-			key: 'a',
+			key: "a",
 		});
 		// expect(wrapper.vm.$socket.sendObj).not.toHaveBeenCalled();
 		expect(wrapper.vm.inputValue).toEqual("test");
@@ -112,9 +112,21 @@ describe("Chat component", () => {
 		wrapper.vm.onChatReceived({ from: "user", text: "test" });
 		wrapper.vm.onChatReceived({ from: "user", text: "test" });
 		wrapper.vm.onChatReceived({ from: "user", text: "test" });
-		Object.defineProperty(wrapper.vm.messages, 'scrollHeight', { configurable: true, writable: true, value: 100 });
-		Object.defineProperty(wrapper.vm.messages, 'clientHeight', { configurable: true, writable: true, value: 30 });
-		Object.defineProperty(wrapper.vm.messages, 'scrollTop', { configurable: true, writable: true, value: 50 });
+		Object.defineProperty(wrapper.vm.messages, "scrollHeight", {
+			configurable: true,
+			writable: true,
+			value: 100,
+		});
+		Object.defineProperty(wrapper.vm.messages, "clientHeight", {
+			configurable: true,
+			writable: true,
+			value: 30,
+		});
+		Object.defineProperty(wrapper.vm.messages, "scrollTop", {
+			configurable: true,
+			writable: true,
+			value: 50,
+		});
 		await wrapper.find(".messages").trigger("scroll");
 		expect(wrapper.vm.stickToBottom).toEqual(false);
 

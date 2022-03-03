@@ -23,7 +23,7 @@ export default {
 		};
 	},
 	async mounted() {
-		this.$events.on("onRoomCreated", () => this.showLoading = false);
+		this.$events.on("onRoomCreated", () => (this.showLoading = false));
 		this.showLoading = true;
 		let urlParams = new URLSearchParams(window.location.search);
 		// http://localhost:8080/quickroom?service=youtube&id=OC8YSHSIMTw
@@ -33,7 +33,7 @@ export default {
 				id: urlParams.get("id"),
 			});
 		}
-		else if (urlParams.has("url")) {
+ else if (urlParams.has("url")) {
 			this.$store.commit("QUICKADD_ADD", {
 				url: urlParams.get("url"),
 			});
@@ -43,6 +43,4 @@ export default {
 };
 </script>
 
-<style>
-
-</style>
+<style></style>

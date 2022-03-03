@@ -1,6 +1,6 @@
-import Vue from 'vue';
-import { shallowMount } from '@vue/test-utils';
-import Vuetify from 'vuetify';
+import Vue from "vue";
+import { shallowMount } from "@vue/test-utils";
+import Vuetify from "vuetify";
 import NotFound from "@/views/NotFound.vue";
 import { i18n } from "@/i18n";
 

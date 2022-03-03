@@ -1,7 +1,6 @@
 <template>
 	<div class="direct">
-		<video id="directplayer" class="video-js vjs-default-skin" :key="videoUrl">
-		</video>
+		<video id="directplayer" class="video-js vjs-default-skin" :key="videoUrl"></video>
 	</div>
 </template>
 

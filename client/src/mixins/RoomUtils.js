@@ -12,22 +12,24 @@ export default {
 		createTempRoom() {
 			this.isLoadingCreateRoom = true;
 			this.cancelledRoomCreation = false;
-			return API.post("/room/generate").then(res => {
-				if (!this.cancelledRoomCreation) {
-					this.isLoadingCreateRoom = false;
-					this.cancelledRoomCreation = false;
-					this.$events.fire("onRoomCreated", res.data.room);
-					this.goToRoom(res.data.room);
-				}
-			}).catch(err => {
-				console.error(err);
-				this.$toast.add({
-					style: ToastStyle.Error,
-					content: `Failed to create a new temporary room`,
-					duration: 6000,
+			return API.post("/room/generate")
+				.then(res => {
+					if (!this.cancelledRoomCreation) {
+						this.isLoadingCreateRoom = false;
+						this.cancelledRoomCreation = false;
+						this.$events.fire("onRoomCreated", res.data.room);
+						this.goToRoom(res.data.room);
+					}
+				})
+				.catch(err => {
+					console.error(err);
+					this.$toast.add({
+						style: ToastStyle.Error,
+						content: `Failed to create a new temporary room`,
+						duration: 6000,
+					});
+					throw err;
 				});
-				throw err;
-			});
 		},
 		createPermRoom(options) {
 			this.isLoadingCreateRoom = true;
@@ -35,23 +37,25 @@ export default {
 			return API.post(`/room/create`, {
 				...options,
 				isTemporary: false,
-			}).then(() => {
-				if (!this.cancelledRoomCreation) {
+			})
+				.then(() => {
+					if (!this.cancelledRoomCreation) {
+						this.isLoadingCreateRoom = false;
+						this.cancelledRoomCreation = false;
+						this.$events.fire("onRoomCreated", options.name);
+						this.goToRoom(options.name);
+					}
+				})
+				.catch(err => {
 					this.isLoadingCreateRoom = false;
-					this.cancelledRoomCreation = false;
-					this.$events.fire("onRoomCreated", options.name);
-					this.goToRoom(options.name);
-				}
-			}).catch(err => {
-				this.isLoadingCreateRoom = false;
-				console.error(err);
-				this.$toast.add({
-					style: ToastStyle.Error,
-					content: `Failed to create a new room`,
-					duration: 6000,
+					console.error(err);
+					this.$toast.add({
+						style: ToastStyle.Error,
+						content: `Failed to create a new room`,
+						duration: 6000,
+					});
+					throw err;
 				});
-				throw err;
-			});
 		},
 		cancelRoom() {
 			this.cancelledRoomCreation = true;
@@ -61,7 +65,7 @@ export default {
 			try {
 				this.$router.push(`/room/${roomName}`);
 			}
-			catch (e) {
+ catch (e) {
 				if (e.name !== "NavigationDuplicated") {
 					throw e;
 				}
