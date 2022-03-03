@@ -107,8 +107,9 @@
                   </div>
                   <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
                   <div class="flex-grow-1"><!-- Spacer --></div>
-                  <v-btn @click="rotateRoomLayout">
-                    layout
+                  <v-btn v-if="!isMobile" @click="rotateRoomLayout">
+                    <v-icon v-if="$store.state.settings.roomLayout === RoomLayoutMode.theater" style="transform: scaleX(180%)">far fa-square</v-icon>
+                    <v-icon v-else style="transform: scaleX(130%)">far fa-square</v-icon>
                   </v-btn>
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
