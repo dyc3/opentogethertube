@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 const ROLES = {
 	ADMINISTRATOR: 4,
@@ -18,26 +18,26 @@ const ROLE_NAMES = {
 
 module.exports = {
 	up: async (queryInterface, Sequelize) => {
-		await queryInterface.addColumn('Rooms', 'permissions', {
+		await queryInterface.addColumn("Rooms", "permissions", {
 			type: Sequelize.TEXT,
 		});
 		for (const role of Object.values(ROLES)) {
 			if (role < ROLES.TRUSTED_USER) {
 				continue;
 			}
-			await queryInterface.addColumn('Rooms', `role-${ROLE_NAMES[role]}`, {
+			await queryInterface.addColumn("Rooms", `role-${ROLE_NAMES[role]}`, {
 				type: Sequelize.TEXT,
 			});
 		}
 	},
 
 	down: async (queryInterface, Sequelize) => {
-		await queryInterface.removeColumn('Rooms', 'permissions');
+		await queryInterface.removeColumn("Rooms", "permissions");
 		for (const role of Object.values(ROLES)) {
 			if (role < ROLES.TRUSTED_USER) {
 				continue;
 			}
-			await queryInterface.removeColumn('Rooms', `role-${ROLE_NAMES[role]}`);
+			await queryInterface.removeColumn("Rooms", `role-${ROLE_NAMES[role]}`);
 		}
 	},
 };

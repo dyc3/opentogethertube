@@ -5,8 +5,7 @@ describe("Google Drive", () => {
 		const adapter = new GoogleDriveAdapter("");
 
 		it("Accepts share links", () => {
-			const url =
-				"https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
+			const url = "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
 			expect(adapter.canHandleURL(url)).toBe(true);
 		});
 
@@ -26,8 +25,7 @@ describe("Google Drive", () => {
 		});
 
 		it("Returns false for other URLs", () => {
-			const url =
-				"https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
+			const url = "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
 			expect(adapter.isCollectionURL(url)).toBe(false);
 		});
 	});
@@ -36,8 +34,7 @@ describe("Google Drive", () => {
 		const adapter = new GoogleDriveAdapter("");
 
 		it("Extracts file IDs", () => {
-			const url =
-				"https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
+			const url = "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
 			expect(adapter.getVideoId(url)).toBe("0ashda098sd892oihas");
 		});
 	});
@@ -85,8 +82,7 @@ describe("Google Drive", () => {
 		jest.spyOn(adapter.api, "get");
 
 		it("Resolves URLs to single videos", async () => {
-			const url =
-				"https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
+			const url = "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
 
 			const videoId = "0ashda098sd892oihas";
 			const apiGet = jest.fn().mockResolvedValue({
@@ -163,4 +159,3 @@ describe("Google Drive", () => {
 		});
 	});
 });
-

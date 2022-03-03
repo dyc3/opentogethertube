@@ -14,7 +14,7 @@
 				:loading="setUsernameLoading"
 				:error-messages="setUsernameFailureText"
 				:counter="USERNAME_LENGTH_MAX"
-				/>
+			/>
 		</v-list-item>
 		<div v-if="!$store.state.permsMeta.loaded">
 			{{ $t("room.users.waiting-for-permissions") }}
@@ -22,48 +22,96 @@
 		<v-list-item
 			v-for="(user, index) in users"
 			:key="index"
-			:class="`user ${user.isLoggedIn ? 'registered' : ''} ${$store.state.permsMeta.loaded ? `role-${$store.state.permsMeta.roles[user.role].name}` : ''}`">
+			:class="`user ${user.isLoggedIn ? 'registered' : ''} ${
+				$store.state.permsMeta.loaded
+					? `role-${$store.state.permsMeta.roles[user.role].name}`
+					: ''
+			}`"
+		>
 			<span class="name">{{ user.name }}</span>
 			<v-tooltip top v-if="$store.state.permsMeta.loaded">
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
-						<v-icon small class="role" :aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${$store.state.permsMeta.roles[user.role].display}`">
-							fas fa-{{ {"2":"thumbs-up", "3":"chevron-up", "4":"star", "-1":"star" }[user.role] }}
+						<v-icon
+							small
+							class="role"
+							:aria-label="`${
+								user.id === $store.state.users.you.id ? 'you' : user.name
+							} is ${$store.state.permsMeta.roles[user.role].display}`"
+						>
+							fas fa-{{
+								{ "2": "thumbs-up", "3": "chevron-up", "4": "star", "-1": "star" }[
+									user.role
+								]
+							}}
 						</v-icon>
 					</span>
 				</template>
 				<span>{{ $store.state.permsMeta.roles[user.role].display }}</span>
 			</v-tooltip>
-			<span v-if="user.id === $store.state.users.you.id" class="is-you">{{ $t("room.users.you") }}</span>
+			<span v-if="user.id === $store.state.users.you.id" class="is-you">{{
+				$t("room.users.you")
+			}}</span>
 			<v-tooltip top>
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
-						<v-icon small class="player-status" :aria-label="`${user.id === $store.state.users.you.id ? 'your' : user.name} player is ${user.status}`">
-							fas fa-{{ { [PlayerStatus.buffering]: "spinner", [PlayerStatus.ready]: "check", [PlayerStatus.error]: "exclamation" }[user.status] }}
+						<v-icon
+							small
+							class="player-status"
+							:aria-label="`${
+								user.id === $store.state.users.you.id ? 'your' : user.name
+							} player is ${user.status}`"
+						>
+							fas fa-{{
+								{
+									[PlayerStatus.buffering]: "spinner",
+									[PlayerStatus.ready]: "check",
+									[PlayerStatus.error]: "exclamation",
+								}[user.status]
+							}}
 						</v-icon>
 					</span>
 				</template>
 				<span>{{ user.status }}</span>
 			</v-tooltip>
 
-			<div style="margin-left:auto" v-if="user.id !== $store.state.users.you.id">
+			<div style="margin-left: auto" v-if="user.id !== $store.state.users.you.id">
 				<v-menu right offset-y>
 					<template v-slot:activator="{ on, attrs }">
 						<v-btn depressed tile v-bind="attrs" v-on="on">
 							<v-icon small>fas fa-cog</v-icon>
-							<v-icon small style="margin-left:5px" aria-hidden>fas fa-caret-down</v-icon>
+							<v-icon small style="margin-left: 5px" aria-hidden
+								>fas fa-caret-down</v-icon
+							>
 						</v-btn>
 					</template>
 					<v-list>
-						<div class="user-promotion" v-if="$store.state.permsMeta.loaded" :key="$store.state.permsMeta.loaded">
+						<div
+							class="user-promotion"
+							v-if="$store.state.permsMeta.loaded"
+							:key="$store.state.permsMeta.loaded"
+						>
 							<div v-for="role in 4" :key="user.role + role">
-								<v-list-item @click="api.promoteUser(user.id, role)" v-if="user.role !== role && (role <= 1 || granted(roleToPermission(role))) && (user.role > 0 && user.role <= 1 || granted(roleToPermission(user.role, demote=true)))">
-									{{ user.role > role ? $t("room.users.demote") : $t("room.users.promote") }} to {{ $store.state.permsMeta.roles[role].display }}
+								<v-list-item
+									@click="api.promoteUser(user.id, role)"
+									v-if="
+										user.role !== role &&
+										(role <= 1 || granted(roleToPermission(role))) &&
+										((user.role > 0 && user.role <= 1) ||
+											granted(roleToPermission(user.role, (demote = true))))
+									"
+								>
+									{{
+										user.role > role
+											? $t("room.users.demote")
+											: $t("room.users.promote")
+									}}
+									to {{ $store.state.permsMeta.roles[role].display }}
 								</v-list-item>
 							</div>
 						</div>
 						<v-row v-else justify="center">
-							<v-progress-circular indeterminate/>
+							<v-progress-circular indeterminate />
 						</v-row>
 					</v-list>
 				</v-menu>
@@ -107,7 +155,9 @@ export default {
 	methods: {
 		openEditName() {
 			if (!this.inputUsername) {
-				this.inputUsername = this.$store.state.user ? this.$store.state.user.username : this.$store.state.username;
+				this.inputUsername = this.$store.state.user
+					? this.$store.state.user.username
+					: this.$store.state.username;
 			}
 			this.showEditName = !this.showEditName;
 		},
@@ -117,20 +167,21 @@ export default {
 				await API.post("/user", { username: this.inputUsername });
 				this.showEditName = false;
 				this.setUsernameFailureText = "";
-			}
-			catch (err) {
-				this.setUsernameFailureText = err.response ? err.response.data.error.message : err.message;
+			} catch (err) {
+				this.setUsernameFailureText = err.response
+					? err.response.data.error.message
+					: err.message;
 			}
 			this.setUsernameLoading = false;
 		},
 		/** Gets the appropriate permission name for the role and promotion/demotion. */
-		roleToPermission(role, demote=false) {
+		roleToPermission(role, demote = false) {
 			let r = {
 				4: "admin",
 				3: "moderator",
 				2: "trusted-user",
 			}[role];
-			return `manage-users.${demote ? "de" : "pro" }mote-${r}`;
+			return `manage-users.${demote ? "de" : "pro"}mote-${r}`;
 		},
 	},
 };
@@ -145,7 +196,9 @@ export default {
 		font-style: italic;
 	}
 
-	.role, .player-status, .is-you {
+	.role,
+	.player-status,
+	.is-you {
 		margin: 0 3px;
 	}
 

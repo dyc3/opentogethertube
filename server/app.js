@@ -1,17 +1,17 @@
-require('ts-node').register({
+require("ts-node").register({
 	transpileOnly: true,
 });
-const express = require('express');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const { getLogger, setLogLevel } = require('./logger.js');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const DiscordStrategy = require('passport-discord').Strategy;
-const BearerStrategy = require('passport-http-bearer').Strategy;
-const validator = require('validator');
-const { OpticMiddleware } = require('@useoptic/express-middleware');
+const express = require("express");
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const { getLogger, setLogLevel } = require("./logger.js");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const DiscordStrategy = require("passport-discord").Strategy;
+const BearerStrategy = require("passport-http-bearer").Strategy;
+const validator = require("validator");
+const { OpticMiddleware } = require("@useoptic/express-middleware");
 
 const log = getLogger("app");
 
@@ -30,7 +30,7 @@ log.info(`Reading config from ${process.env.NODE_ENV}.env`);
 if (!fs.existsSync(config_path)) {
 	log.error(`No config found! Things will break! ${config_path}`);
 }
-require('dotenv').config({ path: config_path });
+require("dotenv").config({ path: config_path });
 
 const isOfficial = process.env.OTT_HOSTNAME === "opentogethertube.com";
 
@@ -40,22 +40,67 @@ const isOfficial = process.env.OTT_HOSTNAME === "opentogethertube.com";
 //   required: bool Indicates whether or not this variable is required to function.
 //   validator: function that returns true if the value is valid
 const configValidators = {
-	OTT_HOSTNAME: { required: process.env.NODE_ENV === "production", validator: (value) => validator.isIP(value) || validator.isURL(value, { disallow_auth: true }) || value.includes("localhost") },
-	DISCORD_CLIENT_ID: { required: process.env.NODE_ENV === "production" && isOfficial, validator: (value) => !isOfficial || (value.length >= 18 && validator.isNumeric(value, { no_symbols: true })) },
-	DISCORD_CLIENT_SECRET: { required: process.env.NODE_ENV === "production" && isOfficial, validator: (value) => !isOfficial || value.length >= 32 },
-	OPENTOGETHERTUBE_API_KEY: { required: false, validator: (value) => process.env.NODE_ENV !== "production" || (value !== "GENERATE_YOUR_OWN_API_KEY" && value.length >= 40) },
-	SESSION_SECRET: { required: process.env.NODE_ENV === "production", validator: (value) => process.env.NODE_ENV !== "production" || !isOfficial || (value !== "GENERATE_YOUR_OWN_SECRET" && value.length >= 80) },
+	OTT_HOSTNAME: {
+		required: process.env.NODE_ENV === "production",
+		validator: value =>
+			validator.isIP(value) ||
+			validator.isURL(value, { disallow_auth: true }) ||
+			value.includes("localhost"),
+	},
+	DISCORD_CLIENT_ID: {
+		required: process.env.NODE_ENV === "production" && isOfficial,
+		validator: value =>
+			!isOfficial || (value.length >= 18 && validator.isNumeric(value, { no_symbols: true })),
+	},
+	DISCORD_CLIENT_SECRET: {
+		required: process.env.NODE_ENV === "production" && isOfficial,
+		validator: value => !isOfficial || value.length >= 32,
+	},
+	OPENTOGETHERTUBE_API_KEY: {
+		required: false,
+		validator: value =>
+			process.env.NODE_ENV !== "production" ||
+			(value !== "GENERATE_YOUR_OWN_API_KEY" && value.length >= 40),
+	},
+	SESSION_SECRET: {
+		required: process.env.NODE_ENV === "production",
+		validator: value =>
+			process.env.NODE_ENV !== "production" ||
+			!isOfficial ||
+			(value !== "GENERATE_YOUR_OWN_SECRET" && value.length >= 80),
+	},
 	// eslint-disable-next-line array-bracket-newline
-	LOG_LEVEL: { required: false, validator: (value) => ["silly", "debug", "info", "warn", "error"].includes(value) },
-	YOUTUBE_API_KEY: { required: process.env.NODE_ENV === "production", validator: (value) => process.env.NODE_ENV !== "production" || value !== "API_KEY_GOES_HERE" },
-	DB_MODE: { required: false, validator: value => !value || ["sqlite", "postgres"].includes(value) },
-	ADD_PREVIEW_SEARCH_MIN_LENGTH: { required: false, validator: value => !value || validator.isNumeric(value, { no_symbols: true }) },
-	ENABLE_SEARCH: { required: false, validator: value => !value || ["true", "false"].includes(value) },
+	LOG_LEVEL: {
+		required: false,
+		validator: value => ["silly", "debug", "info", "warn", "error"].includes(value),
+	},
+	YOUTUBE_API_KEY: {
+		required: process.env.NODE_ENV === "production",
+		validator: value => process.env.NODE_ENV !== "production" || value !== "API_KEY_GOES_HERE",
+	},
+	DB_MODE: {
+		required: false,
+		validator: value => !value || ["sqlite", "postgres"].includes(value),
+	},
+	ADD_PREVIEW_SEARCH_MIN_LENGTH: {
+		required: false,
+		validator: value => !value || validator.isNumeric(value, { no_symbols: true }),
+	},
+	ENABLE_SEARCH: {
+		required: false,
+		validator: value => !value || ["true", "false"].includes(value),
+	},
 	// TODO: check which info extractors implement searching videos
 	// eslint-disable-next-line array-bracket-newline
 	SEARCH_PROVIDER: { required: false, validator: value => !value || ["youtube"].includes(value) },
-	ADD_PREVIEW_PLAYLIST_RESULTS_COUNT: { required: false, validator: value => !value || validator.isNumeric(value, { no_symbols: true }) },
-	ADD_PREVIEW_SEARCH_RESULTS_COUNT: { required: false, validator: value => !value || validator.isNumeric(value, { no_symbols: true }) },
+	ADD_PREVIEW_PLAYLIST_RESULTS_COUNT: {
+		required: false,
+		validator: value => !value || validator.isNumeric(value, { no_symbols: true }),
+	},
+	ADD_PREVIEW_SEARCH_RESULTS_COUNT: {
+		required: false,
+		validator: value => !value || validator.isNumeric(value, { no_symbols: true }),
+	},
 };
 
 let configCalidationFailed = false;
@@ -64,8 +109,7 @@ for (let configVar in configValidators) {
 	if (rules.required && !process.env[configVar]) {
 		log.error(`${configVar} is required, but it was not found.`);
 		configCalidationFailed = true;
-	}
-	else if (process.env[configVar] && !rules.validator(process.env[configVar])) {
+	} else if (process.env[configVar] && !rules.validator(process.env[configVar])) {
 		log.error(`${configVar} is invalid.`);
 		configCalidationFailed = true;
 	}
@@ -82,7 +126,14 @@ if (process.env.LOG_LEVEL) {
 }
 
 if (!process.env.DB_MODE) {
-	process.env.DB_MODE = (process.env.DATABASE_URL || process.env.POSTGRES_DB_HOST || process.env.POSTGRES_DB_NAME || process.env.POSTGRES_DB_USERNAME || process.env.POSTGRES_DB_PASSWORD) ? "postgres" : "sqlite";
+	process.env.DB_MODE =
+		process.env.DATABASE_URL ||
+		process.env.POSTGRES_DB_HOST ||
+		process.env.POSTGRES_DB_NAME ||
+		process.env.POSTGRES_DB_USERNAME ||
+		process.env.POSTGRES_DB_PASSWORD
+			? "postgres"
+			: "sqlite";
 }
 log.info(`Database mode: ${process.env.DB_MODE}`);
 
@@ -99,7 +150,7 @@ log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
 const app = express();
 const server = http.createServer(app);
 
-const { redisClient } = require('./redisclient');
+const { redisClient } = require("./redisclient");
 
 function checkRedis() {
 	let start = new Date();
@@ -112,24 +163,25 @@ checkRedis();
 
 if (fs.existsSync("../client/dist")) {
 	// serve static files without creating a bunch of sessions
-	app.use(express.static(__dirname + "/../client/dist", {
-		maxAge: "2 days",
-		redirect: false,
-		index: false,
-	}));
-}
-else {
+	app.use(
+		express.static(__dirname + "/../client/dist", {
+			maxAge: "2 days",
+			redirect: false,
+			index: false,
+		})
+	);
+} else {
 	log.warn("no dist folder found");
 }
 
-const session = require('express-session');
-let RedisStore = require('connect-redis')(session);
+const session = require("express-session");
+let RedisStore = require("connect-redis")(session);
 let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
 	secret: process.env.SESSION_SECRET || "opentogethertube",
 	resave: false,
 	saveUninitialized: false,
-	unset: 'keep',
+	unset: "keep",
 	proxy: process.env.NODE_ENV === "production",
 	cookie: {
 		expires: false,
@@ -138,7 +190,7 @@ let sessionOpts = {
 };
 if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
 	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
-	app.set('trust proxy', parseInt(process.env["TRUST_PROXY"], 10) || 1);
+	app.set("trust proxy", parseInt(process.env["TRUST_PROXY"], 10) || 1);
 	sessionOpts.cookie.secure = true;
 }
 if (process.env.FORCE_INSECURE_COOKIES) {
@@ -149,25 +201,35 @@ const sessions = session(sessionOpts);
 app.use(sessions);
 
 const usermanager = require("./usermanager");
-passport.use(new LocalStrategy({ usernameField: 'email' }, usermanager.authCallback));
-passport.use(new DiscordStrategy({
-	clientID: process.env.DISCORD_CLIENT_ID || "NONE",
-	clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
-	callbackURL: (!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost") ? "http" : "https") + `://${process.env.OTT_HOSTNAME}/api/auth/discord/callback`,
-	scope: ["identify"],
-	passReqToCallback: true,
-}, usermanager.authCallbackDiscord));
+passport.use(new LocalStrategy({ usernameField: "email" }, usermanager.authCallback));
+passport.use(
+	new DiscordStrategy(
+		{
+			clientID: process.env.DISCORD_CLIENT_ID || "NONE",
+			clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
+			callbackURL:
+				(!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost")
+					? "http"
+					: "https") + `://${process.env.OTT_HOSTNAME}/api/auth/discord/callback`,
+			scope: ["identify"],
+			passReqToCallback: true,
+		},
+		usermanager.authCallbackDiscord
+	)
+);
 const tokens = require("./auth/tokens");
-passport.use(new BearerStrategy(async (token, done) => {
-	if (!await tokens.validate(token)) {
+passport.use(
+	new BearerStrategy(async (token, done) => {
+		if (!(await tokens.validate(token))) {
+			return done(null, false);
+		}
+		let ottsession = await tokens.getSessionInfo(token);
+		if (ottsession.user_id) {
+			return done(null, ottsession);
+		}
 		return done(null, false);
-	}
-	let ottsession = await tokens.getSessionInfo(token);
-	if (ottsession.user_id) {
-		return done(null, ottsession);
-	}
-	return done(null, false);
-}));
+	})
+);
 passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
@@ -182,15 +244,20 @@ clientmanager.Setup();
 const roommanager = require("./roommanager");
 roommanager.start();
 
-const bodyParser = require('body-parser');
-app.use(bodyParser.json());       // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
-	extended: true,
-}));
+const bodyParser = require("body-parser");
+app.use(bodyParser.json()); // to support JSON-encoded bodies
+app.use(
+	bodyParser.urlencoded({
+		// to support URL-encoded bodies
+		extended: true,
+	})
+);
 
-app.use(OpticMiddleware({
-	enabled: process.env.NODE_ENV !== "production",
-}));
+app.use(
+	OpticMiddleware({
+		enabled: process.env.NODE_ENV !== "production",
+	})
+);
 
 app.use((req, res, next) => {
 	if (!req.path.startsWith("/api")) {
@@ -206,8 +273,7 @@ function serveBuiltFiles(req, res) {
 		res.setHeader("Content-type", "text/html");
 		if (contents) {
 			res.send(contents.toString());
-		}
-		else {
+		} else {
 			res.status(500).send("Failed to serve page, try again later.");
 		}
 	});
@@ -216,8 +282,7 @@ function serveBuiltFiles(req, res) {
 app.use("/api", api);
 if (fs.existsSync("../client/dist")) {
 	app.get("*", serveBuiltFiles);
-}
-else {
+} else {
 	log.warn("no dist folder found");
 }
 

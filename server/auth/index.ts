@@ -1,7 +1,7 @@
-import { getLogger } from '../logger.js';
+import { getLogger } from "../logger.js";
 import express from "express";
-import tokens, { SessionInfo } from './tokens';
-import { uniqueNamesGenerator } from 'unique-names-generator';
+import tokens, { SessionInfo } from "./tokens";
+import { uniqueNamesGenerator } from "unique-names-generator";
 import passport from "passport";
 import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
@@ -18,14 +18,18 @@ function createSession(): SessionInfo {
 	};
 }
 
-export async function authTokenMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+export async function authTokenMiddleware(
+	req: express.Request,
+	res: express.Response,
+	next: express.NextFunction
+): Promise<void> {
 	log.silly("validating auth token");
 	if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
 		const token: AuthToken = req.headers.authorization.split(" ")[1];
 		req.token = token;
 	}
 
-	if (!await tokens.validate(req.token)) {
+	if (!(await tokens.validate(req.token))) {
 		res.status(400).json({
 			success: false,
 			error: {
@@ -55,12 +59,10 @@ router.get("/grant", async (req, res) => {
 					token,
 				});
 				return;
-			}
-			else {
+			} else {
 				log.debug("token invalid");
 			}
-		}
-		else {
+		} else {
 			log.debug(`authorization header incorrect format: ${req.headers.authorization}`);
 		}
 	}
@@ -72,24 +74,31 @@ router.get("/grant", async (req, res) => {
 	});
 });
 
-router.get('/discord', passport.authenticate('discord'));
-router.get('/discord/callback', passport.authenticate('discord', {
-	failureRedirect: '/',
-}), async (_req, res) => {
-	const req = _req as express.Request;
-	if (!req.user) {
-		res.status(400).json({
-			success: false,
-			error: {
-				message: "no user found on request",
-			},
+router.get("/discord", passport.authenticate("discord"));
+router.get(
+	"/discord/callback",
+	passport.authenticate("discord", {
+		failureRedirect: "/",
+	}),
+	async (_req, res) => {
+		const req = _req as express.Request;
+		if (!req.user) {
+			res.status(400).json({
+				success: false,
+				error: {
+					message: "no user found on request",
+				},
+			});
+			return;
+		}
+		await tokens.setSessionInfo((req.session as MySession).token, {
+			isLoggedIn: true,
+			user_id: req.user.id,
 		});
-		return;
+		log.info(`${req.user.username} logged in via social login.`);
+		res.redirect("/"); // Successful auth
 	}
-	await tokens.setSessionInfo((req.session as MySession).token, { isLoggedIn: true, user_id: req.user.id });
-	log.info(`${req.user.username} logged in via social login.`);
-	res.redirect('/'); // Successful auth
-});
+);
 
 export default {
 	router,

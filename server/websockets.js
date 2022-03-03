@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import WebSocket from "ws";
 import { getLogger } from "./logger.js";
 
 const log = getLogger("websockets");
@@ -13,10 +13,10 @@ export const wss = new WebSocket.Server({ noServer: true });
  */
 export function Setup(httpServer, sessions) {
 	log.debug("setting up websocket upgrader...");
-	httpServer.on('upgrade', (req, socket, head) => {
+	httpServer.on("upgrade", (req, socket, head) => {
 		sessions(req, {}, () => {
 			wss.handleUpgrade(req, socket, head, ws => {
-				wss.emit('connection', ws, req);
+				wss.emit("connection", ws, req);
 			});
 		});
 	});

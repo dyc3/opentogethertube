@@ -1,10 +1,10 @@
-import _ from 'lodash';
-import { QueueMode, Visibility } from '../../../../common/models/types';
-import request from 'supertest';
+import _ from "lodash";
+import { QueueMode, Visibility } from "../../../../common/models/types";
+import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
-import roommanager from '../../../../server/roommanager';
-import { RoomNotFoundException } from '../../../../server/exceptions';
-const app = require('../../../app.js').app;
+import roommanager from "../../../../server/roommanager";
+import { RoomNotFoundException } from "../../../../server/exceptions";
+const app = require("../../../app.js").app;
 const { Room, User } = require("../../../models");
 
 expect.extend({
@@ -24,8 +24,7 @@ expect.extend({
 				message: () => `expected error to not be RoomNotFoundException`,
 				pass,
 			};
-		}
-		else {
+		} else {
 			return {
 				message: () => `expected error to be RoomNotFoundException`,
 				pass,
@@ -40,21 +39,21 @@ expect.extend({
 				pass: false,
 			};
 		}
-		let pass = this.equals(error, {
-			name: "Unknown",
-			message: "Failed to get room",
-		}) ||
-		this.equals(error, {
-			name: "Unknown",
-			message: "Failed to get video",
-		});
+		let pass =
+			this.equals(error, {
+				name: "Unknown",
+				message: "Failed to get room",
+			}) ||
+			this.equals(error, {
+				name: "Unknown",
+				message: "Failed to get video",
+			});
 		if (pass) {
 			return {
 				message: () => `expected error to not be Unknown`,
 				pass,
 			};
-		}
-		else {
+		} else {
 			return {
 				message: () => `expected error to be Unknown`,
 				pass,
@@ -66,10 +65,10 @@ expect.extend({
 describe("Room API", () => {
 	describe("GET /room/:name", () => {
 		beforeAll(async () => {
-			jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				username: "test",
 			});
-			jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+			jest.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
@@ -80,36 +79,38 @@ describe("Room API", () => {
 		afterEach(async () => {
 			try {
 				await roommanager.UnloadRoom("test1");
-			}
-			catch (e) {
+			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
 				}
 			}
 		});
 
-		it.each([Visibility.Public, Visibility.Unlisted])("should get %s room metadata", async (visibility: Visibility) => {
-			await roommanager.CreateRoom({
-				name: "test1",
-				isTemporary: true,
-				visibility: visibility,
-			});
+		it.each([Visibility.Public, Visibility.Unlisted])(
+			"should get %s room metadata",
+			async (visibility: Visibility) => {
+				await roommanager.CreateRoom({
+					name: "test1",
+					isTemporary: true,
+					visibility: visibility,
+				});
 
-			let resp = await request(app)
-				.get("/api/room/test1")
-				.set({ "Authorization": "Bearer foobar" })
-				.expect("Content-Type", /json/)
-				.expect(200);
+				let resp = await request(app)
+					.get("/api/room/test1")
+					.set({ Authorization: "Bearer foobar" })
+					.expect("Content-Type", /json/)
+					.expect(200);
 
-			// TODO: This is currently not type-checked. Ideally, we would be able to type-check the response using a definition from `common`.
-			expect(resp.body).toMatchObject({
-				name: "test1",
-				title: "",
-				description: "",
-				queueMode: QueueMode.Manual,
-				visibility: visibility,
-			});
-		});
+				// TODO: This is currently not type-checked. Ideally, we would be able to type-check the response using a definition from `common`.
+				expect(resp.body).toMatchObject({
+					name: "test1",
+					title: "",
+					description: "",
+					queueMode: QueueMode.Manual,
+					visibility: visibility,
+				});
+			}
+		);
 
 		it("should fail if the room does not exist", async () => {
 			let resp = await request(app)
@@ -124,10 +125,10 @@ describe("Room API", () => {
 
 	describe("POST /room/create", () => {
 		beforeAll(async () => {
-			jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				username: "test",
 			});
-			jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+			jest.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
@@ -138,41 +139,79 @@ describe("Room API", () => {
 		afterEach(async () => {
 			try {
 				await roommanager.unloadAllRooms();
-			}
-			catch (e) {
+			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
 				}
 			}
 		});
 
-		it.each([Visibility.Public, Visibility.Unlisted])("should create %s room", async (visibility: Visibility) => {
-			let resp = await request(app)
-				.post("/api/room/create")
-				.send({ name: "test1", isTemporary: true, visibility: visibility })
-				.expect("Content-Type", /json/)
-				.expect(200);
-			expect(resp.body.success).toBe(true);
-			expect(roommanager.rooms[0]).toMatchObject({
-				name: "test1",
-				isTemporary: true,
-				visibility: visibility,
-			});
-		});
+		it.each([Visibility.Public, Visibility.Unlisted])(
+			"should create %s room",
+			async (visibility: Visibility) => {
+				let resp = await request(app)
+					.post("/api/room/create")
+					.send({ name: "test1", isTemporary: true, visibility: visibility })
+					.expect("Content-Type", /json/)
+					.expect(200);
+				expect(resp.body.success).toBe(true);
+				expect(roommanager.rooms[0]).toMatchObject({
+					name: "test1",
+					isTemporary: true,
+					visibility: visibility,
+				});
+			}
+		);
 
 		it.each([
 			[{ arg: "name", reason: "missing" }, { isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (reserved)" }, { name: "list", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (reserved)" }, { name: "create", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (reserved)" }, { name: "generate", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc<", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc[", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc]", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc!", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (invalid characters)" }, { name: "abc!", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (too short, must be at least 3 characters)" }, { name: "ab", isTemporary: true }],
-			[{ arg: "name", reason: "not allowed (too long, must be at most 32 characters)" }, { name: "abababababababababababababababababababababababababababababababababab", isTemporary: true }],
-			[{ arg: "visibility", reason: "must be one of public,unlisted,private" }, { name: "test1", isTemporary: true, visibility: "invalid" }],
+			[
+				{ arg: "name", reason: "not allowed (reserved)" },
+				{ name: "list", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (reserved)" },
+				{ name: "create", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (reserved)" },
+				{ name: "generate", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (invalid characters)" },
+				{ name: "abc<", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (invalid characters)" },
+				{ name: "abc[", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (invalid characters)" },
+				{ name: "abc]", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (invalid characters)" },
+				{ name: "abc!", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (invalid characters)" },
+				{ name: "abc!", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (too short, must be at least 3 characters)" },
+				{ name: "ab", isTemporary: true },
+			],
+			[
+				{ arg: "name", reason: "not allowed (too long, must be at most 32 characters)" },
+				{
+					name: "abababababababababababababababababababababababababababababababababab",
+					isTemporary: true,
+				},
+			],
+			[
+				{ arg: "visibility", reason: "must be one of public,unlisted,private" },
+				{ name: "test1", isTemporary: true, visibility: "invalid" },
+			],
 		])("should fail to create room for validation errors: %s", async (error, body) => {
 			let resp = await request(app)
 				.post("/api/room/create")
@@ -203,7 +242,7 @@ describe("Room API", () => {
 
 		it("should create permanent room with owner", async () => {
 			let user = await User.findOne({ where: { email: "forced@localhost" } });
-			jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: true,
 				user_id: user.id,
 			});

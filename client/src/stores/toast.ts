@@ -1,11 +1,11 @@
-import { RoomRequestType } from 'common/models/messages';
-import _ from 'lodash';
-import { Module } from 'vuex/types';
+import { RoomRequestType } from "common/models/messages";
+import _ from "lodash";
+import { Module } from "vuex/types";
 
-import { Toast } from '../models/toast';
+import { Toast } from "../models/toast";
 
 export interface ToastState {
-	notifications: Toast[]
+	notifications: Toast[];
 }
 
 export const toastModule: Module<ToastState, unknown> = {
@@ -20,10 +20,13 @@ export const toastModule: Module<ToastState, unknown> = {
 				if (notification.event?.request.type === last.event?.request.type) {
 					if (last.event?.request.type === RoomRequestType.PlaybackRequest) {
 						state.notifications.splice(state.notifications.length - 1, 1);
-					}
-					else if (last.event?.request.type === RoomRequestType.SeekRequest && last.event?.user.name === notification.event?.user.name) {
+					} else if (
+						last.event?.request.type === RoomRequestType.SeekRequest &&
+						last.event?.user.name === notification.event?.user.name
+					) {
 						let removed = state.notifications.splice(state.notifications.length - 1, 1);
-						notification.event.additional.prevPosition = removed[0].event?.additional.prevPosition;
+						notification.event.additional.prevPosition =
+							removed[0].event?.additional.prevPosition;
 					}
 				}
 			}

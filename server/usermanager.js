@@ -1,37 +1,37 @@
-import { getLogger } from './logger.js';
+import { getLogger } from "./logger.js";
 import _ from "lodash";
-import securePassword from 'secure-password';
-import express from 'express';
-import passport from 'passport';
-import crypto from 'crypto';
+import securePassword from "secure-password";
+import express from "express";
+import passport from "passport";
+import crypto from "crypto";
 import { User, Room } from "./models";
 import clientmanager from "./clientmanager";
-import { redisClient, redisClientAsync } from './redisclient';
-import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { redisClient, redisClientAsync } from "./redisclient";
+import { RateLimiterRedis } from "rate-limiter-flexible";
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./rate-limit";
 import tokens from "./auth/tokens";
 import nocache from "nocache";
-import { uniqueNamesGenerator } from 'unique-names-generator';
-import { USERNAME_LENGTH_MAX } from '../common/constants';
-import { LengthOutOfRangeException } from './exceptions';
+import { uniqueNamesGenerator } from "unique-names-generator";
+import { USERNAME_LENGTH_MAX } from "../common/constants";
+import { LengthOutOfRangeException } from "./exceptions";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
 
 const limiterSlowBruteByIP = new RateLimiterRedis({
-  storeClient: redisClient,
-  keyPrefix: 'login_fail_ip_per_day',
-  points: maxWrongAttemptsByIPperDay,
-  duration: 60 * 60 * 24,
-  blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
+	storeClient: redisClient,
+	keyPrefix: "login_fail_ip_per_day",
+	points: maxWrongAttemptsByIPperDay,
+	duration: 60 * 60 * 24,
+	blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
 });
 
 const limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
-  storeClient: redisClient,
-  keyPrefix: 'login_fail_consecutive_username_and_ip',
-  points: maxConsecutiveFailsByUsernameAndIP,
-  duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
-  blockDuration: 60 * 60, // Block for 1 hour
+	storeClient: redisClient,
+	keyPrefix: "login_fail_consecutive_username_and_ip",
+	points: maxConsecutiveFailsByUsernameAndIP,
+	duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
+	blockDuration: 60 * 60, // Block for 1 hour
 });
 
 const pwd = securePassword();
@@ -46,8 +46,7 @@ router.get("/", nocache(), (req, res) => {
 			discordLinked: !!req.user.discordId,
 		};
 		res.json(user);
-	}
-	else {
+	} else {
 		res.json({
 			username: req.ottsession.username,
 			loggedIn: false,
@@ -86,9 +85,11 @@ router.post("/", nocache(), async (req, res) => {
 				throw new UsernameTakenError();
 			}
 			await req.user.save();
-		}
-		catch (err) {
-			if (err.name === "SequelizeUniqueConstraintError" || err.name === "UsernameTakenError") {
+		} catch (err) {
+			if (
+				err.name === "SequelizeUniqueConstraintError" ||
+				err.name === "UsernameTakenError"
+			) {
 				await req.user.reload();
 				res.status(400).json({
 					success: false,
@@ -98,8 +99,7 @@ router.post("/", nocache(), async (req, res) => {
 					},
 				});
 				return;
-			}
-			else {
+			} else {
 				log.error(`Unknown error occurred when saving user to database ${err.message}`);
 				res.status(500).json({
 					success: false,
@@ -113,8 +113,7 @@ router.post("/", nocache(), async (req, res) => {
 		res.json({
 			success: true,
 		});
-	}
-	else {
+	} else {
 		oldUsername = req.ottsession.username;
 		req.ottsession.username = req.body.username;
 		await tokens.setSessionInfo(req.token, req.ottsession);
@@ -140,13 +139,15 @@ router.post("/login", async (req, res, next) => {
 	// Check if IP or Username + IP is already blocked
 	if (resSlowByIP !== null && resSlowByIP.consumedPoints > maxWrongAttemptsByIPperDay) {
 		retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
-	}
-	else if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > maxConsecutiveFailsByUsernameAndIP) {
+	} else if (
+		resUsernameAndIP !== null &&
+		resUsernameAndIP.consumedPoints > maxConsecutiveFailsByUsernameAndIP
+	) {
 		retrySecs = Math.round(resUsernameAndIP.msBeforeNext / 1000) || 1;
 	}
 
 	if (retrySecs > 0) {
-		res.set('Retry-After', String(retrySecs));
+		res.set("Retry-After", String(retrySecs));
 		res.status(429).json({
 			error: {
 				name: "TooManyRequests",
@@ -167,7 +168,7 @@ router.post("/login", async (req, res, next) => {
 			return;
 		}
 		if (user) {
-			req.login(user, async (err) => {
+			req.login(user, async err => {
 				if (err) {
 					log.error("Unknown error when logging in");
 					res.status(500).json({
@@ -182,20 +183,17 @@ router.post("/login", async (req, res, next) => {
 				await tokens.setSessionInfo(req.token, req.ottsession);
 				try {
 					usermanager.onUserLogIn(user, req.token);
-				}
-				catch (err) {
-					log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
+				} catch (err) {
+					log.error(
+						`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
+					);
 				}
 				res.json({
 					success: true,
-					user: _.pick(user, [
-						"email",
-						"username",
-					]),
+					user: _.pick(user, ["email", "username"]),
 				});
 			});
-		}
-		else {
+		} else {
 			res.status(401).json({
 				success: false,
 				error: {
@@ -216,8 +214,7 @@ router.post("/logout", async (req, res) => {
 		res.json({
 			success: true,
 		});
-	}
-	else {
+	} else {
 		res.json({
 			success: false,
 			error: {
@@ -231,12 +228,10 @@ router.post("/register", async (req, res) => {
 	try {
 		let info = await rateLimiter.consume(req.ip, 100);
 		setRateLimitHeaders(res, info);
-	}
-	catch (e) {
+	} catch (e) {
 		if (e instanceof Error) {
 			throw e;
-		}
-		else {
+		} else {
 			handleRateLimit(res, e);
 			return;
 		}
@@ -249,20 +244,17 @@ router.post("/register", async (req, res) => {
 			await tokens.setSessionInfo(req.token, req.ottsession);
 			try {
 				usermanager.onUserLogIn(result, req.token);
-			}
-			catch (err) {
-				log.error(`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`);
+			} catch (err) {
+				log.error(
+					`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
+				);
 			}
 			res.json({
 				success: true,
-				user: _.pick(result, [
-					"email",
-					"username",
-				]),
+				user: _.pick(result, ["email", "username"]),
 			});
 		});
-	}
-	catch (err) {
+	} catch (err) {
 		log.error(`Unable to register user ${err} ${err.message}`);
 		if (err.name === "SequelizeUniqueConstraintError") {
 			let fields = err.fields.join(", ");
@@ -275,8 +267,7 @@ router.post("/register", async (req, res) => {
 					message: `${fields} ${err.fields.length > 1 ? "are" : "is"} already in use.`,
 				},
 			});
-		}
-		else if (err.name === "UsernameTakenError") {
+		} else if (err.name === "UsernameTakenError") {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -285,8 +276,7 @@ router.post("/register", async (req, res) => {
 					message: "Username is already in use.",
 				},
 			});
-		}
-		else if (err.name === "EmailAlreadyInUseError") {
+		} else if (err.name === "EmailAlreadyInUseError") {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -295,8 +285,11 @@ router.post("/register", async (req, res) => {
 					message: "Email is already associated with an account.",
 				},
 			});
-		}
-		else if (err.name === "SequelizeValidationError" || err.name === "BadPasswordError" || err.name === "LengthOutOfRangeException") {
+		} else if (
+			err.name === "SequelizeValidationError" ||
+			err.name === "BadPasswordError" ||
+			err.name === "LengthOutOfRangeException"
+		) {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -304,8 +297,7 @@ router.post("/register", async (req, res) => {
 					message: err.message,
 				},
 			});
-		}
-		else {
+		} else {
 			res.status(500).json({
 				success: false,
 				error: {
@@ -319,7 +311,9 @@ router.post("/register", async (req, res) => {
 
 class BadPasswordError extends Error {
 	constructor() {
-		super("Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.");
+		super(
+			"Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters."
+		);
 		this.name = "BadPasswordError";
 	}
 }
@@ -351,19 +345,20 @@ let usermanager = {
 		let user;
 		try {
 			user = await usermanager.getUser({ email });
-		}
-		catch (err) {
+		} catch (err) {
 			if (err.message === "User not found") {
 				done(new Error("Email or password is incorrect."));
-			}
-			else {
+			} else {
 				log.error(`Auth callback failed: ${err}`);
 				done(new Error("An unknown error occurred. This is a bug."));
 			}
 			return;
 		}
 		// eslint-disable-next-line array-bracket-newline
-		let result = await pwd.verify(Buffer.concat([user.salt, Buffer.from(password)]), Buffer.from(user.hash));
+		let result = await pwd.verify(
+			Buffer.concat([user.salt, Buffer.from(password)]),
+			Buffer.from(user.hash)
+		);
 		switch (result) {
 			case securePassword.INVALID_UNRECOGNIZED_HASH:
 				log.error(`${email}: Unrecognized hash. I don't think this should ever happen.`);
@@ -398,8 +393,7 @@ let usermanager = {
 			try {
 				await usermanager.connectSocial(req.user, { discordId: profile.id });
 				return done(null, req.user);
-			}
-			catch (err) {
+			} catch (err) {
 				return done(err, req.user);
 			}
 		}
@@ -408,16 +402,17 @@ let usermanager = {
 			if (user) {
 				return done(null, user);
 			}
-		}
-		catch (e) {
+		} catch (e) {
 			log.warn("Couldn't find existing user for discord profile, making a new one...");
 			try {
-				let user = await usermanager.registerUserSocial({ username: `${profile.username}#${profile.discriminator}`, discordId: profile.id });
+				let user = await usermanager.registerUserSocial({
+					username: `${profile.username}#${profile.discriminator}`,
+					discordId: profile.id,
+				});
 				if (user) {
 					return done(null, user);
 				}
-			}
-			catch (error) {
+			} catch (error) {
 				log.error(`Unable to create new social user: ${error}`);
 				return done(error);
 			}
@@ -432,8 +427,7 @@ let usermanager = {
 		log.silly(`serializeUser: ${JSON.stringify(user)}`);
 		if (user.user_id) {
 			done(null, user.user_id);
-		}
-		else {
+		} else {
 			done(null, user.id);
 		}
 	},
@@ -449,8 +443,7 @@ let usermanager = {
 		try {
 			let user = await usermanager.getUser({ id });
 			done(null, user);
-		}
-		catch (err) {
+		} catch (err) {
 			log.error(`Unable to deserialize user id=${id} ${err}`);
 			done(err, false);
 		}
@@ -464,8 +457,7 @@ let usermanager = {
 			log.error(`Error in middleware ${err}, logging user out.`);
 			req.logout();
 			next();
-		}
-		else {
+		} else {
 			next();
 		}
 	},
@@ -497,8 +489,7 @@ let usermanager = {
 				salt,
 				hash,
 			});
-		}
-		catch (err) {
+		} catch (err) {
 			log.error(`Failed to create new user in the database: ${err} ${err.message}`);
 			throw err;
 		}
@@ -516,8 +507,7 @@ let usermanager = {
 		options = _.pick(options, "discordId");
 		if (options) {
 			user.discordId = options.discordId;
-		}
-		else {
+		} else {
 			log.warn("Can't connect social logins, none were provided");
 			return;
 		}
@@ -525,16 +515,21 @@ let usermanager = {
 		try {
 			socialUser = await this.getUser(options);
 			log.warn("Detected duplicate accounts for social login!");
-		}
-		catch (error) {
+		} catch (error) {
 			log.info("No account merging required.");
 		}
 		if (socialUser) {
 			if (socialUser.email || socialUser.salt || socialUser.hash) {
-				log.error("Unable to merge accounts, local login credentials found in other account.");
-				return Promise.reject("Unable to link accounts. Another account is linked to this discord account. Login credentials were found in the other account, so a merge could not be performed.");
+				log.error(
+					"Unable to merge accounts, local login credentials found in other account."
+				);
+				return Promise.reject(
+					"Unable to link accounts. Another account is linked to this discord account. Login credentials were found in the other account, so a merge could not be performed."
+				);
 			}
-			log.warn(`Merging local account ${user.username} with social account ${socialUser.username}...`);
+			log.warn(
+				`Merging local account ${user.username} with social account ${socialUser.username}...`
+			);
 			// transfer all owned rooms to local account
 			await Room.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
 			// delete old account
@@ -556,11 +551,9 @@ let usermanager = {
 		let where = {};
 		if (email) {
 			where = { email };
-		}
-		else if (id) {
+		} else if (id) {
 			where = { id };
-		}
-		else if (discordId) {
+		} else if (discordId) {
 			where = { discordId };
 		}
 		let user = await User.findOne({ where });
@@ -600,26 +593,33 @@ let usermanager = {
 
 	async isUsernameTaken(username) {
 		// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
-		return await User.findOne({ where: { username }}).then(room => room ? true : false).catch(() => false);
+		return await User.findOne({ where: { username } })
+			.then(room => (room ? true : false))
+			.catch(() => false);
 	},
 
 	async isEmailTaken(email) {
 		// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
-		return await User.findOne({ where: { email }}).then(room => room ? true : false).catch(() => false);
+		return await User.findOne({ where: { email } })
+			.then(room => (room ? true : false))
+			.catch(() => false);
 	},
 
 	/**
 	 * Clears all user manager rate limiters. Intended only to be used during development and automated testing.
 	 */
 	async clearAllRateLimiting() {
-		await redisClientAsync.delPattern("login_fail_ip_per_day:*", "login_fail_consecutive_username_and_ip:*");
+		await redisClientAsync.delPattern(
+			"login_fail_ip_per_day:*",
+			"login_fail_consecutive_username_and_ip:*"
+		);
 	},
 };
 
 if (process.env.NODE_ENV === "test") {
 	router.get("/test/forceLogin", async (req, res) => {
 		const user = await usermanager.getUser({ email: "forced@localhost" });
-		req.login(user, async (err) => {
+		req.login(user, async err => {
 			req.ottsession = { isLoggedIn: true, user_id: user.id };
 			await tokens.setSessionInfo(req.token, req.ottsession);
 			res.json({

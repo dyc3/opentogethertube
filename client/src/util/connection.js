@@ -26,16 +26,23 @@ function onClose(e) {
 		window.vm.$store.commit("JOIN_ROOM_FAILED", e.code);
 		return;
 	}
-	if (window.vm.$store.state.$connection.shouldReconnect && window.vm.$store.state.$connection.room && window.vm.$store.state.$connection.reconnect.attempts < window.vm.$store.state.$connection.reconnect.maxAttempts) {
-		let delay = window.vm.$store.state.$connection.reconnect.delay + (window.vm.$store.state.$connection.reconnect.attempts * window.vm.$store.state.$connection.reconnect.delayIncrease);
+	if (
+		window.vm.$store.state.$connection.shouldReconnect &&
+		window.vm.$store.state.$connection.room &&
+		window.vm.$store.state.$connection.reconnect.attempts <
+			window.vm.$store.state.$connection.reconnect.maxAttempts
+	) {
+		let delay =
+			window.vm.$store.state.$connection.reconnect.delay +
+			window.vm.$store.state.$connection.reconnect.attempts *
+				window.vm.$store.state.$connection.reconnect.delayIncrease;
 		console.debug(`waiting to reconnect: ${delay}ms`);
 		reconnectTimer = setTimeout(() => {
 			console.log(`reconnecting... ${window.vm.$store.state.$connection.reconnect.attempts}`);
 			window.vm.$store.state.$connection.reconnect.attempts++;
 			connect(window.vm.$store.state.$connection.room, true);
 		}, delay);
-	}
-	else {
+	} else {
 		console.log("Not attempting to reconnect");
 	}
 }
@@ -45,12 +52,10 @@ function onMessage(e) {
 		try {
 			let msg = JSON.parse(e.data);
 			window.vm.$store.dispatch(msg.action, msg);
-		}
-		catch (error) {
+		} catch (error) {
 			console.error("unable to process message: ", e.data, error);
 		}
-	}
-	else {
+	} else {
 		console.warn("received unknown binary message", e.data);
 	}
 }
@@ -59,7 +64,7 @@ function onError(e) {
 	console.log("socket error", e);
 }
 
-function connect(roomName, reconnect=false) {
+function connect(roomName, reconnect = false) {
 	if (window.vm.$store.state.$connection.isConnected) {
 		console.warn("already connected");
 		return;
@@ -70,7 +75,9 @@ function connect(roomName, reconnect=false) {
 		return;
 	}
 
-	let url = `${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${roomName}`;
+	let url = `${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${
+		window.location.host
+	}/api/room/${roomName}`;
 	console.debug("connecting to", url);
 	window.vm.$store.state.$connection.shouldReconnect = true;
 	socket = new WebSocket(url);

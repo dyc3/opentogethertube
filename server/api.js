@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const uuid = require("uuid/v4");
 const _ = require("lodash");
 import InfoExtract from "./infoextractor";
 import { RoomRequestType } from "../common/models/messages";
-const { getLogger } = require('./logger.js');
+const { getLogger } = require("./logger.js");
 const permissions = require("../common/permissions");
 import roommanager from "./roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./rate-limit");
@@ -13,7 +13,7 @@ import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import auth from "./auth";
 import usermanager from "./usermanager";
-import passport from 'passport';
+import passport from "passport";
 import statusapi from "./api/status";
 
 const log = getLogger("api");
@@ -27,8 +27,10 @@ function handleGetRoomFailure(res, err) {
 				message: "Room not found",
 			},
 		});
-	}
-	else if (err.name === "PermissionDeniedException" || err.name === "ClientNotFoundInRoomException") {
+	} else if (
+		err.name === "PermissionDeniedException" ||
+		err.name === "ClientNotFoundInRoomException"
+	) {
 		res.status(400).json({
 			success: false,
 			error: {
@@ -36,8 +38,7 @@ function handleGetRoomFailure(res, err) {
 				message: err.message,
 			},
 		});
-	}
-	else {
+	} else {
 		log.error(`Unhandled exception when getting room: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
@@ -50,7 +51,11 @@ function handleGetRoomFailure(res, err) {
 }
 
 function handlePostVideoFailure(res, err) {
-	if (err.name === "VideoAlreadyQueuedException" || err.name === "PermissionDeniedException" || err.name === "ClientNotFoundInRoomException") {
+	if (
+		err.name === "VideoAlreadyQueuedException" ||
+		err.name === "PermissionDeniedException" ||
+		err.name === "ClientNotFoundInRoomException"
+	) {
 		log.warn(`Failed to post video: ${err.name}`);
 		res.status(400).json({
 			success: false,
@@ -59,8 +64,7 @@ function handlePostVideoFailure(res, err) {
 				message: err.message,
 			},
 		});
-	}
-	else {
+	} else {
 		log.error(`Unhandled exception when getting video: ${err} ${err.stack}`);
 		res.status(500).json({
 			success: false,
@@ -107,18 +111,20 @@ router.get("/room/:name", async (req, res) => {
 	try {
 		let room = await roommanager.GetRoom(req.params.name);
 		let hasOwner = !!room.owner;
-		room = _.cloneDeep(_.pick(room, [
-			"name",
-			"title",
-			"description",
-			"isTemporary",
-			"visibility",
-			"queueMode",
-			"queue",
-			"users",
-			"grants",
-			"autoSkipSegments",
-		]));
+		room = _.cloneDeep(
+			_.pick(room, [
+				"name",
+				"title",
+				"description",
+				"isTemporary",
+				"visibility",
+				"queueMode",
+				"queue",
+				"users",
+				"grants",
+				"autoSkipSegments",
+			])
+		);
 		room.permissions = room.grants;
 		room.hasOwner = hasOwner;
 		let users = [];
@@ -132,14 +138,12 @@ router.get("/room/:name", async (req, res) => {
 			delete video._lastVotesChanged;
 			if (room.queueMode === QueueMode.Vote) {
 				video.votes = video.votes ? video.votes.length : 0;
-			}
-			else {
+			} else {
 				delete video.votes;
 			}
 		}
 		res.json(room);
-	}
-	catch (e) {
+	} catch (e) {
 		handleGetRoomFailure(res, e);
 	}
 });
@@ -148,8 +152,7 @@ router.post("/room/generate", async (req, res) => {
 	try {
 		let info = await rateLimiter.consume(req.ip, 50);
 		setRateLimitHeaders(res, info);
-	}
-	catch (e) {
+	} catch (e) {
 		if (e instanceof Error) {
 			log.error(`Unable to generate room: ${e} ${e.message}`);
 			res.status(500).json({
@@ -160,8 +163,7 @@ router.post("/room/generate", async (req, res) => {
 				},
 			});
 			return;
-		}
-		else {
+		} else {
 			handleRateLimit(res, e);
 			return;
 		}
@@ -180,12 +182,15 @@ router.post("/room/generate", async (req, res) => {
 });
 
 router.delete("/room/:name", (req, res) => {
-	roommanager.getOrLoadRoom(req.params.name).then(room => {
-		roommanager.unloadRoom(room);
-		res.json({
-			success: true,
-		});
-	}).catch(err => handleGetRoomFailure(res, err));
+	roommanager
+		.getOrLoadRoom(req.params.name)
+		.then(room => {
+			roommanager.unloadRoom(room);
+			res.json({
+				success: true,
+			});
+		})
+		.catch(err => handleGetRoomFailure(res, err));
 });
 
 router.post("/room/:name/queue", async (req, res) => {
@@ -198,19 +203,16 @@ router.post("/room/:name/queue", async (req, res) => {
 		try {
 			let info = await rateLimiter.consume(req.ip, points);
 			setRateLimitHeaders(res, info);
-		}
-		catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				throw e;
-			}
-			else {
+			} else {
 				handleRateLimit(res, e);
 				return;
 			}
 		}
 		room = await roommanager.GetRoom(req.params.name);
-	}
-	catch (err) {
+	} catch (err) {
 		handleGetRoomFailure(res, err);
 		return;
 	}
@@ -219,14 +221,11 @@ router.post("/room/:name/queue", async (req, res) => {
 		let roomRequest = { type: RoomRequestType.AddRequest };
 		if (req.body.videos) {
 			roomRequest.videos = req.body.videos;
-		}
-		else if (req.body.url) {
+		} else if (req.body.url) {
 			roomRequest.url = req.body.url;
-		}
-		else if (req.body.service && req.body.id) {
+		} else if (req.body.service && req.body.id) {
 			roomRequest.video = { service: req.body.service, id: req.body.id };
-		}
-		else {
+		} else {
 			res.status(400).json({
 				success: false,
 				error: "Invalid parameters",
@@ -237,8 +236,7 @@ router.post("/room/:name/queue", async (req, res) => {
 		res.json({
 			success: true,
 		});
-	}
-	catch (err) {
+	} catch (err) {
 		handlePostVideoFailure(res, err);
 	}
 });
@@ -250,38 +248,39 @@ router.delete("/room/:name/queue", async (req, res) => {
 		try {
 			let info = await rateLimiter.consume(req.ip, points);
 			setRateLimitHeaders(res, info);
-		}
-		catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				throw e;
-			}
-			else {
+			} else {
 				handleRateLimit(res, e);
 				return;
 			}
 		}
 		room = await roommanager.GetRoom(req.params.name);
-	}
-	catch (err) {
+	} catch (err) {
 		handleGetRoomFailure(res, err);
 		return;
 	}
 
 	try {
 		if (req.body.service && req.body.id) {
-			await room.processUnauthorizedRequest({ type: RoomRequestType.RemoveRequest, video: {service: req.body.service, id: req.body.id} }, { token: req.token });
+			await room.processUnauthorizedRequest(
+				{
+					type: RoomRequestType.RemoveRequest,
+					video: { service: req.body.service, id: req.body.id },
+				},
+				{ token: req.token }
+			);
 			res.json({
 				success: true,
 			});
-		}
-		else {
+		} else {
 			res.status(400).json({
 				success: false,
 				error: "Invalid parameters",
 			});
 		}
-	}
-	catch (err) {
+	} catch (err) {
 		handlePostVideoFailure(res, err);
 	}
 });
@@ -294,24 +293,34 @@ router.get("/data/previewAdd", async (req, res) => {
 		}
 		let info = await rateLimiter.consume(req.ip, points);
 		setRateLimitHeaders(res, info);
-	}
-	catch (e) {
+	} catch (e) {
 		if (e instanceof Error) {
 			throw e;
-		}
-		else {
+		} else {
 			handleRateLimit(res, e);
 			return;
 		}
 	}
 	try {
 		log.info(`Getting queue add preview for ${req.query.input}`);
-		let result = await InfoExtract.resolveVideoQuery(req.query.input.trim(), process.env.SEARCH_PROVIDER);
+		let result = await InfoExtract.resolveVideoQuery(
+			req.query.input.trim(),
+			process.env.SEARCH_PROVIDER
+		);
 		res.json(result);
 		log.info(`Sent add preview response with ${result.length} items`);
-	}
-	catch (err) {
-		if (err.name === "UnsupportedServiceException" || err.name === "InvalidAddPreviewInputException" || err.name === "OutOfQuotaException" || err.name === "InvalidVideoIdException" || err.name === "FeatureDisabledException" || err.name === "UnsupportedMimeTypeException" || err.name === "LocalFileException" || err.name === "MissingMetadataException" || err.name === "UnsupportedVideoType") {
+	} catch (err) {
+		if (
+			err.name === "UnsupportedServiceException" ||
+			err.name === "InvalidAddPreviewInputException" ||
+			err.name === "OutOfQuotaException" ||
+			err.name === "InvalidVideoIdException" ||
+			err.name === "FeatureDisabledException" ||
+			err.name === "UnsupportedMimeTypeException" ||
+			err.name === "LocalFileException" ||
+			err.name === "MissingMetadataException" ||
+			err.name === "UnsupportedVideoType"
+		) {
 			log.error(`Unable to get add preview: ${err.name}`);
 			res.status(400).json({
 				success: false,
@@ -320,8 +329,7 @@ router.get("/data/previewAdd", async (req, res) => {
 					message: err.message,
 				},
 			});
-		}
-		else {
+		} else {
 			log.error(`Unable to get add preview: ${err} ${err.stack}`);
 			res.status(500).json({
 				success: false,
@@ -365,8 +373,7 @@ router.post("/announce", (req, res) => {
 			});
 			return;
 		}
-	}
-	else {
+	} else {
 		res.status(400).json({
 			success: false,
 			error: "apikey was not supplied",
@@ -382,12 +389,14 @@ router.post("/announce", (req, res) => {
 	}
 
 	try {
-		redisClient.publish(ANNOUNCEMENT_CHANNEL, JSON.stringify({
-			action: "announcement",
-			text: req.body.text,
-		}));
-	}
-	catch (error) {
+		redisClient.publish(
+			ANNOUNCEMENT_CHANNEL,
+			JSON.stringify({
+				action: "announcement",
+				text: req.body.text,
+			})
+		);
+	} catch (error) {
 		log.error(`An unknown error occurred while sending an announcement: ${error}`);
 		res.status(500).json({
 			success: false,

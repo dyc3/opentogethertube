@@ -1,9 +1,9 @@
-import Vue from 'vue';
-import { shallowMount, createLocalVue } from '@vue/test-utils';
-import Vuex from 'vuex';
-import Vuetify from 'vuetify';
+import Vue from "vue";
+import { shallowMount, createLocalVue } from "@vue/test-utils";
+import Vuex from "vuex";
+import Vuetify from "vuetify";
 import AddPreview from "@/components/AddPreview.vue";
-import VueEvents from 'vue-events';
+import VueEvents from "vue-events";
 import VBtn from "vuetify/lib/components/VBtn";
 import { i18n } from "@/i18n";
 
@@ -20,7 +20,7 @@ function createStore() {
 		state: {
 			socket: {
 				isConnected: false,
-				message: '',
+				message: "",
 				reconnectError: false,
 			},
 			joinFailureReason: null,
@@ -47,7 +47,7 @@ function mountNewInstance(store) {
 		store,
 		localVue,
 		i18n,
-		stubs: ['router-link'],
+		stubs: ["router-link"],
 	});
 }
 
@@ -64,24 +64,24 @@ describe("AddPreview", () => {
 		await wrapper.destroy();
 	});
 
-	it('should render test buttons when in dev environment', async () => {
+	it("should render test buttons when in dev environment", async () => {
 		store.state.production = false;
 		await wrapper.vm.$nextTick();
-		const testVideoButtons = wrapper.find('.video-add').findAllComponents(VBtn);
+		const testVideoButtons = wrapper.find(".video-add").findAllComponents(VBtn);
 		expect(testVideoButtons.length).toBeGreaterThanOrEqual(1);
-		expect(testVideoButtons.at(0).text()).toEqual('test youtube 0');
-		expect(testVideoButtons.at(1).text()).toEqual('test youtube 1');
-		expect(testVideoButtons.at(2).text()).toEqual('test vimeo 0');
+		expect(testVideoButtons.at(0).text()).toEqual("test youtube 0");
+		expect(testVideoButtons.at(1).text()).toEqual("test youtube 1");
+		expect(testVideoButtons.at(2).text()).toEqual("test vimeo 0");
 	});
 
-	it('should NOT render test buttons when in production environment', () => {
+	it("should NOT render test buttons when in production environment", () => {
 		store.state.production = true;
-		const testVideoButtons = wrapper.find('.video-add').findAllComponents(VBtn);
+		const testVideoButtons = wrapper.find(".video-add").findAllComponents(VBtn);
 		expect(testVideoButtons.length).toEqual(0);
 	});
 
-	it('should determine if the add preview link is a URL', () => {
-		jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
+	it("should determine if the add preview link is a URL", () => {
+		jest.spyOn(wrapper.vm, "requestAddPreviewDebounced").mockImplementation();
 
 		wrapper.setData({ inputAddPreview: "https://example.com" });
 		expect(wrapper.vm.isAddPreviewInputUrl).toEqual(true);
@@ -90,8 +90,8 @@ describe("AddPreview", () => {
 		expect(wrapper.vm.isAddPreviewInputUrl).toEqual(false);
 	});
 
-	it('should request add previews when input is URL', async () => {
-		jest.spyOn(wrapper.vm, 'requestAddPreviewDebounced').mockImplementation();
+	it("should request add previews when input is URL", async () => {
+		jest.spyOn(wrapper.vm, "requestAddPreviewDebounced").mockImplementation();
 
 		wrapper.setData({ inputAddPreview: "https://example.com" });
 		await wrapper.vm.$nextTick();

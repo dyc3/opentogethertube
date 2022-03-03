@@ -2,7 +2,10 @@
 	<div style="display: inline-flex">
 		<div v-if="editing">
 			<v-text-field
-				solo hide-details dense single-line
+				solo
+				hide-details
+				dense
+				single-line
 				class="editor"
 				ref="editor"
 				v-model="valueDirty"
@@ -11,19 +14,14 @@
 				@blur="abort"
 			/>
 		</div>
-		<div
-			v-else
-			@click="activate"
-			class="editable"
-			ref="display"
-		>
-			{{ typeof value === 'number' ? valueFormatter(value) : value }}
+		<div v-else @click="activate" class="editable" ref="display">
+			{{ typeof value === "number" ? valueFormatter(value) : value }}
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, nextTick, Ref } from '@vue/composition-api';
+import { defineComponent, ref, toRefs, nextTick, Ref } from "@vue/composition-api";
 
 const editor = ref<HTMLInputElement | undefined>();
 const editing = ref(false);
@@ -43,8 +41,8 @@ function valueParserDefault(value: string): number {
  * Provides a value display that can be clicked to edit.
  */
 const ClickToEdit = defineComponent({
-	name: 'ClickToEdit',
-	emits: ['change', 'input'],
+	name: "ClickToEdit",
+	emits: ["change", "input"],
 	props: {
 		value: {
 			type: [String, Number],
@@ -68,10 +66,9 @@ const ClickToEdit = defineComponent({
 			if (display.value) {
 				editorWidth.value = display.value.offsetWidth + 24;
 			}
-			if (typeof value.value === 'number') {
+			if (typeof value.value === "number") {
 				valueDirty.value = valueFormatter.value(value.value);
-			}
-			else {
+			} else {
 				valueDirty.value = value.value;
 			}
 			editing.value = true;
@@ -80,10 +77,9 @@ const ClickToEdit = defineComponent({
 		}
 
 		function apply() {
-			if (typeof value.value === 'number') {
+			if (typeof value.value === "number") {
 				value.value = valueParser.value(valueDirty.value);
-			}
-			else {
+			} else {
 				value.value = valueDirty.value;
 			}
 			editing.value = false;

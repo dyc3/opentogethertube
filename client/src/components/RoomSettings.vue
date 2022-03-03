@@ -15,7 +15,10 @@
 			/>
 			<v-select
 				:label="$t('room-settings.visibility')"
-				:items="[{ text: $t('room-settings.public'), value: 'public'}, { text: $t('room-settings.unlisted'), value: 'unlisted'}]"
+				:items="[
+					{ text: $t('room-settings.public'), value: 'public' },
+					{ text: $t('room-settings.unlisted'), value: 'unlisted' },
+				]"
 				v-model="inputRoomSettings.visibility"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-visibility')"
@@ -24,10 +27,26 @@
 			<v-select
 				:label="$t('room-settings.queue-mode')"
 				:items="[
-					{ name: $t('room-settings.manual'), value: QueueMode.Manual, description: $t('room-settings.manual-hint') },
-					{ name: $t('room-settings.vote'), value: QueueMode.Vote, description: $t('room-settings.vote-hint') },
-					{ name: $t('room-settings.loop'), value: QueueMode.Loop, description: $t('room-settings.loop-hint') },
-					{ name: $t('room-settings.dj'), value: QueueMode.Dj, description: $t('room-settings.dj-hint') },
+					{
+						name: $t('room-settings.manual'),
+						value: QueueMode.Manual,
+						description: $t('room-settings.manual-hint'),
+					},
+					{
+						name: $t('room-settings.vote'),
+						value: QueueMode.Vote,
+						description: $t('room-settings.vote-hint'),
+					},
+					{
+						name: $t('room-settings.loop'),
+						value: QueueMode.Loop,
+						description: $t('room-settings.loop-hint'),
+					},
+					{
+						name: $t('room-settings.dj'),
+						value: QueueMode.Dj,
+						description: $t('room-settings.dj-hint'),
+					},
 				]"
 				v-model="inputRoomSettings.queueMode"
 				:loading="isLoadingRoomSettings"
@@ -49,7 +68,11 @@
 				:label="$t('room-settings.auto-skip-text')"
 			/>
 			<PermissionsEditor
-				v-if="!$store.state.room.isTemporary && $store.state.user && $store.state.room.hasOwner"
+				v-if="
+					!$store.state.room.isTemporary &&
+					$store.state.user &&
+					$store.state.room.hasOwner
+				"
 				v-model="inputRoomSettings.grants"
 				:current-role="$store.state.users.you.role"
 			/>
@@ -66,8 +89,24 @@
 				{{ $t("room-settings.arent-able-to-modify-permissions") }}
 			</div>
 			<div class="submit">
-				<v-btn large block color="blue" v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner" :disabled="!$store.state.user" role="submit" @click="claimOwnership">Claim Room</v-btn>
-				<v-btn x-large block @click="submitRoomSettings" role="submit" :loading="isLoadingRoomSettings">{{ $t("actions.save") }}</v-btn>
+				<v-btn
+					large
+					block
+					color="blue"
+					v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner"
+					:disabled="!$store.state.user"
+					role="submit"
+					@click="claimOwnership"
+					>Claim Room</v-btn
+				>
+				<v-btn
+					x-large
+					block
+					@click="submitRoomSettings"
+					role="submit"
+					:loading="isLoadingRoomSettings"
+					>{{ $t("actions.save") }}</v-btn
+				>
 			</div>
 		</v-form>
 	</div>
@@ -79,12 +118,12 @@ import Component, { mixins } from "vue-class-component";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http.js";
-import { Visibility, QueueMode, RoomSettings } from 'common/models/types';
+import { Visibility, QueueMode, RoomSettings } from "common/models/types";
 import PermissionsMixin from "@/mixins/permissions";
-import type { Grants } from 'common/permissions';
+import type { Grants } from "common/permissions";
 
 @Component({
-	name: 'RoomSettings',
+	name: "RoomSettings",
 	components: {
 		PermissionsEditor,
 	},
@@ -94,15 +133,15 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 	Visibility = Visibility;
 	QueueMode = QueueMode;
 
-	isLoadingRoomSettings = false
+	isLoadingRoomSettings = false;
 	inputRoomSettings: RoomSettings = {
-		title: '',
-		description: '',
+		title: "",
+		description: "",
 		visibility: Visibility.Public,
 		queueMode: QueueMode.Manual,
 		grants: {} as Grants,
 		autoSkipSegments: true,
-	}
+	};
 
 	mounted() {
 		this.loadRoomSettings();
@@ -116,7 +155,15 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 		if (res.data.permissions && !res.data.grants) {
 			res.data.grants = res.data.permissions;
 		}
-		this.inputRoomSettings = _.pick(res.data, "title", "description", "visibility", "queueMode", "grants", "autoSkipSegments");
+		this.inputRoomSettings = _.pick(
+			res.data,
+			"title",
+			"description",
+			"visibility",
+			"queueMode",
+			"grants",
+			"autoSkipSegments"
+		);
 	}
 
 	getRoomSettingsSubmit() {
@@ -149,8 +196,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 				content: this.$t("room-settings.settings-applied") as string,
 				duration: 4000,
 			});
-		}
-		catch (e) {
+		} catch (e) {
 			console.log(e);
 			this.$toast.add({
 				style: ToastStyle.Error,
@@ -169,11 +215,12 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 			});
 			this.$toast.add({
 				style: ToastStyle.Success,
-				content: this.$t("room-settings.now-own-the-room", {room: this.$route.params.roomId}) as string,
+				content: this.$t("room-settings.now-own-the-room", {
+					room: this.$route.params.roomId,
+				}) as string,
 				duration: 4000,
 			});
-		}
-		catch (e) {
+		} catch (e) {
 			console.log(e);
 			this.$toast.add({
 				style: ToastStyle.Error,
@@ -188,12 +235,12 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 
 <style lang="scss">
 .room-settings .submit {
-  position: -webkit-sticky;
-  position: sticky;
-  bottom: 20px;
+	position: -webkit-sticky;
+	position: sticky;
+	bottom: 20px;
 
-  .v-btn {
-    margin: 10px 0;
-  }
+	.v-btn {
+		margin: 10px 0;
+	}
 }
 </style>

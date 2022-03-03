@@ -31,7 +31,9 @@ export default {
 	},
 	methods: {
 		async updateIframe() {
-			let resp = await axios.get(`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${this.videoId}&responsive=true&portrait=false&controls=false&playsinline=1`);
+			let resp = await axios.get(
+				`${VIMEO_OEMBED_API_URL}?url=https://vimeo.com/${this.videoId}&responsive=true&portrait=false&controls=false&playsinline=1`
+			);
 			this.iframe = resp.data.html;
 			setTimeout(() => {
 				this.player.on("play", () => this.$emit("playing"));
@@ -59,7 +61,9 @@ export default {
 			return this.player.getCurrentTime();
 		},
 		setPosition(position) {
-			return this.player.setCurrentTime(position + (this.$store.state.room.isPlaying && this.isBuffering ? 1 : 0));
+			return this.player.setCurrentTime(
+				position + (this.$store.state.room.isPlaying && this.isBuffering ? 1 : 0)
+			);
 		},
 		setVolume(value) {
 			return this.player.setVolume(value / 100);

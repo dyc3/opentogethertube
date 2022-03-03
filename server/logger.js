@@ -1,6 +1,6 @@
-import winston from 'winston';
+import winston from "winston";
 const { createLogger, format, transports } = winston;
-import colors from 'ansi-colors';
+import colors from "ansi-colors";
 
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
 	if (roomEvent) {
@@ -8,7 +8,9 @@ const myFormat = format.printf(({ level, message, timestamp, namespace, roomName
 		if (roomEvent.parameters && roomEvent.parameters.video) {
 			delete roomEvent.parameters.video.description;
 		}
-		return `${timestamp} ${namespace} Room/${roomEvent.roomName} ${level} Room event: ${JSON.stringify(roomEvent)}`;
+		return `${timestamp} ${namespace} Room/${
+			roomEvent.roomName
+		} ${level} Room event: ${JSON.stringify(roomEvent)}`;
 	}
 	if (roomName) {
 		return `${timestamp} ${namespace} Room/${roomName} ${level} ${message}`;
@@ -44,32 +46,29 @@ const customColorizer = format(info => {
 });
 
 const logger = createLogger({
-	level: 'info',
+	level: "info",
 	format: format.combine(
 		format.timestamp({
-			format: 'YYYY-MM-DD HH:mm:ss',
+			format: "YYYY-MM-DD HH:mm:ss",
 		}),
 		myFormat
 	),
 	transports: [new transports.File({ filename: process.env.LOG_FILE || "./logs/ott.log" })],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-	logger.add(new transports.Console({
-		format: format.combine(
-			customColorizer(),
-			myFormat
-		),
-		silent: process.env.NODE_ENV === 'test',
-	}));
-}
-else {
-	logger.add(new transports.Console({
-		format: format.combine(
-			customColorizer(),
-			myFormat
-		),
-	}));
+if (process.env.NODE_ENV !== "production") {
+	logger.add(
+		new transports.Console({
+			format: format.combine(customColorizer(), myFormat),
+			silent: process.env.NODE_ENV === "test",
+		})
+	);
+} else {
+	logger.add(
+		new transports.Console({
+			format: format.combine(customColorizer(), myFormat),
+		})
+	);
 }
 
 export function getLogger(namespace) {

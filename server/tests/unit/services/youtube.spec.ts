@@ -1,4 +1,8 @@
-import YouTubeAdapter, { YoutubeErrorResponse, YoutubeApiVideoListResponse, YoutubeApiVideo } from "../../../services/youtube";
+import YouTubeAdapter, {
+	YoutubeErrorResponse,
+	YoutubeApiVideoListResponse,
+	YoutubeApiVideo,
+} from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
 import { redisClient } from "../../../redisclient";
@@ -45,7 +49,12 @@ function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
 			totalResults: ids.length,
 			resultsPerPage: ids.length,
 		},
-		items: ids.map(id => JSON.parse(fs.readFileSync(`${FIXTURE_DIRECTORY}/${id}.json`, "utf8")) as YoutubeApiVideo),
+		items: ids.map(
+			id =>
+				JSON.parse(
+					fs.readFileSync(`${FIXTURE_DIRECTORY}/${id}.json`, "utf8")
+				) as YoutubeApiVideo
+		),
 	};
 }
 
@@ -67,7 +76,10 @@ function mockChannel(id: string): unknown {
 	return JSON.parse(content);
 }
 
-async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promise<AxiosResponse<any>> {
+async function mockYoutubeApi(
+	path: string,
+	config?: AxiosRequestConfig
+): Promise<AxiosResponse<any>> {
 	const template = {
 		status: 200,
 		statusText: "OK",
@@ -79,20 +91,17 @@ async function mockYoutubeApi(path: string, config?: AxiosRequestConfig): Promis
 			...template,
 			data: mockVideoList(config?.params.id.split(",")),
 		};
-	}
-	else if (path === "/playlistItems") {
+	} else if (path === "/playlistItems") {
 		try {
 			return {
 				...template,
 				data: mockPlaylistItems(config?.params.playlistId),
 			};
-		}
-		catch (e) {
+		} catch (e) {
 			let content = fs.readFileSync(`${FIXTURE_DIRECTORY}/errors/${e.message}.json`, "utf8");
 			return JSON.parse(content);
 		}
-	}
-	else if (path === "/channels") {
+	} else if (path === "/channels") {
 		return {
 			...template,
 			data: mockChannel(config?.params.id ?? config?.params.forUsername),
@@ -105,14 +114,11 @@ describe("Youtube", () => {
 	describe("canHandleURL", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
 
-		it.each(validVideoLinks.map((l) => l[1]).concat(validCollectionLinks))(
-			"Accepts %s",
-			(link) => {
-				expect(adapter.canHandleURL(link)).toBe(true);
-			}
-		);
+		it.each(validVideoLinks.map(l => l[1]).concat(validCollectionLinks))("Accepts %s", link => {
+			expect(adapter.canHandleURL(link)).toBe(true);
+		});
 
-		it.each(invalidLinks)("Rejects %s", (link) => {
+		it.each(invalidLinks)("Rejects %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(false);
 		});
 	});
@@ -120,11 +126,11 @@ describe("Youtube", () => {
 	describe("isCollectionURL", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
 
-		it.each(validVideoLinks.map((l) => l[1]))("Returns false for %s", (link) => {
+		it.each(validVideoLinks.map(l => l[1]))("Returns false for %s", link => {
 			expect(adapter.isCollectionURL(link)).toBe(false);
 		});
 
-		it.each(validCollectionLinks)("Returns true for %s", (link) => {
+		it.each(validCollectionLinks)("Returns true for %s", link => {
 			expect(adapter.isCollectionURL(link)).toBe(true);
 		});
 	});
@@ -143,7 +149,7 @@ describe("Youtube", () => {
 		const videoId = "BTZ5KVRUy1Q";
 
 		beforeAll(() => {
-			apiGet = jest.spyOn(adapter.api, 'get').mockImplementation(mockYoutubeApi);
+			apiGet = jest.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
 		});
 
 		beforeEach(() => {
@@ -160,9 +166,7 @@ describe("Youtube", () => {
 		});
 
 		it("Throws an error if videoId is invalid", () => {
-			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(
-				InvalidVideoIdException
-			);
+			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(InvalidVideoIdException);
 		});
 	});
 
@@ -171,18 +175,20 @@ describe("Youtube", () => {
 		let apiGet: jest.SpyInstance;
 
 		beforeAll(() => {
-			apiGet = jest.spyOn(adapter.api, 'get').mockImplementation(mockYoutubeApi);
+			apiGet = jest.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
 		});
 
 		beforeEach(() => {
 			apiGet.mockClear();
 		});
 
-		it.each([
-			"https://youtube.com/watch?v=%s",
-			"https://youtu.be/%s",
-			"https://youtube.com/shorts/%s",
-		].map(x => x.replace("%s", "BTZ5KVRUy1Q")))("Resolves single video URL: %s", async (link) => {
+		it.each(
+			[
+				"https://youtube.com/watch?v=%s",
+				"https://youtu.be/%s",
+				"https://youtube.com/shorts/%s",
+			].map(x => x.replace("%s", "BTZ5KVRUy1Q"))
+		)("Resolves single video URL: %s", async link => {
 			const videos = await adapter.resolveURL(link);
 			expect(videos).toHaveLength(1);
 			expect(videos[0]).toEqual({
@@ -196,10 +202,14 @@ describe("Youtube", () => {
 			expect(apiGet).toHaveBeenCalledTimes(1);
 		});
 
-		it.each(["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "zgxj_0xPleg").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")))("Resolves single video URL with playlist, with video in the playlist: %s", async (link) => {
-			const fetchSpy = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
-			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
-			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
+		it.each(
+			["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x =>
+				x.replace("%s", "zgxj_0xPleg").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
+			)
+		)("Resolves single video URL with playlist, with video in the playlist: %s", async link => {
+			const fetchSpy = jest.spyOn(adapter, "fetchVideoWithPlaylist");
+			const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
+			const fetchPlaylist = jest.spyOn(adapter, "fetchPlaylistVideos");
 
 			const videos = await adapter.resolveURL(link);
 			expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -231,48 +241,55 @@ describe("Youtube", () => {
 			fetchPlaylist.mockRestore();
 		});
 
-		it.each(["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x => x.replace("%s", "BTZ5KVRUy1Q").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")))("Resolves single video URL with playlist, with video NOT in the playlist: %s", async (link) => {
-			const fetchSpy = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
-			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
-			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
+		it.each(
+			["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x =>
+				x.replace("%s", "BTZ5KVRUy1Q").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
+			)
+		)(
+			"Resolves single video URL with playlist, with video NOT in the playlist: %s",
+			async link => {
+				const fetchSpy = jest.spyOn(adapter, "fetchVideoWithPlaylist");
+				const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
+				const fetchPlaylist = jest.spyOn(adapter, "fetchPlaylistVideos");
 
-			const videos = await adapter.resolveURL(link);
-			expect(fetchSpy).toHaveBeenCalledTimes(1);
-			expect(fetchPlaylist).toHaveBeenCalledTimes(1);
-			expect(fetchVideo).toHaveBeenCalledTimes(1);
-			expect(videos).toEqual([
-				{
-					service: "youtube",
-					id: "BTZ5KVRUy1Q",
-					title: "tmpIwT4T4",
-					description: "tmpIwT4T4",
-					thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
-					length: 10,
-					highlight: true,
-				},
-				{
-					service: "youtube",
-					id: "zgxj_0xPleg",
-					title: "Chris Chan: A Comprehensive History - Part 1",
-					description: "(1982-2000)",
-					thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
-					// length expected to be undefined because the youtube api doesn't return video length in playlist items
-					// feature requested here: https://issuetracker.google.com/issues/173420445
-				},
-				{
-					service: "youtube",
-					id: "_3QMqssyBwQ",
-					title: "Chris Chan: A Comprehensive History - Part 2",
-					description: "(2000-2004)",
-					thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
-				},
-			]);
-			expect(apiGet).toHaveBeenCalledTimes(2);
+				const videos = await adapter.resolveURL(link);
+				expect(fetchSpy).toHaveBeenCalledTimes(1);
+				expect(fetchPlaylist).toHaveBeenCalledTimes(1);
+				expect(fetchVideo).toHaveBeenCalledTimes(1);
+				expect(videos).toEqual([
+					{
+						service: "youtube",
+						id: "BTZ5KVRUy1Q",
+						title: "tmpIwT4T4",
+						description: "tmpIwT4T4",
+						thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+						length: 10,
+						highlight: true,
+					},
+					{
+						service: "youtube",
+						id: "zgxj_0xPleg",
+						title: "Chris Chan: A Comprehensive History - Part 1",
+						description: "(1982-2000)",
+						thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
+						// length expected to be undefined because the youtube api doesn't return video length in playlist items
+						// feature requested here: https://issuetracker.google.com/issues/173420445
+					},
+					{
+						service: "youtube",
+						id: "_3QMqssyBwQ",
+						title: "Chris Chan: A Comprehensive History - Part 2",
+						description: "(2000-2004)",
+						thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
+					},
+				]);
+				expect(apiGet).toHaveBeenCalledTimes(2);
 
-			fetchSpy.mockRestore();
-			fetchVideo.mockRestore();
-			fetchPlaylist.mockRestore();
-		});
+				fetchSpy.mockRestore();
+				fetchVideo.mockRestore();
+				fetchPlaylist.mockRestore();
+			}
+		);
 
 		it("Recovers after not being able to fetch playlist information for a video", async () => {
 			const link = "https://youtube.com/watch?v=BTZ5KVRUy1Q&list=fakelistid";
@@ -288,32 +305,37 @@ describe("Youtube", () => {
 			});
 		});
 
-		it.each(["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`))("Ignores the WL and LL private playlists", async (link) => {
-			const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
-			const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
-			const videos: Video[] = await adapter.resolveURL(link);
-			expect(videos).toHaveLength(1);
-			expect(videos[0]).toEqual({
-				service: "youtube",
-				id: "BTZ5KVRUy1Q",
-				title: "tmpIwT4T4",
-				description: "tmpIwT4T4",
-				thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
-				length: 10,
-			});
-			expect(fetchVideo).toBeCalledTimes(1);
-			expect(fetchVideoWithPlaylist).not.toBeCalled();
+		it.each(["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`))(
+			"Ignores the WL and LL private playlists",
+			async link => {
+				const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
+				const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
+				const videos: Video[] = await adapter.resolveURL(link);
+				expect(videos).toHaveLength(1);
+				expect(videos[0]).toEqual({
+					service: "youtube",
+					id: "BTZ5KVRUy1Q",
+					title: "tmpIwT4T4",
+					description: "tmpIwT4T4",
+					thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+					length: 10,
+				});
+				expect(fetchVideo).toBeCalledTimes(1);
+				expect(fetchVideoWithPlaylist).not.toBeCalled();
 
-			fetchVideoWithPlaylist.mockRestore();
-			fetchVideo.mockRestore();
-		});
+				fetchVideoWithPlaylist.mockRestore();
+				fetchVideo.mockRestore();
+			}
+		);
 
 		it("Resolves playlist", async () => {
-			const fetchVideoWithPlaylist = jest.spyOn(adapter, 'fetchVideoWithPlaylist');
-			const fetchVideo = jest.spyOn(adapter, 'fetchVideoInfo');
-			const fetchPlaylist = jest.spyOn(adapter, 'fetchPlaylistVideos');
+			const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
+			const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
+			const fetchPlaylist = jest.spyOn(adapter, "fetchPlaylistVideos");
 
-			const videos = await adapter.resolveURL("https://youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm");
+			const videos = await adapter.resolveURL(
+				"https://youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"
+			);
 			expect(fetchVideoWithPlaylist).toHaveBeenCalledTimes(0);
 			expect(fetchPlaylist).toHaveBeenCalledTimes(1);
 			expect(fetchVideo).toHaveBeenCalledTimes(0);
@@ -414,7 +436,13 @@ describe("Youtube", () => {
 	describe("videoApiRequest", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = jest.spyOn(adapter.api, "get");
-		const outOfQuotaResponse = { isAxiosError: true, response: { status: 403, data: { error: { code: 403, message: "", errors: [], status: "" } } } } as unknown as AxiosError<YoutubeErrorResponse>;
+		const outOfQuotaResponse = {
+			isAxiosError: true,
+			response: {
+				status: 403,
+				data: { error: { code: 403, message: "", errors: [], status: "" } },
+			},
+		} as unknown as AxiosError<YoutubeErrorResponse>;
 
 		beforeEach(() => {
 			apiGet.mockReset();
@@ -422,7 +450,7 @@ describe("Youtube", () => {
 
 		it("should use the fallback when out of quota, and onlyProperties contains length", async () => {
 			apiGet.mockRejectedValue(outOfQuotaResponse);
-			const fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
+			const fallbackSpy = jest.spyOn(adapter, "getVideoLengthFallback").mockResolvedValue(10);
 			const videos = await adapter.videoApiRequest("BTZ5KVRUy1Q", ["length"]);
 			expect(videos[0]).toEqual({
 				service: "youtube",
@@ -436,15 +464,19 @@ describe("Youtube", () => {
 
 		it("should not use the fallback when out of quota, and onlyProperties does NOT contain length", async () => {
 			apiGet.mockRejectedValue(outOfQuotaResponse);
-			const fallbackSpy = jest.spyOn(adapter, 'getVideoLengthFallback').mockResolvedValue(10);
-			expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(new OutOfQuotaException("youtube"));
+			const fallbackSpy = jest.spyOn(adapter, "getVideoLengthFallback").mockResolvedValue(10);
+			expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(
+				new OutOfQuotaException("youtube")
+			);
 			expect(fallbackSpy).toHaveBeenCalledTimes(0);
 			fallbackSpy.mockClear();
 		});
 
 		it("should reject when the function fails for unknown reason", async () => {
 			apiGet.mockRejectedValue(new Error("other error"));
-			expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(new Error("other error"));
+			expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(
+				new Error("other error")
+			);
 		});
 	});
 
@@ -460,4 +492,3 @@ describe("Youtube", () => {
 		});
 	});
 });
-

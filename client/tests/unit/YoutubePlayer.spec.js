@@ -1,9 +1,9 @@
-import Vue from 'vue';
-import { shallowMount } from '@vue/test-utils';
+import Vue from "vue";
+import { shallowMount } from "@vue/test-utils";
 import YoutubePlayer from "@/components/players/YoutubePlayer.vue";
 // we need to import the mocks so mounting the component doesn't fail.
 // eslint-disable-next-line no-unused-vars
-import ResizeObserver from './__mocks__/ResizeObserver';
+import ResizeObserver from "./__mocks__/ResizeObserver";
 
 describe("YoutubePlayer", () => {
 	let wrapper;
@@ -32,7 +32,7 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, 'fitToContainer').mockImplementation();
+		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
 		await Vue.nextTick();
 		window.onYouTubeIframeAPIReady();
 		await Vue.nextTick();
@@ -45,7 +45,7 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, 'fitToContainer').mockImplementation();
+		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
 		wrapper.setData({
 			player: {
 				play: jest.fn(),
@@ -61,11 +61,11 @@ describe("YoutubePlayer", () => {
 		wrapper.vm.onStateChange({ data: 3 });
 		wrapper.vm.onStateChange({ data: 5 });
 		expect(wrapper.emittedByOrder().map(e => e.name)).toEqual([
-			'ended',
-			'playing',
-			'paused',
-			'buffering',
-			'ready',
+			"ended",
+			"playing",
+			"paused",
+			"buffering",
+			"ready",
 		]);
 		wrapper.vm.onError();
 		expect(wrapper.emitted("error")).toHaveLength(1);
@@ -77,7 +77,7 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, 'fitToContainer').mockImplementation();
+		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
 		wrapper.setData({
 			player: {
 				play: jest.fn(),
@@ -124,7 +124,7 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, 'fitToContainer').mockImplementation();
+		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
 		wrapper.vm.play();
 		expect(wrapper.vm.queuedPlaying).toEqual(true);
 		wrapper.vm.pause();

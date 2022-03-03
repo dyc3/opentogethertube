@@ -1,9 +1,9 @@
-import { getLogger } from '../logger.js';
+import { getLogger } from "../logger.js";
 import express from "express";
 import { rateLimiter } from "../rate-limit";
 import roommanager from "../roommanager";
-import { RoomRequestType } from '../../common/models/messages';
-import usermanager from '../usermanager.js';
+import { RoomRequestType } from "../../common/models/messages";
+import usermanager from "../usermanager.js";
 import faker from "faker";
 import tokens from "../auth/tokens";
 
@@ -32,24 +32,25 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 			password: faker.internet.password(12),
 		});
 		await tokens.setSessionInfo(token, { isLoggedIn: true, user_id: user.id });
-	}
-	else {
+	} else {
 		await tokens.setSessionInfo(token, { isLoggedIn: false, username: "fake_user" });
 	}
 
 	const room = await roommanager.GetRoom(req.params.name);
 	try {
-		await room.processUnauthorizedRequest({
-			type: RoomRequestType.JoinRequest,
-			token: token,
-			info: {
-				id: "fake",
-				user_id: user ? user.id : undefined,
+		await room.processUnauthorizedRequest(
+			{
+				type: RoomRequestType.JoinRequest,
+				token: token,
+				info: {
+					id: "fake",
+					user_id: user ? user.id : undefined,
+				},
 			},
-		}, { token: token });
+			{ token: token }
+		);
 		res.json({ success: true });
-	}
-	catch (e) {
+	} catch (e) {
 		res.json({
 			success: false,
 			error: {

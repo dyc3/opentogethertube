@@ -1,4 +1,4 @@
-import { getLogger } from '../logger.js';
+import { getLogger } from "../logger.js";
 import express from "express";
 import roommanager from "../roommanager";
 

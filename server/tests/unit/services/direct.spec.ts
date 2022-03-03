@@ -27,7 +27,7 @@ describe("Direct", () => {
 
 		const adapter = new DirectVideoAdapter();
 
-		it.each(supportedExtensions)("Accepts %s links", (extension) => {
+		it.each(supportedExtensions)("Accepts %s links", extension => {
 			const url = `https://example.com/test.${extension}`;
 			expect(adapter.canHandleURL(url)).toBe(true);
 		});
@@ -57,7 +57,7 @@ describe("Direct", () => {
 			"wav",
 		];
 
-		it.each(unsupportedExtensions)("Rejects %s links", (extension) => {
+		it.each(unsupportedExtensions)("Rejects %s links", extension => {
 			const url = `https://example.com/test.${extension}`;
 			expect(adapter.canHandleURL(url)).toBe(false);
 		});

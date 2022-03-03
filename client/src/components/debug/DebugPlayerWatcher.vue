@@ -1,7 +1,7 @@
 <template>
 	<div class="debug-player" v-if="!$store.state.production">
 		<span>Debug</span>
-		<span v-for="(value, key, index) in data" :key="JSON.stringify(value)+index">
+		<span v-for="(value, key, index) in data" :key="JSON.stringify(value) + index">
 			{{ key }}={{ JSON.stringify(value) }}
 		</span>
 	</div>

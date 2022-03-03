@@ -1,6 +1,6 @@
 import connection from "./connection";
-import { API } from '@/common-http';
-import { RoomRequestType } from 'common/models/messages';
+import { API } from "@/common-http";
+import { RoomRequestType } from "common/models/messages";
 
 /**
  * Defines the HTTP and websocket api, and provides methods for using it.

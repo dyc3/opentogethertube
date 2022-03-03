@@ -14,7 +14,13 @@ const requests = {};
  * @param {*} sdkGlobal
  * @param {String} sdkReady Name of the function that is automatically called when the api is ready to be used.
  */
-export function getSdk(url, sdkGlobal, sdkReady=null, isLoaded=() => true, fetchScript=loadScript) {
+export function getSdk(
+	url,
+	sdkGlobal,
+	sdkReady = null,
+	isLoaded = () => true,
+	fetchScript = loadScript
+) {
 	console.log(`grabbing iframe SDK: ${sdkGlobal}`);
 	if (window[sdkGlobal] && isLoaded(window[sdkGlobal])) {
 		console.log(`iframe SDK already present: ${sdkGlobal}`);
@@ -48,8 +54,7 @@ export function getSdk(url, sdkGlobal, sdkReady=null, isLoaded=() => true, fetch
 				// reset the array of requests for this SDK
 				requests[url].forEach(request => request.reject(err));
 				requests[url] = null;
-			}
-			else if (!sdkReady) {
+			} else if (!sdkReady) {
 				onLoaded(window[sdkGlobal]);
 			}
 		});

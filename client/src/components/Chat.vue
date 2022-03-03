@@ -1,35 +1,20 @@
 <template>
 	<div
 		:class="{
-			'chat': true,
-			'activated': activated,
+			chat: true,
+			activated: activated,
 		}"
 	>
-		<div
-			class="chat-header d-flex flex-row"
-			v-if="activated"
-		>
-			<v-btn
-				icon
-				x-small
-				@click="setActivated(false)"
-			>
+		<div class="chat-header d-flex flex-row" v-if="activated">
+			<v-btn icon x-small @click="setActivated(false)">
 				<v-icon>fas fa-chevron-down</v-icon>
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
 		</div>
-		<div
-			ref="messages"
-			@scroll="onScroll"
-			class="messages d-flex flex-column flex-grow-1 mt-2"
-		>
+		<div ref="messages" @scroll="onScroll" class="messages d-flex flex-column flex-grow-1 mt-2">
 			<div class="d-flex flex-grow-1"><!-- Spacer --></div>
 			<transition-group name="message" style="width: 100%">
-				<div
-					class="message"
-					v-for="(msg, index) in chatMessagePast"
-					:key="index"
-				>
+				<div class="message" v-for="(msg, index) in chatMessagePast" :key="index">
 					<div class="from">{{ msg.from.name }}</div>
 					<div class="text"><ProcessedText :text="msg.text" /></div>
 				</div>
@@ -44,14 +29,8 @@
 				</div>
 			</transition-group>
 		</div>
-		<Transition
-			name="input"
-			@after-enter="enforceStickToBottom"
-		>
-			<div
-				class="input-box"
-				v-if="activated"
-			>
+		<Transition name="input" @after-enter="enforceStickToBottom">
+			<div class="input-box" v-if="activated">
 				<v-text-field
 					solo
 					dense
@@ -65,15 +44,8 @@
 				/>
 			</div>
 		</Transition>
-		<div
-			class="manual-activate"
-			v-if="!activated"
-		>
-			<v-btn
-				icon
-				x-small
-				@click="setActivated(true, manual=true)"
-			>
+		<div class="manual-activate" v-if="!activated">
+			<v-btn icon x-small @click="setActivated(true, (manual = true))">
 				<v-icon>far fa-comment-alt</v-icon>
 			</v-btn>
 		</div>
@@ -119,19 +91,17 @@ function isActivated(): boolean {
 	return activated.value;
 }
 
-async function setActivated(value: boolean, manual=false): Promise<void> {
+async function setActivated(value: boolean, manual = false): Promise<void> {
 	activated.value = value;
 	if (value) {
 		if (manual) {
 			deactivateOnBlur.value = false;
-		}
-		else {
+		} else {
 			deactivateOnBlur.value = true;
 		}
 		await nextTick();
 		focusChatInput();
-	}
-	else {
+	} else {
 		chatInput.value?.blur();
 	}
 }
@@ -149,9 +119,9 @@ function expireChatMessage() {
  * Performs the necessary actions to enact the stickToBottom behavior.
  */
 function enforceStickToBottom() {
-	const div=messages.value as HTMLDivElement;
+	const div = messages.value as HTMLDivElement;
 	if (stickToBottom.value) {
-		div.scrollTop=div.scrollHeight;
+		div.scrollTop = div.scrollHeight;
 	}
 }
 
@@ -170,8 +140,7 @@ const Chat = defineComponent({
 				inputValue.value = "";
 				stickToBottom.value = true;
 				setActivated(false);
-			}
-			else if (e.key === "Escape") {
+			} else if (e.key === "Escape") {
 				e.preventDefault();
 				setActivated(false);
 			}
@@ -305,10 +274,12 @@ $chat-message-bg: $background-color;
 }
 
 // Transition animation
-.message-enter-active, .message-leave-active {
+.message-enter-active,
+.message-leave-active {
 	transition: all 0.2s;
 }
-.message-enter, .message.leave-to {
+.message-enter,
+.message.leave-to {
 	opacity: 0;
 	transform: translateX(-30px) scaleY(0);
 }
@@ -316,10 +287,12 @@ $chat-message-bg: $background-color;
 	transition: transform 0.2s;
 }
 
-.input-enter-active, .input-leave-active {
+.input-enter-active,
+.input-leave-active {
 	transition: all 0.2s ease;
 }
-.input-enter, .input-leave-to {
+.input-enter,
+.input-leave-to {
 	opacity: 0;
 	transform: translateY(-30px) scaleY(0);
 	height: 0;

@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 /**
  * Formats seconds into mm:ss if less than an hour, hh:mm:ss if greater than an hour
@@ -10,7 +10,11 @@ export function secondsToTimestamp(seconds: number): string {
 	return seconds < 0 ? "-" + subTimeString : subTimeString;
 }
 
-export function calculateCurrentPosition(start_time: dayjs.ConfigType, now_time: dayjs.ConfigType, offset: number): number {
+export function calculateCurrentPosition(
+	start_time: dayjs.ConfigType,
+	now_time: dayjs.ConfigType,
+	offset: number
+): number {
 	return offset + dayjs(now_time).diff(start_time, "milliseconds") / 1000;
 }
 
@@ -18,7 +22,10 @@ export function timestampToSeconds(timestamp: string): number {
 	if (!timestamp) {
 		throw new Error("Invalid timestamp");
 	}
-	let spl = timestamp.split(":").map(i => parseInt(i)).reverse();
+	let spl = timestamp
+		.split(":")
+		.map(i => parseInt(i))
+		.reverse();
 	if (spl.length > 3 || spl.length === 0) {
 		throw new Error("Invalid timestamp");
 	}

@@ -1,6 +1,7 @@
 <template>
 	<v-snackbar
-		app right
+		app
+		right
 		absolute
 		value="true"
 		timeout="-1"
@@ -11,23 +12,12 @@
 		<v-icon v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
 		<v-icon v-else-if="toast.style === ToastStyle.Error">fas fa-exclamation-circle</v-icon>
 		{{ toast.content }}
-		<div class="bar" :style="{'animation-duration': `${this.toast.duration}ms`}"></div>
+		<div class="bar" :style="{ 'animation-duration': `${this.toast.duration}ms` }"></div>
 		<template v-slot:action="{ attrs }">
-			<v-btn
-				text
-				v-if="undoable"
-				@click="undo"
-			>
+			<v-btn text v-if="undoable" @click="undo">
 				{{ $t("actions.undo") }}
 			</v-btn>
-			<v-btn
-				text
-				v-bind="attrs"
-				@click="close"
-				x-small
-				icon
-				:color="`${color} darken-2`"
-			>
+			<v-btn text v-bind="attrs" @click="close" x-small icon :color="`${color} darken-2`">
 				<v-icon>fas fa-times</v-icon>
 			</v-btn>
 		</template>
@@ -35,11 +25,11 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
-import { Toast, ToastStyle } from '@/models/toast';
-import { RoomRequestType } from 'common/models/messages';
-import Component from 'vue-class-component';
-import { API } from '@/common-http';
+import Vue, { PropType } from "vue";
+import { Toast, ToastStyle } from "@/models/toast";
+import { RoomRequestType } from "common/models/messages";
+import Component from "vue-class-component";
+import { API } from "@/common-http";
 
 @Component({
 	name: "ToastNotification",
@@ -53,18 +43,17 @@ import { API } from '@/common-http';
 	},
 })
 export default class ToastNotification extends Vue {
-	toast: Toast
-	number: number
+	toast: Toast;
+	number: number;
 
-	padding = 8
-	closeTimeoutId: ReturnType<typeof setTimeout> | null = null
-	ToastStyle = ToastStyle
+	padding = 8;
+	closeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+	ToastStyle = ToastStyle;
 
 	get color(): string | undefined {
 		if (this.toast.style === ToastStyle.Success) {
 			return "green";
-		}
-		else if (this.toast.style === ToastStyle.Error) {
+		} else if (this.toast.style === ToastStyle.Error) {
 			return "red";
 		}
 		return undefined;
@@ -75,7 +64,12 @@ export default class ToastNotification extends Vue {
 			return false;
 		}
 		let eventType = this.toast.event.request.type;
-		return eventType === RoomRequestType.SeekRequest || eventType === RoomRequestType.SkipRequest || eventType === RoomRequestType.AddRequest || eventType === RoomRequestType.RemoveRequest;
+		return (
+			eventType === RoomRequestType.SeekRequest ||
+			eventType === RoomRequestType.SkipRequest ||
+			eventType === RoomRequestType.AddRequest ||
+			eventType === RoomRequestType.RemoveRequest
+		);
 	}
 
 	created(): void {
@@ -98,10 +92,11 @@ export default class ToastNotification extends Vue {
 
 	async undo() {
 		try {
-			await API.post(`/room/${this.$route.params.roomId}/undo`, { data: { event: this.toast.event } });
+			await API.post(`/room/${this.$route.params.roomId}/undo`, {
+				data: { event: this.toast.event },
+			});
 			this.close();
-		}
-		catch (err) {
+		} catch (err) {
 			this.$toast.add({
 				style: ToastStyle.Error,
 				content: err.message,
@@ -141,5 +136,4 @@ export default class ToastNotification extends Vue {
 		animation-fill-mode: forwards;
 	}
 }
-
 </style>

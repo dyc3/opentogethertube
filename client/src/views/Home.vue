@@ -8,9 +8,18 @@
 						{{ $t("landing.hero.description") }}
 					</span>
 					<div class="hero-buttons">
-						<v-btn elevation="12" x-large @click="createTempRoom">{{ $t("landing.hero.btns.create") }}</v-btn>
-						<v-btn elevation="12" x-large to="/rooms">{{ $t("landing.hero.btns.browse") }}</v-btn>
-						<v-btn elevation="12" x-large href="https://github.com/dyc3/opentogethertube">{{ $t("landing.hero.btns.source") }}</v-btn>
+						<v-btn elevation="12" x-large @click="createTempRoom">{{
+							$t("landing.hero.btns.create")
+						}}</v-btn>
+						<v-btn elevation="12" x-large to="/rooms">{{
+							$t("landing.hero.btns.browse")
+						}}</v-btn>
+						<v-btn
+							elevation="12"
+							x-large
+							href="https://github.com/dyc3/opentogethertube"
+							>{{ $t("landing.hero.btns.source") }}</v-btn
+						>
 					</div>
 				</div>
 			</v-row>
@@ -20,14 +29,18 @@
 				<v-col>
 					<h1>{{ $t("landing.intro.title") }}</h1>
 					<p>
-						<strong>{{ $t("landing.intro.name") }}</strong> {{ $t("landing.intro.text1") }}
+						<strong>{{ $t("landing.intro.name") }}</strong>
+						{{ $t("landing.intro.text1") }}
 					</p>
 					<p>
 						{{ $t("landing.intro.text2") }}
 					</p>
 					<p>
 						{{ $t("landing.intro.text3") }}
-						<a href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request">{{ $t("landing.intro.link") }}</a>.
+						<a
+							href="https://github.com/dyc3/opentogethertube/labels/service%20support%20request"
+							>{{ $t("landing.intro.link") }}</a
+						>.
 					</p>
 				</v-col>
 			</v-row>
@@ -37,7 +50,9 @@
 					<v-row dense class="features">
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>{{ $t("landing.features.syncronized-playback.title") }}</v-card-title>
+								<v-card-title>{{
+									$t("landing.features.syncronized-playback.title")
+								}}</v-card-title>
 								<v-card-text>
 									{{ $t("landing.features.syncronized-playback.text") }}
 								</v-card-text>
@@ -45,7 +60,9 @@
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>{{ $t("landing.features.permanent-rooms.title") }}</v-card-title>
+								<v-card-title>{{
+									$t("landing.features.permanent-rooms.title")
+								}}</v-card-title>
 								<v-card-text>
 									{{ $t("landing.features.permanent-rooms.text") }}
 								</v-card-text>
@@ -53,7 +70,9 @@
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>{{ $t("landing.features.dark-theme.title") }}</v-card-title>
+								<v-card-title>{{
+									$t("landing.features.dark-theme.title")
+								}}</v-card-title>
 								<v-card-text>
 									{{ $t("landing.features.dark-theme.text") }}
 								</v-card-text>
@@ -61,7 +80,9 @@
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>{{ $t("landing.features.room-permissions.title") }}</v-card-title>
+								<v-card-title>{{
+									$t("landing.features.room-permissions.title")
+								}}</v-card-title>
 								<v-card-text>
 									{{ $t("landing.features.room-permissions.text") }}
 								</v-card-text>
@@ -69,7 +90,9 @@
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>{{ $t("landing.features.voting-system.title") }}</v-card-title>
+								<v-card-title>{{
+									$t("landing.features.voting-system.title")
+								}}</v-card-title>
 								<v-card-text>
 									{{ $t("landing.features.voting-system.text") }}
 								</v-card-text>
@@ -77,7 +100,9 @@
 						</v-col>
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
-								<v-card-title>{{ $t("landing.features.playlist-copying.title") }}</v-card-title>
+								<v-card-title>{{
+									$t("landing.features.playlist-copying.title")
+								}}</v-card-title>
 								<v-card-text>
 									{{ $t("landing.features.playlist-copying.text") }}
 								</v-card-text>
@@ -92,16 +117,30 @@
 					<v-row>
 						<v-col>
 							<p>
-								<strong>{{ $t("landing.support.description1") }}</strong> {{ $t("landing.support.description2") }}
+								<strong>{{ $t("landing.support.description1") }}</strong>
+								{{ $t("landing.support.description2") }}
 							</p>
 						</v-col>
 						<v-col>
 							<h3>{{ $t("landing.support.how") }}</h3>
-							<v-btn x-large block color="red" href="https://github.com/sponsors/dyc3" target="_blank" >
+							<v-btn
+								x-large
+								block
+								color="red"
+								href="https://github.com/sponsors/dyc3"
+								target="_blank"
+							>
 								<v-icon class="side-pad">fas fa-heart</v-icon>
 								{{ $t("landing.support.sponsor") }}
 							</v-btn>
-							<v-btn x-large block color="blue" class="mt-2" href="https://github.com/dyc3/opentogethertube" target="_blank" >
+							<v-btn
+								x-large
+								block
+								color="blue"
+								class="mt-2"
+								href="https://github.com/dyc3/opentogethertube"
+								target="_blank"
+							>
 								<v-icon class="side-pad">fas fa-code</v-icon>
 								{{ $t("landing.support.contribute") }}
 							</v-btn>
@@ -117,10 +156,18 @@
 			<v-footer>
 				<v-container pa-0>
 					<v-row no-gutters align="center" justify="center">
-						{{ new Date().getFullYear() }} - <a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> - {{ $t("footer.made-in") }} - {{ $t("footer.thanks-to") }} <a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
+						{{ new Date().getFullYear() }} -
+						<a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> -
+						{{ $t("footer.made-in") }} - {{ $t("footer.thanks-to") }}
+						<a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
 					</v-row>
 					<v-row no-gutters align="center" justify="center">
-						<router-link class="side-pad" to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link><router-link class="side-pad" to="/attribution">{{ $t("footer.attribution") }}</router-link>
+						<router-link class="side-pad" to="/privacypolicy">{{
+							$t("footer.privacy-policy")
+						}}</router-link
+						><router-link class="side-pad" to="/attribution">{{
+							$t("footer.attribution")
+						}}</router-link>
 					</v-row>
 				</v-container>
 			</v-footer>
@@ -132,7 +179,7 @@
 import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 
 export default {
-	name: 'home',
+	name: "home",
 	mixins: [RoomUtilsMixin],
 	data() {
 		return {};
@@ -153,7 +200,12 @@ export default {
 }
 
 .hero {
-	background: linear-gradient(217deg, rgb(125, 74, 239), rgb(227,141,174) 30%, rgb(247, 208, 109));
+	background: linear-gradient(
+		217deg,
+		rgb(125, 74, 239),
+		rgb(227, 141, 174) 30%,
+		rgb(247, 208, 109)
+	);
 	color: white;
 	font-size: 22px;
 	height: 100vh;

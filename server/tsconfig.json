@@ -1,15 +1,9 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "commonjs"
 	},
-	"include": [
-		"**/*.ts",
-		"tests/**/*.ts",
-		"tests/**/*.tsx"
-	],
+	"include": ["**/*.ts", "tests/**/*.ts", "tests/**/*.tsx"],
 	"exclude": ["node_modules", "dist", "ts-out"],
-	"files": [
-		"./express-types.d.ts"
-	]
+	"files": ["./express-types.d.ts"]
 }

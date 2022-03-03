@@ -1,6 +1,6 @@
-const usermanager = require('../../usermanager.js');
+const usermanager = require("../../usermanager.js");
 
-describe('Usermanager spec', () => {
+describe("Usermanager spec", () => {
 	it("should check passwords correctly", () => {
 		expect(usermanager.isPasswordValid("aaaa1234")).toBe(true);
 		expect(usermanager.isPasswordValid("AAAA1111")).toBe(true);

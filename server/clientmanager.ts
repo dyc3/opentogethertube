@@ -3,34 +3,49 @@ import WebSocket from "ws";
 import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "./logger.js";
-import { Request } from 'express';
+import { Request } from "express";
 import { createSubscriber, redisClientAsync } from "./redisclient";
 import { promisify } from "util";
-import { ClientMessage, RoomRequest, RoomRequestType, ServerMessage, ServerMessageSync } from "../common/models/messages";
+import {
+	ClientMessage,
+	RoomRequest,
+	RoomRequestType,
+	ServerMessage,
+	ServerMessageSync,
+} from "../common/models/messages";
 import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
 import { InvalidTokenException } from "../common/exceptions";
-import { ClientInfo, MySession, OttWebsocketError, ClientId, RoomStateSyncable, AuthToken } from "../common/models/types";
+import {
+	ClientInfo,
+	MySession,
+	OttWebsocketError,
+	ClientId,
+	RoomStateSyncable,
+	AuthToken,
+} from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
-import { uniqueNamesGenerator } from 'unique-names-generator';
+import { uniqueNamesGenerator } from "unique-names-generator";
 import tokens, { SessionInfo } from "./auth/tokens";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
-const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(redisSubscriber);
+const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(
+	redisSubscriber
+);
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
 subscribe(ANNOUNCEMENT_CHANNEL);
 
 export class Client {
-	id: ClientId
-	socket: WebSocket
-	session?: SessionInfo
-	room: string
-	token: AuthToken | null = null
+	id: ClientId;
+	socket: WebSocket;
+	session?: SessionInfo;
+	room: string;
+	token: AuthToken | null = null;
 
-	constructor (roomName: string, socket: WebSocket) {
+	constructor(roomName: string, socket: WebSocket) {
 		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
 		this.socket = socket;
 		this.room = roomName;
@@ -43,18 +58,23 @@ export class Client {
 			if (this.token) {
 				try {
 					const room = await roommanager.GetRoom(this.room);
-					await room.processUnauthorizedRequest({
-						type: RoomRequestType.LeaveRequest,
-					}, {
-						token: this.token,
-					});
-				}
-				catch (e) {
+					await room.processUnauthorizedRequest(
+						{
+							type: RoomRequestType.LeaveRequest,
+						},
+						{
+							token: this.token,
+						}
+					);
+				} catch (e) {
 					if (e instanceof Error) {
-						log.warn(`Failed to make leave request: "${e.name}: ${e.message}" This is not a critical error, so we will continue.`);
-					}
-					else {
-						log.warn(`Failed to make leave request. This is not a critical error, so we will continue.`);
+						log.warn(
+							`Failed to make leave request: "${e.name}: ${e.message}" This is not a critical error, so we will continue.`
+						);
+					} else {
+						log.warn(
+							`Failed to make leave request. This is not a critical error, so we will continue.`
+						);
 					}
 				}
 			}
@@ -72,14 +92,16 @@ export class Client {
 			};
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
-		else if (this.session.isLoggedIn === false) { // this is a workaround because typescript doesn't narrow the type correctly
+		else if (this.session.isLoggedIn === false) {
+			// this is a workaround because typescript doesn't narrow the type correctly
 			return {
 				id: this.id,
 				username: this.session.username,
 			};
-		}
-		else {
-			log.error("Session did not have username present, nor passport user id. Generating username...");
+		} else {
+			log.error(
+				"Session did not have username present, nor passport user id. Generating username..."
+			);
 			return {
 				id: this.id,
 				username: uniqueNamesGenerator(),
@@ -94,8 +116,7 @@ export class Client {
 		if (msg.action === "kickme") {
 			this.socket.close(OttWebsocketError.UNKNOWN);
 			return;
-		}
-		else if (msg.action === "status") {
+		} else if (msg.action === "status") {
 			request = {
 				type: RoomRequestType.UpdateUser,
 				info: {
@@ -103,23 +124,19 @@ export class Client {
 					status: msg.status,
 				},
 			};
-		}
-		else if (msg.action === "auth") {
+		} else if (msg.action === "auth") {
 			this.token = msg.token;
 			log.debug("received auth token, joining room");
 			try {
 				await this.JoinRoom(this.room);
-			}
-			catch (e) {
+			} catch (e) {
 				if (e instanceof RoomNotFoundException) {
 					log.info(`Failed to join room: ${e.message}`);
 					this.socket.close(OttWebsocketError.ROOM_NOT_FOUND);
-				}
-				else if (e instanceof InvalidTokenException) {
+				} else if (e instanceof InvalidTokenException) {
 					log.info(`Failed to join room: ${e.message}`);
 					this.socket.close(OttWebsocketError.MISSING_TOKEN);
-				}
-				else {
+				} else {
 					if (e instanceof Error) {
 						log.error(`Failed to join room: ${e.stack}`);
 					}
@@ -127,23 +144,19 @@ export class Client {
 				}
 			}
 			return;
-		}
-		else if (msg.action === "req") {
+		} else if (msg.action === "req") {
 			request = msg.request;
-		}
-		else {
+		} else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
 		}
 
 		try {
 			await this.makeRoomRequest(request);
-		}
-		catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`Room request ${request.type} failed: ${e.message} ${e.stack}`);
-			}
-			else {
+			} else {
 				log.error(`Room request ${request.type} failed`);
 			}
 		}
@@ -177,7 +190,10 @@ export class Client {
 			state = JSON.parse(stateText) as RoomStateSyncable;
 			roomStates.set(room.name, state);
 		}
-		const syncMsg: ServerMessageSync = Object.assign({action: "sync"}, state) as ServerMessageSync;
+		const syncMsg: ServerMessageSync = Object.assign(
+			{ action: "sync" },
+			state
+		) as ServerMessageSync;
 		this.socket.send(JSON.stringify(syncMsg));
 
 		// actually join the room
@@ -208,16 +224,17 @@ export class Client {
 			await room.processUnauthorizedRequest(request, {
 				token: this.token,
 			});
-		}
-		catch (e) {
+		} catch (e) {
 			if (e instanceof RoomNotFoundException) {
 				// Room not found on this Node, pass it along
-				await redisClientAsync.publish(`${ROOM_REQUEST_CHANNEL_PREFIX}:${this.room}`, JSON.stringify({
-					request,
-					token: this.token,
-				}));
-			}
-			else {
+				await redisClientAsync.publish(
+					`${ROOM_REQUEST_CHANNEL_PREFIX}:${this.room}`,
+					JSON.stringify({
+						request,
+						token: this.token,
+					})
+				);
+			} else {
 				throw e;
 			}
 		}
@@ -226,12 +243,10 @@ export class Client {
 	public sendObj(obj: any): void {
 		try {
 			this.socket.send(JSON.stringify(obj));
-		}
-		catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`failed to send to client: ${e.message}`);
-			}
-			else {
+			} else {
 				log.error(`failed to send to client`);
 			}
 		}
@@ -260,8 +275,8 @@ async function OnConnect(socket: WebSocket, req: express.Request) {
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
 	const client = new Client(roomName, socket);
 	connections.push(client);
-	socket.on("ping", (data) => client.OnPing(data));
-	socket.on("message", (data) => client.OnMessage(data as string));
+	socket.on("ping", data => client.OnPing(data));
+	socket.on("message", data => client.OnMessage(data as string));
 }
 
 async function broadcast(roomName: string, text: string) {
@@ -272,12 +287,10 @@ async function broadcast(roomName: string, text: string) {
 	for (const client of clients) {
 		try {
 			client.socket.send(text);
-		}
-		catch (e) {
+		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`failed to send to client: ${e.message}`);
-			}
-			else {
+			} else {
 				log.error(`failed to send to client`);
 			}
 		}
@@ -299,8 +312,7 @@ async function onRedisMessage(channel: string, text: string) {
 			const filtered = _.omit(msg, "action");
 			if (state) {
 				Object.assign(state, filtered);
-			}
-			else {
+			} else {
 				// @ts-expect-error
 				state = filtered;
 			}
@@ -310,8 +322,7 @@ async function onRedisMessage(channel: string, text: string) {
 			roomStates.set(roomName, state);
 
 			await broadcast(roomName, text);
-		}
-		else if (msg.action === "unload") {
+		} else if (msg.action === "unload") {
 			const clients = roomJoins.get(roomName);
 			if (!clients) {
 				return;
@@ -319,14 +330,11 @@ async function onRedisMessage(channel: string, text: string) {
 			for (const client of clients) {
 				client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
 			}
-		}
-		else if (msg.action === "chat") {
+		} else if (msg.action === "chat") {
 			await broadcast(roomName, text);
-		}
-		else if (msg.action === "event" || msg.action === "eventcustom") {
+		} else if (msg.action === "event" || msg.action === "eventcustom") {
 			await broadcast(roomName, text);
-		}
-		else if (msg.action === "user") {
+		} else if (msg.action === "user") {
 			const clients = roomJoins.get(roomName);
 			if (!clients) {
 				return;
@@ -338,27 +346,22 @@ async function onRedisMessage(channel: string, text: string) {
 					break;
 				}
 			}
-		}
-		else {
+		} else {
 			log.error(`Unknown server message: ${(msg as { action: string }).action}`);
 		}
-	}
-	else if (channel === ANNOUNCEMENT_CHANNEL) {
+	} else if (channel === ANNOUNCEMENT_CHANNEL) {
 		for (const client of connections) {
 			try {
 				client.socket.send(text);
-			}
-			catch (e) {
+			} catch (e) {
 				if (e instanceof Error) {
 					log.error(`failed to send to client: ${e.message}`);
-				}
-				else {
+				} else {
 					log.error(`failed to send to client`);
 				}
 			}
 		}
-	}
-	else {
+	} else {
 		log.error(`Unhandled message from redis channel: ${channel}`);
 	}
 }
