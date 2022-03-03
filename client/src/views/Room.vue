@@ -105,6 +105,8 @@
                       {{ lengthDisplay }}
                     </span>
                   </div>
+                  <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
+                  <div class="flex-grow-1"><!-- Spacer --></div>
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
                       <v-btn @click="toggleFullscreen()" v-bind="attrs" v-on="on" style="margin-left: 10px">
@@ -113,7 +115,6 @@
                     </template>
                     <span>{{ $t("room.toggle-fullscreen") }}</span>
                   </v-tooltip>
-                  <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
                 </v-row>
               </v-col>
               <div
