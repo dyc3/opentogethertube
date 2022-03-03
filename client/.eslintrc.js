@@ -26,7 +26,6 @@ module.exports = {
     'comma-spacing': ['error', {'before': false, 'after': true}],
     'curly': ['error', 'all'],
     'func-call-spacing': ['error', 'never'],
-    'implicit-arrow-linebreak': ['error', 'beside'],
     'keyword-spacing': ['error', { 'before': true, 'after': true }],
     'no-eval': ['error', {}],
     'no-multiple-empty-lines': ['error', { 'max': 1, 'maxBOF': 0 }],

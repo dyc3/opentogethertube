@@ -10,22 +10,13 @@ module.exports = {
     "plugin:prettier/recommended",
   ],
   rules: {
+    // for prettier compat
+    'implicit-arrow-linebreak': 'off',
+
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'no-debugger': 'error',
-    'array-bracket-newline': ['error', { "multiline": true, "minItems": 3 }],
-    'array-bracket-spacing': ['error', 'never'],
-    'brace-style': ['error', 'stroustrup', { 'allowSingleLine': false }],
-    'comma-dangle': ['error', {
-      'arrays': 'always-multiline',
-      'objects': 'always-multiline',
-      'imports': 'never',
-      'exports': 'always-multiline',
-      'functions': 'never',
-    }],
-    'comma-spacing': ['error', {'before': false, 'after': true}],
     'curly': ['error', 'all'],
     'func-call-spacing': ['error', 'never'],
-    'implicit-arrow-linebreak': ['error', 'beside'],
     'keyword-spacing': ['error', { 'before': true, 'after': true }],
     'no-eval': ['error', {}],
     'no-multiple-empty-lines': ['error', { 'max': 1, 'maxBOF': 0 }],
