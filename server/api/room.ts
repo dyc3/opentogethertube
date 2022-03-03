@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { getLogger } from '../logger.js';
+import { getLogger } from "../logger.js";
 import roommanager from "../roommanager";
 import { QueueMode, Visibility } from "../../common/models/types";
 import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit";
@@ -18,22 +18,15 @@ const log = getLogger("api/room");
 
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = [
-	"list",
-	"create",
-	"generate",
+"list", "create", "generate"
 ];
 
 const VALID_ROOM_VISIBILITY = [
-	Visibility.Public,
-	Visibility.Unlisted,
-	Visibility.Private,
+Visibility.Public, Visibility.Unlisted, Visibility.Private
 ];
 
 const VALID_ROOM_QUEUE_MODE = [
-	QueueMode.Manual,
-	QueueMode.Vote,
-	QueueMode.Loop,
-	QueueMode.Dj,
+QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj
 ];
 
 interface RoomListItem {
@@ -56,7 +49,11 @@ interface ApiRoomCreateOptions {
 router.get("/list", (req, res) => {
 	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
 	if (req.get("apikey") && !isAuthorized) {
-		log.warn(`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${(req.headers["x-forwarded-for"] ?? "not-present").toString()} user-agent=${req.headers["user-agent"]}`);
+		log.warn(
+			`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${(
+				req.headers["x-forwarded-for"] ?? "not-present"
+			).toString()} user-agent=${req.headers["user-agent"]}`
+		);
 		res.status(400).json({
 			success: false,
 			error: "apikey is invalid",
@@ -98,16 +95,25 @@ const createRoom: RequestHandler = async (req, res) => {
 		throw new BadApiArgumentException("name", "not allowed (reserved)");
 	}
 	if (req.body.name.length < 3) {
-		throw new BadApiArgumentException("name", "not allowed (too short, must be at least 3 characters)");
+		throw new BadApiArgumentException(
+			"name",
+			"not allowed (too short, must be at least 3 characters)"
+		);
 	}
 	if (req.body.name.length > 32) {
-		throw new BadApiArgumentException("name", "not allowed (too long, must be at most 32 characters)");
+		throw new BadApiArgumentException(
+			"name",
+			"not allowed (too long, must be at most 32 characters)"
+		);
 	}
 	if (!ROOM_NAME_REGEX.exec(req.body.name)) {
 		throw new BadApiArgumentException("name", "not allowed (invalid characters)");
 	}
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY.toString()}`);
+		throw new BadApiArgumentException(
+			"visibility",
+			`must be one of ${VALID_ROOM_VISIBILITY.toString()}`
+		);
 	}
 	let points = 50;
 	if (req.body.isTemporary === undefined) {
@@ -123,11 +129,11 @@ const createRoom: RequestHandler = async (req, res) => {
 		const info = await rateLimiter.consume(req.ip, points);
 		setRateLimitHeaders(res, info);
 	}
-	catch (e) {
+ catch (e) {
 		if (e instanceof Error) {
 			throw e;
 		}
-		else {
+ else {
 			handleRateLimit(res, e);
 			return;
 		}
@@ -135,10 +141,14 @@ const createRoom: RequestHandler = async (req, res) => {
 	if (req.user) {
 		await roommanager.CreateRoom({ ...req.body, owner: req.user });
 	}
-	else {
+ else {
 		await roommanager.CreateRoom(req.body);
 	}
-	log.info(`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${req.body.name} ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
+	log.info(
+		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${
+			req.body.name
+		} ip=${req.ip} user-agent=${req.headers["user-agent"]}`
+	);
 	res.json({
 		success: true,
 	});
@@ -149,10 +159,16 @@ const patchRoom: RequestHandler = async (req, res) => {
 		throw new OttException("Missing token");
 	}
 	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		throw new BadApiArgumentException("visibility", `must be one of ${VALID_ROOM_VISIBILITY.toString()}`);
+		throw new BadApiArgumentException(
+			"visibility",
+			`must be one of ${VALID_ROOM_VISIBILITY.toString()}`
+		);
 	}
 	if (req.body.queueMode && !VALID_ROOM_QUEUE_MODE.includes(req.body.queueMode)) {
-		throw new BadApiArgumentException("queueMode", `must be one of ${VALID_ROOM_QUEUE_MODE.toString()}`);
+		throw new BadApiArgumentException(
+			"queueMode",
+			`must be one of ${VALID_ROOM_QUEUE_MODE.toString()}`
+		);
 	}
 
 	if (req.body.permissions) {
@@ -167,7 +183,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 		if (room.isTemporary) {
 			throw new BadApiArgumentException("claim", `Can't claim temporary rooms.`);
 		}
-		else if (room.owner) {
+ else if (room.owner) {
 			throw new BadApiArgumentException("claim", `Room already has owner.`);
 		}
 	}
@@ -191,7 +207,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 					}
 				}
 			}
-			else {
+ else {
 				res.status(401).json({
 					success: false,
 					error: {
@@ -205,11 +221,11 @@ const patchRoom: RequestHandler = async (req, res) => {
 		try {
 			await storage.updateRoom(room);
 		}
-		catch (err) {
+ catch (err) {
 			if (err instanceof Error) {
 				log.error(`Failed to update room: ${err.message} ${err.stack}`);
 			}
-			else {
+ else {
 				log.error(`Failed to update room`);
 			}
 			res.status(500).json({
@@ -300,7 +316,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 				},
 			});
 		}
-		else {
+ else {
 			res.status(400).json({
 				success: false,
 				error: {
@@ -310,7 +326,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 			});
 		}
 	}
-	else {
+ else {
 		log.error(`Unhandled exception: path=${req.path} ${err.name} ${err.message} ${err.stack}`);
 		res.status(500).json({
 			success: false,
@@ -328,7 +344,7 @@ router.post("/create", async (req, res, next) => {
 	try {
 		await createRoom(req, res, next);
 	}
-	catch (e) {
+ catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -337,7 +353,7 @@ router.patch("/:name", async (req, res, next) => {
 	try {
 		await patchRoom(req, res, next);
 	}
-	catch (e) {
+ catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -346,7 +362,7 @@ router.post("/:name/undo", async (req, res, next) => {
 	try {
 		await undoEvent(req as express.Request, res);
 	}
-	catch (e) {
+ catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -355,7 +371,7 @@ router.post("/:name/vote", async (req, res, next) => {
 	try {
 		await addVote(req as express.Request, res);
 	}
-	catch (e) {
+ catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });
@@ -364,7 +380,7 @@ router.delete("/:name/vote", async (req, res, next) => {
 	try {
 		await removeVote(req as express.Request, res);
 	}
-	catch (e) {
+ catch (e) {
 		errorHandler(e, req, res, next);
 	}
 });

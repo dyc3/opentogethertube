@@ -24,12 +24,9 @@ describe("InfoExtractor", () => {
 			"http://example.com/video.mp4",
 		];
 
-		it.each(validUrls)(
-			"Should be valid URL: %s",
-			(link) => {
-				expect(InfoExtractor.isURL(link)).toBe(true);
-			}
-		);
+		it.each(validUrls)("Should be valid URL: %s", link => {
+			expect(InfoExtractor.isURL(link)).toBe(true);
+		});
 	});
 
 	describe("getServiceAdapter", () => {
@@ -69,9 +66,15 @@ describe("InfoExtractor", () => {
 		it("should use cached search results", async () => {
 			await redisClientAsync.set("search:fakeservice:asdf", JSON.stringify([vid]));
 			let adapter = new TestAdapter();
-			let getAdapterSpy = jest.spyOn(InfoExtractor, 'getServiceAdapter').mockReturnValue(adapter);
-			let getCacheSpy = jest.spyOn(InfoExtractor, 'getCachedSearchResults').mockResolvedValue([vid]);
-			let getManyVideoInfoSpy = jest.spyOn(InfoExtractor, 'getManyVideoInfo').mockResolvedValue([vid]);
+			let getAdapterSpy = jest
+				.spyOn(InfoExtractor, "getServiceAdapter")
+				.mockReturnValue(adapter);
+			let getCacheSpy = jest
+				.spyOn(InfoExtractor, "getCachedSearchResults")
+				.mockResolvedValue([vid]);
+			let getManyVideoInfoSpy = jest
+				.spyOn(InfoExtractor, "getManyVideoInfo")
+				.mockResolvedValue([vid]);
 			let results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
 			expect(getAdapterSpy).toBeCalledTimes(0);
 			expect(getCacheSpy).toBeCalledTimes(1);
@@ -85,15 +88,21 @@ describe("InfoExtractor", () => {
 
 		it("should cache fresh search results", async () => {
 			let adapter = new TestAdapter();
-			let getAdapterSpy = jest.spyOn(InfoExtractor, 'getServiceAdapter').mockReturnValue(adapter);
-			let getCacheSpy = jest.spyOn(InfoExtractor, 'getCachedSearchResults').mockResolvedValue(null);
-			let searchSpy = jest.spyOn(adapter, 'searchVideos').mockResolvedValue([
+			let getAdapterSpy = jest
+				.spyOn(InfoExtractor, "getServiceAdapter")
+				.mockReturnValue(adapter);
+			let getCacheSpy = jest
+				.spyOn(InfoExtractor, "getCachedSearchResults")
+				.mockResolvedValue(null);
+			let searchSpy = jest.spyOn(adapter, "searchVideos").mockResolvedValue([
 				{
 					service: "fakeservice",
 					id: "asdf1234",
 				},
 			]);
-			let getManyVideoInfoSpy = jest.spyOn(InfoExtractor, 'getManyVideoInfo').mockResolvedValue([vid]);
+			let getManyVideoInfoSpy = jest
+				.spyOn(InfoExtractor, "getManyVideoInfo")
+				.mockResolvedValue([vid]);
 
 			let results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
 
@@ -102,13 +111,14 @@ describe("InfoExtractor", () => {
 			expect(getAdapterSpy).toBeCalledTimes(1);
 			expect(getManyVideoInfoSpy).toBeCalledTimes(1);
 			expect(searchSpy).toBeCalledTimes(1);
-			expect((await redisClientAsync.get(`search:${adapter.serviceId}:asdf`)).length).toBeGreaterThan(0);
+			expect(
+				(await redisClientAsync.get(`search:${adapter.serviceId}:asdf`)).length
+			).toBeGreaterThan(0);
 
 			getManyVideoInfoSpy.mockRestore();
 			searchSpy.mockRestore();
 			getCacheSpy.mockRestore();
 		});
-
 	});
 
 	describe("getVideoInfo", () => {
@@ -118,10 +128,10 @@ describe("InfoExtractor", () => {
 		let adapterFetchVideoInfo;
 		beforeAll(() => {
 			let adapter = new TestAdapter();
-			getAdapter = jest.spyOn(InfoExtractor, 'getServiceAdapter').mockReturnValue(adapter);
-			getCachedVideo = jest.spyOn(InfoExtractor, 'getCachedVideo').mockImplementation();
-			updateCache = jest.spyOn(InfoExtractor, 'updateCache').mockImplementation();
-			adapterFetchVideoInfo = jest.spyOn(adapter, 'fetchVideoInfo');
+			getAdapter = jest.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
+			getCachedVideo = jest.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
+			updateCache = jest.spyOn(InfoExtractor, "updateCache").mockImplementation();
+			adapterFetchVideoInfo = jest.spyOn(adapter, "fetchVideoInfo");
 		});
 		afterEach(() => {
 			updateCache.mockClear();
@@ -188,7 +198,9 @@ describe("InfoExtractor", () => {
 				["title", "description", "thumbnail"],
 			]);
 			adapterFetchVideoInfo.mockRejectedValue(new OutOfQuotaException());
-			expect(await InfoExtractor.getVideoInfo("youtube", "asdf")).toEqual(_.pick(vid, "service", "id", "length"));
+			expect(await InfoExtractor.getVideoInfo("youtube", "asdf")).toEqual(
+				_.pick(vid, "service", "id", "length")
+			);
 			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
 		});
 
@@ -199,7 +211,9 @@ describe("InfoExtractor", () => {
 				["title", "description", "thumbnail", "length", "mime"],
 			]);
 			adapterFetchVideoInfo.mockRejectedValue(new OutOfQuotaException());
-			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrowError(OutOfQuotaException);
+			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrowError(
+				OutOfQuotaException
+			);
 			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
 		});
 
@@ -210,7 +224,9 @@ describe("InfoExtractor", () => {
 				["title", "description", "thumbnail"],
 			]);
 			adapterFetchVideoInfo.mockRejectedValue(new Error("fake"));
-			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrow(new Error("fake"));
+			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrow(
+				new Error("fake")
+			);
 			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
 		});
 	});
@@ -223,11 +239,11 @@ describe("InfoExtractor", () => {
 		let storageGetManyVideoInfo;
 		beforeAll(() => {
 			let adapter = new TestAdapter();
-			getAdapter = jest.spyOn(InfoExtractor, 'getServiceAdapter').mockReturnValue(adapter);
-			getCachedVideo = jest.spyOn(InfoExtractor, 'getCachedVideo').mockImplementation();
-			updateCache = jest.spyOn(InfoExtractor, 'updateCache').mockImplementation();
-			adapterFetchManyVideoInfo = jest.spyOn(adapter, 'fetchManyVideoInfo');
-			storageGetManyVideoInfo = jest.spyOn(storage, 'getManyVideoInfo').mockImplementation();
+			getAdapter = jest.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
+			getCachedVideo = jest.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
+			updateCache = jest.spyOn(InfoExtractor, "updateCache").mockImplementation();
+			adapterFetchManyVideoInfo = jest.spyOn(adapter, "fetchManyVideoInfo");
+			storageGetManyVideoInfo = jest.spyOn(storage, "getManyVideoInfo").mockImplementation();
 		});
 		afterEach(() => {
 			updateCache.mockClear();
@@ -265,27 +281,32 @@ describe("InfoExtractor", () => {
 
 		it("should get videos from cache without fetching from adapter", async () => {
 			storageGetManyVideoInfo.mockResolvedValue(vids);
-			expect(await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))).toEqual(vids);
+			expect(
+				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))
+			).toEqual(vids);
 			expect(adapterFetchManyVideoInfo).not.toBeCalled();
 		});
 
 		it("should get videos fetching from adapter", async () => {
-			storageGetManyVideoInfo.mockResolvedValue(vids.map(vid => _.pick(vid, "service", "id")));
+			storageGetManyVideoInfo.mockResolvedValue(
+				vids.map(vid => _.pick(vid, "service", "id"))
+			);
 			adapterFetchManyVideoInfo.mockResolvedValue(vids);
 			updateCache.mockImplementation();
-			expect(await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))).toEqual(vids);
+			expect(
+				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))
+			).toEqual(vids);
 			expect(adapterFetchManyVideoInfo).toBeCalledTimes(1);
 			expect(updateCache).toBeCalledTimes(1);
 		});
 
 		it("should get some videos from cache, and the rest fetching from adapter", async () => {
-			storageGetManyVideoInfo.mockResolvedValue([
-				vids[0],
-				_.pick(vids[1], "service", "id"),
-			]);
+			storageGetManyVideoInfo.mockResolvedValue([vids[0], _.pick(vids[1], "service", "id")]);
 			adapterFetchManyVideoInfo.mockResolvedValue(vids);
 			updateCache.mockImplementation();
-			expect(await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))).toEqual(vids);
+			expect(
+				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))
+			).toEqual(vids);
 			expect(adapterFetchManyVideoInfo).toBeCalledTimes(1);
 			expect(updateCache).toBeCalledTimes(1);
 		});
@@ -295,7 +316,7 @@ describe("InfoExtractor", () => {
 describe("InfoExtractor: Cache", () => {
 	describe("getCachedVideo", () => {
 		it("should get video from cache", async () => {
-			jest.spyOn(storage, 'getVideoInfo').mockReturnValue({
+			jest.spyOn(storage, "getVideoInfo").mockReturnValue({
 				service: "youtube",
 				id: "94L1GMA2wjk4",
 				title: "example",
@@ -307,42 +328,41 @@ describe("InfoExtractor: Cache", () => {
 					title: "example",
 				},
 				[
-					"description",
-					"thumbnail",
-					"length",
-				],
+"description", "thumbnail", "length"
+],
 			]);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			storage.getVideoInfo.mockReset();
 
-			jest.spyOn(storage, 'getVideoInfo').mockReturnValue({
+			jest.spyOn(storage, "getVideoInfo").mockReturnValue({
 				service: "direct",
 				id: "https://example.com/asdf.mp4",
 				title: "asdf.mp4",
 			});
-			expect(await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4")).toEqual([
+			expect(
+				await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4")
+			).toEqual([
 				{
 					service: "direct",
 					id: "https://example.com/asdf.mp4",
 					title: "asdf.mp4",
 				},
 				[
-					"description",
-					"thumbnail",
-					"length",
-					"mime",
-				],
+"description", "thumbnail", "length", "mime"
+],
 			]);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			storage.getVideoInfo.mockReset();
 
-			jest.spyOn(storage, 'getVideoInfo').mockReturnValue({
+			jest.spyOn(storage, "getVideoInfo").mockReturnValue({
 				service: "direct",
 				id: "https://example.com/asdf.mp4",
 				title: "asdf.mp4",
 				mime: "video/mp4",
 			});
-			expect(await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4")).toEqual([
+			expect(
+				await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4")
+			).toEqual([
 				{
 					service: "direct",
 					id: "https://example.com/asdf.mp4",
@@ -350,21 +370,21 @@ describe("InfoExtractor: Cache", () => {
 					mime: "video/mp4",
 				},
 				[
-					"description",
-					"thumbnail",
-					"length",
-				],
+"description", "thumbnail", "length"
+],
 			]);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			storage.getVideoInfo.mockReset();
 
-			jest.spyOn(storage, 'getVideoInfo').mockReturnValue({
+			jest.spyOn(storage, "getVideoInfo").mockReturnValue({
 				service: "direct",
 				id: "https://example.com/asdf",
 				title: "asdf",
 				mime: "invalid",
 			});
-			expect(InfoExtractor.getCachedVideo("direct", "https://example.com/asdf")).rejects.toThrow(UnsupportedMimeTypeException);
+			expect(
+				InfoExtractor.getCachedVideo("direct", "https://example.com/asdf")
+			).rejects.toThrow(UnsupportedMimeTypeException);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			storage.getVideoInfo.mockReset();
 		});
@@ -372,8 +392,8 @@ describe("InfoExtractor: Cache", () => {
 
 	describe("updateCache", () => {
 		beforeEach(() => {
-			jest.spyOn(storage, 'updateVideoInfo').mockImplementation();
-			jest.spyOn(storage, 'updateManyVideoInfo').mockImplementation();
+			jest.spyOn(storage, "updateVideoInfo").mockImplementation();
+			jest.spyOn(storage, "updateManyVideoInfo").mockImplementation();
 		});
 
 		afterAll(() => {

@@ -14,11 +14,11 @@ export async function bumpCounter(key: Counter, amount = 1): Promise<void> {
 		log.debug(`incrementing ${key} by ${amount}`);
 		await redisClientAsync.incrby(key, amount);
 	}
-	catch (e) {
+ catch (e) {
 		if (e instanceof Error) {
 			log.error(`failed to bump counter, ignoring ${e.message}`);
 		}
-		else {
+ else {
 			log.error(`failed to bump counter, ignoring`);
 		}
 	}

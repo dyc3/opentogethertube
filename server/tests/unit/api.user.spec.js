@@ -1,6 +1,6 @@
-const request = require('supertest');
-const app = require('../../app.js').app;
-const usermanager = require('../../usermanager.js');
+const request = require("supertest");
+const app = require("../../app.js").app;
+const usermanager = require("../../usermanager.js");
 const { User } = require("../../models");
 
 describe("User API", () => {
@@ -20,9 +20,7 @@ describe("User API", () => {
 			password: "test1234",
 		});
 
-		let resp = await request(app)
-			.get("/api/auth/grant")
-			.expect(200);
+		let resp = await request(app).get("/api/auth/grant").expect(200);
 		token = resp.body.token;
 	});
 
@@ -66,7 +64,9 @@ describe("User API", () => {
 		let onUserModifiedSpy;
 
 		beforeAll(() => {
-			onUserModifiedSpy = jest.spyOn(usermanager, "onUserModified").mockImplementation(() => {});
+			onUserModifiedSpy = jest
+				.spyOn(usermanager, "onUserModified")
+				.mockImplementation(() => {});
 		});
 
 		beforeEach(async () => {
@@ -157,7 +157,9 @@ describe("User API", () => {
 			let onUserLogInSpy;
 
 			beforeAll(() => {
-				onUserLogInSpy = jest.spyOn(usermanager, "onUserLogIn").mockImplementation(() => {});
+				onUserLogInSpy = jest
+					.spyOn(usermanager, "onUserLogIn")
+					.mockImplementation(() => {});
 			});
 
 			beforeEach(async () => {
@@ -209,7 +211,9 @@ describe("User API", () => {
 			let onUserLogOutSpy;
 
 			beforeAll(() => {
-				onUserLogOutSpy = jest.spyOn(usermanager, "onUserLogOut").mockImplementation(() => {});
+				onUserLogOutSpy = jest
+					.spyOn(usermanager, "onUserLogOut")
+					.mockImplementation(() => {});
 			});
 
 			beforeEach(async () => {
@@ -252,7 +256,9 @@ describe("User API", () => {
 			let onUserLogInSpy;
 
 			beforeAll(() => {
-				onUserLogInSpy = jest.spyOn(usermanager, "onUserLogIn").mockImplementation(() => {});
+				onUserLogInSpy = jest
+					.spyOn(usermanager, "onUserLogIn")
+					.mockImplementation(() => {});
 			});
 
 			beforeEach(async () => {
@@ -267,7 +273,11 @@ describe("User API", () => {
 				await request(app)
 					.post("/api/user/register")
 					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "register@localhost", username: "registered", password: "test1234" })
+					.send({
+						email: "register@localhost",
+						username: "registered",
+						password: "test1234",
+					})
 					.expect(200)
 					.expect("Content-Type", /json/)
 					.then(resp => {
@@ -301,7 +311,11 @@ describe("User API", () => {
 				await request(app)
 					.post("/api/user/register")
 					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "register@localhost", username: "test user", password: "test1234" })
+					.send({
+						email: "register@localhost",
+						username: "test user",
+						password: "test1234",
+					})
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {
@@ -346,7 +360,11 @@ describe("User API", () => {
 				await request(app)
 					.post("/api/user/register")
 					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "badpassword@localhost", username: "bad password", password: "a" })
+					.send({
+						email: "badpassword@localhost",
+						username: "bad password",
+						password: "a",
+					})
 					.expect(400)
 					.expect("Content-Type", /json/)
 					.then(resp => {

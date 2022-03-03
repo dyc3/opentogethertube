@@ -1,9 +1,9 @@
-const request = require('supertest');
-import roommanager from '../../roommanager';
-const app = require('../../app.js').app;
-const InfoExtract = require('../../infoextractor');
+const request = require("supertest");
+import roommanager from "../../roommanager";
+const app = require("../../app.js").app;
+const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
-const usermanager = require('../../usermanager.js');
+const usermanager = require("../../usermanager.js");
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
 import { redisClient } from "../../redisclient";
 import tokens from "../../auth/tokens";
@@ -28,7 +28,7 @@ expect.extend({
 				pass,
 			};
 		}
-		else {
+ else {
 			return {
 				message: () => `expected error to be RoomNotFoundException`,
 				pass,
@@ -43,21 +43,22 @@ expect.extend({
 				pass: false,
 			};
 		}
-		let pass = this.equals(error, {
-			name: "Unknown",
-			message: "Failed to get room",
-		}) ||
-		this.equals(error, {
-			name: "Unknown",
-			message: "Failed to get video",
-		});
+		let pass =
+			this.equals(error, {
+				name: "Unknown",
+				message: "Failed to get room",
+			}) ||
+			this.equals(error, {
+				name: "Unknown",
+				message: "Failed to get video",
+			});
 		if (pass) {
 			return {
 				message: () => `expected error to not be Unknown`,
 				pass,
 			};
 		}
-		else {
+ else {
 			return {
 				message: () => `expected error to be Unknown`,
 				pass,
@@ -360,7 +361,9 @@ describe.skip("Room API", () => {
 				{ service: "youtube", id: "fake1" },
 				{ service: "youtube", id: "fake2" },
 			];
-			let getManyVideoInfoSpy = jest.spyOn(InfoExtract, 'getManyVideoInfo').mockResolvedValue(videos);
+			let getManyVideoInfoSpy = jest
+				.spyOn(InfoExtract, "getManyVideoInfo")
+				.mockResolvedValue(videos);
 			await roommanager.createRoom("test1", true);
 
 			await request(app)
@@ -427,7 +430,7 @@ describe.skip("Room API", () => {
 			await roommanager.createRoom("test1", true);
 
 			let room = await roommanager.getOrLoadRoom("test1");
-			jest.spyOn(room, 'addToQueue').mockRejectedValue(new Error("fake unknown error"));
+			jest.spyOn(room, "addToQueue").mockRejectedValue(new Error("fake unknown error"));
 
 			await request(app)
 				.post("/api/room/test1/queue")
@@ -526,7 +529,7 @@ describe.skip("Room API", () => {
 			await roommanager.createRoom("test1", true);
 
 			let room = await roommanager.getOrLoadRoom("test1");
-			jest.spyOn(room, 'removeFromQueue').mockImplementation(() => {
+			jest.spyOn(room, "removeFromQueue").mockImplementation(() => {
 				throw new Error("fake unknown error");
 			});
 
@@ -634,7 +637,7 @@ describe.skip("Room API", () => {
 
 			let room = await roommanager.getOrLoadRoom("test1");
 			room.queueMode = "vote";
-			jest.spyOn(room, 'voteVideo').mockImplementation(() => {
+			jest.spyOn(room, "voteVideo").mockImplementation(() => {
 				throw new Error("fake unknown error");
 			});
 
@@ -742,7 +745,7 @@ describe.skip("Room API", () => {
 
 			let room = await roommanager.getOrLoadRoom("test1");
 			room.queueMode = "vote";
-			jest.spyOn(room, 'removeVoteVideo').mockImplementation(() => {
+			jest.spyOn(room, "removeVoteVideo").mockImplementation(() => {
 				throw new Error("fake unknown error");
 			});
 
@@ -761,10 +764,10 @@ describe.skip("Room API", () => {
 
 describe("Data API", () => {
 	beforeAll(() => {
-		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 		});
-		jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+		jest.spyOn(tokens, "validate").mockResolvedValue(true);
 	});
 
 	afterAll(() => {
@@ -773,11 +776,13 @@ describe("Data API", () => {
 	});
 
 	it("GET /data/previewAdd", async () => {
-		let resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockReturnValue(Promise.resolve([]));
+		let resolveQuerySpy = jest
+			.spyOn(InfoExtract.default, "resolveVideoQuery")
+			.mockReturnValue(Promise.resolve([]));
 
 		await request(app)
 			.get("/api/data/previewAdd")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(200)
@@ -787,11 +792,16 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })));
+		resolveQuerySpy = jest
+			.spyOn(InfoExtract.default, "resolveVideoQuery")
+			.mockImplementation(
+				() => new Promise((resolve, reject) => reject({ name: "UnsupportedServiceException", message: "error message" })
+					)
+			);
 
 		await request(app)
 			.get("/api/data/previewAdd")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -802,11 +812,17 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "InvalidAddPreviewInputException", message: "error message" })));
+		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(
+			() => new Promise((resolve, reject) => reject({
+						name: "InvalidAddPreviewInputException",
+						message: "error message",
+					})
+				)
+		);
 
 		await request(app)
 			.get("/api/data/previewAdd")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -817,11 +833,16 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })));
+		resolveQuerySpy = jest
+			.spyOn(InfoExtract.default, "resolveVideoQuery")
+			.mockImplementation(
+				() => new Promise((resolve, reject) => reject({ name: "OutOfQuotaException", message: "error message" })
+					)
+			);
 
 		await request(app)
 			.get("/api/data/previewAdd")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -838,7 +859,7 @@ describe("Data API", () => {
 		it("should get available permissions and roles", async () => {
 			await request(app)
 				.get("/api/data/permissions")
-				.set({ "Authorization": "Bearer foobar" })
+				.set({ Authorization: "Bearer foobar" })
 				.expect("Content-Type", /json/)
 				.expect(200)
 				.then(resp => {
@@ -854,10 +875,10 @@ describe("Announcements API", () => {
 
 	beforeAll(() => {
 		process.env.OPENTOGETHERTUBE_API_KEY = TEST_API_KEY;
-		jest.spyOn(tokens, 'getSessionInfo').mockResolvedValue({
+		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 		});
-		jest.spyOn(tokens, 'validate').mockResolvedValue(true);
+		jest.spyOn(tokens, "validate").mockResolvedValue(true);
 	});
 
 	beforeEach(() => {
@@ -876,7 +897,7 @@ describe("Announcements API", () => {
 	it("should send an announcement", async () => {
 		await request(app)
 			.post("/api/announce")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
@@ -886,13 +907,16 @@ describe("Announcements API", () => {
 					success: true,
 				});
 			});
-		expect(publishSpy).toHaveBeenCalledWith(ANNOUNCEMENT_CHANNEL, "{\"action\":\"announcement\",\"text\":\"test announcement\"}");
+		expect(publishSpy).toHaveBeenCalledWith(
+			ANNOUNCEMENT_CHANNEL,
+			'{"action":"announcement","text":"test announcement"}'
+		);
 	});
 
 	it("should not send announcement if the api key does not match", async () => {
 		await request(app)
 			.post("/api/announce")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -907,7 +931,7 @@ describe("Announcements API", () => {
 
 		await request(app)
 			.post("/api/announce")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", "wrong key")
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
@@ -924,7 +948,7 @@ describe("Announcements API", () => {
 	it("should not send an announcement if no text is provided", async () => {
 		await request(app)
 			.post("/api/announce")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.expect("Content-Type", /json/)
 			.expect(400)
@@ -944,7 +968,7 @@ describe("Announcements API", () => {
 
 		await request(app)
 			.post("/api/announce")
-			.set({ "Authorization": "Bearer foobar" })
+			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
 			.expect("Content-Type", /json/)
@@ -958,6 +982,9 @@ describe("Announcements API", () => {
 					},
 				});
 			});
-		expect(publishSpy).toHaveBeenCalledWith(ANNOUNCEMENT_CHANNEL, "{\"action\":\"announcement\",\"text\":\"test announcement\"}");
+		expect(publishSpy).toHaveBeenCalledWith(
+			ANNOUNCEMENT_CHANNEL,
+			'{"action":"announcement","text":"test announcement"}'
+		);
 	});
 });

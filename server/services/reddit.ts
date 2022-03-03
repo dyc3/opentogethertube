@@ -8,55 +8,55 @@ import { InvalidVideoIdException } from "../exceptions";
 const log = getLogger("reddit");
 
 export interface RedditListing<T> {
-	kind: "Listing",
+	kind: "Listing";
 	data: {
-		modhash: string,
-		children: T[],
-	},
+		modhash: string;
+		children: T[];
+	};
 }
 
 export interface RedditPost {
-	kind: "t3",
-	data: RedditPostData | RedditVideoPostData,
+	kind: "t3";
+	data: RedditPostData | RedditVideoPostData;
 }
 
 export interface RedditPostData {
-	subreddit: string,
-	title: string,
-	selftext: string,
-	is_video: boolean,
-	permalink: string,
-	url: string,
-	thumbnail: string,
-	id: string,
+	subreddit: string;
+	title: string;
+	selftext: string;
+	is_video: boolean;
+	permalink: string;
+	url: string;
+	thumbnail: string;
+	id: string;
 }
 
 export interface RedditVideoPostData extends RedditPostData {
-	is_video: true,
-	is_reddit_media_domain: boolean,
-	media: RedditMedia,
-	secure_media: RedditMedia,
+	is_video: true;
+	is_reddit_media_domain: boolean;
+	media: RedditMedia;
+	secure_media: RedditMedia;
 }
 
 export interface RedditMedia {
 	reddit_video: {
-		hls_url: string,
-		dash_url: string,
-		duration: number,
-		height: number,
-		width: number,
-		fallback_url: string,
-		transcoding_status: string,
-		is_gif: boolean,
-		scrubber_media_url: string,
-	}
+		hls_url: string;
+		dash_url: string;
+		duration: number;
+		height: number;
+		width: number;
+		fallback_url: string;
+		transcoding_status: string;
+		is_gif: boolean;
+		scrubber_media_url: string;
+	};
 }
 
 export interface RedditComment {
-	kind: "t1",
+	kind: "t1";
 	data: {
-		body: string,
-	}
+		body: string;
+	};
 }
 
 export type RedditListableThing = RedditPost | RedditComment;
@@ -64,7 +64,7 @@ export type RedditThing = RedditPost | RedditComment | RedditListing<RedditLista
 
 export default class RedditAdapter extends ServiceAdapter {
 	api = axios.create({
-		headers: {'User-Agent': `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}`},
+		headers: { "User-Agent": `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}` },
 	});
 
 	get serviceId(): "reddit" {
@@ -77,7 +77,10 @@ export default class RedditAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
-		return url.host.endsWith("reddit.com") && (/^\/r\/.+$/.test(url.pathname) || /\/comments\/.+/.test(url.pathname));
+		return (
+			url.host.endsWith("reddit.com") &&
+			(/^\/r\/.+$/.test(url.pathname) || /\/comments\/.+/.test(url.pathname))
+		);
 	}
 
 	isCollectionURL(link: string): boolean {
@@ -95,7 +98,9 @@ export default class RedditAdapter extends ServiceAdapter {
 		return this.extractVideos(fetchResult[0]);
 	}
 
-	async fetchRedditUrl(link: string): Promise<RedditListing<RedditListableThing>[] | RedditListing<RedditListableThing>> {
+	async fetchRedditUrl(
+		link: string
+	): Promise<RedditListing<RedditListableThing>[] | RedditListing<RedditListableThing>> {
 		let resp = await this.api.get(link);
 		if (Array.isArray(resp.data)) {
 			return resp.data as RedditListing<RedditListableThing>[];
@@ -110,7 +115,7 @@ export default class RedditAdapter extends ServiceAdapter {
 				videos.push(...this.extractVideos(listedThing));
 			}
 		}
-		else if (thing.kind === "t3") {
+ else if (thing.kind === "t3") {
 			if (thing.data.is_video && "media" in thing.data) {
 				videos.push({
 					service: "reddit",
@@ -122,7 +127,7 @@ export default class RedditAdapter extends ServiceAdapter {
 					hls_url: thing.data.media.reddit_video.hls_url,
 				});
 			}
-			else {
+ else {
 				if (thing.data.url.length > 0) {
 					videos.push({
 						url: thing.data.url,

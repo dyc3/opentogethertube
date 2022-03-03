@@ -5,7 +5,10 @@ const validVideoLinks = [
 	["jriwl35", "https://www.dailymotion.com/video/jriwl35"],
 	["jriwl35", "https://dailymotion.com/video/jriwl35"],
 	["jriwl35", "https://dai.ly/jriwl35"],
-	["k4n9fchBAWl3NmwfLhV", "https://www.dailymotion.com/embed/video/k4n9fchBAWl3NmwfLhV?autoplay=false&queue-enable=false"],
+	[
+		"k4n9fchBAWl3NmwfLhV",
+		"https://www.dailymotion.com/embed/video/k4n9fchBAWl3NmwfLhV?autoplay=false&queue-enable=false",
+	],
 ];
 
 const invalidLinks = [
@@ -19,11 +22,11 @@ describe("Dailymotion", () => {
 	describe("canHandleURL", () => {
 		const adapter = new DailyMotionAdapter();
 
-		it.each(validVideoLinks.map(l => l[1]))("Accepts %s", (link) => {
+		it.each(validVideoLinks.map(l => l[1]))("Accepts %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(true);
 		});
 
-		it.each(invalidLinks)("Rejects %s", (link) => {
+		it.each(invalidLinks)("Rejects %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(false);
 		});
 	});
@@ -65,10 +68,7 @@ describe("Dailymotion", () => {
 		});
 
 		it("Throws an error if videoId is invalid", () => {
-			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(
-				InvalidVideoIdException
-			);
+			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(InvalidVideoIdException);
 		});
 	});
 });
-

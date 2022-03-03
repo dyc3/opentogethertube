@@ -7,50 +7,50 @@ import { Video, VideoMetadata } from "common/models/video";
 const log = getLogger("tubi");
 
 interface TubiVideoResponse {
-	id: string,
-	type: "k"
-	title: string,
-	description: string,
-	thumbnails: string[],
+	id: string;
+	type: "k";
+	title: string;
+	description: string;
+	thumbnails: string[];
 	video_resources: {
 		manifest: {
-			url: string,
-			duration: number,
-		}
-		type: string,
-	}[],
-	episode_number: string,
-	series_id: string,
+			url: string;
+			duration: number;
+		};
+		type: string;
+	}[];
+	episode_number: string;
+	series_id: string;
 }
 
 interface TubiSeries {
-	id: string,
-	type: "s",
-	seasons: TubiSeason[]
+	id: string;
+	type: "s";
+	seasons: TubiSeason[];
 }
 
 interface TubiSeason {
-	id: string,
-	type: "a",
-	title: string,
-	episodeIds: string[],
+	id: string;
+	type: "a";
+	title: string;
+	episodeIds: string[];
 }
 
 interface TubiSeriesInfo {
 	video: {
 		byId: {
-			[id: string]: TubiVideoResponse | TubiSeries
-		}
-	}
+			[id: string]: TubiVideoResponse | TubiSeries;
+		};
+	};
 }
 
 export default class TubiAdapter extends ServiceAdapter {
 	api = axios.create({
-		headers: {'User-Agent': `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}`},
+		headers: { "User-Agent": `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}` },
 	});
 
 	get serviceId() {
-		return 'tubi';
+		return "tubi";
 	}
 
 	get isCacheSafe() {
@@ -58,7 +58,9 @@ export default class TubiAdapter extends ServiceAdapter {
 	}
 
 	canHandleURL(link: string): boolean {
-		return /https?:\/\/(?:www\.)?tubitv\.com\/(?:video|movies|tv-shows|oz\/videos|series)\/([0-9]+)/.test(link);
+		return /https?:\/\/(?:www\.)?tubitv\.com\/(?:video|movies|tv-shows|oz\/videos|series)\/([0-9]+)/.test(
+			link
+		);
 	}
 
 	isCollectionURL(link: string): boolean {
@@ -67,11 +69,11 @@ export default class TubiAdapter extends ServiceAdapter {
 
 	getVideoId(url: string): string {
 		const parsed = new URL(url);
-		const path = parsed.pathname.split('/');
-		if (path[1] === 'tv-shows' || path[1] === 'movies') {
+		const path = parsed.pathname.split("/");
+		if (path[1] === "tv-shows" || path[1] === "movies") {
 			return path[2];
 		}
-		else if (path[1] === 'oz') {
+ else if (path[1] === "oz") {
 			return path[3];
 		}
 		throw new Error(`Unable to get video id from ${url}`);
@@ -123,7 +125,7 @@ export default class TubiAdapter extends ServiceAdapter {
 			let path = new URL(url).pathname.split("/");
 			return await this.fetchSeriesInfo(path[2]);
 		}
-		else {
+ else {
 			let id = this.getVideoId(url);
 			return [await this.fetchVideoInfo(id)];
 		}

@@ -4,20 +4,18 @@ import { InvalidVideoIdException } from "../../../exceptions";
 const validVideoLinks = [["283918572", "https://vimeo.com/283918572"]];
 
 const invalidLinks = [
-	"https://example.com",
-	"https://vimeo.com",
-	"https://vimeo.com/lkjsads",
+"https://example.com", "https://vimeo.com", "https://vimeo.com/lkjsads"
 ];
 
 describe("Vimeo", () => {
 	describe("canHandleURL", () => {
 		const adapter = new VimeoAdapter();
 
-		it.each(validVideoLinks.map(l => l[1]))("Accepts %s", (link) => {
+		it.each(validVideoLinks.map(l => l[1]))("Accepts %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(true);
 		});
 
-		it.each(invalidLinks)("Rejects %s", (link) => {
+		it.each(invalidLinks)("Rejects %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(false);
 		});
 	});
@@ -59,9 +57,7 @@ describe("Vimeo", () => {
 		});
 
 		it("Throws an error if videoId is invalid", () => {
-			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(
-				InvalidVideoIdException
-			);
+			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(InvalidVideoIdException);
 		});
 	});
 });

@@ -9,7 +9,7 @@ export class UnsupportedServiceException extends OttException {
 		if (url.path && /\/*\.([a-z0-9])$/i.exec(url.path.split("?")[0])) {
 			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, the service at "${url.host}" is not yet supported.`;
 		}
-		else {
+ else {
 			msg = `The service at "${url.host}" is not yet supported.`;
 		}
 		super(msg);
@@ -21,19 +21,23 @@ export class InvalidAddPreviewInputException extends OttException {
 	name = "InvalidAddPreviewInputException";
 
 	constructor(minLength: number) {
-		super(`Your search query must at least ${minLength} characters, or supply a Youtube video, playlist, or channel link.`);
+		super(
+			`Your search query must at least ${minLength} characters, or supply a Youtube video, playlist, or channel link.`
+		);
 	}
 }
 
 export class OutOfQuotaException extends OttException {
 	constructor(service: string) {
 		if (service === "youtube") {
-			super(`We don't have enough Youtube API quota to complete the request. We currently have a limit of 50,000 quota per day.`);
+			super(
+				`We don't have enough Youtube API quota to complete the request. We currently have a limit of 50,000 quota per day.`
+			);
 		}
-		else if (service === "googledrive") {
+ else if (service === "googledrive") {
 			super(`We don't have enough Google Drive API quota to complete the request.`);
 		}
-		else {
+ else {
 			super(`We don't have enough API quota to complete the request. Try again later.`);
 		}
 		this.name = "OutOfQuotaException";
@@ -69,7 +73,7 @@ export class UnsupportedMimeTypeException extends OttException {
 		if (mime.startsWith("video/")) {
 			super(`Files that are ${mime} are not supported. Mp4 videos work the best.`);
 		}
-		else {
+ else {
 			super(`The requested resource was not actually a video, it was a ${mime}`);
 		}
 		this.name = "UnsupportedMimeTypeException";
@@ -80,7 +84,9 @@ export class LocalFileException extends OttException {
 	name = "LocalFileException";
 
 	constructor() {
-		super(`The video URL provided references a local file. It is not possible to play videos on your computer, nor files located on the server. Videos must be hosted somewhere all users in the room can access.`);
+		super(
+			`The video URL provided references a local file. It is not possible to play videos on your computer, nor files located on the server. Videos must be hosted somewhere all users in the room can access.`
+		);
 	}
 }
 
@@ -88,12 +94,13 @@ export class MissingMetadataException extends OttException {
 	name = "MissingMetadataException";
 
 	constructor() {
-		super(`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`);
+		super(
+			`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`
+		);
 	}
 }
 
-export class IncompleteServiceAdapterException extends OttException {
-}
+export class IncompleteServiceAdapterException extends OttException {}
 
 export class ImpossiblePromotionException extends OttException {
 	name = "ImpossiblePromotionException";
@@ -145,8 +152,8 @@ export class VideoNotFoundException extends OttException {
 
 export class BadApiArgumentException extends OttException {
 	name = "BadApiArgumentException";
-	arg: string
-	reason: string
+	arg: string;
+	reason: string;
 
 	constructor(arg: string, reason: string) {
 		super(`Bad argument: ${arg}: ${reason}`);
@@ -156,7 +163,7 @@ export class BadApiArgumentException extends OttException {
 }
 
 export class UnsupportedVideoType extends OttException {
-	name = "UnsupportedVideoType"
+	name = "UnsupportedVideoType";
 
 	constructor(type: string) {
 		super(`Unsupported video type: ${type}`);
@@ -164,10 +171,12 @@ export class UnsupportedVideoType extends OttException {
 }
 
 export class ClientNotFoundInRoomException extends OttException {
-	name = "ClientNotFoundInRoomException"
+	name = "ClientNotFoundInRoomException";
 
 	constructor(roomName: string) {
-		super(`The server was unable to find a client in the room "${roomName}" associated with the session. This might mean that your browser isn't saving cookies, try refreshing. If you aren't connected to the room, reconnect to the room and try again. This could also mean that the room does not exist at all.`);
+		super(
+			`The server was unable to find a client in the room "${roomName}" associated with the session. This might mean that your browser isn't saving cookies, try refreshing. If you aren't connected to the room, reconnect to the room and try again. This could also mean that the room does not exist at all.`
+		);
 	}
 }
 
@@ -175,9 +184,9 @@ export class ClientNotFoundInRoomException extends OttException {
  * Used to indicate that something is too short or too long.
  */
 export class LengthOutOfRangeException extends OttException {
-	name = "LengthOutOfRangeException"
+	name = "LengthOutOfRangeException";
 
-	constructor(thing: string, range: Partial<{ min: number, max: number }>) {
+	constructor(thing: string, range: Partial<{ min: number; max: number }>) {
 		super("LengthOutOfRangeException");
 		if ("min" in range && "max" in range) {
 			this.message = `${thing} must be between ${range.min} and ${range.max}.`;
