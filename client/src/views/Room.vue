@@ -1,6 +1,15 @@
 <template>
   <div>
-    <v-container fluid :class="{ room: true, fullscreen: $store.state.fullscreen }" v-if="!showJoinFailOverlay">
+    <v-container
+      fluid
+      :class="{
+        room: true,
+        fullscreen: $store.state.fullscreen,
+        'layout-default': $store.state.settings.roomLayout === RoomLayoutMode.default,
+        'layout-theater': $store.state.settings.roomLayout === RoomLayoutMode.theater,
+      }"
+      v-if="!showJoinFailOverlay"
+    >
       <div class="room-header" v-if="!$store.state.fullscreen">
         <h1 class="room-title">
           {{ $store.state.room.title != "" ? $store.state.room.title : ($store.state.room.isTemporary ? $t("room.title-temp") : $store.state.room.name) }}
@@ -105,6 +114,12 @@
                       {{ lengthDisplay }}
                     </span>
                   </div>
+                  <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
+                  <div class="flex-grow-1"><!-- Spacer --></div>
+                  <v-btn v-if="!isMobile" @click="rotateRoomLayout">
+                    <v-icon v-if="$store.state.settings.roomLayout === RoomLayoutMode.theater" style="transform: scaleX(180%)">far fa-square</v-icon>
+                    <v-icon v-else style="transform: scaleX(130%)">far fa-square</v-icon>
+                  </v-btn>
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
                       <v-btn @click="toggleFullscreen()" v-bind="attrs" v-on="on" style="margin-left: 10px">
@@ -113,7 +128,6 @@
                     </template>
                     <span>{{ $t("room.toggle-fullscreen") }}</span>
                   </v-tooltip>
-                  <v-btn v-if="debugMode" @click="api.kickMe()" :disabled="!isConnected">{{ $t("room.kick-me") }}</v-btn>
                 </v-row>
               </v-col>
               <div
@@ -225,6 +239,7 @@ import goTo from 'vuetify/lib/services/goto';
 import RoomSettings from "@/components/RoomSettings.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClickToEdit from "@/components/ClickToEdit.vue";
+import { RoomLayoutMode } from "@/stores/settings";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -265,6 +280,7 @@ export default {
 
       api,
       QueueMode,
+      RoomLayoutMode,
       timestampToSeconds,
       secondsToTimestamp,
     };
@@ -606,6 +622,12 @@ export default {
     resetSeekPreview() {
       this.seekPreview = null;
     },
+
+    rotateRoomLayout() {
+      let layouts = Object.keys(RoomLayoutMode);
+      let newLayout = layouts[(layouts.indexOf(this.$store.state.settings.roomLayout) + 1) % layouts.length];
+      this.$store.commit("settings/UPDATE", { roomLayout: newLayout });
+    },
   },
   mounted() {
     this.$events.on("playVideo", () => {
@@ -662,6 +684,7 @@ export default {
 @import "../variables.scss";
 
 $video-player-max-height: 75vh;
+$video-player-max-height-theater: 90vh;
 $video-controls-height: 80px;
 $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
@@ -670,7 +693,6 @@ $in-video-chat-width-small: 250px;
   display: flex;
   align-items: center;
   margin-bottom: 10px;
-  max-height: $video-player-max-height;
 
   .player {
     position: absolute;
@@ -690,8 +712,6 @@ $in-video-chat-width-small: 250px;
   .video-subcontainer {
     display: flex;
     flex-grow: 1;
-    width: 80vw;
-    max-height: $video-player-max-height;
   }
 
   @media (max-width: $md-max) {
@@ -700,6 +720,34 @@ $in-video-chat-width-small: 250px;
     }
 
     margin: 0;
+  }
+}
+
+.layout-default {
+  .video-container {
+    max-height: $video-player-max-height;
+  }
+
+  .video-subcontainer {
+    width: 80vw;
+    max-height: $video-player-max-height;
+  }
+}
+
+.layout-theater {
+  padding: 0;
+
+  .video-container {
+    max-height: $video-player-max-height-theater;
+  }
+
+  .video-subcontainer {
+    width: 100%;
+    max-height: $video-player-max-height-theater;
+  }
+
+  .room-title {
+    font-size: 24px;
   }
 }
 
