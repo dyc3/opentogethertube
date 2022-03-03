@@ -196,8 +196,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 				content: this.$t("room-settings.settings-applied") as string,
 				duration: 4000,
 			});
-		}
- catch (e) {
+		} catch (e) {
 			console.log(e);
 			this.$toast.add({
 				style: ToastStyle.Error,
@@ -221,8 +220,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 				}) as string,
 				duration: 4000,
 			});
-		}
- catch (e) {
+		} catch (e) {
 			console.log(e);
 			this.$toast.add({
 				style: ToastStyle.Error,

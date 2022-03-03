@@ -88,8 +88,7 @@ export default {
 			let value = _.min(_.keys(_.pickBy(permission, v => v === true)));
 			if (value !== undefined) {
 				return parseInt(value);
-			}
- else {
+			} else {
 				return 4;
 			}
 		},
@@ -104,8 +103,7 @@ export default {
 					value = 3;
 				}
 				return value;
-			}
- else {
+			} else {
 				return null;
 			}
 		},
@@ -147,8 +145,7 @@ export default {
 					grants = _.fromPairs(grants);
 				}
 				this.permissions = this.extractFromGrants(grants);
-			}
- else {
+			} else {
 				this.shouldAcceptExternalUpdate = true;
 			}
 		},

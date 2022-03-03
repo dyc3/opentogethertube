@@ -207,8 +207,7 @@ export default Vue.extend({
 			if (document.fullscreenElement) {
 				this.$store.state.fullscreen = true;
 				document.querySelector("html")?.classList.add("scrollbarBeGone");
-			}
- else {
+			} else {
 				this.$store.state.fullscreen = false;
 				document.querySelector("html")?.classList.remove("scrollbarBeGone");
 			}

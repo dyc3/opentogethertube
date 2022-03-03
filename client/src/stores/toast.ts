@@ -20,8 +20,7 @@ export const toastModule: Module<ToastState, unknown> = {
 				if (notification.event?.request.type === last.event?.request.type) {
 					if (last.event?.request.type === RoomRequestType.PlaybackRequest) {
 						state.notifications.splice(state.notifications.length - 1, 1);
-					}
- else if (
+					} else if (
 						last.event?.request.type === RoomRequestType.SeekRequest &&
 						last.event?.user.name === notification.event?.user.name
 					) {

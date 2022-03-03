@@ -96,14 +96,12 @@ async function setActivated(value: boolean, manual = false): Promise<void> {
 	if (value) {
 		if (manual) {
 			deactivateOnBlur.value = false;
-		}
- else {
+		} else {
 			deactivateOnBlur.value = true;
 		}
 		await nextTick();
 		focusChatInput();
-	}
- else {
+	} else {
 		chatInput.value?.blur();
 	}
 }
@@ -142,8 +140,7 @@ const Chat = defineComponent({
 				inputValue.value = "";
 				stickToBottom.value = true;
 				setActivated(false);
-			}
- else if (e.key === "Escape") {
+			} else if (e.key === "Escape") {
 				e.preventDefault();
 				setActivated(false);
 			}

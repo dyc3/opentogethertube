@@ -53,8 +53,7 @@ export default class ToastNotification extends Vue {
 	get color(): string | undefined {
 		if (this.toast.style === ToastStyle.Success) {
 			return "green";
-		}
- else if (this.toast.style === ToastStyle.Error) {
+		} else if (this.toast.style === ToastStyle.Error) {
 			return "red";
 		}
 		return undefined;
@@ -97,8 +96,7 @@ export default class ToastNotification extends Vue {
 				data: { event: this.toast.event },
 			});
 			this.close();
-		}
- catch (err) {
+		} catch (err) {
 			this.$toast.add({
 				style: ToastStyle.Error,
 				content: err.message,

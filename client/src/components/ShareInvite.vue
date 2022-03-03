@@ -41,8 +41,7 @@ export default class ShareInvite extends Vue {
 	async copyInviteLink() {
 		if (navigator.clipboard) {
 			await navigator.clipboard.writeText(this.inviteLink);
-		}
- else {
+		} else {
 			// @ts-expect-error $el actually does exist
 			let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector("input");
 			if (!textfield) {

@@ -230,22 +230,18 @@ export default class LogInForm extends Vue {
 				this.$emit("shouldClose");
 				this.email = "";
 				this.password = "";
-			}
- else {
+			} else {
 				console.log("Log in failed");
 				this.logInFailureMessage = this.$t("login-form.errors.something-weird-happened");
 			}
-		}
- catch (err) {
+		} catch (err) {
 			if (err.response && !err.response.data.success) {
 				if (err.response.data.error) {
 					this.logInFailureMessage = err.response.data.error.message;
-				}
- else {
+				} else {
 					this.logInFailureMessage = this.$t("login-form.errors.login-failed-noserver");
 				}
-			}
- else {
+			} else {
 				console.log("could not log in", err, err.response);
 				this.logInFailureMessage = this.$t("login-form.errors.login-failed");
 			}
@@ -281,13 +277,11 @@ export default class LogInForm extends Vue {
 				this.username = "";
 				this.password = "";
 				this.password2 = "";
-			}
- else {
+			} else {
 				console.log("Registeration failed");
 				this.registerFailureMessage = this.$t("login-form.errors.something-weird-happened");
 			}
-		}
- catch (err) {
+		} catch (err) {
 			if (err.response && !err.response.data.success) {
 				if (err.response.data.error) {
 					if (err.response.data.error.name === "AlreadyInUse") {
@@ -299,14 +293,12 @@ export default class LogInForm extends Vue {
 						}
 					}
 					this.registerFailureMessage = err.response.data.error.message;
-				}
- else {
+				} else {
 					this.registerFailureMessage = this.$t(
 						"login-form.errors.register-failed-noserver"
 					);
 				}
-			}
- else {
+			} else {
 				console.log("could not register", err);
 				this.registerFailureMessage = this.$t("login-form.errors.register-failed");
 			}

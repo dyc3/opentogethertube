@@ -67,8 +67,7 @@ describe("ClickToEdit", () => {
 			try {
 				// @ts-ignore
 				await comp.vm.activate();
-			}
- catch (e) {
+			} catch (e) {
 				// HACK: throws an error because `focus` does not exist (somehow)
 				// ignoring because I know activate works in the wild, and I don't want to spend time on this.
 			}

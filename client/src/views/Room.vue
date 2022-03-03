@@ -399,8 +399,7 @@ export default {
 		this.$store.subscribeAction(action => {
 			if (action.type === "sync") {
 				this.rewriteUrlToRoomName();
-			}
- else if (action.type === "chat") {
+			} else if (action.type === "chat") {
 				/*
 				 * HACK: passes along the chat message to the chat component.
 				 * FIXME: Ideally, the chat component would subscribe to the vuex store itself, but we need to upgrade vuex to 4.0.0 to do that.
@@ -443,8 +442,7 @@ export default {
 		togglePlayback() {
 			if (this.$store.state.room.isPlaying) {
 				api.pause();
-			}
- else {
+			} else {
 				api.play();
 			}
 		},
@@ -488,8 +486,7 @@ export default {
 			}
 			if (!changeTo) {
 				this.setVideoControlsVisibility(true);
-			}
- else {
+			} else {
 				this.activateVideoControls();
 			}
 			this.updateVolume();
@@ -499,8 +496,7 @@ export default {
 
 			if (this.$store.state.room.isPlaying) {
 				this.$refs.player.play();
-			}
- else {
+			} else {
 				this.$refs.player.pause();
 			}
 		},
@@ -514,8 +510,7 @@ export default {
 		onPlayerReady_Vimeo() {
 			if (this.$store.state.room.isPlaying) {
 				this.$refs.player.play();
-			}
- else {
+			} else {
 				this.$refs.player.pause();
 			}
 		},
@@ -527,19 +522,15 @@ export default {
 			if ((e.code === "Space" || e.code === "k") && this.granted("playback.play-pause")) {
 				this.togglePlayback();
 				e.preventDefault();
-			}
- else if (e.code === "Home" && this.granted("playback.seek")) {
+			} else if (e.code === "Home" && this.granted("playback.seek")) {
 				api.seek(0);
 				e.preventDefault();
-			}
- else if (e.code === "End" && this.granted("playback.skip")) {
+			} else if (e.code === "End" && this.granted("playback.skip")) {
 				api.skip();
 				e.preventDefault();
-			}
- else if (e.code === "KeyF") {
+			} else if (e.code === "KeyF") {
 				this.toggleFullscreen();
-			}
- else if (
+			} else if (
 				(e.code === "ArrowLeft" ||
 					e.code === "ArrowRight" ||
 					e.code === "KeyJ" ||
@@ -556,16 +547,13 @@ export default {
 
 				this.seekDelta(seekIncrement);
 				e.preventDefault();
-			}
- else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+			} else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
 				this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
 				e.preventDefault();
-			}
- else if (e.code === "KeyT") {
+			} else if (e.code === "KeyT") {
 				e.preventDefault();
 				this.$refs.chat.setActivated(true);
-			}
- else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
+			} else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
 				this.debugMode = !this.debugMode;
 				e.preventDefault();
 			}
@@ -573,8 +561,7 @@ export default {
 		toggleFullscreen() {
 			if (document.fullscreenElement) {
 				document.exitFullscreen();
-			}
- else {
+			} else {
 				document.documentElement.requestFullscreen();
 				if (this.isMobile) {
 					// force the device into landscape mode to get the user to rotate the device
@@ -653,8 +640,7 @@ export default {
 						duration: 250,
 						easing: "easeInOutCubic",
 					});
-				}
- else {
+				} else {
 					document.exitFullscreen();
 				}
 			}
@@ -678,12 +664,9 @@ export default {
 					let end =
 						this.$store.state.playerBufferSpans.end(i) /
 						this.$store.state.room.currentSource.length;
-					processes.push([
-start, end, { backgroundColor: bufferedColor }
-]);
+					processes.push([start, end, { backgroundColor: bufferedColor }]);
 				}
-			}
- else if (this.$store.state.playerBufferPercent) {
+			} else if (this.$store.state.playerBufferPercent) {
 				processes.push([
 					0,
 					this.$store.state.playerBufferPercent * 100,
@@ -692,14 +675,10 @@ start, end, { backgroundColor: bufferedColor }
 			}
 
 			// show seek preview, if present
-			processes.push([
-0, (this.seekPreview ?? 0) * 100, { backgroundColor: "#00b3ff" }
-]);
+			processes.push([0, (this.seekPreview ?? 0) * 100, { backgroundColor: "#00b3ff" }]);
 
 			// show video progress
-			processes.push([
-0, dotsPos[0], { backgroundColor: "#ffb300" }
-]);
+			processes.push([0, dotsPos[0], { backgroundColor: "#ffb300" }]);
 
 			// show sponsorblock segments
 			const colorMap = new Map([
@@ -764,9 +743,7 @@ start, end, { backgroundColor: bufferedColor }
 			for (let video of this.$store.state.quickAdd) {
 				API.post(
 					`/room/${this.$route.params.roomId}/queue`,
-					_.pick(video, [
-"service", "id", "url"
-])
+					_.pick(video, ["service", "id", "url"])
 				);
 			}
 		}

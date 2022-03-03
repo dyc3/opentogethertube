@@ -169,9 +169,7 @@ describe.skip("Room UI spec", () => {
 		expect(queueCount.exists()).toBe(true);
 		expect(queueCount.text()).toEqual("0");
 
-		store.state.room.queue = [
-{}, {}, {}
-];
+		store.state.room.queue = [{}, {}, {}];
 		expect(queueCount.text()).toEqual("3");
 	});
 
@@ -384,8 +382,6 @@ describe.skip("Room UI spec", () => {
 
 		wrapper.vm.$store.state.users.you.grants = (1 << 8) | (1 << 9);
 		settings = wrapper.vm.getRoomSettingsSubmit();
-		expect(Object.keys(settings)).toEqual([
-"title", "description", "permissions"
-]);
+		expect(Object.keys(settings)).toEqual(["title", "description", "permissions"]);
 	});
 });

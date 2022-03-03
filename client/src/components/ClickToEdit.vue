@@ -68,8 +68,7 @@ const ClickToEdit = defineComponent({
 			}
 			if (typeof value.value === "number") {
 				valueDirty.value = valueFormatter.value(value.value);
-			}
- else {
+			} else {
 				valueDirty.value = value.value;
 			}
 			editing.value = true;
@@ -80,8 +79,7 @@ const ClickToEdit = defineComponent({
 		function apply() {
 			if (typeof value.value === "number") {
 				value.value = valueParser.value(valueDirty.value);
-			}
- else {
+			} else {
 				value.value = valueDirty.value;
 			}
 			editing.value = false;

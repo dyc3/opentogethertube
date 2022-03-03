@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import {
 	secondsToTimestamp,
 	calculateCurrentPosition,
-	timestampToSeconds
+	timestampToSeconds,
 } from "../../src/util/timestamp";
 
 describe("secondsToTimestamp spec", () => {

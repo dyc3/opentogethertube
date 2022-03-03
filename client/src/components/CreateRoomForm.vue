@@ -139,12 +139,10 @@ export default {
 								this.isRoomNameTaken = true;
 							}
 							this.error = err.response.data.error.message;
-						}
- else {
+						} else {
 							this.error = this.$t("create-room-form.unknown-error");
 						}
-					}
- else {
+					} else {
 						this.error = err.message;
 					}
 					this.$refs.form.validate();

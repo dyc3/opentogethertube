@@ -64,8 +64,7 @@ export default {
 		goToRoom(roomName) {
 			try {
 				this.$router.push(`/room/${roomName}`);
-			}
- catch (e) {
+			} catch (e) {
 				if (e.name !== "NavigationDuplicated") {
 					throw e;
 				}

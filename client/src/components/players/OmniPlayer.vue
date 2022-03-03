@@ -108,9 +108,7 @@
 </template>
 
 <script>
-const services = [
-"youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"
-];
+const services = ["youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"];
 
 export default {
 	name: "omniplayer",

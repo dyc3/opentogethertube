@@ -137,17 +137,13 @@ export default {
 			this.debug.YoutubeState = e.data;
 			if (e.data === YT_STATUS_ENDED) {
 				this.$emit("ended");
-			}
- else if (e.data === YT_STATUS_PLAYING) {
+			} else if (e.data === YT_STATUS_PLAYING) {
 				this.$emit("playing");
-			}
- else if (e.data === YT_STATUS_PAUSED) {
+			} else if (e.data === YT_STATUS_PAUSED) {
 				this.$emit("paused");
-			}
- else if (e.data === YT_STATUS_BUFFERING) {
+			} else if (e.data === YT_STATUS_BUFFERING) {
 				this.$emit("buffering");
-			}
- else if (e.data === YT_STATUS_CUED) {
+			} else if (e.data === YT_STATUS_CUED) {
 				this.$emit("ready");
 			}
 
@@ -159,8 +155,7 @@ export default {
 				if (this.queuedPlaying !== null) {
 					if (this.queuedPlaying) {
 						this.player.play();
-					}
- else {
+					} else {
 						this.player.pause();
 					}
 					this.queuedPlaying = null;

@@ -167,8 +167,7 @@ export default {
 				await API.post("/user", { username: this.inputUsername });
 				this.showEditName = false;
 				this.setUsernameFailureText = "";
-			}
- catch (err) {
+			} catch (err) {
 				this.setUsernameFailureText = err.response
 					? err.response.data.error.message
 					: err.message;

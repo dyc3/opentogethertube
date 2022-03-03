@@ -44,9 +44,7 @@ module.exports = {
 				ecmaVersion: 2018,
 				sourceType: "module",
 			},
-			extends: [
-"plugin:vue/base", "plugin:vue/essential", "@vue/typescript/recommended"
-],
+			extends: ["plugin:vue/base", "plugin:vue/essential", "@vue/typescript/recommended"],
 			rules: {
 				// HACK: this rule is required, otherwise travis-ci will fail (for some reason)
 				// even through when run locally, no linting errors occur.

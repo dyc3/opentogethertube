@@ -195,8 +195,7 @@ export default Vue.extend({
 		isAddPreviewInputUrl() {
 			try {
 				return !!new URL(this.inputAddPreview).host;
-			}
- catch (e) {
+			} catch (e) {
 				return false;
 			}
 		},
@@ -224,8 +223,7 @@ export default Vue.extend({
 						this.hasAddPreviewFailed = false;
 						this.videos = res.data;
 						console.log(`Got add preview with ${this.videos.length}`);
-					}
- else if (res.status === 400) {
+					} else if (res.status === 400) {
 						this.hasAddPreviewFailed = true;
 						this.videosLoadFailureText = res.data.error.message;
 						if (
@@ -239,8 +237,7 @@ export default Vue.extend({
 								"_blank"
 							);
 						}
-					}
- else {
+					} else {
 						console.warn("Unknown status for add preview response:", res.status);
 						this.$toast.add({
 							style: ToastStyle.Error,
@@ -279,8 +276,7 @@ export default Vue.extend({
 			this.isLoadingAddAll = true;
 			try {
 				await API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.videos });
-			}
- catch (err) {
+			} catch (err) {
 				let message = `${err}`;
 				if (err.response) {
 					message = `${err.response.data.error.message}`;
@@ -334,8 +330,7 @@ export default Vue.extend({
 					content: `Added test video`,
 					duration: 2000,
 				});
-			}
- catch (e) {
+			} catch (e) {
 				console.error(e);
 				this.$toast.add({
 					style: ToastStyle.Error,

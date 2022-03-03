@@ -102,15 +102,12 @@ export default new Vuex.Store({
 			let reason;
 			if (code === OttWebsocketError.ROOM_NOT_FOUND) {
 				reason = "Room not found.";
-			}
- else if (code === OttWebsocketError.ROOM_UNLOADED) {
+			} else if (code === OttWebsocketError.ROOM_UNLOADED) {
 				reason = "Room was unloaded.";
-			}
- else if (code === OttWebsocketError.MISSING_TOKEN) {
+			} else if (code === OttWebsocketError.MISSING_TOKEN) {
 				reason =
 					"A token was not provided. Refresh the page and try again. Otherwise, please open an issue on GitHub.";
-			}
- else {
+			} else {
 				reason = "Something happened, but we don't know what. Please report this as a bug.";
 			}
 			state.joinFailureReason = reason;

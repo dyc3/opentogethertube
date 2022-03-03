@@ -224,8 +224,7 @@ export default class VideoQueueItem extends Vue {
 				content: this.$t("video-queue-item.messages.video-added") as string,
 				duration: 5000,
 			});
-		}
- catch (e) {
+		} catch (e) {
 			this.hasError = true;
 			this.$toast.add({
 				style: ToastStyle.Error,
@@ -248,8 +247,7 @@ export default class VideoQueueItem extends Vue {
 				content: this.$t("video-queue-item.messages.video-removed") as string,
 				duration: 5000,
 			});
-		}
- catch (e) {
+		} catch (e) {
 			this.hasError = true;
 			this.$toast.add({
 				style: ToastStyle.Error,
@@ -270,16 +268,14 @@ export default class VideoQueueItem extends Vue {
 					this.getPostData()
 				);
 				this.voted = true;
-			}
- else {
+			} else {
 				resp = await API.delete(`/room/${this.$route.params.roomId}/vote`, {
 					data: this.getPostData(),
 				});
 				this.voted = false;
 			}
 			this.hasError = !resp.data.success;
-		}
- catch (e) {
+		} catch (e) {
 			this.hasError = true;
 			this.$toast.add({
 				style: ToastStyle.Error,

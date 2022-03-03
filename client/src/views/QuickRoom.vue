@@ -32,8 +32,7 @@ export default {
 				service: urlParams.get("service"),
 				id: urlParams.get("id"),
 			});
-		}
- else if (urlParams.has("url")) {
+		} else if (urlParams.has("url")) {
 			this.$store.commit("QUICKADD_ADD", {
 				url: urlParams.get("url"),
 			});

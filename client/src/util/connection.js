@@ -42,8 +42,7 @@ function onClose(e) {
 			window.vm.$store.state.$connection.reconnect.attempts++;
 			connect(window.vm.$store.state.$connection.room, true);
 		}, delay);
-	}
- else {
+	} else {
 		console.log("Not attempting to reconnect");
 	}
 }
@@ -53,12 +52,10 @@ function onMessage(e) {
 		try {
 			let msg = JSON.parse(e.data);
 			window.vm.$store.dispatch(msg.action, msg);
-		}
- catch (error) {
+		} catch (error) {
 			console.error("unable to process message: ", e.data, error);
 		}
-	}
- else {
+	} else {
 		console.warn("received unknown binary message", e.data);
 	}
 }

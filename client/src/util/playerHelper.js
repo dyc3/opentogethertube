@@ -54,8 +54,7 @@ export function getSdk(
 				// reset the array of requests for this SDK
 				requests[url].forEach(request => request.reject(err));
 				requests[url] = null;
-			}
- else if (!sdkReady) {
+			} else if (!sdkReady) {
 				onLoaded(window[sdkGlobal]);
 			}
 		});
