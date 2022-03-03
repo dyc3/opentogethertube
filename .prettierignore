@@ -1,0 +1,9 @@
+**/node_modules/**
+**/dist/**
+**/coverage/**
+**/ts-out/**
+**/benchmarks/**/*.json
+*.lock
+*.log
+*.env
+**/tests/unit/fixtures/**
