@@ -16,7 +16,9 @@
 			<transition-group name="message" style="width: 100%">
 				<div class="message" v-for="(msg, index) in chatMessagePast" :key="index">
 					<div class="from">{{ msg.from.name }}</div>
-					<div class="text"><ProcessedText :text="msg.text" /></div>
+					<div class="text">
+						<ProcessedText :text="msg.text" @link-click="e => $emit('link-click', e)" />
+					</div>
 				</div>
 				<div
 					class="message recent"
@@ -130,6 +132,7 @@ const Chat = defineComponent({
 	components: {
 		ProcessedText,
 	},
+	emits: ["link-click"],
 	setup() {
 		function onInputKeyDown(e: KeyboardEvent): void {
 			if (e.key === "Enter") {

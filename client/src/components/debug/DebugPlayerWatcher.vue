@@ -7,14 +7,18 @@
 	</div>
 </template>
 
-<script>
-/** A component to help watch values from video players.  */
-export default {
+<script lang="ts">
+import { defineComponent } from "@vue/composition-api";
+
+/** A component to help watch values from video players. */
+const DebugPlayerWatcher = defineComponent({
 	name: "DebugPlayerWatcher",
 	props: {
 		data: { type: Object },
 	},
-};
+});
+
+export default DebugPlayerWatcher;
 </script>
 
 <style lang="scss" scoped>

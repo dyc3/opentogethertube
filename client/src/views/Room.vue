@@ -189,7 +189,7 @@
 								</v-row>
 							</v-col>
 							<div class="in-video-chat">
-								<Chat ref="chat" />
+								<Chat ref="chat" @link-click="setAddPreviewText" />
 							</div>
 						</v-responsive>
 					</div>
@@ -214,7 +214,7 @@
 								<VideoQueue @switchtab="switchToAddTab" />
 							</v-tab-item>
 							<v-tab-item>
-								<AddPreview />
+								<AddPreview ref="addpreview" />
 							</v-tab-item>
 							<v-tab-item>
 								<RoomSettings ref="settings" />
@@ -408,7 +408,6 @@ export default {
 			}
 		});
 		this.$events.on("onRoomCreated", this.onRoomCreated);
-		this.$events.on("onChatLinkClick", this.switchToAddTab);
 
 		window.addEventListener("keydown", this.onKeyDown);
 		screen.orientation.addEventListener("change", this.onScreenOrientationChange);
@@ -430,7 +429,6 @@ export default {
 		clearInterval(this.i_timestampUpdater);
 		connection.disconnect();
 		this.$events.remove("onRoomCreated", this.onRoomCreated);
-		this.$events.remove("onChatLinkClick", this.switchToAddTab);
 		screen.orientation.removeEventListener("change", this.onScreenOrientationChange);
 		window.removeEventListener("keydown", this.onKeyDown);
 	},
@@ -629,6 +627,16 @@ export default {
 		},
 		switchToAddTab() {
 			this.queueTab = 1;
+		},
+		async setAddPreviewText(text) {
+			this.queueTab = 1;
+			await this.$nextTick();
+			if (!this.$refs.addpreview) {
+				// HACK: the tab is not yet mounted, so we need to wait for it to be mounted
+				// this will be more elegant when we have a new vue 3 style global event bus.
+				await this.$nextTick();
+			}
+			this.$refs.addpreview.setAddPreviewText(text);
 		},
 		onScreenOrientationChange() {
 			this.orientation = screen.orientation.type;
