@@ -19,64 +19,80 @@
 	</span>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, ref, onMounted, watch, Ref } from "@vue/composition-api";
+
 const urlRegex = /(https?:\/\/[^\s]+)/;
 
-export default {
+interface ContentItem {
+	type: "text" | "link";
+	text: string;
+}
+
+const ProcessedText = defineComponent({
 	name: "ProcessedText",
 	props: {
 		text: { type: String, required: true },
 	},
-	data() {
-		return {
-			content: [],
-			updateCount: 0,
-		};
-	},
-	methods: {
-		processText() {
-			this.content = [];
-			if (!this.text) {
+	emits: ["link-click"],
+	setup({ text }, { emit }) {
+		let content: Ref<ContentItem[]> = ref([]);
+
+		function onLinkClick(e: Event, link: string) {
+			e.preventDefault();
+			e.stopPropagation();
+			emit("link-click", link);
+		}
+
+		function processText() {
+			content.value = [];
+			if (!text) {
 				return;
 			}
 			let match;
 			let index = 0;
 			let loop = 0;
-			while ((match = urlRegex.exec(this.text.substring(index))) !== null) {
+			while ((match = urlRegex.exec(text.substring(index))) !== null) {
 				// console.log("msg:", this.text, "match", match, "content", this.content);
 				if (match.index > index) {
-					this.content.push({
+					content.value.push({
 						type: "text",
-						text: this.text.slice(index, index + match.index),
+						text: text.slice(index, index + match.index),
 					});
 				}
-				this.content.push({ type: "link", text: match[0] });
+				content.value.push({ type: "link", text: match[0] });
 				index += match.index + match[0].length;
 				loop++;
 				if (loop > 10) {
 					break;
 				}
 			}
-			if (index < this.text.length) {
-				this.content.push({ type: "text", text: this.text.substring(index) });
+			if (index < text.length) {
+				content.value.push({ type: "text", text: text.substring(index) });
 			}
+		}
 
-			this.updateCount++;
-		},
-		onLinkClick(e, link) {
-			e.preventDefault();
-			this.$events.fire("onChatLinkClick", link);
-		},
+		onMounted(() => {
+			processText();
+		});
+
+		watch(
+			() => text,
+			() => {
+				processText();
+			}
+		);
+
+		return {
+			content,
+
+			onLinkClick,
+			processText,
+		};
 	},
-	mounted() {
-		this.processText();
-	},
-	watch: {
-		text() {
-			this.processText();
-		},
-	},
-};
+});
+
+export default ProcessedText;
 </script>
 
 <style lang="scss" scoped>

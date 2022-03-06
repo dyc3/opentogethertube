@@ -65,6 +65,7 @@
 											url: 'https://youtube.com/watch?v=LP8GRjv6AIo',
 										})
 									"
+									@link-click="setAddPreviewText"
 								/>
 							</li>
 							<li>
@@ -74,6 +75,7 @@
 											url: 'https://vimeo.com/94338566',
 										})
 									"
+									@link-click="setAddPreviewText"
 								/>
 							</li>
 							<li>
@@ -83,6 +85,7 @@
 											url: 'https://dailymotion.com/video/x31i1so',
 										})
 									"
+									@link-click="setAddPreviewText"
 								/>
 							</li>
 							<li>
@@ -92,6 +95,7 @@
 											url: 'https://vjs.zencdn.net/v/oceans.mp4',
 										})
 									"
+									@link-click="setAddPreviewText"
 								/>
 							</li>
 						</ul>
@@ -104,6 +108,7 @@
 											url: 'https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ',
 										})
 									"
+									@link-click="setAddPreviewText"
 								/>
 							</li>
 							<li>
@@ -113,6 +118,7 @@
 											url: 'https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA',
 										})
 									"
+									@link-click="setAddPreviewText"
 								/>
 							</li>
 							<li>
@@ -122,6 +128,7 @@
 											url: 'https://reddit.com/r/youtubehaiku/',
 										})
 									"
+									@link-click="setAddPreviewText"
 								/>
 							</li>
 						</ul>
@@ -206,11 +213,6 @@ export default Vue.extend({
 		production() {
 			return this.$store.state.production;
 		},
-	},
-	created() {
-		this.$events.on("onChatLinkClick", link => {
-			this.inputAddPreview = link;
-		});
 	},
 	methods: {
 		async requestAddPreview() {
@@ -341,6 +343,9 @@ export default Vue.extend({
 		},
 		onFocusHighlightText(e) {
 			e.target.select();
+		},
+		setAddPreviewText(text) {
+			this.inputAddPreview = text;
 		},
 	},
 	watch: {

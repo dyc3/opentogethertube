@@ -1,3 +1,4 @@
+import "@/installCompositionApi.js";
 import Vue from "vue";
 import { mount, createLocalVue } from "@vue/test-utils";
 import Vuetify from "vuetify";
@@ -72,11 +73,9 @@ describe("ProcessedText component", () => {
 			propsData: { text: "https://example.com/" },
 			mounted: jest.fn(),
 		});
-		let eventStub = jest.fn();
-		wrapper.vm.$events.on("onChatLinkClick", eventStub);
 		wrapper.vm.processText();
 		await wrapper.vm.$nextTick();
 		wrapper.find(".link").trigger("click");
-		expect(eventStub).toBeCalledWith("https://example.com/");
+		expect(wrapper.emitted("link-click")).toEqual([["https://example.com/"]]);
 	});
 });
