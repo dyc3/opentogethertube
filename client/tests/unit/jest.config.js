@@ -37,4 +37,5 @@ module.exports = {
 		"!*.js",
 		"!src/components/players/**", // Ignore players because coverage for these is not really useful signal, and it's really hard to write unit tests for them. Better to write e2e integration tests for them.
 	],
+	setupFilesAfterEnv: ["<rootDir>/tests/unit/jest.setup.js"],
 };

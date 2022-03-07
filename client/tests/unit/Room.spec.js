@@ -1,4 +1,3 @@
-import "@/installCompositionApi.js";
 import Vue from "vue";
 import { shallowMount, createLocalVue } from "@vue/test-utils";
 import Vuex from "vuex";
