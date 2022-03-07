@@ -60,13 +60,12 @@ describe("YoutubePlayer", () => {
 		wrapper.vm.onStateChange({ data: 2 });
 		wrapper.vm.onStateChange({ data: 3 });
 		wrapper.vm.onStateChange({ data: 5 });
-		expect(wrapper.emittedByOrder().map(e => e.name)).toEqual([
-			"ended",
-			"playing",
-			"paused",
-			"buffering",
-			"ready",
-		]);
+		expect(
+			wrapper
+				.emittedByOrder()
+				.map(e => e.name)
+				.filter(name => !name.startsWith("hook:"))
+		).toEqual(["ended", "playing", "paused", "buffering", "ready"]);
 		wrapper.vm.onError();
 		expect(wrapper.emitted("error")).toHaveLength(1);
 	});

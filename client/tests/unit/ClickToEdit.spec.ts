@@ -1,4 +1,3 @@
-import "@/installCompositionApi.js";
 import "jest";
 import Vue from "vue";
 import Vuetify from "vuetify";
