@@ -5,7 +5,6 @@ export default {
 			description:
 				"Synchrone Wiedergabe in Echtzeit. Optionales Abstimmungssystem.\nDunkles Theme. Keine Anmeldung erforderlich. Alles Open Source.\nNoch nie war es so einfach, gemeinsam Videos anzuschauen.",
 			btns: {
-				create: "@:nav.create.title",
 				browse: "Räume durchsuchen",
 				source: "Quellcode ansehen",
 			},
@@ -13,8 +12,6 @@ export default {
 	},
 	"not-found": {
 		title: "Seite nicht gefunden",
-		home: "@:nav.home",
-		browse: "@:landing.hero.btns.browse",
 	},
 	"nav": {
 		"home": "Startseite",
@@ -23,7 +20,6 @@ export default {
 		"bug": "Einen Fehler melden",
 		"support": "Spenden",
 		"login": "Anmelden",
-		"link-discord": "Link Discord",
 		"logout": "Abmelden",
 		"create": {
 			"title": "Raum erstellen",
@@ -33,7 +29,6 @@ export default {
 	},
 	"room-list": {
 		"no-rooms": "Kein Raum im Moment...",
-		"create": "@:nav.create.title",
 		"no-description": "Keine Beschreibung.",
 	},
 	"room": {
@@ -56,7 +51,6 @@ export default {
 		},
 		"users": {
 			"title": "Nutzer",
-			"set": "Set your name",
 			"empty": "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
 			"you": "Du",
 			"demote": "degradieren",
@@ -64,7 +58,6 @@ export default {
 		},
 	},
 	"chat": {
-		"title": "Chat",
 		"type-here": "Schreibe deine Nachricht hier...",
 	},
 	"share-invite": {
@@ -91,16 +84,7 @@ export default {
 		"add-video": "Ein Video hinzufügen",
 	},
 	"room-settings": {
-		"title": "@:create-room-form.title",
-		"description": "@:create-room-form.description",
-		"visibility": "@:create-room-form.visibility",
-		"public": "@:create-room-form.public",
-		"unlisted": "@:create-room-form.unlisted",
-		"queue-mode": "@:create-room-form.queue-mode",
-		"manual": "@:create-room-form.manual",
-		"vote": "@:create-room-form.vote",
 		"loop": "Schleife",
-		"dj": "DJ",
 		"permissions-not-available": "In temporären Räumen sind keine Berechtigungen verfügbar.",
 		"room-needs-owner": "Dieser Raum braucht einen Eigentümer, bevor die Berechtigungen geändert werden können.",
 		"login-to-claim": "Melden Sie sich an, um diesen Raum zu beanspruchen.",
@@ -111,12 +95,10 @@ export default {
 	"create-room-form": {
 		"card-title": "Permanenten Raum erstellen",
 		"create-room": "Raum erstellen",
-		"name": "Name",
 		"name-hint": "Wird in der Raum-URL verwendet. Kann später nicht mehr geändert werden.",
 		"title": "Titel",
 		"title-hint": "Optional",
 		"description": "Beschreibung",
-		"description-hint": "@:create-room-form.title-hint",
 		"visibility": "Sichtbarkeit",
 		"visibility-hint": "Steuert, ob der Raum in der Raumliste angezeigt wird oder nicht.",
 		"queue-mode": "Warteschlangen-Modus",
@@ -139,7 +121,6 @@ export default {
 		"unknown-error": "Ein unbekannter Fehler ist aufgetreten. Versuchen Sie es später noch einmal.",
 	},
 	"login-form": {
-		"login": "@:nav.login",
 		"register": "Registrieren",
 		"login-discord": "Anmelden mit Discord",
 		"email": "E-Mail",
