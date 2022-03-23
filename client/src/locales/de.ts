@@ -16,7 +16,6 @@ export default {
 	"nav": {
 		"home": "Startseite",
 		"browse": "Durchsuchen",
-		"faq": "FAQ",
 		"bug": "Einen Fehler melden",
 		"support": "Spenden",
 		"login": "Anmelden",
@@ -97,7 +96,6 @@ export default {
 		"create-room": "Raum erstellen",
 		"name-hint": "Wird in der Raum-URL verwendet. Kann später nicht mehr geändert werden.",
 		"title": "Titel",
-		"title-hint": "Optional",
 		"description": "Beschreibung",
 		"visibility": "Sichtbarkeit",
 		"visibility-hint": "Steuert, ob der Raum in der Raumliste angezeigt wird oder nicht.",
