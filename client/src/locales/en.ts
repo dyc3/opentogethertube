@@ -144,7 +144,7 @@ export default {
 			"connecting": "Connecting...",
 			"connected": "Connected",
 			"failed": "Failed to join room",
-			"find-another": "Find Another Room<",
+			"find-another": "Find Another Room",
 		},
 		"tabs": {
 			queue: "Queue",
