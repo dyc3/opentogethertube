@@ -14,16 +14,16 @@ export default {
 		title: "Seite nicht gefunden",
 	},
 	"nav": {
-		"home": "Startseite",
-		"browse": "Durchsuchen",
-		"bug": "Einen Fehler melden",
-		"support": "Spenden",
-		"login": "Anmelden",
-		"logout": "Abmelden",
-		"create": {
-			"title": "Raum erstellen",
-			"temp": "Temporären Raum erstellen",
-			"perm": "Permanenten Raum erstellen",
+		home: "Startseite",
+		browse: "Durchsuchen",
+		bug: "Einen Fehler melden",
+		support: "Spenden",
+		login: "Anmelden",
+		logout: "Abmelden",
+		create: {
+			title: "Raum erstellen",
+			temp: "Temporären Raum erstellen",
+			perm: "Permanenten Raum erstellen",
 		},
 	},
 	"room-list": {
@@ -49,11 +49,11 @@ export default {
 			settings: "Einstellungen",
 		},
 		"users": {
-			"title": "Nutzer",
-			"empty": "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
-			"you": "Du",
-			"demote": "degradieren",
-			"promote": "befördern",
+			title: "Nutzer",
+			empty: "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
+			you: "Du",
+			demote: "degradieren",
+			promote: "befördern",
 		},
 	},
 	"chat": {
@@ -85,9 +85,11 @@ export default {
 	"room-settings": {
 		"loop": "Schleife",
 		"permissions-not-available": "In temporären Räumen sind keine Berechtigungen verfügbar.",
-		"room-needs-owner": "Dieser Raum braucht einen Eigentümer, bevor die Berechtigungen geändert werden können.",
+		"room-needs-owner":
+			"Dieser Raum braucht einen Eigentümer, bevor die Berechtigungen geändert werden können.",
 		"login-to-claim": "Melden Sie sich an, um diesen Raum zu beanspruchen.",
-		"arent-able-to-modify-permissions": "Sie können die Berechtigungen in diesem Raum nicht ändern.",
+		"arent-able-to-modify-permissions":
+			"Sie können die Berechtigungen in diesem Raum nicht ändern.",
 		"settings-applied": "Einstellungen angewendet",
 		"now-own-the-room": "Der Raum {room} gehört jetzt Ihnen.",
 	},
@@ -116,7 +118,8 @@ export default {
 			"invalid-visibility": "Ungültige Sichtbarkeit",
 			"invalid-queue": "Ungültiger Warteschlangen-Modus",
 		},
-		"unknown-error": "Ein unbekannter Fehler ist aufgetreten. Versuchen Sie es später noch einmal.",
+		"unknown-error":
+			"Ein unbekannter Fehler ist aufgetreten. Versuchen Sie es später noch einmal.",
 	},
 	"login-form": {
 		"register": "Registrieren",
