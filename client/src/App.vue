@@ -186,6 +186,10 @@ export default Vue.extend({
 					text: "🇺🇸",
 					value: "en",
 				},
+				{
+					text: "🇩🇪",
+					value: "de",
+				},
 			],
 		};
 	},
