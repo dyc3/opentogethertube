@@ -75,19 +75,19 @@ export default {
 		"sponsorblock-text": "Verwendet SponsorBlock-Daten von",
 	},
 	"nav": {
-		home: "Startseite",
-		browse: "Durchsuchen",
-		bug: "Einen Fehler melden",
-		support: "Spenden",
-		login: "Anmelden",
-		link-discord: "Mit Discord verknüpfen",
-		logout: "Abmelden",
-		create: {
-			title: "Raum erstellen",
-			temp: "Temporären Raum erstellen",
-			temp-desc: "Beginnen Sie sofort damit, Videos mit Ihren Freunden anzusehen.",
-			perm: "Permanenten Raum erstellen",
-			perm-desc: "Ideal für häufige Besucher.",
+		"home": "Startseite",
+		"browse": "Durchsuchen",
+		"bug": "Einen Fehler melden",
+		"support": "Spenden",
+		"login": "Anmelden",
+		"link-discord": "Mit Discord verknüpfen",
+		"logout": "Abmelden",
+		"create": {
+			"title": "Raum erstellen",
+			"temp": "Temporären Raum erstellen",
+			"temp-desc": "Beginnen Sie sofort damit, Videos mit Ihren Freunden anzusehen.",
+			"perm": "Permanenten Raum erstellen",
+			"perm-desc": "Ideal für häufige Besucher.",
 		},
 	},
 	"room-list": {
@@ -115,13 +115,13 @@ export default {
 			settings: "Einstellungen",
 		},
 		"users": {
-			title: "Nutzer",
-			set: "Geben Sie Ihren Nutzernamen an",
-			empty: "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
-			waiting-for-permissions: "Warte auf Berechtigungs-Metadaten...",
-			you: "Du",
-			demote: "degradieren",
-			promote: "befördern",
+			"title": "Nutzer",
+			"set": "Geben Sie Ihren Nutzernamen an",
+			"empty": "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
+			"waiting-for-permissions": "Warte auf Berechtigungs-Metadaten...",
+			"you": "Du",
+			"demote": "degradieren",
+			"promote": "befördern",
 		},
 	},
 	"chat": {
@@ -142,14 +142,16 @@ export default {
 	},
 	"add-preview": {
 		"add-all": "Alle hinzufügen",
-		"placeholder": "Geben Sie hier einen Suchbegriff ein um YouTube zu durchsuchen, oder geben Sie eine Video-URL ein, um sie zur Warteschlange hinzuzufügen.",
+		"placeholder":
+			"Geben Sie hier einen Suchbegriff ein um YouTube zu durchsuchen, oder geben Sie eine Video-URL ein, um sie zur Warteschlange hinzuzufügen.",
 		"title": "Was kann ich hinzufügen?",
 		"single-videos": "Einzelne Videos",
 		"playlists": "Wiedergabelisten",
 		"playlist": "Wiedergabeliste",
 		"text": "Oder geben Sie einfach Text ein, um Youtube zu durchsuchen.",
 		"search": "Suche",
-		"search-for": 'Suchen Sie auf YouTube nach "{search}", indem Sie die Eingabetaste drücken oder auf Suchen klicken.',
+		"search-for":
+			'Suchen Sie auf YouTube nach "{search}", indem Sie die Eingabetaste drücken oder auf Suchen klicken.',
 		"platforms": {
 			"youtube-videos": "Youtube-Videos: {url}",
 			"vimeo-videos": "Vimeo-Videos: {url}",
@@ -160,11 +162,24 @@ export default {
 		},
 	},
 	"processed-text": {
-		"link-hint": 'Klicken Sie auf den Link, um ihn in die Registerkarte "Hinzufügen" zu übertragen.',
+		"link-hint":
+			'Klicken Sie auf den Link, um ihn in die Registerkarte "Hinzufügen" zu übertragen.',
 	},
 	"video-queue": {
 		"no-videos": "Es sind keine Videos in der Warteschlange.",
 		"add-video": "Ein Video hinzufügen",
+	},
+	"video-queue-item": {
+		"experimental":
+			"Experimentelle Unterstützung für diesen Dienst! Rechnen Sie damit, dass er oft kaputt geht.",
+		"play-next": "Nächstes Video abspielen",
+		"play-last": "Letztes Video abspielen",
+		"add": "hinzufügen",
+		"remove": "entfernen",
+		"messages": {
+			"video-added": "Video hinzugefügt",
+			"video-removed": "Video entfernt",
+		},
 	},
 	"room-settings": {
 		"title": "@:create-room-form.title",
@@ -242,6 +257,14 @@ export default {
 		"errors": {
 			"something-weird-happened":
 				"Es ist etwas Seltsames passiert, aber vielleicht sind Sie eingeloggt? Aktualisieren Sie die Seite.",
+			"login-failed-noserver":
+				"Die Anmeldung ist fehlgeschlagen, aber der Server hat nicht gesagt, warum. Melden Sie dies als Fehler.",
+			"login-failed":
+				"Anmeldung fehlgeschlagen und ich weiß nicht warum. Melden Sie dies als Fehler.",
+			"register-failed-noserver":
+				"Die Registrierung ist fehlgeschlagen, aber der Server hat nicht gesagt, warum. Melden Sie dies als Fehler.",
+			"register-failed":
+				"Die Registrierung ist fehlgeschlagen, und ich weiß nicht, warum. Prüfen Sie die Konsole und melden Sie dies als Fehler.",
 			"in-use": "Bereits in Verwendung.",
 		},
 	},
