@@ -5,30 +5,96 @@ export default {
 			description:
 				"Synchrone Wiedergabe in Echtzeit. Optionales Abstimmungssystem.\nDunkles Theme. Keine Anmeldung erforderlich. Alles Open Source.\nNoch nie war es so einfach, gemeinsam Videos anzuschauen.",
 			btns: {
+				create: "@:nav.create.title",
 				browse: "Räume durchsuchen",
 				source: "Quellcode ansehen",
 			},
 		},
+		intro: {
+			title: "Watch-Partys aus der Ferne sind jetzt viel einfacher",
+			name: "OpenTogetherTube",
+			text1: "ist eine Plattform zur Echtzeit-Videosynchronisation. Es ist einfach zu bedienen und erfordert keine Anmeldung. Erstelle einfach einen Raum, füge Videos hinzu und lade deine Freunde ein. Zack, fertig! Du bist nun startklar um mit deinen Freunden bis 3 Uhr nachts Videos zu gucken.",
+			text2: "Das ursprüngliche TogetherTube wurde für seine einfache Benutzeroberfläche geliebt und dafür, wie einfach es war, sofort mit dem Ansehen von Videos zu beginnen. OpenTogetherTube hat sich zum Ziel gesetzt, genauso einfach zu sein und es darüber hinaus noch besser zu machen.",
+			text3: "Derzeit können Sie mit Ihren Freunden Online-Videos von Youtube, Vimeo, Dailymotion und direkte Links zu .mp4-Videos ansehen.",
+			link: "Unterstützung für weitere Plattformen ist geplant",
+		},
+		features: {
+			"title": "Kernfunktionen",
+			"syncronized-playback": {
+				title: "Synchrone Wiedergabe",
+				text: 'Sie drücken auf "Wiedergabe", und das Video wird für alle im Raum abgespielt. So einfach ist das.',
+			},
+			"permanent-rooms": {
+				title: "Permanente Räume",
+				text: "Sie und Ihre Truppe kommen oft hierher? Sparen Sie sich die Mühe, jedes Mal einen neuen Link zu verschicken. Permanente Räume erhalten eine benutzerdefinierte Url, die sich nicht ändert.",
+			},
+			"dark-theme": {
+				title: "Dunkles Theme",
+				text: "Schauen Sie sich Vine-Compilations spät in der Nacht an? OpenTogetherTube hat standardmäßig ein dunkles Theme, so dass Ihre Augen nicht leiden werden.",
+			},
+			"room-permissions": {
+				title: "Raum-Berechtigungen",
+				text: "Hast du es satt, dass irgendwelche Spaßvögel deinen Raum betreten und deine entspannte Lofi-Hip-Hop-Hörsession mit lauten Videos stören? Sperren Sie sie einfach für das Hinzufügen von Videos.",
+			},
+			"voting-system": {
+				title: "Abstimmungssystem",
+				text: "Sie können sich nicht entscheiden, was Sie als Nächstes sehen wollen? Schalten Sie die Warteschlange auf das Abstimmungssystem um und lassen Sie die Demokratie tun, was sie am besten kann.",
+			},
+			"playlist-copying": {
+				title: "Ganze Wiedergabelisten und Kanäle abspielen",
+				text: "Fügen Sie der Video-Warteschlange ganze Wiedergabelisten oder Kanäle auf einmal hinzu, damit Sie nicht jedes Video einzeln in die Warteschlange hinzufügen müssen.",
+			},
+		},
+		support: {
+			title: "Entwicklung unterstützen",
+			description1:
+				"OpenTogetherTube wäre ohne die Hilfe von Mitwirkenden und Unterstützern wie Ihnen nicht möglich.",
+			description2:
+				"Beteiligen Sie sich an der Entwicklung, indem Sie Ihre Ideen oder Ihren Code beisteuern, oder zeigen Sie Ihre Unterstützung, indem Sie Spender werden. Alle Spenden werden verwendet, um die Betriebskosten und die Entwicklung von OpenTogetherTube zu finanzieren und um OpenTogetherTube werbefrei zu halten.",
+			how: "Wie kann ich helfen?",
+			sponsor: "@:nav.support",
+			contribute: "Code beisteuern",
+		},
+	},
+	"footer": {
+		"disclaimer":
+			"Disclaimer: Das OpenTogetherTube-Projekt ist weder mit TogetherTube noch mit Watch2Gether verbunden.",
+		"made-in": "Made in Amerika",
+		"thanks-to": "Besonderen Dank an",
+		"privacy-policy": "Datenschutzbestimmungen",
 	},
 	"not-found": {
 		title: "Seite nicht gefunden",
+		home: "@:nav.home",
+		browse: "@:landing.hero.btns.browse",
+	},
+	"quick-room": {
+		text: "Erstelle einen temporären Raum für Sie...",
+	},
+	"attribution": {
+		"sponsorblock-text": "Verwendet SponsorBlock-Daten von",
 	},
 	"nav": {
-		home: "Startseite",
-		browse: "Durchsuchen",
-		bug: "Einen Fehler melden",
-		support: "Spenden",
-		login: "Anmelden",
-		logout: "Abmelden",
-		create: {
-			title: "Raum erstellen",
-			temp: "Temporären Raum erstellen",
-			perm: "Permanenten Raum erstellen",
+		"home": "Startseite",
+		"browse": "Durchsuchen",
+		"bug": "Einen Fehler melden",
+		"support": "Spenden",
+		"login": "Anmelden",
+		"link-discord": "Mit Discord verknüpfen",
+		"logout": "Abmelden",
+		"create": {
+			"title": "Raum erstellen",
+			"temp": "Temporären Raum erstellen",
+			"temp-desc": "Beginnen Sie sofort damit, Videos mit Ihren Freunden anzusehen.",
+			"perm": "Permanenten Raum erstellen",
+			"perm-desc": "Ideal für häufige Besucher.",
 		},
 	},
 	"room-list": {
 		"no-rooms": "Kein Raum im Moment...",
+		"create": "@:nav.create.title",
 		"no-description": "Keine Beschreibung.",
+		"nothing-playing": "Es wird nichts abgespielt.",
 	},
 	"room": {
 		"title-temp": "Temporärer Raum",
@@ -49,11 +115,13 @@ export default {
 			settings: "Einstellungen",
 		},
 		"users": {
-			title: "Nutzer",
-			empty: "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
-			you: "Du",
-			demote: "degradieren",
-			promote: "befördern",
+			"title": "Nutzer",
+			"set": "Geben Sie Ihren Nutzernamen an",
+			"empty": "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
+			"waiting-for-permissions": "Warte auf Berechtigungs-Metadaten...",
+			"you": "Du",
+			"demote": "degradieren",
+			"promote": "befördern",
 		},
 	},
 	"chat": {
@@ -74,16 +142,63 @@ export default {
 	},
 	"add-preview": {
 		"add-all": "Alle hinzufügen",
+		"placeholder":
+			"Geben Sie hier einen Suchbegriff ein um YouTube zu durchsuchen, oder geben Sie eine Video-URL ein, um sie zur Warteschlange hinzuzufügen.",
+		"title": "Was kann ich hinzufügen?",
 		"single-videos": "Einzelne Videos",
 		"playlists": "Wiedergabelisten",
 		"playlist": "Wiedergabeliste",
+		"text": "Oder geben Sie einfach Text ein, um Youtube zu durchsuchen.",
+		"search": "Suche",
+		"search-for":
+			'Suchen Sie auf YouTube nach "{search}", indem Sie die Eingabetaste drücken oder auf Suchen klicken.',
+		"platforms": {
+			"youtube-videos": "Youtube-Videos: {url}",
+			"vimeo-videos": "Vimeo-Videos: {url}",
+			"dailymotion-videos": "Dailymotion-Videos: {url}",
+			"any-mp4-videos": "Alle öffentlichen .mp4-Videos: {url}",
+			"youtube-playlists": "Youtube-Wiedergabelisten: {url}",
+			"youtube-channels": "Youtube-Kanäle: {url}",
+		},
+	},
+	"processed-text": {
+		"link-hint":
+			'Klicken Sie auf den Link, um ihn in die Registerkarte "Hinzufügen" zu übertragen.',
 	},
 	"video-queue": {
 		"no-videos": "Es sind keine Videos in der Warteschlange.",
 		"add-video": "Ein Video hinzufügen",
 	},
+	"video-queue-item": {
+		"experimental":
+			"Experimentelle Unterstützung für diesen Dienst! Rechnen Sie damit, dass er oft kaputt geht.",
+		"play-next": "Nächstes Video abspielen",
+		"play-last": "Letztes Video abspielen",
+		"add": "hinzufügen",
+		"remove": "entfernen",
+		"messages": {
+			"video-added": "Video hinzugefügt",
+			"video-removed": "Video entfernt",
+		},
+	},
 	"room-settings": {
+		"title": "@:create-room-form.title",
+		"description": "@:create-room-form.description",
+		"visibility": "@:create-room-form.visibility",
+		"public": "@:create-room-form.public",
+		"unlisted": "@:create-room-form.unlisted",
+		"queue-mode": "@:create-room-form.queue-mode",
+		"manual": "@:create-room-form.manual",
+		"manual-hint":
+			"Standardverhalten, funktioniert so, wie man es erwarten würde. Sie können Einträge in der Warteschlange manuell neu anordnen.",
+		"vote": "@:create-room-form.vote",
+		"vote-hint": "Das Video mit den meisten Stimmen wird als nächstes abgespielt.",
 		"loop": "Schleife",
+		"loop-hint": "Wenn ein Video endet, wird es an das Ende der Warteschlange geschoben.",
+		"dj-hint":
+			"Wenn das Video endet, startet das gleiche Video von Anfang an. Gut für das Abspielen von Hintergrundmusik.",
+		"auto-skip-text":
+			"Automatisches Überspringen von gesponserten Segmenten, Intros, Eigenwerbung usw. mit SponsorBlock-Daten.",
 		"permissions-not-available": "In temporären Räumen sind keine Berechtigungen verfügbar.",
 		"room-needs-owner":
 			"Dieser Raum braucht einen Eigentümer, bevor die Berechtigungen geändert werden können.",
@@ -122,6 +237,7 @@ export default {
 			"Ein unbekannter Fehler ist aufgetreten. Versuchen Sie es später noch einmal.",
 	},
 	"login-form": {
+		"login": "@:nav.login",
 		"register": "Registrieren",
 		"login-discord": "Anmelden mit Discord",
 		"email": "E-Mail",
@@ -141,6 +257,14 @@ export default {
 		"errors": {
 			"something-weird-happened":
 				"Es ist etwas Seltsames passiert, aber vielleicht sind Sie eingeloggt? Aktualisieren Sie die Seite.",
+			"login-failed-noserver":
+				"Die Anmeldung ist fehlgeschlagen, aber der Server hat nicht gesagt, warum. Melden Sie dies als Fehler.",
+			"login-failed":
+				"Anmeldung fehlgeschlagen und ich weiß nicht warum. Melden Sie dies als Fehler.",
+			"register-failed-noserver":
+				"Die Registrierung ist fehlgeschlagen, aber der Server hat nicht gesagt, warum. Melden Sie dies als Fehler.",
+			"register-failed":
+				"Die Registrierung ist fehlgeschlagen, und ich weiß nicht, warum. Prüfen Sie die Konsole und melden Sie dies als Fehler.",
 			"in-use": "Bereits in Verwendung.",
 		},
 	},
