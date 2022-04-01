@@ -116,7 +116,7 @@ export default {
 		},
 		"users": {
 			"title": "Nutzer",
-			"set": "Geben Sie Ihren Nutzernamen an",
+			"set": "Geben Sie Ihren Nutzernamen ein",
 			"empty": "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
 			"waiting-for-permissions": "Warte auf Berechtigungs-Metadaten...",
 			"you": "Du",
@@ -172,8 +172,8 @@ export default {
 	"video-queue-item": {
 		"experimental":
 			"Experimentelle Unterstützung für diesen Dienst! Rechnen Sie damit, dass er oft kaputt geht.",
-		"play-next": "Nächstes Video abspielen",
-		"play-last": "Letztes Video abspielen",
+		"play-next": "Video als nächstes abspielen",
+		"play-last": "Video zuletzt abspielen",
 		"add": "hinzufügen",
 		"remove": "entfernen",
 		"messages": {
