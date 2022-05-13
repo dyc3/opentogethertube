@@ -1,12 +1,13 @@
 <template>
 	<div>
+		<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
 		<v-container
 			fluid
 			:class="{
 				'room': true,
 				'fullscreen': $store.state.fullscreen,
-				'layout-default': $store.state.settings.roomLayout === RoomLayoutMode.default,
-				'layout-theater': $store.state.settings.roomLayout === RoomLayoutMode.theater,
+				'layout-default': $store.state.settings.roomLayout === 'default',
+				'layout-theater': $store.state.settings.roomLayout === 'theater',
 			}"
 			v-if="!showJoinFailOverlay"
 		>
@@ -162,10 +163,7 @@
 									<div class="flex-grow-1"><!-- Spacer --></div>
 									<v-btn v-if="!isMobile" @click="rotateRoomLayout">
 										<v-icon
-											v-if="
-												$store.state.settings.roomLayout ===
-												RoomLayoutMode.theater
-											"
+											v-if="$store.state.settings.roomLayout === 'theater'"
 											style="transform: scaleX(180%)"
 											>far fa-square</v-icon
 										>
@@ -729,7 +727,7 @@ export default {
 		},
 
 		rotateRoomLayout() {
-			let layouts = Object.keys(RoomLayoutMode);
+			let layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
 			let newLayout =
 				layouts[
 					(layouts.indexOf(this.$store.state.settings.roomLayout) + 1) % layouts.length
