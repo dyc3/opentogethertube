@@ -729,7 +729,7 @@ export default {
 		},
 
 		rotateRoomLayout() {
-			let layouts = Object.keys(RoomLayoutMode);
+			let layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
 			let newLayout =
 				layouts[
 					(layouts.indexOf(this.$store.state.settings.roomLayout) + 1) % layouts.length
