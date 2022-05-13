@@ -350,7 +350,7 @@ export default {
 
 			i_timestampUpdater: null,
 
-			orientation: screen.orientation.type,
+			orientation: screen ? screen.orientation.type : undefined,
 			videoControlsHideTimeout: null,
 
 			api,
@@ -410,7 +410,9 @@ export default {
 		this.$events.on("onRoomCreated", this.onRoomCreated);
 
 		window.addEventListener("keydown", this.onKeyDown);
-		screen.orientation.addEventListener("change", this.onScreenOrientationChange);
+		if (screen) {
+			screen.orientation.addEventListener("change", this.onScreenOrientationChange);
+		}
 
 		this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
 
@@ -429,7 +431,9 @@ export default {
 		clearInterval(this.i_timestampUpdater);
 		connection.disconnect();
 		this.$events.remove("onRoomCreated", this.onRoomCreated);
-		screen.orientation.removeEventListener("change", this.onScreenOrientationChange);
+		if (screen) {
+			screen.orientation.removeEventListener("change", this.onScreenOrientationChange);
+		}
 		window.removeEventListener("keydown", this.onKeyDown);
 	},
 	methods: {
@@ -564,7 +568,11 @@ export default {
 				if (this.isMobile) {
 					// force the device into landscape mode to get the user to rotate the device
 					// but still allow exiting fullscreen by rotating the device back to portrait
-					screen.orientation.lock("landscape").then(() => screen.orientation.unlock());
+					if (screen) {
+						screen.orientation
+							.lock("landscape")
+							.then(() => screen.orientation.unlock());
+					}
 				}
 			}
 		},
