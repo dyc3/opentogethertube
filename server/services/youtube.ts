@@ -232,14 +232,20 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
 	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
 		const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
-		const groups = await Promise.all(
-			Object.values(groupedByMissingInfo).map(group => {
-				const ids = group.map(request => request.id);
-				return this.videoApiRequest(ids, group[0].missingInfo);
-			})
-		);
-		// const results = Object.values(groups.flat()[0]);
-		const results: Video[] = _.flatten(groups) as Video[];
+		let results: Video[] = [];
+		for (let group of Object.values(groupedByMissingInfo)) {
+			const ids = group.map(request => request.id);
+			try {
+				let result = (await this.videoApiRequest(ids, group[0].missingInfo)) as Video[];
+				results.concat(result);
+			} catch (e) {
+				if (e instanceof UnsupportedVideoType) {
+					log.debug("Unsupported video type found, skipping");
+				} else {
+					throw e;
+				}
+			}
+		}
 		return results;
 	}
 
