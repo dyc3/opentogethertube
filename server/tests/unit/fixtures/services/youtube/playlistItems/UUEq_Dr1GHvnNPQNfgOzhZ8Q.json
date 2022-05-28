@@ -1,0 +1,1776 @@
+{
+	"kind": "youtube#playlistItemListResponse",
+	"etag": "amFMKzlbk3706zdv51q0qo3d6wQ",
+	"nextPageToken": "EAAaBlBUOkNDZw",
+	"items": [
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "rOhsWAQWqkbKzFpqUvM6Gto1ezE",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnlIdXI0UHZ2Vm9n",
+		"snippet": {
+		  "publishedAt": "2022-05-27T20:56:49Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Yu-Gi-Oh Woes",
+		  "description": "Yugi and Kaiba battle with cards, words, and financial reasoning.\n\nSad Yu-Gi-Oh rendition: https://youtu.be/1RYmf3HhIVw\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/yHur4PvvVog/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/yHur4PvvVog/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/yHur4PvvVog/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 0,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "yHur4PvvVog"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "yHur4PvvVog",
+		  "videoPublishedAt": "2022-05-27T20:56:49Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "EZR2u2SwzLTCsvgV2lnRC6_oZeQ",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLkVLRXY4akxCRU1B",
+		"snippet": {
+		  "publishedAt": "2022-05-24T20:53:35Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "You Choose Spider-Man",
+		  "description": "Spider-Man and the Green Goblin discuss the philosophy of being a little crazy, a little nuts even\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/EKEv8jLBEMA/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/EKEv8jLBEMA/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/EKEv8jLBEMA/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/EKEv8jLBEMA/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 1,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "EKEv8jLBEMA"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "EKEv8jLBEMA",
+		  "videoPublishedAt": "2022-05-24T20:53:35Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "B_hbVXi0G7UjvIn0wVOgbo4DSY0",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLktwYWJPSm9ybFZn",
+		"snippet": {
+		  "publishedAt": "2022-05-20T19:54:56Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Doctor Doom’s Intervention",
+		  "description": "Doctor Doom and Reed Richards discuss generational trauma\n\nAlso this is my 200th video on YouTube. Dang I gotta get out more\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/KpabOJorlVg/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/KpabOJorlVg/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/KpabOJorlVg/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/KpabOJorlVg/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 2,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "KpabOJorlVg"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "KpabOJorlVg",
+		  "videoPublishedAt": "2022-05-20T19:54:56Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "UuIZwvAEdd-mXV6P-iiqUeY98bg",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmo5OEItcWItZmdN",
+		"snippet": {
+		  "publishedAt": "2022-05-16T20:37:59Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Papa Smurf’s Final Solution",
+		  "description": "Papa Smurf decides to take smurf village into a new age.\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/j98B-qb-fgM/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/j98B-qb-fgM/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/j98B-qb-fgM/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 3,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "j98B-qb-fgM"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "j98B-qb-fgM",
+		  "videoPublishedAt": "2022-05-16T20:37:59Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "pIINMtzOiwhlibcGXuqESYfK9uM",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLjZ1MVI1WjVuVmM0",
+		"snippet": {
+		  "publishedAt": "2022-05-13T19:24:26Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Batman Meets Bizarro",
+		  "description": "Batman and Superman have a “bizarre” encounter (when you get the joke you’ll laugh your b-u-t-t off!)\n\nSecond channel: @Solidus jj \nTwitter: https://twitter.com/solidusjj\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/6u1R5Z5nVc4/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/6u1R5Z5nVc4/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/6u1R5Z5nVc4/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 4,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "6u1R5Z5nVc4"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "6u1R5Z5nVc4",
+		  "videoPublishedAt": "2022-05-13T19:24:26Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "Ivn-gmZLoxnHEriy-8ye86ZE3tE",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmhZbTdEUVBUUzJn",
+		"snippet": {
+		  "publishedAt": "2022-05-09T19:26:20Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Scooby Doo and the Mystery of the Dead Guy",
+		  "description": "Scooby Doo and the Mystery Gang find out the scariest monster of all is man. And also they make sandwiches lol\n\nDetective Ruby voiced by @Voiceover Requiem \nVelma voiced by @MothballsVA \n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/hYm7DQPTS2g/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/hYm7DQPTS2g/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/hYm7DQPTS2g/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 5,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "hYm7DQPTS2g"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "hYm7DQPTS2g",
+		  "videoPublishedAt": "2022-05-09T19:26:20Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "jjTyMpVknXMoxsTax1LczjHvT8k",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLjVkTmx4TnVBQnRB",
+		"snippet": {
+		  "publishedAt": "2022-05-06T19:56:38Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Doctor Strange Multiverse of Stooges",
+		  "description": "When Doctor Strange has to search the multiverse for a friend, he finds Stooges instead.\n\nSecond channel: @Solidus jj \nTwitter: https://twitter.com/solidjj\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/5dNlxNuABtA/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/5dNlxNuABtA/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/5dNlxNuABtA/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 6,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "5dNlxNuABtA"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "5dNlxNuABtA",
+		  "videoPublishedAt": "2022-05-06T19:56:38Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "5YiiHrlY7maQ1fulZuWntOSbvcw",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnNMWG8td1R5Nzdj",
+		"snippet": {
+		  "publishedAt": "2022-05-03T19:00:42Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "The Avengers Interview Hulk",
+		  "description": "Hulk gets interviewed by Iron Man, Captain America, and Thor and will fight the good fight for good dental insurance\n\nSecond channel: @Solidus jj \nTwitter: https://twitter.com/solidusjj\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/sLXo-wTy77c/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/sLXo-wTy77c/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/sLXo-wTy77c/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 7,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "sLXo-wTy77c"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "sLXo-wTy77c",
+		  "videoPublishedAt": "2022-05-03T19:00:42Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "OHlPZqZ3xmP943gxoEUQsJG_Ad8",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLlNxcjlMb2c5UERN",
+		"snippet": {
+		  "publishedAt": "2022-04-26T19:07:43Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "X-Men Mind Games",
+		  "description": "Professor X’s powers come into question and Cyclops can’t see anything because his eyes are red because he’s stupid \n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/Sqr9Log9PDM/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/Sqr9Log9PDM/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/Sqr9Log9PDM/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 8,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "Sqr9Log9PDM"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "Sqr9Log9PDM",
+		  "videoPublishedAt": "2022-04-26T19:07:43Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "-ZASbF79agge4kY-tFzEvBmwXVw",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLkRXV0R5a0F1MWpB",
+		"snippet": {
+		  "publishedAt": "2022-04-22T19:50:45Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Batman’s Greatest Foes",
+		  "description": "Batman faces off against some of his greatest foes ever (4real). Polka-Dot man triumphs?\n\nStarting @Doobus Goobus  as Polka-Dot Man, Calendar Man, The Eraser, Kite-Man, Penguin and the voices in my head that tell me to hurt people \n\nMade this with a killer cold so if there’s any technical issues no there’s not",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/DWWDykAu1jA/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/DWWDykAu1jA/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/DWWDykAu1jA/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/DWWDykAu1jA/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 9,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "DWWDykAu1jA"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "DWWDykAu1jA",
+		  "videoPublishedAt": "2022-04-22T19:50:45Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "EpTlnvFEn-zu3ROP0r0Lftsvzqk",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLkxNWlBxLUpocGxZ",
+		"snippet": {
+		  "publishedAt": "2022-04-18T19:36:32Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Just a Burning Pokémon",
+		  "description": "Ash and Gary go to Professor Oak to get their starter Pokémon and come to find the never-ending passage of time is super effective\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/LMZPq-JhplY/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/LMZPq-JhplY/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/LMZPq-JhplY/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/LMZPq-JhplY/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 10,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "LMZPq-JhplY"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "LMZPq-JhplY",
+		  "videoPublishedAt": "2022-04-18T19:36:32Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "L3lOL-aDGLzYXJx7J7oealb94Io",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnJpRVE4S3BjWFJR",
+		"snippet": {
+		  "publishedAt": "2022-04-15T19:29:43Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Iron Man’s Bad Day",
+		  "description": "Iron Man realizes he’s kinda lame\nFeaturing my sister as the girl one\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/riEQ8KpcXRQ/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/riEQ8KpcXRQ/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/riEQ8KpcXRQ/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 11,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "riEQ8KpcXRQ"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "riEQ8KpcXRQ",
+		  "videoPublishedAt": "2022-04-15T19:29:43Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "c5TuoX-l41LXGVIDNnWIkViUZSs",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLng5VTlNRjhVaDUw",
+		"snippet": {
+		  "publishedAt": "2022-04-11T19:14:03Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "MatPat on the Howard Stern Show",
+		  "description": "MatPat from Game Theory loses his marbles on the Howard Stern Show over the credence of his Five Nights at Freddy’s knowledge. Markaplier calls in to tame the fire.\n\nMatPat voiced by @StinkyBlueRat (an amazing job btw)\nRobin voiced by @MothballsVA \n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/x9U9MF8Uh50/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/x9U9MF8Uh50/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/x9U9MF8Uh50/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/x9U9MF8Uh50/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 12,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "x9U9MF8Uh50"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "x9U9MF8Uh50",
+		  "videoPublishedAt": "2022-04-11T19:14:03Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "oNw2P7Nx6Seac9laCPUOwsDcdPw",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLkl2OWU3Wk5uQy1N",
+		"snippet": {
+		  "publishedAt": "2022-04-08T19:02:04Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Batman DESTROYS the Justice League with FACTS and LOGIC",
+		  "description": "Batman OWNS the Superman, the Flash, and Green Lantern with FACTS, LOGIC, and OUTDATED COMIC FACTS!\n\nTwitter: https://twitter.com/solidusjj\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/Iv9e7ZNnC-M/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/Iv9e7ZNnC-M/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/Iv9e7ZNnC-M/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/Iv9e7ZNnC-M/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 13,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "Iv9e7ZNnC-M"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "Iv9e7ZNnC-M",
+		  "videoPublishedAt": "2022-04-08T19:02:04Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "UAIrPPDsRcUo81M3q9SWRZyozyk",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmRfWHYzdVhIOWFv",
+		"snippet": {
+		  "publishedAt": "2022-04-04T18:55:52Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Darth Vader Changes his Mind",
+		  "description": "Darth Vader realizes that this Luke kid isn’t worth the effort. Emperor Palpatine is hungry for some lasagna\n\nThe Emperor voiced by Zane Schacht\nhttps://twitter.com/VoicesByZane\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/d_Xv3uXH9ao/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/d_Xv3uXH9ao/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/d_Xv3uXH9ao/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/d_Xv3uXH9ao/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 14,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "d_Xv3uXH9ao"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "d_Xv3uXH9ao",
+		  "videoPublishedAt": "2022-04-04T18:55:52Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "depH4l4v1UVTvSjtcAf1lwz5XQw",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnFhNDVtWmUxdzBV",
+		"snippet": {
+		  "publishedAt": "2022-04-01T18:42:33Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Metal Gear Discord",
+		  "description": "Solid Snake and Colonel Campbell must travel to the forbidden realm to complete their mission.\n\nColonel Campbell voiced by Tom Schalk\nhttps://m.youtube.com/channel/UCkHSfQOLkn4QhU7duzrYolQ\n\nSecond channel: @Solidus jj \nTwitter: https://twitter.com/solidjj\nPatreon: https://patreon.com/solidjj\n\nalso the video extending an extra few seconds was tooootally on purpose haha april fools haha totally wasn’t an editing error, we don’t make those here haha get trolled idiot",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/qa45mZe1w0U/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/qa45mZe1w0U/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/qa45mZe1w0U/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/qa45mZe1w0U/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/qa45mZe1w0U/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 15,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "qa45mZe1w0U"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "qa45mZe1w0U",
+		  "videoPublishedAt": "2022-04-01T18:42:33Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "9wvBFi8Ddqv7WspOhUdSmY73WRE",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmR2c2loeHBJMjZN",
+		"snippet": {
+		  "publishedAt": "2022-03-28T18:55:58Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Spider-Man is Ableist",
+		  "description": "Spider-Man attempts the Netflix special speedrun 100% WR \n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/dvsihxpI26M/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/dvsihxpI26M/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/dvsihxpI26M/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 16,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "dvsihxpI26M"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "dvsihxpI26M",
+		  "videoPublishedAt": "2022-03-28T18:55:58Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "8hRLLnsWZ7IVQLyxzgzPW3KfhAA",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnJSeWROSVlwQlRr",
+		"snippet": {
+		  "publishedAt": "2022-03-25T18:57:52Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Back to the Future in 5 Seconds",
+		  "description": "Doc, you’re telling me you built a time machine out of a impact font meme?\n\nDoc Brown voiced by Voiceover Gentleman\nhttps://youtube.com/channel/UCirwp4VDSWZod0fI2t59u9Q\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/rRydNIYpBTk/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/rRydNIYpBTk/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/rRydNIYpBTk/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 17,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "rRydNIYpBTk"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "rRydNIYpBTk",
+		  "videoPublishedAt": "2022-03-25T18:57:52Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "g7radx3KguM-qSYiyWeIPnvh-K8",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLkNoMk9YWmN3VG1r",
+		"snippet": {
+		  "publishedAt": "2022-03-21T19:36:15Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Mandela Homies",
+		  "description": "Instead of murder and existential horror, they make friend brackets\n\nInspired by the Mandela Catalogue by Alex Kister\nhttps://youtube.com/c/MandelaCatalogue\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/Ch2OXZcwTmk/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/Ch2OXZcwTmk/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/Ch2OXZcwTmk/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 18,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "Ch2OXZcwTmk"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "Ch2OXZcwTmk",
+		  "videoPublishedAt": "2022-03-21T19:36:15Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "gVtxhXn4ythOHLNnUbZu1eyLIA4",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnpsTW0weTBGQXJn",
+		"snippet": {
+		  "publishedAt": "2022-03-18T19:00:31Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "The Three Stooges get Drafted",
+		  "description": "Ten-hut! Eleven-Hut! Twelve-Hut!\n\nFeaturing DaVoicePlug as Marshall M\nhttps://instagram.com/DaVoicePlug\n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/zlMm0y0FArg/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/zlMm0y0FArg/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/zlMm0y0FArg/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 19,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "zlMm0y0FArg"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "zlMm0y0FArg",
+		  "videoPublishedAt": "2022-03-18T19:00:31Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "zdfQGrkcY6__OeEX6fYcM4IkGMw",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmZMdFNTaFNIN1VN",
+		"snippet": {
+		  "publishedAt": "2022-03-14T19:41:49Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Superman VS. The Economy",
+		  "description": "Google “Superman Inflation” to learn more",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/fLtSShSH7UM/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/fLtSShSH7UM/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/fLtSShSH7UM/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 20,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "fLtSShSH7UM"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "fLtSShSH7UM",
+		  "videoPublishedAt": "2022-03-14T19:41:49Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "RvaUEnMFrcOXvp0JjOewd3G-loo",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmk4c2Z1SmVPZW80",
+		"snippet": {
+		  "publishedAt": "2022-03-11T19:52:19Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Snake’s Medical Mishap",
+		  "description": "Classic Snake, dying and stuff.\n\nSecond channel: @Solidus jj \nPatreon (behind the scenes): https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/i8sfuJeOeo4/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/i8sfuJeOeo4/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/i8sfuJeOeo4/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 21,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "i8sfuJeOeo4"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "i8sfuJeOeo4",
+		  "videoPublishedAt": "2022-03-11T19:52:19Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "Wujk3ZLn_KVJqfKka2xj5ATHHic",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLjlseTExdVFDNm9R",
+		"snippet": {
+		  "publishedAt": "2022-03-04T19:45:52Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Riddle Me This, Batman",
+		  "description": "The riddler is kiiiinda lame dude \n\nSecond channel: @Solidus jj \nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/9ly11uQC6oQ/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/9ly11uQC6oQ/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/9ly11uQC6oQ/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 22,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "9ly11uQC6oQ"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "9ly11uQC6oQ",
+		  "videoPublishedAt": "2022-03-04T19:45:52Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "MPWGXl9FOv2-EVRq2yVm_9pPK2U",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLjg1cXU0WWhodG1Z",
+		"snippet": {
+		  "publishedAt": "2022-02-28T19:55:01Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Uncle Ben what happened",
+		  "description": "What do you think happened Peter? You goofball\n\nSecond channel: https://www.youtube.com/channel/UCrCeFSG7v0IZliECngeXOJg/videos\n\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/85qu4YhhtmY/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/85qu4YhhtmY/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/85qu4YhhtmY/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 23,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "85qu4YhhtmY"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "85qu4YhhtmY",
+		  "videoPublishedAt": "2022-02-28T19:55:01Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "nmReAK3DmZKj3hHXAZK6nwL46cI",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmRROVJsUjlKcDNz",
+		"snippet": {
+		  "publishedAt": "2022-02-25T21:13:57Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "The Twilight Zone: 9 + 10",
+		  "description": "Imagine, if you will, an original idea\n\nhttps://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/dQ9RlR9Jp3s/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/dQ9RlR9Jp3s/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/dQ9RlR9Jp3s/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 24,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "dQ9RlR9Jp3s"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "dQ9RlR9Jp3s",
+		  "videoPublishedAt": "2022-02-25T21:13:57Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "9J7Q0Gq3NfRoK2JIOdbREVU-A04",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLlZ3QWZNM3hSTmxn",
+		"snippet": {
+		  "publishedAt": "2022-02-22T23:10:10Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "100,000 Sub “Special”",
+		  "description": "This was terrible. Expect more like it\n\nSECOND CHANNEL: https://youtube.com/channel/UCrCeFSG7v0IZliECngeXOJg",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/VwAfM3xRNlg/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/VwAfM3xRNlg/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/VwAfM3xRNlg/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 25,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "VwAfM3xRNlg"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "VwAfM3xRNlg",
+		  "videoPublishedAt": "2022-02-22T23:10:10Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "mRyzQHH-26U7Jrx26FBlUX6UZ_w",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnhqU3Z6a0s0cTJB",
+		"snippet": {
+		  "publishedAt": "2022-02-18T20:10:49Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Kermit’s Divorce",
+		  "description": "You’ll never guess what happens",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/xjSvzkK4q2A/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/xjSvzkK4q2A/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/xjSvzkK4q2A/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 26,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "xjSvzkK4q2A"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "xjSvzkK4q2A",
+		  "videoPublishedAt": "2022-02-18T20:10:49Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "72LA8sdukGNwv-83bkyzk-d0Cuw",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLkttby1TdGpMS1pJ",
+		"snippet": {
+		  "publishedAt": "2022-02-14T20:30:59Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "TMNT: Mikey Dies",
+		  "description": "Turtle power\n\nWas gonna do the 100k announcement today but a lot came up so expect it Wednesday?",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/Kmo-StjLKZI/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/Kmo-StjLKZI/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/Kmo-StjLKZI/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 27,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "Kmo-StjLKZI"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "Kmo-StjLKZI",
+		  "videoPublishedAt": "2022-02-14T20:30:59Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "sn0LYqMRRuwTEcT-OTfglDZ3x6c",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLk5Za3drSk0wN19B",
+		"snippet": {
+		  "publishedAt": "2022-02-11T20:27:48Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "The Not-So-Fantastic Four",
+		  "description": "This is the easiest joke i’ve ever made\n\nFeaturing MothballsVA as The Invisible Woman\nhttps://instagram.com/mothballsva\nhttps://youtube.com/mothballsva",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/NYkwkJM07_A/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/NYkwkJM07_A/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/NYkwkJM07_A/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 28,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "NYkwkJM07_A"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "NYkwkJM07_A",
+		  "videoPublishedAt": "2022-02-11T20:27:48Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "U8HPwfau9uWiM-m31nJP3aePN4s",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLk9oZ2dsWDJRbmV3",
+		"snippet": {
+		  "publishedAt": "2022-02-11T05:03:25Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Solid jj Live Stream",
+		  "description": "",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/OhgglX2Qnew/default_live.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/OhgglX2Qnew/mqdefault_live.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/OhgglX2Qnew/hqdefault_live.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/OhgglX2Qnew/sddefault_live.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/OhgglX2Qnew/maxresdefault_live.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 29,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "OhgglX2Qnew"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "OhgglX2Qnew",
+		  "videoPublishedAt": "2022-02-11T05:03:25Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "LL_OOLayALi6kYG8wrINNPcTSGU",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnRyWWRwbWxVdV9F",
+		"snippet": {
+		  "publishedAt": "2022-02-07T20:28:51Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Pikachu is Sick and Twisted",
+		  "description": "Pikachu watches 1 episode of Rick and Morty\n\nhttps://patreon.com/solidjj (BTS)",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/trYdpmlUu_E/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/trYdpmlUu_E/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/trYdpmlUu_E/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/trYdpmlUu_E/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/trYdpmlUu_E/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 30,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "trYdpmlUu_E"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "trYdpmlUu_E",
+		  "videoPublishedAt": "2022-02-07T20:28:51Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "__lAoUxRkGi6O8gSDLlL5J3YCkw",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLlMySmxlNno3MzZN",
+		"snippet": {
+		  "publishedAt": "2022-02-04T19:38:02Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Spider-Man’s Greatest Foe",
+		  "description": "Spider-Man realizes not every villain is a winner.\n\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/S2Jle6z736M/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/S2Jle6z736M/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/S2Jle6z736M/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/S2Jle6z736M/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/S2Jle6z736M/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 31,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "S2Jle6z736M"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "S2Jle6z736M",
+		  "videoPublishedAt": "2022-02-04T19:38:02Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "Wp0hPROnVVnLzb7D5Zyu_Ld1jMQ",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnNtNzZ2UEpQajFn",
+		"snippet": {
+		  "publishedAt": "2022-01-31T20:28:53Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Screw the Rules",
+		  "description": "Yugi realizes that trying to beat a guy who actively decides how the game is played has a disadvantage due to the fact that he decides how the game is played. Pegasus is kinda a jerk dude.\n\nYugi voiced by Disgusting Supernova (he’s not that gross)\nhttps://youtube.com/channel/UCj5FE6EEvC6DK_MyHXQAuVg",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/sm76vPJPj1g/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/sm76vPJPj1g/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/sm76vPJPj1g/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/sm76vPJPj1g/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/sm76vPJPj1g/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 32,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "sm76vPJPj1g"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "sm76vPJPj1g",
+		  "videoPublishedAt": "2022-01-31T20:28:53Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "MZkLHPdSuiPQxDD7ZdoWbQMox20",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmtRZUMwNlNkaWNJ",
+		"snippet": {
+		  "publishedAt": "2022-01-28T19:27:36Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Drake and Josh cause the Chernobyl Nuclear Disaster",
+		  "description": "Drake and Josh get up to no good and cause what many consider to be one of if not the greatest nuclear accidents of our time. Hijinks ensue!\n\nDrake voiced by Kris Sweet!\nhttps://instagram.com/thatspiderboy2\nhttps://youtube.com/channel/UCEHSgRfQ...\n\nPatreon (BTS): https://www.patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/kQeC06SdicI/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/kQeC06SdicI/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/kQeC06SdicI/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/kQeC06SdicI/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/kQeC06SdicI/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 33,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "kQeC06SdicI"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "kQeC06SdicI",
+		  "videoPublishedAt": "2022-01-28T19:27:36Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "TwNWTedUEndSfrCQ5FCMIBaQWX4",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnRrZU84bzMwNHJn",
+		"snippet": {
+		  "publishedAt": "2022-01-24T20:11:02Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Scooby Doo Uncensored",
+		  "description": "Scooby Doo and the Mystery Gang get into trouble, and the trouble has choice words about the whole ordeal.\n\nPolice Officer voiced by TVFilthyFrank2\nhttps://youtube.com/tvfilthyfrank2\n\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/tkeO8o304rg/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/tkeO8o304rg/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/tkeO8o304rg/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/tkeO8o304rg/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/tkeO8o304rg/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 34,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "tkeO8o304rg"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "tkeO8o304rg",
+		  "videoPublishedAt": "2022-01-24T20:11:02Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "v3vPEICnJO38Vr-1o29ES6KNrPQ",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmFFOEgzcXYzbmtj",
+		"snippet": {
+		  "publishedAt": "2022-01-20T20:24:12Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "GUY FIERI in MINECRAFT (REAL)",
+		  "description": "JJ and Filthy Frank discuss today's political climate and what constitutes as a hate crime as they build bizarre creations in the minecraft realm.\n\nThe italian: https://youtube.com/tvfilthyfrank2\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/aE8H3qv3nkc/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/aE8H3qv3nkc/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/aE8H3qv3nkc/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 35,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "aE8H3qv3nkc"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "aE8H3qv3nkc",
+		  "videoPublishedAt": "2022-01-20T20:24:12Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "miFkhjrK2M-EL9blRymqrA2TVo0",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLm9DMmRjeHdTNklB",
+		"snippet": {
+		  "publishedAt": "2022-01-17T20:00:14Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "The Muppets get Modernized",
+		  "description": "The Muppets realize if you make dark or controversial comments that people will laugh and give you money. Haha\n\nPatreon: https://patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/oC2dcxwS6IA/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/oC2dcxwS6IA/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/oC2dcxwS6IA/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/oC2dcxwS6IA/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/oC2dcxwS6IA/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 36,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "oC2dcxwS6IA"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "oC2dcxwS6IA",
+		  "videoPublishedAt": "2022-01-17T20:00:14Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "wSYrqBgQ-CCuNYDpagiYM33TIMA",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLlBydDlYc0NFOEhv",
+		"snippet": {
+		  "publishedAt": "2022-01-07T20:43:35Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "The Flintstones Destroy the World",
+		  "description": "Fred Flintstone and Barney Rubble begin a chain of events that will ravish the world in pain and turmoil. Laugh track included.\n\nFred voiced by Voiceover Requiem\nhttps://instagram.com/voiceover_requiem\nhttps://www.youtube.com/channel/UC4yc5gKi7XN23KoN7D--SbA\n\nPatreon (BTS): https://www.patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/Prt9XsCE8Ho/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/Prt9XsCE8Ho/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/Prt9XsCE8Ho/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 37,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "Prt9XsCE8Ho"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "Prt9XsCE8Ho",
+		  "videoPublishedAt": "2022-01-07T20:43:35Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "0Ub4rhicey09ENgei-8BIdewTbk",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLmliLTNrSmIwQnY0",
+		"snippet": {
+		  "publishedAt": "2022-01-03T20:08:39Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "Spider-Man: Please Just Go Home",
+		  "description": "Spider-Men from multiple dimensions come together to see how many jokes can be made from the existence of a disney movie. Also Green Goblin.\n\nTom and Andrew voiced by Kris Sweet \nhttps://instagram.com/thatspiderboy2\nhttps://youtube.com/channel/UCEHSgRfQM1sziVYtnt3Vabg\n\nPatreon (BTS): https://www.patreon.com/solidjj",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/ib-3kJb0Bv4/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/ib-3kJb0Bv4/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/ib-3kJb0Bv4/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 38,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "ib-3kJb0Bv4"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "ib-3kJb0Bv4",
+		  "videoPublishedAt": "2022-01-03T20:08:39Z"
+		}
+	  },
+	  {
+		"kind": "youtube#playlistItem",
+		"etag": "yC7l9t7m_PrGOlvKC0yGk-gvAc0",
+		"id": "VVVFcV9EcjFHSHZuTlBRTmZnT3poWjhRLnF4NUxscFZ5UnFv",
+		"snippet": {
+		  "publishedAt": "2021-12-24T19:54:29Z",
+		  "channelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "title": "It’s A Morally Ambiguous Life",
+		  "description": "I don’t care how many of you don’t know what’s happening, It’s A Wonderful Life is the best movie of all dang time!\n\nAlso Merry Christmas",
+		  "thumbnails": {
+			"default": {
+			  "url": "https://i.ytimg.com/vi/qx5LlpVyRqo/default.jpg",
+			  "width": 120,
+			  "height": 90
+			},
+			"medium": {
+			  "url": "https://i.ytimg.com/vi/qx5LlpVyRqo/mqdefault.jpg",
+			  "width": 320,
+			  "height": 180
+			},
+			"high": {
+			  "url": "https://i.ytimg.com/vi/qx5LlpVyRqo/hqdefault.jpg",
+			  "width": 480,
+			  "height": 360
+			},
+			"standard": {
+			  "url": "https://i.ytimg.com/vi/qx5LlpVyRqo/sddefault.jpg",
+			  "width": 640,
+			  "height": 480
+			},
+			"maxres": {
+			  "url": "https://i.ytimg.com/vi/qx5LlpVyRqo/maxresdefault.jpg",
+			  "width": 1280,
+			  "height": 720
+			}
+		  },
+		  "channelTitle": "Solid jj",
+		  "playlistId": "UUEq_Dr1GHvnNPQNfgOzhZ8Q",
+		  "position": 39,
+		  "resourceId": {
+			"kind": "youtube#video",
+			"videoId": "qx5LlpVyRqo"
+		  },
+		  "videoOwnerChannelTitle": "Solid jj",
+		  "videoOwnerChannelId": "UCEq_Dr1GHvnNPQNfgOzhZ8Q"
+		},
+		"contentDetails": {
+		  "videoId": "qx5LlpVyRqo",
+		  "videoPublishedAt": "2021-12-24T19:54:29Z"
+		}
+	  }
+	],
+	"pageInfo": {
+	  "totalResults": 203,
+	  "resultsPerPage": 40
+	}
+  }
