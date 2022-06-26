@@ -17,7 +17,7 @@ export default {
 					if (!this.cancelledRoomCreation) {
 						this.isLoadingCreateRoom = false;
 						this.cancelledRoomCreation = false;
-						this.$events.fire("onRoomCreated", res.data.room);
+						this.$store.commit("ROOM_CREATED");
 						this.goToRoom(res.data.room);
 					}
 				})
@@ -42,7 +42,7 @@ export default {
 					if (!this.cancelledRoomCreation) {
 						this.isLoadingCreateRoom = false;
 						this.cancelledRoomCreation = false;
-						this.$events.fire("onRoomCreated", options.name);
+						this.$store.commit("ROOM_CREATED");
 						this.goToRoom(options.name);
 					}
 				})

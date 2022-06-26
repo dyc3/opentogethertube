@@ -404,8 +404,15 @@ export default {
 				 */
 				this.$refs.chat.onChatReceived(action.payload);
 			}
+			// else if (action.type === "onRoomCreated") {
+			// 	this.onRoomCreated();
+			// }
 		});
-		this.$events.on("onRoomCreated", this.onRoomCreated);
+		this.$store.subscribe(mutation => {
+			if (mutation.type === "ROOM_CREATED") {
+				this.onRoomCreated();
+			}
+		});
 
 		window.addEventListener("keydown", this.onKeyDown);
 		if (screen.orientation) {
@@ -428,7 +435,6 @@ export default {
 	destroyed() {
 		clearInterval(this.i_timestampUpdater);
 		connection.disconnect();
-		this.$events.remove("onRoomCreated", this.onRoomCreated);
 		if (screen.orientation) {
 			screen.orientation.removeEventListener("change", this.onScreenOrientationChange);
 		}
