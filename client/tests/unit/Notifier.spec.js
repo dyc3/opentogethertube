@@ -11,9 +11,6 @@ const localVue = createLocalVue();
 // https://github.com/vuetifyjs/vuetify/issues/4964
 Vue.use(Vuetify);
 
-import VueEvents from "vue-events";
-localVue.use(VueEvents);
-
 localVue.use(Vuex);
 
 function createStore() {

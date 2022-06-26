@@ -3,7 +3,6 @@ import { shallowMount, createLocalVue } from "@vue/test-utils";
 import Vuex from "vuex";
 import Vuetify from "vuetify";
 import AddPreview from "@/components/AddPreview.vue";
-import VueEvents from "vue-events";
 import VBtn from "vuetify/lib/components/VBtn";
 import { i18n } from "@/i18n";
 
@@ -13,7 +12,6 @@ Vue.use(Vuetify);
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
-localVue.use(VueEvents);
 
 function createStore() {
 	return new Vuex.Store({

@@ -1,7 +1,6 @@
 import Vue from "vue";
 import { shallowMount, createLocalVue } from "@vue/test-utils";
 import Vuex from "vuex";
-import VueEvents from "vue-events";
 import Vuetify from "vuetify";
 import VueSlider from "vue-slider-component";
 import Room from "@/views/Room";
@@ -15,7 +14,6 @@ Vue.use(Vuetify);
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
-localVue.use(VueEvents);
 localVue.component("VueSlider", VueSlider);
 
 const $route = {
