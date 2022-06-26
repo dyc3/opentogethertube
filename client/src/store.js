@@ -106,6 +106,7 @@ export default new Vuex.Store({
 			state.$connection.shouldReconnect = false;
 			state.$connection.attempts = 0;
 		},
+		ROOM_CREATED() {},
 	},
 	actions: {
 		sync(context, message) {

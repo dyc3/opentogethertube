@@ -23,7 +23,11 @@ export default {
 		};
 	},
 	async mounted() {
-		this.$events.on("onRoomCreated", () => (this.showLoading = false));
+		this.$store.subscribe((mutation, state) => {
+			if (mutation.type === "ROOM_CREATED") {
+				this.showLoading = false;
+			}
+		});
 		this.showLoading = true;
 		// http://localhost:8080/quickroom
 		this.createTempRoom();
