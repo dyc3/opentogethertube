@@ -25,18 +25,7 @@ export default {
 	async mounted() {
 		this.$events.on("onRoomCreated", () => (this.showLoading = false));
 		this.showLoading = true;
-		let urlParams = new URLSearchParams(window.location.search);
-		// http://localhost:8080/quickroom?service=youtube&id=OC8YSHSIMTw
-		if (urlParams.has("service") && urlParams.has("id")) {
-			this.$store.commit("QUICKADD_ADD", {
-				service: urlParams.get("service"),
-				id: urlParams.get("id"),
-			});
-		} else if (urlParams.has("url")) {
-			this.$store.commit("QUICKADD_ADD", {
-				url: urlParams.get("url"),
-			});
-		}
+		// http://localhost:8080/quickroom
 		this.createTempRoom();
 	},
 };

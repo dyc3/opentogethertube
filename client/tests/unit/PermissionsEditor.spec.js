@@ -28,7 +28,6 @@ function createStore() {
 				users: [],
 				events: [],
 			},
-			quickAdd: [],
 			users: {
 				you: {
 					grants: 0b1111111111111111111111111111111111111111,

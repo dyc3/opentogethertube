@@ -752,15 +752,6 @@ export default {
 		let slider = document.getElementById("videoSlider");
 		slider.addEventListener("mousemove", this.updateSeekPreview);
 		slider.addEventListener("mouseleave", this.resetSeekPreview);
-
-		if (this.$store.state.quickAdd.length > 0) {
-			for (let video of this.$store.state.quickAdd) {
-				API.post(
-					`/room/${this.$route.params.roomId}/queue`,
-					_.pick(video, ["service", "id", "url"])
-				);
-			}
-		}
 	},
 	updated() {
 		let slider = document.getElementById("videoSlider");

@@ -51,9 +51,6 @@ export default new Vuex.Store({
 			chatMessages: [],
 		},
 
-		// used for prompting the user if they want to add the video they came from or the video linked to the queue
-		quickAdd: [],
-
 		keepAliveInterval: null,
 		/** Permissions metadata */
 		permsMeta: {
@@ -84,12 +81,6 @@ export default new Vuex.Store({
 		},
 		LOGOUT(state) {
 			state.user = null;
-		},
-		QUICKADD_ADD(state, video) {
-			state.quickAdd.push(video);
-		},
-		QUICKADD_CLEAR(state) {
-			state.quickAdd = [];
 		},
 		PERMISSIONS_METADATA(state, metadata) {
 			for (let role of metadata.roles) {
