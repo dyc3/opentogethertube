@@ -59,34 +59,6 @@ export interface RoomOptions extends RoomSettings {
 	userRoles: Map<Role, Set<number>>
 }
 
-/**
- * Things that Rooms need to remember, but can safely be forgotten when the room is unloaded.
- * This rule does not necessarily apply to inherited fields.
- */
-export interface RoomState extends RoomOptions, RoomStateComputed {
-	currentSource: Video | null
-	queue: Video[]
-	isPlaying: boolean
-	playbackPosition: number
-	users: RoomUserInfo[]
-	votes: Map<string, Set<ClientId>>
-	videoSegments: Segment[]
-}
-
-export interface RoomStateComputed {
-	hasOwner: boolean
-	voteCounts: Map<string, number>
-}
-
-// Only these should be sent to clients, all others should be considered unsafe
-export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "grants">
-
-// Only these should be stored in redis
-export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">
-
-// Only these should be stored in persistent storage
-export type RoomStatePersistable = Omit<RoomState, "currentSource" | "queue" | "isPlaying" | "playbackPosition">
-
 export type RoomUserInfo = {
 	id: ClientId
 	name: string

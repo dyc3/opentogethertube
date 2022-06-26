@@ -7,6 +7,7 @@ import infoextractor from "../../../server/infoextractor";
 import { Video } from "../../../common/models/video";
 import permissions from "../../../common/permissions";
 import _ from "lodash";
+import { VideoQueue } from "server/videoqueue";
 
 describe("Room", () => {
 	beforeAll(() => {
@@ -100,12 +101,12 @@ describe("Room", () => {
 			});
 
 			it("skip with non-empty queue", async () => {
-				room.queue = [
+				room.queue = new VideoQueue([
 					{
 						service: "test",
 						id: "video2",
 					},
-				];
+				]);
 				await room.processUnauthorizedRequest(
 					{
 						type: RoomRequestType.SkipRequest,
@@ -173,7 +174,7 @@ describe("Room", () => {
 					service: "test",
 					id: "asdf123",
 				};
-				room.queue = [videoToPlay];
+				room.queue = new VideoQueue([videoToPlay]);
 				await room.processUnauthorizedRequest(
 					{
 						type: RoomRequestType.PlayNowRequest,
@@ -181,7 +182,7 @@ describe("Room", () => {
 					},
 					{ token: user.token }
 				);
-				for (const video of room.queue) {
+				for (const video of room.queue.items) {
 					expect(video).not.toEqual(videoToPlay);
 				}
 				expect(room.currentSource).toEqual(videoToPlay);
@@ -193,7 +194,7 @@ describe("Room", () => {
 					service: "test",
 					id: "asdf123",
 				};
-				room.queue = [videoToPlay];
+				room.queue = new VideoQueue([videoToPlay]);
 				await room.processUnauthorizedRequest(
 					{
 						type: RoomRequestType.PlayNowRequest,
@@ -205,7 +206,7 @@ describe("Room", () => {
 					service: "test",
 					id: "asdf123",
 				});
-				for (const video of room.queue) {
+				for (const video of room.queue.items) {
 					expect(video).not.toEqual(videoToPlay);
 				}
 				expect(room.currentSource).toEqual(videoToPlay);
@@ -218,7 +219,7 @@ describe("Room", () => {
 					id: "asdf123",
 				};
 				room.playbackPosition = 10;
-				room.queue = [videoToPlay];
+				room.queue = new VideoQueue([videoToPlay]);
 				await room.processUnauthorizedRequest(
 					{
 						type: RoomRequestType.PlayNowRequest,
@@ -249,13 +250,13 @@ describe("Room", () => {
 			let shuffleSpy;
 
 			beforeEach(() => {
-				room.queue = [
+				room.queue = new VideoQueue([
 					{ service: "fakeservice", id: "video1" },
 					{ service: "fakeservice", id: "video2" },
 					{ service: "fakeservice", id: "video3" },
 					{ service: "fakeservice", id: "video4" },
 					{ service: "fakeservice", id: "video5" },
-				];
+				]);
 				shuffleSpy = jest.spyOn(_, "shuffle");
 			});
 
@@ -285,12 +286,12 @@ describe("Room", () => {
 				service: "test",
 				id: "video",
 			};
-			room.queue = [
+			room.queue = new VideoQueue([
 				{
 					service: "test",
 					id: "video2",
 				},
-			];
+			]);
 		});
 
 		it.each([QueueMode.Manual, QueueMode.Vote])(
@@ -340,7 +341,7 @@ describe("Room", () => {
 			"should requeue the current item when mode is %s, with empty queue",
 			mode => {
 				room.queueMode = mode;
-				room.queue = [];
+				room.queue = new VideoQueue();
 				expect(room.queue).toHaveLength(0);
 				room.dequeueNext();
 				expect(room.currentSource).toEqual({

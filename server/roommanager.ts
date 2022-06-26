@@ -1,5 +1,5 @@
-import { Room } from "./room";
-import { AuthToken, RoomOptions, RoomState, RoomStatePersistable } from "../common/models/types";
+import { Room, RoomState, RoomStatePersistable } from "./room";
+import { AuthToken, RoomOptions } from "../common/models/types";
 import { ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import _ from "lodash";
 import { getLogger } from "./logger.js";

@@ -17,11 +17,9 @@ export function deserializeSet<T extends unknown[]>(set: T): Set<unknown> {
 export function replacer(key, value) {
 	if (value instanceof Map) {
 		return serializeMap(value);
-	}
-	else if (value instanceof Set) {
+	} else if (value instanceof Set) {
 		return serializeSet(value);
-	}
-	else {
+	} else {
 		return value;
 	}
 }
