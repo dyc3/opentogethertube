@@ -23,6 +23,9 @@
 				<div v-if="item.service === 'googledrive'" class="experimental">
 					{{ $t("video-queue-item.experimental") }}
 				</div>
+				<span v-if="item.startAt !== undefined" class="video-start-at">
+					{{ $t("video-queue-item.start-at", { timestamp: videoStartAt }) }}
+				</span>
 			</div>
 		</div>
 		<div class="d-flex" style="justify-content: center; flex-direction: column">
@@ -146,7 +149,7 @@ import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
 import Component from "vue-class-component";
-import { Video, VideoId } from "common/models/video";
+import { QueueItem, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
 import api from "@/util/api";
 
@@ -159,7 +162,7 @@ import api from "@/util/api";
 	},
 })
 export default class VideoQueueItem extends Vue {
-	item: Video;
+	item: QueueItem;
 	isPreview: boolean;
 	index: number;
 
@@ -173,6 +176,10 @@ export default class VideoQueueItem extends Vue {
 
 	get videoLength(): string {
 		return secondsToTimestamp(this.item?.length ?? 0);
+	}
+
+	get videoStartAt(): string {
+		return secondsToTimestamp(this.item?.startAt ?? 0);
 	}
 
 	get thumbnailSource(): string {
@@ -431,5 +438,13 @@ export default class VideoQueueItem extends Vue {
 	bottom: 0;
 	right: 0;
 	z-index: 1000;
+}
+
+.video-start-at {
+	font-size: 1rem;
+	@media (max-width: $sm-max) {
+		font-size: 0.8rem;
+	}
+	font-style: italic;
 }
 </style>
