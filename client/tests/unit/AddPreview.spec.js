@@ -37,7 +37,6 @@ function createStore() {
 				users: [],
 				events: [],
 			},
-			quickAdd: [],
 		},
 	});
 }
