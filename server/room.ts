@@ -152,7 +152,7 @@ export class Room implements RoomState {
 	userRoles: Map<Role, Set<number>>;
 	_autoSkipSegments = true;
 
-	_currentSource: Video | null = null;
+	_currentSource: QueueItem | null = null;
 	queue: VideoQueue;
 	_isPlaying = false;
 	_playbackPosition = 0;
@@ -296,11 +296,11 @@ export class Room implements RoomState {
 		this.markDirty("autoSkipSegments");
 	}
 
-	public get currentSource(): Video | null {
+	public get currentSource(): QueueItem | null {
 		return this._currentSource;
 	}
 
-	public set currentSource(value: Video | null) {
+	public set currentSource(value: QueueItem | null) {
 		this._currentSource = value;
 		this.markDirty("currentSource");
 	}
@@ -372,7 +372,7 @@ export class Room implements RoomState {
 		if (this.currentSource !== null) {
 			if (this.queueMode === QueueMode.Dj) {
 				this.log.debug(`queue in dj mode, restarting current item`);
-				this.playbackPosition = 0;
+				this.playbackPosition = this.currentSource?.startAt ?? 0;
 				this._playbackStart = dayjs();
 				return;
 			} else if (this.queueMode === QueueMode.Loop) {
@@ -384,7 +384,7 @@ export class Room implements RoomState {
 			this.log.debug(`queue has items in it, dequeuing`);
 
 			this.currentSource = (await this.queue.dequeue()) ?? null;
-			this.playbackPosition = 0;
+			this.playbackPosition = this.currentSource?.startAt ?? 0;
 			this._playbackStart = dayjs();
 			if (this.videoSegments.length > 0) {
 				this.videoSegments = [];
@@ -571,12 +571,14 @@ export class Room implements RoomState {
 			(this.currentSource === null && this.queue.length > 0) ||
 			(this.currentSource &&
 				this.isPlaying &&
-				this.realPlaybackPosition > (this.currentSource.length ?? 0))
+				this.realPlaybackPosition >
+					(this.currentSource.endAt ?? this.currentSource.length ?? 0))
 		) {
 			if (
 				this.currentSource &&
 				this.isPlaying &&
-				this.realPlaybackPosition > (this.currentSource.length ?? 0)
+				this.realPlaybackPosition >
+					(this.currentSource.endAt ?? this.currentSource.length ?? 0)
 			) {
 				await statistics.bumpCounter(Counter.VideosWatched);
 			}
@@ -1392,6 +1394,7 @@ export class Room implements RoomState {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 		}
 		if (this.currentSource) {
+			this.currentSource.startAt = this.realPlaybackPosition;
 			await this.queue.pushTop(this.currentSource);
 		}
 		this.currentSource = videoToPlay;
