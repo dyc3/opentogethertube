@@ -2,9 +2,6 @@ let socket = null;
 let all_sockets = [];
 let reconnectTimer = null;
 
-// window.vm.$events.on("socket-error", (e) => {
-// });
-
 function onOpen() {
 	console.log("socket open");
 	window.vm.$store.state.$connection.isConnected = true;
