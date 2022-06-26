@@ -36,19 +36,16 @@ import {
 	QueueMode,
 	Visibility,
 	RoomOptions,
-	RoomState,
 	RoomUserInfo,
 	Role,
 	ClientId,
 	PlayerStatus,
-	RoomStateSyncable,
 	RoomEventContext,
-	RoomStateStorable,
 	RoomSettings,
 	AuthToken,
 } from "../common/models/types";
 import { User } from "./models/user";
-import { Video, VideoId } from "../common/models/video";
+import { QueueItem, Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from "dayjs";
 import { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
@@ -63,7 +60,7 @@ import statistics, { Counter } from "./statistics";
 import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
-import { Mutex } from "@divine/synchronization";
+import { VideoQueue } from "./videoqueue";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -112,6 +109,37 @@ export class RoomUser {
 	}
 }
 
+/**
+ * Things that Rooms need to remember, but can safely be forgotten when the room is unloaded.
+ * This rule does not necessarily apply to inherited fields.
+ */
+export interface RoomState extends RoomOptions, RoomStateComputed {
+	currentSource: Video | null;
+	queue: VideoQueue;
+	isPlaying: boolean;
+	playbackPosition: number;
+	users: RoomUserInfo[];
+	votes: Map<string, Set<ClientId>>;
+	videoSegments: Segment[];
+}
+
+export interface RoomStateComputed {
+	hasOwner: boolean;
+	voteCounts: Map<string, number>;
+}
+
+// Only these should be sent to clients, all others should be considered unsafe
+export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "grants">;
+
+// Only these should be stored in redis
+export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">;
+
+/** Only these should be stored in persistent storage */
+export type RoomStatePersistable = Omit<
+	RoomState,
+	"currentSource" | "queue" | "isPlaying" | "playbackPosition"
+>;
+
 export class Room implements RoomState {
 	_name = "";
 	_title = "";
@@ -124,9 +152,8 @@ export class Room implements RoomState {
 	userRoles: Map<Role, Set<number>>;
 	_autoSkipSegments = true;
 
-	_currentSource: Video | null = null;
-	queue: Video[] = [];
-	_queueMutex = new Mutex();
+	_currentSource: QueueItem | null = null;
+	queue: VideoQueue;
 	_isPlaying = false;
 	_playbackPosition = 0;
 	realusers: RoomUser[] = [];
@@ -148,6 +175,7 @@ export class Room implements RoomState {
 
 	constructor(options: Partial<RoomOptions>) {
 		this.log = getLogger(`room/${options.name}`);
+		this.queue = new VideoQueue();
 		this.userRoles = new Map([
 			[Role.TrustedUser, new Set()],
 			[Role.Moderator, new Set()],
@@ -174,6 +202,9 @@ export class Room implements RoomState {
 				"autoSkipSegments"
 			)
 		);
+		if (Array.isArray(this.queue)) {
+			this.queue = new VideoQueue(this.queue);
+		}
 		if (options.grants instanceof Grants) {
 			this.grants = options.grants;
 		} else if (options.grants) {
@@ -207,6 +238,8 @@ export class Room implements RoomState {
 			// @ts-ignore
 			this._playbackStart = dayjs(options._playbackStart);
 		}
+
+		this.queue.onDirty(() => this.markDirty("queue"));
 	}
 
 	public get name(): string {
@@ -263,11 +296,11 @@ export class Room implements RoomState {
 		this.markDirty("autoSkipSegments");
 	}
 
-	public get currentSource(): Video | null {
+	public get currentSource(): QueueItem | null {
 		return this._currentSource;
 	}
 
-	public set currentSource(value: Video | null) {
+	public set currentSource(value: QueueItem | null) {
 		this._currentSource = value;
 		this.markDirty("currentSource");
 	}
@@ -329,31 +362,35 @@ export class Room implements RoomState {
 		this.throttledSync();
 	}
 
-	dequeueNext(): void {
+	private cleanDirty() {
+		this._dirty.clear();
+		this.queue.clean();
+	}
+
+	async dequeueNext() {
 		this.log.debug(`dequeuing next video. mode: ${this.queueMode}`);
 		if (this.currentSource !== null) {
 			if (this.queueMode === QueueMode.Dj) {
-				this.playbackPosition = 0;
+				this.log.debug(`queue in dj mode, restarting current item`);
+				this.playbackPosition = this.currentSource?.startAt ?? 0;
 				this._playbackStart = dayjs();
 				return;
 			} else if (this.queueMode === QueueMode.Loop) {
-				this._queueMutex.lock();
-				this.queue.push(this.currentSource);
-				this._queueMutex.unlock();
-				this.markDirty("queue");
+				this.log.debug(`queue in loop mode, requeuing current item`);
+				await this.queue.enqueue(this.currentSource);
 			}
 		}
 		if (this.queue.length > 0) {
-			this._queueMutex.lock();
-			this.currentSource = this.queue.shift() ?? null;
-			this._queueMutex.unlock();
-			this.markDirty("queue");
-			this.playbackPosition = 0;
+			this.log.debug(`queue has items in it, dequeuing`);
+
+			this.currentSource = (await this.queue.dequeue()) ?? null;
+			this.playbackPosition = this.currentSource?.startAt ?? 0;
 			this._playbackStart = dayjs();
 			if (this.videoSegments.length > 0) {
 				this.videoSegments = [];
 			}
 		} else if (this.currentSource !== null) {
+			this.log.debug(`queue is empty, but currentSource is not, clearing currentSource`);
 			if (this.isPlaying) {
 				this.isPlaying = false;
 			}
@@ -368,6 +405,8 @@ export class Room implements RoomState {
 		if (!this.currentSource && this.videoSegments.length > 0) {
 			this.videoSegments = [];
 		}
+
+		this.log.debug(`Dirty props: ${Array.from(this._dirty)}`);
 	}
 
 	/**
@@ -532,16 +571,18 @@ export class Room implements RoomState {
 			(this.currentSource === null && this.queue.length > 0) ||
 			(this.currentSource &&
 				this.isPlaying &&
-				this.realPlaybackPosition > (this.currentSource.length ?? 0))
+				this.realPlaybackPosition >
+					(this.currentSource.endAt ?? this.currentSource.length ?? 0))
 		) {
 			if (
 				this.currentSource &&
 				this.isPlaying &&
-				this.realPlaybackPosition > (this.currentSource.length ?? 0)
+				this.realPlaybackPosition >
+					(this.currentSource.endAt ?? this.currentSource.length ?? 0)
 			) {
 				await statistics.bumpCounter(Counter.VideosWatched);
 			}
-			this.dequeueNext();
+			await this.dequeueNext();
 		}
 
 		if (this.users.length > 0) {
@@ -550,9 +591,7 @@ export class Room implements RoomState {
 
 		// sort queue according to queue mode
 		if (this.queueMode === QueueMode.Vote) {
-			const _oldOrder = _.clone(this.queue);
-			this.queue = _.orderBy(
-				this.queue,
+			await this.queue.orderBy(
 				[
 					video => {
 						const votes = this.votes.get(video.service + video.id);
@@ -561,12 +600,6 @@ export class Room implements RoomState {
 				],
 				["desc"]
 			);
-			if (
-				this.queue.length > 0 &&
-				!this.queue.every((value, index) => _.isEqual(value, _oldOrder[index]))
-			) {
-				this.markDirty("queue");
-			}
 		}
 
 		if (this.autoSkipSegments) {
@@ -724,7 +757,7 @@ export class Room implements RoomState {
 			});
 		}
 
-		this._dirty.clear();
+		this.cleanDirty();
 	}
 
 	public async syncUser(info: RoomUserInfo): Promise<void> {
@@ -758,14 +791,7 @@ export class Room implements RoomState {
 		) {
 			return true;
 		}
-		const matchIdx = _.findIndex(
-			this.queue,
-			item => item.service === video.service && item.id === video.id
-		);
-		if (matchIdx >= 0) {
-			return true;
-		}
-		return false;
+		return this.queue.contains(video);
 	}
 
 	/**
@@ -983,7 +1009,7 @@ export class Room implements RoomState {
 				this.log.error("video was undefined, which is bad");
 				throw new Error("video was undefined");
 			}
-			this.queue.push(video);
+			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			await this.publishRoomEvent(request, context, { video });
 			await statistics.bumpCounter(Counter.VideosQueued);
@@ -1005,9 +1031,7 @@ export class Room implements RoomState {
 				throw new VideoAlreadyQueuedException();
 			}
 
-			this._queueMutex.lock();
-			this.queue.push(...videos);
-			this._queueMutex.unlock();
+			this.queue.enqueue(...videos);
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
 			await statistics.bumpCounter(Counter.VideosQueued, videos.length);
@@ -1015,36 +1039,23 @@ export class Room implements RoomState {
 			this.log.error("Invalid parameters for AddRequest");
 			return;
 		}
-
-		this.markDirty("queue");
 	}
 
 	public async removeFromQueue(
 		request: RemoveRequest,
 		context: RoomRequestContext
 	): Promise<void> {
-		this._queueMutex.lock();
-		const matchIdx = _.findIndex(
-			this.queue,
-			item => item.service === request.video.service && item.id === request.video.id
-		);
-		if (matchIdx < 0) {
+		if (!this.queue.contains(request.video)) {
 			throw new VideoNotFoundException();
 		}
 		// remove the item from the queue
-		const removed = this.queue.splice(matchIdx, 1)[0];
-		this._queueMutex.unlock();
-		this.markDirty("queue");
+		const [matchIdx, removed] = await this.queue.evict(request.video);
 		this.log.info(`Video removed: ${JSON.stringify(removed)}`);
 		await this.publishRoomEvent(request, context, { video: removed, queueIdx: matchIdx });
 	}
 
 	public async reorderQueue(request: OrderRequest, context: RoomRequestContext): Promise<void> {
-		this._queueMutex.lock();
-		const video = this.queue.splice(request.fromIdx, 1)[0];
-		this.queue.splice(request.toIdx, 0, video);
-		this._queueMutex.unlock();
-		this.markDirty("queue");
+		await this.queue.move(request.fromIdx, request.toIdx);
 	}
 
 	public async joinRoom(request: JoinRequest, context: RoomRequestContext): Promise<void> {
@@ -1124,10 +1135,7 @@ export class Room implements RoomState {
 				break;
 			case RoomRequestType.SkipRequest:
 				if (this.currentSource) {
-					this._queueMutex.lock();
-					this.queue.unshift(this.currentSource); // put current video back onto the top of the queue
-					this._queueMutex.unlock();
-					this.markDirty("queue");
+					this.queue.pushTop(this.currentSource);
 				}
 				if (request.event.additional.video && request.event.additional.prevPosition) {
 					this.currentSource = request.event.additional.video;
@@ -1146,14 +1154,15 @@ export class Room implements RoomState {
 				}
 				break;
 			case RoomRequestType.RemoveRequest:
-				this._queueMutex.lock();
-				// eslint-disable-next-line no-case-declarations
-				const newQueue = this.queue.splice(0, request.event.additional.queueIdx);
-				newQueue.push(request.event.request.video);
-				newQueue.push(...this.queue);
-				this.queue = newQueue;
-				this._queueMutex.unlock();
-				this.markDirty("queue");
+				if (
+					request.event.additional.video &&
+					request.event.additional.queueIdx !== undefined
+				) {
+					this.queue.insert(
+						request.event.additional.video,
+						request.event.additional.queueIdx
+					);
+				}
 				break;
 			default:
 				this.log.error(`Event ${request.event.request.type} is not undoable, ignoring`);
@@ -1379,16 +1388,14 @@ export class Room implements RoomState {
 
 		let videoToPlay: Video;
 		if (alreadyInQueue) {
-			const queueIdx = _.findIndex(
-				this.queue,
-				item => item.service === request.video.service && item.id === request.video.id
-			);
-			videoToPlay = this.queue.splice(queueIdx, 1)[0];
+			const [_, item] = await this.queue.evict(request.video);
+			videoToPlay = item;
 		} else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 		}
 		if (this.currentSource) {
-			this.queue.unshift(this.currentSource);
+			this.currentSource.startAt = this.realPlaybackPosition;
+			await this.queue.pushTop(this.currentSource);
 		}
 		this.currentSource = videoToPlay;
 		this.markDirty("queue");
@@ -1402,9 +1409,6 @@ export class Room implements RoomState {
 
 	public async shuffle(request: ShuffleRequest, context: RoomRequestContext): Promise<void> {
 		this.grants.check(context.role, "manage-queue.order");
-		this._queueMutex.lock();
-		this.queue = _.shuffle(this.queue);
-		this._queueMutex.unlock();
-		this.markDirty("queue");
+		await this.queue.shuffle();
 	}
 }

@@ -9,6 +9,7 @@ import { RoomNotFoundException } from "../../exceptions";
 import storage from "../../storage";
 import { ROOM_REQUEST_CHANNEL_PREFIX } from "../../../common/constants";
 import { RoomRequest, RoomRequestType } from "../../../common/models/messages";
+import { VideoQueue } from "../../../server/videoqueue";
 
 describe("Room manager", () => {
 	beforeEach(async () => {
@@ -56,11 +57,11 @@ describe("Room manager", () => {
 			room.userRoles.get(Role.Administrator)?.add(9);
 			room.grants.setRoleGrants(Role.UnregisteredUser, 1234);
 			room.currentSource = { service: "fake", id: "video" };
-			room.queue = [
+			room.queue = new VideoQueue([
 				{ service: "fake", id: "video2" },
 				{ service: "fake", id: "video3" },
 				{ service: "fake", id: "video4" },
-			];
+			]);
 			room.isPlaying = true;
 			room._playbackStart = dayjs().subtract(10, "second");
 			room.playbackPosition = 10;
@@ -68,6 +69,8 @@ describe("Room manager", () => {
 			const text = room.serializeState();
 			const options = JSON.parse(text);
 			const loadedRoom = new Room(options);
+			// HACK: room constructor sets the on dirty callback, so we manually remove it here
+			loadedRoom.queue.onDirty(undefined);
 
 			expect(loadedRoom.name).toEqual(room.name);
 			expect(loadedRoom.owner).toEqual(room.owner);

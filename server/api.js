@@ -134,7 +134,7 @@ router.get("/room/:name", async (req, res) => {
 			users.push(client);
 		}
 		room.clients = users;
-		for (let video of room.queue) {
+		for (let video of room.queue.items) {
 			delete video._lastVotesChanged;
 			if (room.queueMode === QueueMode.Vote) {
 				video.votes = video.votes ? video.votes.length : 0;

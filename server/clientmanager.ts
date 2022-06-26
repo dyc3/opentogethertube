@@ -20,13 +20,13 @@ import {
 	MySession,
 	OttWebsocketError,
 	ClientId,
-	RoomStateSyncable,
 	AuthToken,
 } from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import tokens, { SessionInfo } from "./auth/tokens";
+import { RoomStateSyncable } from "./room";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();

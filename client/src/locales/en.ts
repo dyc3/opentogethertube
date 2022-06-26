@@ -242,6 +242,7 @@ export default {
 			"video-added": "Video added",
 			"video-removed": "Video removed",
 		},
+		"start-at": "Start at {timestamp}",
 	},
 	"room-settings": {
 		"title": "@:create-room-form.title",

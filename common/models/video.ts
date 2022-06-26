@@ -15,3 +15,10 @@ export interface VideoMetadata {
 }
 
 export type Video = VideoId & Partial<VideoMetadata>
+
+export interface QueueItemExtras {
+	startAt?: number
+	endAt?: number
+}
+
+export type QueueItem = Video & QueueItemExtras;
