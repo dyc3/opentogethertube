@@ -622,14 +622,14 @@ export default {
 			);
 		},
 		onRoomCreated() {
-			// if (this.$store.state.socket.isConnected) {
-			//   this.$disconnect();
-			// }
-			// setTimeout(() => {
-			//   if (!this.$store.state.socket.isConnected) {
-			//     this.$connect(`${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${window.location.host}/api/room/${this.$route.params.roomId}`);
-			//   }
-			// }, 100);
+			if (this.$store.state.$connection.isConnected) {
+				connection.disconnect();
+			}
+			setTimeout(() => {
+				if (!this.$store.state.$connection.isConnected) {
+					connection.connect(this.$route.params.roomId);
+				}
+			}, 100);
 		},
 		switchToAddTab() {
 			this.queueTab = 1;
