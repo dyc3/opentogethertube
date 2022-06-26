@@ -19072,11 +19072,6 @@ vue-eslint-parser@^7.0.0:
     lodash "^4.17.21"
     semver "^6.3.0"
 
-vue-events@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/vue-events/-/vue-events-3.1.0.tgz#8e23121c345b4ff32ee054f9795995f3e344b27d"
-  integrity sha512-JoE6ZlIEFdpj/vE7oW6T1T3Vz2h0Zxc4XEyz92L2tiRVc1TZ0u/nY1s6ZrnpHKoVxeEU0ouAp/FMxTKI3JBpvA==
-
 vue-fragment@1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/vue-fragment/-/vue-fragment-1.5.1.tgz#44c070d55ed1e9a6c698ef57a5c83f64bb06feeb"

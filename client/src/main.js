@@ -14,9 +14,6 @@ Vue.use(
 	router
 );
 
-import VueEvents from "vue-events";
-Vue.use(VueEvents);
-
 import vuetify from "@/plugins/vuetify";
 
 import Fragment from "vue-fragment";

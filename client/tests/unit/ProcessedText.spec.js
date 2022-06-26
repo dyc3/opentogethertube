@@ -10,9 +10,6 @@ const localVue = createLocalVue();
 // https://github.com/vuetifyjs/vuetify/issues/4964
 Vue.use(Vuetify);
 
-import VueEvents from "vue-events";
-localVue.use(VueEvents);
-
 describe("ProcessedText component", () => {
 	it("should render nothing", () => {
 		let wrapper = mount(ProcessedText, {
