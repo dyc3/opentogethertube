@@ -7,7 +7,7 @@ import infoextractor from "../../../server/infoextractor";
 import { Video } from "../../../common/models/video";
 import permissions from "../../../common/permissions";
 import _ from "lodash";
-import { VideoQueue } from "server/videoqueue";
+import { VideoQueue } from "../../../server/videoqueue";
 
 describe("Room", () => {
 	beforeAll(() => {
@@ -202,7 +202,7 @@ describe("Room", () => {
 					},
 					{ token: user.token }
 				);
-				expect(room.queue[0]).toEqual({
+				expect(_.pick(room.queue.items[0], "service", "id")).toEqual({
 					service: "test",
 					id: "asdf123",
 				});
@@ -296,9 +296,9 @@ describe("Room", () => {
 
 		it.each([QueueMode.Manual, QueueMode.Vote])(
 			"should consume the current item when mode is %s",
-			mode => {
+			async mode => {
 				room.queueMode = mode;
-				room.dequeueNext();
+				await room.dequeueNext();
 				expect(room.currentSource).toEqual({
 					service: "test",
 					id: "video2",
@@ -307,31 +307,31 @@ describe("Room", () => {
 			}
 		);
 
-		it.each([QueueMode.Loop])("should requeue the current item when mode is %s", mode => {
+		it.each([QueueMode.Loop])("should requeue the current item when mode is %s", async mode => {
 			room.queueMode = mode;
-			room.dequeueNext();
+			await room.dequeueNext();
 			expect(room.currentSource).toEqual({
 				service: "test",
 				id: "video2",
 			});
 			expect(room.queue).toHaveLength(1);
-			expect(room.queue[0]).toEqual({
+			expect(room.queue.items[0]).toEqual({
 				service: "test",
 				id: "video",
 			});
 		});
 
-		it.each([QueueMode.Dj])("should restart the current item when mode is %s", mode => {
+		it.each([QueueMode.Dj])("should restart the current item when mode is %s", async mode => {
 			room.queueMode = mode;
 			room.playbackPosition = 10;
-			room.dequeueNext();
+			await room.dequeueNext();
 			expect(room.currentSource).toEqual({
 				service: "test",
 				id: "video",
 			});
 			expect(room.playbackPosition).toEqual(0);
 			expect(room.queue).toHaveLength(1);
-			expect(room.queue[0]).toEqual({
+			expect(room.queue.items[0]).toEqual({
 				service: "test",
 				id: "video2",
 			});
@@ -339,11 +339,11 @@ describe("Room", () => {
 
 		it.each([QueueMode.Loop])(
 			"should requeue the current item when mode is %s, with empty queue",
-			mode => {
+			async mode => {
 				room.queueMode = mode;
 				room.queue = new VideoQueue();
 				expect(room.queue).toHaveLength(0);
-				room.dequeueNext();
+				await room.dequeueNext();
 				expect(room.currentSource).toEqual({
 					service: "test",
 					id: "video",

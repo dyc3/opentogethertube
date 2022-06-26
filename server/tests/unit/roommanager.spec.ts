@@ -9,7 +9,7 @@ import { RoomNotFoundException } from "../../exceptions";
 import storage from "../../storage";
 import { ROOM_REQUEST_CHANNEL_PREFIX } from "../../../common/constants";
 import { RoomRequest, RoomRequestType } from "../../../common/models/messages";
-import { VideoQueue } from "server/videoqueue";
+import { VideoQueue } from "../../../server/videoqueue";
 
 describe("Room manager", () => {
 	beforeEach(async () => {
@@ -69,6 +69,8 @@ describe("Room manager", () => {
 			const text = room.serializeState();
 			const options = JSON.parse(text);
 			const loadedRoom = new Room(options);
+			// HACK: room constructor sets the on dirty callback, so we manually remove it here
+			loadedRoom.queue.onDirty(undefined);
 
 			expect(loadedRoom.name).toEqual(room.name);
 			expect(loadedRoom.owner).toEqual(room.owner);

@@ -23,7 +23,7 @@ export class Dirtyable {
 	 * Call the given function when the object is marked as dirty. Only one callback can be active at a time.
 	 * @param cb The function to call when the object is marked as dirty.
 	 */
-	onDirty(cb: () => void) {
+	onDirty(cb: (() => void) | undefined) {
 		this.callback = cb;
 	}
 }
