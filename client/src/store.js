@@ -115,7 +115,6 @@ export default new Vuex.Store({
 				message.isPlaying !== undefined &&
 				this.state.room.isPlaying !== message.isPlaying
 			) {
-				Vue.prototype.$events.emit(message.isPlaying ? "playVideo" : "pauseVideo");
 				if (message.isPlaying) {
 					this.state.room.playbackStartTime = dayjs();
 				}

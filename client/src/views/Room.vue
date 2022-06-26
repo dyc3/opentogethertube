@@ -397,6 +397,9 @@ export default {
 		this.$store.subscribeAction(action => {
 			if (action.type === "sync") {
 				this.rewriteUrlToRoomName();
+				if (Object.prototype.hasOwnProperty.call(action.payload, "isPlaying")) {
+					this.applyIsPlaying(action.payload.isPlaying);
+				}
 			} else if (action.type === "chat") {
 				/*
 				 * HACK: passes along the chat message to the chat component.
@@ -467,6 +470,14 @@ export default {
 		sliderChange() {
 			if (!this.sliderDragging) {
 				api.seek(this.sliderPosition);
+			}
+		},
+
+		applyIsPlaying(playing) {
+			if (playing) {
+				this.$refs.player.play();
+			} else {
+				this.$refs.player.pause();
 			}
 		},
 
