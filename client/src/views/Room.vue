@@ -753,13 +753,6 @@ export default {
 		},
 	},
 	mounted() {
-		this.$events.on("playVideo", () => {
-			this.$refs.player.play();
-		});
-		this.$events.on("pauseVideo", () => {
-			this.$refs.player.pause();
-		});
-
 		document.onmousemove = () => {
 			if (this.$store.state.room.isPlaying || !this.controlsVisible) {
 				this.activateVideoControls();
