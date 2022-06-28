@@ -176,17 +176,27 @@
 </template>
 
 <script>
-import RoomUtilsMixin from "@/mixins/RoomUtils.js";
+import { ref } from "@vue/composition-api";
+import { createRoomHelper } from "@/util/roomcreator";
+
+let createRoomState = ref({
+	isLoadingCreateRoom: false,
+	cancelledRoomCreation: false,
+});
 
 export default {
 	name: "home",
-	mixins: [RoomUtilsMixin],
 	data() {
 		return {};
 	},
 	computed: {
 		cardHeight() {
 			return 180;
+		},
+	},
+	methods: {
+		async createTempRoom() {
+			await createRoomHelper(this.$store, createRoomState);
 		},
 	},
 };

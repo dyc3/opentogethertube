@@ -6,6 +6,7 @@ export interface MiscState {}
 
 /** I couldn't figure out what to name this one. */
 export const miscModule: Module<MiscState, unknown> = {
+	namespaced: true,
 	mutations: {
 		ROOM_CREATED(state: MiscState, payload: { name: string }) {},
 	},

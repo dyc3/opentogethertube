@@ -55,6 +55,8 @@ export async function createRoomHelper(
 				return;
 			}
 			store.commit("misc/ROOM_CREATED", { name: options.name });
+			state.value.isLoadingCreateRoom = false;
+			return options.name;
 		} else {
 			let resp = await generateRoom();
 			if (state.value.cancelledRoomCreation) {
@@ -62,6 +64,8 @@ export async function createRoomHelper(
 				return;
 			}
 			store.commit("misc/ROOM_CREATED", { name: resp.room });
+			state.value.isLoadingCreateRoom = false;
+			return resp.room;
 		}
 	} catch (err) {
 		if (state.value.cancelledRoomCreation) {
@@ -74,5 +78,4 @@ export async function createRoomHelper(
 			duration: 6000,
 		});
 	}
-	state.value.isLoadingCreateRoom = false;
 }

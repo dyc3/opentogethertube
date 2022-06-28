@@ -207,11 +207,11 @@ export default Vue.extend({
 		},
 	},
 	async created() {
-		this.$store.subscribe((mutation, payload) => {
+		this.$store.subscribe((mutation, state) => {
 			if (mutation.type === "misc/ROOM_CREATED") {
 				try {
 					// @ts-expect-error because vue router doesn't quite work with ts like this and im feeling lazy.
-					this.$router.push(`/room/${payload.name}`);
+					this.$router.push(`/room/${mutation.payload.name}`);
 				} catch (e) {
 					if (e.name !== "NavigationDuplicated") {
 						throw e;
