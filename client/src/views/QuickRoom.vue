@@ -12,11 +12,10 @@
 </template>
 
 <script>
-import RoomUtilsMixin from "@/mixins/RoomUtils.js";
+import { createRoomHelper } from "@/util/roomcreator";
 
 export default {
 	name: "quickroom",
-	mixins: [RoomUtilsMixin],
 	data() {
 		return {
 			showLoading: false,
@@ -24,13 +23,13 @@ export default {
 	},
 	async mounted() {
 		this.$store.subscribe((mutation, state) => {
-			if (mutation.type === "ROOM_CREATED") {
+			if (mutation.type === "misc/ROOM_CREATED") {
 				this.showLoading = false;
 			}
 		});
 		this.showLoading = true;
 		// http://localhost:8080/quickroom
-		this.createTempRoom();
+		await createRoomHelper(this.$store);
 	},
 };
 </script>

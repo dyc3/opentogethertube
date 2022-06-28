@@ -134,7 +134,7 @@
 				<LogInForm @shouldClose="showLogin = false" />
 			</v-dialog>
 		</v-container>
-		<v-overlay :value="isLoadingCreateRoom">
+		<v-overlay :value="createRoomState.value.isLoadingCreateRoom">
 			<v-container fill-height>
 				<v-row align="center" justify="center">
 					<v-col cols="12" sm="4">
@@ -159,11 +159,11 @@ import Vue from "vue";
 import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
-import RoomUtilsMixin from "@/mixins/RoomUtils.js";
 import NavUser from "@/components/navbar/NavUser.vue";
 import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
 import { loadLanguageAsync } from "@/i18n";
+import { createRoomHelper, createRoomState } from "@/util/roomcreator";
 
 export default Vue.extend({
 	name: "app",
@@ -174,9 +174,9 @@ export default Vue.extend({
 		NavCreateRoom,
 		Notifier,
 	},
-	mixins: [RoomUtilsMixin],
 	data() {
 		return {
+			createRoomState,
 			showCreateRoomForm: false,
 			showLogin: false,
 			drawer: false,
@@ -205,8 +205,27 @@ export default Vue.extend({
 			await loadLanguageAsync(locale);
 			this.$store.commit("settings/UPDATE", { locale });
 		},
+		cancelRoom() {
+			createRoomState.value.cancelledRoomCreation = true;
+		},
+		async createTempRoom() {
+			await createRoomHelper(this.$store);
+		},
 	},
 	async created() {
+		this.$store.subscribe((mutation, state) => {
+			if (mutation.type === "misc/ROOM_CREATED") {
+				try {
+					// @ts-expect-error because vue router doesn't quite work with ts like this and im feeling lazy.
+					this.$router.push(`/room/${mutation.payload.name}`);
+				} catch (e) {
+					if (e.name !== "NavigationDuplicated") {
+						throw e;
+					}
+				}
+			}
+		});
+
 		document.addEventListener("fullscreenchange", () => {
 			if (document.fullscreenElement) {
 				this.$store.state.fullscreen = true;

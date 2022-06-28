@@ -12,6 +12,11 @@ import storage from "../storage";
 import { Grants } from "../../common/permissions";
 import { Video } from "common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";
+import {
+	OttApiRequestRoomCreate,
+	OttApiResponseRoomCreate,
+	OttResponseBody,
+} from "../../common/models/rest-api";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -32,12 +37,6 @@ interface RoomListItem {
 	queueMode: QueueMode;
 	currentSource: Video | null;
 	users: number;
-}
-
-interface ApiRoomCreateOptions {
-	name: string;
-	isTemporary?: boolean;
-	visibility?: Visibility;
 }
 
 router.get("/list", (req, res) => {
@@ -75,8 +74,12 @@ router.get("/list", (req, res) => {
 	res.json(rooms);
 });
 
-const createRoom: RequestHandler = async (req, res) => {
-	function isValidCreateRoom(body: any): body is ApiRoomCreateOptions {
+const createRoom: RequestHandler<
+	unknown,
+	OttResponseBody<OttApiResponseRoomCreate>,
+	OttApiRequestRoomCreate
+> = async (req, res) => {
+	function isValidCreateRoom(body: any): body is OttApiRequestRoomCreate {
 		return !!body.name;
 	}
 	if (!isValidCreateRoom(req.body)) {

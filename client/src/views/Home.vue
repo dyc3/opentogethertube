@@ -176,17 +176,21 @@
 </template>
 
 <script>
-import RoomUtilsMixin from "@/mixins/RoomUtils.js";
+import { createRoomHelper } from "@/util/roomcreator";
 
 export default {
 	name: "home",
-	mixins: [RoomUtilsMixin],
 	data() {
 		return {};
 	},
 	computed: {
 		cardHeight() {
 			return 180;
+		},
+	},
+	methods: {
+		async createTempRoom() {
+			await createRoomHelper(this.$store);
 		},
 	},
 };

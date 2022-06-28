@@ -11,6 +11,7 @@ import eventModule from "@/stores/events";
 import { QueueMode } from "../../common/models/types";
 import { deserializeMap } from "../../common/serialize";
 import { OttWebsocketError } from "common/models/types";
+import { miscModule } from "@/stores/misc";
 
 Vue.use(Vuex);
 
@@ -106,7 +107,6 @@ export default new Vuex.Store({
 			state.$connection.shouldReconnect = false;
 			state.$connection.attempts = 0;
 		},
-		ROOM_CREATED() {},
 	},
 	actions: {
 		sync(context, message) {
@@ -169,5 +169,6 @@ export default new Vuex.Store({
 		events: eventModule,
 		users: usersModule,
 		settings: settingsModule,
+		misc: miscModule,
 	},
 });
