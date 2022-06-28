@@ -407,12 +407,9 @@ export default {
 				 */
 				this.$refs.chat.onChatReceived(action.payload);
 			}
-			// else if (action.type === "onRoomCreated") {
-			// 	this.onRoomCreated();
-			// }
 		});
 		this.$store.subscribe(mutation => {
-			if (mutation.type === "ROOM_CREATED") {
+			if (mutation.type === "misc/ROOM_CREATED") {
 				this.onRoomCreated();
 			}
 		});

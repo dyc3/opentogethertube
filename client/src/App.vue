@@ -207,6 +207,19 @@ export default Vue.extend({
 		},
 	},
 	async created() {
+		this.$store.subscribe((mutation, payload) => {
+			if (mutation.type === "misc/ROOM_CREATED") {
+				try {
+					// @ts-expect-error because vue router doesn't quite work with ts like this and im feeling lazy.
+					this.$router.push(`/room/${payload.name}`);
+				} catch (e) {
+					if (e.name !== "NavigationDuplicated") {
+						throw e;
+					}
+				}
+			}
+		});
+
 		document.addEventListener("fullscreenchange", () => {
 			if (document.fullscreenElement) {
 				this.$store.state.fullscreen = true;

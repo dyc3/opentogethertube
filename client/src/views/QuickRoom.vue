@@ -24,7 +24,7 @@ export default {
 	},
 	async mounted() {
 		this.$store.subscribe((mutation, state) => {
-			if (mutation.type === "ROOM_CREATED") {
+			if (mutation.type === "misc/ROOM_CREATED") {
 				this.showLoading = false;
 			}
 		});
