@@ -61,12 +61,11 @@
 </template>
 
 <script>
-import RoomUtilsMixin from "@/mixins/RoomUtils.js";
+import { createRoomHelper } from "@/util/roomcreator";
 import { ROOM_NAME_REGEX } from "common/constants";
 
 export default {
 	name: "CreateRoomForm",
-	mixins: [RoomUtilsMixin],
 	data() {
 		return {
 			options: {
@@ -121,7 +120,7 @@ export default {
 				return;
 			}
 
-			this.createPermRoom(this.options)
+			createRoomHelper(this.$store, this.options)
 				.then(() => {
 					this.$emit("roomCreated", this.options.name);
 					this.options = {

@@ -12,11 +12,10 @@
 </template>
 
 <script>
-import RoomUtilsMixin from "@/mixins/RoomUtils.js";
+import { createRoomHelper } from "@/util/roomcreator";
 
 export default {
 	name: "quickroom",
-	mixins: [RoomUtilsMixin],
 	data() {
 		return {
 			showLoading: false,
@@ -30,7 +29,7 @@ export default {
 		});
 		this.showLoading = true;
 		// http://localhost:8080/quickroom
-		this.createTempRoom();
+		await createRoomHelper(this.$store);
 	},
 };
 </script>
