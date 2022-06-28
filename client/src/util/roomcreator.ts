@@ -7,7 +7,7 @@ import {
 	OttApiRequestRoomCreate,
 } from "common/models/rest-api";
 import type { Store } from "vuex";
-import type { Ref } from "@vue/composition-api";
+import { Ref, ref } from "@vue/composition-api";
 
 /** Generate a temporary room. */
 export async function generateRoom(): Promise<OttApiResponseRoomGenerate> {
@@ -40,12 +40,15 @@ export interface RoomCreateState {
 	cancelledRoomCreation: boolean;
 }
 
+export let createRoomState = ref({
+	isLoadingCreateRoom: false,
+	cancelledRoomCreation: false,
+});
+
 /** Helper function to generate a temporary room, and then trigger a page navigation. */
-export async function createRoomHelper(
-	store: Store<unknown>,
-	state: Ref<RoomCreateState>,
-	options?: OttApiRequestRoomCreate
-) {
+export async function createRoomHelper(store: Store<unknown>, options?: OttApiRequestRoomCreate) {
+	let state = createRoomState;
+	state.value.cancelledRoomCreation = false;
 	state.value.isLoadingCreateRoom = true;
 	try {
 		if (options) {

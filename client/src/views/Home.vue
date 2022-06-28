@@ -176,13 +176,7 @@
 </template>
 
 <script>
-import { ref } from "@vue/composition-api";
 import { createRoomHelper } from "@/util/roomcreator";
-
-let createRoomState = ref({
-	isLoadingCreateRoom: false,
-	cancelledRoomCreation: false,
-});
 
 export default {
 	name: "home",
@@ -196,7 +190,7 @@ export default {
 	},
 	methods: {
 		async createTempRoom() {
-			await createRoomHelper(this.$store, createRoomState);
+			await createRoomHelper(this.$store);
 		},
 	},
 };
