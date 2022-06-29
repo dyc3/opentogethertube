@@ -1,8 +1,6 @@
 import _ from "lodash";
-import { getLogger } from "../server/logger.js";
 import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 import { Role } from "./models/types";
-const log = getLogger("permissions");
 
 export type GrantMask = number;
 export type PermissionName = string;
@@ -350,11 +348,6 @@ export class Grants {
 		}
 		const fullmask = this.getMask(role);
 		const isGranted = (fullmask & checkmask) === checkmask;
-		if (isGranted) {
-			log.debug(`${permission.toString()} granted to ${ROLE_DISPLAY_NAMES[role]}`);
-		} else {
-			log.info(`${permission.toString()} denied to ${ROLE_DISPLAY_NAMES[role]}`);
-		}
 		return isGranted;
 	}
 
