@@ -53,7 +53,7 @@ export default new Vuex.Store({
 		},
 
 		keepAliveInterval: null,
-		/** Permissions metadata */
+		/** @deprecated Permissions metadata */
 		permsMeta: {
 			loaded: false,
 			roles: {},
@@ -83,6 +83,7 @@ export default new Vuex.Store({
 		LOGOUT(state) {
 			state.user = null;
 		},
+		/** @deprecated */
 		PERMISSIONS_METADATA(state, metadata) {
 			for (let role of metadata.roles) {
 				state.permsMeta.roles[role.id] = role;
@@ -155,6 +156,7 @@ export default new Vuex.Store({
 				duration: 5000,
 			});
 		},
+		/** @deprecated */
 		async updatePermissionsMetadata(context) {
 			if (context.state.permsMeta.loaded) {
 				return;

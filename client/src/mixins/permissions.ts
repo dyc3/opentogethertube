@@ -2,6 +2,7 @@ import Vue from "vue";
 
 export default Vue.extend({
 	methods: {
+		/** @deprecated */
 		granted(permission): boolean {
 			// TODO: find some way to reuse server code
 			// TODO: get permissions masks from data api
@@ -32,6 +33,7 @@ export default Vue.extend({
 			};
 			return (this.$store.state.users.you.grants & masks[permission]) > 0;
 		},
+		/** @deprecated */
 		waitForMetadata(): Promise<void> {
 			// eslint-disable-next-line @typescript-eslint/no-this-alias
 			let _this = this;

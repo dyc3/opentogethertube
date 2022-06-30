@@ -23,7 +23,7 @@ const ROLES = {
 	OWNER: Role.Owner,
 };
 
-const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
+export const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Administrator]: "admin",
 	[Role.Moderator]: "mod",
 	[Role.TrustedUser]: "trusted",
@@ -32,7 +32,7 @@ const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Owner]: "owner",
 };
 
-const ROLE_DISPLAY_NAMES: { [P in keyof typeof Role]?: string } = {
+export const ROLE_DISPLAY_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Administrator]: "Administrator",
 	[Role.Moderator]: "Moderator",
 	[Role.TrustedUser]: "Trusted User",
@@ -174,7 +174,7 @@ function defaultPermissions(): Grants {
 /**
  * Creates a deterministic mask given a list of string form permissions.
  */
-function parseIntoGrantMask(perms: PermissionName[]): GrantMask {
+export function parseIntoGrantMask(perms: PermissionName[]): GrantMask {
 	if (!(perms instanceof Array)) {
 		throw new TypeError(`perms must be an array of strings, got ${typeof perms}`);
 	}
@@ -430,5 +430,4 @@ const _exp = {
 	granted,
 	check,
 };
-module.exports = _exp;
 export default _exp;

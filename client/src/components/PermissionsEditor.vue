@@ -3,19 +3,13 @@
 		{{ $t("permissions-editor.title") }}<br />
 		{{ $t("permissions-editor.text1") }}<br />
 		{{ $t("permissions-editor.text2") }}<br />
-		{{ $t("permissions-editor.viewing-as") }}:
-		{{ $store.state.permsMeta.roles ? $store.state.permsMeta.roles[currentRole].display : ""
-		}}<br />
-		<v-simple-table dense :key="dirty" v-if="$store.state.permsMeta.loaded">
+		{{ $t("permissions-editor.viewing-as") }}: {{ ROLE_DISPLAY_NAMES[currentRole] }}<br />
+		<v-simple-table dense :key="dirty">
 			<thead>
 				<tr>
 					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
 					<th class="text-left" scope="col" v-for="i in 5" :key="i">
-						{{
-							$store.state.permsMeta.roles[i - 1]
-								? $store.state.permsMeta.roles[i - 1].display
-								: 0
-						}}
+						{{ ROLE_NAMES[i - 1] ? ROLE_DISPLAY_NAMES[i - 1] : 0 }}
 					</th>
 				</tr>
 			</thead>
@@ -28,7 +22,7 @@
 								r - 1 >= item.minRole &&
 								(currentRole > r - 1 || currentRole < 0) &&
 								r - 1 < 4 &&
-								granted(rolePerms[r - 1])
+								grants.granted(rolePerms[r - 1])
 							"
 							v-model="item[r - 1]"
 							:disabled="getLowestGranted(item) < r - 1"
@@ -38,15 +32,13 @@
 				</tr>
 			</tbody>
 		</v-simple-table>
-		<v-row v-else justify="center">
-			<v-progress-circular indeterminate />
-		</v-row>
 	</v-container>
 </template>
 
 <script>
 import _ from "lodash";
-import PermissionsMixin from "@/mixins/permissions";
+import { GrantChecker } from "@/util/grants";
+import { PERMISSIONS, ROLE_NAMES, ROLE_DISPLAY_NAMES } from "common/permissions";
 
 export default {
 	name: "permissions-editor",
@@ -54,7 +46,6 @@ export default {
 		value: { type: [Object, Array], required: true },
 		currentRole: { type: Number, default: 4 },
 	},
-	mixins: [PermissionsMixin],
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	data() {
 		return {
@@ -62,12 +53,13 @@ export default {
 			dirty: false,
 			shouldAcceptExternalUpdate: true,
 			isLoading: false,
+
+			grants: new GrantChecker(this.$store),
+			ROLE_NAMES,
+			ROLE_DISPLAY_NAMES,
 		};
 	},
 	async created() {
-		this.isLoading = true;
-		await this.$store.dispatch("updatePermissionsMetadata");
-		this.isLoading = false;
 		this.permissions = this.extractFromGrants(this.value);
 	},
 	computed: {
@@ -109,8 +101,8 @@ export default {
 		},
 		extractFromGrants(grants) {
 			let extracted = [];
-			for (let i = 0; i < this.$store.state.permsMeta.permissions.length; i++) {
-				let perm = this.$store.state.permsMeta.permissions[i];
+			for (let i = 0; i < PERMISSIONS.length; i++) {
+				let perm = PERMISSIONS[i];
 				for (let role = 4; role >= 0; role--) {
 					let fullmask = grants[role];
 					for (let r = role - 1; r >= 0; r--) {
@@ -127,16 +119,15 @@ export default {
 			for (let role = 4; role >= 0; role--) {
 				grants[role] = 0;
 			}
-			for (let i in this.permissions) {
+			for (let i = 0; i < PERMISSIONS.length; i++) {
 				let lowest = this.getLowestGranted(this.permissions[i]);
-				grants[lowest] |= this.$store.state.permsMeta.permissions[i].mask;
+				grants[lowest] |= PERMISSIONS[i].mask;
 			}
 			return grants;
 		},
 	},
 	watch: {
-		async value() {
-			await this.waitForMetadata();
+		value() {
 			if (this.shouldAcceptExternalUpdate) {
 				this.dirty = false;
 				// HACK: coerce to OldRoleGrants format
