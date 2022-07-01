@@ -9,9 +9,11 @@ const plugin: PluginObject<ToastPluginOptions> = {
 	install(vue, options: ToastPluginOptions): void {
 		const store = options.store;
 		vue.prototype.$toast = {
+			/** @deprecated */
 			add(toast: Omit<Toast, "id">): void {
 				store.commit("toast/ADD_TOAST", toast);
 			},
+			/** @deprecated */
 			remove(id: symbol): void {
 				store.commit("toast/REMOVE_TOAST", id);
 			},

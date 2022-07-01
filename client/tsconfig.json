@@ -15,7 +15,8 @@
 			"common/*": [
 				"../common/*"
 			]
-		}
+		},
+		"jsx": "preserve"
 	},
 	"include": [
 		"src/**/*.ts",

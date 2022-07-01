@@ -21,7 +21,7 @@
 		</div>
 		<draggable
 			v-model="$store.state.room.queue"
-			:move="() => grants.granted('manage-queue.order')"
+			:move="() => granted('manage-queue.order')"
 			@end="onQueueDragDrop"
 			handle=".drag-handle"
 		>
@@ -38,31 +38,33 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { defineComponent } from "@vue/composition-api";
 import draggable from "vuedraggable";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";
-import { GrantChecker } from "@/util/grants";
+import { granted } from "@/util/grants";
 
-@Component({
+function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
+	api.queueMove(e.oldIndex, e.newIndex);
+}
+
+const VideoQueue = defineComponent({
 	name: "VideoQueue",
 	components: {
 		draggable,
 		VideoQueueItem,
 	},
-	data() {
+	setup() {
 		return {
+			onQueueDragDrop,
+
 			api,
-			grants: new GrantChecker(),
+			granted,
 		};
 	},
-})
-export default class VideoQueue extends Vue {
-	onQueueDragDrop(e) {
-		api.queueMove(e.oldIndex, e.newIndex);
-	}
-}
+});
+
+export default VideoQueue;
 </script>
 
 <style lang="scss" scoped>

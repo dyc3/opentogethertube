@@ -9,7 +9,7 @@
 			>
 				<span
 					class="drag-handle"
-					v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote"
+					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 				>
 					<v-icon>fas fa-align-justify</v-icon>
 				</span>
@@ -35,7 +35,7 @@
 					@click="vote"
 					:loading="isLoadingVote"
 					:color="voted ? 'red' : 'green'"
-					v-if="!isPreview && $store.state.room.queueMode === QueueMode.Vote"
+					v-if="!isPreview && store.state.room.queueMode === QueueMode.Vote"
 				>
 					<span>{{ votes }}</span>
 					<v-icon>fas fa-thumbs-up</v-icon>
@@ -48,7 +48,7 @@
 							@click="playNow"
 							v-on="on"
 							v-bind="attrs"
-							v-if="$store.state.room.queueMode !== QueueMode.Vote"
+							v-if="store.state.room.queueMode !== QueueMode.Vote"
 						>
 							<v-icon>fas fa-play</v-icon>
 						</v-btn>
@@ -63,7 +63,7 @@
 							@click="addToQueue"
 							v-on="on"
 							v-bind="attrs"
-							v-if="isPreview && $store.state.room.queueMode !== QueueMode.Dj"
+							v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
@@ -76,7 +76,7 @@
 				<v-btn
 					icon
 					:loading="isLoadingAdd"
-					v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Dj"
+					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
 				>
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
@@ -92,7 +92,7 @@
 						<v-list-item
 							class="button-with-icon"
 							@click="playNow"
-							v-if="$store.state.room.queueMode !== QueueMode.Vote"
+							v-if="store.state.room.queueMode !== QueueMode.Vote"
 						>
 							<v-icon>fas fa-play</v-icon>
 							<span>{{ $t("video.playnow") }}</span>
@@ -102,8 +102,8 @@
 							@click="moveToTop"
 							v-if="
 								!isPreview &&
-								$store.state.room.queueMode !== QueueMode.Vote &&
-								$store.state.room.queueMode !== QueueMode.Dj
+								store.state.room.queueMode !== QueueMode.Vote &&
+								store.state.room.queueMode !== QueueMode.Dj
 							"
 						>
 							<v-icon>fas fa-sort-amount-up</v-icon>
@@ -112,7 +112,7 @@
 						<v-list-item
 							class="button-with-icon"
 							@click="moveToBottom"
-							v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote"
+							v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 						>
 							<v-icon>fas fa-sort-amount-down-alt</v-icon>
 							<span>{{ $t("video-queue-item.play-last") }}</span>
@@ -120,7 +120,7 @@
 						<v-btn
 							icon
 							:loading="isLoadingAdd"
-							v-if="isPreview && $store.state.room.queueMode === QueueMode.Dj"
+							v-if="isPreview && store.state.room.queueMode === QueueMode.Dj"
 							@click="addToQueue"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
@@ -131,7 +131,7 @@
 						<v-list-item
 							class="button-with-icon"
 							@click="removeFromQueue"
-							v-if="!isPreview && $store.state.room.queueMode === QueueMode.Dj"
+							v-if="!isPreview && store.state.room.queueMode === QueueMode.Dj"
 						>
 							<v-icon>fas fa-trash</v-icon>
 							<span>{{ $t("video-queue-item.remove") }}</span>
@@ -144,177 +144,203 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent, ref, toRefs, computed, watchEffect } from "@vue/composition-api";
 import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
-import Component from "vue-class-component";
 import { QueueItem, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
 import api from "@/util/api";
+import { useStore } from "@/util/vuex-workaround";
+import { i18n } from "@/i18n";
+import toast from "@/util/toast";
 
-@Component({
+interface VideoQueueItemProps {
+	item: QueueItem;
+	isPreview: boolean;
+	index: number;
+}
+
+const VideoQueueItem = defineComponent({
 	name: "VideoQueueItem",
 	props: {
 		item: { type: Object, required: true },
 		isPreview: { type: Boolean, default: false },
 		index: { type: Number, required: false },
 	},
-})
-export default class VideoQueueItem extends Vue {
-	item: QueueItem;
-	isPreview: boolean;
-	index: number;
+	setup(props: VideoQueueItemProps) {
+		let { item, isPreview, index } = toRefs(props);
+		const store = useStore();
 
-	isLoadingAdd = false;
-	isLoadingVote = false;
-	hasBeenAdded = false;
-	thumbnailHasError = false;
-	hasError = false;
-	voted = false;
-	QueueMode = QueueMode;
+		let isLoadingAdd = ref(false);
+		let isLoadingVote = ref(false);
+		let hasBeenAdded = ref(false);
+		let thumbnailHasError = ref(false);
+		let hasError = ref(false);
+		let voted = ref(false);
 
-	get videoLength(): string {
-		return secondsToTimestamp(this.item?.length ?? 0);
-	}
+		let videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
+		let videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
+		let thumbnailSource = computed(() => {
+			return !thumbnailHasError.value && item.value.thumbnail
+				? item.value.thumbnail
+				: require("@/assets/placeholder.svg");
+		});
+		let votes = computed(() => {
+			const store = useStore();
+			return store.state.room.voteCounts?.get(item.value.service + item.value.id) ?? 0;
+		});
 
-	get videoStartAt(): string {
-		return secondsToTimestamp(this.item?.startAt ?? 0);
-	}
-
-	get thumbnailSource(): string {
-		return !this.thumbnailHasError && this.item.thumbnail
-			? this.item.thumbnail
-			: require("@/assets/placeholder.svg");
-	}
-
-	get votes() {
-		return this.$store.state.room.voteCounts?.get(this.item.service + this.item.id) ?? 0;
-	}
-
-	created() {
-		if (
-			this.item.id === this.$store.state.room.currentSource.id &&
-			this.item.service === this.$store.state.room.currentSource.service
-		) {
-			this.hasBeenAdded = true;
-			return;
-		}
-		for (let video of this.$store.state.room.queue) {
-			if (this.item.id === video.id && this.item.service === video.service) {
-				this.hasBeenAdded = true;
+		function updateHasBeenAdded() {
+			if (
+				store.state.room.currentSource &&
+				item.value.id === store.state.room.currentSource.id &&
+				item.value.service === store.state.room.currentSource.service
+			) {
+				hasBeenAdded.value = true;
 				return;
 			}
-		}
-	}
-
-	getPostData(): VideoId {
-		let data = {
-			service: this.item.service,
-			id: this.item.id,
-		};
-		// console.log(data);
-		return data;
-	}
-
-	async addToQueue() {
-		this.isLoadingAdd = true;
-		try {
-			let resp = await API.post(
-				`/room/${this.$route.params.roomId}/queue`,
-				this.getPostData()
-			);
-			this.hasError = !resp.data.success;
-			this.hasBeenAdded = true;
-			this.$toast.add({
-				style: ToastStyle.Success,
-				content: this.$t("video-queue-item.messages.video-added") as string,
-				duration: 5000,
-			});
-		} catch (e) {
-			this.hasError = true;
-			this.$toast.add({
-				style: ToastStyle.Error,
-				content: e.response.data.error.message,
-				duration: 6000,
-			});
-		}
-		this.isLoadingAdd = false;
-	}
-
-	async removeFromQueue() {
-		this.isLoadingAdd = true;
-		try {
-			let resp = await API.delete(`/room/${this.$route.params.roomId}/queue`, {
-				data: this.getPostData(),
-			});
-			this.hasError = !resp.data.success;
-			this.$toast.add({
-				style: ToastStyle.Success,
-				content: this.$t("video-queue-item.messages.video-removed") as string,
-				duration: 5000,
-			});
-		} catch (e) {
-			this.hasError = true;
-			this.$toast.add({
-				style: ToastStyle.Error,
-				content: e.response.data.error.message,
-				duration: 6000,
-			});
-		}
-		this.isLoadingAdd = false;
-	}
-
-	async vote() {
-		this.isLoadingVote = true;
-		try {
-			let resp;
-			if (!this.voted) {
-				resp = await API.post(
-					`/room/${this.$route.params.roomId}/vote`,
-					this.getPostData()
-				);
-				this.voted = true;
-			} else {
-				resp = await API.delete(`/room/${this.$route.params.roomId}/vote`, {
-					data: this.getPostData(),
-				});
-				this.voted = false;
+			for (let video of store.state.room.queue) {
+				if (item.value.id === video.id && item.value.service === video.service) {
+					hasBeenAdded.value = true;
+					return;
+				}
 			}
-			this.hasError = !resp.data.success;
-		} catch (e) {
-			this.hasError = true;
-			this.$toast.add({
-				style: ToastStyle.Error,
-				content: e.response.data.error.message,
-				duration: 6000,
-			});
+			hasBeenAdded.value = false;
 		}
-		this.isLoadingVote = false;
-	}
 
-	playNow() {
-		api.playNow(this.item);
-	}
+		function getPostData(): VideoId {
+			let data = {
+				service: item.value.service,
+				id: item.value.id,
+			};
+			return data;
+		}
 
-	/**
-	 * Moves the video to the top of the queue.
-	 */
-	moveToTop() {
-		api.queueMove(this.index, 0);
-	}
+		async function addToQueue() {
+			isLoadingAdd.value = true;
+			try {
+				let resp = await API.post(`/room/${store.state.room.name}/queue`, getPostData());
+				hasError.value = !resp.data.success;
+				hasBeenAdded.value = true;
+				toast.add({
+					style: ToastStyle.Success,
+					content: i18n.t("video-queue-item.messages.video-added").toString(),
+					duration: 5000,
+				});
+			} catch (e) {
+				hasError.value = true;
+				toast.add({
+					style: ToastStyle.Error,
+					content: e.response.data.error.message,
+					duration: 6000,
+				});
+			}
+			isLoadingAdd.value = false;
+		}
 
-	/**
-	 * Moves the video to the bottom of the queue.
-	 */
-	moveToBottom() {
-		api.queueMove(this.index, this.$store.state.room.queue.length - 1);
-	}
+		async function removeFromQueue() {
+			isLoadingAdd.value = true;
+			try {
+				let resp = await API.delete(`/room/${store.state.room.name}/queue`, {
+					data: getPostData(),
+				});
+				hasError.value = !resp.data.success;
+				toast.add({
+					style: ToastStyle.Success,
+					content: i18n.t("video-queue-item.messages.video-removed").toString(),
+					duration: 5000,
+				});
+			} catch (e) {
+				hasError.value = true;
+				toast.add({
+					style: ToastStyle.Error,
+					content: e.response.data.error.message,
+					duration: 6000,
+				});
+			}
+			isLoadingAdd.value = false;
+		}
 
-	onThumbnailError() {
-		this.thumbnailHasError = true;
-	}
-}
+		async function vote() {
+			isLoadingVote.value = true;
+			try {
+				let resp;
+				if (!voted.value) {
+					resp = await API.post(`/room/${store.state.room.name}/vote`, getPostData());
+					voted.value = true;
+				} else {
+					resp = await API.delete(`/room/${store.state.room.name}/vote`, {
+						data: getPostData(),
+					});
+					voted.value = false;
+				}
+				hasError.value = !resp.data.success;
+			} catch (e) {
+				hasError.value = true;
+				toast.add({
+					style: ToastStyle.Error,
+					content: e.response.data.error.message,
+					duration: 6000,
+				});
+			}
+			isLoadingVote.value = false;
+		}
+
+		function playNow() {
+			api.playNow(item);
+		}
+
+		/**
+		 * Moves the video to the top of the queue.
+		 */
+		function moveToTop() {
+			api.queueMove(index.value, 0);
+		}
+
+		/**
+		 * Moves the video to the bottom of the queue.
+		 */
+		function moveToBottom() {
+			api.queueMove(index.value, store.state.room.queue.length - 1);
+		}
+
+		function onThumbnailError() {
+			thumbnailHasError.value = true;
+		}
+
+		watchEffect(() => {
+			updateHasBeenAdded();
+		});
+
+		return {
+			isLoadingAdd,
+			isLoadingVote,
+			hasBeenAdded,
+			thumbnailHasError,
+			hasError,
+			voted,
+
+			videoLength,
+			videoStartAt,
+			thumbnailSource,
+			votes,
+
+			addToQueue,
+			removeFromQueue,
+			vote,
+			playNow,
+			moveToTop,
+			moveToBottom,
+			onThumbnailError,
+
+			QueueMode,
+			store,
+		};
+	},
+});
+
+export default VideoQueueItem;
 </script>
 
 <style lang="scss" scoped>

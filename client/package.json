@@ -15,7 +15,7 @@
 		"@mdi/font": "^3.9.97",
 		"@vimeo/player": "^2.10.0",
 		"@vue/cli": "^4.5.13",
-		"@vue/composition-api": "1.4.6",
+		"@vue/composition-api": "1.7.0",
 		"load-script": "^1.0.0",
 		"material-design-icons-iconfont": "^5.0.1",
 		"video.js": "^7.15.4",
