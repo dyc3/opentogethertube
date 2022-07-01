@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import { API } from "./common-http.js";
 import dayjs from "dayjs";
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
@@ -53,12 +52,6 @@ export default new Vuex.Store({
 		},
 
 		keepAliveInterval: null,
-		/** @deprecated Permissions metadata */
-		permsMeta: {
-			loaded: false,
-			roles: {},
-			permissions: [],
-		},
 	},
 	mutations: {
 		PLAYBACK_STATUS(state, message) {
@@ -82,14 +75,6 @@ export default new Vuex.Store({
 		},
 		LOGOUT(state) {
 			state.user = null;
-		},
-		/** @deprecated */
-		PERMISSIONS_METADATA(state, metadata) {
-			for (let role of metadata.roles) {
-				state.permsMeta.roles[role.id] = role;
-			}
-			state.permsMeta.permissions = metadata.permissions;
-			state.permsMeta.loaded = true;
 		},
 		JOIN_ROOM_FAILED(state, code) {
 			let reason;
@@ -155,15 +140,6 @@ export default new Vuex.Store({
 				content: message.error,
 				duration: 5000,
 			});
-		},
-		/** @deprecated */
-		async updatePermissionsMetadata(context) {
-			if (context.state.permsMeta.loaded) {
-				return;
-			}
-			let resp = await API.get("/data/permissions");
-			let meta = resp.data;
-			context.commit("PERMISSIONS_METADATA", meta);
 		},
 	},
 	modules: {
