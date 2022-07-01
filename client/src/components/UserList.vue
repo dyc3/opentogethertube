@@ -125,7 +125,7 @@ export default {
 			api,
 			USERNAME_LENGTH_MAX,
 
-			grants: new GrantChecker(this.$store),
+			grants: new GrantChecker(),
 			Role,
 			ROLE_NAMES,
 			ROLE_DISPLAY_NAMES,

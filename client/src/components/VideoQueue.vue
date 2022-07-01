@@ -54,7 +54,7 @@ import { GrantChecker } from "@/util/grants";
 	data() {
 		return {
 			api,
-			grants: new GrantChecker(this.$store),
+			grants: new GrantChecker(),
 		};
 	},
 })

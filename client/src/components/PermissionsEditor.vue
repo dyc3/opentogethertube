@@ -54,7 +54,7 @@ export default {
 			shouldAcceptExternalUpdate: true,
 			isLoading: false,
 
-			grants: new GrantChecker(this.$store),
+			grants: new GrantChecker(),
 			ROLE_NAMES,
 			ROLE_DISPLAY_NAMES,
 		};

@@ -143,7 +143,7 @@ export default class RoomSettingsForm extends Vue {
 		autoSkipSegments: true,
 	};
 
-	checker = new GrantChecker(this.$store);
+	checker = new GrantChecker();
 
 	mounted() {
 		this.loadRoomSettings();

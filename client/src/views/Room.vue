@@ -356,7 +356,7 @@ export default {
 			RoomLayoutMode,
 			timestampToSeconds,
 			secondsToTimestamp,
-			grants: new GrantChecker(this.$store),
+			grants: new GrantChecker(),
 		};
 	},
 	computed: {
