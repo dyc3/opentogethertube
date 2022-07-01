@@ -9,7 +9,7 @@
 			>
 				<span
 					class="drag-handle"
-					v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote"
+					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 				>
 					<v-icon>fas fa-align-justify</v-icon>
 				</span>
@@ -35,7 +35,7 @@
 					@click="vote"
 					:loading="isLoadingVote"
 					:color="voted ? 'red' : 'green'"
-					v-if="!isPreview && $store.state.room.queueMode === QueueMode.Vote"
+					v-if="!isPreview && store.state.room.queueMode === QueueMode.Vote"
 				>
 					<span>{{ votes }}</span>
 					<v-icon>fas fa-thumbs-up</v-icon>
@@ -48,7 +48,7 @@
 							@click="playNow"
 							v-on="on"
 							v-bind="attrs"
-							v-if="$store.state.room.queueMode !== QueueMode.Vote"
+							v-if="store.state.room.queueMode !== QueueMode.Vote"
 						>
 							<v-icon>fas fa-play</v-icon>
 						</v-btn>
@@ -63,7 +63,7 @@
 							@click="addToQueue"
 							v-on="on"
 							v-bind="attrs"
-							v-if="isPreview && $store.state.room.queueMode !== QueueMode.Dj"
+							v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
@@ -76,7 +76,7 @@
 				<v-btn
 					icon
 					:loading="isLoadingAdd"
-					v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Dj"
+					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
 				>
 					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
@@ -92,7 +92,7 @@
 						<v-list-item
 							class="button-with-icon"
 							@click="playNow"
-							v-if="$store.state.room.queueMode !== QueueMode.Vote"
+							v-if="store.state.room.queueMode !== QueueMode.Vote"
 						>
 							<v-icon>fas fa-play</v-icon>
 							<span>{{ $t("video.playnow") }}</span>
@@ -102,8 +102,8 @@
 							@click="moveToTop"
 							v-if="
 								!isPreview &&
-								$store.state.room.queueMode !== QueueMode.Vote &&
-								$store.state.room.queueMode !== QueueMode.Dj
+								store.state.room.queueMode !== QueueMode.Vote &&
+								store.state.room.queueMode !== QueueMode.Dj
 							"
 						>
 							<v-icon>fas fa-sort-amount-up</v-icon>
@@ -112,7 +112,7 @@
 						<v-list-item
 							class="button-with-icon"
 							@click="moveToBottom"
-							v-if="!isPreview && $store.state.room.queueMode !== QueueMode.Vote"
+							v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 						>
 							<v-icon>fas fa-sort-amount-down-alt</v-icon>
 							<span>{{ $t("video-queue-item.play-last") }}</span>
@@ -120,7 +120,7 @@
 						<v-btn
 							icon
 							:loading="isLoadingAdd"
-							v-if="isPreview && $store.state.room.queueMode === QueueMode.Dj"
+							v-if="isPreview && store.state.room.queueMode === QueueMode.Dj"
 							@click="addToQueue"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
@@ -131,7 +131,7 @@
 						<v-list-item
 							class="button-with-icon"
 							@click="removeFromQueue"
-							v-if="!isPreview && $store.state.room.queueMode === QueueMode.Dj"
+							v-if="!isPreview && store.state.room.queueMode === QueueMode.Dj"
 						>
 							<v-icon>fas fa-trash</v-icon>
 							<span>{{ $t("video-queue-item.remove") }}</span>
@@ -152,6 +152,9 @@ import Component from "vue-class-component";
 import { QueueItem, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
 import api from "@/util/api";
+import { useStore } from "@/util/vuex-workaround";
+
+const store = useStore();
 
 @Component({
 	name: "VideoQueueItem",
@@ -173,6 +176,7 @@ export default class VideoQueueItem extends Vue {
 	hasError = false;
 	voted = false;
 	QueueMode = QueueMode;
+	store = useStore();
 
 	get videoLength(): string {
 		return secondsToTimestamp(this.item?.length ?? 0);
@@ -189,18 +193,19 @@ export default class VideoQueueItem extends Vue {
 	}
 
 	get votes() {
-		return this.$store.state.room.voteCounts?.get(this.item.service + this.item.id) ?? 0;
+		return store.state.room.voteCounts?.get(this.item.service + this.item.id) ?? 0;
 	}
 
 	created() {
 		if (
-			this.item.id === this.$store.state.room.currentSource.id &&
-			this.item.service === this.$store.state.room.currentSource.service
+			store.state.room.currentSource &&
+			this.item.id === store.state.room.currentSource.id &&
+			this.item.service === store.state.room.currentSource.service
 		) {
 			this.hasBeenAdded = true;
 			return;
 		}
-		for (let video of this.$store.state.room.queue) {
+		for (let video of store.state.room.queue) {
 			if (this.item.id === video.id && this.item.service === video.service) {
 				this.hasBeenAdded = true;
 				return;
@@ -213,7 +218,6 @@ export default class VideoQueueItem extends Vue {
 			service: this.item.service,
 			id: this.item.id,
 		};
-		// console.log(data);
 		return data;
 	}
 
@@ -308,7 +312,7 @@ export default class VideoQueueItem extends Vue {
 	 * Moves the video to the bottom of the queue.
 	 */
 	moveToBottom() {
-		api.queueMove(this.index, this.$store.state.room.queue.length - 1);
+		api.queueMove(this.index, store.state.room.queue.length - 1);
 	}
 
 	onThumbnailError() {
