@@ -69,7 +69,8 @@
 									:max="$store.state.room.currentSource.length"
 									:tooltip-formatter="sliderTooltipFormatter"
 									:disabled="
-										currentSource.length == null || !granted('playback.seek')
+										currentSource.length == null ||
+										!grants.granted('playback.seek')
 									"
 									:process="getSliderProcesses"
 									@change="sliderChange"
@@ -83,7 +84,7 @@
 												@click="seekDelta(-10)"
 												v-bind="attrs"
 												v-on="on"
-												:disabled="!granted('playback.seek')"
+												:disabled="!grants.granted('playback.seek')"
 											>
 												<v-icon>fas fa-angle-left</v-icon>
 											</v-btn>
@@ -96,7 +97,7 @@
 												@click="togglePlayback()"
 												v-bind="attrs"
 												v-on="on"
-												:disabled="!granted('playback.play-pause')"
+												:disabled="!grants.granted('playback.play-pause')"
 											>
 												<v-icon v-if="$store.state.room.isPlaying"
 													>fas fa-pause</v-icon
@@ -112,7 +113,7 @@
 												@click="seekDelta(10)"
 												v-bind="attrs"
 												v-on="on"
-												:disabled="!granted('playback.seek')"
+												:disabled="!grants.granted('playback.seek')"
 											>
 												<v-icon>fas fa-angle-right</v-icon>
 											</v-btn>
@@ -125,7 +126,7 @@
 												@click="api.skip()"
 												v-bind="attrs"
 												v-on="on"
-												:disabled="!granted('playback.skip')"
+												:disabled="!grants.granted('playback.skip')"
 											>
 												<v-icon>fas fa-fast-forward</v-icon>
 											</v-btn>
@@ -302,7 +303,6 @@ import VueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
-import PermissionsMixin from "@/mixins/permissions";
 import UserList from "@/components/UserList.vue";
 import connection from "@/util/connection";
 import api from "@/util/api";
@@ -313,6 +313,7 @@ import RoomSettings from "@/components/RoomSettings.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClickToEdit from "@/components/ClickToEdit.vue";
 import { RoomLayoutMode } from "@/stores/settings";
+import { GrantChecker } from "@/util/grants";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -329,7 +330,6 @@ export default {
 		ShareInvite,
 		ClickToEdit,
 	},
-	mixins: [PermissionsMixin],
 	data() {
 		return {
 			debugMode: false,
@@ -356,6 +356,7 @@ export default {
 			RoomLayoutMode,
 			timestampToSeconds,
 			secondsToTimestamp,
+			grants: new GrantChecker(this.$store),
 		};
 	},
 	computed: {
@@ -533,13 +534,16 @@ export default {
 				return;
 			}
 
-			if ((e.code === "Space" || e.code === "k") && this.granted("playback.play-pause")) {
+			if (
+				(e.code === "Space" || e.code === "k") &&
+				this.grants.granted("playback.play-pause")
+			) {
 				this.togglePlayback();
 				e.preventDefault();
-			} else if (e.code === "Home" && this.granted("playback.seek")) {
+			} else if (e.code === "Home" && this.grants.granted("playback.seek")) {
 				api.seek(0);
 				e.preventDefault();
-			} else if (e.code === "End" && this.granted("playback.skip")) {
+			} else if (e.code === "End" && this.grants.granted("playback.skip")) {
 				api.skip();
 				e.preventDefault();
 			} else if (e.code === "KeyF") {
@@ -549,7 +553,7 @@ export default {
 					e.code === "ArrowRight" ||
 					e.code === "KeyJ" ||
 					e.code === "KeyL") &&
-				this.granted("playback.seek")
+				this.grants.granted("playback.seek")
 			) {
 				let seekIncrement = 5;
 				if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
