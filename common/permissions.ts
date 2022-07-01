@@ -1,8 +1,6 @@
 import _ from "lodash";
-import { getLogger } from "../server/logger.js";
 import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
 import { Role } from "./models/types";
-const log = getLogger("permissions");
 
 export type GrantMask = number;
 export type PermissionName = string;
@@ -11,8 +9,8 @@ export type PermissionName = string;
  * @deprecated
  */
 export type OldRoleGrants = {
-	[P in keyof typeof Role]?: GrantMask
-}
+	[P in keyof typeof Role]?: GrantMask;
+};
 export type RoleGrants = Map<Role, GrantMask>;
 
 /** @deprecated */
@@ -25,7 +23,7 @@ const ROLES = {
 	OWNER: Role.Owner,
 };
 
-const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
+export const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Administrator]: "admin",
 	[Role.Moderator]: "mod",
 	[Role.TrustedUser]: "trusted",
@@ -34,7 +32,7 @@ const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Owner]: "owner",
 };
 
-const ROLE_DISPLAY_NAMES: { [P in keyof typeof Role]?: string } = {
+export const ROLE_DISPLAY_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Administrator]: "Administrator",
 	[Role.Moderator]: "Moderator",
 	[Role.TrustedUser]: "Trusted User",
@@ -43,48 +41,12 @@ const ROLE_DISPLAY_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Owner]: "Owner",
 };
 
-/** @deprecated */
-const PERMISSION_HEIRARCHY = {
-	PLAYBACK: {
-		PLAYPAUSE: 1<<0,
-		SKIP: 1<<1,
-		SEEK: 1<<2,
-	},
-	MANAGE_QUEUE: {
-		ADD: 1<<3,
-		REMOVE: 1<<4,
-		ORDER: 1<<5,
-		VOTE: 1<<6,
-	},
-	CHAT: 1<<7,
-	CONFIGURE_ROOM: {
-		SET_TITLE: 1<<8,
-		SET_DESCRIPTION: 1<<9,
-		SET_VISIBILITY: 1<<10,
-		SET_QUEUE_MODE: 1<<11,
-		SET_PERMISSIONS: {
-			FOR_MODERATOR: 1<<12,
-			FOR_TRUSTED_USER: 1<<13,
-			FOR_ALL_REGISTERED_USERS: 1<<14,
-			FOR_ALL_UNREGISTERED_USERS: 1<<15,
-		},
-	},
-	MANAGE_USERS: {
-		PROMOTE_ADMIN: 1<<16,
-		DEMOTE_ADMIN: 1<<17,
-		PROMOTE_MODERATOR: 1<<18,
-		DEMOTE_MODERATOR: 1<<19,
-		PROMOTE_TRUSTED_USER: 1<<20,
-		DEMOTE_TRUSTED_USER: 1<<21,
-	},
-};
-
 export class Permission {
-	name: PermissionName
-	mask: GrantMask
-	minRole: Role
+	name: PermissionName;
+	mask: GrantMask;
+	minRole: Role;
 
-	constructor(args: Partial<{name: PermissionName, mask: GrantMask, minRole: Role}>) {
+	constructor(args: Partial<{ name: PermissionName; mask: GrantMask; minRole: Role }>) {
 		this.name = "";
 		this.mask = 0;
 		this.minRole = Role.UnregisteredUser;
@@ -93,31 +55,91 @@ export class Permission {
 }
 
 export const PERMISSIONS = [
-	new Permission({ name: "playback.play-pause", mask: 1<<0, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "playback.skip", mask: 1<<1, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "playback.seek", mask: 1<<2, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "manage-queue.add", mask: 1<<3, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "manage-queue.remove", mask: 1<<4, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "manage-queue.order", mask: 1<<5, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "manage-queue.vote", mask: 1<<6, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "chat", mask: 1<<7, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "configure-room.set-title", mask: 1<<8, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "configure-room.set-description", mask: 1<<9, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "configure-room.set-visibility", mask: 1<<10, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "configure-room.set-queue-mode", mask: 1<<11, minRole: Role.UnregisteredUser }),
-	new Permission({ name: "configure-room.set-permissions.for-moderator", mask: 1<<12, minRole: Role.Administrator }),
-	new Permission({ name: "configure-room.set-permissions.for-trusted-users", mask: 1<<13, minRole: Role.Moderator }),
-	new Permission({ name: "configure-room.set-permissions.for-all-registered-users", mask: 1<<14, minRole: Role.TrustedUser }),
-	new Permission({ name: "configure-room.set-permissions.for-all-unregistered-users", mask: 1<<15, minRole: Role.RegisteredUser }),
+	new Permission({ name: "playback.play-pause", mask: 1 << 0, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "playback.skip", mask: 1 << 1, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "playback.seek", mask: 1 << 2, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.add", mask: 1 << 3, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.remove", mask: 1 << 4, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.order", mask: 1 << 5, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "manage-queue.vote", mask: 1 << 6, minRole: Role.UnregisteredUser }),
+	new Permission({ name: "chat", mask: 1 << 7, minRole: Role.UnregisteredUser }),
+	new Permission({
+		name: "configure-room.set-title",
+		mask: 1 << 8,
+		minRole: Role.UnregisteredUser,
+	}),
+	new Permission({
+		name: "configure-room.set-description",
+		mask: 1 << 9,
+		minRole: Role.UnregisteredUser,
+	}),
+	new Permission({
+		name: "configure-room.set-visibility",
+		mask: 1 << 10,
+		minRole: Role.UnregisteredUser,
+	}),
+	new Permission({
+		name: "configure-room.set-queue-mode",
+		mask: 1 << 11,
+		minRole: Role.UnregisteredUser,
+	}),
+	new Permission({
+		name: "configure-room.set-permissions.for-moderator",
+		mask: 1 << 12,
+		minRole: Role.Administrator,
+	}),
+	new Permission({
+		name: "configure-room.set-permissions.for-trusted-users",
+		mask: 1 << 13,
+		minRole: Role.Moderator,
+	}),
+	new Permission({
+		name: "configure-room.set-permissions.for-all-registered-users",
+		mask: 1 << 14,
+		minRole: Role.TrustedUser,
+	}),
+	new Permission({
+		name: "configure-room.set-permissions.for-all-unregistered-users",
+		mask: 1 << 15,
+		minRole: Role.RegisteredUser,
+	}),
 	// Permission to promote a user TO admin
-	new Permission({ name: "manage-users.promote-admin", mask: 1<<16, minRole: Role.Administrator }),
+	new Permission({
+		name: "manage-users.promote-admin",
+		mask: 1 << 16,
+		minRole: Role.Administrator,
+	}),
 	// Permission to demote a user FROM admin
-	new Permission({ name: "manage-users.demote-admin", mask: 1<<17, minRole: Role.Administrator }),
-	new Permission({ name: "manage-users.promote-moderator", mask: 1<<18, minRole: Role.Moderator }),
-	new Permission({ name: "manage-users.demote-moderator", mask: 1<<19, minRole: Role.Moderator }),
-	new Permission({ name: "manage-users.promote-trusted-user", mask: 1<<20, minRole: Role.TrustedUser }),
-	new Permission({ name: "manage-users.demote-trusted-user", mask: 1<<21, minRole: Role.TrustedUser }),
-	new Permission({ name: "configure-room.set-auto-skip", mask: 1<<22, minRole: Role.UnregisteredUser }),
+	new Permission({
+		name: "manage-users.demote-admin",
+		mask: 1 << 17,
+		minRole: Role.Administrator,
+	}),
+	new Permission({
+		name: "manage-users.promote-moderator",
+		mask: 1 << 18,
+		minRole: Role.Moderator,
+	}),
+	new Permission({
+		name: "manage-users.demote-moderator",
+		mask: 1 << 19,
+		minRole: Role.Moderator,
+	}),
+	new Permission({
+		name: "manage-users.promote-trusted-user",
+		mask: 1 << 20,
+		minRole: Role.TrustedUser,
+	}),
+	new Permission({
+		name: "manage-users.demote-trusted-user",
+		mask: 1 << 21,
+		minRole: Role.TrustedUser,
+	}),
+	new Permission({
+		name: "configure-room.set-auto-skip",
+		mask: 1 << 22,
+		minRole: Role.UnregisteredUser,
+	}),
 ];
 
 const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));
@@ -152,7 +174,7 @@ function defaultPermissions(): Grants {
 /**
  * Creates a deterministic mask given a list of string form permissions.
  */
-function parseIntoGrantMask(perms: PermissionName[]): GrantMask {
+export function parseIntoGrantMask(perms: PermissionName[]): GrantMask {
 	if (!(perms instanceof Array)) {
 		throw new TypeError(`perms must be an array of strings, got ${typeof perms}`);
 	}
@@ -196,8 +218,7 @@ function getValidationMask(role: Role): GrantMask {
 function isRoleValid(role: Role) {
 	if (typeof role === "number") {
 		return -1 <= role && role <= 4;
-	}
-	else {
+	} else {
 		return false;
 	}
 }
@@ -238,7 +259,7 @@ export class Grants {
 	/**
 	 * @param {Object|undefined} grants Opional object that maps roles to grant masks.
 	 */
-	constructor(grants: Grants | RoleGrants | OldRoleGrants | undefined=undefined) {
+	constructor(grants: Grants | RoleGrants | OldRoleGrants | undefined = undefined) {
 		if (!grants) {
 			grants = defaultPermissions();
 		}
@@ -262,8 +283,7 @@ export class Grants {
 		}
 		if (grants instanceof Grants) {
 			this.setAllGrants(grants.masks);
-		}
-		else if (grants instanceof Map) {
+		} else if (grants instanceof Map) {
 			for (const role of grants.keys()) {
 				let mask = grants.get(role);
 				if (!mask) {
@@ -271,8 +291,7 @@ export class Grants {
 				}
 				this.setRoleGrants(role, mask);
 			}
-		}
-		else {
+		} else {
 			for (const r in grants) {
 				const role = _normalizeRoleId(r);
 				if (Object.hasOwnProperty.call(grants, role)) {
@@ -322,21 +341,13 @@ export class Grants {
 		let checkmask: GrantMask;
 		if (permission instanceof Permission) {
 			checkmask = permission.mask;
-		}
-		else if (typeof permission === "string") {
+		} else if (typeof permission === "string") {
 			checkmask = parseIntoGrantMask([permission]);
-		}
-		else {
+		} else {
 			return false;
 		}
 		const fullmask = this.getMask(role);
 		const isGranted = (fullmask & checkmask) === checkmask;
-		if (isGranted) {
-			log.debug(`${permission.toString()} granted to ${ROLE_DISPLAY_NAMES[role]}`);
-		}
-		else {
-			log.info(`${permission.toString()} denied to ${ROLE_DISPLAY_NAMES[role]}`);
-		}
 		return isGranted;
 	}
 
@@ -350,8 +361,7 @@ export class Grants {
 			let name: string;
 			if (permission instanceof Permission) {
 				name = permission.name;
-			}
-			else {
+			} else {
 				name = permission;
 			}
 			throw new PermissionDeniedException(name);
@@ -412,7 +422,6 @@ const _exp = {
 	ROLE_NAMES,
 	ROLE_DISPLAY_NAMES,
 	PERMISSIONS,
-	PERMISSION_HEIRARCHY,
 	Grants,
 	defaultPermissions,
 	parseIntoGrantMask,
@@ -421,5 +430,4 @@ const _exp = {
 	granted,
 	check,
 };
-module.exports = _exp;
 export default _exp;

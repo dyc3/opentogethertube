@@ -4,10 +4,9 @@ const _ = require("lodash");
 import InfoExtract from "./infoextractor";
 import { RoomRequestType } from "../common/models/messages";
 const { getLogger } = require("./logger.js");
-const permissions = require("../common/permissions");
 import roommanager from "./roommanager";
 const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./rate-limit");
-import { QueueMode, Role } from "../common/models/types";
+import { QueueMode } from "../common/models/types";
 import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
@@ -340,28 +339,6 @@ router.get("/data/previewAdd", async (req, res) => {
 			});
 		}
 	}
-});
-
-router.get("/data/permissions", (req, res) => {
-	const { ROLE_NAMES, ROLE_DISPLAY_NAMES, PERMISSIONS } = permissions;
-	let roles = [
-		Role.Owner,
-		Role.Administrator,
-		Role.Moderator,
-		Role.TrustedUser,
-		Role.RegisteredUser,
-		Role.UnregisteredUser,
-	].map(i => {
-		return {
-			id: i,
-			name: ROLE_NAMES[i],
-			display: ROLE_DISPLAY_NAMES[i],
-		};
-	});
-	res.json({
-		roles,
-		permissions: PERMISSIONS,
-	});
 });
 
 router.post("/announce", (req, res) => {

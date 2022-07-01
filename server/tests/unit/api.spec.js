@@ -858,20 +858,6 @@ describe("Data API", () => {
 
 		resolveQuerySpy.mockRestore();
 	});
-
-	describe("GET /api/data/permissions", () => {
-		it("should get available permissions and roles", async () => {
-			await request(app)
-				.get("/api/data/permissions")
-				.set({ Authorization: "Bearer foobar" })
-				.expect("Content-Type", /json/)
-				.expect(200)
-				.then(resp => {
-					expect(resp.body.roles).toHaveLength(6);
-					expect(resp.body.permissions).toBeDefined();
-				});
-		});
-	});
 });
 
 describe("Announcements API", () => {

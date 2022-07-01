@@ -16,20 +16,9 @@
 				:counter="USERNAME_LENGTH_MAX"
 			/>
 		</v-list-item>
-		<div v-if="!$store.state.permsMeta.loaded">
-			{{ $t("room.users.waiting-for-permissions") }}
-		</div>
-		<v-list-item
-			v-for="(user, index) in users"
-			:key="index"
-			:class="`user ${user.isLoggedIn ? 'registered' : ''} ${
-				$store.state.permsMeta.loaded
-					? `role-${$store.state.permsMeta.roles[user.role].name}`
-					: ''
-			}`"
-		>
+		<v-list-item v-for="(user, index) in users" :key="index" :class="getUserCssClasses(user)">
 			<span class="name">{{ user.name }}</span>
-			<v-tooltip top v-if="$store.state.permsMeta.loaded">
+			<v-tooltip top>
 				<template v-slot:activator="{ on, attrs }">
 					<span v-bind="attrs" v-on="on">
 						<v-icon
@@ -37,7 +26,7 @@
 							class="role"
 							:aria-label="`${
 								user.id === $store.state.users.you.id ? 'you' : user.name
-							} is ${$store.state.permsMeta.roles[user.role].display}`"
+							} is ${ROLE_DISPLAY_NAMES[user.role]}`"
 						>
 							fas fa-{{
 								{ "2": "thumbs-up", "3": "chevron-up", "4": "star", "-1": "star" }[
@@ -47,7 +36,7 @@
 						</v-icon>
 					</span>
 				</template>
-				<span>{{ $store.state.permsMeta.roles[user.role].display }}</span>
+				<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
 			</v-tooltip>
 			<span v-if="user.id === $store.state.users.you.id" class="is-you">{{
 				$t("room.users.you")
@@ -80,39 +69,27 @@
 					<template v-slot:activator="{ on, attrs }">
 						<v-btn depressed tile v-bind="attrs" v-on="on">
 							<v-icon small>fas fa-cog</v-icon>
-							<v-icon small style="margin-left: 5px" aria-hidden
-								>fas fa-caret-down</v-icon
-							>
+							<v-icon small style="margin-left: 5px" aria-hidden>
+								fas fa-caret-down
+							</v-icon>
 						</v-btn>
 					</template>
 					<v-list>
-						<div
-							class="user-promotion"
-							v-if="$store.state.permsMeta.loaded"
-							:key="$store.state.permsMeta.loaded"
-						>
+						<div class="user-promotion">
 							<div v-for="role in 4" :key="user.role + role">
 								<v-list-item
 									@click="api.promoteUser(user.id, role)"
-									v-if="
-										user.role !== role &&
-										(role <= 1 || granted(roleToPermission(role))) &&
-										((user.role > 0 && user.role <= 1) ||
-											granted(roleToPermission(user.role, (demote = true))))
-									"
+									v-if="canUserBePromotedTo(user, role)"
 								>
 									{{
 										user.role > role
 											? $t("room.users.demote")
 											: $t("room.users.promote")
 									}}
-									to {{ $store.state.permsMeta.roles[role].display }}
+									to {{ ROLE_DISPLAY_NAMES[role] }}
 								</v-list-item>
 							</div>
 						</div>
-						<v-row v-else justify="center">
-							<v-progress-circular indeterminate />
-						</v-row>
 					</v-list>
 				</v-menu>
 			</div>
@@ -125,10 +102,12 @@
 
 <script>
 import { API } from "@/common-http.js";
-import PermissionsMixin from "@/mixins/permissions";
 import { PlayerStatus } from "common/models/types";
 import api from "@/util/api";
 import { USERNAME_LENGTH_MAX } from "common/constants";
+import { GrantChecker } from "@/util/grants";
+import { Role } from "common/models/types";
+import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "common/permissions";
 
 /** Lists users that are connected to a room. */
 export default {
@@ -136,7 +115,6 @@ export default {
 	props: {
 		users: { type: Array },
 	},
-	mixins: [PermissionsMixin],
 	data() {
 		return {
 			PlayerStatus,
@@ -146,11 +124,12 @@ export default {
 			setUsernameFailureText: "",
 			api,
 			USERNAME_LENGTH_MAX,
+
+			grants: new GrantChecker(),
+			Role,
+			ROLE_NAMES,
+			ROLE_DISPLAY_NAMES,
 		};
-	},
-	async created() {
-		await this.$store.dispatch("updatePermissionsMetadata");
-		await this.waitForMetadata();
 	},
 	methods: {
 		openEditName() {
@@ -177,11 +156,36 @@ export default {
 		/** Gets the appropriate permission name for the role and promotion/demotion. */
 		roleToPermission(role, demote = false) {
 			let r = {
-				4: "admin",
-				3: "moderator",
-				2: "trusted-user",
+				[Role.Administrator]: "admin",
+				[Role.Moderator]: "moderator",
+				[Role.TrustedUser]: "trusted-user",
 			}[role];
 			return `manage-users.${demote ? "de" : "pro"}mote-${r}`;
+		},
+		getUserCssClasses(user) {
+			let cls = ["user", `role-${ROLE_NAMES[user.role]}`];
+			if (user.isLoggedIn) {
+				cls.push("registered");
+			}
+			return cls;
+		},
+		canUserBePromotedTo(user, role) {
+			if (user.role === role) {
+				return false;
+			}
+			if (user.role === Role.UnregisteredUser || role === Role.UnregisteredUser) {
+				return false;
+			}
+			if (role > Role.RegisteredUser) {
+				// check for promote
+				return this.grants.granted(this.roleToPermission(role));
+			}
+			if (user.role >= Role.RegisteredUser) {
+				// check for demote
+				return this.grants.granted(this.roleToPermission(user.role, true));
+			}
+
+			return false;
 		},
 	},
 };

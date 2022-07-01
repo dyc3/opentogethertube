@@ -2,6 +2,7 @@ import { ServerMessageUser, UserInfo } from "common/models/messages";
 import { Role } from "common/models/types";
 import { Module } from "vuex/types";
 import { API } from "@/common-http";
+import { currentUserGrantMask } from "@/util/grants";
 
 export interface UsersState {
 	you: UserInfo;
@@ -26,6 +27,7 @@ export const usersModule: Module<UsersState, unknown> = {
 	mutations: {
 		SET_YOU(state, payload) {
 			state.you = Object.assign(state.you, payload);
+			currentUserGrantMask.value = state.you.grants;
 		},
 		SET_AUTH_TOKEN(state, token: string) {
 			window.localStorage.setItem("token", token);
