@@ -5,13 +5,13 @@
 				:label="$t('room-settings.title')"
 				v-model="inputRoomSettings.title"
 				:loading="isLoadingRoomSettings"
-				:disabled="!granted('configure-room.set-title')"
+				:disabled="!checker.granted('configure-room.set-title')"
 			/>
 			<v-text-field
 				:label="$t('room-settings.description')"
 				v-model="inputRoomSettings.description"
 				:loading="isLoadingRoomSettings"
-				:disabled="!granted('configure-room.set-description')"
+				:disabled="!checker.granted('configure-room.set-description')"
 			/>
 			<v-select
 				:label="$t('room-settings.visibility')"
@@ -21,7 +21,7 @@
 				]"
 				v-model="inputRoomSettings.visibility"
 				:loading="isLoadingRoomSettings"
-				:disabled="!granted('configure-room.set-visibility')"
+				:disabled="!checker.granted('configure-room.set-visibility')"
 				data-cy="select-visibility"
 			/>
 			<v-select
@@ -50,7 +50,7 @@
 				]"
 				v-model="inputRoomSettings.queueMode"
 				:loading="isLoadingRoomSettings"
-				:disabled="!granted('configure-room.set-queue-mode')"
+				:disabled="!checker.granted('configure-room.set-queue-mode')"
 				data-cy="select-queueMode"
 			>
 				<template v-slot:item="data">
@@ -113,23 +113,23 @@
 </template>
 
 <script lang="ts">
+import Vue from "vue";
 import _ from "lodash";
-import Component, { mixins } from "vue-class-component";
+import Component from "vue-class-component";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http.js";
 import { Visibility, QueueMode, RoomSettings } from "common/models/types";
-import PermissionsMixin from "@/mixins/permissions";
 import type { Grants } from "common/permissions";
+import { GrantChecker } from "@/util/grants";
 
 @Component({
 	name: "RoomSettings",
 	components: {
 		PermissionsEditor,
 	},
-	mixins: [PermissionsMixin],
 })
-export default class RoomSettingsForm extends mixins(PermissionsMixin) {
+export default class RoomSettingsForm extends Vue {
 	Visibility = Visibility;
 	QueueMode = QueueMode;
 
@@ -142,6 +142,8 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 		grants: {} as Grants,
 		autoSkipSegments: true,
 	};
+
+	checker = new GrantChecker(this.$store);
 
 	mounted() {
 		this.loadRoomSettings();
@@ -176,7 +178,7 @@ export default class RoomSettingsForm extends mixins(PermissionsMixin) {
 		};
 		let blocked: (keyof RoomSettings)[] = [];
 		for (let prop of Object.keys(propsToGrants)) {
-			if (!this.granted(`configure-room.${propsToGrants[prop]}`)) {
+			if (!this.checker.granted(`configure-room.${propsToGrants[prop]}`)) {
 				blocked.push(prop as keyof typeof propsToGrants);
 			}
 		}
