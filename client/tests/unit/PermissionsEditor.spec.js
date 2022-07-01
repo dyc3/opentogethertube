@@ -1,8 +1,9 @@
 import Vue from "vue";
-import { mount, shallowMount, createLocalVue } from "@vue/test-utils";
+import { shallowMount, createLocalVue } from "@vue/test-utils";
 import Vuex from "vuex";
 import Vuetify from "vuetify";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
+import { i18n } from "@/i18n";
 
 // HACK: import globally to prevent it from yelling at us
 // https://github.com/vuetifyjs/vuetify/issues/4964
@@ -21,7 +22,7 @@ function createStore() {
 				title: "",
 				description: "",
 				isTemporary: false,
-				currentSource: { length: 0 },
+				currentSource: {},
 				queue: [],
 				isPlaying: false,
 				playbackPosition: 0,
@@ -33,63 +34,18 @@ function createStore() {
 					grants: 0b1111111111111111111111111111111111111111,
 				},
 			},
-			permsMeta: {
-				loaded: true,
-				roles: {
-					"0": {
-						id: 0,
-						name: "unregistered",
-						display: "Unregistered User",
-					},
-					"1": {
-						id: 1,
-						name: "registered",
-						display: "Registered User",
-					},
-					"2": {
-						id: 2,
-						name: "trusted",
-						display: "Trusted User",
-					},
-					"3": {
-						id: 3,
-						name: "mod",
-						display: "Moderator",
-					},
-					"4": {
-						id: 4,
-						name: "admin",
-						display: "Administrator",
-					},
-					"-1": {
-						id: -1,
-						name: "owner",
-						display: "Owner",
-					},
-				},
-				permissions: [
-					{ name: "playback.play-pause", mask: 1 << 0, minRole: 0 },
-					{ name: "playback.skip", mask: 1 << 1, minRole: 0 },
-					{ name: "playback.seek", mask: 1 << 2, minRole: 0 },
-					{ name: "manage-queue.add", mask: 1 << 3, minRole: 0 },
-					{ name: "manage-queue.remove", mask: 1 << 4, minRole: 0 },
-					{ name: "manage-queue.order", mask: 1 << 5, minRole: 0 },
-				],
-			},
-		},
-		actions: {
-			updatePermissionsMetadata: jest.fn(),
 		},
 	});
 }
 
-describe.skip("PermissionsEditor Component", () => {
+describe("PermissionsEditor Component", () => {
 	let store = createStore();
 
 	it("should display grants accurately", async () => {
-		let wrapper = mount(PermissionsEditor, {
+		let wrapper = shallowMount(PermissionsEditor, {
 			localVue,
 			store,
+			i18n,
 			propsData: {
 				value: { 0: 1 << 0 },
 			},
@@ -108,9 +64,10 @@ describe.skip("PermissionsEditor Component", () => {
 		await wrapper.destroy();
 
 		// inherited permissions
-		wrapper = mount(PermissionsEditor, {
+		wrapper = shallowMount(PermissionsEditor, {
 			localVue,
 			store,
+			i18n,
 			propsData: {
 				value: { 0: 1 << 0, 1: 1 << 1 },
 			},
@@ -131,6 +88,7 @@ describe.skip("PermissionsEditor Component", () => {
 		let component = shallowMount(PermissionsEditor, {
 			localVue,
 			store,
+			i18n,
 			propsData: {
 				value: { 0: 1 << 0 },
 			},
@@ -168,6 +126,7 @@ describe.skip("PermissionsEditor Component", () => {
 		let component = shallowMount(PermissionsEditor, {
 			localVue,
 			store,
+			i18n,
 			propsData: {
 				value: { 0: 1 << 0 },
 			},
