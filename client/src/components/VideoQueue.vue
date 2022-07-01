@@ -21,7 +21,7 @@
 		</div>
 		<draggable
 			v-model="$store.state.room.queue"
-			:move="() => this.granted('manage-queue.order')"
+			:move="() => grants.granted('manage-queue.order')"
 			@end="onQueueDragDrop"
 			handle=".drag-handle"
 		>
@@ -43,7 +43,7 @@ import Component from "vue-class-component";
 import draggable from "vuedraggable";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";
-import PermissionsMixin from "@/mixins/permissions";
+import { GrantChecker } from "@/util/grants";
 
 @Component({
 	name: "VideoQueue",
@@ -51,10 +51,10 @@ import PermissionsMixin from "@/mixins/permissions";
 		draggable,
 		VideoQueueItem,
 	},
-	mixins: [PermissionsMixin],
 	data() {
 		return {
 			api,
+			grants: new GrantChecker(this.$store),
 		};
 	},
 })
