@@ -342,28 +342,6 @@ router.get("/data/previewAdd", async (req, res) => {
 	}
 });
 
-router.get("/data/permissions", (req, res) => {
-	const { ROLE_NAMES, ROLE_DISPLAY_NAMES, PERMISSIONS } = permissions;
-	let roles = [
-		Role.Owner,
-		Role.Administrator,
-		Role.Moderator,
-		Role.TrustedUser,
-		Role.RegisteredUser,
-		Role.UnregisteredUser,
-	].map(i => {
-		return {
-			id: i,
-			name: ROLE_NAMES[i],
-			display: ROLE_DISPLAY_NAMES[i],
-		};
-	});
-	res.json({
-		roles,
-		permissions: PERMISSIONS,
-	});
-});
-
 router.post("/announce", (req, res) => {
 	if (req.get("apikey")) {
 		if (req.get("apikey") !== process.env.OPENTOGETHERTUBE_API_KEY) {
