@@ -157,9 +157,15 @@ import { USERNAME_LENGTH_MAX } from "common/constants";
 	watch: {
 		email() {
 			this.logInFailureMessage = "";
+			this.registerFailureMessage = "";
+			this.registerFieldErrors.email = "";
 		},
 		password() {
 			this.logInFailureMessage = "";
+		},
+		username() {
+			this.registerFailureMessage = "";
+			this.registerFieldErrors.username = "";
 		},
 	},
 })
