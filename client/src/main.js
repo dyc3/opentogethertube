@@ -21,9 +21,7 @@ import vuetify from "@/plugins/vuetify";
 import Fragment from "vue-fragment";
 Vue.use(Fragment.Plugin);
 
-import toast from "@/plugins/toast";
 import { i18n } from "./i18n";
-Vue.use(toast, { store });
 
 Vue.config.productionTip = false;
 

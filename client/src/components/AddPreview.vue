@@ -161,6 +161,7 @@ import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import ProcessedText from "@/components/ProcessedText.vue";
 import { ToastStyle } from "@/models/toast";
 import Vue from "vue";
+import toast from "@/util/toast";
 
 export default Vue.extend({
 	name: "AddPreview",
@@ -241,7 +242,7 @@ export default Vue.extend({
 						}
 					} else {
 						console.warn("Unknown status for add preview response:", res.status);
-						this.$toast.add({
+						toast.add({
 							style: ToastStyle.Error,
 							content: this.$t("add-preview.messages.unknown-status", {
 								status: res.status,
@@ -254,7 +255,7 @@ export default Vue.extend({
 					this.hasAddPreviewFailed = true;
 					this.videosLoadFailureText = this.$t("add-preview.messages.unknown-error");
 					console.error("Failed to get add preview", err);
-					this.$toast.add({
+					toast.add({
 						style: ToastStyle.Error,
 						content: this.$t("add-preview.messages.failed-to-get-add-preview"),
 						duration: 6000,
@@ -283,7 +284,7 @@ export default Vue.extend({
 				if (err.response) {
 					message = `${err.response.data.error.message}`;
 				}
-				this.$toast.add({
+				toast.add({
 					style: ToastStyle.Error,
 					content: this.$t("add-preview.messages.failed-to-all-videos", {
 						message: message,
@@ -327,14 +328,14 @@ export default Vue.extend({
 				await API.post(`/room/${this.$route.params.roomId}/queue`, {
 					url: this.testVideos[v][1],
 				});
-				this.$toast.add({
+				toast.add({
 					style: ToastStyle.Success,
 					content: `Added test video`,
 					duration: 2000,
 				});
 			} catch (e) {
 				console.error(e);
-				this.$toast.add({
+				toast.add({
 					style: ToastStyle.Error,
 					content: `Failed to add test video: ${e}`,
 					duration: 4000,
