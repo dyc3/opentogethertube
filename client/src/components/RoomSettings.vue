@@ -122,6 +122,7 @@ import { API } from "@/common-http.js";
 import { Visibility, QueueMode, RoomSettings } from "common/models/types";
 import type { Grants } from "common/permissions";
 import { GrantChecker } from "@/util/grants";
+import toast from "@/util/toast";
 
 @Component({
 	name: "RoomSettings",
@@ -193,14 +194,14 @@ export default class RoomSettingsForm extends Vue {
 		this.isLoadingRoomSettings = true;
 		try {
 			await API.patch(`/room/${this.$route.params.roomId}`, this.getRoomSettingsSubmit());
-			this.$toast.add({
+			toast.add({
 				style: ToastStyle.Success,
 				content: this.$t("room-settings.settings-applied") as string,
 				duration: 4000,
 			});
 		} catch (e) {
 			console.log(e);
-			this.$toast.add({
+			toast.add({
 				style: ToastStyle.Error,
 				content: e.response.data.error.message,
 				duration: 6000,
@@ -215,7 +216,7 @@ export default class RoomSettingsForm extends Vue {
 			await API.patch(`/room/${this.$route.params.roomId}`, {
 				claim: true,
 			});
-			this.$toast.add({
+			toast.add({
 				style: ToastStyle.Success,
 				content: this.$t("room-settings.now-own-the-room", {
 					room: this.$route.params.roomId,
@@ -224,7 +225,7 @@ export default class RoomSettingsForm extends Vue {
 			});
 		} catch (e) {
 			console.log(e);
-			this.$toast.add({
+			toast.add({
 				style: ToastStyle.Error,
 				content: e.response.data.error.message,
 				duration: 6000,

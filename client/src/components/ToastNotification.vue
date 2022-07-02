@@ -30,6 +30,7 @@ import { Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "common/models/messages";
 import Component from "vue-class-component";
 import { API } from "@/common-http";
+import toast from "@/util/toast";
 
 @Component({
 	name: "ToastNotification",
@@ -87,7 +88,7 @@ export default class ToastNotification extends Vue {
 	}
 
 	close() {
-		this.$toast.remove(this.toast.id);
+		toast.remove(this.toast.id);
 	}
 
 	async undo() {
@@ -97,7 +98,7 @@ export default class ToastNotification extends Vue {
 			});
 			this.close();
 		} catch (err) {
-			this.$toast.add({
+			toast.add({
 				style: ToastStyle.Error,
 				content: err.message,
 				duration: 4000,
