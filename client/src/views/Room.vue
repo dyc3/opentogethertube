@@ -216,7 +216,7 @@
 								<AddPreview ref="addpreview" />
 							</v-tab-item>
 							<v-tab-item>
-								<RoomSettings ref="settings" />
+								<RoomSettingsForm ref="settings" />
 							</v-tab-item>
 						</v-tabs-items>
 					</v-col>
@@ -309,7 +309,7 @@ import api from "@/util/api";
 import { PlayerStatus, QueueMode } from "common/models/types";
 import VideoQueue from "@/components/VideoQueue.vue";
 import goTo from "vuetify/lib/services/goto";
-import RoomSettings from "@/components/RoomSettings.vue";
+import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClickToEdit from "@/components/ClickToEdit.vue";
 import { RoomLayoutMode } from "@/stores/settings";
@@ -326,7 +326,7 @@ export default {
 		Chat,
 		AddPreview,
 		UserList,
-		RoomSettings,
+		RoomSettingsForm,
 		ShareInvite,
 		ClickToEdit,
 	},
