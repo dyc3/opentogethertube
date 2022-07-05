@@ -158,6 +158,12 @@ export default {
 		onBufferProgress(percent) {
 			this.$store.commit("PLAYBACK_BUFFER", percent);
 		},
+		isCaptionsSupported() {
+			this.player()?.isCaptionsSupported() ?? false;
+		},
+		setCaptionsTrack(track) {
+			this.player()?.setCaptionsTrack(track);
+		},
 	},
 };
 </script>
