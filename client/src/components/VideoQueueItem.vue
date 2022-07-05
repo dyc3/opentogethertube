@@ -288,7 +288,7 @@ const VideoQueueItem = defineComponent({
 		}
 
 		function playNow() {
-			api.playNow(item);
+			api.playNow(item.value);
 		}
 
 		/**
