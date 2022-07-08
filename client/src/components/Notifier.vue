@@ -20,24 +20,32 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { defineComponent } from "@vue/composition-api";
 import ToastNotification from "@/components/ToastNotification.vue";
+import { useStore } from "@/util/vuex-workaround";
 
 /**
  * Handles displaying all toast notifications.
  */
-@Component({
+const Notifier = defineComponent({
 	name: "Notifier",
 	components: {
 		ToastNotification,
 	},
-})
-export default class Notifier extends Vue {
-	closeAll() {
-		this.$store.commit("toast/CLEAR_ALL_TOASTS");
-	}
-}
+	setup() {
+		const store = useStore();
+
+		function closeAll() {
+			store.commit("toast/CLEAR_ALL_TOASTS");
+		}
+
+		return {
+			closeAll,
+		};
+	},
+});
+
+export default Notifier;
 </script>
 
 <style lang="scss" scoped>

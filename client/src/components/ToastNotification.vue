@@ -25,87 +25,107 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from "vue";
+import { PropType } from "vue";
+import {
+	defineComponent,
+	ref,
+	toRefs,
+	onMounted,
+	onUnmounted,
+	Ref,
+	computed,
+} from "@vue/composition-api";
 import { Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "common/models/messages";
-import Component from "vue-class-component";
 import { API } from "@/common-http";
-import toast from "@/util/toast";
+import toasts from "@/util/toast";
+import { useStore } from "@/util/vuex-workaround";
 
-@Component({
-	name: "ToastNotification",
-	props: {
-		toast: {
-			type: Object as PropType<Toast>,
-		},
-		number: {
-			type: Number,
-		},
-	},
-})
-export default class ToastNotification extends Vue {
+interface ToastNotificationProps {
 	toast: Toast;
 	number: number;
-
-	padding = 8;
-	closeTimeoutId: ReturnType<typeof setTimeout> | null = null;
-	ToastStyle = ToastStyle;
-
-	get color(): string | undefined {
-		if (this.toast.style === ToastStyle.Success) {
-			return "green";
-		} else if (this.toast.style === ToastStyle.Error) {
-			return "red";
-		}
-		return undefined;
-	}
-
-	get undoable(): boolean {
-		if (!this.toast.event) {
-			return false;
-		}
-		let eventType = this.toast.event.request.type;
-		return (
-			eventType === RoomRequestType.SeekRequest ||
-			eventType === RoomRequestType.SkipRequest ||
-			eventType === RoomRequestType.AddRequest ||
-			eventType === RoomRequestType.RemoveRequest
-		);
-	}
-
-	created(): void {
-		if (this.toast.duration) {
-			this.closeTimeoutId = setTimeout(() => {
-				this.close();
-			}, this.toast.duration);
-		}
-	}
-
-	destroyed() {
-		if (this.closeTimeoutId) {
-			clearTimeout(this.closeTimeoutId);
-		}
-	}
-
-	close() {
-		toast.remove(this.toast.id);
-	}
-
-	async undo() {
-		try {
-			await API.post(`/room/${this.$route.params.roomId}/undo`, {
-				data: { event: this.toast.event },
-			});
-			this.close();
-		} catch (err) {
-			toast.add({
-				style: ToastStyle.Error,
-				content: err.message,
-				duration: 4000,
-			});
-		}
-	}
 }
+
+const ToastNotification = defineComponent({
+	name: "ToastNotification",
+	props: {
+		toast: { type: Object as PropType<Toast> },
+		number: { type: Number },
+	},
+	setup(props: ToastNotificationProps) {
+		let { toast } = toRefs(props);
+		const store = useStore();
+		let padding = ref(8);
+		let closeTimeoutId: Ref<ReturnType<typeof setTimeout> | null> = ref(null);
+
+		onMounted(() => {
+			if (toast.value.duration) {
+				closeTimeoutId.value = setTimeout(() => {
+					close();
+				}, toast.value.duration);
+			}
+		});
+
+		onUnmounted(() => {
+			if (closeTimeoutId.value) {
+				clearTimeout(closeTimeoutId.value);
+			}
+		});
+
+		let color = computed(() => {
+			if (toast.value.style === ToastStyle.Success) {
+				return "green";
+			} else if (toast.value.style === ToastStyle.Error) {
+				return "red";
+			}
+			return undefined;
+		});
+
+		let undoable = computed(() => {
+			if (!toast.value.event) {
+				return false;
+			}
+			let eventType = toast.value.event.request.type;
+			return (
+				eventType === RoomRequestType.SeekRequest ||
+				eventType === RoomRequestType.SkipRequest ||
+				eventType === RoomRequestType.AddRequest ||
+				eventType === RoomRequestType.RemoveRequest
+			);
+		});
+
+		async function undo() {
+			try {
+				await API.post(`/room/${store.state.room.name}/undo`, {
+					data: { event: toast.value.event },
+				});
+				close();
+			} catch (err) {
+				toasts.add({
+					style: ToastStyle.Error,
+					content: err.message,
+					duration: 4000,
+				});
+			}
+		}
+
+		function close() {
+			toasts.remove(toast.value.id);
+		}
+
+		return {
+			padding,
+			color,
+			undoable,
+
+			undo,
+			close,
+			ToastStyle,
+		};
+	},
+});
+
+export default ToastNotification;
 </script>
 
 <style lang="scss" scoped>
