@@ -198,15 +198,22 @@
 					<v-col cols="12" md="8" sm="12">
 						<v-tabs grow v-model="queueTab" @change="onTabChange">
 							<v-tab>
-								{{ $t("room.tabs.queue") }}
+								<v-icon>fas fa-list</v-icon>
+								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
 								<span class="bubble">{{
 									$store.state.room.queue.length <= 99
 										? $n($store.state.room.queue.length)
 										: "99+"
 								}}</span>
 							</v-tab>
-							<v-tab>{{ $t("room.tabs.add") }}</v-tab>
-							<v-tab>{{ $t("room.tabs.settings") }}</v-tab>
+							<v-tab>
+								<v-icon>fas fa-plus</v-icon>
+								<span class="tab-text">{{ $t("room.tabs.add") }}</span>
+							</v-tab>
+							<v-tab>
+								<v-icon>fas fa-cog</v-icon>
+								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
+							</v-tab>
 						</v-tabs>
 						<v-tabs-items v-model="queueTab" class="queue-tab-content">
 							<v-tab-item>
@@ -897,10 +904,17 @@ $in-video-chat-width-small: 250px;
 	background: transparent !important;
 }
 
+.tab-text {
+	margin: 0 8px;
+
+	@media screen and (max-width: $sm-max) {
+		display: none;
+	}
+}
+
 .bubble {
 	height: 25px;
 	width: 25px;
-	margin-left: 10px;
 	background-color: #3f3838;
 	border-radius: 50%;
 	display: inline-block;
@@ -909,6 +923,10 @@ $in-video-chat-width-small: 250px;
 	color: #fff;
 	text-align: center;
 	line-height: 1.8;
+
+	@media screen and (max-width: $sm-max) {
+		margin-left: 8px;
+	}
 }
 
 .in-video-chat {

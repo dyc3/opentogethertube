@@ -8,6 +8,7 @@
 							{{ $t("video-queue.no-videos") }}
 						</div>
 						<v-btn x-large block @click="$emit('switchtab')">
+							<v-icon style="margin-right: 8px">fas fa-plus</v-icon>
 							{{ $t("video-queue.add-video") }}
 						</v-btn>
 					</div>
