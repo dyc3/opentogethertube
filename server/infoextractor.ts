@@ -190,12 +190,12 @@ export default {
 		}
 	},
 
-	async getManyVideoInfo(videos: VideoId[]): Promise<Video[]> {
-		const grouped = _.groupBy(videos, "service");
+	async getManyVideoInfo(videoIds: VideoId[]): Promise<Video[]> {
+		const grouped = _.groupBy(videoIds, "service");
 		const results = await Promise.all(
 			Object.entries(grouped).map(async ([service, serviceVideos]) => {
 				// Handle each service separately
-				const cachedVideos = await storage.getManyVideoInfo(serviceVideos);
+				const cachedVideos: Video[] = await storage.getManyVideoInfo(serviceVideos);
 				const requests = cachedVideos
 					.map(video => ({
 						id: video.id,
@@ -211,7 +211,7 @@ export default {
 
 				const adapter = this.getServiceAdapter(service);
 				const fetchedVideos = await adapter.fetchManyVideoInfo(requests);
-				return cachedVideos.map(video => {
+				const finalResults = cachedVideos.map(video => {
 					const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
 					if (fetchedVideo) {
 						return mergeVideo(video, fetchedVideo);
@@ -219,11 +219,13 @@ export default {
 						return video;
 					}
 				});
+				return finalResults;
 			})
 		);
 
 		const flattened = results.flat();
-		const result = videos.map(video => flattened.find(v => v.id === video.id));
+		// type cast should be safe here because find should always be able to find a video.
+		const result = videoIds.map(video => flattened.find(v => v.id === video.id) as Video);
 		this.updateCache(
 			result.filter(video => {
 				const adapter = this.getServiceAdapter(video.service);
