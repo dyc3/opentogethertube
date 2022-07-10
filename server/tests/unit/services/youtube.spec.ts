@@ -8,6 +8,7 @@ import { InvalidVideoIdException, OutOfQuotaException } from "../../../exception
 import { redisClient } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import fs from "fs";
+import { VideoRequest } from "server/serviceadapter";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -167,6 +168,53 @@ describe("Youtube", () => {
 
 		it("Throws an error if videoId is invalid", () => {
 			return expect(adapter.fetchVideoInfo("")).rejects.toThrowError(InvalidVideoIdException);
+		});
+	});
+
+	describe("fetchManyVideoInfo", () => {
+		const adapter = new YouTubeAdapter("", redisClient);
+		let apiGet: jest.SpyInstance;
+
+		beforeAll(() => {
+			apiGet = jest.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
+		});
+
+		beforeEach(() => {
+			apiGet.mockClear();
+		});
+
+		it("Should return result same length as input, as long as all video types are supported", async () => {
+			const requests: VideoRequest[] = [
+				{
+					id: "BTZ5KVRUy1Q",
+					missingInfo: ["title"],
+				},
+				{
+					id: "I3O9J02G67I",
+					missingInfo: ["length"],
+				},
+			];
+			let result = await adapter.fetchManyVideoInfo(requests);
+			expect(result).toHaveLength(requests.length);
+		});
+
+		it("Should make 2 api requests to get different metadata", async () => {
+			const requests: VideoRequest[] = [
+				{
+					id: "BTZ5KVRUy1Q",
+					missingInfo: ["title"],
+				},
+				{
+					id: "zgxj_0xPleg",
+					missingInfo: ["title"],
+				},
+				{
+					id: "I3O9J02G67I",
+					missingInfo: ["length"],
+				},
+			];
+			await adapter.fetchManyVideoInfo(requests);
+			expect(adapter.api.get).toHaveBeenCalledTimes(2);
 		});
 	});
 

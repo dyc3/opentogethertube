@@ -53,7 +53,7 @@ export class ServiceAdapter {
 	/**
 	 * Fetches video metadata from the API.
 	 */
-	fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method fetchVideoInfo`
 		);
@@ -63,14 +63,14 @@ export class ServiceAdapter {
 	 * Fetches video metadata for a list of IDs.
 	 * @param requests List of objects with id and missingInfo keys
 	 */
-	fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
-		return Promise.all(requests.map(req => this.fetchVideoInfo(req.id, req.missingInfo)));
+	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
+		return Promise.all(requests.map(async req => this.fetchVideoInfo(req.id, req.missingInfo)));
 	}
 
 	/**
 	 * Fetches all videos associated with a URL.
 	 */
-	resolveURL(
+	async resolveURL(
 		url: string,
 		properties?: (keyof VideoMetadata)[]
 	): Promise<(Video | { url: string })[]> {

@@ -237,7 +237,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			const ids = group.map(request => request.id);
 			try {
 				let result = (await this.videoApiRequest(ids, group[0].missingInfo)) as Video[];
-				results.concat(result);
+				results.push(...result);
 			} catch (e) {
 				if (e instanceof UnsupportedVideoType) {
 					log.debug("Unsupported video type found, skipping");
@@ -451,7 +451,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				throw new UnsupportedVideoType("livestream");
 			}
 			try {
-				await storage.updateManyVideoInfo(_.values(results));
+				await storage.updateManyVideoInfo(results);
 			} catch (err) {
 				if (err instanceof Error) {
 					log.error(
