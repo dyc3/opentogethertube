@@ -155,11 +155,14 @@ export default {
 			this.captionsEnabled = value;
 		},
 		getCaptionsTracks() {
-			return this.player.getOption("captions", "tracklist");
+			return this.player.getOption("captions", "tracklist").map(t => t.languageCode);
 		},
 		setCaptionsTrack(track) {
-			this.player.setOption("captions", "reload", true);
-			let tracklist = this.player.getOption("captions", "tracklist");
+			if (!this.isCaptionsLoaded) {
+				this.player.setOption("captions", "reload", true);
+				this.isCaptionsLoaded = true;
+			}
+			let tracklist = this.getCaptionsTracks();
 			console.debug(`youtube: found tracks:`, tracklist);
 			if (tracklist.includes(track)) {
 				this.player.setOption("captions", "track", track);
@@ -167,12 +170,17 @@ export default {
 				toast.add({
 					content: `Unknown captions track ${track}`,
 					style: ToastStyle.Error,
+					duration: 4000,
 				});
 			}
 		},
 
 		onApiChange() {
 			console.debug(`youtube: onApiChange`);
+
+			this.$store.commit("captions/SET_AVAILABLE_TRACKS", {
+				tracks: this.getCaptionsTracks(),
+			});
 		},
 		onReady() {
 			this.$emit("apiready");

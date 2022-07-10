@@ -177,6 +177,9 @@ export default {
 			this.player()?.getCaptionsTracks();
 		},
 		setCaptionsTrack(track) {
+			if (!this.isCaptionsEnabled()) {
+				this.setCaptionsEnabled(true);
+			}
 			this.player()?.setCaptionsTrack(track);
 		},
 	},
