@@ -162,6 +162,13 @@
 										>{{ $t("room.kick-me") }}</v-btn
 									>
 									<div class="flex-grow-1"><!-- Spacer --></div>
+									<ClosedCaptionsSwitcher
+										:key="currentSource.id"
+										:supported="isCaptionsSupported()"
+										:tracks="$store.state.captions.availableTracks"
+										@enable-cc="value => $refs.player.setCaptionsEnabled(value)"
+										@cc-track="value => $refs.player.setCaptionsTrack(value)"
+									/>
 									<v-btn v-if="!isMobile" @click="rotateRoomLayout">
 										<v-icon
 											v-if="$store.state.settings.roomLayout === 'theater'"
@@ -321,6 +328,7 @@ import ShareInvite from "@/components/ShareInvite.vue";
 import ClickToEdit from "@/components/ClickToEdit.vue";
 import { RoomLayoutMode } from "@/stores/settings";
 import { GrantChecker } from "@/util/grants";
+import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -336,6 +344,7 @@ export default {
 		RoomSettingsForm,
 		ShareInvite,
 		ClickToEdit,
+		ClosedCaptionsSwitcher,
 	},
 	data() {
 		return {
@@ -758,6 +767,16 @@ export default {
 					(layouts.indexOf(this.$store.state.settings.roomLayout) + 1) % layouts.length
 				];
 			this.$store.commit("settings/UPDATE", { roomLayout: newLayout });
+		},
+
+		isCaptionsSupported() {
+			return this.$refs.player?.isCaptionsSupported() ?? false;
+		},
+		getCaptionsTracks() {
+			if (!this.$refs.player) {
+				return [];
+			}
+			return this.$refs.player.getCaptionsTracks() ?? [];
 		},
 	},
 	mounted() {

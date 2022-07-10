@@ -181,6 +181,7 @@ export default Vue.extend({
 			testVideos: [
 				["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
 				["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
+				["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
 				["test vimeo 0", "https://vimeo.com/94338566"],
 				["test vimeo 1", "https://vimeo.com/239423699"],
 				["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],

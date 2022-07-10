@@ -11,6 +11,7 @@ import { QueueMode } from "../../common/models/types";
 import { deserializeMap } from "../../common/serialize";
 import { OttWebsocketError } from "common/models/types";
 import { miscModule } from "@/stores/misc";
+import { captionsModule } from "@/stores/captions";
 
 Vue.use(Vuex);
 
@@ -148,5 +149,6 @@ export default new Vuex.Store({
 		users: usersModule,
 		settings: settingsModule,
 		misc: miscModule,
+		captions: captionsModule,
 	},
 });

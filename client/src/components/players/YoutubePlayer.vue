@@ -9,6 +9,8 @@
 import _ from "lodash";
 import DebugPlayerWatcher from "@/components/debug/DebugPlayerWatcher.vue";
 import { getSdk } from "@/util/playerHelper.js";
+import toast from "@/util/toast";
+import { ToastStyle } from "@/models/toast";
 
 const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";
 // TODO: convert to ts and use an enum for this.
@@ -51,6 +53,9 @@ export default {
 			queuedSeek: null,
 			queuedPlaying: null,
 			queuedVolume: null,
+
+			captionsEnabled: false,
+			isCaptionsLoaded: false,
 		};
 	},
 	computed: {
@@ -59,6 +64,8 @@ export default {
 				...this.debug,
 				queuedSeek: this.queuedSeek,
 				queuedPlaying: this.queuedPlaying,
+				isCaptionsEnabled: this.isCaptionsEnabled(),
+				isCaptionsLoaded: this.isCaptionsLoaded,
 			};
 		},
 	},
@@ -67,6 +74,7 @@ export default {
 		if (!this.player) {
 			this.player = new this.YT.Player("ytcontainer", {
 				events: {
+					onApiChange: this.onApiChange,
 					onReady: this.onReady,
 					onStateChange: this.onStateChange,
 					onError: this.onError,
@@ -127,7 +135,53 @@ export default {
 			}
 			this.player.setVolume(volume);
 		},
+		isCaptionsSupported() {
+			return true;
+		},
+		isCaptionsEnabled() {
+			return this.captionsEnabled;
+		},
+		setCaptionsEnabled(value) {
+			if (!this.isCaptionsLoaded) {
+				this.player.setOption("captions", "reload", true);
+				this.isCaptionsLoaded = true;
+			}
+			if (value) {
+				this.player.loadModule("captions");
+				this.player.setOption("captions", "fontSize", 0);
+			} else {
+				this.player.unloadModule("captions");
+			}
+			this.captionsEnabled = value;
+		},
+		getCaptionsTracks() {
+			return this.player.getOption("captions", "tracklist").map(t => t.languageCode);
+		},
+		setCaptionsTrack(track) {
+			if (!this.isCaptionsLoaded) {
+				this.player.setOption("captions", "reload", true);
+				this.isCaptionsLoaded = true;
+			}
+			let tracklist = this.getCaptionsTracks();
+			console.debug(`youtube: found tracks:`, tracklist);
+			if (tracklist.includes(track)) {
+				this.player.setOption("captions", "track", track);
+			} else {
+				toast.add({
+					content: `Unknown captions track ${track}`,
+					style: ToastStyle.Error,
+					duration: 4000,
+				});
+			}
+		},
 
+		onApiChange() {
+			console.debug(`youtube: onApiChange`);
+
+			this.$store.commit("captions/SET_AVAILABLE_TRACKS", {
+				tracks: this.getCaptionsTracks(),
+			});
+		},
 		onReady() {
 			this.$emit("apiready");
 			this.player.loadVideoById(this.videoId);
@@ -188,6 +242,8 @@ export default {
 		videoId() {
 			this.$emit("buffering");
 			this.player.loadVideoById(this.videoId);
+			this.isCaptionsLoaded = false;
+			this.captionsEnabled = false;
 		},
 	},
 };

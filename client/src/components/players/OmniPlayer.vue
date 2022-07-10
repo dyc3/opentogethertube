@@ -158,6 +158,30 @@ export default {
 		onBufferProgress(percent) {
 			this.$store.commit("PLAYBACK_BUFFER", percent);
 		},
+		isCaptionsSupported() {
+			if (this.player()?.isCaptionsSupported) {
+				return this.player()?.isCaptionsSupported() ?? false;
+			}
+			return false;
+		},
+		isCaptionsEnabled() {
+			return this.player()?.isCaptionsEnabled();
+		},
+		setCaptionsEnabled(value) {
+			this.player()?.setCaptionsEnabled(value);
+		},
+		toggleCaptions() {
+			this.setCaptionsEnabled(!this.isCaptionsEnabled());
+		},
+		getCaptionsTracks() {
+			this.player()?.getCaptionsTracks();
+		},
+		setCaptionsTrack(track) {
+			if (!this.isCaptionsEnabled()) {
+				this.setCaptionsEnabled(true);
+			}
+			this.player()?.setCaptionsTrack(track);
+		},
 	},
 };
 </script>
