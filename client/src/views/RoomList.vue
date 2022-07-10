@@ -59,43 +59,40 @@
 	</v-container>
 </template>
 
-<script>
+<script lang="ts">
 import { API } from "@/common-http.js";
+import { defineComponent, ref, onMounted } from "@vue/composition-api";
+import { createRoomHelper } from "@/util/roomcreator";
+import { useStore } from "@/util/vuex-workaround";
 
-export default {
-	name: "room-list",
-	components: {},
-	data() {
+const RoomListView = defineComponent({
+	name: "RoomListView",
+	setup() {
+		let isLoading = ref(false);
+		let rooms = ref([]);
+
+		onMounted(async () => {
+			isLoading.value = true;
+			let result = await API.get("/room/list");
+			isLoading.value = false;
+			rooms.value = result.data;
+		});
+
+		async function createRoom() {
+			let store = useStore();
+			await createRoomHelper(store);
+		}
+
 		return {
-			rooms: [],
-			isLoading: false,
+			isLoading,
+			rooms,
+
+			createRoom,
 		};
 	},
-	created() {
-		this.isLoading = true;
-		API.get("/room/list").then(res => {
-			this.isLoading = false;
-			this.rooms = res.data;
-		});
-	},
-	methods: {
-		createRoom() {
-			this.isLoading = true;
-			this.cancelledCreation = false;
-			API.post("/room/generate").then(res => {
-				if (!this.cancelledCreation) {
-					this.isLoading = false;
-					this.cancelledCreation = false;
-					this.$router.push(`/room/${res.data.room}`);
-				}
-			});
-		},
-		cancelRoom() {
-			this.cancelledCreation = true;
-			this.isLoading = false;
-		},
-	},
-};
+});
+
+export default RoomListView;
 </script>
 
 <style lang="scss" scoped>
