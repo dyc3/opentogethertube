@@ -159,7 +159,22 @@ export default {
 			this.$store.commit("PLAYBACK_BUFFER", percent);
 		},
 		isCaptionsSupported() {
-			this.player()?.isCaptionsSupported() ?? false;
+			if (this.player()?.isCaptionsSupported) {
+				return this.player()?.isCaptionsSupported() ?? false;
+			}
+			return false;
+		},
+		isCaptionsEnabled() {
+			return this.player()?.isCaptionsEnabled();
+		},
+		setCaptionsEnabled(value) {
+			this.player()?.setCaptionsEnabled(value);
+		},
+		toggleCaptions() {
+			this.setCaptionsEnabled(!this.isCaptionsEnabled());
+		},
+		getCaptionsTracks() {
+			this.player()?.getCaptionsTracks();
 		},
 		setCaptionsTrack(track) {
 			this.player()?.setCaptionsTrack(track);

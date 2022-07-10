@@ -162,6 +162,38 @@
 										>{{ $t("room.kick-me") }}</v-btn
 									>
 									<div class="flex-grow-1"><!-- Spacer --></div>
+									<v-menu
+										top
+										offset-y
+										:key="currentSource.id"
+										:disabled="!isCaptionsSupported()"
+									>
+										<template v-slot:activator="{ on, attrs }">
+											<v-btn
+												v-bind="attrs"
+												v-on="on"
+												:key="currentSource.id"
+												:disabled="!isCaptionsSupported()"
+											>
+												<v-icon>fas fa-closed-captioning</v-icon>
+											</v-btn>
+										</template>
+										<v-list>
+											<v-list-item
+												link
+												@click="$refs.player.setCaptionsEnabled(true)"
+											>
+												On
+											</v-list-item>
+											<v-list-item
+												link
+												@click="$refs.player.setCaptionsEnabled(false)"
+											>
+												Off
+											</v-list-item>
+										</v-list>
+									</v-menu>
+
 									<v-btn v-if="!isMobile" @click="rotateRoomLayout">
 										<v-icon
 											v-if="$store.state.settings.roomLayout === 'theater'"
@@ -758,6 +790,10 @@ export default {
 					(layouts.indexOf(this.$store.state.settings.roomLayout) + 1) % layouts.length
 				];
 			this.$store.commit("settings/UPDATE", { roomLayout: newLayout });
+		},
+
+		isCaptionsSupported() {
+			return this.$refs.player?.isCaptionsSupported() ?? false;
 		},
 	},
 	mounted() {
