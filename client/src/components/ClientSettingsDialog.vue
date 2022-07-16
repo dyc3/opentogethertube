@@ -21,6 +21,11 @@
 					:items="[RoomLayoutMode.default, RoomLayoutMode.theater]"
 					v-model="settings.roomLayout"
 				/>
+				<v-select
+					label="Theme"
+					:items="[Theme.dark, Theme.light]"
+					v-model="settings.theme"
+				/>
 			</v-card-text>
 
 			<v-divider />
@@ -39,9 +44,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, h, Ref, ref, watch } from "@vue/composition-api";
+import { defineComponent, Ref, ref, watch } from "@vue/composition-api";
 import { useStore } from "@/util/vuex-workaround";
-import { SettingsState, RoomLayoutMode } from "@/stores/settings";
+import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
 
 type ExcludedFields = "volume" | "locale";
@@ -81,6 +86,7 @@ export const ClientSettingsDialog = defineComponent({
 			applySettings,
 			cancelSettings,
 			RoomLayoutMode,
+			Theme,
 		};
 	},
 });
