@@ -345,4 +345,9 @@ export default {
 		"undo": "undo",
 		"save": "Save",
 	},
+	"client-settings": {
+		title: "Preferences",
+		description: "These settings are saved in your browser, and only affect you.",
+		activator: "@:client-settings.title",
+	},
 };

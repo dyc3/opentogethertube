@@ -21,6 +21,7 @@
 							: $store.state.room.name
 					}}
 				</h1>
+				<ClientSettingsDialog />
 				<div class="flex-grow-1"><!-- Spacer --></div>
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
@@ -329,6 +330,7 @@ import ClickToEdit from "@/components/ClickToEdit.vue";
 import { RoomLayoutMode } from "@/stores/settings";
 import { GrantChecker } from "@/util/grants";
 import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
+import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -345,6 +347,7 @@ export default {
 		ShareInvite,
 		ClickToEdit,
 		ClosedCaptionsSwitcher,
+		ClientSettingsDialog,
 	},
 	data() {
 		return {
