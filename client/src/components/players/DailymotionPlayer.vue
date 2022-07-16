@@ -4,38 +4,30 @@
 	</div>
 </template>
 
-<script>
-// import axios from "axios";
+<script lang="ts">
+import { defineComponent, onMounted, ref, toRefs, watch } from "@vue/composition-api";
 import { getSdk } from "@/util/playerHelper.js";
 
 const DAILYMOTION_SDK_URL = "https://api.dmcdn.net/all.js";
-// const DAILYMOTION_OEMBED_API_URL = "http://www.dailymotion.com/services/oembed";
 
-export default {
+interface DailymotionPlayerProps {
+	videoId: string;
+}
+
+const DailymotionPlayer = defineComponent({
 	name: "DailymotionPlayer",
 	props: {
 		videoId: { type: String, required: true },
 	},
-	data() {
-		return {
-			DM: null,
-			player: null,
-		};
-	},
-	created() {
-		getSdk(DAILYMOTION_SDK_URL, "DM", "dmAsyncInit").then(DM => {
-			this.DM = DM;
-			this.DM.init({
-				status: false,
-				cookie: false,
-			});
-			this.updateIframe();
-		});
-	},
-	methods: {
-		updateIframe() {
-			this.player = new this.DM.player(document.getElementById("dailymotion-player"), {
-				video: this.videoId,
+	emits: ["apiready", "playing", "paused", "ready", "buffering", "error", "end"],
+	setup(props: DailymotionPlayerProps, { emit, expose }) {
+		let { videoId } = toRefs(props);
+		let DM = ref();
+		let player = ref();
+
+		function updateIframe() {
+			player.value = new DM.value.player(document.getElementById("dailymotion-player"), {
+				video: videoId.value,
 				width: "100%",
 				height: "100%",
 				params: {
@@ -46,42 +38,67 @@ export default {
 					"ui-start-screen-info": false,
 				},
 				events: {
-					apiready: this.onApiReady,
-					video_end: () => this.$emit("end"),
-					playing: () => this.$emit("playing"),
-					pause: () => this.$emit("paused"),
-					waiting: () => this.$emit("buffering"),
-					playback_ready: () => this.$emit("ready"),
-					error: () => this.$emit("error"),
+					apiready: () => emit("apiready"),
+					video_end: () => emit("end"),
+					playing: () => emit("playing"),
+					pause: () => emit("paused"),
+					waiting: () => emit("buffering"),
+					playback_ready: () => emit("ready"),
+					error: () => emit("error"),
 				},
 			});
-		},
-		play() {
-			return this.player.play();
-		},
-		pause() {
-			return this.player.pause();
-		},
-		getPosition() {
-			return this.player.currentTime;
-		},
-		setPosition(position) {
-			return this.player.seek(position);
-		},
-		setVolume(value) {
-			return this.player.setVolume(value / 100);
-		},
-		onApiReady() {
-			this.$emit("apiready");
-		},
+		}
+
+		onMounted(async () => {
+			let _DM = await getSdk(DAILYMOTION_SDK_URL, "DM", "dmAsyncInit");
+			DM = _DM;
+			DM.value.init({
+				status: false,
+				cookie: false,
+			});
+			updateIframe();
+		});
+
+		watch(videoId, () => {
+			updateIframe();
+			player.value.load({ video: videoId.value });
+		});
+
+		function play() {
+			return player.value.play();
+		}
+		function pause() {
+			return player.value.pause();
+		}
+		function getPosition() {
+			return player.value.currentTime;
+		}
+		function setPosition(position: number) {
+			return player.value.seek(position);
+		}
+		function setVolume(value: number) {
+			return player.value.setVolume(value / 100);
+		}
+
+		expose({
+			play,
+			pause,
+			getPosition,
+			setPosition,
+			setVolume,
+		});
+
+		return {
+			play,
+			pause,
+			getPosition,
+			setPosition,
+			setVolume,
+		};
 	},
-	watch: {
-		videoId() {
-			this.updateIframe();
-			this.player.load({ video: this.videoId });
-		},
-	},
-};
+});
+
+export default DailymotionPlayer;
 </script>
 
 <style lang="scss" scoped>
