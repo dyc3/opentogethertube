@@ -21,9 +21,9 @@
 							: $store.state.room.name
 					}}
 				</h1>
+				<ClientSettingsDialog />
 				<div class="flex-grow-1"><!-- Spacer --></div>
 				<span id="connectStatus">{{ connectionStatus }}</span>
-				<ClientSettingsDialog />
 			</div>
 			<v-col :style="{ padding: $store.state.fullscreen ? 0 : 'inherit' }">
 				<v-row

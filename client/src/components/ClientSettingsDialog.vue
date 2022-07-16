@@ -1,7 +1,7 @@
 <template>
 	<v-dialog v-model="show" width="600">
 		<template v-slot:activator="{ on, attrs }">
-			<v-btn v-bind="attrs" v-on="on">
+			<v-btn v-bind="attrs" v-on="on" style="margin: 0 20px">
 				{{ $t("client-settings.activator") }}
 			</v-btn>
 		</template>
