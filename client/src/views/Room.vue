@@ -23,6 +23,7 @@
 				</h1>
 				<div class="flex-grow-1"><!-- Spacer --></div>
 				<span id="connectStatus">{{ connectionStatus }}</span>
+				<ClientSettingsDialog />
 			</div>
 			<v-col :style="{ padding: $store.state.fullscreen ? 0 : 'inherit' }">
 				<v-row
@@ -329,6 +330,7 @@ import ClickToEdit from "@/components/ClickToEdit.vue";
 import { RoomLayoutMode } from "@/stores/settings";
 import { GrantChecker } from "@/util/grants";
 import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
+import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -345,6 +347,7 @@ export default {
 		ShareInvite,
 		ClickToEdit,
 		ClosedCaptionsSwitcher,
+		ClientSettingsDialog,
 	},
 	data() {
 		return {
