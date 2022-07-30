@@ -207,6 +207,7 @@ export default Vue.extend({
 		},
 		cancelRoom() {
 			createRoomState.value.cancelledRoomCreation = true;
+			createRoomState.value.isLoadingCreateRoom = false;
 		},
 		async createTempRoom() {
 			await createRoomHelper(this.$store);

@@ -113,39 +113,39 @@ export default {
 		};
 	},
 	methods: {
-		submit(e) {
+		async submit(e) {
 			e.preventDefault();
 			this.$refs.form.validate();
 			if (!this.isValid) {
 				return;
 			}
 
-			createRoomHelper(this.$store, this.options)
-				.then(() => {
-					this.$emit("roomCreated", this.options.name);
-					this.options = {
-						name: "",
-						title: "",
-						description: "",
-						visibility: "public",
-						queueMode: "manual",
-					};
-				})
-				.catch(err => {
-					if (err.response) {
-						if (err.response.status === 400) {
-							if (err.response.data.error.name === "RoomNameTakenException") {
-								this.isRoomNameTaken = true;
-							}
-							this.error = err.response.data.error.message;
-						} else {
-							this.error = this.$t("create-room-form.unknown-error");
+			try {
+				await createRoomHelper(this.$store, this.options);
+				console.info("Room created");
+				this.$emit("roomCreated", this.options.name);
+				this.options = {
+					name: "",
+					title: "",
+					description: "",
+					visibility: "public",
+					queueMode: "manual",
+				};
+			} catch (err) {
+				if (err.response) {
+					if (err.response.status === 400) {
+						if (err.response.data.error.name === "RoomNameTakenException") {
+							this.isRoomNameTaken = true;
 						}
+						this.error = err.response.data.error.message;
 					} else {
-						this.error = err.message;
+						this.error = this.$t("create-room-form.unknown-error");
 					}
-					this.$refs.form.validate();
-				});
+				} else {
+					this.error = err.message;
+				}
+				this.$refs.form.validate();
+			}
 		},
 	},
 	watch: {

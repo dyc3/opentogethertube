@@ -8,10 +8,13 @@ import {
 } from "common/models/rest-api";
 import type { Store } from "vuex";
 import { Ref, ref } from "@vue/composition-api";
+import { AxiosResponse } from "axios";
 
 /** Generate a temporary room. */
 export async function generateRoom(): Promise<OttApiResponseRoomGenerate> {
-	let resp = await API.post("/room/generate");
+	let resp = await API.post("/room/generate", null, {
+		validateStatus: status => status >= 200 && status < 400,
+	});
 	let data: OttResponseBody<OttApiResponseRoomGenerate> = resp.data;
 
 	if (data.success) {
@@ -25,7 +28,9 @@ export async function generateRoom(): Promise<OttApiResponseRoomGenerate> {
 export async function createRoom(
 	options: OttApiRequestRoomCreate
 ): Promise<OttApiResponseRoomCreate> {
-	let resp = await API.post("/room/create", options);
+	let resp = await API.post("/room/create", options, {
+		validateStatus: status => status >= 200 && status < 400,
+	});
 	let data: OttResponseBody<OttApiResponseRoomCreate> = resp.data;
 
 	if (data.success) {
@@ -71,14 +76,16 @@ export async function createRoomHelper(store: Store<unknown>, options?: OttApiRe
 			return resp.room;
 		}
 	} catch (err) {
+		state.value.isLoadingCreateRoom = false;
 		if (state.value.cancelledRoomCreation) {
 			return;
 		}
 		console.error(err);
 		store.commit("toast/ADD_TOAST", {
 			style: ToastStyle.Error,
-			content: `Failed to create a new temporary room`,
+			content: `Failed to create a new room`,
 			duration: 6000,
 		});
+		throw err;
 	}
 }
