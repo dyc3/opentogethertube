@@ -12,7 +12,7 @@ import { AxiosResponse } from "axios";
 
 /** Generate a temporary room. */
 export async function generateRoom(): Promise<OttApiResponseRoomGenerate> {
-	let resp = await API.post("/room/generate", null, {
+	let resp = await API.post("/room/generate", undefined, {
 		validateStatus: status => status >= 200 && status < 400,
 	});
 	let data: OttResponseBody<OttApiResponseRoomGenerate> = resp.data;
