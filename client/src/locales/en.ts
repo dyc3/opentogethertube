@@ -346,8 +346,8 @@ export default {
 		"save": "Save",
 	},
 	"client-settings": {
-		title: "Preferences",
-		description: "These settings are saved in your browser, and only affect you.",
-		activator: "@:client-settings.title",
+		"title": "Preferences",
+		"description": "These settings are saved in your browser, and only affect you.",
+		"activator": "@:client-settings.title",
 	},
 };
