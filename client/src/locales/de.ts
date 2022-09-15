@@ -282,4 +282,9 @@ export default {
 		"undo": "Rückgängig",
 		"save": "Speichern",
 	},
+	"client-settings": {
+		title: "Anpassen",
+		description: "Diese Einstellungen werden in deinem Browser gespeichert.",
+		activator: "@:client-settings.title",
+	},
 };
