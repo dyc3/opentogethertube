@@ -8,6 +8,7 @@ services:
     container_name: opentogethertube
     environment:
       - REDIS_HOST=redis_db
+	- FFPROBE_PATH=/usr/bin/ffprobe
       # postgres
       - POSTGRES_DB_USERNAME=opentogethertube
       - POSTGRES_DB_NAME=opentogethertube
