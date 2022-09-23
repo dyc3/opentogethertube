@@ -29,6 +29,8 @@ ENV REDIS_PORT 6379
 # Environnement variable nodejs
 ENV NODE_ENV production
 ENV PORT 8080
+# Env variable for external ffprobe
+ENV FFPROBE_PATH /usr/bin/ffprobe
 
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
