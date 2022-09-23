@@ -8,7 +8,7 @@ WORKDIR /usr/app
 COPY . .
 
 # Install app dependencies
-RUN apk update -q && apk --no-cache add libc6-compat python make g++ autoconf automake libtool -q
+RUN apk update -q && apk --no-cache add libc6-compat python make g++ autoconf automake libtool ffmpeg -q
 
 # Install app dependencies
 RUN yarn
