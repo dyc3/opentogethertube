@@ -8,7 +8,7 @@ WORKDIR /usr/app
 COPY . .
 
 # Install app dependencies
-RUN apk update -q && apk --no-cache add libc6-compat python make g++ autoconf automake libtool ffmpeg -q
+RUN apk update -q && apk --no-cache add libc6-compat python make g++ autoconf automake libtool -q
 
 # Install app dependencies
 RUN yarn
@@ -29,6 +29,8 @@ ENV REDIS_PORT 6379
 # Environnement variable nodejs
 ENV NODE_ENV production
 ENV PORT 8080
+# Env variable for external ffprobe
+ENV FFPROBE_PATH /usr/bin/ffprobe
 
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
@@ -39,7 +41,7 @@ RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitigno
 
 RUN mkdir env && touch env/production.env
 
-RUN apk update -q && apk --no-cache add curl -q
+RUN apk update -q && apk --no-cache add curl ffmpeg -q
 
 # Healthcheck API, WEB, REDIS
 HEALTHCHECK --interval=30s --timeout=3s CMD ( curl -f http://localhost:8080/api/status || exit 1 )
