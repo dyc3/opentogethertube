@@ -27,6 +27,7 @@ import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/con
 import { uniqueNamesGenerator } from "unique-names-generator";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
+import { Gauge } from "prom-client";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -398,6 +399,14 @@ setInterval(() => {
 		client.socket.ping();
 	}
 }, 10000);
+
+const gaugeWebsocketConnections = new Gauge({
+	name: "ott_websocket_connections",
+	help: "The number of active websocket connections",
+	collect() {
+		this.set(connections.length);
+	},
+});
 
 export default {
 	Setup,
