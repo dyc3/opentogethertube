@@ -282,6 +282,9 @@ export default {
 						if (!adapter) {
 							continue;
 						}
+						if (adapter.isCollectionURL(video.url)) {
+							continue;
+						}
 						resolvedResults.push({
 							service: adapter.serviceId,
 							id: adapter.getVideoId(video.url),
