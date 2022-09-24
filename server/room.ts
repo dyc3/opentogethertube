@@ -56,7 +56,6 @@ import {
 } from "./exceptions";
 import storage from "./storage";
 import tokens, { SessionInfo } from "./auth/tokens";
-import statistics, { Counter } from "./statistics";
 import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
@@ -580,7 +579,7 @@ export class Room implements RoomState {
 				this.realPlaybackPosition >
 					(this.currentSource.endAt ?? this.currentSource.length ?? 0)
 			) {
-				await statistics.bumpCounter(Counter.VideosWatched);
+				// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosWatched);
 			}
 			await this.dequeueNext();
 		}
@@ -958,7 +957,7 @@ export class Room implements RoomState {
 		const prevPosition = this.realPlaybackPosition;
 		this.dequeueNext();
 		await this.publishRoomEvent(request, context, { video: current, prevPosition });
-		await statistics.bumpCounter(Counter.VideosSkipped);
+		// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosSkipped);
 		this.videoSegments = [];
 	}
 
@@ -1012,7 +1011,7 @@ export class Room implements RoomState {
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			await this.publishRoomEvent(request, context, { video });
-			await statistics.bumpCounter(Counter.VideosQueued);
+			// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosQueued);
 		} else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 
@@ -1034,7 +1033,7 @@ export class Room implements RoomState {
 			this.queue.enqueue(...videos);
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
-			await statistics.bumpCounter(Counter.VideosQueued, videos.length);
+			// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosQueued, videos.length);
 		} else {
 			this.log.error("Invalid parameters for AddRequest");
 			return;
