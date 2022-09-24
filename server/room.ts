@@ -60,6 +60,7 @@ import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
+import { Counter } from "prom-client";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -369,6 +370,9 @@ export class Room implements RoomState {
 	async dequeueNext() {
 		this.log.debug(`dequeuing next video. mode: ${this.queueMode}`);
 		if (this.currentSource !== null) {
+			counterSecondsWatched
+				.labels({ service: this.currentSource.service })
+				.inc(this.calcDurationFromPlaybackStart());
 			if (this.queueMode === QueueMode.Dj) {
 				this.log.debug(`queue in dj mode, restarting current item`);
 				this.playbackPosition = this.currentSource?.startAt ?? 0;
@@ -545,9 +549,18 @@ export class Room implements RoomState {
 		throw new Error("Client not found");
 	}
 
+	/** Get how much time has elapsed since playback started. Returns 0 if the media is not playing. */
+	calcDurationFromPlaybackStart(): number {
+		if (this._playbackStart !== null) {
+			return dayjs().diff(this._playbackStart, "millisecond") / 1000;
+		} else {
+			return 0;
+		}
+	}
+
 	get realPlaybackPosition(): number {
 		if (this._playbackStart && this.isPlaying) {
-			return this.playbackPosition + dayjs().diff(this._playbackStart, "millisecond") / 1000;
+			return this.playbackPosition + this.calcDurationFromPlaybackStart();
 		} else {
 			return this.playbackPosition;
 		}
@@ -932,6 +945,9 @@ export class Room implements RoomState {
 		}
 		this.log.debug("playback paused");
 		// The order of the following lines matter.
+		counterSecondsWatched
+			.labels({ service: this.currentSource?.service })
+			.inc(this.calcDurationFromPlaybackStart());
 		this.playbackPosition = this.realPlaybackPosition;
 		this._playbackStart = null;
 		this.isPlaying = false;
@@ -1411,3 +1427,9 @@ export class Room implements RoomState {
 		await this.queue.shuffle();
 	}
 }
+
+const counterSecondsWatched = new Counter({
+	name: "ott_media_seconds_played",
+	help: "The number of seconds that media has played. Does not account for how many users were in the room.",
+	labelNames: ["service"],
+});
