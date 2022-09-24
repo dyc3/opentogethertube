@@ -1027,7 +1027,7 @@ export class Room implements RoomState {
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			await this.publishRoomEvent(request, context, { video });
-			// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosQueued);
+			counterMediaQueued.labels({ service: video.service }).inc();
 		} else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 
@@ -1049,7 +1049,9 @@ export class Room implements RoomState {
 			this.queue.enqueue(...videos);
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
-			// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosQueued, videos.length);
+			for (let vid of videos) {
+				counterMediaQueued.labels({ service: vid.service }).inc();
+			}
 		} else {
 			this.log.error("Invalid parameters for AddRequest");
 			return;
@@ -1431,5 +1433,11 @@ export class Room implements RoomState {
 const counterSecondsWatched = new Counter({
 	name: "ott_media_seconds_played",
 	help: "The number of seconds that media has played. Does not account for how many users were in the room.",
+	labelNames: ["service"],
+});
+
+const counterMediaQueued = new Counter({
+	name: "ott_media_queued",
+	help: "The number of items that have been added to queues.",
 	labelNames: ["service"],
 });
