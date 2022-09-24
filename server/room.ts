@@ -592,7 +592,7 @@ export class Room implements RoomState {
 				this.realPlaybackPosition >
 					(this.currentSource.endAt ?? this.currentSource.length ?? 0)
 			) {
-				// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosWatched);
+				counterMediaWatched.labels({ service: this.currentSource.service }).inc();
 			}
 			await this.dequeueNext();
 		}
@@ -971,9 +971,9 @@ export class Room implements RoomState {
 		}
 		const current = this.currentSource;
 		const prevPosition = this.realPlaybackPosition;
+		counterMediaSkipped.labels({ service: this.currentSource.service }).inc();
 		this.dequeueNext();
 		await this.publishRoomEvent(request, context, { video: current, prevPosition });
-		// TODO: convert to prometheus await statistics.bumpCounter(Counter.VideosSkipped);
 		this.videoSegments = [];
 	}
 
@@ -1439,5 +1439,17 @@ const counterSecondsWatched = new Counter({
 const counterMediaQueued = new Counter({
 	name: "ott_media_queued",
 	help: "The number of items that have been added to queues.",
+	labelNames: ["service"],
+});
+
+const counterMediaSkipped = new Counter({
+	name: "ott_media_skipped",
+	help: "The number of items that have been manually skipped by users.",
+	labelNames: ["service"],
+});
+
+const counterMediaWatched = new Counter({
+	name: "ott_media_watched",
+	help: "The number of items that have been watched to completion.",
 	labelNames: ["service"],
 });
