@@ -9,6 +9,12 @@ import path from "path";
 
 const log = getLogger("infoextract.ffprobe");
 const FFPROBE_PATH: string = process.env.FFPROBE_PATH || ffprobeInstaller.path;
+const DIRECT_PREVIEW_MAX_BYTES = (() => {
+	if (process.env.DIRECT_PREVIEW_MAX_BYTES) {
+		return parseInt(process.env.DIRECT_PREVIEW_MAX_BYTES);
+	}
+	return 1000000;
+})();
 const exec = util.promisify(child_process.exec);
 
 log.debug(`ffprobe installed at ${FFPROBE_PATH}`);
@@ -50,7 +56,6 @@ async function saveVideoPreview(stream: Stream): Promise<string> {
 	let handle = await fs.open(tmpfile, "w");
 
 	let counter = 0;
-	const DIRECT_PREVIEW_MAX_BYTES = 1000000;
 	return new Promise((resolve, reject) => {
 		stream.on("data", async data => {
 			log.silly("writing data");
