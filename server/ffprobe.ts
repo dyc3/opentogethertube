@@ -57,15 +57,21 @@ async function saveVideoPreview(stream: Stream): Promise<string> {
 
 	let counter = 0;
 	return new Promise((resolve, reject) => {
+		function finish() {
+			stream.removeAllListeners();
+			handle.close();
+			resolve(tmpfile);
+		}
 		stream.on("data", async data => {
 			log.silly("writing data");
 			await handle.write(data);
 			counter += data.length;
 			if (counter > DIRECT_PREVIEW_MAX_BYTES) {
-				stream.removeAllListeners();
-				handle.close();
-				resolve(tmpfile);
+				finish();
 			}
+		});
+		stream.on("end", () => {
+			finish();
 		});
 	});
 }
