@@ -11,6 +11,7 @@ import {
 	RoomNotFoundException,
 } from "./exceptions";
 import { RoomRequest, RoomRequestContext } from "common/models/messages";
+import { Gauge } from "prom-client";
 // WARN: do NOT import clientmanager
 
 export const log = getLogger("roommanager");
@@ -174,6 +175,25 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 }
 
 redisSubscriber.on("message", remoteRoomRequestHandler);
+
+const gaugeRoomCount = new Gauge({
+	name: "ott_room_count",
+	help: "The number of loaded rooms.",
+	labelNames: ["temporary"],
+	collect() {
+		let countTempRooms = 0;
+		let countPermRooms = 0;
+		for (const room of rooms) {
+			if (room.isTemporary) {
+				countTempRooms++;
+			} else {
+				countPermRooms++;
+			}
+		}
+		this.set({ temporary: 1 }, countTempRooms);
+		this.set({ temporary: 0 }, countPermRooms);
+	},
+});
 
 const roommanager = {
 	rooms,

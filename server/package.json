@@ -12,9 +12,9 @@
 	"dependencies": {
 		"@divine/synchronization": "^1.2.1",
 		"@ffprobe-installer/ffprobe": "^1.0.12",
-		"@types/node": "^15.6.0",
 		"@types/express": "^4.17.11",
 		"@types/express-session": "^1.17.3",
+		"@types/node": "^15.6.0",
 		"@types/passport": "^1.0.6",
 		"@types/passport-http-bearer": "^1.0.36",
 		"@types/redis": "^2.8.28",
@@ -34,6 +34,7 @@
 		"passport-local": "^1.0.0",
 		"pg": "^8.0.3",
 		"pg-hstore": "2.3.3",
+		"prom-client": "^14.1.0",
 		"rate-limiter-flexible": "^2.2.1",
 		"redis": "3.1.1",
 		"secure-password": "^3.1.0",

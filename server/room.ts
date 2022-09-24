@@ -56,11 +56,11 @@ import {
 } from "./exceptions";
 import storage from "./storage";
 import tokens, { SessionInfo } from "./auth/tokens";
-import statistics, { Counter } from "./statistics";
 import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
+import { Counter } from "prom-client";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -370,6 +370,9 @@ export class Room implements RoomState {
 	async dequeueNext() {
 		this.log.debug(`dequeuing next video. mode: ${this.queueMode}`);
 		if (this.currentSource !== null) {
+			counterSecondsWatched
+				.labels({ service: this.currentSource.service })
+				.inc(this.calcDurationFromPlaybackStart());
 			if (this.queueMode === QueueMode.Dj) {
 				this.log.debug(`queue in dj mode, restarting current item`);
 				this.playbackPosition = this.currentSource?.startAt ?? 0;
@@ -546,9 +549,18 @@ export class Room implements RoomState {
 		throw new Error("Client not found");
 	}
 
+	/** Get how much time has elapsed since playback started. Returns 0 if the media is not playing. */
+	calcDurationFromPlaybackStart(): number {
+		if (this._playbackStart !== null) {
+			return dayjs().diff(this._playbackStart, "millisecond") / 1000;
+		} else {
+			return 0;
+		}
+	}
+
 	get realPlaybackPosition(): number {
 		if (this._playbackStart && this.isPlaying) {
-			return this.playbackPosition + dayjs().diff(this._playbackStart, "millisecond") / 1000;
+			return this.playbackPosition + this.calcDurationFromPlaybackStart();
 		} else {
 			return this.playbackPosition;
 		}
@@ -580,7 +592,7 @@ export class Room implements RoomState {
 				this.realPlaybackPosition >
 					(this.currentSource.endAt ?? this.currentSource.length ?? 0)
 			) {
-				await statistics.bumpCounter(Counter.VideosWatched);
+				counterMediaWatched.labels({ service: this.currentSource.service }).inc();
 			}
 			await this.dequeueNext();
 		}
@@ -933,6 +945,9 @@ export class Room implements RoomState {
 		}
 		this.log.debug("playback paused");
 		// The order of the following lines matter.
+		counterSecondsWatched
+			.labels({ service: this.currentSource?.service })
+			.inc(this.calcDurationFromPlaybackStart());
 		this.playbackPosition = this.realPlaybackPosition;
 		this._playbackStart = null;
 		this.isPlaying = false;
@@ -956,9 +971,9 @@ export class Room implements RoomState {
 		}
 		const current = this.currentSource;
 		const prevPosition = this.realPlaybackPosition;
+		counterMediaSkipped.labels({ service: this.currentSource.service }).inc();
 		this.dequeueNext();
 		await this.publishRoomEvent(request, context, { video: current, prevPosition });
-		await statistics.bumpCounter(Counter.VideosSkipped);
 		this.videoSegments = [];
 	}
 
@@ -1012,7 +1027,7 @@ export class Room implements RoomState {
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			await this.publishRoomEvent(request, context, { video });
-			await statistics.bumpCounter(Counter.VideosQueued);
+			counterMediaQueued.labels({ service: video.service }).inc();
 		} else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 
@@ -1034,7 +1049,9 @@ export class Room implements RoomState {
 			this.queue.enqueue(...videos);
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
-			await statistics.bumpCounter(Counter.VideosQueued, videos.length);
+			for (let vid of videos) {
+				counterMediaQueued.labels({ service: vid.service }).inc();
+			}
 		} else {
 			this.log.error("Invalid parameters for AddRequest");
 			return;
@@ -1412,3 +1429,27 @@ export class Room implements RoomState {
 		await this.queue.shuffle();
 	}
 }
+
+const counterSecondsWatched = new Counter({
+	name: "ott_media_seconds_played",
+	help: "The number of seconds that media has played. Does not account for how many users were in the room.",
+	labelNames: ["service"],
+});
+
+const counterMediaQueued = new Counter({
+	name: "ott_media_queued",
+	help: "The number of items that have been added to queues.",
+	labelNames: ["service"],
+});
+
+const counterMediaSkipped = new Counter({
+	name: "ott_media_skipped",
+	help: "The number of items that have been manually skipped by users.",
+	labelNames: ["service"],
+});
+
+const counterMediaWatched = new Counter({
+	name: "ott_media_watched",
+	help: "The number of items that have been watched to completion.",
+	labelNames: ["service"],
+});
