@@ -121,7 +121,11 @@ export default {
 			}
 
 			try {
-				await createRoomHelper(this.$store, this.options);
+				let opts = {
+					...this.options,
+					isTemporary: false,
+				};
+				await createRoomHelper(this.$store, opts);
 				console.info("Room created");
 				this.$emit("roomCreated", this.options.name);
 				this.options = {
