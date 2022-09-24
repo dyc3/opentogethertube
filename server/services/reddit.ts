@@ -4,6 +4,7 @@ import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { getLogger } from "../logger";
 import { Video, VideoMetadata } from "../../common/models/video";
 import { InvalidVideoIdException } from "../exceptions";
+import infoextractor from "../infoextractor";
 
 const log = getLogger("reddit");
 
@@ -34,8 +35,8 @@ export interface RedditPostData {
 export interface RedditVideoPostData extends RedditPostData {
 	is_video: true;
 	is_reddit_media_domain: boolean;
-	media: RedditMedia;
-	secure_media: RedditMedia;
+	media: RedditMedia | RedditEmbedMedia;
+	secure_media: RedditMedia | RedditEmbedMedia;
 }
 
 export interface RedditMedia {
@@ -49,6 +50,17 @@ export interface RedditMedia {
 		transcoding_status: string;
 		is_gif: boolean;
 		scrubber_media_url: string;
+	};
+}
+
+export interface RedditEmbedMedia {
+	type: string;
+	oembed: {
+		author_url: string;
+		provider_name: string;
+		type: string;
+		thumbnail_url: string;
+		title: string;
 	};
 }
 
@@ -116,15 +128,17 @@ export default class RedditAdapter extends ServiceAdapter {
 			}
 		} else if (thing.kind === "t3") {
 			if (thing.data.is_video && "media" in thing.data) {
-				videos.push({
-					service: "reddit",
-					id: thing.data.id,
-					title: thing.data.title,
-					description: thing.data.permalink,
-					length: thing.data.media.reddit_video.duration,
-					thumbnail: thing.data.thumbnail,
-					hls_url: thing.data.media.reddit_video.hls_url,
-				});
+				if ("reddit_video" in thing.data.media) {
+					videos.push({
+						service: "reddit",
+						id: thing.data.id,
+						title: thing.data.title,
+						description: thing.data.permalink,
+						length: thing.data.media.reddit_video.duration,
+						thumbnail: thing.data.thumbnail,
+						hls_url: thing.data.media.reddit_video.hls_url,
+					});
+				}
 			} else {
 				if (thing.data.url.length > 0) {
 					videos.push({

@@ -225,7 +225,9 @@ export default {
 
 		const flattened = results.flat();
 		// type cast should be safe here because find should always be able to find a video.
-		const result = videoIds.map(video => flattened.find(v => v.id === video.id) as Video);
+		const result = videoIds
+			.map(video => flattened.find(v => v.id === video.id) as Video)
+			.filter(v => !!v);
 		this.updateCache(
 			result.filter(video => {
 				const adapter = this.getServiceAdapter(video.service);
@@ -278,6 +280,9 @@ export default {
 					try {
 						const adapter = this.getServiceAdapterForURL(video.url);
 						if (!adapter) {
+							continue;
+						}
+						if (adapter.isCollectionURL(video.url)) {
 							continue;
 						}
 						resolvedResults.push({
