@@ -986,6 +986,9 @@ export class Room implements RoomState {
 			this.log.error("seek value was undefined or null");
 			return;
 		}
+		counterSecondsWatched
+			.labels({ service: this.currentSource?.service })
+			.inc(this.calcDurationFromPlaybackStart());
 		const prev = this.realPlaybackPosition;
 		this.playbackPosition = request.value;
 		this._playbackStart = dayjs();
