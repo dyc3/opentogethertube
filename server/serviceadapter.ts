@@ -2,7 +2,9 @@
 /* eslint-disable no-unused-vars */
 import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { IncompleteServiceAdapterException } from "./exceptions";
+import { getLogger } from "./logger";
 
+const log = getLogger("serviceadapter");
 export interface VideoRequest {
 	id: string;
 	missingInfo: (keyof VideoMetadata)[];
@@ -64,7 +66,17 @@ export class ServiceAdapter {
 	 * @param requests List of objects with id and missingInfo keys
 	 */
 	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
-		return Promise.all(requests.map(async req => this.fetchVideoInfo(req.id, req.missingInfo)));
+		let videos: Video[] = [];
+		for (let req of requests) {
+			try {
+				videos.push(await this.fetchVideoInfo(req.id, req.missingInfo));
+			} catch (error) {
+				log.warn(
+					`fetchManyVideoInfo: failed to fetch ${this.serviceId}:${req.id}: ${error}, skipping`
+				);
+			}
+		}
+		return videos;
 	}
 
 	/**
