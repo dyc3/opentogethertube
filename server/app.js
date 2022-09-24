@@ -12,6 +12,7 @@ const DiscordStrategy = require("passport-discord").Strategy;
 const BearerStrategy = require("passport-http-bearer").Strategy;
 const validator = require("validator");
 const { OpticMiddleware } = require("@useoptic/express-middleware");
+require("./metrics");
 
 const log = getLogger("app");
 
