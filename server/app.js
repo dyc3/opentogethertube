@@ -12,7 +12,7 @@ const DiscordStrategy = require("passport-discord").Strategy;
 const BearerStrategy = require("passport-http-bearer").Strategy;
 const validator = require("validator");
 const { OpticMiddleware } = require("@useoptic/express-middleware");
-require("./metrics");
+const { metricsMiddleware } = require("./metrics");
 
 const log = getLogger("app");
 
@@ -149,6 +149,7 @@ if (!process.env.SEARCH_PROVIDER) {
 log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
 
 const app = express();
+app.use(metricsMiddleware);
 const server = http.createServer(app);
 
 const { redisClient } = require("./redisclient");
