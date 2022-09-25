@@ -651,8 +651,7 @@ export class Room implements RoomState {
 				const segment = this.getSegmentForTime(this.realPlaybackPosition);
 				if (segment) {
 					this.log.silly(`Segment ${segment.category} is now playing, skipping`);
-					this.playbackPosition = segment.endTime;
-					this._playbackStart = dayjs();
+					this.seekRaw(segment.endTime);
 					await this.publish({
 						action: "eventcustom",
 						text: `Skipped ${segment.category}`,
@@ -873,6 +872,7 @@ export class Room implements RoomState {
 	}
 
 	public async processRequest(request: RoomRequest, context: RoomRequestContext): Promise<void> {
+		counterRoomRequests.inc();
 		const permissions = new Map([
 			[RoomRequestType.PlaybackRequest, "playback.play-pause"],
 			[RoomRequestType.SkipRequest, "playback.skip"],
@@ -978,20 +978,26 @@ export class Room implements RoomState {
 	}
 
 	/**
+	 * Seek to the specified position in the video. This does the bare minimum to maintain state and record metrics.
+	 */
+	private seekRaw(value: number): void {
+		counterSecondsWatched
+			.labels({ service: this.currentSource?.service })
+			.inc(this.calcDurationFromPlaybackStart());
+		this.playbackPosition = value;
+		this._playbackStart = dayjs();
+	}
+
+	/**
 	 * Seek to the specified position in the video.
-	 * @param value
 	 */
 	public async seek(request: SeekRequest, context: RoomRequestContext): Promise<void> {
 		if (request.value === undefined || request.value === null) {
 			this.log.error("seek value was undefined or null");
 			return;
 		}
-		counterSecondsWatched
-			.labels({ service: this.currentSource?.service })
-			.inc(this.calcDurationFromPlaybackStart());
 		const prev = this.realPlaybackPosition;
-		this.playbackPosition = request.value;
-		this._playbackStart = dayjs();
+		this.seekRaw(request.value);
 		await this.publishRoomEvent(request, context, { prevPosition: prev });
 
 		const segment = this.getSegmentForTime(this.playbackPosition);
@@ -1455,4 +1461,9 @@ const counterMediaWatched = new Counter({
 	name: "ott_media_watched",
 	help: "The number of items that have been watched to completion.",
 	labelNames: ["service"],
+});
+
+const counterRoomRequests = new Counter({
+	name: "ott_room_requests_received",
+	help: "The number of room requests that have been received",
 });
