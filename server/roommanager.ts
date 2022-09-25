@@ -1,5 +1,5 @@
 import { Room, RoomState, RoomStatePersistable } from "./room";
-import { AuthToken, RoomOptions } from "../common/models/types";
+import { AuthToken, RoomOptions, Visibility } from "../common/models/types";
 import { ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import _ from "lodash";
 import { getLogger } from "./logger.js";
@@ -179,19 +179,29 @@ redisSubscriber.on("message", remoteRoomRequestHandler);
 const gaugeRoomCount = new Gauge({
 	name: "ott_room_count",
 	help: "The number of loaded rooms.",
-	labelNames: ["temporary"],
+	labelNames: ["room_type", "visibility"],
 	collect() {
-		let countTempRooms = 0;
-		let countPermRooms = 0;
+		let counts: Record<"temporary" | "permanent", Record<Visibility, number>> = {
+			temporary: {
+				public: 0,
+				unlisted: 0,
+				private: 0,
+			},
+			permanent: {
+				public: 0,
+				unlisted: 0,
+				private: 0,
+			},
+		};
 		for (const room of rooms) {
-			if (room.isTemporary) {
-				countTempRooms++;
-			} else {
-				countPermRooms++;
+			counts[room.isTemporary ? "temporary" : "permanent"][room.visibility] += 1;
+		}
+		for (let room_type of Object.keys(counts)) {
+			for (let visibility of Object.keys(counts[room_type])) {
+				let value = counts[room_type][visibility];
+				this.set({ room_type, visibility }, value);
 			}
 		}
-		this.set({ temporary: 1 }, countTempRooms);
-		this.set({ temporary: 0 }, countPermRooms);
 	},
 });
 
