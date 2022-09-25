@@ -873,6 +873,7 @@ export class Room implements RoomState {
 	}
 
 	public async processRequest(request: RoomRequest, context: RoomRequestContext): Promise<void> {
+		counterRoomRequests.inc();
 		const permissions = new Map([
 			[RoomRequestType.PlaybackRequest, "playback.play-pause"],
 			[RoomRequestType.SkipRequest, "playback.skip"],
@@ -1455,4 +1456,9 @@ const counterMediaWatched = new Counter({
 	name: "ott_media_watched",
 	help: "The number of items that have been watched to completion.",
 	labelNames: ["service"],
+});
+
+const counterRoomRequests = new Counter({
+	name: "ott_room_requests_received",
+	help: "The number of room requests that have been received",
 });
