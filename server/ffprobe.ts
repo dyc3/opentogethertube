@@ -41,12 +41,14 @@ export async function getFileInfo(uri: string) {
 
 	// let stdout = await streamDataIntoFfprobe(resp.data);
 
-	const { stdout } = await exec(
-		`${FFPROBE_PATH} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
-	);
-	await fs.rm(tmpfile);
-
-	return JSON.parse(stdout);
+	try {
+		const { stdout } = await exec(
+			`${FFPROBE_PATH} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
+		);
+		return JSON.parse(stdout);
+	} finally {
+		await fs.rm(tmpfile);
+	}
 }
 
 async function saveVideoPreview(stream: Stream): Promise<string> {
