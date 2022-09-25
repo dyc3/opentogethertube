@@ -21,6 +21,7 @@ import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
 import { OttException } from "../common/exceptions";
 import TubiAdapter from "./services/tubi";
+import { Counter } from "prom-client";
 
 const log = getLogger("infoextract");
 
@@ -244,6 +245,7 @@ export default {
 	 * used to perform a search.
 	 */
 	async resolveVideoQuery(query: string, searchService: string): Promise<Video[]> {
+		counterAddPreviewsRequested.inc();
 		let results: Video[] = [];
 
 		if (query.includes("\n")) {
@@ -329,6 +331,7 @@ export default {
 		if (cachedResults) {
 			log.info("Using cached results for search");
 			const completeResults = await this.getManyVideoInfo(cachedResults);
+			counterMediaSearches.labels({ cached: "cached" }).inc();
 			return completeResults;
 		}
 
@@ -336,6 +339,18 @@ export default {
 		const searchResults = await adapter.searchVideos(query);
 		const completeResults = await this.getManyVideoInfo(searchResults);
 		this.cacheSearchResults(service, query, searchResults);
+		counterMediaSearches.labels({ cached: "uncached" }).inc();
 		return completeResults;
 	},
 };
+
+const counterAddPreviewsRequested = new Counter({
+	name: "ott_infoextractor_add_previews_requested",
+	help: "The number of add previews that have been requested",
+});
+
+const counterMediaSearches = new Counter({
+	name: "ott_infoextractor_search",
+	help: "The number of media searches that the info extractor has performed.",
+	labelNames: ["cached"],
+});
