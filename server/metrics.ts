@@ -28,11 +28,13 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
 	counterHttpRequestsReceived.labels({ http_method: req.method }).inc();
 	let start = process.hrtime();
 	next();
-	let end = process.hrtime(start);
-	histHttpRequestDuration
-		.labels({ http_method: req.method, http_status: res.statusCode })
-		.observe((end[0] * 1e9 + end[1]) / 1e9);
-	counterHttpRequestsHandled
-		.labels({ http_method: req.method, http_status: res.statusCode })
-		.inc();
+	res.on("finish", () => {
+		let end = process.hrtime(start);
+		histHttpRequestDuration
+			.labels({ http_method: req.method, http_status: res.statusCode })
+			.observe((end[0] * 1e9 + end[1]) / 1e9);
+		counterHttpRequestsHandled
+			.labels({ http_method: req.method, http_status: res.statusCode })
+			.inc();
+	});
 }
