@@ -6,6 +6,10 @@ import axios from "axios";
 import { Stream } from "stream";
 import fs from "fs/promises";
 import path from "path";
+// FIXME: remove node-abort-controller package when we stop supporting node 14.
+import { AbortController } from "node-abort-controller";
+import http from "http";
+import https from "https";
 
 const log = getLogger("infoextract.ffprobe");
 const FFPROBE_PATH: string = process.env.FFPROBE_PATH || ffprobeInstaller.path;
@@ -29,15 +33,26 @@ export async function getFileInfo(uri: string) {
 		);
 		throw new Error("Unescaped double quote found in uri");
 	}
-	const tokenSource = axios.CancelToken.source();
+	const httpAgent = new http.Agent({ keepAlive: false });
+	const httpsAgent = new https.Agent({ keepAlive: false });
+	const controller = new AbortController();
 	let resp = await axios.get(uri, {
 		responseType: "stream",
-		cancelToken: tokenSource.token,
+		// @ts-expect-error
+		signal: controller.signal,
+		httpAgent,
+		httpsAgent,
 	});
 
 	log.debug("Got response, beginning pipe");
-	let tmpfile = await saveVideoPreview(resp.data);
-	tokenSource.cancel();
+	let tmpfile: string;
+	try {
+		tmpfile = await saveVideoPreview(resp.data);
+	} finally {
+		controller.abort();
+		httpAgent.destroy();
+		httpsAgent.destroy();
+	}
 
 	// let stdout = await streamDataIntoFfprobe(resp.data);
 
