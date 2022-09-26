@@ -17,7 +17,7 @@ const DIRECT_PREVIEW_MAX_BYTES = (() => {
 	if (process.env.DIRECT_PREVIEW_MAX_BYTES) {
 		return parseInt(process.env.DIRECT_PREVIEW_MAX_BYTES);
 	}
-	return 1000000;
+	return Infinity;
 })();
 const exec = util.promisify(child_process.exec);
 
@@ -80,7 +80,6 @@ async function saveVideoPreview(stream: Stream): Promise<string> {
 			resolve(tmpfile);
 		}
 		stream.on("data", async data => {
-			log.silly("writing data");
 			await handle.write(data);
 			counter += data.length;
 			if (counter > DIRECT_PREVIEW_MAX_BYTES) {

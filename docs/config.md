@@ -40,4 +40,4 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `SHORT_URL` | The domain to use in the copyable "Share Invite" URL. | undefined | `string` |
 | `TRUST_PROXY` | The number of reverse proxy layers to trust. | `1` | `number` |
 | `FFPROBE_PATH` | The path to the command `ffprobe`. You probably don't need to set this unless you are having problems with the ffprobe that is install automatically. | (see [@ffprobe-installer/ffprobe](https://github.com/SavageCore/node-ffprobe-installer)) | `string` |
-| `DIRECT_PREVIEW_MAX_BYTES` | The number of bytes to download when trying to preview direct playback videos. | 1000000 | Integer >= 0 |
+| `DIRECT_PREVIEW_MAX_BYTES` | The number of bytes to download when trying to preview direct playback videos. | Infinity | Integer >= 0 |
