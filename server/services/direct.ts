@@ -69,10 +69,11 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		}
 		const fileInfo = await ffprobe.getFileInfo(link);
 		const duration = Math.ceil(this.getDuration(fileInfo));
+		const title = fileInfo.format?.tags?.title ?? fileName;
 		const video: Video = {
 			service: this.serviceId,
 			id: link,
-			title: fileName,
+			title,
 			description: `Full Link: ${link}`,
 			mime,
 			length: duration,
