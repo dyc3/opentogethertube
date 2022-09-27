@@ -24,7 +24,7 @@ enum FetchMode {
 	PreviewOnDisk,
 	StreamToStdin,
 }
-const FETCH_MODE = FetchMode.PreviewOnDisk;
+const FETCH_MODE = FetchMode.StreamToStdin;
 const exec = util.promisify(child_process.exec);
 
 log.debug(`ffprobe installed at ${FFPROBE_PATH}`);
@@ -51,6 +51,7 @@ export async function getFileInfo(uri: string) {
 	});
 
 	log.debug(`Got response: ${resp.status}`);
+	// @ts-expect-error
 	if (FETCH_MODE === FetchMode.PreviewOnDisk) {
 		let tmpfile: string;
 		try {
@@ -70,7 +71,8 @@ export async function getFileInfo(uri: string) {
 		}
 	} else if (FETCH_MODE === FetchMode.StreamToStdin) {
 		try {
-			let stdout = await streamDataIntoFfprobe(resp.data);
+			let stdout = await streamDataIntoFfprobe(resp.data, controller);
+			return JSON.parse(stdout);
 		} finally {
 			controller.abort();
 			httpAgent.destroy();
@@ -114,57 +116,47 @@ async function saveVideoPreview(stream: Stream): Promise<string> {
 	});
 }
 
-function streamDataIntoFfprobe(stream: Stream): Promise<string> {
-	// this doesn't work because node is dumb
-	// but obviously it would be the prefered method.
-	// so im leaving it in in case somebody can get it to work.
+function streamDataIntoFfprobe(stream: Stream, controller: AbortController): Promise<string> {
 	return new Promise((resolve, reject) => {
 		let stream_ended = true;
 
 		let child = child_process.spawn(
-			// `${FFPROBE_PATH} -v quiet -print_format json -show_streams -show_format -`
-			`${FFPROBE_PATH} -v trace -print_format json -show_streams -show_format -`,
+			`${FFPROBE_PATH}`,
+			["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"],
 			{
-				// stdio: "pipe",
-				shell: true,
+				stdio: "pipe",
+				windowsHide: true,
 			}
 		);
-		// stream.pipe(child.stdin);
-		log.debug("ffprobe child spawned");
+		log.debug(`ffprobe child spawned: ${child.pid}`);
 		let result_json = "";
 		function finalize() {
-			let stdout = child.stdout.read();
-			log.debug(`ffprobe finalized stdout: ${stdout}`);
+			stream.removeAllListeners();
+			controller.abort();
 			resolve(result_json);
 		}
 
 		stream.on("data", data => {
-			if (child.exitCode !== null) {
-				log.debug(`ffprobe exited: ${child.exitCode}`);
-				finalize();
+			counterBytesDownloaded.inc(data.length);
+			if (child.stdin.destroyed) {
 				return;
 			}
-
-			log.debug(`got data, writing`);
-			try {
-				if (!child.stdin.destroyed) {
-					child.stdin.cork();
-					child.stdin.write(data);
-					child.stdin.uncork();
-				} else {
-					log.debug(`ffprobe stdin destroyed`);
+			child.stdin.write(data, e => {
+				if (e) {
+					log.debug(`write failed (destroyed: ${child.stdin.destroyed}): ${e}`);
 				}
-			} catch (e) {
-				log.debug(`write failed: ${e}`);
-			}
+			});
+		});
+		child.stdin.on("error", e => {
+			log.debug(`ffprobe stdin error: ${e}`);
 		});
 		stream.on("end", () => {
 			log.debug("http stream ended");
 			stream_ended = true;
+			if (child.stdin.destroyed) {
+				return;
+			}
 			child.stdin.end();
-			log.debug(`readable ${child.stdout.readable} ${child.stdout.readableLength}`);
-			let r = child.stdout.read(child.stdout.readableLength);
-			log.debug(`i read ${r}`);
 		});
 		stream.on("error", error => {
 			log.error(`http stream error: ${error}`);
@@ -174,8 +166,11 @@ function streamDataIntoFfprobe(stream: Stream): Promise<string> {
 			log.debug(`ffprobe output: ${data}`);
 			result_json += data;
 		});
-		child.stdout.on("end", () => {
-			log.debug("ffprobe is done writing output");
+		child.stderr.on("data", data => {
+			log.silly(`${data}`);
+		});
+		child.on("close", () => {
+			log.debug("ffprobe closed");
 			finalize();
 		});
 	});
