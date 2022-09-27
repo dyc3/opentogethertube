@@ -2,6 +2,18 @@ jest.mock("../../../ffprobe");
 
 import DirectVideoAdapter from "../../../services/direct";
 import ffprobe from "../../../ffprobe";
+import fs from "fs";
+
+const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/direct";
+
+function getFixture(file: string) {
+	let path = `${FIXTURE_DIRECTORY}/${file}`;
+	if (fs.existsSync(path)) {
+		let content = fs.readFileSync(path, "utf8");
+		return JSON.parse(content);
+	}
+	throw new Error("fixture not found");
+}
 
 describe("Direct", () => {
 	describe("canHandleURL", () => {
@@ -85,13 +97,20 @@ describe("Direct", () => {
 		const adapter = new DirectVideoAdapter();
 
 		beforeEach(() => {
-			const getFileInfoMock = jest.fn().mockResolvedValue({
-				streams: [
-					{
-						codec_type: "video",
-						duration: 100,
+			const getFileInfoMock = jest.fn().mockImplementation(uri => {
+				const url = new URL(uri);
+
+				return {
+					"/test.mp4": {
+						streams: [
+							{
+								codec_type: "video",
+								duration: 100,
+							},
+						],
 					},
-				],
+					"/foo.mp4": getFixture("ffprobe-output-has-title.json"),
+				}[url.pathname];
 			});
 			ffprobe.getFileInfo = getFileInfoMock;
 		});
@@ -107,6 +126,16 @@ describe("Direct", () => {
 			expect(video).toMatchObject({
 				id: url,
 				length: 100,
+			});
+		});
+
+		it("Returns a video with the title from the metadata", async () => {
+			const url = "https://example.com/foo.mp4";
+			const video = await adapter.fetchVideoInfo(url);
+			expect(video).toMatchObject({
+				id: url,
+				title: "Foo: The Movie",
+				length: 69420,
 			});
 		});
 	});
