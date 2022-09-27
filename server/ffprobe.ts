@@ -10,6 +10,7 @@ import path from "path";
 import { AbortController } from "node-abort-controller";
 import http from "http";
 import https from "https";
+import { Counter } from "prom-client";
 
 const log = getLogger("infoextract.ffprobe");
 const FFPROBE_PATH: string = process.env.FFPROBE_PATH || ffprobeInstaller.path;
@@ -19,6 +20,11 @@ const DIRECT_PREVIEW_MAX_BYTES = (() => {
 	}
 	return Infinity;
 })();
+enum FetchMode {
+	PreviewOnDisk,
+	StreamToStdin,
+}
+const FETCH_MODE = FetchMode.PreviewOnDisk;
 const exec = util.promisify(child_process.exec);
 
 log.debug(`ffprobe installed at ${FFPROBE_PATH}`);
@@ -44,25 +50,34 @@ export async function getFileInfo(uri: string) {
 		httpsAgent,
 	});
 
-	log.debug("Got response, beginning pipe");
-	let tmpfile: string;
-	try {
-		tmpfile = await saveVideoPreview(resp.data);
-	} finally {
-		controller.abort();
-		httpAgent.destroy();
-		httpsAgent.destroy();
-	}
-
-	// let stdout = await streamDataIntoFfprobe(resp.data);
-
-	try {
-		const { stdout } = await exec(
-			`${FFPROBE_PATH} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
-		);
-		return JSON.parse(stdout);
-	} finally {
-		await fs.rm(tmpfile);
+	log.debug(`Got response: ${resp.status}`);
+	if (FETCH_MODE === FetchMode.PreviewOnDisk) {
+		let tmpfile: string;
+		try {
+			tmpfile = await saveVideoPreview(resp.data);
+		} finally {
+			controller.abort();
+			httpAgent.destroy();
+			httpsAgent.destroy();
+		}
+		try {
+			const { stdout } = await exec(
+				`${FFPROBE_PATH} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
+			);
+			return JSON.parse(stdout);
+		} finally {
+			await fs.rm(tmpfile);
+		}
+	} else if (FETCH_MODE === FetchMode.StreamToStdin) {
+		try {
+			let stdout = await streamDataIntoFfprobe(resp.data);
+		} finally {
+			controller.abort();
+			httpAgent.destroy();
+			httpsAgent.destroy();
+		}
+	} else {
+		throw new Error("Unknown fetch mode");
 	}
 }
 
@@ -82,12 +97,19 @@ async function saveVideoPreview(stream: Stream): Promise<string> {
 		stream.on("data", async data => {
 			await handle.write(data);
 			counter += data.length;
+			counterBytesDownloaded.inc(data.length);
 			if (counter > DIRECT_PREVIEW_MAX_BYTES) {
 				finish();
 			}
 		});
 		stream.on("end", () => {
 			finish();
+		});
+		stream.on("error", error => {
+			log.error(`http stream error: ${error}`);
+			stream.removeAllListeners();
+			handle.close();
+			reject(error);
 		});
 	});
 }
@@ -162,3 +184,8 @@ function streamDataIntoFfprobe(stream: Stream): Promise<string> {
 export default {
 	getFileInfo,
 };
+
+const counterBytesDownloaded = new Counter({
+	name: "ott_infoextractor_direct_bytes_downloaded",
+	help: "The number of bytes that have been downloaded for the purpose of getting direct video metadata",
+});
