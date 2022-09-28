@@ -524,7 +524,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				video.length = this.parseVideoLength(item.contentDetails.duration);
 			} catch (e) {
 				log.error(
-					`Failed to parse video length. input: "${
+					`Failed to parse video length for ${item.id}. input: "${
 						item.contentDetails.duration
 					}" (type ${typeof item.contentDetails.duration})`
 				);
@@ -667,7 +667,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	 * Examples: PT40M25S
 	 */
 	parseVideoLength(duration: string): number {
-		let match = /P(\d+D)?T(\d+H)?(\d+M)?(\d+S)?/
+		let match = /P(\d+D)?(?:T(\d+H)?(\d+M)?(\d+S)?)?/
 			.exec(duration)
 			?.slice(1)
 			.map(x => {
