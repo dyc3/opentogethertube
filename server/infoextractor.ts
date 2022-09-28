@@ -246,6 +246,19 @@ export default {
 	 */
 	async resolveVideoQuery(query: string, searchService: string): Promise<Video[]> {
 		counterAddPreviewsRequested.inc();
+		try {
+			let result = await this.resolveVideoQueryImpl(query, searchService);
+			counterAddPreviewsCompleted.labels({ result: "success" }).inc();
+			return result;
+		} catch (e: unknown) {
+			if (e instanceof Error) {
+				counterAddPreviewsCompleted.labels({ result: "failure", error: e.name }).inc();
+			}
+			throw e;
+		}
+	},
+
+	async resolveVideoQueryImpl(query: string, searchService: string): Promise<Video[]> {
 		let results: Video[] = [];
 
 		if (query.includes("\n")) {
@@ -347,6 +360,12 @@ export default {
 const counterAddPreviewsRequested = new Counter({
 	name: "ott_infoextractor_add_previews_requested",
 	help: "The number of add previews that have been requested",
+});
+
+const counterAddPreviewsCompleted = new Counter({
+	name: "ott_infoextractor_add_previews_completed",
+	help: "The number of add previews that have been completed",
+	labelNames: ["result", "error"],
 });
 
 const counterMediaSearches = new Counter({
