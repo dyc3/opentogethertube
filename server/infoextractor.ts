@@ -133,6 +133,8 @@ export default {
 	 * to the cache.
 	 */
 	async getVideoInfo(service: string, videoId: string): Promise<Video> {
+		counterMethodsInvoked.labels({ method: "getVideoInfo" }).inc();
+
 		const adapter = this.getServiceAdapter(service);
 		const [cachedVideo, missingInfo] = await this.getCachedVideo(service, videoId);
 
@@ -192,6 +194,8 @@ export default {
 	},
 
 	async getManyVideoInfo(videoIds: VideoId[]): Promise<Video[]> {
+		counterMethodsInvoked.labels({ method: "getManyVideoInfo" }).inc();
+
 		const grouped = _.groupBy(videoIds, "service");
 		const results = await Promise.all(
 			Object.entries(grouped).map(async ([service, serviceVideos]) => {
@@ -246,6 +250,7 @@ export default {
 	 */
 	async resolveVideoQuery(query: string, searchService: string): Promise<Video[]> {
 		counterAddPreviewsRequested.inc();
+		counterMethodsInvoked.labels({ method: "resolveVideoQuery" }).inc();
 		try {
 			let result = await this.resolveVideoQueryImpl(query, searchService);
 			counterAddPreviewsCompleted.labels({ result: "success" }).inc();
@@ -363,9 +368,15 @@ const counterAddPreviewsRequested = new Counter({
 });
 
 const counterAddPreviewsCompleted = new Counter({
-	name: "ott_infoextractor_add_previews_completed",
+	name: "ott_infoextractor_add_previews_completed_total",
 	help: "The number of add previews that have been completed",
 	labelNames: ["result", "error"],
+});
+
+const counterMethodsInvoked = new Counter({
+	name: "ott_infoextractor_methods_invoked_total",
+	help: "The number of times different info extractor methods were called.",
+	labelNames: ["method"],
 });
 
 const counterMediaSearches = new Counter({
