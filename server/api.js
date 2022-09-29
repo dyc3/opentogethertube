@@ -180,18 +180,6 @@ router.post("/room/generate", async (req, res) => {
 	});
 });
 
-router.delete("/room/:name", (req, res) => {
-	roommanager
-		.getOrLoadRoom(req.params.name)
-		.then(room => {
-			roommanager.unloadRoom(room);
-			res.json({
-				success: true,
-			});
-		})
-		.catch(err => handleGetRoomFailure(res, err));
-});
-
 router.post("/room/:name/queue", async (req, res) => {
 	let room;
 	try {
