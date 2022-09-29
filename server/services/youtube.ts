@@ -8,6 +8,7 @@ import {
 	InvalidVideoIdException,
 	OutOfQuotaException,
 	UnsupportedVideoType,
+	VideoNotFoundException,
 } from "../exceptions";
 import { getLogger } from "../logger";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
@@ -227,7 +228,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(id: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video> {
-		return (await this.videoApiRequest([id], onlyProperties))[0] as Video;
+		let result = await this.videoApiRequest([id], onlyProperties);
+		if (result.length === 0) {
+			throw new VideoNotFoundException();
+		}
+		return result[0] as Video;
 	}
 
 	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
