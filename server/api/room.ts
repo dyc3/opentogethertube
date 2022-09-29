@@ -231,6 +231,14 @@ const patchRoom: RequestHandler = async (req, res) => {
 };
 
 const deleteRoom: RequestHandler = async (req, res) => {
+	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
+	if (!isAuthorized) {
+		res.status(400).json({
+			success: false,
+			error: "apikey is required",
+		});
+		return;
+	}
 	await roommanager.UnloadRoom(req.params.name);
 	res.json({
 		success: true,
