@@ -123,7 +123,7 @@ export default {
 	getServiceAdapterForURL(url: string): ServiceAdapter {
 		const adapter = adapters.find(adapter => adapter.canHandleURL(url));
 		if (!adapter) {
-			throw new OttException(`Unkonwn service: ${url}`);
+			throw new UnsupportedServiceException(url);
 		}
 		return adapter;
 	},
@@ -285,8 +285,7 @@ export default {
 			const adapter = this.getServiceAdapterForURL(query);
 
 			if (!adapter) {
-				const url = URL.parse(query);
-				throw new UnsupportedServiceException(url);
+				throw new UnsupportedServiceException(query);
 			}
 
 			if (!adapter.isCollectionURL(query)) {
