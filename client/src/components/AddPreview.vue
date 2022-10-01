@@ -266,7 +266,7 @@ export default Vue.extend({
 		requestAddPreviewDebounced: _.debounce(function () {
 			// HACK: can't use an arrow function here because it will make `this` undefined
 			this.requestAddPreview();
-		}, 500),
+		}, 1000),
 		/**
 		 * Request an add preview regardless of the current input.
 		 */
