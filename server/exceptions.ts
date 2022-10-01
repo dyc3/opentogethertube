@@ -1,15 +1,16 @@
-import { Url } from "url";
+import { URL } from "url";
 import { OttException } from "../common/exceptions";
 
 // export type OttException = UnsupportedServiceException | InvalidAddPreviewInputException | OutOfQuotaException | InvalidVideoIdException | FeatureDisabledException | UnsupportedMimeTypeException | LocalFileException | MissingMetadataException | IncompleteServiceAdapterException | PermissionDeniedException | ImpossiblePromotionException | InvalidRoleException | RoomNotFoundException | RoomAlreadyLoadedException | RoomNameTakenException | VideoAlreadyQueuedException | VideoNotFoundException | BadApiArgumentException
 
 export class UnsupportedServiceException extends OttException {
-	constructor(url: Url) {
+	constructor(url: string) {
 		let msg = "";
-		if (url.path && /\/*\.([a-z0-9])$/i.exec(url.path.split("?")[0])) {
-			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, the service at "${url.host}" is not yet supported.`;
+		let parsed = new URL(url);
+		if (parsed.pathname && /\/*\.([a-z0-9])$/i.exec(parsed.pathname.split("?")[0])) {
+			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, "${url}" is not a valid URL for any suppported service.`;
 		} else {
-			msg = `The service at "${url.host}" is not yet supported.`;
+			msg = `"${url}" is not a valid URL for any suppported service.`;
 		}
 		super(msg);
 		this.name = "UnsupportedServiceException";
