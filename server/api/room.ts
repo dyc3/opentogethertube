@@ -230,6 +230,21 @@ const patchRoom: RequestHandler = async (req, res) => {
 	});
 };
 
+const deleteRoom: RequestHandler = async (req, res) => {
+	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
+	if (!isAuthorized) {
+		res.status(400).json({
+			success: false,
+			error: "apikey is required",
+		});
+		return;
+	}
+	await roommanager.UnloadRoom(req.params.name);
+	res.json({
+		success: true,
+	});
+};
+
 const undoEvent = async (req: express.Request, res) => {
 	if (!req.token) {
 		throw new OttException("Missing token");
@@ -339,6 +354,14 @@ router.post("/create", async (req, res, next) => {
 router.patch("/:name", async (req, res, next) => {
 	try {
 		await patchRoom(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.delete("/:name", async (req, res, next) => {
+	try {
+		await deleteRoom(req as express.Request, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}

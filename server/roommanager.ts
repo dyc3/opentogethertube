@@ -119,7 +119,6 @@ export async function GetRoom(
 }
 
 export async function UnloadRoom(roomName: string): Promise<void> {
-	log.info(`Unloading stale room: ${roomName}`);
 	let idx = -1;
 	for (let i = 0; i < rooms.length; i++) {
 		if (rooms[i].name.toLowerCase() === roomName.toLowerCase()) {
@@ -128,6 +127,7 @@ export async function UnloadRoom(roomName: string): Promise<void> {
 		}
 	}
 	if (idx >= 0) {
+		log.info(`Unloading room: ${roomName}`);
 		await rooms[idx].onBeforeUnload();
 	} else {
 		throw new RoomNotFoundException(roomName);

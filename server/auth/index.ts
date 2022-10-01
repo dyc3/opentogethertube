@@ -6,6 +6,7 @@ import passport from "passport";
 import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
 import usermanager from "../usermanager";
+import { OttException } from "../../common/exceptions";
 
 const router = express.Router();
 router.use(nocache());
@@ -18,11 +19,44 @@ function createSession(): SessionInfo {
 	};
 }
 
+function checkApiKey(input: string) {
+	if (!process.env.OPENTOGETHERTUBE_API_KEY) {
+		throw new OttException("apikey is not set");
+	}
+	if (input !== process.env.OPENTOGETHERTUBE_API_KEY) {
+		throw new OttException("apikey is invalid");
+	}
+}
+
 export async function authTokenMiddleware(
 	req: express.Request,
 	res: express.Response,
 	next: express.NextFunction
 ): Promise<void> {
+	let apikey = req.get("apikey");
+	if (apikey) {
+		log.silly("API key was provided for auth");
+		try {
+			checkApiKey(apikey);
+		} catch (err) {
+			if (err instanceof Error) {
+				res.status(400).json({
+					success: false,
+					error: {
+						name: err.name,
+						message: err.message,
+					},
+				});
+			} else {
+				res.status(400).json({
+					success: false,
+				});
+			}
+			return;
+		}
+		next();
+		return;
+	}
 	log.silly("validating auth token");
 	if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
 		const token: AuthToken = req.headers.authorization.split(" ")[1];
@@ -40,6 +74,7 @@ export async function authTokenMiddleware(
 		return;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 	(req.session as MySession).token = req.token;
 	req.ottsession = await tokens.getSessionInfo(req.token);
 	if (req.ottsession && req.ottsession.isLoggedIn) {
@@ -91,6 +126,7 @@ router.get(
 			});
 			return;
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 		await tokens.setSessionInfo((req.session as MySession).token, {
 			isLoggedIn: true,
 			user_id: req.user.id,

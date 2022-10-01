@@ -929,7 +929,10 @@ describe("Announcements API", () => {
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
-					error: "apikey is invalid",
+					error: {
+						name: "Error",
+						message: "apikey is invalid",
+					},
 				});
 			});
 		expect(publishSpy).not.toHaveBeenCalled();
