@@ -1,0 +1,11 @@
+.github/
+.optic/
+.husky/
+.vscode/
+benchmarks/
+docker/
+docs/
+tests/
+server/tests/
+client/tests/
+*.md
