@@ -1,0 +1,4 @@
+contact_links:
+  - name: Question/Troubleshooting
+    url: https://github.com/dyc3/opentogethertube/discussions/categories/q-a
+    about: If you have a question about how OTT works, or with deploying OTT yourself, make a discussion post.
