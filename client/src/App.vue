@@ -190,6 +190,10 @@ export default Vue.extend({
 					text: "🇩🇪",
 					value: "de",
 				},
+				{
+					text: "🇷🇺",
+					value: "ru",
+				},
 			],
 		};
 	},
