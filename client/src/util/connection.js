@@ -4,15 +4,15 @@ let reconnectTimer = null;
 
 function onOpen() {
 	console.log("socket open");
-	window.vm.$store.state.$connection.isConnected = true;
-	window.vm.$store.state.$connection.reconnect.attempts = 0;
-	window.vm.$store.state.joinFailureReason = null;
+	window.vm.$store.state.connection.isConnected = true;
+	window.vm.$store.state.connection.reconnect.attempts = 0;
+	window.vm.$store.commit("connection/SOCKET_OPEN");
 	send({ action: "auth", token: window.localStorage.getItem("token") });
 }
 
 function onClose(e) {
 	console.log("socket closed: ", e);
-	window.vm.$store.state.$connection.isConnected = false;
+	window.vm.$store.state.connection.isConnected = false;
 	socket.removeEventListener("open", onOpen);
 	socket.removeEventListener("close", onClose);
 	socket.removeEventListener("message", onMessage);
@@ -20,24 +20,24 @@ function onClose(e) {
 	socket = null;
 	if (e.code >= 4000) {
 		console.log(`socket close code: ${e.code}. Not attempting to reconnect.`);
-		window.vm.$store.commit("JOIN_ROOM_FAILED", e.code);
+		window.vm.$store.commit("connection/JOIN_ROOM_FAILED", e.code);
 		return;
 	}
 	if (
-		window.vm.$store.state.$connection.shouldReconnect &&
-		window.vm.$store.state.$connection.room &&
-		window.vm.$store.state.$connection.reconnect.attempts <
-			window.vm.$store.state.$connection.reconnect.maxAttempts
+		window.vm.$store.state.connection.shouldReconnect &&
+		window.vm.$store.state.connection.room &&
+		window.vm.$store.state.connection.reconnect.attempts <
+			window.vm.$store.state.connection.reconnect.maxAttempts
 	) {
 		let delay =
-			window.vm.$store.state.$connection.reconnect.delay +
-			window.vm.$store.state.$connection.reconnect.attempts *
-				window.vm.$store.state.$connection.reconnect.delayIncrease;
+			window.vm.$store.state.connection.reconnect.delay +
+			window.vm.$store.state.connection.reconnect.attempts *
+				window.vm.$store.state.connection.reconnect.delayIncrease;
 		console.debug(`waiting to reconnect: ${delay}ms`);
 		reconnectTimer = setTimeout(() => {
-			console.log(`reconnecting... ${window.vm.$store.state.$connection.reconnect.attempts}`);
-			window.vm.$store.state.$connection.reconnect.attempts++;
-			connect(window.vm.$store.state.$connection.room, true);
+			console.log(`reconnecting... ${window.vm.$store.state.connection.reconnect.attempts}`);
+			window.vm.$store.state.connection.reconnect.attempts++;
+			connect(window.vm.$store.state.connection.room, true);
 		}, delay);
 	} else {
 		console.log("Not attempting to reconnect");
@@ -62,12 +62,12 @@ function onError(e) {
 }
 
 function connect(roomName, reconnect = false) {
-	if (window.vm.$store.state.$connection.isConnected) {
+	if (window.vm.$store.state.connection.isConnected) {
 		console.warn("already connected");
 		return;
 	}
 
-	if (reconnect && !window.vm.$store.state.$connection.shouldReconnect) {
+	if (reconnect && !window.vm.$store.state.connection.shouldReconnect) {
 		console.debug("aborting reconnect");
 		return;
 	}
@@ -76,31 +76,31 @@ function connect(roomName, reconnect = false) {
 		window.location.host
 	}/api/room/${roomName}`;
 	console.debug("connecting to", url);
-	window.vm.$store.state.$connection.shouldReconnect = true;
+	window.vm.$store.state.connection.shouldReconnect = true;
 	socket = new WebSocket(url);
 	all_sockets.push(socket);
 	socket.addEventListener("open", onOpen);
 	socket.addEventListener("close", onClose);
 	socket.addEventListener("message", onMessage);
 	socket.addEventListener("error", onError);
-	window.vm.$store.state.$connection.room = roomName;
+	window.vm.$store.state.connection.room = roomName;
 }
 
 function disconnect() {
-	if (!window.vm.$store.state.$connection.isConnected) {
+	if (!window.vm.$store.state.connection.isConnected) {
 		console.warn("not connected, so can't disconnect");
-		if (window.vm.$store.state.$connection.shouldReconnect) {
+		if (window.vm.$store.state.connection.shouldReconnect) {
 			console.debug("disabling reconnect");
-			window.vm.$store.state.$connection.shouldReconnect = false;
-			window.vm.$store.state.$connection.reconnect.attempts = 0;
+			window.vm.$store.state.connection.shouldReconnect = false;
+			window.vm.$store.state.connection.reconnect.attempts = 0;
 		}
 		if (reconnectTimer === null) {
 			clearTimeout(reconnectTimer);
 		}
 		return;
 	}
-	window.vm.$store.state.$connection.shouldReconnect = false;
-	window.vm.$store.state.$connection.reconnect.attempts = 0;
+	window.vm.$store.state.connection.shouldReconnect = false;
+	window.vm.$store.state.connection.reconnect.attempts = 0;
 	socket.close();
 }
 
@@ -108,7 +108,7 @@ function send(msg) {
 	if (typeof msg === "string") {
 		throw new TypeError("invalid message type");
 	}
-	if (!window.vm.$store.state.$connection.isConnected) {
+	if (!window.vm.$store.state.connection.isConnected) {
 		throw new Error("Not connected to socket");
 	}
 

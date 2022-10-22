@@ -104,10 +104,8 @@ export default {
 		"next-video": "Nächstes Video",
 		"toggle-fullscreen": "Vollbild umschalten",
 		"con-status": {
-			"connecting": "Verbinden...",
-			"connected": "Verbunden",
-			"failed": "Verbindung zum Raum fehlgeschlagen",
-			"find-another": "Einen anderen Raum finden",
+			connecting: "Verbinden...",
+			connected: "Verbunden",
 		},
 		"tabs": {
 			queue: "Warteschlange",
@@ -286,5 +284,8 @@ export default {
 		title: "Anpassen",
 		description: "Diese Einstellungen werden in deinem Browser gespeichert.",
 		activator: "@:client-settings.title",
+	},
+	"connect-overlay": {
+		"find-another": "Einen anderen Raum finden",
 	},
 };

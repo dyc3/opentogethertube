@@ -1,3 +1,5 @@
+import { OttWebsocketError } from "common/models/types";
+
 export default {
 	"landing": {
 		hero: {
@@ -141,10 +143,8 @@ export default {
 		"next-video": "Next video",
 		"toggle-fullscreen": "Toggle fullscreen",
 		"con-status": {
-			"connecting": "Connecting...",
-			"connected": "Connected",
-			"failed": "Failed to join room",
-			"find-another": "Find Another Room",
+			connecting: "Connecting...",
+			connected: "Connected",
 		},
 		"tabs": {
 			queue: "Queue",
@@ -349,5 +349,16 @@ export default {
 		title: "Preferences",
 		description: "These settings are saved in your browser, and only affect you.",
 		activator: "@:client-settings.title",
+	},
+	"connect-overlay": {
+		"title": "Disconnected",
+		"find-another": "Find Another Room",
+		"dc-reasons": {
+			[OttWebsocketError.ROOM_NOT_FOUND]: "Room not found.",
+			[OttWebsocketError.ROOM_UNLOADED]: "Room was unloaded.",
+			[OttWebsocketError.MISSING_TOKEN]:
+				"A token was not provided. Refresh the page and try again. Otherwise, please open an issue on GitHub.",
+			unknown: "Something happened, but we don't know what. Please report this as a bug.",
+		},
 	},
 };
