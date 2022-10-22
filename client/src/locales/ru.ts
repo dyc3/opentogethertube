@@ -140,10 +140,8 @@ export default {
 		"next-video": "Следующее видео",
 		"toggle-fullscreen": "Полноэкранный режим",
 		"con-status": {
-			"connecting": "Подключение...",
-			"connected": "Подключено",
-			"failed": "Не удалось попасть в комнату",
-			"find-another": "Поищите другую комнату",
+			connecting: "Подключение...",
+			connected: "Подключено",
 		},
 		"tabs": {
 			queue: "Очередь",
@@ -350,5 +348,8 @@ export default {
 		title: "Персональные настройки",
 		description: "Эти настройки сохраняются в Вашем браузере и влияют только на Вас.",
 		activator: "@:client-settings.title",
+	},
+	"connect-overlay": {
+		"find-another": "Поищите другую комнату",
 	},
 };

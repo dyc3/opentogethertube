@@ -1,3 +1,4 @@
+import { ConnectionState } from "@/stores/connection";
 import { SettingsState } from "@/stores/settings";
 import type { QueueMode } from "common/models/types";
 import type { QueueItem } from "common/models/video";
@@ -6,6 +7,7 @@ import type { Store } from "vuex";
 // workaround until store.js is converted to typescript.
 type FullOTTStoreState = BaseStoreState & {
 	settings: SettingsState;
+	connection: ConnectionState;
 };
 
 let _store: Store<FullOTTStoreState>;

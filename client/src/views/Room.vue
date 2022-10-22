@@ -300,11 +300,7 @@
 			</v-container>
 		</v-footer>
 		<v-overlay :value="showJoinFailOverlay">
-			<v-layout column>
-				<h1>{{ $t("room.con-status.failed") }}</h1>
-				<span>{{ $store.state.joinFailureReason }}</span>
-				<v-btn to="/rooms">{{ $t("room.con-status.find-another") }}</v-btn>
-			</v-layout>
+			<RoomDisconnected />
 		</v-overlay>
 	</div>
 </template>
@@ -331,6 +327,7 @@ import { RoomLayoutMode } from "@/stores/settings";
 import { GrantChecker } from "@/util/grants";
 import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
+import RoomDisconnected from "../components/RoomDisconnected.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -348,6 +345,7 @@ export default {
 		ClickToEdit,
 		ClosedCaptionsSwitcher,
 		ClientSettingsDialog,
+		RoomDisconnected,
 	},
 	data() {
 		return {
@@ -380,10 +378,10 @@ export default {
 	},
 	computed: {
 		isConnected() {
-			return this.$store.state.$connection.isConnected;
+			return this.$store.state.connection.isConnected;
 		},
 		connectionStatus() {
-			return this.$store.state.$connection.isConnected
+			return this.$store.state.connection.isConnected
 				? this.$t("room.con-status.connected")
 				: this.$t("room.con-status.connecting");
 		},
@@ -407,7 +405,7 @@ export default {
 			return secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
 		},
 		showJoinFailOverlay() {
-			return !!this.$store.state.joinFailureReason;
+			return !!this.$store.state.connection.disconnected;
 		},
 		isMobile() {
 			return window.matchMedia("only screen and (max-width: 760px)").matches;
@@ -448,7 +446,7 @@ export default {
 		this.volume = this.$store.state.settings.volume;
 
 		await this.$store.dispatch("user/waitForToken");
-		if (!this.$store.state.$connection.isConnected) {
+		if (!this.$store.state.connection.isConnected) {
 			connection.connect(this.$route.params.roomId);
 		}
 	},
@@ -659,11 +657,11 @@ export default {
 			);
 		},
 		onRoomCreated() {
-			if (this.$store.state.$connection.isConnected) {
+			if (this.$store.state.connection.isConnected) {
 				connection.disconnect();
 			}
 			setTimeout(() => {
-				if (!this.$store.state.$connection.isConnected) {
+				if (!this.$store.state.connection.isConnected) {
 					connection.connect(this.$route.params.roomId);
 				}
 			}, 100);
