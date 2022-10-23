@@ -2,6 +2,7 @@ import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
 import { RedisClient } from "redis";
+import { RedisClientAsync } from "../redisclient";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import {
 	BadApiArgumentException,
@@ -131,17 +132,20 @@ function isYoutubeApiError(
 
 export default class YouTubeAdapter extends ServiceAdapter {
 	apiKey: string;
+	/** @deprecated use redisClientAsync instead */
 	redisClient: RedisClient;
+	redisClientAsync: RedisClientAsync;
 	api = axios.create({
 		baseURL: "https://www.googleapis.com/youtube/v3",
 	});
 	fallbackApi = axios.create();
 
-	constructor(apiKey: string, redisClient: RedisClient) {
+	constructor(apiKey: string, redisClient: RedisClient, redisClientAsync: RedisClientAsync) {
 		super();
 
 		this.apiKey = apiKey;
 		this.redisClient = redisClient;
+		this.redisClientAsync = redisClientAsync;
 	}
 
 	get serviceId(): "youtube" {

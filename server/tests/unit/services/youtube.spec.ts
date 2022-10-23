@@ -5,7 +5,7 @@ import YouTubeAdapter, {
 } from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
-import { redisClient } from "../../../redisclient";
+import { redisClient, redisClientAsync } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import fs from "fs";
 import { VideoRequest } from "server/serviceadapter";
@@ -27,6 +27,7 @@ const invalidLinks = [
 	"https://www.youtube.com/channel/",
 	"https://www.youtube.com/watch",
 	"https://www.youtube.com/playlist",
+	"https://youtube.com/@",
 ];
 
 const validCollectionLinks = [
@@ -35,6 +36,7 @@ const validCollectionLinks = [
 	"https://www.youtube.com/playlist?list=0a8shd08ahsdoih12--9as8hd",
 	"https://www.youtube.com/watch?v=0hasodi12&list=9asdouihlj1293gashd",
 	"https://youtu.be/3kw2_89ym31W?list=PL4d83g68ij3l45kj6345hFaEHvzLovtb",
+	"https://youtube.com/@handle",
 ];
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/youtube";
@@ -113,7 +115,7 @@ async function mockYoutubeApi(
 
 describe("Youtube", () => {
 	describe("canHandleURL", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 
 		it.each(validVideoLinks.map(l => l[1]).concat(validCollectionLinks))("Accepts %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(true);
@@ -125,7 +127,7 @@ describe("Youtube", () => {
 	});
 
 	describe("isCollectionURL", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 
 		it.each(validVideoLinks.map(l => l[1]))("Returns false for %s", link => {
 			expect(adapter.isCollectionURL(link)).toBe(false);
@@ -137,7 +139,7 @@ describe("Youtube", () => {
 	});
 
 	describe("getVideoId", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 
 		it.each(validVideoLinks)("Extracts %s from %s", (id, link) => {
 			expect(adapter.getVideoId(link)).toBe(id);
@@ -145,7 +147,7 @@ describe("Youtube", () => {
 	});
 
 	describe("fetchVideoInfo", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		let apiGet: jest.SpyInstance;
 		const videoId = "BTZ5KVRUy1Q";
 
@@ -172,7 +174,7 @@ describe("Youtube", () => {
 	});
 
 	describe("fetchManyVideoInfo", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		let apiGet: jest.SpyInstance;
 
 		beforeAll(() => {
@@ -219,7 +221,7 @@ describe("Youtube", () => {
 	});
 
 	describe("resolveURL", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		let apiGet: jest.SpyInstance;
 
 		beforeAll(() => {
@@ -446,7 +448,7 @@ describe("Youtube", () => {
 	});
 
 	describe("searchVideos", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		const apiGet = jest.spyOn(adapter.api, "get");
 
 		beforeEach(() => {
@@ -482,7 +484,7 @@ describe("Youtube", () => {
 	});
 
 	describe("videoApiRequest", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		const apiGet = jest.spyOn(adapter.api, "get");
 		const outOfQuotaResponse = {
 			isAxiosError: true,
@@ -529,7 +531,7 @@ describe("Youtube", () => {
 	});
 
 	describe("parseVideoLength", () => {
-		const adapter = new YouTubeAdapter("", redisClient);
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		it.each([
 			["PT10S", 10],
 			["PT5M", 5 * 60],
