@@ -9,6 +9,7 @@ import { redisClient, redisClientAsync } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import fs from "fs";
 import { VideoRequest } from "server/serviceadapter";
+import { URL } from "url";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -542,6 +543,22 @@ describe("Youtube", () => {
 			["P1D", 86400],
 		])("should parse %s into %s seconds", (timecode, seconds) => {
 			expect(adapter.parseVideoLength(timecode)).toEqual(seconds);
+		});
+	});
+
+	describe("getChannelId", () => {
+		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+		it.each([
+			["https://youtube.com/@rollthedyc3", { handle: "@rollthedyc3" }],
+			["https://youtube.com/user/vinesauce", { user: "vinesauce" }],
+			[
+				"https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA",
+				{ channel: "UCI1XS_GkLGDOgf8YLaaXNRA" },
+			],
+			["https://youtube.com/c/rollthedyc3", { customUrl: "rollthedyc3" }],
+			["https://youtube.com/rollthedyc3", { customUrl: "rollthedyc3" }],
+		])("should parse channel url %s into channel data %s", (url, channelData) => {
+			expect(adapter.getChannelId(new URL(url))).toEqual(channelData);
 		});
 	});
 });
