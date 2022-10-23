@@ -24,39 +24,59 @@ export function createSubscriber(): redis.RedisClient {
 
 // All of the other package solutions I've tried are broken af, so I'll just do this instead.
 // These are by no means complete type annotations, just minimal ones to make me happy.
-export const redisClientAsync = {
-	get: promisify(redisClient.get).bind(redisClient) as (key: string) => Promise<string>,
-	set: promisify(redisClient.set).bind(redisClient) as (
-		key: string,
-		value: string,
-		mode?: string,
-		duration?: number
-	) => Promise<"OK">,
-	del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
-	exists: promisify(redisClient.exists).bind(redisClient) as (key: string) => Promise<number>,
-	keys: promisify(redisClient.keys).bind(redisClient) as (pattern: string) => Promise<string[]>,
-	incr: promisify(redisClient.incr).bind(redisClient) as (key: string) => Promise<number>,
-	incrby: promisify(redisClient.incrby).bind(redisClient) as (
-		key: string,
-		amount: number
-	) => Promise<number>,
-	publish: promisify(redisClient.publish).bind(redisClient) as (
-		channel: string,
-		message: string
-	) => Promise<number>,
 
-	/**
-	 * Deletes keys that match the specified pattern. Probably very slow. Not for use in production.
-	 * @param patterns Patterns of keys to delete
-	 */
-	async delPattern(...patterns: string[]): Promise<void> {
-		for (const pattern of patterns) {
-			for (const key of await this.keys(pattern)) {
-				await this.del(key);
+function wrapInAsync(client: redis.RedisClient): RedisClientAsync {
+	return {
+		get: promisify(redisClient.get).bind(redisClient) as (key: string) => Promise<string>,
+		set: promisify(redisClient.set).bind(redisClient) as (
+			key: string,
+			value: string,
+			mode?: string,
+			duration?: number
+		) => Promise<"OK">,
+		del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
+		exists: promisify(redisClient.exists).bind(redisClient) as (key: string) => Promise<number>,
+		keys: promisify(redisClient.keys).bind(redisClient) as (
+			pattern: string
+		) => Promise<string[]>,
+		incr: promisify(redisClient.incr).bind(redisClient) as (key: string) => Promise<number>,
+		incrby: promisify(redisClient.incrby).bind(redisClient) as (
+			key: string,
+			amount: number
+		) => Promise<number>,
+		publish: promisify(redisClient.publish).bind(redisClient) as (
+			channel: string,
+			message: string
+		) => Promise<number>,
+
+		/**
+		 * Deletes keys that match the specified pattern. Probably very slow. Not for use in production.
+		 * @param patterns Patterns of keys to delete
+		 */
+		async delPattern(...patterns: string[]): Promise<void> {
+			for (const pattern of patterns) {
+				for (const key of await this.keys(pattern)) {
+					await this.del(key);
+				}
 			}
-		}
-	},
-};
+		},
+	};
+}
+
+export interface RedisClientAsync {
+	get(key: string): Promise<string>;
+	set(key: string, value: string, mode?: string, duration?: number): Promise<"OK">;
+	del(key: string): Promise<number>;
+	exists(key: string): Promise<number>;
+	keys(key: string): Promise<string[]>;
+	incr(key: string): Promise<number>;
+	incrby(key: string, amount: number): Promise<number>;
+	publish(channel: string, message: string): Promise<number>;
+
+	delPattern(...patterns: string[]): Promise<void>;
+}
+
+export const redisClientAsync: RedisClientAsync = wrapInAsync(redisClient);
 
 module.exports = {
 	redisClient,

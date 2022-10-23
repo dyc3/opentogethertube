@@ -2,6 +2,7 @@ import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
 import { RedisClient } from "redis";
+import { RedisClientAsync } from "../redisclient";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import {
 	BadApiArgumentException,
@@ -28,6 +29,7 @@ interface YoutubeChannelData {
 	channel?: string;
 	user?: string;
 	customUrl?: string;
+	handle?: string;
 }
 
 export interface YoutubeApiVideoListResponse {
@@ -131,17 +133,20 @@ function isYoutubeApiError(
 
 export default class YouTubeAdapter extends ServiceAdapter {
 	apiKey: string;
+	/** @deprecated use redisClientAsync instead */
 	redisClient: RedisClient;
+	redisClientAsync: RedisClientAsync;
 	api = axios.create({
 		baseURL: "https://www.googleapis.com/youtube/v3",
 	});
 	fallbackApi = axios.create();
 
-	constructor(apiKey: string, redisClient: RedisClient) {
+	constructor(apiKey: string, redisClient: RedisClient, redisClientAsync: RedisClientAsync) {
 		super();
 
 		this.apiKey = apiKey;
 		this.redisClient = redisClient;
+		this.redisClientAsync = redisClientAsync;
 	}
 
 	get serviceId(): "youtube" {
@@ -159,6 +164,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				(url.pathname.startsWith("/c/") && url.pathname.length > 3) ||
 				(url.pathname.startsWith("/playlist") && !!url.searchParams.get("list")) ||
 				url.pathname.startsWith("/shorts/") ||
+				(url.pathname.startsWith("/@") && url.pathname.length > 2) ||
 				(url.host === "studio.youtube.com" && url.pathname.startsWith("/video/"))
 			);
 		} else if (url.host.endsWith("youtu.be")) {
@@ -176,6 +182,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			url.pathname.startsWith("/c/") ||
 			url.pathname.startsWith("/user/") ||
 			url.pathname.startsWith("/playlist") ||
+			url.pathname.startsWith("/@") ||
 			(!!qList && !knownPrivateLists.includes(qList))
 		);
 	}
@@ -204,7 +211,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		if (
 			url.pathname.startsWith("/c/") ||
 			url.pathname.startsWith("/channel/") ||
-			url.pathname.startsWith("/user/")
+			url.pathname.startsWith("/user/") ||
+			url.pathname.startsWith("/@")
 		) {
 			return this.fetchChannelVideos(this.getChannelId(url));
 		} else if (url.pathname === "/playlist") {
@@ -261,11 +269,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			return this.fetchPlaylistVideos(cachedPlaylistId);
 		}
 
-		if (channelData.customUrl) {
+		if (channelData.customUrl || channelData.handle) {
 			// HACK: The youtube API doesn't allow us to grab the youtube channel id only from the channel's URL. See #285
-			channelData.channel = await this.getChannelIdFromYoutubeCustomUrl(
-				channelData.customUrl
-			);
+			channelData.channel = await this.getChannelIdFromYoutubeCustomOrHandleUrl(channelData);
 		}
 
 		const channelIdKey = channelData.channel ? "channel" : "user";
@@ -283,9 +289,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			const uploadsPlaylistId = res.data.items[0].contentDetails.relatedPlaylists.uploads;
 			this.cachePlaylistId(
 				{
-					user: channelData.user,
+					...channelData,
 					channel: res.data.items[0].id,
-					customUrl: channelData.customUrl,
 				},
 				uploadsPlaylistId
 			);
@@ -306,45 +311,50 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 	}
 
-	getCachedPlaylistId(channelData: YoutubeChannelData): Promise<string | null> {
-		const idKey = channelData.customUrl
-			? "customUrl"
-			: channelData.channel
-			? "channel"
-			: "user";
+	async getCachedPlaylistId(channelData: YoutubeChannelData): Promise<string | null> {
+		const possibleKeys: Array<keyof YoutubeChannelData> = [
+			"customUrl",
+			"channel",
+			"user",
+			"handle",
+		];
+		let idKey: keyof YoutubeChannelData | undefined;
+		for (let key of possibleKeys) {
+			if (Object.prototype.hasOwnProperty.call(channelData, key)) {
+				idKey = key;
+				break;
+			}
+		}
+		if (idKey === undefined) {
+			log.debug(`channel data invalid`);
+			return null;
+		}
+
 		const idValue = channelData[idKey];
 		const redisKey = `ytchannel:${idKey}:${idValue}`;
+		log.debug(`grabbing channel playlist id from cache: ${redisKey}`);
 
-		return new Promise((resolve, reject) => {
-			this.redisClient.get(redisKey, (err, value) => {
-				if (err) {
-					reject(err);
-					return;
-				}
-				if (!value) {
-					resolve(null);
-					return;
-				}
-				resolve(value);
-			});
-		});
+		let result = await this.redisClientAsync.get(redisKey);
+		log.debug(`got channel playlist id from cache: ${result}`);
+
+		return result;
 	}
 
-	cachePlaylistId(channelData: YoutubeChannelData, playlistId: string): void {
-		const idProp: keyof YoutubeChannelData = channelData.customUrl
-			? "customUrl"
-			: channelData.channel
-			? "channel"
-			: "user";
-		const idValue = channelData[idProp];
-		const key = `ytchannel:${idProp}:${idValue}`;
-		this.redisClient.set(key, playlistId, err => {
-			if (err) {
-				log.error(`Failed to cache playlist ID: ${err.message} ${err.stack}`);
-			} else {
-				log.info(`Cached playlist ${key}`);
+	async cachePlaylistId(channelData: YoutubeChannelData, playlistId: string): Promise<void> {
+		const possibleKeys: Array<keyof YoutubeChannelData> = [
+			"customUrl",
+			"channel",
+			"user",
+			"handle",
+		];
+		for (let key of possibleKeys) {
+			if (Object.prototype.hasOwnProperty.call(channelData, key)) {
+				const idValue = channelData[key];
+				const redisKey = `ytchannel:${key}:${idValue}`;
+				log.info(`caching channel playlist id: ${redisKey}`);
+				this.redisClientAsync.set(redisKey, playlistId);
 			}
-		});
+		}
 	}
 
 	async fetchPlaylistVideos(playlistId: string): Promise<Video[]> {
@@ -605,7 +615,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	}
 
 	getChannelId(url: URL): YoutubeChannelData {
-		const match = /\/(?!(?:c(?:hannel)?|user)\/)([a-z0-9_-]+)/gi.exec(url.pathname);
+		const match = /\/(?!(?:c(?:hannel)?|user)\/)(@?[a-z0-9_-]+)/gi.exec(url.pathname);
 		if (match === null) {
 			throw new OttException("Invalid channel url");
 		}
@@ -614,6 +624,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			return { channel: channelId };
 		} else if (url.pathname.startsWith("/user/")) {
 			return { user: channelId };
+		} else if (url.pathname.startsWith("/@")) {
+			return { handle: channelId };
 		} else {
 			return { customUrl: channelId };
 		}
@@ -653,11 +665,21 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	}
 
 	/**
-	 * Workaround for #285. Feature was requested here: https://issuetracker.google.com/issues/165676622
+	 * Hacky workaround for #285. Feature was requested here: https://issuetracker.google.com/issues/165676622
 	 */
-	async getChannelIdFromYoutubeCustomUrl(customUrl: string): Promise<string | undefined> {
-		log.debug("web scraping to find channel id");
-		const res = await this.fallbackApi.get(`https://youtube.com/c/${customUrl}`);
+	async getChannelIdFromYoutubeCustomOrHandleUrl(
+		channelData: YoutubeChannelData
+	): Promise<string | undefined> {
+		let res: AxiosResponse<any, any>;
+		if (channelData.handle) {
+			log.debug(`web scraping to find channel id for handle: ${channelData.handle}`);
+			res = await this.fallbackApi.get(`https://youtube.com/${channelData.handle}`);
+		} else if (channelData.customUrl) {
+			log.debug(`web scraping to find channel id for custom url: ${channelData.customUrl}`);
+			res = await this.fallbackApi.get(`https://youtube.com/c/${channelData.customUrl}`);
+		} else {
+			return undefined;
+		}
 		const regex = /externalId":"UC[A-Za-z0-9_-]{22}/;
 		const matches = res.data.match(regex);
 		if (matches === null) {
