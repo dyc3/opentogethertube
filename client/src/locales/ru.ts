@@ -1,3 +1,5 @@
+import { OttWebsocketError } from "common/models/types";
+
 export default {
 	"landing": {
 		hero: {
@@ -110,9 +112,9 @@ export default {
 	},
 	"nav": {
 		"home": "Главная",
-		"browse": "Поиск",
+		"browse": "Комнаты",
 		"faq": "FAQ",
-		"bug": "Сообщить об ошибке",
+		"bug": "Сообщить о баге",
 		"support": "Поддержать",
 		"login": "Вход",
 		"link-discord": "Ссылка на Discord",
@@ -134,8 +136,8 @@ export default {
 	"room": {
 		"title-temp": "Временная комната",
 		"kick-me": "Кикнуть",
-		"rewind": "Вперёд на 10с",
-		"skip": "Назад на 10с",
+		"rewind": "Назад на 10с",
+		"skip": "Вперёд на 10с",
 		"play-pause": "Воспроизведение/Пауза",
 		"next-video": "Следующее видео",
 		"toggle-fullscreen": "Полноэкранный режим",
@@ -215,11 +217,12 @@ export default {
 			"subreddits": "Сабреддиты: {url}",
 		},
 		"messages": {
-			"unknown-status": "Unknown status for add preview response: {status}.",
-			"unknown-error": "An unknown error occurred when getting add preview. Try again later.",
+			"unknown-status": "Неизвестный статус добавления превью: {status}.",
+			"unknown-error":
+				"Произошла неизвестная ошибка при получении превью видео. Попробуйте позже.",
 			"failed-to-get-add-preview":
-				"Failed to get add preview. This is probably a bug, check console for details.",
-			"failed-to-all-videos": "Failed to all videos: {message}",
+				"Не удалось получить превью для видео. Вероятно, это ошибка, подробности в консоли.",
+			"failed-to-all-videos": "Ошибка для всех видео: {message}",
 		},
 	},
 	"processed-text": {
@@ -296,7 +299,7 @@ export default {
 			"invalid-visibility": "Недопустимая видимость",
 			"invalid-queue": "Недопустимый режим очереди",
 		},
-		"unknown-error": "An unknown error occurred. Try again later.",
+		"unknown-error": "Произошла неизвестная ошибка. Попробуйте позже.",
 	},
 	"login-form": {
 		"login": "@:nav.login",
@@ -318,15 +321,16 @@ export default {
 		},
 		"errors": {
 			"something-weird-happened":
-				"Something weird happened, but you might be logged in? Refresh the page.",
+				"Произошло что-то странное, но, возможно, Вы вошли в систему? Обновите страницу.",
 			"login-failed-noserver":
-				"Failed to log in, but the server didn't say why. Report this as a bug.",
-			"login-failed": "Failed to log in, and I don't know why. Report this as a bug.",
+				"Не удалось войти в систему, но сервер не сказал почему. Сообщите об этой ошибке на GitHub.",
+			"login-failed":
+				"Не удалось войти в систему по неизвестной причине. Сообщите об этой ошибке на GitHub.",
 			"register-failed-noserver":
-				"Failed to register, but the server didn't say why. Report this as a bug.",
+				"Не удалось зарегистрироваться, но сервер не сказал почему. Сообщите об этой ошибке на GitHub.",
 			"register-failed":
-				"Failed to register, and I don't know why. Check the console and report this as a bug.",
-			"in-use": "Already in use.",
+				"Не удалось зарегистрироваться по неизвестной причине. Проверьте консоль и сообщите об этой ошибке на GitHub.",
+			"in-use": "Уже используется.",
 		},
 	},
 	"permissions-editor": {
@@ -350,6 +354,14 @@ export default {
 		activator: "@:client-settings.title",
 	},
 	"connect-overlay": {
-		"find-another": "Поищите другую комнату",
+		"title": "Отключено",
+		"find-another": "Найдите другую комнату",
+		"dc-reasons": {
+			[OttWebsocketError.ROOM_NOT_FOUND]: "Комната не найдена.",
+			[OttWebsocketError.ROOM_UNLOADED]: "Комната выгружена.",
+			[OttWebsocketError.MISSING_TOKEN]:
+				"Токен не был предоставлен. Обновите страницу и попробуйте ещё раз. В противном случае, пожалуйста, сообщите об этой ошибке на GitHub.",
+			unknown: "Неизвестная ошибка. Пожалуйста, сообщите об этой ошибке на GitHub.",
+		},
 	},
 };
