@@ -1,6 +1,8 @@
 github:
   prebuilds:
     master: true
+    pullRequests: false
+    addCheck: false
 tasks:
   - init: yarn install && yarn run build
     command: yarn run start
