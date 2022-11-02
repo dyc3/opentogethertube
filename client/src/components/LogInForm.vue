@@ -145,178 +145,219 @@
 	</v-sheet>
 </template>
 
-<script>
-import Vue from "vue";
-import Component from "vue-class-component";
+<script lang="ts">
 import { API } from "@/common-http.js";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "common/constants";
+import { defineComponent, reactive, ref, watch } from "@vue/composition-api";
+import { useStore } from "@/util/vuex-workaround";
+import { i18n } from "@/i18n";
+import { VForm } from "vuetify/lib/components/VForm";
 
-@Component({
+const LogInForm = defineComponent({
 	name: "LogInForm",
-	watch: {
-		email() {
-			this.logInFailureMessage = "";
-			this.registerFailureMessage = "";
-			this.registerFieldErrors.email = "";
-		},
-		password() {
-			this.logInFailureMessage = "";
-		},
-		username() {
-			this.registerFailureMessage = "";
-			this.registerFieldErrors.username = "";
-		},
-	},
-})
-export default class LogInForm extends Vue {
-	email = "";
-	username = "";
-	password = "";
-	password2 = "";
+	emits: ["shouldClose"],
+	setup(props, { emit }) {
+		const store = useStore();
 
-	mode = "";
-	isLoading = false;
-	logInFailureMessage = "";
-	registerFailureMessage = "";
+		let email = ref("");
+		let username = ref("");
+		let password = ref("");
+		let password2 = ref("");
 
-	loginValid = false;
-	registerValid = false;
-	registerFieldErrors = {
-		email: "",
-		username: "",
-		password: "",
-		password2: "",
-	};
+		let mode = ref("");
+		let isLoading = ref(false);
+		let logInFailureMessage = ref("");
+		let registerFailureMessage = ref("");
 
-	emailRules = [
-		v => !!v || this.$t("login-form.rules.email-required"),
-		v => (v && isEmail(v)) || this.$t("login-form.rules.valid-email"),
-	];
-	usernameRules = [
-		v => !!v || this.$t("login-form.rules.username-required"),
-		v =>
-			(!!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX) ||
-			this.$t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
-	];
-	passwordRules = [
-		v => !!v || this.$t("login-form.rules.password-required"),
-		v =>
-			(v && v.length >= 10) ||
-			(process.env.NODE_ENV === "development" && v === "1") ||
-			this.$t("login-form.rules.password-length"),
-	];
-	retypePasswordRules = [
-		v => !!v || this.$t("login-form.rules.retype-password"),
-		v => this.comparePassword(v) || this.$t("login-form.rules.passwords-match"),
-	];
-
-	created() {
-		if (this.$store.state.username) {
-			this.username = this.$store.state.username;
-		}
-	}
-
-	async login() {
-		this.$refs.loginForm.validate();
-		if (!this.loginValid) {
-			return;
-		}
-
-		this.isLoading = true;
-		this.logInFailureMessage = "";
-		try {
-			let resp = await API.post("/user/login", {
-				email: this.email,
-				password: this.password,
-			});
-			if (resp.data.success) {
-				console.log("Log in success");
-				this.$store.commit("LOGIN", resp.data.user);
-				this.$emit("shouldClose");
-				this.email = "";
-				this.password = "";
-			} else {
-				console.log("Log in failed");
-				this.logInFailureMessage = this.$t("login-form.errors.something-weird-happened");
-			}
-		} catch (err) {
-			if (err.response && !err.response.data.success) {
-				if (err.response.data.error) {
-					this.logInFailureMessage = err.response.data.error.message;
-				} else {
-					this.logInFailureMessage = this.$t("login-form.errors.login-failed-noserver");
-				}
-			} else {
-				console.log("could not log in", err, err.response);
-				this.logInFailureMessage = this.$t("login-form.errors.login-failed");
-			}
-		}
-		this.isLoading = false;
-	}
-
-	async register() {
-		this.$refs.registerForm.validate();
-		if (!this.registerValid) {
-			return;
-		}
-
-		this.isLoading = true;
-		this.registerFailureMessage = "";
-		this.registerFieldErrors = {
+		let loginValid = ref(false);
+		let registerValid = ref(false);
+		let registerFieldErrors = reactive({
 			email: "",
 			username: "",
 			password: "",
 			password2: "",
-		};
-		try {
-			let resp = await API.post("/user/register", {
-				email: this.email,
-				username: this.username,
-				password: this.password,
-			});
-			if (resp.data.success) {
-				console.log("Registeration success");
-				this.$store.commit("LOGIN", resp.data.user);
-				this.$emit("shouldClose");
-				this.email = "";
-				this.username = "";
-				this.password = "";
-				this.password2 = "";
-			} else {
-				console.log("Registeration failed");
-				this.registerFailureMessage = this.$t("login-form.errors.something-weird-happened");
-			}
-		} catch (err) {
-			if (err.response && !err.response.data.success) {
-				if (err.response.data.error) {
-					if (err.response.data.error.name === "AlreadyInUse") {
-						if (err.response.data.error.fields.includes("email")) {
-							this.registerFieldErrors.email = this.$t("login-form.errors.in-use");
-						}
-						if (err.response.data.error.fields.includes("username")) {
-							this.registerFieldErrors.username = this.$t("login-form.errors.in-use");
-						}
-					}
-					this.registerFailureMessage = err.response.data.error.message;
-				} else {
-					this.registerFailureMessage = this.$t(
-						"login-form.errors.register-failed-noserver"
-					);
-				}
-			} else {
-				console.log("could not register", err);
-				this.registerFailureMessage = this.$t("login-form.errors.register-failed");
-			}
-		}
-		this.isLoading = false;
-	}
+		});
 
-	comparePassword(v) {
-		// HACK: required because otherwise this.password is undefined for some reason in the validation rule's context
-		return this.password === v;
-	}
-}
+		// magic line that grabs a static ref to the DOM element/component with ref="loginForm"
+		const loginForm = ref<VForm | undefined>(null);
+		const registerForm = ref<VForm | undefined>(null);
+
+		const emailRules = [
+			v => !!v || i18n.t("login-form.rules.email-required"),
+			v => (v && isEmail(v)) || i18n.t("login-form.rules.valid-email"),
+		];
+		const usernameRules = [
+			v => !!v || i18n.t("login-form.rules.username-required"),
+			v =>
+				(!!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX) ||
+				i18n.t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
+		];
+		const passwordRules = [
+			v => !!v || i18n.t("login-form.rules.password-required"),
+			v =>
+				(v && v.length >= 10) ||
+				(process.env.NODE_ENV === "development" && v === "1") ||
+				i18n.t("login-form.rules.password-length"),
+		];
+		const retypePasswordRules = [
+			v => !!v || i18n.t("login-form.rules.retype-password"),
+			v => comparePassword(v) || i18n.t("login-form.rules.passwords-match"),
+		];
+
+		function comparePassword(v: string) {
+			// HACK: required because otherwise this.password is undefined for some reason in the validation rule's context
+			return password.value === v;
+		}
+
+		watch(email, () => {
+			logInFailureMessage.value = "";
+			registerFailureMessage.value = "";
+			registerFieldErrors.email = "";
+		});
+		watch(password, () => {
+			logInFailureMessage.value = "";
+		});
+		watch(username, () => {
+			registerFailureMessage.value = "";
+			registerFieldErrors.username = "";
+		});
+
+		async function login() {
+			loginForm.value.validate();
+			if (!loginValid.value) {
+				return;
+			}
+
+			isLoading.value = true;
+			logInFailureMessage.value = "";
+			try {
+				let resp = await API.post("/user/login", {
+					email: email.value,
+					password: password.value,
+				});
+				if (resp.data.success) {
+					console.log("Log in success");
+					store.commit("LOGIN", resp.data.user);
+					emit("shouldClose");
+					email.value = "";
+					password.value = "";
+				} else {
+					console.log("Log in failed");
+					logInFailureMessage.value = i18n.t(
+						"login-form.errors.something-weird-happened"
+					) as string;
+				}
+			} catch (err) {
+				if (err.response && !err.response.data.success) {
+					if (err.response.data.error) {
+						logInFailureMessage.value = err.response.data.error.message;
+					} else {
+						logInFailureMessage.value = i18n.t(
+							"login-form.errors.login-failed-noserver"
+						) as string;
+					}
+				} else {
+					console.log("could not log in", err, err.response);
+					logInFailureMessage.value = i18n.t("login-form.errors.login-failed") as string;
+				}
+			}
+			isLoading.value = false;
+		}
+
+		async function register() {
+			registerForm.value.validate();
+			if (!registerValid.value) {
+				return;
+			}
+
+			isLoading.value = true;
+			registerFailureMessage.value = "";
+			registerFieldErrors = {
+				email: "",
+				username: "",
+				password: "",
+				password2: "",
+			};
+			try {
+				let resp = await API.post("/user/register", {
+					email: email.value,
+					username: username.value,
+					password: password.value,
+				});
+				if (resp.data.success) {
+					console.log("Registeration success");
+					store.commit("LOGIN", resp.data.user);
+					emit("shouldClose");
+					email.value = "";
+					username.value = "";
+					password.value = "";
+					password2.value = "";
+				} else {
+					console.log("Registeration failed");
+					registerFailureMessage.value = i18n.t(
+						"login-form.errors.something-weird-happened"
+					) as string;
+				}
+			} catch (err) {
+				if (err.response && !err.response.data.success) {
+					if (err.response.data.error) {
+						if (err.response.data.error.name === "AlreadyInUse") {
+							if (err.response.data.error.fields.includes("email")) {
+								registerFieldErrors.email = i18n.t(
+									"login-form.errors.in-use"
+								) as string;
+							}
+							if (err.response.data.error.fields.includes("username")) {
+								registerFieldErrors.username = i18n.t(
+									"login-form.errors.in-use"
+								) as string;
+							}
+						}
+						registerFailureMessage.value = err.response.data.error.message;
+					} else {
+						registerFailureMessage.value = i18n.t(
+							"login-form.errors.register-failed-noserver"
+						) as string;
+					}
+				} else {
+					console.log("could not register", err);
+					registerFailureMessage.value = i18n.t(
+						"login-form.errors.register-failed"
+					) as string;
+				}
+			}
+			isLoading.value = false;
+		}
+
+		return {
+			email,
+			username,
+			password,
+			password2,
+			mode,
+			isLoading,
+			logInFailureMessage,
+			registerFailureMessage,
+			loginValid,
+			registerValid,
+			registerFieldErrors,
+
+			loginForm,
+			registerForm,
+
+			emailRules,
+			usernameRules,
+			passwordRules,
+			retypePasswordRules,
+
+			login,
+			register,
+		};
+	},
+});
+
+export default LogInForm;
 </script>
 
 <style lang="scss" scoped></style>
