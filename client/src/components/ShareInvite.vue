@@ -22,46 +22,57 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { defineComponent, computed, ref } from "@vue/composition-api";
+import { useStore } from "@/util/vuex-workaround";
 
-@Component({
+const ShareInvite = defineComponent({
 	name: "ShareInvite",
-})
-export default class ShareInvite extends Vue {
-	copySuccess = false;
+	setup() {
+		let copySuccess = ref(false);
+		const store = useStore();
 
-	get inviteLink() {
-		if (process.env.SHORT_URL) {
-			return `https://${process.env.SHORT_URL}/${this.$route.params.roomId}`;
-		}
-		return window.location.href.split("?")[0].toLowerCase();
-	}
-
-	async copyInviteLink() {
-		if (navigator.clipboard) {
-			await navigator.clipboard.writeText(this.inviteLink);
-		} else {
-			// @ts-expect-error $el actually does exist
-			let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector("input");
-			if (!textfield) {
-				console.error("failed to copy link: input not found");
-				return;
+		let inviteLink = computed(() => {
+			if (process.env.SHORT_URL) {
+				return `https://${process.env.SHORT_URL}/${store.state.room.name}`;
 			}
-			textfield.select();
-			document.execCommand("copy");
-			setTimeout(() => {
-				this.copySuccess = false;
-				textfield?.blur();
-			}, 3000);
-		}
-		this.copySuccess = true;
-	}
+			return window.location.href.split("?")[0].toLowerCase();
+		});
 
-	onFocusHighlightText(e) {
-		e.target.select();
-	}
-}
+		async function copyInviteLink() {
+			if (navigator.clipboard) {
+				await navigator.clipboard.writeText(inviteLink.value);
+			} else {
+				// @ts-expect-error $el actually does exist
+				let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector("input");
+				if (!textfield) {
+					console.error("failed to copy link: input not found");
+					return;
+				}
+				textfield.select();
+				document.execCommand("copy");
+				setTimeout(() => {
+					copySuccess.value = false;
+					textfield?.blur();
+				}, 3000);
+			}
+			copySuccess.value = true;
+		}
+
+		function onFocusHighlightText(e) {
+			e.target.select();
+		}
+
+		return {
+			copySuccess,
+			inviteLink,
+
+			copyInviteLink,
+			onFocusHighlightText,
+		};
+	},
+});
+
+export default ShareInvite;
 </script>
 
 <style lang="scss"></style>
