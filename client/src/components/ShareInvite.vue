@@ -10,7 +10,7 @@
 					readonly
 					outlined
 					ref="inviteLinkText"
-					:value="inviteLink"
+					:value="getInviteLink()"
 					append-outer-icon="fa-clipboard"
 					:success-messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
@@ -22,28 +22,34 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from "@vue/composition-api";
+import { defineComponent, ref } from "@vue/composition-api";
 import { useStore } from "@/util/vuex-workaround";
 
 const ShareInvite = defineComponent({
 	name: "ShareInvite",
 	setup() {
-		let copySuccess = ref(false);
 		const store = useStore();
 
-		let inviteLink = computed(() => {
+		let copySuccess = ref(false);
+
+		let inviteLinkText = ref();
+
+		function getInviteLink() {
 			if (process.env.SHORT_URL) {
 				return `https://${process.env.SHORT_URL}/${store.state.room.name}`;
 			}
 			return window.location.href.split("?")[0].toLowerCase();
-		});
+		}
 
 		async function copyInviteLink() {
 			if (navigator.clipboard) {
-				await navigator.clipboard.writeText(inviteLink.value);
+				await navigator.clipboard.writeText(getInviteLink());
+				setTimeout(() => {
+					copySuccess.value = false;
+				}, 3000);
 			} else {
 				// @ts-expect-error $el actually does exist
-				let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector("input");
+				let textfield = (inviteLinkText.$el as Element).querySelector("input");
 				if (!textfield) {
 					console.error("failed to copy link: input not found");
 					return;
@@ -64,7 +70,8 @@ const ShareInvite = defineComponent({
 
 		return {
 			copySuccess,
-			inviteLink,
+			inviteLinkText,
+			getInviteLink,
 
 			copyInviteLink,
 			onFocusHighlightText,
