@@ -319,7 +319,7 @@ import connection from "@/util/connection";
 import api from "@/util/api";
 import { PlayerStatus, QueueMode } from "common/models/types";
 import VideoQueue from "@/components/VideoQueue.vue";
-import goTo from "vuetify/lib/services/goto/index.mjs";
+// import { goTo } from "vuetify/lib/services/goto/index.mjs";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClickToEdit from "@/components/ClickToEdit.vue";
@@ -685,10 +685,10 @@ export default {
 			if (this.isMobile) {
 				if (this.orientation.startsWith("landscape")) {
 					document.documentElement.requestFullscreen();
-					goTo(0, {
-						duration: 250,
-						easing: "easeInOutCubic",
-					});
+					// goTo(0, {
+					// 	duration: 250,
+					// 	easing: "easeInOutCubic",
+					// });
 				} else {
 					document.exitFullscreen();
 				}
