@@ -1,5 +1,6 @@
 import { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
+import { useTheme } from "vuetify";
 
 export interface SettingsState {
 	volume: number;
@@ -37,13 +38,11 @@ export const settingsModule: Module<SettingsState, unknown> = {
 				// it will default back to the dark theme instead of the light one.
 				switch (settings.theme) {
 					case Theme.dark:
-						vuetify.framework.theme.dark = true;
-						break;
 					case Theme.light:
-						vuetify.framework.theme.dark = false;
+						vuetify.theme.global.name.value = settings.theme;
 						break;
 					default:
-						vuetify.framework.theme.dark = true;
+						vuetify.theme.global.name.value = "dark";
 						break;
 				}
 			}
