@@ -33,7 +33,7 @@
 			<v-spacer />
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-menu offset-y>
-					<template v-slot:activator="{ on }">
+					<template v-slot:activator="on">
 						<v-btn text v-on="on">
 							<v-icon class="side-pad">fas fa-plus-square</v-icon>
 							{{ $t("nav.create.title") }}
