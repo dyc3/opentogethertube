@@ -58,43 +58,41 @@
 		</v-app-bar>
 		<v-navigation-drawer v-model="drawer" absolute temporary>
 			<v-list nav dense>
-				<v-list-item-group>
-					<v-list-item to="/">
-						{{ $t("nav.home") }}
-					</v-list-item>
-					<v-list-item to="/rooms">
-						{{ $t("nav.browse") }}
-					</v-list-item>
-					<v-list-item to="/faq">
-						{{ $t("nav.faq") }}
-					</v-list-item>
-					<v-list-item
-						href="https://github.com/dyc3/opentogethertube/issues/new/choose"
-						target="_blank"
-					>
-						<template #prepend>
-							<v-icon>fas fa-bug</v-icon>
-						</template>
-						{{ $t("nav.bug") }}
-					</v-list-item>
-					<v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
-						<template #prepend>
-							<v-icon>fas fa-heart</v-icon>
-						</template>
-						{{ $t("nav.support") }}
-					</v-list-item>
-					<NavCreateRoom
-						@createtemp="createTempRoom"
-						@createperm="showCreateRoomForm = true"
-					/>
-					<NavUser @login="showLogin = true" @logout="logout" />
-					<v-select
-						variant="solo"
-						:items="locales"
-						@change="setLocale"
-						:value="$i18n.locale"
-					/>
-				</v-list-item-group>
+				<v-list-item to="/">
+					{{ $t("nav.home") }}
+				</v-list-item>
+				<v-list-item to="/rooms">
+					{{ $t("nav.browse") }}
+				</v-list-item>
+				<v-list-item to="/faq">
+					{{ $t("nav.faq") }}
+				</v-list-item>
+				<v-list-item
+					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
+					target="_blank"
+				>
+					<template #prepend>
+						<v-icon>fas fa-bug</v-icon>
+					</template>
+					{{ $t("nav.bug") }}
+				</v-list-item>
+				<v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
+					<template #prepend>
+						<v-icon>fas fa-heart</v-icon>
+					</template>
+					{{ $t("nav.support") }}
+				</v-list-item>
+				<NavCreateRoom
+					@createtemp="createTempRoom"
+					@createperm="showCreateRoomForm = true"
+				/>
+				<NavUser @login="showLogin = true" @logout="logout" />
+				<v-select
+					variant="solo"
+					:items="locales"
+					@change="setLocale"
+					:value="$i18n.locale"
+				/>
 			</v-list>
 			<template v-slot:append>
 				<div class="pa-2">
