@@ -1,6 +1,6 @@
-import VueRouter from "vue-router";
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
-const routes: VueRouter.RouteRecordRaw[] = [
+const routes: RouteRecordRaw[] = [
 	{
 		path: "/",
 		name: "home",
@@ -51,7 +51,7 @@ const routes: VueRouter.RouteRecordRaw[] = [
 	},
 ];
 
-export const router = VueRouter.createRouter({
-	history: VueRouter.createWebHistory(process.env.BASE_URL),
+export const router = createRouter({
+	history: createWebHistory(process.env.BASE_URL),
 	routes,
 });
