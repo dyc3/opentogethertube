@@ -3,7 +3,7 @@
 		<div class="img-container">
 			<v-img
 				:src="thumbnailSource"
-				:lazy-src="require('@/assets/placeholder.svg')"
+				:lazy-src="placeholderUrl"
 				aspect-ratio="1.8"
 				@error="onThumbnailError"
 			>
@@ -152,8 +152,9 @@ import { QueueItem, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
 import api from "@/util/api";
 import { useStore } from "vuex";
-import { i18n } from "@/i18n";
 import toast from "@/util/toast";
+import placeholderUrl from "@/assets/placeholder.svg";
+import { useI18n } from "vue-i18n";
 
 interface VideoQueueItemProps {
 	item: QueueItem;
@@ -171,6 +172,7 @@ const VideoQueueItem = defineComponent({
 	setup(props: VideoQueueItemProps) {
 		let { item, isPreview, index } = toRefs(props);
 		const store = useStore();
+		const { t } = useI18n();
 
 		let isLoadingAdd = ref(false);
 		let isLoadingVote = ref(false);
@@ -225,7 +227,7 @@ const VideoQueueItem = defineComponent({
 				hasBeenAdded.value = true;
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n.t("video-queue-item.messages.video-added").toString(),
+					content: t("video-queue-item.messages.video-added").toString(),
 					duration: 5000,
 				});
 			} catch (e) {
@@ -248,7 +250,7 @@ const VideoQueueItem = defineComponent({
 				hasError.value = !resp.data.success;
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n.t("video-queue-item.messages.video-removed").toString(),
+					content: t("video-queue-item.messages.video-removed").toString(),
 					duration: 5000,
 				});
 			} catch (e) {
@@ -336,6 +338,7 @@ const VideoQueueItem = defineComponent({
 
 			QueueMode,
 			store,
+			placeholderUrl,
 		};
 	},
 });
