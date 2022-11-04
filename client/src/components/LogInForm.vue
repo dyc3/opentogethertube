@@ -152,7 +152,7 @@ import { USERNAME_LENGTH_MAX } from "common/constants";
 import { defineComponent, reactive, ref, watch } from "@vue/composition-api";
 import { useStore } from "@/util/vuex-workaround";
 import { i18n } from "@/i18n";
-import { VForm } from "vuetify/lib/components/VForm";
+import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 
 const LogInForm = defineComponent({
 	name: "LogInForm",

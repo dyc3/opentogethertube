@@ -1,0 +1,57 @@
+import VueRouter from "vue-router";
+
+const routes: VueRouter.RouteRecordRaw[] = [
+	{
+		path: "/",
+		name: "home",
+		component: () => import("@/views/Home.vue"),
+	},
+	{
+		path: "/rooms",
+		name: "room-list",
+		component: () => import("./views/RoomList.vue"),
+	},
+	{
+		path: "/room/:roomId",
+		name: "room",
+		component: () => import("./views/Room.vue"),
+	},
+	{
+		path: "/quickroom",
+		name: "quickroom",
+		component: () => import("./views/QuickRoom.vue"),
+	},
+	{
+		path: "/faq",
+		name: "faq",
+		component: () => import("./views/Faq.vue"),
+	},
+	{
+		path: "/privacypolicy",
+		name: "privacypolicy",
+		component: () => import("./views/Privacy.vue"),
+	},
+	{
+		path: "/attribution",
+		name: "attribution",
+		component: () => import("./views/Attribution.vue"),
+	},
+	{
+		path: "/r/:roomId",
+		redirect: "/room/:roomId",
+	},
+	{
+		path: "/rooms/:roomId",
+		redirect: "/room/:roomId",
+	},
+	{
+		path: "*",
+		name: "not-found",
+		component: () => import("./views/NotFound.vue"),
+	},
+];
+
+export const router = VueRouter.createRouter({
+	history: VueRouter.createWebHistory(process.env.BASE_URL),
+	routes,
+});

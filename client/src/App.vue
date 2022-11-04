@@ -164,7 +164,7 @@ import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
 import { loadLanguageAsync } from "@/i18n";
 import { createRoomHelper, createRoomState } from "@/util/roomcreator";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "vuex";
 
 const store = useStore();
 
@@ -224,7 +224,6 @@ export default {
 		store.subscribe((mutation, state) => {
 			if (mutation.type === "misc/ROOM_CREATED") {
 				try {
-					// @ts-expect-error because vue router doesn't quite work with ts like this and im feeling lazy.
 					this.$router.push(`/room/${mutation.payload.name}`);
 				} catch (e) {
 					if (e.name !== "NavigationDuplicated") {

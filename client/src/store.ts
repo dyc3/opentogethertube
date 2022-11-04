@@ -1,5 +1,5 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import { createStore, Store } from "vuex";
+import type { FullOTTStoreState } from "@/util/vuex-workaround";
 import dayjs from "dayjs";
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
@@ -13,34 +13,34 @@ import { miscModule } from "@/stores/misc";
 import { captionsModule } from "@/stores/captions";
 import { connectionModule } from "@/stores/connection";
 
-Vue.use(Vuex);
+export const store: Store<FullOTTStoreState> = createStore({
+	state() {
+		return {
+			playerStatus: null,
+			playerBufferPercent: null,
+			playerBufferSpans: null,
+			fullscreen: false,
+			production: process.env.NODE_ENV === "production",
+			/** Unregistered user's username  */
+			username: null,
+			/** Registered user */
+			user: null,
+			room: {
+				name: "",
+				title: "",
+				description: "",
+				isTemporary: false,
+				queueMode: QueueMode.Manual,
+				currentSource: {},
+				queue: [],
+				isPlaying: false,
+				playbackPosition: 0,
+				hasOwner: false,
+				chatMessages: [],
+			},
 
-export default new Vuex.Store({
-	state: {
-		playerStatus: null,
-		playerBufferPercent: null,
-		playerBufferSpans: null,
-		fullscreen: false,
-		production: process.env.NODE_ENV === "production",
-		/** Unregistered user's username  */
-		username: null,
-		/** Registered user */
-		user: null,
-		room: {
-			name: "",
-			title: "",
-			description: "",
-			isTemporary: false,
-			queueMode: QueueMode.Manual,
-			currentSource: {},
-			queue: [],
-			isPlaying: false,
-			playbackPosition: 0,
-			hasOwner: false,
-			chatMessages: [],
-		},
-
-		keepAliveInterval: null,
+			keepAliveInterval: null,
+		};
 	},
 	mutations: {
 		PLAYBACK_STATUS(state, message) {
