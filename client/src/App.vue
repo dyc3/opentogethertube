@@ -15,17 +15,17 @@
 				</router-link>
 			</v-toolbar-title>
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
-				<v-btn text to="/rooms">{{ $t("nav.browse") }}</v-btn>
-				<v-btn text to="/faq">{{ $t("nav.faq") }}</v-btn>
+				<v-btn variant="text" to="/rooms">{{ $t("nav.browse") }}</v-btn>
+				<v-btn variant="text" to="/faq">{{ $t("nav.faq") }}</v-btn>
 				<v-btn
-					text
+					variant="text"
 					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
 					target="_blank"
 				>
 					<v-icon class="side-pad">fas fa-bug</v-icon>
 					{{ $t("nav.bug") }}
 				</v-btn>
-				<v-btn text href="https://github.com/sponsors/dyc3" target="_blank">
+				<v-btn variant="text" href="https://github.com/sponsors/dyc3" target="_blank">
 					<v-icon class="side-pad">fas fa-heart</v-icon>
 					{{ $t("nav.support") }}
 				</v-btn>
@@ -49,7 +49,6 @@
 				<NavUser @login="showLogin = true" @logout="logout" />
 				<v-select
 					variant="solo"
-					flat
 					style="margin-top: 5px; width: 100px"
 					:items="locales"
 					@change="setLocale"
@@ -91,7 +90,6 @@
 					<NavUser @login="showLogin = true" @logout="logout" />
 					<v-select
 						variant="solo"
-						flat
 						:items="locales"
 						@change="setLocale"
 						:value="$i18n.locale"
