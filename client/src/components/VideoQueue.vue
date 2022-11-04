@@ -21,19 +21,17 @@
 			</v-btn>
 		</div>
 		<draggable
+			tag="transition-group"
+			:component-data="{ name: 'video-queue' }"
 			v-model="$store.state.room.queue"
 			:move="() => granted('manage-queue.order')"
 			@end="onQueueDragDrop"
 			handle=".drag-handle"
+			item-key="id"
 		>
-			<transition-group name="video-queue">
-				<VideoQueueItem
-					v-for="(itemdata, index) in $store.state.room.queue"
-					:key="itemdata.id"
-					:item="itemdata"
-					:index="index"
-				/>
-			</transition-group>
+			<template #item="itemdata">
+				<VideoQueueItem :key="itemdata.id" :item="itemdata" />
+			</template>
 		</draggable>
 	</div>
 </template>
