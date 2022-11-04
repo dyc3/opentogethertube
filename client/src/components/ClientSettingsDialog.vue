@@ -45,7 +45,7 @@
 
 <script lang="ts">
 import { defineComponent, Ref, ref, watch } from "vue";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "vuex";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
 
