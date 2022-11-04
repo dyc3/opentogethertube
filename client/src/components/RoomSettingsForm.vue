@@ -100,7 +100,7 @@
 					>Claim Room</v-btn
 				>
 				<v-btn
-					x-large
+					size="x-large"
 					block
 					@click="submitRoomSettings"
 					role="submit"

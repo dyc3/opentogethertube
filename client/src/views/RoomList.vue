@@ -13,7 +13,7 @@
 		>
 			<div>
 				<h1>{{ $t("room-list.no-rooms") }}</h1>
-				<v-btn elevation="12" x-large @click="createRoom">{{
+				<v-btn elevation="12" size="x-large" @click="createRoom">{{
 					$t("room-list.create")
 				}}</v-btn>
 			</div>

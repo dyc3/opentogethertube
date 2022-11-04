@@ -8,15 +8,15 @@
 						{{ $t("landing.hero.description") }}
 					</span>
 					<div class="hero-buttons">
-						<v-btn elevation="12" x-large @click="createTempRoom">{{
+						<v-btn elevation="12" size="x-large" @click="createTempRoom">{{
 							$t("landing.hero.btns.create")
 						}}</v-btn>
-						<v-btn elevation="12" x-large to="/rooms">{{
+						<v-btn elevation="12" size="x-large" to="/rooms">{{
 							$t("landing.hero.btns.browse")
 						}}</v-btn>
 						<v-btn
 							elevation="12"
-							x-large
+							size="x-large"
 							href="https://github.com/dyc3/opentogethertube"
 							>{{ $t("landing.hero.btns.source") }}</v-btn
 						>
@@ -124,7 +124,7 @@
 						<v-col>
 							<h3>{{ $t("landing.support.how") }}</h3>
 							<v-btn
-								x-large
+								size="x-large"
 								block
 								color="red"
 								href="https://github.com/sponsors/dyc3"
@@ -134,7 +134,7 @@
 								{{ $t("landing.support.sponsor") }}
 							</v-btn>
 							<v-btn
-								x-large
+								size="x-large"
 								block
 								color="blue"
 								class="mt-2"

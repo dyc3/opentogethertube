@@ -6,7 +6,7 @@
 		}"
 	>
 		<div class="chat-header d-flex flex-row" v-if="activated">
-			<v-btn icon x-small @click="setActivated(false)">
+			<v-btn icon size="x-small" @click="setActivated(false)">
 				<v-icon>fas fa-chevron-down</v-icon>
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
@@ -47,7 +47,7 @@
 			</div>
 		</Transition>
 		<div class="manual-activate" v-if="!activated">
-			<v-btn icon x-small @click="setActivated(true, (manual = true))">
+			<v-btn icon size="x-small" @click="setActivated(true, true)">
 				<v-icon>far fa-comment-alt</v-icon>
 			</v-btn>
 		</div>

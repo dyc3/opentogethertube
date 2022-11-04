@@ -21,13 +21,13 @@
 								<v-col cols="12" md="6">
 									<v-container>
 										<v-btn
-											x-large
+											size="x-large"
 											block
 											href="/api/auth/discord"
 											color="#7289DA"
 											>{{ $t("login-form.login-discord") }}</v-btn
 										>
-										<!-- TODO: <v-btn x-large block>Log in with Google</v-btn> -->
+										<!-- TODO: <v-btn size="x-large" block>Log in with Google</v-btn> -->
 									</v-container>
 								</v-col>
 								<v-divider vertical />

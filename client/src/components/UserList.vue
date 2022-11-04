@@ -2,7 +2,7 @@
 	<v-card class="user-list">
 		<v-subheader>
 			{{ $t("room.users.title") }}
-			<v-btn icon x-small @click="openEditName">
+			<v-btn icon size="x-small" @click="openEditName">
 				<v-icon>fas fa-cog</v-icon>
 			</v-btn>
 		</v-subheader>
@@ -69,7 +69,7 @@
 					<template v-slot:activator="{ on, attrs }">
 						<v-btn depressed tile v-bind="attrs" v-on="on">
 							<v-icon small>fas fa-cog</v-icon>
-							<v-icon small style="margin-left: 5px" aria-hidden>
+							<v-icon size="small" style="margin-left: 5px" aria-hidden>
 								fas fa-caret-down
 							</v-icon>
 						</v-btn>

@@ -137,7 +137,7 @@
 						<v-progress-circular indeterminate />
 						<v-btn
 							elevation="12"
-							x-large
+							size="x-large"
 							@click="cancelRoom"
 							style="margin-top: 24px"
 							>{{ $t("actions.cancel") }}</v-btn
