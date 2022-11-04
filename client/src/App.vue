@@ -208,8 +208,8 @@ export const App = defineComponent({
 		};
 
 		const cancelRoom = () => {
-			createRoomState.value.cancelledRoomCreation = true;
-			createRoomState.value.isLoadingCreateRoom = false;
+			createRoomState.cancelledRoomCreation = true;
+			createRoomState.isLoadingCreateRoom = false;
 		};
 
 		const createTempRoom = async () => {
