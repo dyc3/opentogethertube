@@ -23,7 +23,7 @@
 		"vue-axios": "^2.1.5",
 		"vue-fragment": "1.5.1",
 		"vue-gtag": "^1.6.1",
-		"vue-i18n": "^8.26.3",
+		"vue-i18n": "9.2.2",
 		"vue-router": "^4.1.5",
 		"vue-slider-component": "^3.1.1",
 		"vuedraggable": "^2.23.2",
