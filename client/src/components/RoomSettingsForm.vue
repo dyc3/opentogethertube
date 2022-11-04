@@ -122,7 +122,7 @@ import type { Grants } from "common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
 import { defineComponent, onMounted, Ref, ref } from "vue";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "vuex";
 import { i18n } from "@/i18n";
 
 const RoomSettingsForm = defineComponent({

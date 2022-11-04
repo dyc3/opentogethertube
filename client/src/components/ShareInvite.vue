@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from "vue";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "vuex";
 
 export function buildInviteLink(
 	currentLocation: string,

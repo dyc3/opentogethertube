@@ -150,7 +150,7 @@ import { API } from "@/common-http.js";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "common/constants";
 import { defineComponent, reactive, ref, watch } from "vue";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "vuex";
 import { i18n } from "@/i18n";
 import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 

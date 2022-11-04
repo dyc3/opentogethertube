@@ -63,7 +63,7 @@
 import { API } from "@/common-http.js";
 import { defineComponent, ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "vuex";
 
 const RoomListView = defineComponent({
 	name: "RoomListView",

@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "vuex";
 import { i18n } from "@/i18n";
 
 const RoomDisconnected = defineComponent({
