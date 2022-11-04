@@ -1,22 +1,37 @@
-import Vue from "vue";
-import Vuetify from "vuetify/lib";
 import "vuetify/dist/vuetify.min.css";
 import "@mdi/font/css/materialdesignicons.css";
 import "@fortawesome/fontawesome-free/css/all.css";
-Vue.use(Vuetify);
+import { createVuetify, ThemeDefinition } from "vuetify/lib/framework.mjs";
+import { fa } from "vuetify/iconsets/fa";
+import { mdi } from "vuetify/iconsets/mdi";
 
-const plugin = new Vuetify({
+const themeDark: ThemeDefinition = {
+	dark: true,
+	colors: {
+		primary: "#ffb300", // orange
+		secondary: "#42A5F5", // blue
+	},
+};
+
+const themeLight: ThemeDefinition = {
+	dark: false,
+};
+
+const vuetify = createVuetify({
 	icons: {
-		iconfont: "fa",
+		defaultSet: "fa",
+		sets: {
+			fa,
+			mdi,
+		},
 	},
 	theme: {
-		dark: true,
+		defaultTheme: "dark",
 		themes: {
-			dark: {
-				primary: "#ffb300", // orange
-				secondary: "#42A5F5", // blue
-			},
+			dark: themeDark,
+			light: themeLight,
 		},
 	},
 });
-export default plugin;
+
+export default vuetify;
