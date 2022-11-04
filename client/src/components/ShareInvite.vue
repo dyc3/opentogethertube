@@ -10,7 +10,7 @@
 					readonly
 					outlined
 					ref="inviteLinkText"
-					:value="getInviteLink()"
+					:value="inviteLink"
 					append-outer-icon="fa-clipboard"
 					:success-messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
@@ -22,8 +22,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "@vue/composition-api";
+import { defineComponent, ref, computed } from "@vue/composition-api";
 import { useStore } from "@/util/vuex-workaround";
+
+export function buildInviteLink(
+	currentLocation: string,
+	roomName: string,
+	shortUrl: string | undefined
+): string {
+	if (shortUrl !== undefined) {
+		return `https://${shortUrl}/${roomName}`;
+	}
+	return currentLocation.split("?")[0].toLowerCase();
+}
 
 const ShareInvite = defineComponent({
 	name: "ShareInvite",
@@ -35,15 +46,17 @@ const ShareInvite = defineComponent({
 		let inviteLinkText = ref();
 
 		function getInviteLink() {
-			if (process.env.SHORT_URL) {
-				return `https://${process.env.SHORT_URL}/${store.state.room.name}`;
-			}
-			return window.location.href.split("?")[0].toLowerCase();
+			return buildInviteLink(
+				window.location.href,
+				store.state.room.name,
+				process.env.SHORT_URL
+			);
 		}
+		const inviteLink = computed(getInviteLink);
 
 		async function copyInviteLink() {
 			if (navigator.clipboard) {
-				await navigator.clipboard.writeText(getInviteLink());
+				await navigator.clipboard.writeText(inviteLink.value);
 				setTimeout(() => {
 					copySuccess.value = false;
 				}, 3000);
@@ -72,6 +85,7 @@ const ShareInvite = defineComponent({
 			copySuccess,
 			inviteLinkText,
 			getInviteLink,
+			inviteLink,
 
 			copyInviteLink,
 			onFocusHighlightText,

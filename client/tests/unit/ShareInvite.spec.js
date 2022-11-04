@@ -1,62 +1,33 @@
 import Vue from "vue";
-import { mount, createLocalVue } from "@vue/test-utils";
+import Vuex from "vuex";
+import { createLocalVue } from "@vue/test-utils";
 import Vuetify from "vuetify";
-import ShareInvite from "@/components/ShareInvite.vue";
-import { i18n } from "@/i18n";
-
-const localVue = createLocalVue();
+import { buildInviteLink } from "@/components/ShareInvite.vue";
 
 // HACK: import globally to prevent it from yelling at us
 // https://github.com/vuetifyjs/vuetify/issues/4964
 Vue.use(Vuetify);
 
-const $route = {
-	path: "http://localhost:8080/room/ligma",
-	params: {
-		roomId: "ligma",
-	},
-};
+const localVue = createLocalVue();
+localVue.use(Vuex);
 
 describe("ShareInvite component", () => {
 	beforeEach(() => {
 		delete process.env.SHORT_URL;
 	});
 
-	it("should use SHORT_URL if available", () => {
-		process.env.SHORT_URL = "example.com";
-		let wrapper = mount(ShareInvite, {
-			localVue,
-			i18n,
-			mocks: {
-				$route,
-			},
-			stubs: ["v-icon", "v-text-field"],
-		});
-		expect(wrapper.vm.inviteLink).toContain("example.com");
-	});
+	describe("link building", () => {
+		it.each(["http://localhost:8080/room/ligma", "http://localhost:8080/room/ligma?foo=bar"])(
+			"should just use the current URL if there is no SHORT_URL",
+			current => {
+				let result = buildInviteLink(current, "ligma", undefined);
+				expect(result).toEqual("http://localhost:8080/room/ligma");
+			}
+		);
 
-	it("should use window.location if SHORT_URL not provided", () => {
-		let wrapper = mount(ShareInvite, {
-			localVue,
-			i18n,
-			mocks: {
-				$route,
-			},
-			stubs: ["v-icon", "v-text-field"],
+		it("should use SHORT_URL if available", () => {
+			let result = buildInviteLink("http://localhost:8080/room/ligma", "ligma", "ottr.cc");
+			expect(result).toEqual("https://ottr.cc/ligma");
 		});
-		expect(wrapper.vm.inviteLink).toContain(window.location.href);
-	});
-
-	it("should contain the room name in the invite link", () => {
-		process.env.SHORT_URL = "example.com";
-		let wrapper = mount(ShareInvite, {
-			localVue,
-			i18n,
-			mocks: {
-				$route,
-			},
-			stubs: ["v-icon", "v-text-field"],
-		});
-		expect(wrapper.vm.inviteLink).toContain("ligma");
 	});
 });
