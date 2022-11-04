@@ -1,5 +1,5 @@
 import { Toast } from "@/models/toast";
-import { useStore } from "./vuex-workaround";
+import { useStore } from "vuex";
 
 export function add(toast: Omit<Toast, "id">): void {
 	const store = useStore();
