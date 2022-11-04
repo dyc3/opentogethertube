@@ -48,7 +48,7 @@
 				</v-menu>
 				<NavUser @login="showLogin = true" @logout="logout" />
 				<v-select
-					solo
+					variant="solo"
 					flat
 					style="margin-top: 5px; width: 100px"
 					:items="locales"
@@ -100,7 +100,7 @@
 					/>
 					<NavUser @login="showLogin = true" @logout="logout" />
 					<v-select
-						solo
+						variant="solo"
 						flat
 						:items="locales"
 						@change="setLocale"

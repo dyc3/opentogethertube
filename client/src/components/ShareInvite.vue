@@ -8,7 +8,7 @@
 				{{ $t("share-invite.text") }}
 				<v-text-field
 					readonly
-					outlined
+					variant="outlined"
 					ref="inviteLinkText"
 					:value="inviteLink"
 					append-outer-icon="fa-clipboard"

@@ -34,7 +34,7 @@
 		<Transition name="input" @after-enter="enforceStickToBottom">
 			<div class="input-box" v-if="activated">
 				<v-text-field
-					solo
+					variant="solo"
 					dense
 					single-line
 					:placeholder="$t('chat.type-here')"

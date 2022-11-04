@@ -2,7 +2,7 @@
 	<div style="display: inline-flex">
 		<div v-if="editing">
 			<v-text-field
-				solo
+				variant="solo"
 				hide-details
 				dense
 				single-line
