@@ -33,8 +33,8 @@
 			<v-spacer />
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-menu offset-y>
-					<template v-slot:activator="on">
-						<v-btn text v-on="on">
+					<template v-slot:activator="{ props }">
+						<v-btn variant="text" v-bind="props">
 							<v-icon class="side-pad">fas fa-plus-square</v-icon>
 							{{ $t("nav.create.title") }}
 						</v-btn>
@@ -137,7 +137,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
 import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
@@ -162,9 +162,9 @@ export const App = defineComponent({
 	setup() {
 		const store = useStore();
 
-		const showCreateRoomForm = false;
-		const showLogin = false;
-		const drawer = false;
+		const showCreateRoomForm = ref(false);
+		const showLogin = ref(false);
+		const drawer = ref(false);
 
 		const locales = [
 			{
