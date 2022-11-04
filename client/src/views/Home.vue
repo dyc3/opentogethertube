@@ -176,24 +176,31 @@
 </template>
 
 <script>
+import { defineComponent, computed } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
+import { useStore } from "vuex";
 
-export default {
+export const HomeView = defineComponent({
 	name: "home",
-	data() {
-		return {};
-	},
-	computed: {
-		cardHeight() {
+	setup() {
+		const store = useStore();
+
+		async function createTempRoom() {
+			await createRoomHelper(store);
+		}
+
+		const cardHeight = computed(() => {
 			return 180;
-		},
+		});
+
+		return {
+			createTempRoom,
+			cardHeight,
+		};
 	},
-	methods: {
-		async createTempRoom() {
-			await createRoomHelper(this.$store);
-		},
-	},
-};
+});
+
+export default HomeView;
 </script>
 
 <style lang="scss" scoped>
