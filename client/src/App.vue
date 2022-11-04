@@ -61,38 +61,28 @@
 			<v-list nav dense>
 				<v-list-item-group>
 					<v-list-item to="/">
-						<v-list-item-content>
-							{{ $t("nav.home") }}
-						</v-list-item-content>
+						{{ $t("nav.home") }}
 					</v-list-item>
 					<v-list-item to="/rooms">
-						<v-list-item-content>
-							{{ $t("nav.browse") }}
-						</v-list-item-content>
+						{{ $t("nav.browse") }}
 					</v-list-item>
 					<v-list-item to="/faq">
-						<v-list-item-content>
-							{{ $t("nav.faq") }}
-						</v-list-item-content>
+						{{ $t("nav.faq") }}
 					</v-list-item>
 					<v-list-item
 						href="https://github.com/dyc3/opentogethertube/issues/new/choose"
 						target="_blank"
 					>
-						<v-list-item-icon>
+						<template #prepend>
 							<v-icon>fas fa-bug</v-icon>
-						</v-list-item-icon>
-						<v-list-item-content>
-							{{ $t("nav.bug") }}
-						</v-list-item-content>
+						</template>
+						{{ $t("nav.bug") }}
 					</v-list-item>
 					<v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
-						<v-list-item-icon>
+						<template #prepend>
 							<v-icon>fas fa-heart</v-icon>
-						</v-list-item-icon>
-						<v-list-item-content>
-							{{ $t("nav.support") }}
-						</v-list-item-content>
+						</template>
+						{{ $t("nav.support") }}
 					</v-list-item>
 					<NavCreateRoom
 						@createtemp="createTempRoom"

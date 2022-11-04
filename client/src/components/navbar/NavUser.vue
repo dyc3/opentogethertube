@@ -15,14 +15,10 @@
 					target="_blank"
 					v-if="!$store.state.user.discordLinked"
 				>
-					<v-list-item-content>
-						<v-list-item-title>{{ $t("nav.link-discord") }}</v-list-item-title>
-					</v-list-item-content>
+					<v-list-item-title>{{ $t("nav.link-discord") }}</v-list-item-title>
 				</v-list-item>
 				<v-list-item @click="$emit('logout')">
-					<v-list-item-content>
-						<v-list-item-title>{{ $t("nav.logout") }}</v-list-item-title>
-					</v-list-item-content>
+					<v-list-item-title>{{ $t("nav.logout") }}</v-list-item-title>
 				</v-list-item>
 			</v-list>
 		</v-menu>

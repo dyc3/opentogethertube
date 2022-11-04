@@ -54,10 +54,8 @@
 				data-cy="select-queueMode"
 			>
 				<template v-slot:item="data">
-					<v-list-item-content>
-						<v-list-item-title>{{ data.item.name }}</v-list-item-title>
-						<v-list-item-subtitle>{{ data.item.description }}</v-list-item-subtitle>
-					</v-list-item-content>
+					<v-list-item-title>{{ data.item.name }}</v-list-item-title>
+					<v-list-item-subtitle>{{ data.item.description }}</v-list-item-subtitle>
 				</template>
 				<template v-slot:selection="data">
 					<v-list-item-title>{{ data.item.name }}</v-list-item-title>
