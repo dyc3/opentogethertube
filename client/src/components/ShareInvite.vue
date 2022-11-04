@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "@vue/composition-api";
+import { defineComponent, ref, computed } from "vue";
 import { useStore } from "@/util/vuex-workaround";
 
 export function buildInviteLink(
@@ -49,7 +49,7 @@ const ShareInvite = defineComponent({
 			return buildInviteLink(
 				window.location.href,
 				store.state.room.name,
-				process.env.SHORT_URL
+				import.meta.env.SHORT_URL
 			);
 		}
 		const inviteLink = computed(getInviteLink);

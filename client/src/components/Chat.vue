@@ -57,7 +57,7 @@
 <script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
 import api from "@/util/api";
-import { defineComponent, onUpdated, ref, Ref, nextTick } from "@vue/composition-api";
+import { defineComponent, onUpdated, ref, Ref, nextTick } from "vue";
 import type { ChatMessage } from "common/models/types";
 
 const MSG_SHOW_TIMEOUT = 20000;

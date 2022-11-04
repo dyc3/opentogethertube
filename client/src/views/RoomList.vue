@@ -61,7 +61,7 @@
 
 <script lang="ts">
 import { API } from "@/common-http.js";
-import { defineComponent, ref, onMounted } from "@vue/composition-api";
+import { defineComponent, ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/util/vuex-workaround";
 

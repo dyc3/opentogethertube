@@ -1,12 +1,12 @@
 import { nextTick } from "vue";
 import messages from "@/locales/en";
 import axios from "axios";
-import { createI18n, LocaleMessages } from "vue-i18n";
+import { createI18n } from "vue-i18n";
 
 export const i18n = createI18n({
 	allowComposition: true,
-	locale: process.env.VUE_APP_I18N_LOCALE || "en",
-	fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || "en",
+	locale: import.meta.env.VUE_APP_I18N_LOCALE || "en",
+	fallbackLocale: import.meta.env.VUE_APP_I18N_FALLBACK_LOCALE || "en",
 });
 i18n.global.setLocaleMessage("en", messages);
 
@@ -16,7 +16,6 @@ function setI18nLanguage(lang: string) {
 	if (i18n.mode === "legacy") {
 		i18n.global.locale = lang;
 	} else {
-		// @ts-expect-error
 		i18n.global.locale.value = lang;
 	}
 	axios.defaults.headers.common["Accept-Language"] = lang;

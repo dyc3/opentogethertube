@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, toRefs, watch } from "@vue/composition-api";
+import { defineComponent, onMounted, ref, toRefs, watch } from "vue";
 import { getSdk } from "@/util/playerHelper.js";
 
 const DAILYMOTION_SDK_URL = "https://api.dmcdn.net/all.js";

@@ -149,7 +149,7 @@
 import { API } from "@/common-http.js";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "common/constants";
-import { defineComponent, reactive, ref, watch } from "@vue/composition-api";
+import { defineComponent, reactive, ref, watch } from "vue";
 import { useStore } from "@/util/vuex-workaround";
 import { i18n } from "@/i18n";
 import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
@@ -197,7 +197,7 @@ const LogInForm = defineComponent({
 			v => !!v || i18n.t("login-form.rules.password-required"),
 			v =>
 				(v && v.length >= 10) ||
-				(process.env.NODE_ENV === "development" && v === "1") ||
+				(import.meta.env.NODE_ENV === "development" && v === "1") ||
 				i18n.t("login-form.rules.password-length"),
 		];
 		const retypePasswordRules = [

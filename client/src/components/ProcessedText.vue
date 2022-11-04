@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch, Ref } from "@vue/composition-api";
+import { defineComponent, ref, onMounted, watch, Ref } from "vue";
 
 const urlRegex = /(https?:\/\/[^\s]+)/;
 

@@ -45,13 +45,13 @@ const routes: RouteRecordRaw[] = [
 		redirect: "/room/:roomId",
 	},
 	{
-		path: "*",
+		path: "/:catchAll(.*)",
 		name: "not-found",
 		component: () => import("./views/NotFound.vue"),
 	},
 ];
 
 export const router = createRouter({
-	history: createWebHistory(process.env.BASE_URL),
+	history: createWebHistory(import.meta.env.BASE_URL),
 	routes,
 });

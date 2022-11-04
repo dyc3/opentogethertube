@@ -144,7 +144,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, computed, watchEffect } from "@vue/composition-api";
+import { defineComponent, ref, toRefs, computed, watchEffect } from "vue";
 import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";

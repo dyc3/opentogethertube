@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, nextTick, Ref } from "@vue/composition-api";
+import { defineComponent, ref, toRefs, nextTick, Ref } from "vue";
 
 const editor = ref<HTMLInputElement | undefined>();
 const editing = ref(false);

@@ -1,5 +1,5 @@
 import { GrantMask, parseIntoGrantMask, PermissionName } from "common/permissions";
-import { ref, Ref } from "@vue/composition-api";
+import { ref, Ref } from "vue";
 
 export const currentUserGrantMask: Ref<GrantMask> = ref(parseIntoGrantMask(["*"]));
 

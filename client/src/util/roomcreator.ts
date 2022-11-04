@@ -7,7 +7,7 @@ import {
 	OttApiRequestRoomCreate,
 } from "common/models/rest-api";
 import type { Store } from "vuex";
-import { Ref, ref } from "@vue/composition-api";
+import { Ref, ref } from "vue";
 import { AxiosResponse } from "axios";
 
 /** Generate a temporary room. */

@@ -39,7 +39,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "@vue/composition-api";
+import { defineComponent } from "vue";
 import draggable from "vuedraggable";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";

@@ -121,7 +121,7 @@ import { Visibility, QueueMode, RoomSettings } from "common/models/types";
 import type { Grants } from "common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
-import { defineComponent, onMounted, Ref, ref } from "@vue/composition-api";
+import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "@/util/vuex-workaround";
 import { i18n } from "@/i18n";
 

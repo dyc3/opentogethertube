@@ -34,7 +34,7 @@ import {
 	onUnmounted,
 	Ref,
 	computed,
-} from "@vue/composition-api";
+} from "vue";
 import { Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "common/models/messages";
 import { API } from "@/common-http";

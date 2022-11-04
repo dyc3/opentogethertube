@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref, watch } from "@vue/composition-api";
+import { defineComponent, Ref, ref, watch } from "vue";
 import { useStore } from "@/util/vuex-workaround";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
