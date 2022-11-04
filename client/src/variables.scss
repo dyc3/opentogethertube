@@ -1,5 +1,3 @@
-@import '~vuetify/src/components/VSnackbar/_variables.scss';
-
 $xs-max: 600px;
 $sm-min: $xs-max;
 $sm-max: 960px;
@@ -13,8 +11,8 @@ $background-color: #121212;
 $brand-color: #ffb300;
 
 :export {
-	toast-height: $snackbar-wrapper-min-height;
-	toast-height-multiline: $snackbar-multi-line-wrapper-min-height;
-	toast-margin: $snackbar-wrapper-margin;
-	toast-padding: $snackbar-wrapper-padding;
+	toast-height: 48px;// $snackbar-wrapper-min-height;
+	toast-height-multiline: 68px; // vuetify.$snackbar-multi-line-wrapper-min-height;
+	toast-margin: 8px; // vuetify.$snackbar-wrapper-margin;
+	toast-padding: 0; // vuetify.$snackbar-wrapper-padding;
 }

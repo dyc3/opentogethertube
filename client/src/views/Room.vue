@@ -319,7 +319,7 @@ import connection from "@/util/connection";
 import api from "@/util/api";
 import { PlayerStatus, QueueMode } from "common/models/types";
 import VideoQueue from "@/components/VideoQueue.vue";
-import goTo from "vuetify/lib/services/goto";
+import goTo from "vuetify/lib/services/goto/index.mjs";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClickToEdit from "@/components/ClickToEdit.vue";
