@@ -22,46 +22,78 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { defineComponent, ref, computed } from "@vue/composition-api";
+import { useStore } from "@/util/vuex-workaround";
 
-@Component({
-	name: "ShareInvite",
-})
-export default class ShareInvite extends Vue {
-	copySuccess = false;
-
-	get inviteLink() {
-		if (process.env.SHORT_URL) {
-			return `https://${process.env.SHORT_URL}/${this.$route.params.roomId}`;
-		}
-		return window.location.href.split("?")[0].toLowerCase();
+export function buildInviteLink(
+	currentLocation: string,
+	roomName: string,
+	shortUrl: string | undefined
+): string {
+	if (shortUrl !== undefined) {
+		return `https://${shortUrl}/${roomName}`;
 	}
-
-	async copyInviteLink() {
-		if (navigator.clipboard) {
-			await navigator.clipboard.writeText(this.inviteLink);
-		} else {
-			// @ts-expect-error $el actually does exist
-			let textfield = (this.$refs.inviteLinkText.$el as Element).querySelector("input");
-			if (!textfield) {
-				console.error("failed to copy link: input not found");
-				return;
-			}
-			textfield.select();
-			document.execCommand("copy");
-			setTimeout(() => {
-				this.copySuccess = false;
-				textfield?.blur();
-			}, 3000);
-		}
-		this.copySuccess = true;
-	}
-
-	onFocusHighlightText(e) {
-		e.target.select();
-	}
+	return currentLocation.split("?")[0].toLowerCase();
 }
+
+const ShareInvite = defineComponent({
+	name: "ShareInvite",
+	setup() {
+		const store = useStore();
+
+		let copySuccess = ref(false);
+
+		let inviteLinkText = ref();
+
+		function getInviteLink() {
+			return buildInviteLink(
+				window.location.href,
+				store.state.room.name,
+				process.env.SHORT_URL
+			);
+		}
+		const inviteLink = computed(getInviteLink);
+
+		async function copyInviteLink() {
+			if (navigator.clipboard) {
+				await navigator.clipboard.writeText(inviteLink.value);
+				setTimeout(() => {
+					copySuccess.value = false;
+				}, 3000);
+			} else {
+				// @ts-expect-error $el actually does exist
+				let textfield = (inviteLinkText.$el as Element).querySelector("input");
+				if (!textfield) {
+					console.error("failed to copy link: input not found");
+					return;
+				}
+				textfield.select();
+				document.execCommand("copy");
+				setTimeout(() => {
+					copySuccess.value = false;
+					textfield?.blur();
+				}, 3000);
+			}
+			copySuccess.value = true;
+		}
+
+		function onFocusHighlightText(e) {
+			e.target.select();
+		}
+
+		return {
+			copySuccess,
+			inviteLinkText,
+			getInviteLink,
+			inviteLink,
+
+			copyInviteLink,
+			onFocusHighlightText,
+		};
+	},
+});
+
+export default ShareInvite;
 </script>
 
 <style lang="scss"></style>
