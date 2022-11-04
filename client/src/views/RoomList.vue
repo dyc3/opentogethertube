@@ -28,7 +28,7 @@
 								: require('@/assets/placeholder.svg')
 						"
 						aspect-ratio="1.8"
-						v-if="$vuetify.breakpoint.smAndUp"
+						v-if="$vuetify.display.smAndUp"
 					>
 						<span class="subtitle-2 users"
 							>{{ room.users }} <v-icon small>fas fa-user-friends</v-icon></span

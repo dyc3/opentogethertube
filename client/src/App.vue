@@ -1,13 +1,9 @@
 <template>
 	<v-app id="app">
-		<v-app-bar
-			app
-			:absolute="!$store.state.fullscreen"
-			:inverted-scroll="$store.state.fullscreen"
-		>
+		<v-app-bar app :absolute="!fullscreen" :inverted-scroll="fullscreen">
 			<v-app-bar-nav-icon @click="drawer = true" />
 			<v-img
-				:src="require('@/assets/logo.svg')"
+				:src="logoUrl"
 				max-width="32"
 				max-height="32"
 				contain
@@ -18,7 +14,7 @@
 					OpenTogetherTube
 				</router-link>
 			</v-toolbar-title>
-			<v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
+			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-btn text to="/rooms">{{ $t("nav.browse") }}</v-btn>
 				<v-btn text to="/faq">{{ $t("nav.faq") }}</v-btn>
 				<v-btn
@@ -35,7 +31,7 @@
 				</v-btn>
 			</v-toolbar-items>
 			<v-spacer />
-			<v-toolbar-items v-if="$vuetify.breakpoint.lgAndUp">
+			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-menu offset-y>
 					<template v-slot:activator="{ on }">
 						<v-btn text v-on="on">
@@ -134,7 +130,7 @@
 				<LogInForm @shouldClose="showLogin = false" />
 			</v-dialog>
 		</v-container>
-		<v-overlay :value="createRoomState.value.isLoadingCreateRoom">
+		<v-overlay :value="createRoomState.isLoadingCreateRoom">
 			<v-container fill-height>
 				<v-row align="center" justify="center">
 					<v-col cols="12" sm="4">
@@ -155,7 +151,7 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent, onMounted } from "vue";
 import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
@@ -165,10 +161,10 @@ import Notifier from "@/components/Notifier.vue";
 import { loadLanguageAsync } from "@/i18n";
 import { createRoomHelper, createRoomState } from "@/util/roomcreator";
 import { useStore } from "vuex";
+import { useRouter } from "vue-router";
+import logoUrl from "@/assets/logo.svg";
 
-const store = useStore();
-
-export default {
+export const App = defineComponent({
 	name: "app",
 	components: {
 		CreateRoomForm,
@@ -177,85 +173,104 @@ export default {
 		NavCreateRoom,
 		Notifier,
 	},
-	data() {
-		return {
-			createRoomState,
-			showCreateRoomForm: false,
-			showLogin: false,
-			drawer: false,
+	setup() {
+		const store = useStore();
 
-			locales: [
-				{
-					text: "🇺🇸",
-					value: "en",
-				},
-				{
-					text: "🇩🇪",
-					value: "de",
-				},
-				{
-					text: "🇷🇺",
-					value: "ru",
-				},
-			],
+		const showCreateRoomForm = false;
+		const showLogin = false;
+		const drawer = false;
+
+		const locales = [
+			{
+				text: "🇺🇸",
+				value: "en",
+			},
+			{
+				text: "🇩🇪",
+				value: "de",
+			},
+			{
+				text: "🇷🇺",
+				value: "ru",
+			},
+		];
+
+		const logout = async () => {
+			let res = await API.post("/user/logout");
+			if (res.data.success) {
+				store.commit("LOGOUT");
+			}
 		};
-	},
-	methods: {
-		logout() {
-			API.post("/user/logout").then(res => {
-				if (res.data.success) {
-					store.commit("LOGOUT");
-				}
-			});
-		},
-		async setLocale(locale: string) {
+
+		const setLocale = async (locale: string) => {
 			await loadLanguageAsync(locale);
 			store.commit("settings/UPDATE", { locale });
-		},
-		cancelRoom() {
+		};
+
+		const cancelRoom = () => {
 			createRoomState.value.cancelledRoomCreation = true;
 			createRoomState.value.isLoadingCreateRoom = false;
-		},
-		async createTempRoom() {
+		};
+
+		const createTempRoom = async () => {
 			await createRoomHelper(store);
-		},
-	},
-	async created() {
-		store.subscribe((mutation, state) => {
-			if (mutation.type === "misc/ROOM_CREATED") {
-				try {
-					this.$router.push(`/room/${mutation.payload.name}`);
-				} catch (e) {
-					if (e.name !== "NavigationDuplicated") {
-						throw e;
+		};
+
+		onMounted(async () => {
+			const router = useRouter();
+
+			store.subscribe((mutation, state) => {
+				if (mutation.type === "misc/ROOM_CREATED") {
+					try {
+						router.push(`/room/${mutation.payload.name}`);
+					} catch (e) {
+						if (e.name !== "NavigationDuplicated") {
+							throw e;
+						}
 					}
 				}
+			});
+
+			document.addEventListener("fullscreenchange", () => {
+				if (document.fullscreenElement) {
+					store.state.fullscreen = true;
+					document.querySelector("html")?.classList.add("scrollbarBeGone");
+				} else {
+					store.state.fullscreen = false;
+					document.querySelector("html")?.classList.remove("scrollbarBeGone");
+				}
+			});
+
+			await store.dispatch("settings/load");
+			await store.dispatch("getNewToken");
+			await setLocale(store.state.settings.locale);
+
+			// ask the server if we are logged in or not, and update the client to reflect that status.
+			let resp = await API.get("/user");
+			if (resp.data.loggedIn) {
+				let user = resp.data;
+				delete user.loggedIn;
+				store.commit("LOGIN", user);
 			}
 		});
 
-		document.addEventListener("fullscreenchange", () => {
-			if (document.fullscreenElement) {
-				store.state.fullscreen = true;
-				document.querySelector("html")?.classList.add("scrollbarBeGone");
-			} else {
-				store.state.fullscreen = false;
-				document.querySelector("html")?.classList.remove("scrollbarBeGone");
-			}
-		});
-
-		await store.dispatch("settings/load");
-		await store.dispatch("getNewToken");
-		await this.setLocale(store.state.settings.locale);
-
-		// ask the server if we are logged in or not, and update the client to reflect that status.
-		let resp = await API.get("/user");
-		if (resp.data.loggedIn) {
-			let user = resp.data;
-			delete user.loggedIn;
-			store.commit("LOGIN", user);
-		}
+		return {
+			createRoomState,
+			showCreateRoomForm,
+			showLogin,
+			drawer,
+			locales,
+			fullscreen: store.state.fullscreen,
+			logout,
+			setLocale,
+			cancelRoom,
+			createTempRoom,
+			logoUrl,
+		};
 	},
-};
+});
+
+export default App;
 </script>
 
 <style lang="scss">
