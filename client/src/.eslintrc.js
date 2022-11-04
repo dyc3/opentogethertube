@@ -58,7 +58,6 @@ module.exports = {
 			files: ["*.ts", "*.tsx"],
 			parser: "@typescript-eslint/parser",
 			parserOptions: {
-				parser: "babel-eslint",
 				project: ["./tsconfig.json"],
 				ecmaFeatures: {
 					legacyDecorators: true,

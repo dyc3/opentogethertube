@@ -164,8 +164,11 @@ import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
 import { loadLanguageAsync } from "@/i18n";
 import { createRoomHelper, createRoomState } from "@/util/roomcreator";
+import { useStore } from "@/util/vuex-workaround";
 
-export default Vue.extend({
+const store = useStore();
+
+export default {
 	name: "app",
 	components: {
 		CreateRoomForm,
@@ -201,24 +204,24 @@ export default Vue.extend({
 		logout() {
 			API.post("/user/logout").then(res => {
 				if (res.data.success) {
-					this.$store.commit("LOGOUT");
+					store.commit("LOGOUT");
 				}
 			});
 		},
 		async setLocale(locale: string) {
 			await loadLanguageAsync(locale);
-			this.$store.commit("settings/UPDATE", { locale });
+			store.commit("settings/UPDATE", { locale });
 		},
 		cancelRoom() {
 			createRoomState.value.cancelledRoomCreation = true;
 			createRoomState.value.isLoadingCreateRoom = false;
 		},
 		async createTempRoom() {
-			await createRoomHelper(this.$store);
+			await createRoomHelper(store);
 		},
 	},
 	async created() {
-		this.$store.subscribe((mutation, state) => {
+		store.subscribe((mutation, state) => {
 			if (mutation.type === "misc/ROOM_CREATED") {
 				try {
 					// @ts-expect-error because vue router doesn't quite work with ts like this and im feeling lazy.
@@ -233,27 +236,27 @@ export default Vue.extend({
 
 		document.addEventListener("fullscreenchange", () => {
 			if (document.fullscreenElement) {
-				this.$store.state.fullscreen = true;
+				store.state.fullscreen = true;
 				document.querySelector("html")?.classList.add("scrollbarBeGone");
 			} else {
-				this.$store.state.fullscreen = false;
+				store.state.fullscreen = false;
 				document.querySelector("html")?.classList.remove("scrollbarBeGone");
 			}
 		});
 
-		await this.$store.dispatch("settings/load");
-		await this.$store.dispatch("getNewToken");
-		await this.setLocale(this.$store.state.settings.locale);
+		await store.dispatch("settings/load");
+		await store.dispatch("getNewToken");
+		await this.setLocale(store.state.settings.locale);
 
 		// ask the server if we are logged in or not, and update the client to reflect that status.
 		let resp = await API.get("/user");
 		if (resp.data.loggedIn) {
 			let user = resp.data;
 			delete user.loggedIn;
-			this.$store.commit("LOGIN", user);
+			store.commit("LOGIN", user);
 		}
 	},
-});
+};
 </script>
 
 <style lang="scss">

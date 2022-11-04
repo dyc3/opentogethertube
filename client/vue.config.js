@@ -4,6 +4,7 @@ require("dotenv").config({
 	path: path.resolve(process.cwd(), `../env/${process.env.NODE_ENV}.env`),
 });
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const { VuetifyPlugin } = require("webpack-plugin-vuetify");
 
 module.exports = {
 	lintOnSave: process.env.NODE_ENV !== "production",
@@ -66,7 +67,7 @@ module.exports = {
 				// },
 			],
 		},
-		plugins: [new ForkTsCheckerWebpackPlugin()],
+		plugins: [new ForkTsCheckerWebpackPlugin(), new VuetifyPlugin()],
 	},
 	chainWebpack: config => {
 		config.plugin("define").tap(definitions => {
@@ -78,5 +79,20 @@ module.exports = {
 			}
 			return definitions;
 		});
+
+		config.resolve.alias.set("vue", "@vue/compat");
+		config.module
+			.rule("vue")
+			.use("vue-loader")
+			.tap(options => {
+				return {
+					...options,
+					compilerOptions: {
+						compatConfig: {
+							MODE: 2,
+						},
+					},
+				};
+			});
 	},
 };
