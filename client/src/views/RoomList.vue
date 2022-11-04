@@ -25,7 +25,7 @@
 						:src="
 							room.currentSource && room.currentSource.thumbnail
 								? room.currentSource.thumbnail
-								: require('@/assets/placeholder.svg')
+								: placeholderUrl
 						"
 						aspect-ratio="1.8"
 						v-if="$vuetify.display.smAndUp"
@@ -64,6 +64,7 @@ import { API } from "@/common-http.js";
 import { defineComponent, ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "vuex";
+import placeholderUrl from "@/assets/placeholder.svg";
 
 const RoomListView = defineComponent({
 	name: "RoomListView",
@@ -88,6 +89,7 @@ const RoomListView = defineComponent({
 			rooms,
 
 			createRoom,
+			placeholderUrl,
 		};
 	},
 });
