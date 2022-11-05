@@ -480,6 +480,9 @@ export default {
 		},
 
 		updateVolume() {
+			if (!this.$refs.player) {
+				return;
+			}
 			this.$refs.player.setVolume(this.volume);
 		},
 		onPlayerApiReady() {
