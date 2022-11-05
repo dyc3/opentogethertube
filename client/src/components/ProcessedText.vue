@@ -9,8 +9,8 @@
 				@click="e => onLinkClick(e, item.text)"
 			>
 				<v-tooltip top>
-					<template v-slot:activator="{ on, attrs }">
-						<span v-bind="attrs" v-on="on">{{ item.text }}</span>
+					<template v-slot:activator="{ props }">
+						<span v-bind="props">{{ item.text }}</span>
 					</template>
 					<span>{{ $t("processed-text.link-hint") }}</span>
 				</v-tooltip>

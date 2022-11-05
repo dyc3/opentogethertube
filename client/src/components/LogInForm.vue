@@ -4,7 +4,7 @@
 			<v-tab key="login">{{ $t("login-form.login") }}</v-tab>
 			<v-tab key="register">{{ $t("login-form.register") }}</v-tab>
 		</v-tabs>
-		<v-tabs-items v-model="mode">
+		<v-window v-model="mode">
 			<v-tab-item>
 				<v-card>
 					<v-form
@@ -141,7 +141,7 @@
 					</v-form>
 				</v-card>
 			</v-tab-item>
-		</v-tabs-items>
+		</v-window>
 	</v-sheet>
 </template>
 

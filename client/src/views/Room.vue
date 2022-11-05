@@ -80,11 +80,10 @@
 								/>
 								<v-row no-gutters align="center">
 									<v-tooltip bottom>
-										<template v-slot:activator="{ on, attrs }">
+										<template v-slot:activator="{ props }">
 											<v-btn
 												@click="seekDelta(-10)"
-												v-bind="attrs"
-												v-on="on"
+												v-bind="props"
 												:disabled="!grants.granted('playback.seek')"
 											>
 												<v-icon>fas fa-angle-left</v-icon>
@@ -93,11 +92,10 @@
 										<span>{{ $t("room.rewind") }}</span>
 									</v-tooltip>
 									<v-tooltip bottom>
-										<template v-slot:activator="{ on, attrs }">
+										<template v-slot:activator="{ props }">
 											<v-btn
 												@click="togglePlayback()"
-												v-bind="attrs"
-												v-on="on"
+												v-bind="props"
 												:disabled="!grants.granted('playback.play-pause')"
 											>
 												<v-icon v-if="$store.state.room.isPlaying"
@@ -109,11 +107,10 @@
 										<span>{{ $t("room.play-pause") }}</span>
 									</v-tooltip>
 									<v-tooltip bottom>
-										<template v-slot:activator="{ on, attrs }">
+										<template v-slot:activator="{ props }">
 											<v-btn
 												@click="seekDelta(10)"
-												v-bind="attrs"
-												v-on="on"
+												v-bind="props"
 												:disabled="!grants.granted('playback.seek')"
 											>
 												<v-icon>fas fa-angle-right</v-icon>
@@ -122,11 +119,10 @@
 										<span>{{ $t("room.skip") }}</span>
 									</v-tooltip>
 									<v-tooltip bottom>
-										<template v-slot:activator="{ on, attrs }">
+										<template v-slot:activator="{ props }">
 											<v-btn
 												@click="api.skip()"
-												v-bind="attrs"
-												v-on="on"
+												v-bind="props"
 												:disabled="!grants.granted('playback.skip')"
 											>
 												<v-icon>fas fa-fast-forward</v-icon>
@@ -181,11 +177,10 @@
 										>
 									</v-btn>
 									<v-tooltip bottom>
-										<template v-slot:activator="{ on, attrs }">
+										<template v-slot:activator="{ props }">
 											<v-btn
 												@click="toggleFullscreen()"
-												v-bind="attrs"
-												v-on="on"
+												v-bind="props"
 												style="margin-left: 10px"
 											>
 												<v-icon>fas fa-compress</v-icon>
@@ -204,7 +199,7 @@
 				</v-row>
 				<v-row no-gutters>
 					<v-col cols="12" md="8" sm="12">
-						<v-tabs grow v-model="queueTab" @change="onTabChange">
+						<v-tabs fixed-tabs v-model="queueTab" @change="onTabChange">
 							<v-tab>
 								<v-icon>fas fa-list</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
@@ -223,17 +218,17 @@
 								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
 							</v-tab>
 						</v-tabs>
-						<v-tabs-items v-model="queueTab" class="queue-tab-content">
-							<v-tab-item>
+						<v-window v-model="queueTab" class="queue-tab-content">
+							<v-window-item>
 								<VideoQueue @switchtab="switchToAddTab" />
-							</v-tab-item>
-							<v-tab-item>
+							</v-window-item>
+							<v-window-item>
 								<AddPreview ref="addpreview" />
-							</v-tab-item>
-							<v-tab-item>
+							</v-window-item>
+							<v-window-item>
 								<RoomSettingsForm ref="settings" />
-							</v-tab-item>
-						</v-tabs-items>
+							</v-window-item>
+						</v-window>
 					</v-col>
 					<v-col col="4" md="4" sm="12" class="user-invite-container">
 						<div v-if="debugMode" class="debug-container">

@@ -42,12 +42,11 @@
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
 				<v-tooltip top>
-					<template v-slot:activator="{ on, attrs }">
+					<template v-slot:activator="{ props }">
 						<v-btn
 							icon
 							@click="playNow"
-							v-on="on"
-							v-bind="attrs"
+							v-bind="props"
 							v-if="store.state.room.queueMode !== QueueMode.Vote"
 						>
 							<v-icon>fas fa-play</v-icon>
@@ -56,13 +55,12 @@
 					<span>{{ $t("video.playnow-explanation") }}</span>
 				</v-tooltip>
 				<v-tooltip top>
-					<template v-slot:activator="{ on, attrs }">
+					<template v-slot:activator="{ props }">
 						<v-btn
 							icon
 							:loading="isLoadingAdd"
 							@click="addToQueue"
-							v-on="on"
-							v-bind="attrs"
+							v-bind="props"
 							v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
@@ -83,8 +81,8 @@
 					<v-icon v-else>fas fa-trash</v-icon>
 				</v-btn>
 				<v-menu offset-y>
-					<template v-slot:activator="{ on, attrs }">
-						<v-btn icon v-bind="attrs" v-on="on">
+					<template v-slot:activator="{ props }">
+						<v-btn icon v-bind="props">
 							<v-icon>fas fa-ellipsis-v</v-icon>
 						</v-btn>
 					</template>

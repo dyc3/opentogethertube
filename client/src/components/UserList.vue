@@ -19,8 +19,8 @@
 		<v-list-item v-for="(user, index) in users" :key="index" :class="getUserCssClasses(user)">
 			<span class="name">{{ user.name }}</span>
 			<v-tooltip top>
-				<template v-slot:activator="{ on, attrs }">
-					<span v-bind="attrs" v-on="on">
+				<template v-slot:activator="{ props }">
+					<span v-bind="props">
 						<v-icon
 							small
 							class="role"
@@ -42,8 +42,8 @@
 				$t("room.users.you")
 			}}</span>
 			<v-tooltip top>
-				<template v-slot:activator="{ on, attrs }">
-					<span v-bind="attrs" v-on="on">
+				<template v-slot:activator="{ props }">
+					<span v-bind="props">
 						<v-icon
 							small
 							class="player-status"
@@ -66,8 +66,8 @@
 
 			<div style="margin-left: auto" v-if="user.id !== $store.state.users.you.id">
 				<v-menu right offset-y>
-					<template v-slot:activator="{ on, attrs }">
-						<v-btn depressed tile v-bind="attrs" v-on="on">
+					<template v-slot:activator="{ props }">
+						<v-btn depressed tile v-bind="props">
 							<v-icon small>fas fa-cog</v-icon>
 							<v-icon size="small" style="margin-left: 5px" aria-hidden>
 								fas fa-caret-down

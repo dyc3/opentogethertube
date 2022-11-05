@@ -1,7 +1,7 @@
 <template>
 	<v-menu offset-y v-if="$store.state.user">
-		<template v-slot:activator="{ on }">
-			<v-btn text v-on="on" :key="$store.state.user.username">
+		<template v-slot:activator="{ props }">
+			<v-btn text v-bind="props" :key="$store.state.user.username">
 				{{ $store.state.user.username }}
 			</v-btn>
 		</template>
