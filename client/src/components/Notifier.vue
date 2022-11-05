@@ -23,6 +23,7 @@
 import { defineComponent } from "vue";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { useStore } from "vuex";
+import toast from "@/util/toast";
 
 /**
  * Handles displaying all toast notifications.
@@ -34,6 +35,7 @@ const Notifier = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		toast.setStore(store);
 
 		function closeAll() {
 			store.commit("toast/CLEAR_ALL_TOASTS");

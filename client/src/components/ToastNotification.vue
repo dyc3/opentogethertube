@@ -3,7 +3,7 @@
 		app
 		right
 		absolute
-		value="true"
+		:model-value="true"
 		timeout="-1"
 		:color="color"
 		class="toast"
@@ -12,12 +12,12 @@
 		<v-icon v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
 		<v-icon v-else-if="toast.style === ToastStyle.Error">fas fa-exclamation-circle</v-icon>
 		{{ toast.content }}
-		<div class="bar" :style="{ 'animation-duration': `${this.toast.duration}ms` }"></div>
-		<template v-slot:action="{ attrs }">
-			<v-btn text v-if="undoable" @click="undo">
+		<div class="bar" :style="{ 'animation-duration': `${toast.duration}ms` }"></div>
+		<template v-slot:actions>
+			<v-btn variant="text" v-if="undoable" @click="undo">
 				{{ $t("actions.undo") }}
 			</v-btn>
-			<v-btn text v-bind="props" @click="close" size="x-small" icon :color="`${color} darken-2`">
+			<v-btn variant="text" @click="close" size="x-small" icon :color="`${color} darken-2`">
 				<v-icon>fas fa-times</v-icon>
 			</v-btn>
 		</template>
@@ -26,15 +26,7 @@
 
 <script lang="ts">
 import { PropType } from "vue";
-import {
-	defineComponent,
-	ref,
-	toRefs,
-	onMounted,
-	onUnmounted,
-	Ref,
-	computed,
-} from "vue";
+import { defineComponent, ref, toRefs, onMounted, onUnmounted, Ref, computed } from "vue";
 import { Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "common/models/messages";
 import { API } from "@/common-http";
@@ -117,6 +109,7 @@ const ToastNotification = defineComponent({
 			padding,
 			color,
 			undoable,
+			toast,
 
 			undo,
 			close,
