@@ -1,27 +1,20 @@
 <template>
-	<v-snackbar
-		app
-		right
-		absolute
-		:model-value="true"
-		timeout="-1"
-		:color="color"
-		class="toast"
-		transform="false"
-	>
-		<v-icon v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
-		<v-icon v-else-if="toast.style === ToastStyle.Error">fas fa-exclamation-circle</v-icon>
-		{{ toast.content }}
+	<v-sheet :color="color" class="toast">
+		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
+		<v-icon class="toast-icon" v-else-if="toast.style === ToastStyle.Error">
+			fas fa-exclamation-circle
+		</v-icon>
+		<span class="toast-content">{{ toast.content }}</span>
 		<div class="bar" :style="{ 'animation-duration': `${toast.duration}ms` }"></div>
-		<template v-slot:actions>
+		<div class="toast-actions">
 			<v-btn variant="text" v-if="undoable" @click="undo">
 				{{ $t("actions.undo") }}
 			</v-btn>
 			<v-btn variant="text" @click="close" size="x-small" icon :color="`${color} darken-2`">
 				<v-icon>fas fa-times</v-icon>
 			</v-btn>
-		</template>
-	</v-snackbar>
+		</div>
+	</v-sheet>
 </template>
 
 <script lang="ts">
@@ -122,6 +115,14 @@ export default ToastNotification;
 </script>
 
 <style lang="scss" scoped>
+$toast-height: 48px; // $snackbar-wrapper-min-height;
+$toast-height-multiline: 68px; // vuetify.$snackbar-multi-line-wrapper-min-height;
+$toast-min-width: 344px; // $snackbar-wrapper-min-width;
+$toast-max-width: 672px; // $snackbar-wrapper-max-width;
+$toast-margin: 8px; // vuetify.$snackbar-wrapper-margin;
+$toast-padding: 0; // vuetify.$snackbar-wrapper-padding;
+$toast-content-padding: 14px 16px;
+
 @keyframes toast_timer {
 	0% {
 		// transform: scaleX(1);
@@ -135,6 +136,27 @@ export default ToastNotification;
 
 .toast {
 	position: relative;
+	display: flex;
+	height: $toast-height;
+	margin: $toast-margin;
+	padding: $toast-padding;
+	min-width: $toast-min-width;
+	max-width: $toast-max-width;
+	align-items: center;
+
+	.toast-icon {
+		margin-left: 10px;
+	}
+
+	.toast-content {
+		padding: $toast-content-padding;
+	}
+
+	.toast-actions {
+		display: flex;
+		align-items: center;
+		margin-left: auto;
+	}
 
 	.bar {
 		display: block;

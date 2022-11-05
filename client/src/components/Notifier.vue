@@ -60,7 +60,7 @@ export default Notifier;
 	pointer-events: none;
 	z-index: 1000;
 
-	.v-stackbar,
+	.toast,
 	button {
 		pointer-events: auto;
 	}
