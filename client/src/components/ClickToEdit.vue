@@ -4,7 +4,7 @@
 			<v-text-field
 				variant="solo"
 				hide-details
-				dense
+				density="compact"
 				single-line
 				class="editor"
 				ref="editor"
@@ -15,19 +15,13 @@
 			/>
 		</div>
 		<div v-else @click="activate" class="editable" ref="display">
-			{{ typeof value === "number" ? valueFormatter(value) : value }}
+			{{ typeof modelValue === "number" ? valueFormatter(modelValue) : modelValue }}
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, nextTick, Ref } from "vue";
-
-const editor = ref<HTMLInputElement | undefined>();
-const editing = ref(false);
-const valueDirty = ref();
-const display: Ref<HTMLDivElement | undefined> = ref();
-const editorWidth = ref(120);
+import { defineComponent, ref, nextTick, Ref } from "vue";
 
 function valueFormatterDefault(value: number): string {
 	return value.toString();
@@ -44,7 +38,7 @@ const ClickToEdit = defineComponent({
 	name: "ClickToEdit",
 	emits: ["change", "input"],
 	props: {
-		value: {
+		modelValue: {
 			type: [String, Number],
 			required: true,
 		},
@@ -58,18 +52,24 @@ const ClickToEdit = defineComponent({
 		},
 	},
 	setup(props, { emit }) {
-		const { value } = toRefs(props);
+		const modelValue = ref(props.modelValue);
+		const editor = ref<HTMLInputElement | undefined>();
 		const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
 		const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
+
+		const editing = ref(false);
+		const valueDirty = ref();
+		const display: Ref<HTMLDivElement | undefined> = ref();
+		const editorWidth = ref(120);
 
 		async function activate() {
 			if (display.value) {
 				editorWidth.value = display.value.offsetWidth + 24;
 			}
-			if (typeof value.value === "number") {
-				valueDirty.value = valueFormatter.value(value.value);
+			if (typeof modelValue.value === "number") {
+				valueDirty.value = valueFormatter.value(modelValue.value);
 			} else {
-				valueDirty.value = value.value;
+				valueDirty.value = modelValue.value;
 			}
 			editing.value = true;
 			await nextTick();
@@ -77,14 +77,14 @@ const ClickToEdit = defineComponent({
 		}
 
 		function apply() {
-			if (typeof value.value === "number") {
-				value.value = valueParser.value(valueDirty.value);
+			if (typeof modelValue.value === "number") {
+				modelValue.value = valueParser.value(valueDirty.value);
 			} else {
-				value.value = valueDirty.value;
+				modelValue.value = valueDirty.value;
 			}
 			editing.value = false;
-			emit("change", value.value);
-			emit("input", value.value);
+			emit("change", modelValue.value);
+			emit("input", modelValue.value);
 		}
 
 		function abort() {
@@ -92,6 +92,7 @@ const ClickToEdit = defineComponent({
 		}
 
 		return {
+			modelValue,
 			editor,
 			display,
 			editing,
