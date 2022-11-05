@@ -215,7 +215,7 @@
 					<v-col col="4" md="4" sm="12" class="user-invite-container">
 						<div v-if="debugMode" class="debug-container">
 							<v-card>
-								<v-subheader> Debug (prod: {{ this.production }}) </v-subheader>
+								<v-card-title> Debug (prod: {{ this.production }}) </v-card-title>
 								<v-list-item>
 									Player status: {{ this.$store.state.playerStatus }}
 								</v-list-item>

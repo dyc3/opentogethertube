@@ -1,11 +1,11 @@
 <template>
 	<v-card class="user-list">
-		<v-subheader>
+		<v-card-title>
 			{{ $t("room.users.title") }}
 			<v-btn icon size="x-small" @click="openEditName">
 				<v-icon>fas fa-cog</v-icon>
 			</v-btn>
-		</v-subheader>
+		</v-card-title>
 		<v-list-item v-if="showEditName">
 			<v-text-field
 				v-model="inputUsername"

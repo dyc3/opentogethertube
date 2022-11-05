@@ -1,9 +1,9 @@
 <template>
 	<div class="share-invite">
 		<v-card>
-			<v-subheader>
+			<v-card-title>
 				{{ $t("share-invite.title") }}
-			</v-subheader>
+			</v-card-title>
 			<v-card-text>
 				{{ $t("share-invite.text") }}
 				<v-text-field
