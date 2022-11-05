@@ -1,8 +1,8 @@
 <template>
 	<div class="video-queue">
 		<div class="empty-queue" v-if="$store.state.room.queue.length === 0">
-			<v-container fill-height>
-				<v-row justify="center" align="center">
+			<v-container style="height: 100%">
+				<v-row justify="center" align="center" style="height: 100%">
 					<div>
 						<div class="msg">
 							{{ $t("video-queue.no-videos") }}
