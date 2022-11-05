@@ -13,7 +13,7 @@
 		</div>
 		<div ref="messages" @scroll="onScroll" class="messages d-flex flex-column flex-grow-1 mt-2">
 			<div class="d-flex flex-grow-1"><!-- Spacer --></div>
-			<transition-group name="message" style="width: 100%">
+			<transition-group name="message">
 				<div class="message" v-for="(msg, index) in chatMessagePast" :key="index">
 					<div class="from">{{ msg.from.name }}</div>
 					<div class="text">
@@ -35,7 +35,7 @@
 			<div class="input-box" v-if="activated">
 				<v-text-field
 					variant="solo"
-					dense
+					density="compact"
 					single-line
 					:placeholder="$t('chat.type-here')"
 					@keydown="onInputKeyDown"
