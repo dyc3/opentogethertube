@@ -67,19 +67,17 @@
 			/>
 			<PermissionsEditor
 				v-if="
-					!$store.state.room.isTemporary &&
-					$store.state.user &&
-					$store.state.room.hasOwner
+					!store.state.room.isTemporary && store.state.user && store.state.room.hasOwner
 				"
 				v-model="inputRoomSettings.grants"
-				:current-role="$store.state.users.you.role"
+				:current-role="store.state.users.you.role"
 			/>
-			<div v-else-if="$store.state.room.isTemporary">
+			<div v-else-if="store.state.room.isTemporary">
 				{{ $t("room-settings.permissions-not-available") }}
 			</div>
-			<div v-else-if="!$store.state.room.hasOwner">
+			<div v-else-if="!store.state.room.hasOwner">
 				{{ $t("room-settings.room-needs-owner") }}
-				<span v-if="!$store.state.user">
+				<span v-if="!store.state.user">
 					{{ $t("room-settings.login-to-claim") }}
 				</span>
 			</div>
@@ -88,11 +86,11 @@
 			</div>
 			<div class="submit">
 				<v-btn
-					large
+					size="large"
 					block
 					color="blue"
-					v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner"
-					:disabled="!$store.state.user"
+					v-if="!store.state.room.isTemporary && !store.state.room.hasOwner"
+					:disabled="!store.state.user"
 					role="submit"
 					@click="claimOwnership"
 					>Claim Room</v-btn
@@ -121,7 +119,7 @@ import { granted } from "@/util/grants";
 import toast from "@/util/toast";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "vuex";
-import { i18n } from "@/i18n";
+import { useI18n } from "vue-i18n";
 
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
@@ -130,6 +128,7 @@ const RoomSettingsForm = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		const { t } = useI18n();
 
 		let isLoadingRoomSettings = ref(false);
 		let inputRoomSettings: Ref<RoomSettings> = ref({
@@ -191,7 +190,7 @@ const RoomSettingsForm = defineComponent({
 				await API.patch(`/room/${store.state.room.name}`, getRoomSettingsSubmit());
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n.t("room-settings.settings-applied").toString(),
+					content: t("room-settings.settings-applied").toString(),
 					duration: 4000,
 				});
 			} catch (e) {
@@ -213,11 +212,9 @@ const RoomSettingsForm = defineComponent({
 				});
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n
-						.t("room-settings.now-own-the-room", {
-							room: store.state.room.name,
-						})
-						.toString(),
+					content: t("room-settings.now-own-the-room", {
+						room: store.state.room.name,
+					}).toString(),
 					duration: 4000,
 				});
 			} catch (e) {
