@@ -109,27 +109,18 @@
 
 <script>
 const services = ["youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"];
+import { defineAsyncComponent } from "vue";
 
 export default {
 	name: "omniplayer",
 	props: ["source"],
 	components: {
-		YoutubePlayer: () =>
-			import(/* webpackChunkName: "youtube" */ "@/components/players/YoutubePlayer.vue"),
-		VimeoPlayer: () =>
-			import(/* webpackChunkName: "vimeo" */ "@/components/players/VimeoPlayer.vue"),
-		DailymotionPlayer: () =>
-			import(
-				/* webpackChunkName: "dailymotion" */ "@/components/players/DailymotionPlayer.vue"
-			),
-		GoogleDrivePlayer: () =>
-			import(
-				/* webpackChunkName: "googledrive" */ "@/components/players/GoogleDrivePlayer.vue"
-			),
-		DirectPlayer: () =>
-			import(/* webpackChunkName: "direct" */ "@/components/players/DirectPlayer.vue"),
-		GenericHlsPlayer: () =>
-			import(/* webpackChunkName: "hls" */ "@/components/players/GenericHlsPlayer.vue"),
+		YoutubePlayer: defineAsyncComponent(() => import("./YoutubePlayer.vue")),
+		VimeoPlayer: defineAsyncComponent(() => import("./VimeoPlayer.vue")),
+		DailymotionPlayer: defineAsyncComponent(() => import("./DailymotionPlayer.vue")),
+		GoogleDrivePlayer: defineAsyncComponent(() => import("./GoogleDrivePlayer.vue")),
+		DirectPlayer: defineAsyncComponent(() => import("./DirectPlayer.vue")),
+		GenericHlsPlayer: defineAsyncComponent(() => import("./GenericHlsPlayer.vue")),
 	},
 	methods: {
 		player() {
