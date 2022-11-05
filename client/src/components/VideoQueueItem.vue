@@ -181,7 +181,7 @@ const VideoQueueItem = defineComponent({
 		let thumbnailSource = computed(() => {
 			return !thumbnailHasError.value && item.value.thumbnail
 				? item.value.thumbnail
-				: require("@/assets/placeholder.svg");
+				: placeholderUrl;
 		});
 		let votes = computed(() => {
 			const store = useStore();
