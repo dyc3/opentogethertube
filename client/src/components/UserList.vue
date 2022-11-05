@@ -18,51 +18,47 @@
 		</v-list-item>
 		<v-list-item v-for="(user, index) in users" :key="index" :class="getUserCssClasses(user)">
 			<span class="name">{{ user.name }}</span>
-			<v-tooltip top>
-				<template v-slot:activator="{ props }">
-					<span v-bind="props">
-						<v-icon
-							small
-							class="role"
-							:aria-label="`${
-								user.id === $store.state.users.you.id ? 'you' : user.name
-							} is ${ROLE_DISPLAY_NAMES[user.role]}`"
-						>
-							fas fa-{{
-								{ "2": "thumbs-up", "3": "chevron-up", "4": "star", "-1": "star" }[
-									user.role
-								]
-							}}
-						</v-icon>
-					</span>
-				</template>
-				<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
-			</v-tooltip>
+			<span>
+				<v-icon
+					small
+					class="role"
+					:aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${
+						ROLE_DISPLAY_NAMES[user.role]
+					}`"
+				>
+					fas fa-{{
+						{ "2": "thumbs-up", "3": "chevron-up", "4": "star", "-1": "star" }[
+							user.role
+						]
+					}}
+				</v-icon>
+				<v-tooltip activator="parent" location="top">
+					<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
+				</v-tooltip>
+			</span>
 			<span v-if="user.id === $store.state.users.you.id" class="is-you">{{
 				$t("room.users.you")
 			}}</span>
-			<v-tooltip top>
-				<template v-slot:activator="{ props }">
-					<span v-bind="props">
-						<v-icon
-							small
-							class="player-status"
-							:aria-label="`${
-								user.id === $store.state.users.you.id ? 'your' : user.name
-							} player is ${user.status}`"
-						>
-							fas fa-{{
-								{
-									[PlayerStatus.buffering]: "spinner",
-									[PlayerStatus.ready]: "check",
-									[PlayerStatus.error]: "exclamation",
-								}[user.status]
-							}}
-						</v-icon>
-					</span>
-				</template>
-				<span>{{ user.status }}</span>
-			</v-tooltip>
+			<span>
+				<v-icon
+					small
+					class="player-status"
+					:aria-label="`${
+						user.id === $store.state.users.you.id ? 'your' : user.name
+					} player is ${user.status}`"
+				>
+					fas fa-{{
+						{
+							[PlayerStatus.buffering]: "spinner",
+							[PlayerStatus.ready]: "check",
+							[PlayerStatus.error]: "exclamation",
+						}[user.status]
+					}}
+				</v-icon>
+				<v-tooltip activator="parent" location="top">
+					<span>{{ user.status }}</span>
+				</v-tooltip>
+			</span>
 
 			<div style="margin-left: auto" v-if="user.id !== $store.state.users.you.id">
 				<v-menu right offset-y>
