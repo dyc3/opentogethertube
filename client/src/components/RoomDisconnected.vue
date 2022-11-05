@@ -9,19 +9,20 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { useStore } from "vuex";
-import { i18n } from "@/i18n";
+import { useI18n } from "vue-i18n";
 
 const RoomDisconnected = defineComponent({
 	name: "RoomDisconnected",
 	setup() {
 		const store = useStore();
+		const { t } = useI18n();
 
 		function reasonText() {
 			if (store.state.connection.disconnected) {
 				let reason = store.state.connection.disconnected.reason;
-				return i18n.t(`connect-overlay.dc-reasons.${reason}`);
+				return t(`connect-overlay.dc-reasons.${reason}`);
 			} else {
-				return i18n.t("connect-overlay.dc-reasons.unknown");
+				return t("connect-overlay.dc-reasons.unknown");
 			}
 		}
 
