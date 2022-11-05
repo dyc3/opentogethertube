@@ -79,57 +79,45 @@
 									tooltip="hover"
 								/>
 								<v-row no-gutters align="center">
-									<v-tooltip bottom>
-										<template v-slot:activator="{ props }">
-											<v-btn
-												@click="seekDelta(-10)"
-												v-bind="props"
-												:disabled="!grants.granted('playback.seek')"
-											>
-												<v-icon>fas fa-angle-left</v-icon>
-											</v-btn>
-										</template>
-										<span>{{ $t("room.rewind") }}</span>
-									</v-tooltip>
-									<v-tooltip bottom>
-										<template v-slot:activator="{ props }">
-											<v-btn
-												@click="togglePlayback()"
-												v-bind="props"
-												:disabled="!grants.granted('playback.play-pause')"
-											>
-												<v-icon v-if="$store.state.room.isPlaying"
-													>fas fa-pause</v-icon
-												>
-												<v-icon v-else>fas fa-play</v-icon>
-											</v-btn>
-										</template>
-										<span>{{ $t("room.play-pause") }}</span>
-									</v-tooltip>
-									<v-tooltip bottom>
-										<template v-slot:activator="{ props }">
-											<v-btn
-												@click="seekDelta(10)"
-												v-bind="props"
-												:disabled="!grants.granted('playback.seek')"
-											>
-												<v-icon>fas fa-angle-right</v-icon>
-											</v-btn>
-										</template>
-										<span>{{ $t("room.skip") }}</span>
-									</v-tooltip>
-									<v-tooltip bottom>
-										<template v-slot:activator="{ props }">
-											<v-btn
-												@click="api.skip()"
-												v-bind="props"
-												:disabled="!grants.granted('playback.skip')"
-											>
-												<v-icon>fas fa-fast-forward</v-icon>
-											</v-btn>
-										</template>
-										<span>{{ $t("room.next-video") }}</span>
-									</v-tooltip>
+									<v-btn
+										@click="seekDelta(-10)"
+										:disabled="!grants.granted('playback.seek')"
+									>
+										<v-icon>fas fa-angle-left</v-icon>
+										<v-tooltip activator="parent" location="bottom">
+											<span>{{ $t("room.rewind") }}</span>
+										</v-tooltip>
+									</v-btn>
+									<v-btn
+										@click="togglePlayback()"
+										:disabled="!grants.granted('playback.play-pause')"
+									>
+										<v-icon v-if="$store.state.room.isPlaying"
+											>fas fa-pause</v-icon
+										>
+										<v-icon v-else>fas fa-play</v-icon>
+										<v-tooltip activator="parent" location="bottom">
+											<span>{{ $t("room.play-pause") }}</span>
+										</v-tooltip>
+									</v-btn>
+									<v-btn
+										@click="seekDelta(10)"
+										:disabled="!grants.granted('playback.seek')"
+									>
+										<v-icon>fas fa-angle-right</v-icon>
+										<v-tooltip activator="parent" location="bottom">
+											<span>{{ $t("room.skip") }}</span>
+										</v-tooltip>
+									</v-btn>
+									<v-btn
+										@click="api.skip()"
+										:disabled="!grants.granted('playback.skip')"
+									>
+										<v-icon>fas fa-fast-forward</v-icon>
+										<v-tooltip activator="parent" location="bottom">
+											<span>{{ $t("room.next-video") }}</span>
+										</v-tooltip>
+									</v-btn>
 									<vue-slider
 										v-model="volume"
 										style="width: 150px; margin-left: 10px; margin-right: 20px"
@@ -176,18 +164,12 @@
 											>far fa-square</v-icon
 										>
 									</v-btn>
-									<v-tooltip bottom>
-										<template v-slot:activator="{ props }">
-											<v-btn
-												@click="toggleFullscreen()"
-												v-bind="props"
-												style="margin-left: 10px"
-											>
-												<v-icon>fas fa-compress</v-icon>
-											</v-btn>
-										</template>
-										<span>{{ $t("room.toggle-fullscreen") }}</span>
-									</v-tooltip>
+									<v-btn @click="toggleFullscreen()" style="margin-left: 10px">
+										<v-icon>fas fa-compress</v-icon>
+										<v-tooltip activator="parent" location="bottom">
+											<span>{{ $t("room.toggle-fullscreen") }}</span>
+										</v-tooltip>
+									</v-btn>
 								</v-row>
 							</v-col>
 							<div class="in-video-chat">
