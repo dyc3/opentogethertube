@@ -41,38 +41,35 @@
 					<v-icon>fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-tooltip top>
-					<template v-slot:activator="{ props }">
-						<v-btn
-							icon
-							@click="playNow"
-							v-bind="props"
-							v-if="store.state.room.queueMode !== QueueMode.Vote"
-						>
-							<v-icon>fas fa-play</v-icon>
-						</v-btn>
-					</template>
-					<span>{{ $t("video.playnow-explanation") }}</span>
-				</v-tooltip>
-				<v-tooltip top>
-					<template v-slot:activator="{ props }">
-						<v-btn
-							icon
-							:loading="isLoadingAdd"
-							@click="addToQueue"
-							v-bind="props"
-							v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
-						>
-							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
-							<v-icon v-else>fas fa-plus</v-icon>
-						</v-btn>
-					</template>
-					<span>{{ $t("video.add-explanation") }}</span>
-				</v-tooltip>
+				<v-btn
+					icon
+					variant="flat"
+					@click="playNow"
+					v-if="store.state.room.queueMode !== QueueMode.Vote"
+				>
+					<v-icon>fas fa-play</v-icon>
+					<v-tooltip activator="parent" location="top">
+						<span>{{ $t("video.playnow-explanation") }}</span>
+					</v-tooltip>
+				</v-btn>
+				<v-btn
+					icon
+					variant="flat"
+					:loading="isLoadingAdd"
+					@click="addToQueue"
+					v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
+				>
+					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
+					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
+					<v-icon v-else>fas fa-plus</v-icon>
+					<v-tooltip activator="parent" location="top">
+						<span>{{ $t("video.add-explanation") }}</span>
+					</v-tooltip>
+				</v-btn>
 
 				<v-btn
 					icon
+					variant="flat"
 					:loading="isLoadingAdd"
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
@@ -82,7 +79,7 @@
 				</v-btn>
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
-						<v-btn icon v-bind="props">
+						<v-btn icon variant="flat" v-bind="props">
 							<v-icon>fas fa-ellipsis-v</v-icon>
 						</v-btn>
 					</template>
