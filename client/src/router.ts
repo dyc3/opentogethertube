@@ -45,6 +45,11 @@ const routes: RouteRecordRaw[] = [
 		redirect: "/room/:roomId",
 	},
 	{
+		path: "/playground",
+		name: "playground",
+		component: () => import("./views/Playground.vue"),
+	},
+	{
 		path: "/:catchAll(.*)",
 		name: "not-found",
 		component: () => import("./views/NotFound.vue"),
