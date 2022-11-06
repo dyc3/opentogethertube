@@ -8,7 +8,9 @@ $lg-max: 1920px;
 $xl-min: $lg-max;
 
 $background-color: #121212;
-$brand-color: #ffb300;
+$primary-color: #ffb300;
+$secondary-color: #42A5F5;
+$brand-color: $primary-color;
 
 :export {
 	toast-height: 48px;// $snackbar-wrapper-min-height;
