@@ -22,11 +22,11 @@
 					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
 					target="_blank"
 				>
-					<v-icon class="side-pad">fas fa-bug</v-icon>
+					<v-icon class="side-pad">fa:fas fa-bug</v-icon>
 					{{ $t("nav.bug") }}
 				</v-btn>
 				<v-btn variant="text" href="https://github.com/sponsors/dyc3" target="_blank">
-					<v-icon class="side-pad">fas fa-heart</v-icon>
+					<v-icon class="side-pad">fa:fas fa-heart</v-icon>
 					{{ $t("nav.support") }}
 				</v-btn>
 			</v-toolbar-items>
@@ -35,7 +35,7 @@
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
 						<v-btn variant="text" v-bind="props">
-							<v-icon class="side-pad">fas fa-plus-square</v-icon>
+							<v-icon class="side-pad">fa:fas fa-plus-square</v-icon>
 							{{ $t("nav.create.title") }}
 						</v-btn>
 					</template>

@@ -130,7 +130,7 @@
 								href="https://github.com/sponsors/dyc3"
 								target="_blank"
 							>
-								<v-icon class="side-pad">fas fa-heart</v-icon>
+								<v-icon class="side-pad">fa:fas fa-heart</v-icon>
 								{{ $t("landing.support.sponsor") }}
 							</v-btn>
 							<v-btn
@@ -141,7 +141,7 @@
 								href="https://github.com/dyc3/opentogethertube"
 								target="_blank"
 							>
-								<v-icon class="side-pad">fas fa-code</v-icon>
+								<v-icon class="side-pad">fa:fas fa-code</v-icon>
 								{{ $t("landing.support.contribute") }}
 							</v-btn>
 						</v-col>

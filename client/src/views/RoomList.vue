@@ -31,7 +31,7 @@
 						v-if="$vuetify.display.smAndUp"
 					>
 						<span class="subtitle-2 users"
-							>{{ room.users }} <v-icon small>fas fa-user-friends</v-icon></span
+							>{{ room.users }} <v-icon small>fa:fas fa-user-friends</v-icon></span
 						>
 					</v-img>
 					<v-card-title v-text="room.isTemporary ? 'Temporary Room' : room.name" />
