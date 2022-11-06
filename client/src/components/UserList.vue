@@ -25,16 +25,8 @@
 					:aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${
 						ROLE_DISPLAY_NAMES[user.role]
 					}`"
-				>
-					{{
-						{
-							"2": "fa:fas fa-thumbs-up",
-							"3": "fa:fas fa-chevron-up",
-							"4": "fa:fas fa-star",
-							"-1": "fa:fas fa-star",
-						}[user.role]
-					}}
-				</v-icon>
+					:icon="getRoleIcon(user.role)"
+				/>
 				<v-tooltip activator="parent" location="top">
 					<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
 				</v-tooltip>
@@ -49,15 +41,8 @@
 					:aria-label="`${
 						user.id === $store.state.users.you.id ? 'your' : user.name
 					} player is ${user.status}`"
-				>
-					fa:fas fa-{{
-						{
-							[PlayerStatus.buffering]: "spinner",
-							[PlayerStatus.ready]: "check",
-							[PlayerStatus.error]: "exclamation",
-						}[user.status]
-					}}
-				</v-icon>
+					:icon="getPlayerStatusIcon(user.status)"
+				/>
 				<v-tooltip activator="parent" location="top">
 					<span>{{ user.status }}</span>
 				</v-tooltip>
@@ -182,6 +167,23 @@ export const UserList = defineComponent({
 			return false;
 		}
 
+		function getRoleIcon(role: Role) {
+			return {
+				[Role.Owner]: "fa:fas fa-star",
+				[Role.Administrator]: "fa:fas fa-star",
+				[Role.Moderator]: "fa:fas fa-chevron-up",
+				[Role.TrustedUser]: "fa:fas fa-thumbs-up",
+			}[role];
+		}
+
+		function getPlayerStatusIcon(status: PlayerStatus) {
+			return {
+				[PlayerStatus.buffering]: "fa:fas fa-spinner",
+				[PlayerStatus.ready]: "fa:fas fa-check",
+				[PlayerStatus.error]: "fa:fas fa-exclamation",
+			}[status];
+		}
+
 		return {
 			inputUsername,
 			showEditName,
@@ -193,6 +195,8 @@ export const UserList = defineComponent({
 			roleToPermission,
 			getUserCssClasses,
 			canUserBePromotedTo,
+			getRoleIcon,
+			getPlayerStatusIcon,
 
 			ROLE_NAMES,
 			ROLE_DISPLAY_NAMES,

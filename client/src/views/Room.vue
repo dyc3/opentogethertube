@@ -92,10 +92,13 @@
 										@click="togglePlayback()"
 										:disabled="!grants.granted('playback.play-pause')"
 									>
-										<v-icon v-if="$store.state.room.isPlaying">
-											fa:fas fa-pause
-										</v-icon>
-										<v-icon v-else>fa:fas fa-play</v-icon>
+										<v-icon
+											:icon="
+												$store.state.room.isPlaying
+													? 'fa:fas fa-pause'
+													: 'fa:fas fa-play'
+											"
+										/>
 										<v-tooltip activator="parent" location="bottom">
 											<span>{{ $t("room.play-pause") }}</span>
 										</v-tooltip>
