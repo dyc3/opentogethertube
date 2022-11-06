@@ -427,6 +427,7 @@ export default VideoQueueItem;
 			rgba(0, 0, 0, 0.7) 40%,
 			rgba(0, 0, 0, 0) 100%
 		);
+		cursor: move;
 
 		opacity: 0;
 
