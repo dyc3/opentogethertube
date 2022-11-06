@@ -59,9 +59,9 @@
 					@click="addToQueue"
 					v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
 				>
-					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-					<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
-					<v-icon v-else>fas fa-plus</v-icon>
+					<v-icon v-if="hasError">fa:fas fa-exclamation</v-icon>
+					<v-icon v-else-if="hasBeenAdded">fa:fas fa-check</v-icon>
+					<v-icon v-else>fa:fas fa-plus</v-icon>
 					<v-tooltip activator="parent" location="top">
 						<span>{{ $t("video.add-explanation") }}</span>
 					</v-tooltip>
@@ -74,8 +74,8 @@
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
 				>
-					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-					<v-icon v-else>fas fa-trash</v-icon>
+					<v-icon v-if="hasError">fa:fas fa-exclamation</v-icon>
+					<v-icon v-else>fa:fas fa-trash</v-icon>
 				</v-btn>
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
@@ -119,8 +119,8 @@
 							@click="addToQueue"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
-							<v-icon v-else>fas fa-plus</v-icon>
+							<v-icon v-else-if="hasBeenAdded">fa:fas fa-check</v-icon>
+							<v-icon v-else>fa:fas fa-plus</v-icon>
 							<span>{{ $t("video-queue-item.add") }}</span>
 						</v-btn>
 						<v-list-item

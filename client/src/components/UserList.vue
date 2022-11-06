@@ -64,9 +64,9 @@
 				<v-menu right offset-y>
 					<template v-slot:activator="{ props }">
 						<v-btn depressed tile v-bind="props">
-							<v-icon small>fas fa-cog</v-icon>
+							<v-icon size="small">fa:fas fa-cog</v-icon>
 							<v-icon size="small" style="margin-left: 5px" aria-hidden>
-								fas fa-caret-down
+								fa:fas fa-caret-down
 							</v-icon>
 						</v-btn>
 					</template>
