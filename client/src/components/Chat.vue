@@ -47,8 +47,8 @@
 			</div>
 		</Transition>
 		<div class="manual-activate" v-if="!activated">
-			<v-btn icon size="x-small" @click="setActivated(true, true)">
-				<v-icon>far fa-comment-alt</v-icon>
+			<v-btn variant="text" icon size="x-small" @click="setActivated(true, true)">
+				<v-icon>fa:far fa-comment-alt</v-icon>
 			</v-btn>
 		</div>
 	</div>
