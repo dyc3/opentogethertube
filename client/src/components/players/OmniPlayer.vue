@@ -96,13 +96,9 @@
 			@buffer-progress="onBufferProgress"
 			@buffer-spans="timespans => $emit('buffer-spans', timespans)"
 		/>
-		<v-container v-else fluid fill-height>
-			<v-row justify="center" align="center">
-				<v-col cols="auto">
-					<h1>{{ $t("video.no-video") }}</h1>
-					<span>{{ $t("video.no-video-text") }}</span>
-				</v-col>
-			</v-row>
+		<v-container v-else fluid fill-height class="no-video">
+			<h1>{{ $t("video.no-video") }}</h1>
+			<span>{{ $t("video.no-video-text") }}</span>
 		</v-container>
 	</div>
 </template>
@@ -178,6 +174,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.no-video {
+	display: flex;
+	height: 100%;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+}
+
 .player {
 	width: 100%;
 	height: 100%;
