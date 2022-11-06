@@ -72,13 +72,13 @@
 					target="_blank"
 				>
 					<template #prepend>
-						<v-icon>fas fa-bug</v-icon>
+						<v-icon>fa:fas fa-bug</v-icon>
 					</template>
 					{{ $t("nav.bug") }}
 				</v-list-item>
 				<v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
 					<template #prepend>
-						<v-icon>fas fa-heart</v-icon>
+						<v-icon>fa:fas fa-heart</v-icon>
 					</template>
 					{{ $t("nav.support") }}
 				</v-list-item>

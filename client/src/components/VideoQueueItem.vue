@@ -11,7 +11,7 @@
 					class="drag-handle"
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 				>
-					<v-icon>fas fa-align-justify</v-icon>
+					<v-icon>fa:fas fa-align-justify</v-icon>
 				</span>
 				<span class="video-length">{{ videoLength }}</span>
 			</v-img>
@@ -38,7 +38,7 @@
 					v-if="!isPreview && store.state.room.queueMode === QueueMode.Vote"
 				>
 					<span>{{ votes }}</span>
-					<v-icon>fas fa-thumbs-up</v-icon>
+					<v-icon>fa:fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
 				<v-btn
@@ -47,7 +47,7 @@
 					@click="playNow"
 					v-if="store.state.room.queueMode !== QueueMode.Vote"
 				>
-					<v-icon>fas fa-play</v-icon>
+					<v-icon>fa:fas fa-play</v-icon>
 					<v-tooltip activator="parent" location="top">
 						<span>{{ $t("video.playnow-explanation") }}</span>
 					</v-tooltip>
@@ -80,7 +80,7 @@
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
 						<v-btn icon variant="flat" v-bind="props">
-							<v-icon>fas fa-ellipsis-v</v-icon>
+							<v-icon>fa:fas fa-ellipsis-v</v-icon>
 						</v-btn>
 					</template>
 					<v-list>
@@ -89,7 +89,7 @@
 							@click="playNow"
 							v-if="store.state.room.queueMode !== QueueMode.Vote"
 						>
-							<v-icon>fas fa-play</v-icon>
+							<v-icon>fa:fas fa-play</v-icon>
 							<span>{{ $t("video.playnow") }}</span>
 						</v-list-item>
 						<v-list-item
@@ -101,7 +101,7 @@
 								store.state.room.queueMode !== QueueMode.Dj
 							"
 						>
-							<v-icon>fas fa-sort-amount-up</v-icon>
+							<v-icon>fa:fas fa-sort-amount-up</v-icon>
 							<span>{{ $t("video-queue-item.play-next") }}</span>
 						</v-list-item>
 						<v-list-item
@@ -109,7 +109,7 @@
 							@click="moveToBottom"
 							v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 						>
-							<v-icon>fas fa-sort-amount-down-alt</v-icon>
+							<v-icon>fa:fas fa-sort-amount-down-alt</v-icon>
 							<span>{{ $t("video-queue-item.play-last") }}</span>
 						</v-list-item>
 						<v-btn
@@ -128,7 +128,7 @@
 							@click="removeFromQueue"
 							v-if="!isPreview && store.state.room.queueMode === QueueMode.Dj"
 						>
-							<v-icon>fas fa-trash</v-icon>
+							<v-icon>fa:fas fa-trash</v-icon>
 							<span>{{ $t("video-queue-item.remove") }}</span>
 						</v-list-item>
 					</v-list>

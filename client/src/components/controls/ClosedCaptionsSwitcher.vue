@@ -2,7 +2,7 @@
 	<v-menu top offset-y :disabled="!supported">
 		<template v-slot:activator="{ props }">
 			<v-btn v-bind="props" :disabled="!supported">
-				<v-icon>fas fa-closed-captioning</v-icon>
+				<v-icon>fa:fas fa-closed-captioning</v-icon>
 			</v-btn>
 		</template>
 		<v-list>

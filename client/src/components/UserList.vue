@@ -3,7 +3,7 @@
 		<v-card-title>
 			{{ $t("room.users.title") }}
 			<v-btn icon size="x-small" @click="openEditName">
-				<v-icon>fas fa-cog</v-icon>
+				<v-icon>fa:fas fa-cog</v-icon>
 			</v-btn>
 		</v-card-title>
 		<v-list-item v-if="showEditName">
@@ -26,7 +26,7 @@
 						ROLE_DISPLAY_NAMES[user.role]
 					}`"
 				>
-					fas fa-{{
+					fa:fas fa-{{
 						{ "2": "thumbs-up", "3": "chevron-up", "4": "star", "-1": "star" }[
 							user.role
 						]
@@ -47,7 +47,7 @@
 						user.id === $store.state.users.you.id ? 'your' : user.name
 					} player is ${user.status}`"
 				>
-					fas fa-{{
+					fa:fas fa-{{
 						{
 							[PlayerStatus.buffering]: "spinner",
 							[PlayerStatus.ready]: "check",

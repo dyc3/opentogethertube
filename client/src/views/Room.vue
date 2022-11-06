@@ -83,7 +83,7 @@
 										@click="seekDelta(-10)"
 										:disabled="!grants.granted('playback.seek')"
 									>
-										<v-icon>fas fa-angle-left</v-icon>
+										<v-icon>fa:fas fa-angle-left</v-icon>
 										<v-tooltip activator="parent" location="bottom">
 											<span>{{ $t("room.rewind") }}</span>
 										</v-tooltip>
@@ -92,10 +92,10 @@
 										@click="togglePlayback()"
 										:disabled="!grants.granted('playback.play-pause')"
 									>
-										<v-icon v-if="$store.state.room.isPlaying"
-											>fas fa-pause</v-icon
-										>
-										<v-icon v-else>fas fa-play</v-icon>
+										<v-icon v-if="$store.state.room.isPlaying">
+											fa:fas fa-pause
+										</v-icon>
+										<v-icon v-else>fa:fas fa-play</v-icon>
 										<v-tooltip activator="parent" location="bottom">
 											<span>{{ $t("room.play-pause") }}</span>
 										</v-tooltip>
@@ -104,7 +104,7 @@
 										@click="seekDelta(10)"
 										:disabled="!grants.granted('playback.seek')"
 									>
-										<v-icon>fas fa-angle-right</v-icon>
+										<v-icon>fa:fas fa-angle-right</v-icon>
 										<v-tooltip activator="parent" location="bottom">
 											<span>{{ $t("room.skip") }}</span>
 										</v-tooltip>
@@ -113,7 +113,7 @@
 										@click="api.skip()"
 										:disabled="!grants.granted('playback.skip')"
 									>
-										<v-icon>fas fa-fast-forward</v-icon>
+										<v-icon>fa:fas fa-fast-forward</v-icon>
 										<v-tooltip activator="parent" location="bottom">
 											<span>{{ $t("room.next-video") }}</span>
 										</v-tooltip>
@@ -158,14 +158,14 @@
 										<v-icon
 											v-if="$store.state.settings.roomLayout === 'theater'"
 											style="transform: scaleX(180%)"
-											>far fa-square</v-icon
+											>fa:far fa-square</v-icon
 										>
 										<v-icon v-else style="transform: scaleX(130%)"
-											>far fa-square</v-icon
+											>fa:far fa-square</v-icon
 										>
 									</v-btn>
 									<v-btn @click="toggleFullscreen()" style="margin-left: 10px">
-										<v-icon>fas fa-compress</v-icon>
+										<v-icon>fa:fas fa-compress</v-icon>
 										<v-tooltip activator="parent" location="bottom">
 											<span>{{ $t("room.toggle-fullscreen") }}</span>
 										</v-tooltip>
@@ -183,7 +183,7 @@
 					<v-col cols="12" md="8" sm="12">
 						<v-tabs fixed-tabs v-model="queueTab" @change="onTabChange">
 							<v-tab>
-								<v-icon>fas fa-list</v-icon>
+								<v-icon>fa:fas fa-list</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
 								<span class="bubble">{{
 									$store.state.room.queue.length <= 99
@@ -192,11 +192,11 @@
 								}}</span>
 							</v-tab>
 							<v-tab>
-								<v-icon>fas fa-plus</v-icon>
+								<v-icon>fa:fas fa-plus</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.add") }}</span>
 							</v-tab>
 							<v-tab>
-								<v-icon>fas fa-cog</v-icon>
+								<v-icon>fa:fas fa-cog</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
 							</v-tab>
 						</v-tabs>

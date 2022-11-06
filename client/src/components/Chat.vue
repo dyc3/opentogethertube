@@ -7,7 +7,7 @@
 	>
 		<div class="chat-header d-flex flex-row" v-if="activated">
 			<v-btn icon size="x-small" @click="setActivated(false)">
-				<v-icon>fas fa-chevron-down</v-icon>
+				<v-icon>fa:fas fa-chevron-down</v-icon>
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
 		</div>

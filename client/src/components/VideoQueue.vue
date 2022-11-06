@@ -8,7 +8,7 @@
 							{{ $t("video-queue.no-videos") }}
 						</div>
 						<v-btn size="x-large" block @click="$emit('switchtab')">
-							<v-icon style="margin-right: 8px">fas fa-plus</v-icon>
+							<v-icon style="margin-right: 8px">fa:fas fa-plus</v-icon>
 							{{ $t("video-queue.add-video") }}
 						</v-btn>
 					</div>
@@ -17,7 +17,7 @@
 		</div>
 		<div class="queue-controls" v-if="$store.state.room.queue.length > 0">
 			<v-btn icon @click="api.shuffle()">
-				<v-icon>fas fa-random</v-icon>
+				<v-icon>fa:fas fa-random</v-icon>
 			</v-btn>
 		</div>
 		<draggable

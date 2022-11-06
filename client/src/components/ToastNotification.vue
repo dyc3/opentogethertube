@@ -2,7 +2,7 @@
 	<v-sheet :color="color" class="toast">
 		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
 		<v-icon class="toast-icon" v-else-if="toast.style === ToastStyle.Error">
-			fas fa-exclamation-circle
+			fa:fas fa-exclamation-circle
 		</v-icon>
 		<span class="toast-content">{{ toast.content }}</span>
 		<div class="bar" :style="{ 'animation-duration': `${toast.duration}ms` }"></div>
@@ -11,7 +11,7 @@
 				{{ $t("actions.undo") }}
 			</v-btn>
 			<v-btn variant="text" @click="close" size="x-small" icon :color="`${color} darken-2`">
-				<v-icon>fas fa-times</v-icon>
+				<v-icon>fa:fas fa-times</v-icon>
 			</v-btn>
 		</div>
 	</v-sheet>
