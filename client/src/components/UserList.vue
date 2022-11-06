@@ -20,7 +20,7 @@
 			<span class="name">{{ user.name }}</span>
 			<span>
 				<v-icon
-					small
+					size="small"
 					class="role"
 					:aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${
 						ROLE_DISPLAY_NAMES[user.role]
@@ -44,7 +44,7 @@
 			}}</span>
 			<span>
 				<v-icon
-					small
+					size="small"
 					class="player-status"
 					:aria-label="`${
 						user.id === $store.state.users.you.id ? 'your' : user.name
@@ -95,76 +95,75 @@
 	</v-card>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, ref } from "vue";
 import { API } from "@/common-http.js";
 import { PlayerStatus } from "common/models/types";
 import api from "@/util/api";
 import { USERNAME_LENGTH_MAX } from "common/constants";
-import { GrantChecker } from "@/util/grants";
+import { granted } from "@/util/grants";
 import { Role } from "common/models/types";
 import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "common/permissions";
+import { useStore } from "vuex";
 
 /** Lists users that are connected to a room. */
-export default {
+export const UserList = defineComponent({
 	name: "UserList",
 	props: {
 		users: { type: Array },
 	},
-	data() {
-		return {
-			PlayerStatus,
-			inputUsername: "",
-			showEditName: false,
-			setUsernameLoading: false,
-			setUsernameFailureText: "",
-			api,
-			USERNAME_LENGTH_MAX,
+	setup(props) {
+		const store = useStore();
 
-			grants: new GrantChecker(),
-			Role,
-			ROLE_NAMES,
-			ROLE_DISPLAY_NAMES,
-		};
-	},
-	methods: {
-		openEditName() {
-			if (!this.inputUsername) {
-				this.inputUsername = this.$store.state.user
-					? this.$store.state.user.username
-					: this.$store.state.username;
+		let users = ref(props.users);
+
+		let inputUsername = ref("");
+		let showEditName = ref(false);
+		let setUsernameLoading = ref(false);
+		let setUsernameFailureText = ref("");
+
+		function openEditName() {
+			if (!inputUsername.value) {
+				inputUsername.value = store.state.user
+					? store.state.user.username
+					: store.state.username;
 			}
-			this.showEditName = !this.showEditName;
-		},
-		async onEditNameChange() {
-			this.setUsernameLoading = true;
+			showEditName.value = !showEditName.value;
+		}
+
+		async function onEditNameChange() {
+			setUsernameLoading.value = true;
 			try {
-				await API.post("/user", { username: this.inputUsername });
-				this.showEditName = false;
-				this.setUsernameFailureText = "";
+				await API.post("/user", { username: inputUsername.value });
+				showEditName.value = false;
+				setUsernameFailureText.value = "";
 			} catch (err) {
-				this.setUsernameFailureText = err.response
+				setUsernameFailureText.value = err.response
 					? err.response.data.error.message
 					: err.message;
 			}
-			this.setUsernameLoading = false;
-		},
+			setUsernameLoading.value = false;
+		}
+
 		/** Gets the appropriate permission name for the role and promotion/demotion. */
-		roleToPermission(role, demote = false) {
+		function roleToPermission(role: Role, demote = false) {
 			let r = {
 				[Role.Administrator]: "admin",
 				[Role.Moderator]: "moderator",
 				[Role.TrustedUser]: "trusted-user",
 			}[role];
 			return `manage-users.${demote ? "de" : "pro"}mote-${r}`;
-		},
-		getUserCssClasses(user) {
+		}
+
+		function getUserCssClasses(user) {
 			let cls = ["user", `role-${ROLE_NAMES[user.role]}`];
 			if (user.isLoggedIn) {
 				cls.push("registered");
 			}
 			return cls;
-		},
-		canUserBePromotedTo(user, role) {
+		}
+
+		function canUserBePromotedTo(user, role: Role) {
 			if (user.role === role) {
 				return false;
 			}
@@ -173,17 +172,39 @@ export default {
 			}
 			if (role > Role.RegisteredUser) {
 				// check for promote
-				return this.grants.granted(this.roleToPermission(role));
+				return granted(roleToPermission(role));
 			}
 			if (user.role >= Role.RegisteredUser) {
 				// check for demote
-				return this.grants.granted(this.roleToPermission(user.role, true));
+				return granted(roleToPermission(user.role, true));
 			}
 
 			return false;
-		},
+		}
+
+		return {
+			inputUsername,
+			showEditName,
+			setUsernameLoading,
+			setUsernameFailureText,
+
+			openEditName,
+			onEditNameChange,
+			roleToPermission,
+			getUserCssClasses,
+			canUserBePromotedTo,
+
+			ROLE_NAMES,
+			ROLE_DISPLAY_NAMES,
+			USERNAME_LENGTH_MAX,
+			PlayerStatus,
+			api,
+			Role,
+		};
 	},
-};
+});
+
+export default UserList;
 </script>
 
 <style lang="scss" scoped>
