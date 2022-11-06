@@ -26,10 +26,13 @@
 						ROLE_DISPLAY_NAMES[user.role]
 					}`"
 				>
-					fa:fas fa-{{
-						{ "2": "thumbs-up", "3": "chevron-up", "4": "star", "-1": "star" }[
-							user.role
-						]
+					{{
+						{
+							"2": "fa:fas fa-thumbs-up",
+							"3": "fa:fas fa-chevron-up",
+							"4": "fa:fas fa-star",
+							"-1": "fa:fas fa-star",
+						}[user.role]
 					}}
 				</v-icon>
 				<v-tooltip activator="parent" location="top">
@@ -61,33 +64,29 @@
 			</span>
 
 			<div style="margin-left: auto" v-if="user.id !== $store.state.users.you.id">
-				<v-menu right offset-y>
-					<template v-slot:activator="{ props }">
-						<v-btn depressed tile v-bind="props">
-							<v-icon size="small">fa:fas fa-cog</v-icon>
-							<v-icon size="small" style="margin-left: 5px" aria-hidden>
-								fa:fas fa-caret-down
-							</v-icon>
-						</v-btn>
-					</template>
-					<v-list>
-						<div class="user-promotion">
-							<div v-for="role in 4" :key="user.role + role">
-								<v-list-item
-									@click="api.promoteUser(user.id, role)"
-									v-if="canUserBePromotedTo(user, role)"
-								>
-									{{
-										user.role > role
-											? $t("room.users.demote")
-											: $t("room.users.promote")
-									}}
-									to {{ ROLE_DISPLAY_NAMES[role] }}
-								</v-list-item>
+				<v-btn variant="flat" depressed tile>
+					<v-icon size="small">fa:fas fa-cog</v-icon>
+					<v-icon size="small" style="margin-left: 5px">fa:fas fa-caret-down</v-icon>
+					<v-menu right offset-y activator="parent">
+						<v-list>
+							<div class="user-promotion">
+								<div v-for="role in 4" :key="user.role + role">
+									<v-list-item
+										@click="api.promoteUser(user.id, role)"
+										v-if="canUserBePromotedTo(user, role)"
+									>
+										{{
+											user.role > role
+												? $t("room.users.demote")
+												: $t("room.users.promote")
+										}}
+										to {{ ROLE_DISPLAY_NAMES[role] }}
+									</v-list-item>
+								</div>
 							</div>
-						</div>
-					</v-list>
-				</v-menu>
+						</v-list>
+					</v-menu>
+				</v-btn>
 			</div>
 		</v-list-item>
 		<v-list-item class="nobody-here" v-if="users.length === 1">
