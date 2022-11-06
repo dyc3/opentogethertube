@@ -16,34 +16,38 @@
 			<v-select
 				:label="$t('room-settings.visibility')"
 				:items="[
-					{ text: $t('room-settings.public'), value: 'public' },
-					{ text: $t('room-settings.unlisted'), value: 'unlisted' },
+					{ title: $t('room-settings.public'), value: 'public' },
+					{ title: $t('room-settings.unlisted'), value: 'unlisted' },
 				]"
 				v-model="inputRoomSettings.visibility"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-visibility')"
 				data-cy="select-visibility"
-			/>
+			>
+				<template #item="{ props }">
+					<v-list-item v-bind="props" />
+				</template>
+			</v-select>
 			<v-select
 				:label="$t('room-settings.queue-mode')"
 				:items="[
 					{
-						name: $t('room-settings.manual'),
+						title: $t('room-settings.manual'),
 						value: QueueMode.Manual,
 						description: $t('room-settings.manual-hint'),
 					},
 					{
-						name: $t('room-settings.vote'),
+						title: $t('room-settings.vote'),
 						value: QueueMode.Vote,
 						description: $t('room-settings.vote-hint'),
 					},
 					{
-						name: $t('room-settings.loop'),
+						title: $t('room-settings.loop'),
 						value: QueueMode.Loop,
 						description: $t('room-settings.loop-hint'),
 					},
 					{
-						name: $t('room-settings.dj'),
+						title: $t('room-settings.dj'),
 						value: QueueMode.Dj,
 						description: $t('room-settings.dj-hint'),
 					},
@@ -53,12 +57,13 @@
 				:disabled="!granted('configure-room.set-queue-mode')"
 				data-cy="select-queueMode"
 			>
-				<template v-slot:item="data">
-					<v-list-item-title>{{ data.item.name }}</v-list-item-title>
-					<v-list-item-subtitle>{{ data.item.description }}</v-list-item-subtitle>
+				<template #item="{ props, item }">
+					<v-list-item v-bind="props">
+						<span class="text-grey text-caption">{{ item.raw.description }}</span>
+					</v-list-item>
 				</template>
-				<template v-slot:selection="data">
-					<v-list-item-title>{{ data.item.name }}</v-list-item-title>
+				<template #selection="{ item }">
+					<v-list-item v-bind="item.props" />
 				</template>
 			</v-select>
 			<v-checkbox
@@ -120,6 +125,24 @@ import toast from "@/util/toast";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
+
+// const QueueModeSelectorItem = defineComponent({
+// 	name: "QueueModeSelectorItem",
+// 	props: {
+// 		item: {
+// 			type: Object,
+// 			required: true,
+// 		},
+// 	},
+// 	setup(props) {
+// 		return () => (
+// 			<v-list-item>
+// 				<v-list-item-title>{props.item.title}</v-list-item-title>
+// 				<v-list-item-subtitle>{props.item.description}</v-list-item-subtitle>
+// 			</v-list-item>
+// 		);
+// 	},
+// })
 
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
