@@ -4,7 +4,6 @@
 		"target": "es2018",
 		"baseUrl": ".",
 		"types": [
-			"webpack-env",
 			"jest",
 			"vuetify"
 		],
