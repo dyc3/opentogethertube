@@ -22,15 +22,15 @@
 		</div>
 		<draggable
 			tag="transition-group"
-			:component-data="{ name: 'video-queue' }"
+			:component-data="{ name: 'video-queue', type: 'transition-group' }"
 			v-model="$store.state.room.queue"
 			:move="() => granted('manage-queue.order')"
 			@end="onQueueDragDrop"
 			handle=".drag-handle"
-			item-key="id"
+			animation="200"
 		>
-			<template #item="itemdata">
-				<VideoQueueItem :key="itemdata.id" :item="itemdata" />
+			<template #item="{ element }">
+				<VideoQueueItem :key="element.id" :item="element" />
 			</template>
 		</draggable>
 	</div>
@@ -42,9 +42,11 @@ import draggable from "vuedraggable";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";
 import { granted } from "@/util/grants";
+import { useStore } from "vuex";
 
 function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
-	api.queueMove(e.oldIndex, e.newIndex);
+	// HACK: For some reason, vuedraggable decided to offset all the indexes by 1? I have no idea why they decided to change this
+	api.queueMove(e.oldIndex - 1, e.newIndex - 1);
 }
 
 const VideoQueue = defineComponent({
@@ -54,11 +56,14 @@ const VideoQueue = defineComponent({
 		VideoQueueItem,
 	},
 	setup() {
+		const store = useStore();
+
 		return {
 			onQueueDragDrop,
 
 			api,
 			granted,
+			store,
 		};
 	},
 });
@@ -90,8 +95,8 @@ export default VideoQueue;
 .video-queue-leave-active {
 	transition: all 0.2s;
 }
-.video-queue-enter,
-.video-queue.leave-to {
+.video-queue-enter-from,
+.video-queue-leave-to {
 	opacity: 0;
 	transform: translateX(-30px) scaleY(0);
 }
