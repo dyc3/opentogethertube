@@ -47,13 +47,7 @@
 					</v-list>
 				</v-menu>
 				<NavUser @login="showLogin = true" @logout="logout" />
-				<v-select
-					variant="solo"
-					style="margin-top: 5px; width: 100px"
-					:items="locales"
-					@change="setLocale"
-					:value="$i18n.locale"
-				/>
+				<LocaleSelector style="margin-top: 5px; width: 100px" />
 			</v-toolbar-items>
 		</v-app-bar>
 		<v-navigation-drawer v-model="drawer" absolute temporary>
@@ -87,12 +81,7 @@
 					@createperm="showCreateRoomForm = true"
 				/>
 				<NavUser @login="showLogin = true" @logout="logout" />
-				<v-select
-					variant="solo"
-					:items="locales"
-					@change="setLocale"
-					:value="$i18n.locale"
-				/>
+				<LocaleSelector />
 			</v-list>
 			<template v-slot:append>
 				<div class="pa-2">
@@ -144,6 +133,7 @@ import { createRoomHelper } from "@/util/roomcreator";
 import { useRouter } from "vue-router";
 import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
+import { LocaleSelector } from "@/components/navbar/LocaleSelector.vue";
 
 export const App = defineComponent({
 	name: "app",
@@ -153,6 +143,7 @@ export const App = defineComponent({
 		NavUser,
 		NavCreateRoom,
 		Notifier,
+		LocaleSelector,
 	},
 	setup() {
 		const store = useStore();
@@ -160,21 +151,6 @@ export const App = defineComponent({
 		const showCreateRoomForm = ref(false);
 		const showLogin = ref(false);
 		const drawer = ref(false);
-
-		const locales = [
-			{
-				text: "🇺🇸",
-				value: "en",
-			},
-			{
-				text: "🇩🇪",
-				value: "de",
-			},
-			{
-				text: "🇷🇺",
-				value: "ru",
-			},
-		];
 
 		const logout = async () => {
 			let res = await API.post("/user/logout");
@@ -238,7 +214,6 @@ export const App = defineComponent({
 			showCreateRoomForm,
 			showLogin,
 			drawer,
-			locales,
 			fullscreen: store.state.fullscreen,
 			logout,
 			setLocale,
