@@ -116,7 +116,7 @@
 				<LogInForm @shouldClose="showLogin = false" />
 			</v-dialog>
 		</v-container>
-		<v-overlay :value="store.state.misc.isLoadingCreateRoom">
+		<v-overlay :model-value="store.state.misc.isLoadingCreateRoom">
 			<v-container fill-height>
 				<v-row align="center" justify="center">
 					<v-col cols="12" sm="4">
