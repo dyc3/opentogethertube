@@ -20,6 +20,7 @@ export const miscModule: Module<MiscState, unknown> = {
 			state.cancelledRoomCreation = false;
 		},
 		CANCELLED_ROOM_CREATION(state: MiscState) {
+			state.isLoadingCreateRoom = false;
 			state.cancelledRoomCreation = true;
 		},
 		ROOM_CREATED(state: MiscState, payload: { name: string }) {

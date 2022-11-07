@@ -116,20 +116,15 @@
 				<LogInForm @shouldClose="showLogin = false" />
 			</v-dialog>
 		</v-container>
-		<v-overlay :model-value="store.state.misc.isLoadingCreateRoom">
-			<v-container fill-height>
-				<v-row align="center" justify="center">
-					<v-col cols="12" sm="4">
-						<v-progress-circular indeterminate />
-						<v-btn
-							elevation="12"
-							size="x-large"
-							@click="cancelRoom"
-							style="margin-top: 24px"
-							>{{ $t("actions.cancel") }}</v-btn
-						>
-					</v-col>
-				</v-row>
+		<v-overlay
+			class="overlay-loading-create-room"
+			:model-value="store.state.misc.isLoadingCreateRoom"
+		>
+			<v-container class="overlay-loading-create-room">
+				<v-progress-circular indeterminate />
+				<v-btn elevation="12" size="x-large" @click="cancelRoom" style="margin-top: 24px">
+					{{ $t("actions.cancel") }}
+				</v-btn>
 			</v-container>
 		</v-overlay>
 		<Notifier />
@@ -280,5 +275,14 @@ export default App;
 	&::-webkit-scrollbar {
 		display: none;
 	}
+}
+
+.overlay-loading-create-room {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
 }
 </style>
