@@ -45,7 +45,7 @@
 
 <script lang="ts">
 import { defineComponent, Ref, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
 

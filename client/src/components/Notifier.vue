@@ -22,7 +22,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import ToastNotification from "@/components/ToastNotification.vue";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 import toast from "@/util/toast";
 
 /**

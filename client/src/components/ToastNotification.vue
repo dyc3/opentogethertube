@@ -24,7 +24,7 @@ import { Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "common/models/messages";
 import { API } from "@/common-http";
 import toasts from "@/util/toast";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 
 interface ToastNotificationProps {
 	toast: Toast;

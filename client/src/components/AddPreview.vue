@@ -157,7 +157,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, watch, Ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { API } from "@/common-http.js";
 import _ from "lodash";

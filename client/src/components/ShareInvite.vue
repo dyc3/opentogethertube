@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from "vue";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 
 export function buildInviteLink(
 	currentLocation: string,

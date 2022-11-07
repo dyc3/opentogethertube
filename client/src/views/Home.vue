@@ -178,7 +178,7 @@
 <script>
 import { defineComponent, computed } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 
 export const HomeView = defineComponent({
 	name: "home",

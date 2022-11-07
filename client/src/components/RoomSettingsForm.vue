@@ -123,7 +123,7 @@ import type { Grants } from "common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
 import { defineComponent, onMounted, Ref, ref } from "vue";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 
 // const QueueModeSelectorItem = defineComponent({

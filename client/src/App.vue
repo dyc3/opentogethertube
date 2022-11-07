@@ -116,7 +116,7 @@
 				<LogInForm @shouldClose="showLogin = false" />
 			</v-dialog>
 		</v-container>
-		<v-overlay :value="createRoomState.isLoadingCreateRoom">
+		<v-overlay :value="store.state.misc.isLoadingCreateRoom">
 			<v-container fill-height>
 				<v-row align="center" justify="center">
 					<v-col cols="12" sm="4">
@@ -145,10 +145,10 @@ import NavUser from "@/components/navbar/NavUser.vue";
 import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
 import { loadLanguageAsync } from "@/i18n";
-import { createRoomHelper, createRoomState } from "@/util/roomcreator";
-import { useStore } from "vuex";
+import { createRoomHelper } from "@/util/roomcreator";
 import { useRouter } from "vue-router";
 import logoUrl from "@/assets/logo.svg";
+import { useStore } from "@/store";
 
 export const App = defineComponent({
 	name: "app",
@@ -194,8 +194,7 @@ export const App = defineComponent({
 		};
 
 		const cancelRoom = () => {
-			createRoomState.cancelledRoomCreation = true;
-			createRoomState.isLoadingCreateRoom = false;
+			store.commit("misc/CANCELLED_ROOM_CREATION");
 		};
 
 		const createTempRoom = async () => {
@@ -241,7 +240,6 @@ export const App = defineComponent({
 		});
 
 		return {
-			createRoomState,
 			showCreateRoomForm,
 			showLogin,
 			drawer,
@@ -252,6 +250,7 @@ export const App = defineComponent({
 			cancelRoom,
 			createTempRoom,
 			logoUrl,
+			store,
 		};
 	},
 });

@@ -89,7 +89,7 @@ import { USERNAME_LENGTH_MAX } from "common/constants";
 import { granted } from "@/util/grants";
 import { Role } from "common/models/types";
 import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "common/permissions";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 
 /** Lists users that are connected to a room. */
 export const UserList = defineComponent({

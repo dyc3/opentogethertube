@@ -42,7 +42,7 @@ import draggable from "vuedraggable";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";
 import { granted } from "@/util/grants";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 
 function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
 	// HACK: For some reason, vuedraggable decided to offset all the indexes by 1? I have no idea why they decided to change this

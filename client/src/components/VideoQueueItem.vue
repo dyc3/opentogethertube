@@ -146,7 +146,7 @@ import { ToastStyle } from "@/models/toast";
 import { QueueItem, VideoId } from "common/models/video";
 import { QueueMode } from "common/models/types";
 import api from "@/util/api";
-import { useStore } from "vuex";
+import { useStore } from "@/store";
 import toast from "@/util/toast";
 import placeholderUrl from "@/assets/placeholder.svg";
 import { useI18n } from "vue-i18n";
