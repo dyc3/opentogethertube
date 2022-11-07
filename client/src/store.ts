@@ -1,20 +1,57 @@
-import { createStore, Store } from "vuex";
-import type { FullOTTStoreState } from "@/util/vuex-workaround";
-import dayjs from "dayjs";
+import { createStore, Store, useStore as baseUseStore } from "vuex";
+import dayjs, { Dayjs } from "dayjs";
 import connection from "@/util/connection";
 import { toastModule } from "@/stores/toast";
 import { usersModule } from "@/stores/user";
-import { settingsModule } from "@/stores/settings";
+import { settingsModule, SettingsState } from "@/stores/settings";
 import { ToastStyle } from "./models/toast";
 import eventModule from "@/stores/events";
 import { QueueMode } from "../../common/models/types";
 import { deserializeMap } from "../../common/serialize";
-import { miscModule } from "@/stores/misc";
-import { captionsModule } from "@/stores/captions";
-import { connectionModule } from "@/stores/connection";
+import { miscModule, MiscState } from "@/stores/misc";
+import { captionsModule, CaptionsState } from "@/stores/captions";
+import { connectionModule, ConnectionState } from "@/stores/connection";
+import { QueueItem } from "common/models/video";
+import { InjectionKey } from "vue";
 
-export const store: Store<FullOTTStoreState> = createStore({
-	state() {
+export type FullOTTStoreState = BaseStoreState & {
+	misc: MiscState;
+	settings: SettingsState;
+	connection: ConnectionState;
+};
+
+interface BaseStoreState {
+	room: {
+		name: string;
+		title: string;
+		description: string;
+		isTemporary: boolean;
+		queueMode: QueueMode;
+		currentSource: QueueItem | null;
+		queue: QueueItem[];
+		isPlaying: boolean;
+		playbackPosition: number;
+		hasOwner: boolean;
+		chatMessages: unknown[];
+		voteCounts?: Map<string, number>;
+		playbackStartTime: Dayjs | undefined;
+	};
+
+	keepAliveInterval: number | null;
+
+	playerBufferPercent: number | null;
+	playerBufferSpans: number | null;
+	playerStatus: string | null;
+
+	user: unknown | null;
+	username: string | null;
+
+	fullscreen: boolean;
+	production: boolean;
+}
+
+export const store: Store<FullOTTStoreState> = createStore<BaseStoreState>({
+	state(): BaseStoreState {
 		return {
 			playerStatus: null,
 			playerBufferPercent: null,
@@ -31,12 +68,14 @@ export const store: Store<FullOTTStoreState> = createStore({
 				description: "",
 				isTemporary: false,
 				queueMode: QueueMode.Manual,
-				currentSource: {},
+				currentSource: {} as QueueItem,
 				queue: [],
 				isPlaying: false,
 				playbackPosition: 0,
 				hasOwner: false,
 				chatMessages: [],
+				voteCounts: undefined,
+				playbackStartTime: undefined
 			},
 
 			keepAliveInterval: null,
@@ -126,4 +165,10 @@ export const store: Store<FullOTTStoreState> = createStore({
 		captions: captionsModule,
 		connection: connectionModule,
 	},
-});
+}) as Store<FullOTTStoreState>;
+
+export const key: InjectionKey<Store<FullOTTStoreState>> = Symbol()
+
+export function useStore(): Store<FullOTTStoreState> {
+	return baseUseStore(key) as Store<FullOTTStoreState>;
+}

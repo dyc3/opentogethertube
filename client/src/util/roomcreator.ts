@@ -9,6 +9,7 @@ import {
 import type { Store } from "vuex";
 import { reactive, Ref, ref } from "vue";
 import { AxiosResponse } from "axios";
+import type { FullOTTStoreState } from "@/store";
 
 /** Generate a temporary room. */
 export async function generateRoom(): Promise<OttApiResponseRoomGenerate> {
@@ -40,46 +41,33 @@ export async function createRoom(
 	}
 }
 
-export interface RoomCreateState {
-	isLoadingCreateRoom: boolean;
-	cancelledRoomCreation: boolean;
-}
-
-export let createRoomState = reactive({
-	isLoadingCreateRoom: false,
-	cancelledRoomCreation: false,
-});
-
 /** Helper function to generate a temporary room, and then trigger a page navigation. */
-export async function createRoomHelper(store: Store<unknown>, options?: OttApiRequestRoomCreate) {
-	let state = createRoomState;
-	state.cancelledRoomCreation = false;
-	state.isLoadingCreateRoom = true;
+export async function createRoomHelper(
+	store: Store<FullOTTStoreState>,
+	options?: OttApiRequestRoomCreate
+) {
+	store.commit("misc/CREATING_ROOM");
 	try {
 		if (options) {
 			await createRoom(options);
-			if (state.cancelledRoomCreation) {
-				state.isLoadingCreateRoom = false;
+			if (store.state.misc.cancelledRoomCreation) {
 				return;
 			}
 			store.commit("misc/ROOM_CREATED", { name: options.name });
-			state.isLoadingCreateRoom = false;
 			return options.name;
 		} else {
 			let resp = await generateRoom();
-			if (state.cancelledRoomCreation) {
-				state.isLoadingCreateRoom = false;
+			if (store.state.misc.cancelledRoomCreation) {
 				return;
 			}
 			store.commit("misc/ROOM_CREATED", { name: resp.room });
-			state.isLoadingCreateRoom = false;
 			return resp.room;
 		}
 	} catch (err) {
-		state.isLoadingCreateRoom = false;
-		if (state.cancelledRoomCreation) {
+		if (store.state.misc.cancelledRoomCreation) {
 			return;
 		}
+		store.commit("misc/ROOM_CREATE_FAILED");
 		console.error(err);
 		store.commit("toast/ADD_TOAST", {
 			style: ToastStyle.Error,

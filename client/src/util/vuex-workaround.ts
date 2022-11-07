@@ -6,6 +6,7 @@ import type { Store } from "vuex";
 
 // workaround until store.js is converted to typescript.
 type FullOTTStoreState = BaseStoreState & {
+	misc: MiscState;
 	settings: SettingsState;
 	connection: ConnectionState;
 };
