@@ -1,11 +1,11 @@
 import { createStore, Store, useStore as baseUseStore } from "vuex";
 import dayjs, { Dayjs } from "dayjs";
 import connection from "@/util/connection";
-import { toastModule } from "@/stores/toast";
-import { usersModule } from "@/stores/user";
+import { toastModule, ToastState } from "@/stores/toast";
+import { usersModule, UsersState } from "@/stores/users";
 import { settingsModule, SettingsState } from "@/stores/settings";
 import { ToastStyle } from "./models/toast";
-import eventModule from "@/stores/events";
+import { eventsModule } from "@/stores/events";
 import { QueueMode } from "../../common/models/types";
 import { deserializeMap } from "../../common/serialize";
 import { miscModule, MiscState } from "@/stores/misc";
@@ -15,8 +15,11 @@ import { QueueItem } from "common/models/video";
 import { InjectionKey } from "vue";
 
 export type FullOTTStoreState = BaseStoreState & {
-	misc: MiscState;
+	toast: ToastState;
+	users: UsersState;
 	settings: SettingsState;
+	misc: MiscState;
+	captions: CaptionsState;
 	connection: ConnectionState;
 };
 
@@ -158,7 +161,7 @@ export const store: Store<FullOTTStoreState> = createStore<BaseStoreState>({
 	},
 	modules: {
 		toast: toastModule,
-		events: eventModule,
+		events: eventsModule,
 		users: usersModule,
 		settings: settingsModule,
 		misc: miscModule,
