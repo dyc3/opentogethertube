@@ -468,9 +468,9 @@ export default {
 				this.$store.state.room.currentSource.length
 			);
 		},
-		sliderChange() {
+		sliderChange(value) {
 			if (!this.sliderDragging) {
-				api.seek(this.sliderPosition);
+				api.seek(value);
 			}
 		},
 
