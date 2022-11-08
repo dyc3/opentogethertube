@@ -83,9 +83,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, PropType, ref } from "vue";
 import { API } from "@/common-http.js";
-import { PlayerStatus } from "common/models/types";
+import { PlayerStatus, RoomUserInfo } from "common/models/types";
 import api from "@/util/api";
 import { USERNAME_LENGTH_MAX } from "common/constants";
 import { granted } from "@/util/grants";
@@ -97,7 +97,7 @@ import { useStore } from "@/store";
 export const UserList = defineComponent({
 	name: "UserList",
 	props: {
-		users: { type: Array },
+		users: { type: Array as PropType<RoomUserInfo[]>, required: true },
 	},
 	setup(props) {
 		const store = useStore();
@@ -187,6 +187,7 @@ export const UserList = defineComponent({
 		}
 
 		return {
+			store,
 			inputUsername,
 			showEditName,
 			setUsernameLoading,
