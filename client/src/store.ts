@@ -46,7 +46,12 @@ interface BaseStoreState {
 	playerBufferSpans: number | null;
 	playerStatus: string | null;
 
-	user: unknown | null;
+	// TODO: rename to "account" ??, make a proper type for this, and move it to it's own store
+	user: {
+		username: string;
+		loggedIn: boolean;
+		discordLinked: boolean;
+	} | null;
 	username: string | null;
 
 	fullscreen: boolean;

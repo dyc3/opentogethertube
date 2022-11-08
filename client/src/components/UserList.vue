@@ -22,7 +22,7 @@
 				<v-icon
 					size="small"
 					class="role"
-					:aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${
+					:aria-label="`${user.id === store.state.users.you.id ? 'you' : user.name} is ${
 						ROLE_DISPLAY_NAMES[user.role]
 					}`"
 					v-if="!!getRoleIcon(user.role)"
@@ -32,7 +32,7 @@
 					<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
 				</v-tooltip>
 			</span>
-			<span v-if="user.id === $store.state.users.you.id" class="is-you">{{
+			<span v-if="user.id === store.state.users.you.id" class="is-you">{{
 				$t("room.users.you")
 			}}</span>
 			<span>
@@ -40,7 +40,7 @@
 					size="small"
 					class="player-status"
 					:aria-label="`${
-						user.id === $store.state.users.you.id ? 'your' : user.name
+						user.id === store.state.users.you.id ? 'your' : user.name
 					} player is ${user.status}`"
 					v-if="!!getPlayerStatusIcon(user.status)"
 					:icon="getPlayerStatusIcon(user.status)"
@@ -50,7 +50,7 @@
 				</v-tooltip>
 			</span>
 
-			<div style="margin-left: auto" v-if="user.id !== $store.state.users.you.id">
+			<div style="margin-left: auto" v-if="user.id !== store.state.users.you.id">
 				<v-btn variant="flat" depressed tile>
 					<v-icon size="small">fa:fas fa-cog</v-icon>
 					<v-icon size="small" style="margin-left: 5px">fa:fas fa-caret-down</v-icon>
@@ -113,7 +113,7 @@ export const UserList = defineComponent({
 			if (!inputUsername.value) {
 				inputUsername.value = store.state.user
 					? store.state.user.username
-					: store.state.username;
+					: store.state.username ?? "";
 			}
 			showEditName.value = !showEditName.value;
 		}
@@ -150,7 +150,7 @@ export const UserList = defineComponent({
 			return cls;
 		}
 
-		function canUserBePromotedTo(user, role: Role) {
+		function canUserBePromotedTo(user: RoomUserInfo, role: Role) {
 			if (user.role === role) {
 				return false;
 			}
