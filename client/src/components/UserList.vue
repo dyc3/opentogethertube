@@ -25,6 +25,7 @@
 					:aria-label="`${user.id === $store.state.users.you.id ? 'you' : user.name} is ${
 						ROLE_DISPLAY_NAMES[user.role]
 					}`"
+					v-if="!!getRoleIcon(user.role)"
 					:icon="getRoleIcon(user.role)"
 				/>
 				<v-tooltip activator="parent" location="top">
@@ -41,6 +42,7 @@
 					:aria-label="`${
 						user.id === $store.state.users.you.id ? 'your' : user.name
 					} player is ${user.status}`"
+					v-if="!!getPlayerStatusIcon(user.status)"
 					:icon="getPlayerStatusIcon(user.status)"
 				/>
 				<v-tooltip activator="parent" location="top">
