@@ -126,24 +126,6 @@ import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 
-// const QueueModeSelectorItem = defineComponent({
-// 	name: "QueueModeSelectorItem",
-// 	props: {
-// 		item: {
-// 			type: Object,
-// 			required: true,
-// 		},
-// 	},
-// 	setup(props) {
-// 		return () => (
-// 			<v-list-item>
-// 				<v-list-item-title>{props.item.title}</v-list-item-title>
-// 				<v-list-item-subtitle>{props.item.description}</v-list-item-subtitle>
-// 			</v-list-item>
-// 		);
-// 	},
-// })
-
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
 	components: {
