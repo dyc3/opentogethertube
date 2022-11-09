@@ -66,7 +66,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, Ref, ref, watch } from "vue";
+import { defineComponent, onMounted, reactive, Ref, ref, watch } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { ROOM_NAME_REGEX } from "common/constants";
 import { Visibility, QueueMode } from "common/models/types";
@@ -125,6 +125,13 @@ export const CreateRoomForm = defineComponent({
 		const isRoomNameTaken = ref(false);
 		const error = ref("");
 		const form: Ref<{ validate(): void } | undefined> = ref();
+
+		// HACK: for some reason, the form doesn't start updating the model value unless we do this
+		onMounted(() => {
+			if (form.value) {
+				form.value.validate();
+			}
+		});
 
 		async function submit(e): Promise<void> {
 			e.preventDefault();
