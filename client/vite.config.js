@@ -8,6 +8,7 @@ export default defineConfig({
 	plugins: [
 		vue(),
 		vuetify({
+			autoImport: true,
 			configFile: "src/vuetify-settings.scss",
 		}),
 	],
@@ -28,5 +29,8 @@ export default defineConfig({
 	},
 	test: {
 		environment: "jsdom",
+		deps: {
+			inline: ["vuetify"],
+		},
 	},
 });
