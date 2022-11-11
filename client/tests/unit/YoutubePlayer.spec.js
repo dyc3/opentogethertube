@@ -1,3 +1,4 @@
+import { it, describe, expect, afterEach, vi } from "vitest";
 import Vue from "vue";
 import { shallowMount } from "@vue/test-utils";
 import YoutubePlayer from "@/components/players/YoutubePlayer.vue";
@@ -9,7 +10,9 @@ describe("YoutubePlayer", () => {
 	let wrapper;
 
 	afterEach(async () => {
-		await wrapper.destroy();
+		if (wrapper) {
+			await wrapper.unmount();
+		}
 	});
 
 	it("should mount without failing", () => {
@@ -23,8 +26,8 @@ describe("YoutubePlayer", () => {
 
 	it("should create try to create a new player after the iframe api is ready.", async () => {
 		window.YT = {
-			Player: jest.fn().mockImplementation(() => {
-				return { test: true, destroy: jest.fn() };
+			Player: vi.fn().mockImplementation(() => {
+				return { test: true, destroy: vi.fn() };
 			}),
 		};
 		wrapper = shallowMount(YoutubePlayer, {
@@ -32,10 +35,10 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
-		await Vue.nextTick();
+		vi.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
+		await wrapper.vm.$nextTick();
 		window.onYouTubeIframeAPIReady();
-		await Vue.nextTick();
+		await wrapper.vm.$nextTick();
 		expect(wrapper.vm.YT.Player).toHaveBeenCalled();
 	});
 
@@ -45,13 +48,13 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
+		vi.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
 		wrapper.setData({
 			player: {
-				play: jest.fn(),
-				pause: jest.fn(),
-				seekTo: jest.fn(),
-				setVolume: jest.fn(),
+				play: vi.fn(),
+				pause: vi.fn(),
+				seekTo: vi.fn(),
+				setVolume: vi.fn(),
 			},
 		});
 		wrapper.vm.onStateChange({ data: -1 });
@@ -60,14 +63,11 @@ describe("YoutubePlayer", () => {
 		wrapper.vm.onStateChange({ data: 2 });
 		wrapper.vm.onStateChange({ data: 3 });
 		wrapper.vm.onStateChange({ data: 5 });
-		expect(
-			wrapper
-				.emittedByOrder()
-				.map(e => e.name)
-				.filter(name => !name.startsWith("hook:"))
-		).toEqual(["ended", "playing", "paused", "buffering", "ready"]);
+		for (let event of ["ended", "playing", "paused", "buffering", "ready"]) {
+			expect(wrapper.emitted()).toHaveProperty(event);
+		}
 		wrapper.vm.onError();
-		expect(wrapper.emitted("error")).toHaveLength(1);
+		expect(wrapper.emitted()).toHaveProperty("error");
 	});
 
 	it("should use queued values when state changes", async () => {
@@ -76,13 +76,12 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
 		wrapper.setData({
 			player: {
-				play: jest.fn(),
-				pause: jest.fn(),
-				seekTo: jest.fn(),
-				setVolume: jest.fn(),
+				play: vi.fn(),
+				pause: vi.fn(),
+				seekTo: vi.fn(),
+				setVolume: vi.fn(),
 			},
 			queuedSeek: 10,
 			queuedPlaying: true,
@@ -102,7 +101,7 @@ describe("YoutubePlayer", () => {
 		});
 		wrapper.setData({
 			player: {
-				getIframe: jest.fn().mockImplementation(() => {
+				getIframe: vi.fn().mockImplementation(() => {
 					return {
 						parentElement: {
 							offsetWidth: 930,
@@ -110,7 +109,7 @@ describe("YoutubePlayer", () => {
 						},
 					};
 				}),
-				setSize: jest.fn(),
+				setSize: vi.fn(),
 			},
 		});
 		wrapper.vm.fitToContainer();
@@ -123,7 +122,6 @@ describe("YoutubePlayer", () => {
 				videoId: "pvoQg3QIvhA",
 			},
 		});
-		jest.spyOn(wrapper.vm, "fitToContainer").mockImplementation();
 		wrapper.vm.play();
 		expect(wrapper.vm.queuedPlaying).toEqual(true);
 		wrapper.vm.pause();

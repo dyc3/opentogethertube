@@ -1,3 +1,4 @@
+import { it, describe, expect, beforeEach, afterEach, vi } from "vitest";
 import Vue from "vue";
 import { shallowMount, createLocalVue } from "@vue/test-utils";
 import Vuex from "vuex";
@@ -58,7 +59,7 @@ describe("AddPreview", () => {
 	});
 
 	afterEach(async () => {
-		await wrapper.destroy();
+		await wrapper.unmount();
 	});
 
 	it("should render test buttons when in dev environment", async () => {
@@ -75,7 +76,7 @@ describe("AddPreview", () => {
 	});
 
 	it("should determine if the add preview link is a URL", () => {
-		jest.spyOn(wrapper.vm, "requestAddPreviewDebounced").mockImplementation();
+		vi.spyOn(wrapper.vm, "requestAddPreviewDebounced").mockImplementation();
 
 		wrapper.setData({ inputAddPreview: "https://example.com" });
 		expect(wrapper.vm.isAddPreviewInputUrl).toEqual(true);
@@ -85,7 +86,7 @@ describe("AddPreview", () => {
 	});
 
 	it("should request add previews when input is URL", async () => {
-		jest.spyOn(wrapper.vm, "requestAddPreviewDebounced").mockImplementation();
+		vi.spyOn(wrapper.vm, "requestAddPreviewDebounced").mockImplementation();
 
 		wrapper.setData({ inputAddPreview: "https://example.com" });
 		await wrapper.vm.$nextTick();

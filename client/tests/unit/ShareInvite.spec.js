@@ -1,15 +1,5 @@
-import Vue from "vue";
-import Vuex from "vuex";
-import { createLocalVue } from "@vue/test-utils";
-import Vuetify from "vuetify";
+import { it, describe, expect } from "vitest";
 import { buildInviteLink } from "@/components/ShareInvite.vue";
-
-// HACK: import globally to prevent it from yelling at us
-// https://github.com/vuetifyjs/vuetify/issues/4964
-Vue.use(Vuetify);
-
-const localVue = createLocalVue();
-localVue.use(Vuex);
 
 describe("ShareInvite component", () => {
 	beforeEach(() => {

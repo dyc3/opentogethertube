@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import Vue from "vue";
 import { mount, createLocalVue } from "@vue/test-utils";
 import Vuetify from "vuetify";
@@ -16,7 +17,7 @@ describe("ProcessedText component", () => {
 			localVue,
 			i18n,
 			propsData: { text: "" },
-			mounted: jest.fn(),
+			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
 		expect(wrapper.vm.content).toHaveLength(0);
@@ -27,7 +28,7 @@ describe("ProcessedText component", () => {
 			localVue,
 			i18n,
 			propsData: { text: "test text" },
-			mounted: jest.fn(),
+			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
 		expect(wrapper.vm.content).toHaveLength(1);
@@ -39,7 +40,7 @@ describe("ProcessedText component", () => {
 			localVue,
 			i18n,
 			propsData: { text: "https://example.com/" },
-			mounted: jest.fn(),
+			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
 		expect(wrapper.vm.content).toHaveLength(1);
@@ -51,7 +52,7 @@ describe("ProcessedText component", () => {
 			localVue,
 			i18n,
 			propsData: { text: "peter https://example.com/ griffin" },
-			mounted: jest.fn(),
+			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
 		expect(wrapper.vm.content).toHaveLength(3);
@@ -67,7 +68,7 @@ describe("ProcessedText component", () => {
 			localVue,
 			i18n,
 			propsData: { text: "https://example.com/" },
-			mounted: jest.fn(),
+			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
 		await wrapper.vm.$nextTick();

@@ -89,10 +89,12 @@ export default {
 				},
 			});
 		}
-		this.fitToContainer();
 
 		this.resizeObserver = new ResizeObserver(this.fitToContainer);
 		this.resizeObserver.observe(this.$el);
+	},
+	mounted() {
+		this.fitToContainer();
 	},
 	beforeDestroy() {
 		if (this.player && this.player.destroy) {
@@ -232,6 +234,9 @@ export default {
 			this.fitToContainer();
 		}, 25),
 		fitToContainer() {
+			if (!this.player) {
+				return;
+			}
 			let iframe = this.player.getIframe();
 			let width = iframe.parentElement.offsetWidth;
 			let height = iframe.parentElement.offsetHeight;

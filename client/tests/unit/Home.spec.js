@@ -1,3 +1,4 @@
+import { it, describe, expect, beforeEach } from "vitest";
 import Vue from "vue";
 import { shallowMount, createLocalVue } from "@vue/test-utils";
 import Vuetify from "vuetify";

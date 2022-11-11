@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import Vue from "vue";
 import { shallowMount, createLocalVue } from "@vue/test-utils";
 import Vuex from "vuex";
@@ -61,7 +62,7 @@ describe("PermissionsEditor Component", () => {
 		expect(wrapper.vm.permissions[0][4]).toBe(true);
 		expect(wrapper.vm.permissions[1][0]).toBe(false);
 
-		await wrapper.destroy();
+		await wrapper.unmount();
 
 		// inherited permissions
 		wrapper = shallowMount(PermissionsEditor, {
@@ -81,7 +82,7 @@ describe("PermissionsEditor Component", () => {
 		expect(wrapper.vm.permissions[1][1]).toBe(true);
 		expect(wrapper.vm.permissions[1][2]).toBe(true);
 
-		await wrapper.destroy();
+		await wrapper.unmount();
 	});
 
 	it("getLowestGranted should do what it says", async () => {

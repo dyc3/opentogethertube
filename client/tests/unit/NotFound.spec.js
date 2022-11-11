@@ -1,3 +1,4 @@
+import { it, describe } from "vitest";
 import Vue from "vue";
 import { shallowMount } from "@vue/test-utils";
 import Vuetify from "vuetify";

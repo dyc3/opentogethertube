@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import "jest";
 import Vue from "vue";
 import Vuetify from "vuetify";

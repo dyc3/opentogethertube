@@ -1,3 +1,4 @@
+import { it, describe, expect } from "vitest";
 import Vue from "vue";
 import { mount, createLocalVue } from "@vue/test-utils";
 import Vuetify from "vuetify";
@@ -35,6 +36,6 @@ describe("Notifier component", () => {
 		expect(toast.exists()).toBe(true);
 		expect(toast.text()).toContain("test");
 
-		await wrapper.destroy();
+		await wrapper.unmount();
 	});
 });
