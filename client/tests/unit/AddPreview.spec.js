@@ -1,51 +1,19 @@
-import { it, describe, expect, beforeEach, afterEach, vi } from "vitest";
-import Vue from "vue";
-import { shallowMount, createLocalVue } from "@vue/test-utils";
-import Vuex from "vuex";
-import Vuetify from "vuetify";
+import { it, describe, expect, beforeEach, afterEach, vi, beforeAll } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createStore } from "vuex";
 import AddPreview from "@/components/AddPreview.vue";
 import VBtn from "vuetify/lib/components/VBtn";
 import { i18n } from "@/i18n";
+import { createVuetify } from "vuetify";
 
-// HACK: import globally to prevent it from yelling at us
-// https://github.com/vuetifyjs/vuetify/issues/4964
-Vue.use(Vuetify);
-
-const localVue = createLocalVue();
-localVue.use(Vuex);
-
-function createStore() {
-	return new Vuex.Store({
-		state: {
-			socket: {
-				isConnected: false,
-				message: "",
-				reconnectError: false,
-			},
-			joinFailureReason: null,
-			production: true,
-			room: {
-				name: "example",
-				title: "",
-				description: "",
-				isTemporary: false,
-				currentSource: { length: 0 },
-				queue: [],
-				isPlaying: false,
-				playbackPosition: 0,
-				users: [],
-				events: [],
-			},
-		},
-	});
-}
+const vuetify = createVuetify();
 
 function mountNewInstance(store) {
-	return shallowMount(AddPreview, {
-		store,
-		localVue,
-		i18n,
-		stubs: ["router-link"],
+	return mount(AddPreview, {
+		global: {
+			plugins: [store, i18n, vuetify],
+			stubs: ["router-link"],
+		},
 	});
 }
 
@@ -54,7 +22,11 @@ describe("AddPreview", () => {
 	let store;
 
 	beforeEach(() => {
-		store = createStore();
+		store = createStore({
+			state: {
+				production: true,
+			},
+		});
 		wrapper = mountNewInstance(store);
 	});
 
