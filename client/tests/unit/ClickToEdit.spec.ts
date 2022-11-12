@@ -45,7 +45,7 @@ describe("ClickToEdit", () => {
 			...mountOptions,
 		});
 		expect(wrapper.find("input").exists()).toEqual(false);
-		await wrapper.find(".editable").trigger("click");
+		wrapper.get(".editable").trigger("click");
 		await wrapper.vm.$nextTick();
 		expect(wrapper.find("input").exists()).toEqual(true);
 	});
@@ -67,21 +67,20 @@ describe("ClickToEdit", () => {
 				...mountOptions,
 			});
 
-			// @ts-ignore
-			const comp = wrapper.findComponent<typeof ClickToEdit>(ClickToEdit);
+			const comp = wrapper.getComponent<typeof ClickToEdit>(ClickToEdit);
 
 			try {
-				// @ts-ignore
-				await comp.vm.activate();
+				// comp.vm.activate();
+				await wrapper.find(".editable").trigger("click");
 			} catch (e) {
 				// HACK: throws an error because `focus` does not exist (somehow)
 				// ignoring because I know activate works in the wild, and I don't want to spend time on this.
 			}
 			await wrapper.vm.$nextTick();
-			await wrapper.find("input").setValue(emitVal);
+			await wrapper.get("input").setValue(emitVal);
 			await wrapper.vm.$nextTick();
-			// @ts-ignore
-			await comp.vm.apply();
+			// comp.vm.apply();
+			await comp.trigger("keyup.enter");
 			await wrapper.vm.$nextTick();
 
 			expect(comp.emitted().change).toEqual([[emitVal]]);
