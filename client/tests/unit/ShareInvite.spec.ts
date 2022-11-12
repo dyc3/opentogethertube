@@ -1,4 +1,4 @@
-import { it, describe, expect } from "vitest";
+import { it, describe, expect, beforeEach } from "vitest";
 import { buildInviteLink } from "@/components/ShareInvite.vue";
 
 describe("ShareInvite component", () => {
