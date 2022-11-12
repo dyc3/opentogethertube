@@ -1,22 +1,20 @@
-import { it, describe, expect } from "vitest";
-import Vue from "vue";
-import { mount, createLocalVue } from "@vue/test-utils";
-import Vuetify from "vuetify";
+import { it, describe, expect, vi } from "vitest";
+import { mount } from "@vue/test-utils";
 import ProcessedText from "@/components/ProcessedText.vue";
 import { i18n } from "@/i18n";
+import { createVuetify } from "vuetify";
 
-const localVue = createLocalVue();
-
-// HACK: import globally to prevent it from yelling at us
-// https://github.com/vuetifyjs/vuetify/issues/4964
-Vue.use(Vuetify);
+const mountOptions = {
+	global: {
+		plugins: [createVuetify(), i18n],
+	},
+};
 
 describe("ProcessedText component", () => {
 	it("should render nothing", () => {
 		let wrapper = mount(ProcessedText, {
-			localVue,
-			i18n,
-			propsData: { text: "" },
+			...mountOptions,
+			props: { text: "" },
 			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
@@ -25,9 +23,8 @@ describe("ProcessedText component", () => {
 
 	it("should just render text as is", () => {
 		let wrapper = mount(ProcessedText, {
-			localVue,
-			i18n,
-			propsData: { text: "test text" },
+			...mountOptions,
+			props: { text: "test text" },
 			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
@@ -37,9 +34,8 @@ describe("ProcessedText component", () => {
 
 	it("should render just the link", () => {
 		let wrapper = mount(ProcessedText, {
-			localVue,
-			i18n,
-			propsData: { text: "https://example.com/" },
+			...mountOptions,
+			props: { text: "https://example.com/" },
 			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
@@ -49,9 +45,8 @@ describe("ProcessedText component", () => {
 
 	it("should render text and link", () => {
 		let wrapper = mount(ProcessedText, {
-			localVue,
-			i18n,
-			propsData: { text: "peter https://example.com/ griffin" },
+			...mountOptions,
+			props: { text: "peter https://example.com/ griffin" },
 			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
@@ -65,9 +60,8 @@ describe("ProcessedText component", () => {
 
 	it("should fire event when link is clicked", async () => {
 		let wrapper = mount(ProcessedText, {
-			localVue,
-			i18n,
-			propsData: { text: "https://example.com/" },
+			...mountOptions,
+			props: { text: "https://example.com/" },
 			mounted: vi.fn(),
 		});
 		wrapper.vm.processText();
