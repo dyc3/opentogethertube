@@ -1,11 +1,18 @@
-import connection from "./connection";
 import { API } from "@/common-http";
 import { RoomRequestType } from "common/models/messages";
 
+let connection;
+
 /**
  * Defines the HTTP and websocket api, and provides methods for using it.
+ * @deprecated TODO: switch this over to provide/inject api
  */
 export default {
+	/** @deprecated TODO: switch this over to provide/inject api */
+	setConnection(c) {
+		connection = c;
+	},
+
 	/** Send a message to play the video. */
 	play() {
 		connection.send({

@@ -35,6 +35,13 @@ export const connectionModule: Module<ConnectionState, unknown> = {
 	mutations: {
 		SOCKET_OPEN(state: ConnectionState) {
 			state.disconnected = null;
+			state.isConnected = true;
+		},
+		SOCKET_CLOSE(state: ConnectionState, code: number) {
+			state.isConnected = false;
+		},
+		SET_RECONNECTING(state: ConnectionState, reconnecting: boolean) {
+			state.shouldReconnect = reconnecting;
 		},
 		JOIN_ROOM_FAILED(state: ConnectionState, code: number) {
 			state.disconnected = { reason: code };

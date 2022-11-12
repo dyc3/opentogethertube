@@ -279,9 +279,14 @@
 				</v-row>
 			</v-container>
 		</v-footer>
-		<v-overlay :value="showJoinFailOverlay">
+		<v-overlay
+			class="overlay-disconnected"
+			:model-value="showJoinFailOverlay"
+			content-class="content"
+		>
 			<RoomDisconnected />
 		</v-overlay>
+		<ServerMessageHandler />
 	</div>
 </template>
 
@@ -295,7 +300,6 @@ import "vue-slider-component/theme/default.css";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
-import connection from "@/util/connection";
 import api from "@/util/api";
 import { PlayerStatus, QueueMode } from "common/models/types";
 import VideoQueue from "@/components/VideoQueue.vue";
@@ -308,6 +312,8 @@ import { GrantChecker } from "@/util/grants";
 import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
+import { useConnection } from "@/plugins/connection";
+import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -326,6 +332,7 @@ export default {
 		ClosedCaptionsSwitcher,
 		ClientSettingsDialog,
 		RoomDisconnected,
+		ServerMessageHandler,
 	},
 	data() {
 		return {
@@ -358,10 +365,12 @@ export default {
 	},
 	computed: {
 		isConnected() {
-			return this.$store.state.connection.isConnected;
+			const connection = useConnection();
+			return connection.connected.value;
 		},
 		connectionStatus() {
-			return this.$store.state.connection.isConnected
+			const connection = useConnection();
+			return connection.connected.value
 				? this.$t("room.con-status.connected")
 				: this.$t("room.con-status.connecting");
 		},
@@ -385,7 +394,8 @@ export default {
 			return secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
 		},
 		showJoinFailOverlay() {
-			return !!this.$store.state.connection.disconnected;
+			const connection = useConnection();
+			return connection.kickReason.value !== null;
 		},
 		isMobile() {
 			return window.matchMedia("only screen and (max-width: 760px)").matches;
@@ -423,15 +433,10 @@ export default {
 		if (!this.production) {
 			this.debugMode = true;
 		}
-		this.volume = this.$store.state.settings.volume;
-
-		await this.$store.dispatch("user/waitForToken");
-		if (!this.$store.state.connection.isConnected) {
-			connection.connect(this.$route.params.roomId);
-		}
 	},
 	destroyed() {
 		clearInterval(this.i_timestampUpdater);
+		const connection = useConnection();
 		connection.disconnect();
 		if (screen.orientation) {
 			screen.orientation.removeEventListener("change", this.onScreenOrientationChange);
@@ -640,11 +645,12 @@ export default {
 			);
 		},
 		onRoomCreated() {
-			if (this.$store.state.connection.isConnected) {
+			const connection = useConnection();
+			if (connection.active.value) {
 				connection.disconnect();
 			}
 			setTimeout(() => {
-				if (!this.$store.state.connection.isConnected) {
+				if (!connection.active.value) {
 					connection.connect(this.$route.params.roomId);
 				}
 			}, 100);
@@ -763,7 +769,7 @@ export default {
 			return this.$refs.player.getCaptionsTracks() ?? [];
 		},
 	},
-	mounted() {
+	async mounted() {
 		document.onmousemove = () => {
 			if (this.$store.state.room.isPlaying || !this.controlsVisible) {
 				this.activateVideoControls();
@@ -773,6 +779,14 @@ export default {
 		let slider = document.getElementById("videoSlider");
 		slider.addEventListener("mousemove", this.updateSeekPreview);
 		slider.addEventListener("mouseleave", this.resetSeekPreview);
+
+		this.volume = this.$store.state.settings.volume;
+
+		// await this.$store.dispatch("user/waitForToken");
+		const connection = useConnection();
+		if (!connection.active.value) {
+			connection.connect(this.$route.params.roomId);
+		}
 	},
 	updated() {
 		let slider = document.getElementById("videoSlider");
@@ -797,7 +811,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "../variables.scss";
 
 $video-player-max-height: 75vh;
@@ -994,6 +1008,25 @@ $in-video-chat-width-small: 250px;
 	margin: 0 10px;
 	> * {
 		align-self: flex-end;
+	}
+}
+
+.overlay-disconnected {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+
+	.content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		position: inherit;
 	}
 }
 </style>
