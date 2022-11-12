@@ -354,6 +354,7 @@ export default {
 		"title": "Disconnected",
 		"find-another": "Find Another Room",
 		"dc-reasons": {
+			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
 			[OttWebsocketError.ROOM_NOT_FOUND]: "Room not found.",
 			[OttWebsocketError.ROOM_UNLOADED]: "Room was unloaded.",
 			[OttWebsocketError.MISSING_TOKEN]:
