@@ -12,7 +12,6 @@ import { captionsModule, CaptionsState } from "@/stores/captions";
 import { connectionModule, ConnectionState } from "@/stores/connection";
 import { QueueItem } from "common/models/video";
 import { InjectionKey } from "vue";
-import { useConnection } from "@/plugins/connection";
 
 export type FullOTTStoreState = BaseStoreState & {
 	toast: ToastState;
@@ -93,8 +92,6 @@ export const store: Store<FullOTTStoreState> = createStore<BaseStoreState>({
 		PLAYBACK_STATUS(state, message) {
 			if (state.playerStatus !== message) {
 				state.playerStatus = message;
-				const connection = useConnection();
-				connection.send({ action: "status", status: message });
 			}
 		},
 		PLAYBACK_BUFFER(state, percent) {

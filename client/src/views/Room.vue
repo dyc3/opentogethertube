@@ -287,6 +287,7 @@
 			<RoomDisconnected />
 		</v-overlay>
 		<ServerMessageHandler />
+		<WorkaroundPlaybackStatusUpdater />
 	</div>
 </template>
 
@@ -314,6 +315,7 @@ import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
 import { useConnection } from "@/plugins/connection";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
+import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -333,6 +335,7 @@ export default {
 		ClientSettingsDialog,
 		RoomDisconnected,
 		ServerMessageHandler,
+		WorkaroundPlaybackStatusUpdater,
 	},
 	data() {
 		return {
