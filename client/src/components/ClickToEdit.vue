@@ -52,7 +52,6 @@ const ClickToEdit = defineComponent({
 		},
 	},
 	setup(props, { emit }) {
-		const modelValue = ref(props.modelValue);
 		const editor = ref<HTMLInputElement | undefined>();
 		const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
 		const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
@@ -66,10 +65,11 @@ const ClickToEdit = defineComponent({
 			if (display.value) {
 				editorWidth.value = display.value.offsetWidth + 24;
 			}
-			if (typeof modelValue.value === "number") {
-				valueDirty.value = valueFormatter.value(modelValue.value);
+			console.info("modelValue", props.modelValue);
+			if (typeof props.modelValue === "number") {
+				valueDirty.value = valueFormatter.value(props.modelValue);
 			} else {
-				valueDirty.value = modelValue.value;
+				valueDirty.value = props.modelValue;
 			}
 			editing.value = true;
 			await nextTick();
@@ -77,14 +77,15 @@ const ClickToEdit = defineComponent({
 		}
 
 		function apply() {
-			if (typeof modelValue.value === "number") {
-				modelValue.value = valueParser.value(valueDirty.value);
+			let outValue: string | number;
+			if (typeof props.modelValue === "number") {
+				outValue = valueParser.value(valueDirty.value);
 			} else {
-				modelValue.value = valueDirty.value;
+				outValue = valueDirty.value;
 			}
 			editing.value = false;
-			emit("change", modelValue.value);
-			emit("update:modelValue", modelValue.value);
+			emit("change", outValue);
+			emit("update:modelValue", outValue);
 		}
 
 		function abort() {
