@@ -35,6 +35,8 @@ class OttRoomConnection {
 	connected = ref(false);
 	roomName = ref("");
 	reconnectAttempts = ref(0);
+	reconnectDelay = 1000;
+	reconnectDelayIncrease = 1000;
 	kickReason: Ref<OttWebsocketError | null> = ref(null);
 
 	private socket: WebSocket | null = null;
@@ -77,6 +79,7 @@ class OttRoomConnection {
 			return;
 		}
 		console.log("reconnecting...");
+		this.reconnectAttempts.value += 1;
 		this.doConnect();
 	}
 
@@ -141,7 +144,7 @@ class OttRoomConnection {
 			this.active.value = false;
 		} else if (this.active.value) {
 			this.reconnecting.value = true;
-			this.reconnectTimeout = setTimeout(this.reconnect, 2000);
+			this.reconnectTimeout = setTimeout(() => this.reconnect(), this.reconnectDelay + this.reconnectDelayIncrease * this.reconnectAttempts.value);
 		}
 	}
 
