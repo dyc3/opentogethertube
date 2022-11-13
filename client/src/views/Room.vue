@@ -262,6 +262,9 @@
 									<v-btn @click="api.kickMe()" :disabled="!isConnected">
 										{{ $t("room.kick-me") }}
 									</v-btn>
+									<v-btn @click="api.kickMe(1000)" :disabled="!isConnected">
+										Disconnect Me
+									</v-btn>
 								</v-list-item>
 							</v-card>
 						</div>

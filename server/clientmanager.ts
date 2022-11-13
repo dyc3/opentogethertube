@@ -115,7 +115,7 @@ export class Client {
 		const msg: ClientMessage = JSON.parse(text);
 		let request: RoomRequest | null = null;
 		if (msg.action === "kickme") {
-			this.socket.close(OttWebsocketError.UNKNOWN);
+			this.socket.close(msg.reason ?? OttWebsocketError.UNKNOWN);
 			return;
 		} else if (msg.action === "status") {
 			request = {

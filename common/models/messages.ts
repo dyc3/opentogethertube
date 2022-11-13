@@ -92,6 +92,7 @@ interface ClientMessageBase {
 
 export interface ClientMessageKickMe extends ClientMessageBase {
 	action: "kickme";
+	reason?: number;
 }
 
 /**

@@ -74,9 +74,10 @@ export default {
 		// });
 		await API.post(`/room/${this.$route.params.roomId}/undo`, { data: { event } });
 	},
-	kickMe() {
+	kickMe(reason) {
 		connection.send({
 			action: "kickme",
+			reason,
 		});
 	},
 	promoteUser(clientId, role) {
