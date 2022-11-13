@@ -20,29 +20,27 @@
 				<v-icon>fa:fas fa-random</v-icon>
 			</v-btn>
 		</div>
-		<draggable
-			tag="transition-group"
-			:component-data="{ name: 'video-queue', type: 'transition-group' }"
-			v-model="$store.state.room.queue"
+		<Sortable
+			:list="$store.state.room.queue"
 			:move="() => granted('manage-queue.order')"
 			@end="onQueueDragDrop"
-			handle=".drag-handle"
-			animation="200"
+			:options="{ animation: 200, handle: '.drag-handle' }"
+			item-key="id"
 		>
 			<template #item="{ element }">
 				<VideoQueueItem :key="element.id" :item="element" />
 			</template>
-		</draggable>
+		</Sortable>
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import draggable from "vuedraggable";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import api from "@/util/api";
 import { granted } from "@/util/grants";
 import { useStore } from "@/store";
+import { Sortable } from "sortablejs-vue3";
 
 function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
 	// HACK: For some reason, vuedraggable decided to offset all the indexes by 1? I have no idea why they decided to change this
@@ -52,8 +50,8 @@ function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
 const VideoQueue = defineComponent({
 	name: "VideoQueue",
 	components: {
-		draggable,
 		VideoQueueItem,
+		Sortable,
 	},
 	setup() {
 		const store = useStore();

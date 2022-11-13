@@ -10996,10 +10996,18 @@ sort-keys@^1.0.0:
   dependencies:
     is-plain-obj "^1.0.0"
 
-sortablejs@1.14.0:
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.14.0.tgz#6d2e17ccbdb25f464734df621d4f35d4ab35b3d8"
-  integrity sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==
+sortablejs-vue3@^1.2.3:
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/sortablejs-vue3/-/sortablejs-vue3-1.2.3.tgz#353660d1422f5c5cb94ad9881f1a2197af4eb695"
+  integrity sha512-Clur85k/I4RhNuHk0Bhfkw44lW1A7N3/g0p3YnAXvbpyfd6ugfwYQJi6W+4uRL8Qv/AoQ8tqgi2KSDN0zGRUCw==
+  dependencies:
+    sortablejs "^1.15.0"
+    vue "^3.2.37"
+
+sortablejs@^1.15.0:
+  version "1.15.0"
+  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.15.0.tgz#53230b8aa3502bb77a29e2005808ffdb4a5f7e2a"
+  integrity sha512-bv9qgVMjUMf89wAvM6AxVvS/4MX3sPeN0+agqShejLU5z5GX4C75ow1O2e5k4L6XItUyAK3gH6AxSbXrOM5e8w==
 
 "source-map-js@>=0.6.2 <2.0.0", source-map-js@^1.0.2:
   version "1.0.2"
@@ -12380,7 +12388,7 @@ vue-slider-component@4.1.0-beta.6:
   resolved "https://registry.yarnpkg.com/vue-slider-component/-/vue-slider-component-4.1.0-beta.6.tgz#682f37a720e774f781e743bcd37ffa696e4386f0"
   integrity sha512-7lxWWUrSIvxs4D6j0G9ypZeMoUjzpecC2nm5jLesre7BpZ9f+AHdniXI/ZdUYE2R1mNlPyVAnMtHf/DYL9cY5Q==
 
-vue@3.2.45:
+vue@3.2.45, vue@^3.2.37:
   version "3.2.45"
   resolved "https://registry.yarnpkg.com/vue/-/vue-3.2.45.tgz#94a116784447eb7dbd892167784619fef379b3c8"
   integrity sha512-9Nx/Mg2b2xWlXykmCwiTUCWHbWIj53bnkizBxKai1g61f2Xit700A1ljowpTIM11e3uipOeiPcSqnmBg6gyiaA==
@@ -12390,13 +12398,6 @@ vue@3.2.45:
     "@vue/runtime-dom" "3.2.45"
     "@vue/server-renderer" "3.2.45"
     "@vue/shared" "3.2.45"
-
-vuedraggable@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/vuedraggable/-/vuedraggable-4.1.0.tgz#edece68adb8a4d9e06accff9dfc9040e66852270"
-  integrity sha512-FU5HCWBmsf20GpP3eudURW3WdWTKIbEIQxh9/8GE806hydR9qZqRRxRE3RjqX7PkuLuMQG/A7n3cfj9rCEchww==
-  dependencies:
-    sortablejs "1.14.0"
 
 vuetify@3.0.1:
   version "3.0.1"
