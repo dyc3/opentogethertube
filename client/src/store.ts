@@ -9,7 +9,6 @@ import { QueueMode } from "../../common/models/types";
 import { deserializeMap } from "../../common/serialize";
 import { miscModule, MiscState } from "@/stores/misc";
 import { captionsModule, CaptionsState } from "@/stores/captions";
-import { connectionModule, ConnectionState } from "@/stores/connection";
 import { QueueItem } from "common/models/video";
 import { InjectionKey } from "vue";
 
@@ -19,7 +18,6 @@ export type FullOTTStoreState = BaseStoreState & {
 	settings: SettingsState;
 	misc: MiscState;
 	captions: CaptionsState;
-	connection: ConnectionState;
 };
 
 interface BaseStoreState {
@@ -169,7 +167,6 @@ export const store: Store<FullOTTStoreState> = createStore<BaseStoreState>({
 		settings: settingsModule,
 		misc: miscModule,
 		captions: captionsModule,
-		connection: connectionModule,
 	},
 }) as Store<FullOTTStoreState>;
 
