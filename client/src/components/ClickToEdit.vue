@@ -92,7 +92,6 @@ const ClickToEdit = defineComponent({
 		}
 
 		return {
-			modelValue,
 			editor,
 			display,
 			editing,
