@@ -143,12 +143,6 @@
 											{{ lengthDisplay }}
 										</span>
 									</div>
-									<v-btn
-										v-if="debugMode"
-										@click="api.kickMe()"
-										:disabled="!isConnected"
-										>{{ $t("room.kick-me") }}</v-btn
-									>
 									<div class="flex-grow-1"><!-- Spacer --></div>
 									<ClosedCaptionsSwitcher
 										:key="currentSource.id"
@@ -263,6 +257,11 @@
 										{{ this.videoControlsHideTimeout }} visible:
 										{{ this.controlsVisible }}</span
 									>
+								</v-list-item>
+								<v-list-item>
+									<v-btn @click="api.kickMe()" :disabled="!isConnected">
+										{{ $t("room.kick-me") }}
+									</v-btn>
 								</v-list-item>
 							</v-card>
 						</div>
