@@ -84,7 +84,7 @@ describe("ClickToEdit", () => {
 			await wrapper.vm.$nextTick();
 
 			expect(comp.emitted().change).toEqual([[emitVal]]);
-			expect(comp.emitted().input).toEqual([[emitVal]]);
+			expect(comp.emitted()["update:modelValue"]).toEqual([[emitVal]]);
 			expect(wrapper.vm.$data.ligma).toEqual(emitVal);
 		}
 	);

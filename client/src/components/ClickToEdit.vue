@@ -36,7 +36,7 @@ function valueParserDefault(value: string): number {
  */
 const ClickToEdit = defineComponent({
 	name: "ClickToEdit",
-	emits: ["change", "input"],
+	emits: ["change", "update:modelValue"],
 	props: {
 		modelValue: {
 			type: [String, Number],
@@ -84,7 +84,7 @@ const ClickToEdit = defineComponent({
 			}
 			editing.value = false;
 			emit("change", modelValue.value);
-			emit("input", modelValue.value);
+			emit("update:modelValue", modelValue.value);
 		}
 
 		function abort() {
