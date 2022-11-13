@@ -1,3 +1,7 @@
+<template>
+	<span></span>
+</template>
+
 <script lang="ts">
 import { defineComponent } from "vue";
 import { useConnection } from "@/plugins/connection";
