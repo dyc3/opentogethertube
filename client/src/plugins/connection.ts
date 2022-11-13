@@ -30,6 +30,10 @@ export interface ConnectionEventKicked {
 }
 
 class OttRoomConnection {
+	/**
+	 * Indicates if the client is actively attempting to maintain a connection. Not an indication of whether the connection is connected, see `connected`.
+	 * @returns true if the client is actively attempting to maintain a connection to a room.
+	 */
 	active = ref(false);
 	reconnecting = ref(false);
 	connected = ref(false);
@@ -45,16 +49,6 @@ class OttRoomConnection {
 	private eventHandlers = new Map<ConnectionEventKind, ((e: unknown) => void)[]>();
 
 	constructor() {}
-
-	/**
-	 * Indicates if the client is actively attempting to maintain a connection. Not an indication of whether the connection is connected, see `connected`.
-	 * @returns true if the client is actively attempting to maintain a connection to a room.
-	 *
-	 * @deprecated use `active` instead
-	 */
-	isActive() {
-		return this.active.value;
-	}
 
 	get connectionUrl() {
 		return `${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${
@@ -128,7 +122,6 @@ class OttRoomConnection {
 			token: window.localStorage.getItem("token") as AuthToken
 		};
 		this.send(authMsg);
-		// this.store.dispatch("connection/SOCKET_OPEN");
 	}
 
 	private onClose(e: { code: number; }) {
@@ -136,9 +129,7 @@ class OttRoomConnection {
 		this.connected.value = false;
 		this.socket = null;
 		this.dispatchEvent({ kind: "disconnected" });
-		// this.store.dispatch("connection/SOCKET_CLOSE", e.code);
 		if (e.code >= 4000) {
-			// this.store.dispatch("connection/JOIN_ROOM_FAILED", e.code);
 			this.kickReason.value = e.code;
 			this.dispatchEvent({ kind: "kicked", reason: e.code });
 			this.active.value = false;
