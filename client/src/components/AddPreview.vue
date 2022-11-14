@@ -4,6 +4,7 @@
 			<v-textarea
 				clearable
 				auto-grow
+				variant="underlined"
 				rows="1"
 				:placeholder="$t('add-preview.placeholder')"
 				v-model="inputAddPreview"
