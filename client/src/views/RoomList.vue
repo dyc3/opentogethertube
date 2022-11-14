@@ -71,6 +71,7 @@ const RoomListView = defineComponent({
 	setup() {
 		let isLoading = ref(false);
 		let rooms = ref([]);
+		const store = useStore();
 
 		onMounted(async () => {
 			isLoading.value = true;
@@ -80,7 +81,6 @@ const RoomListView = defineComponent({
 		});
 
 		async function createRoom() {
-			let store = useStore();
 			await createRoomHelper(store);
 		}
 
