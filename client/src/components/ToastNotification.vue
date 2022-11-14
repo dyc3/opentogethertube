@@ -145,6 +145,7 @@ $toast-content-padding: 14px 16px;
 	min-width: $toast-min-width;
 	max-width: $toast-max-width;
 	align-items: center;
+	border-radius: 4px;
 
 	.toast-icon {
 		margin-left: 10px;
