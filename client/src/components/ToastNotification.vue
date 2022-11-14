@@ -1,6 +1,8 @@
 <template>
 	<v-sheet :color="color" class="toast">
-		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
+		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">
+			fa:fas fa-check
+		</v-icon>
 		<v-icon class="toast-icon" v-else-if="toast.style === ToastStyle.Error">
 			fa:fas fa-exclamation-circle
 		</v-icon>
