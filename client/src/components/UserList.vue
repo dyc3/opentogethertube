@@ -16,64 +16,68 @@
 				:counter="USERNAME_LENGTH_MAX"
 			/>
 		</v-list-item>
-		<v-list-item v-for="(user, index) in users" :key="index" :class="getUserCssClasses(user)">
-			<span class="name">{{ user.name }}</span>
-			<span>
-				<v-icon
-					size="small"
-					class="role"
-					:aria-label="`${user.id === store.state.users.you.id ? 'you' : user.name} is ${
-						ROLE_DISPLAY_NAMES[user.role]
-					}`"
-					v-if="!!getRoleIcon(user.role)"
-					:icon="getRoleIcon(user.role)"
-				/>
-				<v-tooltip activator="parent" location="top">
-					<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
-				</v-tooltip>
-			</span>
-			<span v-if="user.id === store.state.users.you.id" class="is-you">{{
-				$t("room.users.you")
-			}}</span>
-			<span>
-				<v-icon
-					size="small"
-					class="player-status"
-					:aria-label="`${
-						user.id === store.state.users.you.id ? 'your' : user.name
-					} player is ${user.status}`"
-					v-if="!!getPlayerStatusIcon(user.status)"
-					:icon="getPlayerStatusIcon(user.status)"
-				/>
-				<v-tooltip activator="parent" location="top">
-					<span>{{ user.status }}</span>
-				</v-tooltip>
-			</span>
+		<v-list-item v-for="(user, index) in users" :key="index">
+			<div :class="getUserCssClasses(user)">
+				<span class="name">{{ user.name }}</span>
+				<span>
+					<v-icon
+						size="x-small"
+						class="role"
+						:aria-label="`${
+							user.id === store.state.users.you.id ? 'you' : user.name
+						} is ${ROLE_DISPLAY_NAMES[user.role]}`"
+						v-if="!!getRoleIcon(user.role)"
+						:icon="getRoleIcon(user.role)"
+					/>
+					<v-tooltip activator="parent" location="top">
+						<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
+					</v-tooltip>
+				</span>
+				<span v-if="user.id === store.state.users.you.id" class="is-you">{{
+					$t("room.users.you")
+				}}</span>
+				<span>
+					<v-icon
+						size="x-small"
+						class="player-status"
+						:aria-label="`${
+							user.id === store.state.users.you.id ? 'your' : user.name
+						} player is ${user.status}`"
+						v-if="!!getPlayerStatusIcon(user.status)"
+						:icon="getPlayerStatusIcon(user.status)"
+					/>
+					<v-tooltip activator="parent" location="top">
+						<span>{{ user.status }}</span>
+					</v-tooltip>
+				</span>
 
-			<div style="margin-left: auto" v-if="user.id !== store.state.users.you.id">
-				<v-btn variant="flat" depressed tile>
-					<v-icon size="small">fa:fas fa-cog</v-icon>
-					<v-icon size="small" style="margin-left: 5px">fa:fas fa-caret-down</v-icon>
-					<v-menu right offset-y activator="parent">
-						<v-list>
-							<div class="user-promotion">
-								<div v-for="role in 4" :key="user.role + role">
-									<v-list-item
-										@click="api.promoteUser(user.id, role)"
-										v-if="canUserBePromotedTo(user, role)"
-									>
-										{{
-											user.role > role
-												? $t("room.users.demote")
-												: $t("room.users.promote")
-										}}
-										to {{ ROLE_DISPLAY_NAMES[role] }}
-									</v-list-item>
+				<v-spacer />
+
+				<div v-if="user.id !== store.state.users.you.id">
+					<v-btn variant="flat" depressed tile>
+						<v-icon size="small">fa:fas fa-cog</v-icon>
+						<v-icon size="small" style="margin-left: 5px">fa:fas fa-caret-down</v-icon>
+						<v-menu right offset-y activator="parent">
+							<v-list>
+								<div class="user-promotion">
+									<div v-for="role in 4" :key="user.role + role">
+										<v-list-item
+											@click="api.promoteUser(user.id, role)"
+											v-if="canUserBePromotedTo(user, role)"
+										>
+											{{
+												user.role > role
+													? $t("room.users.demote")
+													: $t("room.users.promote")
+											}}
+											to {{ ROLE_DISPLAY_NAMES[role] }}
+										</v-list-item>
+									</div>
 								</div>
-							</div>
-						</v-list>
-					</v-menu>
-				</v-btn>
+							</v-list>
+						</v-menu>
+					</v-btn>
+				</div>
 			</div>
 		</v-list-item>
 		<v-list-item class="nobody-here" v-if="users.length === 1">
@@ -147,7 +151,7 @@ export const UserList = defineComponent({
 			if (user.isLoggedIn) {
 				cls.push("registered");
 			}
-			return cls;
+			return cls.join(" ");
 		}
 
 		function canUserBePromotedTo(user: RoomUserInfo, role: Role) {
@@ -218,6 +222,10 @@ export default UserList;
 @import "../variables.scss";
 
 .user {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+
 	.name {
 		opacity: 0.5;
 		font-style: italic;
@@ -226,7 +234,7 @@ export default UserList;
 	.role,
 	.player-status,
 	.is-you {
-		margin: 0 3px;
+		margin: 0 6px;
 	}
 
 	&.registered {
