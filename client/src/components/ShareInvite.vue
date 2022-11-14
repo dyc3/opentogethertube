@@ -9,6 +9,7 @@
 				<v-text-field
 					readonly
 					variant="outlined"
+					:class="copySuccess ? 'text-success' : ''"
 					ref="inviteLinkText"
 					:value="inviteLink"
 					append-icon="fa:fas fa-clipboard"
@@ -42,8 +43,8 @@ const ShareInvite = defineComponent({
 		const store = useStore();
 
 		let copySuccess = ref(false);
-
 		let inviteLinkText = ref();
+		let copySuccessTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 		function getInviteLink() {
 			return buildInviteLink(
@@ -57,7 +58,10 @@ const ShareInvite = defineComponent({
 		async function copyInviteLink() {
 			if (navigator.clipboard) {
 				await navigator.clipboard.writeText(inviteLink.value);
-				setTimeout(() => {
+				if (copySuccessTimeoutId) {
+					clearTimeout(copySuccessTimeoutId);
+				}
+				copySuccessTimeoutId = setTimeout(() => {
 					copySuccess.value = false;
 				}, 3000);
 			} else {
