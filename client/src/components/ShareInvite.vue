@@ -11,10 +11,10 @@
 					variant="outlined"
 					ref="inviteLinkText"
 					:value="inviteLink"
-					append-outer-icon="fa-clipboard"
-					:success-messages="copySuccess ? $t('share-invite.copied') : ''"
+					append-icon="fa:fas fa-clipboard"
+					:messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
-					@click:append-outer="copyInviteLink"
+					@click:append="copyInviteLink"
 				/>
 			</v-card-text>
 		</v-card>
