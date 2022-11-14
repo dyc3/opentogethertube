@@ -35,12 +35,13 @@ interface BaseStoreState {
 		chatMessages: unknown[];
 		voteCounts?: Map<string, number>;
 		playbackStartTime: Dayjs | undefined;
+		videoSegments?: { startTime: number, endTime: number, videoDuration: number, category: string }[];
 	};
 
 	keepAliveInterval: number | null;
 
 	playerBufferPercent: number | null;
-	playerBufferSpans: number | null;
+	playerBufferSpans: TimeRanges | null;
 	playerStatus: string | null;
 
 	// TODO: rename to "account" ??, make a proper type for this, and move it to it's own store

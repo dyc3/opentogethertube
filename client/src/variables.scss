@@ -12,6 +12,8 @@ $primary-color: #ffb300;
 $secondary-color: #42A5F5;
 $brand-color: $primary-color;
 
+$video-controls-height: 80px;
+
 :export {
 	toast-height: 48px;// $snackbar-wrapper-min-height;
 	toast-height-multiline: 68px; // vuetify.$snackbar-multi-line-wrapper-min-height;
