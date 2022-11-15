@@ -21,6 +21,8 @@ export type ServerMessage =
 	| ServerMessageAnnouncement
 	| ServerMessageUser;
 
+export type ServerMessageActionType = ServerMessage["action"];
+
 interface ServerMessageBase {
 	action: string;
 }

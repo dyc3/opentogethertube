@@ -1,5 +1,5 @@
 import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
-import type { ClientMessage, ClientMessageAuthenticate, ServerMessage } from "common/models/messages";
+import type { ClientMessage, ClientMessageAuthenticate, ServerMessage, ServerMessageActionType } from "common/models/messages";
 import type { AuthToken, OttWebsocketError } from "common/models/types";
 
 const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol();
@@ -45,7 +45,7 @@ class OttRoomConnection {
 
 	private socket: WebSocket | null = null;
 	private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-	private messageHandlers = new Map<string, ((msg: ServerMessage) => void)[]>();
+	private messageHandlers = new Map<ServerMessageActionType, ((msg: ServerMessage) => void)[]>();
 	private eventHandlers = new Map<ConnectionEventKind, ((e: unknown) => void)[]>();
 
 	constructor() {}
@@ -156,13 +156,13 @@ class OttRoomConnection {
 		console.log("socket error", e);
 	}
 
-	addMessageHandler(action: string, handler: (msg: ServerMessage) => void) {
+	addMessageHandler(action: ServerMessageActionType, handler: (msg: ServerMessage) => void) {
 		let handlers = this.messageHandlers.get(action) ?? [];
 		handlers.push(handler);
 		this.messageHandlers.set(action, handlers);
 	}
 
-	removeMessageHandler(action: string, handler: (msg: ServerMessage) => void) {
+	removeMessageHandler(action: ServerMessageActionType, handler: (msg: ServerMessage) => void) {
 		let handlers = this.messageHandlers.get(action) ?? [];
 		let index = handlers.indexOf(handler);
 		if (index >= 0) {
@@ -173,6 +173,10 @@ class OttRoomConnection {
 
 	private handleMessage(msg: ServerMessage) {
 		let handlers = this.messageHandlers.get(msg.action) ?? [];
+		if (handlers.length === 0) {
+			console.warn("connection: no message handlers for message: ", msg.action);
+			return;
+		}
 		for (let handler of handlers) {
 			handler(msg);
 		}
