@@ -79,48 +79,7 @@
 									tooltip="hover"
 								/>
 								<v-row no-gutters align="center">
-									<v-btn
-										@click="seekDelta(-10)"
-										:disabled="!grants.granted('playback.seek')"
-									>
-										<v-icon>fa:fas fa-angle-left</v-icon>
-										<v-tooltip activator="parent" location="bottom">
-											<span>{{ $t("room.rewind") }}</span>
-										</v-tooltip>
-									</v-btn>
-									<v-btn
-										@click="togglePlayback()"
-										:disabled="!grants.granted('playback.play-pause')"
-									>
-										<v-icon
-											:icon="
-												$store.state.room.isPlaying
-													? 'fa:fas fa-pause'
-													: 'fa:fas fa-play'
-											"
-										/>
-										<v-tooltip activator="parent" location="bottom">
-											<span>{{ $t("room.play-pause") }}</span>
-										</v-tooltip>
-									</v-btn>
-									<v-btn
-										@click="seekDelta(10)"
-										:disabled="!grants.granted('playback.seek')"
-									>
-										<v-icon>fa:fas fa-angle-right</v-icon>
-										<v-tooltip activator="parent" location="bottom">
-											<span>{{ $t("room.skip") }}</span>
-										</v-tooltip>
-									</v-btn>
-									<v-btn
-										@click="api.skip()"
-										:disabled="!grants.granted('playback.skip')"
-									>
-										<v-icon>fa:fas fa-fast-forward</v-icon>
-										<v-tooltip activator="parent" location="bottom">
-											<span>{{ $t("room.next-video") }}</span>
-										</v-tooltip>
-									</v-btn>
+									<BasicControls :current-position="truePosition" />
 									<vue-slider
 										v-model="volume"
 										style="width: 150px; margin-left: 10px; margin-right: 20px"
@@ -318,12 +277,14 @@ import RoomDisconnected from "../components/RoomDisconnected.vue";
 import { useConnection } from "@/plugins/connection";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
+import BasicControls from "@/components/controls/BasicControls.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
 export default {
 	name: "room",
 	components: {
+		BasicControls,
 		VideoQueue,
 		VueSlider,
 		OmniPlayer,
