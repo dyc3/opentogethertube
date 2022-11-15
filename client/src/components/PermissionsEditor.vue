@@ -4,7 +4,7 @@
 		{{ $t("permissions-editor.text1") }}<br />
 		{{ $t("permissions-editor.text2") }}<br />
 		{{ $t("permissions-editor.viewing-as") }}: {{ ROLE_DISPLAY_NAMES[currentRole] }}<br />
-		<v-simple-table dense :key="dirty">
+		<v-table density="compact" :key="updateEpoch">
 			<thead>
 				<tr>
 					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
@@ -22,85 +22,86 @@
 								r - 1 >= item.minRole &&
 								(currentRole > r - 1 || currentRole < 0) &&
 								r - 1 < 4 &&
-								grants.granted(rolePerms[r - 1])
+								granted(rolePerms[r - 1])
 							"
 							v-model="item[r - 1]"
 							:disabled="getLowestGranted(item) < r - 1"
+							color="primary"
 						/>
 						<v-checkbox v-else v-model="item[r - 1]" :disabled="true" />
 					</td>
 				</tr>
 			</tbody>
-		</v-simple-table>
+		</v-table>
 	</v-container>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, ref, Ref, computed, watch } from "vue";
 import _ from "lodash";
-import { GrantChecker } from "@/util/grants";
-import { PERMISSIONS, ROLE_NAMES, ROLE_DISPLAY_NAMES } from "common/permissions";
+import { granted } from "@/util/grants";
+import {
+	PERMISSIONS,
+	ROLE_NAMES,
+	ROLE_DISPLAY_NAMES,
+	Permission,
+	OldRoleGrants,
+} from "common/permissions";
+import { Role } from "common/models/types";
 
 export default {
 	name: "permissions-editor",
 	props: {
-		value: { type: [Object, Array], required: true },
+		modelValue: { type: [Object, Array], required: true },
 		currentRole: { type: Number, default: 4 },
 	},
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-	data() {
-		return {
-			permissions: [],
-			dirty: false,
-			shouldAcceptExternalUpdate: true,
-			isLoading: false,
+	emits: ["update:modelValue"],
+	setup(props, { emit }) {
+		let permissions: Ref<Permission[]> = ref([]);
+		let dirty = ref(false);
+		let shouldAcceptExternalUpdate = ref(true);
+		let isLoading = ref(false);
+		let updateEpoch = ref(0);
 
-			grants: new GrantChecker(),
-			ROLE_NAMES,
-			ROLE_DISPLAY_NAMES,
+		const rolePerms = {
+			[Role.Moderator]: "configure-room.set-permissions.for-moderator",
+			[Role.TrustedUser]: "configure-room.set-permissions.for-trusted-users",
+			[Role.RegisteredUser]: "configure-room.set-permissions.for-all-registered-users",
+			[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",
 		};
-	},
-	async created() {
-		this.permissions = this.extractFromGrants(this.value);
-	},
-	computed: {
-		rolePerms() {
-			return {
-				3: "configure-room.set-permissions.for-moderator",
-				2: "configure-room.set-permissions.for-trusted-users",
-				1: "configure-room.set-permissions.for-all-registered-users",
-				0: "configure-room.set-permissions.for-all-unregistered-users",
-			};
-		},
-	},
-	methods: {
+
+		permissions.value = extractFromGrants(props.modelValue);
+
 		/**
 		 * Gets the id of the lowest role with this permission granted.
 		 */
-		getLowestGranted(permission) {
+		function getLowestGranted(permission) {
 			let value = _.min(_.keys(_.pickBy(permission, v => v === true)));
 			if (value !== undefined) {
 				return parseInt(value);
 			} else {
 				return 4;
 			}
-		},
+		}
+
 		/**
 		 * Gets the id of the highest role with this permission denied.
 		 */
-		getHighestDenied(permission) {
-			let value = _.max(_.keys(_.pickBy(permission, v => v === false)));
-			if (value !== undefined) {
-				value = parseInt(value);
-				if (value === 4) {
-					value = 3;
-				}
-				return value;
-			} else {
-				return null;
-			}
-		},
-		extractFromGrants(grants) {
-			let extracted = [];
+		// function getHighestDenied(permission) {
+		// 	let value = _.max(_.keys(_.pickBy(permission, v => v === false)));
+		// 	if (value !== undefined) {
+		// 		value = parseInt(value);
+		// 		if (value === 4) {
+		// 			value = 3;
+		// 		}
+		// 		return value;
+		// 	} else {
+		// 		return null;
+		// 	}
+		// }
+
+		function extractFromGrants(grants): Permission[] {
+			let extracted: Permission[] = [];
 			for (let i = 0; i < PERMISSIONS.length; i++) {
 				let perm = PERMISSIONS[i];
 				for (let role = 4; role >= 0; role--) {
@@ -108,54 +109,71 @@ export default {
 					for (let r = role - 1; r >= 0; r--) {
 						fullmask |= grants[r];
 					}
-					this.$set(perm, role, (fullmask & perm.mask) > 0);
+					perm[role] = (fullmask & perm.mask) > 0;
 				}
 				extracted.push(perm);
 			}
 			return extracted;
-		},
-		rebuildMasks() {
+		}
+
+		function rebuildMasks() {
 			let grants = {};
 			for (let role = 4; role >= 0; role--) {
 				grants[role] = 0;
 			}
 			for (let i = 0; i < PERMISSIONS.length; i++) {
-				let lowest = this.getLowestGranted(this.permissions[i]);
+				let lowest = getLowestGranted(permissions.value[i]);
 				grants[lowest] |= PERMISSIONS[i].mask;
 			}
 			return grants;
-		},
-	},
-	watch: {
-		value() {
-			if (this.shouldAcceptExternalUpdate) {
-				this.dirty = false;
+		}
+
+		watch(props, () => {
+			if (shouldAcceptExternalUpdate.value) {
+				dirty.value = false;
+				updateEpoch.value++;
 				// HACK: coerce to OldRoleGrants format
-				let grants = this.value;
+				let grants: OldRoleGrants = props.modelValue;
 				if (Array.isArray(grants)) {
 					grants = _.fromPairs(grants);
 				}
-				this.permissions = this.extractFromGrants(grants);
+				permissions.value = extractFromGrants(grants);
 			} else {
-				this.shouldAcceptExternalUpdate = true;
+				shouldAcceptExternalUpdate.value = true;
 			}
-		},
-		permissions: {
-			deep: true,
-			handler() {
-				if (!this.dirty) {
-					this.dirty = true;
-					this.shouldAcceptExternalUpdate = false;
-					this.permissions = this.extractFromGrants(this.rebuildMasks());
+		});
+
+		watch(
+			permissions,
+			() => {
+				if (!dirty.value) {
+					dirty.value = true;
+					shouldAcceptExternalUpdate.value = false;
+					permissions.value = extractFromGrants(rebuildMasks());
 				}
 			},
-		},
-		dirty(val) {
+			{ deep: true }
+		);
+
+		watch(dirty, val => {
 			if (val) {
-				this.$emit("input", this.rebuildMasks());
-				this.dirty = false;
+				emit("update:modelValue", rebuildMasks());
+				dirty.value = false;
 			}
-		},
+		});
+
+		return {
+			permissions,
+			dirty,
+			shouldAcceptExternalUpdate,
+			isLoading,
+			updateEpoch,
+			granted,
+			ROLE_NAMES,
+			ROLE_DISPLAY_NAMES,
+			getLowestGranted,
+			rolePerms,
+		};
 	},
 };
 </script>
