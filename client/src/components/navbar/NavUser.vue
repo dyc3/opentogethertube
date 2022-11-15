@@ -1,7 +1,7 @@
 <template>
 	<v-menu offset-y v-if="$store.state.user">
 		<template v-slot:activator="{ props }">
-			<v-btn text v-bind="props" :key="$store.state.user.username">
+			<v-btn variant="text" v-bind="props" :key="$store.state.user.username">
 				{{ $store.state.user.username }}
 			</v-btn>
 		</template>
@@ -18,7 +18,7 @@
 			</v-list-item>
 		</v-list>
 	</v-menu>
-	<v-btn text @click="$emit('login')" v-else>
+	<v-btn variant="text" @click="$emit('login')" v-else>
 		{{ $t("nav.login") }}
 	</v-btn>
 </template>
