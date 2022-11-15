@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, computed, watch } from "vue";
+import { defineComponent, ref, Ref, watch, PropType } from "vue";
 import _ from "lodash";
 import { granted } from "@/util/grants";
 import {
@@ -45,14 +45,18 @@ import {
 	ROLE_NAMES,
 	ROLE_DISPLAY_NAMES,
 	Permission,
+	RoleGrants,
 	OldRoleGrants,
 } from "common/permissions";
 import { Role } from "common/models/types";
 
-export default {
-	name: "permissions-editor",
+export const PermissionsEditor = defineComponent({
+	name: "PermissionsEditor",
 	props: {
-		modelValue: { type: [Object, Array], required: true },
+		modelValue: {
+			type: [Object, Array] as PropType<RoleGrants | OldRoleGrants>,
+			required: true,
+		},
 		currentRole: { type: Number, default: 4 },
 	},
 	emits: ["update:modelValue"],
@@ -87,18 +91,18 @@ export default {
 		/**
 		 * Gets the id of the highest role with this permission denied.
 		 */
-		// function getHighestDenied(permission) {
-		// 	let value = _.max(_.keys(_.pickBy(permission, v => v === false)));
-		// 	if (value !== undefined) {
-		// 		value = parseInt(value);
-		// 		if (value === 4) {
-		// 			value = 3;
-		// 		}
-		// 		return value;
-		// 	} else {
-		// 		return null;
-		// 	}
-		// }
+		function getHighestDenied(permission) {
+			let value = _.max(_.keys(_.pickBy(permission, v => v === false)));
+			if (value !== undefined) {
+				let v = parseInt(value);
+				if (v === 4) {
+					v = 3;
+				}
+				return v;
+			} else {
+				return null;
+			}
+		}
 
 		function extractFromGrants(grants): Permission[] {
 			let extracted: Permission[] = [];
@@ -133,7 +137,7 @@ export default {
 				dirty.value = false;
 				updateEpoch.value++;
 				// HACK: coerce to OldRoleGrants format
-				let grants: OldRoleGrants = props.modelValue;
+				let grants = props.modelValue;
 				if (Array.isArray(grants)) {
 					grants = _.fromPairs(grants);
 				}
@@ -172,8 +176,11 @@ export default {
 			ROLE_NAMES,
 			ROLE_DISPLAY_NAMES,
 			getLowestGranted,
+			getHighestDenied,
 			rolePerms,
 		};
 	},
-};
+});
+
+export default PermissionsEditor;
 </script>

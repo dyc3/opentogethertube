@@ -1,54 +1,21 @@
 import { it, describe, expect } from "vitest";
-import Vue from "vue";
-import { shallowMount, createLocalVue } from "@vue/test-utils";
-import Vuex from "vuex";
-import Vuetify from "vuetify";
-import PermissionsEditor from "@/components/PermissionsEditor.vue";
+import { mount } from "@vue/test-utils";
+import { createVuetify } from "vuetify";
 import { i18n } from "@/i18n";
+import PermissionsEditor from "@/components/PermissionsEditor.vue";
 
-// HACK: import globally to prevent it from yelling at us
-// https://github.com/vuetifyjs/vuetify/issues/4964
-Vue.use(Vuetify);
-
-const localVue = createLocalVue();
-localVue.use(Vuex);
-
-function createStore() {
-	return new Vuex.Store({
-		state: {
-			joinFailureReason: null,
-			production: true,
-			room: {
-				name: "example",
-				title: "",
-				description: "",
-				isTemporary: false,
-				currentSource: {},
-				queue: [],
-				isPlaying: false,
-				playbackPosition: 0,
-				users: [],
-				events: [],
-			},
-			users: {
-				you: {
-					grants: 0b1111111111111111111111111111111111111111,
-				},
-			},
-		},
-	});
-}
+const mountOptions = {
+	global: {
+		plugins: [i18n, createVuetify()],
+	},
+};
 
 describe("PermissionsEditor Component", () => {
-	let store = createStore();
-
 	it("should display grants accurately", async () => {
-		let wrapper = shallowMount(PermissionsEditor, {
-			localVue,
-			store,
-			i18n,
-			propsData: {
-				value: { 0: 1 << 0 },
+		let wrapper = mount(PermissionsEditor, {
+			...mountOptions,
+			props: {
+				modelValue: { 0: 1 << 0 },
 			},
 		});
 
@@ -65,12 +32,10 @@ describe("PermissionsEditor Component", () => {
 		await wrapper.unmount();
 
 		// inherited permissions
-		wrapper = shallowMount(PermissionsEditor, {
-			localVue,
-			store,
-			i18n,
-			propsData: {
-				value: { 0: 1 << 0, 1: 1 << 1 },
+		wrapper = mount(PermissionsEditor, {
+			...mountOptions,
+			props: {
+				modelValue: { 0: 1 << 0, 1: 1 << 1 },
 			},
 		});
 		await wrapper.vm.$nextTick();
@@ -86,12 +51,10 @@ describe("PermissionsEditor Component", () => {
 	});
 
 	it("getLowestGranted should do what it says", async () => {
-		let component = shallowMount(PermissionsEditor, {
-			localVue,
-			store,
-			i18n,
-			propsData: {
-				value: { 0: 1 << 0 },
+		let component = mount(PermissionsEditor, {
+			...mountOptions,
+			props: {
+				modelValue: { 0: 1 << 0 },
 			},
 		}).vm;
 		expect(
@@ -124,12 +87,10 @@ describe("PermissionsEditor Component", () => {
 	});
 
 	it("getHighestDenied should do what it says", async () => {
-		let component = shallowMount(PermissionsEditor, {
-			localVue,
-			store,
-			i18n,
-			propsData: {
-				value: { 0: 1 << 0 },
+		let component = mount(PermissionsEditor, {
+			...mountOptions,
+			props: {
+				modelValue: { 0: 1 << 0 },
 			},
 		}).vm;
 		expect(
