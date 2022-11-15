@@ -62,22 +62,7 @@
 								:class="{ hide: controlsVisible }"
 							></div>
 							<v-col :class="{ 'video-controls': true, 'hide': !controlsVisible }">
-								<vue-slider
-									id="videoSlider"
-									:interval="0.1"
-									:lazy="true"
-									v-model="sliderPosition"
-									:max="$store.state.room.currentSource.length"
-									:tooltip-formatter="sliderTooltipFormatter"
-									:disabled="
-										currentSource.length == null ||
-										!grants.granted('playback.seek')
-									"
-									:process="getSliderProcesses"
-									@change="sliderChange"
-									:drag-on-click="true"
-									tooltip="hover"
-								/>
+								<VideoProgressSlider :current-position="sliderPosition" />
 								<v-row no-gutters align="center">
 									<BasicControls :current-position="truePosition" />
 									<vue-slider
@@ -278,6 +263,7 @@ import { useConnection } from "@/plugins/connection";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
 import BasicControls from "@/components/controls/BasicControls.vue";
+import VideoProgressSlider from "@/components/controls/VideoProgressSlider.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -285,6 +271,7 @@ export default {
 	name: "room",
 	components: {
 		BasicControls,
+		VideoProgressSlider,
 		VideoQueue,
 		VueSlider,
 		OmniPlayer,
@@ -307,8 +294,6 @@ export default {
 
 			truePosition: 0,
 			sliderPosition: 0,
-			sliderTooltipFormatter: secondsToTimestamp,
-			seekPreview: null,
 			volume: 100,
 
 			queueTab: 0,
@@ -438,11 +423,6 @@ export default {
 				0,
 				this.$store.state.room.currentSource.length
 			);
-		},
-		sliderChange(value) {
-			if (!this.sliderDragging) {
-				api.seek(value);
-			}
 		},
 
 		applyIsPlaying(playing) {
@@ -649,72 +629,6 @@ export default {
 				}
 			}
 		},
-		/**
-		 * Computes the `process` property of the playback position slider.
-		 * Used to show colored intervals in the slider.
-		 * Intervals will be layared in the order of they are listed. The last interval will appear on the top.
-		 * Values are from 0 to 100, regardless of min and max values of the slider.
-		 */
-		getSliderProcesses(dotsPos) {
-			let processes = [];
-
-			const bufferedColor = "#e9be57";
-			// show buffered spans
-			if (this.$store.state.playerBufferSpans) {
-				for (let i = 0; i < this.$store.state.playerBufferSpans.length; i++) {
-					let start =
-						this.$store.state.playerBufferSpans.start(i) /
-						this.$store.state.room.currentSource.length;
-					let end =
-						this.$store.state.playerBufferSpans.end(i) /
-						this.$store.state.room.currentSource.length;
-					processes.push([start, end, { backgroundColor: bufferedColor }]);
-				}
-			} else if (this.$store.state.playerBufferPercent) {
-				processes.push([
-					0,
-					this.$store.state.playerBufferPercent * 100,
-					{ backgroundColor: bufferedColor },
-				]);
-			}
-
-			// show seek preview, if present
-			processes.push([0, (this.seekPreview ?? 0) * 100, { backgroundColor: "#00b3ff" }]);
-
-			// show video progress
-			processes.push([0, dotsPos[0], { backgroundColor: "#ffb300" }]);
-
-			// show sponsorblock segments
-			const colorMap = new Map([
-				["sponsor", "#00d400"],
-				["selfpromo", "#ffff00"],
-				["interaction", "#cc00ff"],
-				["intro", "#00ffff"],
-				["outro", "#0202ed"],
-			]);
-			if ("videoSegments" in this.$store.state.room) {
-				for (const segment of this.$store.state.room.videoSegments) {
-					let start = (segment.startTime / segment.videoDuration) * 100;
-					let end = (segment.endTime / segment.videoDuration) * 100;
-					processes.push([
-						start,
-						end,
-						{ backgroundColor: colorMap.get(segment.category) ?? "#ff0000" },
-					]);
-				}
-			}
-
-			return processes;
-		},
-		updateSeekPreview(e) {
-			let slider = document.getElementById("videoSlider");
-			let sliderRect = slider.getBoundingClientRect();
-			let sliderPos = e.clientX - sliderRect.left;
-			this.seekPreview = sliderPos / sliderRect.width;
-		},
-		resetSeekPreview() {
-			this.seekPreview = null;
-		},
 
 		rotateRoomLayout() {
 			let layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
@@ -742,10 +656,6 @@ export default {
 			}
 		};
 
-		let slider = document.getElementById("videoSlider");
-		slider.addEventListener("mousemove", this.updateSeekPreview);
-		slider.addEventListener("mouseleave", this.resetSeekPreview);
-
 		this.volume = this.$store.state.settings.volume;
 
 		// await this.$store.dispatch("user/waitForToken");
@@ -753,13 +663,6 @@ export default {
 		if (!connection.active.value) {
 			connection.connect(this.$route.params.roomId);
 		}
-	},
-	updated() {
-		let slider = document.getElementById("videoSlider");
-		slider.removeEventListener("mousemove", this.updateSeekPreview);
-		slider.removeEventListener("mouseleave", this.resetSeekPreview);
-		slider.addEventListener("mousemove", this.updateSeekPreview);
-		slider.addEventListener("mouseleave", this.resetSeekPreview);
 	},
 	watch: {
 		volume() {
