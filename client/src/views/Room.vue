@@ -127,7 +127,7 @@
 				</v-row>
 				<v-row no-gutters>
 					<v-col cols="12" md="8" sm="12">
-						<v-tabs fixed-tabs v-model="queueTab" @change="onTabChange">
+						<v-tabs fixed-tabs v-model="queueTab" @change="onTabChange" color="primary">
 							<v-tab>
 								<v-icon>fa:fas fa-list</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
