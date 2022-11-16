@@ -17,6 +17,8 @@ export enum RoomLayoutMode {
 export enum Theme {
 	light = "light",
 	dark = "dark",
+	deepgreen = "deepgreen",
+	deepblue = "deepblue",
 }
 
 export const settingsModule: Module<SettingsState, unknown> = {
@@ -39,9 +41,12 @@ export const settingsModule: Module<SettingsState, unknown> = {
 				switch (settings.theme) {
 					case Theme.dark:
 					case Theme.light:
+					case Theme.deepgreen:
+					case Theme.deepblue:
 						vuetify.theme.global.name.value = settings.theme;
 						break;
 					default:
+						console.warn("unknown theme", settings.theme, "defaulting to dark");
 						vuetify.theme.global.name.value = "dark";
 						break;
 				}
