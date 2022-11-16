@@ -62,9 +62,6 @@
 						<span class="text-grey text-caption">{{ item.raw.description }}</span>
 					</v-list-item>
 				</template>
-				<template #selection="{ item }">
-					<v-list-item v-bind="item.props" />
-				</template>
 			</v-select>
 			<v-checkbox
 				v-model="inputRoomSettings.autoSkipSegments"
