@@ -95,7 +95,12 @@
 										@enable-cc="value => $refs.player.setCaptionsEnabled(value)"
 										@cc-track="value => $refs.player.setCaptionsTrack(value)"
 									/>
-									<v-btn v-if="!isMobile" @click="rotateRoomLayout">
+									<v-btn
+										variant="text"
+										icon
+										v-if="!isMobile"
+										@click="rotateRoomLayout"
+									>
 										<v-icon
 											v-if="$store.state.settings.roomLayout === 'theater'"
 											style="transform: scaleX(180%)"
@@ -105,7 +110,7 @@
 											>fa:far fa-square</v-icon
 										>
 									</v-btn>
-									<v-btn @click="toggleFullscreen()" style="margin-left: 10px">
+									<v-btn variant="text" icon @click="toggleFullscreen()">
 										<v-icon>fa:fas fa-compress</v-icon>
 										<v-tooltip activator="parent" location="bottom">
 											<span>{{ $t("room.toggle-fullscreen") }}</span>
