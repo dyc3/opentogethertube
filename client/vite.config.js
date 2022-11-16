@@ -9,7 +9,9 @@ export default defineConfig({
 		vue(),
 		vuetify({
 			autoImport: true,
-			configFile: "src/vuetify-settings.scss",
+			styles: {
+				configFile: "src/vuetify-settings.scss",
+			},
 		}),
 	],
 	resolve: {
