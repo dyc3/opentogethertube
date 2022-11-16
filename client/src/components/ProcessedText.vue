@@ -4,7 +4,7 @@
 			<span v-if="item.type === 'text'">{{ item.text }}</span>
 			<a
 				v-else-if="item.type === 'link'"
-				class="link"
+				class="link text-primary"
 				:href="item.text"
 				@click="e => onLinkClick(e, item.text)"
 			>
@@ -99,7 +99,6 @@ export default ProcessedText;
 @import "../variables.scss";
 
 .link {
-	color: $brand-color;
 	text-decoration: underline;
 }
 </style>
