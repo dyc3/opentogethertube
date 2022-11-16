@@ -33,9 +33,9 @@
 						<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
 					</v-tooltip>
 				</span>
-				<span v-if="user.id === store.state.users.you.id" class="is-you">{{
-					$t("room.users.you")
-				}}</span>
+				<span v-if="user.id === store.state.users.you.id" class="is-you text-primary">
+					{{ $t("room.users.you") }}
+				</span>
 				<span>
 					<v-icon
 						size="x-small"
@@ -253,7 +253,7 @@ export default UserList;
 
 .is-you {
 	color: $brand-color;
-	border: 1px $brand-color solid;
+	border: 1px solid;
 	border-radius: 10px;
 	padding: 0 5px;
 	font-size: 10px;
