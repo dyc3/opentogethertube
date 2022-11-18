@@ -42,6 +42,7 @@
 													v-model="email"
 													:error-messages="logInFailureMessage"
 													:rules="emailRules"
+													data-cy="login-email"
 												/>
 												<v-text-field
 													:loading="isLoading"
@@ -50,6 +51,7 @@
 													required
 													v-model="password"
 													:error-messages="logInFailureMessage"
+													data-cy="login-password"
 												/>
 											</v-col>
 										</v-row>
@@ -68,6 +70,7 @@
 								:loading="isLoading"
 								@click.prevent="login"
 								:disabled="!loginValid"
+								data-cy="login-button"
 								>{{ $t("login-form.login") }}</v-btn
 							>
 						</v-card-actions>
@@ -139,6 +142,7 @@
 								:loading="isLoading"
 								@click.prevent="register"
 								:disabled="!registerValid"
+								data-cy="register-button"
 								>{{ $t("login-form.register") }}</v-btn
 							>
 						</v-card-actions>

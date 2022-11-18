@@ -23,10 +23,9 @@ describe("User login/registration", () => {
 		cy.get("form").contains("Register").parent().contains("label", "Username").siblings("input").click().wait(250).type(username);
 		cy.get("form").contains("Register").parent().contains("label", "Password").siblings("input").click().wait(250).type(password);
 		cy.get("form").contains("Register").parent().contains("label", "Retype Password").siblings("input").click().wait(250).type(password);
-		cy.get("form").contains("Register").parent().submit();
+		cy.get('[data-cy="register-button"]').should('not.be.disabled').click();
 		cy.wait(500);
-		cy.get("form").contains("Register").parent().should("not.be.visible");
-		cy.contains("button", username).should("be.visible");
+		cy.get('[data-cy="user-logged-in"]').should("be.visible").should("contain", username);
 	});
 
 	it("should log in an existing user", () => {
@@ -43,12 +42,11 @@ describe("User login/registration", () => {
 
 		// test
 		cy.contains("button", "Log In").click();
-		cy.get("form").contains("Log in").parent().contains("label", "Email").siblings("input").click().type(userCreds.email);
-		cy.get("form").contains("Log in").parent().contains("label", "Password").siblings("input").click().type(userCreds.password);
-		cy.get("form").contains("Log in").parent().submit();
+		cy.get('[data-cy="login-email"]').click().type(userCreds.email);
+		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
+		cy.get('[data-cy="login-button"]').should('not.be.disabled').click();
 		cy.wait(500);
-		cy.get("form").contains("Log in").parent().should("not.be.visible");
-		cy.contains("button", userCreds.username).should("be.visible");
+		cy.get('[data-cy="user-logged-in"]').should("be.visible").should("contain", userCreds.username);
 	});
 
 	it("should keep the user logged in when the page is refreshed", () => {
@@ -65,15 +63,14 @@ describe("User login/registration", () => {
 
 		// log in
 		cy.contains("button", "Log In").click();
-		cy.get("form").contains("Log in").parent().contains("label", "Email").siblings("input").click().type(userCreds.email);
-		cy.get("form").contains("Log in").parent().contains("label", "Password").siblings("input").click().type(userCreds.password);
-		cy.get("form").contains("Log in").parent().submit();
+		cy.get('[data-cy="login-email"]').click().type(userCreds.email);
+		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
+		cy.get('[data-cy="login-button"]').should('not.be.disabled').click();
 		cy.wait(500);
-		cy.get("form").contains("Log in").parent().should("not.be.visible");
-		cy.contains("button", userCreds.username).should("be.visible");
+		cy.get('[data-cy="user-logged-in"]').should("be.visible").should("contain", userCreds.username);
 
 		// check if we stay logged in
 		cy.visit("/");
-		cy.contains("button", userCreds.username).should("be.visible");
+		cy.get('[data-cy="user-logged-in"]').should("be.visible").should("contain", userCreds.username);
 	});
 });
