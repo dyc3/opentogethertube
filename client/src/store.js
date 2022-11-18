@@ -78,7 +78,10 @@ export default new Vuex.Store({
 					this.state.room.playbackStartTime = dayjs();
 				}
 			}
-			if ((message.currentSource || message.playbackPosition) && this.state.room.isPlaying) {
+			if (
+				(message.currentSource || message.playbackPosition !== undefined) &&
+				this.state.room.isPlaying
+			) {
 				this.state.room.playbackStartTime = dayjs();
 			}
 			// FIXME: the UI needs to be able to handle null currentSource
