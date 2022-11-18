@@ -18,3 +18,15 @@ import './commands';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+
+declare global {
+	namespace Cypress {
+		interface Chainable {
+			ottEnsureToken(): Chainable<Element>
+			ottRequest(options: Partial<Cypress.RequestOptions>): Chainable<Element>
+			ottResetRateLimit(): Chainable<Element>
+			ottCreateUser(userCreds: any): Chainable<Element>
+			ottLogin(userCreds: any): Chainable<Element>
+		}
+	}
+}

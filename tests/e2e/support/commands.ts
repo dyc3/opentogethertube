@@ -30,11 +30,12 @@ Cypress.Commands.add("ottEnsureToken", () => {
 	});
 });
 
-Cypress.Commands.add("ottRequest", options => {
+Cypress.Commands.add("ottRequest", (options: Partial<Cypress.RequestOptions>): Cypress.Chainable => {
 	if (options.headers === undefined) {
 		options.headers = {};
 	}
 	return cy.window().then(win => {
+		// @ts-expect-error
 		options.headers.Authorization = `Bearer ${win.localStorage.token}`;
 		return cy.request(options).then(resp => {
 			cy.wrap(resp).its("isOkStatusCode").should("be.true");
