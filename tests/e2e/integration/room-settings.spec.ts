@@ -18,7 +18,8 @@ describe("Room settings", () => {
 	beforeEach(() => {
 		cy.clearCookies();
 		cy.clearLocalStorage();
-		cy.request("POST", "/api/dev/reset-rate-limit");
+		cy.ottEnsureToken();
+		cy.ottResetRateLimit();
 		// cy.request("POST", "/api/user/login", userCreds);
 		// roomName = uuid.v4().substring(0, 20);
 		// cy.request("POST", "/api/room/create", { name: roomName, temporary: false });
@@ -27,10 +28,11 @@ describe("Room settings", () => {
 
 	describe("Simple settings in temporary rooms", () => {
 		beforeEach(() => {
-			cy.request({
+			cy.ottRequest({
 				method: "POST",
 				url: "/api/room/generate",
 			}).then(resp => {
+				// @ts-expect-error
 				cy.visit(`/room/${resp.body.room}`);
 			});
 
@@ -50,14 +52,14 @@ describe("Room settings", () => {
 		});
 
 		it("should apply visibility", () => {
-			cy.get("[data-cy=select-visibility]").type(Visibility.Unlisted, { force: true }); // HACK: open the dropdown, since v-select doesn't actually use <select>
-			cy.contains(Visibility.Unlisted).click();
+			cy.get("[data-cy=select-visibility]").click();
+			cy.contains("Unlisted").click();
 			cy.contains("button", "Save").click().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
 		});
 
 		it("should apply queue mode", () => {
-			cy.get("[data-cy=select-queueMode]").type(QueueMode.Vote, { force: true }); // HACK: open the dropdown, since v-select doesn't actually use <select>
-			cy.contains(QueueMode.Vote).click();
+			cy.get("[data-cy=select-queueMode]").click();
+			cy.contains("Vote").click();
 			cy.contains("button", "Save").click().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
 		});
 
