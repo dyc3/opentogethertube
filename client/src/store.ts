@@ -109,6 +109,9 @@ export const store: Store<FullOTTStoreState> = createStore<BaseStoreState>({
 		LOGOUT(state) {
 			state.user = null;
 		},
+		SET_FULLSCREEN(state, fullscreen) {
+			state.fullscreen = fullscreen;
+		}
 	},
 	actions: {
 		sync(context, message) {

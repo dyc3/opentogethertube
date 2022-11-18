@@ -121,7 +121,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, computed } from "vue";
 import { API } from "@/common-http.js";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
@@ -193,10 +193,10 @@ export const App = defineComponent({
 
 			document.addEventListener("fullscreenchange", () => {
 				if (document.fullscreenElement) {
-					store.state.fullscreen = true;
+					store.commit("SET_FULLSCREEN", true);
 					document.querySelector("html")?.classList.add("scrollbarBeGone");
 				} else {
-					store.state.fullscreen = false;
+					store.commit("SET_FULLSCREEN", false);
 					document.querySelector("html")?.classList.remove("scrollbarBeGone");
 				}
 			});
@@ -214,11 +214,13 @@ export const App = defineComponent({
 			}
 		});
 
+		const fullscreen = computed(() => store.state.fullscreen);
+
 		return {
 			showCreateRoomForm,
 			showLogin,
 			drawer,
-			fullscreen: store.state.fullscreen,
+			fullscreen,
 			logout,
 			setLocale,
 			cancelRoom,
