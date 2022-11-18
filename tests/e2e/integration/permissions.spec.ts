@@ -1,24 +1,24 @@
 import faker from "faker";
-import uuid from "uuid";
+const uuid = require("uuid");
 
 describe("promotion and demotion", () => {
-	let roomName;
+	let roomName = "";
 	let userCreds;
 	let roles = [
 		{
-			"id": 4,
-			"name": "admin",
-			"display": "Administrator",
+			id: 4,
+			name: "admin",
+			display: "Administrator",
 		},
 		{
-			"id": 3,
-			"name": "mod",
-			"display": "Moderator",
+			id: 3,
+			name: "mod",
+			display: "Moderator",
 		},
 		{
-			"id": 2,
-			"name": "trusted",
-			"display": "Trusted User",
+			id: 2,
+			name: "trusted",
+			display: "Trusted User",
 		},
 	];
 
@@ -58,13 +58,23 @@ describe("promotion and demotion", () => {
 
 	for (let role of roles) {
 		it(`should promote the given user to ${role.display}`, () => {
-			cy.get(".role-owner").should("exist").siblings(".role-registered").should("exist").find("button").click();
+			cy.get(".role-owner")
+				.should("exist")
+				.siblings(".role-registered")
+				.should("exist")
+				.find("button")
+				.click();
 			cy.contains(`Promote to ${role.display}`).click();
 			cy.get(`.role-${role.name}`).should("exist");
 		});
 
 		it(`should demote the given user from ${role.display}`, () => {
-			cy.get(".role-owner").should("exist").siblings(".role-registered").should("exist").find("button").click();
+			cy.get(".role-owner")
+				.should("exist")
+				.siblings(".role-registered")
+				.should("exist")
+				.find("button")
+				.click();
 			cy.contains(`Promote to ${role.display}`).click();
 			cy.get(`.role-${role.name}`).find("button").click();
 			cy.contains("Demote to Registered User").click();
