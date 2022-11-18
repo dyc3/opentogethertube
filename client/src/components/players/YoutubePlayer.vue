@@ -189,7 +189,6 @@ export default {
 			this.player.loadVideoById(this.videoId);
 		},
 		onStateChange(e) {
-			console.log("Youtube player state: ", e.data);
 			this.debug.YoutubeState = e.data;
 			if (e.data === YT_STATUS_ENDED) {
 				this.$emit("ended");
