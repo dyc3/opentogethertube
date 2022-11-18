@@ -5,6 +5,7 @@ describe("Video playback", () => {
 		cy.ottEnsureToken();
 		cy.ottResetRateLimit();
 		cy.ottRequest({ method: "POST", url: "/api/room/generate" }).then(resp => {
+			// @ts-expect-error Cypress doesn't know how to respect this return type
 			cy.visit(`/room/${resp.body.room}`);
 		});
 	});
@@ -12,7 +13,7 @@ describe("Video playback", () => {
 	it("should add and play a video", () => {
 		cy.contains("button", "Add a video").click();
 		cy.get('[data-cy="add-preview-input"]').type("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-		cy.get('.video button').click();
+		cy.get('.video button').eq(1).click();
 		cy.get("#ytcontainer").should("exist").scrollIntoView();
 		cy.wait(500);
 		cy.enter("#ytcontainer").then(getBody => {

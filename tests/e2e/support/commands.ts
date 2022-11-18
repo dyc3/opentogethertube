@@ -30,7 +30,8 @@ Cypress.Commands.add("ottEnsureToken", () => {
 	});
 });
 
-Cypress.Commands.add("ottRequest", (options: Partial<Cypress.RequestOptions>): Cypress.Chainable => {
+// @ts-expect-error Cypress doesn't know how to respect this return type
+Cypress.Commands.add("ottRequest", (options: Partial<Cypress.RequestOptions>) => {
 	if (options.headers === undefined) {
 		options.headers = {};
 	}
