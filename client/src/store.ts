@@ -63,7 +63,7 @@ export const store: Store<FullOTTStoreState> = createStore<BaseStoreState>({
 			playerBufferPercent: null,
 			playerBufferSpans: null,
 			fullscreen: false,
-			production: import.meta.env.NODE_ENV === "production",
+			production: import.meta.env.PROD,
 			/** Unregistered user's username  */
 			username: null,
 			/** Registered user */
