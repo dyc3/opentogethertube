@@ -9,11 +9,9 @@
 				contain
 				style="margin-right: 8px"
 			/>
-			<v-toolbar-title>
-				<router-link class="link-invis" style="margin-right: 10px" to="/">
-					OpenTogetherTube
-				</router-link>
-			</v-toolbar-title>
+			<v-app-bar-title class="app-bar-title">
+				<router-link class="link-invis" to="/">OpenTogetherTube</router-link>
+			</v-app-bar-title>
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-btn variant="text" to="/rooms">{{ $t("nav.browse") }}</v-btn>
 				<v-btn variant="text" to="/faq">{{ $t("nav.faq") }}</v-btn>
@@ -248,6 +246,15 @@ export default App;
 
 .text-muted {
 	opacity: 0.7;
+}
+
+.app-bar-title {
+	margin-right: 10px;
+
+	// HACK: vuetify 3 was forcing the other buttons to center themselves.
+	flex-grow: 0;
+	flex-shrink: 0;
+	flex-basis: auto;
 }
 
 .scrollbarBeGone {
