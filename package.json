@@ -42,6 +42,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "@types/uuid": "^3.4.0",
     "@jest/globals": "^27.0.1",
     "@types/jest": "27.4.1",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
