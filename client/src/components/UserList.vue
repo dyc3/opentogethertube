@@ -54,7 +54,7 @@
 				<v-spacer />
 
 				<div v-if="user.id !== store.state.users.you.id">
-					<v-btn variant="flat" depressed tile>
+					<v-btn class="user-actions" variant="flat" depressed tile>
 						<v-icon size="small">fa:fas fa-cog</v-icon>
 						<v-icon size="small" style="margin-left: 5px">fa:fas fa-caret-down</v-icon>
 						<v-menu right offset-y activator="parent">

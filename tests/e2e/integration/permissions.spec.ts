@@ -58,23 +58,13 @@ describe("promotion and demotion", () => {
 
 	for (let role of roles) {
 		it(`should promote the given user to ${role.display}`, () => {
-			cy.get(".role-owner")
-				.should("exist")
-				.siblings(".role-registered")
-				.should("exist")
-				.find("button")
-				.click();
+			cy.get(".user-actions").click();
 			cy.contains(`Promote to ${role.display}`).click();
 			cy.get(`.role-${role.name}`).should("exist");
 		});
 
 		it(`should demote the given user from ${role.display}`, () => {
-			cy.get(".role-owner")
-				.should("exist")
-				.siblings(".role-registered")
-				.should("exist")
-				.find("button")
-				.click();
+			cy.get(".user-actions").click();
 			cy.contains(`Promote to ${role.display}`).click();
 			cy.get(`.role-${role.name}`).find("button").click();
 			cy.contains("Demote to Registered User").click();
