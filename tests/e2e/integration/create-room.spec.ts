@@ -1,5 +1,5 @@
 import faker from "faker";
-import uuid from "uuid";
+const uuid = require("uuid");
 
 describe("Creating Rooms", () => {
 	beforeEach(() => {
@@ -12,7 +12,7 @@ describe("Creating Rooms", () => {
 	it("should create a temporary room", () => {
 		cy.visit(Cypress.config().baseUrl);
 		cy.contains("Create Room").should("be.visible").click();
-		cy.get('[role="menu"]').contains('[role="menuitem"]', "Create Temporary Room").should("be.visible").click();
+		cy.get('.v-menu').contains('.v-list-item', "Create Temporary Room").should("be.visible").click();
 		cy.wait(500);
 		cy.location("pathname").should((path) => {
 			expect(path).to.include("room");
@@ -24,7 +24,7 @@ describe("Creating Rooms", () => {
 	it("should create a permanent room", () => {
 		cy.visit(Cypress.config().baseUrl);
 		cy.contains("Create Room").should("be.visible").click();
-		cy.get('[role="menu"]').contains('[role="menuitem"]', "Create Permanent Room").should("be.visible").click();
+		cy.get('.v-menu').contains('.v-list-item', "Create Permanent Room").should("be.visible").click();
 
 		let roomName = uuid.v4().substring(0, 20);
 		cy.get('form').find("input").first().type(roomName);
@@ -65,7 +65,7 @@ describe("Creating Rooms", () => {
 		function createRoom() {
 			cy.visit(Cypress.config().baseUrl);
 			cy.contains("Create Room").click();
-			cy.get('[role="menu"]').contains('[role="menuitem"]', "Create Permanent Room").click();
+			cy.get('.v-menu').contains('.v-list-item', "Create Permanent Room").click();
 
 			let roomName = uuid.v4().substring(0, 20);
 			cy.get('form').find("input").first().type(roomName);
