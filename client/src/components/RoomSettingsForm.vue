@@ -6,12 +6,14 @@
 				v-model="inputRoomSettings.title"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-title')"
+				data-cy="input-title"
 			/>
 			<v-text-field
 				:label="$t('room-settings.description')"
 				v-model="inputRoomSettings.description"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-description')"
+				data-cy="input-description"
 			/>
 			<v-select
 				:label="$t('room-settings.visibility')"
@@ -95,6 +97,7 @@
 					:disabled="!store.state.user"
 					role="submit"
 					@click="claimOwnership"
+					data-cy="claim"
 					>Claim Room</v-btn
 				>
 				<v-btn
@@ -103,6 +106,7 @@
 					@click="submitRoomSettings"
 					role="submit"
 					:loading="isLoadingRoomSettings"
+					data-cy="save"
 					>{{ $t("actions.save") }}</v-btn
 				>
 			</div>
@@ -149,20 +153,28 @@ const RoomSettingsForm = defineComponent({
 		async function loadRoomSettings() {
 			// we have to make an API request becuase visibility is not sent in sync messages.
 			isLoadingRoomSettings.value = true;
-			let res = await API.get(`/room/${store.state.room.name}`);
-			isLoadingRoomSettings.value = false;
-			if (res.data.permissions && !res.data.grants) {
-				res.data.grants = res.data.permissions;
+			try {
+				let res = await API.get(`/room/${store.state.room.name}`);
+				if (res.data.permissions && !res.data.grants) {
+					res.data.grants = res.data.permissions;
+				}
+				inputRoomSettings.value = _.pick(
+					res.data,
+					"title",
+					"description",
+					"visibility",
+					"queueMode",
+					"grants",
+					"autoSkipSegments"
+				);
+			} catch (err) {
+				toast.add({
+					content: t("room-settings.load-failed"),
+					duration: 5000,
+					style: ToastStyle.Error,
+				});
 			}
-			inputRoomSettings.value = _.pick(
-				res.data,
-				"title",
-				"description",
-				"visibility",
-				"queueMode",
-				"grants",
-				"autoSkipSegments"
-			);
+			isLoadingRoomSettings.value = false;
 		}
 
 		function getRoomSettingsSubmit() {

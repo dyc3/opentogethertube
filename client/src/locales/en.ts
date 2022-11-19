@@ -268,6 +268,7 @@ export default {
 		"arent-able-to-modify-permissions": "You aren't able to modify permissions in this room.",
 		"settings-applied": "Settings applied",
 		"now-own-the-room": "You now own the room {room}.",
+		"load-failed": "Failed to load room settings.",
 	},
 	"create-room-form": {
 		"card-title": "Create a Permanent Room",
