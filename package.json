@@ -55,6 +55,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-jest": "23.13.2",
     "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-cypress": "^2.12.1",
     "faker": "^5.5.3",
     "husky": "4.2.3",
     "jest": "27.5.1",
