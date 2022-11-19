@@ -56,120 +56,124 @@ interface BaseStoreState {
 	production: boolean;
 }
 
-export const store: Store<FullOTTStoreState> = createStore<BaseStoreState>({
-	state(): BaseStoreState {
-		return {
-			playerStatus: null,
-			playerBufferPercent: null,
-			playerBufferSpans: null,
-			fullscreen: false,
-			production: import.meta.env.PROD,
-			/** Unregistered user's username  */
-			username: null,
-			/** Registered user */
-			user: null,
-			room: {
-				name: "",
-				title: "",
-				description: "",
-				isTemporary: false,
-				queueMode: QueueMode.Manual,
-				currentSource: {} as QueueItem,
-				queue: [],
-				isPlaying: false,
-				playbackPosition: 0,
-				hasOwner: false,
-				chatMessages: [],
-				voteCounts: undefined,
-				playbackStartTime: undefined
-			},
+export function buildNewStore() {
+	return createStore<BaseStoreState>({
+		state(): BaseStoreState {
+			return {
+				playerStatus: null,
+				playerBufferPercent: null,
+				playerBufferSpans: null,
+				fullscreen: false,
+				production: import.meta.env.PROD,
+				/** Unregistered user's username  */
+				username: null,
+				/** Registered user */
+				user: null,
+				room: {
+					name: "",
+					title: "",
+					description: "",
+					isTemporary: false,
+					queueMode: QueueMode.Manual,
+					currentSource: {} as QueueItem,
+					queue: [],
+					isPlaying: false,
+					playbackPosition: 0,
+					hasOwner: false,
+					chatMessages: [],
+					voteCounts: undefined,
+					playbackStartTime: undefined
+				},
 
-			keepAliveInterval: null,
-		};
-	},
-	mutations: {
-		PLAYBACK_STATUS(state, message) {
-			if (state.playerStatus !== message) {
-				state.playerStatus = message;
+				keepAliveInterval: null,
+			};
+		},
+		mutations: {
+			PLAYBACK_STATUS(state, message) {
+				if (state.playerStatus !== message) {
+					state.playerStatus = message;
+				}
+			},
+			PLAYBACK_BUFFER(state, percent) {
+				state.playerBufferPercent = percent;
+			},
+			PLAYBACK_BUFFER_SPANS(state, spans) {
+				state.playerBufferSpans = spans;
+			},
+			PLAYBACK_BUFFER_RESET(state) {
+				state.playerBufferPercent = null;
+				state.playerBufferSpans = null;
+			},
+			LOGIN(state, user) {
+				state.user = user;
+			},
+			LOGOUT(state) {
+				state.user = null;
+			},
+			SET_FULLSCREEN(state, fullscreen) {
+				state.fullscreen = fullscreen;
 			}
 		},
-		PLAYBACK_BUFFER(state, percent) {
-			state.playerBufferPercent = percent;
-		},
-		PLAYBACK_BUFFER_SPANS(state, spans) {
-			state.playerBufferSpans = spans;
-		},
-		PLAYBACK_BUFFER_RESET(state) {
-			state.playerBufferPercent = null;
-			state.playerBufferSpans = null;
-		},
-		LOGIN(state, user) {
-			state.user = user;
-		},
-		LOGOUT(state) {
-			state.user = null;
-		},
-		SET_FULLSCREEN(state, fullscreen) {
-			state.fullscreen = fullscreen;
-		}
-	},
-	actions: {
-		sync(context, message) {
-			console.debug("SYNC", message);
-			delete message.action;
-			if (
-				message.isPlaying !== undefined &&
-				this.state.room.isPlaying !== message.isPlaying
-			) {
-				if (message.isPlaying) {
+		actions: {
+			sync(context, message) {
+				console.debug("SYNC", message);
+				delete message.action;
+				if (
+					message.isPlaying !== undefined &&
+					this.state.room.isPlaying !== message.isPlaying
+				) {
+					if (message.isPlaying) {
+						this.state.room.playbackStartTime = dayjs();
+					}
+				}
+				if ((message.currentSource || message.playbackPosition !== undefined) && this.state.room.isPlaying) {
 					this.state.room.playbackStartTime = dayjs();
 				}
-			}
-			if ((message.currentSource || message.playbackPosition !== undefined) && this.state.room.isPlaying) {
-				this.state.room.playbackStartTime = dayjs();
-			}
-			// FIXME: the UI needs to be able to handle null currentSource
-			if (message.currentSource === null) {
-				message.currentSource = {};
-			}
-			if ("currentSource" in message) {
-				this.commit("PLAYBACK_BUFFER_RESET");
-			}
-			if (message.voteCounts) {
-				message.voteCounts = deserializeMap(message.voteCounts);
-			}
-			// HACK: this lets vue detect the changes and react to them
-			// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-			this.state.room = Object.assign({}, this.state.room, message);
+				// FIXME: the UI needs to be able to handle null currentSource
+				if (message.currentSource === null) {
+					message.currentSource = {};
+				}
+				if ("currentSource" in message) {
+					this.commit("PLAYBACK_BUFFER_RESET");
+				}
+				if (message.voteCounts) {
+					message.voteCounts = deserializeMap(message.voteCounts);
+				}
+				// HACK: this lets vue detect the changes and react to them
+				// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+				this.state.room = Object.assign({}, this.state.room, message);
+			},
+			chat(context, message) {
+				this.state.room.chatMessages.push(message);
+			},
+			announcement(context, message) {
+				this.commit("toast/ADD_TOAST", {
+					style: ToastStyle.Neutral,
+					content: message.text,
+					duration: 15000,
+				});
+			},
+			error(context, message) {
+				// console.log(`Server sent error: ${message.error}`);
+				this.commit("toast/ADD_TOAST", {
+					style: ToastStyle.Error,
+					content: message.error,
+					duration: 5000,
+				});
+			},
 		},
-		chat(context, message) {
-			this.state.room.chatMessages.push(message);
+		modules: {
+			toast: toastModule,
+			events: eventsModule,
+			users: usersModule,
+			settings: settingsModule,
+			misc: miscModule,
+			captions: captionsModule,
 		},
-		announcement(context, message) {
-			this.commit("toast/ADD_TOAST", {
-				style: ToastStyle.Neutral,
-				content: message.text,
-				duration: 15000,
-			});
-		},
-		error(context, message) {
-			// console.log(`Server sent error: ${message.error}`);
-			this.commit("toast/ADD_TOAST", {
-				style: ToastStyle.Error,
-				content: message.error,
-				duration: 5000,
-			});
-		},
-	},
-	modules: {
-		toast: toastModule,
-		events: eventsModule,
-		users: usersModule,
-		settings: settingsModule,
-		misc: miscModule,
-		captions: captionsModule,
-	},
-}) as Store<FullOTTStoreState>;
+	}) as Store<FullOTTStoreState>;
+}
+
+export const store: Store<FullOTTStoreState> = buildNewStore();
 
 export const key: InjectionKey<Store<FullOTTStoreState>> = Symbol()
 
