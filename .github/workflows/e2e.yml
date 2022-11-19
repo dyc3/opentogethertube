@@ -1,0 +1,148 @@
+name: Cypress Tests
+
+on:
+  pull_request:
+    paths-ignore:
+    - '.vscode/**'
+    - 'docs/**'
+    - 'env/**'
+    - '**/*.md'
+    - '.gitpod.yml'
+  push:
+    branches:
+    - master
+    paths-ignore:
+    - '.vscode/**'
+    - 'docs/**'
+    - 'env/**'
+    - '**/*.md'
+    - '.gitpod.yml'
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+      fail-fast: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/Cypress
+            node_modules
+          key: cache-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          check-latest: true
+
+      - run: yarn --frozen-lockfile
+      - run: yarn build
+
+      - name: Save build folder
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          if-no-files-found: error
+          path: client/dist
+
+      - run: tar -czf node_modules.tar.gz node_modules
+      - uses: actions/upload-artifact@v2
+        with:
+          name: node_modules
+          if-no-files-found: error
+          path: node_modules.tar.gz
+  e2e:
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node16.18.0-chrome107-ff106-edge
+      options: --user 1001
+    needs: install
+    strategy:
+      fail-fast: false
+      matrix:
+        # run copies of the current job in parallel
+        containers: [1]
+        browsers: [chrome, firefox]
+        mode: [component, e2e]
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: node_modules
+          path: dl
+      - run: |
+          mv dl/node_modules.tar.gz .
+          rm -d dl
+          tar -xzf node_modules.tar.gz
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/Cypress
+            node_modules
+          key: cache-${{ runner.os }}-16.x-${{ hashFiles('yarn.lock') }}
+
+      - name: Download the build folders
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: client/dist
+
+      - run: yarn run cypress install
+      - run: yarn workspace ott-server run sequelize db:migrate
+
+      - name: 'Component Tests'
+        if: matrix.mode == 'component'
+        uses: cypress-io/github-action@v4.2.0
+        with:
+          install: false
+          component: true
+          record: true
+          parallel: true
+          group: 'Component - ${{ matrix.browsers }}'
+          browser: ${{ matrix.browsers }}
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Recommended: pass the GitHub token lets this action correctly
+          # determine the unique run id necessary to re-run the checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'E2E Tests'
+        if: matrix.mode == 'e2e'
+        uses: cypress-io/github-action@v4.2.0
+        with:
+          install: false
+          start: yarn start
+          wait-on: 'http://localhost:8080/api/status'
+          wait-on-timeout: 120
+          browser: ${{ matrix.browsers }}
+          record: true
+          parallel: true
+          group: 'E2E - ${{ matrix.browsers }}'
+        env:
+          PORT: 8080
+          REDIS_HOST: redis
+          REDIS_PORT: 6379
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Recommended: pass the GitHub token lets this action correctly
+          # determine the unique run id necessary to re-run the checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

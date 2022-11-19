@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, searchForWorkspaceRoot } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vuetify from "vite-plugin-vuetify";
 import path from "path";
@@ -10,16 +10,27 @@ export default defineConfig({
 		vuetify({
 			autoImport: true,
 			styles: {
-				configFile: "src/vuetify-settings.scss",
+				configFile: path.resolve(
+					searchForWorkspaceRoot(process.cwd()),
+					"client/src/vuetify-settings.scss"
+				),
 			},
 		}),
 	],
 	resolve: {
 		alias: {
-			"@": path.resolve(__dirname, "./src"),
+			"@": path.resolve(searchForWorkspaceRoot(process.cwd()), "client/src"),
 		},
 	},
 	server: {
+		fs: {
+			// Allow serving files from one level up to the project root
+			allow: [
+				path.resolve(searchForWorkspaceRoot(process.cwd()), "node_modules"),
+				path.resolve(searchForWorkspaceRoot(process.cwd()), "common"),
+				path.resolve(searchForWorkspaceRoot(process.cwd()), "client"),
+			],
+		},
 		port: 8080,
 		proxy: {
 			"^/api": {

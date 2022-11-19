@@ -15,7 +15,6 @@ module.exports = {
 	rootDir: "../..",
 	moduleNameMapper: {
 		"^@/(.*)$": "<rootDir>/src/$1",
-		"^common/(.*)$": "<rootDir>/../common/$1",
 	},
 	snapshotSerializers: ["jest-serializer-vue"],
 	testMatch: ["**/tests/unit/**/*.spec.(js|jsx|ts|tsx)|**/__tests__/*.(js|jsx|ts|tsx)"],

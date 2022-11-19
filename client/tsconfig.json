@@ -11,9 +11,6 @@
 			"@/*": [
 				"src/*"
 			],
-			"common/*": [
-				"../common/*"
-			]
 		},
 		"jsx": "preserve"
 	},

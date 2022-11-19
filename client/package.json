@@ -10,7 +10,7 @@
 		"lint-ci": "tsc --noEmit && vue-cli-service --no-fix lint .",
 		"test": "vitest run --coverage",
 		"cy:open": "cypress open",
-		"cy:run": "cypress run"
+		"cy:run": "cypress run --component"
 	},
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^5.12.1",
