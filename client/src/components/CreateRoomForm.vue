@@ -68,8 +68,8 @@
 <script lang="ts">
 import { defineComponent, onMounted, reactive, Ref, ref, watch } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
-import { ROOM_NAME_REGEX } from "common/constants";
-import { Visibility, QueueMode } from "common/models/types";
+import { ROOM_NAME_REGEX } from "ott-common/constants";
+import { Visibility, QueueMode } from "ott-common/models/types";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
 

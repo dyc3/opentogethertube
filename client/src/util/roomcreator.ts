@@ -5,7 +5,7 @@ import {
 	OttApiResponseRoomGenerate,
 	OttApiResponseRoomCreate,
 	OttApiRequestRoomCreate,
-} from "common/models/rest-api";
+} from "ott-common/models/rest-api";
 import type { Store } from "vuex";
 import { reactive, Ref, ref } from "vue";
 import { AxiosResponse } from "axios";

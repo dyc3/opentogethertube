@@ -1,6 +1,6 @@
 import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
-import type { ClientMessage, ClientMessageAuthenticate, ServerMessage, ServerMessageActionType } from "common/models/messages";
-import type { AuthToken, OttWebsocketError } from "common/models/types";
+import type { ClientMessage, ClientMessageAuthenticate, ServerMessage, ServerMessageActionType } from "ott-common/models/messages";
+import type { AuthToken, OttWebsocketError } from "ott-common/models/types";
 
 const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol();
 

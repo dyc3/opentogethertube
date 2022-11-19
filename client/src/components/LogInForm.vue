@@ -156,7 +156,7 @@
 <script lang="ts">
 import { API } from "@/common-http.js";
 import isEmail from "validator/es/lib/isEmail";
-import { USERNAME_LENGTH_MAX } from "common/constants";
+import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { defineComponent, reactive, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";

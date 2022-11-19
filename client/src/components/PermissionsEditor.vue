@@ -47,8 +47,8 @@ import {
 	Permission,
 	RoleGrants,
 	OldRoleGrants,
-} from "common/permissions";
-import { Role } from "common/models/types";
+} from "ott-common/permissions";
+import { Role } from "ott-common/models/types";
 
 export const PermissionsEditor = defineComponent({
 	name: "PermissionsEditor",

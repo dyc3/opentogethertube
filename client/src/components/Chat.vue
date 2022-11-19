@@ -58,7 +58,7 @@
 import ProcessedText from "@/components/ProcessedText.vue";
 import api from "@/util/api";
 import { defineComponent, onUpdated, ref, Ref, nextTick } from "vue";
-import type { ChatMessage } from "common/models/types";
+import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 
 const MSG_SHOW_TIMEOUT = 20000;

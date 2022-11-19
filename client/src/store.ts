@@ -9,7 +9,7 @@ import { QueueMode } from "../../common/models/types";
 import { deserializeMap } from "../../common/serialize";
 import { miscModule, MiscState } from "@/stores/misc";
 import { captionsModule, CaptionsState } from "@/stores/captions";
-import { QueueItem } from "common/models/video";
+import { QueueItem } from "ott-common/models/video";
 import { InjectionKey } from "vue";
 
 export type FullOTTStoreState = BaseStoreState & {

@@ -253,7 +253,7 @@ import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
 import api from "@/util/api";
-import { PlayerStatus, QueueMode } from "common/models/types";
+import { PlayerStatus, QueueMode } from "ott-common/models/types";
 import VideoQueue from "@/components/VideoQueue.vue";
 // import { goTo } from "vuetify/lib/services/goto/index.mjs";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";

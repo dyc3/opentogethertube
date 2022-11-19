@@ -89,12 +89,12 @@
 <script lang="ts">
 import { defineComponent, PropType, ref } from "vue";
 import { API } from "@/common-http.js";
-import { PlayerStatus, RoomUserInfo } from "common/models/types";
+import { PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import api from "@/util/api";
-import { USERNAME_LENGTH_MAX } from "common/constants";
+import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { granted } from "@/util/grants";
-import { Role } from "common/models/types";
-import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "common/permissions";
+import { Role } from "ott-common/models/types";
+import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "ott-common/permissions";
 import { useStore } from "@/store";
 
 /** Lists users that are connected to a room. */

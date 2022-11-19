@@ -1,5 +1,5 @@
-import { ServerMessageUser, UserInfo } from "common/models/messages";
-import { Role } from "common/models/types";
+import { ServerMessageUser, UserInfo } from "ott-common/models/messages";
+import { Role } from "ott-common/models/types";
 import { Module } from "vuex/types";
 import { API } from "@/common-http";
 import { currentUserGrantMask } from "@/util/grants";

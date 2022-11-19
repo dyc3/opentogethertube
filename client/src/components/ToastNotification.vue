@@ -23,7 +23,7 @@
 import { PropType } from "vue";
 import { defineComponent, ref, toRefs, onMounted, onUnmounted, Ref, computed } from "vue";
 import { Toast, ToastStyle } from "@/models/toast";
-import { RoomRequestType } from "common/models/messages";
+import { RoomRequestType } from "ott-common/models/messages";
 import { API } from "@/common-http";
 import toasts from "@/util/toast";
 import { useStore } from "@/store";

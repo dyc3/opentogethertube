@@ -1,5 +1,5 @@
 import { API } from "@/common-http";
-import { RoomRequestType } from "common/models/messages";
+import { RoomRequestType } from "ott-common/models/messages";
 
 let connection;
 

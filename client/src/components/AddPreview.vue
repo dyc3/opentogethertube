@@ -166,7 +166,7 @@ import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import ProcessedText from "@/components/ProcessedText.vue";
 import { ToastStyle } from "@/models/toast";
 import toast from "@/util/toast";
-import { Video } from "common/models/video";
+import { Video } from "ott-common/models/video";
 
 export const AddPreview = defineComponent({
 	name: "AddPreview",

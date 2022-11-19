@@ -1,4 +1,4 @@
-import { GrantMask, parseIntoGrantMask, PermissionName } from "common/permissions";
+import { GrantMask, parseIntoGrantMask, PermissionName } from "ott-common/permissions";
 import { ref, Ref } from "vue";
 
 export const currentUserGrantMask: Ref<GrantMask> = ref(parseIntoGrantMask(["*"]));

@@ -1,4 +1,4 @@
-import { OttWebsocketError } from "common/models/types";
+import { OttWebsocketError } from "ott-common/models/types";
 
 export default {
 	"landing": {
