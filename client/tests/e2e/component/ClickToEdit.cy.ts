@@ -4,7 +4,7 @@ describe("<ClickToEdit />", () => {
 	it("renders .editable", () => {
 		cy.mount(ClickToEdit);
 
-		cy.get(".editable").should("exist");
+		cy.get(".editable").should("exist").should("have.css", "cursor", "pointer");
 	});
 
 	it("renders a string", () => {
