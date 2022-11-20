@@ -29,7 +29,13 @@ export default defineConfig({
 		devServer: {
 			framework: "vue",
 			bundler: "vite",
-			viteConfig,
+			viteConfig: {
+				...viteConfig,
+				server: {
+					...viteConfig.server,
+					hmr: false,
+				},
+			},
 		},
 	},
 });
