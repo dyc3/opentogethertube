@@ -7,7 +7,7 @@
 		"build": "vite build",
 		"lint": "tsc --noEmit && eslint --ext .js,.ts,.vue --fix .",
 		"i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
-		"lint-ci": "tsc --noEmit && vue-cli-service --no-fix lint .",
+		"lint-ci": "tsc --noEmit && eslint .",
 		"test": "vitest run --coverage",
 		"cy:open": "cypress open",
 		"cy:run": "cypress run --component"
