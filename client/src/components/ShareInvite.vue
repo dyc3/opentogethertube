@@ -71,7 +71,7 @@ const ShareInvite = defineComponent({
 				}, 3000);
 			} else {
 				// @ts-expect-error $el actually does exist
-				let textfield = (inviteLinkText.$el as Element).querySelector("input");
+				let textfield = (inviteLinkText.value.$el as Element).querySelector("input");
 				if (!textfield) {
 					console.error("failed to copy link: input not found");
 					return;

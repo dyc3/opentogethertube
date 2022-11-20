@@ -34,7 +34,9 @@
 							>{{ room.users }} <v-icon small>fa:fas fa-user-friends</v-icon></span
 						>
 					</v-img>
-					<v-card-title v-text="room.isTemporary ? 'Temporary Room' : room.name" />
+					<v-card-title>
+						{{ room.isTemporary ? $t("room.title-temp") : room.name }}
+					</v-card-title>
 					<v-card-text>
 						<div class="description" v-if="room.description">
 							{{ room.description }}

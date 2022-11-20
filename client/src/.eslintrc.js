@@ -28,7 +28,7 @@ module.exports = {
 				},
 			},
 			plugins: ["vue"],
-			extends: ["plugin:vue/base", "plugin:vue/essential"],
+			extends: ["plugin:vue/base", "plugin:vue/vue3-essential"],
 			rules: {
 				"vue/attribute-hyphenation": ["error", "always"],
 				"vue/html-self-closing": [
@@ -52,6 +52,7 @@ module.exports = {
 				"vue/no-v-html": "error",
 				"vue/v-bind-style": ["error", "shorthand"],
 				"vue/v-on-style": ["error", "shorthand"],
+				"vue/multi-word-component-names": "off",
 			},
 		},
 		{

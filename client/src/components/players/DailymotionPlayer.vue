@@ -51,7 +51,7 @@ const DailymotionPlayer = defineComponent({
 
 		onMounted(async () => {
 			let _DM = await getSdk(DAILYMOTION_SDK_URL, "DM", "dmAsyncInit");
-			DM = _DM;
+			DM.value = _DM;
 			DM.value.init({
 				status: false,
 				cookie: false,

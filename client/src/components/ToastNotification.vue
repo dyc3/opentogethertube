@@ -104,7 +104,6 @@ const ToastNotification = defineComponent({
 			padding,
 			color,
 			undoable,
-			toast,
 
 			undo,
 			close,
