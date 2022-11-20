@@ -38,6 +38,7 @@ describe("Room settings", () => {
 
 			cy.contains("Settings").click();
 			cy.contains("button", "Save")
+				.should("exist")
 				.scrollIntoView()
 				.should("be.visible")
 				.should("not.be.disabled")
@@ -45,50 +46,46 @@ describe("Room settings", () => {
 		});
 
 		it("should apply title", () => {
-			cy.get(".room-settings")
-				.contains("label", "Title")
-				.siblings("input")
-				.click()
-				.type("ligma");
+			cy.get('[data-cy="input-title"] input').type("ligma");
 			cy.contains("button", "Save")
-				.click()
+				.should("exist")
 				.should("be.visible")
 				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none");
+				.should("not.have.css", "pointer-events", "none")
+				.click();
 			cy.get(".room-title").scrollIntoView().should("have.text", "ligma");
 		});
 
 		it("should apply description", () => {
-			cy.get(".room-settings")
-				.contains("label", "Description")
-				.siblings("input")
-				.click()
-				.type("sugma");
+			cy.get('[data-cy="input-description"] input').type("sugma");
 			cy.contains("button", "Save")
-				.click()
+				.should("exist")
 				.should("be.visible")
 				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none");
+				.should("not.have.css", "pointer-events", "none")
+				.click();
 		});
 
 		it("should apply visibility", () => {
 			cy.get("[data-cy=select-visibility]").click();
 			cy.contains("Unlisted").click();
 			cy.contains("button", "Save")
-				.click()
+				.should("exist")
 				.should("be.visible")
 				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none");
+				.should("not.have.css", "pointer-events", "none")
+				.click();
 		});
 
 		it("should apply queue mode", () => {
 			cy.get("[data-cy=select-queueMode]").click();
 			cy.contains("Vote").click();
 			cy.contains("button", "Save")
-				.click()
+				.should("exist")
 				.should("be.visible")
 				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none");
+				.should("not.have.css", "pointer-events", "none")
+				.click();
 		});
 
 		afterEach(() => {
