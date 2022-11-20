@@ -12,29 +12,43 @@ describe("Creating Rooms", () => {
 	it("should create a temporary room", () => {
 		cy.visit(Cypress.config().baseUrl);
 		cy.contains("Create Room").should("be.visible").click();
-		cy.get('.v-menu').contains('.v-list-item', "Create Temporary Room").should("be.visible").click();
+		cy.get(".v-menu")
+			.contains(".v-list-item", "Create Temporary Room")
+			.should("be.visible")
+			.click();
 		cy.wait(500);
-		cy.location("pathname").should((path) => {
+		cy.location("pathname").should(path => {
 			expect(path).to.include("room");
 		});
-		cy.get("h1").contains("Temporary Room").scrollIntoView().should("be.visible").should("have.text", "Temporary Room");
+		cy.get("h1")
+			.contains("Temporary Room")
+			.scrollIntoView()
+			.should("be.visible")
+			.should("have.text", "Temporary Room");
 		cy.get("#connectStatus").should("have.text", "Connected");
 	});
 
 	it("should create a permanent room", () => {
 		cy.visit(Cypress.config().baseUrl);
 		cy.contains("Create Room").should("be.visible").click();
-		cy.get('.v-menu').contains('.v-list-item', "Create Permanent Room").should("be.visible").click();
+		cy.get(".v-menu")
+			.contains(".v-list-item", "Create Permanent Room")
+			.should("be.visible")
+			.click();
 
 		let roomName = uuid.v4().substring(0, 20);
-		cy.get('form').find("input").first().type(roomName);
-		cy.get('form').submit();
+		cy.get("form").find("input").first().type(roomName);
+		cy.get("form").submit();
 
 		cy.wait(500);
-		cy.location("pathname").should((path) => {
+		cy.location("pathname").should(path => {
 			expect(path).to.include("room");
 		});
-		cy.get("h1").contains(roomName).scrollIntoView().should("be.visible").should("have.text", roomName);
+		cy.get("h1")
+			.contains(roomName)
+			.scrollIntoView()
+			.should("be.visible")
+			.should("have.text", roomName);
 		cy.get("#connectStatus").should("have.text", "Connected");
 	});
 
@@ -65,14 +79,14 @@ describe("Creating Rooms", () => {
 		function createRoom() {
 			cy.visit(Cypress.config().baseUrl);
 			cy.contains("Create Room").click();
-			cy.get('.v-menu').contains('.v-list-item', "Create Permanent Room").click();
+			cy.get(".v-menu").contains(".v-list-item", "Create Permanent Room").click();
 
 			let roomName = uuid.v4().substring(0, 20);
-			cy.get('form').find("input").first().type(roomName);
-			cy.get('form').submit();
+			cy.get("form").find("input").first().type(roomName);
+			cy.get("form").submit();
 
 			cy.wait(500);
-			cy.location("pathname").should((path) => {
+			cy.location("pathname").should(path => {
 				expect(path).to.include("room");
 			});
 		}
@@ -89,7 +103,11 @@ describe("Creating Rooms", () => {
 			cy.contains("Settings").click();
 			cy.contains("button", "Claim Room").should("be.visible").click();
 			cy.wait(200);
-			cy.contains("button", "Save").scrollIntoView().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+			cy.contains("button", "Save")
+				.scrollIntoView()
+				.should("be.visible")
+				.should("not.be.disabled")
+				.should("not.have.css", "pointer-events", "none");
 			checkPermissionsEditor();
 		});
 
