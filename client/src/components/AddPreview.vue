@@ -16,9 +16,14 @@
 		</v-row>
 		<v-row>
 			<div v-if="!production">
-				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{
-					v[0]
-				}}</v-btn>
+				<v-btn
+					v-for="(v, idx) in testVideos"
+					:key="idx"
+					@click="postTestVideo(idx)"
+					data-cy="test-video"
+				>
+					{{ v[0] }}
+				</v-btn>
 			</div>
 			<v-btn
 				v-if="videos.length > 1"
@@ -47,9 +52,12 @@
 				<v-row justify="center" align="center">
 					<v-col cols="12">
 						{{ $t("add-preview.search-for", { search: inputAddPreview }) }}<br />
-						<v-btn @click="requestAddPreviewExplicit">{{
-							$t("add-preview.search")
-						}}</v-btn>
+						<v-btn
+							@click="requestAddPreviewExplicit"
+							data-cy="add-preview-manual-search"
+						>
+							{{ $t("add-preview.search") }}
+						</v-btn>
 					</v-col>
 				</v-row>
 			</v-container>
