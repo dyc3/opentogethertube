@@ -35,7 +35,12 @@ interface BaseStoreState {
 		chatMessages: unknown[];
 		voteCounts?: Map<string, number>;
 		playbackStartTime: Dayjs | undefined;
-		videoSegments?: { startTime: number, endTime: number, videoDuration: number, category: string }[];
+		videoSegments?: {
+			startTime: number;
+			endTime: number;
+			videoDuration: number;
+			category: string;
+		}[];
 	};
 
 	keepAliveInterval: number | null;
@@ -83,7 +88,7 @@ export function buildNewStore() {
 					hasOwner: false,
 					chatMessages: [],
 					voteCounts: undefined,
-					playbackStartTime: undefined
+					playbackStartTime: undefined,
 				},
 
 				keepAliveInterval: null,
@@ -115,7 +120,7 @@ export function buildNewStore() {
 			},
 			SET_FULLSCREEN(state, fullscreen) {
 				state.fullscreen = fullscreen;
-			}
+			},
 		},
 		actions: {
 			sync(context, message) {
@@ -129,7 +134,10 @@ export function buildNewStore() {
 						this.state.room.playbackStartTime = dayjs();
 					}
 				}
-				if ((message.currentSource || message.playbackPosition !== undefined) && this.state.room.isPlaying) {
+				if (
+					(message.currentSource || message.playbackPosition !== undefined) &&
+					this.state.room.isPlaying
+				) {
 					this.state.room.playbackStartTime = dayjs();
 				}
 				// FIXME: the UI needs to be able to handle null currentSource
@@ -178,8 +186,8 @@ export function buildNewStore() {
 
 export const store: Store<FullOTTStoreState> = buildNewStore();
 
-export const key: InjectionKey<Store<FullOTTStoreState>> = Symbol()
+export const key: InjectionKey<Store<FullOTTStoreState>> = Symbol();
 
 export function useStore(): Store<FullOTTStoreState> {
-	return baseUseStore(key) as Store<FullOTTStoreState>;
+	return baseUseStore(key);
 }

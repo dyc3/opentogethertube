@@ -23,7 +23,9 @@ export default {
 			// by authenticating with google, either by api key or by having people sign in with google. This is easier, and not really a problem
 			// because we have 1,000,000,000 google drive api quota and the api methods we use don't cost that much. And this means we don't have
 			// to waste bandwidth streaming video to clients.
-			return `https://www.googleapis.com/drive/v3/files/${this.videoId}?key=${import.meta.env.GOOGLE_DRIVE_API_KEY}&alt=media&aknowledgeAbuse=true`;
+			return `https://www.googleapis.com/drive/v3/files/${this.videoId}?key=${
+				import.meta.env.GOOGLE_DRIVE_API_KEY
+			}&alt=media&aknowledgeAbuse=true`;
 		},
 	},
 	mounted() {

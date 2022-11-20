@@ -4,8 +4,8 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import { createVuetify, ThemeDefinition } from "vuetify/lib/framework.mjs";
 import { fa } from "vuetify/iconsets/fa";
 import { mdi } from "vuetify/iconsets/mdi";
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
+import * as components from "vuetify/components";
+import * as directives from "vuetify/directives";
 
 const themeDark: ThemeDefinition = {
 	dark: true,

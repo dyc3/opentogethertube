@@ -1,18 +1,13 @@
 "use strict";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
+import { UserAccountAttributes } from "ott-common/models/types";
 
-interface UserAttributes {
-	id: number;
-	username: string;
-	email: string | null;
-	salt: Buffer | null;
-	hash: Buffer | null;
-	discordId: string | null;
-}
+type UserCreationAttributes = Optional<UserAccountAttributes, "id">;
 
-type UserCreationAttributes = Optional<UserAttributes, "id">;
-
-export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+export class User
+	extends Model<UserAccountAttributes, UserCreationAttributes>
+	implements UserAccountAttributes
+{
 	id: number;
 	public readonly createdAt: Date;
 	public readonly updatedAt: Date;

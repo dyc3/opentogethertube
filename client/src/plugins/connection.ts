@@ -1,5 +1,10 @@
 import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
-import type { ClientMessage, ClientMessageAuthenticate, ServerMessage, ServerMessageActionType } from "ott-common/models/messages";
+import type {
+	ClientMessage,
+	ClientMessageAuthenticate,
+	ServerMessage,
+	ServerMessageActionType,
+} from "ott-common/models/messages";
 import type { AuthToken, OttWebsocketError } from "ott-common/models/types";
 
 const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol();
@@ -14,7 +19,10 @@ export function useConnection(): OttRoomConnection {
 
 type ConnectionEventKind = "connected" | "disconnected" | "kicked";
 
-export type ConnectionEvent = ConnectionEventConnected | ConnectionEventDisconnected | ConnectionEventKicked;
+export type ConnectionEvent =
+	| ConnectionEventConnected
+	| ConnectionEventDisconnected
+	| ConnectionEventKicked;
 
 export interface ConnectionEventConnected {
 	kind: "connected";
@@ -82,9 +90,9 @@ class OttRoomConnection {
 		this.socket = new WebSocket(url);
 		console.debug(`connecting to ${url}`);
 		this.socket.addEventListener("open", () => this.onOpen());
-		this.socket.addEventListener("close", (e) => this.onClose(e));
-		this.socket.addEventListener("message", (e) => this.onMessage(e));
-		this.socket.addEventListener("error", (e) => this.onError(e));
+		this.socket.addEventListener("close", e => this.onClose(e));
+		this.socket.addEventListener("message", e => this.onMessage(e));
+		this.socket.addEventListener("error", e => this.onError(e));
 	}
 
 	send(message: ClientMessage) {
@@ -119,12 +127,12 @@ class OttRoomConnection {
 		console.info("socket open");
 		let authMsg: ClientMessageAuthenticate = {
 			action: "auth",
-			token: window.localStorage.getItem("token") as AuthToken
+			token: window.localStorage.getItem("token") as AuthToken,
 		};
 		this.send(authMsg);
 	}
 
-	private onClose(e: { code: number; }) {
+	private onClose(e: { code: number }) {
 		console.info("socket closed", e);
 		this.connected.value = false;
 		this.socket = null;
@@ -135,7 +143,10 @@ class OttRoomConnection {
 			this.active.value = false;
 		} else if (this.active.value) {
 			this.reconnecting.value = true;
-			this.reconnectTimeout = setTimeout(() => this.reconnect(), this.reconnectDelay + this.reconnectDelayIncrease * this.reconnectAttempts.value);
+			this.reconnectTimeout = setTimeout(
+				() => this.reconnect(),
+				this.reconnectDelay + this.reconnectDelayIncrease * this.reconnectAttempts.value
+			);
 		}
 	}
 

@@ -1,5 +1,4 @@
 import { Session } from "express-session";
-import { User } from "../../server/models/user";
 import { Video } from "./video";
 import { Grants } from "../permissions";
 import type { Segment } from "sponsorblock-api";
@@ -55,7 +54,7 @@ export interface RoomSettings {
 export interface RoomOptions extends RoomSettings {
 	name: string
 	isTemporary: boolean
-	owner: User | null
+	owner: UserAccountAttributes | null
 	userRoles: Map<Role, Set<number>>
 }
 
@@ -89,4 +88,13 @@ export interface RoomEventContext {
 export interface ChatMessage {
 	from: RoomUserInfo
 	text: string
+}
+
+export interface UserAccountAttributes {
+	id: number;
+	username: string;
+	email: string | null;
+	salt: Buffer | null;
+	hash: Buffer | null;
+	discordId: string | null;
 }

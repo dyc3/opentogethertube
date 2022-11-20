@@ -62,5 +62,5 @@ export const router = createRouter({
 });
 
 router.beforeEach((to, from) => {
-	console.log("Navigation: ", {to, from});
-})
+	console.log("Navigation: ", { to, from });
+});
