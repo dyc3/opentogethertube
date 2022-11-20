@@ -390,7 +390,7 @@ export default {
 			this.debugMode = true;
 		}
 	},
-	destroyed() {
+	unmounted() {
 		clearInterval(this.i_timestampUpdater);
 		const connection = useConnection();
 		connection.disconnect();

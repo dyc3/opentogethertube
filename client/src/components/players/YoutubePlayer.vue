@@ -96,7 +96,7 @@ export default {
 	mounted() {
 		this.fitToContainer();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		if (this.player && this.player.destroy) {
 			this.player.destroy();
 			delete this.player;

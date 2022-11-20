@@ -25,7 +25,7 @@ export default {
 	mounted() {
 		this.beginNewVideo();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		if (this.player) {
 			this.player.dispose();
 		}

@@ -47,7 +47,7 @@ export default {
 		this.loadVideoSource();
 		this.player.load();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		if (this.player) {
 			this.player.dispose();
 		}
