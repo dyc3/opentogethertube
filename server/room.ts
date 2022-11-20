@@ -776,7 +776,7 @@ export class Room implements RoomState {
 		await this.publish({
 			action: "user",
 			user: {
-				grants: this.grants.getMask(Role.Owner),
+				grants: this.grants.getMask(info.role),
 				...info,
 			},
 		});
