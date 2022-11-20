@@ -25,11 +25,11 @@ export default defineConfig({
 	server: {
 		fs: {
 			// Allow serving files from one level up to the project root
-			allow: [
-				path.resolve(searchForWorkspaceRoot(process.cwd()), "node_modules"),
-				path.resolve(searchForWorkspaceRoot(process.cwd()), "common"),
-				path.resolve(searchForWorkspaceRoot(process.cwd()), "client"),
-			],
+			// allow: [
+			// 	path.resolve(searchForWorkspaceRoot(process.cwd()), "node_modules"),
+			// 	path.resolve(searchForWorkspaceRoot(process.cwd()), "common"),
+			// 	path.resolve(searchForWorkspaceRoot(process.cwd()), "client"),
+			// ],
 		},
 		port: 8080,
 		proxy: {

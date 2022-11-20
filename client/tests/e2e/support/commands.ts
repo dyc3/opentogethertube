@@ -62,7 +62,7 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	if (!options.router) {
 		// @ts-expect-error
 		options.router = createRouter({
-			routes: routes,
+			routes: [],
 			history: createMemoryHistory(),
 		});
 	}
