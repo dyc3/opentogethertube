@@ -1,5 +1,5 @@
 const express = require("express");
-const uuid = require("uuid/v4");
+import { v4 as uuidv4 } from "uuid";
 const _ = require("lodash");
 import InfoExtract from "./infoextractor";
 import { RoomRequestType } from "../common/models/messages";
@@ -167,7 +167,7 @@ router.post("/room/generate", async (req, res) => {
 			return;
 		}
 	}
-	let roomName = uuid();
+	let roomName = uuidv4();
 	log.debug(`Generating room: ${roomName}`);
 	await roommanager.CreateRoom({
 		name: roomName,
