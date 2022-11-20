@@ -1,4 +1,4 @@
-import 'cypress-iframe';
+import "cypress-iframe";
 
 describe("Video playback", () => {
 	beforeEach(() => {
@@ -13,20 +13,26 @@ describe("Video playback", () => {
 	it("should add and play a video", () => {
 		cy.contains("button", "Add a video").click();
 		cy.get('[data-cy="add-preview-input"]').type("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-		cy.get('.video button').eq(1).click();
+		cy.get(".video button").eq(1).click();
 		cy.get("#ytcontainer").should("exist").scrollIntoView();
 		cy.wait(500);
 		cy.enter("#ytcontainer").then(getBody => {
-			getBody().find("video").should("exist").should(element => {
-				expect(element[0].paused).to.be.true;
-			});
+			getBody()
+				.find("video")
+				.should("exist")
+				.should(element => {
+					expect(element[0].paused).to.be.true;
+				});
 		});
-		cy.get('.video-controls button').eq(1).click();
+		cy.get(".video-controls button").eq(1).click();
 		cy.get("#ytcontainer").scrollIntoView();
 		cy.enter("#ytcontainer").then(getBody => {
-			getBody().find("video").should("exist").should(element => {
-				expect(element[0].paused).to.be.false;
-			});
+			getBody()
+				.find("video")
+				.should("exist")
+				.should(element => {
+					expect(element[0].paused).to.be.false;
+				});
 		});
 	});
 });

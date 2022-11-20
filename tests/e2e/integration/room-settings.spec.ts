@@ -37,30 +37,58 @@ describe("Room settings", () => {
 			});
 
 			cy.contains("Settings").click();
-			cy.contains("button", "Save").scrollIntoView().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+			cy.contains("button", "Save")
+				.scrollIntoView()
+				.should("be.visible")
+				.should("not.be.disabled")
+				.should("not.have.css", "pointer-events", "none");
 		});
 
 		it("should apply title", () => {
-			cy.get(".room-settings").contains("label", "Title").siblings("input").click().type("ligma");
-			cy.contains("button", "Save").click().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+			cy.get(".room-settings")
+				.contains("label", "Title")
+				.siblings("input")
+				.click()
+				.type("ligma");
+			cy.contains("button", "Save")
+				.click()
+				.should("be.visible")
+				.should("not.be.disabled")
+				.should("not.have.css", "pointer-events", "none");
 			cy.get(".room-title").scrollIntoView().should("have.text", "ligma");
 		});
 
 		it("should apply description", () => {
-			cy.get(".room-settings").contains("label", "Description").siblings("input").click().type("sugma");
-			cy.contains("button", "Save").click().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+			cy.get(".room-settings")
+				.contains("label", "Description")
+				.siblings("input")
+				.click()
+				.type("sugma");
+			cy.contains("button", "Save")
+				.click()
+				.should("be.visible")
+				.should("not.be.disabled")
+				.should("not.have.css", "pointer-events", "none");
 		});
 
 		it("should apply visibility", () => {
 			cy.get("[data-cy=select-visibility]").click();
 			cy.contains("Unlisted").click();
-			cy.contains("button", "Save").click().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+			cy.contains("button", "Save")
+				.click()
+				.should("be.visible")
+				.should("not.be.disabled")
+				.should("not.have.css", "pointer-events", "none");
 		});
 
 		it("should apply queue mode", () => {
 			cy.get("[data-cy=select-queueMode]").click();
 			cy.contains("Vote").click();
-			cy.contains("button", "Save").click().should("be.visible").should("not.be.disabled").should("not.have.css", "pointer-events", "none");
+			cy.contains("button", "Save")
+				.click()
+				.should("be.visible")
+				.should("not.be.disabled")
+				.should("not.have.css", "pointer-events", "none");
 		});
 
 		afterEach(() => {
