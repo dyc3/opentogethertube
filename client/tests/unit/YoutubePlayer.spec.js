@@ -1,5 +1,4 @@
 import { it, describe, expect, afterEach, vi } from "vitest";
-import Vue from "vue";
 import { shallowMount } from "@vue/test-utils";
 import YoutubePlayer from "@/components/players/YoutubePlayer.vue";
 // we need to import the mocks so mounting the component doesn't fail.
