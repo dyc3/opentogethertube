@@ -16,6 +16,7 @@
 					:messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
 					@click:append="copyInviteLink"
+					data-cy="share-invite-link"
 				/>
 			</v-card-text>
 		</v-card>
@@ -50,14 +51,18 @@ const ShareInvite = defineComponent({
 			return buildInviteLink(
 				window.location.href,
 				store.state.room.name,
-				import.meta.env.SHORT_URL
+				store.state.shortUrl
 			);
 		}
 		const inviteLink = computed(getInviteLink);
 
 		async function copyInviteLink() {
 			if (navigator.clipboard) {
-				await navigator.clipboard.writeText(inviteLink.value);
+				try {
+					await navigator.clipboard.writeText(inviteLink.value);
+				} catch (err) {
+					console.error("Failed to copy invite link", err);
+				}
 				if (copySuccessTimeoutId) {
 					clearTimeout(copySuccessTimeoutId);
 				}

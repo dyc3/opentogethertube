@@ -54,6 +54,7 @@ interface BaseStoreState {
 
 	fullscreen: boolean;
 	production: boolean;
+	shortUrl?: string;
 }
 
 export function buildNewStore() {
@@ -86,6 +87,8 @@ export function buildNewStore() {
 				},
 
 				keepAliveInterval: null,
+
+				shortUrl: import.meta.env.SHORT_URL,
 			};
 		},
 		mutations: {
