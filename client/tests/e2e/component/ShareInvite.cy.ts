@@ -1,6 +1,7 @@
 import { defineComponent, h } from "vue";
 import { useStore } from "../../../src/store";
 import ShareInvite from "../../../src/components/ShareInvite.vue";
+import { skipOn } from "@cypress/skip-test";
 
 function assertValueInClipboard(value: string) {
 	cy.window().then(win => {
@@ -51,6 +52,8 @@ describe("<ShareInvite />", () => {
 		// otherwise reading the clipboard will fail with "Document not focused".
 		// See: https://github.com/cypress-io/cypress/issues/18198#issuecomment-1003756021
 		// also important to note that this can't test the fallback copy method because all browsers cypress supports also support navigator.clipboard
+
+		skipOn("firefox");
 
 		let page = defineComponent({
 			setup() {
