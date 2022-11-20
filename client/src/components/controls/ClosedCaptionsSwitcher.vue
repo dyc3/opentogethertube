@@ -28,7 +28,7 @@ const ClosedCaptionsSwitcher = defineComponent({
 	emits: ["enable-cc", "cc-track"],
 	props: {
 		supported: { type: Boolean, default: true },
-		tracks: { type: Array as PropType<string[]>, default: [] },
+		tracks: { type: Array as PropType<string[]>, default: () => [] },
 	},
 	setup(props, { emit }) {
 		function setCaptionsEnabled(value: boolean) {

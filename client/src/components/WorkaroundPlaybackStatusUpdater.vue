@@ -13,7 +13,7 @@ export const WorkaroundPlaybackStatusUpdater = defineComponent({
 		const store = useStore();
 		const connection = useConnection();
 
-		store.subscribe((mutation, state) => {
+		store.subscribe(mutation => {
 			if (mutation.type === "PLAYBACK_STATUS") {
 				connection.send({
 					action: "status",
