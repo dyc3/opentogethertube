@@ -12,7 +12,7 @@
 			<v-btn variant="text" v-if="undoable" @click="undo">
 				{{ $t("actions.undo") }}
 			</v-btn>
-			<v-btn variant="text" @click="close" size="x-small" icon :color="`${color} darken-2`">
+			<v-btn variant="text" @click="close" size="x-small" icon>
 				<v-icon>fa:fas fa-times</v-icon>
 			</v-btn>
 		</div>
