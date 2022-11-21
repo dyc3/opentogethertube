@@ -4,7 +4,7 @@ import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
 import roommanager from "../../../../server/roommanager";
 import { RoomNotFoundException } from "../../../../server/exceptions";
-const app = require("../../../app.js").app;
+const { app } = require("../../../app");
 const { Room, User } = require("../../../models");
 
 expect.extend({

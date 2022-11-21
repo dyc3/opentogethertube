@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("../../app.js").app;
+import app from "../../app";
 const usermanager = require("../../usermanager.js");
 const { User } = require("../../models");
 

@@ -183,3 +183,9 @@ module.exports = {
 	redisClient,
 	server,
 };
+
+export default {
+	app,
+	redisClient,
+	server,
+};

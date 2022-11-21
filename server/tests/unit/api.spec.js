@@ -1,6 +1,6 @@
 const request = require("supertest");
 import roommanager from "../../roommanager";
-const app = require("../../app.js").app;
+import { app } from "../../app";
 const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
 const usermanager = require("../../usermanager.js");
