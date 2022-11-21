@@ -1,5 +1,5 @@
 <template>
-	<v-sheet :color="color" class="toast">
+	<v-sheet :color="color" class="toast" elevation="12">
 		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">
 			fa:fas fa-check
 		</v-icon>
@@ -28,18 +28,16 @@ import { API } from "@/common-http";
 import toasts from "@/util/toast";
 import { useStore } from "@/store";
 
-interface ToastNotificationProps {
-	toast: Toast;
-	number: number;
-}
-
 const ToastNotification = defineComponent({
 	name: "ToastNotification",
 	props: {
-		toast: { type: Object as PropType<Toast> },
+		toast: {
+			type: Object as PropType<Toast>,
+			required: true,
+		},
 		number: { type: Number },
 	},
-	setup(props: ToastNotificationProps) {
+	setup(props) {
 		let { toast } = toRefs(props);
 		const store = useStore();
 		let padding = ref(8);
@@ -138,7 +136,7 @@ $toast-content-padding: 14px 16px;
 .toast {
 	position: relative;
 	display: flex;
-	height: $toast-height;
+	min-height: $toast-height;
 	margin: $toast-margin;
 	padding: $toast-padding;
 	min-width: $toast-min-width;
