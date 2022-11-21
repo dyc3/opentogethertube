@@ -1,21 +1,9 @@
 import { it, describe, expect, beforeEach, afterEach, vi } from "vitest";
-import Vue from "vue";
-import { shallowMount, createLocalVue } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import Vuex from "vuex";
-import Vuetify from "vuetify";
-import VueSlider from "vue-slider-component";
-import Room from "@/views/Room";
+import { createVuetify } from "vuetify";
+import Room from "@/views/Room.vue";
 import { i18n } from "@/i18n";
-
-jest.useFakeTimers();
-
-// HACK: import globally to prevent it from yelling at us
-// https://github.com/vuetifyjs/vuetify/issues/4964
-Vue.use(Vuetify);
-
-const localVue = createLocalVue();
-localVue.use(Vuex);
-localVue.component("VueSlider", VueSlider);
 
 const $route = {
 	path: "http://localhost:8080/room/example",
@@ -56,10 +44,10 @@ function createStore() {
 }
 
 function mountNewInstance(store) {
-	return shallowMount(Room, {
-		store,
-		localVue,
-		i18n,
+	return mount(Room, {
+		global: {
+			plugins: [store, i18n, createVuetify()],
+		},
 		mocks: {
 			$route,
 			$connect: vi.fn(),
