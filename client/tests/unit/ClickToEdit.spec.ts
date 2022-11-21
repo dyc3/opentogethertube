@@ -49,43 +49,4 @@ describe("ClickToEdit", () => {
 		await wrapper.vm.$nextTick();
 		expect(wrapper.find("input").exists()).toEqual(true);
 	});
-
-	it.each([
-		[5, 10],
-		["five", "ten"],
-	])(
-		"should correctly implement v-model, and emit change when value applied",
-		async (startVal, emitVal) => {
-			const wrapper = mount({
-				data() {
-					return {
-						ligma: startVal,
-					};
-				},
-				template: `<click-to-edit v-model="ligma"></click-to-edit>`,
-				components: { ClickToEdit },
-				...mountOptions,
-			});
-
-			const comp = wrapper.getComponent<typeof ClickToEdit>(ClickToEdit);
-
-			try {
-				// comp.vm.activate();
-				await wrapper.find(".editable").trigger("click");
-			} catch (e) {
-				// HACK: throws an error because `focus` does not exist (somehow)
-				// ignoring because I know activate works in the wild, and I don't want to spend time on this.
-			}
-			await wrapper.vm.$nextTick();
-			await wrapper.get("input").setValue(emitVal);
-			await wrapper.vm.$nextTick();
-			// comp.vm.apply();
-			await comp.trigger("keyup.enter");
-			await wrapper.vm.$nextTick();
-
-			expect(comp.emitted().change).toEqual([[emitVal]]);
-			expect(comp.emitted()["update:modelValue"]).toEqual([[emitVal]]);
-			expect(wrapper.vm.$data.ligma).toEqual(emitVal);
-		}
-	);
 });
