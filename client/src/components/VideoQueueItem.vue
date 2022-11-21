@@ -158,6 +158,7 @@ import { useStore } from "@/store";
 import toast from "@/util/toast";
 import placeholderUrl from "@/assets/placeholder.svg";
 import { useI18n } from "vue-i18n";
+import axios from "axios";
 
 interface VideoQueueItemProps {
 	item: QueueItem;
@@ -235,11 +236,13 @@ const VideoQueueItem = defineComponent({
 				});
 			} catch (e) {
 				hasError.value = true;
-				toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
+				if (axios.isAxiosError(e)) {
+					toast.add({
+						style: ToastStyle.Error,
+						content: e.response?.data.error.message,
+						duration: 6000,
+					});
+				}
 			}
 			isLoadingAdd.value = false;
 		}
@@ -258,11 +261,13 @@ const VideoQueueItem = defineComponent({
 				});
 			} catch (e) {
 				hasError.value = true;
-				toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
+				if (axios.isAxiosError(e)) {
+					toast.add({
+						style: ToastStyle.Error,
+						content: e.response?.data.error.message,
+						duration: 6000,
+					});
+				}
 			}
 			isLoadingAdd.value = false;
 		}

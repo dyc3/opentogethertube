@@ -2,6 +2,7 @@ import { defineComponent, h } from "vue";
 import VideoQueueItem from "../../../src/components/VideoQueueItem.vue";
 import { QueueItem } from "ott-common/models/video";
 import { QueueMode } from "ott-common/models/types";
+import _ from "lodash";
 
 describe("<VideoQueueItem />", () => {
 	it("should render basic metadata regardless of isPreview and queue mode", () => {
@@ -159,6 +160,60 @@ describe("<VideoQueueItem />", () => {
 					assertButtonVisible("btn-menu", true);
 				}
 			}
+		});
+	});
+
+	it("should add the video to the queue", () => {
+		cy.intercept("POST", "/api/room/foo/queue", { success: true }).as("addToQueue");
+		const video: QueueItem = {
+			service: "youtube",
+			id: "1",
+			title: "Foo",
+			description: "Bar",
+			length: 100,
+		};
+
+		cy.mount(VideoQueueItem, {
+			props: {
+				item: video,
+				isPreview: true,
+			},
+		});
+		cy.store().then(store => {
+			store.state.room.name = "foo";
+		});
+
+		cy.get('[data-cy="btn-add-to-queue"]').click();
+
+		cy.wait("@addToQueue").then(interception => {
+			expect(interception.request.body).to.deep.equal(_.pick(video, ["service", "id"]));
+		});
+	});
+
+	it("should remove the video from the queue", () => {
+		cy.intercept("DELETE", "/api/room/foo/queue", { success: true }).as("removeFromQueue");
+		const video: QueueItem = {
+			service: "youtube",
+			id: "1",
+			title: "Foo",
+			description: "Bar",
+			length: 100,
+		};
+
+		cy.mount(VideoQueueItem, {
+			props: {
+				item: video,
+				isPreview: false,
+			},
+		});
+		cy.store().then(store => {
+			store.state.room.name = "foo";
+		});
+
+		cy.get('[data-cy="btn-remove-from-queue"]').click();
+
+		cy.wait("@removeFromQueue").then(interception => {
+			expect(interception.request.body).to.deep.equal(_.pick(video, ["service", "id"]));
 		});
 	});
 });
