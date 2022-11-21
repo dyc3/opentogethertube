@@ -20,11 +20,17 @@ export default defineConfig({
 		specPattern: "tests/e2e/integration/**/*.{js,jsx,ts,tsx}",
 		supportFile: "tests/e2e/support/index.ts",
 		excludeSpecPattern: "tests/e2e/integration/examples/**",
+		retries: {
+			runMode: 3,
+		},
 	},
 	component: {
 		supportFile: "client/tests/e2e/support/component.ts",
 		indexHtmlFile: "client/tests/e2e/support/component-index.html",
 		specPattern: "client/tests/e2e/component/**/*.cy.{js,ts}",
+		retries: {
+			runMode: 3,
+		},
 
 		devServer: {
 			framework: "vue",
