@@ -694,6 +694,20 @@ $video-controls-height: 80px;
 $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
 
+.v-theme--dark {
+	.no-video {
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, 0.5);
+	}
+}
+
+.v-theme--light {
+	.no-video {
+		color: #000;
+		border: 1px solid rgba(0, 0, 0, 0.5);
+	}
+}
+
 .video-container {
 	display: flex;
 	align-items: center;
@@ -709,8 +723,7 @@ $in-video-chat-width-small: 250px;
 
 	.no-video {
 		height: 100%;
-		color: #696969;
-		border: 1px solid #666;
+		opacity: 60%;
 		border-radius: 3px;
 	}
 
