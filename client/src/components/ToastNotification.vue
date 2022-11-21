@@ -135,7 +135,7 @@ $toast-content-padding: 14px 16px;
 
 .toast {
 	position: relative;
-	display: flex;
+	display: inline-flex;
 	min-height: $toast-height;
 	margin: $toast-margin;
 	padding: $toast-padding;

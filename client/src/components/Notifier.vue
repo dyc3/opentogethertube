@@ -1,12 +1,12 @@
 <template>
-	<transition-group appear name="toast-list" tag="ul" class="toast-list">
-		<li
+	<transition-group appear name="toast-list" tag="div" class="toast-list">
+		<div
 			v-for="(toast, index) in $store.state.toast.notifications"
 			:key="toast.id"
 			class="toast-item"
 		>
 			<ToastNotification :toast="toast" :number="index" />
-		</li>
+		</div>
 		<v-btn
 			block
 			color="primary"
@@ -53,7 +53,9 @@ export default Notifier;
 
 <style lang="scss" scoped>
 .toast-list {
-	display: block;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
 	position: fixed;
 	padding: 0;
 	bottom: 0;
@@ -65,10 +67,6 @@ export default Notifier;
 	button {
 		pointer-events: auto;
 	}
-}
-
-li {
-	list-style-type: none;
 }
 
 // define the animations for individual toasts
