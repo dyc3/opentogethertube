@@ -61,9 +61,9 @@ const ToastNotification = defineComponent({
 
 		let color = computed(() => {
 			if (toast.value.style === ToastStyle.Success) {
-				return "green";
+				return "success";
 			} else if (toast.value.style === ToastStyle.Error) {
-				return "red";
+				return "error";
 			}
 			return undefined;
 		});

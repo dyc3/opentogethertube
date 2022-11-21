@@ -13,6 +13,7 @@
 			key="closeall"
 			@click="closeAll"
 			v-if="$store.state.toast.notifications.length > 1"
+			data-cy="toast-close-all"
 		>
 			{{ $t("actions.close-all") }}
 		</v-btn>
