@@ -36,7 +36,7 @@ describe("Creating Rooms", () => {
 			.should("be.visible")
 			.click();
 
-		let roomName = uuid.v4().substring(0, 20);
+		let roomName: string = uuid.v4().substring(0, 20);
 		cy.get("form").find("input").first().type(roomName);
 		cy.get("form").submit();
 
@@ -49,6 +49,31 @@ describe("Creating Rooms", () => {
 			.scrollIntoView()
 			.should("be.visible")
 			.should("have.text", roomName);
+		cy.get("#connectStatus").should("have.text", "Connected");
+	});
+
+	it("should create a permanent room, unload it, and be able to load it back up", () => {
+		cy.visit(Cypress.config().baseUrl);
+		cy.contains("Create Room").should("be.visible").click();
+		cy.get(".v-menu")
+			.contains(".v-list-item", "Create Permanent Room")
+			.should("be.visible")
+			.click();
+
+		let roomName: string = uuid.v4().substring(0, 20);
+		cy.get("form").find("input").first().type(roomName);
+		cy.get("form").submit();
+
+		cy.visit(Cypress.config().baseUrl);
+		cy.ottRequest({
+			method: "DELETE",
+			url: `/api/room/${roomName}`,
+			headers: {
+				apikey: `PU5eYB08aFsK9P84TC6RiKvUZkIwzutyV6pOsLmYP`,
+			},
+		});
+
+		cy.visit(`${Cypress.config().baseUrl}room/${roomName}`);
 		cy.get("#connectStatus").should("have.text", "Connected");
 	});
 
