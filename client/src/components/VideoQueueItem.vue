@@ -139,7 +139,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, computed, watchEffect } from "vue";
+import { defineComponent, ref, toRefs, computed, watchEffect, PropType } from "vue";
 import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
@@ -160,7 +160,7 @@ interface VideoQueueItemProps {
 const VideoQueueItem = defineComponent({
 	name: "VideoQueueItem",
 	props: {
-		item: { type: Object, required: true },
+		item: { type: Object as PropType<QueueItem>, required: true },
 		isPreview: { type: Boolean, default: false },
 		index: { type: Number, required: false },
 	},
@@ -330,6 +330,7 @@ const VideoQueueItem = defineComponent({
 			moveToTop,
 			moveToBottom,
 			onThumbnailError,
+			getPostData,
 
 			QueueMode,
 			store,
