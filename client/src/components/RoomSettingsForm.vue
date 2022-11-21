@@ -68,6 +68,7 @@
 			<v-checkbox
 				v-model="inputRoomSettings.autoSkipSegments"
 				:label="$t('room-settings.auto-skip-text')"
+				:disabled="!granted('configure-room.set-auto-skip')"
 				data-cy="input-auto-skip"
 			/>
 			<PermissionsEditor

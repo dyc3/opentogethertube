@@ -1,12 +1,16 @@
 import { GrantMask, parseIntoGrantMask, PermissionName } from "ott-common/permissions";
-import { ref, Ref } from "vue";
-
-export const currentUserGrantMask: Ref<GrantMask> = ref(parseIntoGrantMask(["*"]));
+import { useStore } from "../store";
 
 /** Checks if the current user is granted the given permission. */
 export function granted(permission: PermissionName) {
+	let store = useStore();
+	if (!store) {
+		console.error("granted(): No store found.");
+		return true;
+	}
+	let usermask = store.state.users.you.grants;
 	let permMask = parseIntoGrantMask([permission]);
-	return (currentUserGrantMask.value & permMask) > 0;
+	return (usermask & permMask) > 0;
 }
 
 /** @deprecated A helper for checking grants. */
