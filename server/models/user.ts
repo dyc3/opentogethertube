@@ -6,7 +6,17 @@ type UserCreationAttributes = Optional<UserAccountAttributes, "id">;
 
 export class User
 	extends Model<UserAccountAttributes, UserCreationAttributes>
-{}
+	implements UserAccountAttributes
+{
+	declare id: number;
+	declare public readonly createdAt: Date;
+	declare public readonly updatedAt: Date;
+	declare username: string;
+	declare email: string | null;
+	declare salt: Buffer | null;
+	declare hash: Buffer | null;
+	declare discordId: string | null;
+}
 
 const createModel = (sequelize: Sequelize) => {
 	User.init(
