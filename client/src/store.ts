@@ -93,7 +93,7 @@ export function buildNewStore() {
 
 				keepAliveInterval: null,
 
-				shortUrl: import.meta.env.SHORT_URL,
+				shortUrl: import.meta.env.OTT_SHORT_URL_HOSTNAME,
 			};
 		},
 		mutations: {

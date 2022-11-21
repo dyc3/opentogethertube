@@ -37,7 +37,7 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `SEARCH_PROVIDER` | Service adapter to use to provide video search results. | `youtube` | `youtube`
 | `ADD_PREVIEW_PLAYLIST_RESULTS_COUNT` | Limit the number of videos that appear in the results when a playlist is used. | `40` | Integer >= 0
 | `ADD_PREVIEW_SEARCH_RESULTS_COUNT` | Limit the number of videos that appear in the results when searching for a video. | `10` | Integer >= 0
-| `SHORT_URL` | The domain to use in the copyable "Share Invite" URL. | undefined | `string` |
+| `OTT_SHORT_URL_HOSTNAME` | The domain to use in the copyable "Share Invite" URL. This environment var must be present during building the client, otherwise it will not work. | undefined | `string` |
 | `TRUST_PROXY` | The number of reverse proxy layers to trust. | `1` | `number` |
 | `FFPROBE_PATH` | The path to the command `ffprobe`. You probably don't need to set this unless you are having problems with the ffprobe that is install automatically. | (see [@ffprobe-installer/ffprobe](https://github.com/SavageCore/node-ffprobe-installer)) | `string` |
 | `DIRECT_PREVIEW_MAX_BYTES` | The number of bytes to download when trying to preview direct playback videos. | Infinity | Integer >= 0 |
