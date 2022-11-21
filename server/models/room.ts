@@ -21,23 +21,7 @@ interface RoomAttributes {
 
 type RoomCreationAttributes = Optional<RoomAttributes, "id">;
 
-export class Room extends Model<RoomAttributes, RoomCreationAttributes> implements RoomAttributes {
-	"id"!: number;
-	public readonly "createdAt"!: Date;
-	public readonly "updatedAt"!: Date;
-	"name": string;
-	"title": string;
-	"description": string;
-	"visibility": Visibility;
-	"queueMode": QueueMode;
-	"ownerId": number;
-	"owner": User;
-	"permissions"!: string;
-	"role-admin": string;
-	"role-mod": string;
-	"role-trusted": string;
-	"autoSkipSegments": boolean;
-}
+export class Room extends Model<RoomAttributes, RoomCreationAttributes> {}
 
 const createModel = (sequelize: Sequelize) => {
 	Room.init(
