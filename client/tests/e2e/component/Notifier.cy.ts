@@ -73,4 +73,24 @@ describe("<Notifier />", () => {
 
 		cy.get(".toast").should("have.length", 0);
 	});
+
+	it("should let toasts grow/shrink to fit content", () => {
+		cy.mount(Notifier)
+			.then(wrapper => {
+				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", {
+					content: "test",
+				});
+				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", {
+					content: "test ".repeat(100),
+				});
+			})
+			.as("wrapper");
+
+		cy.get(".toast").should("have.length", 2).should("be.visible");
+
+		cy.get(".toast").then(toasts => {
+			cy.wrap(toasts[1]).should("have.css", "width").and("not.eq", toasts.css("width"));
+			cy.wrap(toasts[1]).should("have.css", "height").and("not.eq", toasts.css("height"));
+		});
+	});
 });
