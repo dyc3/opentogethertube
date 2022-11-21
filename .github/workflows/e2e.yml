@@ -57,6 +57,54 @@ jobs:
           name: node_modules
           if-no-files-found: error
           path: node_modules.tar.gz
+  component:
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node16.18.0-chrome107-ff106-edge
+      options: --user 1001
+    needs: install
+    strategy:
+      fail-fast: false
+      matrix:
+        # run copies of the current job in parallel
+        containers: [1, 2]
+        browsers: [chrome, firefox]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: node_modules
+          path: dl
+      - run: |
+          mv dl/node_modules.tar.gz .
+          rm -d dl
+          tar -xzf node_modules.tar.gz
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/Cypress
+            node_modules
+          key: cache-${{ runner.os }}-16.x-${{ hashFiles('yarn.lock') }}
+
+      - run: yarn run cypress install
+
+      - name: 'Component Tests'
+        uses: cypress-io/github-action@v4.2.0
+        with:
+          install: false
+          component: true
+          record: true
+          parallel: true
+          group: 'Component - ${{ matrix.browsers }}'
+          browser: ${{ matrix.browsers }}
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Recommended: pass the GitHub token lets this action correctly
+          # determine the unique run id necessary to re-run the checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   e2e:
     runs-on: ubuntu-latest
     container:
@@ -67,9 +115,8 @@ jobs:
       fail-fast: false
       matrix:
         # run copies of the current job in parallel
-        containers: [1]
+        containers: [1, 2]
         browsers: [chrome, firefox]
-        mode: [component, e2e]
     services:
       redis:
         image: redis
@@ -109,24 +156,7 @@ jobs:
       - run: yarn run cypress install
       - run: yarn workspace ott-server run sequelize db:migrate
 
-      - name: 'Component Tests'
-        if: matrix.mode == 'component'
-        uses: cypress-io/github-action@v4.2.0
-        with:
-          install: false
-          component: true
-          record: true
-          parallel: true
-          group: 'Component - ${{ matrix.browsers }}'
-          browser: ${{ matrix.browsers }}
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          # Recommended: pass the GitHub token lets this action correctly
-          # determine the unique run id necessary to re-run the checks
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: 'E2E Tests'
-        if: matrix.mode == 'e2e'
         uses: cypress-io/github-action@v4.2.0
         with:
           install: false
