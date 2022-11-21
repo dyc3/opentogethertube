@@ -36,6 +36,7 @@
 					:loading="isLoadingVote"
 					:color="voted ? 'red' : 'green'"
 					v-if="!isPreview && store.state.room.queueMode === QueueMode.Vote"
+					data-cy="btn-vote"
 				>
 					<span>{{ votes }}</span>
 					<v-icon>fa:fas fa-thumbs-up</v-icon>
@@ -46,6 +47,7 @@
 					variant="flat"
 					@click="playNow"
 					v-if="store.state.room.queueMode !== QueueMode.Vote"
+					data-cy="btn-play-now"
 				>
 					<v-icon>fa:fas fa-play</v-icon>
 					<v-tooltip activator="parent" location="top">
@@ -58,6 +60,7 @@
 					:loading="isLoadingAdd"
 					@click="addToQueue"
 					v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
+					data-cy="btn-add-to-queue"
 				>
 					<v-icon v-if="hasError">fa:fas fa-exclamation</v-icon>
 					<v-icon v-else-if="hasBeenAdded">fa:fas fa-check</v-icon>
@@ -73,13 +76,14 @@
 					:loading="isLoadingAdd"
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
+					data-cy="btn-remove-from-queue"
 				>
 					<v-icon v-if="hasError">fa:fas fa-exclamation</v-icon>
 					<v-icon v-else>fa:fas fa-trash</v-icon>
 				</v-btn>
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
-						<v-btn icon variant="flat" v-bind="props">
+						<v-btn icon variant="flat" v-bind="props" data-cy="btn-menu">
 							<v-icon>fa:fas fa-ellipsis-v</v-icon>
 						</v-btn>
 					</template>
@@ -88,6 +92,7 @@
 							class="button-with-icon"
 							@click="playNow"
 							v-if="store.state.room.queueMode !== QueueMode.Vote"
+							data-cy="menu-btn-play-now"
 						>
 							<v-icon>fa:fas fa-play</v-icon>
 							<span>{{ $t("video.playnow") }}</span>
@@ -100,6 +105,7 @@
 								store.state.room.queueMode !== QueueMode.Vote &&
 								store.state.room.queueMode !== QueueMode.Dj
 							"
+							data-cy="menu-btn-move-to-top"
 						>
 							<v-icon>fa:fas fa-sort-amount-up</v-icon>
 							<span>{{ $t("video-queue-item.play-next") }}</span>
@@ -108,25 +114,27 @@
 							class="button-with-icon"
 							@click="moveToBottom"
 							v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
+							data-cy="menu-btn-move-to-bottom"
 						>
 							<v-icon>fa:fas fa-sort-amount-down-alt</v-icon>
 							<span>{{ $t("video-queue-item.play-last") }}</span>
 						</v-list-item>
-						<v-btn
-							icon
+						<v-list-item
 							:loading="isLoadingAdd"
 							v-if="isPreview && store.state.room.queueMode === QueueMode.Dj"
 							@click="addToQueue"
+							data-cy="menu-btn-add-to-queue"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 							<v-icon v-else-if="hasBeenAdded">fa:fas fa-check</v-icon>
 							<v-icon v-else>fa:fas fa-plus</v-icon>
 							<span>{{ $t("video-queue-item.add") }}</span>
-						</v-btn>
+						</v-list-item>
 						<v-list-item
 							class="button-with-icon"
 							@click="removeFromQueue"
 							v-if="!isPreview && store.state.room.queueMode === QueueMode.Dj"
+							data-cy="menu-btn-remove-from-queue"
 						>
 							<v-icon>fa:fas fa-trash</v-icon>
 							<span>{{ $t("video-queue-item.remove") }}</span>

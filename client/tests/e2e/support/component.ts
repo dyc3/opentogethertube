@@ -13,6 +13,8 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
+import type { VueWrapper } from "@vue/test-utils";
+
 // Import commands.js using ES2015 syntax:
 import "./commands";
 
@@ -20,6 +22,8 @@ import "./commands";
 // require('./commands')
 
 import { mount } from "cypress/vue";
+import type { FullOTTStoreState } from "../../../src/store";
+import type { Store } from "vuex";
 
 // Augment the Cypress namespace to include type definitions for
 // your custom command.
@@ -29,6 +33,12 @@ declare global {
 	namespace Cypress {
 		interface Chainable {
 			mount: typeof mount;
+			vue(): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
+			setProps(
+				props: Record<string, unknown>
+			): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
+			emitted(selector: string, event: string): Chainable<unknown[]>;
+			store(): Chainable<Store<FullOTTStoreState>>;
 		}
 	}
 }

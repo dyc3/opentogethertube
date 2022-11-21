@@ -44,6 +44,7 @@ import { i18n } from "../../../src/i18n";
 import { OttRoomConnectionPlugin } from "../../../src/plugins/connection";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { routes } from "../../../src/router";
+import { VueWrapper } from "@vue/test-utils";
 
 Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global = options.global || {};
@@ -70,5 +71,47 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 		},
 	});
 
-	return mount(component, options);
+	return mount(component, options).as("wrapper");
+});
+
+Cypress.Commands.add("vue", () => {
+	return cy.get("@wrapper") as any;
+});
+
+/**
+ * Update the props and wait for Vue to re-render.
+ * Must be chained of a chain that starts with `cy.mount`.
+ */
+// @ts-ignore
+Cypress.Commands.add("setProps", (props: Record<string, unknown> = {}) => {
+	return cy.get("@wrapper").then(async (wrapper: any) => {
+		// `wrapper` in inferred as JQuery<HTMLElement> since custom commands
+		// generally receive a Cypress.Chainable as the first arg (the "subject").
+		// the custom `mount` command defined above returns a
+		// Test Utils' `VueWrapper`, so we need to cast this as `unknown` first.
+		const vueWrapper = (wrapper.wrapper || Cypress.vueWrapper) as unknown as VueWrapper<any>;
+		await vueWrapper.setProps(props);
+		return vueWrapper;
+	});
+});
+
+Cypress.Commands.add("emitted", (selector: string, event: string) => {
+	return cy.get("@wrapper").then((wrapper: any) => {
+		const vueWrapper = (wrapper.wrapper || Cypress.vueWrapper) as unknown as VueWrapper<any>;
+		const cmp = wrapper.component;
+
+		if (!cmp) {
+			return [];
+		}
+
+		return cmp.emitted(event);
+	}) as any;
+});
+
+Cypress.Commands.add("store", () => {
+	return cy.get("@wrapper").then((w: any) => {
+		const vueWrapper = (w.wrapper || Cypress.vueWrapper) as unknown as VueWrapper<any>;
+
+		return vueWrapper.vm.$store;
+	}) as any;
 });
