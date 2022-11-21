@@ -3,8 +3,8 @@
 	"version": "0.2.0",
 	"license": "AGPL-3.0-or-later",
 	"scripts": {
-		"start": "node app.js",
-		"debug": "nodemon --ignore 'tests/*' --inspect -e ts,js app.js",
+		"start": "node start.js",
+		"debug": "nodemon --ignore 'tests/*' --inspect -e ts,js start.js",
 		"lint": "tsc --noEmit && eslint --fix .",
 		"lint-ci": "tsc --noEmit && eslint .",
 		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"

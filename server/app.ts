@@ -1,16 +1,12 @@
-require("ts-node").register({
-	transpileOnly: true,
-});
-const express = require("express");
-const http = require("http");
-const fs = require("fs");
-const { getLogger } = require("./logger.js");
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const DiscordStrategy = require("passport-discord").Strategy;
-const BearerStrategy = require("passport-http-bearer").Strategy;
-const { OpticMiddleware } = require("@useoptic/express-middleware");
-const { metricsMiddleware } = require("./metrics");
+import express from "express";
+import http from "http";
+import fs from "fs";
+import { getLogger } from "./logger.js";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as DiscordStrategy } from "passport-discord";
+import { Strategy as BearerStrategy } from "passport-http-bearer";
+import { metricsMiddleware } from "./metrics";
 
 const log = getLogger("app");
 
@@ -24,18 +20,18 @@ if (process.env.NODE_ENV === "example") {
 	process.exit(1);
 }
 
-require("./ott-config");
+import "./ott-config";
 
 const app = express();
 app.use(metricsMiddleware);
 const server = http.createServer(app);
 
-const { redisClient } = require("./redisclient");
+import { redisClient } from "./redisclient";
 
 function checkRedis() {
-	let start = new Date();
+	let start = performance.now();
 	redisClient.ping(() => {
-		let duration = new Date() - start;
+		let duration = performance.now() - start;
 		log.info(`Latency to redis: ${duration}ms`);
 	});
 }
@@ -54,8 +50,9 @@ if (fs.existsSync("../client/dist")) {
 	log.warn("no dist folder found");
 }
 
-const session = require("express-session");
-let RedisStore = require("connect-redis")(session);
+import session from "express-session";
+import connectRedis from "connect-redis";
+let RedisStore = connectRedis(session);
 let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
 	secret: process.env.SESSION_SECRET || "opentogethertube",
@@ -68,19 +65,26 @@ let sessionOpts = {
 		maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
 	},
 };
-if (process.env.NODE_ENV === "production" && !process.env.OTT_HOSTNAME.includes("localhost")) {
+if (
+	process.env.NODE_ENV === "production" &&
+	process.env.OTT_HOSTNAME &&
+	!process.env.OTT_HOSTNAME.includes("localhost")
+) {
 	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
-	app.set("trust proxy", parseInt(process.env["TRUST_PROXY"], 10) || 1);
+	app.set("trust proxy", parseInt(process.env["TRUST_PROXY"] ?? "1", 10) || 1);
+	// @ts-expect-error
 	sessionOpts.cookie.secure = true;
 }
 if (process.env.FORCE_INSECURE_COOKIES) {
 	log.warn("FORCE_INSECURE_COOKIES found, cookies will only be set on http, not https");
+	// @ts-expect-error
 	sessionOpts.cookie.secure = false;
 }
+// @ts-expect-error im too lazy to fix this right now
 const sessions = session(sessionOpts);
 app.use(sessions);
 
-const usermanager = require("./usermanager");
+import usermanager from "./usermanager";
 passport.use(new LocalStrategy({ usernameField: "email" }, usermanager.authCallback));
 passport.use(
 	new DiscordStrategy(
@@ -97,7 +101,7 @@ passport.use(
 		usermanager.authCallbackDiscord
 	)
 );
-const tokens = require("./auth/tokens");
+import tokens from "./auth/tokens";
 passport.use(
 	new BearerStrategy(async (token, done) => {
 		if (!(await tokens.validate(token))) {
@@ -114,28 +118,19 @@ passport.serializeUser(usermanager.serializeUser);
 passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
 app.use(usermanager.passportErrorHandler);
-
-const api = require("./api");
-
-const websockets = require("./websockets.js");
+import websockets from "./websockets.js";
 websockets.Setup(server, sessions);
-const clientmanager = require("./clientmanager");
+import clientmanager from "./clientmanager";
 clientmanager.Setup();
-const roommanager = require("./roommanager");
+import roommanager from "./roommanager";
 roommanager.start();
 
-const bodyParser = require("body-parser");
+import bodyParser from "body-parser";
 app.use(bodyParser.json()); // to support JSON-encoded bodies
 app.use(
 	bodyParser.urlencoded({
 		// to support URL-encoded bodies
 		extended: true,
-	})
-);
-
-app.use(
-	OpticMiddleware({
-		enabled: process.env.NODE_ENV !== "production",
 	})
 );
 
@@ -159,6 +154,7 @@ function serveBuiltFiles(req, res) {
 	});
 }
 
+import api from "./api";
 app.use("/api", api);
 if (fs.existsSync("../client/dist")) {
 	app.get("*", serveBuiltFiles);
@@ -169,7 +165,16 @@ if (fs.existsSync("../client/dist")) {
 //start our server
 if (process.env.NODE_ENV !== "test") {
 	server.listen(process.env.PORT || 3000, () => {
-		log.info(`Server started on port ${server.address().port}`);
+		let addr = server.address();
+		if (!addr) {
+			log.error("Failed to start server!");
+			process.exit(1);
+		}
+		if (typeof addr === "string") {
+			log.info(`Server started on ${addr}`);
+		} else {
+			log.info(`Server started on  ${addr.port}`);
+		}
 	});
 }
 
