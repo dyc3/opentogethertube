@@ -103,10 +103,8 @@ export const UserList = defineComponent({
 	props: {
 		users: { type: Array as PropType<RoomUserInfo[]>, required: true },
 	},
-	setup(props) {
+	setup() {
 		const store = useStore();
-
-		let users = ref(props.users);
 
 		let inputUsername = ref("");
 		let showEditName = ref(false);
@@ -146,7 +144,7 @@ export const UserList = defineComponent({
 			return `manage-users.${demote ? "de" : "pro"}mote-${r}`;
 		}
 
-		function getUserCssClasses(user) {
+		function getUserCssClasses(user: RoomUserInfo) {
 			let cls = ["user", `role-${ROLE_NAMES[user.role]}`];
 			if (user.isLoggedIn) {
 				cls.push("registered");

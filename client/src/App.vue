@@ -177,7 +177,7 @@ export const App = defineComponent({
 		onMounted(async () => {
 			const router = useRouter();
 
-			store.subscribe((mutation, state) => {
+			store.subscribe(mutation => {
 				if (mutation.type === "misc/ROOM_CREATED") {
 					try {
 						router.push(`/room/${mutation.payload.name}`);

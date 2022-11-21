@@ -18,7 +18,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, Ref, onMounted, onUpdated } from "vue";
-import _ from "lodash";
 import { useStore } from "@/store";
 import api from "@/util/api";
 import { granted } from "@/util/grants";
@@ -36,7 +35,7 @@ export const VideoProgressSlider = defineComponent({
 			required: true,
 		},
 	},
-	setup(props) {
+	setup() {
 		const store = useStore();
 		let seekPreview: Ref<number | null> = ref(null);
 		let sliderTooltipFormatter = ref(secondsToTimestamp);

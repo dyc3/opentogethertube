@@ -44,7 +44,7 @@ export const LocaleSelector = defineComponent({
 		});
 
 		// HACK: because for some reason, the locale ref is not updated when the store is updated
-		store.subscribe((mutation, state) => {
+		store.subscribe(mutation => {
 			if (mutation.type === "settings/UPDATE") {
 				locale.value = store.state.settings.locale;
 			}
