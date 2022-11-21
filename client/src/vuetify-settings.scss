@@ -1,1 +1,3 @@
-@use 'vuetify/settings';
+@use 'vuetify/settings' with (
+	$overlay-scrim-background: #000000,
+);
