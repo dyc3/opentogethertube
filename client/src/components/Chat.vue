@@ -6,7 +6,7 @@
 		}"
 	>
 		<div class="chat-header d-flex flex-row" v-if="activated">
-			<v-btn icon size="x-small" @click="setActivated(false)">
+			<v-btn icon size="x-small" @click="setActivated(false)" data-cy="chat-deactivate">
 				<v-icon>fa:fas fa-chevron-down</v-icon>
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
@@ -43,11 +43,18 @@
 					autocomplete="off"
 					ref="chatInput"
 					@blur="deactivateOnBlur && setActivated(false)"
+					data-cy="chat-input"
 				/>
 			</div>
 		</Transition>
 		<div class="manual-activate" v-if="!activated">
-			<v-btn variant="text" icon size="x-small" @click="setActivated(true, true)">
+			<v-btn
+				variant="text"
+				icon
+				size="x-small"
+				@click="setActivated(true, true)"
+				data-cy="chat-activate"
+			>
 				<v-icon>fa:far fa-comment-alt</v-icon>
 			</v-btn>
 		</div>
@@ -56,78 +63,13 @@
 
 <script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
-import api from "@/util/api";
 import { defineComponent, onUpdated, ref, Ref, nextTick } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import { ServerMessageChat } from "ott-common/models/messages";
 
 const MSG_SHOW_TIMEOUT = 20000;
-
-let inputValue = ref("");
-let stickToBottom = ref(true);
-/**
- * When chat is activated, all messages are shown. and the
- * user can scroll through message history, type in chat, etc.
- * When chat is NOT activated, when messages are received,
- * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
- */
-let activated = ref(false);
-let deactivateOnBlur = ref(false);
-/**
- * All past chat messages. They are are no longer
- * shown when deactivated.
- */
-let chatMessagePast: Ref<ChatMessage[]> = ref([]);
-/**
- * All recent chat messages that are currently shown when deactivated.
- * They will fade away after `MSG_SHOW_TIMEOUT` ms, and moved into `chatMessagePast`.
- */
-let chatMessageRecent: Ref<ChatMessage[]> = ref([]);
-let messages = ref();
-let chatInput: Ref<HTMLInputElement | undefined> = ref();
-
-function focusChatInput() {
-	chatInput.value?.focus();
-}
-
-function isActivated(): boolean {
-	return activated.value;
-}
-
-async function setActivated(value: boolean, manual = false): Promise<void> {
-	activated.value = value;
-	if (value) {
-		if (manual) {
-			deactivateOnBlur.value = false;
-		} else {
-			deactivateOnBlur.value = true;
-		}
-		await nextTick();
-		focusChatInput();
-	} else {
-		chatInput.value?.blur();
-	}
-}
-
-function onChatReceived(msg: ChatMessage): void {
-	chatMessageRecent.value.push(msg);
-	setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
-}
-
-function expireChatMessage() {
-	chatMessagePast.value.push(chatMessageRecent.value.splice(0, 1)[0]);
-}
-
-/**
- * Performs the necessary actions to enact the stickToBottom behavior.
- */
-function enforceStickToBottom() {
-	const div = messages.value as HTMLDivElement;
-	if (stickToBottom.value) {
-		div.scrollTop = div.scrollHeight;
-	}
-}
 
 const Chat = defineComponent({
 	name: "Chat",
@@ -136,7 +78,77 @@ const Chat = defineComponent({
 	},
 	emits: ["link-click"],
 	setup() {
-		let roomapi = useRoomApi(useConnection());
+		let connection = useConnection();
+		let roomapi = useRoomApi(connection);
+
+		let inputValue = ref("");
+		let stickToBottom = ref(true);
+		/**
+		 * When chat is activated, all messages are shown. and the
+		 * user can scroll through message history, type in chat, etc.
+		 * When chat is NOT activated, when messages are received,
+		 * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
+		 */
+		let activated = ref(false);
+		let deactivateOnBlur = ref(false);
+		/**
+		 * All past chat messages. They are are no longer
+		 * shown when deactivated.
+		 */
+		let chatMessagePast: Ref<ChatMessage[]> = ref([]);
+		/**
+		 * All recent chat messages that are currently shown when deactivated.
+		 * They will fade away after `MSG_SHOW_TIMEOUT` ms, and moved into `chatMessagePast`.
+		 */
+		let chatMessageRecent: Ref<ChatMessage[]> = ref([]);
+		let messages = ref();
+		let chatInput: Ref<HTMLInputElement | undefined> = ref();
+
+		function focusChatInput() {
+			chatInput.value?.focus();
+		}
+
+		function isActivated(): boolean {
+			return activated.value;
+		}
+
+		async function setActivated(value: boolean, manual = false): Promise<void> {
+			activated.value = value;
+			if (value) {
+				if (manual) {
+					deactivateOnBlur.value = false;
+				} else {
+					deactivateOnBlur.value = true;
+				}
+				await nextTick();
+				focusChatInput();
+			} else {
+				chatInput.value?.blur();
+			}
+		}
+
+		connection.addMessageHandler("chat", (msg: ServerMessageChat) => {
+			onChatReceived(msg);
+		});
+
+		function onChatReceived(msg: ChatMessage): void {
+			chatMessageRecent.value.push(msg);
+			setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
+		}
+
+		function expireChatMessage() {
+			chatMessagePast.value.push(chatMessageRecent.value.splice(0, 1)[0]);
+		}
+
+		/**
+		 * Performs the necessary actions to enact the stickToBottom behavior.
+		 */
+		function enforceStickToBottom() {
+			const div = messages.value as HTMLDivElement;
+			if (stickToBottom.value) {
+				div.scrollTop = div.scrollHeight;
+			}
+		}
 
 		function onInputKeyDown(e: KeyboardEvent): void {
 			if (e.key === "Enter") {
