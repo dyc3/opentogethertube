@@ -39,14 +39,14 @@
 					>
 						<v-responsive
 							class="player-container"
-							:key="currentSource.service"
+							:key="currentSource"
 							:aspect-ratio="16 / 9"
 							:max-height="$store.state.fullscreen ? '100vh' : '90vh'"
 						>
 							<OmniPlayer
 								ref="player"
-								:source="currentSource"
-								:class="{ 'player': true, 'no-video': !currentSource.service }"
+								:source="$store.state.room.currentSource"
+								class="player"
 								@apiready="onPlayerApiReady"
 								@playing="onPlaybackChange(true)"
 								@paused="onPlaybackChange(false)"
@@ -89,7 +89,7 @@
 									</div>
 									<div class="flex-grow-1"><!-- Spacer --></div>
 									<ClosedCaptionsSwitcher
-										:key="currentSource.id"
+										:key="currentSource"
 										:supported="isCaptionsSupported()"
 										:tracks="$store.state.captions.availableTracks"
 										@enable-cc="value => $refs.player.setCaptionsEnabled(value)"
@@ -347,7 +347,7 @@ export default {
 			return secondsToTimestamp(this.truePosition);
 		},
 		lengthDisplay() {
-			return secondsToTimestamp(this.$store.state.room.currentSource.length || 0);
+			return secondsToTimestamp(this.$store.state.room.currentSource?.length ?? 0);
 		},
 		showJoinFailOverlay() {
 			const connection = useConnection();
@@ -355,6 +355,9 @@ export default {
 		},
 		isMobile() {
 			return window.matchMedia("only screen and (max-width: 760px)").matches;
+		},
+		isPlayerPresent() {
+			return !!this.$refs.player; // && this.$refs.player.isPlayerPresent.value;
 		},
 	},
 	async created() {
@@ -410,6 +413,11 @@ export default {
 
 		/** Clock that calculates what the true playback position should be. */
 		timestampUpdate() {
+			if (!this.$store.state.room.currentSource) {
+				this.truePosition = 0;
+				this.sliderPosition = 0;
+				return;
+			}
 			this.truePosition = this.$store.state.room.isPlaying
 				? calculateCurrentPosition(
 						this.$store.state.room.playbackStartTime,
@@ -425,6 +433,9 @@ export default {
 		},
 
 		applyIsPlaying(playing) {
+			if (!this.isPlayerPresent) {
+				return;
+			}
 			if (playing) {
 				this.$refs.player.play();
 			} else {
@@ -433,16 +444,16 @@ export default {
 		},
 
 		updateVolume() {
-			if (!this.$refs.player) {
+			if (!this.isPlayerPresent) {
 				return;
 			}
 			this.$refs.player.setVolume(this.volume);
 		},
 		onPlayerApiReady() {
-			console.log("internal player API is now ready");
+			console.debug("internal player API is now ready");
 		},
 		onPlaybackChange(changeTo) {
-			console.log(`onPlaybackChange: ${changeTo}`);
+			console.debug(`onPlaybackChange: ${changeTo}`);
 			if (
 				this.currentSource.service === "youtube" ||
 				this.currentSource.service === "dailymotion"
@@ -473,11 +484,7 @@ export default {
 			}
 		},
 		onPlayerReady_Vimeo() {
-			if (this.$store.state.room.isPlaying) {
-				this.$refs.player.play();
-			} else {
-				this.$refs.player.pause();
-			}
+			this.applyIsPlaying(this.$store.state.room.isPlaying);
 		},
 		onKeyDown(e) {
 			if (e.target.nodeName === "INPUT" || e.target.nodeName === "TEXTAREA") {
@@ -642,10 +649,7 @@ export default {
 			return this.$refs.player?.isCaptionsSupported() ?? false;
 		},
 		getCaptionsTracks() {
-			if (!this.$refs.player) {
-				return [];
-			}
-			return this.$refs.player.getCaptionsTracks() ?? [];
+			return this.$refs.player?.getCaptionsTracks() ?? [];
 		},
 	},
 	async mounted() {
@@ -688,20 +692,6 @@ $video-controls-height: 80px;
 $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
 
-.v-theme--dark {
-	.no-video {
-		color: #fff;
-		border: 1px solid rgba(255, 255, 255, 0.5);
-	}
-}
-
-.v-theme--light {
-	.no-video {
-		color: #000;
-		border: 1px solid rgba(0, 0, 0, 0.5);
-	}
-}
-
 .video-container {
 	display: flex;
 	align-items: center;
@@ -713,12 +703,6 @@ $in-video-chat-width-small: 250px;
 		left: 0;
 		width: 100%;
 		height: 100%;
-	}
-
-	.no-video {
-		height: 100%;
-		opacity: 60%;
-		border-radius: 3px;
 	}
 
 	.video-subcontainer {

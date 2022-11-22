@@ -1,8 +1,8 @@
 <template>
 	<div>
 		<YoutubePlayer
-			v-if="source.service == 'youtube'"
-			ref="youtube"
+			v-if="!!source && source.service == 'youtube'"
+			ref="player"
 			:video-id="source.id"
 			class="player"
 			@apiready="$emit('apiready')"
@@ -13,8 +13,8 @@
 			@error="$emit('error')"
 		/>
 		<VimeoPlayer
-			v-else-if="source.service == 'vimeo'"
-			ref="vimeo"
+			v-else-if="!!source && source.service == 'vimeo'"
+			ref="player"
 			:video-id="source.id"
 			class="player"
 			@apiready="$emit('apiready')"
@@ -25,8 +25,8 @@
 			@error="$emit('error')"
 		/>
 		<DailymotionPlayer
-			v-else-if="source.service == 'dailymotion'"
-			ref="dailymotion"
+			v-else-if="!!source && source.service == 'dailymotion'"
+			ref="player"
 			:video-id="source.id"
 			class="player"
 			@apiready="$emit('apiready')"
@@ -37,8 +37,8 @@
 			@error="$emit('error')"
 		/>
 		<GoogleDrivePlayer
-			v-else-if="source.service == 'googledrive'"
-			ref="googledrive"
+			v-else-if="!!source && source.service == 'googledrive'"
+			ref="player"
 			:video-id="source.id"
 			class="player"
 			@apiready="$emit('apiready')"
@@ -49,10 +49,10 @@
 			@error="$emit('error')"
 		/>
 		<DirectPlayer
-			v-else-if="source.service == 'direct'"
-			ref="direct"
+			v-else-if="!!source && source.service == 'direct'"
+			ref="player"
 			:video-url="source.id"
-			:video-mime="source.mime"
+			:video-mime="source.mime!"
 			:thumbnail="source.thumbnail"
 			class="player"
 			@apiready="$emit('apiready')"
@@ -65,10 +65,10 @@
 			@buffer-spans="timespans => $emit('buffer-spans', timespans)"
 		/>
 		<GenericHlsPlayer
-			v-else-if="source.service == 'reddit'"
-			ref="reddit"
+			v-else-if="!!source && source.service == 'reddit'"
+			ref="player"
 			:videoid="source.id"
-			:hls-url="source.hls_url"
+			:hls-url="source.hls_url!"
 			:thumbnail="source.thumbnail"
 			class="player"
 			@apiready="$emit('apiready')"
@@ -81,10 +81,10 @@
 			@buffer-spans="timespans => $emit('buffer-spans', timespans)"
 		/>
 		<GenericHlsPlayer
-			v-else-if="source.service == 'tubi'"
-			ref="tubi"
+			v-else-if="!!source && source.service == 'tubi'"
+			ref="player"
 			:videoid="source.id"
-			:hls-url="source.hls_url"
+			:hls-url="source.hls_url!"
 			:thumbnail="source.thumbnail"
 			class="player"
 			@apiready="$emit('apiready')"
@@ -103,13 +103,40 @@
 	</div>
 </template>
 
-<script>
-const services = ["youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"];
-import { defineAsyncComponent } from "vue";
+<script lang="ts">
+import { useStore } from "@/store";
+import { QueueItem } from "ott-common/models/video";
+import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
 
-export default {
-	name: "omniplayer",
-	props: ["source"],
+const services = ["youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"];
+
+interface MediaPlayer {
+	play(): void;
+	pause(): void;
+	setVolume(volume: number): void;
+	getPosition(): number;
+	setPosition(position: number): void;
+}
+
+interface MediaPlayerWithCaptions extends MediaPlayer {
+	isCaptionsSupported(): boolean;
+	isCaptionsEnabled(): boolean;
+	setCaptionsEnabled(enabled: boolean): void;
+	getCaptionsTracks(): string[];
+	setCaptionsTrack(track: string): void;
+}
+
+export default defineComponent({
+	name: "OmniPlayer",
+	props: {
+		source: {
+			type: Object as PropType<QueueItem | null>,
+			validator: (source: QueueItem | null) => {
+				return !source || services.includes(source.service);
+			},
+		},
+	},
+	emits: ["apiready", "playing", "paused", "ready", "buffering", "error", "buffer-spans"],
 	components: {
 		YoutubePlayer: defineAsyncComponent(() => import("./YoutubePlayer.vue")),
 		VimeoPlayer: defineAsyncComponent(() => import("./VimeoPlayer.vue")),
@@ -118,59 +145,141 @@ export default {
 		DirectPlayer: defineAsyncComponent(() => import("./DirectPlayer.vue")),
 		GenericHlsPlayer: defineAsyncComponent(() => import("./GenericHlsPlayer.vue")),
 	},
-	methods: {
-		player() {
-			// This can't be a computed property because of a race condition. see #355
-			if (services.includes(this.source.service)) {
-				return this.$refs[this.source.service];
+	setup(props, { emit }) {
+		const store = useStore();
+
+		let player: Ref<MediaPlayer | null> = ref(null);
+		watch(player, () => {
+			console.debug("Player changed", player.value);
+			if (player.value) {
+				player.value.setVolume(store.state.settings.volume);
+			}
+		});
+
+		function checkForPlayer(p: MediaPlayer | null): p is MediaPlayer {
+			if (!p) {
+				console.warn(
+					`There is no player available. Is the source set? ${
+						props.source !== null
+					} Is there a player implemented for ${props.source?.service}?`
+				);
+			}
+			return !!p;
+		}
+
+		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
+			return !!p && (p as MediaPlayerWithCaptions).isCaptionsSupported !== undefined;
+		}
+
+		const isPlayerPresent = computed(() => !!player.value);
+
+		function play() {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			player.value.play();
+		}
+		function pause() {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			return player.value.pause();
+		}
+		function setVolume(volume: number) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			return player.value.setVolume(volume);
+		}
+		function getPosition() {
+			if (!checkForPlayer(player.value)) {
+				return 0;
+			}
+			return player.value.getPosition();
+		}
+		function setPosition(position: number) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			return player.value.setPosition(position);
+		}
+		function isCaptionsSupported() {
+			if (!checkForPlayer(player.value)) {
+				return false;
+			}
+			if (!implementsCaptions(player.value)) {
+				return false;
+			}
+			return player.value.isCaptionsSupported() ?? false;
+		}
+		function isCaptionsEnabled() {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			if (!implementsCaptions(player.value)) {
+				return false;
+			}
+			return player.value.isCaptionsEnabled();
+		}
+		function setCaptionsEnabled(enabled: boolean) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			if (!implementsCaptions(player.value)) {
+				return false;
+			}
+			player.value.setCaptionsEnabled(enabled);
+		}
+		function toggleCaptions() {
+			setCaptionsEnabled(!isCaptionsEnabled());
+		}
+		function getCaptionsTracks(): string[] {
+			if (!checkForPlayer(player.value)) {
+				return [];
+			}
+			if (!implementsCaptions(player.value)) {
+				return [];
+			}
+			return player.value.getCaptionsTracks();
+		}
+		function setCaptionsTrack(track: string) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			if (!implementsCaptions(player.value)) {
+				return;
 			}
 
-			return null;
-		},
-		play() {
-			return this.player()?.play();
-		},
-		pause() {
-			return this.player()?.pause();
-		},
-		setVolume(volume) {
-			return this.player()?.setVolume(volume);
-		},
-		getPosition() {
-			return this.player()?.getPosition();
-		},
-		setPosition(position) {
-			return this.player()?.setPosition(position);
-		},
-		onBufferProgress(percent) {
-			this.$store.commit("PLAYBACK_BUFFER", percent);
-		},
-		isCaptionsSupported() {
-			if (this.player()?.isCaptionsSupported) {
-				return this.player()?.isCaptionsSupported() ?? false;
+			if (!isCaptionsEnabled()) {
+				setCaptionsEnabled(true);
 			}
-			return false;
-		},
-		isCaptionsEnabled() {
-			return this.player()?.isCaptionsEnabled();
-		},
-		setCaptionsEnabled(value) {
-			this.player()?.setCaptionsEnabled(value);
-		},
-		toggleCaptions() {
-			this.setCaptionsEnabled(!this.isCaptionsEnabled());
-		},
-		getCaptionsTracks() {
-			this.player()?.getCaptionsTracks();
-		},
-		setCaptionsTrack(track) {
-			if (!this.isCaptionsEnabled()) {
-				this.setCaptionsEnabled(true);
-			}
-			this.player()?.setCaptionsTrack(track);
-		},
+			player.value.setCaptionsTrack(track);
+		}
+
+		// player events re-emitted or data stored
+		function onBufferProgress(percent: number) {
+			store.commit("PLAYBACK_BUFFER", percent);
+		}
+
+		return {
+			player,
+
+			isPlayerPresent,
+			play,
+			pause,
+			setVolume,
+			getPosition,
+			setPosition,
+			onBufferProgress,
+			isCaptionsSupported,
+			isCaptionsEnabled,
+			setCaptionsEnabled,
+			toggleCaptions,
+			getCaptionsTracks,
+			setCaptionsTrack,
+		};
 	},
-};
+});
 </script>
 
 <style lang="scss" scoped>
@@ -180,6 +289,23 @@ export default {
 	align-items: center;
 	flex-direction: column;
 	justify-content: center;
+
+	opacity: 60%;
+	border-radius: 3px;
+}
+
+.v-theme--dark {
+	.no-video {
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, 0.5);
+	}
+}
+
+.v-theme--light {
+	.no-video {
+		color: #000;
+		border: 1px solid rgba(0, 0, 0, 0.5);
+	}
 }
 
 .player {
