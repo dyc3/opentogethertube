@@ -5,48 +5,49 @@
 			ref="player"
 			:video-id="source.id"
 			class="player"
-			@apiready="$emit('apiready')"
-			@playing="$emit('playing')"
-			@paused="$emit('paused')"
-			@ready="$emit('ready')"
-			@buffering="$emit('buffering')"
-			@error="$emit('error')"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
+			@buffer-progress="onBufferProgress"
 		/>
 		<VimeoPlayer
 			v-else-if="!!source && source.service == 'vimeo'"
 			ref="player"
 			:video-id="source.id"
 			class="player"
-			@apiready="$emit('apiready')"
-			@playing="$emit('playing')"
-			@paused="$emit('paused')"
-			@ready="$emit('ready')"
-			@buffering="$emit('buffering')"
-			@error="$emit('error')"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
 		/>
 		<DailymotionPlayer
 			v-else-if="!!source && source.service == 'dailymotion'"
 			ref="player"
 			:video-id="source.id"
 			class="player"
-			@apiready="$emit('apiready')"
-			@playing="$emit('playing')"
-			@paused="$emit('paused')"
-			@ready="$emit('ready')"
-			@buffering="$emit('buffering')"
-			@error="$emit('error')"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
 		/>
 		<GoogleDrivePlayer
 			v-else-if="!!source && source.service == 'googledrive'"
 			ref="player"
 			:video-id="source.id"
 			class="player"
-			@apiready="$emit('apiready')"
-			@playing="$emit('playing')"
-			@paused="$emit('paused')"
-			@ready="$emit('ready')"
-			@buffering="$emit('buffering')"
-			@error="$emit('error')"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
 		/>
 		<DirectPlayer
 			v-else-if="!!source && source.service == 'direct'"
@@ -55,14 +56,14 @@
 			:video-mime="source.mime!"
 			:thumbnail="source.thumbnail"
 			class="player"
-			@apiready="$emit('apiready')"
-			@playing="$emit('playing')"
-			@paused="$emit('paused')"
-			@ready="$emit('ready')"
-			@buffering="$emit('buffering')"
-			@error="$emit('error')"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
 			@buffer-progress="onBufferProgress"
-			@buffer-spans="timespans => $emit('buffer-spans', timespans)"
+			@buffer-spans="onBufferSpans"
 		/>
 		<GenericHlsPlayer
 			v-else-if="!!source && source.service == 'reddit'"
@@ -71,14 +72,14 @@
 			:hls-url="source.hls_url!"
 			:thumbnail="source.thumbnail"
 			class="player"
-			@apiready="$emit('apiready')"
-			@playing="$emit('playing')"
-			@paused="$emit('paused')"
-			@ready="$emit('ready')"
-			@buffering="$emit('buffering')"
-			@error="$emit('error')"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
 			@buffer-progress="onBufferProgress"
-			@buffer-spans="timespans => $emit('buffer-spans', timespans)"
+			@buffer-spans="onBufferSpans"
 		/>
 		<GenericHlsPlayer
 			v-else-if="!!source && source.service == 'tubi'"
@@ -87,14 +88,14 @@
 			:hls-url="source.hls_url!"
 			:thumbnail="source.thumbnail"
 			class="player"
-			@apiready="$emit('apiready')"
-			@playing="$emit('playing')"
-			@paused="$emit('paused')"
-			@ready="$emit('ready')"
-			@buffering="$emit('buffering')"
-			@error="$emit('error')"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
 			@buffer-progress="onBufferProgress"
-			@buffer-spans="timespans => $emit('buffer-spans', timespans)"
+			@buffer-spans="onBufferSpans"
 		/>
 		<v-container v-else fluid fill-height class="no-video">
 			<h1>{{ $t("video.no-video") }}</h1>
@@ -105,6 +106,7 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
+import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
 
@@ -136,7 +138,7 @@ export default defineComponent({
 			},
 		},
 	},
-	emits: ["apiready", "playing", "paused", "ready", "buffering", "error", "buffer-spans"],
+	emits: ["apiready", "playing", "paused", "ready", "buffering", "error"],
 	components: {
 		YoutubePlayer: defineAsyncComponent(() => import("./YoutubePlayer.vue")),
 		VimeoPlayer: defineAsyncComponent(() => import("./VimeoPlayer.vue")),
@@ -257,12 +259,63 @@ export default defineComponent({
 		}
 
 		// player events re-emitted or data stored
+		function onApiReady() {
+			emit("apiready");
+		}
+
+		function onReady() {
+			store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
+			emit("ready");
+		}
+
+		function hackReadyEdgeCase() {
+			if (
+				props.source &&
+				(props.source.service === "youtube" || props.source.service === "dailymotion")
+			) {
+				store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
+			}
+		}
+
+		function onPlaying() {
+			hackReadyEdgeCase();
+			emit("playing");
+		}
+
+		function onPaused() {
+			hackReadyEdgeCase();
+			emit("paused");
+		}
+
+		function onBuffering() {
+			store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
+			emit("buffering");
+		}
+
+		function onError() {
+			store.commit("PLAYBACK_STATUS", PlayerStatus.error);
+			emit("error");
+		}
+
 		function onBufferProgress(percent: number) {
 			store.commit("PLAYBACK_BUFFER", percent);
 		}
 
+		function onBufferSpans(spans: TimeRanges) {
+			store.commit("PLAYBACK_BUFFER_SPANS", spans);
+		}
+
 		return {
 			player,
+
+			onApiReady,
+			onReady,
+			onPlaying,
+			onPaused,
+			onBuffering,
+			onError,
+			onBufferProgress,
+			onBufferSpans,
 
 			isPlayerPresent,
 			play,
@@ -270,7 +323,6 @@ export default defineComponent({
 			setVolume,
 			getPosition,
 			setPosition,
-			onBufferProgress,
 			isCaptionsSupported,
 			isCaptionsEnabled,
 			setCaptionsEnabled,

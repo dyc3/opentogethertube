@@ -51,11 +51,6 @@
 								@playing="onPlaybackChange(true)"
 								@paused="onPlaybackChange(false)"
 								@ready="onPlayerReady"
-								@buffering="onVideoBuffer"
-								@error="onVideoError"
-								@buffer-spans="
-									spans => $store.commit('PLAYBACK_BUFFER_SPANS', spans)
-								"
 							/>
 							<div
 								id="mouse-event-swallower"
@@ -454,12 +449,6 @@ export default {
 		},
 		onPlaybackChange(changeTo) {
 			console.debug(`onPlaybackChange: ${changeTo}`);
-			if (
-				this.currentSource.service === "youtube" ||
-				this.currentSource.service === "dailymotion"
-			) {
-				this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
-			}
 			if (!changeTo) {
 				this.setVideoControlsVisibility(true);
 			} else {
@@ -477,8 +466,6 @@ export default {
 			}
 		},
 		onPlayerReady() {
-			this.$store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
-
 			if (this.currentSource.service === "vimeo") {
 				this.onPlayerReady_Vimeo();
 			}
@@ -553,13 +540,6 @@ export default {
 			if ("settings" in this.$refs && this.queueTab === 2) {
 				await this.$refs["settings"].loadRoomSettings();
 			}
-		},
-		onVideoBuffer(percent) {
-			this.$store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
-			this.$store.commit("PLAYBACK_BUFFER", percent);
-		},
-		onVideoError() {
-			this.$store.commit("PLAYBACK_STATUS", PlayerStatus.error);
 		},
 		setVideoControlsVisibility(visible) {
 			this.controlsVisible = visible;

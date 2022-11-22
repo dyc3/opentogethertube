@@ -222,7 +222,7 @@ export default {
 			}
 
 			if (this.$store) {
-				this.$store.commit("PLAYBACK_BUFFER", this.player.getVideoLoadedFraction());
+				this.$emit("buffer-progress", this.player.getVideoLoadedFraction());
 			}
 		},
 		onError() {
