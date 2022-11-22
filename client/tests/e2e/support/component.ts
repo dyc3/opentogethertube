@@ -24,6 +24,7 @@ import "./commands";
 import { mount } from "cypress/vue";
 import type { FullOTTStoreState } from "../../../src/store";
 import type { Store } from "vuex";
+import type { OttRoomConnectionMock } from "../../../src/plugins/connection";
 
 // Augment the Cypress namespace to include type definitions for
 // your custom command.
@@ -39,6 +40,7 @@ declare global {
 			): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
 			emitted(selector: string, event: string): Chainable<unknown[]>;
 			store(): Chainable<Store<FullOTTStoreState>>;
+			connection(): Chainable<OttRoomConnectionMock>;
 		}
 	}
 }

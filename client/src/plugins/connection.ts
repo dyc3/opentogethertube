@@ -19,7 +19,7 @@ export interface OttRoomConnection {
 	): void;
 }
 
-const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol("ott:connection");
+export const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol("ott:connection");
 
 export function useConnection(): OttRoomConnection {
 	const connection = inject(connectionInjectKey);
@@ -235,3 +235,54 @@ export const OttRoomConnectionPlugin: Plugin = (app: App, options) => {
 };
 
 export default OttRoomConnectionPlugin;
+
+export class OttRoomConnectionMock implements OttRoomConnection {
+	sent: ClientMessage[] = [];
+	private messageHandlers = new Map<ServerMessageActionType, ((msg: ServerMessage) => void)[]>();
+
+	public mockReset() {
+		this.sent = [];
+	}
+
+	public mockReceive(msg: ServerMessage) {
+		this.handleMessage(msg);
+	}
+
+	public connect(roomName: string) {}
+	public reconnect() {}
+	public disconnect() {}
+	public send(message: ClientMessage) {
+		this.sent.push(message);
+	}
+
+	public addMessageHandler(
+		action: ServerMessageActionType,
+		handler: (msg: ServerMessage) => void
+	) {
+		let handlers = this.messageHandlers.get(action) ?? [];
+		handlers.push(handler);
+		this.messageHandlers.set(action, handlers);
+	}
+
+	public removeMessageHandler(
+		action: ServerMessageActionType,
+		handler: (msg: ServerMessage) => void
+	) {
+		let handlers = this.messageHandlers.get(action) ?? [];
+		let index = handlers.indexOf(handler);
+		if (index >= 0) {
+			handlers.splice(index, 1);
+			this.messageHandlers.set(action, handlers);
+		}
+	}
+
+	private handleMessage(msg: ServerMessage) {
+		let handlers = this.messageHandlers.get(msg.action) ?? [];
+		if (handlers.length === 0) {
+			return;
+		}
+		for (let handler of handlers) {
+			handler(msg);
+		}
+	}
+}

@@ -44,6 +44,7 @@ import { i18n } from "../../../src/i18n";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { routes } from "../../../src/router";
 import { VueWrapper } from "@vue/test-utils";
+import { OttRoomConnectionMock, connectionInjectKey } from "../../../src/plugins/connection";
 
 Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global = options.global || {};
@@ -51,6 +52,14 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global.plugins.push(vuetify);
 	options.global.plugins.push([buildNewStore(), key]);
 	options.global.plugins.push(i18n);
+	let mockConnection = new OttRoomConnectionMock();
+	cy.wrap(mockConnection).as("connection");
+	options.global.plugins.push({
+		install(app) {
+			console.error("INSTALLING MOCK CONNECTION");
+			app.provide(connectionInjectKey, mockConnection);
+		},
+	});
 
 	// create router if one is not provided
 	// @ts-expect-error
@@ -112,4 +121,8 @@ Cypress.Commands.add("store", () => {
 
 		return vueWrapper.vm.$store;
 	}) as any;
+});
+
+Cypress.Commands.add("connection", () => {
+	return cy.get("@connection") as any;
 });
