@@ -63,7 +63,7 @@
 
 <script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
-import { defineComponent, onUpdated, ref, Ref, nextTick } from "vue";
+import { defineComponent, onUpdated, ref, Ref, nextTick, onMounted, onUnmounted } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
@@ -104,6 +104,14 @@ const Chat = defineComponent({
 		let messages = ref();
 		let chatInput: Ref<HTMLInputElement | undefined> = ref();
 
+		onMounted(() => {
+			connection.addMessageHandler("chat", onChatReceived);
+		});
+
+		onUnmounted(() => {
+			connection.removeMessageHandler("chat", onChatReceived);
+		});
+
 		function focusChatInput() {
 			chatInput.value?.focus();
 		}
@@ -127,11 +135,7 @@ const Chat = defineComponent({
 			}
 		}
 
-		connection.addMessageHandler("chat", (msg: ServerMessageChat) => {
-			onChatReceived(msg);
-		});
-
-		function onChatReceived(msg: ChatMessage): void {
+		function onChatReceived(msg: ServerMessageChat): void {
 			chatMessageRecent.value.push(msg);
 			setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
 		}
