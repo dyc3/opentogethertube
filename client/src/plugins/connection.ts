@@ -1,4 +1,4 @@
-import { inject, InjectionKey, ref, Ref } from "vue";
+import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
 import type {
 	ClientMessage,
 	ClientMessageAuthenticate,
@@ -19,12 +19,12 @@ export interface OttRoomConnection {
 	): void;
 }
 
-export const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol("ott:connection");
+const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol("ott:connection");
 
 export function useConnection(): OttRoomConnection {
-	const connection = inject(connectionInjectKey, new OttRoomConnectionReal(), true);
+	const connection = inject(connectionInjectKey);
 	if (!connection) {
-		throw new Error("No connection available, somehow.");
+		throw new Error("No connection available, did you forget to install the plugin?");
 	}
 	return connection;
 }
@@ -49,7 +49,7 @@ export interface ConnectionEventKicked {
 	reason: OttWebsocketError;
 }
 
-class OttRoomConnectionReal implements OttRoomConnection {
+class OttRoomConnectionReal {
 	/**
 	 * Indicates if the client is actively attempting to maintain a connection. Not an indication of whether the connection is connected, see `connected`.
 	 * @returns true if the client is actively attempting to maintain a connection to a room.
@@ -230,7 +230,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 }
 
 export const OttRoomConnectionPlugin: Plugin = (app: App, options) => {
-	const connection = new OttRoomConnection();
+	const connection = new OttRoomConnectionReal();
 	app.provide(connectionInjectKey, connection);
 };
 
