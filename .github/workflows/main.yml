@@ -86,7 +86,7 @@ jobs:
     - run: yarn workspace ott-server run sequelize db:migrate
       env:
         NODE_ENV: test
-    - run: yarn workspace ott-client build --if-present
+    - run: yarn workspace ott-client build
     - run: yarn workspace ott-client test
     - run: yarn workspace ott-server test
       env:
