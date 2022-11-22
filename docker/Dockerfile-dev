@@ -1,4 +1,4 @@
-FROM node:14-buster
+FROM node:18-buster
 
 VOLUME ["/usr/app"]
 # Create app directory
