@@ -1,4 +1,4 @@
-import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
+import { inject, InjectionKey, ref, Ref } from "vue";
 import type {
 	ClientMessage,
 	ClientMessageAuthenticate,
@@ -7,12 +7,24 @@ import type {
 } from "ott-common/models/messages";
 import type { AuthToken, OttWebsocketError } from "ott-common/models/types";
 
-const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol();
+export interface OttRoomConnection {
+	connect(roomName: string): void;
+	reconnect(): void;
+	disconnect(): void;
+	send(message: ClientMessage): void;
+	addMessageHandler(action: ServerMessageActionType, handler: (msg: ServerMessage) => void): void;
+	removeMessageHandler(
+		action: ServerMessageActionType,
+		handler: (msg: ServerMessage) => void
+	): void;
+}
+
+export const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol("ott:connection");
 
 export function useConnection(): OttRoomConnection {
-	const connection = inject(connectionInjectKey);
+	const connection = inject(connectionInjectKey, new OttRoomConnectionReal(), true);
 	if (!connection) {
-		throw new Error("No connection available, did you forget to install the plugin?");
+		throw new Error("No connection available, somehow.");
 	}
 	return connection;
 }
@@ -37,7 +49,7 @@ export interface ConnectionEventKicked {
 	reason: OttWebsocketError;
 }
 
-class OttRoomConnection {
+class OttRoomConnectionReal implements OttRoomConnection {
 	/**
 	 * Indicates if the client is actively attempting to maintain a connection. Not an indication of whether the connection is connected, see `connected`.
 	 * @returns true if the client is actively attempting to maintain a connection to a room.

@@ -41,7 +41,6 @@ import { h } from "vue";
 import vuetify from "../../../src/plugins/vuetify";
 import { key, buildNewStore } from "../../../src/store";
 import { i18n } from "../../../src/i18n";
-import { OttRoomConnectionPlugin } from "../../../src/plugins/connection";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { routes } from "../../../src/router";
 import { VueWrapper } from "@vue/test-utils";
@@ -52,7 +51,6 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global.plugins.push(vuetify);
 	options.global.plugins.push([buildNewStore(), key]);
 	options.global.plugins.push(i18n);
-	options.global.plugins.push(OttRoomConnectionPlugin);
 
 	// create router if one is not provided
 	// @ts-expect-error
