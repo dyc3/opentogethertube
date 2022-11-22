@@ -1,7 +1,8 @@
 import { API } from "@/common-http";
 import { RoomRequestType } from "ott-common/models/messages";
+import { useConnection } from "../plugins/connection";
 
-let connection;
+let _connection;
 
 /**
  * Defines the HTTP and websocket api, and provides methods for using it.
@@ -10,11 +11,12 @@ let connection;
 export default {
 	/** @deprecated TODO: switch this over to provide/inject api */
 	setConnection(c) {
-		connection = c;
+		_connection = c;
 	},
 
 	/** Send a message to play the video. */
 	play() {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -25,6 +27,7 @@ export default {
 	},
 	/** Send a message to pause the video. */
 	pause() {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -36,6 +39,7 @@ export default {
 
 	/** Send a message to skip the current video. */
 	skip() {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -44,6 +48,7 @@ export default {
 		});
 	},
 	seek(position) {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -58,6 +63,7 @@ export default {
 	 * @param {Number} toIdx
 	 * */
 	queueMove(fromIdx, toIdx) {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -75,12 +81,14 @@ export default {
 		await API.post(`/room/${this.$route.params.roomId}/undo`, { data: { event } });
 	},
 	kickMe(reason) {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "kickme",
 			reason,
 		});
 	},
 	promoteUser(clientId, role) {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -91,6 +99,7 @@ export default {
 		});
 	},
 	chat(text) {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -103,6 +112,7 @@ export default {
 	 * @param {VideoId} video
 	 */
 	playNow(video) {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
@@ -112,6 +122,7 @@ export default {
 		});
 	},
 	shuffle() {
+		let connection = _connection ?? useConnection();
 		connection.send({
 			action: "req",
 			request: {
