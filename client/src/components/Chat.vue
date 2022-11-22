@@ -60,6 +60,7 @@ import api from "@/util/api";
 import { defineComponent, onUpdated, ref, Ref, nextTick } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
+import { useRoomApi } from "@/util/roomapi";
 
 const MSG_SHOW_TIMEOUT = 20000;
 
@@ -135,11 +136,13 @@ const Chat = defineComponent({
 	},
 	emits: ["link-click"],
 	setup() {
+		let roomapi = useRoomApi(useConnection());
+
 		function onInputKeyDown(e: KeyboardEvent): void {
 			if (e.key === "Enter") {
 				e.preventDefault();
 				if (inputValue.value.trim() !== "") {
-					api.chat(inputValue.value);
+					roomapi.chat(inputValue.value);
 				}
 				inputValue.value = "";
 				stickToBottom.value = true;

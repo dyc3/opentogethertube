@@ -6,10 +6,10 @@ let _connection;
 
 /**
  * Defines the HTTP and websocket api, and provides methods for using it.
- * @deprecated TODO: switch this over to provide/inject api
+ * @deprecated use `const roomapi = useRoomApi(useConnection());` instead
  */
 export default {
-	/** @deprecated TODO: switch this over to provide/inject api */
+	/** @deprecated use `const roomapi = useRoomApi(useConnection());` instead */
 	setConnection(c) {
 		_connection = c;
 	},
