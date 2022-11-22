@@ -29,11 +29,13 @@ const server = http.createServer(app);
 import { redisClient } from "./redisclient";
 
 function checkRedis() {
-	let start = performance.now();
-	redisClient.ping(() => {
-		let duration = performance.now() - start;
-		log.info(`Latency to redis: ${duration}ms`);
-	});
+	if (performance) {
+		let start = performance.now();
+		redisClient.ping(() => {
+			let duration = performance.now() - start;
+			log.info(`Latency to redis: ${duration}ms`);
+		});
+	}
 }
 checkRedis();
 
