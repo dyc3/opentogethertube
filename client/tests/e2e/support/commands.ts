@@ -56,7 +56,6 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	cy.wrap(mockConnection).as("connection");
 	options.global.plugins.push({
 		install(app) {
-			console.error("INSTALLING MOCK CONNECTION");
 			app.provide(connectionInjectKey, mockConnection);
 		},
 	});

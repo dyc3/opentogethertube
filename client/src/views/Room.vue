@@ -247,7 +247,7 @@ import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
 import api from "@/util/api";
-import { PlayerStatus, QueueMode } from "ott-common/models/types";
+import { QueueMode } from "ott-common/models/types";
 import VideoQueue from "@/components/VideoQueue.vue";
 // import { goTo } from "vuetify/lib/services/goto/index.mjs";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
@@ -259,7 +259,6 @@ import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
 import { useConnection } from "@/plugins/connection";
-import { useRoomApi } from "@/util/roomapi";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
 import BasicControls from "@/components/controls/BasicControls.vue";

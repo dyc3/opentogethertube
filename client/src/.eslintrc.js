@@ -65,6 +65,12 @@ module.exports = {
 					legacyDecorators: true,
 				},
 			},
+			rules: {
+				"@typescript-eslint/restrict-template-expressions": [
+					"warn",
+					{ allowNumber: true, allowBoolean: true },
+				],
+			},
 		},
 	],
 };
