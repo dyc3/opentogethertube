@@ -264,6 +264,7 @@ import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
 import { useConnection } from "@/plugins/connection";
+import { useRoomApi } from "@/util/roomapi";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
 import BasicControls from "@/components/controls/BasicControls.vue";

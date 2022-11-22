@@ -23,7 +23,7 @@
 				<span>{{ $t("room.skip") }}</span>
 			</v-tooltip>
 		</v-btn>
-		<v-btn variant="text" icon @click="api.skip()" :disabled="!granted('playback.skip')">
+		<v-btn variant="text" icon @click="roomapi.skip()" :disabled="!granted('playback.skip')">
 			<v-icon>fa:fas fa-fast-forward</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.next-video") }}</span>
@@ -36,8 +36,9 @@
 import { defineComponent } from "vue";
 import _ from "lodash";
 import { useStore } from "@/store";
-import api from "@/util/api";
 import { granted } from "@/util/grants";
+import { useConnection } from "@/plugins/connection";
+import { useRoomApi } from "@/util/roomapi";
 
 export const BasicControls = defineComponent({
 	name: "BasicControls",
@@ -49,18 +50,19 @@ export const BasicControls = defineComponent({
 	},
 	setup(props) {
 		const store = useStore();
+		const roomapi = useRoomApi(useConnection());
 
 		/** Send a message to play or pause the video, depending on the current state. */
 		function togglePlayback() {
 			if (store.state.room.isPlaying) {
-				api.pause();
+				roomapi.pause();
 			} else {
-				api.play();
+				roomapi.play();
 			}
 		}
 
 		function seekDelta(delta: number) {
-			api.seek(
+			roomapi.seek(
 				_.clamp(
 					props.currentPosition + delta,
 					0,
@@ -71,7 +73,7 @@ export const BasicControls = defineComponent({
 
 		return {
 			store,
-			api,
+			roomapi,
 			granted,
 
 			togglePlayback,

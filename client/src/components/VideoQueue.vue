@@ -1,6 +1,6 @@
 <template>
 	<div class="video-queue">
-		<div class="empty-queue" v-if="$store.state.room.queue.length === 0">
+		<div class="empty-queue" v-if="store.state.room.queue.length === 0">
 			<v-container style="height: 100%">
 				<v-row justify="center" align="center" style="height: 100%">
 					<div>
@@ -15,13 +15,13 @@
 				</v-row>
 			</v-container>
 		</div>
-		<div class="queue-controls" v-if="$store.state.room.queue.length > 0">
-			<v-btn icon @click="api.shuffle()">
+		<div class="queue-controls" v-if="store.state.room.queue.length > 0">
+			<v-btn icon @click="roomapi.shuffle()">
 				<v-icon>fa:fas fa-random</v-icon>
 			</v-btn>
 		</div>
 		<Sortable
-			:list="$store.state.room.queue"
+			:list="store.state.room.queue"
 			:move="() => granted('manage-queue.order')"
 			@end="onQueueDragDrop"
 			:options="{ animation: 200, handle: '.drag-handle' }"
@@ -37,15 +37,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import api from "@/util/api";
 import { granted } from "@/util/grants";
 import { useStore } from "@/store";
 import { Sortable } from "sortablejs-vue3";
-
-function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
-	// HACK: For some reason, vuedraggable decided to offset all the indexes by 1? I have no idea why they decided to change this
-	api.queueMove(e.oldIndex - 1, e.newIndex - 1);
-}
+import { useConnection } from "@/plugins/connection";
+import { useRoomApi } from "@/util/roomapi";
 
 const VideoQueue = defineComponent({
 	name: "VideoQueue",
@@ -55,11 +51,17 @@ const VideoQueue = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		const roomapi = useRoomApi(useConnection());
+
+		function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
+			// HACK: For some reason, vuedraggable decided to offset all the indexes by 1? I have no idea why they decided to change this
+			roomapi.queueMove(e.oldIndex - 1, e.newIndex - 1);
+		}
 
 		return {
 			onQueueDragDrop,
 
-			api,
+			roomapi,
 			granted,
 			store,
 		};

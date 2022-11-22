@@ -19,10 +19,11 @@
 <script lang="ts">
 import { defineComponent, ref, Ref, onMounted, onUpdated } from "vue";
 import { useStore } from "@/store";
-import api from "@/util/api";
 import { granted } from "@/util/grants";
 import { secondsToTimestamp } from "@/util/timestamp";
 import VueSlider from "vue-slider-component";
+import { useConnection } from "@/plugins/connection";
+import { useRoomApi } from "@/util/roomapi";
 
 export const VideoProgressSlider = defineComponent({
 	name: "VideoProgressSlider",
@@ -37,11 +38,13 @@ export const VideoProgressSlider = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		const roomapi = useRoomApi(useConnection());
+
 		let seekPreview: Ref<number | null> = ref(null);
 		let sliderTooltipFormatter = ref(secondsToTimestamp);
 
 		function sliderChange(value: number) {
-			api.seek(value);
+			roomapi.seek(value);
 		}
 
 		/**

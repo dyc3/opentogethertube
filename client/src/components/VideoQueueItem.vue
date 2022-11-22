@@ -153,12 +153,13 @@ import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
 import { QueueItem, VideoId } from "ott-common/models/video";
 import { QueueMode } from "ott-common/models/types";
-import api from "@/util/api";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
 import placeholderUrl from "@/assets/placeholder.svg";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { useRoomApi } from "@/util/roomapi";
+import { useConnection } from "@/plugins/connection";
 
 interface VideoQueueItemProps {
 	item: QueueItem;
@@ -174,9 +175,10 @@ const VideoQueueItem = defineComponent({
 		index: { type: Number, required: false },
 	},
 	setup(props: VideoQueueItemProps) {
-		let { item, isPreview, index } = toRefs(props);
+		let { item, index } = toRefs(props);
 		const store = useStore();
 		const { t } = useI18n();
+		const roomapi = useRoomApi(useConnection());
 
 		let isLoadingAdd = ref(false);
 		let isLoadingVote = ref(false);
@@ -298,21 +300,21 @@ const VideoQueueItem = defineComponent({
 		}
 
 		function playNow() {
-			api.playNow(item.value);
+			roomapi.playNow(item.value);
 		}
 
 		/**
 		 * Moves the video to the top of the queue.
 		 */
 		function moveToTop() {
-			api.queueMove(index.value, 0);
+			roomapi.queueMove(index.value, 0);
 		}
 
 		/**
 		 * Moves the video to the bottom of the queue.
 		 */
 		function moveToBottom() {
-			api.queueMove(index.value, store.state.room.queue.length - 1);
+			roomapi.queueMove(index.value, store.state.room.queue.length - 1);
 		}
 
 		function onThumbnailError() {

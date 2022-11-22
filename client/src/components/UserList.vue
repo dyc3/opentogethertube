@@ -62,7 +62,7 @@
 								<div class="user-promotion">
 									<div v-for="role in 4" :key="user.role + role">
 										<v-list-item
-											@click="api.promoteUser(user.id, role)"
+											@click="promoteUser(user.id, role)"
 											v-if="canUserBePromotedTo(user, role)"
 										>
 											{{
@@ -90,12 +90,13 @@
 import { defineComponent, PropType, ref } from "vue";
 import { API } from "@/common-http.js";
 import { PlayerStatus, RoomUserInfo } from "ott-common/models/types";
-import api from "@/util/api";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { granted } from "@/util/grants";
 import { Role } from "ott-common/models/types";
 import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "ott-common/permissions";
 import { useStore } from "@/store";
+import { useConnection } from "@/plugins/connection";
+import { useRoomApi } from "@/util/roomapi";
 
 /** Lists users that are connected to a room. */
 export const UserList = defineComponent({
@@ -105,6 +106,7 @@ export const UserList = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		const roomapi = useRoomApi(useConnection());
 
 		let inputUsername = ref("");
 		let showEditName = ref(false);
@@ -188,6 +190,8 @@ export const UserList = defineComponent({
 			}[status];
 		}
 
+		const promoteUser = roomapi.promoteUser;
+
 		return {
 			store,
 			inputUsername,
@@ -202,12 +206,12 @@ export const UserList = defineComponent({
 			canUserBePromotedTo,
 			getRoleIcon,
 			getPlayerStatusIcon,
+			promoteUser,
 
 			ROLE_NAMES,
 			ROLE_DISPLAY_NAMES,
 			USERNAME_LENGTH_MAX,
 			PlayerStatus,
-			api,
 			Role,
 		};
 	},
