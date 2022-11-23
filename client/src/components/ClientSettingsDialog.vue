@@ -23,7 +23,7 @@
 				/>
 				<v-select
 					label="Theme"
-					:items="[Theme.dark, Theme.light]"
+					:items="[Theme.dark, Theme.light, Theme.deepblue, Theme.deepred]"
 					v-model="settings.theme"
 				>
 					<template #item="{ item, props }">
