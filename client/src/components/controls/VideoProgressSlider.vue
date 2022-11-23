@@ -56,7 +56,7 @@ export const VideoProgressSlider = defineComponent({
 		function getSliderProcesses(dotsPos) {
 			let processes: [number, number, { backgroundColor: string }][] = [];
 
-			const bufferedColor = "#e9be57";
+			const bufferedColor = "rgb(var(--v-theme-primary-lighten-1))";
 			// show buffered spans
 			let bufferSpans = store.state.playerBufferSpans;
 			if (
@@ -78,10 +78,10 @@ export const VideoProgressSlider = defineComponent({
 			}
 
 			// show seek preview, if present
-			processes.push([0, (seekPreview.value ?? 0) * 100, { backgroundColor: "#00b3ff" }]);
+			processes.push([0, (seekPreview.value ?? 0) * 100, { backgroundColor: "rgb(var(--v-theme-secondary))" }]);
 
 			// show video progress
-			processes.push([0, dotsPos[0], { backgroundColor: "#ffb300" }]);
+			processes.push([0, dotsPos[0], { backgroundColor: "rgb(var(--v-theme-primary))" }]);
 
 			// show sponsorblock segments
 			const colorMap = new Map([
