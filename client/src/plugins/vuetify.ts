@@ -25,6 +25,7 @@ const themeDeepGreen: ThemeDefinition = {
 		primary: "#4caf50",
 		secondary: "#b7f397",
 		background: "#042100",
+		surface: "#042100",
 	},
 };
 
@@ -33,7 +34,8 @@ const themeDeepBlue: ThemeDefinition = {
 	colors: {
 		primary: "#a8eff0",
 		secondary: "#42A5F5",
-		background: "#002021", // deep blue
+		background: "#001021",
+		surface: "#001021",
 	},
 };
 
