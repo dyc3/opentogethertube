@@ -89,7 +89,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref } from "vue";
 import { API } from "@/common-http.js";
-import { PlayerStatus, RoomUserInfo } from "ott-common/models/types";
+import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { granted } from "@/util/grants";
 import { Role } from "ott-common/models/types";
@@ -190,7 +190,9 @@ export const UserList = defineComponent({
 			}[status];
 		}
 
-		const promoteUser = roomapi.promoteUser;
+		function promoteUser(clientId: ClientId, role: Role) {
+			roomapi.promoteUser(clientId, role);
+		}
 
 		return {
 			store,
