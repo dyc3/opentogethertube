@@ -14,6 +14,7 @@ import auth from "./auth";
 import usermanager from "./usermanager";
 import passport from "passport";
 import statusapi from "./api/status";
+import { getApiKey } from "./admin";
 
 const log = getLogger("api");
 
@@ -332,7 +333,7 @@ router.get("/data/previewAdd", async (req, res) => {
 
 router.post("/announce", (req, res) => {
 	if (req.get("apikey")) {
-		if (req.get("apikey") !== process.env.OPENTOGETHERTUBE_API_KEY) {
+		if (req.get("apikey") !== getApiKey()) {
 			res.status(400).json({
 				success: false,
 				error: "apikey is invalid",

@@ -7,6 +7,7 @@ import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
 import usermanager from "../usermanager";
 import { OttException } from "../../common/exceptions";
+import { requireApiKey } from "../admin";
 
 const router = express.Router();
 router.use(nocache());
@@ -19,15 +20,6 @@ function createSession(): SessionInfo {
 	};
 }
 
-function checkApiKey(input: string) {
-	if (!process.env.OPENTOGETHERTUBE_API_KEY) {
-		throw new OttException("apikey is not set");
-	}
-	if (input !== process.env.OPENTOGETHERTUBE_API_KEY) {
-		throw new OttException("apikey is invalid");
-	}
-}
-
 export async function authTokenMiddleware(
 	req: express.Request,
 	res: express.Response,
@@ -37,7 +29,7 @@ export async function authTokenMiddleware(
 	if (apikey) {
 		log.silly("API key was provided for auth");
 		try {
-			checkApiKey(apikey);
+			requireApiKey(apikey);
 		} catch (err) {
 			if (err instanceof Error) {
 				res.status(400).json({
