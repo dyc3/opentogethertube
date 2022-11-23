@@ -7,9 +7,9 @@ $lg-min: $md-max;
 $lg-max: 1920px;
 $xl-min: $lg-max;
 
-$background-color: #121212;
-$primary-color: #ffb300;
-$secondary-color: #42A5F5;
+$background-color: rgb(var(--v-theme-background));
+$primary-color: rgb(var(--v-theme-primary));
+$secondary-color: rgb(var(--v-theme-secondary));
 $brand-color: $primary-color;
 
 $video-controls-height: 80px;
