@@ -25,7 +25,13 @@
 					label="Theme"
 					:items="[Theme.dark, Theme.light]"
 					v-model="settings.theme"
-				/>
+				>
+					<template #item="{ item, props }">
+						<v-theme-provider :theme="item.value" with-background>
+							<v-list-item v-bind="props" />
+						</v-theme-provider>
+					</template>
+				</v-select>
 			</v-card-text>
 
 			<v-divider />
