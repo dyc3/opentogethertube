@@ -216,7 +216,7 @@ $chat-message-bg: $background-color;
 	pointer-events: none;
 
 	&.activated {
-		background: rgba($color: $chat-message-bg, $alpha: 0.8);
+		background: rgba(var(--v-theme-background), $alpha: 0.8);
 		pointer-events: auto;
 	}
 }
@@ -268,7 +268,7 @@ $chat-message-bg: $background-color;
 
 	&.recent {
 		opacity: 1;
-		background: rgba($color: $chat-message-bg, $alpha: 0.6);
+		background: rgba(var(--v-theme-background), $alpha: 0.6);
 	}
 
 	.from,
