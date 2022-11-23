@@ -19,13 +19,13 @@ const themeLight: ThemeDefinition = {
 	dark: false,
 };
 
-const themeDeepGreen: ThemeDefinition = {
+const themeDeepRed: ThemeDefinition = {
 	dark: true,
 	colors: {
-		primary: "#4caf50",
-		secondary: "#b7f397",
-		background: "#042100",
-		surface: "#042100",
+		primary: "#D00000",
+		secondary: "#FFBA08",
+		background: "#280411",
+		surface: "#370617",
 	},
 };
 
@@ -54,7 +54,7 @@ const vuetify = createVuetify({
 		themes: {
 			dark: themeDark,
 			light: themeLight,
-			deepgreen: themeDeepGreen,
+			deepred: themeDeepRed,
 			deepblue: themeDeepBlue,
 		},
 	},
