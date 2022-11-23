@@ -53,6 +53,13 @@ describe("Creating Rooms", () => {
 	});
 
 	it("should create a permanent room, unload it, and be able to load it back up", () => {
+		cy.ottRequest({
+			method: "POST",
+			url: "/api/dev/set-admin-api-key",
+			body: {
+				newkey: Cypress.env("OTT_API_KEY"),
+			},
+		});
 		cy.visit(Cypress.config().baseUrl);
 		cy.contains("Create Room").should("be.visible").click();
 		cy.get(".v-menu")
@@ -69,7 +76,7 @@ describe("Creating Rooms", () => {
 			method: "DELETE",
 			url: `/api/room/${roomName}`,
 			headers: {
-				apikey: `PU5eYB08aFsK9P84TC6RiKvUZkIwzutyV6pOsLmYP`,
+				apikey: Cypress.env("OTT_API_KEY"),
 			},
 		});
 
