@@ -23,6 +23,7 @@ export default defineConfig({
 		retries: {
 			runMode: 3,
 		},
+		experimentalRunAllSpecs: true,
 	},
 	component: {
 		supportFile: "client/tests/e2e/support/component.ts",
