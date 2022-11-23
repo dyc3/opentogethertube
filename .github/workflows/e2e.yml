@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/Cypress
@@ -131,24 +131,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - uses: actions/download-artifact@v2
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v3
         with:
           name: node_modules
           path: dl
-      - run: |
+
+      - name: Extracting downloaded node_modules
+        run: |
           mv dl/node_modules.tar.gz .
           rm -d dl
           tar -xzf node_modules.tar.gz
 
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/Cypress
-            node_modules
-          key: cache-${{ runner.os }}-16.x-${{ hashFiles('yarn.lock') }}
-
       - name: Download the build folders
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build
           path: client/dist
