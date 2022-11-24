@@ -53,7 +53,7 @@ export const VideoProgressSlider = defineComponent({
 		 * Intervals will be layared in the order of they are listed. The last interval will appear on the top.
 		 * Values are from 0 to 100, regardless of min and max values of the slider.
 		 */
-		function getSliderProcesses(dotsPos) {
+		function getSliderProcesses(dotsPos: number[]) {
 			let processes: [number, number, { backgroundColor: string }][] = [];
 
 			const bufferedColor = "rgb(var(--v-theme-primary-lighten-1))";
