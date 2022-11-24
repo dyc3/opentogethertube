@@ -1,6 +1,5 @@
 import { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
-import { useTheme } from "vuetify";
 
 export interface SettingsState {
 	volume: number;
@@ -21,6 +20,8 @@ export enum Theme {
 	deepblue = "deepblue",
 }
 
+export const ALL_THEMES = Object.keys(Theme).filter(key => Theme[key]);
+
 export const settingsModule: Module<SettingsState, unknown> = {
 	namespaced: true,
 	state: {
@@ -36,19 +37,11 @@ export const settingsModule: Module<SettingsState, unknown> = {
 
 			// apply some global settings
 			if (settings.theme !== undefined) {
-				// this is set up so that if the value of theme is invalid,
-				// it will default back to the dark theme instead of the light one.
-				switch (settings.theme) {
-					case Theme.dark:
-					case Theme.light:
-					case Theme.deepred:
-					case Theme.deepblue:
-						vuetify.theme.global.name.value = settings.theme;
-						break;
-					default:
-						console.warn("unknown theme", settings.theme, "defaulting to dark");
-						vuetify.theme.global.name.value = "dark";
-						break;
+				if (ALL_THEMES.includes(settings.theme)) {
+					vuetify.theme.global.name.value = settings.theme;
+				} else {
+					console.warn(`Can't apply invalid theme: ${settings.theme}, defaulting to dark theme`);
+					vuetify.theme.global.name.value = Theme.dark;
 				}
 			}
 		},
