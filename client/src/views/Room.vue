@@ -70,18 +70,7 @@
 										"
 										:drag-on-click="true"
 									/>
-									<div>
-										<ClickToEdit
-											v-model="truePosition"
-											@change="value => api.seek(value)"
-											:value-formatter="secondsToTimestamp"
-											:value-parser="timestampToSeconds"
-										/>
-										<span>/</span>
-										<span class="video-length">
-											{{ lengthDisplay }}
-										</span>
-									</div>
+									<TimestampDisplay :current-position="truePosition" />
 									<div class="flex-grow-1"><!-- Spacer --></div>
 									<ClosedCaptionsSwitcher
 										:key="currentSource"
@@ -252,7 +241,6 @@ import VideoQueue from "@/components/VideoQueue.vue";
 // import { goTo } from "vuetify/lib/services/goto/index.mjs";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
-import ClickToEdit from "@/components/ClickToEdit.vue";
 import { RoomLayoutMode } from "@/stores/settings";
 import { GrantChecker } from "@/util/grants";
 import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
@@ -263,6 +251,7 @@ import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
 import BasicControls from "@/components/controls/BasicControls.vue";
 import VideoProgressSlider from "@/components/controls/VideoProgressSlider.vue";
+import TimestampDisplay from "@/components/controls/TimestampDisplay.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -271,6 +260,7 @@ export default {
 	components: {
 		BasicControls,
 		VideoProgressSlider,
+		TimestampDisplay,
 		VideoQueue,
 		VueSlider,
 		OmniPlayer,
@@ -279,7 +269,6 @@ export default {
 		UserList,
 		RoomSettingsForm,
 		ShareInvite,
-		ClickToEdit,
 		ClosedCaptionsSwitcher,
 		ClientSettingsDialog,
 		RoomDisconnected,
@@ -336,12 +325,6 @@ export default {
 		 */
 		production() {
 			return this.$store.state.production;
-		},
-		timestampDisplay() {
-			return secondsToTimestamp(this.truePosition);
-		},
-		lengthDisplay() {
-			return secondsToTimestamp(this.$store.state.room.currentSource?.length ?? 0);
 		},
 		showJoinFailOverlay() {
 			const connection = useConnection();
