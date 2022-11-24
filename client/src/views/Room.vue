@@ -79,27 +79,7 @@
 										@enable-cc="value => $refs.player.setCaptionsEnabled(value)"
 										@cc-track="value => $refs.player.setCaptionsTrack(value)"
 									/>
-									<v-btn
-										variant="text"
-										icon
-										v-if="!isMobile"
-										@click="rotateRoomLayout"
-									>
-										<v-icon
-											v-if="$store.state.settings.roomLayout === 'theater'"
-											style="transform: scaleX(180%)"
-											>fa:far fa-square</v-icon
-										>
-										<v-icon v-else style="transform: scaleX(130%)"
-											>fa:far fa-square</v-icon
-										>
-									</v-btn>
-									<v-btn variant="text" icon @click="toggleFullscreen()">
-										<v-icon>fa:fas fa-compress</v-icon>
-										<v-tooltip activator="parent" location="bottom">
-											<span>{{ $t("room.toggle-fullscreen") }}</span>
-										</v-tooltip>
-									</v-btn>
+									<LayoutSwitcher />
 								</v-row>
 							</v-col>
 							<div class="in-video-chat">
@@ -252,6 +232,7 @@ import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStat
 import BasicControls from "@/components/controls/BasicControls.vue";
 import VideoProgressSlider from "@/components/controls/VideoProgressSlider.vue";
 import TimestampDisplay from "@/components/controls/TimestampDisplay.vue";
+import LayoutSwitcher from "@/components/controls/LayoutSwitcher.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -261,6 +242,7 @@ export default {
 		BasicControls,
 		VideoProgressSlider,
 		TimestampDisplay,
+		LayoutSwitcher,
 		VideoQueue,
 		VueSlider,
 		OmniPlayer,
@@ -502,6 +484,7 @@ export default {
 				e.preventDefault();
 			}
 		},
+		/** @deprecated code duplicated in LayoutSwitcher */
 		toggleFullscreen() {
 			if (document.fullscreenElement) {
 				document.exitFullscreen();
@@ -596,15 +579,6 @@ export default {
 					document.exitFullscreen();
 				}
 			}
-		},
-
-		rotateRoomLayout() {
-			let layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
-			let newLayout =
-				layouts[
-					(layouts.indexOf(this.$store.state.settings.roomLayout) + 1) % layouts.length
-				];
-			this.$store.commit("settings/UPDATE", { roomLayout: newLayout });
 		},
 
 		isCaptionsSupported() {
