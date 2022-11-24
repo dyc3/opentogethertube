@@ -35,7 +35,7 @@ const themeDeepBlue: ThemeDefinition = {
 		primary: "#a8eff0",
 		secondary: "#42A5F5",
 		background: "#001021",
-		surface: "#001021",
+		surface: "#001a37",
 	},
 };
 
