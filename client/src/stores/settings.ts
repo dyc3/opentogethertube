@@ -40,7 +40,9 @@ export const settingsModule: Module<SettingsState, unknown> = {
 				if (ALL_THEMES.includes(settings.theme)) {
 					vuetify.theme.global.name.value = settings.theme;
 				} else {
-					console.warn(`Can't apply invalid theme: ${settings.theme}, defaulting to dark theme`);
+					console.warn(
+						`Can't apply invalid theme: ${settings.theme}, defaulting to dark theme`
+					);
 					vuetify.theme.global.name.value = Theme.dark;
 				}
 			}

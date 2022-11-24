@@ -1,7 +1,11 @@
 <template>
 	<div class="media-control">
-		<ClickToEdit v-model="currentPosition" @change="value => roomapi.seek(value)"
-			:value-formatter="secondsToTimestamp" :value-parser="timestampToSeconds" />
+		<ClickToEdit
+			:model-value="currentPosition"
+			@change="value => roomapi.seek(value)"
+			:value-formatter="secondsToTimestamp"
+			:value-parser="timestampToSeconds"
+		/>
 		<span>/</span>
 		<span class="video-length">
 			{{ lengthDisplay }}

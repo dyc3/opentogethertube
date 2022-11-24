@@ -1,6 +1,12 @@
 <template>
 	<div>
-		<v-btn variant="text" icon @click="seekDelta(-10)" :disabled="!granted('playback.seek')" class="media-control">
+		<v-btn
+			variant="text"
+			icon
+			@click="seekDelta(-10)"
+			:disabled="!granted('playback.seek')"
+			class="media-control"
+		>
 			<v-icon>fa:fas fa-angle-left</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.rewind") }}</span>
@@ -18,13 +24,25 @@
 				<span>{{ $t("room.play-pause") }}</span>
 			</v-tooltip>
 		</v-btn>
-		<v-btn variant="text" icon @click="seekDelta(10)" :disabled="!granted('playback.seek')" class="media-control">
+		<v-btn
+			variant="text"
+			icon
+			@click="seekDelta(10)"
+			:disabled="!granted('playback.seek')"
+			class="media-control"
+		>
 			<v-icon>fa:fas fa-angle-right</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.skip") }}</span>
 			</v-tooltip>
 		</v-btn>
-		<v-btn variant="text" icon @click="roomapi.skip()" :disabled="!granted('playback.skip')" class="media-control">
+		<v-btn
+			variant="text"
+			icon
+			@click="roomapi.skip()"
+			:disabled="!granted('playback.skip')"
+			class="media-control"
+		>
 			<v-icon>fa:fas fa-fast-forward</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.next-video") }}</span>

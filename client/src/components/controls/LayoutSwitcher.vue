@@ -1,6 +1,7 @@
 <template>
 	<v-btn variant="text" icon v-if="!isMobile" @click="rotateRoomLayout" class="media-control">
-		<v-icon v-if="store.state.settings.roomLayout === 'theater'" style="transform: scaleX(180%)">fa:far fa-square
+		<v-icon v-if="store.state.settings.roomLayout === 'theater'" style="transform: scaleX(180%)"
+			>fa:far fa-square
 		</v-icon>
 		<v-icon v-else style="transform: scaleX(130%)">fa:far fa-square</v-icon>
 	</v-btn>
@@ -46,9 +47,7 @@ export const LayoutSwitcher = defineComponent({
 		function rotateRoomLayout() {
 			let layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
 			let newLayout =
-				layouts[
-				(layouts.indexOf(store.state.settings.roomLayout) + 1) % layouts.length
-				];
+				layouts[(layouts.indexOf(store.state.settings.roomLayout) + 1) % layouts.length];
 			store.commit("settings/UPDATE", { roomLayout: newLayout });
 		}
 
@@ -58,7 +57,7 @@ export const LayoutSwitcher = defineComponent({
 			toggleFullscreen,
 			rotateRoomLayout,
 		};
-	}
+	},
 });
 
 export default LayoutSwitcher;

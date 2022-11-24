@@ -78,7 +78,11 @@ export const VideoProgressSlider = defineComponent({
 			}
 
 			// show seek preview, if present
-			processes.push([0, (seekPreview.value ?? 0) * 100, { backgroundColor: "rgb(var(--v-theme-secondary))" }]);
+			processes.push([
+				0,
+				(seekPreview.value ?? 0) * 100,
+				{ backgroundColor: "rgb(var(--v-theme-secondary))" },
+			]);
 
 			// show video progress
 			processes.push([0, dotsPos[0], { backgroundColor: "rgb(var(--v-theme-primary))" }]);

@@ -18,7 +18,7 @@ const themeDark: ThemeDefinition = {
 const themeLight: ThemeDefinition = {
 	dark: false,
 	colors: {
-		"media-control-surface": '#ffffff',
+		"media-control-surface": "#ffffff",
 	},
 };
 

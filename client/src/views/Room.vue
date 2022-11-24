@@ -65,7 +65,14 @@
 										style="width: 150px; margin-left: 10px; margin-right: 20px"
 										:process="
 											dotsPos => [
-												[0, dotsPos[0], { backgroundColor: 'rgb(var(--v-theme-primary))' }],
+												[
+													0,
+													dotsPos[0],
+													{
+														backgroundColor:
+															'rgb(var(--v-theme-primary))',
+													},
+												],
 											]
 										"
 										:drag-on-click="true"
