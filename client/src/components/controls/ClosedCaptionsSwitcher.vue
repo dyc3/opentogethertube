@@ -1,5 +1,5 @@
 <template>
-	<v-btn variant="text" icon :disabled="!supported">
+	<v-btn variant="text" icon :disabled="!supported" class="media-control">
 		<v-icon>fa:fas fa-closed-captioning</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
@@ -48,3 +48,7 @@ const ClosedCaptionsSwitcher = defineComponent({
 
 export default ClosedCaptionsSwitcher;
 </script>
+
+<style lang="scss">
+@use "./media-controls.scss";
+</style>
