@@ -53,6 +53,7 @@
 				icon
 				size="x-small"
 				@click="setActivated(true, true)"
+				color="white"
 				data-cy="chat-activate"
 			>
 				<v-icon>fa:far fa-comment-alt</v-icon>
