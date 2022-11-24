@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<v-btn variant="text" icon @click="seekDelta(-10)" :disabled="!granted('playback.seek')">
+		<v-btn variant="text" icon @click="seekDelta(-10)" :disabled="!granted('playback.seek')" class="media-control">
 			<v-icon>fa:fas fa-angle-left</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.rewind") }}</span>
@@ -11,19 +11,20 @@
 			icon
 			@click="togglePlayback()"
 			:disabled="!granted('playback.play-pause')"
+			class="media-control"
 		>
 			<v-icon :icon="store.state.room.isPlaying ? 'fa:fas fa-pause' : 'fa:fas fa-play'" />
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.play-pause") }}</span>
 			</v-tooltip>
 		</v-btn>
-		<v-btn variant="text" icon @click="seekDelta(10)" :disabled="!granted('playback.seek')">
+		<v-btn variant="text" icon @click="seekDelta(10)" :disabled="!granted('playback.seek')" class="media-control">
 			<v-icon>fa:fas fa-angle-right</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.skip") }}</span>
 			</v-tooltip>
 		</v-btn>
-		<v-btn variant="text" icon @click="roomapi.skip()" :disabled="!granted('playback.skip')">
+		<v-btn variant="text" icon @click="roomapi.skip()" :disabled="!granted('playback.skip')" class="media-control">
 			<v-icon>fa:fas fa-fast-forward</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.next-video") }}</span>
@@ -84,3 +85,7 @@ export const BasicControls = defineComponent({
 
 export default BasicControls;
 </script>
+
+<style lang="scss">
+@use "./media-controls.scss";
+</style>

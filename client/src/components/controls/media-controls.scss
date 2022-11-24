@@ -1,0 +1,7 @@
+@use 'vuetify/settings';
+
+$media-control-surface: rgb(var(--v-theme-media-control-surface));
+
+.media-control {
+	color: $media-control-surface;
+}
