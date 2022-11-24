@@ -229,7 +229,7 @@ import VideoQueue from "@/components/VideoQueue.vue";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import { RoomLayoutMode } from "@/stores/settings";
-import { GrantChecker } from "@/util/grants";
+import { granted } from "@/util/grants";
 import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
@@ -288,7 +288,7 @@ export default {
 			RoomLayoutMode,
 			timestampToSeconds,
 			secondsToTimestamp,
-			grants: new GrantChecker(),
+			granted,
 		};
 	},
 	computed: {
@@ -451,14 +451,14 @@ export default {
 
 			if (
 				(e.code === "Space" || e.code === "k") &&
-				this.grants.granted("playback.play-pause")
+				granted("playback.play-pause")
 			) {
 				this.togglePlayback();
 				e.preventDefault();
-			} else if (e.code === "Home" && this.grants.granted("playback.seek")) {
+			} else if (e.code === "Home" && granted("playback.seek")) {
 				api.seek(0);
 				e.preventDefault();
-			} else if (e.code === "End" && this.grants.granted("playback.skip")) {
+			} else if (e.code === "End" && granted("playback.skip")) {
 				api.skip();
 				e.preventDefault();
 			} else if (e.code === "KeyF") {
@@ -468,7 +468,7 @@ export default {
 					e.code === "ArrowRight" ||
 					e.code === "KeyJ" ||
 					e.code === "KeyL") &&
-				this.grants.granted("playback.seek")
+				granted("playback.seek")
 			) {
 				let seekIncrement = 5;
 				if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
