@@ -8,6 +8,10 @@ import type {
 import type { AuthToken, OttWebsocketError } from "ott-common/models/types";
 
 export interface OttRoomConnection {
+	active: Ref<boolean>;
+	connected: Ref<boolean>;
+	kickReason: Ref<OttWebsocketError | null>;
+
 	connect(roomName: string): void;
 	reconnect(): void;
 	disconnect(): void;
@@ -49,7 +53,7 @@ export interface ConnectionEventKicked {
 	reason: OttWebsocketError;
 }
 
-class OttRoomConnectionReal {
+class OttRoomConnectionReal implements OttRoomConnection {
 	/**
 	 * Indicates if the client is actively attempting to maintain a connection. Not an indication of whether the connection is connected, see `connected`.
 	 * @returns true if the client is actively attempting to maintain a connection to a room.
@@ -237,6 +241,10 @@ export const OttRoomConnectionPlugin: Plugin = (app: App, options) => {
 export default OttRoomConnectionPlugin;
 
 export class OttRoomConnectionMock implements OttRoomConnection {
+	active: Ref<boolean> = ref(false);
+	connected: Ref<boolean> = ref(false);
+	kickReason: Ref<OttWebsocketError | null> = ref(null);
+
 	sent: ClientMessage[] = [];
 	private messageHandlers = new Map<ServerMessageActionType, ((msg: ServerMessage) => void)[]>();
 
