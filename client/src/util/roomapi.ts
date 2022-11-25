@@ -75,7 +75,7 @@ class RoomApi {
 		// await API.post(`/room/${this.$route.params.roomId}/undo`, { data: { event } });
 	}
 
-	kickMe(reason: number) {
+	kickMe(reason?: number) {
 		this.connection.send({
 			action: "kickme",
 			reason,
