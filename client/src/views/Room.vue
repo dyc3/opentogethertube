@@ -5,27 +5,27 @@
 			fluid
 			:class="{
 				'room': true,
-				'fullscreen': $store.state.fullscreen,
-				'layout-default': $store.state.settings.roomLayout === 'default',
-				'layout-theater': $store.state.settings.roomLayout === 'theater',
+				'fullscreen': store.state.fullscreen,
+				'layout-default': store.state.settings.roomLayout === 'default',
+				'layout-theater': store.state.settings.roomLayout === 'theater',
 			}"
-			v-if="!showJoinFailOverlay"
+			v-if="!showDisconnectedOverlay"
 		>
-			<div class="room-header" v-if="!$store.state.fullscreen">
+			<div class="room-header" v-if="!store.state.fullscreen">
 				<h1 class="room-title">
 					{{
-						$store.state.room.title != ""
-							? $store.state.room.title
-							: $store.state.room.isTemporary
+						store.state.room.title != ""
+							? store.state.room.title
+							: store.state.room.isTemporary
 							? $t("room.title-temp")
-							: $store.state.room.name
+							: store.state.room.name
 					}}
 				</h1>
 				<ClientSettingsDialog />
 				<div class="flex-grow-1"><!-- Spacer --></div>
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
-			<v-col :style="{ padding: $store.state.fullscreen ? 0 : 'inherit' }">
+			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
 				<v-row
 					no-gutters
 					:class="{
@@ -35,17 +35,17 @@
 					<div class="flex-grow-1"><!-- Spacer --></div>
 					<div
 						class="video-subcontainer"
-						:style="{ padding: $store.state.fullscreen ? 0 : 'inherit' }"
+						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
 					>
 						<v-responsive
 							class="player-container"
 							:key="currentSource"
 							:aspect-ratio="16 / 9"
-							:max-height="$store.state.fullscreen ? '100vh' : '90vh'"
+							:max-height="store.state.fullscreen ? '100vh' : '90vh'"
 						>
 							<OmniPlayer
 								ref="player"
-								:source="$store.state.room.currentSource"
+								:source="store.state.room.currentSource"
 								class="player"
 								@apiready="onPlayerApiReady"
 								@playing="onPlaybackChange(true)"
@@ -82,9 +82,9 @@
 									<ClosedCaptionsSwitcher
 										:key="currentSource"
 										:supported="isCaptionsSupported()"
-										:tracks="$store.state.captions.availableTracks"
-										@enable-cc="value => $refs.player.setCaptionsEnabled(value)"
-										@cc-track="value => $refs.player.setCaptionsTrack(value)"
+										:tracks="store.state.captions.availableTracks"
+										@enable-cc="value => player.setCaptionsEnabled(value)"
+										@cc-track="value => player.setCaptionsTrack(value)"
 									/>
 									<LayoutSwitcher />
 								</v-row>
@@ -98,15 +98,17 @@
 				</v-row>
 				<v-row no-gutters>
 					<v-col cols="12" md="8" sm="12">
-						<v-tabs fixed-tabs v-model="queueTab" @change="onTabChange" color="primary">
+						<v-tabs fixed-tabs v-model="queueTab" color="primary">
 							<v-tab>
 								<v-icon>fa:fas fa-list</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
-								<span class="bubble">{{
-									$store.state.room.queue.length <= 99
-										? $n($store.state.room.queue.length)
-										: "99+"
-								}}</span>
+								<span class="bubble">
+									{{
+										store.state.room.queue.length <= 99
+											? $n(store.state.room.queue.length)
+											: "99+"
+									}}</span
+								>
 							</v-tab>
 							<v-tab>
 								<v-icon>fa:fas fa-plus</v-icon>
@@ -119,7 +121,7 @@
 						</v-tabs>
 						<v-window v-model="queueTab" class="queue-tab-content">
 							<v-window-item>
-								<VideoQueue @switchtab="switchToAddTab" />
+								<VideoQueue @switchtab="queueTab = 1" />
 							</v-window-item>
 							<v-window-item>
 								<AddPreview ref="addpreview" />
@@ -132,63 +134,60 @@
 					<v-col col="4" md="4" sm="12" class="user-invite-container">
 						<div v-if="debugMode" class="debug-container">
 							<v-card>
-								<v-card-title> Debug (prod: {{ this.production }}) </v-card-title>
+								<v-card-title> Debug (prod: {{ production }}) </v-card-title>
 								<v-list-item>
-									Player status: {{ this.$store.state.playerStatus }}
+									Player status: {{ store.state.playerStatus }}
 								</v-list-item>
 								<v-list-item>
 									Buffered:
-									{{
-										Math.round(this.$store.state.playerBufferPercent * 10000) /
-										100
-									}}%
+									{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
 								</v-list-item>
 								<v-list-item
 									v-if="
-										this.$store.state.playerBufferSpans &&
-										this.$store.state.playerBufferSpans.length > 0
+										store.state.playerBufferSpans &&
+										store.state.playerBufferSpans.length > 0
 									"
 								>
 									Buffered spans:
-									{{ this.$store.state.playerBufferSpans.length }}
+									{{ store.state.playerBufferSpans.length }}
 									{{
 										Array.from(
-											{ length: this.$store.state.playerBufferSpans.length },
+											{ length: store.state.playerBufferSpans.length },
 											(v, k) => k++
 										)
 											.map(
 												i =>
-													`${i}: [${$store.state.playerBufferSpans.start(
+													`${i}: [${store.state.playerBufferSpans?.start(
 														i
-													)} => ${$store.state.playerBufferSpans.end(i)}]`
+													)} => ${store.state.playerBufferSpans?.end(i)}]`
 											)
 											.join(" ")
 									}}
 								</v-list-item>
 								<v-list-item>
-									<span>Is Mobile: {{ this.isMobile }}</span>
+									<span>Is Mobile: {{ isMobile }}</span>
 								</v-list-item>
 								<v-list-item>
-									<span>Device Orientation: {{ this.orientation }}</span>
+									<span>Device Orientation: {{ orientation }}</span>
 								</v-list-item>
 								<v-list-item>
-									<span
-										>Video controls: timeoutId:
-										{{ this.videoControlsHideTimeout }} visible:
-										{{ this.controlsVisible }}</span
-									>
+									<span>
+										Video controls: timeoutId:
+										{{ videoControlsHideTimeout }} visible:
+										{{ controlsVisible }}
+									</span>
 								</v-list-item>
 								<v-list-item>
-									<v-btn @click="api.kickMe()" :disabled="!isConnected">
+									<v-btn @click="roomapi.kickMe()" :disabled="!isConnected">
 										{{ $t("room.kick-me") }}
 									</v-btn>
-									<v-btn @click="api.kickMe(1000)" :disabled="!isConnected">
+									<v-btn @click="roomapi.kickMe(1000)" :disabled="!isConnected">
 										Disconnect Me
 									</v-btn>
 								</v-list-item>
 							</v-card>
 						</div>
-						<UserList :users="$store.state.room.users" v-if="$store.state.room.users" />
+						<UserList :users="store.state.room.users" v-if="store.state.room.users" />
 						<ShareInvite />
 					</v-col>
 				</v-row>
@@ -203,7 +202,7 @@
 		</v-footer>
 		<v-overlay
 			class="overlay-disconnected"
-			:model-value="showJoinFailOverlay"
+			:model-value="showDisconnectedOverlay"
 			content-class="content"
 		>
 			<RoomDisconnected />
@@ -213,37 +212,51 @@
 	</div>
 </template>
 
-<script>
+<script lang="ts">
+import {
+	defineComponent,
+	ref,
+	Ref,
+	unref,
+	computed,
+	watch,
+	onMounted,
+	onUnmounted,
+	nextTick,
+} from "vue";
 import AddPreview from "@/components/AddPreview.vue";
-import { secondsToTimestamp, calculateCurrentPosition, timestampToSeconds } from "@/util/timestamp";
+import { calculateCurrentPosition } from "@/util/timestamp";
 import _ from "lodash";
 import VueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
-import api from "@/util/api";
-import { QueueMode } from "ott-common/models/types";
 import VideoQueue from "@/components/VideoQueue.vue";
 // import { goTo } from "vuetify/lib/services/goto/index.mjs";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
-import { RoomLayoutMode } from "@/stores/settings";
 import { granted } from "@/util/grants";
 import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
 import { useConnection } from "@/plugins/connection";
+import { useRoomApi } from "@/util/roomapi";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
 import BasicControls from "@/components/controls/BasicControls.vue";
 import VideoProgressSlider from "@/components/controls/VideoProgressSlider.vue";
 import TimestampDisplay from "@/components/controls/TimestampDisplay.vue";
 import LayoutSwitcher from "@/components/controls/LayoutSwitcher.vue";
+import { useStore } from "@/store";
+import { useI18n } from "vue-i18n";
+import { useRouter, useRoute } from "vue-router";
+import { ServerMessageSync } from "ott-common/models/messages";
+import { useScreenOrientation, useMouse } from "@vueuse/core";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
-export default {
+export default defineComponent({
 	name: "room",
 	components: {
 		BasicControls,
@@ -264,205 +277,330 @@ export default {
 		ServerMessageHandler,
 		WorkaroundPlaybackStatusUpdater,
 	},
-	data() {
-		return {
-			debugMode: false,
-			controlsVisible: true,
-
-			truePosition: 0,
-			sliderPosition: 0,
-			volume: 100,
-
-			queueTab: 0,
-
-			snackbarActive: false,
-			snackbarText: "",
-
-			i_timestampUpdater: null,
-
-			orientation: screen.orientation ? screen.orientation.type : undefined,
-			videoControlsHideTimeout: null,
-
-			api,
-			QueueMode,
-			RoomLayoutMode,
-			timestampToSeconds,
-			secondsToTimestamp,
-			granted,
-		};
-	},
-	computed: {
-		isConnected() {
-			const connection = useConnection();
-			return connection.connected.value;
-		},
-		connectionStatus() {
-			const connection = useConnection();
-			return connection.connected.value
-				? this.$t("room.con-status.connected")
-				: this.$t("room.con-status.connecting");
-		},
-		currentSource() {
-			return this.$store.state.room.currentSource;
-		},
-		playbackPosition() {
-			return this.$store.state.room.playbackPosition;
-		},
-		/**
-		 * This is used so we can test for development/production only behavior in unit tests.
-		 * Do not change.
-		 */
-		production() {
-			return this.$store.state.production;
-		},
-		showJoinFailOverlay() {
-			const connection = useConnection();
-			return connection.kickReason.value !== null;
-		},
-		isMobile() {
-			return window.matchMedia("only screen and (max-width: 760px)").matches;
-		},
-		isPlayerPresent() {
-			return !!this.$refs.player; // && this.$refs.player.isPlayerPresent.value;
-		},
-	},
-	async created() {
-		this.$store.subscribeAction(action => {
-			if (action.type === "sync") {
-				this.rewriteUrlToRoomName();
-				if (Object.prototype.hasOwnProperty.call(action.payload, "isPlaying")) {
-					this.applyIsPlaying(action.payload.isPlaying);
-				}
-			}
-		});
-		this.$store.subscribe(mutation => {
-			if (mutation.type === "misc/ROOM_CREATED") {
-				this.onRoomCreated();
-			}
-		});
-
-		window.addEventListener("keydown", this.onKeyDown);
-		if (screen.orientation) {
-			screen.orientation.addEventListener("change", this.onScreenOrientationChange);
-		}
-
-		this.i_timestampUpdater = setInterval(this.timestampUpdate, 250);
-
-		// HACK: for some reason, if we initialize debugMode as `!this.production` in data, debugMode is always true on page load in production.
-		if (!this.production) {
-			this.debugMode = true;
-		}
-	},
-	unmounted() {
-		clearInterval(this.i_timestampUpdater);
+	setup() {
+		const store = useStore();
 		const connection = useConnection();
-		connection.disconnect();
-		if (screen.orientation) {
-			screen.orientation.removeEventListener("change", this.onScreenOrientationChange);
-		}
-		window.removeEventListener("keydown", this.onKeyDown);
-	},
-	methods: {
-		/* ROOM API */
+		const roomapi = useRoomApi(connection);
+		const { t } = useI18n();
+		const router = useRouter();
+		const route = useRoute();
 
-		// TODO: maybe move to util/api?
-		/** Send a message to play or pause the video, depending on the current state. */
-		togglePlayback() {
-			if (this.$store.state.room.isPlaying) {
-				api.pause();
-			} else {
-				api.play();
+		// video control visibility
+		const controlsVisible = ref(true);
+		const videoControlsHideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
+		const mouse = useMouse();
+
+		function setVideoControlsVisibility(visible: boolean) {
+			controlsVisible.value = visible;
+			if (videoControlsHideTimeout.value) {
+				clearTimeout(videoControlsHideTimeout.value);
+				videoControlsHideTimeout.value = null;
 			}
-		},
+		}
+		/**
+		 * Show the video controls, then hide them after `VIDEO_CONTROLS_HIDE_TIMEOUT` milliseconds.
+		 */
+		function activateVideoControls() {
+			setVideoControlsVisibility(true);
+			videoControlsHideTimeout.value = setTimeout(() => {
+				setVideoControlsVisibility(false);
+			}, VIDEO_CONTROLS_HIDE_TIMEOUT);
+		}
 
-		/* OTHER */
+		watch([mouse.x, mouse.y], () => {
+			if (store.state.room.isPlaying || !controlsVisible.value) {
+				activateVideoControls();
+			}
+		});
 
-		/** Clock that calculates what the true playback position should be. */
-		timestampUpdate() {
-			if (!this.$store.state.room.currentSource) {
-				this.truePosition = 0;
-				this.sliderPosition = 0;
+		// actively calculate the current position of the video
+		const truePosition = ref(0);
+		const sliderPosition = ref(0);
+		const i_timestampUpdater: Ref<ReturnType<typeof setInterval> | null> = ref(null);
+
+		function timestampUpdate() {
+			if (!store.state.room.currentSource) {
+				truePosition.value = 0;
+				sliderPosition.value = 0;
 				return;
 			}
-			this.truePosition = this.$store.state.room.isPlaying
+			truePosition.value = store.state.room.isPlaying
 				? calculateCurrentPosition(
-						this.$store.state.room.playbackStartTime,
+						store.state.room.playbackStartTime,
 						new Date(),
-						this.$store.state.room.playbackPosition
+						store.state.room.playbackPosition
 				  )
-				: this.$store.state.room.playbackPosition;
-			this.sliderPosition = _.clamp(
-				this.truePosition,
+				: store.state.room.playbackPosition;
+			sliderPosition.value = _.clamp(
+				truePosition.value,
 				0,
-				this.$store.state.room.currentSource.length
+				store.state.room.currentSource?.length ?? 0
 			);
-		},
+		}
 
-		applyIsPlaying(playing) {
-			if (!this.isPlayerPresent) {
+		onMounted(() => {
+			i_timestampUpdater.value = setInterval(timestampUpdate, 250);
+		});
+
+		onUnmounted(() => {
+			if (i_timestampUpdater.value) {
+				clearInterval(i_timestampUpdater.value);
+			}
+		});
+
+		watch(truePosition, async newPosition => {
+			if (!isPlayerPresent(player)) {
+				return;
+			}
+			let currentTime = await player.value.getPosition();
+
+			if (Math.abs(newPosition - currentTime) > 1) {
+				player.value.setPosition(newPosition);
+			}
+		});
+
+		// connection status
+		const isConnected = computed(() => connection.connected);
+		const connectionStatus = computed(() => {
+			return connection.connected.value
+				? t("room.con-status.connected")
+				: t("room.con-status.connecting");
+		});
+		const showDisconnectedOverlay = computed(() => !!connection.kickReason.value);
+
+		function rewriteUrlToRoomName() {
+			if (store.state.room.name.length === 0) {
+				return;
+			}
+			if (route.params.roomId !== store.state.room.name) {
+				console.debug(
+					`room name does not match URL, rewriting to "${store.state.room.name}"`
+				);
+				router.replace({
+					name: "room",
+					params: { roomId: store.state.room.name },
+				});
+			}
+		}
+
+		function onSyncMsg(msg: ServerMessageSync) {
+			rewriteUrlToRoomName();
+			if (Object.prototype.hasOwnProperty.call(msg, "isPlaying")) {
+				applyIsPlaying(msg.isPlaying!);
+			}
+		}
+
+		function onRoomCreated() {
+			if (connection.active.value) {
+				connection.disconnect();
+			}
+			setTimeout(() => {
+				if (!connection.active.value) {
+					connection.connect(route.params.roomId as string);
+				}
+			}, 100);
+		}
+
+		let roomCreatedUnsub: (() => void) | null = null;
+		onMounted(() => {
+			connection.addMessageHandler("sync", onSyncMsg);
+			if (!connection.active.value) {
+				connection.connect(route.params.roomId as string);
+			}
+
+			roomCreatedUnsub = store.subscribe(mutation => {
+				if (mutation.type === "misc/ROOM_CREATED") {
+					onRoomCreated();
+				}
+			});
+		});
+
+		onUnmounted(() => {
+			connection.removeMessageHandler("sync", onSyncMsg);
+			connection.disconnect();
+
+			if (roomCreatedUnsub) {
+				roomCreatedUnsub();
+			}
+		});
+
+		// player management
+		const player = ref<typeof OmniPlayer | null>(null);
+		const volume = ref(100);
+
+		onMounted(() => {
+			volume.value = store.state.settings.volume;
+		});
+
+		function isPlayerPresent(p: Ref<typeof OmniPlayer | null>): p is Ref<typeof OmniPlayer> {
+			return !!p.value;
+		}
+
+		function togglePlayback() {
+			if (store.state.room.isPlaying) {
+				roomapi.pause();
+			} else {
+				roomapi.play();
+			}
+		}
+
+		function seekDelta(delta: number) {
+			roomapi.seek(
+				_.clamp(truePosition.value + delta, 0, store.state.room.currentSource?.length ?? 0)
+			);
+		}
+
+		function applyIsPlaying(playing: boolean) {
+			if (!isPlayerPresent(player)) {
 				return;
 			}
 			if (playing) {
-				this.$refs.player.play();
+				player.value.play();
 			} else {
-				this.$refs.player.pause();
+				player.value.pause();
 			}
-		},
+		}
 
-		updateVolume() {
-			if (!this.isPlayerPresent) {
+		function updateVolume() {
+			if (!isPlayerPresent(player)) {
 				return;
 			}
-			this.$refs.player.setVolume(this.volume);
-		},
-		onPlayerApiReady() {
+			player.value.setVolume(volume.value);
+		}
+
+		watch(volume, () => {
+			updateVolume();
+			store.commit("settings/UPDATE", { volume: volume.value });
+		});
+
+		function onPlayerApiReady() {
 			console.debug("internal player API is now ready");
-		},
-		onPlaybackChange(changeTo) {
+		}
+
+		function onPlaybackChange(changeTo: boolean) {
 			console.debug(`onPlaybackChange: ${changeTo}`);
 			if (!changeTo) {
-				this.setVideoControlsVisibility(true);
+				setVideoControlsVisibility(true);
 			} else {
-				this.activateVideoControls();
+				activateVideoControls();
 			}
-			this.updateVolume();
-			if (changeTo === this.$store.state.room.isPlaying) {
+			updateVolume();
+			if (changeTo === store.state.room.isPlaying) {
 				return;
 			}
 
-			if (this.$store.state.room.isPlaying) {
-				this.$refs.player.play();
-			} else {
-				this.$refs.player.pause();
+			applyIsPlaying(store.state.room.isPlaying);
+		}
+		function onPlayerReady() {
+			if (currentSource.value?.service === "vimeo") {
+				onPlayerReady_Vimeo();
 			}
-		},
-		onPlayerReady() {
-			if (this.currentSource.service === "vimeo") {
-				this.onPlayerReady_Vimeo();
+		}
+		function onPlayerReady_Vimeo() {
+			applyIsPlaying(store.state.room.isPlaying);
+		}
+
+		function isCaptionsSupported() {
+			if (!isPlayerPresent(player)) {
+				return;
 			}
-		},
-		onPlayerReady_Vimeo() {
-			this.applyIsPlaying(this.$store.state.room.isPlaying);
-		},
-		onKeyDown(e) {
-			if (e.target.nodeName === "INPUT" || e.target.nodeName === "TEXTAREA") {
+			return player.value.isCaptionsSupported() ?? false;
+		}
+		function getCaptionsTracks() {
+			if (!isPlayerPresent(player)) {
+				return;
+			}
+			return player.value.getCaptionsTracks() ?? [];
+		}
+
+		// misc UI stuff
+		const isMobile = computed(
+			() => window.matchMedia("only screen and (max-width: 760px)").matches
+		);
+		const orientation = useScreenOrientation();
+		const queueTab = ref(0);
+		const roomSettingsForm = ref<typeof RoomSettingsForm | null>(null);
+
+		onMounted(() => {
+			if (!orientation.isSupported.value) {
 				return;
 			}
 
-			if (
-				(e.code === "Space" || e.code === "k") &&
-				granted("playback.play-pause")
-			) {
-				this.togglePlayback();
+			watch(orientation.orientation, newOrientation => {
+				if (!newOrientation) {
+					return;
+				}
+				if (isMobile.value) {
+					if (newOrientation.startsWith("landscape")) {
+						document.documentElement.requestFullscreen();
+						// goTo(0, {
+						// 	duration: 250,
+						// 	easing: "easeInOutCubic",
+						// });
+					} else {
+						document.exitFullscreen();
+					}
+				}
+			});
+		});
+
+		watch(queueTab, async newTab => {
+			if (roomSettingsForm.value && newTab === 2) {
+				await roomSettingsForm.value.loadRoomSettings();
+			}
+		});
+
+		/** @deprecated code duplicated in LayoutSwitcher */
+		function toggleFullscreen() {
+			if (document.fullscreenElement) {
+				document.exitFullscreen();
+			} else {
+				document.documentElement.requestFullscreen();
+				if (isMobile.value && orientation.isSupported.value) {
+					// force the device into landscape mode to get the user to rotate the device
+					// but still allow exiting fullscreen by rotating the device back to portrait
+					orientation
+						.lockOrientation("landscape")
+						.then(() => orientation.unlockOrientation());
+				}
+			}
+		}
+
+		const addpreview = ref<typeof AddPreview | null>(null);
+		async function setAddPreviewText(text: string) {
+			queueTab.value = 1;
+			await nextTick();
+			if (!addpreview.value) {
+				// HACK: the tab is not yet mounted, so we need to wait for it to be mounted
+				// this will be more elegant when we have a new vue 3 style global event bus.
+				await nextTick();
+			}
+			if (addpreview.value) {
+				addpreview.value.setAddPreviewText(text);
+			} else {
+				console.error("addpreview is not mounted, can't set text");
+			}
+		}
+
+		// keyboard shortcuts
+		function onKeyDown(e: KeyboardEvent) {
+			if (e.target instanceof Element) {
+				if (e.target.nodeName === "INPUT" || e.target.nodeName === "TEXTAREA") {
+					return;
+				}
+			}
+
+			if ((e.code === "Space" || e.code === "k") && granted("playback.play-pause")) {
+				togglePlayback();
 				e.preventDefault();
 			} else if (e.code === "Home" && granted("playback.seek")) {
-				api.seek(0);
+				roomapi.seek(0);
 				e.preventDefault();
 			} else if (e.code === "End" && granted("playback.skip")) {
-				api.skip();
+				roomapi.skip();
 				e.preventDefault();
 			} else if (e.code === "KeyF") {
-				this.toggleFullscreen();
+				toggleFullscreen();
 			} else if (
 				(e.code === "ArrowLeft" ||
 					e.code === "ArrowRight" ||
@@ -478,152 +616,76 @@ export default {
 					seekIncrement *= -1;
 				}
 
-				this.seekDelta(seekIncrement);
+				seekDelta(seekIncrement);
 				e.preventDefault();
 			} else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
-				this.volume = _.clamp(this.volume + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
+				volume.value = _.clamp(
+					volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1),
+					0,
+					100
+				);
 				e.preventDefault();
 			} else if (e.code === "KeyT") {
 				e.preventDefault();
-				this.$refs.chat.setActivated(true);
+				// this.$refs.chat.setActivated(true);
 			} else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
-				this.debugMode = !this.debugMode;
+				debugMode.value = !debugMode.value;
 				e.preventDefault();
 			}
-		},
-		/** @deprecated code duplicated in LayoutSwitcher */
-		toggleFullscreen() {
-			if (document.fullscreenElement) {
-				document.exitFullscreen();
-			} else {
-				document.documentElement.requestFullscreen();
-				if (this.isMobile) {
-					// force the device into landscape mode to get the user to rotate the device
-					// but still allow exiting fullscreen by rotating the device back to portrait
-					if (screen.orientation) {
-						screen.orientation
-							.lock("landscape")
-							.then(() => screen.orientation.unlock());
-					}
-				}
-			}
-		},
-		async onTabChange() {
-			if ("settings" in this.$refs && this.queueTab === 2) {
-				await this.$refs["settings"].loadRoomSettings();
-			}
-		},
-		setVideoControlsVisibility(visible) {
-			this.controlsVisible = visible;
-			if (this.videoControlsHideTimeout) {
-				clearTimeout(this.videoControlsHideTimeout);
-				this.videoControlsHideTimeout = null;
-			}
-		},
-		/**
-		 * Show the video controls, then hide them after `VIDEO_CONTROLS_HIDE_TIMEOUT` milliseconds.
-		 */
-		activateVideoControls() {
-			this.setVideoControlsVisibility(true);
-			this.videoControlsHideTimeout = setTimeout(() => {
-				this.setVideoControlsVisibility(false);
-			}, VIDEO_CONTROLS_HIDE_TIMEOUT);
-		},
-		rewriteUrlToRoomName() {
-			if (this.$store.state.room.name.length === 0) {
-				return;
-			}
-			if (this.$route.params.roomId !== this.$store.state.room.name) {
-				console.log(
-					`room name does not match URL, rewriting to "${this.$store.state.room.name}"`
-				);
-				this.$router.replace({
-					name: "room",
-					params: { roomId: this.$store.state.room.name },
-				});
-			}
-		},
-		seekDelta(delta) {
-			api.seek(
-				_.clamp(this.truePosition + delta, 0, this.$store.state.room.currentSource.length)
-			);
-		},
-		onRoomCreated() {
-			const connection = useConnection();
-			if (connection.active.value) {
-				connection.disconnect();
-			}
-			setTimeout(() => {
-				if (!connection.active.value) {
-					connection.connect(this.$route.params.roomId);
-				}
-			}, 100);
-		},
-		switchToAddTab() {
-			this.queueTab = 1;
-		},
-		async setAddPreviewText(text) {
-			this.queueTab = 1;
-			await this.$nextTick();
-			if (!this.$refs.addpreview) {
-				// HACK: the tab is not yet mounted, so we need to wait for it to be mounted
-				// this will be more elegant when we have a new vue 3 style global event bus.
-				await this.$nextTick();
-			}
-			this.$refs.addpreview.setAddPreviewText(text);
-		},
-		onScreenOrientationChange() {
-			this.orientation = screen.orientation.type;
-
-			if (this.isMobile) {
-				if (this.orientation.startsWith("landscape")) {
-					document.documentElement.requestFullscreen();
-					// goTo(0, {
-					// 	duration: 250,
-					// 	easing: "easeInOutCubic",
-					// });
-				} else {
-					document.exitFullscreen();
-				}
-			}
-		},
-
-		isCaptionsSupported() {
-			return this.$refs.player?.isCaptionsSupported() ?? false;
-		},
-		getCaptionsTracks() {
-			return this.$refs.player?.getCaptionsTracks() ?? [];
-		},
-	},
-	async mounted() {
-		document.onmousemove = () => {
-			if (this.$store.state.room.isPlaying || !this.controlsVisible) {
-				this.activateVideoControls();
-			}
-		};
-
-		this.volume = this.$store.state.settings.volume;
-
-		// await this.$store.dispatch("user/waitForToken");
-		const connection = useConnection();
-		if (!connection.active.value) {
-			connection.connect(this.$route.params.roomId);
 		}
-	},
-	watch: {
-		volume() {
-			this.updateVolume();
-			this.$store.commit("settings/UPDATE", { volume: this.volume });
-		},
-		async truePosition(newPosition) {
-			let currentTime = await this.$refs.player.getPosition();
 
-			if (Math.abs(newPosition - currentTime) > 1) {
-				this.$refs.player.setPosition(newPosition);
-			}
-		},
+		onMounted(() => {
+			window.addEventListener("keydown", onKeyDown);
+		});
+
+		onUnmounted(() => {
+			window.removeEventListener("keydown", onKeyDown);
+		});
+
+		// small helper aliases
+		const currentSource = computed(() => store.state.room.currentSource);
+		const production = computed(() => store.state.production);
+
+		// debug mode
+		const debugMode = ref(!unref(production));
+
+		return {
+			store,
+			roomapi,
+			granted,
+
+			controlsVisible,
+			videoControlsHideTimeout,
+
+			truePosition,
+			sliderPosition,
+
+			isConnected,
+			connectionStatus,
+			showDisconnectedOverlay,
+
+			player,
+			volume,
+			togglePlayback,
+			onPlayerApiReady,
+			onPlayerReady,
+			onPlaybackChange,
+			isCaptionsSupported,
+			getCaptionsTracks,
+
+			isMobile,
+			queueTab,
+			settings: roomSettingsForm,
+			addpreview,
+			setAddPreviewText,
+
+			currentSource,
+			production,
+			debugMode,
+			orientation: orientation.orientation,
+		};
 	},
-};
+});
 </script>
 
 <style lang="scss">
