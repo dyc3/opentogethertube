@@ -11,7 +11,7 @@ export class KeyboardShortcuts {
 			}
 		} else {
 			// don't allow duplicate bindings
-			for (let [b,] of this.shortcuts) {
+			for (let [b] of this.shortcuts) {
 				if (_.isEqual(b, binding)) {
 					console.warn("duplicate keyboard shortcut binding", binding);
 					return;

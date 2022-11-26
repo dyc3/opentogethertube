@@ -575,24 +575,22 @@ export default defineComponent({
 				togglePlayback();
 			}
 		});
-		shortcuts.bind([
-			{ code: "ArrowLeft" },
-			{ code: "ArrowRight" },
-			{ code: "KeyJ" },
-			{ code: "KeyL" },
-		], (e: KeyboardEvent) => {
-			if (granted("playback.seek")) {
-				let seekIncrement = 5;
-				if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
-					seekIncrement = 10;
-				}
-				if (e.code === "ArrowLeft" || e.code === "KeyJ") {
-					seekIncrement *= -1;
-				}
+		shortcuts.bind(
+			[{ code: "ArrowLeft" }, { code: "ArrowRight" }, { code: "KeyJ" }, { code: "KeyL" }],
+			(e: KeyboardEvent) => {
+				if (granted("playback.seek")) {
+					let seekIncrement = 5;
+					if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
+						seekIncrement = 10;
+					}
+					if (e.code === "ArrowLeft" || e.code === "KeyJ") {
+						seekIncrement *= -1;
+					}
 
-				seekDelta(seekIncrement);
+					seekDelta(seekIncrement);
+				}
 			}
-		});
+		);
 		shortcuts.bind({ code: "Home" }, () => {
 			if (granted("playback.seek")) {
 				roomapi.seek(0);
@@ -604,11 +602,7 @@ export default defineComponent({
 			}
 		});
 		shortcuts.bind([{ code: "ArrowUp" }, { code: "ArrowDown" }], (e: KeyboardEvent) => {
-			volume.value = _.clamp(
-				volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1),
-				0,
-				100
-			);
+			volume.value = _.clamp(volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
 		});
 		shortcuts.bind({ code: "F12", ctrlKey: true, shiftKey: true }, () => {
 			debugMode.value = !debugMode.value;
