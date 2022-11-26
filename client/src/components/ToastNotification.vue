@@ -1,5 +1,5 @@
 <template>
-	<v-sheet :color="color" class="toast" elevation="12">
+	<v-sheet :color="color" class="toast" elevation="12" aria-live="polite">
 		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">
 			fa:fas fa-check
 		</v-icon>
@@ -12,7 +12,7 @@
 			<v-btn variant="text" v-if="undoable" @click="undo">
 				{{ $t("actions.undo") }}
 			</v-btn>
-			<v-btn variant="text" @click="close" size="x-small" icon>
+			<v-btn variant="text" @click="close" size="x-small" icon aria-label="close">
 				<v-icon>fa:fas fa-times</v-icon>
 			</v-btn>
 		</div>

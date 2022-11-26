@@ -1,7 +1,7 @@
 <template>
 	<v-app id="app">
 		<v-app-bar app :absolute="!fullscreen" :inverted-scroll="fullscreen">
-			<v-app-bar-nav-icon @click="drawer = true" />
+			<v-app-bar-nav-icon @click="drawer = true" role="menu" aria-label="nav menu" />
 			<v-img
 				:src="logoUrl"
 				max-width="32"

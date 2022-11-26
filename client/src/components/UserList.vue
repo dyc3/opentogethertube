@@ -2,7 +2,7 @@
 	<v-card class="user-list">
 		<v-card-title>
 			{{ $t("room.users.title") }}
-			<v-btn icon size="x-small" @click="openEditName">
+			<v-btn icon size="x-small" @click="openEditName" aria-label="toggle edit name">
 				<v-icon>fa:fas fa-cog</v-icon>
 			</v-btn>
 		</v-card-title>
