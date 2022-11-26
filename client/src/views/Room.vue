@@ -223,6 +223,7 @@ import {
 	onMounted,
 	onUnmounted,
 	nextTick,
+	provide,
 } from "vue";
 import AddPreview from "@/components/AddPreview.vue";
 import { calculateCurrentPosition } from "@/util/timestamp";
@@ -253,6 +254,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
 import { ServerMessageSync } from "ott-common/models/messages";
 import { useScreenOrientation, useMouse } from "@vueuse/core";
+import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -550,22 +552,6 @@ export default defineComponent({
 			}
 		});
 
-		/** @deprecated code duplicated in LayoutSwitcher */
-		function toggleFullscreen() {
-			if (document.fullscreenElement) {
-				document.exitFullscreen();
-			} else {
-				document.documentElement.requestFullscreen();
-				if (isMobile.value && orientation.isSupported.value) {
-					// force the device into landscape mode to get the user to rotate the device
-					// but still allow exiting fullscreen by rotating the device back to portrait
-					orientation
-						.lockOrientation("landscape")
-						.then(() => orientation.unlockOrientation());
-				}
-			}
-		}
-
 		const addpreview = ref<typeof AddPreview | null>(null);
 		async function setAddPreviewText(text: string) {
 			queueTab.value = 1;
@@ -583,31 +569,19 @@ export default defineComponent({
 		}
 
 		// keyboard shortcuts
-		function onKeyDown(e: KeyboardEvent) {
-			if (e.target instanceof Element) {
-				if (e.target.nodeName === "INPUT" || e.target.nodeName === "TEXTAREA") {
-					return;
-				}
-			}
-
-			if ((e.code === "Space" || e.code === "k") && granted("playback.play-pause")) {
+		let shortcuts = new KeyboardShortcuts();
+		shortcuts.bind([{ code: "Space" }, { code: "KeyK" }], () => {
+			if (granted("playback.play-pause")) {
 				togglePlayback();
-				e.preventDefault();
-			} else if (e.code === "Home" && granted("playback.seek")) {
-				roomapi.seek(0);
-				e.preventDefault();
-			} else if (e.code === "End" && granted("playback.skip")) {
-				roomapi.skip();
-				e.preventDefault();
-			} else if (e.code === "KeyF") {
-				toggleFullscreen();
-			} else if (
-				(e.code === "ArrowLeft" ||
-					e.code === "ArrowRight" ||
-					e.code === "KeyJ" ||
-					e.code === "KeyL") &&
-				granted("playback.seek")
-			) {
+			}
+		});
+		shortcuts.bind([
+			{ code: "ArrowLeft" },
+			{ code: "ArrowRight" },
+			{ code: "KeyJ" },
+			{ code: "KeyL" },
+		], (e: KeyboardEvent) => {
+			if (granted("playback.seek")) {
 				let seekIncrement = 5;
 				if (e.ctrlKey || e.code === "KeyJ" || e.code === "KeyL") {
 					seekIncrement = 10;
@@ -617,22 +591,32 @@ export default defineComponent({
 				}
 
 				seekDelta(seekIncrement);
-				e.preventDefault();
-			} else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
-				volume.value = _.clamp(
-					volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1),
-					0,
-					100
-				);
-				e.preventDefault();
-			} else if (e.code === "KeyT") {
-				e.preventDefault();
-				// this.$refs.chat.setActivated(true);
-			} else if (e.code === "F12" && e.ctrlKey && e.shiftKey) {
-				debugMode.value = !debugMode.value;
-				e.preventDefault();
 			}
+		});
+		shortcuts.bind({ code: "Home" }, () => {
+			if (granted("playback.seek")) {
+				roomapi.seek(0);
+			}
+		});
+		shortcuts.bind({ code: "End" }, () => {
+			if (granted("playback.skip")) {
+				roomapi.skip();
+			}
+		});
+		shortcuts.bind([{ code: "ArrowUp" }, { code: "ArrowDown" }], (e: KeyboardEvent) => {
+			volume.value = _.clamp(
+				volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1),
+				0,
+				100
+			);
+		});
+		shortcuts.bind({ code: "F12", ctrlKey: true, shiftKey: true }, () => {
+			debugMode.value = !debugMode.value;
+		});
+		function onKeyDown(e: KeyboardEvent) {
+			shortcuts.handleKeyDown(e);
 		}
+		provide(RoomKeyboardShortcutsKey, shortcuts);
 
 		onMounted(() => {
 			window.addEventListener("keydown", onKeyDown);

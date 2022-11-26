@@ -64,11 +64,12 @@
 
 <script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
-import { defineComponent, onUpdated, ref, Ref, nextTick, onMounted, onUnmounted } from "vue";
+import { defineComponent, onUpdated, ref, Ref, nextTick, onMounted, onUnmounted, watch } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { ServerMessageChat } from "ott-common/models/messages";
+import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 
 const MSG_SHOW_TIMEOUT = 20000;
 
@@ -105,12 +106,22 @@ const Chat = defineComponent({
 		let messages = ref();
 		let chatInput: Ref<HTMLInputElement | undefined> = ref();
 
+		let shortcuts = useRoomKeyboardShortcuts();
 		onMounted(() => {
 			connection.addMessageHandler("chat", onChatReceived);
+			if (shortcuts) {
+				shortcuts.bind({ code: "KeyT" }, () => setActivated(true, false));
+			} else {
+				console.warn("No keyboard shortcuts available");
+			}
 		});
 
 		onUnmounted(() => {
 			connection.removeMessageHandler("chat", onChatReceived);
+			let shortcuts = useRoomKeyboardShortcuts();
+			if (shortcuts) {
+				shortcuts.unbind({ code: "KeyT" });
+			}
 		});
 
 		function focusChatInput() {

@@ -14,9 +14,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from "vue";
+import { defineComponent, computed, onMounted, onUnmounted } from "vue";
 import { useStore } from "@/store";
 import { RoomLayoutMode } from "@/stores/settings";
+import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 
 export const LayoutSwitcher = defineComponent({
 	name: "LayoutSwitcher",
@@ -50,6 +51,22 @@ export const LayoutSwitcher = defineComponent({
 				layouts[(layouts.indexOf(store.state.settings.roomLayout) + 1) % layouts.length];
 			store.commit("settings/UPDATE", { roomLayout: newLayout });
 		}
+
+		let shortcuts = useRoomKeyboardShortcuts();
+		onMounted(() => {
+			if (shortcuts) {
+				shortcuts.bind({ code: "KeyF" }, () => toggleFullscreen());
+			} else {
+				console.warn("No keyboard shortcuts available");
+			}
+		});
+
+		onUnmounted(() => {
+			let shortcuts = useRoomKeyboardShortcuts();
+			if (shortcuts) {
+				shortcuts.unbind({ code: "KeyF" });
+			}
+		});
 
 		return {
 			store,
