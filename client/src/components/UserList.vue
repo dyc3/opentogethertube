@@ -242,7 +242,7 @@ export default UserList;
 	align-items: center;
 
 	.name {
-		opacity: 0.5;
+		opacity: 0.6;
 		font-style: italic;
 	}
 
@@ -268,7 +268,7 @@ export default UserList;
 
 .nobody-here {
 	font-style: italic;
-	opacity: 0.5;
+	opacity: 0.6;
 	font-size: 0.9em;
 }
 
