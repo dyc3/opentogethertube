@@ -19,6 +19,7 @@
 		<v-list-item v-for="(user, index) in users" :key="index">
 			<div :class="getUserCssClasses(user)">
 				<span class="name">{{ user.name }}</span>
+				<v-chip v-if="debugMode" size="x-small">{{ user.id }}</v-chip>
 				<span>
 					<v-icon
 						size="x-small"
@@ -87,7 +88,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref } from "vue";
+import { defineComponent, PropType, ref, inject } from "vue";
 import { API } from "@/common-http.js";
 import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
@@ -107,6 +108,7 @@ export const UserList = defineComponent({
 	setup() {
 		const store = useStore();
 		const roomapi = useRoomApi(useConnection());
+		const debugMode = inject("debugMode", false);
 
 		let inputUsername = ref("");
 		let showEditName = ref(false);
@@ -196,6 +198,7 @@ export const UserList = defineComponent({
 
 		return {
 			store,
+			debugMode,
 			inputUsername,
 			showEditName,
 			setUsernameLoading,

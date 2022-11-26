@@ -632,6 +632,7 @@ export default defineComponent({
 
 		// debug mode
 		const debugMode = ref(!unref(production));
+		provide("debugMode", debugMode);
 
 		return {
 			store,
