@@ -19,7 +19,18 @@
 		<v-list-item v-for="(user, index) in users" :key="index">
 			<div :class="getUserCssClasses(user)">
 				<span class="name">{{ user.name }}</span>
-				<v-chip v-if="debugMode" size="x-small">{{ user.id }}</v-chip>
+				<v-chip class="user-chip" v-if="debugMode" size="x-small">
+					{{ user.id }}
+				</v-chip>
+				<v-chip
+					class="user-chip"
+					size="x-small"
+					color="primary"
+					variant="outlined"
+					v-if="user.id === store.state.users.you.id"
+				>
+					{{ $t("room.users.you") }}
+				</v-chip>
 				<span>
 					<v-icon
 						size="x-small"
@@ -33,9 +44,6 @@
 					<v-tooltip activator="parent" location="top">
 						<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
 					</v-tooltip>
-				</span>
-				<span v-if="user.id === store.state.users.you.id" class="is-you text-primary">
-					{{ $t("room.users.you") }}
 				</span>
 				<span>
 					<v-icon
@@ -240,8 +248,8 @@ export default UserList;
 
 	.role,
 	.player-status,
-	.is-you {
-		margin: 0 6px;
+	.user-chip {
+		margin: 0 3px;
 	}
 
 	&.registered {
@@ -256,14 +264,6 @@ export default UserList;
 			color: $brand-color;
 		}
 	}
-}
-
-.is-you {
-	color: $brand-color;
-	border: 1px solid;
-	border-radius: 10px;
-	padding: 0 5px;
-	font-size: 10px;
 }
 
 .nobody-here {
