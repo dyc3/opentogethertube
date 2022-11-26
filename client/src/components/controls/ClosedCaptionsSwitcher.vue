@@ -1,5 +1,11 @@
 <template>
-	<v-btn variant="text" icon :disabled="!supported" class="media-control">
+	<v-btn
+		variant="text"
+		icon
+		:disabled="!supported"
+		class="media-control"
+		aria-label="Closed Captions"
+	>
 		<v-icon>fa:fas fa-closed-captioning</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>

@@ -6,6 +6,7 @@
 			@click="seekDelta(-10)"
 			:disabled="!granted('playback.seek')"
 			class="media-control"
+			:aria-label="$t('room.rewind')"
 		>
 			<v-icon>fa:fas fa-angle-left</v-icon>
 			<v-tooltip activator="parent" location="bottom">
@@ -18,6 +19,7 @@
 			@click="togglePlayback()"
 			:disabled="!granted('playback.play-pause')"
 			class="media-control"
+			:aria-label="$t('room.play-pause')"
 		>
 			<v-icon :icon="store.state.room.isPlaying ? 'fa:fas fa-pause' : 'fa:fas fa-play'" />
 			<v-tooltip activator="parent" location="bottom">
@@ -30,6 +32,7 @@
 			@click="seekDelta(10)"
 			:disabled="!granted('playback.seek')"
 			class="media-control"
+			:aria-label="$t('room.skip')"
 		>
 			<v-icon>fa:fas fa-angle-right</v-icon>
 			<v-tooltip activator="parent" location="bottom">
@@ -42,6 +45,7 @@
 			@click="roomapi.skip()"
 			:disabled="!granted('playback.skip')"
 			class="media-control"
+			:aria-label="$t('room.next-video')"
 		>
 			<v-icon>fa:fas fa-fast-forward</v-icon>
 			<v-tooltip activator="parent" location="bottom">

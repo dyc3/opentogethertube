@@ -6,7 +6,13 @@
 		}"
 	>
 		<div class="chat-header d-flex flex-row" v-if="activated">
-			<v-btn icon size="x-small" @click="setActivated(false)" data-cy="chat-deactivate">
+			<v-btn
+				icon
+				size="x-small"
+				@click="setActivated(false)"
+				data-cy="chat-deactivate"
+				aria-label="close chat"
+			>
 				<v-icon>fa:fas fa-chevron-down</v-icon>
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
@@ -55,6 +61,7 @@
 				@click="setActivated(true, true)"
 				color="white"
 				data-cy="chat-activate"
+				aria-label="open chat"
 			>
 				<v-icon>fa:far fa-comment-alt</v-icon>
 			</v-btn>
