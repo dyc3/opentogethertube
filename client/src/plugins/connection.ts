@@ -21,6 +21,7 @@ export interface OttRoomConnection {
 		action: ServerMessageActionType,
 		handler: (msg: ServerMessage) => void
 	): void;
+	clearAllMessageHandlers(): void;
 }
 
 export const connectionInjectKey: InjectionKey<OttRoomConnection> = Symbol("ott:connection");
@@ -198,6 +199,10 @@ class OttRoomConnectionReal implements OttRoomConnection {
 		}
 	}
 
+	clearAllMessageHandlers(): void {
+		this.messageHandlers.clear();
+	}
+
 	private handleMessage(msg: ServerMessage) {
 		let handlers = this.messageHandlers.get(msg.action) ?? [];
 		if (handlers.length === 0) {
@@ -282,6 +287,10 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 			handlers.splice(index, 1);
 			this.messageHandlers.set(action, handlers);
 		}
+	}
+
+	clearAllMessageHandlers(): void {
+		this.messageHandlers.clear();
 	}
 
 	private handleMessage(msg: ServerMessage) {

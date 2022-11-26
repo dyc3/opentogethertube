@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, onUnmounted } from "vue";
 import { useConnection } from "@/plugins/connection";
 import { useStore } from "@/store";
 
@@ -31,6 +31,8 @@ const ServerMessageHandler = defineComponent({
 		connection.addMessageHandler("eventcustom", msg => {
 			store.dispatch("eventcustom", msg);
 		});
+
+		onUnmounted(() => connection.clearAllMessageHandlers());
 
 		return {};
 	},
