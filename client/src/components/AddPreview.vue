@@ -19,7 +19,7 @@
 				<v-btn
 					v-for="(v, idx) in testVideos"
 					:key="idx"
-					@click="postTestVideo(idx)"
+					@click="inputAddPreview = v[1]"
 					data-cy="test-video"
 				>
 					{{ v[0] }}
@@ -194,7 +194,7 @@ export const AddPreview = defineComponent({
 		const isLoadingAddAll = ref(false);
 		const videosLoadFailureText = ref("");
 
-		const testVideos = [
+		const testVideos = import.meta.env.DEV ? [
 			["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
 			["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
 			["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
@@ -210,7 +210,7 @@ export const AddPreview = defineComponent({
 				"test hls 0",
 				"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
 			],
-		];
+		] : [];
 
 		// HACK: The @change event only triggers when the text field is defocused.
 		// This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
@@ -344,25 +344,7 @@ export const AddPreview = defineComponent({
 				requestAddPreviewExplicit();
 			}
 		}
-		async function postTestVideo(v) {
-			try {
-				await API.post(`/room/${route.params.roomId}/queue`, {
-					url: testVideos[v][1],
-				});
-				toast.add({
-					style: ToastStyle.Success,
-					content: `Added test video`,
-					duration: 2000,
-				});
-			} catch (e) {
-				console.error(e);
-				toast.add({
-					style: ToastStyle.Error,
-					content: `Failed to add test video: ${e}`,
-					duration: 4000,
-				});
-			}
-		}
+
 		function onFocusHighlightText(e) {
 			e.target.select();
 		}
@@ -389,7 +371,6 @@ export const AddPreview = defineComponent({
 			addAllToQueue,
 			onInputAddPreviewChange,
 			onInputAddPreviewKeyDown,
-			postTestVideo,
 			onFocusHighlightText,
 			setAddPreviewText,
 		};
