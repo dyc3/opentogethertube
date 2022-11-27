@@ -310,9 +310,10 @@ export default defineComponent({
 		}
 
 		watch([mouse.x, mouse.y], () => {
-			if (store.state.room.isPlaying || !controlsVisible.value) {
-				activateVideoControls();
+			if (!store.state.room.isPlaying) {
+				return;
 			}
+			activateVideoControls();
 		});
 
 		// actively calculate the current position of the video
