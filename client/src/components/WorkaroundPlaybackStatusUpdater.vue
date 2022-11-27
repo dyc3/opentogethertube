@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, onUnmounted } from "vue";
 import { useConnection } from "@/plugins/connection";
 import { useStore } from "@/store";
 
@@ -13,13 +13,17 @@ export const WorkaroundPlaybackStatusUpdater = defineComponent({
 		const store = useStore();
 		const connection = useConnection();
 
-		store.subscribe(mutation => {
+		const playbackStatusUnsub = store.subscribe(mutation => {
 			if (mutation.type === "PLAYBACK_STATUS") {
 				connection.send({
 					action: "status",
 					status: mutation.payload,
 				});
 			}
+		});
+
+		onUnmounted(() => {
+			playbackStatusUnsub();
 		});
 
 		return {};
