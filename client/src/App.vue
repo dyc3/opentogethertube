@@ -132,8 +132,6 @@ import { useRouter } from "vue-router";
 import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
 import { LocaleSelector } from "@/components/navbar/LocaleSelector.vue";
-import { useConnection } from "@/plugins/connection";
-import api from "@/util/api";
 
 export const App = defineComponent({
 	name: "app",
@@ -147,8 +145,6 @@ export const App = defineComponent({
 	},
 	setup() {
 		const store = useStore();
-		const connection = useConnection();
-		api.setConnection(connection);
 
 		const showCreateRoomForm = ref(false);
 		const showLogin = ref(false);
