@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<Suspense>
 		<YoutubePlayer
 			v-if="!!source && source.service == 'youtube'"
 			ref="player"
@@ -101,7 +101,12 @@
 			<h1>{{ $t("video.no-video") }}</h1>
 			<span>{{ $t("video.no-video-text") }}</span>
 		</v-container>
-	</div>
+		<template #fallback>
+			<v-container class="no-video">
+				<v-progress-circular indeterminate />
+			</v-container>
+		</template>
+	</Suspense>
 </template>
 
 <script lang="ts">
