@@ -138,7 +138,7 @@
 								<v-list-item>
 									Player status: {{ store.state.playerStatus }}
 								</v-list-item>
-								<v-list-item>
+								<v-list-item v-if="store.state.playerBufferPercent">
 									Buffered:
 									{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
 								</v-list-item>
@@ -187,7 +187,7 @@
 								</v-list-item>
 							</v-card>
 						</div>
-						<UserList :users="store.state.room.users" v-if="store.state.room.users" />
+						<UserList :users="store.state.room.users" />
 						<ShareInvite />
 					</v-col>
 				</v-row>

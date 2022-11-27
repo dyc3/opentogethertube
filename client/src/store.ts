@@ -5,7 +5,7 @@ import { usersModule, UsersState } from "@/stores/users";
 import { settingsModule, SettingsState } from "@/stores/settings";
 import { ToastStyle } from "./models/toast";
 import { eventsModule } from "@/stores/events";
-import { QueueMode } from "ott-common/models/types";
+import { QueueMode, RoomUserInfo } from "ott-common/models/types";
 import { deserializeMap } from "ott-common/serialize";
 import { miscModule, MiscState } from "@/stores/misc";
 import { captionsModule, CaptionsState } from "@/stores/captions";
@@ -41,6 +41,7 @@ interface BaseStoreState {
 			videoDuration: number;
 			category: string;
 		}[];
+		users: RoomUserInfo[];
 	};
 
 	keepAliveInterval: number | null;
@@ -89,6 +90,8 @@ export function buildNewStore() {
 					chatMessages: [],
 					voteCounts: undefined,
 					playbackStartTime: undefined,
+					/** @deprecated: move this to users store, and update this list based on the ServerMessageUser packets, and make the server not include this in sync packets anymore. */
+					users: [],
 				},
 
 				keepAliveInterval: null,
