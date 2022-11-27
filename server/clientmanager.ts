@@ -21,6 +21,7 @@ import {
 	OttWebsocketError,
 	ClientId,
 	AuthToken,
+	Role,
 } from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
@@ -59,13 +60,12 @@ export class Client {
 			if (this.token) {
 				try {
 					const room = await roommanager.GetRoom(this.room);
-					await room.processUnauthorizedRequest(
+					// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
+					await room.processRequestUnsafe(
 						{
 							type: RoomRequestType.LeaveRequest,
 						},
-						{
-							token: this.token,
-						}
+						this.id
 					);
 				} catch (e) {
 					if (e instanceof Error) {
