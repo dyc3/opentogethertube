@@ -58,6 +58,6 @@
 		"jest-watch-typeahead": "^2.2.1",
 		"nodemon": "^2.0.4",
 		"redis-mock": "^0.56.3",
-		"sqlite3": "4.1.1"
+		"sqlite3": "5.1.2"
 	}
 }
