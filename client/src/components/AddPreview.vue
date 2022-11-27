@@ -194,23 +194,25 @@ export const AddPreview = defineComponent({
 		const isLoadingAddAll = ref(false);
 		const videosLoadFailureText = ref("");
 
-		const testVideos = import.meta.env.DEV ? [
-			["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
-			["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
-			["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
-			["test vimeo 0", "https://vimeo.com/94338566"],
-			["test vimeo 1", "https://vimeo.com/239423699"],
-			["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
-			[
-				"test direct 0",
-				"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
-			],
-			["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
-			[
-				"test hls 0",
-				"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
-			],
-		] : [];
+		const testVideos = import.meta.env.DEV
+			? [
+					["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
+					["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
+					["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
+					["test vimeo 0", "https://vimeo.com/94338566"],
+					["test vimeo 1", "https://vimeo.com/239423699"],
+					["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
+					[
+						"test direct 0",
+						"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+					],
+					["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
+					[
+						"test hls 0",
+						"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+					],
+			  ]
+			: [];
 
 		// HACK: The @change event only triggers when the text field is defocused.
 		// This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
