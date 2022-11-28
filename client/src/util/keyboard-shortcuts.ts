@@ -1,8 +1,13 @@
 import { inject, InjectionKey } from "vue";
 import _ from "lodash";
 
+const BINDING_DEFAULTS = {
+	ctrlKey: false,
+	shiftKey: false,
+};
+
 export class KeyboardShortcuts {
-	shortcuts: [KeyBinding, (event: KeyboardEvent) => void][] = [];
+	shortcuts: [KeyBindingStrict, (event: KeyboardEvent) => void][] = [];
 
 	bind(binding: KeyBinding | KeyBinding[], action: (event: KeyboardEvent) => void) {
 		if (Array.isArray(binding)) {
@@ -10,21 +15,25 @@ export class KeyboardShortcuts {
 				this.bind(b, action);
 			}
 		} else {
+			let bindStrict: KeyBindingStrict = _.defaults(binding, BINDING_DEFAULTS);
+
 			// don't allow duplicate bindings
 			for (let [b] of this.shortcuts) {
-				if (_.isEqual(b, binding)) {
-					console.warn("duplicate keyboard shortcut binding", binding);
+				if (_.isEqual(b, bindStrict)) {
+					console.warn("duplicate keyboard shortcut binding", bindStrict);
 					return;
 				}
 			}
 
-			this.shortcuts.push([binding, action]);
+			this.shortcuts.push([bindStrict, action]);
 		}
 	}
 
 	unbind(binding: KeyBinding) {
+		let bindStrict: KeyBindingStrict = _.defaults(binding, BINDING_DEFAULTS);
+
 		this.shortcuts = this.shortcuts.filter(s => {
-			return !_.isEqual(s[0], binding);
+			return !_.isEqual(s[0], bindStrict);
 		});
 	}
 
@@ -45,11 +54,11 @@ export class KeyboardShortcuts {
 		}
 	}
 
-	private eventMatches(event: KeyboardEvent, binding: KeyBinding) {
+	private eventMatches(event: KeyboardEvent, binding: KeyBindingStrict) {
 		return (
 			event.code === binding.code &&
-			(binding.ctrlKey === undefined || event.ctrlKey === binding.ctrlKey) &&
-			(binding.shiftKey === undefined || event.shiftKey === binding.shiftKey)
+			event.ctrlKey === binding.ctrlKey &&
+			event.shiftKey === binding.shiftKey
 		);
 	}
 }
@@ -59,6 +68,12 @@ export const RoomKeyboardShortcutsKey: InjectionKey<KeyboardShortcuts> = Symbol(
 interface KeyBinding {
 	shiftKey?: boolean;
 	ctrlKey?: boolean;
+	code: string;
+}
+
+interface KeyBindingStrict {
+	shiftKey: boolean;
+	ctrlKey: boolean;
 	code: string;
 }
 
