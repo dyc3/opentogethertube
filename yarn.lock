@@ -13028,10 +13028,10 @@ vue@3.2.45, vue@^3.2.37:
     "@vue/server-renderer" "3.2.45"
     "@vue/shared" "3.2.45"
 
-vuetify@3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.0.1.tgz#f64454b79cf11dc0d8d5a69f1ba258e8b34f183e"
-  integrity sha512-Vl4wYB4mCm6GFK6Q9KZDK+HM3YKI7md7BoUPwbgqZj4bkofjQ/8NVSRQQpTcwk0YoQrgw6qj0QaOtP5zitkS1Q==
+vuetify@3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.0.3.tgz#444968004dc413af9e7732cece0d56faed51c33a"
+  integrity sha512-ODqnS2ux/qUjn/E7W600mvy096nUSSf1mEgYN9o1IpfeNOC7RsakPD37t3zmtift54YTrE/upjSpILg3piYKmQ==
 
 vuex@4.1.0:
   version "4.1.0"
