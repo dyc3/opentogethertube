@@ -141,6 +141,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	private onOpen() {
 		this.connected.value = true;
 		this.reconnecting.value = false;
+		this.reconnectAttempts.value = 0;
 		console.info("socket open");
 		let authMsg: ClientMessageAuthenticate = {
 			action: "auth",
