@@ -1,4 +1,4 @@
-import { GrantMask, parseIntoGrantMask, PermissionName } from "ott-common/permissions";
+import { parseIntoGrantMask, PermissionName } from "ott-common/permissions";
 import { useStore } from "../store";
 
 /** Checks if the current user is granted the given permission. */
@@ -11,9 +11,4 @@ export function granted(permission: PermissionName) {
 	let usermask = store.state.users.you.grants;
 	let permMask = parseIntoGrantMask([permission]);
 	return (usermask & permMask) > 0;
-}
-
-/** @deprecated A helper for checking grants. */
-export class GrantChecker {
-	granted = granted;
 }
