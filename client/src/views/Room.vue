@@ -102,13 +102,13 @@
 							<v-tab>
 								<v-icon>fa:fas fa-list</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
-								<span class="bubble">
+								<v-chip size="x-small">
 									{{
 										store.state.room.queue.length <= 99
 											? $n(store.state.room.queue.length)
 											: "99+"
-									}}</span
-								>
+									}}
+								</v-chip>
 							</v-tab>
 							<v-tab>
 								<v-icon>fa:fas fa-plus</v-icon>
@@ -778,23 +778,6 @@ $in-video-chat-width-small: 250px;
 
 	@media screen and (max-width: $sm-max) {
 		display: none;
-	}
-}
-
-.bubble {
-	height: 25px;
-	width: 25px;
-	background-color: #3f3838;
-	border-radius: 50%;
-	display: inline-block;
-
-	font-weight: bold;
-	color: #fff;
-	text-align: center;
-	line-height: 1.8;
-
-	@media screen and (max-width: $sm-max) {
-		margin-left: 8px;
 	}
 }
 
