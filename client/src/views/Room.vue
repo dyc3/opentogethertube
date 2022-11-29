@@ -39,7 +39,7 @@
 					>
 						<v-responsive
 							class="player-container"
-							:key="currentSource"
+							:key="currentSource?.service"
 							:aspect-ratio="16 / 9"
 							:max-height="store.state.fullscreen ? '100vh' : '90vh'"
 						>
@@ -80,7 +80,7 @@
 									<TimestampDisplay :current-position="truePosition" />
 									<div class="flex-grow-1"><!-- Spacer --></div>
 									<ClosedCaptionsSwitcher
-										:key="currentSource"
+										:key="currentSource?.id"
 										:supported="isCaptionsSupported()"
 										:tracks="store.state.captions.availableTracks"
 										@enable-cc="value => player.setCaptionsEnabled(value)"
