@@ -105,10 +105,26 @@ yarn workspace ott-server run sequelize-cli db:migrate
 
 ## Testing
 
-To run the test suite, run
+To run the unit test suite, run
 ```
 yarn test
 ```
+
+To run the e2e component test suite, run
+```
+yarn run cy:run --component
+```
+
+To run the e2e test suite, run
+```
+yarn run cy:run
+```
+
+However, while you're developing, you'll probably want to run the tests in headed mode. To do this, run
+```
+yarn run cy:open
+```
+This works for both the component and e2e tests.
 
 ## How to run
 
