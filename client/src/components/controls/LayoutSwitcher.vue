@@ -74,13 +74,6 @@ export const LayoutSwitcher = defineComponent({
 			}
 		});
 
-		onUnmounted(() => {
-			let shortcuts = useRoomKeyboardShortcuts();
-			if (shortcuts) {
-				shortcuts.unbind({ code: "KeyF" });
-			}
-		});
-
 		return {
 			store,
 			isMobile,

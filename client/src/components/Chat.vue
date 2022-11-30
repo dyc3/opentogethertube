@@ -125,10 +125,6 @@ const Chat = defineComponent({
 
 		onUnmounted(() => {
 			connection.removeMessageHandler("chat", onChatReceived);
-			let shortcuts = useRoomKeyboardShortcuts();
-			if (shortcuts) {
-				shortcuts.unbind({ code: "KeyT" });
-			}
 		});
 
 		function focusChatInput() {

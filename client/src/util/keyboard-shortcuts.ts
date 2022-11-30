@@ -1,4 +1,4 @@
-import { inject, InjectionKey } from "vue";
+import { inject, InjectionKey, onUnmounted } from "vue";
 import _ from "lodash";
 
 const BINDING_DEFAULTS = {
@@ -26,6 +26,14 @@ export class KeyboardShortcuts {
 			}
 
 			this.shortcuts.push([bindStrict, action]);
+
+			try {
+				onUnmounted(() => {
+					this.unbind(binding);
+				});
+			} catch (e) {
+				console.warn("could not set up onUnmounted hook for keybind", binding, e);
+			}
 		}
 	}
 

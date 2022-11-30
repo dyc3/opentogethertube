@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 // import { document } from "jsdom";
 import { KeyboardShortcuts } from "../../src/util/keyboard-shortcuts";
+import { mount } from "@vue/test-utils";
+import { defineComponent, h, onMounted } from "vue";
 
 describe("KeyboardShortcuts", () => {
 	it("should bind and unbind", () => {
@@ -91,4 +93,25 @@ describe("KeyboardShortcuts", () => {
 			expect(onkeydownInvoke).toHaveBeenCalledTimes(2);
 		}
 	);
+
+	it("should automatically unbind keys when the calling component is unmounted", () => {
+		const shortcuts = new KeyboardShortcuts();
+		const binding = { code: "KeyA" };
+		const action = vi.fn();
+
+		const component = defineComponent({
+			setup() {
+				shortcuts.bind(binding, action);
+				return h("div");
+			},
+		});
+		const wrapper = mount(component);
+
+		shortcuts.handleKeyDown(new KeyboardEvent("keydown", binding));
+		expect(action).toHaveBeenCalledTimes(1);
+
+		wrapper.unmount();
+		shortcuts.handleKeyDown(new KeyboardEvent("keydown", binding));
+		expect(action).toHaveBeenCalledTimes(1);
+	});
 });
