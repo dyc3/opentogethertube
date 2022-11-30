@@ -12,16 +12,26 @@
 		:process="getSliderProcesses"
 		@change="sliderChange"
 		:drag-on-click="true"
-		tooltip="hover"
+		tooltip="none"
+		:duration="0"
 	/>
+	<div
+		id="seek-preview"
+		:class="{ hide: !seekPreviewVisible }"
+		:style="{
+			left: seekPreviewX + 'px',
+		}"
+	>
+		<span>{{ seekPreviewTimestamp }}</span>
+	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, onMounted, onUpdated } from "vue";
+import { defineComponent, ref, Ref, onMounted, onUpdated, computed } from "vue";
+import VueSlider from "vue-slider-component";
 import { useStore } from "@/store";
 import { granted } from "@/util/grants";
 import { secondsToTimestamp } from "@/util/timestamp";
-import VueSlider from "vue-slider-component";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 
@@ -40,7 +50,6 @@ export const VideoProgressSlider = defineComponent({
 		const store = useStore();
 		const roomapi = useRoomApi(useConnection());
 
-		let seekPreview: Ref<number | null> = ref(null);
 		let sliderTooltipFormatter = ref(secondsToTimestamp);
 
 		function sliderChange(value: number) {
@@ -80,7 +89,7 @@ export const VideoProgressSlider = defineComponent({
 			// show seek preview, if present
 			processes.push([
 				0,
-				(seekPreview.value ?? 0) * 100,
+				(seekPreviewPercent.value ?? 0) * 100,
 				{ backgroundColor: "rgb(var(--v-theme-secondary))" },
 			]);
 
@@ -110,18 +119,39 @@ export const VideoProgressSlider = defineComponent({
 			return processes;
 		}
 
+		// computed as a percentage of the slider width
+		let seekPreviewPercent: Ref<number | null> = ref(null);
+		let seekPreviewTimestamp = ref("");
+		let seekPreviewX = ref(0); // x position of the timestamp
+		let railHovered = ref(false);
+		let seekPreviewVisible = computed(() => {
+			return railHovered.value;
+		});
+
 		function updateSeekPreview(e) {
 			let slider = document.getElementById("videoSlider");
 			if (!slider) {
 				return;
 			}
+			railHovered.value = true;
 			let sliderRect = slider.getBoundingClientRect();
 			let sliderPos = e.clientX - sliderRect.left;
-			seekPreview.value = sliderPos / sliderRect.width;
+			seekPreviewPercent.value = sliderPos / sliderRect.width;
+			seekPreviewTimestamp.value = secondsToTimestamp(
+				seekPreviewPercent.value * (store.state.room.currentSource?.length ?? 0)
+			);
+			let seekPreview = document.getElementById("seek-preview");
+			if (!seekPreview) {
+				return;
+			}
+			let baseX = sliderPos;
+			let seekPreviewRect = seekPreview.getBoundingClientRect();
+			seekPreviewX.value = baseX + 12 - seekPreviewRect.width / 2;
 		}
 
 		function resetSeekPreview() {
-			seekPreview.value = null;
+			seekPreviewPercent.value = null;
+			railHovered.value = false;
 		}
 
 		onMounted(() => {
@@ -152,9 +182,31 @@ export const VideoProgressSlider = defineComponent({
 
 			sliderChange,
 			getSliderProcesses,
+			seekPreviewX,
+			seekPreviewTimestamp,
+			seekPreviewVisible,
 		};
 	},
 });
 
 export default VideoProgressSlider;
 </script>
+
+<style lang="scss" scoped>
+#seek-preview {
+	position: absolute;
+	top: -14px;
+	background-color: rgba(0, 0, 0, 0.6);
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2px 6px;
+	text-align: center;
+	pointer-events: none;
+}
+
+.hide {
+	opacity: 0;
+}
+</style>
