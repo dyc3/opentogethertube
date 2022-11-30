@@ -388,8 +388,8 @@ export default defineComponent({
 
 		function onSyncMsg(msg: ServerMessageSync) {
 			rewriteUrlToRoomName();
-			if (Object.prototype.hasOwnProperty.call(msg, "isPlaying")) {
-				applyIsPlaying(msg.isPlaying!);
+			if (msg.isPlaying !== undefined) {
+				applyIsPlaying(msg.isPlaying);
 			}
 		}
 

@@ -71,7 +71,7 @@
 
 <script lang="ts">
 import ProcessedText from "@/components/ProcessedText.vue";
-import { defineComponent, onUpdated, ref, Ref, nextTick, onMounted, onUnmounted, watch } from "vue";
+import { defineComponent, onUpdated, ref, Ref, nextTick, onMounted, onUnmounted } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
