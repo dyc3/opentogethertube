@@ -351,7 +351,9 @@ export default defineComponent({
 	border-radius: 3px;
 }
 
-.v-theme--dark {
+.v-theme--dark,
+.v-theme--deepblue,
+.v-theme--deepred {
 	.no-video {
 		color: #fff;
 		border: 1px solid rgba(255, 255, 255, 0.5);
