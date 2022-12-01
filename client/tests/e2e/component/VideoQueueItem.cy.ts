@@ -163,6 +163,25 @@ describe("<VideoQueueItem />", () => {
 		});
 	});
 
+	it("should only render the drag handle when not preview", () => {
+		const video: QueueItem = {
+			service: "youtube",
+			id: "1",
+			title: "Foo",
+			description: "Bar",
+			length: 100,
+		};
+
+		cy.mount(VideoQueueItem, {
+			props: {
+				item: video,
+				isPreview: false,
+			},
+		});
+
+		cy.get(".drag-handle").should("exist").should("not.be.visible");
+	});
+
 	it("should add the video to the queue", () => {
 		cy.intercept("POST", "/api/room/foo/queue", { success: true }).as("addToQueue");
 		const video: QueueItem = {
