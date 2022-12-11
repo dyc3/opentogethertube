@@ -37,6 +37,11 @@
 				</div>
 			</transition-group>
 		</div>
+		<div v-if="!stickToBottom" class="to-bottom">
+			<v-btn size="x-small" icon @click="forceToBottom">
+				<v-icon>fa:fas fa-angle-double-down</v-icon>
+			</v-btn>
+		</div>
 		<Transition name="input" @after-enter="enforceStickToBottom">
 			<div class="input-box" v-if="activated">
 				<v-text-field
@@ -147,6 +152,7 @@ const Chat = defineComponent({
 				focusChatInput();
 			} else {
 				chatInput.value?.blur();
+				forceToBottom();
 			}
 		}
 
@@ -191,6 +197,11 @@ const Chat = defineComponent({
 			stickToBottom.value = distToBottom === 0;
 		}
 
+		function forceToBottom() {
+			stickToBottom.value = true;
+			enforceStickToBottom();
+		}
+
 		onUpdated(enforceStickToBottom);
 
 		return {
@@ -208,6 +219,7 @@ const Chat = defineComponent({
 			setActivated,
 			onChatReceived,
 			enforceStickToBottom,
+			forceToBottom,
 
 			messages,
 			chatInput,
@@ -311,6 +323,17 @@ $chat-message-bg: $background-color;
 	align-self: flex-end;
 	justify-self: end;
 	pointer-events: auto;
+}
+
+.to-bottom {
+	display: flex;
+	justify-content: start;
+	width: 100%;
+	pointer-events: auto;
+	margin: 6px 0;
+	position: absolute;
+	bottom: 42px;
+	z-index: 100;
 }
 
 // Transition animation
