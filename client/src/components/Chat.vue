@@ -153,6 +153,7 @@ const Chat = defineComponent({
 		function onChatReceived(msg: ServerMessageChat): void {
 			chatMessageRecent.value.push(msg);
 			setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
+			nextTick(enforceStickToBottom);
 		}
 
 		function expireChatMessage() {
@@ -229,6 +230,7 @@ $chat-message-bg: $background-color;
 	padding: 3px;
 	transition: all 0.2 ease;
 	pointer-events: none;
+	height: 100%;
 
 	&.activated {
 		background: rgba(var(--v-theme-background), $alpha: 0.8);

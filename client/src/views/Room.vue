@@ -794,10 +794,6 @@ $in-video-chat-width-small: 250px;
 		width: $in-video-chat-width-small;
 	}
 	pointer-events: none;
-
-	.chat {
-		height: 100%;
-	}
 }
 
 .flip-list-move {
