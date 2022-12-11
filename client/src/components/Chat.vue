@@ -275,7 +275,7 @@ $chat-message-bg: $background-color;
 
 .message {
 	margin: 2px 0;
-	padding: 2px 0;
+	padding: 4px;
 	opacity: 0;
 	transition: all 1s ease;
 
@@ -293,12 +293,12 @@ $chat-message-bg: $background-color;
 		display: inline;
 		margin: 3px 5px;
 		word-wrap: break-word;
+		overflow-wrap: anywhere;
 	}
 
 	.from {
 		font-weight: bold;
 		margin-left: 0;
-		padding: 0 4px;
 	}
 
 	@media screen and (max-width: $sm-max) {
