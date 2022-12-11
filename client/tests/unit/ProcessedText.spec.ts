@@ -58,7 +58,7 @@ describe("ProcessedText component", () => {
 		]);
 	});
 
-	it("should fire event when link is clicked", async () => {
+	it.skip("should fire event when link is clicked", async () => {
 		let wrapper = mount(ProcessedText, {
 			...mountOptions,
 			props: { text: "https://example.com/" },

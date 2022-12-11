@@ -101,16 +101,14 @@ Cypress.Commands.add("setProps", (props: Record<string, unknown> = {}) => {
 	});
 });
 
-Cypress.Commands.add("emitted", (selector: string, event: string) => {
+Cypress.Commands.add("emitted", (event: string) => {
 	return cy.get("@wrapper").then((wrapper: any) => {
 		const vueWrapper = (wrapper.wrapper || Cypress.vueWrapper) as unknown as VueWrapper<any>;
-		const cmp = wrapper.component;
-
-		if (!cmp) {
+		if (!vueWrapper) {
 			return [];
 		}
 
-		return cmp.emitted(event);
+		return vueWrapper.emitted(event) || [];
 	}) as any;
 });
 

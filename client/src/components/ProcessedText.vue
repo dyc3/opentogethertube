@@ -8,12 +8,12 @@
 				:href="item.text"
 				@click="e => onLinkClick(e, item.text)"
 			>
-				<v-tooltip top>
-					<template v-slot:activator="{ props }">
-						<span v-bind="props">{{ item.text }}</span>
-					</template>
-					<span>{{ $t("processed-text.link-hint") }}</span>
-				</v-tooltip>
+				<span>
+					{{ item.text }}
+					<v-tooltip top activator="parent" v-if="showAddQueueTooltip">
+						<span>{{ $t("processed-text.link-hint") }}</span>
+					</v-tooltip>
+				</span>
 			</a>
 		</span>
 	</span>
@@ -33,6 +33,7 @@ const ProcessedText = defineComponent({
 	name: "ProcessedText",
 	props: {
 		text: { type: String, required: true },
+		showAddQueueTooltip: { type: Boolean, default: true },
 	},
 	emits: ["link-click"],
 	setup(props, { emit }) {

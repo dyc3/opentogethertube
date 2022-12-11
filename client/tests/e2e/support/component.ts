@@ -39,7 +39,7 @@ declare global {
 			setProps(
 				props: Record<string, unknown>
 			): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
-			emitted(selector: string, event: string): Chainable<unknown[]>;
+			emitted(event: string): Chainable<unknown[]>;
 			store(): Chainable<Store<FullOTTStoreState>>;
 			connection(): Chainable<OttRoomConnectionMock>;
 		}
