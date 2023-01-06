@@ -284,6 +284,9 @@ async function OnConnect(socket: WebSocket, req: express.Request) {
 	connections.push(client);
 	socket.on("ping", data => client.OnPing(data));
 	socket.on("message", data => client.OnMessage(data as string));
+	socket.on("error", e => {
+		log.warn(`websocket error: ${e}`);
+	});
 }
 
 async function broadcast(roomName: string, text: string) {
