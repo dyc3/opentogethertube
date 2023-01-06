@@ -112,54 +112,60 @@ export class Client {
 
 	public async OnMessage(text: string): Promise<void> {
 		log.silly(`client message: ${text}`);
-		const msg: ClientMessage = JSON.parse(text);
-		let request: RoomRequest | null = null;
-		if (msg.action === "kickme") {
-			this.socket.close(OttWebsocketError.UNKNOWN);
-			return;
-		} else if (msg.action === "status") {
-			request = {
-				type: RoomRequestType.UpdateUser,
-				info: {
-					id: this.id,
-					status: msg.status,
-				},
-			};
-		} else if (msg.action === "auth") {
-			this.token = msg.token;
-			log.debug("received auth token, joining room");
-			try {
-				await this.JoinRoom(this.room);
-			} catch (e) {
-				if (e instanceof RoomNotFoundException) {
-					log.info(`Failed to join room: ${e.message}`);
-					this.socket.close(OttWebsocketError.ROOM_NOT_FOUND);
-				} else if (e instanceof InvalidTokenException) {
-					log.info(`Failed to join room: ${e.message}`);
-					this.socket.close(OttWebsocketError.MISSING_TOKEN);
-				} else {
-					if (e instanceof Error) {
-						log.error(`Failed to join room: ${e.stack}`);
+		try {
+			const msg: ClientMessage = JSON.parse(text);
+
+			let request: RoomRequest | null = null;
+			if (msg.action === "kickme") {
+				this.socket.close(OttWebsocketError.UNKNOWN);
+				return;
+			} else if (msg.action === "status") {
+				request = {
+					type: RoomRequestType.UpdateUser,
+					info: {
+						id: this.id,
+						status: msg.status,
+					},
+				};
+			} else if (msg.action === "auth") {
+				this.token = msg.token;
+				log.debug("received auth token, joining room");
+				try {
+					await this.JoinRoom(this.room);
+				} catch (e) {
+					if (e instanceof RoomNotFoundException) {
+						log.info(`Failed to join room: ${e.message}`);
+						this.socket.close(OttWebsocketError.ROOM_NOT_FOUND);
+					} else if (e instanceof InvalidTokenException) {
+						log.info(`Failed to join room: ${e.message}`);
+						this.socket.close(OttWebsocketError.MISSING_TOKEN);
+					} else {
+						if (e instanceof Error) {
+							log.error(`Failed to join room: ${e.stack}`);
+						}
+						this.socket.close(OttWebsocketError.UNKNOWN);
 					}
-					this.socket.close(OttWebsocketError.UNKNOWN);
+				}
+				return;
+			} else if (msg.action === "req") {
+				request = msg.request;
+			} else {
+				log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
+				return;
+			}
+
+			try {
+				await this.makeRoomRequest(request);
+			} catch (e) {
+				if (e instanceof Error) {
+					log.error(`Room request ${request.type} failed: ${e.message} ${e.stack}`);
+				} else {
+					log.error(`Room request ${request.type} failed`);
 				}
 			}
-			return;
-		} else if (msg.action === "req") {
-			request = msg.request;
-		} else {
-			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
-			return;
-		}
-
-		try {
-			await this.makeRoomRequest(request);
 		} catch (e) {
-			if (e instanceof Error) {
-				log.error(`Room request ${request.type} failed: ${e.message} ${e.stack}`);
-			} else {
-				log.error(`Room request ${request.type} failed`);
-			}
+			log.error(`Failed to handle websocket message: ${text} - ${e}`);
+			return;
 		}
 	}
 
