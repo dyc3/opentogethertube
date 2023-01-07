@@ -41,3 +41,4 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `TRUST_PROXY` | The number of reverse proxy layers to trust. | `1` | `number` |
 | `FFPROBE_PATH` | The path to the command `ffprobe`. You probably don't need to set this unless you are having problems with the ffprobe that is install automatically. | (see [@ffprobe-installer/ffprobe](https://github.com/SavageCore/node-ffprobe-installer)) | `string` |
 | `DIRECT_PREVIEW_MAX_BYTES` | The number of bytes to download when trying to preview direct playback videos. | Infinity | Integer >= 0 |
+| `RATE_LIMIT_KEY_PREFIX` | The prefix to use for rate limit keys, which are stored in redis. | `rateLimit` | `string` |

@@ -15,6 +15,7 @@ const rateLimitOpts: IRateLimiterStoreOptions = {
 	blockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
 	inmemoryBlockOnConsumed: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
 	inmemoryBlockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
+	keyPrefix: process.env.RATE_LIMIT_KEY_PREFIX ?? "rateLimit",
 };
 export const rateLimiter =
 	process.env.NODE_ENV === "test"
