@@ -23,7 +23,7 @@ paths:
   /api/room/list:
     get:
       tags:
-      - room
+        - room
       summary: List open public rooms.
       description: List open public rooms. If a valid api key is provided, it will list all rooms, including unlisted or private rooms.
       responses:
@@ -37,7 +37,7 @@ paths:
                   type: object
   /api/room/{RoomName}/queue:
     parameters:
-      - $ref: '#/components/parameters/RoomName'
+      - $ref: "#/components/parameters/RoomName"
     post:
       tags:
         - room
@@ -97,7 +97,7 @@ paths:
                   - success
   /api/room/{RoomName}:
     parameters:
-      - $ref: '#/components/parameters/RoomName'
+      - $ref: "#/components/parameters/RoomName"
     get:
       tags:
         - room
