@@ -23,10 +23,7 @@
     "cy:open": "cypress open",
     "api-server": "yarn workspace ott-server debug",
     "dev": "NODE_ENV=development concurrently \"yarn run api-server\" \"PORT=8080 yarn run serve\"",
-    "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\"",
-    "optic-dev": "npx api start",
-    "optic-test": "npx api run tests",
-    "optic-api-server": "npx api run api-server"
+    "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\""
   },
   "dependencies": {
     "@types/lodash": "^4.14.170",
