@@ -20,16 +20,28 @@ tags:
   - name: dev
     description: Endpoints only available when not in production mode
 paths:
+  /api/room/list:
+    get:
+      tags:
+      - room
+      summary: List open public rooms.
+      description: List open public rooms. If a valid api key is provided, it will list all rooms, including unlisted or private rooms.
+      responses:
+        200:
+          description: List of rooms, sorted by number of users in descending order, then by room name.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
   /api/room/{RoomName}/queue:
     parameters:
-      - name: RoomName
-        in: path
-        schema:
-          type: string
-        required: true
+      - $ref: '#/components/parameters/RoomName'
     post:
       tags:
         - room
+      summary: Add a video to the queue.
       requestBody:
         content:
           application/json:
@@ -57,6 +69,7 @@ paths:
     delete:
       tags:
         - room
+      summary: Remove a video from the queue.
       requestBody:
         content:
           application/json:
@@ -84,11 +97,7 @@ paths:
                   - success
   /api/room/{RoomName}:
     parameters:
-      - name: RoomName
-        in: path
-        schema:
-          type: string
-        required: true
+      - $ref: '#/components/parameters/RoomName'
     get:
       tags:
         - room
@@ -284,7 +293,8 @@ paths:
     get:
       tags:
         - user
-      description: Get the user associated with this session
+      summary: Get the current user associated with this token.
+      description: Get the current user associated with this token. Effectively represents a session.
       responses:
         "200":
           description: ""
@@ -446,29 +456,6 @@ paths:
                     - length
                     - id
                     - description
-  /api/user/logout:
-    post:
-      tags:
-        - user
-      responses:
-        "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                    required:
-                      - message
-                required:
-                  - success
   /api/user/auth/discord:
     get:
       tags:
@@ -577,6 +564,7 @@ paths:
     post:
       tags:
         - user
+      summary: Log the current user into an account.
       requestBody:
         content:
           application/json:
@@ -634,8 +622,33 @@ paths:
                 required:
                   - success
                   - error
+  /api/user/logout:
+    post:
+      tags:
+        - user
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                    required:
+                      - message
+                required:
+                  - success
   /api/auth/grant:
     get:
+      summary: Get an auth token. Required for most other operations.
+      description: Get an auth token from the server.
       responses:
         "200":
           description: ""
@@ -663,3 +676,19 @@ paths:
             text/html:
               schema:
                 type: string
+components:
+  parameters:
+    RoomName:
+      name: RoomName
+      in: path
+      schema:
+        type: string
+      required: true
+  securitySchemes:
+    tokenAuth:
+      type: http
+      scheme: bearer
+    apikeyAuth:
+      type: apiKey
+      in: header
+      name: apikey
