@@ -7,8 +7,9 @@ externalDocs:
   description: Other docs
   url: https://github.com/dyc3/opentogethertube/tree/master/docs
 servers:
-  - url: https://opentogethertube.com/
   - url: http://localhost:8080/
+  - url: https://staging.opentogethertube.com/
+  - url: https://opentogethertube.com/
 tags:
   - name: room
     description: Operations on Rooms
