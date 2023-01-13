@@ -684,6 +684,28 @@ paths:
             text/html:
               schema:
                 type: string
+  /api/status:
+    get:
+      responses:
+        "200":
+          description: The status of the server. This is used by monitoring to determine
+            if the server is online or not.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required:
+                  - status
+  /api/status/metrics:
+    get:
+      responses:
+        "200":
+          description: Metrics exported for Prometheus.
+          content:
+            text/plain; charset=utf-8; version=0.0.4: {}
 components:
   parameters:
     RoomName:
