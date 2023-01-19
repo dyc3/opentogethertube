@@ -1,6 +1,7 @@
 <template>
 	<v-app id="app">
-		<v-app-bar app :absolute="!fullscreen" :inverted-scroll="fullscreen">
+		<v-app-bar app :absolute="!fullscreen" v-if="!fullscreen">
+			<!-- TODO: replace v-if here with hide on scroll and inverted scroll when vuetify 3.2 comes out. -->
 			<v-app-bar-nav-icon @click="drawer = true" role="menu" aria-label="nav menu" />
 			<v-img
 				:src="logoUrl"
