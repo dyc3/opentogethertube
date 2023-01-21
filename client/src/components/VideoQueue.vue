@@ -54,8 +54,7 @@ const VideoQueue = defineComponent({
 		const roomapi = useRoomApi(useConnection());
 
 		function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
-			// HACK: For some reason, vuedraggable decided to offset all the indexes by 1? I have no idea why they decided to change this
-			roomapi.queueMove(e.oldIndex - 1, e.newIndex - 1);
+			roomapi.queueMove(e.oldIndex, e.newIndex);
 		}
 
 		return {
