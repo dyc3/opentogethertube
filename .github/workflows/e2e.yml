@@ -131,17 +131,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: node_modules
-          path: dl
+      # - name: Download node_modules artifact
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: node_modules
+      #     path: dl
 
-      - name: Extracting downloaded node_modules
-        run: |
-          mv dl/node_modules.tar.gz .
-          rm -d dl
-          tar -xzf node_modules.tar.gz
+      # - name: Extracting downloaded node_modules
+      #   run: |
+      #     mv dl/node_modules.tar.gz .
+      #     rm -d dl
+      #     tar -xzf node_modules.tar.gz
+
+      - run: yarn install --frozen-lockfile
 
       - name: Download the build folders
         uses: actions/download-artifact@v3
