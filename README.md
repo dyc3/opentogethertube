@@ -13,7 +13,7 @@ https://opentogethertube.com/
 
 ### Prerequisites
 
-This project targets node 14 and up.
+This project targets node 16 and up.
 
 ### Setup
 
@@ -76,7 +76,7 @@ Contributions are welcome! Check out issues that have the "good first issue" lab
 
 ### Prerequisites
 
-This project targets node 14 and up.
+This project targets node 16 and up.
 
 ### Setup
 
