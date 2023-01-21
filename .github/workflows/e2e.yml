@@ -149,6 +149,7 @@ jobs:
       #     rm -d dl
       #     tar -xzf node_modules.tar.gz
 
+      - run: apt-get install build-essential
       - run: yarn install --frozen-lockfile
 
       - name: Download the build folders
