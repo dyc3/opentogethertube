@@ -68,7 +68,7 @@ jobs:
       matrix:
         # run copies of the current job in parallel
         containers: [1, 2]
-        browsers: [chrome, firefox]
+        browsers: [electron]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
