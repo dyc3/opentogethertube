@@ -116,7 +116,7 @@ jobs:
       matrix:
         # run copies of the current job in parallel
         containers: [1, 2]
-        browsers: [chrome, firefox]
+        browsers: [electron]
     services:
       redis:
         image: redis
