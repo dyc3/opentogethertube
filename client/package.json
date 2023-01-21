@@ -37,13 +37,13 @@
 		"@types/video.js": "^7.3.29",
 		"@types/vimeo__player": "^2.16.0",
 		"@types/web": "0.0.80",
-		"@vitejs/plugin-vue": "^3.2.0",
+		"@vitejs/plugin-vue": "^4.0.0",
 		"@vitest/coverage-c8": "^0.25.1",
 		"@vue/eslint-config-typescript": "^7.0.0",
 		"@vue/test-utils": "2.2.1",
 		"eslint-plugin-vue": "9.7.0",
 		"sass": "^1.41.1",
-		"vite": "^3.2.0",
+		"vite": "^4.0.4",
 		"vite-plugin-vuetify": "1.0.0",
 		"vitest": "^0.25.1"
 	}
