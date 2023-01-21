@@ -97,6 +97,7 @@ export default {
 		this.fitToContainer();
 	},
 	beforeUnmount() {
+		this.resizeObserver.disconnect();
 		if (this.player && this.player.destroy) {
 			this.player.destroy();
 			delete this.player;
