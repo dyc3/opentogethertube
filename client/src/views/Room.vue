@@ -46,7 +46,6 @@
 							<OmniPlayer
 								ref="player"
 								:source="store.state.room.currentSource"
-								class="player"
 								@apiready="onPlayerApiReady"
 								@playing="onPlaybackChange(true)"
 								@paused="onPlaybackChange(false)"
@@ -682,14 +681,6 @@ $in-video-chat-width-small: 250px;
 	align-items: center;
 	margin-bottom: 10px;
 
-	.player {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-	}
-
 	.video-subcontainer {
 		display: flex;
 		flex-grow: 1;
@@ -819,11 +810,6 @@ $in-video-chat-width-small: 250px;
 
 	.player-container {
 		height: 100vh;
-
-		.player {
-			border: none;
-			border-right: 1px solid #666;
-		}
 	}
 }
 
