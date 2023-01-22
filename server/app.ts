@@ -26,7 +26,7 @@ const app = express();
 app.use(metricsMiddleware);
 const server = http.createServer(app);
 
-import { redisClient } from "./redisclient";
+import { redisClient, registerRedisMetrics } from "./redisclient";
 
 function checkRedis() {
 	if (performance) {
@@ -38,6 +38,7 @@ function checkRedis() {
 	}
 }
 checkRedis();
+registerRedisMetrics();
 
 if (fs.existsSync("../client/dist")) {
 	// serve static files without creating a bunch of sessions
