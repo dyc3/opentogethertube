@@ -104,7 +104,7 @@ function parseRedisInfo(lines: string[]): Record<string, string> {
 }
 
 /** Map of the redis metric name to our prometheus counter. */
-let redisMetrics: Record<string, (Counter | Gauge)> = {};
+let redisMetrics: Record<string, Counter | Gauge> = {};
 
 export async function registerRedisMetrics(): Promise<void> {
 	if (Object.keys(redisMetrics).length > 0) {
@@ -258,7 +258,7 @@ const guageRedisDbsize = new Gauge({
 	async collect() {
 		const dbsize = await redisClientAsync.dbsize();
 		this.set(dbsize);
-	}
+	},
 });
 
 module.exports = {
