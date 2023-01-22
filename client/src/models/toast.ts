@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import { ServerMessageEvent } from "common/models/messages";
+import { ServerMessageEvent } from "ott-common/models/messages";
 
 /**
  * A toast notification.

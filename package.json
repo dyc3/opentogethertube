@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "engines": {
-    "node": ">=14 <=18"
+    "node": ">=16 <=18"
   },
   "workspaces": [
     "common",
@@ -19,14 +19,11 @@
     "lint-ci": "yarn workspace ott-server lint-ci && yarn workspace ott-client lint-ci",
     "test": "yarn workspace ott-server test && yarn workspace ott-client test",
     "test-e2e": "start-server-and-test optic-dev http-get://localhost:8080 cy:run",
-    "cy:run": "cypress run --config-file cypress.json --headless",
-    "cy:open": "cypress open --config-file cypress.json",
+    "cy:run": "cypress run --headless",
+    "cy:open": "cypress open",
     "api-server": "yarn workspace ott-server debug",
     "dev": "NODE_ENV=development concurrently \"yarn run api-server\" \"PORT=8080 yarn run serve\"",
-    "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\"",
-    "optic-dev": "npx api start",
-    "optic-test": "npx api run tests",
-    "optic-api-server": "npx api run api-server"
+    "dev-windows": "SET NODE_ENV=development&&concurrently \"npm:api-server\" \"npm:serve\""
   },
   "dependencies": {
     "@types/lodash": "^4.14.170",
@@ -37,21 +34,24 @@
     "lodash": "^4.17.21",
     "reflect-metadata": "^0.1.13",
     "ts-essentials": "^7.0.1",
-    "typescript": "4.2.4",
+    "ts-node": "^10.9.1",
+    "typescript": "4.5.5",
     "validator": "^13.7.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
     "@jest/globals": "^27.0.1",
     "@types/jest": "27.4.1",
-    "@typescript-eslint/eslint-plugin": "^4.18.0",
-    "@typescript-eslint/parser": "^4.18.0",
-    "babel-jest": "27.5.1",
+    "@types/uuid": "^3.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
     "concurrently": "7.0.0",
-    "cypress": "^7.4.0",
+    "cypress": "12.3.0",
     "cypress-iframe": "^1.0.1",
+    "cypress-real-events": "^1.7.4",
     "eslint": "7.32.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-jest": "23.13.2",
     "eslint-plugin-prettier": "^4.0.0",
     "faker": "^5.5.3",

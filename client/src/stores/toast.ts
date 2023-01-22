@@ -1,4 +1,4 @@
-import { RoomRequestType } from "common/models/messages";
+import { RoomRequestType } from "ott-common/models/messages";
 import _ from "lodash";
 import { Module } from "vuex/types";
 

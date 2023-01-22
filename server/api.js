@@ -1,5 +1,5 @@
 const express = require("express");
-const uuid = require("uuid/v4");
+import { v4 as uuidv4 } from "uuid";
 const _ = require("lodash");
 import InfoExtract from "./infoextractor";
 import { RoomRequestType } from "../common/models/messages";
@@ -14,6 +14,7 @@ import auth from "./auth";
 import usermanager from "./usermanager";
 import passport from "passport";
 import statusapi from "./api/status";
+import { getApiKey } from "./admin";
 
 const log = getLogger("api");
 
@@ -167,7 +168,7 @@ router.post("/room/generate", async (req, res) => {
 			return;
 		}
 	}
-	let roomName = uuid();
+	let roomName = uuidv4();
 	log.debug(`Generating room: ${roomName}`);
 	await roommanager.CreateRoom({
 		name: roomName,
@@ -332,7 +333,7 @@ router.get("/data/previewAdd", async (req, res) => {
 
 router.post("/announce", (req, res) => {
 	if (req.get("apikey")) {
-		if (req.get("apikey") !== process.env.OPENTOGETHERTUBE_API_KEY) {
+		if (req.get("apikey") !== getApiKey()) {
 			res.status(400).json({
 				success: false,
 				error: "apikey is invalid",
@@ -378,4 +379,4 @@ router.post("/announce", (req, res) => {
 	});
 });
 
-module.exports = router;
+export default router;

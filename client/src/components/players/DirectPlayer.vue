@@ -24,7 +24,7 @@ export default {
 	mounted() {
 		this.beginNewVideo();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		if (this.player) {
 			this.player.dispose();
 		}
@@ -70,7 +70,7 @@ export default {
 				this.$emit("apiready");
 				this.hasEmittedApiReady = true;
 			}
-			if (process.env.NODE_ENV === "development") {
+			if (import.meta.env.NODE_ENV === "development") {
 				for (const event of [
 					"ready",
 					"loadstart",

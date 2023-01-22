@@ -13,7 +13,7 @@
 		>
 			<div>
 				<h1>{{ $t("room-list.no-rooms") }}</h1>
-				<v-btn elevation="12" x-large @click="createRoom">{{
+				<v-btn elevation="12" size="x-large" @click="createRoom">{{
 					$t("room-list.create")
 				}}</v-btn>
 			</div>
@@ -25,16 +25,18 @@
 						:src="
 							room.currentSource && room.currentSource.thumbnail
 								? room.currentSource.thumbnail
-								: require('@/assets/placeholder.svg')
+								: placeholderUrl
 						"
 						aspect-ratio="1.8"
-						v-if="$vuetify.breakpoint.smAndUp"
+						v-if="$vuetify.display.smAndUp"
 					>
 						<span class="subtitle-2 users"
-							>{{ room.users }} <v-icon small>fas fa-user-friends</v-icon></span
+							>{{ room.users }} <v-icon small>fa:fas fa-user-friends</v-icon></span
 						>
 					</v-img>
-					<v-card-title v-text="room.isTemporary ? 'Temporary Room' : room.name" />
+					<v-card-title>
+						{{ room.isTemporary ? $t("room.title-temp") : room.name }}
+					</v-card-title>
 					<v-card-text>
 						<div class="description" v-if="room.description">
 							{{ room.description }}
@@ -61,15 +63,17 @@
 
 <script lang="ts">
 import { API } from "@/common-http.js";
-import { defineComponent, ref, onMounted } from "@vue/composition-api";
+import { defineComponent, ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "@/store";
+import placeholderUrl from "@/assets/placeholder.svg";
 
 const RoomListView = defineComponent({
 	name: "RoomListView",
 	setup() {
 		let isLoading = ref(false);
 		let rooms = ref([]);
+		const store = useStore();
 
 		onMounted(async () => {
 			isLoading.value = true;
@@ -79,7 +83,6 @@ const RoomListView = defineComponent({
 		});
 
 		async function createRoom() {
-			let store = useStore();
 			await createRoomHelper(store);
 		}
 
@@ -88,6 +91,7 @@ const RoomListView = defineComponent({
 			rooms,
 
 			createRoom,
+			placeholderUrl,
 		};
 	},
 });

@@ -6,10 +6,10 @@ import {
 	RoomRequestType,
 	ServerMessageEvent,
 	ServerMessageEventCustom,
-} from "common/models/messages";
+} from "ott-common/models/messages";
 import { secondsToTimestamp } from "@/util/timestamp";
 
-export const module: Module<unknown, unknown> = {
+export const eventsModule: Module<unknown, unknown> = {
 	actions: {
 		event(context, message: ServerMessageEvent) {
 			let text = `TODO: room event: ${message.request.type}`;
@@ -76,4 +76,4 @@ export const module: Module<unknown, unknown> = {
 	},
 };
 
-export default module;
+export default eventsModule;

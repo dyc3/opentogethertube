@@ -2,9 +2,9 @@
 	<div style="display: inline-flex">
 		<div v-if="editing">
 			<v-text-field
-				solo
+				variant="solo"
 				hide-details
-				dense
+				density="compact"
 				single-line
 				class="editor"
 				ref="editor"
@@ -15,19 +15,13 @@
 			/>
 		</div>
 		<div v-else @click="activate" class="editable" ref="display">
-			{{ typeof value === "number" ? valueFormatter(value) : value }}
+			{{ typeof modelValue === "number" ? valueFormatter(modelValue) : modelValue }}
 		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, nextTick, Ref } from "@vue/composition-api";
-
-const editor = ref<HTMLInputElement | undefined>();
-const editing = ref(false);
-const valueDirty = ref();
-const display: Ref<HTMLDivElement | undefined> = ref();
-const editorWidth = ref(120);
+import { defineComponent, ref, nextTick, Ref } from "vue";
 
 function valueFormatterDefault(value: number): string {
 	return value.toString();
@@ -42,9 +36,9 @@ function valueParserDefault(value: string): number {
  */
 const ClickToEdit = defineComponent({
 	name: "ClickToEdit",
-	emits: ["change", "input"],
+	emits: ["change", "update:modelValue"],
 	props: {
-		value: {
+		modelValue: {
 			type: [String, Number],
 			required: true,
 		},
@@ -58,18 +52,24 @@ const ClickToEdit = defineComponent({
 		},
 	},
 	setup(props, { emit }) {
-		const { value } = toRefs(props);
+		const editor = ref<HTMLInputElement | undefined>();
 		const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
 		const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
+
+		const editing = ref(false);
+		const valueDirty = ref();
+		const display: Ref<HTMLDivElement | undefined> = ref();
+		const editorWidth = ref(120);
 
 		async function activate() {
 			if (display.value) {
 				editorWidth.value = display.value.offsetWidth + 24;
 			}
-			if (typeof value.value === "number") {
-				valueDirty.value = valueFormatter.value(value.value);
+			console.info("modelValue", props.modelValue);
+			if (typeof props.modelValue === "number") {
+				valueDirty.value = valueFormatter.value(props.modelValue);
 			} else {
-				valueDirty.value = value.value;
+				valueDirty.value = props.modelValue;
 			}
 			editing.value = true;
 			await nextTick();
@@ -77,14 +77,15 @@ const ClickToEdit = defineComponent({
 		}
 
 		function apply() {
-			if (typeof value.value === "number") {
-				value.value = valueParser.value(valueDirty.value);
+			let outValue: string | number;
+			if (typeof props.modelValue === "number") {
+				outValue = valueParser.value(valueDirty.value);
 			} else {
-				value.value = valueDirty.value;
+				outValue = valueDirty.value;
 			}
 			editing.value = false;
-			emit("change", value.value);
-			emit("input", value.value);
+			emit("change", outValue);
+			emit("update:modelValue", outValue);
 		}
 
 		function abort() {

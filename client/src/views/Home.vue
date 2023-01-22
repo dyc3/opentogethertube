@@ -8,15 +8,15 @@
 						{{ $t("landing.hero.description") }}
 					</span>
 					<div class="hero-buttons">
-						<v-btn elevation="12" x-large @click="createTempRoom">{{
+						<v-btn elevation="12" size="x-large" @click="createTempRoom">{{
 							$t("landing.hero.btns.create")
 						}}</v-btn>
-						<v-btn elevation="12" x-large to="/rooms">{{
+						<v-btn elevation="12" size="x-large" to="/rooms">{{
 							$t("landing.hero.btns.browse")
 						}}</v-btn>
 						<v-btn
 							elevation="12"
-							x-large
+							size="x-large"
 							href="https://github.com/dyc3/opentogethertube"
 							>{{ $t("landing.hero.btns.source") }}</v-btn
 						>
@@ -124,24 +124,24 @@
 						<v-col>
 							<h3>{{ $t("landing.support.how") }}</h3>
 							<v-btn
-								x-large
+								size="x-large"
 								block
 								color="red"
 								href="https://github.com/sponsors/dyc3"
 								target="_blank"
 							>
-								<v-icon class="side-pad">fas fa-heart</v-icon>
+								<v-icon class="side-pad">fa:fas fa-heart</v-icon>
 								{{ $t("landing.support.sponsor") }}
 							</v-btn>
 							<v-btn
-								x-large
+								size="x-large"
 								block
 								color="blue"
 								class="mt-2"
 								href="https://github.com/dyc3/opentogethertube"
 								target="_blank"
 							>
-								<v-icon class="side-pad">fas fa-code</v-icon>
+								<v-icon class="side-pad">fa:fas fa-code</v-icon>
 								{{ $t("landing.support.contribute") }}
 							</v-btn>
 						</v-col>
@@ -176,24 +176,31 @@
 </template>
 
 <script>
+import { defineComponent, computed } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
+import { useStore } from "@/store";
 
-export default {
+export const HomeView = defineComponent({
 	name: "home",
-	data() {
-		return {};
-	},
-	computed: {
-		cardHeight() {
+	setup() {
+		const store = useStore();
+
+		async function createTempRoom() {
+			await createRoomHelper(store);
+		}
+
+		const cardHeight = computed(() => {
 			return 180;
-		},
+		});
+
+		return {
+			createTempRoom,
+			cardHeight,
+		};
 	},
-	methods: {
-		async createTempRoom() {
-			await createRoomHelper(this.$store);
-		},
-	},
-};
+});
+
+export default HomeView;
 </script>
 
 <style lang="scss" scoped>

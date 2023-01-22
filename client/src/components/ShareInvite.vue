@@ -1,20 +1,22 @@
 <template>
 	<div class="share-invite">
 		<v-card>
-			<v-subheader>
+			<v-card-title>
 				{{ $t("share-invite.title") }}
-			</v-subheader>
+			</v-card-title>
 			<v-card-text>
 				{{ $t("share-invite.text") }}
 				<v-text-field
 					readonly
-					outlined
+					variant="outlined"
+					:class="copySuccess ? 'text-success' : ''"
 					ref="inviteLinkText"
 					:value="inviteLink"
-					append-outer-icon="fa-clipboard"
-					:success-messages="copySuccess ? $t('share-invite.copied') : ''"
+					append-icon="fa:fas fa-clipboard"
+					:messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
-					@click:append-outer="copyInviteLink"
+					@click:append="copyInviteLink"
+					data-cy="share-invite-link"
 				/>
 			</v-card-text>
 		</v-card>
@@ -22,8 +24,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "@vue/composition-api";
-import { useStore } from "@/util/vuex-workaround";
+import { defineComponent, ref, computed } from "vue";
+import { useStore } from "@/store";
 
 export function buildInviteLink(
 	currentLocation: string,
@@ -42,27 +44,34 @@ const ShareInvite = defineComponent({
 		const store = useStore();
 
 		let copySuccess = ref(false);
-
 		let inviteLinkText = ref();
+		let copySuccessTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 		function getInviteLink() {
 			return buildInviteLink(
 				window.location.href,
 				store.state.room.name,
-				process.env.SHORT_URL
+				store.state.shortUrl
 			);
 		}
 		const inviteLink = computed(getInviteLink);
 
 		async function copyInviteLink() {
 			if (navigator.clipboard) {
-				await navigator.clipboard.writeText(inviteLink.value);
-				setTimeout(() => {
+				try {
+					await navigator.clipboard.writeText(inviteLink.value);
+				} catch (err) {
+					console.error("Failed to copy invite link", err);
+				}
+				if (copySuccessTimeoutId) {
+					clearTimeout(copySuccessTimeoutId);
+				}
+				copySuccessTimeoutId = setTimeout(() => {
 					copySuccess.value = false;
 				}, 3000);
 			} else {
 				// @ts-expect-error $el actually does exist
-				let textfield = (inviteLinkText.$el as Element).querySelector("input");
+				let textfield = (inviteLinkText.value.$el as Element).querySelector("input");
 				if (!textfield) {
 					console.error("failed to copy link: input not found");
 					return;

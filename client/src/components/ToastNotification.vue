@@ -1,58 +1,43 @@
 <template>
-	<v-snackbar
-		app
-		right
-		absolute
-		value="true"
-		timeout="-1"
-		:color="color"
-		class="toast"
-		transform="false"
-	>
-		<v-icon v-if="toast.style === ToastStyle.Success">fas fa-check</v-icon>
-		<v-icon v-else-if="toast.style === ToastStyle.Error">fas fa-exclamation-circle</v-icon>
-		{{ toast.content }}
-		<div class="bar" :style="{ 'animation-duration': `${this.toast.duration}ms` }"></div>
-		<template v-slot:action="{ attrs }">
-			<v-btn text v-if="undoable" @click="undo">
+	<v-sheet :color="color" class="toast" elevation="12" aria-live="polite">
+		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">
+			fa:fas fa-check
+		</v-icon>
+		<v-icon class="toast-icon" v-else-if="toast.style === ToastStyle.Error">
+			fa:fas fa-exclamation-circle
+		</v-icon>
+		<span class="toast-content">{{ toast.content }}</span>
+		<div class="bar" :style="{ 'animation-duration': `${toast.duration}ms` }"></div>
+		<div class="toast-actions">
+			<v-btn variant="text" v-if="undoable" @click="undo">
 				{{ $t("actions.undo") }}
 			</v-btn>
-			<v-btn text v-bind="attrs" @click="close" x-small icon :color="`${color} darken-2`">
-				<v-icon>fas fa-times</v-icon>
+			<v-btn variant="text" @click="close" size="x-small" icon aria-label="close">
+				<v-icon>fa:fas fa-times</v-icon>
 			</v-btn>
-		</template>
-	</v-snackbar>
+		</div>
+	</v-sheet>
 </template>
 
 <script lang="ts">
 import { PropType } from "vue";
-import {
-	defineComponent,
-	ref,
-	toRefs,
-	onMounted,
-	onUnmounted,
-	Ref,
-	computed,
-} from "@vue/composition-api";
+import { defineComponent, ref, toRefs, onMounted, onUnmounted, Ref, computed } from "vue";
 import { Toast, ToastStyle } from "@/models/toast";
-import { RoomRequestType } from "common/models/messages";
+import { RoomRequestType } from "ott-common/models/messages";
 import { API } from "@/common-http";
 import toasts from "@/util/toast";
-import { useStore } from "@/util/vuex-workaround";
-
-interface ToastNotificationProps {
-	toast: Toast;
-	number: number;
-}
+import { useStore } from "@/store";
 
 const ToastNotification = defineComponent({
 	name: "ToastNotification",
 	props: {
-		toast: { type: Object as PropType<Toast> },
+		toast: {
+			type: Object as PropType<Toast>,
+			required: true,
+		},
 		number: { type: Number },
 	},
-	setup(props: ToastNotificationProps) {
+	setup(props) {
 		let { toast } = toRefs(props);
 		const store = useStore();
 		let padding = ref(8);
@@ -74,9 +59,9 @@ const ToastNotification = defineComponent({
 
 		let color = computed(() => {
 			if (toast.value.style === ToastStyle.Success) {
-				return "green";
+				return "success";
 			} else if (toast.value.style === ToastStyle.Error) {
-				return "red";
+				return "error";
 			}
 			return undefined;
 		});
@@ -129,6 +114,14 @@ export default ToastNotification;
 </script>
 
 <style lang="scss" scoped>
+$toast-height: 48px; // $snackbar-wrapper-min-height;
+$toast-height-multiline: 68px; // vuetify.$snackbar-multi-line-wrapper-min-height;
+$toast-min-width: 344px; // $snackbar-wrapper-min-width;
+$toast-max-width: 672px; // $snackbar-wrapper-max-width;
+$toast-margin: 8px; // vuetify.$snackbar-wrapper-margin;
+$toast-padding: 0; // vuetify.$snackbar-wrapper-padding;
+$toast-content-padding: 14px 16px;
+
 @keyframes toast_timer {
 	0% {
 		// transform: scaleX(1);
@@ -142,6 +135,28 @@ export default ToastNotification;
 
 .toast {
 	position: relative;
+	display: inline-flex;
+	min-height: $toast-height;
+	margin: $toast-margin;
+	padding: $toast-padding;
+	min-width: $toast-min-width;
+	max-width: $toast-max-width;
+	align-items: center;
+	border-radius: 4px;
+
+	.toast-icon {
+		margin-left: 10px;
+	}
+
+	.toast-content {
+		padding: $toast-content-padding;
+	}
+
+	.toast-actions {
+		display: flex;
+		align-items: center;
+		margin-left: auto;
+	}
 
 	.bar {
 		display: block;

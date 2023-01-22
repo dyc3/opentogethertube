@@ -1,20 +1,9 @@
-import Vue from "vue";
-import { shallowMount, createLocalVue } from "@vue/test-utils";
+import { it, describe, expect, beforeEach, afterEach, vi } from "vitest";
+import { mount } from "@vue/test-utils";
 import Vuex from "vuex";
-import Vuetify from "vuetify";
-import VueSlider from "vue-slider-component";
-import Room from "@/views/Room";
+import { createVuetify } from "vuetify";
+import Room from "@/views/Room.vue";
 import { i18n } from "@/i18n";
-
-jest.useFakeTimers();
-
-// HACK: import globally to prevent it from yelling at us
-// https://github.com/vuetifyjs/vuetify/issues/4964
-Vue.use(Vuetify);
-
-const localVue = createLocalVue();
-localVue.use(Vuex);
-localVue.component("VueSlider", VueSlider);
 
 const $route = {
 	path: "http://localhost:8080/room/example",
@@ -55,16 +44,16 @@ function createStore() {
 }
 
 function mountNewInstance(store) {
-	return shallowMount(Room, {
-		store,
-		localVue,
-		i18n,
+	return mount(Room, {
+		global: {
+			plugins: [store, i18n, createVuetify()],
+		},
 		mocks: {
 			$route,
-			$connect: jest.fn(),
-			$disconnect: jest.fn(),
+			$connect: vi.fn(),
+			$disconnect: vi.fn(),
 			$socket: {
-				sendObj: jest.fn(),
+				sendObj: vi.fn(),
 			},
 		},
 		stubs: ["youtube", "router-link"],
@@ -81,7 +70,7 @@ describe.skip("Room UI spec", () => {
 	});
 
 	afterEach(async () => {
-		await wrapper.destroy();
+		await wrapper.unmount();
 	});
 
 	it("should render room title in permanent rooms, if the room has one", () => {
@@ -189,13 +178,13 @@ describe.skip("Room UI spec", () => {
 		it("should toggle playback when space or k is pressed", async () => {
 			store = createStore();
 			wrapper = mountNewInstance(store);
-			jest.spyOn(wrapper.vm, "togglePlayback").mockImplementation();
+			vi.spyOn(wrapper.vm, "togglePlayback").mockImplementation();
 
 			// HACK: for some reason wrapper.trigger() is not working here
 			wrapper.vm.onKeyDown({
 				code: "Space",
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.togglePlayback).toHaveBeenCalledTimes(1);
 			wrapper.vm.togglePlayback.mockClear();
@@ -203,7 +192,7 @@ describe.skip("Room UI spec", () => {
 			wrapper.vm.onKeyDown({
 				code: "k",
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.togglePlayback).toHaveBeenCalledTimes(1);
 			wrapper.vm.togglePlayback.mockClear();
@@ -217,7 +206,7 @@ describe.skip("Room UI spec", () => {
 			wrapper.vm.onKeyDown({
 				code: "Home",
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.$socket.sendObj).toHaveBeenCalledWith({
 				action: "seek",
@@ -233,7 +222,7 @@ describe.skip("Room UI spec", () => {
 			wrapper.vm.onKeyDown({
 				code: "End",
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.$socket.sendObj).toHaveBeenCalledWith({ action: "skip" });
 		});
@@ -241,13 +230,13 @@ describe.skip("Room UI spec", () => {
 		it("should toggle fullscreen when f is pressed", async () => {
 			store = createStore();
 			wrapper = mountNewInstance(store);
-			jest.spyOn(wrapper.vm, "toggleFullscreen").mockImplementation();
+			vi.spyOn(wrapper.vm, "toggleFullscreen").mockImplementation();
 
 			// HACK: for some reason wrapper.trigger() is not working here
 			wrapper.vm.onKeyDown({
 				code: "KeyF",
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.toggleFullscreen).toHaveBeenCalledTimes(1);
 		});
@@ -255,14 +244,14 @@ describe.skip("Room UI spec", () => {
 		it("should seek the correct amount", async () => {
 			store = createStore();
 			wrapper = mountNewInstance(store);
-			jest.spyOn(wrapper.vm, "seekDelta").mockImplementation();
+			vi.spyOn(wrapper.vm, "seekDelta").mockImplementation();
 
 			// HACK: for some reason wrapper.trigger() is not working here
 			wrapper.vm.onKeyDown({
 				code: "ArrowRight",
 				ctrlKey: false,
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(5);
 			wrapper.vm.seekDelta.mockClear();
@@ -271,7 +260,7 @@ describe.skip("Room UI spec", () => {
 				code: "ArrowRight",
 				ctrlKey: true,
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(10);
 			wrapper.vm.seekDelta.mockClear();
@@ -280,7 +269,7 @@ describe.skip("Room UI spec", () => {
 				code: "ArrowLeft",
 				ctrlKey: false,
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(-5);
 			wrapper.vm.seekDelta.mockClear();
@@ -289,7 +278,7 @@ describe.skip("Room UI spec", () => {
 				code: "ArrowLeft",
 				ctrlKey: true,
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(-10);
 			wrapper.vm.seekDelta.mockClear();
@@ -298,7 +287,7 @@ describe.skip("Room UI spec", () => {
 				code: "KeyL",
 				ctrlKey: false,
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(10);
 			wrapper.vm.seekDelta.mockClear();
@@ -307,7 +296,7 @@ describe.skip("Room UI spec", () => {
 				code: "KeyJ",
 				ctrlKey: false,
 				target: { nodeName: "" },
-				preventDefault: jest.fn(),
+				preventDefault: vi.fn(),
 			});
 			expect(wrapper.vm.seekDelta).toHaveBeenCalledWith(-10);
 			wrapper.vm.seekDelta.mockClear();

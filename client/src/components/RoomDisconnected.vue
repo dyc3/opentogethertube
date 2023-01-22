@@ -1,27 +1,30 @@
 <template>
-	<v-layout column>
+	<div class="disconnected">
 		<h1>{{ $t("connect-overlay.title") }}</h1>
-		<span>{{ reasonText() }}</span>
+		<span class="dc-reason">{{ reasonText() }}</span>
 		<v-btn to="/rooms">{{ $t("connect-overlay.find-another") }}</v-btn>
-	</v-layout>
+	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "@vue/composition-api";
-import { useStore } from "@/util/vuex-workaround";
-import { i18n } from "@/i18n";
+import { defineComponent } from "vue";
+import { useStore } from "@/store";
+import { useI18n } from "vue-i18n";
+import { useConnection } from "@/plugins/connection";
 
 const RoomDisconnected = defineComponent({
 	name: "RoomDisconnected",
 	setup() {
 		const store = useStore();
+		const { t } = useI18n();
+		const connection = useConnection();
 
 		function reasonText() {
-			if (store.state.connection.disconnected) {
-				let reason = store.state.connection.disconnected.reason;
-				return i18n.t(`connect-overlay.dc-reasons.${reason}`);
+			if (connection.kickReason.value) {
+				let reason = connection.kickReason.value;
+				return t(`connect-overlay.dc-reasons.${reason}`);
 			} else {
-				return i18n.t("connect-overlay.dc-reasons.unknown");
+				return t("connect-overlay.dc-reasons.unknown");
 			}
 		}
 
@@ -34,3 +37,23 @@ const RoomDisconnected = defineComponent({
 
 export default RoomDisconnected;
 </script>
+
+<style lang="scss">
+.disconnected {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	width: 100%;
+
+	h1 {
+		font-size: 2rem;
+		margin-bottom: 1rem;
+	}
+
+	.dc-reason {
+		margin-bottom: 1rem;
+	}
+}
+</style>

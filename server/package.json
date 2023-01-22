@@ -3,8 +3,8 @@
 	"version": "0.2.0",
 	"license": "AGPL-3.0-or-later",
 	"scripts": {
-		"start": "node app.js",
-		"debug": "nodemon --ignore 'tests/*' --inspect -e ts,js app.js",
+		"start": "node start.js",
+		"debug": "nodemon --ignore 'tests/*' --inspect -e ts,js start.js",
 		"lint": "tsc --noEmit && eslint --fix .",
 		"lint-ci": "tsc --noEmit && eslint .",
 		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
@@ -21,13 +21,13 @@
 		"@types/sequelize": "^4.28.9",
 		"@types/supertest": "^2.0.11",
 		"@types/ws": "^7.4.4",
-		"@useoptic/express-middleware": "0.0.5",
 		"connect-redis": "^4.0.4",
 		"dotenv": "^8.2.0",
 		"express": "^4.17.1",
 		"express-session": "^1.17.0",
 		"nocache": "^3.0.0",
 		"node-abort-controller": "3.0.1",
+		"ott-common": "./common",
 		"passport": "^0.4.1",
 		"passport-discord": "^0.1.4",
 		"passport-google": "^0.3.0",
@@ -39,19 +39,23 @@
 		"rate-limiter-flexible": "^2.2.1",
 		"redis": "3.1.1",
 		"secure-password": "^3.1.0",
-		"sequelize": "^6.11.0",
+		"sequelize": "^6.25.7",
 		"sequelize-cli": "^5.5.1",
 		"sequelize-typescript": "^2.1.0",
 		"sponsorblock-api": "^0.2.2",
-		"ts-node": "^9.1.1",
+		"ts-node": "^10.9.1",
+		"tslib": "^2.4.1",
 		"unique-names-generator": "^3.1.1",
-		"uuid": "^3.4.0",
+		"uuid": "^9.0.0",
 		"ws": "^7.4.6"
 	},
 	"devDependencies": {
-		"@useoptic/cli": "^10.3.0",
+		"@babel/core": "^7.20.2",
+		"@babel/plugin-transform-modules-commonjs": "^7.19.6",
+		"babel-jest": "^29.3.1",
+		"jest-watch-typeahead": "^2.2.1",
 		"nodemon": "^2.0.4",
 		"redis-mock": "^0.56.3",
-		"sqlite3": "4.1.1"
+		"sqlite3": "5.1.2"
 	}
 }

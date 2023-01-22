@@ -3,7 +3,7 @@
 		<div class="img-container">
 			<v-img
 				:src="thumbnailSource"
-				:lazy-src="require('@/assets/placeholder.svg')"
+				:lazy-src="placeholderUrl"
 				aspect-ratio="1.8"
 				@error="onThumbnailError"
 			>
@@ -11,7 +11,7 @@
 					class="drag-handle"
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 				>
-					<v-icon>fas fa-align-justify</v-icon>
+					<v-icon>fa:fas fa-align-justify</v-icon>
 				</span>
 				<span class="video-length">{{ videoLength }}</span>
 			</v-img>
@@ -36,56 +36,55 @@
 					:loading="isLoadingVote"
 					:color="voted ? 'red' : 'green'"
 					v-if="!isPreview && store.state.room.queueMode === QueueMode.Vote"
+					data-cy="btn-vote"
 				>
 					<span>{{ votes }}</span>
-					<v-icon>fas fa-thumbs-up</v-icon>
+					<v-icon>fa:fas fa-thumbs-up</v-icon>
 					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
 				</v-btn>
-				<v-tooltip top>
-					<template v-slot:activator="{ on, attrs }">
-						<v-btn
-							icon
-							@click="playNow"
-							v-on="on"
-							v-bind="attrs"
-							v-if="store.state.room.queueMode !== QueueMode.Vote"
-						>
-							<v-icon>fas fa-play</v-icon>
-						</v-btn>
-					</template>
-					<span>{{ $t("video.playnow-explanation") }}</span>
-				</v-tooltip>
-				<v-tooltip top>
-					<template v-slot:activator="{ on, attrs }">
-						<v-btn
-							icon
-							:loading="isLoadingAdd"
-							@click="addToQueue"
-							v-on="on"
-							v-bind="attrs"
-							v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
-						>
-							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
-							<v-icon v-else>fas fa-plus</v-icon>
-						</v-btn>
-					</template>
-					<span>{{ $t("video.add-explanation") }}</span>
-				</v-tooltip>
+				<v-btn
+					icon
+					variant="flat"
+					@click="playNow"
+					v-if="store.state.room.queueMode !== QueueMode.Vote"
+					data-cy="btn-play-now"
+				>
+					<v-icon>fa:fas fa-play</v-icon>
+					<v-tooltip activator="parent" location="top">
+						<span>{{ $t("video.playnow-explanation") }}</span>
+					</v-tooltip>
+				</v-btn>
+				<v-btn
+					icon
+					variant="flat"
+					:loading="isLoadingAdd"
+					@click="addToQueue"
+					v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
+					data-cy="btn-add-to-queue"
+				>
+					<v-icon v-if="hasError">fa:fas fa-exclamation</v-icon>
+					<v-icon v-else-if="hasBeenAdded">fa:fas fa-check</v-icon>
+					<v-icon v-else>fa:fas fa-plus</v-icon>
+					<v-tooltip activator="parent" location="top">
+						<span>{{ $t("video.add-explanation") }}</span>
+					</v-tooltip>
+				</v-btn>
 
 				<v-btn
 					icon
+					variant="flat"
 					:loading="isLoadingAdd"
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
+					data-cy="btn-remove-from-queue"
 				>
-					<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-					<v-icon v-else>fas fa-trash</v-icon>
+					<v-icon v-if="hasError">fa:fas fa-exclamation</v-icon>
+					<v-icon v-else>fa:fas fa-trash</v-icon>
 				</v-btn>
 				<v-menu offset-y>
-					<template v-slot:activator="{ on, attrs }">
-						<v-btn icon v-bind="attrs" v-on="on">
-							<v-icon>fas fa-ellipsis-v</v-icon>
+					<template v-slot:activator="{ props }">
+						<v-btn icon variant="flat" v-bind="props" data-cy="btn-menu">
+							<v-icon>fa:fas fa-ellipsis-v</v-icon>
 						</v-btn>
 					</template>
 					<v-list>
@@ -93,8 +92,9 @@
 							class="button-with-icon"
 							@click="playNow"
 							v-if="store.state.room.queueMode !== QueueMode.Vote"
+							data-cy="menu-btn-play-now"
 						>
-							<v-icon>fas fa-play</v-icon>
+							<v-icon>fa:fas fa-play</v-icon>
 							<span>{{ $t("video.playnow") }}</span>
 						</v-list-item>
 						<v-list-item
@@ -105,35 +105,38 @@
 								store.state.room.queueMode !== QueueMode.Vote &&
 								store.state.room.queueMode !== QueueMode.Dj
 							"
+							data-cy="menu-btn-move-to-top"
 						>
-							<v-icon>fas fa-sort-amount-up</v-icon>
+							<v-icon>fa:fas fa-sort-amount-up</v-icon>
 							<span>{{ $t("video-queue-item.play-next") }}</span>
 						</v-list-item>
 						<v-list-item
 							class="button-with-icon"
 							@click="moveToBottom"
 							v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
+							data-cy="menu-btn-move-to-bottom"
 						>
-							<v-icon>fas fa-sort-amount-down-alt</v-icon>
+							<v-icon>fa:fas fa-sort-amount-down-alt</v-icon>
 							<span>{{ $t("video-queue-item.play-last") }}</span>
 						</v-list-item>
-						<v-btn
-							icon
+						<v-list-item
 							:loading="isLoadingAdd"
 							v-if="isPreview && store.state.room.queueMode === QueueMode.Dj"
 							@click="addToQueue"
+							data-cy="menu-btn-add-to-queue"
 						>
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
-							<v-icon v-else-if="hasBeenAdded">fas fa-check</v-icon>
-							<v-icon v-else>fas fa-plus</v-icon>
+							<v-icon v-else-if="hasBeenAdded">fa:fas fa-check</v-icon>
+							<v-icon v-else>fa:fas fa-plus</v-icon>
 							<span>{{ $t("video-queue-item.add") }}</span>
-						</v-btn>
+						</v-list-item>
 						<v-list-item
 							class="button-with-icon"
 							@click="removeFromQueue"
 							v-if="!isPreview && store.state.room.queueMode === QueueMode.Dj"
+							data-cy="menu-btn-remove-from-queue"
 						>
-							<v-icon>fas fa-trash</v-icon>
+							<v-icon>fa:fas fa-trash</v-icon>
 							<span>{{ $t("video-queue-item.remove") }}</span>
 						</v-list-item>
 					</v-list>
@@ -144,16 +147,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, computed, watchEffect } from "@vue/composition-api";
+import { defineComponent, ref, toRefs, computed, watchEffect, PropType } from "vue";
 import { API } from "@/common-http.js";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
-import { QueueItem, VideoId } from "common/models/video";
-import { QueueMode } from "common/models/types";
-import api from "@/util/api";
-import { useStore } from "@/util/vuex-workaround";
-import { i18n } from "@/i18n";
+import { QueueItem, VideoId } from "ott-common/models/video";
+import { QueueMode } from "ott-common/models/types";
+import { useStore } from "@/store";
 import toast from "@/util/toast";
+import placeholderUrl from "@/assets/placeholder.svg";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
+import { useRoomApi } from "@/util/roomapi";
+import { useConnection } from "@/plugins/connection";
 
 interface VideoQueueItemProps {
 	item: QueueItem;
@@ -164,13 +170,15 @@ interface VideoQueueItemProps {
 const VideoQueueItem = defineComponent({
 	name: "VideoQueueItem",
 	props: {
-		item: { type: Object, required: true },
+		item: { type: Object as PropType<QueueItem>, required: true },
 		isPreview: { type: Boolean, default: false },
 		index: { type: Number, required: false },
 	},
 	setup(props: VideoQueueItemProps) {
-		let { item, isPreview, index } = toRefs(props);
+		let { item, index } = toRefs(props);
 		const store = useStore();
+		const { t } = useI18n();
+		const roomapi = useRoomApi(useConnection());
 
 		let isLoadingAdd = ref(false);
 		let isLoadingVote = ref(false);
@@ -184,7 +192,7 @@ const VideoQueueItem = defineComponent({
 		let thumbnailSource = computed(() => {
 			return !thumbnailHasError.value && item.value.thumbnail
 				? item.value.thumbnail
-				: require("@/assets/placeholder.svg");
+				: placeholderUrl;
 		});
 		let votes = computed(() => {
 			const store = useStore();
@@ -225,16 +233,18 @@ const VideoQueueItem = defineComponent({
 				hasBeenAdded.value = true;
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n.t("video-queue-item.messages.video-added").toString(),
+					content: t("video-queue-item.messages.video-added").toString(),
 					duration: 5000,
 				});
 			} catch (e) {
 				hasError.value = true;
-				toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
+				if (axios.isAxiosError(e)) {
+					toast.add({
+						style: ToastStyle.Error,
+						content: e.response?.data.error.message,
+						duration: 6000,
+					});
+				}
 			}
 			isLoadingAdd.value = false;
 		}
@@ -248,16 +258,18 @@ const VideoQueueItem = defineComponent({
 				hasError.value = !resp.data.success;
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n.t("video-queue-item.messages.video-removed").toString(),
+					content: t("video-queue-item.messages.video-removed").toString(),
 					duration: 5000,
 				});
 			} catch (e) {
 				hasError.value = true;
-				toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
+				if (axios.isAxiosError(e)) {
+					toast.add({
+						style: ToastStyle.Error,
+						content: e.response?.data.error.message,
+						duration: 6000,
+					});
+				}
 			}
 			isLoadingAdd.value = false;
 		}
@@ -288,21 +300,21 @@ const VideoQueueItem = defineComponent({
 		}
 
 		function playNow() {
-			api.playNow(item.value);
+			roomapi.playNow(item.value);
 		}
 
 		/**
 		 * Moves the video to the top of the queue.
 		 */
 		function moveToTop() {
-			api.queueMove(index.value, 0);
+			roomapi.queueMove(index.value, 0);
 		}
 
 		/**
 		 * Moves the video to the bottom of the queue.
 		 */
 		function moveToBottom() {
-			api.queueMove(index.value, store.state.room.queue.length - 1);
+			roomapi.queueMove(index.value, store.state.room.queue.length - 1);
 		}
 
 		function onThumbnailError() {
@@ -333,9 +345,11 @@ const VideoQueueItem = defineComponent({
 			moveToTop,
 			moveToBottom,
 			onThumbnailError,
+			getPostData,
 
 			QueueMode,
 			store,
+			placeholderUrl,
 		};
 	},
 });
@@ -429,6 +443,7 @@ export default VideoQueueItem;
 			rgba(0, 0, 0, 0.7) 40%,
 			rgba(0, 0, 0, 0) 100%
 		);
+		cursor: move;
 
 		opacity: 0;
 

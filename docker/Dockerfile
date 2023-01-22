@@ -1,5 +1,5 @@
 ### Build stage ###
-FROM node:14-alpine3.11 as build-stage
+FROM node:18-alpine3.16 as build-stage
 
 # Create app directory
 WORKDIR /usr/app
@@ -8,7 +8,7 @@ WORKDIR /usr/app
 COPY . .
 
 # Install app dependencies
-RUN apk update -q && apk --no-cache add libc6-compat python make g++ autoconf automake libtool -q
+RUN apk update -q && apk --no-cache add libc6-compat python3 make g++ autoconf automake libtool -q
 
 # Install app dependencies
 RUN yarn
@@ -19,7 +19,7 @@ RUN yarn run build
 RUN rm -rf node_modules && yarn install --production=true
 
 ### Deployement server nginx ###
-FROM node:14-alpine3.11 as production-stage
+FROM node:18-alpine3.16 as production-stage
 
 # Create app directory
 WORKDIR /usr/app/

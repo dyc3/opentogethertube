@@ -776,7 +776,7 @@ export class Room implements RoomState {
 		await this.publish({
 			action: "user",
 			user: {
-				grants: this.grants.getMask(Role.Owner),
+				grants: this.grants.getMask(info.role),
 				...info,
 			},
 		});
@@ -869,6 +869,16 @@ export class Room implements RoomState {
 		authorization: RoomRequestAuthorization
 	): Promise<void> {
 		await this.processRequest(request, await this.deriveRequestContext(authorization, request));
+	}
+
+	/** Process the room request, but unsafely trust the client id of the room request */
+	public async processRequestUnsafe(request: RoomRequest, clientid: ClientId): Promise<void> {
+		let userInfo = this.getUserInfo(clientid);
+		await this.processRequest(request, {
+			username: userInfo.name,
+			role: userInfo.role,
+			clientId: clientid,
+		});
 	}
 
 	public async processRequest(request: RoomRequest, context: RoomRequestContext): Promise<void> {

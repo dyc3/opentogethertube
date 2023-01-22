@@ -4,8 +4,8 @@
 			<v-tab key="login">{{ $t("login-form.login") }}</v-tab>
 			<v-tab key="register">{{ $t("login-form.register") }}</v-tab>
 		</v-tabs>
-		<v-tabs-items v-model="mode">
-			<v-tab-item>
+		<v-window v-model="mode">
+			<v-window-item>
 				<v-card>
 					<v-form
 						ref="loginForm"
@@ -21,35 +21,39 @@
 								<v-col cols="12" md="6">
 									<v-container>
 										<v-btn
-											x-large
+											size="x-large"
 											block
 											href="/api/auth/discord"
 											color="#7289DA"
 											>{{ $t("login-form.login-discord") }}</v-btn
 										>
-										<!-- TODO: <v-btn x-large block>Log in with Google</v-btn> -->
+										<!-- TODO: <v-btn size="x-large" block>Log in with Google</v-btn> -->
 									</v-container>
 								</v-col>
 								<v-divider vertical />
 								<v-col cols="12" md="6" style="margin-left: -1px">
 									<v-container>
 										<v-row>
-											<v-text-field
-												:loading="isLoading"
-												:label="$t('login-form.email')"
-												required
-												v-model="email"
-												:error-messages="logInFailureMessage"
-												:rules="emailRules"
-											/>
-											<v-text-field
-												:loading="isLoading"
-												:label="$t('login-form.password')"
-												type="password"
-												required
-												v-model="password"
-												:error-messages="logInFailureMessage"
-											/>
+											<v-col>
+												<v-text-field
+													:loading="isLoading"
+													:label="$t('login-form.email')"
+													required
+													v-model="email"
+													:error-messages="logInFailureMessage"
+													:rules="emailRules"
+													data-cy="login-email"
+												/>
+												<v-text-field
+													:loading="isLoading"
+													:label="$t('login-form.password')"
+													type="password"
+													required
+													v-model="password"
+													:error-messages="logInFailureMessage"
+													data-cy="login-password"
+												/>
+											</v-col>
 										</v-row>
 										<v-row v-if="logInFailureMessage">
 											{{ logInFailureMessage }}
@@ -66,13 +70,14 @@
 								:loading="isLoading"
 								@click.prevent="login"
 								:disabled="!loginValid"
+								data-cy="login-button"
 								>{{ $t("login-form.login") }}</v-btn
 							>
 						</v-card-actions>
 					</v-form>
 				</v-card>
-			</v-tab-item>
-			<v-tab-item>
+			</v-window-item>
+			<v-window-item>
 				<v-card>
 					<v-form
 						ref="registerForm"
@@ -86,41 +91,43 @@
 						<v-card-text>
 							<v-container>
 								<v-row>
-									<v-text-field
-										:loading="isLoading"
-										:label="$t('login-form.email')"
-										required
-										v-model="email"
-										:error-messages="registerFieldErrors.email"
-										:rules="emailRules"
-									/>
-									<v-text-field
-										:loading="isLoading"
-										:label="$t('login-form.username')"
-										required
-										v-model="username"
-										:error-messages="registerFieldErrors.username"
-										:rules="usernameRules"
-									/>
-									<v-text-field
-										:loading="isLoading"
-										:label="$t('login-form.password')"
-										type="password"
-										required
-										v-model="password"
-										:error-messages="registerFieldErrors.password"
-										:rules="passwordRules"
-										counter
-									/>
-									<v-text-field
-										:loading="isLoading"
-										:label="$t('login-form.retype-password')"
-										type="password"
-										required
-										v-model="password2"
-										:error-messages="registerFieldErrors.password2"
-										:rules="retypePasswordRules"
-									/>
+									<v-col>
+										<v-text-field
+											:loading="isLoading"
+											:label="$t('login-form.email')"
+											required
+											v-model="email"
+											:error-messages="registerFieldErrors.email"
+											:rules="emailRules"
+										/>
+										<v-text-field
+											:loading="isLoading"
+											:label="$t('login-form.username')"
+											required
+											v-model="username"
+											:error-messages="registerFieldErrors.username"
+											:rules="usernameRules"
+										/>
+										<v-text-field
+											:loading="isLoading"
+											:label="$t('login-form.password')"
+											type="password"
+											required
+											v-model="password"
+											:error-messages="registerFieldErrors.password"
+											:rules="passwordRules"
+											counter
+										/>
+										<v-text-field
+											:loading="isLoading"
+											:label="$t('login-form.retype-password')"
+											type="password"
+											required
+											v-model="password2"
+											:error-messages="registerFieldErrors.password2"
+											:rules="retypePasswordRules"
+										/>
+									</v-col>
 								</v-row>
 								<v-row v-if="registerFailureMessage">
 									{{ registerFailureMessage }}
@@ -135,30 +142,32 @@
 								:loading="isLoading"
 								@click.prevent="register"
 								:disabled="!registerValid"
+								data-cy="register-button"
 								>{{ $t("login-form.register") }}</v-btn
 							>
 						</v-card-actions>
 					</v-form>
 				</v-card>
-			</v-tab-item>
-		</v-tabs-items>
+			</v-window-item>
+		</v-window>
 	</v-sheet>
 </template>
 
 <script lang="ts">
 import { API } from "@/common-http.js";
 import isEmail from "validator/es/lib/isEmail";
-import { USERNAME_LENGTH_MAX } from "common/constants";
-import { defineComponent, reactive, ref, watch } from "@vue/composition-api";
-import { useStore } from "@/util/vuex-workaround";
-import { i18n } from "@/i18n";
-import { VForm } from "vuetify/lib/components/VForm";
+import { USERNAME_LENGTH_MAX } from "ott-common/constants";
+import { defineComponent, reactive, ref, watch } from "vue";
+import { useStore } from "@/store";
+import { useI18n } from "vue-i18n";
+import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 
 const LogInForm = defineComponent({
 	name: "LogInForm",
 	emits: ["shouldClose"],
 	setup(props, { emit }) {
 		const store = useStore();
+		const { t } = useI18n();
 
 		let email = ref("");
 		let username = ref("");
@@ -184,25 +193,25 @@ const LogInForm = defineComponent({
 		const registerForm = ref<VForm | undefined>(null);
 
 		const emailRules = [
-			v => !!v || i18n.t("login-form.rules.email-required"),
-			v => (v && isEmail(v)) || i18n.t("login-form.rules.valid-email"),
+			v => !!v || t("login-form.rules.email-required"),
+			v => (v && isEmail(v)) || t("login-form.rules.valid-email"),
 		];
 		const usernameRules = [
-			v => !!v || i18n.t("login-form.rules.username-required"),
+			v => !!v || t("login-form.rules.username-required"),
 			v =>
 				(!!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX) ||
-				i18n.t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
+				t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
 		];
 		const passwordRules = [
-			v => !!v || i18n.t("login-form.rules.password-required"),
+			v => !!v || t("login-form.rules.password-required"),
 			v =>
 				(v && v.length >= 10) ||
-				(process.env.NODE_ENV === "development" && v === "1") ||
-				i18n.t("login-form.rules.password-length"),
+				(import.meta.env.NODE_ENV === "development" && v === "1") ||
+				t("login-form.rules.password-length"),
 		];
 		const retypePasswordRules = [
-			v => !!v || i18n.t("login-form.rules.retype-password"),
-			v => comparePassword(v) || i18n.t("login-form.rules.passwords-match"),
+			v => !!v || t("login-form.rules.retype-password"),
+			v => comparePassword(v) || t("login-form.rules.passwords-match"),
 		];
 
 		function comparePassword(v: string) {
@@ -244,7 +253,7 @@ const LogInForm = defineComponent({
 					password.value = "";
 				} else {
 					console.log("Log in failed");
-					logInFailureMessage.value = i18n.t(
+					logInFailureMessage.value = t(
 						"login-form.errors.something-weird-happened"
 					) as string;
 				}
@@ -253,13 +262,13 @@ const LogInForm = defineComponent({
 					if (err.response.data.error) {
 						logInFailureMessage.value = err.response.data.error.message;
 					} else {
-						logInFailureMessage.value = i18n.t(
+						logInFailureMessage.value = t(
 							"login-form.errors.login-failed-noserver"
 						) as string;
 					}
 				} else {
 					console.log("could not log in", err, err.response);
-					logInFailureMessage.value = i18n.t("login-form.errors.login-failed") as string;
+					logInFailureMessage.value = t("login-form.errors.login-failed") as string;
 				}
 			}
 			isLoading.value = false;
@@ -295,7 +304,7 @@ const LogInForm = defineComponent({
 					password2.value = "";
 				} else {
 					console.log("Registeration failed");
-					registerFailureMessage.value = i18n.t(
+					registerFailureMessage.value = t(
 						"login-form.errors.something-weird-happened"
 					) as string;
 				}
@@ -304,27 +313,23 @@ const LogInForm = defineComponent({
 					if (err.response.data.error) {
 						if (err.response.data.error.name === "AlreadyInUse") {
 							if (err.response.data.error.fields.includes("email")) {
-								registerFieldErrors.email = i18n.t(
-									"login-form.errors.in-use"
-								) as string;
+								registerFieldErrors.email = t("login-form.errors.in-use") as string;
 							}
 							if (err.response.data.error.fields.includes("username")) {
-								registerFieldErrors.username = i18n.t(
+								registerFieldErrors.username = t(
 									"login-form.errors.in-use"
 								) as string;
 							}
 						}
 						registerFailureMessage.value = err.response.data.error.message;
 					} else {
-						registerFailureMessage.value = i18n.t(
+						registerFailureMessage.value = t(
 							"login-form.errors.register-failed-noserver"
 						) as string;
 					}
 				} else {
 					console.log("could not register", err);
-					registerFailureMessage.value = i18n.t(
-						"login-form.errors.register-failed"
-					) as string;
+					registerFailureMessage.value = t("login-form.errors.register-failed") as string;
 				}
 			}
 			isLoading.value = false;

@@ -1,7 +1,7 @@
 <template>
 	<v-dialog v-model="show" width="600">
-		<template v-slot:activator="{ on, attrs }">
-			<v-btn v-bind="attrs" v-on="on" style="margin: 0 20px">
+		<template v-slot:activator="{ props }">
+			<v-btn v-bind="props" style="margin: 0 20px">
 				{{ $t("client-settings.activator") }}
 			</v-btn>
 		</template>
@@ -23,9 +23,15 @@
 				/>
 				<v-select
 					label="Theme"
-					:items="[Theme.dark, Theme.light]"
+					:items="[Theme.dark, Theme.light, Theme.deepblue, Theme.deepred]"
 					v-model="settings.theme"
-				/>
+				>
+					<template #item="{ item, props }">
+						<v-theme-provider :theme="item.value" with-background>
+							<v-list-item v-bind="props" />
+						</v-theme-provider>
+					</template>
+				</v-select>
 			</v-card-text>
 
 			<v-divider />
@@ -44,8 +50,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref, watch } from "@vue/composition-api";
-import { useStore } from "@/util/vuex-workaround";
+import { defineComponent, Ref, ref, watch } from "vue";
+import { useStore } from "@/store";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
 

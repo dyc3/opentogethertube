@@ -1,12 +1,13 @@
 const request = require("supertest");
 import roommanager from "../../roommanager";
-const app = require("../../app.js").app;
+import { app } from "../../app";
 const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
 const usermanager = require("../../usermanager.js");
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
 import { redisClient } from "../../redisclient";
 import tokens from "../../auth/tokens";
+import { setApiKey } from "../../admin";
 
 const TEST_API_KEY = "TESTAPIKEY";
 
@@ -85,7 +86,7 @@ describe.skip("Room API", () => {
 
 	describe("GET /room/list", () => {
 		beforeAll(() => {
-			process.env.OPENTOGETHERTUBE_API_KEY = TEST_API_KEY;
+			setApiKey(TEST_API_KEY);
 		});
 
 		beforeEach(() => {
@@ -864,7 +865,7 @@ describe("Announcements API", () => {
 	let publishSpy;
 
 	beforeAll(() => {
-		process.env.OPENTOGETHERTUBE_API_KEY = TEST_API_KEY;
+		setApiKey(TEST_API_KEY);
 		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 		});

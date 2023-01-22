@@ -6,6 +6,7 @@ import { RoomRequestType } from "../../common/models/messages";
 import usermanager from "../usermanager.js";
 import faker from "faker";
 import tokens from "../auth/tokens";
+import { setApiKey } from "../admin";
 
 const router = express.Router();
 const log = getLogger("api/dev");
@@ -59,6 +60,11 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 			},
 		});
 	}
+});
+
+router.post("/set-admin-api-key", (req, res) => {
+	setApiKey(req.body.newkey);
+	res.json({ success: true });
 });
 
 export default router;

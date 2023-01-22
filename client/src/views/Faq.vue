@@ -1,13 +1,13 @@
 <template>
 	<v-container>
-		<h1>{{ $t("faq.title") }}</h1>
+		<h1>{{ t("faq.title") }}</h1>
 		<v-row v-for="(item, index) in questions" :key="index">
 			<v-col>
 				<v-sheet>
 					<v-container>
-						<h2>{{ item.question }}</h2>
+						<h2>{{ t(item.question) }}</h2>
 						<!-- eslint-disable-next-line vue/no-v-html -->
-						<p v-html="item.answer"></p>
+						<p v-html="t(item.answer)"></p>
 					</v-container>
 				</v-sheet>
 			</v-col>
@@ -15,15 +15,41 @@
 	</v-container>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, onMounted, Ref, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+interface Question {
+	question: string;
+	answer: string;
+}
+
+export const FaqView = defineComponent({
 	name: "faq",
-	data() {
+	setup() {
+		let { t } = useI18n();
+
+		let questions: Ref<Question[]> = ref([]);
+
+		onMounted(() => {
+			let q: Question[] = [];
+			for (let i = 0; i <= 6; i++) {
+				q.push({
+					question: `faq.questions.${i}.question`,
+					answer: `faq.questions.${i}.answer`,
+				});
+			}
+			questions.value = q;
+		});
+
 		return {
-			questions: this.$t("faq.questions"),
+			t,
+			questions,
 		};
 	},
-};
+});
+
+export default FaqView;
 </script>
 
 <style lang="scss" scoped></style>

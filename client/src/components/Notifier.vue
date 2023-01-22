@@ -1,18 +1,19 @@
 <template>
-	<transition-group appear name="toast-list" tag="ul" class="toast-list">
-		<li
+	<transition-group appear name="toast-list" tag="div" class="toast-list">
+		<div
 			v-for="(toast, index) in $store.state.toast.notifications"
 			:key="toast.id"
 			class="toast-item"
 		>
 			<ToastNotification :toast="toast" :number="index" />
-		</li>
+		</div>
 		<v-btn
 			block
 			color="primary"
 			key="closeall"
 			@click="closeAll"
 			v-if="$store.state.toast.notifications.length > 1"
+			data-cy="toast-close-all"
 		>
 			{{ $t("actions.close-all") }}
 		</v-btn>
@@ -20,9 +21,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "@vue/composition-api";
+import { defineComponent } from "vue";
 import ToastNotification from "@/components/ToastNotification.vue";
-import { useStore } from "@/util/vuex-workaround";
+import { useStore } from "@/store";
+import toast from "@/util/toast";
 
 /**
  * Handles displaying all toast notifications.
@@ -34,6 +36,7 @@ const Notifier = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		toast.setStore(store);
 
 		function closeAll() {
 			store.commit("toast/CLEAR_ALL_TOASTS");
@@ -50,7 +53,9 @@ export default Notifier;
 
 <style lang="scss" scoped>
 .toast-list {
-	display: block;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
 	position: fixed;
 	padding: 0;
 	bottom: 0;
@@ -58,14 +63,10 @@ export default Notifier;
 	pointer-events: none;
 	z-index: 1000;
 
-	.v-stackbar,
+	.toast,
 	button {
 		pointer-events: auto;
 	}
-}
-
-li {
-	list-style-type: none;
 }
 
 // define the animations for individual toasts

@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "@vue/composition-api";
+import { defineComponent } from "vue";
 
 /** A component to help watch values from video players. */
 const DebugPlayerWatcher = defineComponent({

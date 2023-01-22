@@ -28,7 +28,7 @@ module.exports = {
 				},
 			},
 			plugins: ["vue"],
-			extends: ["plugin:vue/base", "plugin:vue/essential"],
+			extends: ["plugin:vue/vue3-essential"], // "plugin:vue/vue3-strongly-recommended"
 			rules: {
 				"vue/attribute-hyphenation": ["error", "always"],
 				"vue/html-self-closing": [
@@ -52,17 +52,24 @@ module.exports = {
 				"vue/no-v-html": "error",
 				"vue/v-bind-style": ["error", "shorthand"],
 				"vue/v-on-style": ["error", "shorthand"],
+				"vue/multi-word-component-names": "off",
+				"vue/no-multiple-template-root": "off",
 			},
 		},
 		{
 			files: ["*.ts", "*.tsx"],
 			parser: "@typescript-eslint/parser",
 			parserOptions: {
-				parser: "babel-eslint",
 				project: ["./tsconfig.json"],
 				ecmaFeatures: {
 					legacyDecorators: true,
 				},
+			},
+			rules: {
+				"@typescript-eslint/restrict-template-expressions": [
+					"warn",
+					{ allowNumber: true, allowBoolean: true },
+				],
 			},
 		},
 	],

@@ -4,6 +4,7 @@
 			<v-textarea
 				clearable
 				auto-grow
+				variant="underlined"
 				rows="1"
 				:placeholder="$t('add-preview.placeholder')"
 				v-model="inputAddPreview"
@@ -15,9 +16,14 @@
 		</v-row>
 		<v-row>
 			<div v-if="!production">
-				<v-btn v-for="(v, idx) in testVideos" :key="idx" @click="postTestVideo(idx)">{{
-					v[0]
-				}}</v-btn>
+				<v-btn
+					v-for="(v, idx) in testVideos"
+					:key="idx"
+					@click="inputAddPreview = v[1]"
+					data-cy="test-video"
+				>
+					{{ v[0] }}
+				</v-btn>
 			</div>
 			<v-btn
 				v-if="videos.length > 1"
@@ -46,9 +52,12 @@
 				<v-row justify="center" align="center">
 					<v-col cols="12">
 						{{ $t("add-preview.search-for", { search: inputAddPreview }) }}<br />
-						<v-btn @click="requestAddPreviewExplicit">{{
-							$t("add-preview.search")
-						}}</v-btn>
+						<v-btn
+							@click="requestAddPreviewExplicit"
+							data-cy="add-preview-manual-search"
+						>
+							{{ $t("add-preview.search") }}
+						</v-btn>
 					</v-col>
 				</v-row>
 			</v-container>
@@ -154,89 +163,105 @@
 	</div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, ref, computed, watch, Ref } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "@/store";
+import { useI18n } from "vue-i18n";
 import { API } from "@/common-http.js";
 import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import ProcessedText from "@/components/ProcessedText.vue";
 import { ToastStyle } from "@/models/toast";
-import Vue from "vue";
 import toast from "@/util/toast";
+import { Video } from "ott-common/models/video";
 
-export default Vue.extend({
+export const AddPreview = defineComponent({
 	name: "AddPreview",
 	components: {
 		VideoQueueItem,
 		ProcessedText,
 	},
-	data() {
-		return {
-			videos: [],
-			isLoadingAddPreview: false,
-			hasAddPreviewFailed: false,
-			inputAddPreview: "",
-			isLoadingAddAll: false,
-			videosLoadFailureText: "",
+	setup() {
+		const store = useStore();
+		const { t } = useI18n();
+		const route = useRoute();
 
-			testVideos: [
-				["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
-				["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
-				["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
-				["test vimeo 0", "https://vimeo.com/94338566"],
-				["test vimeo 1", "https://vimeo.com/239423699"],
-				["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
-				[
-					"test direct 0",
-					"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
-				],
-				["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
-				[
-					"test hls 0",
-					"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
-				],
-			],
-		};
-	},
-	computed: {
-		highlightedAddPreviewItem() {
-			return _.find(this.videos, { highlight: true });
-		},
-		isAddPreviewInputUrl() {
+		const videos: Ref<Video[]> = ref([]);
+		const isLoadingAddPreview = ref(false);
+		const hasAddPreviewFailed = ref(false);
+		const inputAddPreview = ref("");
+		const isLoadingAddAll = ref(false);
+		const videosLoadFailureText = ref("");
+
+		const testVideos = import.meta.env.DEV
+			? [
+					["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
+					["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
+					["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
+					["test vimeo 0", "https://vimeo.com/94338566"],
+					["test vimeo 1", "https://vimeo.com/239423699"],
+					["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
+					[
+						"test direct 0",
+						"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+					],
+					["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
+					[
+						"test hls 0",
+						"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+					],
+			  ]
+			: [];
+
+		// HACK: The @change event only triggers when the text field is defocused.
+		// This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
+		watch(inputAddPreview, () => {
+			// HACK: ensure that inputAddPreview always a string
+			if (inputAddPreview.value === null) {
+				inputAddPreview.value = "";
+			}
+			onInputAddPreviewChange();
+		});
+
+		const highlightedAddPreviewItem = computed(() => {
+			return _.find(videos.value, { highlight: true });
+		});
+		const isAddPreviewInputUrl = computed(() => {
 			try {
-				return !!new URL(this.inputAddPreview).host;
+				return !!new URL(inputAddPreview.value).host;
 			} catch (e) {
 				return false;
 			}
-		},
-		/**
-		 * This is used so we can test for development/production only behavior in unit tests.
-		 * Do not change.
-		 */
-		production() {
-			return this.$store.state.production;
-		},
-	},
-	methods: {
-		async requestAddPreview() {
-			await API.get(`/data/previewAdd?input=${encodeURIComponent(this.inputAddPreview)}`, {
+		});
+		const production = computed(() => {
+			/**
+			 * This is used so we can test for development/production only behavior in unit tests.
+			 * Do not change.
+			 */
+			return store.state.production;
+		});
+
+		async function requestAddPreview() {
+			await API.get(`/data/previewAdd?input=${encodeURIComponent(inputAddPreview.value)}`, {
 				validateStatus: status => status < 500,
 			})
 				.then(res => {
-					this.isLoadingAddPreview = false;
+					isLoadingAddPreview.value = false;
 					if (res.status === 200) {
-						this.hasAddPreviewFailed = false;
-						this.videos = res.data;
-						console.log(`Got add preview with ${this.videos.length}`);
+						hasAddPreviewFailed.value = false;
+						videos.value = res.data;
+						console.log(`Got add preview with ${videos.value.length}`);
 					} else if (res.status === 400) {
-						this.hasAddPreviewFailed = true;
-						this.videosLoadFailureText = res.data.error.message;
+						hasAddPreviewFailed.value = true;
+						videosLoadFailureText.value = res.data.error.message;
 						if (
 							res.data.error.name === "FeatureDisabledException" &&
-							!this.isAddPreviewInputUrl
+							!isAddPreviewInputUrl.value
 						) {
 							window.open(
 								`https://www.youtube.com/results?search_query=${encodeURIComponent(
-									this.inputAddPreview
+									inputAddPreview.value
 								)}`,
 								"_blank"
 							);
@@ -245,41 +270,38 @@ export default Vue.extend({
 						console.warn("Unknown status for add preview response:", res.status);
 						toast.add({
 							style: ToastStyle.Error,
-							content: this.$t("add-preview.messages.unknown-status", {
+							content: t("add-preview.messages.unknown-status", {
 								status: res.status,
 							}),
 						});
 					}
 				})
 				.catch(err => {
-					this.isLoadingAddPreview = false;
-					this.hasAddPreviewFailed = true;
-					this.videosLoadFailureText = this.$t("add-preview.messages.unknown-error");
+					isLoadingAddPreview.value = false;
+					hasAddPreviewFailed.value = true;
+					videosLoadFailureText.value = t("add-preview.messages.unknown-error");
 					console.error("Failed to get add preview", err);
 					toast.add({
 						style: ToastStyle.Error,
-						content: this.$t("add-preview.messages.failed-to-get-add-preview"),
+						content: t("add-preview.messages.failed-to-get-add-preview"),
 						duration: 6000,
 					});
 				});
-		},
-		requestAddPreviewDebounced: _.debounce(function () {
-			// HACK: can't use an arrow function here because it will make `this` undefined
-			this.requestAddPreview();
-		}, 1000),
+		}
+		const requestAddPreviewDebounced = _.debounce(requestAddPreview, 1000);
 		/**
 		 * Request an add preview regardless of the current input.
 		 */
-		async requestAddPreviewExplicit() {
-			this.isLoadingAddPreview = true;
-			this.hasAddPreviewFailed = false;
-			this.videos = [];
-			await this.requestAddPreview();
-		},
-		async addAllToQueue() {
-			this.isLoadingAddAll = true;
+		async function requestAddPreviewExplicit() {
+			isLoadingAddPreview.value = true;
+			hasAddPreviewFailed.value = false;
+			videos.value = [];
+			await requestAddPreview();
+		}
+		async function addAllToQueue() {
+			isLoadingAddAll.value = true;
 			try {
-				await API.post(`/room/${this.$route.params.roomId}/queue`, { videos: this.videos });
+				await API.post(`/room/${route.params.roomId}/queue`, { videos: videos.value });
 			} catch (err) {
 				let message = `${err}`;
 				if (err.response) {
@@ -287,83 +309,77 @@ export default Vue.extend({
 				}
 				toast.add({
 					style: ToastStyle.Error,
-					content: this.$t("add-preview.messages.failed-to-all-videos", {
+					content: t("add-preview.messages.failed-to-all-videos", {
 						message: message,
 					}),
 					duration: 4000,
 				});
 			}
-			this.isLoadingAddAll = false;
-		},
-		onInputAddPreviewChange() {
-			this.hasAddPreviewFailed = false;
-			if (!this.inputAddPreview || _.trim(this.inputAddPreview).length === 0) {
-				this.videos = [];
+			isLoadingAddAll.value = false;
+		}
+		function onInputAddPreviewChange() {
+			hasAddPreviewFailed.value = false;
+			if (!inputAddPreview.value || _.trim(inputAddPreview.value).length === 0) {
+				videos.value = [];
 				return;
 			}
-			if (!this.isAddPreviewInputUrl) {
-				this.videos = [];
+			if (!isAddPreviewInputUrl.value) {
+				videos.value = [];
 				// Don't send API requests for non URL inputs without the user's explicit input to do so.
 				// This is to help conserve youtube API quota.
 				return;
 			}
-			this.isLoadingAddPreview = true;
-			this.videos = [];
-			this.requestAddPreviewDebounced();
-		},
-		onInputAddPreviewKeyDown(e) {
+			isLoadingAddPreview.value = true;
+			videos.value = [];
+			requestAddPreviewDebounced();
+		}
+		function onInputAddPreviewKeyDown(e) {
 			if (e.keyCode === 13) {
 				e.preventDefault();
 			}
 
-			if (_.trim(this.inputAddPreview).length === 0 || this.isAddPreviewInputUrl) {
+			if (_.trim(inputAddPreview.value).length === 0 || isAddPreviewInputUrl.value) {
 				return;
 			}
 
-			if (e.keyCode === 13 && this.videos.length === 0) {
-				this.requestAddPreviewExplicit();
+			if (e.keyCode === 13 && videos.value.length === 0) {
+				requestAddPreviewExplicit();
 			}
-		},
-		async postTestVideo(v) {
-			try {
-				await API.post(`/room/${this.$route.params.roomId}/queue`, {
-					url: this.testVideos[v][1],
-				});
-				toast.add({
-					style: ToastStyle.Success,
-					content: `Added test video`,
-					duration: 2000,
-				});
-			} catch (e) {
-				console.error(e);
-				toast.add({
-					style: ToastStyle.Error,
-					content: `Failed to add test video: ${e}`,
-					duration: 4000,
-				});
-			}
-		},
-		onFocusHighlightText(e) {
+		}
+
+		function onFocusHighlightText(e) {
 			e.target.select();
-		},
-		setAddPreviewText(text) {
-			this.inputAddPreview = text;
-		},
-	},
-	watch: {
-		/**
-		 * HACK: The @change event only triggers when the text field is defocused.
-		 * This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
-		 */
-		inputAddPreview() {
-			// HACK: ensure that inputAddPreview always a string
-			if (this.inputAddPreview === null) {
-				this.inputAddPreview = "";
-			}
-			this.onInputAddPreviewChange();
-		},
+		}
+		function setAddPreviewText(text: string) {
+			inputAddPreview.value = text;
+		}
+
+		return {
+			videos,
+			isLoadingAddPreview,
+			hasAddPreviewFailed,
+			inputAddPreview,
+			isLoadingAddAll,
+			videosLoadFailureText,
+			testVideos,
+
+			highlightedAddPreviewItem,
+			isAddPreviewInputUrl,
+			production,
+
+			requestAddPreview,
+			requestAddPreviewDebounced,
+			requestAddPreviewExplicit,
+			addAllToQueue,
+			onInputAddPreviewChange,
+			onInputAddPreviewKeyDown,
+			onFocusHighlightText,
+			setAddPreviewText,
+		};
 	},
 });
+
+export default AddPreview;
 </script>
 
 <style lang="scss" scoped>

@@ -4,23 +4,23 @@
 			<span v-if="item.type === 'text'">{{ item.text }}</span>
 			<a
 				v-else-if="item.type === 'link'"
-				class="link"
+				class="link text-primary"
 				:href="item.text"
 				@click="e => onLinkClick(e, item.text)"
 			>
-				<v-tooltip top>
-					<template v-slot:activator="{ on, attrs }">
-						<span v-bind="attrs" v-on="on">{{ item.text }}</span>
-					</template>
-					<span>{{ $t("processed-text.link-hint") }}</span>
-				</v-tooltip>
+				<span>
+					{{ item.text }}
+					<v-tooltip top activator="parent" v-if="showAddQueueTooltip">
+						<span>{{ $t("processed-text.link-hint") }}</span>
+					</v-tooltip>
+				</span>
 			</a>
 		</span>
 	</span>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch, Ref } from "@vue/composition-api";
+import { defineComponent, ref, onMounted, watch, Ref, toRefs } from "vue";
 
 const urlRegex = /(https?:\/\/[^\s]+)/;
 
@@ -33,9 +33,11 @@ const ProcessedText = defineComponent({
 	name: "ProcessedText",
 	props: {
 		text: { type: String, required: true },
+		showAddQueueTooltip: { type: Boolean, default: true },
 	},
 	emits: ["link-click"],
-	setup({ text }, { emit }) {
+	setup(props, { emit }) {
+		let { text } = toRefs(props);
 		let content: Ref<ContentItem[]> = ref([]);
 
 		function onLinkClick(e: Event, link: string) {
@@ -46,18 +48,18 @@ const ProcessedText = defineComponent({
 
 		function processText() {
 			content.value = [];
-			if (!text) {
+			if (!text.value) {
 				return;
 			}
 			let match;
 			let index = 0;
 			let loop = 0;
-			while ((match = urlRegex.exec(text.substring(index))) !== null) {
+			while ((match = urlRegex.exec(text.value.substring(index))) !== null) {
 				// console.log("msg:", this.text, "match", match, "content", this.content);
 				if (match.index > index) {
 					content.value.push({
 						type: "text",
-						text: text.slice(index, index + match.index),
+						text: text.value.slice(index, index + match.index),
 					});
 				}
 				content.value.push({ type: "link", text: match[0] });
@@ -67,8 +69,8 @@ const ProcessedText = defineComponent({
 					break;
 				}
 			}
-			if (index < text.length) {
-				content.value.push({ type: "text", text: text.substring(index) });
+			if (index < text.value.length) {
+				content.value.push({ type: "text", text: text.value.substring(index) });
 			}
 		}
 
@@ -99,7 +101,6 @@ export default ProcessedText;
 @import "../variables.scss";
 
 .link {
-	color: $brand-color;
 	text-decoration: underline;
 }
 </style>

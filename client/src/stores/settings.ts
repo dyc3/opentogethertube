@@ -16,7 +16,11 @@ export enum RoomLayoutMode {
 export enum Theme {
 	light = "light",
 	dark = "dark",
+	deepred = "deepred",
+	deepblue = "deepblue",
 }
+
+export const ALL_THEMES = Object.keys(Theme).filter(key => Theme[key]);
 
 export const settingsModule: Module<SettingsState, unknown> = {
 	namespaced: true,
@@ -33,18 +37,13 @@ export const settingsModule: Module<SettingsState, unknown> = {
 
 			// apply some global settings
 			if (settings.theme !== undefined) {
-				// this is set up so that if the value of theme is invalid,
-				// it will default back to the dark theme instead of the light one.
-				switch (settings.theme) {
-					case Theme.dark:
-						vuetify.framework.theme.dark = true;
-						break;
-					case Theme.light:
-						vuetify.framework.theme.dark = false;
-						break;
-					default:
-						vuetify.framework.theme.dark = true;
-						break;
+				if (ALL_THEMES.includes(settings.theme)) {
+					vuetify.theme.global.name.value = settings.theme;
+				} else {
+					console.warn(
+						`Can't apply invalid theme: ${settings.theme}, defaulting to dark theme`
+					);
+					vuetify.theme.global.name.value = Theme.dark;
 				}
 			}
 		},

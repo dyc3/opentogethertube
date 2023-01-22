@@ -1,4 +1,4 @@
-import { OttWebsocketError } from "common/models/types";
+import { OttWebsocketError } from "ott-common/models/types";
 
 export default {
 	"landing": {
@@ -268,6 +268,7 @@ export default {
 		"arent-able-to-modify-permissions": "You aren't able to modify permissions in this room.",
 		"settings-applied": "Settings applied",
 		"now-own-the-room": "You now own the room {room}.",
+		"load-failed": "Failed to load room settings.",
 	},
 	"create-room-form": {
 		"card-title": "Create a Permanent Room",
@@ -354,6 +355,7 @@ export default {
 		"title": "Disconnected",
 		"find-another": "Find Another Room",
 		"dc-reasons": {
+			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
 			[OttWebsocketError.ROOM_NOT_FOUND]: "Room not found.",
 			[OttWebsocketError.ROOM_UNLOADED]: "Room was unloaded.",
 			[OttWebsocketError.MISSING_TOKEN]:

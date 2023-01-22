@@ -17,6 +17,7 @@ import {
 	OttApiResponseRoomCreate,
 	OttResponseBody,
 } from "../../common/models/rest-api";
+import { getApiKey } from "../admin";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -40,7 +41,7 @@ interface RoomListItem {
 }
 
 router.get("/list", (req, res) => {
-	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
+	const isAuthorized = req.get("apikey") === getApiKey();
 	if (req.get("apikey") && !isAuthorized) {
 		log.warn(
 			`Unauthorized request to room list endpoint: ip=${req.ip} forward-ip=${(
@@ -231,7 +232,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 };
 
 const deleteRoom: RequestHandler = async (req, res) => {
-	const isAuthorized = req.get("apikey") === process.env.OPENTOGETHERTUBE_API_KEY;
+	const isAuthorized = req.get("apikey") === getApiKey();
 	if (!isAuthorized) {
 		res.status(400).json({
 			success: false,

@@ -6,44 +6,50 @@
 				v-model="inputRoomSettings.title"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-title')"
+				data-cy="input-title"
 			/>
 			<v-text-field
 				:label="$t('room-settings.description')"
 				v-model="inputRoomSettings.description"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-description')"
+				data-cy="input-description"
 			/>
 			<v-select
 				:label="$t('room-settings.visibility')"
 				:items="[
-					{ text: $t('room-settings.public'), value: 'public' },
-					{ text: $t('room-settings.unlisted'), value: 'unlisted' },
+					{ title: $t('room-settings.public'), value: 'public' },
+					{ title: $t('room-settings.unlisted'), value: 'unlisted' },
 				]"
 				v-model="inputRoomSettings.visibility"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-visibility')"
 				data-cy="select-visibility"
-			/>
+			>
+				<template #item="{ props }">
+					<v-list-item v-bind="props" />
+				</template>
+			</v-select>
 			<v-select
 				:label="$t('room-settings.queue-mode')"
 				:items="[
 					{
-						name: $t('room-settings.manual'),
+						title: $t('room-settings.manual'),
 						value: QueueMode.Manual,
 						description: $t('room-settings.manual-hint'),
 					},
 					{
-						name: $t('room-settings.vote'),
+						title: $t('room-settings.vote'),
 						value: QueueMode.Vote,
 						description: $t('room-settings.vote-hint'),
 					},
 					{
-						name: $t('room-settings.loop'),
+						title: $t('room-settings.loop'),
 						value: QueueMode.Loop,
 						description: $t('room-settings.loop-hint'),
 					},
 					{
-						name: $t('room-settings.dj'),
+						title: $t('room-settings.dj'),
 						value: QueueMode.Dj,
 						description: $t('room-settings.dj-hint'),
 					},
@@ -53,35 +59,31 @@
 				:disabled="!granted('configure-room.set-queue-mode')"
 				data-cy="select-queueMode"
 			>
-				<template v-slot:item="data">
-					<v-list-item-content>
-						<v-list-item-title>{{ data.item.name }}</v-list-item-title>
-						<v-list-item-subtitle>{{ data.item.description }}</v-list-item-subtitle>
-					</v-list-item-content>
-				</template>
-				<template v-slot:selection="data">
-					<v-list-item-title>{{ data.item.name }}</v-list-item-title>
+				<template #item="{ props, item }">
+					<v-list-item v-bind="props">
+						<span class="text-grey text-caption">{{ item.raw.description }}</span>
+					</v-list-item>
 				</template>
 			</v-select>
 			<v-checkbox
 				v-model="inputRoomSettings.autoSkipSegments"
 				:label="$t('room-settings.auto-skip-text')"
+				:disabled="!granted('configure-room.set-auto-skip')"
+				data-cy="input-auto-skip"
 			/>
 			<PermissionsEditor
 				v-if="
-					!$store.state.room.isTemporary &&
-					$store.state.user &&
-					$store.state.room.hasOwner
+					!store.state.room.isTemporary && store.state.user && store.state.room.hasOwner
 				"
 				v-model="inputRoomSettings.grants"
-				:current-role="$store.state.users.you.role"
+				:current-role="store.state.users.you.role"
 			/>
-			<div v-else-if="$store.state.room.isTemporary">
+			<div v-else-if="store.state.room.isTemporary">
 				{{ $t("room-settings.permissions-not-available") }}
 			</div>
-			<div v-else-if="!$store.state.room.hasOwner">
+			<div v-else-if="!store.state.room.hasOwner">
 				{{ $t("room-settings.room-needs-owner") }}
-				<span v-if="!$store.state.user">
+				<span v-if="!store.state.user">
 					{{ $t("room-settings.login-to-claim") }}
 				</span>
 			</div>
@@ -90,21 +92,23 @@
 			</div>
 			<div class="submit">
 				<v-btn
-					large
+					size="large"
 					block
 					color="blue"
-					v-if="!$store.state.room.isTemporary && !$store.state.room.hasOwner"
-					:disabled="!$store.state.user"
+					v-if="!store.state.room.isTemporary && !store.state.room.hasOwner"
+					:disabled="!store.state.user"
 					role="submit"
 					@click="claimOwnership"
+					data-cy="claim"
 					>Claim Room</v-btn
 				>
 				<v-btn
-					x-large
+					size="x-large"
 					block
 					@click="submitRoomSettings"
 					role="submit"
 					:loading="isLoadingRoomSettings"
+					data-cy="save"
 					>{{ $t("actions.save") }}</v-btn
 				>
 			</div>
@@ -117,13 +121,13 @@ import _ from "lodash";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http.js";
-import { Visibility, QueueMode, RoomSettings } from "common/models/types";
-import type { Grants } from "common/permissions";
+import { Visibility, QueueMode, RoomSettings } from "ott-common/models/types";
+import type { Grants } from "ott-common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
-import { defineComponent, onMounted, Ref, ref } from "@vue/composition-api";
-import { useStore } from "@/util/vuex-workaround";
-import { i18n } from "@/i18n";
+import { defineComponent, onMounted, Ref, ref } from "vue";
+import { useStore } from "@/store";
+import { useI18n } from "vue-i18n";
 
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
@@ -132,6 +136,7 @@ const RoomSettingsForm = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		const { t } = useI18n();
 
 		let isLoadingRoomSettings = ref(false);
 		let inputRoomSettings: Ref<RoomSettings> = ref({
@@ -150,20 +155,28 @@ const RoomSettingsForm = defineComponent({
 		async function loadRoomSettings() {
 			// we have to make an API request becuase visibility is not sent in sync messages.
 			isLoadingRoomSettings.value = true;
-			let res = await API.get(`/room/${store.state.room.name}`);
-			isLoadingRoomSettings.value = false;
-			if (res.data.permissions && !res.data.grants) {
-				res.data.grants = res.data.permissions;
+			try {
+				let res = await API.get(`/room/${store.state.room.name}`);
+				if (res.data.permissions && !res.data.grants) {
+					res.data.grants = res.data.permissions;
+				}
+				inputRoomSettings.value = _.pick(
+					res.data,
+					"title",
+					"description",
+					"visibility",
+					"queueMode",
+					"grants",
+					"autoSkipSegments"
+				);
+			} catch (err) {
+				toast.add({
+					content: t("room-settings.load-failed"),
+					duration: 5000,
+					style: ToastStyle.Error,
+				});
 			}
-			inputRoomSettings.value = _.pick(
-				res.data,
-				"title",
-				"description",
-				"visibility",
-				"queueMode",
-				"grants",
-				"autoSkipSegments"
-			);
+			isLoadingRoomSettings.value = false;
 		}
 
 		function getRoomSettingsSubmit() {
@@ -193,7 +206,7 @@ const RoomSettingsForm = defineComponent({
 				await API.patch(`/room/${store.state.room.name}`, getRoomSettingsSubmit());
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n.t("room-settings.settings-applied").toString(),
+					content: t("room-settings.settings-applied").toString(),
 					duration: 4000,
 				});
 			} catch (e) {
@@ -215,11 +228,9 @@ const RoomSettingsForm = defineComponent({
 				});
 				toast.add({
 					style: ToastStyle.Success,
-					content: i18n
-						.t("room-settings.now-own-the-room", {
-							room: store.state.room.name,
-						})
-						.toString(),
+					content: t("room-settings.now-own-the-room", {
+						room: store.state.room.name,
+					}).toString(),
 					duration: 4000,
 				});
 			} catch (e) {

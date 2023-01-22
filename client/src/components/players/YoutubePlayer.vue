@@ -89,12 +89,17 @@ export default {
 				},
 			});
 		}
-		this.fitToContainer();
 
 		this.resizeObserver = new ResizeObserver(this.fitToContainer);
 		this.resizeObserver.observe(this.$el);
 	},
-	beforeDestroy() {
+	mounted() {
+		this.fitToContainer();
+	},
+	beforeUnmount() {
+		if (this.resizeObserver) {
+			this.resizeObserver.disconnect();
+		}
 		if (this.player && this.player.destroy) {
 			this.player.destroy();
 			delete this.player;
@@ -187,7 +192,6 @@ export default {
 			this.player.loadVideoById(this.videoId);
 		},
 		onStateChange(e) {
-			console.log("Youtube player state: ", e.data);
 			this.debug.YoutubeState = e.data;
 			if (e.data === YT_STATUS_ENDED) {
 				this.$emit("ended");
@@ -221,7 +225,7 @@ export default {
 			}
 
 			if (this.$store) {
-				this.$store.commit("PLAYBACK_BUFFER", this.player.getVideoLoadedFraction());
+				this.$emit("buffer-progress", this.player.getVideoLoadedFraction());
 			}
 		},
 		onError() {
@@ -232,6 +236,9 @@ export default {
 			this.fitToContainer();
 		}, 25),
 		fitToContainer() {
+			if (!this.player) {
+				return;
+			}
 			let iframe = this.player.getIframe();
 			let width = iframe.parentElement.offsetWidth;
 			let height = iframe.parentElement.offsetHeight;

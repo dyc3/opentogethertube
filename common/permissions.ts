@@ -11,6 +11,9 @@ export type PermissionName = string;
 export type OldRoleGrants = {
 	[P in keyof typeof Role]?: GrantMask;
 };
+/**
+ * A type that represents a mapping from a Role to the permission grants that the role has.
+ */
 export type RoleGrants = Map<Role, GrantMask>;
 
 /** @deprecated */
