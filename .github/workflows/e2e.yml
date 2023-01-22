@@ -171,7 +171,7 @@ jobs:
           group: 'E2E - ${{ matrix.browsers }}'
         env:
           PORT: 8080
-          REDIS_HOST: redis
+          REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
