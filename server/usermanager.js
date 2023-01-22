@@ -215,7 +215,7 @@ router.post("/logout", async (req, res) => {
 			success: true,
 		});
 	} else {
-		res.json({
+		res.status(400).json({
 			success: false,
 			error: {
 				message: "Not logged in.",
