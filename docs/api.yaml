@@ -107,6 +107,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/RoomName"
     get:
+      summary: Get room metadata
       tags:
         - room
       responses:
@@ -202,53 +203,61 @@ paths:
           description: ""
           content: {}
     patch:
+      summary: Change a room's settings or claim ownership of it
       tags:
         - room
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                autoSkipSegments:
-                  type: boolean
-                claim:
-                  type: boolean
-                visibility:
-                  type: string
-                title:
-                  type: string
-                queueMode:
-                  type: string
-                permissions:
-                  type: object
+              oneOf:
+                - type: object
                   properties:
-                    "0":
-                      type: number
-                    "1":
-                      type: number
-                    "2":
-                      type: number
-                    "3":
-                      type: number
-                    "4":
-                      type: number
-                    "-1":
-                      type: number
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    visibility:
+                      type: string
+                    queueMode:
+                      type: string
+                    autoSkipSegments:
+                      type: boolean
+                    permissions:
+                      type: object
+                      properties:
+                        "0":
+                          type: number
+                        "1":
+                          type: number
+                        "2":
+                          type: number
+                        "3":
+                          type: number
+                        "4":
+                          type: number
+                        "-1":
+                          type: number
+                      required:
+                        - "4"
+                        - "3"
+                        - "2"
+                        - "1"
+                        - "0"
+                      description: "Map of role numbers to the bitmask of permissions that role has been granted"
                   required:
-                    - "4"
-                    - "3"
-                    - "2"
-                    - "1"
-                    - "0"
-                  description: ""
-                description:
-                  type: string
-              required:
-                - autoSkipSegments
+                    - autoSkipSegments
+                  example:
+                    title: "New title"
+                - type: object
+                  properties:
+                    claim:
+                      type: boolean
+                    example:
+                      claim: true
       responses:
         "200":
-          description: ""
+          description: "Room settings were successfully modified"
           content:
             application/json:
               schema:
