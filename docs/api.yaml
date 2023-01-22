@@ -64,16 +64,7 @@ paths:
                   type: string
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
     delete:
       tags:
         - room
@@ -93,16 +84,7 @@ paths:
                 - id
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   "/api/room/{RoomName}":
     parameters:
       - $ref: "#/components/parameters/RoomName"
@@ -257,38 +239,13 @@ paths:
                       claim: true
       responses:
         "200":
-          description: "Room settings were successfully modified"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
         "500":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                      message:
-                        type: string
-                    required:
-                      - name
-                      - message
-                required:
-                  - success
-                  - error
+          $ref: "#/components/responses/Error"
     delete:
       description: Unloads the room from memory, if present. Does **not** delete
         permanent rooms from the database.
@@ -296,16 +253,7 @@ paths:
         - room
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   /api/user:
     get:
       tags:
@@ -344,6 +292,7 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   room:
                     type: string
                     description: The name of the room that was created. Should be automatically
@@ -427,16 +376,7 @@ paths:
                 - description
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   /api/data/previewAdd:
     get:
       description: Used to display videos to the end user before they add them to the
@@ -497,16 +437,7 @@ paths:
       description: Only available in development mode.
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   /api/user/register:
     post:
       tags:
@@ -645,23 +576,9 @@ paths:
         - user
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                    required:
-                      - message
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
   /api/auth/grant:
     get:
       summary: Get an auth token. Required for most other operations.
@@ -732,6 +649,44 @@ components:
         - loop
         - dj
       example: manual
+    Error:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "PermissionDeniedException"
+        message:
+          type: string
+      required:
+        - message
+  responses:
+    Success:
+      description: The operation was successful.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+            required:
+              - success
+    Error:
+      description: The operation failed for the given reason.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                $ref: "#/components/schemas/Error"
+            required:
+              - success
+              - error
   parameters:
     RoomName:
       name: RoomName
