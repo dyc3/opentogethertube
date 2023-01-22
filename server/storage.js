@@ -1,11 +1,15 @@
 const _ = require("lodash");
 const dayjs = require("dayjs");
-const { Room, CachedVideo, User } = require("./models");
+const { Room, CachedVideo, User, sequelize } = require("./models");
 const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
 const permissions = require("../common/permissions");
+import { setupPostgresMetricsCollection } from "./storage.metrics";
 
 const log = getLogger("storage");
+if (process.env.NODE_ENV === "production" && process.env.DB_MODE !== "sqlite") {
+	setupPostgresMetricsCollection(sequelize);
+}
 
 /**
  * Converts a room into an object that can be stored in the database;
