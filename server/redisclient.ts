@@ -51,7 +51,8 @@ function wrapInAsync(client: redis.RedisClient): RedisClientAsync {
 			channel: string,
 			message: string
 		) => Promise<number>,
-		info: promisify(redisClient.info).bind(redisClient) as (
+		// HACK: redis-mock doesn't implement info, so we have to do this.
+		info: promisify(redisClient.info ?? (() => {})).bind(redisClient) as (
 			section?: string
 		) => Promise<string>,
 		dbsize: promisify(redisClient.dbsize).bind(redisClient) as () => Promise<number>,
