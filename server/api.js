@@ -150,7 +150,7 @@ router.get("/room/:name", async (req, res) => {
 
 router.post("/room/generate", async (req, res) => {
 	let points = 50;
-	if (!consumeRateLimitPoints(res, req.ip, points)) {
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
 	let roomName = uuidv4();
@@ -173,7 +173,7 @@ router.post("/room/:name/queue", async (req, res) => {
 		if (req.body.videos) {
 			points = 3 * req.body.videos.length;
 		}
-		if (!consumeRateLimitPoints(res, req.ip, points)) {
+		if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 			return;
 		}
 		room = await roommanager.GetRoom(req.params.name);
@@ -210,7 +210,7 @@ router.delete("/room/:name/queue", async (req, res) => {
 	let room;
 	try {
 		let points = 5;
-		if (!consumeRateLimitPoints(res, req.ip, points)) {
+		if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 			return;
 		}
 		room = await roommanager.GetRoom(req.params.name);
@@ -247,7 +247,7 @@ router.get("/data/previewAdd", async (req, res) => {
 	if (!InfoExtract.isURL(req.query.input)) {
 		points *= 15;
 	}
-	if (!consumeRateLimitPoints(res, req.ip, points)) {
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
 	try {

@@ -120,7 +120,7 @@ const createRoom: RequestHandler<
 	if (!req.body.isTemporary) {
 		points *= 4;
 	}
-	if (!consumeRateLimitPoints(res, req.ip, points)) {
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
 

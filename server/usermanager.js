@@ -228,7 +228,7 @@ router.post("/logout", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-	if (!consumeRateLimitPoints(res, req.ip, 100)) {
+	if (!(await consumeRateLimitPoints(res, req.ip, 100))) {
 		return;
 	}
 	try {
