@@ -1,8 +1,9 @@
 openapi: 3.0.3
 x-optic-path-ignore:
-  - "**/*.+(js|ts)x?"
-  - "**/*.+(css|vue|jpg|jpeg|png|gif|ico)"
+  - "**/*.+(js|ts|jsx|tsx)"
+  - "**/*.+(css|vue|jpg|jpeg|png|gif|ico|svg|html)"
   - /@(id|fs)/**
+  - /node_modules/**
 info:
   title: OpenTogetherTube REST API
   description: This specifies all the endpoints available on OpenTogetherTube. All
