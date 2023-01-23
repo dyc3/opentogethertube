@@ -49,31 +49,26 @@ paths:
     post:
       tags:
         - room
-      summary: Add a video to the queue.
+      summary: Add one or more videos to the queue.
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                service:
-                  type: string
-                id:
-                  type: string
+              oneOf:
+                - $ref: "#/components/schemas/VideoId"
+                - type: object
+                  properties:
+                    url:
+                      type: string
+                - type: object
+                  properties:
+                    videos:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/VideoId"
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
     delete:
       tags:
         - room
@@ -82,31 +77,15 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                service:
-                  type: string
-                id:
-                  type: string
-              required:
-                - service
-                - id
+              $ref: "#/components/schemas/VideoId"
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   "/api/room/{RoomName}":
     parameters:
       - $ref: "#/components/parameters/RoomName"
     get:
+      summary: Get room metadata
       tags:
         - room
       responses:
@@ -148,11 +127,11 @@ paths:
                             - isLoggedIn
                             - id
                       visibility:
-                        type: string
+                        $ref: "#/components/schemas/visibility"
                       title:
                         type: string
                       queueMode:
-                        type: string
+                        $ref: "#/components/schemas/queuemode"
                       queue:
                         type: array
                         items: {}
@@ -202,84 +181,67 @@ paths:
           description: ""
           content: {}
     patch:
+      summary: Change a room's settings or claim ownership of it
       tags:
         - room
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                autoSkipSegments:
-                  type: boolean
-                claim:
-                  type: boolean
-                visibility:
-                  type: string
-                title:
-                  type: string
-                queueMode:
-                  type: string
-                permissions:
-                  type: object
+              oneOf:
+                - type: object
                   properties:
-                    "0":
-                      type: number
-                    "1":
-                      type: number
-                    "2":
-                      type: number
-                    "3":
-                      type: number
-                    "4":
-                      type: number
-                    "-1":
-                      type: number
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    visibility:
+                      $ref: "#/components/schemas/visibility"
+                    queueMode:
+                      $ref: "#/components/schemas/queuemode"
+                    autoSkipSegments:
+                      type: boolean
+                    permissions:
+                      type: object
+                      properties:
+                        "0":
+                          type: number
+                        "1":
+                          type: number
+                        "2":
+                          type: number
+                        "3":
+                          type: number
+                        "4":
+                          type: number
+                        "-1":
+                          type: number
+                      required:
+                        - "4"
+                        - "3"
+                        - "2"
+                        - "1"
+                        - "0"
+                      description: "Map of role numbers to the bitmask of permissions that role has been granted"
                   required:
-                    - "4"
-                    - "3"
-                    - "2"
-                    - "1"
-                    - "0"
-                  description: ""
-                description:
-                  type: string
-              required:
-                - autoSkipSegments
+                    - autoSkipSegments
+                  example:
+                    title: "New title"
+                - type: object
+                  properties:
+                    claim:
+                      type: boolean
+                    example:
+                      claim: true
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
         "500":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                      message:
-                        type: string
-                    required:
-                      - name
-                      - message
-                required:
-                  - success
-                  - error
+          $ref: "#/components/responses/Error"
     delete:
       description: Unloads the room from memory, if present. Does **not** delete
         permanent rooms from the database.
@@ -287,16 +249,7 @@ paths:
         - room
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   /api/user:
     get:
       tags:
@@ -335,6 +288,7 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   room:
                     type: string
                     description: The name of the room that was created. Should be automatically
@@ -398,13 +352,13 @@ paths:
               type: object
               properties:
                 visibility:
-                  type: string
+                  $ref: "#/components/schemas/visibility"
                 title:
                   type: string
                 temporary:
                   type: boolean
                 queueMode:
-                  type: string
+                  $ref: "#/components/schemas/queuemode"
                 name:
                   type: string
                 description:
@@ -418,16 +372,7 @@ paths:
                 - description
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   /api/data/previewAdd:
     get:
       description: Used to display videos to the end user before they add them to the
@@ -488,16 +433,7 @@ paths:
       description: Only available in development mode.
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
   /api/user/register:
     post:
       tags:
@@ -636,23 +572,9 @@ paths:
         - user
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                    required:
-                      - message
-                required:
-                  - success
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
   /api/auth/grant:
     get:
       summary: Get an auth token. Required for most other operations.
@@ -707,6 +629,72 @@ paths:
           content:
             text/plain; charset=utf-8; version=0.0.4: {}
 components:
+  schemas:
+    visibility:
+      type: string
+      enum:
+        - public
+        - unlisted
+        - private
+      example: public
+    queuemode:
+      type: string
+      enum:
+        - manual
+        - vote
+        - loop
+        - dj
+      example: manual
+    Error:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "PermissionDeniedException"
+        message:
+          type: string
+      required:
+        - message
+    VideoId:
+      type: object
+      properties:
+        service:
+          type: string
+          example: "youtube"
+        id:
+          type: string
+          example: "dQw4w9WgXcQ"
+      required:
+        - service
+        - id
+  responses:
+    Success:
+      description: The operation was successful.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+            required:
+              - success
+    Error:
+      description: The operation failed for the given reason.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                $ref: "#/components/schemas/Error"
+            required:
+              - success
+              - error
   parameters:
     RoomName:
       name: RoomName

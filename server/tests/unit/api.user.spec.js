@@ -245,7 +245,7 @@ describe("User API", () => {
 					.post("/api/user/logout")
 					.set("Authorization", `Bearer ${token}`)
 					.expect("Content-Type", /json/)
-					.expect(200)
+					.expect(400)
 					.then(resp => {
 						expect(resp.body.success).toBe(false);
 					});
