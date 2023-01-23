@@ -5,7 +5,7 @@ import InfoExtract from "./infoextractor";
 import { RoomRequestType } from "../common/models/messages";
 const { getLogger } = require("./logger.js");
 import roommanager from "./roommanager";
-const { rateLimiter, handleRateLimit, setRateLimitHeaders } = require("./rate-limit");
+import { consumeRateLimitPoints } from "./rate-limit";
 import { QueueMode } from "../common/models/types";
 import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
@@ -149,24 +149,9 @@ router.get("/room/:name", async (req, res) => {
 });
 
 router.post("/room/generate", async (req, res) => {
-	try {
-		let info = await rateLimiter.consume(req.ip, 50);
-		setRateLimitHeaders(res, info);
-	} catch (e) {
-		if (e instanceof Error) {
-			log.error(`Unable to generate room: ${e} ${e.message}`);
-			res.status(500).json({
-				success: false,
-				error: {
-					name: "Unknown",
-					message: "An unknown error occured when creating this room. Try again later.",
-				},
-			});
-			return;
-		} else {
-			handleRateLimit(res, e);
-			return;
-		}
+	let points = 50;
+	if (!consumeRateLimitPoints(res, req.ip, points)) {
+		return;
 	}
 	let roomName = uuidv4();
 	log.debug(`Generating room: ${roomName}`);
@@ -188,16 +173,8 @@ router.post("/room/:name/queue", async (req, res) => {
 		if (req.body.videos) {
 			points = 3 * req.body.videos.length;
 		}
-		try {
-			let info = await rateLimiter.consume(req.ip, points);
-			setRateLimitHeaders(res, info);
-		} catch (e) {
-			if (e instanceof Error) {
-				throw e;
-			} else {
-				handleRateLimit(res, e);
-				return;
-			}
+		if (!consumeRateLimitPoints(res, req.ip, points)) {
+			return;
 		}
 		room = await roommanager.GetRoom(req.params.name);
 	} catch (err) {
@@ -233,16 +210,8 @@ router.delete("/room/:name/queue", async (req, res) => {
 	let room;
 	try {
 		let points = 5;
-		try {
-			let info = await rateLimiter.consume(req.ip, points);
-			setRateLimitHeaders(res, info);
-		} catch (e) {
-			if (e instanceof Error) {
-				throw e;
-			} else {
-				handleRateLimit(res, e);
-				return;
-			}
+		if (!consumeRateLimitPoints(res, req.ip, points)) {
+			return;
 		}
 		room = await roommanager.GetRoom(req.params.name);
 	} catch (err) {
@@ -275,19 +244,11 @@ router.delete("/room/:name/queue", async (req, res) => {
 
 router.get("/data/previewAdd", async (req, res) => {
 	let points = 5;
-	try {
-		if (!InfoExtract.isURL(req.query.input)) {
-			points *= 15;
-		}
-		let info = await rateLimiter.consume(req.ip, points);
-		setRateLimitHeaders(res, info);
-	} catch (e) {
-		if (e instanceof Error) {
-			throw e;
-		} else {
-			handleRateLimit(res, e);
-			return;
-		}
+	if (!InfoExtract.isURL(req.query.input)) {
+		points *= 15;
+	}
+	if (!consumeRateLimitPoints(res, req.ip, points)) {
+		return;
 	}
 	try {
 		log.info(`Getting queue add preview for ${req.query.input}`);

@@ -4,6 +4,8 @@ import {
 	IRateLimiterStoreOptions,
 	RateLimiterMemory,
 	RateLimiterRedis,
+	RateLimiterAbstract,
+	RateLimiterRes,
 } from "rate-limiter-flexible";
 
 const log = getLogger("api/rate-limit");
@@ -22,13 +24,36 @@ export const rateLimiter =
 		? new RateLimiterMemory(rateLimitOpts)
 		: new RateLimiterRedis(rateLimitOpts);
 
-export function setRateLimitHeaders(res, info) {
+export async function consumeRateLimitPoints(
+	res,
+	key: string,
+	points: number,
+	limiter: RateLimiterAbstract = rateLimiter
+): Promise<boolean> {
+	if (process.env.ENABLE_RATE_LIMIT === "false") {
+		return true;
+	}
+	try {
+		let info = await limiter.consume(key, points);
+		setRateLimitHeaders(res, info);
+		return true;
+	} catch (e) {
+		if (e instanceof Error) {
+			throw e;
+		} else {
+			handleRateLimit(res, e);
+			return false;
+		}
+	}
+}
+
+export function setRateLimitHeaders(res, info: RateLimiterRes) {
 	res.set("X-RateLimit-Limit", rateLimitOpts.points);
 	res.set("X-RateLimit-Remaining", info.remainingPoints);
 	res.set("X-RateLimit-Reset", new Date(Date.now() + info.msBeforeNext));
 }
 
-export function handleRateLimit(res, info) {
+export function handleRateLimit(res, info: RateLimiterRes) {
 	log.debug(`Rate limit hit: ${JSON.stringify(info)}`);
 	const secs = Math.round(info.msBeforeNext / 1000) || 1;
 	res.set("Retry-After", String(secs));
@@ -44,11 +69,13 @@ export function handleRateLimit(res, info) {
 
 module.exports = {
 	rateLimiter,
+	consumeRateLimitPoints,
 	setRateLimitHeaders,
 	handleRateLimit,
 };
 export default {
 	rateLimiter,
+	consumeRateLimitPoints,
 	setRateLimitHeaders,
 	handleRateLimit,
 };
