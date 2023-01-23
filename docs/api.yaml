@@ -596,6 +596,39 @@ paths:
           description: Metrics exported for Prometheus.
           content:
             text/plain; charset=utf-8; version=0.0.4: {}
+  /api/room/{RoomName}/vote:
+    post:
+      tags:
+        - room
+      summary: Add a vote for a video.
+      parameters:
+        - $ref: "#/components/parameters/RoomName"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - room
+      summary: Remove a vote for a video.
+      parameters:
+        - $ref: "#/components/parameters/RoomName"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
 components:
   schemas:
     visibility:
