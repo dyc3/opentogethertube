@@ -202,38 +202,22 @@ paths:
                       $ref: "#/components/schemas/queuemode"
                     autoSkipSegments:
                       type: boolean
-                    permissions:
-                      type: object
-                      properties:
-                        "0":
+                    grants:
+                      description: Map of role numbers to the bitmask of permissions that role has
+                        been granted
+                      type: array
+                      items:
+                        type: array
+                        items:
                           type: number
-                        "1":
-                          type: number
-                        "2":
-                          type: number
-                        "3":
-                          type: number
-                        "4":
-                          type: number
-                        "-1":
-                          type: number
-                      required:
-                        - "4"
-                        - "3"
-                        - "2"
-                        - "1"
-                        - "0"
-                      description: "Map of role numbers to the bitmask of permissions that role has been granted"
-                  required:
-                    - autoSkipSegments
                   example:
-                    title: "New title"
+                    title: New title
                 - type: object
                   properties:
                     claim:
                       type: boolean
-                    example:
-                      claim: true
+                  example:
+                    claim: true
       responses:
         "200":
           $ref: "#/components/responses/Success"
@@ -403,13 +387,13 @@ paths:
                       type: string
                     description:
                       type: string
+                    mime:
+                      type: string
                   required:
-                    - title
-                    - thumbnail
                     - service
-                    - length
                     - id
-                    - description
+        "400":
+          $ref: "#/components/responses/Error"
   /api/user/auth/discord:
     get:
       tags:
@@ -549,24 +533,7 @@ paths:
                   - user
                   - success
         "401":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                    required:
-                      - message
-                required:
-                  - success
-                  - error
+          $ref: "#/components/responses/Error"
   /api/user/logout:
     post:
       tags:
@@ -651,7 +618,7 @@ components:
       properties:
         name:
           type: string
-          example: "PermissionDeniedException"
+          example: PermissionDeniedException
         message:
           type: string
       required:
@@ -661,10 +628,10 @@ components:
       properties:
         service:
           type: string
-          example: "youtube"
+          example: youtube
         id:
           type: string
-          example: "dQw4w9WgXcQ"
+          example: dQw4w9WgXcQ
       required:
         - service
         - id
