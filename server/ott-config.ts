@@ -89,6 +89,10 @@ export const configValidators: Record<string, ConfigValidatorEntry> = {
 		required: false,
 		validator: value => !value || validator.isNumeric(value, { no_symbols: true }),
 	},
+	ENABLE_RATE_LIMIT: {
+		required: false,
+		validator: value => !value || ["true", "false"].includes(value),
+	},
 };
 
 let configCalidationFailed = false;
@@ -135,3 +139,8 @@ if (!process.env.SEARCH_PROVIDER) {
 	process.env.SEARCH_PROVIDER = "youtube";
 }
 log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
+
+if (process.env.ENABLE_RATE_LIMIT === undefined) {
+	process.env.ENABLE_RATE_LIMIT = "true";
+}
+log.info(`Rate limiting enabled: ${process.env.ENABLE_RATE_LIMIT}`);

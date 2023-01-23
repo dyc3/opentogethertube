@@ -2,7 +2,7 @@ import _ from "lodash";
 import { getLogger } from "../logger.js";
 import roommanager from "../roommanager";
 import { QueueMode, Visibility } from "../../common/models/types";
-import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "../rate-limit";
+import { consumeRateLimitPoints } from "../rate-limit";
 import { BadApiArgumentException } from "../exceptions";
 import { OttException } from "../../common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
@@ -120,19 +120,12 @@ const createRoom: RequestHandler<
 	if (!req.body.isTemporary) {
 		points *= 4;
 	}
+	if (!consumeRateLimitPoints(res, req.ip, points)) {
+		return;
+	}
+
 	if (!req.body.visibility) {
 		req.body.visibility = Visibility.Public;
-	}
-	try {
-		const info = await rateLimiter.consume(req.ip, points);
-		setRateLimitHeaders(res, info);
-	} catch (e) {
-		if (e instanceof Error) {
-			throw e;
-		} else {
-			handleRateLimit(res, e);
-			return;
-		}
 	}
 	if (req.user) {
 		await roommanager.CreateRoom({ ...req.body, owner: req.user });

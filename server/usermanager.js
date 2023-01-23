@@ -8,7 +8,7 @@ import { User, Room } from "./models";
 import clientmanager from "./clientmanager";
 import { redisClient, redisClientAsync } from "./redisclient";
 import { RateLimiterRedis } from "rate-limiter-flexible";
-import { rateLimiter, handleRateLimit, setRateLimitHeaders } from "./rate-limit";
+import { consumeRateLimitPoints } from "./rate-limit";
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
@@ -17,6 +17,7 @@ import { LengthOutOfRangeException } from "./exceptions";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
+const ENABLE_RATE_LIMIT = process.env.ENABLE_RATE_LIMIT === "true";
 
 const limiterSlowBruteByIP = new RateLimiterRedis({
 	storeClient: redisClient,
@@ -129,32 +130,34 @@ router.post("/login", async (req, res, next) => {
 	const ipAddr = req.ip;
 	const usernameIPkey = `${req.body.email ? req.body.email : req.body.username}_${ipAddr}`;
 
-	const [resUsernameAndIP, resSlowByIP] = await Promise.all([
-		limiterConsecutiveFailsByUsernameAndIP.get(usernameIPkey),
-		limiterSlowBruteByIP.get(ipAddr),
-	]);
+	if (ENABLE_RATE_LIMIT) {
+		const [resUsernameAndIP, resSlowByIP] = await Promise.all([
+			limiterConsecutiveFailsByUsernameAndIP.get(usernameIPkey),
+			limiterSlowBruteByIP.get(ipAddr),
+		]);
 
-	let retrySecs = 0;
+		let retrySecs = 0;
 
-	// Check if IP or Username + IP is already blocked
-	if (resSlowByIP !== null && resSlowByIP.consumedPoints > maxWrongAttemptsByIPperDay) {
-		retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
-	} else if (
-		resUsernameAndIP !== null &&
-		resUsernameAndIP.consumedPoints > maxConsecutiveFailsByUsernameAndIP
-	) {
-		retrySecs = Math.round(resUsernameAndIP.msBeforeNext / 1000) || 1;
-	}
+		// Check if IP or Username + IP is already blocked
+		if (resSlowByIP !== null && resSlowByIP.consumedPoints > maxWrongAttemptsByIPperDay) {
+			retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
+		} else if (
+			resUsernameAndIP !== null &&
+			resUsernameAndIP.consumedPoints > maxConsecutiveFailsByUsernameAndIP
+		) {
+			retrySecs = Math.round(resUsernameAndIP.msBeforeNext / 1000) || 1;
+		}
 
-	if (retrySecs > 0) {
-		res.set("Retry-After", String(retrySecs));
-		res.status(429).json({
-			error: {
-				name: "TooManyRequests",
-				message: "Too many attempts.",
-			},
-		});
-		return;
+		if (retrySecs > 0) {
+			res.set("Retry-After", String(retrySecs));
+			res.status(429).json({
+				error: {
+					name: "TooManyRequests",
+					message: "Too many attempts.",
+				},
+			});
+			return;
+		}
 	}
 
 	passport.authenticate("local", (err, user) => {
@@ -225,16 +228,8 @@ router.post("/logout", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-	try {
-		let info = await rateLimiter.consume(req.ip, 100);
-		setRateLimitHeaders(res, info);
-	} catch (e) {
-		if (e instanceof Error) {
-			throw e;
-		} else {
-			handleRateLimit(res, e);
-			return;
-		}
+	if (!consumeRateLimitPoints(res, req.ip, 100)) {
+		return;
 	}
 	try {
 		let result = await usermanager.registerUser(req.body);
