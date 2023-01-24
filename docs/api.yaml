@@ -1,8 +1,9 @@
 openapi: 3.0.3
 x-optic-path-ignore:
-  - "**/*.+(js|ts)x?"
-  - "**/*.+(css|vue|jpg|jpeg|png|gif|ico)"
+  - "**/*.+(js|ts|jsx|tsx)"
+  - "**/*.+(css|vue|jpg|jpeg|png|gif|ico|svg|html)"
   - /@(id|fs)/**
+  - /node_modules/**
 info:
   title: OpenTogetherTube REST API
   description: This specifies all the endpoints available on OpenTogetherTube. All
@@ -201,38 +202,22 @@ paths:
                       $ref: "#/components/schemas/queuemode"
                     autoSkipSegments:
                       type: boolean
-                    permissions:
-                      type: object
-                      properties:
-                        "0":
+                    grants:
+                      description: Map of role numbers to the bitmask of permissions that role has
+                        been granted
+                      type: array
+                      items:
+                        type: array
+                        items:
                           type: number
-                        "1":
-                          type: number
-                        "2":
-                          type: number
-                        "3":
-                          type: number
-                        "4":
-                          type: number
-                        "-1":
-                          type: number
-                      required:
-                        - "4"
-                        - "3"
-                        - "2"
-                        - "1"
-                        - "0"
-                      description: "Map of role numbers to the bitmask of permissions that role has been granted"
-                  required:
-                    - autoSkipSegments
                   example:
-                    title: "New title"
+                    title: New title
                 - type: object
                   properties:
                     claim:
                       type: boolean
-                    example:
-                      claim: true
+                  example:
+                    claim: true
       responses:
         "200":
           $ref: "#/components/responses/Success"
@@ -402,13 +387,13 @@ paths:
                       type: string
                     description:
                       type: string
+                    mime:
+                      type: string
                   required:
-                    - title
-                    - thumbnail
                     - service
-                    - length
                     - id
-                    - description
+        "400":
+          $ref: "#/components/responses/Error"
   /api/user/auth/discord:
     get:
       tags:
@@ -548,24 +533,7 @@ paths:
                   - user
                   - success
         "401":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                    required:
-                      - message
-                required:
-                  - success
-                  - error
+          $ref: "#/components/responses/Error"
   /api/user/logout:
     post:
       tags:
@@ -628,6 +596,39 @@ paths:
           description: Metrics exported for Prometheus.
           content:
             text/plain; charset=utf-8; version=0.0.4: {}
+  /api/room/{RoomName}/vote:
+    post:
+      tags:
+        - room
+      summary: Add a vote for a video.
+      parameters:
+        - $ref: "#/components/parameters/RoomName"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - room
+      summary: Remove a vote for a video.
+      parameters:
+        - $ref: "#/components/parameters/RoomName"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
 components:
   schemas:
     visibility:
@@ -650,7 +651,7 @@ components:
       properties:
         name:
           type: string
-          example: "PermissionDeniedException"
+          example: PermissionDeniedException
         message:
           type: string
       required:
@@ -660,10 +661,10 @@ components:
       properties:
         service:
           type: string
-          example: "youtube"
+          example: youtube
         id:
           type: string
-          example: "dQw4w9WgXcQ"
+          example: dQw4w9WgXcQ
       required:
         - service
         - id
