@@ -35,6 +35,9 @@ const redisSubscriber = createSubscriber();
 const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(
 	redisSubscriber
 );
+const unsubscribe: (channel: string) => Promise<string> = promisify(
+	redisSubscriber.unsubscribe
+).bind(redisSubscriber);
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
@@ -334,12 +337,15 @@ async function onRedisMessage(channel: string, text: string) {
 			await broadcast(roomName, text);
 		} else if (msg.action === "unload") {
 			const clients = roomJoins.get(roomName);
-			if (!clients) {
-				return;
+			if (clients) {
+				for (const client of clients) {
+					client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+				}
 			}
-			for (const client of clients) {
-				client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
-			}
+
+			roomJoins.delete(roomName);
+			roomStates.delete(roomName);
+			await unsubscribe(`room:${roomName}`);
 		} else if (msg.action === "chat") {
 			await broadcast(roomName, text);
 		} else if (msg.action === "event" || msg.action === "eventcustom") {
