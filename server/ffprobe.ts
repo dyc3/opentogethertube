@@ -44,7 +44,6 @@ export async function getFileInfo(uri: string) {
 	const controller = new AbortController();
 	let resp = await axios.get(uri, {
 		responseType: "stream",
-		// @ts-expect-error
 		signal: controller.signal,
 		httpAgent,
 		httpsAgent,
