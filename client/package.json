@@ -13,7 +13,7 @@
 		"cy:run": "cypress run --component"
 	},
 	"dependencies": {
-		"@fortawesome/fontawesome-free": "^5.12.1",
+		"@fortawesome/fontawesome-free": "^5.14.1",
 		"@mdi/font": "^3.9.97",
 		"@vimeo/player": "^2.10.0",
 		"@vueuse/core": "^9.6.0",
