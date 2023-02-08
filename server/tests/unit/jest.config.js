@@ -9,7 +9,6 @@ module.exports = {
 		"^@/(.*)$": "<rootDir>/src/$1",
 	},
 	testMatch: ["**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)"],
-	testURL: "http://localhost/",
 	watchPlugins: ["jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
 	// collectCoverage: true,
 	coverageReporters: ["text-summary", "text", "json", "html"],
