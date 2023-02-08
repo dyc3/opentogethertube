@@ -13,7 +13,7 @@
 		"cy:run": "cypress run --component"
 	},
 	"dependencies": {
-		"@fortawesome/fontawesome-free": "^5.12.1",
+		"@fortawesome/fontawesome-free": "^5.14.1",
 		"@mdi/font": "^3.9.97",
 		"@vimeo/player": "^2.10.0",
 		"@vueuse/core": "^9.6.0",
@@ -23,13 +23,13 @@
 		"sortablejs": "^1.15.0",
 		"sortablejs-vue3": "^1.2.3",
 		"video.js": "^7.15.4",
-		"vue": "3.2.45",
+		"vue": "3.2.47",
 		"vue-axios": "^2.1.5",
 		"vue-gtag": "^1.6.1",
 		"vue-i18n": "9.2.2",
 		"vue-router": "^4.1.5",
 		"vue-slider-component": "4.1.0-beta.6",
-		"vuetify": "3.1.2",
+		"vuetify": "3.1.4",
 		"vuex": "4.1.0"
 	},
 	"devDependencies": {
@@ -44,7 +44,7 @@
 		"eslint-plugin-vue": "9.7.0",
 		"sass": "^1.41.1",
 		"vite": "^4.0.4",
-		"vite-plugin-vuetify": "1.0.0",
+		"vite-plugin-vuetify": "1.0.2",
 		"vitest": "^0.25.1"
 	}
 }
