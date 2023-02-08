@@ -131,7 +131,13 @@ function streamDataIntoFfprobe(stream: Stream, controller: AbortController): Pro
 		let result_json = "";
 		function finalize() {
 			stream.removeAllListeners();
-			controller.abort();
+			try {
+				controller.abort();
+			} catch (e) {
+				if (!axios.isCancel(e)) {
+					log.error(`Failed to abort request: ${e}`);
+				}
+			}
 			resolve(result_json);
 		}
 

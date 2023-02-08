@@ -6,7 +6,7 @@ import YouTubeAdapter, {
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
 import { redisClient, redisClientAsync } from "../../../redisclient";
-import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "fs";
 import { VideoRequest } from "server/serviceadapter";
 import { URL } from "url";
@@ -88,7 +88,9 @@ async function mockYoutubeApi(
 		status: 200,
 		statusText: "OK",
 		headers: {},
-		config: {},
+		config: {
+			headers: {} as AxiosRequestHeaders,
+		},
 	};
 	if (path === "/videos") {
 		return {
