@@ -131,6 +131,7 @@ function streamDataIntoFfprobe(stream: Stream, controller: AbortController): Pro
 		let result_json = "";
 		function finalize() {
 			stream.removeAllListeners();
+			stream.emit("end");
 			try {
 				controller.abort();
 			} catch (e) {
