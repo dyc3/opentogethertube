@@ -42,6 +42,7 @@
 		"@vue/eslint-config-typescript": "^7.0.0",
 		"@vue/test-utils": "2.2.1",
 		"eslint-plugin-vue": "9.7.0",
+		"jsdom": "^21.1.0",
 		"sass": "^1.41.1",
 		"vite": "^4.0.4",
 		"vite-plugin-vuetify": "1.0.2",

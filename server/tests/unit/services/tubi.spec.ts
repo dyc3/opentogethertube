@@ -1,6 +1,6 @@
 import TubiAdapter from "../../../services/tubi";
 import fs from "fs";
-import { AxiosResponse } from "axios";
+import { AxiosRequestHeaders, AxiosResponse } from "axios";
 
 const singleVideoLinks = [
 	["https://tubitv.com/oz/videos/458113/content", "458113"],
@@ -59,7 +59,9 @@ describe("Tubi TV", () => {
 				statusText: "OK",
 				data,
 				headers: {},
-				config: {},
+				config: {
+					headers: {} as AxiosRequestHeaders,
+				},
 			};
 			return resp;
 		});
