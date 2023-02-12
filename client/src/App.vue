@@ -34,7 +34,7 @@
 				</v-btn>
 			</v-toolbar-items>
 			<v-spacer />
-			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
+			<v-toolbar-items v-if="$vuetify.display.mdAndUp">
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
 						<v-btn variant="text" v-bind="props">
