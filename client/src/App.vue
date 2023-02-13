@@ -1,6 +1,10 @@
 <template>
 	<v-app id="app">
-		<v-app-bar app :absolute="!fullscreen" v-if="!fullscreen">
+		<v-app-bar
+			app
+			:density="$vuetify.display.mdAndUp ? 'default' : 'compact'"
+			v-if="!fullscreen"
+		>
 			<!-- TODO: replace v-if here with hide on scroll and inverted scroll when vuetify 3.2 comes out. -->
 			<v-app-bar-nav-icon @click="drawer = true" role="menu" aria-label="nav menu" />
 			<v-img
@@ -30,7 +34,7 @@
 				</v-btn>
 			</v-toolbar-items>
 			<v-spacer />
-			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
+			<v-toolbar-items v-if="$vuetify.display.mdAndUp">
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
 						<v-btn variant="text" v-bind="props">
@@ -49,7 +53,7 @@
 				<LocaleSelector style="margin-top: 5px; width: 100px" />
 			</v-toolbar-items>
 		</v-app-bar>
-		<v-navigation-drawer v-model="drawer" absolute temporary>
+		<v-navigation-drawer v-model="drawer" temporary>
 			<v-list nav dense>
 				<v-list-item to="/">
 					{{ $t("nav.home") }}
@@ -79,7 +83,6 @@
 					@createtemp="createTempRoom"
 					@createperm="showCreateRoomForm = true"
 				/>
-				<NavUser @login="showLogin = true" @logout="logout" />
 				<LocaleSelector />
 			</v-list>
 			<template v-slot:append>
