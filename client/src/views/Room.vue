@@ -227,8 +227,6 @@ import {
 import AddPreview from "@/components/AddPreview.vue";
 import { calculateCurrentPosition } from "@/util/timestamp";
 import _ from "lodash";
-import VueSlider from "vue-slider-component";
-import "vue-slider-component/theme/default.css";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
@@ -254,6 +252,7 @@ import { useRouter, useRoute } from "vue-router";
 import { ServerMessageSync } from "ott-common/models/messages";
 import { useScreenOrientation, useMouse } from "@vueuse/core";
 import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
+import VolumeControl from "@/components/controls/VolumeControl.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -261,11 +260,11 @@ export default defineComponent({
 	name: "room",
 	components: {
 		BasicControls,
+		VolumeControl,
 		VideoProgressSlider,
 		TimestampDisplay,
 		LayoutSwitcher,
 		VideoQueue,
-		VueSlider,
 		OmniPlayer,
 		Chat,
 		AddPreview,
