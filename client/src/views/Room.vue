@@ -724,17 +724,34 @@ $in-video-chat-width-small: 250px;
 }
 
 .video-controls {
-	position: absolute;
-	bottom: 0;
 	height: $video-controls-height;
-
-	background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
 	transition: all 0.2s;
 
-	&.hide {
-		opacity: 0;
-		transition: all 0.5s;
-		bottom: -100%;
+	&.in-video {
+		position: absolute;
+		bottom: 0;
+
+		background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+		transition: all 0.2s;
+
+		&.hide {
+			opacity: 0;
+			transition: all 0.5s;
+			bottom: -100%;
+		}
+	}
+
+	&.outside-video {
+		position: relative;
+		background: rgb(var(--v-theme-surface));
+		border-radius: 0 0 10px 10px;
+
+		&.hide {
+			opacity: 0;
+			transform: scaleY(0) translateY(-50%);
+			transition: all 0.5s;
+			height: 0;
+		}
 	}
 }
 
