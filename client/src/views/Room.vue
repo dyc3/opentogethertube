@@ -641,6 +641,10 @@ $in-video-chat-width-small: 250px;
 		margin-left: 0;
 		margin-right: 0;
 	}
+
+	@media (min-aspect-ratio: 16 / 9) {
+		aspect-ratio: initial;
+	}
 }
 
 .layout-default {
