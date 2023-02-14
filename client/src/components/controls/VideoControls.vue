@@ -2,7 +2,8 @@
 	<v-col
 		:class="{
 			'video-controls': true,
-			'outside-video': true,
+			'in-video': mode == 'in-video',
+			'outside-video': mode == 'outside-video',
 			'hide': !controlsVisible,
 		}"
 	>
@@ -70,6 +71,10 @@ export default defineComponent({
 		isCaptionsSupported: {
 			type: Boolean,
 			default: false,
+		},
+		mode: {
+			type: String as PropType<"in-video" | "outside-video">,
+			default: "in-video",
 		},
 	},
 	emits: [],
