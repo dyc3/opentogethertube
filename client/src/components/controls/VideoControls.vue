@@ -145,10 +145,11 @@ $video-controls-height: 80px;
 .video-controls {
 	height: $video-controls-height;
 	transition: all 0.2s;
+	z-index: 100;
 
 	&.in-video {
-		position: absolute;
-		bottom: 0;
+		position: relative;
+		bottom: $video-controls-height;
 
 		background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
 		transition: all 0.2s;
@@ -156,7 +157,7 @@ $video-controls-height: 80px;
 		&.hide {
 			opacity: 0;
 			transition: all 0.5s;
-			bottom: -100%;
+			bottom: 0;
 		}
 	}
 

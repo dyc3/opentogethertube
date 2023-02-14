@@ -67,7 +67,7 @@
 					:key="currentSource?.id"
 					:player="player"
 					:is-captions-supported="isCaptionsSupported()"
-					mode="outside-video"
+					mode="in-video"
 				/>
 				<v-row no-gutters>
 					<v-col cols="12" md="8" sm="12">
