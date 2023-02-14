@@ -26,7 +26,7 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
-				<v-row no-gutters class="video-container">
+				<div no-gutters class="video-container">
 					<div
 						class="video-subcontainer"
 						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
@@ -54,16 +54,16 @@
 							</div>
 						</v-responsive>
 					</div>
-				</v-row>
-				<VideoControls
-					:slider-position="sliderPosition"
-					:true-position="truePosition"
-					:controls-visible="controlsVisible"
-					:key="currentSource?.id"
-					:player="player"
-					:is-captions-supported="isCaptionsSupported()"
-					:mode="currentSource?.service === 'youtube' ? 'outside-video' : 'in-video'"
-				/>
+					<VideoControls
+						:slider-position="sliderPosition"
+						:true-position="truePosition"
+						:controls-visible="controlsVisible"
+						:key="currentSource?.id"
+						:player="player"
+						:is-captions-supported="isCaptionsSupported()"
+						:mode="currentSource?.service === 'youtube' ? 'outside-video' : 'in-video'"
+					/>
+				</div>
 				<v-row no-gutters>
 					<v-col cols="12" md="8" sm="12">
 						<v-tabs fixed-tabs v-model="queueTab" color="primary">
@@ -624,29 +624,35 @@ $in-video-chat-width-small: 250px;
 .video-container {
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	margin: auto;
 	margin-bottom: 10px;
+	flex-direction: column;
+	aspect-ratio: 16 / 9;
 
 	.video-subcontainer {
 		display: flex;
 		flex-grow: 1;
+		aspect-ratio: 16 / 9;
+		width: 100%;
 	}
 
 	@media (max-width: $md-max) {
-		.video-subcontainer {
-			width: 100%;
-		}
-
-		margin: 0;
+		margin-left: 0;
+		margin-right: 0;
 	}
 }
 
 .layout-default {
 	.video-container {
-		max-height: $video-player-max-height;
+		width: 80vw;
+
+		@media (max-width: $md-max) {
+			width: 100%;
+		}
 	}
 
 	.video-subcontainer {
-		width: 80vw;
 		max-height: $video-player-max-height;
 	}
 }
@@ -655,11 +661,10 @@ $in-video-chat-width-small: 250px;
 	padding: 0;
 
 	.video-container {
-		max-height: $video-player-max-height-theater;
+		width: 100%;
 	}
 
 	.video-subcontainer {
-		width: 100%;
 		max-height: $video-player-max-height-theater;
 	}
 
