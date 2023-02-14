@@ -26,12 +26,7 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
-				<v-row
-					no-gutters
-					:class="{
-						'video-container': true,
-					}"
-				>
+				<v-row no-gutters class="video-container">
 					<div
 						class="video-subcontainer"
 						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
