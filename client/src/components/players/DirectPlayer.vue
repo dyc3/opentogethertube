@@ -45,6 +45,9 @@ export default {
 		setPosition(position) {
 			return this.player.currentTime(position);
 		},
+		isCaptionsSupported() {
+			return false;
+		},
 		loadVideoSource() {
 			console.log("DirectPlayer: loading video source:", this.videoUrl, this.videoMime);
 			this.player.src({

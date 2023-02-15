@@ -48,6 +48,9 @@ export default {
 		setPosition(position) {
 			return this.player.currentTime(position);
 		},
+		isCaptionsSupported() {
+			return false;
+		},
 		async loadVideoSource() {
 			console.log("GenericHlsPlayer: loading video source:", this.hlsUrl);
 
