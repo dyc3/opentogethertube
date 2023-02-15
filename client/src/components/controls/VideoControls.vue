@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, PropType, onMounted, Ref } from "vue";
+import { defineComponent, ref, watch, PropType, onMounted, Ref, toRefs } from "vue";
 import _ from "lodash";
 
 import BasicControls from "./BasicControls.vue";
@@ -81,7 +81,7 @@ export default defineComponent({
 	setup(props) {
 		let store = useStore();
 		let volume = ref(100);
-		let player = ref(props.player);
+		let { player } = toRefs(props);
 
 		function isPlayerPresent(p: Ref<typeof OmniPlayer>): p is Ref<typeof OmniPlayer> {
 			return !!p.value;
