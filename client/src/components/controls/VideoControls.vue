@@ -163,7 +163,7 @@ $video-controls-height: 80px;
 
 	&.outside-video {
 		position: relative;
-		background: rgb(var(--v-theme-surface));
+		background: #000;
 		border-radius: 0 0 10px 10px;
 
 		&.hide {
