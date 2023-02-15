@@ -217,6 +217,7 @@ import { ServerMessageSync } from "ott-common/models/messages";
 import { useScreenOrientation, useMouse } from "@vueuse/core";
 import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
 import VideoControls from "@/components/controls/VideoControls.vue";
+import { VOLUME_KEY } from "@/components/controls/controlkeys";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -387,6 +388,7 @@ export default defineComponent({
 		// player management
 		const player = ref<typeof OmniPlayer | null>(null);
 		const volume = ref(100);
+		provide(VOLUME_KEY, [volume, updateVolume]);
 
 		function isPlayerPresent(p: Ref<typeof OmniPlayer | null>): p is Ref<typeof OmniPlayer> {
 			return !!p.value;
@@ -417,12 +419,24 @@ export default defineComponent({
 			}
 		}
 
-		function updateVolume() {
+		function updateVolume(value: number | undefined = undefined) {
+			if (value !== undefined) {
+				volume.value = value;
+			}
 			if (!isPlayerPresent(player)) {
 				return;
 			}
 			player.value.setVolume(volume.value);
 		}
+
+		onMounted(() => {
+			volume.value = store.state.settings.volume;
+		});
+
+		watch(volume, () => {
+			updateVolume();
+			store.commit("settings/UPDATE", { volume: volume.value });
+		});
 
 		function onPlayerApiReady() {
 			console.debug("internal player API is now ready");
@@ -549,6 +563,9 @@ export default defineComponent({
 			if (granted("playback.skip")) {
 				roomapi.skip();
 			}
+		});
+		shortcuts.bind([{ code: "ArrowUp" }, { code: "ArrowDown" }], (e: KeyboardEvent) => {
+			volume.value = _.clamp(volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
 		});
 		shortcuts.bind({ code: "F12", ctrlKey: true, shiftKey: true }, () => {
 			debugMode.value = !debugMode.value;

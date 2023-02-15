@@ -11,7 +11,7 @@
 		<v-row no-gutters align="center">
 			<BasicControls :current-position="truePosition" />
 			<!-- eslint-disable-next-line vue/no-v-model-argument -->
-			<VolumeControl v-model:volume="volume" />
+			<VolumeControl />
 			<TimestampDisplay :current-position="truePosition" />
 			<div class="flex-grow-1"><!-- Spacer --></div>
 			<ClosedCaptionsSwitcher
@@ -26,8 +26,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, PropType, onMounted, Ref, toRefs } from "vue";
-import _ from "lodash";
+import { defineComponent, PropType, Ref, toRefs } from "vue";
 
 import BasicControls from "./BasicControls.vue";
 import ClosedCaptionsSwitcher from "./ClosedCaptionsSwitcher.vue";
@@ -39,7 +38,6 @@ import VolumeControl from "./VolumeControl.vue";
 import type OmniPlayer from "../players/OmniPlayer.vue";
 import type { MediaPlayer, MediaPlayerWithCaptions } from "../players/OmniPlayer.vue";
 import { useStore } from "@/store";
-import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 
 export default defineComponent({
 	name: "VideoControls",
@@ -80,38 +78,10 @@ export default defineComponent({
 	emits: [],
 	setup(props) {
 		let store = useStore();
-		let volume = ref(100);
 		let { player } = toRefs(props);
 
 		function isPlayerPresent(p: Ref<typeof OmniPlayer>): p is Ref<typeof OmniPlayer> {
 			return !!p.value;
-		}
-
-		onMounted(() => {
-			volume.value = store.state.settings.volume;
-		});
-
-		function updateVolume() {
-			if (!isPlayerPresent(player)) {
-				return;
-			}
-			player.value.setVolume(volume.value);
-		}
-
-		watch(volume, () => {
-			updateVolume();
-			store.commit("settings/UPDATE", { volume: volume.value });
-		});
-
-		const shortcuts = useRoomKeyboardShortcuts();
-		if (shortcuts) {
-			shortcuts.bind([{ code: "ArrowUp" }, { code: "ArrowDown" }], (e: KeyboardEvent) => {
-				volume.value = _.clamp(
-					volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1),
-					0,
-					100
-				);
-			});
 		}
 
 		function isCaptionsSupported(
@@ -132,7 +102,6 @@ export default defineComponent({
 		return {
 			store,
 
-			volume,
 			getCaptionsTracks,
 		};
 	},

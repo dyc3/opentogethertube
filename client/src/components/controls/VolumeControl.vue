@@ -19,28 +19,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, inject, ref } from "vue";
 import VueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
+import { VOLUME_KEY } from "./controlkeys";
 
 export default defineComponent({
 	name: "VolumeControl",
 	components: {
 		VueSlider,
 	},
-	props: {
-		volume: {
-			type: Number,
-			default: 100,
-		},
-	},
 	emits: ["update:volume"],
 	setup(props, { emit }) {
+		// eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+		const [volume, updateVolume] = inject(VOLUME_KEY, [ref(100), (_: number) => {}]);
+
 		function changed(value: number) {
 			emit("update:volume", value);
+			updateVolume(value);
 		}
 
-		return { changed };
+		return { volume, changed };
 	},
 });
 </script>
