@@ -87,6 +87,9 @@ const VimeoPlayer = defineComponent({
 			}
 			return player.setVolume(value / 100);
 		}
+		function isCaptionsSupported(): boolean {
+			return false;
+		}
 
 		return {
 			isBuffering,
@@ -96,6 +99,7 @@ const VimeoPlayer = defineComponent({
 			getPosition,
 			setPosition,
 			setVolume,
+			isCaptionsSupported,
 		};
 	},
 });

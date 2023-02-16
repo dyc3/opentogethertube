@@ -26,13 +26,7 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
-				<v-row
-					no-gutters
-					:class="{
-						'video-container': true,
-					}"
-				>
-					<div class="flex-grow-1"><!-- Spacer --></div>
+				<div no-gutters class="video-container">
 					<div
 						class="video-subcontainer"
 						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
@@ -55,46 +49,21 @@
 								id="mouse-event-swallower"
 								:class="{ hide: controlsVisible }"
 							></div>
-							<v-col :class="{ 'video-controls': true, 'hide': !controlsVisible }">
-								<VideoProgressSlider :current-position="sliderPosition" />
-								<v-row no-gutters align="center">
-									<BasicControls :current-position="truePosition" />
-									<vue-slider
-										v-model="volume"
-										style="width: 150px; margin-left: 10px; margin-right: 20px"
-										:process="
-											dotsPos => [
-												[
-													0,
-													dotsPos[0],
-													{
-														backgroundColor:
-															'rgb(var(--v-theme-primary))',
-													},
-												],
-											]
-										"
-										:drag-on-click="true"
-									/>
-									<TimestampDisplay :current-position="truePosition" />
-									<div class="flex-grow-1"><!-- Spacer --></div>
-									<ClosedCaptionsSwitcher
-										:key="currentSource?.id"
-										:supported="isCaptionsSupported()"
-										:tracks="store.state.captions.availableTracks"
-										@enable-cc="value => player.setCaptionsEnabled(value)"
-										@cc-track="value => player.setCaptionsTrack(value)"
-									/>
-									<LayoutSwitcher />
-								</v-row>
-							</v-col>
 							<div class="in-video-chat">
 								<Chat ref="chat" @link-click="setAddPreviewText" />
 							</div>
 						</v-responsive>
 					</div>
-					<div class="flex-grow-1"><!-- Spacer --></div>
-				</v-row>
+					<VideoControls
+						:slider-position="sliderPosition"
+						:true-position="truePosition"
+						:controls-visible="controlsVisible"
+						:key="currentSource?.id"
+						:player="player"
+						:is-captions-supported="isCaptionsSupported()"
+						:mode="currentSource?.service === 'youtube' ? 'outside-video' : 'in-video'"
+					/>
+				</div>
 				<v-row no-gutters>
 					<v-col cols="12" md="8" sm="12">
 						<v-tabs fixed-tabs v-model="queueTab" color="primary">
@@ -227,8 +196,6 @@ import {
 import AddPreview from "@/components/AddPreview.vue";
 import { calculateCurrentPosition } from "@/util/timestamp";
 import _ from "lodash";
-import VueSlider from "vue-slider-component";
-import "vue-slider-component/theme/default.css";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
@@ -237,42 +204,34 @@ import VideoQueue from "@/components/VideoQueue.vue";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import { granted } from "@/util/grants";
-import ClosedCaptionsSwitcher from "@/components/controls/ClosedCaptionsSwitcher.vue";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
-import BasicControls from "@/components/controls/BasicControls.vue";
-import VideoProgressSlider from "@/components/controls/VideoProgressSlider.vue";
-import TimestampDisplay from "@/components/controls/TimestampDisplay.vue";
-import LayoutSwitcher from "@/components/controls/LayoutSwitcher.vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
 import { ServerMessageSync } from "ott-common/models/messages";
 import { useScreenOrientation, useMouse } from "@vueuse/core";
 import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
+import VideoControls from "@/components/controls/VideoControls.vue";
+import { VOLUME_KEY } from "@/components/controls/controlkeys";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
 export default defineComponent({
 	name: "room",
 	components: {
-		BasicControls,
-		VideoProgressSlider,
-		TimestampDisplay,
-		LayoutSwitcher,
+		VideoControls,
 		VideoQueue,
-		VueSlider,
 		OmniPlayer,
 		Chat,
 		AddPreview,
 		UserList,
 		RoomSettingsForm,
 		ShareInvite,
-		ClosedCaptionsSwitcher,
 		ClientSettingsDialog,
 		RoomDisconnected,
 		ServerMessageHandler,
@@ -429,10 +388,7 @@ export default defineComponent({
 		// player management
 		const player = ref<typeof OmniPlayer | null>(null);
 		const volume = ref(100);
-
-		onMounted(() => {
-			volume.value = store.state.settings.volume;
-		});
+		provide(VOLUME_KEY, [volume, updateVolume]);
 
 		function isPlayerPresent(p: Ref<typeof OmniPlayer | null>): p is Ref<typeof OmniPlayer> {
 			return !!p.value;
@@ -463,12 +419,19 @@ export default defineComponent({
 			}
 		}
 
-		function updateVolume() {
+		function updateVolume(value: number | undefined = undefined) {
+			if (value !== undefined) {
+				volume.value = value;
+			}
 			if (!isPlayerPresent(player)) {
 				return;
 			}
 			player.value.setVolume(volume.value);
 		}
+
+		onMounted(() => {
+			volume.value = store.state.settings.volume;
+		});
 
 		watch(volume, () => {
 			updateVolume();
@@ -672,36 +635,45 @@ export default defineComponent({
 
 $video-player-max-height: 75vh;
 $video-player-max-height-theater: 90vh;
-$video-controls-height: 80px;
 $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
 
 .video-container {
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	margin: auto;
 	margin-bottom: 10px;
+	flex-direction: column;
+	aspect-ratio: 16 / 9;
 
 	.video-subcontainer {
 		display: flex;
 		flex-grow: 1;
+		aspect-ratio: 16 / 9;
+		width: 100%;
 	}
 
 	@media (max-width: $md-max) {
-		.video-subcontainer {
-			width: 100%;
-		}
+		margin-left: 0;
+		margin-right: 0;
+	}
 
-		margin: 0;
+	@media (min-aspect-ratio: 16 / 9) {
+		aspect-ratio: initial;
 	}
 }
 
 .layout-default {
 	.video-container {
-		max-height: $video-player-max-height;
+		width: 80vw;
+
+		@media (max-width: $md-max) {
+			width: 100%;
+		}
 	}
 
 	.video-subcontainer {
-		width: 80vw;
 		max-height: $video-player-max-height;
 	}
 }
@@ -710,31 +682,15 @@ $in-video-chat-width-small: 250px;
 	padding: 0;
 
 	.video-container {
-		max-height: $video-player-max-height-theater;
+		width: 100%;
 	}
 
 	.video-subcontainer {
-		width: 100%;
 		max-height: $video-player-max-height-theater;
 	}
 
 	.room-title {
 		font-size: 24px;
-	}
-}
-
-.video-controls {
-	position: absolute;
-	bottom: 0;
-	height: $video-controls-height;
-
-	background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
-	transition: all 0.2s;
-
-	&.hide {
-		opacity: 0;
-		transition: all 0.5s;
-		bottom: -100%;
 	}
 }
 

@@ -68,6 +68,9 @@ export default {
 		setPosition(position) {
 			return this.player.currentTime(position);
 		},
+		isCaptionsSupported() {
+			return false;
+		},
 		loadVideoSource() {
 			this.player.src({
 				src: this.videoSource,

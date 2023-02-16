@@ -117,7 +117,7 @@ import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, wa
 
 const services = ["youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"];
 
-interface MediaPlayer {
+export interface MediaPlayer {
 	play(): void | Promise<void>;
 	pause(): void | Promise<void>;
 	setVolume(volume: number): void | Promise<void>;
@@ -125,7 +125,7 @@ interface MediaPlayer {
 	setPosition(position: number): void | Promise<void>;
 }
 
-interface MediaPlayerWithCaptions extends MediaPlayer {
+export interface MediaPlayerWithCaptions extends MediaPlayer {
 	isCaptionsSupported(): boolean;
 	isCaptionsEnabled(): boolean;
 	setCaptionsEnabled(enabled: boolean): void;

@@ -79,6 +79,9 @@ const DailymotionPlayer = defineComponent({
 		function setVolume(value: number) {
 			return player.value.setVolume(value / 100);
 		}
+		function isCaptionsSupported(): boolean {
+			return false;
+		}
 
 		expose({
 			play,
@@ -86,6 +89,7 @@ const DailymotionPlayer = defineComponent({
 			getPosition,
 			setPosition,
 			setVolume,
+			isCaptionsSupported,
 		});
 
 		return {
@@ -94,6 +98,7 @@ const DailymotionPlayer = defineComponent({
 			getPosition,
 			setPosition,
 			setVolume,
+			isCaptionsSupported,
 		};
 	},
 });
