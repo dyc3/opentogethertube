@@ -23,19 +23,17 @@ USAGE
 
 wait_for_db() {
   for i in `seq $TIMEOUT` ; do
-    which nc > /dev/null
-    if [ $? != 0 ]; then
+    if ! (which nc > /dev/null); then
       echo "$0: netcat not found."
       exit 3
     fi
 
-    nc -z "$WAIT_HOST_DB" "$WAIT_PORT_DB" > /dev/null 2>&1
+    nc -z "$POSTGRES_DB_HOST" "$POSTGRES_DB_PORT" > /dev/null 2>&1
 
     result=$?
     if [ $result -eq 0 ] ; then
       if [ $# -gt 0 ] ; then
-        yarn workspace ott-server sequelize-cli db:migrate
-        if [ $? != 0 ]; then
+        if ! yarn workspace ott-server sequelize-cli db:migrate; then
           echo "$0: Failed to run database migrations" >&2
           exit 2
         fi
@@ -53,8 +51,8 @@ while [ $# -gt 0 ]
 do
   case "$1" in
     *:* )
-    WAIT_HOST_DB=$(printf "%s\n" "$1"| cut -d : -f 1)
-    WAIT_PORT_DB=$(printf "%s\n" "$1"| cut -d : -f 2)
+    POSTGRES_DB_HOST=$(printf "%s\n" "$1"| cut -d : -f 1)
+    POSTGRES_DB_PORT=$(printf "%s\n" "$1"| cut -d : -f 2)
     shift 1
     ;;
     -q | --quiet)
@@ -84,8 +82,10 @@ do
   esac
 done
 
-if [ "$WAIT_HOST_DB" = "" -o "$WAIT_PORT_DB" = "" ]; then
-  echoerr "Error: you need to provide a host and port to test."
+POSTGRES_DB_HOST=${POSTGRES_DB_HOST:-localhost}
+POSTGRES_DB_PORT=${POSTGRES_DB_PORT:-5432}
+if [ "$POSTGRES_DB_HOST" = "" ] || [ "$POSTGRES_DB_PORT" = "" ]; then
+  echoerr "Error: you need to provide a host and port to test. Got: $POSTGRES_DB_HOST:$POSTGRES_DB_PORT"
   usage 2
 fi
 
