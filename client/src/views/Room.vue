@@ -754,19 +754,23 @@ $in-video-chat-width-small: 250px;
 	padding: 0;
 
 	.video-container {
+		display: block;
 		margin: 0;
 		height: 100vh;
 		max-height: 100vh;
+		aspect-ratio: inherit;
+		width: 100vw;
 
 		.video-subcontainer {
 			width: 100%;
+			aspect-ratio: inherit;
 			max-height: 100vh;
 		}
 	}
 
-	.player-container {
-		height: 100vh;
-	}
+	// .player-container {
+	// 	height: 100vh;
+	// }
 }
 
 .room {
