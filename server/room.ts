@@ -828,6 +828,15 @@ export class Room implements RoomState {
 		]);
 	}
 
+	/** Updates playbackPosition according to the computed value, and resets _playbackStart */
+	flushPlaybackPosition(): void {
+		counterSecondsWatched
+			.labels({ service: this.currentSource?.service })
+			.inc(this.calcDurationFromPlaybackStart());
+		this.playbackPosition = this.realPlaybackPosition;
+		this._playbackStart = dayjs();
+	}
+
 	getSegmentForTime(time: number): Segment | undefined {
 		for (const segment of this.videoSegments) {
 			if (time >= segment.startTime && time <= segment.endTime) {
@@ -953,11 +962,7 @@ export class Room implements RoomState {
 			return;
 		}
 		this.log.debug("playback paused");
-		// The order of the following lines matter.
-		counterSecondsWatched
-			.labels({ service: this.currentSource?.service })
-			.inc(this.calcDurationFromPlaybackStart());
-		this.playbackPosition = this.realPlaybackPosition;
+		this.flushPlaybackPosition();
 		this._playbackStart = null;
 		this.isPlaying = false;
 	}
