@@ -61,6 +61,7 @@ import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
+import { calculateCurrentPosition } from "../common/timestamp";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
@@ -547,10 +548,10 @@ export class Room implements RoomState {
 		throw new Error("Client not found");
 	}
 
-	/** Get how much time has elapsed since playback started. Returns 0 if the media is not playing. */
+	/** Get how much time (in seconds) has elapsed, in terms of where the playback head should be, since playback started. Returns 0 if the media is not playing. */
 	calcDurationFromPlaybackStart(): number {
 		if (this._playbackStart !== null) {
-			return dayjs().diff(this._playbackStart, "millisecond") / 1000;
+			return calculateCurrentPosition(this._playbackStart, dayjs(), 0);
 		} else {
 			return 0;
 		}
