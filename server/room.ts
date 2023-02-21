@@ -532,9 +532,7 @@ export class Room implements RoomState {
 			};
 		} else {
 			return {
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore
-				name: session.username, // Typescript bug? even though the type is being narrowed here, its not working correctly.
+				name: session.username,
 				isLoggedIn: false,
 			};
 		}
