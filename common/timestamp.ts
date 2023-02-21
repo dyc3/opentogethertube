@@ -4,7 +4,9 @@ import dayjs from "dayjs";
 export function calculateCurrentPosition(
 	start_time: dayjs.ConfigType,
 	now_time: dayjs.ConfigType,
-	offset: number
+	offset: number,
+	playbackSpeed: number = 1,
 ): number {
-	return offset + dayjs(now_time).diff(start_time, "milliseconds") / 1000;
+	let deltaRaw = dayjs(now_time).diff(start_time, "milliseconds") / 1000;
+	return offset + (deltaRaw * playbackSpeed);
 }
