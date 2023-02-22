@@ -48,6 +48,9 @@ export default {
 		isCaptionsSupported() {
 			return false;
 		},
+		getAvailablePlaybackRates() {
+			return [1];
+		},
 		loadVideoSource() {
 			console.log("DirectPlayer: loading video source:", this.videoUrl, this.videoMime);
 			this.player.src({

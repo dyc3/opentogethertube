@@ -180,6 +180,10 @@ export default {
 			}
 		},
 
+		getAvailablePlaybackRates() {
+			return [1];
+		},
+
 		onApiChange() {
 			console.debug(`youtube: onApiChange`);
 

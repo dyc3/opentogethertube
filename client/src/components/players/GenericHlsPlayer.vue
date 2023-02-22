@@ -51,6 +51,9 @@ export default {
 		isCaptionsSupported() {
 			return false;
 		},
+		getAvailablePlaybackRates() {
+			return [1];
+		},
 		async loadVideoSource() {
 			console.log("GenericHlsPlayer: loading video source:", this.hlsUrl);
 

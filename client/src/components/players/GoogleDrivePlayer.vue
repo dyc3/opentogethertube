@@ -71,6 +71,9 @@ export default {
 		isCaptionsSupported() {
 			return false;
 		},
+		getAvailablePlaybackRates() {
+			return [1];
+		},
 		loadVideoSource() {
 			this.player.src({
 				src: this.videoSource,
