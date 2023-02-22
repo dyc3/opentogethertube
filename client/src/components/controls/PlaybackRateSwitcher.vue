@@ -1,10 +1,15 @@
 <template>
-	<v-btn variant="text" class="media-control" aria-label="Playback Speed">
+	<v-btn variant="text" class="media-control" aria-label="Playback Speed" :disabled="!supported">
 		{{ formatRate(currentRate) }}
 
 		<v-menu location="top" activator="parent">
 			<v-list>
-				<v-list-item v-for="(rate, index) in availableRates" :key="index" :value="index">
+				<v-list-item
+					v-for="(rate, index) in availableRates"
+					:key="index"
+					:value="index"
+					@click="setRate(rate)"
+				>
 					<v-list-item-title>{{ formatRate(rate) }}</v-list-item-title>
 				</v-list-item>
 			</v-list>
@@ -13,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent, PropType, computed } from "vue";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 
@@ -45,8 +50,18 @@ const PlaybackRateSwitcher = defineComponent({
 			);
 		}
 
+		function setRate(rate: number) {
+			roomApi.setPlaybackRate(rate);
+		}
+
+		const supported = computed(() => {
+			return props.availableRates.length > 1;
+		});
+
 		return {
 			formatRate,
+			supported,
+			setRate,
 		};
 	},
 });
