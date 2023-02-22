@@ -27,6 +27,7 @@ import {
 	RoomRequestAuthorization,
 	RoomRequestContext,
 	ShuffleRequest,
+	PlaybackSpeedRequest,
 } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
@@ -119,6 +120,7 @@ export interface RoomState extends RoomOptions, RoomStateComputed {
 	queue: VideoQueue;
 	isPlaying: boolean;
 	playbackPosition: number;
+	playbackSpeed: number;
 	users: RoomUserInfo[];
 	votes: Map<string, Set<ClientId>>;
 	videoSegments: Segment[];
@@ -138,7 +140,16 @@ export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCoun
 /** Only these should be stored in persistent storage */
 export type RoomStatePersistable = Omit<
 	RoomState,
-	"currentSource" | "queue" | "isPlaying" | "playbackPosition"
+	| "currentSource"
+	| "queue"
+	| "isPlaying"
+	| "playbackPosition"
+	| "playbackSpeed"
+	| "users"
+	| "votes"
+	| "videoSegments"
+	| "hasOwner"
+	| "voteCounts"
 >;
 
 export class Room implements RoomState {
@@ -157,6 +168,7 @@ export class Room implements RoomState {
 	queue: VideoQueue;
 	_isPlaying = false;
 	_playbackPosition = 0;
+	_playbackSpeed = 1;
 	realusers: RoomUser[] = [];
 	/**
 	 * Map of videos in the format service + id to a set of client votes.
@@ -200,6 +212,7 @@ export class Room implements RoomState {
 				"queue",
 				"playbackPosition",
 				"isPlaying",
+				"playbackSpeed",
 				"autoSkipSegments"
 			)
 		);
@@ -322,6 +335,15 @@ export class Room implements RoomState {
 	public set playbackPosition(value: number) {
 		this._playbackPosition = value;
 		this.markDirty("playbackPosition");
+	}
+
+	public get playbackSpeed(): number {
+		return this._playbackSpeed;
+	}
+
+	public set playbackSpeed(value: number) {
+		this._playbackSpeed = value;
+		this.markDirty("playbackSpeed");
 	}
 
 	public get owner(): User | null {
@@ -678,6 +700,7 @@ export class Room implements RoomState {
 			"queue",
 			"isPlaying",
 			"playbackPosition",
+			"playbackSpeed",
 			"grants",
 			"userRoles",
 			"owner",
@@ -702,6 +725,7 @@ export class Room implements RoomState {
 			"queue",
 			"isPlaying",
 			"playbackPosition",
+			"playbackSpeed",
 			"users",
 			"grants",
 			"hasOwner",
@@ -736,6 +760,7 @@ export class Room implements RoomState {
 			"queue",
 			"isPlaying",
 			"playbackPosition",
+			"playbackSpeed",
 			"grants",
 			"users",
 			"voteCounts",
@@ -931,6 +956,7 @@ export class Room implements RoomState {
 			[RoomRequestType.ApplySettingsRequest]: "applySettings",
 			[RoomRequestType.PlayNowRequest]: "playNow",
 			[RoomRequestType.ShuffleRequest]: "shuffle",
+			[RoomRequestType.PlaybackSpeedRequest]: "setPlaybackSpeed",
 		};
 
 		const handler = handlers[request.type];
@@ -1450,6 +1476,16 @@ export class Room implements RoomState {
 	public async shuffle(request: ShuffleRequest, context: RoomRequestContext): Promise<void> {
 		this.grants.check(context.role, "manage-queue.order");
 		await this.queue.shuffle();
+	}
+
+	public async setPlaybackSpeed(
+		request: PlaybackSpeedRequest,
+		context: RoomRequestContext
+	): Promise<void> {
+		// this.grants.check(context.role, "playback-speed");
+
+		this.flushPlaybackPosition();
+		this.playbackSpeed = request.speed;
 	}
 }
 
