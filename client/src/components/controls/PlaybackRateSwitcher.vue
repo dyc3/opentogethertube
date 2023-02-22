@@ -1,8 +1,8 @@
 <template>
-	<v-btn class="media-control" aria-label="Playback Speed">
+	<v-btn variant="text" class="media-control" aria-label="Playback Speed">
 		{{ formatRate(currentRate) }}
 
-		<v-menu activator="parent">
+		<v-menu location="top" activator="parent">
 			<v-list>
 				<v-list-item v-for="(rate, index) in availableRates" :key="index" :value="index">
 					<v-list-item-title>{{ formatRate(rate) }}</v-list-item-title>
