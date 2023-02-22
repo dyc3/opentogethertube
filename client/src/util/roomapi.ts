@@ -121,4 +121,14 @@ class RoomApi {
 			},
 		});
 	}
+
+	setPlaybackRate(rate: number) {
+		this.connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.PlaybackSpeedRequest,
+				speed: rate,
+			},
+		});
+	}
 }
