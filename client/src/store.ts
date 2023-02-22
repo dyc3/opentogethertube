@@ -31,6 +31,7 @@ interface BaseStoreState {
 		queue: QueueItem[];
 		isPlaying: boolean;
 		playbackPosition: number;
+		playbackSpeed: number;
 		hasOwner: boolean;
 		chatMessages: unknown[];
 		voteCounts?: Map<string, number>;
@@ -86,6 +87,7 @@ export function buildNewStore() {
 					queue: [],
 					isPlaying: false,
 					playbackPosition: 0,
+					playbackSpeed: 1,
 					hasOwner: false,
 					chatMessages: [],
 					voteCounts: undefined,
