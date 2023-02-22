@@ -274,6 +274,31 @@ export default defineComponent({
 			player.value.setCaptionsTrack(track);
 		}
 
+		function getAvailablePlaybackRates(): number[] {
+			if (!checkForPlayer(player.value)) {
+				return [1];
+			}
+			return player.value.getAvailablePlaybackRates();
+		}
+		function getPlaybackRate(): Promise<number> {
+			if (!checkForPlayer(player.value)) {
+				return Promise.resolve(1);
+			}
+			if (!implementsPlaybackRate(player.value)) {
+				return Promise.resolve(1);
+			}
+			return player.value.getPlaybackRate();
+		}
+		function setPlaybackRate(rate: number) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			if (!implementsPlaybackRate(player.value)) {
+				return;
+			}
+			player.value.setPlaybackRate(rate);
+		}
+
 		// player events re-emitted or data stored
 		function onApiReady() {
 			emit("apiready");
