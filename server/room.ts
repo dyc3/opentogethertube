@@ -1,4 +1,4 @@
-import permissions, { Grants } from "../common/permissions";
+import permissions, { Grants } from "ott-common/permissions";
 import { redisClient } from "./redisclient";
 import { promisify } from "util";
 import { getLogger } from "./logger.js";
@@ -28,7 +28,7 @@ import {
 	RoomRequestContext,
 	ShuffleRequest,
 	PlaybackSpeedRequest,
-} from "../common/models/messages";
+} from "ott-common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "./usermanager";
@@ -44,12 +44,12 @@ import {
 	RoomEventContext,
 	RoomSettings,
 	AuthToken,
-} from "../common/models/types";
+} from "ott-common/models/types";
 import { User } from "./models/user";
-import { QueueItem, Video, VideoId } from "../common/models/video";
+import type { QueueItem, Video, VideoId } from "ott-common/models/video";
 import dayjs, { Dayjs } from "dayjs";
-import { PickFunctions } from "../common/typeutils";
-import { replacer } from "../common/serialize";
+import type { PickFunctions } from "ott-common/typeutils";
+import { replacer } from "ott-common/serialize";
 import {
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
@@ -57,12 +57,12 @@ import {
 } from "./exceptions";
 import storage from "./storage";
 import tokens, { SessionInfo } from "./auth/tokens";
-import { OttException } from "../common/exceptions";
+import { OttException } from "ott-common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
-import { calculateCurrentPosition } from "../common/timestamp";
+import { calculateCurrentPosition } from "ott-common/timestamp";
 
 const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
