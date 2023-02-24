@@ -370,6 +370,9 @@ export default defineComponent({
 			toggleCaptions,
 			getCaptionsTracks,
 			setCaptionsTrack,
+			getAvailablePlaybackRates,
+			getPlaybackRate,
+			setPlaybackRate,
 		};
 	},
 });
