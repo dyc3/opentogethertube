@@ -181,7 +181,22 @@ export default {
 		},
 
 		getAvailablePlaybackRates() {
-			return [1];
+			if (!this.player) {
+				return [1];
+			}
+			return this.player.getAvailablePlaybackRates();
+		},
+		getPlaybackRate() {
+			if (!this.player) {
+				return 1;
+			}
+			return this.player.getPlaybackRate();
+		},
+		setPlaybackRate(rate) {
+			if (!this.player) {
+				return;
+			}
+			this.player.setPlaybackRate(rate);
 		},
 
 		onApiChange() {
