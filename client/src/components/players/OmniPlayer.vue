@@ -298,6 +298,12 @@ export default defineComponent({
 			}
 			player.value.setPlaybackRate(rate);
 		}
+		watch(
+			() => store.state.room.playbackSpeed,
+			(speed: number) => {
+				setPlaybackRate(speed);
+			}
+		);
 
 		// player events re-emitted or data stored
 		function onApiReady() {
