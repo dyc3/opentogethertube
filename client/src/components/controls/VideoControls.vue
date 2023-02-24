@@ -20,7 +20,10 @@
 				@enable-cc="value => player.setCaptionsEnabled(value)"
 				@cc-track="value => player.setCaptionsTrack(value)"
 			/>
-			<PlaybackRateSwitcher :current-rate="1" :available-rates="[1]" />
+			<PlaybackRateSwitcher
+				:current-rate="store.state.room.playbackSpeed"
+				:available-rates="player?.getAvailablePlaybackRates() ?? [1]"
+			/>
 			<LayoutSwitcher />
 		</v-row>
 	</v-col>
