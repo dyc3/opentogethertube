@@ -52,14 +52,15 @@
 							<div class="in-video-chat">
 								<Chat ref="chat" @link-click="setAddPreviewText" />
 							</div>
-							<div
-								class="playback-blocked-prompt"
-								v-if="mediaPlaybackBlocked"
-								prepend-icon="fa:fas fa-play"
-								size="x-large"
-								color="error"
-							>
-								<v-btn @click="onClickUnblockPlayback">Play</v-btn>
+							<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
+								<v-btn
+									prepend-icon="fa:fas fa-play"
+									size="x-large"
+									color="warning"
+									@click="onClickUnblockPlayback"
+								>
+									Play
+								</v-btn>
 							</div>
 						</v-responsive>
 					</div>
@@ -785,7 +786,6 @@ $in-video-chat-width-small: 250px;
 	z-index: 200;
 	display: flex;
 	justify-content: center;
-	align-content: center;
 }
 
 .flip-list-move {
