@@ -52,6 +52,16 @@
 							<div class="in-video-chat">
 								<Chat ref="chat" @link-click="setAddPreviewText" />
 							</div>
+							<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
+								<v-btn
+									prepend-icon="fa:fas fa-play"
+									size="x-large"
+									color="warning"
+									@click="onClickUnblockPlayback"
+								>
+									Play
+								</v-btn>
+							</div>
 						</v-responsive>
 					</div>
 					<VideoControls
@@ -315,7 +325,7 @@ export default defineComponent({
 			}
 			let currentTime = await player.value.getPosition();
 
-			if (Math.abs(newPosition - currentTime) > 1) {
+			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
 				player.value.setPosition(newPosition);
 			}
 		});
@@ -344,10 +354,24 @@ export default defineComponent({
 			}
 		}
 
-		function onSyncMsg(msg: ServerMessageSync) {
+		async function waitForPlayer() {
+			if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+				return;
+			}
+			await new Promise(resolve => {
+				const interval = setInterval(() => {
+					if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+						clearInterval(interval);
+						resolve(true);
+					}
+				}, 100);
+			});
+		}
+
+		async function onSyncMsg(msg: ServerMessageSync) {
 			rewriteUrlToRoomName();
-			if (msg.isPlaying !== undefined) {
-				applyIsPlaying(msg.isPlaying);
+			if (msg.isPlaying !== undefined && !mediaPlaybackBlocked.value) {
+				await applyIsPlaying(msg.isPlaying);
 			}
 		}
 
@@ -408,15 +432,35 @@ export default defineComponent({
 			);
 		}
 
-		function applyIsPlaying(playing: boolean) {
+		// Indicates that starting playback is blocked by the browser. This usually means that the user needs
+		// to interact with the page before playback can start. This is because browers block autoplaying videos.
+		const mediaPlaybackBlocked = ref(false);
+
+		async function applyIsPlaying(playing: boolean): Promise<void> {
+			await waitForPlayer();
 			if (!isPlayerPresent(player)) {
+				return Promise.reject("Can't apply IsPlaying: player not present");
+			}
+			try {
+				if (playing) {
+					await player.value.play();
+				} else {
+					await player.value.pause();
+				}
+				mediaPlaybackBlocked.value = false;
 				return;
+			} catch (e) {
+				if (e instanceof DOMException && e.name === "NotAllowedError") {
+					mediaPlaybackBlocked.value = true;
+				} else {
+					console.error("Can't apply IsPlaying: ", e.name, e);
+				}
 			}
-			if (playing) {
-				player.value.play();
-			} else {
-				player.value.pause();
-			}
+		}
+
+		function onClickUnblockPlayback(): void {
+			player.value?.setPosition(truePosition.value);
+			applyIsPlaying(store.state.room.isPlaying);
 		}
 
 		function updateVolume(value: number | undefined = undefined) {
@@ -442,7 +486,7 @@ export default defineComponent({
 			console.debug("internal player API is now ready");
 		}
 
-		function onPlaybackChange(changeTo: boolean) {
+		async function onPlaybackChange(changeTo: boolean) {
 			console.debug(`onPlaybackChange: ${changeTo}`);
 			if (!changeTo) {
 				setVideoControlsVisibility(true);
@@ -454,15 +498,15 @@ export default defineComponent({
 				return;
 			}
 
-			applyIsPlaying(store.state.room.isPlaying);
+			await applyIsPlaying(store.state.room.isPlaying);
 		}
 		function onPlayerReady() {
 			if (currentSource.value?.service === "vimeo") {
 				onPlayerReady_Vimeo();
 			}
 		}
-		function onPlayerReady_Vimeo() {
-			applyIsPlaying(store.state.room.isPlaying);
+		async function onPlayerReady_Vimeo() {
+			await applyIsPlaying(store.state.room.isPlaying);
 		}
 
 		function isCaptionsSupported() {
@@ -625,6 +669,9 @@ export default defineComponent({
 			production,
 			debugMode,
 			orientation: orientation.orientation,
+
+			mediaPlaybackBlocked,
+			onClickUnblockPlayback,
 		};
 	},
 });
@@ -741,6 +788,17 @@ $in-video-chat-width-small: 250px;
 		width: $in-video-chat-width-small;
 	}
 	pointer-events: none;
+}
+
+.playback-blocked-prompt {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 200;
+	display: flex;
+	justify-content: center;
 }
 
 .flip-list-move {

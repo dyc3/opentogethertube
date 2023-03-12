@@ -59,9 +59,6 @@ export default {
 				type: "application/x-mpegurl",
 			});
 			this.player.load();
-			if (this.$store.state.room.isPlaying) {
-				this.player.play();
-			}
 		},
 		beginNewVideo() {
 			this.player = videojs(document.getElementById("generichlsplayer"), {
