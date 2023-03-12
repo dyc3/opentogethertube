@@ -344,10 +344,10 @@ export default defineComponent({
 			}
 		}
 
-		function onSyncMsg(msg: ServerMessageSync) {
+		async function onSyncMsg(msg: ServerMessageSync) {
 			rewriteUrlToRoomName();
 			if (msg.isPlaying !== undefined) {
-				applyIsPlaying(msg.isPlaying);
+				await applyIsPlaying(msg.isPlaying);
 			}
 		}
 
@@ -408,14 +408,26 @@ export default defineComponent({
 			);
 		}
 
-		function applyIsPlaying(playing: boolean) {
+		async function applyIsPlaying(playing: boolean): Promise<void> {
 			if (!isPlayerPresent(player)) {
-				return;
+				return Promise.reject("Can't apply IsPlaying: player not present");
 			}
-			if (playing) {
-				player.value.play();
-			} else {
-				player.value.pause();
+			try {
+				if (playing) {
+					return await player.value.play();
+				} else {
+					return await player.value.pause();
+				}
+			} catch (e) {
+				if (e instanceof DOMException && e.name === "NotAllowedError") {
+					console.log(e.name);
+					console.log(
+						"TODO: show prompt to play video, disable video auto seeking to stay in sync"
+					);
+				} else {
+					console.error("Can't apply IsPlaying: ", e.name, e);
+				}
+				return Promise.resolve();
 			}
 		}
 
@@ -442,7 +454,7 @@ export default defineComponent({
 			console.debug("internal player API is now ready");
 		}
 
-		function onPlaybackChange(changeTo: boolean) {
+		async function onPlaybackChange(changeTo: boolean) {
 			console.debug(`onPlaybackChange: ${changeTo}`);
 			if (!changeTo) {
 				setVideoControlsVisibility(true);
@@ -454,15 +466,15 @@ export default defineComponent({
 				return;
 			}
 
-			applyIsPlaying(store.state.room.isPlaying);
+			await applyIsPlaying(store.state.room.isPlaying);
 		}
 		function onPlayerReady() {
 			if (currentSource.value?.service === "vimeo") {
 				onPlayerReady_Vimeo();
 			}
 		}
-		function onPlayerReady_Vimeo() {
-			applyIsPlaying(store.state.room.isPlaying);
+		async function onPlayerReady_Vimeo() {
+			await applyIsPlaying(store.state.room.isPlaying);
 		}
 
 		function isCaptionsSupported() {

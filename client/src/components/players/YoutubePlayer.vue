@@ -109,9 +109,10 @@ export default {
 		play() {
 			if (!this.player) {
 				this.queuedPlaying = true;
-				return;
+				return Promise.resolve();
 			}
 			this.player.playVideo();
+			return Promise.resolve();
 		},
 		pause() {
 			if (!this.player) {

@@ -118,8 +118,8 @@ import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, wa
 const services = ["youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"];
 
 export interface MediaPlayer {
-	play(): void | Promise<void>;
-	pause(): void | Promise<void>;
+	play(): Promise<void>;
+	pause(): Promise<void>;
 	setVolume(volume: number): void | Promise<void>;
 	getPosition(): number | Promise<number>;
 	setPosition(position: number): void | Promise<void>;
@@ -180,21 +180,21 @@ export default defineComponent({
 
 		const isPlayerPresent = computed(() => !!player.value);
 
-		function play() {
+		function play(): Promise<void> {
 			if (!checkForPlayer(player.value)) {
-				return;
+				return Promise.reject("Player not available yet");
 			}
-			player.value.play();
+			return player.value.play();
 		}
-		function pause() {
+		function pause(): Promise<void> {
 			if (!checkForPlayer(player.value)) {
-				return;
+				return Promise.reject("Player not available yet");
 			}
 			return player.value.pause();
 		}
 		function setVolume(volume: number) {
 			if (!checkForPlayer(player.value)) {
-				return;
+				return Promise.reject("Player not available yet");
 			}
 			return player.value.setVolume(volume);
 		}
