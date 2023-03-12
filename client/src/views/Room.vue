@@ -52,6 +52,15 @@
 							<div class="in-video-chat">
 								<Chat ref="chat" @link-click="setAddPreviewText" />
 							</div>
+							<div
+								class="playback-blocked-prompt"
+								v-if="mediaPlaybackBlocked"
+								prepend-icon="fa:fas fa-play"
+								size="x-large"
+								color="error"
+							>
+								<v-btn @click="onClickUnblockPlayback">Play</v-btn>
+							</div>
 						</v-responsive>
 					</div>
 					<VideoControls
@@ -315,7 +324,7 @@ export default defineComponent({
 			}
 			let currentTime = await player.value.getPosition();
 
-			if (Math.abs(newPosition - currentTime) > 1) {
+			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
 				player.value.setPosition(newPosition);
 			}
 		});
@@ -346,7 +355,7 @@ export default defineComponent({
 
 		async function onSyncMsg(msg: ServerMessageSync) {
 			rewriteUrlToRoomName();
-			if (msg.isPlaying !== undefined) {
+			if (msg.isPlaying !== undefined && !mediaPlaybackBlocked.value) {
 				await applyIsPlaying(msg.isPlaying);
 			}
 		}
@@ -408,27 +417,36 @@ export default defineComponent({
 			);
 		}
 
+		// Indicates that starting playback is blocked by the browser. This usually means that the user needs
+		// to interact with the page before playback can start. This is because browers block autoplaying videos.
+		const mediaPlaybackBlocked = ref(false);
+
 		async function applyIsPlaying(playing: boolean): Promise<void> {
 			if (!isPlayerPresent(player)) {
 				return Promise.reject("Can't apply IsPlaying: player not present");
 			}
 			try {
 				if (playing) {
-					return await player.value.play();
+					await player.value.play();
 				} else {
-					return await player.value.pause();
+					await player.value.pause();
 				}
+				mediaPlaybackBlocked.value = false;
+				return;
 			} catch (e) {
 				if (e instanceof DOMException && e.name === "NotAllowedError") {
-					console.log(e.name);
 					console.log(
 						"TODO: show prompt to play video, disable video auto seeking to stay in sync"
 					);
+					mediaPlaybackBlocked.value = true;
 				} else {
 					console.error("Can't apply IsPlaying: ", e.name, e);
 				}
-				return Promise.resolve();
 			}
+		}
+
+		function onClickUnblockPlayback(): void {
+			applyIsPlaying(store.state.room.isPlaying);
 		}
 
 		function updateVolume(value: number | undefined = undefined) {
@@ -637,6 +655,9 @@ export default defineComponent({
 			production,
 			debugMode,
 			orientation: orientation.orientation,
+
+			mediaPlaybackBlocked,
+			onClickUnblockPlayback,
 		};
 	},
 });
@@ -753,6 +774,18 @@ $in-video-chat-width-small: 250px;
 		width: $in-video-chat-width-small;
 	}
 	pointer-events: none;
+}
+
+.playback-blocked-prompt {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 200;
+	display: flex;
+	justify-content: center;
+	align-content: center;
 }
 
 .flip-list-move {
