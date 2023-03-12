@@ -354,6 +354,20 @@ export default defineComponent({
 			}
 		}
 
+		async function waitForPlayer() {
+			if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+				return;
+			}
+			await new Promise(resolve => {
+				const interval = setInterval(() => {
+					if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+						clearInterval(interval);
+						resolve(true);
+					}
+				}, 100);
+			});
+		}
+
 		async function onSyncMsg(msg: ServerMessageSync) {
 			rewriteUrlToRoomName();
 			if (msg.isPlaying !== undefined && !mediaPlaybackBlocked.value) {
@@ -423,6 +437,7 @@ export default defineComponent({
 		const mediaPlaybackBlocked = ref(false);
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
+			await waitForPlayer();
 			if (!isPlayerPresent(player)) {
 				return Promise.reject("Can't apply IsPlaying: player not present");
 			}
