@@ -436,9 +436,6 @@ export default defineComponent({
 				return;
 			} catch (e) {
 				if (e instanceof DOMException && e.name === "NotAllowedError") {
-					console.log(
-						"TODO: show prompt to play video, disable video auto seeking to stay in sync"
-					);
 					mediaPlaybackBlocked.value = true;
 				} else {
 					console.error("Can't apply IsPlaying: ", e.name, e);
@@ -447,6 +444,7 @@ export default defineComponent({
 		}
 
 		function onClickUnblockPlayback(): void {
+			player.value?.setPosition(truePosition.value);
 			applyIsPlaying(store.state.room.isPlaying);
 		}
 
