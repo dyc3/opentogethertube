@@ -17,11 +17,6 @@ export const routes: RouteRecordRaw[] = [
 		component: () => import("./views/Room.vue"),
 	},
 	{
-		path: "/faq",
-		name: "faq",
-		component: () => import("./views/Faq.vue"),
-	},
-	{
 		path: "/privacypolicy",
 		name: "privacypolicy",
 		component: () => import("./views/Privacy.vue"),
