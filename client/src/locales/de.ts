@@ -157,7 +157,6 @@ export default {
 		"playlists": "Wiedergabelisten",
 		"playlist": "Wiedergabeliste",
 		"text": "Oder geben Sie einfach Text ein, um Youtube zu durchsuchen.",
-		"search": "@:common.search",
 		"search-for":
 			'Suchen Sie auf YouTube nach "{search}", indem Sie die Eingabetaste drücken oder auf Suchen klicken.',
 		"platforms": {

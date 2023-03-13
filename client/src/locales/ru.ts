@@ -215,7 +215,6 @@ export default {
 		"playlists": "Плейлисты",
 		"playlist": "Плейлист",
 		"text": "Или просто введите текст для поиска на Youtube",
-		"search": "@:common.search",
 		"search-for": 'Найдите на YouTube "{search}", нажав Enter или кнопку Поиск.',
 		"platforms": {
 			"youtube-videos": "YouTube видео: {url}",

@@ -203,7 +203,6 @@ export default {
 		"playlists": "Playlists",
 		"playlist": "Playlist",
 		"text": "Or just type text to search Youtube.",
-		"search": "@:common.search",
 		"search-for": 'Search YouTube for "{search}" by pressing enter, or by clicking search.',
 		"platforms": {
 			"youtube-videos": "Youtube videos: {url}",
