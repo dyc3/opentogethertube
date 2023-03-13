@@ -164,7 +164,6 @@ export default {
 		},
 		"tabs": {
 			queue: "Queue",
-			add: "@:common.add",
 			settings: "Settings",
 		},
 		"users": {

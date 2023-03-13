@@ -158,7 +158,6 @@ export default {
 		},
 		"tabs": {
 			queue: "Очередь",
-			add: "@:common.add",
 			settings: "Настройки",
 		},
 		"users": {

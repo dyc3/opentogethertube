@@ -121,7 +121,6 @@ export default {
 		},
 		"tabs": {
 			queue: "Warteschlange",
-			add: "@:common.add",
 			settings: "Einstellungen",
 		},
 		"users": {

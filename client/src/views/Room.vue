@@ -90,7 +90,7 @@
 							</v-tab>
 							<v-tab>
 								<v-icon>fa:fas fa-plus</v-icon>
-								<span class="tab-text">{{ $t("room.tabs.add") }}</span>
+								<span class="tab-text">{{ $t("common.add") }}</span>
 							</v-tab>
 							<v-tab>
 								<v-icon>fa:fas fa-cog</v-icon>
