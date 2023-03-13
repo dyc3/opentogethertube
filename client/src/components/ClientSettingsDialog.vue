@@ -39,10 +39,10 @@
 			<v-card-actions>
 				<v-spacer />
 				<v-btn color="primary" text @click="applySettings">
-					{{ $t("actions.save") }}
+					{{ $t("common.save") }}
 				</v-btn>
 				<v-btn text @click="cancelSettings">
-					{{ $t("actions.cancel") }}
+					{{ $t("common.cancel") }}
 				</v-btn>
 			</v-card-actions>
 		</v-card>

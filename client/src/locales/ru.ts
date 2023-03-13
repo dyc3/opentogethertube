@@ -1,6 +1,17 @@
 import { OttWebsocketError } from "ott-common/models/types";
 
 export default {
+	"common": {
+		"cancel": "Отмена",
+		"close": "Закрыть",
+		"close-all": "Закрыть всё",
+		"add": "Добавить",
+		"play": "играть",
+		"pause": "Пауза",
+		"save": "Сохранить",
+		"search": "Поиск",
+		"undo": "Отменить действие",
+	},
 	"landing": {
 		hero: {
 			title: "Насладитесь совместным просмотром.",
@@ -113,7 +124,6 @@ export default {
 		},
 		"tabs": {
 			queue: "Очередь",
-			add: "Добавить",
 			settings: "Настройки",
 		},
 		"users": {
@@ -171,7 +181,6 @@ export default {
 		"playlists": "Плейлисты",
 		"playlist": "Плейлист",
 		"text": "Или просто введите текст для поиска на Youtube",
-		"search": "Поиск",
 		"search-for": 'Найдите на YouTube "{search}", нажав Enter или кнопку Поиск.',
 		"platforms": {
 			"youtube-videos": "YouTube видео: {url}",
@@ -202,8 +211,6 @@ export default {
 		"experimental": "Эта функция в стадии тестирования... Может сломаться!",
 		"play-next": "Следующее",
 		"play-last": "Предыдущее",
-		"add": "Добавить",
-		"remove": "Удалить",
 		"messages": {
 			"video-added": "Видео добавлено",
 			"video-removed": "Видео удалено",
@@ -307,12 +314,6 @@ export default {
 			"Администраторам предоставляется всё. Владелец комнаты автоматически становится администратором и не может быть понижен в должности.",
 		"viewing-as": "Просмотреть как",
 		"permission": "Разрешение",
-	},
-	"actions": {
-		"cancel": "Отмена",
-		"close-all": "Закрыть всё",
-		"undo": "Отменить действие",
-		"save": "Сохранить",
 	},
 	"client-settings": {
 		title: "Персональные настройки",

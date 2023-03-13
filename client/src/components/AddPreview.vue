@@ -56,7 +56,7 @@
 							@click="requestAddPreviewExplicit"
 							data-cy="add-preview-manual-search"
 						>
-							{{ $t("add-preview.search") }}
+							{{ $t("common.search") }}
 						</v-btn>
 					</v-col>
 				</v-row>

@@ -10,7 +10,7 @@
 		<div class="bar" :style="{ 'animation-duration': `${toast.duration}ms` }"></div>
 		<div class="toast-actions">
 			<v-btn variant="text" v-if="undoable" @click="undo">
-				{{ $t("actions.undo") }}
+				{{ $t("common.undo") }}
 			</v-btn>
 			<v-btn variant="text" @click="close" size="x-small" icon aria-label="close">
 				<v-icon>fa:fas fa-times</v-icon>

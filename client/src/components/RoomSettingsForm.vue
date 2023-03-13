@@ -109,7 +109,7 @@
 					role="submit"
 					:loading="isLoadingRoomSettings"
 					data-cy="save"
-					>{{ $t("actions.save") }}</v-btn
+					>{{ $t("common.save") }}</v-btn
 				>
 			</div>
 		</v-form>
