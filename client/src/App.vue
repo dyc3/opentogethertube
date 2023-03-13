@@ -114,7 +114,7 @@
 			<v-container class="overlay-loading-create-room">
 				<v-progress-circular indeterminate />
 				<v-btn elevation="12" size="x-large" @click="cancelRoom" style="margin-top: 24px">
-					{{ $t("actions.cancel") }}
+					{{ $t("common.cancel") }}
 				</v-btn>
 			</v-container>
 		</v-overlay>

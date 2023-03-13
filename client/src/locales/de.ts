@@ -1,4 +1,16 @@
 export default {
+	"common": {
+		"cancel": "Abbrechen",
+		"close": "Schließen",
+		"close-all": "Alle schließen",
+		"add": "Hinzufügen",
+		"remove": "Entfernen",
+		"play": "Play",
+		"pause": "Pause",
+		"save": "Speichern",
+		"search": "Suche",
+		"undo": "Rückgängig",
+	},
 	"landing": {
 		hero: {
 			title: "Gemeinsam genießen.",
@@ -109,7 +121,7 @@ export default {
 		},
 		"tabs": {
 			queue: "Warteschlange",
-			add: "Hinzufügen",
+			add: "@:common.add",
 			settings: "Einstellungen",
 		},
 		"users": {
@@ -146,7 +158,7 @@ export default {
 		"playlists": "Wiedergabelisten",
 		"playlist": "Wiedergabeliste",
 		"text": "Oder geben Sie einfach Text ein, um Youtube zu durchsuchen.",
-		"search": "Suche",
+		"search": "@:common.search",
 		"search-for":
 			'Suchen Sie auf YouTube nach "{search}", indem Sie die Eingabetaste drücken oder auf Suchen klicken.',
 		"platforms": {
@@ -171,8 +183,8 @@ export default {
 			"Experimentelle Unterstützung für diesen Dienst! Rechnen Sie damit, dass er oft kaputt geht.",
 		"play-next": "Video als nächstes abspielen",
 		"play-last": "Video zuletzt abspielen",
-		"add": "hinzufügen",
-		"remove": "entfernen",
+		"add": "@:common.add",
+		"remove": "@:common.remove",
 		"messages": {
 			"video-added": "Video hinzugefügt",
 			"video-removed": "Video entfernt",
@@ -273,12 +285,6 @@ export default {
 			"Administratoren haben alle Rechte. Der Raumbesitzer ist automatisch Administrator und kann nicht degradiert werden.",
 		"viewing-as": "Ansicht als",
 		"permission": "Berechtigung",
-	},
-	"actions": {
-		"cancel": "Abbrechen",
-		"close-all": "Alle schließen",
-		"undo": "Rückgängig",
-		"save": "Speichern",
 	},
 	"client-settings": {
 		title: "Anpassen",

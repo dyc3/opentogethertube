@@ -1,6 +1,22 @@
 import { OttWebsocketError } from "ott-common/models/types";
 
 export default {
+	"common": {
+		"yes": "Yes",
+		"no": "No",
+		"ok": "OK",
+		"cancel": "Cancel",
+		"close": "Close",
+		"close-all": "Close All",
+		"add": "Add",
+		"remove": "Remove",
+		"delete": "Delete",
+		"play": "Play",
+		"pause": "Pause",
+		"save": "Save",
+		"search": "Search",
+		"undo": "Undo",
+	},
 	"landing": {
 		hero: {
 			title: "Enjoy Together.",
@@ -148,7 +164,7 @@ export default {
 		},
 		"tabs": {
 			queue: "Queue",
-			add: "Add",
+			add: "@:common.add",
 			settings: "Settings",
 		},
 		"users": {
@@ -188,7 +204,7 @@ export default {
 		"playlists": "Playlists",
 		"playlist": "Playlist",
 		"text": "Or just type text to search Youtube.",
-		"search": "Search",
+		"search": "@:common.search",
 		"search-for": 'Search YouTube for "{search}" by pressing enter, or by clicking search.',
 		"platforms": {
 			"youtube-videos": "Youtube videos: {url}",
@@ -218,8 +234,8 @@ export default {
 		"experimental": "Experimental support for this service! Expect it to break a lot.",
 		"play-next": "Play Next",
 		"play-last": "Play Last",
-		"add": "Add",
-		"remove": "Remove",
+		"add": "@:common.add",
+		"remove": "@:common.remove",
 		"messages": {
 			"video-added": "Video added",
 			"video-removed": "Video removed",
@@ -322,12 +338,6 @@ export default {
 			"Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.",
 		"viewing-as": "Viewing as",
 		"permission": "Permission",
-	},
-	"actions": {
-		"cancel": "Cancel",
-		"close-all": "Close All",
-		"undo": "undo",
-		"save": "Save",
 	},
 	"client-settings": {
 		title: "Preferences",
