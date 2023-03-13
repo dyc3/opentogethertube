@@ -181,8 +181,6 @@ export default {
 			"Experimentelle Unterstützung für diesen Dienst! Rechnen Sie damit, dass er oft kaputt geht.",
 		"play-next": "Video als nächstes abspielen",
 		"play-last": "Video zuletzt abspielen",
-		"add": "@:common.add",
-		"remove": "@:common.remove",
 		"messages": {
 			"video-added": "Video hinzugefügt",
 			"video-removed": "Video entfernt",

@@ -232,8 +232,6 @@ export default {
 		"experimental": "Experimental support for this service! Expect it to break a lot.",
 		"play-next": "Play Next",
 		"play-last": "Play Last",
-		"add": "@:common.add",
-		"remove": "@:common.remove",
 		"messages": {
 			"video-added": "Video added",
 			"video-removed": "Video removed",

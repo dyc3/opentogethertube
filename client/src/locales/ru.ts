@@ -245,8 +245,6 @@ export default {
 		"experimental": "Эта функция в стадии тестирования... Может сломаться!",
 		"play-next": "Следующее",
 		"play-last": "Предыдущее",
-		"add": "@:common.add",
-		"remove": "@:common.remove",
 		"messages": {
 			"video-added": "Видео добавлено",
 			"video-removed": "Видео удалено",
