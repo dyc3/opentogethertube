@@ -19,7 +19,13 @@
 			</v-app-bar-title>
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-btn variant="text" to="/rooms">{{ $t("nav.browse") }}</v-btn>
-				<v-btn variant="text" to="/faq">{{ $t("nav.faq") }}</v-btn>
+				<v-btn
+					variant="text"
+					href="https://github.com/dyc3/opentogethertube/discussions/830"
+					target="_blank"
+				>
+					{{ $t("nav.faq") }}
+				</v-btn>
 				<v-btn
 					variant="text"
 					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
@@ -61,7 +67,10 @@
 				<v-list-item to="/rooms">
 					{{ $t("nav.browse") }}
 				</v-list-item>
-				<v-list-item to="/faq">
+				<v-list-item
+					href="https://github.com/dyc3/opentogethertube/discussions/830"
+					target="_blank"
+				>
 					{{ $t("nav.faq") }}
 				</v-list-item>
 				<v-list-item
