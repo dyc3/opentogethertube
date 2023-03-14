@@ -160,13 +160,15 @@ export default {
 	},
 	"add-preview": {
 		"add-all": "Ajouter tout",
-		"placeholder": "Tapes pour faire une recherche Youtube ou entre une URL de vidéo pour l'ajouter à la liste de lecture",
+		"placeholder":
+			"Tapes pour faire une recherche Youtube ou entre une URL de vidéo pour l'ajouter à la liste de lecture",
 		"title": "Que puis-je ajouter ?",
 		"single-videos": "Vidéos uniques",
 		"playlists": "Playlists",
 		"playlist": "Playlist",
 		"text": "Ou tapes juste du texte pour faire une recherche Youtube.",
-		"search-for": 'Recherche Youtube pour "{search}" en appuyant sur entrée, ou en cliquant sur le bouton recherche.',
+		"search-for":
+			'Recherche Youtube pour "{search}" en appuyant sur entrée, ou en cliquant sur le bouton recherche.',
 		"platforms": {
 			"youtube-videos": "Des vidéos Youtube: {url}",
 			"vimeo-videos": "Des vidéos Viméo: {url}",
@@ -178,7 +180,8 @@ export default {
 		},
 		"messages": {
 			"unknown-status": "Statut inconnu, impossible de donner un aperçu pour : {status}.",
-			"unknown-error": "Une erreur inconnue s'est produite lors de l'obtention de l'aperçu. Réessayez plus tard.",
+			"unknown-error":
+				"Une erreur inconnue s'est produite lors de l'obtention de l'aperçu. Réessayez plus tard.",
 			"failed-to-get-add-preview":
 				"Échec de l'obtention de l'aperçu. Il s'agit probablement d'un bug, consultez la console pour plus de détails.",
 			"failed-to-all-videos": "Échec de toutes les vidéos: {message}",
@@ -192,7 +195,8 @@ export default {
 		"add-video": "Ajouter une vidéo",
 	},
 	"video-queue-item": {
-		"experimental": "Support expérimental pour ce service ! Attendez-vous à ce qu'il y est beaucoup de bug.",
+		"experimental":
+			"Support expérimental pour ce service ! Attendez-vous à ce qu'il y est beaucoup de bug.",
 		"play-next": "Vidéo suivante",
 		"play-last": "Vidéo précédente",
 		"messages": {
@@ -220,10 +224,13 @@ export default {
 			"Lorsque la vidéo se termine elle recommence depuis le début. Bien pour la musique de fond en boucle.",
 		"auto-skip-text":
 			"Ignorer automatiquement les segments sponsorisés, les intros, les auto-promos, etc. en utilisant les données SponsorBlock.",
-		"permissions-not-available": "Les autorisations ne sont pas disponibles dans les salles temporaires.",
-		"room-needs-owner": "Cette salle a besoin d'un propriétaire avant que les autorisations puissent être modifiées.",
+		"permissions-not-available":
+			"Les autorisations ne sont pas disponibles dans les salles temporaires.",
+		"room-needs-owner":
+			"Cette salle a besoin d'un propriétaire avant que les autorisations puissent être modifiées.",
 		"login-to-claim": "Connectez-vous pour réclamer cette salle.",
-		"arent-able-to-modify-permissions": "Vous ne pouvez pas modifier les autorisations dans ce salon.",
+		"arent-able-to-modify-permissions":
+			"Vous ne pouvez pas modifier les autorisations dans ce salon.",
 		"settings-applied": "Paramètres appliqués",
 		"now-own-the-room": "Vous êtes maintenant propriétaire de la chambre {room}.",
 		"load-failed": "Échec du chargement des paramètres de la salle.",
@@ -270,7 +277,8 @@ export default {
 			"email-required": "Email requis",
 			"valid-email": "L'email doit être valide",
 			"username-required": "Nom d'utilisateur requis",
-			"username-length": "Le nom d'utilisateur doit être compris entre 1 et {length} caractères",
+			"username-length":
+				"Le nom d'utilisateur doit être compris entre 1 et {length} caractères",
 			"password-required": "Mot de passe requis",
 			"password-length": "Le mot de passe doit comporter au moins 10 caractères",
 			"retype-password": "Veuillez retaper votre mot de passe",
@@ -281,7 +289,8 @@ export default {
 				"Quelque chose de bizarre s'est produit, mais vous êtes peut-être connecté ? Actualisez la page.",
 			"login-failed-noserver":
 				"Échec de la connexion, mais le serveur n'a pas dit pourquoi. Signalez ceci comme un bug.",
-			"login-failed": "Échec de la connexion, et nous ne savons pas pourquoi. Signalez ceci comme un bug.",
+			"login-failed":
+				"Échec de la connexion, et nous ne savons pas pourquoi. Signalez ceci comme un bug.",
 			"register-failed-noserver":
 				"Échec de l'inscription, mais le serveur n'a pas dit pourquoi. Signalez ceci comme un bug.",
 			"register-failed":
@@ -300,7 +309,8 @@ export default {
 	},
 	"client-settings": {
 		title: "Préférences",
-		description: "Ces paramètres sont enregistrés dans votre navigateur et n'affectent que vous.",
+		description:
+			"Ces paramètres sont enregistrés dans votre navigateur et n'affectent que vous.",
 		activator: "@:client-settings.title",
 	},
 	"connect-overlay": {
@@ -312,7 +322,8 @@ export default {
 			[OttWebsocketError.ROOM_UNLOADED]: "La salle a été supprimée.",
 			[OttWebsocketError.MISSING_TOKEN]:
 				"Un jeton n'a pas été fourni. Actualisez la page et réessayez. Sinon, veuillez ouvrir un ticket sur GitHub.",
-			unknown: "Il s'est passé quelque chose, mais nous ne savons pas quoi. Veuillez signaler ceci comme un bug.",
+			unknown:
+				"Il s'est passé quelque chose, mais nous ne savons pas quoi. Veuillez signaler ceci comme un bug.",
 		},
 	},
 };
