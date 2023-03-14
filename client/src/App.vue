@@ -144,7 +144,7 @@ import { createRoomHelper } from "@/util/roomcreator";
 import { useRouter } from "vue-router";
 import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
-import { LocaleSelector } from "@/components/navbar/LocaleSelector.vue";
+import LocaleSelector from "@/components/navbar/LocaleSelector.vue";
 
 export const App = defineComponent({
 	name: "app",
