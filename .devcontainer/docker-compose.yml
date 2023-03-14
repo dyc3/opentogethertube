@@ -1,0 +1,27 @@
+version: '3.7'
+x-environment:
+  &default-environment
+  POSTGRES_USER: vscode
+  POSTGRES_PASSWORD: notsecure
+  POSTGRES_DB: opentogethertube
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    environment:
+      <<: *default-environment
+    user: vscode
+    command: sleep infinity
+    volumes:
+      - ..:/workspace
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      <<: *default-environment
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
