@@ -171,8 +171,8 @@ export default {
 			'Recherche Youtube pour "{search}" en appuyant sur entrée, ou en cliquant sur le bouton recherche.',
 		"platforms": {
 			"youtube-videos": "Des vidéos Youtube: {url}",
-			"vimeo-videos": "Des vidéos Viméo: {url}",
-			"dailymotion-videos": "Des vidéos ailymotion: {url}",
+			"vimeo-videos": "Des vidéos Vimeo: {url}",
+			"dailymotion-videos": "Des vidéos Dailymotion: {url}",
 			"any-mp4-videos": "Toutes les vidéos .mp4 publiques: {url}",
 			"youtube-playlists": "Les playlists Youtube: {url}",
 			"youtube-channels": "Les chaînes Youtube: {url}",
