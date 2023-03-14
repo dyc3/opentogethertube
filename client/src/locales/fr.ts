@@ -94,7 +94,7 @@ export default {
 		"home": "Accueil",
 		"browse": "Parcourir",
 		"faq": "FAQ",
-		"bug": "Rapporter un BUG",
+		"bug": "Rapporter un bug",
 		"support": "Me Soutenir!",
 		"login": "Se connecter",
 		"link-discord": "Lien Discord",
