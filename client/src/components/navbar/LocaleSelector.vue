@@ -23,6 +23,10 @@ const locales = [
 		value: "de",
 	},
 	{
+		text: "🇫🇷",
+		value: "fr",
+	},
+	{
 		text: "🇷🇺",
 		value: "ru",
 	},
