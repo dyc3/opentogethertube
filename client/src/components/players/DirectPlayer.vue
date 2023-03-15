@@ -14,6 +14,17 @@ export default {
 		videoMime: { type: String, required: true },
 		thumbnail: { type: String },
 	},
+	emits: [
+		"apiready",
+		"ready",
+		"playing",
+		"paused",
+		"buffering",
+		"error",
+		"end",
+		"buffer-progress",
+		"buffer-spans",
+	],
 	data() {
 		return {
 			player: null,
@@ -50,11 +61,19 @@ export default {
 		},
 		loadVideoSource() {
 			console.log("DirectPlayer: loading video source:", this.videoUrl, this.videoMime);
-			this.player.src({
-				src: this.videoUrl,
-				type: this.videoMime,
-			});
-			this.player.load();
+			this.player.loadMedia(
+				{
+					src: {
+						src: this.videoUrl,
+						type: this.videoMime,
+					},
+					poster: this.thumbnail,
+				},
+				() => {
+					this.$emit("ready");
+					this.play();
+				}
+			);
 		},
 		beginNewVideo() {
 			this.player = videojs(document.getElementById("directplayer"), {
