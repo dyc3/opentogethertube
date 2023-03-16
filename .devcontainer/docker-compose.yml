@@ -11,17 +11,35 @@ services:
       dockerfile: .devcontainer/Dockerfile
     environment:
       <<: *default-environment
+      REDIS_HOST: redis_db
+      POSTGRES_HOST: postgres_db
     user: vscode
     command: sleep infinity
     volumes:
       - ..:/workspace
-  db:
+    links:
+      - redis_db
+      - postgres_db
+    depends_on:
+      - redis_db
+      - postgres_db
+  redis_db:
+    image: redis
+    healthcheck:
+      test: "redis-cli ping"
+    volumes:
+      - db-data-redis:/data
+
+  postgres_db:
     image: postgres:15
     restart: unless-stopped
     environment:
       <<: *default-environment
+    healthcheck:
+      test: "pg_isready -U opentogethertube"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data-postgres:/var/lib/postgresql/data
 
 volumes:
-  db-data:
+  db-data-postgres:
+  db-data-redis:
