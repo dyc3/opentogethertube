@@ -143,10 +143,6 @@ export function buildNewStore() {
 				) {
 					this.state.room.playbackStartTime = dayjs();
 				}
-				// // FIXME: the UI needs to be able to handle null currentSource
-				// if (message.currentSource === null) {
-				// 	message.currentSource = {};
-				// }
 				if ("currentSource" in message) {
 					this.commit("PLAYBACK_BUFFER_RESET");
 				}
