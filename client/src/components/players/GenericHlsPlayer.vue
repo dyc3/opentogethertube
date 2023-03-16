@@ -1,6 +1,6 @@
 <template>
 	<div class="generichls">
-		<video id="generichlsplayer" class="video-js vjs-default-skin" :key="videoid"></video>
+		<video id="generichlsplayer" class="video-js vjs-default-skin"></video>
 	</div>
 </template>
 
