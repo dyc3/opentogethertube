@@ -1,6 +1,6 @@
 <template>
 	<div class="direct">
-		<video id="directplayer" class="video-js vjs-default-skin" :key="videoUrl"></video>
+		<video id="directplayer" class="video-js vjs-default-skin"></video>
 	</div>
 </template>
 
@@ -61,6 +61,7 @@ export default {
 		},
 		loadVideoSource() {
 			console.log("DirectPlayer: loading video source:", this.videoUrl, this.videoMime);
+			this.player.reset();
 			this.player.loadMedia(
 				{
 					src: {
