@@ -45,7 +45,7 @@
     "@typescript-eslint/eslint-plugin": "5.51.0",
     "@typescript-eslint/parser": "5.51.0",
     "concurrently": "7.6.0",
-    "cypress": "12.5.1",
+    "cypress": "https://cdn.cypress.io/beta/npm/12.8.2/linux-x64/retry-dynamic-imports-ed984ef8e1558e8915171384987494bc17b00e27/cypress.tgz",
     "cypress-iframe": "^1.0.1",
     "cypress-real-events": "^1.7.4",
     "eslint": "7.32.0",
