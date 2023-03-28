@@ -26,21 +26,12 @@ jobs:
         node-version: [16.x]
     steps:
     - uses: actions/checkout@v1
-    - name: Get npm cache directory
-      id: npm-cache
-      run: |
-        echo "::set-output name=dir::$(npm config get cache)"
-    - uses: actions/cache@v1
-      with:
-        path: ${{ steps.npm-cache.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: true
+        cache: "yarn"
     - run: npm install -g yarn
     - run: yarn install --frozen-lockfile
     - run: yarn run lint-ci
@@ -77,10 +68,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: true
+        cache: "yarn"
     - run: npm install -g yarn
     - run: yarn install --frozen-lockfile
     - run: yarn workspace ott-server run sequelize db:migrate
