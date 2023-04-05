@@ -15,7 +15,7 @@ export class VideoQueue extends Dirtyable {
 		this.lock = new Mutex();
 
 		if (items) {
-			this._items = items;
+			this._items = items.filter(v => v !== null && v !== undefined);
 		}
 	}
 
