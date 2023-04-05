@@ -40,8 +40,12 @@ export async function start() {
 
 export async function update(): Promise<void> {
 	for (const room of rooms) {
-		await room.update();
-		await room.sync();
+		try {
+			await room.update();
+			await room.sync();
+		} catch (e) {
+			log.error(`Error updating room ${room.name}: ${e}`);
+		}
 
 		if (room.isStale) {
 			await UnloadRoom(room.name);
