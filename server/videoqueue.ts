@@ -27,8 +27,12 @@ export class VideoQueue extends Dirtyable {
 		return this._items.length;
 	}
 
+	isAllVideos(items: (Video | QueueItem)[]): boolean {
+		return !items.some(item => item === null || item === undefined);
+	}
+
 	/** Override all items in the queue */
-	async set(items: (Video | QueueItem)[]) {
+	async set(items: (Video | QueueItem)[]): Promise<void> {
 		await this.lock.protect(() => {
 			this._items = items;
 			this.markDirty();
@@ -36,9 +40,15 @@ export class VideoQueue extends Dirtyable {
 	}
 
 	/** Add the given videos to the bottom of the queue. */
-	async enqueue(...video: (Video | QueueItem)[]) {
+	async enqueue(...videos: (Video | QueueItem)[]): Promise<void> {
+		if (videos.length === 0) {
+			return;
+		}
+		if (!this.isAllVideos(videos)) {
+			throw new Error("Cannot enqueue null or undefined items");
+		}
 		await this.lock.protect(() => {
-			this._items.push(...video);
+			this._items.push(...videos);
 			this.markDirty();
 		});
 	}
@@ -53,15 +63,27 @@ export class VideoQueue extends Dirtyable {
 	}
 
 	/** Push the given videos on to the top of the queue. */
-	async pushTop(...video: (Video | QueueItem)[]) {
+	async pushTop(...videos: (Video | QueueItem)[]) {
+		if (videos.length === 0) {
+			return;
+		}
+		if (!this.isAllVideos(videos)) {
+			throw new Error("Cannot enqueue null or undefined items");
+		}
 		await this.lock.protect(() => {
-			this._items.unshift(...video);
+			this._items.unshift(...videos);
 			this.markDirty();
 		});
 	}
 
 	/** Insert the given video at the given index. */
 	async insert(video: Video | QueueItem, index: number) {
+		if (index < 0 || index > this._items.length) {
+			throw new Error("Index out of bounds");
+		}
+		if (video === null || video === undefined) {
+			throw new Error("Cannot enqueue null or undefined items");
+		}
 		await this.lock.protect(() => {
 			const newItems = this._items.splice(0, index);
 			newItems.push(video);
@@ -74,7 +96,16 @@ export class VideoQueue extends Dirtyable {
 	/**
 	 * Move the item at index `fromIdx` to index `toIdx`.
 	 */
-	async move(fromIdx: number, toIdx: number) {
+	async move(fromIdx: number, toIdx: number): Promise<void> {
+		if (fromIdx === toIdx) {
+			return;
+		}
+		if (fromIdx < 0 || fromIdx >= this._items.length) {
+			throw new Error("'fromIdx' out of bounds");
+		}
+		if (toIdx < 0 || toIdx >= this._items.length) {
+			throw new Error("'toIdx' out of bounds");
+		}
 		return this.lock.protect(() => {
 			const item = this._items.splice(fromIdx, 1)[0];
 			this._items.splice(toIdx, 0, item);
@@ -82,7 +113,7 @@ export class VideoQueue extends Dirtyable {
 		});
 	}
 
-	findIndex(video: VideoId) {
+	findIndex(video: VideoId): number {
 		const matchIdx = _.findIndex(
 			this._items,
 			item => item.service === video.service && item.id === video.id
@@ -90,7 +121,7 @@ export class VideoQueue extends Dirtyable {
 		return matchIdx;
 	}
 
-	contains(video: VideoId) {
+	contains(video: VideoId): boolean {
 		const matchIdx = this.findIndex(video);
 		return matchIdx >= 0;
 	}
