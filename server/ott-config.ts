@@ -3,8 +3,159 @@ import path from "path";
 import dotenv from "dotenv";
 import validator from "validator";
 import { getLogger, setLogLevel } from "./logger.js";
+import convict from "convict";
 
 const log = getLogger("config");
+
+const conf = convict({
+	env: {
+		doc: "The application environment.",
+		format: ["production", "development", "test"],
+		default: "development",
+		env: "NODE_ENV",
+	},
+	port: {
+		doc: "The port to bind.",
+		format: "port",
+		default: 3000,
+		env: "PORT",
+	},
+	hostname: {
+		doc: "The domain name that the server is running on.",
+		format: "string",
+		default: "localhost",
+		env: "OTT_HOSTNAME",
+	},
+	log: {
+		level: {
+			doc: "The log level to use.",
+			format: ["silly", "debug", "info", "warn", "error"],
+			default: "info",
+			env: "LOG_LEVEL",
+		},
+		file: {
+			doc: "The file to output logs to. If not provided, logs will only be printed to stdout.",
+			format: "string",
+			default: null,
+			env: "LOG_FILE",
+		},
+	},
+	db: {
+		mode: {
+			doc: "The database mode to use.",
+			format: ["sqlite", "postgres"],
+			default: "sqlite",
+			env: "DB_MODE",
+		},
+	},
+	add_preview: {
+		search: {
+			enabled: {
+				doc: "Enable search functionality.",
+				format: Boolean,
+				default: true,
+				env: "ENABLE_SEARCH",
+			},
+			provider: {
+				doc: "Search provider to use.",
+				format: ["youtube"],
+				default: "youtube",
+				env: "SEARCH_PROVIDER",
+			},
+			min_query_length: {
+				doc: "Minimum length of a search query.",
+				format: "nat",
+				default: 3,
+				env: "ADD_PREVIEW_SEARCH_MIN_LENGTH",
+			},
+			results_count: {
+				doc: "Number of search results to return.",
+				format: "nat",
+				default: 8,
+				env: "ADD_PREVIEW_SEARCH_RESULTS_COUNT",
+			},
+		},
+		playlist_results_count: {
+			doc: "Max number of videos in a playlist to return.",
+			format: "nat",
+			default: 40,
+			env: "ADD_PREVIEW_PLAYLIST_RESULTS_COUNT",
+		},
+	},
+	info_extractor: {
+		youtube: {
+			api_key: {
+				doc: "Youtube API key.",
+				format: "string",
+				env: "YOUTUBE_API_KEY",
+				sensitive: true,
+			},
+		},
+		direct: {
+			ffprobe_path: {
+				doc: "Path to ffprobe.",
+				format: "string",
+				default: null,
+				env: "FFPROBE_PATH",
+			},
+		},
+	},
+	rate_limit: {
+		enabled: {
+			doc: "Enable rate limiting.",
+			format: Boolean,
+			default: true,
+			env: "ENABLE_RATE_LIMIT",
+		},
+		key_prefix: {
+			doc: "The prefix to use for rate limit keys, which are stored in redis.",
+			format: "string",
+			default: "rateLimit",
+			env: "RATE_LIMIT_KEY_PREFIX",
+		},
+	},
+	api_key: {
+		doc: "API key for the performing admin tasks. If not provided, no admin tasks will be available.",
+		format: "string",
+		default: null,
+		env: "OPENTOGETHERTUBE_API_KEY",
+		sensitive: true,
+	},
+	session_secret: {
+		doc: "Session secret used for cookies.",
+		format: "string",
+		default: null,
+		env: "SESSION_SECRET",
+		sensitive: true,
+	},
+	discord: {
+		client_id: {
+			doc: "Discord client ID. Required for discord login.",
+			format: "string",
+			default: null,
+			env: "DISCORD_CLIENT_ID",
+		},
+		client_secret: {
+			doc: "Discord client secret. Required for discord login.",
+			format: "string",
+			default: null,
+			env: "DISCORD_CLIENT_SECRET",
+			sensitive: true,
+		},
+	},
+	trust_proxy: {
+		doc: "How many layers of reverse proxies to trust for source IP addresses.",
+		format: "nat",
+		default: 1,
+		env: "TRUST_PROXY",
+	},
+	short_url: {
+		doc: 'The domain to use in the copyable "Share Invite" URL. This environment var must be present during building the client, otherwise it will not work.',
+		format: "string",
+		default: null,
+		env: "OTT_SHORT_URL_HOSTNAME",
+	},
+});
 
 const config_path = path.resolve(process.cwd(), `../env/${process.env.NODE_ENV}.env`);
 log.info(`Reading config from ${process.env.NODE_ENV}.env`);
