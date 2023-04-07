@@ -18,8 +18,6 @@ OTT is configured using `*.env` files located in the `env/` directory. The confi
 | `GOOGLE_DRIVE_API_KEY` | **REQUIRED if you want google drive** Google drive api key from [Google Cloud](https://console.cloud.google.com). *Google drive really doesn't like to stream video, YMMV.* | None | A Google Drive API key
 | `DISCORD_CLIENT_ID` | Discord oauth client ID | None
 | `DISCORD_CLIENT_SECRET` | Discord oauth client secret | None
-| `GOOGLE_CLIENT_ID` | Currently unused
-| `GOOGLE_CLIENT_SECRET` | Currently unused
 | `REDIS_URL` | URI to your redis server. Overrides `REDIS_HOST`, and `REDIS_PORT`. If not supplied, it will try to connect to the redis server on the local machine. | None |
 | `REDIS_TLS_URL` | Works like, but prioritized over `REDIS_URL` | None |
 | `REDIS_HOST` | Hostname or IP of the redis server. If not supplied, it will try to connect to the redis server on the local machine. | `undefined` | Hostname or IP
