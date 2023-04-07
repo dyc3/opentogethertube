@@ -4,8 +4,11 @@ import dotenv from "dotenv";
 import validator from "validator";
 import { getLogger, setLogLevel } from "./logger.js";
 import convict from "convict";
+import toml from "toml";
 
 const log = getLogger("config");
+
+convict.addParser({ extension: "toml", parse: toml.parse });
 
 const conf = convict({
 	env: {
