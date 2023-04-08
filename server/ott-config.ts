@@ -10,7 +10,7 @@ const log = getLogger("config");
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
-const conf = convict({
+export const conf = convict({
 	env: {
 		doc: "The application environment.",
 		format: ["production", "development", "test"],
@@ -39,7 +39,6 @@ const conf = convict({
 		file: {
 			doc: "The file to output logs to. If not provided, logs will only be printed to stdout.",
 			format: String,
-			default: null,
 			env: "LOG_FILE",
 		},
 	},
@@ -98,7 +97,6 @@ const conf = convict({
 			ffprobe_path: {
 				doc: "Path to ffprobe.",
 				format: String,
-				default: null,
 				env: "FFPROBE_PATH",
 			},
 		},
@@ -128,14 +126,12 @@ const conf = convict({
 	api_key: {
 		doc: "API key for the performing admin tasks. If not provided, no admin tasks will be available.",
 		format: String,
-		default: null,
 		env: "OPENTOGETHERTUBE_API_KEY",
 		sensitive: true,
 	},
 	session_secret: {
 		doc: "Session secret used for cookies.",
 		format: String,
-		default: null,
 		env: "SESSION_SECRET",
 		sensitive: true,
 	},
@@ -143,13 +139,11 @@ const conf = convict({
 		client_id: {
 			doc: "Discord client ID. Required for discord login.",
 			format: String,
-			default: null,
 			env: "DISCORD_CLIENT_ID",
 		},
 		client_secret: {
 			doc: "Discord client secret. Required for discord login.",
 			format: String,
-			default: null,
 			env: "DISCORD_CLIENT_SECRET",
 			sensitive: true,
 		},
@@ -163,7 +157,6 @@ const conf = convict({
 	short_url: {
 		doc: 'The domain to use in the copyable "Share Invite" URL. This environment var must be present during building the client, otherwise it will not work.',
 		format: String,
-		default: null,
 		env: "OTT_SHORT_URL_HOSTNAME",
 	},
 });
