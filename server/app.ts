@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import fs from "fs";
-import { getLogger } from "./logger.js";
+import { getLogger, setLogLevel } from "./logger.js";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
@@ -23,6 +23,34 @@ if (process.env.NODE_ENV === "example") {
 import { loadConfigFile, conf } from "./ott-config";
 
 loadConfigFile();
+setLogLevel(conf.get("log.level"));
+
+if (!process.env.DB_MODE) {
+	process.env.DB_MODE =
+		process.env.DATABASE_URL ||
+		process.env.POSTGRES_DB_HOST ||
+		process.env.POSTGRES_DB_NAME ||
+		process.env.POSTGRES_DB_USERNAME ||
+		process.env.POSTGRES_DB_PASSWORD
+			? "postgres"
+			: "sqlite";
+}
+log.info(`Database mode: ${process.env.DB_MODE}`);
+
+if (process.env.ENABLE_SEARCH === undefined) {
+	process.env.ENABLE_SEARCH = "true";
+}
+log.info(`Search enabled: ${process.env.ENABLE_SEARCH}`);
+
+if (!process.env.SEARCH_PROVIDER) {
+	process.env.SEARCH_PROVIDER = "youtube";
+}
+log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
+
+if (process.env.ENABLE_RATE_LIMIT === undefined) {
+	process.env.ENABLE_RATE_LIMIT = "true";
+}
+log.info(`Rate limiting enabled: ${process.env.ENABLE_RATE_LIMIT}`);
 
 const app = express();
 app.use(metricsMiddleware);
@@ -72,7 +100,7 @@ let sessionOpts = {
 };
 if (
 	process.env.NODE_ENV === "production" &&
-	conf.has("hostname") &&
+	!!conf.get("hostname") &&
 	!conf.get("hostname").includes("localhost")
 ) {
 	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
@@ -97,7 +125,7 @@ passport.use(
 			clientID: conf.get("discord.client_id"),
 			clientSecret: conf.get("discord.client_secret"),
 			callbackURL:
-				(!conf.has("hostname") || conf.get("hostname").includes("localhost")
+				(!conf.get("hostname") || conf.get("hostname").includes("localhost")
 					? "http"
 					: "https") + `://${conf.get("hostname")}/api/auth/discord/callback`,
 			scope: ["identify"],

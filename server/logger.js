@@ -56,7 +56,7 @@ const logger = createLogger({
 	),
 });
 
-if (conf.has("log.file")) {
+if (conf.get("log.file") !== null) {
 	logger.add(new transports.File({ filename: conf.get("log.file") }));
 }
 

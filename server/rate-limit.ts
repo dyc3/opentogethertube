@@ -7,6 +7,7 @@ import {
 	RateLimiterAbstract,
 	RateLimiterRes,
 } from "rate-limiter-flexible";
+import { conf } from "./ott-config";
 
 const log = getLogger("api/rate-limit");
 
@@ -17,7 +18,7 @@ const rateLimitOpts: IRateLimiterStoreOptions = {
 	blockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
 	inmemoryBlockOnConsumed: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
 	inmemoryBlockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
-	keyPrefix: process.env.RATE_LIMIT_KEY_PREFIX ?? "rateLimit",
+	keyPrefix: conf.get("rate_limit.key_prefix"),
 };
 export const rateLimiter =
 	process.env.NODE_ENV === "test"
@@ -30,7 +31,7 @@ export async function consumeRateLimitPoints(
 	points: number,
 	limiter: RateLimiterAbstract = rateLimiter
 ): Promise<boolean> {
-	if (process.env.ENABLE_RATE_LIMIT === "false") {
+	if (!conf.get("rate_limit.enabled")) {
 		return true;
 	}
 	try {

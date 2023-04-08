@@ -14,10 +14,11 @@ import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import { USERNAME_LENGTH_MAX } from "../common/constants";
 import { LengthOutOfRangeException } from "./exceptions";
+import { conf } from "./ott-config";
 
 const maxWrongAttemptsByIPperDay = process.env.NODE_ENV === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = process.env.NODE_ENV === "test" ? 9999999999 : 10;
-const ENABLE_RATE_LIMIT = process.env.ENABLE_RATE_LIMIT === "true";
+const ENABLE_RATE_LIMIT = conf.get("rate_limit.enabled");
 
 const limiterSlowBruteByIP = new RateLimiterRedis({
 	storeClient: redisClient,

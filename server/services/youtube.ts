@@ -15,15 +15,14 @@ import { getLogger } from "../logger";
 import { Video, VideoId, VideoMetadata } from "../../common/models/video";
 import storage from "../storage";
 import { OttException } from "../../common/exceptions";
+import { conf } from "../ott-config";
 
 const log = getLogger("youtube");
 
 const knownPrivateLists = ["LL", "WL"];
 
-const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT =
-	parseInt(process.env.ADD_PREVIEW_PLAYLIST_RESULTS_COUNT ?? "", 10) || 40;
-const ADD_PREVIEW_SEARCH_RESULTS_COUNT =
-	parseInt(process.env.ADD_PREVIEW_SEARCH_RESULTS_COUNT ?? "", 10) || 10;
+const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT = conf.get("add_preview.playlist_results_count");
+const ADD_PREVIEW_SEARCH_RESULTS_COUNT = conf.get("add_preview.search.results_count");
 
 interface YoutubeChannelData {
 	channel?: string;
@@ -240,7 +239,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		if (result.length === 0) {
 			throw new VideoNotFoundException();
 		}
-		return result[0] as Video;
+		// @ts-expect-error this was fine before
+		return result[0];
 	}
 
 	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
@@ -249,7 +249,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		for (let group of Object.values(groupedByMissingInfo)) {
 			const ids = group.map(request => request.id);
 			try {
-				let result = (await this.videoApiRequest(ids, group[0].missingInfo)) as Video[];
+				let result = await this.videoApiRequest(ids, group[0].missingInfo);
+				// @ts-expect-error this was fine before
 				results.push(...result);
 			} catch (e) {
 				if (e instanceof UnsupportedVideoType) {

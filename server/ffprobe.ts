@@ -11,15 +11,12 @@ import { AbortController } from "node-abort-controller";
 import http from "http";
 import https from "https";
 import { Counter } from "prom-client";
+import { conf } from "./ott-config";
 
 const log = getLogger("infoextract.ffprobe");
-const FFPROBE_PATH: string = process.env.FFPROBE_PATH || ffprobeInstaller.path;
-const DIRECT_PREVIEW_MAX_BYTES = (() => {
-	if (process.env.DIRECT_PREVIEW_MAX_BYTES) {
-		return parseInt(process.env.DIRECT_PREVIEW_MAX_BYTES);
-	}
-	return Infinity;
-})();
+const FFPROBE_PATH: string =
+	(conf.get("info_extractor.direct.ffprobe_path") as unknown as string) || ffprobeInstaller.path;
+const DIRECT_PREVIEW_MAX_BYTES = conf.get("info_extractor.direct.preview_max_bytes");
 enum FetchMode {
 	PreviewOnDisk,
 	StreamToStdin,

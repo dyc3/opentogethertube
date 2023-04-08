@@ -2,11 +2,8 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import validator from "validator";
-import { getLogger, setLogLevel } from "./logger.js";
 import convict from "convict";
 import toml from "toml";
-
-const log = getLogger("config");
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
@@ -39,7 +36,9 @@ export const conf = convict({
 		file: {
 			doc: "The file to output logs to. If not provided, logs will only be printed to stdout.",
 			format: String,
+			default: null,
 			env: "LOG_FILE",
+			nullable: true,
 		},
 	},
 	db: {
@@ -98,6 +97,14 @@ export const conf = convict({
 				doc: "Path to ffprobe.",
 				format: String,
 				env: "FFPROBE_PATH",
+				default: null,
+				nullable: true,
+			},
+			preview_max_bytes: {
+				doc: "Max number of bytes to download to generate a preview of a video.",
+				format: "nat",
+				default: Infinity,
+				env: "DIRECT_PREVIEW_MAX_BYTES",
 			},
 		},
 		google_drive: {
@@ -164,19 +171,19 @@ export const conf = convict({
 export function loadConfigFile() {
 	const configPath = path.resolve(process.cwd(), "../env/base.toml");
 	if (!fs.existsSync(configPath)) {
-		log.warn(`No config found at ${configPath}`);
+		console.warn(`No config found at ${configPath}`);
 	}
 
-	log.info(`Loading config from ${configPath}`);
+	console.info(`Loading config from ${configPath}`);
 	conf.loadFile(configPath);
 
 	let environment = conf.get("env");
 	let envConfigPath = path.resolve(process.cwd(), `../env/${environment}.toml`);
 	if (fs.existsSync(configPath)) {
-		log.info(`Loading environment config from ${envConfigPath}`);
+		console.info(`Loading environment config from ${envConfigPath}`);
 		conf.loadFile(envConfigPath);
 	} else {
-		log.warn(`No environment config found at ${configPath}`);
+		console.warn(`No environment config found at ${configPath}`);
 	}
 }
 
@@ -267,47 +274,15 @@ for (let configVar in configValidators) {
 	const rules = configValidators[configVar];
 	const configValue = process.env[configVar];
 	if (rules.required && !configValue) {
-		log.error(`${configVar} is required, but it was not found.`);
+		console.error(`${configVar} is required, but it was not found.`);
 		configCalidationFailed = true;
 	} else if (configValue && !rules.validator(configValue)) {
-		log.error(`${configVar} is invalid.`);
+		console.error(`${configVar} is invalid.`);
 		configCalidationFailed = true;
 	}
 }
 
 if (configCalidationFailed) {
-	log.error("Config validation FAILED! Check your config!");
+	console.error("Config validation FAILED! Check your config!");
 	process.exit(1);
 }
-
-if (process.env.LOG_LEVEL) {
-	log.info(`Set log level to ${process.env.LOG_LEVEL}`);
-	setLogLevel(process.env.LOG_LEVEL);
-}
-
-if (!process.env.DB_MODE) {
-	process.env.DB_MODE =
-		process.env.DATABASE_URL ||
-		process.env.POSTGRES_DB_HOST ||
-		process.env.POSTGRES_DB_NAME ||
-		process.env.POSTGRES_DB_USERNAME ||
-		process.env.POSTGRES_DB_PASSWORD
-			? "postgres"
-			: "sqlite";
-}
-log.info(`Database mode: ${process.env.DB_MODE}`);
-
-if (process.env.ENABLE_SEARCH === undefined) {
-	process.env.ENABLE_SEARCH = "true";
-}
-log.info(`Search enabled: ${process.env.ENABLE_SEARCH}`);
-
-if (!process.env.SEARCH_PROVIDER) {
-	process.env.SEARCH_PROVIDER = "youtube";
-}
-log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
-
-if (process.env.ENABLE_RATE_LIMIT === undefined) {
-	process.env.ENABLE_RATE_LIMIT = "true";
-}
-log.info(`Rate limiting enabled: ${process.env.ENABLE_RATE_LIMIT}`);
