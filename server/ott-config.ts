@@ -25,7 +25,7 @@ const conf = convict({
 	},
 	hostname: {
 		doc: "The domain name that the server is running on.",
-		format: "string",
+		format: String,
 		default: "localhost",
 		env: "OTT_HOSTNAME",
 	},
@@ -38,7 +38,7 @@ const conf = convict({
 		},
 		file: {
 			doc: "The file to output logs to. If not provided, logs will only be printed to stdout.",
-			format: "string",
+			format: String,
 			default: null,
 			env: "LOG_FILE",
 		},
@@ -89,7 +89,7 @@ const conf = convict({
 		youtube: {
 			api_key: {
 				doc: "Youtube API key.",
-				format: "string",
+				format: String,
 				env: "YOUTUBE_API_KEY",
 				sensitive: true,
 			},
@@ -97,9 +97,17 @@ const conf = convict({
 		direct: {
 			ffprobe_path: {
 				doc: "Path to ffprobe.",
-				format: "string",
+				format: String,
 				default: null,
 				env: "FFPROBE_PATH",
+			},
+		},
+		google_drive: {
+			api_key: {
+				doc: "Google Drive API key.",
+				format: String,
+				env: "GOOGLE_DRIVE_API_KEY",
+				sensitive: true,
 			},
 		},
 	},
@@ -112,21 +120,21 @@ const conf = convict({
 		},
 		key_prefix: {
 			doc: "The prefix to use for rate limit keys, which are stored in redis.",
-			format: "string",
+			format: String,
 			default: "rateLimit",
 			env: "RATE_LIMIT_KEY_PREFIX",
 		},
 	},
 	api_key: {
 		doc: "API key for the performing admin tasks. If not provided, no admin tasks will be available.",
-		format: "string",
+		format: String,
 		default: null,
 		env: "OPENTOGETHERTUBE_API_KEY",
 		sensitive: true,
 	},
 	session_secret: {
 		doc: "Session secret used for cookies.",
-		format: "string",
+		format: String,
 		default: null,
 		env: "SESSION_SECRET",
 		sensitive: true,
@@ -134,13 +142,13 @@ const conf = convict({
 	discord: {
 		client_id: {
 			doc: "Discord client ID. Required for discord login.",
-			format: "string",
+			format: String,
 			default: null,
 			env: "DISCORD_CLIENT_ID",
 		},
 		client_secret: {
 			doc: "Discord client secret. Required for discord login.",
-			format: "string",
+			format: String,
 			default: null,
 			env: "DISCORD_CLIENT_SECRET",
 			sensitive: true,
@@ -154,18 +162,30 @@ const conf = convict({
 	},
 	short_url: {
 		doc: 'The domain to use in the copyable "Share Invite" URL. This environment var must be present during building the client, otherwise it will not work.',
-		format: "string",
+		format: String,
 		default: null,
 		env: "OTT_SHORT_URL_HOSTNAME",
 	},
 });
 
-const config_path = path.resolve(process.cwd(), `../env/${process.env.NODE_ENV}.env`);
-log.info(`Reading config from ${process.env.NODE_ENV}.env`);
-if (!fs.existsSync(config_path)) {
-	log.error(`No config found! Things will break! ${config_path}`);
+export function loadConfigFile() {
+	const configPath = path.resolve(process.cwd(), "../env/base.toml");
+	if (!fs.existsSync(configPath)) {
+		log.warn(`No config found at ${configPath}`);
+	}
+
+	log.info(`Loading config from ${configPath}`);
+	conf.loadFile(configPath);
+
+	let environment = conf.get("env");
+	let envConfigPath = path.resolve(process.cwd(), `../env/${environment}.toml`);
+	if (fs.existsSync(configPath)) {
+		log.info(`Loading environment config from ${envConfigPath}`);
+		conf.loadFile(envConfigPath);
+	} else {
+		log.warn(`No environment config found at ${configPath}`);
+	}
 }
-dotenv.config({ path: config_path });
 
 const isOfficial = process.env.OTT_HOSTNAME === "opentogethertube.com";
 

@@ -20,7 +20,9 @@ if (process.env.NODE_ENV === "example") {
 	process.exit(1);
 }
 
-import "./ott-config";
+import { loadConfigFile } from "./ott-config";
+
+loadConfigFile();
 
 const app = express();
 app.use(metricsMiddleware);
