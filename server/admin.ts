@@ -1,6 +1,7 @@
 import { OttException } from "../common/exceptions";
+import { conf } from "./ott-config";
 
-let apikey = process.env.OPENTOGETHERTUBE_API_KEY;
+let apikey = conf.get("api_key") as unknown as string;
 
 export function getApiKey() {
 	return apikey;

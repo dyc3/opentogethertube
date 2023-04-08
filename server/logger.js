@@ -1,6 +1,7 @@
 import winston from "winston";
 const { createLogger, format, transports } = winston;
 import colors from "ansi-colors";
+import { conf } from "./ott-config";
 
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
 	if (roomEvent) {
@@ -53,8 +54,11 @@ const logger = createLogger({
 		}),
 		myFormat
 	),
-	transports: [new transports.File({ filename: process.env.LOG_FILE || "./logs/ott.log" })],
 });
+
+if (conf.has("log.file")) {
+	logger.add(new transports.File({ filename: conf.get("log.file") }));
+}
 
 if (process.env.NODE_ENV !== "production") {
 	logger.add(

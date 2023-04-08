@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === "example") {
 	process.exit(1);
 }
 
-import { loadConfigFile } from "./ott-config";
+import { loadConfigFile, conf } from "./ott-config";
 
 loadConfigFile();
 
@@ -60,7 +60,7 @@ import connectRedis from "connect-redis";
 let RedisStore = connectRedis(session);
 let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
-	secret: process.env.SESSION_SECRET || "opentogethertube",
+	secret: conf.get("session_secret") as unknown as string,
 	resave: false,
 	saveUninitialized: false,
 	unset: "keep",
@@ -72,11 +72,11 @@ let sessionOpts = {
 };
 if (
 	process.env.NODE_ENV === "production" &&
-	process.env.OTT_HOSTNAME &&
-	!process.env.OTT_HOSTNAME.includes("localhost")
+	conf.has("hostname") &&
+	!conf.get("hostname").includes("localhost")
 ) {
 	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
-	app.set("trust proxy", parseInt(process.env["TRUST_PROXY"] ?? "1", 10) || 1);
+	app.set("trust proxy", conf.get("trust_proxy"));
 	// @ts-expect-error
 	sessionOpts.cookie.secure = true;
 }
@@ -94,12 +94,12 @@ passport.use(new LocalStrategy({ usernameField: "email" }, usermanager.authCallb
 passport.use(
 	new DiscordStrategy(
 		{
-			clientID: process.env.DISCORD_CLIENT_ID || "NONE",
-			clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
+			clientID: conf.get("discord.client_id"),
+			clientSecret: conf.get("discord.client_secret"),
 			callbackURL:
-				(!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost")
+				(!conf.has("hostname") || conf.get("hostname").includes("localhost")
 					? "http"
-					: "https") + `://${process.env.OTT_HOSTNAME}/api/auth/discord/callback`,
+					: "https") + `://${conf.get("hostname")}/api/auth/discord/callback`,
 			scope: ["identify"],
 			passReqToCallback: true,
 		},
@@ -169,7 +169,7 @@ if (fs.existsSync("../client/dist")) {
 
 //start our server
 if (process.env.NODE_ENV !== "test") {
-	server.listen(process.env.PORT || 3000, () => {
+	server.listen(conf.get("port"), () => {
 		let addr = server.address();
 		if (!addr) {
 			log.error("Failed to start server!");

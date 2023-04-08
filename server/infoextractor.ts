@@ -22,15 +22,16 @@ import { ServiceAdapter } from "./serviceadapter";
 import { OttException } from "../common/exceptions";
 import TubiAdapter from "./services/tubi";
 import { Counter } from "prom-client";
+import { conf } from "./ott-config";
 
 const log = getLogger("infoextract");
 
 const adapters = [
 	new DailyMotionAdapter(),
-	new GoogleDriveAdapter(process.env.GOOGLE_DRIVE_API_KEY ?? "not-provided"),
+	new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") as unknown as string),
 	new VimeoAdapter(),
 	new YouTubeAdapter(
-		process.env.YOUTUBE_API_KEY ?? "not-provided",
+		conf.get("info_extractor.youtube.api_key") as unknown as string,
 		redisClient,
 		redisClientAsync
 	),
@@ -39,10 +40,8 @@ const adapters = [
 	new TubiAdapter(),
 ];
 
-const ADD_PREVIEW_SEARCH_MIN_LENGTH =
-	parseInt(process.env.ADD_PREVIEW_SEARCH_MIN_LENGTH ?? "3") || 3;
-const ENABLE_SEARCH =
-	process.env.ENABLE_SEARCH === undefined || process.env.ENABLE_SEARCH === "true";
+const ADD_PREVIEW_SEARCH_MIN_LENGTH = conf.get("add_preview.search.min_query_length");
+const ENABLE_SEARCH = conf.get("add_preview.search.enabled");
 
 function mergeVideo(a: Video, b: Video): Video {
 	return Object.assign(
