@@ -1,0 +1,7 @@
+base.toml
+development.toml
+test.toml
+production.toml
+staging.toml
+
+*.env
