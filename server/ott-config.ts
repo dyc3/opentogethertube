@@ -14,6 +14,18 @@ export const conf = convict({
 		default: "development",
 		env: "NODE_ENV",
 	},
+	docker: {
+		doc: "Whether the server is running in a docker container.",
+		format: Boolean,
+		default: false,
+		env: "DOCKER",
+	},
+	heroku: {
+		doc: "Whether the server is running on heroku.",
+		format: Boolean,
+		default: false,
+		env: "HEROKU",
+	},
 	port: {
 		doc: "The port to bind.",
 		format: "port",
