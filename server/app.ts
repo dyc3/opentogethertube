@@ -10,16 +10,6 @@ import { metricsMiddleware } from "./metrics";
 
 const log = getLogger("app");
 
-if (!process.env.NODE_ENV) {
-	log.warn("NODE_ENV not set, assuming dev environment");
-	process.env.NODE_ENV = "development";
-}
-
-if (process.env.NODE_ENV === "example") {
-	log.error("Invalid NODE_ENV! Aborting...");
-	process.exit(1);
-}
-
 import { loadConfigFile, conf } from "./ott-config";
 
 loadConfigFile();
@@ -37,20 +27,14 @@ if (!process.env.DB_MODE) {
 }
 log.info(`Database mode: ${process.env.DB_MODE}`);
 
-if (process.env.ENABLE_SEARCH === undefined) {
-	process.env.ENABLE_SEARCH = "true";
-}
-log.info(`Search enabled: ${process.env.ENABLE_SEARCH}`);
+const searchEnabled = conf.get("add_preview.search.enabled");
+log.info(`Search enabled: ${searchEnabled}`);
 
-if (!process.env.SEARCH_PROVIDER) {
-	process.env.SEARCH_PROVIDER = "youtube";
-}
-log.info(`Search provider: ${process.env.SEARCH_PROVIDER}`);
+const searchProvider = conf.get("add_preview.search.provider");
+log.info(`Search provider: ${searchProvider}`);
 
-if (process.env.ENABLE_RATE_LIMIT === undefined) {
-	process.env.ENABLE_RATE_LIMIT = "true";
-}
-log.info(`Rate limiting enabled: ${process.env.ENABLE_RATE_LIMIT}`);
+const rateLimitEnabled = conf.get("rate_limit.enabled");
+log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
 
 const app = express();
 app.use(metricsMiddleware);
