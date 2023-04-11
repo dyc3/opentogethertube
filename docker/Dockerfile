@@ -35,11 +35,10 @@ ENV FFPROBE_PATH /usr/bin/ffprobe
 # Copy from build stage
 COPY --from=build-stage /usr/app/ /usr/app/
 COPY --from=build-stage /usr/app/docker/scripts/wait_for_db.sh /usr/app/wait_for_db.sh
+COPY --from=build-stage /usr/app/env/docker.base.toml /usr/app/env/base.toml
 
 # Remove all the unnecessary files
 RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitignore client/vite.config.js client/babel.config.js docker-compose.yml /root/.npm
-
-RUN mkdir env && touch env/production.env
 
 RUN apk update -q && apk --no-cache add curl ffmpeg -q
 
