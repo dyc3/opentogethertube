@@ -222,12 +222,12 @@ export const conf = convict({
 
 export function loadConfigFile() {
 	const configPath = path.resolve(process.cwd(), "../env/base.toml");
-	if (!fs.existsSync(configPath)) {
+	if (fs.existsSync(configPath)) {
+		console.info(`Loading config from ${configPath}`);
+		conf.loadFile(configPath);
+	} else {
 		console.warn(`No config found at ${configPath}`);
 	}
-
-	console.info(`Loading config from ${configPath}`);
-	conf.loadFile(configPath);
 
 	let environment = conf.get("env");
 	let envConfigPath = path.resolve(process.cwd(), `../env/${environment}.toml`);
