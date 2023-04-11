@@ -7,6 +7,9 @@ import toml from "toml";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
+// Note that all schema objects MUST include `default`, even if its set to null
+// A default value of null and nullable == false will make the option required
+
 export const conf = convict({
 	env: {
 		doc: "The application environment.",
@@ -138,6 +141,7 @@ export const conf = convict({
 	info_extractor: {
 		youtube: {
 			api_key: {
+				default: null,
 				doc: "Youtube API key.",
 				format: String,
 				env: "YOUTUBE_API_KEY",
@@ -155,16 +159,19 @@ export const conf = convict({
 			preview_max_bytes: {
 				doc: "Max number of bytes to download to generate a preview of a video.",
 				format: "nat",
-				default: Infinity,
+				default: null,
 				env: "DIRECT_PREVIEW_MAX_BYTES",
+				nullable: true,
 			},
 		},
 		google_drive: {
 			api_key: {
+				default: null,
 				doc: "Google Drive API key.",
 				format: String,
 				env: "GOOGLE_DRIVE_API_KEY",
 				sensitive: true,
+				nullable: true,
 			},
 		},
 	},
@@ -186,25 +193,28 @@ export const conf = convict({
 		doc: "API key for the performing admin tasks. If not provided, no admin tasks will be available.",
 		format: String,
 		env: "OPENTOGETHERTUBE_API_KEY",
+		default: "",
 		sensitive: true,
 	},
 	session_secret: {
-		doc: "Session secret used for cookies.",
-		format: String,
+		default: null,
+		format: "*",
 		env: "SESSION_SECRET",
 		sensitive: true,
 	},
 	discord: {
 		client_id: {
 			doc: "Discord client ID. Required for discord login.",
-			format: String,
+			format: "int",
 			env: "DISCORD_CLIENT_ID",
+			default: "",
 		},
 		client_secret: {
 			doc: "Discord client secret. Required for discord login.",
 			format: String,
 			env: "DISCORD_CLIENT_SECRET",
 			sensitive: true,
+			default: "",
 		},
 	},
 	trust_proxy: {
@@ -217,6 +227,8 @@ export const conf = convict({
 		doc: 'The domain to use in the copyable "Share Invite" URL. This environment var must be present during building the client, otherwise it will not work.',
 		format: String,
 		env: "OTT_SHORT_URL_HOSTNAME",
+		default: "",
+		nullable: true,
 	},
 });
 
@@ -258,6 +270,8 @@ export function loadConfigFile() {
 	} else {
 		console.warn(`No environment config found at ${configPath}`);
 	}
+
+	conf.validate({ allowed: "warn" });
 }
 
 const isOfficial = process.env.OTT_HOSTNAME === "opentogethertube.com";

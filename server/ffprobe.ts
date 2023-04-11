@@ -16,7 +16,7 @@ import { conf } from "./ott-config";
 const log = getLogger("infoextract.ffprobe");
 const FFPROBE_PATH: string =
 	(conf.get("info_extractor.direct.ffprobe_path") as unknown as string) || ffprobeInstaller.path;
-const DIRECT_PREVIEW_MAX_BYTES = conf.get("info_extractor.direct.preview_max_bytes");
+const DIRECT_PREVIEW_MAX_BYTES = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
 enum FetchMode {
 	PreviewOnDisk,
 	StreamToStdin,
