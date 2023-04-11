@@ -231,7 +231,7 @@ export function loadConfigFile() {
 
 	let environment = conf.get("env");
 	let envConfigPath = path.resolve(process.cwd(), `../env/${environment}.toml`);
-	if (fs.existsSync(configPath)) {
+	if (fs.existsSync(envConfigPath)) {
 		console.info(`Loading environment config from ${envConfigPath}`);
 		conf.loadFile(envConfigPath);
 	} else {
