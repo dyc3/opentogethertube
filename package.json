@@ -14,7 +14,7 @@
   "scripts": {
     "start": "yarn workspace ott-server start",
     "serve": "yarn workspace ott-client serve",
-    "build": "yarn workspace ott-client build",
+    "build": "yarn workspace ott-client build && ./scripts/apply-base-config.sh",
     "lint": "yarn workspace ott-server lint && yarn workspace ott-client lint",
     "lint-ci": "yarn workspace ott-server lint-ci && yarn workspace ott-client lint-ci",
     "test": "yarn workspace ott-server test && yarn workspace ott-client test",
