@@ -141,7 +141,7 @@ export const conf = convict({
 	info_extractor: {
 		youtube: {
 			api_key: {
-				default: null,
+				default: "",
 				doc: "Youtube API key.",
 				format: String,
 				env: "YOUTUBE_API_KEY",

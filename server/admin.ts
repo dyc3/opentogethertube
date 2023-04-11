@@ -1,7 +1,7 @@
 import { OttException } from "../common/exceptions";
 import { conf } from "./ott-config";
 
-let apikey = conf.get("api_key") as unknown as string;
+let apikey = conf.get("api_key");
 
 export function getApiKey() {
 	return apikey;
