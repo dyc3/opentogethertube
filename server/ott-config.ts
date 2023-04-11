@@ -220,7 +220,28 @@ export const conf = convict({
 	},
 });
 
+function getExtraBaseConfig(): string | undefined {
+	if (conf.get("heroku")) {
+		return "heroku.base.toml";
+	} else if (conf.get("docker")) {
+		return "docker.base.toml";
+	} else {
+		return undefined;
+	}
+}
+
 export function loadConfigFile() {
+	let extraBaseConfig = getExtraBaseConfig();
+	if (extraBaseConfig) {
+		let extraBaseConfigPath = path.resolve(process.cwd(), `../env/${extraBaseConfig}`);
+		if (fs.existsSync(extraBaseConfigPath)) {
+			console.info(`Loading extra base config from ${extraBaseConfigPath}`);
+			conf.loadFile(extraBaseConfigPath);
+		} else {
+			console.warn(`No extra base config found at ${extraBaseConfigPath}`);
+		}
+	}
+
 	const configPath = path.resolve(process.cwd(), "../env/base.toml");
 	if (fs.existsSync(configPath)) {
 		console.info(`Loading config from ${configPath}`);
