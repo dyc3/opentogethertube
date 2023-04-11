@@ -321,20 +321,20 @@ export const configValidators: Record<string, ConfigValidatorEntry> = {
 	},
 };
 
-let configCalidationFailed = false;
-for (let configVar in configValidators) {
-	const rules = configValidators[configVar];
-	const configValue = process.env[configVar];
-	if (rules.required && !configValue) {
-		console.error(`${configVar} is required, but it was not found.`);
-		configCalidationFailed = true;
-	} else if (configValue && !rules.validator(configValue)) {
-		console.error(`${configVar} is invalid.`);
-		configCalidationFailed = true;
-	}
-}
+// let configCalidationFailed = false;
+// for (let configVar in configValidators) {
+// 	const rules = configValidators[configVar];
+// 	const configValue = process.env[configVar];
+// 	if (rules.required && !configValue) {
+// 		console.error(`${configVar} is required, but it was not found.`);
+// 		configCalidationFailed = true;
+// 	} else if (configValue && !rules.validator(configValue)) {
+// 		console.error(`${configVar} is invalid.`);
+// 		configCalidationFailed = true;
+// 	}
+// }
 
-if (configCalidationFailed) {
-	console.error("Config validation FAILED! Check your config!");
-	process.exit(1);
-}
+// if (configCalidationFailed) {
+// 	console.error("Config validation FAILED! Check your config!");
+// 	process.exit(1);
+// }
