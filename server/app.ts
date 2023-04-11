@@ -15,18 +15,6 @@ import { loadConfigFile, conf } from "./ott-config";
 loadConfigFile();
 setLogLevel(conf.get("log.level"));
 
-if (!process.env.DB_MODE) {
-	process.env.DB_MODE =
-		process.env.DATABASE_URL ||
-		process.env.POSTGRES_DB_HOST ||
-		process.env.POSTGRES_DB_NAME ||
-		process.env.POSTGRES_DB_USERNAME ||
-		process.env.POSTGRES_DB_PASSWORD
-			? "postgres"
-			: "sqlite";
-}
-log.info(`Database mode: ${process.env.DB_MODE}`);
-
 const searchEnabled = conf.get("add_preview.search.enabled");
 log.info(`Search enabled: ${searchEnabled}`);
 

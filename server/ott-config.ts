@@ -60,6 +60,46 @@ export const conf = convict({
 			default: "sqlite",
 			env: "DB_MODE",
 		},
+		url: {
+			doc: "The database connection URL.",
+			format: String,
+			default: null,
+			env: "DATABASE_URL",
+			nullable: true,
+			sensitive: true,
+		},
+		host: {
+			doc: "The database host.",
+			format: String,
+			default: "localhost",
+			env: "POSTGRES_HOST",
+		},
+		port: {
+			doc: "The database port.",
+			format: "port",
+			default: 5432,
+			env: "POSTGRES_PORT",
+		},
+		name: {
+			doc: "The database name.",
+			format: String,
+			default: "ott",
+			env: "POSTGRES_DB",
+		},
+		user: {
+			doc: "The database user.",
+			format: String,
+			default: "ott",
+			env: "POSTGRES_USER",
+		},
+		password: {
+			doc: "The database user's password.",
+			format: String,
+			default: null,
+			env: "POSTGRES_PASSWORD",
+			nullable: true,
+			sensitive: true,
+		},
 	},
 	add_preview: {
 		search: {
