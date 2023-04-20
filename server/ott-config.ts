@@ -268,6 +268,12 @@ export const conf = convict({
 		default: "",
 		nullable: true,
 	},
+	force_insecure_cookies: {
+		doc: "Force insecure cookies. This is useful if you are running behind a reverse proxy that handles SSL.",
+		format: Boolean,
+		default: false,
+		env: "FORCE_INSECURE_COOKIES",
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {

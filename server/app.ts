@@ -64,14 +64,14 @@ let sessionOpts = {
 	resave: false,
 	saveUninitialized: false,
 	unset: "keep",
-	proxy: process.env.NODE_ENV === "production",
+	proxy: conf.get("env") === "production",
 	cookie: {
 		expires: false,
 		maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
 	},
 };
 if (
-	process.env.NODE_ENV === "production" &&
+	conf.get("env") === "production" &&
 	!!conf.get("hostname") &&
 	!conf.get("hostname").includes("localhost")
 ) {
@@ -80,7 +80,7 @@ if (
 	// @ts-expect-error
 	sessionOpts.cookie.secure = true;
 }
-if (process.env.FORCE_INSECURE_COOKIES) {
+if (conf.get("force_insecure_cookies")) {
 	log.warn("FORCE_INSECURE_COOKIES found, cookies will only be set on http, not https");
 	// @ts-expect-error
 	sessionOpts.cookie.secure = false;
@@ -168,7 +168,7 @@ if (fs.existsSync("../client/dist")) {
 }
 
 //start our server
-if (process.env.NODE_ENV !== "test") {
+if (conf.get("env") !== "test") {
 	server.listen(conf.get("port"), () => {
 		let addr = server.address();
 		if (!addr) {

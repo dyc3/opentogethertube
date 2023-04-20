@@ -60,11 +60,11 @@ if (conf.get("log.file") !== null) {
 	logger.add(new transports.File({ filename: conf.get("log.file") }));
 }
 
-if (process.env.NODE_ENV !== "production") {
+if (conf.get("env") !== "production") {
 	logger.add(
 		new transports.Console({
 			format: format.combine(customColorizer(), myFormat),
-			silent: process.env.NODE_ENV === "test",
+			silent: conf.get("env") === "test",
 		})
 	);
 } else {

@@ -8,7 +8,7 @@ import { setupPostgresMetricsCollection } from "./storage.metrics";
 import { conf } from "./ott-config";
 
 const log = getLogger("storage");
-if (process.env.NODE_ENV === "production" && conf.get("db.mode") !== "sqlite") {
+if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
 	setupPostgresMetricsCollection(sequelize);
 }
 
