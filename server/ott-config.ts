@@ -205,7 +205,7 @@ export const conf = convict({
 	discord: {
 		client_id: {
 			doc: "Discord client ID. Required for discord login.",
-			format: "int",
+			format: String,
 			env: "DISCORD_CLIENT_ID",
 			default: "",
 		},
