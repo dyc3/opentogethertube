@@ -104,6 +104,44 @@ export const conf = convict({
 			sensitive: true,
 		},
 	},
+	redis: {
+		url: {
+			doc: "The redis connection URL.",
+			format: String,
+			default: "",
+			env: "REDIS_URL",
+			nullable: true,
+			sensitive: true,
+		},
+		host: {
+			doc: "The redis host. The redis URL will take precedence over this option.",
+			format: String,
+			default: null,
+			env: "REDIS_HOST",
+			nullable: true,
+		},
+		port: {
+			doc: "The redis port. The redis URL will take precedence over this option.",
+			format: "port",
+			default: null,
+			env: "REDIS_PORT",
+			nullable: true,
+		},
+		password: {
+			doc: "The redis password. The redis URL will take precedence over this option.",
+			format: String,
+			default: null,
+			env: "REDIS_PASSWORD",
+			nullable: true,
+			sensitive: true,
+		},
+		db: {
+			doc: "The redis database. The redis URL will take precedence over this option.",
+			format: "nat",
+			default: 0,
+			env: "REDIS_DB",
+		},
+	},
 	add_preview: {
 		search: {
 			enabled: {
@@ -272,6 +310,14 @@ export function loadConfigFile() {
 	}
 
 	conf.validate({ allowed: "warn" });
+
+	postProcessConfig();
+}
+
+function postProcessConfig() {
+	if (process.env.REDIS_TLS_URL) {
+		conf.set("redis.url", process.env.REDIS_TLS_URL);
+	}
 }
 
 const isOfficial = process.env.OTT_HOSTNAME === "opentogethertube.com";

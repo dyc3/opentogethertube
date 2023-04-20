@@ -1,23 +1,23 @@
 import redis from "redis";
 import { promisify } from "util";
 import { Counter, Gauge } from "prom-client";
+import { conf } from "./ott-config";
 import { getLogger } from "./logger";
 const log = getLogger("redisclient");
 
-const redisOptions: redis.ClientOpts =
-	process.env.REDIS_TLS_URL || process.env.REDIS_URL
-		? {
-				url: process.env.REDIS_TLS_URL || process.env.REDIS_URL,
-				tls: {
-					rejectUnauthorized: false,
-				},
-		  }
-		: {
-				port: parseInt(process.env.REDIS_PORT ?? "", 10) || undefined,
-				host: process.env.REDIS_HOST || undefined,
-				password: process.env.REDIS_PASSWORD || undefined,
-				db: process.env.REDIS_DB || undefined,
-		  };
+const redisOptions: redis.ClientOpts = conf.get("redis.url")
+	? {
+			url: conf.get("redis.url"),
+			tls: {
+				rejectUnauthorized: false,
+			},
+	  }
+	: {
+			port: conf.get("redis.port") ?? undefined,
+			host: conf.get("redis.host") ?? undefined,
+			password: conf.get("redis.password") ?? undefined,
+			db: conf.get("redis.db") ?? undefined,
+	  };
 
 export const redisClient = redis.createClient(redisOptions);
 
