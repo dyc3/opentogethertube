@@ -30,6 +30,7 @@ function getDbConfig(): Options {
 			};
 		} else {
 			return {
+				dialect: "postgres",
 				host: conf.get("db.host"),
 				port: conf.get("db.port"),
 				database: conf.get("db.name"),

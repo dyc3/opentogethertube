@@ -11,7 +11,7 @@ services:
       - FFPROBE_PATH=/usr/bin/ffprobe
       # postgres
       - POSTGRES_USER=opentogethertube
-      - POSTGRES_NAME=opentogethertube
+      - POSTGRES_DB=opentogethertube
       - POSTGRES_HOST=postgres_db
       - POSTGRES_PASSWORD=postgres
       - DOCKER=1

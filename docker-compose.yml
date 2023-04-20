@@ -6,10 +6,10 @@ services:
     environment:
       - REDIS_HOST=redis_db
       # postgres
-      - POSTGRES_DB_USERNAME=opentogethertube
-      - POSTGRES_DB_NAME=opentogethertube
-      - POSTGRES_DB_HOST=postgres_db
-      - POSTGRES_DB_PASSWORD=postgres
+      - POSTGRES_USER=opentogethertube
+      - POSTGRES_DB=opentogethertube
+      - POSTGRES_HOST=postgres_db
+      - POSTGRES_PASSWORD=postgres
       - DOCKER=1
     env_file: env/production.env # change the path to your env file
     volumes:

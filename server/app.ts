@@ -94,8 +94,8 @@ passport.use(new LocalStrategy({ usernameField: "email" }, usermanager.authCallb
 passport.use(
 	new DiscordStrategy(
 		{
-			clientID: conf.get("discord.client_id"),
-			clientSecret: conf.get("discord.client_secret"),
+			clientID: conf.get("discord.client_id") ?? "NONE",
+			clientSecret: conf.get("discord.client_secret") ?? "NONE",
 			callbackURL:
 				(!conf.get("hostname") || conf.get("hostname").includes("localhost")
 					? "http"

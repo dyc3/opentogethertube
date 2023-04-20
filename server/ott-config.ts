@@ -244,14 +244,16 @@ export const conf = convict({
 			doc: "Discord client ID. Required for discord login.",
 			format: String,
 			env: "DISCORD_CLIENT_ID",
-			default: "",
+			default: null,
+			nullable: true,
 		},
 		client_secret: {
 			doc: "Discord client secret. Required for discord login.",
 			format: String,
 			env: "DISCORD_CLIENT_SECRET",
+			default: null,
 			sensitive: true,
-			default: "",
+			nullable: true,
 		},
 	},
 	trust_proxy: {
