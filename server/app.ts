@@ -60,7 +60,7 @@ import connectRedis from "connect-redis";
 let RedisStore = connectRedis(session);
 let sessionOpts = {
 	store: new RedisStore({ client: redisClient }),
-	secret: conf.get("session_secret") as unknown as string,
+	secret: conf.get("session_secret"),
 	resave: false,
 	saveUninitialized: false,
 	unset: "keep",

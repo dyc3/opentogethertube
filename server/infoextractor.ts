@@ -30,11 +30,7 @@ const adapters = [
 	new DailyMotionAdapter(),
 	new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") ?? ""),
 	new VimeoAdapter(),
-	new YouTubeAdapter(
-		conf.get("info_extractor.youtube.api_key"),
-		redisClient,
-		redisClientAsync
-	),
+	new YouTubeAdapter(conf.get("info_extractor.youtube.api_key"), redisClient, redisClientAsync),
 	new DirectVideoAdapter(),
 	new RedditAdapter(),
 	new TubiAdapter(),
