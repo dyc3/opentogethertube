@@ -85,7 +85,7 @@ export const conf = convict({
 		name: {
 			doc: "The database name.",
 			format: String,
-			default: "ott",
+			default: "opentogethertube",
 			env: "POSTGRES_DB",
 		},
 		user: {
