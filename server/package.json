@@ -23,7 +23,6 @@
 		"@types/ws": "^7.4.4",
 		"connect-redis": "^4.0.4",
 		"convict": "^6.2.4",
-		"dotenv": "^8.2.0",
 		"express": "^4.17.1",
 		"express-session": "^1.17.0",
 		"nocache": "^3.0.0",

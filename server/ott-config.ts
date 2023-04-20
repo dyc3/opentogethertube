@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import dotenv from "dotenv";
 import validator from "validator";
 import convict from "convict";
 import toml from "toml";
