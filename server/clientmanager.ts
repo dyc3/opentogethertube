@@ -62,7 +62,7 @@ export class Client {
 
 			if (this.token) {
 				try {
-					const room = await roommanager.GetRoom(this.room);
+					const room = await roommanager.getRoom(this.room);
 					// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
 					await room.processRequestUnsafe(
 						{
@@ -113,7 +113,7 @@ export class Client {
 		}
 	}
 
-	public async OnMessage(text: string): Promise<void> {
+	public async onMessage(text: string): Promise<void> {
 		log.silly(`client message: ${text}`);
 		try {
 			const msg: ClientMessage = JSON.parse(text);
@@ -134,7 +134,7 @@ export class Client {
 				this.token = msg.token;
 				log.debug("received auth token, joining room");
 				try {
-					await this.JoinRoom(this.room);
+					await this.joinRoom(this.room);
 				} catch (e) {
 					if (e instanceof RoomNotFoundException) {
 						log.info(`Failed to join room: ${e.message}`);
@@ -172,12 +172,12 @@ export class Client {
 		}
 	}
 
-	public OnPing(data: Buffer): void {
+	public onPing(data: Buffer): void {
 		log.debug(`sending pong`);
 		this.socket.pong();
 	}
 
-	public async JoinRoom(roomName: string): Promise<void> {
+	public async joinRoom(roomName: string): Promise<void> {
 		log.debug(`client id=${this.id} joining ${roomName}`);
 		if (!this.token) {
 			log.error("No token present, cannot join room");
@@ -187,7 +187,7 @@ export class Client {
 			this.session = await tokens.getSessionInfo(this.token);
 		}
 
-		const room = await roommanager.GetRoom(roomName);
+		const room = await roommanager.getRoom(roomName);
 		if (!room) {
 			throw new RoomNotFoundException(roomName);
 		}
@@ -228,7 +228,7 @@ export class Client {
 		}
 		try {
 			// Happy path: avoid serializing and deserializing the request if its not needed.
-			const room = await roommanager.GetRoom(this.room, {
+			const room = await roommanager.getRoom(this.room, {
 				mustAlreadyBeLoaded: true,
 			});
 			await room.processUnauthorizedRequest(request, {
@@ -263,7 +263,7 @@ export class Client {
 	}
 }
 
-export function Setup(): void {
+export function setup(): void {
 	log.debug("setting up client manager...");
 	const server = wss;
 	server.on("connection", async (ws, req: Request & { session: MySession }) => {
@@ -272,7 +272,7 @@ export function Setup(): void {
 			ws.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid connection url");
 			return;
 		}
-		await OnConnect(ws, req);
+		await onConnect(ws, req);
 	});
 }
 
@@ -280,13 +280,13 @@ export function Setup(): void {
  * Called when a websocket connects.
  * @param socket
  */
-async function OnConnect(socket: WebSocket, req: express.Request) {
+async function onConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
 	const client = new Client(roomName, socket);
 	connections.push(client);
-	socket.on("ping", data => client.OnPing(data));
-	socket.on("message", data => client.OnMessage(data as string));
+	socket.on("ping", data => client.onPing(data));
+	socket.on("message", data => client.onMessage(data as string));
 	socket.on("error", e => {
 		log.warn(`websocket error: ${e}`);
 	});
@@ -424,7 +424,7 @@ const gaugeWebsocketConnections = new Gauge({
 });
 
 export default {
-	Setup,
+	setup,
 	onUserModified,
 	getClient,
 };

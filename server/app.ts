@@ -122,9 +122,9 @@ passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
 app.use(usermanager.passportErrorHandler);
 import websockets from "./websockets.js";
-websockets.Setup(server, sessions);
+websockets.setup(server, sessions);
 import clientmanager from "./clientmanager";
-clientmanager.Setup();
+clientmanager.setup();
 import roommanager from "./roommanager";
 roommanager.start();
 

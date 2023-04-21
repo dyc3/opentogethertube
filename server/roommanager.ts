@@ -48,12 +48,12 @@ export async function update(): Promise<void> {
 		}
 
 		if (room.isStale) {
-			await UnloadRoom(room.name);
+			await unloadRoom(room.name);
 		}
 	}
 }
 
-export async function CreateRoom(options: Partial<RoomOptions> & { name: string }): Promise<void> {
+export async function createRoom(options: Partial<RoomOptions> & { name: string }): Promise<void> {
 	for (const room of rooms) {
 		if (options.name.toLowerCase() === room.name.toLowerCase()) {
 			log.warn("can't create room, already loaded");
@@ -85,7 +85,7 @@ export async function CreateRoom(options: Partial<RoomOptions> & { name: string 
  * @param options.mustAlreadyBeLoaded If true, will throw if the room is not already loaded in the current Node.
  * @returns
  */
-export async function GetRoom(
+export async function getRoom(
 	roomName: string,
 	options: { mustAlreadyBeLoaded?: boolean } = {}
 ): Promise<Room> {
@@ -122,7 +122,7 @@ export async function GetRoom(
 	return room;
 }
 
-export async function UnloadRoom(roomName: string): Promise<void> {
+export async function unloadRoom(roomName: string): Promise<void> {
 	let idx = -1;
 	for (let i = 0; i < rooms.length; i++) {
 		if (rooms[i].name.toLowerCase() === roomName.toLowerCase()) {
@@ -154,7 +154,7 @@ export function clearRooms(): void {
 /** Unload all rooms off of this node. Intended to only be used in tests. */
 export async function unloadAllRooms(): Promise<void> {
 	const names = rooms.map(r => r.name);
-	await Promise.all(names.map(UnloadRoom));
+	await Promise.all(names.map(unloadRoom));
 }
 
 export async function remoteRoomRequestHandler(channel: string, text: string) {
@@ -163,8 +163,8 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 	}
 	let roomName = channel.split(":")[1];
 	try {
-		// HACK: using roommanager.GetRoom() here instead of just GetRoom() so it can be mocked in tests
-		let room = await roommanager.GetRoom(roomName, { mustAlreadyBeLoaded: true });
+		// HACK: using roommanager.getRoom() here instead of just GetRoom() so it can be mocked in tests
+		let room = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
 		let requestUnauthorized = JSON.parse(text) as { request: RoomRequest; token: AuthToken };
 		await room.processUnauthorizedRequest(requestUnauthorized.request, {
 			token: requestUnauthorized.token,
@@ -226,9 +226,9 @@ const roommanager = {
 	log,
 	start,
 
-	CreateRoom,
-	GetRoom,
-	UnloadRoom,
+	createRoom,
+	getRoom,
+	unloadRoom,
 	clearRooms,
 	unloadAllRooms,
 	remoteRoomRequestHandler,
