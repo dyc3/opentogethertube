@@ -12,11 +12,14 @@ import {
 } from "./exceptions";
 import { RoomRequest, RoomRequestContext } from "common/models/messages";
 import { Gauge } from "prom-client";
-// WARN: do NOT import clientmanager
+import { EventEmitter } from "events";
 
 export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
 export const rooms: Room[] = [];
+
+export type RoomManagerEvents = "publish";
+const bus = new EventEmitter();
 
 function addRoom(room: Room) {
 	rooms.push(room);
@@ -184,6 +187,14 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 
 redisSubscriber.on("message", remoteRoomRequestHandler);
 
+export function publish(msg: unknown, roomName: string) {
+	bus.emit("publish", msg, roomName);
+}
+
+export function on(event: RoomManagerEvents, listener: (...args: unknown[]) => void) {
+	bus.on(event, listener);
+}
+
 const gaugeRoomCount = new Gauge({
 	name: "ott_room_count",
 	help: "The number of loaded rooms.",
@@ -236,6 +247,8 @@ const roommanager = {
 	clearRooms,
 	unloadAllRooms,
 	remoteRoomRequestHandler,
+	publish,
+	on,
 };
 
 export default roommanager;

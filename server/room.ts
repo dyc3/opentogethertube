@@ -61,8 +61,8 @@ import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
+import roommanager from "./roommanager";
 
-const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
 
@@ -417,7 +417,7 @@ export class Room implements RoomState {
 	 * @param msg The message to publish.
 	 */
 	async publish(msg: ServerMessage): Promise<void> {
-		await publish(`room:${this.name}`, JSON.stringify(msg, replacer));
+		roommanager.publish(msg, this.name);
 	}
 
 	async publishRoomEvent(
