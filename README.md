@@ -96,12 +96,12 @@ cp env/example.toml env/development.toml
 6. Obtain a YouTube API key
 7. Obtain a Google Drive API key
 	- _Not necessary if you don't plan to stream videos from Google Drive, which you probably shouldn't do anyway because Google doesn't like that._
-8. Open `env/development.env` and replace `API_KEY_GOES_HERE` with the appropriate api key.
+8. Open `env/development.toml` and put in the appropriate api keys.
 9. Initialize your local database.
 ```
 yarn workspace ott-server run sequelize-cli db:migrate
 ```
-10. Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
+10.  Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts.
 
 ## Testing
 
