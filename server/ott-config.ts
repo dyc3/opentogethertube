@@ -3,6 +3,7 @@ import path from "path";
 import validator from "validator";
 import convict from "convict";
 import toml from "toml";
+import type winston from "winston";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
@@ -292,16 +293,16 @@ export function loadConfigFile() {
 	if (extraBaseConfig) {
 		let extraBaseConfigPath = path.resolve(process.cwd(), `../env/${extraBaseConfig}`);
 		if (fs.existsSync(extraBaseConfigPath)) {
-			console.info(`Loading extra base config from ${extraBaseConfigPath}`);
+			log.info(`Loading extra base config from ${extraBaseConfigPath}`);
 			conf.loadFile(extraBaseConfigPath);
 		} else {
-			console.warn(`No extra base config found at ${extraBaseConfigPath}`);
+			log.warn(`No extra base config found at ${extraBaseConfigPath}`);
 		}
 	}
 
 	const configPath = path.resolve(process.cwd(), "../env/base.toml");
 	if (fs.existsSync(configPath)) {
-		console.info(`Loading config from ${configPath}`);
+		log.info(`Loading config from ${configPath}`);
 		conf.loadFile(configPath);
 	} else {
 		console.warn(`No config found at ${configPath}`);
@@ -310,10 +311,10 @@ export function loadConfigFile() {
 	let environment = conf.get("env");
 	let envConfigPath = path.resolve(process.cwd(), `../env/${environment}.toml`);
 	if (fs.existsSync(envConfigPath)) {
-		console.info(`Loading environment config from ${envConfigPath}`);
+		log.info(`Loading environment config from ${envConfigPath}`);
 		conf.loadFile(envConfigPath);
 	} else {
-		console.warn(`No environment config found at ${configPath}`);
+		log.warn(`No environment config found at ${configPath}`);
 	}
 
 	conf.validate({ allowed: "warn" });
@@ -321,10 +322,37 @@ export function loadConfigFile() {
 	postProcessConfig();
 }
 
-function postProcessConfig() {
+function postProcessConfig(): void {
 	if (process.env.REDIS_TLS_URL) {
+		log.info("Found REDIS_TLS_URL. Using it for redis.url.");
 		conf.set("redis.url", process.env.REDIS_TLS_URL);
 	}
+
+	if (process.env.POSTGRES_DB_USERNAME) {
+		log.warn("POSTGRES_DB_USERNAME is deprecated. Please use POSTGRES_USER instead.");
+		conf.set("db.user", process.env.POSTGRES_DB_USERNAME);
+	}
+
+	if (process.env.POSTGRES_DB_PASSWORD) {
+		log.warn("POSTGRES_DB_PASSWORD is deprecated. Please use POSTGRES_PASSWORD instead.");
+		// @ts-expect-error it's supposed to be a string, but ts thinks its null
+		conf.set("db.password", process.env.POSTGRES_DB_PASSWORD);
+	}
+
+	if (process.env.POSTGRES_DB_HOST) {
+		log.warn("POSTGRES_DB_HOST is deprecated. Please use POSTGRES_HOST instead.");
+		conf.set("db.host", process.env.POSTGRES_DB_HOST);
+	}
+
+	if (process.env.POSTGRES_DB_NAME) {
+		log.warn("POSTGRES_DB_NAME is deprecated. Please use POSTGRES_DB instead.");
+		conf.set("db.database", process.env.POSTGRES_DB_NAME);
+	}
+}
+
+let log: winston.Logger | Console = console;
+export function setLogger(l: winston.Logger): void {
+	log = l;
 }
 
 const isOfficial = process.env.OTT_HOSTNAME === "opentogethertube.com";

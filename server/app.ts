@@ -10,8 +10,9 @@ import { metricsMiddleware } from "./metrics";
 
 const log = getLogger("app");
 
-import { loadConfigFile, conf } from "./ott-config";
+import { loadConfigFile, conf, setLogger } from "./ott-config";
 
+setLogger(getLogger("config"));
 loadConfigFile();
 setLogLevel(conf.get("log.level"));
 
