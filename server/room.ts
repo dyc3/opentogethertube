@@ -782,9 +782,7 @@ export class Room implements RoomState {
 		});
 	}
 
-	public async onBeforeUnload(): Promise<void> {
-		await this.publish({ action: "unload" });
-	}
+	public async onBeforeUnload(): Promise<void> { }
 
 	/**
 	 * If true, the room is stale, and should be unloaded.

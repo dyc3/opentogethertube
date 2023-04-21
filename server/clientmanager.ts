@@ -263,6 +263,7 @@ export function setup(): void {
 		await onConnect(ws, req);
 	});
 	roommanager.on("publish", onRoomPublish);
+	roommanager.on("unload", onRoomUnload);
 }
 
 /**
@@ -320,16 +321,6 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 		roomStates.set(roomName, state);
 
 		await broadcast(roomName, text);
-	} else if (msg.action === "unload") {
-		const clients = roomJoins.get(roomName);
-		if (clients) {
-			for (const client of clients) {
-				client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
-			}
-		}
-
-		roomJoins.delete(roomName);
-		roomStates.delete(roomName);
 	} else if (msg.action === "chat") {
 		await broadcast(roomName, text);
 	} else if (msg.action === "event" || msg.action === "eventcustom") {
@@ -349,6 +340,18 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 	} else {
 		log.error(`Unknown server message: ${(msg as { action: string }).action}`);
 	}
+}
+
+function onRoomUnload(roomName: string) {
+	const clients = roomJoins.get(roomName);
+	if (clients) {
+		for (const client of clients) {
+			client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+		}
+	}
+
+	roomJoins.delete(roomName);
+	roomStates.delete(roomName);
 }
 
 async function onRedisMessage(channel: string, text: string) {
