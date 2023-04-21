@@ -109,7 +109,7 @@ if (process.env.NODE_ENV === "development") {
 
 router.get("/room/:name", async (req, res) => {
 	try {
-		let room = await roommanager.GetRoom(req.params.name);
+		let room = await roommanager.getRoom(req.params.name);
 		let hasOwner = !!room.owner;
 		room = _.cloneDeep(
 			_.pick(room, [
@@ -155,7 +155,7 @@ router.post("/room/generate", async (req, res) => {
 	}
 	let roomName = uuidv4();
 	log.debug(`Generating room: ${roomName}`);
-	await roommanager.CreateRoom({
+	await roommanager.createRoom({
 		name: roomName,
 		isTemporary: true,
 	});
@@ -176,7 +176,7 @@ router.post("/room/:name/queue", async (req, res) => {
 		if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 			return;
 		}
-		room = await roommanager.GetRoom(req.params.name);
+		room = await roommanager.getRoom(req.params.name);
 	} catch (err) {
 		handleGetRoomFailure(res, err);
 		return;
@@ -213,7 +213,7 @@ router.delete("/room/:name/queue", async (req, res) => {
 		if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 			return;
 		}
-		room = await roommanager.GetRoom(req.params.name);
+		room = await roommanager.getRoom(req.params.name);
 	} catch (err) {
 		handleGetRoomFailure(res, err);
 		return;

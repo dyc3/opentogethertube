@@ -78,7 +78,7 @@ describe("Room API", () => {
 
 		afterEach(async () => {
 			try {
-				await roommanager.UnloadRoom("test1");
+				await roommanager.unloadRoom("test1");
 			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
@@ -89,7 +89,7 @@ describe("Room API", () => {
 		it.each([Visibility.Public, Visibility.Unlisted])(
 			"should get %s room metadata",
 			async (visibility: Visibility) => {
-				await roommanager.CreateRoom({
+				await roommanager.createRoom({
 					name: "test1",
 					isTemporary: true,
 					visibility: visibility,
@@ -236,7 +236,7 @@ describe("Room API", () => {
 				name: "testnoowner",
 				owner: null,
 			});
-			await roommanager.UnloadRoom("testnoowner");
+			await roommanager.unloadRoom("testnoowner");
 			await Room.destroy({ where: { name: "testnoowner" } });
 		});
 
@@ -259,7 +259,7 @@ describe("Room API", () => {
 					email: user.email,
 				},
 			});
-			await roommanager.UnloadRoom("testowner");
+			await roommanager.unloadRoom("testowner");
 			await Room.destroy({ where: { name: "testowner" } });
 		});
 	});

@@ -15,14 +15,14 @@ describe("Room manager", () => {
 	beforeEach(async () => {
 		await DbRoom.destroy({ where: {} });
 		for (const room of roommanager.rooms) {
-			await roommanager.UnloadRoom(room.name);
+			await roommanager.unloadRoom(room.name);
 		}
 		roommanager.clearRooms();
 	});
 
 	describe("creating a room", () => {
 		it("should never save null to permissions or user role columns", async () => {
-			await roommanager.CreateRoom({ name: "test", isTemporary: false, title: "asdf1234" });
+			await roommanager.createRoom({ name: "test", isTemporary: false, title: "asdf1234" });
 			const room = await DbRoom.findOne({ where: { name: "test" } });
 			expect(room.permissions).not.toBeNull();
 			expect(room.permissions).toMatch(/^\[(\[-?\d+,\d+\],?)+\]$/);
@@ -32,7 +32,7 @@ describe("Room manager", () => {
 		});
 
 		it("should be able to load saved settings from database", async () => {
-			await roommanager.CreateRoom({
+			await roommanager.createRoom({
 				name: "test",
 				isTemporary: false,
 				title: "asdf1234",
@@ -50,8 +50,8 @@ describe("Room manager", () => {
 
 	describe("loading from redis", () => {
 		it("should save and load all needed props from redis", async () => {
-			await roommanager.CreateRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.GetRoom("test");
+			await roommanager.createRoom({ name: "test", isTemporary: true });
+			const room = await roommanager.getRoom("test");
 			room.userRoles.get(Role.TrustedUser)?.add(8).add(10).add(12);
 			room.userRoles.get(Role.Moderator)?.add(87).add(23);
 			room.userRoles.get(Role.Administrator)?.add(9);
@@ -92,13 +92,13 @@ describe("Room manager", () => {
 			.mockImplementation()
 			.mockReturnValue(null);
 		expect(
-			roommanager.GetRoom("test", {
+			roommanager.getRoom("test", {
 				mustAlreadyBeLoaded: true,
 			})
 		).rejects.toThrow(RoomNotFoundException);
 		expect(getRoomByNameSpy).not.toHaveBeenCalled();
-		await roommanager.CreateRoom({ name: "test", isTemporary: true });
-		const room = roommanager.GetRoom("test", {
+		await roommanager.createRoom({ name: "test", isTemporary: true });
+		const room = roommanager.getRoom("test", {
 			mustAlreadyBeLoaded: true,
 		});
 		expect(room).toBeDefined();
@@ -110,7 +110,7 @@ describe("Room manager", () => {
 		let getRoomSpy: jest.SpyInstance;
 
 		beforeEach(() => {
-			getRoomSpy = jest.spyOn(roommanager, "GetRoom");
+			getRoomSpy = jest.spyOn(roommanager, "getRoom");
 		});
 
 		afterEach(() => {
@@ -118,8 +118,8 @@ describe("Room manager", () => {
 		});
 
 		it("should handle room requests from redis pubsub", async () => {
-			await roommanager.CreateRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.GetRoom("test");
+			await roommanager.createRoom({ name: "test", isTemporary: true });
+			const room = await roommanager.getRoom("test");
 			jest.spyOn(room, "processUnauthorizedRequest").mockImplementation();
 			getRoomSpy.mockClear();
 			const msg: { request: RoomRequest; token: AuthToken } = {
@@ -137,8 +137,8 @@ describe("Room manager", () => {
 		});
 
 		it("should ignore room not found", async () => {
-			await roommanager.CreateRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.GetRoom("test");
+			await roommanager.createRoom({ name: "test", isTemporary: true });
+			const room = await roommanager.getRoom("test");
 			jest.spyOn(room, "processUnauthorizedRequest").mockImplementation();
 			getRoomSpy.mockClear();
 			getRoomSpy.mockImplementation(() => {
@@ -159,8 +159,8 @@ describe("Room manager", () => {
 		});
 
 		it("should log all other exceptions", async () => {
-			await roommanager.CreateRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.GetRoom("test");
+			await roommanager.createRoom({ name: "test", isTemporary: true });
+			const room = await roommanager.getRoom("test");
 			jest.spyOn(room, "processUnauthorizedRequest").mockImplementation();
 			let logErrorSpy = jest.spyOn(roommanager.log, "error").mockImplementation();
 			getRoomSpy.mockClear();

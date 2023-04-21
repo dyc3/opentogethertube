@@ -128,9 +128,9 @@ const createRoom: RequestHandler<
 		req.body.visibility = Visibility.Public;
 	}
 	if (req.user) {
-		await roommanager.CreateRoom({ ...req.body, owner: req.user });
+		await roommanager.createRoom({ ...req.body, owner: req.user });
 	} else {
-		await roommanager.CreateRoom(req.body);
+		await roommanager.createRoom(req.body);
 	}
 	log.info(
 		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${
@@ -166,7 +166,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 
 	req.body.grants = new Grants(req.body.grants);
 
-	const room = await roommanager.GetRoom(req.params.name);
+	const room = await roommanager.getRoom(req.params.name);
 	if (req.body.claim) {
 		if (room.isTemporary) {
 			throw new BadApiArgumentException("claim", `Can't claim temporary rooms.`);
@@ -233,7 +233,7 @@ const deleteRoom: RequestHandler = async (req, res) => {
 		});
 		return;
 	}
-	await roommanager.UnloadRoom(req.params.name);
+	await roommanager.unloadRoom(req.params.name);
 	res.json({
 		success: true,
 	});
