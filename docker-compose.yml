@@ -11,7 +11,6 @@ services:
       - POSTGRES_HOST=postgres_db
       - POSTGRES_PASSWORD=postgres
       - DOCKER=1
-    env_file: env/production.env # change the path to your env file
     volumes:
       - ./env:/usr/app/env
     ports:

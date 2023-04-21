@@ -15,7 +15,6 @@ services:
       - POSTGRES_HOST=postgres_db
       - POSTGRES_PASSWORD=postgres
       - DOCKER=1
-    env_file: ../env/production.env
     ports:
       - 8080:8080
     links:
