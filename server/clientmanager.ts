@@ -208,14 +208,12 @@ export class Client {
 		this.socket.send(JSON.stringify(syncMsg));
 
 		// actually join the room
-		await subscribe(`room:${room.name}`);
 		let clients = roomJoins.get(room.name);
 		if (clients === undefined) {
 			log.warn("room joins not present, creating");
 			clients = [];
 		}
 		clients.push(this);
-		roomJoins.set(room.name, clients);
 		await this.makeRoomRequest({
 			type: RoomRequestType.JoinRequest,
 			token: this.token,
@@ -301,7 +299,7 @@ async function broadcast(roomName: string, text: string) {
 	}
 }
 
-async function onRoomPublish(msg: ServerMessage, roomName: string) {
+async function onRoomPublish(roomName: string, msg: ServerMessage) {
 	const text = JSON.stringify(msg, replacer);
 	if (msg.action === "sync") {
 		let state = roomStates.get(roomName);
@@ -332,7 +330,6 @@ async function onRoomPublish(msg: ServerMessage, roomName: string) {
 
 		roomJoins.delete(roomName);
 		roomStates.delete(roomName);
-		await unsubscribe(`room:${roomName}`);
 	} else if (msg.action === "chat") {
 		await broadcast(roomName, text);
 	} else if (msg.action === "event" || msg.action === "eventcustom") {

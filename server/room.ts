@@ -417,7 +417,7 @@ export class Room implements RoomState {
 	 * @param msg The message to publish.
 	 */
 	async publish(msg: ServerMessage): Promise<void> {
-		roommanager.publish(msg, this.name);
+		roommanager.publish(this.name, msg);
 	}
 
 	async publishRoomEvent(

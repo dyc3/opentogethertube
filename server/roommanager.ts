@@ -10,7 +10,7 @@ import {
 	RoomNameTakenException,
 	RoomNotFoundException,
 } from "./exceptions";
-import { RoomRequest, RoomRequestContext } from "common/models/messages";
+import { RoomRequest, RoomRequestContext, ServerMessage } from "common/models/messages";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
 
@@ -18,7 +18,11 @@ export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
 export const rooms: Room[] = [];
 
-export type RoomManagerEvents = "publish";
+export type RoomManagerEvents = "publish" | "unload";
+export type RoomManagerEventHandlers<E> =
+	E extends "publish" ? (roomName: string, message: ServerMessage) => void :
+	E extends "unload" ? (roomName: string) => void :
+	never;
 const bus = new EventEmitter();
 
 function addRoom(room: Room) {
@@ -187,11 +191,11 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 
 redisSubscriber.on("message", remoteRoomRequestHandler);
 
-export function publish(msg: unknown, roomName: string) {
-	bus.emit("publish", msg, roomName);
+export function publish(roomName: string, msg: unknown) {
+	bus.emit("publish", roomName, msg);
 }
 
-export function on(event: RoomManagerEvents, listener: (...args: unknown[]) => void) {
+export function on<E extends RoomManagerEvents>(event: E, listener: RoomManagerEventHandlers<E>) {
 	bus.on(event, listener);
 }
 
