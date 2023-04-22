@@ -328,6 +328,11 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			},
 		};
 		await makeRoomRequest(client, request);
+	} else if (msg.action === "req") {
+		await makeRoomRequest(client, msg.request);
+	} else {
+		log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
+		return;
 	}
 }
 
@@ -417,7 +422,7 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 		for (const client of clients) {
 			if (msg.user.id === client.id) {
 				msg.user.isYou = true;
-				client.sendObj(msg);
+				client.send(msg);
 				break;
 			}
 		}
@@ -430,7 +435,7 @@ function onRoomUnload(roomName: string) {
 	const clients = roomJoins.get(roomName);
 	if (clients) {
 		for (const client of clients) {
-			client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+			client.kick(OttWebsocketError.ROOM_UNLOADED);
 		}
 	}
 

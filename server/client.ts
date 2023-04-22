@@ -2,7 +2,7 @@ import type { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "ott-com
 import type { ClientMessage, ServerMessage } from "ott-common/models/messages";
 import WebSocket from "ws";
 import { SessionInfo, setSessionInfo } from "./auth/tokens";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import { getLogger } from "./logger";
 import { getSessionInfo } from "./auth/tokens";
@@ -36,7 +36,7 @@ export abstract class Client {
 	private bus: EventEmitter;
 
 	constructor(room: string) {
-		this.id = uuid.v4();
+		this.id = uuidv4();
 		this.room = room;
 		this.bus = new EventEmitter();
 	}
@@ -59,7 +59,7 @@ export abstract class Client {
 		await setSessionInfo(this.token, this.session);
 	}
 
-	async auth(token: AuthToken): Promise<void> {
+	public async auth(token: AuthToken): Promise<void> {
 		this.token = token;
 		this.session = await getSessionInfo(this.token);
 		this.joinStatus = ClientJoinStatus.Joined;
@@ -100,10 +100,10 @@ export class DirectClient extends Client {
 		super(room);
 		this.socket = socket;
 
-		this.socket.on("message", this.onData);
-		this.socket.on("ping", this.onPing);
-		this.socket.on("close", this.onClose);
-		this.socket.on("error", this.onError);
+		this.socket.on("message", this.onData.bind(this));
+		this.socket.on("ping", this.onPing.bind(this));
+		this.socket.on("close", this.onClose.bind(this));
+		this.socket.on("error", this.onError.bind(this));
 	}
 
 	onData(data: WebSocket.Data) {
