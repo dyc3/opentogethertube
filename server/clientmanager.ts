@@ -30,7 +30,7 @@ import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
-import { Client, DirectClient } from "./client";
+import { Client, ClientJoinStatus, DirectClient } from "./client";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -308,9 +308,22 @@ setInterval(() => {
 
 const gaugeWebsocketConnections = new Gauge({
 	name: "ott_websocket_connections",
-	help: "The number of active websocket connections",
+	help: "The number of active websocket connections (deprecated)",
 	collect() {
 		this.set(connections.length);
+	},
+});
+
+const gaugeClients = new Gauge({
+	name: "ott_clients_connected",
+	help: "The number of clients connected.",
+	labelNames: ["clientType", "joinStatus"],
+	collect() {
+		this.reset();
+		for (const client of connections) {
+			const clientType = client instanceof DirectClient ? "direct" : "balancer";
+			this.labels(clientType, ClientJoinStatus[client.joinStatus]).inc();
+		}
 	},
 });
 
