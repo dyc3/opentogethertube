@@ -24,7 +24,7 @@ import {
 	Role,
 } from "../common/models/types";
 import roommanager from "./roommanager";
-import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
+import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
@@ -36,9 +36,6 @@ const redisSubscriber = createSubscriber();
 const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(
 	redisSubscriber
 );
-const unsubscribe: (channel: string) => Promise<string> = promisify(
-	redisSubscriber.unsubscribe
-).bind(redisSubscriber);
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
