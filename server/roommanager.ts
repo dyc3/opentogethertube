@@ -18,9 +18,11 @@ export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
 export const rooms: Room[] = [];
 
-export type RoomManagerEvents = "publish" | "unload";
+export type RoomManagerEvents = "publish" | "load" | "unload";
 export type RoomManagerEventHandlers<E> = E extends "publish"
 	? (roomName: string, message: ServerMessage) => void
+	: E extends "load"
+	? (roomName: string) => void
 	: E extends "unload"
 	? (roomName: string) => void
 	: never;
@@ -28,6 +30,7 @@ const bus = new EventEmitter();
 
 function addRoom(room: Room) {
 	rooms.push(room);
+	bus.emit("load", room.name);
 }
 
 export async function start() {
