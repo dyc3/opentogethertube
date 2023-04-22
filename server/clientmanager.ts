@@ -259,7 +259,7 @@ export function setup(): void {
 			ws.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid connection url");
 			return;
 		}
-		await onDirecctConnect(ws, req);
+		await onDirectConnect(ws, req);
 	});
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
@@ -269,7 +269,7 @@ export function setup(): void {
  * Called when a websocket connects.
  * @param socket
  */
-async function onDirecctConnect(socket: WebSocket, req: express.Request) {
+async function onDirectConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
 	const client = new DirectClient(roomName, socket);
