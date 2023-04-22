@@ -1,5 +1,5 @@
 import type { AuthToken, ClientId } from "ott-common/models/types";
-import type { ClientMessage } from "ott-common/models/messages";
+import type { ClientMessage, ServerMessage } from "ott-common/models/messages";
 import WebSocket from "ws";
 import { SessionInfo, setSessionInfo } from "./auth/tokens";
 import uuid from "uuid";
@@ -26,7 +26,7 @@ export enum ClientJoinStatus {
 /**
  * A client that is connected to the server.
  */
-export class Client {
+export abstract class Client {
 	id: ClientId;
 	room: string;
 	token: AuthToken | null = null;
@@ -64,6 +64,8 @@ export class Client {
 		this.session = await getSessionInfo(this.token);
 		this.emit("auth", this.token, this.session);
 	}
+
+	abstract send(msg: ServerMessage): void;
 }
 
 /**
@@ -85,6 +87,7 @@ export class DirectClient extends Client {
 		const msg: ClientMessage = JSON.parse(data.toString());
 		if (msg.action === "auth") {
 			this.auth(msg.token);
+			return;
 		}
 		this.emit("message", msg);
 	}
@@ -100,6 +103,10 @@ export class DirectClient extends Client {
 	onError(err: Error) {
 		log.error(`Error on socket for client ${this.id}: ${err}`);
 	}
+
+	send(msg: ServerMessage) {
+		this.socket.send(JSON.stringify(msg));
+	}
 }
 
 /**
@@ -110,5 +117,9 @@ export class BalancerClient extends Client {
 		super(room);
 		// The balancer takes care of waiting for auth.
 		this.joinStatus = ClientJoinStatus.Joined;
+	}
+
+	send(msg: ServerMessage) {
+		throw new Error("Not implemented");
 	}
 }
