@@ -30,6 +30,7 @@ import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
+import { Client, DirectClient } from "./client";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -41,7 +42,7 @@ const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
 subscribe(ANNOUNCEMENT_CHANNEL);
 
-export class Client {
+export class Client_Old {
 	id: ClientId;
 	socket: WebSocket;
 	session?: SessionInfo;
@@ -258,7 +259,7 @@ export function setup(): void {
 			ws.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid connection url");
 			return;
 		}
-		await onConnect(ws, req);
+		await onDirecctConnect(ws, req);
 	});
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
@@ -268,16 +269,89 @@ export function setup(): void {
  * Called when a websocket connects.
  * @param socket
  */
-async function onConnect(socket: WebSocket, req: express.Request) {
+async function onDirecctConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
-	const client = new Client(roomName, socket);
+	const client = new DirectClient(roomName, socket);
 	connections.push(client);
-	socket.on("ping", data => client.onPing(data));
-	socket.on("message", data => client.onMessage(data as string));
-	socket.on("error", e => {
-		log.warn(`websocket error: ${e}`);
+	client.on("auth", onClientAuth);
+	client.on("message", onClientMessage);
+	client.on("disconnect", onClientDisconnect);
+}
+
+async function onClientAuth(client: Client, token: AuthToken, session: SessionInfo) {
+	const room = await roommanager.getRoom(client.room);
+	if (!room) {
+		throw new RoomNotFoundException(client.room);
+	}
+	client.room = room.name;
+
+	// full sync
+	let state = roomStates.get(room.name);
+	if (state === undefined) {
+		log.warn("room state not present, grabbing");
+		const stateText = await redisClientAsync.get(`room-sync:${room.name}`);
+		state = JSON.parse(stateText) as RoomStateSyncable;
+		roomStates.set(room.name, state);
+	}
+	const syncMsg: ServerMessageSync = Object.assign(
+		{ action: "sync" },
+		state
+	) as ServerMessageSync;
+	client.send(syncMsg);
+
+	// actually join the room
+	let clients = roomJoins.get(room.name);
+	if (clients === undefined) {
+		log.warn("room joins not present, creating");
+		clients = [];
+		roomJoins.set(room.name, clients);
+	}
+	clients.push(client);
+	await makeRoomRequest(client, {
+		type: RoomRequestType.JoinRequest,
+		token: token,
+		info: client.getClientInfo(),
 	});
+}
+
+async function onClientMessage(client: Client, msg: ClientMessage) {
+	if (msg.action === "kickme") {
+		client.kick(msg.reason ?? OttWebsocketError.UNKNOWN);
+		return;
+	} else if (msg.action === "status") {
+		let request: RoomRequest = {
+			type: RoomRequestType.UpdateUser,
+			info: {
+				id: client.id,
+				status: msg.status,
+			},
+		};
+		await makeRoomRequest(client, request);
+	}
+}
+
+async function onClientDisconnect(client: Client) {
+	const index = connections.indexOf(client);
+	if (index !== -1) {
+		connections.splice(index, 1);
+	}
+}
+
+async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {
+	if (!client.token) {
+		throw new Error("No token present");
+	}
+	try {
+		const room = await roommanager.getRoom(client.room, {
+			mustAlreadyBeLoaded: true,
+		});
+		await room.processUnauthorizedRequest(request, {
+			token: client.token,
+		});
+	} catch (e) {
+		log.error(`Failed to process room request: ${e}`);
+	}
 }
 
 async function broadcast(roomName: string, text: string) {
@@ -287,7 +361,7 @@ async function broadcast(roomName: string, text: string) {
 	}
 	for (const client of clients) {
 		try {
-			client.socket.send(text);
+			client.sendRaw(text);
 		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`failed to send to client: ${e.message}`);
@@ -390,7 +464,7 @@ async function onUserModified(token: AuthToken): Promise<void> {
 	}
 }
 
-function getClient(token: AuthToken, roomName: string): Client {
+function getClient(token: AuthToken, roomName: string): Client_Old {
 	for (const client of connections) {
 		if (!client.token) {
 			continue;

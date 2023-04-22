@@ -1,4 +1,4 @@
-import type { AuthToken, ClientId } from "ott-common/models/types";
+import type { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "ott-common/models/types";
 import type { ClientMessage, ServerMessage } from "ott-common/models/messages";
 import WebSocket from "ws";
 import { SessionInfo, setSessionInfo } from "./auth/tokens";
@@ -11,11 +11,11 @@ const log = getLogger("client");
 
 export type ClientEvents = "auth" | "message" | "disconnect";
 export type ClientEventHandlers<E> = E extends "auth"
-	? (token: AuthToken, session: SessionInfo) => void
+	? (client: Client, token: AuthToken, session: SessionInfo) => void
 	: E extends "message"
-	? (msg: ClientMessage) => void
+	? (client: Client, msg: ClientMessage) => void
 	: E extends "disconnect"
-	? () => void
+	? (client: Client) => void
 	: never;
 
 export enum ClientJoinStatus {
@@ -62,10 +62,33 @@ export abstract class Client {
 	async auth(token: AuthToken): Promise<void> {
 		this.token = token;
 		this.session = await getSessionInfo(this.token);
-		this.emit("auth", this.token, this.session);
+		this.joinStatus = ClientJoinStatus.Joined;
+		this.emit("auth", this, this.token, this.session);
 	}
 
-	abstract send(msg: ServerMessage): void;
+	send(msg: ServerMessage) {
+		this.sendRaw(JSON.stringify(msg));
+	}
+
+	abstract sendRaw(msg: string): void;
+	abstract kick(code: OttWebsocketError): void;
+
+	getClientInfo(): ClientInfo {
+		if (!this.session) {
+			throw new Error("No session info present");
+		}
+		if (this.session.isLoggedIn) {
+			return {
+				id: this.id,
+				user_id: this.session.user_id,
+			};
+		} else {
+			return {
+				id: this.id,
+				username: this.session.username,
+			};
+		}
+	}
 }
 
 /**
@@ -89,7 +112,7 @@ export class DirectClient extends Client {
 			this.auth(msg.token);
 			return;
 		}
-		this.emit("message", msg);
+		this.emit("message", this, msg);
 	}
 
 	onPing() {
@@ -97,15 +120,19 @@ export class DirectClient extends Client {
 	}
 
 	onClose() {
-		this.emit("disconnect");
+		this.emit("disconnect", this);
 	}
 
 	onError(err: Error) {
 		log.error(`Error on socket for client ${this.id}: ${err}`);
 	}
 
-	send(msg: ServerMessage) {
-		this.socket.send(JSON.stringify(msg));
+	sendRaw(msg: string) {
+		this.socket.send(msg);
+	}
+
+	kick(code: OttWebsocketError) {
+		this.socket.close(code);
 	}
 }
 
@@ -119,7 +146,11 @@ export class BalancerClient extends Client {
 		this.joinStatus = ClientJoinStatus.Joined;
 	}
 
-	send(msg: ServerMessage) {
+	sendRaw(msg: string) {
+		throw new Error("Not implemented");
+	}
+
+	kick(code: OttWebsocketError) {
 		throw new Error("Not implemented");
 	}
 }
