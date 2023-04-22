@@ -353,6 +353,19 @@ async function onClientDisconnect(client: Client) {
 			}
 		}
 	}
+
+	try {
+		const room = await roommanager.getRoom(client.room, { mustAlreadyBeLoaded: true });
+		// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
+		await room.processRequestUnsafe(
+			{
+				type: RoomRequestType.LeaveRequest,
+			},
+			client.id
+		);
+	} catch (err) {
+		log.warn(`Failed to process leave request: ${err}, ignoring`);
+	}
 }
 
 async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {
