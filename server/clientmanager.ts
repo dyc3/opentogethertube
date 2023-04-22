@@ -334,7 +334,19 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 async function onClientDisconnect(client: Client) {
 	const index = connections.indexOf(client);
 	if (index !== -1) {
-		connections.splice(index, 1);
+		let clients = connections.splice(index, 1);
+		if (clients.length !== 1) {
+			log.error("failed to remove client from connections");
+			return;
+		}
+		let client = clients[0];
+		let joins = roomJoins.get(client.room);
+		if (joins) {
+			const index = joins.indexOf(client);
+			if (index !== -1) {
+				joins.splice(index, 1);
+			}
+		}
 	}
 }
 
