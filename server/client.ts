@@ -96,6 +96,7 @@ export abstract class Client {
  */
 export class DirectClient extends Client {
 	socket: WebSocket;
+
 	constructor(room: string, socket: WebSocket) {
 		super(room);
 		this.socket = socket;
@@ -133,6 +134,10 @@ export class DirectClient extends Client {
 
 	kick(code: OttWebsocketError) {
 		this.socket.close(code);
+	}
+
+	ping() {
+		this.socket.ping();
 	}
 }
 

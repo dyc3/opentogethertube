@@ -249,7 +249,7 @@ const undoEvent = async (req: express.Request, res) => {
 		event: req.body.data.event,
 	};
 
-	await client.makeRoomRequest(request);
+	await clientmanager.makeRoomRequest(client, request);
 	res.json({
 		success: true,
 	});
@@ -267,7 +267,7 @@ const addVote = async (req: express.Request, res) => {
 	}
 
 	const client = clientmanager.getClient(req.token, req.params.name);
-	await client.makeRoomRequest({
+	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
 		add: true,
@@ -289,7 +289,7 @@ const removeVote = async (req: express.Request, res) => {
 	}
 
 	const client = clientmanager.getClient(req.token, req.params.name);
-	await client.makeRoomRequest({
+	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
 		add: false,
