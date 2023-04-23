@@ -33,10 +33,10 @@ fn client_entry(roomName: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
         Box::pin(async move {
             let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
             let Ok(Some(Ok(message))) = result else {
-                stream.send(ws::Message::Close(Some(ws::frame::CloseFrame {
+                stream.close(Some(ws::frame::CloseFrame {
                     code: ws::frame::CloseCode::Library(4004),
                     reason: "did not send auth token".into(),
-                }))).await?;
+                })).await?;
                 return Ok(());
             };
 
