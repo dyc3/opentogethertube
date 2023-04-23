@@ -12,6 +12,7 @@ rand.workspace = true
 rocket.workspace = true
 rocket_ws.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 tokio.workspace = true
 tokio-tungstenite.workspace = true
 tungstenite.workspace = true

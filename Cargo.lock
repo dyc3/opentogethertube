@@ -1176,6 +1176,7 @@ dependencies = [
  "rocket",
  "rocket_ws",
  "serde",
+ "serde_json",
  "tokio",
  "tokio-tungstenite",
  "tungstenite 0.19.0",
