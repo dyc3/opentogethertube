@@ -16,12 +16,18 @@ mod balancer;
 mod protocol;
 
 #[get("/monolith")]
-fn monolith_entry(ws: ws::WebSocket) -> ws::Stream!['static] {
-    ws::Stream! { ws =>
-        for await message in ws {
-            yield message?;
-        }
-    }
+fn monolith_entry<'r>(
+    ws: ws::WebSocket,
+    balancer: &'r State<Arc<Mutex<OttBalancer>>>,
+) -> ws::Channel<'r> {
+    ws.channel(move |mut stream| {
+        Box::pin(async move {
+            // TODO: maybe wait for first gossip?
+            balancer.lock().await.handle_monolith(stream);
+
+            Ok(())
+        })
+    })
 }
 
 #[get("/api/room/<room_name>")]
