@@ -8,13 +8,13 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "action", rename_all = "lowercase")]
 pub enum ClientMessage {
     Auth(ClientMessageAuth),
-    Other(ClientMessageOther),
+    #[serde(other)]
+    Other,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientMessageAuth {
-    action: String,
-    token: String,
+    pub token: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
