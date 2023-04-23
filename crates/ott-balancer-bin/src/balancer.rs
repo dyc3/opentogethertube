@@ -32,6 +32,7 @@ pub struct Client {
 struct BalancerClient {
     client: Client,
     send: tokio::sync::mpsc::Sender<B2CSocketMessage>,
+    join_handle: tokio::task::JoinHandle<()>,
 }
 
 pub struct OttBalancer {
@@ -60,11 +61,7 @@ impl OttBalancer {
         let send = self.c2b_client_send.clone();
         let client_id = client.id.clone();
         let (b2c_send, mut b2c_recv) = tokio::sync::mpsc::channel::<B2CSocketMessage>(10);
-        self.clients.push(BalancerClient {
-            client,
-            send: b2c_send,
-        });
-        tokio::spawn(async move {
+        let join_handle = tokio::spawn(async move {
             loop {
                 tokio::select! {
                     Some(message) = b2c_recv.recv() => {
@@ -100,25 +97,13 @@ impl OttBalancer {
                     }
                 }
             }
-            while let Some(message) = stream.next().await {
-                match message {
-                    Ok(message) => {
-                        println!("got message: {:?}", message);
-                        send.send(C2BSocketMessage::Message {
-                            client_id: client_id.clone(),
-                            message,
-                        })
-                        .await
-                        .unwrap()
-                    }
-                    Err(e) => {
-                        println!("error: {}", e);
-                        break;
-                    }
-                }
-            }
             println!("client disconnected");
             send.send(C2BSocketMessage::Close).await.unwrap()
+        });
+        self.clients.push(BalancerClient {
+            client,
+            send: b2c_send,
+            join_handle,
         });
     }
 
