@@ -1,2 +1,2 @@
-mod client;
-mod monolith;
+pub mod client;
+pub mod monolith;
