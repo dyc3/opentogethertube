@@ -3,6 +3,7 @@ extern crate rocket;
 use rocket_ws as ws;
 
 mod balancer;
+mod protocol;
 
 #[get("/")]
 fn index(ws: ws::WebSocket) -> ws::Stream!['static] {
