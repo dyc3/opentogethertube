@@ -58,9 +58,32 @@ impl OttBalancer {
         }
     }
 
+    async fn coordinate(&mut self) {
+        loop {
+            tokio::select! {
+                Some(message) = self.c2b_client_recv.recv() => {
+                    match message {
+                        C2BSocketMessage::Message { client_id, message } => {
+                            println!("got message from client: {:?}", message);
+                            let client = self.clients.iter_mut().find(|client| client.client.id == client_id).unwrap();
+                            client.send.send(B2CSocketMessage::Message(message)).await.unwrap();
+                        }
+                        C2BSocketMessage::Close { client_id } => {
+                            println!("got close message from client");
+                            self.clients.retain(|client| {
+                                client.client.id != client_id
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     pub fn handle_client(&mut self, client: NewClient, mut stream: ws::stream::DuplexStream) {
         let send = self.c2b_client_send.clone();
-        let client_id = client.id.clone();
+        let client_id = client.id;
         let (b2c_send, mut b2c_recv) = tokio::sync::mpsc::channel::<B2CSocketMessage>(10);
         let join_handle = tokio::spawn(async move {
             loop {
@@ -84,7 +107,7 @@ impl OttBalancer {
                             Ok(message) => {
                                 println!("got message: {:?}", message);
                                 send.send(C2BSocketMessage::Message {
-                                    client_id: client_id.clone(),
+                                    client_id,
                                     message,
                                 })
                                 .await
@@ -99,7 +122,9 @@ impl OttBalancer {
                 }
             }
             println!("client disconnected");
-            send.send(C2BSocketMessage::Close).await.unwrap()
+            send.send(C2BSocketMessage::Close { client_id })
+                .await
+                .unwrap()
         });
         self.clients.push(BalancerClient {
             client,
@@ -126,7 +151,9 @@ enum C2BSocketMessage {
         client_id: Uuid,
         message: ws::Message,
     },
-    Close,
+    Close {
+        client_id: Uuid,
+    },
 }
 
 #[derive(Debug)]
