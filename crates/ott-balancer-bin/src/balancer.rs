@@ -1,6 +1,7 @@
 use futures_util::StreamExt;
 use rocket_ws as ws;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 pub struct OttMonolith {
     pub rooms: Vec<String>,
@@ -8,7 +9,7 @@ pub struct OttMonolith {
 }
 
 pub struct UnauthorizedClient {
-    pub id: String,
+    pub id: Uuid,
     pub room: String,
 }
 
@@ -23,7 +24,7 @@ impl UnauthorizedClient {
 }
 
 pub struct Client {
-    pub id: String,
+    pub id: Uuid,
     pub room: String,
     pub token: String,
 }
@@ -96,7 +97,7 @@ impl OttBalancer {
 #[derive(Debug)]
 enum C2BSocketMessage {
     Message {
-        client_id: String,
+        client_id: Uuid,
         message: ws::Message,
     },
     Close,

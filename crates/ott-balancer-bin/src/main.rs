@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use rocket_ws as ws;
+use uuid::Uuid;
 
 use crate::balancer::{OttBalancer, UnauthorizedClient};
 use crate::protocol::client::ClientMessage;
@@ -24,7 +25,7 @@ fn monolith_entry(ws: ws::WebSocket) -> ws::Stream!['static] {
 fn client_entry(roomName: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
     println!("client connected, room: {}", roomName);
     let client = UnauthorizedClient {
-        id: "TODO".to_string(),
+        id: Uuid::new_v4(),
         room: roomName.to_string(),
     };
 
