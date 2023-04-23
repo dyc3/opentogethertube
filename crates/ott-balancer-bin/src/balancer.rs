@@ -1,4 +1,4 @@
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 use rocket_ws as ws;
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -31,6 +31,7 @@ pub struct Client {
 
 struct BalancerClient {
     client: Client,
+    send: tokio::sync::mpsc::Sender<B2CSocketMessage>,
 }
 
 pub struct OttBalancer {
@@ -58,8 +59,47 @@ impl OttBalancer {
     pub fn handle_client(&mut self, client: Client, mut stream: ws::stream::DuplexStream) {
         let send = self.c2b_client_send.clone();
         let client_id = client.id.clone();
-        self.clients.push(BalancerClient { client });
+        let (b2c_send, mut b2c_recv) = tokio::sync::mpsc::channel::<B2CSocketMessage>(10);
+        self.clients.push(BalancerClient {
+            client,
+            send: b2c_send,
+        });
         tokio::spawn(async move {
+            loop {
+                tokio::select! {
+                    Some(message) = b2c_recv.recv() => {
+                        match message {
+                            B2CSocketMessage::Message(message) => {
+                                stream.send(message).await.unwrap();
+                            }
+                            B2CSocketMessage::Close => {
+                                stream.close(Some(ws::frame::CloseFrame {
+                                    code: ws::frame::CloseCode::Library(4000),
+                                    reason: "unknown".into(),
+                                })).await.unwrap();
+                                break;
+                            }
+                        }
+                    }
+                    Some(message) = stream.next() => {
+                        match message {
+                            Ok(message) => {
+                                println!("got message: {:?}", message);
+                                send.send(C2BSocketMessage::Message {
+                                    client_id: client_id.clone(),
+                                    message,
+                                })
+                                .await
+                                .unwrap()
+                            }
+                            Err(e) => {
+                                println!("error: {}", e);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
             while let Some(message) = stream.next().await {
                 match message {
                     Ok(message) => {
