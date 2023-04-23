@@ -21,12 +21,12 @@ fn monolith_entry(ws: ws::WebSocket) -> ws::Stream!['static] {
     }
 }
 
-#[get("/api/room/<roomName>")]
-fn client_entry(roomName: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
-    println!("client connected, room: {}", roomName);
+#[get("/api/room/<room_name>")]
+fn client_entry(room_name: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
+    println!("client connected, room: {}", room_name);
     let client = UnauthorizedClient {
         id: Uuid::new_v4(),
-        room: roomName.to_string(),
+        room: room_name.to_string(),
     };
 
     ws.channel(move |mut stream| {
