@@ -14,8 +14,8 @@ pub struct UnauthorizedClient {
 }
 
 impl UnauthorizedClient {
-    pub fn into_client(self, token: String) -> Client {
-        Client {
+    pub fn into_new_client(self, token: String) -> NewClient {
+        NewClient {
             id: self.id,
             room: self.room,
             token,
@@ -23,14 +23,15 @@ impl UnauthorizedClient {
     }
 }
 
-pub struct Client {
+/// Represents a client websocket connection's context. Used by [`OttBalancer`] to make a [`BalancerClient`].
+pub struct NewClient {
     pub id: Uuid,
     pub room: String,
     pub token: String,
 }
 
 struct BalancerClient {
-    client: Client,
+    client: NewClient,
     send: tokio::sync::mpsc::Sender<B2CSocketMessage>,
     join_handle: tokio::task::JoinHandle<()>,
 }
@@ -57,7 +58,7 @@ impl OttBalancer {
         }
     }
 
-    pub fn handle_client(&mut self, client: Client, mut stream: ws::stream::DuplexStream) {
+    pub fn handle_client(&mut self, client: NewClient, mut stream: ws::stream::DuplexStream) {
         let send = self.c2b_client_send.clone();
         let client_id = client.id.clone();
         let (b2c_send, mut b2c_recv) = tokio::sync::mpsc::channel::<B2CSocketMessage>(10);

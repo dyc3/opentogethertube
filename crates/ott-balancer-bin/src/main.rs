@@ -53,7 +53,7 @@ fn client_entry<'r>(
                     match message {
                         ClientMessage::Auth(message) => {
                             println!("client authenticated, handing off to balancer");
-                            let client = client.into_client(message.token);
+                            let client = client.into_new_client(message.token);
                             balancer.lock().await.handle_client(client, stream);
                         }
                         ClientMessage::Other => {
