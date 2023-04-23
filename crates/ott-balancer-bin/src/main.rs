@@ -5,7 +5,7 @@ use std::time::Duration;
 use futures_util::{SinkExt, StreamExt};
 use rocket_ws as ws;
 
-use crate::balancer::UnauthorizedClient;
+use crate::balancer::{OttBalancer, UnauthorizedClient};
 use crate::protocol::client::ClientMessage;
 
 mod balancer;
@@ -22,6 +22,7 @@ fn monolith_entry(ws: ws::WebSocket) -> ws::Stream!['static] {
 
 #[get("/api/room/<roomName>")]
 fn client_entry(roomName: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
+    println!("client connected, room: {}", roomName);
     let client = UnauthorizedClient {
         id: "TODO".to_string(),
         room: roomName.to_string(),
@@ -43,9 +44,10 @@ fn client_entry(roomName: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
                     let message: ClientMessage = serde_json::from_str(&text).unwrap();
                     match message {
                         ClientMessage::Auth(message) => {
+                            println!("client authenticated, handing off to balancer");
                             let client = client.into_client(message.token);
-                            println!("TODO: handle client auth");
-                            // TODO: give the balancer the client and duplex stream
+                            // TODO: create a thread safe OttBalancer singleton instance
+                            OttBalancer::new().handle_client(client, stream);
                         }
                         ClientMessage::Other => {
                             todo!("handle client message");
