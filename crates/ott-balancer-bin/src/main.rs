@@ -1,9 +1,12 @@
 #[macro_use]
 extern crate rocket;
+use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
+use rocket::State;
 use rocket_ws as ws;
+use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::balancer::{OttBalancer, UnauthorizedClient};
@@ -22,7 +25,11 @@ fn monolith_entry(ws: ws::WebSocket) -> ws::Stream!['static] {
 }
 
 #[get("/api/room/<room_name>")]
-fn client_entry(room_name: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
+fn client_entry<'r>(
+    room_name: &str,
+    ws: ws::WebSocket,
+    balancer: &'r State<Arc<Mutex<OttBalancer>>>,
+) -> ws::Channel<'r> {
     println!("client connected, room: {}", room_name);
     let client = UnauthorizedClient {
         id: Uuid::new_v4(),
@@ -47,8 +54,7 @@ fn client_entry(room_name: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
                         ClientMessage::Auth(message) => {
                             println!("client authenticated, handing off to balancer");
                             let client = client.into_client(message.token);
-                            // TODO: create a thread safe OttBalancer singleton instance
-                            OttBalancer::new().handle_client(client, stream);
+                            balancer.lock().await.handle_client(client, stream);
                         }
                         ClientMessage::Other => {
                             todo!("handle client message");
@@ -65,5 +71,7 @@ fn client_entry(room_name: &str, ws: ws::WebSocket) -> ws::Channel<'static> {
 
 #[launch]
 fn launch() -> _ {
-    rocket::build().mount("/", routes![monolith_entry, client_entry])
+    rocket::build()
+        .manage(Arc::new(Mutex::new(OttBalancer::new())))
+        .mount("/", routes![monolith_entry, client_entry])
 }
