@@ -1,0 +1,13 @@
+[workspace]
+members = ["crates/*", "tools/*"]
+
+[workspace.dependencies]
+anyhow = "1"
+futures-util = "0.3.28"
+rand = "0.8.5"
+rocket = { git = "https://github.com/SergioBenitez/Rocket", rev = "9b0564e", features = ["json", "secrets", "uuid"] }
+rocket_ws = { git = "https://github.com/SergioBenitez/Rocket", rev = "9b0564e" }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = "0.18.0"
+tungstenite = "0.19.0"
