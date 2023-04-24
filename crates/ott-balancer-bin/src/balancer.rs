@@ -84,10 +84,12 @@ impl OttBalancer {
         }
     }
 
-    pub fn load_room(&mut self, room_name: &String) -> &mut Room {
+    pub fn load_room(&mut self, room_name: &String) -> anyhow::Result<&mut Room> {
         // select a monolith to host the room
         // TODO: select monolith based on load
-        let monolith = self.monoliths.choose(&mut rand::thread_rng()).unwrap();
+        let Some(monolith) = self.monoliths.choose(&mut rand::thread_rng()) else {
+            anyhow::bail!("no monoliths available");
+        };
 
         // create a new room
         let (c2b_send, c2b_recv) = tokio::sync::mpsc::channel::<C2BSocketMessage>(50);
@@ -99,14 +101,27 @@ impl OttBalancer {
             c2b_send,
         };
         self.rooms.push(room);
-        self.rooms.last_mut().unwrap()
+        Ok(self.rooms.last_mut().unwrap())
     }
 
     pub fn handle_client(&mut self, client: NewClient, mut stream: ws::stream::DuplexStream) {
         let room = self.rooms.iter_mut().find(|room| room.name == client.room);
         let mut room = match room {
             Some(room) => room,
-            None => self.load_room(&client.room),
+            None => {
+                let room = match self.load_room(&client.room) {
+                    Ok(room) => room,
+                    Err(e) => {
+                        // failed
+                        println!("failed to load room: {}", e);
+                        tokio::spawn(async move {
+                            let _ = stream.close(None).await; // TODO: send good error code
+                        });
+                        return;
+                    }
+                };
+                room
+            }
         };
 
         let send = room.c2b_send.clone();
