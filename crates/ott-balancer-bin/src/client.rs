@@ -1,7 +1,7 @@
-use futures_util::{StreamExt, SinkExt};
-use tokio::sync::mpsc::{Sender, Receiver};
-use uuid::Uuid;
+use futures_util::{SinkExt, StreamExt};
 use rocket_ws as ws;
+use tokio::sync::mpsc::{Receiver, Sender};
+use uuid::Uuid;
 
 use crate::balancer::{B2XSocketMessage, C2BSocketMessage};
 
@@ -97,7 +97,12 @@ impl MessageReceiver for BalancerClient {
     }
 }
 
-pub async fn client_msg_passer(client_id: Uuid, mut stream: ws::stream::DuplexStream, send: Sender<C2BSocketMessage>, mut b2c_recv: Receiver<B2XSocketMessage>) {
+pub async fn client_msg_passer(
+    client_id: Uuid,
+    mut stream: ws::stream::DuplexStream,
+    send: Sender<C2BSocketMessage>,
+    mut b2c_recv: Receiver<B2XSocketMessage>,
+) {
     loop {
         tokio::select! {
             Some(message) = b2c_recv.recv() => {

@@ -1,7 +1,7 @@
 use futures_util::{SinkExt, StreamExt};
+use rand::seq::SliceRandom;
 use rocket_ws as ws;
 use uuid::Uuid;
-use rand::seq::SliceRandom;
 
 use crate::client::{BalancerClient, MessageReceiver, NewClient, OttMonolith};
 
@@ -106,9 +106,7 @@ impl OttBalancer {
         let room = self.rooms.iter_mut().find(|room| room.name == client.room);
         let mut room = match room {
             Some(room) => room,
-            None => {
-                self.load_room(&client.room)
-            }
+            None => self.load_room(&client.room),
         };
 
         let send = room.c2b_send.clone();
@@ -189,7 +187,6 @@ pub enum B2XSocketMessage {
     Message(ws::Message),
     Close,
 }
-
 
 #[derive(Debug, Clone)]
 pub enum M2BSocketMessage {
