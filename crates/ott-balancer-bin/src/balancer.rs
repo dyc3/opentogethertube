@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::client::{BalancerClient, NewClient, OttMonolith};
+use crate::client::{BalancerClient, MessageReceiver, NewClient, OttMonolith};
 
 pub struct OttBalancer {
     pub monoliths: Vec<OttMonolith>,
@@ -43,7 +43,7 @@ impl OttBalancer {
                         X2BSocketMessage::Message { node_id, message } => {
                             println!("got message from client: {:?}", message);
                             let client = self.clients.iter_mut().find(|client| client.client.id == node_id).unwrap();
-                            client.send.send(B2XSocketMessage::Message(message)).await.unwrap();
+                            client.send(B2XSocketMessage::Message(message)).await.unwrap();
                         }
                         X2BSocketMessage::Close { node_id } => {
                             println!("got close message from client");
@@ -103,11 +103,8 @@ impl OttBalancer {
                 .await
                 .unwrap()
         });
-        self.clients.push(BalancerClient {
-            client,
-            send: b2c_send,
-            join_handle,
-        });
+        self.clients
+            .push(BalancerClient::new(client, b2c_send, join_handle));
     }
 
     pub fn handle_monolith(&mut self, mut stream: ws::stream::DuplexStream) {

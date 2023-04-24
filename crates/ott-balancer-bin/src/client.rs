@@ -3,6 +3,12 @@ use uuid::Uuid;
 
 use crate::balancer::B2XSocketMessage;
 
+/// A type that implements this trait can receive messages from the [`OttBalancer`].
+#[async_trait]
+pub trait MessageReceiver {
+    async fn send(&mut self, message: B2XSocketMessage) -> anyhow::Result<()>;
+}
+
 pub struct OttMonolith {
     pub id: Uuid,
     pub rooms: Vec<String>,
@@ -31,6 +37,14 @@ impl OttMonolith {
     }
 }
 
+#[async_trait]
+impl MessageReceiver for OttMonolith {
+    async fn send(&mut self, message: B2XSocketMessage) -> anyhow::Result<()> {
+        self.b2m_send.send(message).await?;
+        Ok(())
+    }
+}
+
 pub struct UnauthorizedClient {
     pub id: Uuid,
     pub room: String,
@@ -55,6 +69,28 @@ pub struct NewClient {
 
 pub(crate) struct BalancerClient {
     pub client: NewClient,
-    pub send: tokio::sync::mpsc::Sender<B2XSocketMessage>,
+    b2c_send: tokio::sync::mpsc::Sender<B2XSocketMessage>,
     pub join_handle: tokio::task::JoinHandle<()>,
+}
+
+impl BalancerClient {
+    pub fn new(
+        client: NewClient,
+        b2c_send: tokio::sync::mpsc::Sender<B2XSocketMessage>,
+        join_handle: tokio::task::JoinHandle<()>,
+    ) -> Self {
+        Self {
+            client,
+            b2c_send,
+            join_handle,
+        }
+    }
+}
+
+#[async_trait]
+impl MessageReceiver for BalancerClient {
+    async fn send(&mut self, message: B2XSocketMessage) -> anyhow::Result<()> {
+        self.b2c_send.send(message).await?;
+        Ok(())
+    }
 }
