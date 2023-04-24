@@ -8,7 +8,7 @@ use crate::client::{BalancerClient, MessageReceiver, NewClient, OttMonolith};
 pub struct Room {
     pub name: String,
     pub monolith: Uuid,
-    pub clients: Vec<BalancerClient>,
+    clients: Vec<BalancerClient>,
 
     /// Channel for receiving messages from clients.
     c2b_recv: tokio::sync::mpsc::Receiver<C2BSocketMessage>,
@@ -38,7 +38,7 @@ pub struct OttBalancer {
 
 impl OttBalancer {
     pub fn new() -> Self {
-        let (m2b_send, m2b_recv) = tokio::sync::broadcast::channel::<M2BSocketMessage>(100);
+        let (m2b_send, m2b_recv) = tokio::sync::mpsc::channel::<M2BSocketMessage>(100);
         Self {
             // context: Arc::new(Mutex::new(BalancerContext::new())),
             monoliths: Vec::new(),
@@ -66,9 +66,9 @@ impl OttBalancer {
             //         }
             //     }
             // }
-            Ok(message) = self.m2b_recv.recv() => {
+            Some(message) = self.m2b_recv.recv() => {
                 match message {
-                    M2BSocketMessage::Message { node_id, room, message } => {
+                    M2BSocketMessage::Message { node_id, message } => {
                         println!("got message from monolith: {:?}", message);
                         let monolith = self.monoliths.iter_mut().find(|monolith| monolith.id == node_id).unwrap();
                         monolith.send(B2XSocketMessage::Message(message)).await.unwrap();
@@ -84,7 +84,7 @@ impl OttBalancer {
         }
     }
 
-    pub fn load_room(&mut self, room_name: String) -> &mut Room {
+    pub fn load_room(&mut self, room_name: &String) -> &mut Room {
         // select a monolith to host the room
         // TODO: select monolith based on load
         let monolith = self.monoliths.choose(&mut rand::thread_rng()).unwrap();
@@ -92,7 +92,7 @@ impl OttBalancer {
         // create a new room
         let (c2b_send, c2b_recv) = tokio::sync::mpsc::channel::<C2BSocketMessage>(50);
         let room = Room {
-            name: room_name,
+            name: room_name.clone(),
             monolith: monolith.id,
             clients: Vec::new(),
             c2b_recv,
@@ -103,7 +103,13 @@ impl OttBalancer {
     }
 
     pub fn handle_client(&mut self, client: NewClient, mut stream: ws::stream::DuplexStream) {
-        let mut room = self.rooms.iter_mut().find(|room| room.name == client.room).unwrap_or_else(|| self.load_room(client.room));
+        let room = self.rooms.iter_mut().find(|room| room.name == client.room);
+        let mut room = match room {
+            Some(room) => room,
+            None => {
+                self.load_room(&client.room)
+            }
+        };
 
         let send = room.c2b_send.clone();
         let client_id = client.id;
@@ -139,7 +145,7 @@ impl OttBalancer {
                         match message {
                             Ok(message) => {
                                 println!("got message from monolith: {:?}", message);
-                                send.send(C2BSocketMessage::Message {
+                                send.send(M2BSocketMessage::Message {
                                     node_id: monolith_id,
                                     message,
                                 })
@@ -187,6 +193,6 @@ pub enum B2XSocketMessage {
 
 #[derive(Debug, Clone)]
 pub enum M2BSocketMessage {
-    Message { node_id: Uuid, room: String, message: ws::Message },
+    Message { node_id: Uuid, message: ws::Message },
     Close { node_id: Uuid },
 }
