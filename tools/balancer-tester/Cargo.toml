@@ -1,5 +1,5 @@
 [package]
-name = "ws-fuzz"
+name = "balancer-tester"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 anyhow.workspace = true
-websocket = "0.26.5"
+tungstenite.workspace = true
+url.workspace = true
