@@ -24,6 +24,23 @@ impl Room {
     fn remove_client(&mut self, client_id: Uuid) {
         self.clients.retain(|client| client.client.id != client_id);
     }
+
+    async fn send(&mut self, client_id: Uuid, message: ws::Message) {
+        let client = self
+            .clients
+            .iter_mut()
+            .find(|client| client.client.id == client_id)
+            .unwrap();
+        client.send(B2XSocketMessage::Message(message)).await;
+    }
+
+    async fn broadcast(&mut self, message: ws::Message) {
+        for client in self.clients.iter_mut() {
+            client
+                .send(B2XSocketMessage::Message(message.clone()))
+                .await;
+        }
+    }
 }
 
 pub struct OttBalancer {
