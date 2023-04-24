@@ -1,7 +1,9 @@
-use tokio::sync::mpsc::Sender;
+use futures_util::{StreamExt, SinkExt};
+use tokio::sync::mpsc::{Sender, Receiver};
 use uuid::Uuid;
+use rocket_ws as ws;
 
-use crate::balancer::B2XSocketMessage;
+use crate::balancer::{B2XSocketMessage, C2BSocketMessage};
 
 /// A type that implements this trait can receive messages from the [`OttBalancer`].
 #[async_trait]
@@ -93,4 +95,46 @@ impl MessageReceiver for BalancerClient {
         self.b2c_send.send(message).await?;
         Ok(())
     }
+}
+
+pub async fn client_msg_passer(client_id: Uuid, mut stream: ws::stream::DuplexStream, send: Sender<C2BSocketMessage>, mut b2c_recv: Receiver<B2XSocketMessage>) {
+    loop {
+        tokio::select! {
+            Some(message) = b2c_recv.recv() => {
+                match message {
+                    B2XSocketMessage::Message(message) => {
+                        stream.send(message).await.unwrap();
+                    }
+                    B2XSocketMessage::Close => {
+                        stream.close(Some(ws::frame::CloseFrame {
+                            code: ws::frame::CloseCode::Library(4000),
+                            reason: "unknown".into(),
+                        })).await.unwrap();
+                        break;
+                    }
+                }
+            }
+            Some(message) = stream.next() => {
+                match message {
+                    Ok(message) => {
+                        println!("got message: {:?}", message);
+                        send.send(C2BSocketMessage::Message {
+                            node_id: client_id,
+                            message,
+                        })
+                        .await
+                        .unwrap()
+                    }
+                    Err(e) => {
+                        println!("error: {}", e);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    println!("client disconnected");
+    send.send(C2BSocketMessage::Close { node_id: client_id })
+        .await
+        .unwrap()
 }

@@ -1,64 +1,49 @@
-use std::sync::Arc;
-
 use futures_util::{SinkExt, StreamExt};
 use rocket_ws as ws;
 use uuid::Uuid;
-
-use tokio::sync::{
-    mpsc::{Receiver, Sender},
-    Mutex,
-};
+use rand::seq::SliceRandom;
 
 use crate::client::{BalancerClient, MessageReceiver, NewClient, OttMonolith};
 
-pub struct BalancerContext {
-    pub monoliths: Vec<OttMonolith>,
-    clients: Vec<BalancerClient>,
+pub struct Room {
+    pub name: String,
+    pub monolith: Uuid,
+    pub clients: Vec<BalancerClient>,
+
+    /// Channel for receiving messages from clients.
+    c2b_recv: tokio::sync::mpsc::Receiver<C2BSocketMessage>,
+    /// Channel for allowing clients to send messages to the balancer.
+    c2b_send: tokio::sync::mpsc::Sender<C2BSocketMessage>,
 }
 
-impl BalancerContext {
-    pub fn new() -> Self {
-        Self {
-            monoliths: Vec::new(),
-            clients: Vec::new(),
-        }
-    }
-
+impl Room {
     fn add_client(&mut self, client: BalancerClient) {
         self.clients.push(client);
     }
 
-    fn add_monolith(&mut self, monolith: OttMonolith) {
-        self.monoliths.push(monolith);
+    fn remove_client(&mut self, client_id: Uuid) {
+        self.clients.retain(|client| client.client.id != client_id);
     }
 }
 
 pub struct OttBalancer {
     pub monoliths: Vec<OttMonolith>,
-    clients: Vec<BalancerClient>,
-
-    /// Channel for receiving messages from clients.
-    c2b_recv: tokio::sync::mpsc::Receiver<X2BSocketMessage>,
-    /// Channel for allowing clients to send messages to the balancer.
-    c2b_send: tokio::sync::mpsc::Sender<X2BSocketMessage>,
+    rooms: Vec<Room>,
 
     /// Channel for receiving messages from monoliths.
-    m2b_recv: Receiver<X2BSocketMessage>,
+    m2b_recv: tokio::sync::mpsc::Receiver<M2BSocketMessage>,
     /// Channel for allowing monoliths to send messages to the balancer.
-    m2b_send: Sender<X2BSocketMessage>,
+    m2b_send: tokio::sync::mpsc::Sender<M2BSocketMessage>,
 }
 
 impl OttBalancer {
     pub fn new() -> Self {
-        let (c2b_send, c2b_recv) = tokio::sync::mpsc::channel::<X2BSocketMessage>(100);
-        let (m2b_send, m2b_recv) = tokio::sync::mpsc::channel::<X2BSocketMessage>(100);
+        let (m2b_send, m2b_recv) = tokio::sync::broadcast::channel::<M2BSocketMessage>(100);
         Self {
             // context: Arc::new(Mutex::new(BalancerContext::new())),
             monoliths: Vec::new(),
-            clients: Vec::new(),
+            rooms: Vec::new(),
 
-            c2b_recv,
-            c2b_send,
             m2b_recv,
             m2b_send,
         }
@@ -66,29 +51,29 @@ impl OttBalancer {
 
     pub(crate) async fn tick(&mut self) {
         tokio::select! {
-            Some(message) = self.c2b_recv.recv() => {
+            // Some(message) = self.c2b_recv.recv() => {
+            //     match message {
+            //         C2BSocketMessage::Message { node_id, message } => {
+            //             println!("got message from client: {:?}", message);
+            //             let client = self.clients.iter_mut().find(|client| client.client.id == node_id).unwrap();
+            //             client.send(B2XSocketMessage::Message(message)).await.unwrap();
+            //         }
+            //         C2BSocketMessage::Close { node_id } => {
+            //             println!("got close message from client");
+            //             self.clients.retain(|client| {
+            //                 client.client.id != node_id
+            //             });
+            //         }
+            //     }
+            // }
+            Ok(message) = self.m2b_recv.recv() => {
                 match message {
-                    X2BSocketMessage::Message { node_id, message } => {
-                        println!("got message from client: {:?}", message);
-                        let client = self.clients.iter_mut().find(|client| client.client.id == node_id).unwrap();
-                        client.send(B2XSocketMessage::Message(message)).await.unwrap();
-                    }
-                    X2BSocketMessage::Close { node_id } => {
-                        println!("got close message from client");
-                        self.clients.retain(|client| {
-                            client.client.id != node_id
-                        });
-                    }
-                }
-            }
-            Some(message) = self.m2b_recv.recv() => {
-                match message {
-                    X2BSocketMessage::Message { node_id, message } => {
+                    M2BSocketMessage::Message { node_id, room, message } => {
                         println!("got message from monolith: {:?}", message);
                         let monolith = self.monoliths.iter_mut().find(|monolith| monolith.id == node_id).unwrap();
                         monolith.send(B2XSocketMessage::Message(message)).await.unwrap();
                     }
-                    X2BSocketMessage::Close { node_id } => {
+                    M2BSocketMessage::Close { node_id } => {
                         println!("got close message from monolith");
                         self.monoliths.retain(|monolith| {
                             monolith.id != node_id
@@ -99,53 +84,34 @@ impl OttBalancer {
         }
     }
 
+    pub fn load_room(&mut self, room_name: String) -> &mut Room {
+        // select a monolith to host the room
+        // TODO: select monolith based on load
+        let monolith = self.monoliths.choose(&mut rand::thread_rng()).unwrap();
+
+        // create a new room
+        let (c2b_send, c2b_recv) = tokio::sync::mpsc::channel::<C2BSocketMessage>(50);
+        let room = Room {
+            name: room_name,
+            monolith: monolith.id,
+            clients: Vec::new(),
+            c2b_recv,
+            c2b_send,
+        };
+        self.rooms.push(room);
+        self.rooms.last_mut().unwrap()
+    }
+
     pub fn handle_client(&mut self, client: NewClient, mut stream: ws::stream::DuplexStream) {
-        let send = self.c2b_send.clone();
+        let mut room = self.rooms.iter_mut().find(|room| room.name == client.room).unwrap_or_else(|| self.load_room(client.room));
+
+        let send = room.c2b_send.clone();
         let client_id = client.id;
         let (b2c_send, mut b2c_recv) = tokio::sync::mpsc::channel::<B2XSocketMessage>(10);
         let join_handle = tokio::spawn(async move {
-            loop {
-                tokio::select! {
-                    Some(message) = b2c_recv.recv() => {
-                        match message {
-                            B2XSocketMessage::Message(message) => {
-                                stream.send(message).await.unwrap();
-                            }
-                            B2XSocketMessage::Close => {
-                                stream.close(Some(ws::frame::CloseFrame {
-                                    code: ws::frame::CloseCode::Library(4000),
-                                    reason: "unknown".into(),
-                                })).await.unwrap();
-                                break;
-                            }
-                        }
-                    }
-                    Some(message) = stream.next() => {
-                        match message {
-                            Ok(message) => {
-                                println!("got message: {:?}", message);
-                                send.send(X2BSocketMessage::Message {
-                                    node_id: client_id,
-                                    message,
-                                })
-                                .await
-                                .unwrap()
-                            }
-                            Err(e) => {
-                                println!("error: {}", e);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            println!("client disconnected");
-            send.send(X2BSocketMessage::Close { node_id: client_id })
-                .await
-                .unwrap()
+            crate::client::client_msg_passer(client_id, stream, send, b2c_recv).await;
         });
-        self.clients
-            .push(BalancerClient::new(client, b2c_send, join_handle));
+        room.add_client(BalancerClient::new(client, b2c_send, join_handle));
     }
 
     pub fn handle_monolith(&mut self, mut stream: ws::stream::DuplexStream) {
@@ -173,7 +139,7 @@ impl OttBalancer {
                         match message {
                             Ok(message) => {
                                 println!("got message from monolith: {:?}", message);
-                                send.send(X2BSocketMessage::Message {
+                                send.send(C2BSocketMessage::Message {
                                     node_id: monolith_id,
                                     message,
                                 })
@@ -207,7 +173,7 @@ impl OttBalancer {
 }
 
 #[derive(Debug)]
-pub enum X2BSocketMessage {
+pub enum C2BSocketMessage {
     Message { node_id: Uuid, message: ws::Message },
     Close { node_id: Uuid },
 }
@@ -216,4 +182,11 @@ pub enum X2BSocketMessage {
 pub enum B2XSocketMessage {
     Message(ws::Message),
     Close,
+}
+
+
+#[derive(Debug, Clone)]
+pub enum M2BSocketMessage {
+    Message { node_id: Uuid, room: String, message: ws::Message },
+    Close { node_id: Uuid },
 }
