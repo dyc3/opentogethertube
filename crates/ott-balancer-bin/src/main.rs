@@ -9,10 +9,12 @@ use rocket_ws as ws;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use crate::balancer::{OttBalancer, UnauthorizedClient};
+use crate::balancer::OttBalancer;
+use crate::client::UnauthorizedClient;
 use crate::protocol::client::ClientMessage;
 
 mod balancer;
+mod client;
 mod protocol;
 
 #[get("/monolith")]

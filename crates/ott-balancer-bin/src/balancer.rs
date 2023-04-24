@@ -4,61 +4,7 @@ use uuid::Uuid;
 
 use tokio::sync::mpsc::{Receiver, Sender};
 
-pub struct OttMonolith {
-    pub id: Uuid,
-    pub rooms: Vec<String>,
-    pub load: f64,
-
-    join_handle: tokio::task::JoinHandle<()>,
-    // m2b_recv: Receiver<X2BSocketMessage>,
-    b2m_send: Sender<B2XSocketMessage>,
-}
-
-impl OttMonolith {
-    pub fn new(
-        id: Uuid,
-        join_handle: tokio::task::JoinHandle<()>,
-
-        b2m_send: Sender<B2XSocketMessage>,
-    ) -> Self {
-        Self {
-            id,
-            rooms: vec![],
-            load: 0.0,
-
-            join_handle,
-            b2m_send,
-        }
-    }
-}
-
-pub struct UnauthorizedClient {
-    pub id: Uuid,
-    pub room: String,
-}
-
-impl UnauthorizedClient {
-    pub fn into_new_client(self, token: String) -> NewClient {
-        NewClient {
-            id: self.id,
-            room: self.room,
-            token,
-        }
-    }
-}
-
-/// Represents a client websocket connection's context. Used by [`OttBalancer`] to make a [`BalancerClient`].
-pub struct NewClient {
-    pub id: Uuid,
-    pub room: String,
-    pub token: String,
-}
-
-struct BalancerClient {
-    client: NewClient,
-    send: tokio::sync::mpsc::Sender<B2XSocketMessage>,
-    join_handle: tokio::task::JoinHandle<()>,
-}
+use crate::client::{BalancerClient, NewClient, OttMonolith};
 
 pub struct OttBalancer {
     pub monoliths: Vec<OttMonolith>,
@@ -69,7 +15,9 @@ pub struct OttBalancer {
     /// Channel for allowing clients to send messages to the balancer.
     c2b_send: tokio::sync::mpsc::Sender<X2BSocketMessage>,
 
+    /// Channel for receiving messages from monoliths.
     m2b_recv: Receiver<X2BSocketMessage>,
+    /// Channel for allowing monoliths to send messages to the balancer.
     m2b_send: Sender<X2BSocketMessage>,
 }
 
