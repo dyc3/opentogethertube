@@ -1171,6 +1171,7 @@ name = "ott-balancer-bin"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "futures-util",
  "rand 0.8.5",
  "rocket",
