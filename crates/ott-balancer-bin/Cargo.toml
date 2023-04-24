@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
+console-subscriber.workspace = true
 futures-util.workspace = true
 rand.workspace = true
 rocket.workspace = true

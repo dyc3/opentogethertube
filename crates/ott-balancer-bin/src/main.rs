@@ -105,6 +105,8 @@ impl Fairing for BalancerStarter {
 
 #[launch]
 fn launch() -> _ {
+    console_subscriber::init();
+
     rocket::build()
         .attach(BalancerStarter)
         .manage(Arc::new(Mutex::new(OttBalancer::new())))
