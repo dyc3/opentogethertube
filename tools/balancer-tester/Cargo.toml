@@ -7,5 +7,8 @@ edition = "2021"
 
 [dependencies]
 anyhow.workspace = true
-tungstenite.workspace = true
+futures-util.workspace = true
+tokio.workspace = true
+tokio-tungstenite.workspace = true
 url.workspace = true
+uuid.workspace = true
