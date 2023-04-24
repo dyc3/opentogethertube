@@ -1,10 +1,37 @@
+use std::sync::Arc;
+
 use futures_util::{SinkExt, StreamExt};
 use rocket_ws as ws;
 use uuid::Uuid;
 
-use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::sync::{
+    mpsc::{Receiver, Sender},
+    Mutex,
+};
 
 use crate::client::{BalancerClient, MessageReceiver, NewClient, OttMonolith};
+
+pub struct BalancerContext {
+    pub monoliths: Vec<OttMonolith>,
+    clients: Vec<BalancerClient>,
+}
+
+impl BalancerContext {
+    pub fn new() -> Self {
+        Self {
+            monoliths: Vec::new(),
+            clients: Vec::new(),
+        }
+    }
+
+    fn add_client(&mut self, client: BalancerClient) {
+        self.clients.push(client);
+    }
+
+    fn add_monolith(&mut self, monolith: OttMonolith) {
+        self.monoliths.push(monolith);
+    }
+}
 
 pub struct OttBalancer {
     pub monoliths: Vec<OttMonolith>,
@@ -26,8 +53,10 @@ impl OttBalancer {
         let (c2b_send, c2b_recv) = tokio::sync::mpsc::channel::<X2BSocketMessage>(100);
         let (m2b_send, m2b_recv) = tokio::sync::mpsc::channel::<X2BSocketMessage>(100);
         Self {
+            // context: Arc::new(Mutex::new(BalancerContext::new())),
             monoliths: Vec::new(),
             clients: Vec::new(),
+
             c2b_recv,
             c2b_send,
             m2b_recv,
@@ -35,23 +64,35 @@ impl OttBalancer {
         }
     }
 
-    async fn coordinate(&mut self) {
-        loop {
-            tokio::select! {
-                Some(message) = self.c2b_recv.recv() => {
-                    match message {
-                        X2BSocketMessage::Message { node_id, message } => {
-                            println!("got message from client: {:?}", message);
-                            let client = self.clients.iter_mut().find(|client| client.client.id == node_id).unwrap();
-                            client.send(B2XSocketMessage::Message(message)).await.unwrap();
-                        }
-                        X2BSocketMessage::Close { node_id } => {
-                            println!("got close message from client");
-                            self.clients.retain(|client| {
-                                client.client.id != node_id
-                            });
-                            break;
-                        }
+    pub(crate) async fn tick(&mut self) {
+        tokio::select! {
+            Some(message) = self.c2b_recv.recv() => {
+                match message {
+                    X2BSocketMessage::Message { node_id, message } => {
+                        println!("got message from client: {:?}", message);
+                        let client = self.clients.iter_mut().find(|client| client.client.id == node_id).unwrap();
+                        client.send(B2XSocketMessage::Message(message)).await.unwrap();
+                    }
+                    X2BSocketMessage::Close { node_id } => {
+                        println!("got close message from client");
+                        self.clients.retain(|client| {
+                            client.client.id != node_id
+                        });
+                    }
+                }
+            }
+            Some(message) = self.m2b_recv.recv() => {
+                match message {
+                    X2BSocketMessage::Message { node_id, message } => {
+                        println!("got message from monolith: {:?}", message);
+                        let monolith = self.monoliths.iter_mut().find(|monolith| monolith.id == node_id).unwrap();
+                        monolith.send(B2XSocketMessage::Message(message)).await.unwrap();
+                    }
+                    X2BSocketMessage::Close { node_id } => {
+                        println!("got close message from monolith");
+                        self.monoliths.retain(|monolith| {
+                            monolith.id != node_id
+                        });
                     }
                 }
             }
