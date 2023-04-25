@@ -53,6 +53,16 @@ where
     message: T,
 }
 
+impl<Id, T> Context<Id, T>
+where
+    Id: std::hash::Hash,
+{
+    pub fn new(id: Id, message: T) -> Self {
+        Self { id, message }
+    }
+}
+
+#[derive(Debug)]
 pub enum SocketMessage {
     Message(ws::Message),
     Close,
