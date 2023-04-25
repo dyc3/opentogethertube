@@ -16,6 +16,7 @@ use crate::protocol::client::ClientMessage;
 
 mod balancer;
 mod client;
+mod messages;
 mod protocol;
 
 #[get("/monolith")]
