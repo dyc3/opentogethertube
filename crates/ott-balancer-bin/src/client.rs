@@ -1,15 +1,13 @@
-use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::StreamExt;
 use rocket::State;
 use rocket_ws as ws;
-use tokio::sync::RwLock;
 use uuid::Uuid;
 
 use crate::balancer::BalancerLink;
 use crate::messages::*;
-use crate::protocol::client::ClientMessage;
+use ott_balancer_protocol::{client::*, *};
 
 pub struct UnauthorizedClient {
     pub id: ClientId,

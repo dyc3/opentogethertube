@@ -11,7 +11,6 @@ mod balancer;
 mod client;
 mod messages;
 mod monolith;
-mod protocol;
 
 #[launch]
 fn launch() -> _ {

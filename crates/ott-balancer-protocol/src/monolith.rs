@@ -3,16 +3,16 @@
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 
-use crate::messages::ClientId;
+use crate::{ClientId, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
 pub enum MsgB2M {
     Load {
-        room: String,
+        room: RoomName,
     },
     Join {
-        room: String,
+        room: RoomName,
         client: ClientId,
         token: String,
     },
@@ -28,7 +28,7 @@ pub enum MsgB2M {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload")]
 pub enum MsgM2B {
-    Loaded { room: String },
-    Unloaded { room: String },
-    Gossip { rooms: Vec<String> },
+    Loaded { room: RoomName },
+    Unloaded { room: RoomName },
+    Gossip { rooms: Vec<RoomName> },
 }

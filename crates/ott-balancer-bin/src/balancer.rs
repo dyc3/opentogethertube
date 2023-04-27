@@ -2,8 +2,9 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+use ott_balancer_protocol::monolith::MsgB2M;
+use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
-use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 
@@ -11,7 +12,6 @@ use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
     monolith::{BalancerMonolith, NewMonolith},
-    protocol::monolith::MsgB2M,
 };
 
 pub struct Balancer {

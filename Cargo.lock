@@ -1497,6 +1497,7 @@ dependencies = [
  "async-trait",
  "console-subscriber",
  "futures-util",
+ "ott-balancer-protocol",
  "rand 0.8.5",
  "rocket",
  "rocket_ws",
@@ -1505,6 +1506,15 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "tungstenite 0.19.0",
+ "uuid",
+]
+
+[[package]]
+name = "ott-balancer-protocol"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
  "uuid",
 ]
 

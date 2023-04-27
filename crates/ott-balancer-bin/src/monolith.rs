@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
 use futures_util::{SinkExt, StreamExt};
+use ott_balancer_protocol::{monolith::*, *};
 use rocket::State;
 use rocket_ws as ws;
 use uuid::Uuid;
 
-use crate::{balancer::BalancerLink, messages::*, protocol};
+use crate::{balancer::BalancerLink, messages::*};
 
 #[derive(Debug)]
 pub struct BalancerMonolith {
@@ -53,7 +54,7 @@ impl BalancerMonolith {
         }
     }
 
-    pub async fn send(&self, msg: &protocol::monolith::MsgB2M) -> anyhow::Result<()> {
+    pub async fn send(&self, msg: &MsgB2M) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg)?;
         let socket_msg = SocketMessage::Message(ws::Message::Text(text));
         self.socket_tx.send(socket_msg).await?;
