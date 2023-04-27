@@ -207,6 +207,8 @@ dependencies = [
  "anyhow",
  "clap",
  "futures-util",
+ "serde",
+ "serde_json",
  "tokio",
  "tokio-tungstenite",
  "url 2.3.1",

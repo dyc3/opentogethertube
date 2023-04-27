@@ -5,6 +5,7 @@ use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use url::Url;
 
 mod cli;
+mod monolith;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -24,7 +25,7 @@ async fn test_as_monolith() -> anyhow::Result<()> {
     println!("Connected to the server");
     println!("Response HTTP code: {}", response.status());
 
-    let (mut write, read) = socket.split();
+    let (mut write, mut read) = socket.split();
 
     // let auth_msg = Message::Text("{\"action\":\"auth\", \"token\":\"foo\"}".into());
     // write.send(auth_msg).await?;
@@ -32,16 +33,33 @@ async fn test_as_monolith() -> anyhow::Result<()> {
     let (stdin_tx, mut stdin_rx) = tokio::sync::mpsc::unbounded_channel();
     tokio::spawn(read_stdin(stdin_tx));
 
+    let monolith = monolith::SimMonolith::new();
+    let (_handle, inbound_tx, mut outbound_rx) = monolith.start();
+
     tokio::spawn(async move {
-        read.for_each(|message| async {
-            let data = message.unwrap().into_data();
-            tokio::io::stdout().write_all(&data).await.unwrap();
-        })
+        let inbound_tx = inbound_tx.clone();
+        while let Some(msg) = read.next().await {
+            match msg {
+                Ok(msg) => {
+                    let data = msg.to_text().unwrap().as_bytes();
+                    tokio::io::stdout().write_all(&data).await.unwrap();
+                    inbound_tx.send(msg).await.unwrap();
+                }
+                Err(err) => {
+                    println!("Error reading message from server: {:?}", err);
+                }
+            }
+        }
     });
 
     loop {
         tokio::select! {
             msg = stdin_rx.recv() => {
+                if let Some(msg) = msg {
+                    write.send(msg).await?;
+                }
+            },
+            msg = outbound_rx.recv() => {
                 if let Some(msg) = msg {
                     write.send(msg).await?;
                 }
