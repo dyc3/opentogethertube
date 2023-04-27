@@ -1,11 +1,53 @@
-use futures_util::{pin_mut, SinkExt, StreamExt, TryStreamExt};
+use clap::Parser;
+use futures_util::{SinkExt, StreamExt};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use url::Url;
 
+mod cli;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    test_as_client().await
+    let args = cli::Args::parse();
+
+    match args.mode {
+        cli::ClientMode::Monolith => test_as_monolith().await,
+        cli::ClientMode::Client => test_as_client().await,
+    }
+}
+
+async fn test_as_monolith() -> anyhow::Result<()> {
+    let (mut socket, response) = connect_async(Url::parse("ws://localhost:8081/monolith")?)
+        .await
+        .expect("Can't connect");
+
+    println!("Connected to the server");
+    println!("Response HTTP code: {}", response.status());
+
+    let (mut write, read) = socket.split();
+
+    // let auth_msg = Message::Text("{\"action\":\"auth\", \"token\":\"foo\"}".into());
+    // write.send(auth_msg).await?;
+
+    let (stdin_tx, mut stdin_rx) = tokio::sync::mpsc::unbounded_channel();
+    tokio::spawn(read_stdin(stdin_tx));
+
+    tokio::spawn(async move {
+        read.for_each(|message| async {
+            let data = message.unwrap().into_data();
+            tokio::io::stdout().write_all(&data).await.unwrap();
+        })
+    });
+
+    loop {
+        tokio::select! {
+            msg = stdin_rx.recv() => {
+                if let Some(msg) = msg {
+                    write.send(msg).await?;
+                }
+            },
+        };
+    }
 }
 
 async fn test_as_client() -> anyhow::Result<()> {
