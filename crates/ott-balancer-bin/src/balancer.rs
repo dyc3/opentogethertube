@@ -2,6 +2,7 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+use rand::seq::IteratorRandom;
 use rocket_ws as ws;
 use tokio::sync::RwLock;
 
@@ -9,6 +10,7 @@ use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
     monolith::{BalancerMonolith, NewMonolith},
+    protocol::monolith::MsgB2M,
 };
 
 pub struct Balancer {
@@ -169,13 +171,35 @@ impl BalancerContext {
         }
     }
 
-    pub fn add_client(&mut self, client: NewClient) {
-        let client = BalancerClient::new(client);
-        self.clients.insert(client.id, client);
+    pub async fn add_client(
+        &mut self,
+        client: NewClient,
+        monolith_id: MonolithId,
+    ) -> anyhow::Result<()> {
+        println!(
+            "adding client {:?} to monolith {:?}",
+            client.id, monolith_id
+        );
+        let Some(monolith) = self.monoliths.get_mut(&monolith_id) else {
+            anyhow::bail!("monolith not found");
+        };
+        monolith.add_client(&client.room, client.id);
+        let bclient = BalancerClient::new(client.clone());
+        monolith
+            .send(&MsgB2M::Join {
+                room: client.room.clone().into(),
+                client: client.id,
+                token: client.token,
+            })
+            .await?;
+        self.clients.insert(client.id, bclient);
+
+        Ok(())
     }
 
     pub fn remove_client(&mut self, client_id: ClientId) {
-        self.clients.remove(&client_id);
+        let client = self.clients.remove(&client_id);
+        // TODO: remove clients
     }
 
     pub fn add_monolith(&mut self, monolith: BalancerMonolith) {
@@ -192,11 +216,26 @@ pub async fn join_client(
     client: NewClient,
 ) -> anyhow::Result<()> {
     println!("new client: {:?}", client);
-    let mut b = ctx.write().await;
-    b.add_client(client);
-    // todo!("load the room if its not loaded");
-    // todo!("inform the monolith that the client joined");
 
+    let ctx_read = ctx.read().await;
+    let monolith_id = match ctx_read.rooms_to_monoliths.get(&client.room) {
+        Some(id) => {
+            // the room is already loaded
+            *id
+        }
+        None => {
+            // the room is not loaded, randomly select a monolith
+            let selected = ctx_read.monoliths.keys().choose(&mut rand::thread_rng());
+            match selected {
+                Some(s) => *s,
+                None => anyhow::bail!("no monoliths available"),
+            }
+        }
+    };
+    drop(ctx_read);
+
+    let mut b = ctx.write().await;
+    b.add_client(client, monolith_id).await?;
     Ok(())
 }
 
@@ -227,7 +266,9 @@ pub async fn join_monolith(
     let mut b = ctx.write().await;
     let (monolith_tx, monolith_rx) = tokio::sync::mpsc::channel(100);
     let monolith = BalancerMonolith::new(monolith, monolith_tx);
-    receiver_tx.send(monolith_rx);
+    receiver_tx
+        .send(monolith_rx)
+        .map_err(|_| anyhow::anyhow!("receiver closed"))?;
     b.add_monolith(monolith);
     Ok(())
 }

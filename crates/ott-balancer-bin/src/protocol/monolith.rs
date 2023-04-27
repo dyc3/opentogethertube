@@ -7,7 +7,7 @@ use crate::messages::ClientId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
-pub enum Request {
+pub enum MsgB2M {
     Load {
         room: String,
     },
@@ -27,7 +27,7 @@ pub enum Request {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload")]
-pub enum Outbound {
+pub enum MsgM2B {
     Loaded { room: String },
     Unloaded { room: String },
     Gossip { rooms: Vec<String> },

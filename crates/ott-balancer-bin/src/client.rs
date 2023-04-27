@@ -27,7 +27,7 @@ impl UnauthorizedClient {
 }
 
 /// Represents a client websocket connection's context. Used by [`OttBalancer`] to make a [`BalancerClient`].
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NewClient {
     pub id: ClientId,
     pub room: RoomName,

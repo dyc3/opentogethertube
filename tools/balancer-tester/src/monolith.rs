@@ -78,6 +78,7 @@ impl SimMonolith {
     }
 
     pub fn load_room(&mut self, room: String) {
+        println!("loading room {}", room);
         let room = SimRoom::new(room);
         self.rooms.insert(room.name.clone(), room);
     }
@@ -110,10 +111,12 @@ impl SimRoom {
     }
 
     pub fn add_client(&mut self, client: Uuid) {
+        println!("room[{}]: adding client {}", self.name, client);
         self.clients.push(client);
     }
 
     pub fn remove_client(&mut self, client: Uuid) {
+        println!("room[{}]: removing client {}", self.name, client);
         self.clients.retain(|c| *c != client);
     }
 }

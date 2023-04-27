@@ -5,7 +5,7 @@ use rocket::State;
 use rocket_ws as ws;
 use uuid::Uuid;
 
-use crate::{balancer::BalancerLink, messages::*};
+use crate::{balancer::BalancerLink, messages::*, protocol};
 
 #[derive(Debug)]
 pub struct BalancerMonolith {
@@ -37,6 +37,28 @@ impl BalancerMonolith {
 
     pub fn remove_room(&mut self, room: RoomName) {
         self.rooms.remove(&room);
+    }
+
+    pub fn add_client(&mut self, room: &RoomName, client_id: ClientId) {
+        let room = self
+            .rooms
+            .entry(room.clone())
+            .or_insert_with(|| Room::new(room.clone()));
+        room.add_client(client_id);
+    }
+
+    pub fn remove_client(&mut self, client_id: ClientId) {
+        for (_, room) in self.rooms.iter_mut() {
+            room.remove_client(client_id);
+        }
+    }
+
+    pub async fn send(&self, msg: &protocol::monolith::MsgB2M) -> anyhow::Result<()> {
+        let text = serde_json::to_string(&msg)?;
+        let socket_msg = SocketMessage::Message(ws::Message::Text(text));
+        self.socket_tx.send(socket_msg).await?;
+
+        Ok(())
     }
 }
 
