@@ -13,21 +13,6 @@ mod messages;
 mod monolith;
 mod protocol;
 
-#[get("/monolith")]
-fn monolith_entry<'r>(
-    ws: ws::WebSocket,
-    // balancer: &'r State<Arc<Mutex<BalancerContext>>>,
-) -> ws::Channel<'r> {
-    ws.channel(move |mut stream| {
-        Box::pin(async move {
-            // TODO: maybe wait for first gossip?
-            // balancer.lock().await.handle_monolith(stream);
-
-            Ok(())
-        })
-    })
-}
-
 #[launch]
 fn launch() -> _ {
     console_subscriber::init();
@@ -43,5 +28,8 @@ fn launch() -> _ {
                 start_dispatcher(balancer);
             })
         }))
-        .mount("/", routes![monolith_entry, crate::client::client_entry])
+        .mount(
+            "/",
+            routes![crate::monolith::monolith_entry, crate::client::client_entry],
+        )
 }
