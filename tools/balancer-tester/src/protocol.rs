@@ -17,7 +17,6 @@ pub enum Request {
         client: Uuid,
     },
     ClientMsg {
-        room: String,
         client_id: Uuid,
         payload: Box<RawValue>,
     },

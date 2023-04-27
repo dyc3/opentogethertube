@@ -44,6 +44,7 @@ async fn test_as_monolith() -> anyhow::Result<()> {
                 Ok(msg) => {
                     let data = msg.to_text().unwrap().as_bytes();
                     tokio::io::stdout().write_all(&data).await.unwrap();
+                    println!();
                     inbound_tx.send(msg).await.unwrap();
                 }
                 Err(err) => {

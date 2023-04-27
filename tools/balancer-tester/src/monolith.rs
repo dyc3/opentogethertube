@@ -64,11 +64,10 @@ impl SimMonolith {
                 let room = self.rooms.get_mut(&room).unwrap();
                 room.remove_client(client);
             }
-            protocol::Request::ClientMsg {
-                room,
-                client_id,
-                payload,
-            } => {
+            protocol::Request::ClientMsg { client_id, payload } => {
+                let room = self
+                    .find_client_room(client_id)
+                    .expect("client not found in any rooms");
                 println!(
                     "{}: got message from client {}: {:?}",
                     room, client_id, payload
