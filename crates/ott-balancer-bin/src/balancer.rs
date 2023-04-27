@@ -76,22 +76,34 @@ impl Balancer {
             tokio::select! {
                 new_client = self.new_client_rx.recv() => {
                     if let Some(new_client) = new_client {
-                        join_client(self.ctx.clone(), new_client).await;
+                        match join_client(self.ctx.clone(), new_client).await {
+                            Ok(_) => {},
+                            Err(err) => println!("failed to join client: {:?}", err)
+                        };
                     }
                 }
                 msg = self.client_msg_rx.recv() => {
                     if let Some(msg) = msg {
-                        dispatch_client_message(self.ctx.clone(), msg).await;
+                        match dispatch_client_message(self.ctx.clone(), msg).await {
+                            Ok(_) => {},
+                            Err(err) => println!("failed to dispatch client message: {:?}", err)
+                        }
                     }
                 }
                 new_monolith = self.new_monolith_rx.recv() => {
                     if let Some((new_monolith, receiver_tx)) = new_monolith {
-                        join_monolith(self.ctx.clone(), new_monolith, receiver_tx).await;
+                        match join_monolith(self.ctx.clone(), new_monolith, receiver_tx).await {
+                            Ok(_) => {},
+                            Err(err) => println!("failed to join monolith: {:?}", err)
+                        }
                     }
                 }
                 msg = self.monolith_msg_rx.recv() => {
                     if let Some(msg) = msg {
-                        dispatch_monolith_message(self.ctx.clone(), msg).await;
+                        match dispatch_monolith_message(self.ctx.clone(), msg).await {
+                            Ok(_) => {},
+                            Err(err) => println!("failed to dispatch monolith message: {:?}", err)
+                        }
                     }
                 }
             }
