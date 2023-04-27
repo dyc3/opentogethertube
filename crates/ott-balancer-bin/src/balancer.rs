@@ -54,7 +54,7 @@ impl Balancer {
                 }
                 msg = self.client_msg_rx.recv() => {
                     if let Some(msg) = msg {
-                        todo!("handle client msg");
+                        dispatch_client_message(self.ctx.clone(), msg).await;
                     }
                 }
             }
@@ -121,15 +121,18 @@ pub async fn join_client(
     ctx: Arc<RwLock<BalancerContext>>,
     client: NewClient,
 ) -> anyhow::Result<()> {
-    todo!("add the client to the context");
-    todo!("load the room if its not loaded");
-    todo!("inform the monolith that the client joined");
+    println!("new client: {:?}", client);
+    let mut b = ctx.write().await;
+    b.add_client(client);
+    // todo!("load the room if its not loaded");
+    // todo!("inform the monolith that the client joined");
 
     Ok(())
 }
 
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
-    todo!("inform the monolith that the client left");
+    // todo!("inform the monolith that the client left");
+    println!("client left: {:?}", id);
     ctx.write().await.remove_client(id);
 
     Ok(())
@@ -139,7 +142,8 @@ pub async fn dispatch_client_message(
     ctx: Arc<RwLock<BalancerContext>>,
     msg: Context<ClientId, SocketMessage>,
 ) -> anyhow::Result<()> {
-    todo!("route the message to the correct monotlith");
+    // todo!("route the message to the correct monotlith");
+    println!("client message: {:?}", msg);
 
     Ok(())
 }
