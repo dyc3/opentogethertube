@@ -1,9 +1,6 @@
-//! Defines the communication protocol between the monoliths and the balancer.
-
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
-
-use crate::messages::ClientId;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
@@ -13,14 +10,15 @@ pub enum Request {
     },
     Join {
         room: String,
-        client: ClientId,
+        client: Uuid,
         token: String,
     },
     Leave {
-        client: ClientId,
+        client: Uuid,
     },
     ClientMsg {
-        client_id: ClientId,
+        room: String,
+        client_id: Uuid,
         payload: Box<RawValue>,
     },
 }

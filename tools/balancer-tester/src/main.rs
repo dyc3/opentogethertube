@@ -6,6 +6,7 @@ use url::Url;
 
 mod cli;
 mod monolith;
+mod protocol;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
