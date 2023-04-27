@@ -248,6 +248,8 @@ pub async fn join_client(
     drop(ctx_read);
 
     let mut b = ctx.write().await;
+    b.rooms_to_monoliths
+        .insert(client.room.clone(), monolith_id);
     b.add_client(client, monolith_id).await?;
     Ok(())
 }
@@ -283,7 +285,7 @@ pub async fn dispatch_client_message(
         anyhow::bail!("client not found");
     };
     let Some(monolith_id) = ctx_read.rooms_to_monoliths.get(&client.room) else {
-        anyhow::bail!("monolith not found");
+        anyhow::bail!("room not found");
     };
     let Some(monolith) = ctx_read.monoliths.get(&monolith_id) else {
         anyhow::bail!("monolith not found");
