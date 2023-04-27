@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 use rocket::State;
 use rocket_ws as ws;
 use uuid::Uuid;
@@ -11,13 +11,15 @@ use crate::{balancer::BalancerLink, messages::*};
 pub struct BalancerMonolith {
     id: MonolithId,
     rooms: HashMap<RoomName, Room>,
+    socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
 }
 
 impl BalancerMonolith {
-    pub fn new(m: NewMonolith) -> Self {
+    pub fn new(m: NewMonolith, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
         Self {
             id: m.id,
             rooms: HashMap::new(),
+            socket_tx,
         }
     }
 
@@ -75,22 +77,42 @@ pub fn monolith_entry<'r>(ws: ws::WebSocket, balancer: &'r State<BalancerLink>) 
             let monolith_id = Uuid::new_v4().into();
             let monolith = NewMonolith { id: monolith_id };
 
-            balancer.send_monolith(monolith).await;
+            let mut receiver = balancer.send_monolith(monolith).await.unwrap();
 
-            while let Some(Ok(message)) = stream.next().await {
-                match message {
-                    ws::Message::Text(_) => {
-                        balancer
-                            .send_monolith_message(monolith_id, SocketMessage::Message(message))
-                            .await;
+            loop {
+                tokio::select! {
+                    msg = receiver.recv() => {
+                        if let Some(msg) = msg {
+                            match msg {
+                                SocketMessage::Message(message) => {
+                                    stream.send(message).await;
+                                }
+                                SocketMessage::Close => {
+                                    stream.close(None).await;
+                                    break;
+                                }
+                            }
+                        } else {
+                            break;
+                        }
                     }
-                    ws::Message::Close(_) => {
-                        balancer
-                            .send_monolith_message(monolith_id, SocketMessage::Close)
-                            .await;
-                    }
-                    _ => {
-                        println!("unhandled monolith message: {:?}", message);
+
+                    Some(Ok(msg)) = stream.next() => {
+                        match msg {
+                            ws::Message::Text(_) => {
+                                balancer
+                                    .send_monolith_message(monolith_id, SocketMessage::Message(msg))
+                                    .await;
+                            }
+                            ws::Message::Close(_) => {
+                                balancer
+                                    .send_monolith_message(monolith_id, SocketMessage::Close)
+                                    .await;
+                            }
+                            _ => {
+                                println!("unhandled monolith message: {:?}", msg);
+                            }
+                        }
                     }
                 }
             }

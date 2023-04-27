@@ -20,8 +20,14 @@ pub struct Balancer {
     client_msg_rx: tokio::sync::mpsc::Receiver<Context<ClientId, SocketMessage>>,
     client_msg_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
 
-    new_monolith_rx: tokio::sync::mpsc::Receiver<NewMonolith>,
-    new_monolith_tx: tokio::sync::mpsc::Sender<NewMonolith>,
+    new_monolith_rx: tokio::sync::mpsc::Receiver<(
+        NewMonolith,
+        tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
+    )>,
+    new_monolith_tx: tokio::sync::mpsc::Sender<(
+        NewMonolith,
+        tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
+    )>,
 
     monolith_msg_rx: tokio::sync::mpsc::Receiver<Context<MonolithId, SocketMessage>>,
     monolith_msg_tx: tokio::sync::mpsc::Sender<Context<MonolithId, SocketMessage>>,
@@ -76,8 +82,8 @@ impl Balancer {
                     }
                 }
                 new_monolith = self.new_monolith_rx.recv() => {
-                    if let Some(new_monolith) = new_monolith {
-                        join_monolith(self.ctx.clone(), new_monolith).await;
+                    if let Some((new_monolith, receiver_tx)) = new_monolith {
+                        join_monolith(self.ctx.clone(), new_monolith, receiver_tx).await;
                     }
                 }
                 msg = self.monolith_msg_rx.recv() => {
@@ -100,7 +106,10 @@ pub struct BalancerLink {
     new_client_tx: tokio::sync::mpsc::Sender<NewClient>,
     client_msg_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
 
-    new_monolith_tx: tokio::sync::mpsc::Sender<NewMonolith>,
+    new_monolith_tx: tokio::sync::mpsc::Sender<(
+        NewMonolith,
+        tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
+    )>,
     monolith_msg_tx: tokio::sync::mpsc::Sender<Context<MonolithId, SocketMessage>>,
 }
 
@@ -121,9 +130,15 @@ impl BalancerLink {
         Ok(())
     }
 
-    pub async fn send_monolith(&self, monolith: NewMonolith) -> anyhow::Result<()> {
-        self.new_monolith_tx.send(monolith).await?;
-        Ok(())
+    pub async fn send_monolith(
+        &self,
+        monolith: NewMonolith,
+    ) -> anyhow::Result<tokio::sync::mpsc::Receiver<SocketMessage>> {
+        let (receiver_tx, receiver_rx) = tokio::sync::oneshot::channel();
+        self.new_monolith_tx.send((monolith, receiver_tx)).await?;
+        let receiver = receiver_rx.await?;
+
+        Ok(receiver)
     }
 
     pub async fn send_monolith_message(
@@ -163,8 +178,7 @@ impl BalancerContext {
         self.clients.remove(&client_id);
     }
 
-    pub fn add_monolith(&mut self, monolith: NewMonolith) {
-        let monolith = BalancerMonolith::new(monolith);
+    pub fn add_monolith(&mut self, monolith: BalancerMonolith) {
         self.monoliths.insert(monolith.id(), monolith);
     }
 
@@ -207,11 +221,14 @@ pub async fn dispatch_client_message(
 pub async fn join_monolith(
     ctx: Arc<RwLock<BalancerContext>>,
     monolith: NewMonolith,
+    receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
 ) -> anyhow::Result<()> {
     println!("new monolith: {:?}", monolith);
     let mut b = ctx.write().await;
+    let (monolith_tx, monolith_rx) = tokio::sync::mpsc::channel(100);
+    let monolith = BalancerMonolith::new(monolith, monolith_tx);
+    receiver_tx.send(monolith_rx);
     b.add_monolith(monolith);
-
     Ok(())
 }
 
