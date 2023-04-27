@@ -4,6 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use rand::seq::IteratorRandom;
 use rocket_ws as ws;
+use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 
 use crate::{
@@ -253,6 +254,37 @@ pub async fn dispatch_client_message(
 ) -> anyhow::Result<()> {
     // todo!("route the message to the correct monotlith");
     println!("client message: {:?}", msg);
+
+    let client_id = msg.id();
+    let msg_text = match msg.message() {
+        SocketMessage::Message(m) => m.to_text()?,
+        SocketMessage::Close => {
+            println!("client closed: {:?}", client_id);
+            todo!("close the client connection");
+        }
+    };
+
+    let raw_value: Box<RawValue> = serde_json::from_str(msg_text)?;
+
+    let ctx_read = ctx.read().await;
+    let Some(client) = ctx_read.clients.get(&msg.id()) else {
+        anyhow::bail!("client not found");
+    };
+    let Some(monolith_id) = ctx_read.rooms_to_monoliths.get(&client.room) else {
+        anyhow::bail!("monolith not found");
+    };
+    let Some(monolith) = ctx_read.monoliths.get(&monolith_id) else {
+        anyhow::bail!("monolith not found");
+    };
+
+    monolith
+        .send(&MsgB2M::ClientMsg {
+            client_id: client.id,
+            payload: raw_value,
+        })
+        .await?;
+
+    println!("message was dispatched");
 
     Ok(())
 }

@@ -61,6 +61,14 @@ where
     pub fn new(id: Id, message: T) -> Self {
         Self { id, message }
     }
+
+    pub fn id(&self) -> &Id {
+        &self.id
+    }
+
+    pub fn message(&self) -> &T {
+        &self.message
+    }
 }
 
 #[derive(Debug)]
