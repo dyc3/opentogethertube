@@ -305,7 +305,7 @@ export function loadConfigFile() {
 		log.info(`Loading config from ${configPath}`);
 		conf.loadFile(configPath);
 	} else {
-		console.warn(`No config found at ${configPath}`);
+		log.warn(`No config found at ${configPath}`);
 	}
 
 	let environment = conf.get("env");
