@@ -78,7 +78,7 @@ async fn test_as_client() -> anyhow::Result<()> {
     println!("Connected to the server");
     println!("Response HTTP code: {}", response.status());
 
-    let (mut write, read) = socket.split();
+    let (mut write, mut read) = socket.split();
 
     let auth_msg = Message::Text("{\"action\":\"auth\", \"token\":\"foo\"}".into());
     write.send(auth_msg).await?;
@@ -86,12 +86,12 @@ async fn test_as_client() -> anyhow::Result<()> {
     let (stdin_tx, mut stdin_rx) = tokio::sync::mpsc::unbounded_channel();
     tokio::spawn(read_stdin(stdin_tx));
 
-    tokio::spawn(async move {
-        read.for_each(|message| async {
-            let data = message.unwrap().into_data();
-            tokio::io::stdout().write_all(&data).await.unwrap();
-        })
-    });
+    // tokio::spawn(async move {
+    //     read.for_each(|message| async {
+    //         let data = message.unwrap().into_data();
+    //         tokio::io::stdout().write_all(&data).await.unwrap();
+    //     })
+    // });
 
     loop {
         tokio::select! {
@@ -100,6 +100,9 @@ async fn test_as_client() -> anyhow::Result<()> {
                     write.send(msg).await?;
                 }
             },
+            msg = read.next() => {
+                println!("Received: {:?}", msg)
+            }
         };
     }
 }

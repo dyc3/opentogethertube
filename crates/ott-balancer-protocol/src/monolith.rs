@@ -26,9 +26,20 @@ pub enum MsgB2M {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", content = "payload")]
+#[serde(tag = "type", content = "payload", rename_all = "snake_case")]
 pub enum MsgM2B {
-    Loaded { room: RoomName },
-    Unloaded { room: RoomName },
-    Gossip { rooms: Vec<RoomName> },
+    Loaded {
+        room: RoomName,
+    },
+    Unloaded {
+        room: RoomName,
+    },
+    Gossip {
+        rooms: Vec<RoomName>,
+    },
+    RoomMsg {
+        room: String,
+        client_id: Option<ClientId>,
+        payload: Box<RawValue>,
+    },
 }

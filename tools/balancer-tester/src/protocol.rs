@@ -25,7 +25,18 @@ pub enum Request {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload")]
 pub enum Outbound {
-    Loaded { room: String },
-    Unloaded { room: String },
-    Gossip { rooms: Vec<String> },
+    Loaded {
+        room: String,
+    },
+    Unloaded {
+        room: String,
+    },
+    Gossip {
+        rooms: Vec<String>,
+    },
+    RoomMsg {
+        room: String,
+        client_id: Option<Uuid>,
+        payload: Box<RawValue>,
+    },
 }

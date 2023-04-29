@@ -2,9 +2,10 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-use ott_balancer_protocol::monolith::MsgB2M;
+use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
+use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 
@@ -319,8 +320,6 @@ pub async fn dispatch_client_message(
         })
         .await?;
 
-    println!("message was dispatched");
-
     Ok(())
 }
 
@@ -346,6 +345,55 @@ pub async fn dispatch_monolith_message(
 ) -> anyhow::Result<()> {
     println!("monolith message: {:?}", msg);
     // todo!("route the message to the correct clients");
+
+    let monolith_id = msg.id();
+    let msg_text = match msg.message() {
+        SocketMessage::Message(m) => m.to_text()?,
+        SocketMessage::Close => {
+            println!("monolith closed: {:?}", monolith_id);
+            todo!("close the monolith connection");
+        }
+    };
+
+    let msg: MsgM2B = serde_json::from_str(msg_text)?;
+
+    println!("got message from monolith: {:?}", msg);
+
+    match msg {
+        MsgM2B::Loaded { room } => todo!(),
+        MsgM2B::Unloaded { room } => todo!(),
+        MsgM2B::Gossip { rooms } => todo!(),
+        MsgM2B::RoomMsg {
+            room,
+            client_id,
+            payload,
+        } => {
+            let ctx_read = ctx.read().await;
+
+            let Some(room) = ctx_read
+                .monoliths
+                .get(&monolith_id)
+                .unwrap()
+                .rooms()
+                .get(&room.into()) else {
+                    anyhow::bail!("room not found on monolith");
+                };
+
+            // TODO: also handle the case where the client_id is Some
+
+            // broadcast to all clients
+            println!("broadcasting to clients in room: {:?}", room.name());
+            // TODO: optimize this using a broadcast channel
+            let built_msg = SocketMessage::Message(ws::Message::text(payload.to_string()));
+            for client in room.clients() {
+                let Some(client) = ctx_read.clients.get(&client) else {
+                    anyhow::bail!("client not found");
+                };
+
+                client.send(built_msg.clone()).await?;
+            }
+        }
+    }
 
     Ok(())
 }

@@ -77,6 +77,14 @@ impl Room {
         }
     }
 
+    pub fn name(&self) -> &RoomName {
+        &self.name
+    }
+
+    pub fn clients(&self) -> &Vec<ClientId> {
+        &self.clients
+    }
+
     pub fn add_client(&mut self, client: ClientId) {
         self.clients.push(client);
     }

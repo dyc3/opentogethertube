@@ -49,6 +49,12 @@ impl BalancerClient {
             socket_tx,
         }
     }
+
+    pub async fn send(&self, msg: SocketMessage) -> anyhow::Result<()> {
+        self.socket_tx.send(msg).await?;
+
+        Ok(())
+    }
 }
 
 #[get("/api/room/<room_name>")]
