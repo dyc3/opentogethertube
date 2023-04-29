@@ -48,7 +48,11 @@ export async function update(): Promise<void> {
 		}
 
 		if (room.isStale) {
-			await unloadRoom(room.name);
+			try {
+				await unloadRoom(room.name);
+			} catch (e) {
+				log.error(`Error unloading room ${room.name}: ${e}`);
+			}
 		}
 	}
 }
