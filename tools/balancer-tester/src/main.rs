@@ -13,23 +13,20 @@ async fn main() -> anyhow::Result<()> {
     let args = cli::Args::parse();
 
     match args.mode {
-        cli::ClientMode::Monolith => test_as_monolith().await,
-        cli::ClientMode::Client => test_as_client().await,
+        cli::ClientMode::Monolith => test_as_monolith(args).await,
+        cli::ClientMode::Client => test_as_client(args).await,
     }
 }
 
-async fn test_as_monolith() -> anyhow::Result<()> {
+async fn test_as_monolith(args: cli::Args) -> anyhow::Result<()> {
     let (mut socket, response) = connect_async(Url::parse("ws://localhost:8081/monolith")?)
         .await
         .expect("Can't connect");
 
-    println!("Connected to the server");
+    println!("Connected to the as a monolith");
     println!("Response HTTP code: {}", response.status());
 
     let (mut write, mut read) = socket.split();
-
-    // let auth_msg = Message::Text("{\"action\":\"auth\", \"token\":\"foo\"}".into());
-    // write.send(auth_msg).await?;
 
     let (stdin_tx, mut stdin_rx) = tokio::sync::mpsc::unbounded_channel();
     tokio::spawn(read_stdin(stdin_tx));
@@ -70,12 +67,17 @@ async fn test_as_monolith() -> anyhow::Result<()> {
     }
 }
 
-async fn test_as_client() -> anyhow::Result<()> {
-    let (mut socket, response) = connect_async(Url::parse("ws://localhost:8081/api/room/test")?)
-        .await
-        .expect("Can't connect");
+async fn test_as_client(args: cli::Args) -> anyhow::Result<()> {
+    let (mut socket, response) = connect_async(Url::parse(
+        format!("ws://localhost:8081/api/room/{}", args.room).as_str(),
+    )?)
+    .await
+    .expect("Can't connect");
 
-    println!("Connected to the server");
+    println!(
+        "Connected to the server as a client, joining room {}",
+        args.room
+    );
     println!("Response HTTP code: {}", response.status());
 
     let (mut write, mut read) = socket.split();
@@ -86,13 +88,6 @@ async fn test_as_client() -> anyhow::Result<()> {
     let (stdin_tx, mut stdin_rx) = tokio::sync::mpsc::unbounded_channel();
     tokio::spawn(read_stdin(stdin_tx));
 
-    // tokio::spawn(async move {
-    //     read.for_each(|message| async {
-    //         let data = message.unwrap().into_data();
-    //         tokio::io::stdout().write_all(&data).await.unwrap();
-    //     })
-    // });
-
     loop {
         tokio::select! {
             msg = stdin_rx.recv() => {
@@ -101,7 +96,7 @@ async fn test_as_client() -> anyhow::Result<()> {
                 }
             },
             msg = read.next() => {
-                println!("Received: {:?}", msg)
+                println!("Received: {:?}", msg);
             }
         };
     }
