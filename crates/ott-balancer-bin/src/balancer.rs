@@ -17,8 +17,14 @@ use crate::{
 pub struct Balancer {
     ctx: Arc<RwLock<BalancerContext>>,
 
-    new_client_rx: tokio::sync::mpsc::Receiver<NewClient>,
-    new_client_tx: tokio::sync::mpsc::Sender<NewClient>,
+    new_client_rx: tokio::sync::mpsc::Receiver<(
+        NewClient,
+        tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
+    )>,
+    new_client_tx: tokio::sync::mpsc::Sender<(
+        NewClient,
+        tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
+    )>,
 
     client_msg_rx: tokio::sync::mpsc::Receiver<Context<ClientId, SocketMessage>>,
     client_msg_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
@@ -75,8 +81,8 @@ impl Balancer {
         loop {
             tokio::select! {
                 new_client = self.new_client_rx.recv() => {
-                    if let Some(new_client) = new_client {
-                        match join_client(self.ctx.clone(), new_client).await {
+                    if let Some((new_client, receiver_tx)) = new_client {
+                        match join_client(self.ctx.clone(), new_client, receiver_tx).await {
                             Ok(_) => {},
                             Err(err) => println!("failed to join client: {:?}", err)
                         };
@@ -118,7 +124,10 @@ pub fn start_dispatcher(mut balancer: Balancer) -> tokio::task::JoinHandle<()> {
 }
 
 pub struct BalancerLink {
-    new_client_tx: tokio::sync::mpsc::Sender<NewClient>,
+    new_client_tx: tokio::sync::mpsc::Sender<(
+        NewClient,
+        tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
+    )>,
     client_msg_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
 
     new_monolith_tx: tokio::sync::mpsc::Sender<(
@@ -129,9 +138,15 @@ pub struct BalancerLink {
 }
 
 impl BalancerLink {
-    pub async fn send_client(&self, client: NewClient) -> anyhow::Result<()> {
-        self.new_client_tx.send(client).await?;
-        Ok(())
+    pub async fn send_client(
+        &self,
+        client: NewClient,
+    ) -> anyhow::Result<tokio::sync::mpsc::Receiver<SocketMessage>> {
+        let (receiver_tx, receiver_rx) = tokio::sync::oneshot::channel();
+        self.new_client_tx.send((client, receiver_tx)).await?;
+        let receiver = receiver_rx.await?;
+
+        Ok(receiver)
     }
 
     pub async fn send_client_message(
@@ -186,7 +201,7 @@ impl BalancerContext {
 
     pub async fn add_client(
         &mut self,
-        client: NewClient,
+        client: BalancerClient,
         monolith_id: MonolithId,
     ) -> anyhow::Result<()> {
         println!(
@@ -197,15 +212,14 @@ impl BalancerContext {
             anyhow::bail!("monolith not found");
         };
         monolith.add_client(&client.room, client.id);
-        let bclient = BalancerClient::new(client.clone());
         monolith
             .send(&MsgB2M::Join {
                 room: client.room.clone().into(),
                 client: client.id,
-                token: client.token,
+                token: client.token.clone(),
             })
             .await?;
-        self.clients.insert(client.id, bclient);
+        self.clients.insert(client.id, client);
 
         Ok(())
     }
@@ -226,9 +240,16 @@ impl BalancerContext {
 
 pub async fn join_client(
     ctx: Arc<RwLock<BalancerContext>>,
-    client: NewClient,
+    new_client: NewClient,
+    receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
 ) -> anyhow::Result<()> {
-    println!("new client: {:?}", client);
+    println!("new client: {:?}", new_client);
+
+    let (client_tx, client_rx) = tokio::sync::mpsc::channel(100);
+    let client = BalancerClient::new(new_client, client_tx);
+    receiver_tx
+        .send(client_rx)
+        .map_err(|_| anyhow::anyhow!("receiver closed"))?;
 
     let ctx_read = ctx.read().await;
     let monolith_id = match ctx_read.rooms_to_monoliths.get(&client.room) {

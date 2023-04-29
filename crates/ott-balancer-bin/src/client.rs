@@ -1,6 +1,6 @@
-use std::time::Duration;
+use std::{f32::consts::E, time::Duration};
 
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 use rocket::State;
 use rocket_ws as ws;
 use uuid::Uuid;
@@ -37,14 +37,16 @@ pub struct BalancerClient {
     pub id: ClientId,
     pub room: RoomName,
     pub token: String,
+    socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
 }
 
 impl BalancerClient {
-    pub fn new(new_client: NewClient) -> Self {
+    pub fn new(new_client: NewClient, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
         Self {
             id: new_client.id,
             room: new_client.room,
             token: new_client.token,
+            socket_tx,
         }
     }
 }
@@ -73,6 +75,7 @@ pub fn client_entry<'r>(
                 return Ok(());
             };
 
+            let mut outbound_rx;
             match message {
                 ws::Message::Text(text) => {
                     let message: ClientMessage = serde_json::from_str(&text).unwrap();
@@ -80,7 +83,14 @@ pub fn client_entry<'r>(
                         ClientMessage::Auth(message) => {
                             println!("client authenticated, handing off to balancer");
                             let client = client.into_new_client(message.token);
-                            balancer.send_client(client).await;
+                            let Ok(rx) = balancer.send_client(client).await else {
+                                stream.close(Some(ws::frame::CloseFrame {
+                                    code: ws::frame::CloseCode::Library(4000),
+                                    reason: "failed to send client to balancer".into(),
+                                })).await?;
+                                return Ok(());
+                            };
+                            outbound_rx = rx;
                         }
                         _ => {
                             stream
@@ -98,21 +108,40 @@ pub fn client_entry<'r>(
                 }
             }
 
-            while let Some(Ok(message)) = stream.next().await {
-                match message {
-                    ws::Message::Text(_) => {
-                        balancer
-                            .send_client_message(client_id, SocketMessage::Message(message))
-                            .await;
+            loop {
+                tokio::select! {
+                    msg = outbound_rx.recv() => {
+                        if let Some(msg) = msg {
+                            match msg {
+                                SocketMessage::Message(message) => {
+                                    stream.send(message).await;
+                                }
+                                SocketMessage::Close => {
+                                    stream.close(None).await;
+                                    break;
+                                }
+                            }
+                        } else {
+                            break;
+                        }
                     }
-                    ws::Message::Close(_) => {
-                        balancer
-                            .send_client_message(client_id, SocketMessage::Close)
-                            .await;
-                        break;
-                    }
-                    _ => {
-                        println!("unhandled client message: {:?}", message)
+                    Some(Ok(message)) = stream.next() => {
+                        match message {
+                            ws::Message::Text(_) => {
+                                balancer
+                                    .send_client_message(client_id, SocketMessage::Message(message))
+                                    .await;
+                            }
+                            ws::Message::Close(_) => {
+                                balancer
+                                    .send_client_message(client_id, SocketMessage::Close)
+                                    .await;
+                                break;
+                            }
+                            _ => {
+                                println!("unhandled client message: {:?}", message)
+                            }
+                        }
                     }
                 }
             }
