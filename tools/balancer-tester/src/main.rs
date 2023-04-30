@@ -2,6 +2,7 @@ use clap::Parser;
 use futures_util::{SinkExt, StreamExt};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
+use tracing::{debug, error, info, trace, Level};
 use url::Url;
 
 mod cli;
@@ -9,6 +10,10 @@ mod monolith;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::SubscriberBuilder::default()
+        .with_max_level(Level::DEBUG)
+        .init();
+
     let args = cli::Args::parse();
 
     match args.mode {
@@ -17,13 +22,13 @@ async fn main() -> anyhow::Result<()> {
     }
 }
 
-async fn test_as_monolith(args: cli::Args) -> anyhow::Result<()> {
-    let (mut socket, response) = connect_async(Url::parse("ws://localhost:8081/monolith")?)
+async fn test_as_monolith(_args: cli::Args) -> anyhow::Result<()> {
+    let (socket, response) = connect_async(Url::parse("ws://localhost:8081/monolith")?)
         .await
         .expect("Can't connect");
 
-    println!("Connected to the as a monolith");
-    println!("Response HTTP code: {}", response.status());
+    info!("Connected to the server as a monolith");
+    debug!("Response HTTP code: {}", response.status());
 
     let (mut write, mut read) = socket.split();
 
@@ -38,13 +43,12 @@ async fn test_as_monolith(args: cli::Args) -> anyhow::Result<()> {
         while let Some(msg) = read.next().await {
             match msg {
                 Ok(msg) => {
-                    let data = msg.to_text().unwrap().as_bytes();
-                    tokio::io::stdout().write_all(&data).await.unwrap();
-                    println!();
+                    let data = msg.to_text().unwrap().to_string();
+                    debug!("Received: {}", data);
                     inbound_tx.send(msg).await.unwrap();
                 }
                 Err(err) => {
-                    println!("Error reading message from server: {:?}", err);
+                    error!("Error reading message from server: {:?}", err);
                 }
             }
         }
@@ -67,22 +71,23 @@ async fn test_as_monolith(args: cli::Args) -> anyhow::Result<()> {
 }
 
 async fn test_as_client(args: cli::Args) -> anyhow::Result<()> {
-    let (mut socket, response) = connect_async(Url::parse(
+    let (socket, response) = connect_async(Url::parse(
         format!("ws://localhost:8081/api/room/{}", args.room).as_str(),
     )?)
     .await
     .expect("Can't connect");
 
-    println!(
+    info!(
         "Connected to the server as a client, joining room {}",
         args.room
     );
-    println!("Response HTTP code: {}", response.status());
+    debug!("Response HTTP code: {}", response.status());
 
     let (mut write, mut read) = socket.split();
 
     let auth_msg = Message::Text("{\"action\":\"auth\", \"token\":\"foo\"}".into());
     write.send(auth_msg).await?;
+    debug!("Sent auth message");
 
     let (stdin_tx, mut stdin_rx) = tokio::sync::mpsc::unbounded_channel();
     tokio::spawn(read_stdin(stdin_tx));
@@ -95,7 +100,7 @@ async fn test_as_client(args: cli::Args) -> anyhow::Result<()> {
                 }
             },
             msg = read.next() => {
-                println!("Received: {:?}", msg);
+                info!("Received: {:?}", msg);
             }
         };
     }

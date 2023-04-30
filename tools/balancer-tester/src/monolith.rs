@@ -6,6 +6,7 @@ use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::protocol::Message;
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
+use tracing::{info, warn};
 
 pub struct SimMonolith {
     pub rooms: HashMap<RoomName, SimRoom>,
@@ -52,7 +53,7 @@ impl SimMonolith {
                 let room = match self.rooms.get_mut(&room) {
                     Some(room) => room,
                     None => {
-                        println!("room {} not found, loading", room);
+                        warn!("room {} not found, loading", room);
                         self.load_room(room.clone());
                         self.rooms.get_mut(&room).unwrap()
                     }
@@ -68,7 +69,7 @@ impl SimMonolith {
                 let room = self
                     .find_client_room(client_id)
                     .expect("client not found in any rooms");
-                println!(
+                info!(
                     "{}: got message from client {}: {:?}",
                     room, client_id, payload
                 );
@@ -77,12 +78,13 @@ impl SimMonolith {
     }
 
     pub fn load_room(&mut self, room: RoomName) {
-        println!("loading room {}", room);
+        info!("loading room {}", room);
         let room = SimRoom::new(room);
         self.rooms.insert(room.name.clone(), room);
     }
 
     pub fn unload_room(&mut self, room: &RoomName) {
+        info!("unloading room {}", room);
         self.rooms.remove(room);
     }
 
@@ -110,12 +112,12 @@ impl SimRoom {
     }
 
     pub fn add_client(&mut self, client: ClientId) {
-        println!("room[{}]: adding client {}", self.name, client);
+        info!("room[{}]: adding client {}", self.name, client);
         self.clients.push(client);
     }
 
     pub fn remove_client(&mut self, client: ClientId) {
-        println!("room[{}]: removing client {}", self.name, client);
+        info!("room[{}]: removing client {}", self.name, client);
         self.clients.retain(|c| *c != client);
     }
 }

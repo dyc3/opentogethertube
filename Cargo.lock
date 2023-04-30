@@ -212,6 +212,8 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "tracing",
+ "tracing-subscriber",
  "url 2.3.1",
  "uuid",
 ]
