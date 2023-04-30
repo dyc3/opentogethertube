@@ -9,6 +9,7 @@ use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 
+use crate::monolith::Room;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -237,6 +238,14 @@ impl BalancerContext {
     pub fn remove_monolith(&mut self, monolith_id: MonolithId) {
         self.monoliths.remove(&monolith_id);
     }
+
+    pub fn add_room(&mut self, room: RoomName, monolith_id: MonolithId) -> anyhow::Result<()> {
+        self.monoliths
+            .get(&monolith_id)
+            .ok_or(anyhow::anyhow!("monolith not found"))?; // check if monolith exists
+        self.rooms_to_monoliths.insert(room, monolith_id);
+        Ok(())
+    }
 }
 
 pub async fn join_client(
@@ -270,8 +279,7 @@ pub async fn join_client(
     drop(ctx_read);
 
     let mut b = ctx.write().await;
-    b.rooms_to_monoliths
-        .insert(client.room.clone(), monolith_id);
+    b.add_room(client.room.clone(), monolith_id)?;
     b.add_client(client, monolith_id).await?;
     Ok(())
 }
