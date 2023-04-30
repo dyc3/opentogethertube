@@ -330,8 +330,6 @@ pub async fn dispatch_client_message(
 ) -> anyhow::Result<()> {
     println!("client message: {:?}", msg);
 
-    let client_id = msg.id();
-
     let raw_value: Box<RawValue> = msg.message().deserialize()?;
 
     let ctx_read = ctx.read().await;
