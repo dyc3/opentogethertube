@@ -207,6 +207,7 @@ dependencies = [
  "anyhow",
  "clap",
  "futures-util",
+ "ott-balancer-protocol",
  "serde",
  "serde_json",
  "tokio",

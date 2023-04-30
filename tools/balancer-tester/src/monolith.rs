@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
+use ott_balancer_protocol::{ClientId, RoomName};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::protocol::Message;
-use uuid::Uuid;
 
-use crate::protocol;
+use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 
 pub struct SimMonolith {
-    pub rooms: HashMap<String, SimRoom>,
+    pub rooms: HashMap<RoomName, SimRoom>,
 }
 
 impl SimMonolith {
@@ -34,21 +34,21 @@ impl SimMonolith {
         (handle, inbound_tx, outbound_rx)
     }
 
-    fn build_message(&self, msg: protocol::Outbound) -> Message {
+    fn build_message(&self, msg: MsgM2B) -> Message {
         Message::text(serde_json::to_string(&msg).unwrap())
     }
 
     async fn handle_msg(&mut self, msg: Message, outbound_tx: &Sender<Message>) {
         let text = msg.to_text().unwrap();
-        let req: crate::protocol::Request = serde_json::from_str(text).unwrap();
+        let req: MsgB2M = serde_json::from_str(text).unwrap();
 
         match req {
-            protocol::Request::Load { room } => {
+            MsgB2M::Load { room } => {
                 self.load_room(room.clone());
-                let msg = protocol::Outbound::Loaded { room };
+                let msg = MsgM2B::Loaded { room };
                 outbound_tx.send(self.build_message(msg)).await.unwrap();
             }
-            protocol::Request::Join { room, client, .. } => {
+            MsgB2M::Join { room, client, .. } => {
                 let room = match self.rooms.get_mut(&room) {
                     Some(room) => room,
                     None => {
@@ -59,12 +59,12 @@ impl SimMonolith {
                 };
                 room.add_client(client);
             }
-            protocol::Request::Leave { client } => {
+            MsgB2M::Leave { client } => {
                 let room = self.find_client_room(client).unwrap();
                 let room = self.rooms.get_mut(&room).unwrap();
                 room.remove_client(client);
             }
-            protocol::Request::ClientMsg { client_id, payload } => {
+            MsgB2M::ClientMsg { client_id, payload } => {
                 let room = self
                     .find_client_room(client_id)
                     .expect("client not found in any rooms");
@@ -76,17 +76,17 @@ impl SimMonolith {
         }
     }
 
-    pub fn load_room(&mut self, room: String) {
+    pub fn load_room(&mut self, room: RoomName) {
         println!("loading room {}", room);
         let room = SimRoom::new(room);
         self.rooms.insert(room.name.clone(), room);
     }
 
-    pub fn unload_room(&mut self, room: &str) {
+    pub fn unload_room(&mut self, room: &RoomName) {
         self.rooms.remove(room);
     }
 
-    pub fn find_client_room(&self, client: Uuid) -> Option<String> {
+    pub fn find_client_room(&self, client: ClientId) -> Option<RoomName> {
         for (name, room) in self.rooms.iter() {
             if room.clients.contains(&client) {
                 return Some(name.clone());
@@ -97,24 +97,24 @@ impl SimMonolith {
 }
 
 pub struct SimRoom {
-    pub name: String,
-    pub clients: Vec<Uuid>,
+    pub name: RoomName,
+    pub clients: Vec<ClientId>,
 }
 
 impl SimRoom {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: impl Into<RoomName>) -> Self {
         Self {
-            name,
+            name: name.into(),
             clients: Vec::new(),
         }
     }
 
-    pub fn add_client(&mut self, client: Uuid) {
+    pub fn add_client(&mut self, client: ClientId) {
         println!("room[{}]: adding client {}", self.name, client);
         self.clients.push(client);
     }
 
-    pub fn remove_client(&mut self, client: Uuid) {
+    pub fn remove_client(&mut self, client: ClientId) {
         println!("room[{}]: removing client {}", self.name, client);
         self.clients.retain(|c| *c != client);
     }
