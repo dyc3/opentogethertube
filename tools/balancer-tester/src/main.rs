@@ -100,7 +100,10 @@ async fn test_as_client(args: cli::Args) -> anyhow::Result<()> {
                 }
             },
             msg = read.next() => {
-                info!("Received: {:?}", msg);
+                if let Some(Ok(msg)) = msg {
+                    let data = msg.to_text().unwrap().to_string();
+                    info!("Received: {}", data);
+                }
             }
         };
     }
