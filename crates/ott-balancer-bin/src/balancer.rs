@@ -226,9 +226,21 @@ impl BalancerContext {
         Ok(())
     }
 
-    pub fn remove_client(&mut self, client_id: ClientId) {
-        let client = self.clients.remove(&client_id);
-        // TODO: remove clients
+    pub fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
+        let Some(client) = self.clients.remove(&client_id) else {
+            return Ok(());
+        };
+        let room_name = client.room;
+        let monolith_id = self
+            .rooms_to_monoliths
+            .get(&room_name)
+            .ok_or(anyhow::anyhow!("room not found in rooms_to_monoliths"))?;
+        let Some(monolith) = self.monoliths.get_mut(monolith_id) else {
+            anyhow::bail!("monolith not found");
+        };
+        monolith.remove_client(client_id);
+
+        Ok(())
     }
 
     pub fn add_monolith(&mut self, monolith: BalancerMonolith) {
@@ -296,7 +308,6 @@ pub async fn dispatch_client_message(
     ctx: Arc<RwLock<BalancerContext>>,
     msg: Context<ClientId, SocketMessage>,
 ) -> anyhow::Result<()> {
-    // todo!("route the message to the correct monotlith");
     println!("client message: {:?}", msg);
 
     let client_id = msg.id();
@@ -352,7 +363,6 @@ pub async fn dispatch_monolith_message(
     msg: Context<MonolithId, SocketMessage>,
 ) -> anyhow::Result<()> {
     println!("monolith message: {:?}", msg);
-    // todo!("route the message to the correct clients");
 
     let monolith_id = msg.id();
     let msg_text = match msg.message() {
