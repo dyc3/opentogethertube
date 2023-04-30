@@ -38,7 +38,7 @@ pub enum MsgM2B {
         rooms: Vec<RoomName>,
     },
     RoomMsg {
-        room: String,
+        room: RoomName,
         client_id: Option<ClientId>,
         payload: Box<RawValue>,
     },

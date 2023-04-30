@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ott_balancer_protocol::{ClientId, RoomName};
+use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::protocol::Message;
@@ -73,6 +74,15 @@ impl SimMonolith {
                     "{}: got message from client {}: {:?}",
                     room, client_id, payload
                 );
+
+                if let Ok(_) = serde_json::from_str::<SimpleEcho>(&payload.get()) {
+                    let msg = MsgM2B::RoomMsg {
+                        room,
+                        client_id: Some(client_id),
+                        payload,
+                    };
+                    outbound_tx.send(self.build_message(msg)).await.unwrap();
+                }
             }
         }
     }
@@ -120,4 +130,9 @@ impl SimRoom {
         info!("room[{}]: removing client {}", self.name, client);
         self.clients.retain(|c| *c != client);
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimpleEcho {
+    echo: String,
 }
