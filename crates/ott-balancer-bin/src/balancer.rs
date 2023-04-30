@@ -227,17 +227,7 @@ impl BalancerContext {
     }
 
     pub fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
-        let Some(client) = self.clients.remove(&client_id) else {
-            return Ok(());
-        };
-        let room_name = client.room;
-        let monolith_id = self
-            .rooms_to_monoliths
-            .get(&room_name)
-            .ok_or(anyhow::anyhow!("room not found in rooms_to_monoliths"))?;
-        let Some(monolith) = self.monoliths.get_mut(monolith_id) else {
-            anyhow::bail!("monolith not found");
-        };
+        let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
 
         Ok(())
@@ -257,6 +247,36 @@ impl BalancerContext {
             .ok_or(anyhow::anyhow!("monolith not found"))?; // check if monolith exists
         self.rooms_to_monoliths.insert(room, monolith_id);
         Ok(())
+    }
+
+    pub fn find_monolith_id(&self, client: ClientId) -> anyhow::Result<MonolithId> {
+        let client = self
+            .clients
+            .get(&client)
+            .ok_or(anyhow::anyhow!("client not found"))?;
+        let monolith_id = self
+            .rooms_to_monoliths
+            .get(&client.room)
+            .ok_or(anyhow::anyhow!("room not found in rooms_to_monoliths"))?;
+        Ok(*monolith_id)
+    }
+
+    pub fn find_monolith(&self, client: ClientId) -> anyhow::Result<&BalancerMonolith> {
+        let monolith_id = self.find_monolith_id(client)?;
+        let monolith = self
+            .monoliths
+            .get(&monolith_id)
+            .ok_or(anyhow::anyhow!("monolith not found"))?;
+        Ok(monolith)
+    }
+
+    pub fn find_monolith_mut(&mut self, client: ClientId) -> anyhow::Result<&mut BalancerMonolith> {
+        let monolith_id = self.find_monolith_id(client)?;
+        let monolith = self
+            .monoliths
+            .get_mut(&monolith_id)
+            .ok_or(anyhow::anyhow!("monolith not found"))?;
+        Ok(monolith)
     }
 }
 
