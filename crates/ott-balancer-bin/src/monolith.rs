@@ -57,7 +57,7 @@ impl BalancerMonolith {
 
     pub async fn send(&self, msg: &MsgB2M) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg)?;
-        let socket_msg = SocketMessage::Message(ws::Message::Text(text));
+        let socket_msg = SocketMessage(ws::Message::Text(text));
         self.socket_tx.send(socket_msg).await?;
 
         Ok(())
@@ -117,15 +117,7 @@ pub fn monolith_entry<'r>(ws: ws::WebSocket, balancer: &'r State<BalancerLink>) 
                 tokio::select! {
                     msg = receiver.recv() => {
                         if let Some(msg) = msg {
-                            match msg {
-                                SocketMessage::Message(message) => {
-                                    stream.send(message).await;
-                                }
-                                SocketMessage::Close => {
-                                    stream.close(None).await;
-                                    break;
-                                }
-                            }
+                            stream.send(msg.0).await;
                         } else {
                             break;
                         }
@@ -135,13 +127,11 @@ pub fn monolith_entry<'r>(ws: ws::WebSocket, balancer: &'r State<BalancerLink>) 
                         match msg {
                             ws::Message::Text(_) => {
                                 balancer
-                                    .send_monolith_message(monolith_id, SocketMessage::Message(msg))
+                                    .send_monolith_message(monolith_id, SocketMessage(msg))
                                     .await;
                             }
                             ws::Message::Close(_) => {
-                                balancer
-                                    .send_monolith_message(monolith_id, SocketMessage::Close)
-                                    .await;
+                                println!("monolith socket closed: {}", monolith_id);
                             }
                             _ => {
                                 println!("unhandled monolith message: {:?}", msg);

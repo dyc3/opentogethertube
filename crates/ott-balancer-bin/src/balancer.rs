@@ -311,15 +311,8 @@ pub async fn dispatch_client_message(
     println!("client message: {:?}", msg);
 
     let client_id = msg.id();
-    let msg_text = match msg.message() {
-        SocketMessage::Message(m) => m.to_text()?,
-        SocketMessage::Close => {
-            println!("client closed: {:?}", client_id);
-            todo!("close the client connection");
-        }
-    };
 
-    let raw_value: Box<RawValue> = serde_json::from_str(msg_text)?;
+    let raw_value: Box<RawValue> = msg.message().deserialize()?;
 
     let ctx_read = ctx.read().await;
     let Some(client) = ctx_read.clients.get(&msg.id()) else {
@@ -365,15 +358,8 @@ pub async fn dispatch_monolith_message(
     println!("monolith message: {:?}", msg);
 
     let monolith_id = msg.id();
-    let msg_text = match msg.message() {
-        SocketMessage::Message(m) => m.to_text()?,
-        SocketMessage::Close => {
-            println!("monolith closed: {:?}", monolith_id);
-            todo!("close the monolith connection");
-        }
-    };
 
-    let msg: MsgM2B = serde_json::from_str(msg_text)?;
+    let msg: MsgM2B = msg.message().deserialize()?;
 
     println!("got message from monolith: {:?}", msg);
 
@@ -402,7 +388,7 @@ pub async fn dispatch_monolith_message(
             // broadcast to all clients
             println!("broadcasting to clients in room: {:?}", room.name());
             // TODO: optimize this using a broadcast channel
-            let built_msg = SocketMessage::Message(ws::Message::text(payload.to_string()));
+            let built_msg = SocketMessage(ws::Message::text(payload.to_string()));
             for client in room.clients() {
                 let Some(client) = ctx_read.clients.get(&client) else {
                     anyhow::bail!("client not found");

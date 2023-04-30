@@ -118,15 +118,7 @@ pub fn client_entry<'r>(
                 tokio::select! {
                     msg = outbound_rx.recv() => {
                         if let Some(msg) = msg {
-                            match msg {
-                                SocketMessage::Message(message) => {
-                                    stream.send(message).await;
-                                }
-                                SocketMessage::Close => {
-                                    stream.close(None).await;
-                                    break;
-                                }
-                            }
+                            stream.send(msg.0).await;
                         } else {
                             break;
                         }
@@ -135,13 +127,11 @@ pub fn client_entry<'r>(
                         match message {
                             ws::Message::Text(_) => {
                                 balancer
-                                    .send_client_message(client_id, SocketMessage::Message(message))
+                                    .send_client_message(client_id, SocketMessage(message))
                                     .await;
                             }
                             ws::Message::Close(_) => {
-                                balancer
-                                    .send_client_message(client_id, SocketMessage::Close)
-                                    .await;
+                                println!("client socket closed: {}", client_id);
                                 break;
                             }
                             _ => {
