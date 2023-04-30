@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use crate::{balancer::BalancerLink, messages::*};
 
+/// A Monolith refers to the NodeJS server that manages rooms and performs all business logic.
 #[derive(Debug)]
 pub struct BalancerMonolith {
     id: MonolithId,
@@ -63,9 +64,11 @@ impl BalancerMonolith {
     }
 }
 
+/// Directly corresponds to a room on a Monolith.
 #[derive(Debug)]
 pub struct Room {
     name: RoomName,
+    /// List of clients connected to this Balancer that are in this room.
     clients: Vec<ClientId>,
 }
 
