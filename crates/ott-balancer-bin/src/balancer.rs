@@ -1,5 +1,3 @@
-// goal: ONE TASK PER SOCKET MESSAGE
-
 use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
@@ -9,7 +7,6 @@ use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 
-use crate::monolith::Room;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -84,34 +81,46 @@ impl Balancer {
             tokio::select! {
                 new_client = self.new_client_rx.recv() => {
                     if let Some((new_client, receiver_tx)) = new_client {
-                        match join_client(self.ctx.clone(), new_client, receiver_tx).await {
-                            Ok(_) => {},
-                            Err(err) => println!("failed to join client: {:?}", err)
-                        };
+                        let ctx = self.ctx.clone();
+                        tokio::spawn(async move {
+                            match join_client(ctx, new_client, receiver_tx).await {
+                                Ok(_) => {},
+                                Err(err) => println!("failed to join client: {:?}", err)
+                            };
+                        });
                     }
                 }
                 msg = self.client_msg_rx.recv() => {
                     if let Some(msg) = msg {
-                        match dispatch_client_message(self.ctx.clone(), msg).await {
-                            Ok(_) => {},
-                            Err(err) => println!("failed to dispatch client message: {:?}", err)
-                        }
+                        let ctx = self.ctx.clone();
+                        tokio::spawn(async move {
+                            match dispatch_client_message(ctx, msg).await {
+                                Ok(_) => {},
+                                Err(err) => println!("failed to dispatch client message: {:?}", err)
+                            }
+                        });
                     }
                 }
                 new_monolith = self.new_monolith_rx.recv() => {
                     if let Some((new_monolith, receiver_tx)) = new_monolith {
-                        match join_monolith(self.ctx.clone(), new_monolith, receiver_tx).await {
-                            Ok(_) => {},
-                            Err(err) => println!("failed to join monolith: {:?}", err)
-                        }
+                        let ctx = self.ctx.clone();
+                        tokio::spawn(async move {
+                            match join_monolith(ctx, new_monolith, receiver_tx).await {
+                                Ok(_) => {},
+                                Err(err) => println!("failed to join monolith: {:?}", err)
+                            }
+                        });
                     }
                 }
                 msg = self.monolith_msg_rx.recv() => {
                     if let Some(msg) = msg {
-                        match dispatch_monolith_message(self.ctx.clone(), msg).await {
-                            Ok(_) => {},
-                            Err(err) => println!("failed to dispatch monolith message: {:?}", err)
-                        }
+                        let ctx = self.ctx.clone();
+                        tokio::spawn(async move {
+                            match dispatch_monolith_message(ctx, msg).await {
+                                Ok(_) => {},
+                                Err(err) => println!("failed to dispatch monolith message: {:?}", err)
+                            }
+                        });
                     }
                 }
             }
