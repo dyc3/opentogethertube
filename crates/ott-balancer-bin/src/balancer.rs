@@ -310,9 +310,12 @@ pub async fn join_client(
         }
         None => {
             // the room is not loaded, randomly select a monolith
-            let selected = ctx_read.monoliths.keys().choose(&mut rand::thread_rng());
+            let selected = ctx_read
+                .monoliths
+                .values()
+                .min_by(|x, y| x.rooms().len().cmp(&y.rooms().len()));
             match selected {
-                Some(s) => *s,
+                Some(s) => s.id(),
                 None => anyhow::bail!("no monoliths available"),
             }
         }
