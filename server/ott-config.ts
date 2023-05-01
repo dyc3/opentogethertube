@@ -348,6 +348,11 @@ function postProcessConfig(): void {
 		log.warn("POSTGRES_DB_NAME is deprecated. Please use POSTGRES_DB instead.");
 		conf.set("db.database", process.env.POSTGRES_DB_NAME);
 	}
+
+	if (conf.get("env") === "test") {
+		// @ts-expect-error
+		conf.set("session_secret", "test");
+	}
 }
 
 let log: winston.Logger | Console = console;
