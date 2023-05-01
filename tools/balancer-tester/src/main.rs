@@ -96,7 +96,15 @@ async fn test_as_client(args: cli::Args) -> anyhow::Result<()> {
         tokio::select! {
             msg = stdin_rx.recv() => {
                 if let Some(msg) = msg {
-                    write.send(msg).await?;
+                    if args.echo {
+                        let echo = monolith::SimpleEcho {
+                            echo: msg.to_string(),
+                        };
+                        let echo = serde_json::to_string(&echo).unwrap();
+                        write.send(Message::Text(echo)).await?;
+                    } else {
+                        write.send(msg).await?;
+                    }
                 }
             },
             msg = read.next() => {

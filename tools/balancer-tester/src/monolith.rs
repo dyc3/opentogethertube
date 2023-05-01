@@ -134,5 +134,5 @@ impl SimRoom {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SimpleEcho {
-    echo: String,
+    pub echo: String,
 }
