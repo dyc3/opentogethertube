@@ -5,9 +5,10 @@ const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
 const permissions = require("../common/permissions");
 import { setupPostgresMetricsCollection } from "./storage.metrics";
+import { conf } from "./ott-config";
 
 const log = getLogger("storage");
-if (process.env.NODE_ENV === "production" && process.env.DB_MODE !== "sqlite") {
+if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
 	setupPostgresMetricsCollection(sequelize);
 }
 

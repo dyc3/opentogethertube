@@ -10,12 +10,11 @@ services:
       - REDIS_HOST=redis_db
       - FFPROBE_PATH=/usr/bin/ffprobe
       # postgres
-      - POSTGRES_DB_USERNAME=opentogethertube
-      - POSTGRES_DB_NAME=opentogethertube
-      - POSTGRES_DB_HOST=postgres_db
-      - POSTGRES_DB_PASSWORD=postgres
+      - POSTGRES_USER=opentogethertube
+      - POSTGRES_DB=opentogethertube
+      - POSTGRES_HOST=postgres_db
+      - POSTGRES_PASSWORD=postgres
       - DOCKER=1
-    env_file: ../env/production.env
     ports:
       - 8080:8080
     links:
@@ -24,6 +23,8 @@ services:
     depends_on:
       - redis_db
       - postgres_db
+    volumes:
+      - "../env:/usr/app/env"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
   redis_db:

@@ -15,6 +15,7 @@ import usermanager from "./usermanager";
 import passport from "passport";
 import statusapi from "./api/status";
 import { getApiKey } from "./admin";
+import { conf } from "./ott-config";
 
 const log = getLogger("api");
 
@@ -101,7 +102,7 @@ router.use(auth.authTokenMiddleware);
 router.use("/user", usermanager.router);
 router.use("/room", roomapi);
 
-if (process.env.NODE_ENV === "development") {
+if (conf.get("env") === "development") {
 	(async () => {
 		router.use("/dev", (await import("./api/dev")).default);
 	})();
@@ -254,7 +255,7 @@ router.get("/data/previewAdd", async (req, res) => {
 		log.info(`Getting queue add preview for ${req.query.input}`);
 		let result = await InfoExtract.resolveVideoQuery(
 			req.query.input.trim(),
-			process.env.SEARCH_PROVIDER
+			conf.get("add_preview.search.provider")
 		);
 		res.json(result);
 		log.info(`Sent add preview response with ${result.length} items`);

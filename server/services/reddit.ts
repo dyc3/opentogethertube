@@ -5,6 +5,7 @@ import { getLogger } from "../logger";
 import { Video, VideoMetadata } from "../../common/models/video";
 import { InvalidVideoIdException } from "../exceptions";
 import infoextractor from "../infoextractor";
+import { conf } from "../ott-config";
 
 const log = getLogger("reddit");
 
@@ -76,7 +77,7 @@ export type RedditThing = RedditPost | RedditComment | RedditListing<RedditLista
 
 export default class RedditAdapter extends ServiceAdapter {
 	api = axios.create({
-		headers: { "User-Agent": `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}` },
+		headers: { "User-Agent": `OpenTogetherTube @ ${conf.get("hostname")}` },
 	});
 
 	get serviceId(): "reddit" {
