@@ -21,12 +21,13 @@ expect.extend({
 		});
 		if (pass) {
 			return {
-				message: () => `expected error to not be RoomNotFoundException`,
+				message: () =>
+					`expected error to not be RoomNotFoundException, but got ${error.name}`,
 				pass,
 			};
 		} else {
 			return {
-				message: () => `expected error to be RoomNotFoundException`,
+				message: () => `expected error to be RoomNotFoundException, but got ${error.name}`,
 				pass,
 			};
 		}
