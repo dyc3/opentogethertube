@@ -144,10 +144,13 @@ const createRoom: RequestHandler<
 	});
 };
 
-const getRoom: RequestHandler<{name:string}, OttApiResponseGetRoom, unknown> = async (req, res) => {
+const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> = async (
+	req,
+	res
+) => {
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 	const resp: OttApiResponseGetRoom = {
-		...(_.cloneDeep(
+		..._.cloneDeep(
 			_.pick(room, [
 				"name",
 				"title",
@@ -159,11 +162,11 @@ const getRoom: RequestHandler<{name:string}, OttApiResponseGetRoom, unknown> = a
 				"grants",
 				"autoSkipSegments",
 			])
-		)),
+		),
 		queue: room.queue.items,
 		permissions: room.grants,
 		hasOwner: !!room.owner,
-	}
+	};
 	res.json(resp);
 };
 
