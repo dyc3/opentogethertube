@@ -1,12 +1,10 @@
 const express = require("express");
 import { v4 as uuidv4 } from "uuid";
-const _ = require("lodash");
 import InfoExtract from "./infoextractor";
 import { RoomRequestType } from "../common/models/messages";
 const { getLogger } = require("./logger.js");
 import roommanager from "./roommanager";
 import { consumeRateLimitPoints } from "./rate-limit";
-import { QueueMode } from "../common/models/types";
 import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
@@ -107,47 +105,6 @@ if (conf.get("env") === "development") {
 		router.use("/dev", (await import("./api/dev")).default);
 	})();
 }
-
-router.get("/room/:name", async (req, res) => {
-	try {
-		let room = await roommanager.getRoom(req.params.name);
-		let hasOwner = !!room.owner;
-		room = _.cloneDeep(
-			_.pick(room, [
-				"name",
-				"title",
-				"description",
-				"isTemporary",
-				"visibility",
-				"queueMode",
-				"queue",
-				"users",
-				"grants",
-				"autoSkipSegments",
-			])
-		);
-		room.permissions = room.grants;
-		room.hasOwner = hasOwner;
-		let users = [];
-		for (let c of room.users) {
-			let client = _.pick(c, ["username", "isLoggedIn"]);
-			client.name = client.username;
-			users.push(client);
-		}
-		room.clients = users;
-		for (let video of room.queue.items) {
-			delete video._lastVotesChanged;
-			if (room.queueMode === QueueMode.Vote) {
-				video.votes = video.votes ? video.votes.length : 0;
-			} else {
-				delete video.votes;
-			}
-		}
-		res.json(room);
-	} catch (e) {
-		handleGetRoomFailure(res, e);
-	}
-});
 
 router.post("/room/generate", async (req, res) => {
 	let points = 50;

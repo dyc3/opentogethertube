@@ -13,6 +13,7 @@ import {
 import { RoomRequest, RoomRequestContext, ServerMessage } from "common/models/messages";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
+import { Result, ok, err } from "../common/result";
 
 export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
@@ -103,38 +104,38 @@ export async function createRoom(options: Partial<RoomOptions> & { name: string 
 export async function getRoom(
 	roomName: string,
 	options: { mustAlreadyBeLoaded?: boolean } = {}
-): Promise<Room> {
+): Promise<Result<Room, RoomNotFoundException | RoomAlreadyLoadedException>> {
 	_.defaults(options, {
 		mustAlreadyBeLoaded: false,
 	});
 	for (const room of rooms) {
 		if (room.name.toLowerCase() === roomName.toLowerCase()) {
 			log.debug("found room in room manager");
-			return room;
+			return ok(room);
 		}
 	}
 
 	if (options.mustAlreadyBeLoaded) {
-		throw new RoomNotFoundException(roomName);
+		return err(new RoomNotFoundException(roomName));
 	}
 
 	const opts = (await storage.getRoomByName(roomName)) as RoomStatePersistable;
 	if (opts) {
 		if (await redisClientAsync.exists(`room:${opts.name}`)) {
 			log.debug("found room in database, but room is already in redis");
-			throw new RoomAlreadyLoadedException(opts.name);
+			return err(new RoomAlreadyLoadedException(opts.name));
 		}
 	} else {
 		if (await redisClientAsync.exists(`room:${roomName}`)) {
 			log.debug("found room in redis, not loading");
-			throw new RoomAlreadyLoadedException(roomName);
+			return err(new RoomAlreadyLoadedException(roomName));
 		}
 		log.debug("room not found in room manager, nor redis, nor database");
-		throw new RoomNotFoundException(roomName);
+		return err(new RoomNotFoundException(roomName));
 	}
 	const room = new Room(opts);
 	addRoom(room);
-	return room;
+	return ok(room);
 }
 
 export async function unloadRoom(roomName: string): Promise<void> {
@@ -172,29 +173,6 @@ export async function unloadAllRooms(): Promise<void> {
 	const names = rooms.map(r => r.name);
 	await Promise.all(names.map(unloadRoom));
 }
-
-export async function remoteRoomRequestHandler(channel: string, text: string) {
-	if (!channel.startsWith(`${ROOM_REQUEST_CHANNEL_PREFIX}:`)) {
-		return;
-	}
-	let roomName = channel.split(":")[1];
-	try {
-		// HACK: using roommanager.getRoom() here instead of just GetRoom() so it can be mocked in tests
-		let room = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
-		let requestUnauthorized = JSON.parse(text) as { request: RoomRequest; token: AuthToken };
-		await room.processUnauthorizedRequest(requestUnauthorized.request, {
-			token: requestUnauthorized.token,
-		});
-	} catch (e) {
-		if (e instanceof RoomNotFoundException) {
-			// Room not found on this Node, ignore
-		} else {
-			log.error(`Failed to process room request: ${e.name} ${e.message} ${e.stack}`);
-		}
-	}
-}
-
-redisSubscriber.on("message", remoteRoomRequestHandler);
 
 export function publish(roomName: string, msg: ServerMessage) {
 	bus.emit("publish", roomName, msg);
@@ -255,7 +233,6 @@ const roommanager = {
 	unloadRoom,
 	clearRooms,
 	unloadAllRooms,
-	remoteRoomRequestHandler,
 	publish,
 	on,
 };
