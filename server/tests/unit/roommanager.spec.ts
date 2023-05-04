@@ -91,17 +91,17 @@ describe("Room manager", () => {
 			.spyOn(storage, "getRoomByName")
 			.mockImplementation()
 			.mockReturnValue(null);
-		expect(
-			roommanager.getRoom("test", {
-				mustAlreadyBeLoaded: true,
-			})
-		).rejects.toThrow(RoomNotFoundException);
-		expect(getRoomByNameSpy).not.toHaveBeenCalled();
-		await roommanager.createRoom({ name: "test", isTemporary: true });
-		const room = roommanager.getRoom("test", {
+		let result = await roommanager.getRoom("test", {
 			mustAlreadyBeLoaded: true,
 		});
-		expect(room).toBeDefined();
+		expect(result.ok).toEqual(false);
+		expect(result.value).toBeInstanceOf(RoomNotFoundException);
+		expect(getRoomByNameSpy).not.toHaveBeenCalled();
+		await roommanager.createRoom({ name: "test", isTemporary: true });
+		const result2 = await roommanager.getRoom("test", {
+			mustAlreadyBeLoaded: true,
+		});
+		expect(result2.ok).toEqual(true);
 		expect(getRoomByNameSpy).not.toHaveBeenCalled();
 		getRoomByNameSpy.mockRestore();
 	});

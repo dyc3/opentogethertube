@@ -14,10 +14,12 @@ import { Video } from "common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import {
 	OttApiRequestRoomCreate,
+	OttApiResponseGetRoom,
 	OttApiResponseRoomCreate,
 	OttResponseBody,
 } from "../../common/models/rest-api";
 import { getApiKey } from "../admin";
+import { RoomSettings } from "ott-common/models/types.js";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -140,6 +142,29 @@ const createRoom: RequestHandler<
 	res.json({
 		success: true,
 	});
+};
+
+const getRoom: RequestHandler<{name:string}, OttApiResponseGetRoom, unknown> = async (req, res) => {
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+	const resp: OttApiResponseGetRoom = {
+		...(_.cloneDeep(
+			_.pick(room, [
+				"name",
+				"title",
+				"description",
+				"isTemporary",
+				"visibility",
+				"queueMode",
+				"users",
+				"grants",
+				"autoSkipSegments",
+			])
+		)),
+		queue: room.queue.items,
+		permissions: room.grants,
+		hasOwner: !!room.owner,
+	}
+	res.json(resp);
 };
 
 const patchRoom: RequestHandler = async (req, res) => {
@@ -344,6 +369,14 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 router.post("/create", async (req, res, next) => {
 	try {
 		await createRoom(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.get("/:name", async (req, res, next) => {
+	try {
+		await getRoom(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}

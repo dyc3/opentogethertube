@@ -1,4 +1,6 @@
-import { Visibility } from "./types";
+import { Grants } from "permissions";
+import { QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
+import { QueueItem } from "./video";
 
 export type OttResponseBody<T = undefined, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
@@ -37,3 +39,20 @@ export interface OttApiRequestRoomCreate {
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiResponseRoomCreate {}
+
+/** Endpoint: `GET /api/room/:name` */
+export interface OttApiResponseGetRoom extends RoomSettings {
+	name: string;
+	title: string;
+	description: string;
+	isTemporary: boolean;
+	visibility: Visibility;
+	queueMode: QueueMode;
+	queue: QueueItem[];
+	hasOwner: boolean;
+	grants: Grants;
+	/** @deprecated */
+	permissions: Grants;
+	autoSkipSegments: boolean;
+	users: RoomUserInfo[];
+}
