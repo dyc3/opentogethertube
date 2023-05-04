@@ -1,12 +1,10 @@
 const express = require("express");
 import { v4 as uuidv4 } from "uuid";
-const _ = require("lodash");
 import InfoExtract from "./infoextractor";
 import { RoomRequestType } from "../common/models/messages";
 const { getLogger } = require("./logger.js");
 import roommanager from "./roommanager";
 import { consumeRateLimitPoints } from "./rate-limit";
-import { QueueMode } from "../common/models/types";
 import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
