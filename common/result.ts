@@ -7,6 +7,10 @@ export class Ok<T> {
 	constructor(value: T) {
 		this.value = value;
 	}
+
+	unwrap(): T {
+		return this.value;
+	}
 }
 
 export class Err<E extends Error> {
@@ -15,6 +19,10 @@ export class Err<E extends Error> {
 
 	constructor(value: E) {
 		this.value = value;
+	}
+
+	unwrap(): never {
+		throw this.value;
 	}
 }
 
@@ -33,4 +41,8 @@ export function intoResult<T>(func: () => T): Result<T, Error> {
 	} catch (e) {
 		return err(e);
 	}
+}
+
+export function intoResultAsync<T>(func: () => Promise<T>): Promise<Result<T, Error>> {
+	return func().then(ok, err);
 }
