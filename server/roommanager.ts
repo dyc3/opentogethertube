@@ -196,7 +196,7 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 
 redisSubscriber.on("message", remoteRoomRequestHandler);
 
-export function publish(roomName: string, msg: unknown) {
+export function publish(roomName: string, msg: ServerMessage) {
 	bus.emit("publish", roomName, msg);
 }
 
