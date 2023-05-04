@@ -37,7 +37,18 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 		await tokens.setSessionInfo(token, { isLoggedIn: false, username: "fake_user" });
 	}
 
-	const room = await roommanager.getRoom(req.params.name);
+	const result = await roommanager.getRoom(req.params.name);
+	if (!result.ok) {
+		res.json({
+			success: false,
+			error: {
+				name: "RoomNotFound",
+				message: "Room not found",
+			},
+		});
+		return;
+	}
+	const room = result.value;
 	try {
 		await room.processUnauthorizedRequest(
 			{

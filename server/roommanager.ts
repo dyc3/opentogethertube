@@ -179,20 +179,17 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 		return;
 	}
 	let roomName = channel.split(":")[1];
-	try {
-		// HACK: using roommanager.getRoom() here instead of just GetRoom() so it can be mocked in tests
-		let room = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
-		let requestUnauthorized = JSON.parse(text) as { request: RoomRequest; token: AuthToken };
-		await room.processUnauthorizedRequest(requestUnauthorized.request, {
-			token: requestUnauthorized.token,
-		});
-	} catch (e) {
-		if (e instanceof RoomNotFoundException) {
-			// Room not found on this Node, ignore
-		} else {
-			log.error(`Failed to process room request: ${e.name} ${e.message} ${e.stack}`);
-		}
+	// HACK: using roommanager.getRoom() here instead of just GetRoom() so it can be mocked in tests
+	let result = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
+	if (!result.ok) {
+		log.error(`Error processing remote room request: ${result.value}`);
+		return;
 	}
+	const room = result.value;
+	let requestUnauthorized = JSON.parse(text) as { request: RoomRequest; token: AuthToken };
+	await room.processUnauthorizedRequest(requestUnauthorized.request, {
+		token: requestUnauthorized.token,
+	});
 }
 
 redisSubscriber.on("message", remoteRoomRequestHandler);

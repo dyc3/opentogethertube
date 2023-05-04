@@ -72,10 +72,12 @@ async function onDirectConnect(socket: WebSocket, req: express.Request) {
 }
 
 async function onClientAuth(client: Client, token: AuthToken, session: SessionInfo) {
-	const room = await roommanager.getRoom(client.room);
-	if (!room) {
-		throw new RoomNotFoundException(client.room);
+	const result = await roommanager.getRoom(client.room);
+	if (!result.ok) {
+		client.kick(OttWebsocketError.ROOM_NOT_FOUND);
+		return;
 	}
+	const room = result.value;
 	client.room = room.name;
 
 	// full sync
@@ -146,34 +148,36 @@ async function onClientDisconnect(client: Client) {
 		}
 	}
 
-	try {
-		const room = await roommanager.getRoom(client.room, { mustAlreadyBeLoaded: true });
-		// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
-		await room.processRequestUnsafe(
-			{
-				type: RoomRequestType.LeaveRequest,
-			},
-			client.id
-		);
-	} catch (err) {
-		log.warn(`Failed to process leave request: ${err}, ignoring`);
+	const result = await roommanager.getRoom(client.room, { mustAlreadyBeLoaded: true });
+	if (!result.ok) {
+		log.error(`Failed to get room ${client.room} when processing disconnect`);
+		return;
 	}
+	const room = result.value;
+	// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
+	await room.processRequestUnsafe(
+		{
+			type: RoomRequestType.LeaveRequest,
+		},
+		client.id
+	);
 }
 
 async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {
 	if (!client.token) {
 		throw new Error("No token present");
 	}
-	try {
-		const room = await roommanager.getRoom(client.room, {
-			mustAlreadyBeLoaded: true,
-		});
-		await room.processUnauthorizedRequest(request, {
-			token: client.token,
-		});
-	} catch (e) {
-		log.error(`Failed to process room request: ${e}`);
+	const result = await roommanager.getRoom(client.room, {
+		mustAlreadyBeLoaded: true,
+	});
+	if (!result.ok) {
+		log.error(`Failed to get room ${client.room} when processing request`);
+		return;
 	}
+	const room = result.value;
+	await room.processUnauthorizedRequest(request, {
+		token: client.token,
+	});
 }
 
 async function broadcast(roomName: string, text: string) {

@@ -166,7 +166,11 @@ const patchRoom: RequestHandler = async (req, res) => {
 
 	req.body.grants = new Grants(req.body.grants);
 
-	const room = await roommanager.getRoom(req.params.name);
+	const result = await roommanager.getRoom(req.params.name);
+	if (!result.ok) {
+		throw result.value;
+	}
+	const room = result.value;
 	if (req.body.claim) {
 		if (room.isTemporary) {
 			throw new BadApiArgumentException("claim", `Can't claim temporary rooms.`);

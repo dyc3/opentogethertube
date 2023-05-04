@@ -51,7 +51,7 @@ describe("Room manager", () => {
 	describe("loading from redis", () => {
 		it("should save and load all needed props from redis", async () => {
 			await roommanager.createRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.getRoom("test");
+			const room = (await roommanager.getRoom("test")).unwrap();
 			room.userRoles.get(Role.TrustedUser)?.add(8).add(10).add(12);
 			room.userRoles.get(Role.Moderator)?.add(87).add(23);
 			room.userRoles.get(Role.Administrator)?.add(9);
@@ -119,7 +119,7 @@ describe("Room manager", () => {
 
 		it("should handle room requests from redis pubsub", async () => {
 			await roommanager.createRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.getRoom("test");
+			const room = (await roommanager.getRoom("test")).unwrap();
 			jest.spyOn(room, "processUnauthorizedRequest").mockImplementation();
 			getRoomSpy.mockClear();
 			const msg: { request: RoomRequest; token: AuthToken } = {
@@ -138,7 +138,7 @@ describe("Room manager", () => {
 
 		it("should ignore room not found", async () => {
 			await roommanager.createRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.getRoom("test");
+			const room = (await roommanager.getRoom("test")).unwrap();
 			jest.spyOn(room, "processUnauthorizedRequest").mockImplementation();
 			getRoomSpy.mockClear();
 			getRoomSpy.mockImplementation(() => {
@@ -160,7 +160,7 @@ describe("Room manager", () => {
 
 		it("should log all other exceptions", async () => {
 			await roommanager.createRoom({ name: "test", isTemporary: true });
-			const room = await roommanager.getRoom("test");
+			const room = (await roommanager.getRoom("test")).unwrap();
 			jest.spyOn(room, "processUnauthorizedRequest").mockImplementation();
 			let logErrorSpy = jest.spyOn(roommanager.log, "error").mockImplementation();
 			getRoomSpy.mockClear();
