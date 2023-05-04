@@ -1,4 +1,4 @@
-import { Grants } from "permissions";
+import { Grants } from "../permissions";
 import { QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem } from "./video";
 
