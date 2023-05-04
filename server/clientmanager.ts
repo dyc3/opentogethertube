@@ -155,12 +155,16 @@ async function onClientDisconnect(client: Client) {
 	}
 	const room = result.value;
 	// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
-	await room.processRequestUnsafe(
-		{
-			type: RoomRequestType.LeaveRequest,
-		},
-		client.id
-	);
+	try {
+		await room.processRequestUnsafe(
+			{
+				type: RoomRequestType.LeaveRequest,
+			},
+			client.id
+		);
+	} catch (err) {
+		log.error(`Failed to process leave request for client ${client.id}: ${err}`);
+	}
 }
 
 async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {
