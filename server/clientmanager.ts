@@ -30,6 +30,7 @@ import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
+import { Client, ClientJoinStatus, DirectClient } from "./client";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -41,214 +42,6 @@ const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
 subscribe(ANNOUNCEMENT_CHANNEL);
 
-export class Client {
-	id: ClientId;
-	socket: WebSocket;
-	session?: SessionInfo;
-	room: string;
-	token: AuthToken | null = null;
-
-	constructor(roomName: string, socket: WebSocket) {
-		this.id = _.uniqueId(); // maybe use uuidv4 from uuid package instead?
-		this.socket = socket;
-		this.room = roomName;
-
-		this.socket.on("close", async (code, reason) => {
-			log.debug(`socket closed: ${code}, ${reason}`);
-			const idx = _.findIndex(connections, { id: this.id });
-			connections.splice(idx, 1);
-
-			if (this.token) {
-				try {
-					const room = await roommanager.getRoom(this.room);
-					// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
-					await room.processRequestUnsafe(
-						{
-							type: RoomRequestType.LeaveRequest,
-						},
-						this.id
-					);
-				} catch (e) {
-					if (e instanceof Error) {
-						log.warn(
-							`Failed to make leave request: "${e.name}: ${e.message}" This is not a critical error, so we will continue.`
-						);
-					} else {
-						log.warn(
-							`Failed to make leave request. This is not a critical error, so we will continue.`
-						);
-					}
-				}
-			}
-		});
-	}
-
-	get clientInfo(): ClientInfo {
-		if (!this.session) {
-			throw new Error("No session info present");
-		}
-		if (this.session.isLoggedIn) {
-			return {
-				id: this.id,
-				user_id: this.session.user_id,
-			};
-		}
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
-		else if (this.session.isLoggedIn === false) {
-			// this is a workaround because typescript doesn't narrow the type correctly
-			return {
-				id: this.id,
-				username: this.session.username,
-			};
-		} else {
-			log.error(
-				"Session did not have username present, nor passport user id. Generating username..."
-			);
-			return {
-				id: this.id,
-				username: uniqueNamesGenerator(),
-			};
-		}
-	}
-
-	public async onMessage(text: string): Promise<void> {
-		log.silly(`client message: ${text}`);
-		try {
-			const msg: ClientMessage = JSON.parse(text);
-
-			let request: RoomRequest | null = null;
-			if (msg.action === "kickme") {
-				this.socket.close(msg.reason ?? OttWebsocketError.UNKNOWN);
-				return;
-			} else if (msg.action === "status") {
-				request = {
-					type: RoomRequestType.UpdateUser,
-					info: {
-						id: this.id,
-						status: msg.status,
-					},
-				};
-			} else if (msg.action === "auth") {
-				this.token = msg.token;
-				log.debug("received auth token, joining room");
-				try {
-					await this.joinRoom(this.room);
-				} catch (e) {
-					if (e instanceof RoomNotFoundException) {
-						log.info(`Failed to join room: ${e.message}`);
-						this.socket.close(OttWebsocketError.ROOM_NOT_FOUND);
-					} else if (e instanceof InvalidTokenException) {
-						log.info(`Failed to join room: ${e.message}`);
-						this.socket.close(OttWebsocketError.MISSING_TOKEN);
-					} else {
-						if (e instanceof Error) {
-							log.error(`Failed to join room: ${e.stack}`);
-						}
-						this.socket.close(OttWebsocketError.UNKNOWN);
-					}
-				}
-				return;
-			} else if (msg.action === "req") {
-				request = msg.request;
-			} else {
-				log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
-				return;
-			}
-
-			try {
-				await this.makeRoomRequest(request);
-			} catch (e) {
-				if (e instanceof Error) {
-					log.error(`Room request ${request.type} failed: ${e.message} ${e.stack}`);
-				} else {
-					log.error(`Room request ${request.type} failed`);
-				}
-			}
-		} catch (e) {
-			log.error(`Failed to handle websocket message: ${text} - ${e}`);
-			return;
-		}
-	}
-
-	public onPing(data: Buffer): void {
-		log.debug(`sending pong`);
-		this.socket.pong();
-	}
-
-	public async joinRoom(roomName: string): Promise<void> {
-		log.debug(`client id=${this.id} joining ${roomName}`);
-		if (!this.token) {
-			log.error("No token present, cannot join room");
-			throw new InvalidTokenException();
-		}
-		if (!this.session) {
-			this.session = await tokens.getSessionInfo(this.token);
-		}
-
-		const room = await roommanager.getRoom(roomName);
-		if (!room) {
-			throw new RoomNotFoundException(roomName);
-		}
-		this.room = room.name;
-		// full sync
-		let state = roomStates.get(room.name);
-		if (state === undefined) {
-			log.warn("room state not present, grabbing");
-			const stateText = await redisClientAsync.get(`room-sync:${room.name}`);
-			state = JSON.parse(stateText) as RoomStateSyncable;
-			roomStates.set(room.name, state);
-		}
-		const syncMsg: ServerMessageSync = Object.assign(
-			{ action: "sync" },
-			state
-		) as ServerMessageSync;
-		this.socket.send(JSON.stringify(syncMsg));
-
-		// actually join the room
-		let clients = roomJoins.get(room.name);
-		if (clients === undefined) {
-			log.warn("room joins not present, creating");
-			clients = [];
-			roomJoins.set(room.name, clients);
-		}
-		clients.push(this);
-		await this.makeRoomRequest({
-			type: RoomRequestType.JoinRequest,
-			token: this.token,
-			info: this.clientInfo,
-		});
-	}
-
-	public async makeRoomRequest(request: RoomRequest): Promise<void> {
-		if (!this.token) {
-			throw new Error("No token present");
-		}
-		try {
-			// Happy path: avoid serializing and deserializing the request if its not needed.
-			const room = await roommanager.getRoom(this.room, {
-				mustAlreadyBeLoaded: true,
-			});
-			await room.processUnauthorizedRequest(request, {
-				token: this.token,
-			});
-		} catch (e) {
-			log.error(`Failed to process room request: ${e}`);
-		}
-	}
-
-	public sendObj(obj: any): void {
-		try {
-			this.socket.send(JSON.stringify(obj));
-		} catch (e) {
-			if (e instanceof Error) {
-				log.error(`failed to send to client: ${e.message}`);
-			} else {
-				log.error(`failed to send to client`);
-			}
-		}
-	}
-}
-
 export function setup(): void {
 	log.debug("setting up client manager...");
 	const server = wss;
@@ -258,7 +51,7 @@ export function setup(): void {
 			ws.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid connection url");
 			return;
 		}
-		await onConnect(ws, req);
+		await onDirectConnect(ws, req);
 	});
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
@@ -268,16 +61,119 @@ export function setup(): void {
  * Called when a websocket connects.
  * @param socket
  */
-async function onConnect(socket: WebSocket, req: express.Request) {
+async function onDirectConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.replace("/api/room/", "");
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
-	const client = new Client(roomName, socket);
+	const client = new DirectClient(roomName, socket);
 	connections.push(client);
-	socket.on("ping", data => client.onPing(data));
-	socket.on("message", data => client.onMessage(data as string));
-	socket.on("error", e => {
-		log.warn(`websocket error: ${e}`);
+	client.on("auth", onClientAuth);
+	client.on("message", onClientMessage);
+	client.on("disconnect", onClientDisconnect);
+}
+
+async function onClientAuth(client: Client, token: AuthToken, session: SessionInfo) {
+	const room = await roommanager.getRoom(client.room);
+	if (!room) {
+		throw new RoomNotFoundException(client.room);
+	}
+	client.room = room.name;
+
+	// full sync
+	let state = roomStates.get(room.name);
+	if (state === undefined) {
+		log.warn("room state not present, grabbing");
+		const stateText = await redisClientAsync.get(`room-sync:${room.name}`);
+		state = JSON.parse(stateText) as RoomStateSyncable;
+		roomStates.set(room.name, state);
+	}
+	const syncMsg: ServerMessageSync = Object.assign(
+		{ action: "sync" },
+		state
+	) as ServerMessageSync;
+	client.send(syncMsg);
+
+	// actually join the room
+	let clients = roomJoins.get(room.name);
+	if (clients === undefined) {
+		log.warn("room joins not present, creating");
+		clients = [];
+		roomJoins.set(room.name, clients);
+	}
+	clients.push(client);
+	await makeRoomRequest(client, {
+		type: RoomRequestType.JoinRequest,
+		token: token,
+		info: client.getClientInfo(),
 	});
+}
+
+async function onClientMessage(client: Client, msg: ClientMessage) {
+	if (msg.action === "kickme") {
+		client.kick(msg.reason ?? OttWebsocketError.UNKNOWN);
+		return;
+	} else if (msg.action === "status") {
+		let request: RoomRequest = {
+			type: RoomRequestType.UpdateUser,
+			info: {
+				id: client.id,
+				status: msg.status,
+			},
+		};
+		await makeRoomRequest(client, request);
+	} else if (msg.action === "req") {
+		await makeRoomRequest(client, msg.request);
+	} else {
+		log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
+		return;
+	}
+}
+
+async function onClientDisconnect(client: Client) {
+	const index = connections.indexOf(client);
+	if (index !== -1) {
+		let clients = connections.splice(index, 1);
+		if (clients.length !== 1) {
+			log.error("failed to remove client from connections");
+			return;
+		}
+		let client = clients[0];
+		let joins = roomJoins.get(client.room);
+		if (joins) {
+			const index = joins.indexOf(client);
+			if (index !== -1) {
+				joins.splice(index, 1);
+			}
+		}
+	}
+
+	try {
+		const room = await roommanager.getRoom(client.room, { mustAlreadyBeLoaded: true });
+		// it's safe to bypass authenticating the leave request because this event is only triggered by the socket closing
+		await room.processRequestUnsafe(
+			{
+				type: RoomRequestType.LeaveRequest,
+			},
+			client.id
+		);
+	} catch (err) {
+		log.warn(`Failed to process leave request: ${err}, ignoring`);
+	}
+}
+
+async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {
+	if (!client.token) {
+		throw new Error("No token present");
+	}
+	try {
+		const room = await roommanager.getRoom(client.room, {
+			mustAlreadyBeLoaded: true,
+		});
+		await room.processUnauthorizedRequest(request, {
+			token: client.token,
+		});
+	} catch (e) {
+		log.error(`Failed to process room request: ${e}`);
+	}
 }
 
 async function broadcast(roomName: string, text: string) {
@@ -287,7 +183,7 @@ async function broadcast(roomName: string, text: string) {
 	}
 	for (const client of clients) {
 		try {
-			client.socket.send(text);
+			client.sendRaw(text);
 		} catch (e) {
 			if (e instanceof Error) {
 				log.error(`failed to send to client: ${e.message}`);
@@ -331,7 +227,7 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 		for (const client of clients) {
 			if (msg.user.id === client.id) {
 				msg.user.isYou = true;
-				client.sendObj(msg);
+				client.send(msg);
 				break;
 			}
 		}
@@ -344,7 +240,7 @@ function onRoomUnload(roomName: string) {
 	const clients = roomJoins.get(roomName);
 	if (clients) {
 		for (const client of clients) {
-			client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+			client.kick(OttWebsocketError.ROOM_UNLOADED);
 		}
 	}
 
@@ -361,7 +257,7 @@ async function onRedisMessage(channel: string, text: string) {
 	} else if (channel === ANNOUNCEMENT_CHANNEL) {
 		for (const client of connections) {
 			try {
-				client.socket.send(text);
+				client.sendRaw(text);
 			} catch (e) {
 				if (e instanceof Error) {
 					log.error(`failed to send to client: ${e.message}`);
@@ -382,9 +278,9 @@ async function onUserModified(token: AuthToken): Promise<void> {
 	for (const client of connections) {
 		if (client.token === token) {
 			client.session = await tokens.getSessionInfo(token);
-			await client.makeRoomRequest({
+			await makeRoomRequest(client, {
 				type: RoomRequestType.UpdateUser,
-				info: client.clientInfo,
+				info: client.getClientInfo(),
 			});
 		}
 	}
@@ -404,15 +300,30 @@ function getClient(token: AuthToken, roomName: string): Client {
 
 setInterval(() => {
 	for (const client of connections) {
-		client.socket.ping();
+		if (client instanceof DirectClient) {
+			client.ping();
+		}
 	}
 }, 10000);
 
 const gaugeWebsocketConnections = new Gauge({
 	name: "ott_websocket_connections",
-	help: "The number of active websocket connections",
+	help: "The number of active websocket connections (deprecated)",
 	collect() {
 		this.set(connections.length);
+	},
+});
+
+const gaugeClients = new Gauge({
+	name: "ott_clients_connected",
+	help: "The number of clients connected.",
+	labelNames: ["clientType", "joinStatus"],
+	collect() {
+		this.reset();
+		for (const client of connections) {
+			const clientType = client instanceof DirectClient ? "direct" : "balancer";
+			this.labels(clientType, ClientJoinStatus[client.joinStatus]).inc();
+		}
 	},
 });
 
@@ -420,4 +331,5 @@ export default {
 	setup,
 	onUserModified,
 	getClient,
+	makeRoomRequest,
 };
