@@ -209,6 +209,7 @@ export class Client {
 		if (clients === undefined) {
 			log.warn("room joins not present, creating");
 			clients = [];
+			roomJoins.set(room.name, clients);
 		}
 		clients.push(this);
 		await this.makeRoomRequest({
