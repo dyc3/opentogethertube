@@ -174,26 +174,6 @@ export async function unloadAllRooms(): Promise<void> {
 	await Promise.all(names.map(unloadRoom));
 }
 
-export async function remoteRoomRequestHandler(channel: string, text: string) {
-	if (!channel.startsWith(`${ROOM_REQUEST_CHANNEL_PREFIX}:`)) {
-		return;
-	}
-	let roomName = channel.split(":")[1];
-	// HACK: using roommanager.getRoom() here instead of just GetRoom() so it can be mocked in tests
-	let result = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
-	if (!result.ok) {
-		log.error(`Error processing remote room request: ${result.value}`);
-		return;
-	}
-	const room = result.value;
-	let requestUnauthorized = JSON.parse(text) as { request: RoomRequest; token: AuthToken };
-	await room.processUnauthorizedRequest(requestUnauthorized.request, {
-		token: requestUnauthorized.token,
-	});
-}
-
-redisSubscriber.on("message", remoteRoomRequestHandler);
-
 export function publish(roomName: string, msg: ServerMessage) {
 	bus.emit("publish", roomName, msg);
 }
@@ -253,7 +233,6 @@ const roommanager = {
 	unloadRoom,
 	clearRooms,
 	unloadAllRooms,
-	remoteRoomRequestHandler,
 	publish,
 	on,
 };
