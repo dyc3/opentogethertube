@@ -13,7 +13,7 @@ import {
 import { RoomRequest, RoomRequestContext, ServerMessage } from "common/models/messages";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
-import { Result, ok, err } from "ott-common";
+import { Result, ok, err } from "../common/result";
 
 export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
