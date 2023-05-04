@@ -10,16 +10,27 @@ import {
 	RoomNameTakenException,
 	RoomNotFoundException,
 } from "./exceptions";
-import { RoomRequest, RoomRequestContext } from "common/models/messages";
+import { RoomRequest, RoomRequestContext, ServerMessage } from "common/models/messages";
 import { Gauge } from "prom-client";
-// WARN: do NOT import clientmanager
+import { EventEmitter } from "events";
 
 export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
 export const rooms: Room[] = [];
 
+export type RoomManagerEvents = "publish" | "load" | "unload";
+export type RoomManagerEventHandlers<E> = E extends "publish"
+	? (roomName: string, message: ServerMessage) => void
+	: E extends "load"
+	? (roomName: string) => void
+	: E extends "unload"
+	? (roomName: string) => void
+	: never;
+const bus = new EventEmitter();
+
 function addRoom(room: Room) {
 	rooms.push(room);
+	bus.emit("load", room.name);
 }
 
 export async function start() {
@@ -143,6 +154,7 @@ export async function unloadRoom(roomName: string): Promise<void> {
 	rooms.splice(idx, 1);
 	await redisClientAsync.del(`room:${roomName}`);
 	await redisClientAsync.del(`room-sync:${roomName}`);
+	bus.emit("unload", roomName);
 }
 
 /**
@@ -183,6 +195,14 @@ export async function remoteRoomRequestHandler(channel: string, text: string) {
 }
 
 redisSubscriber.on("message", remoteRoomRequestHandler);
+
+export function publish(roomName: string, msg: ServerMessage) {
+	bus.emit("publish", roomName, msg);
+}
+
+export function on<E extends RoomManagerEvents>(event: E, listener: RoomManagerEventHandlers<E>) {
+	bus.on(event, listener);
+}
 
 const gaugeRoomCount = new Gauge({
 	name: "ott_room_count",
@@ -236,6 +256,8 @@ const roommanager = {
 	clearRooms,
 	unloadAllRooms,
 	remoteRoomRequestHandler,
+	publish,
+	on,
 };
 
 export default roommanager;

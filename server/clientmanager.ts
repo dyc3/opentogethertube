@@ -24,20 +24,18 @@ import {
 	Role,
 } from "../common/models/types";
 import roommanager from "./roommanager";
-import { ANNOUNCEMENT_CHANNEL, ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
+import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
+import { replacer } from "../common/serialize";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
 const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(
 	redisSubscriber
 );
-const unsubscribe: (channel: string) => Promise<string> = promisify(
-	redisSubscriber.unsubscribe
-).bind(redisSubscriber);
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
@@ -207,14 +205,13 @@ export class Client {
 		this.socket.send(JSON.stringify(syncMsg));
 
 		// actually join the room
-		await subscribe(`room:${room.name}`);
 		let clients = roomJoins.get(room.name);
 		if (clients === undefined) {
 			log.warn("room joins not present, creating");
 			clients = [];
+			roomJoins.set(room.name, clients);
 		}
 		clients.push(this);
-		roomJoins.set(room.name, clients);
 		await this.makeRoomRequest({
 			type: RoomRequestType.JoinRequest,
 			token: this.token,
@@ -235,18 +232,7 @@ export class Client {
 				token: this.token,
 			});
 		} catch (e) {
-			if (e instanceof RoomNotFoundException) {
-				// Room not found on this Node, pass it along
-				await redisClientAsync.publish(
-					`${ROOM_REQUEST_CHANNEL_PREFIX}:${this.room}`,
-					JSON.stringify({
-						request,
-						token: this.token,
-					})
-				);
-			} else {
-				throw e;
-			}
+			log.error(`Failed to process room request: ${e}`);
 		}
 	}
 
@@ -274,6 +260,8 @@ export function setup(): void {
 		}
 		await onConnect(ws, req);
 	});
+	roommanager.on("publish", onRoomPublish);
+	roommanager.on("unload", onRoomUnload);
 }
 
 /**
@@ -310,61 +298,66 @@ async function broadcast(roomName: string, text: string) {
 	}
 }
 
+async function onRoomPublish(roomName: string, msg: ServerMessage) {
+	const text = JSON.stringify(msg, replacer);
+	if (msg.action === "sync") {
+		let state = roomStates.get(roomName);
+		if (state === undefined) {
+			const stateText = await redisClientAsync.get(`room-sync:${roomName}`);
+			state = JSON.parse(stateText) as RoomStateSyncable;
+		}
+		const filtered = _.omit(msg, "action");
+		if (state) {
+			Object.assign(state, filtered);
+		} else {
+			// @ts-expect-error
+			state = filtered;
+		}
+		if (!state) {
+			throw new Error("state is still undefined, can't broadcast to clients");
+		}
+		roomStates.set(roomName, state);
+
+		await broadcast(roomName, text);
+	} else if (msg.action === "chat") {
+		await broadcast(roomName, text);
+	} else if (msg.action === "event" || msg.action === "eventcustom") {
+		await broadcast(roomName, text);
+	} else if (msg.action === "user") {
+		const clients = roomJoins.get(roomName);
+		if (!clients) {
+			return;
+		}
+		for (const client of clients) {
+			if (msg.user.id === client.id) {
+				msg.user.isYou = true;
+				client.sendObj(msg);
+				break;
+			}
+		}
+	} else {
+		log.error(`Unknown server message: ${(msg as { action: string }).action}`);
+	}
+}
+
+function onRoomUnload(roomName: string) {
+	const clients = roomJoins.get(roomName);
+	if (clients) {
+		for (const client of clients) {
+			client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
+		}
+	}
+
+	roomJoins.delete(roomName);
+	roomStates.delete(roomName);
+}
+
 async function onRedisMessage(channel: string, text: string) {
 	// handles sync messages published by the rooms.
 	log.silly(`pubsub message: ${channel}: ${text.substr(0, 200)}`);
 	const msg = JSON.parse(text) as ServerMessage;
 	if (channel.startsWith("room:")) {
 		const roomName = channel.replace("room:", "");
-		if (msg.action === "sync") {
-			let state = roomStates.get(roomName);
-			if (state === undefined) {
-				const stateText = await redisClientAsync.get(`room-sync:${roomName}`);
-				state = JSON.parse(stateText) as RoomStateSyncable;
-			}
-			const filtered = _.omit(msg, "action");
-			if (state) {
-				Object.assign(state, filtered);
-			} else {
-				// @ts-expect-error
-				state = filtered;
-			}
-			if (!state) {
-				throw new Error("state is still undefined, can't broadcast to clients");
-			}
-			roomStates.set(roomName, state);
-
-			await broadcast(roomName, text);
-		} else if (msg.action === "unload") {
-			const clients = roomJoins.get(roomName);
-			if (clients) {
-				for (const client of clients) {
-					client.socket.close(OttWebsocketError.ROOM_UNLOADED, "The room was unloaded.");
-				}
-			}
-
-			roomJoins.delete(roomName);
-			roomStates.delete(roomName);
-			await unsubscribe(`room:${roomName}`);
-		} else if (msg.action === "chat") {
-			await broadcast(roomName, text);
-		} else if (msg.action === "event" || msg.action === "eventcustom") {
-			await broadcast(roomName, text);
-		} else if (msg.action === "user") {
-			const clients = roomJoins.get(roomName);
-			if (!clients) {
-				return;
-			}
-			for (const client of clients) {
-				if (msg.user.id === client.id) {
-					msg.user.isYou = true;
-					client.sendObj(msg);
-					break;
-				}
-			}
-		} else {
-			log.error(`Unknown server message: ${(msg as { action: string }).action}`);
-		}
 	} else if (channel === ANNOUNCEMENT_CHANNEL) {
 		for (const client of connections) {
 			try {
