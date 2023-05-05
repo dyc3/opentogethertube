@@ -1,7 +1,6 @@
 const express = require("express");
 import { v4 as uuidv4 } from "uuid";
 import InfoExtract from "./infoextractor";
-import { RoomRequestType } from "../common/models/messages";
 const { getLogger } = require("./logger.js");
 import roommanager from "./roommanager";
 import { consumeRateLimitPoints } from "./rate-limit";
