@@ -4,6 +4,7 @@ node_modules
 /coverage
 /logs
 /ts-out
+/target
 
 # local env files
 .env.local
