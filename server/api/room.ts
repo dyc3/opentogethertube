@@ -487,7 +487,7 @@ router.patch("/:name", async (req, res, next) => {
 
 router.delete("/:name", async (req, res, next) => {
 	try {
-		await deleteRoom(req as express.Request, res, next);
+		await deleteRoom(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -495,7 +495,7 @@ router.delete("/:name", async (req, res, next) => {
 
 router.post("/:name/undo", async (req, res, next) => {
 	try {
-		await undoEvent(req as express.Request, res);
+		await undoEvent(req, res);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -503,7 +503,7 @@ router.post("/:name/undo", async (req, res, next) => {
 
 router.post("/:name/vote", async (req, res, next) => {
 	try {
-		await addVote(req as express.Request, res);
+		await addVote(req, res);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -511,7 +511,7 @@ router.post("/:name/vote", async (req, res, next) => {
 
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
-		await removeVote(req as express.Request, res);
+		await removeVote(req, res);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
