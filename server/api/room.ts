@@ -13,13 +13,15 @@ import { Grants } from "../../common/permissions";
 import { Video } from "common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import {
+	OttApiRequestAddToQueue,
+	OttApiRequestRemoveFromQueue,
 	OttApiRequestRoomCreate,
 	OttApiResponseGetRoom,
 	OttApiResponseRoomCreate,
 	OttResponseBody,
 } from "../../common/models/rest-api";
 import { getApiKey } from "../admin";
-import { RoomSettings } from "ott-common/models/types.js";
+import { AddRequest } from "ott-common/models/messages";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -331,6 +333,75 @@ const removeVote = async (req: express.Request, res) => {
 	});
 };
 
+const addToQueue: RequestHandler<
+	{ name: string },
+	OttResponseBody<unknown>,
+	OttApiRequestAddToQueue
+> = async (req, res) => {
+	let points = 5;
+	if ("videos" in req.body) {
+		points = 3 * req.body.videos.length;
+	}
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+
+	let roomRequest: AddRequest;
+	if ("videos" in req.body) {
+		roomRequest = {
+			type: RoomRequestType.AddRequest,
+			videos: req.body.videos,
+		};
+	} else if ("url" in req.body) {
+		roomRequest = {
+			type: RoomRequestType.AddRequest,
+			url: req.body.url,
+		};
+	} else if ("service" in req.body && "id" in req.body) {
+		roomRequest = {
+			type: RoomRequestType.AddRequest,
+			video: {
+				service: req.body.service,
+				id: req.body.id,
+			},
+		};
+	} else {
+		throw new BadApiArgumentException("service,id", "missing");
+	}
+	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
+	res.json({
+		success: true,
+	});
+};
+
+const removeFromQueue: RequestHandler<
+	{ name: string },
+	OttResponseBody<unknown>,
+	OttApiRequestRemoveFromQueue
+> = async (req, res) => {
+	let points = 5;
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+
+	if (req.body.service && req.body.id) {
+		await room.processUnauthorizedRequest(
+			{
+				type: RoomRequestType.RemoveRequest,
+				video: { service: req.body.service, id: req.body.id },
+			},
+			{ token: req.token }
+		);
+		res.json({
+			success: true,
+		});
+	} else {
+		throw new BadApiArgumentException("service,id", "missing");
+	}
+};
+
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	if (err instanceof OttException) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
@@ -339,8 +410,21 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 			res.status(404).json({
 				success: false,
 				error: {
-					name: "RoomNotFoundException",
+					name: err.name,
 					message: "Room not found",
+				},
+			});
+		} else if (
+			err.name === "VideoAlreadyQueuedException" ||
+			err.name === "PermissionDeniedException" ||
+			err.name === "ClientNotFoundInRoomException"
+		) {
+			log.warn(`Failed to post video: ${err.name}`);
+			res.status(400).json({
+				success: false,
+				error: {
+					name: err.name,
+					message: err.message,
 				},
 			});
 		} else if (err.name === "BadApiArgumentException") {
@@ -403,7 +487,7 @@ router.patch("/:name", async (req, res, next) => {
 
 router.delete("/:name", async (req, res, next) => {
 	try {
-		await deleteRoom(req as express.Request, res, next);
+		await deleteRoom(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -411,7 +495,7 @@ router.delete("/:name", async (req, res, next) => {
 
 router.post("/:name/undo", async (req, res, next) => {
 	try {
-		await undoEvent(req as express.Request, res);
+		await undoEvent(req, res);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -419,7 +503,7 @@ router.post("/:name/undo", async (req, res, next) => {
 
 router.post("/:name/vote", async (req, res, next) => {
 	try {
-		await addVote(req as express.Request, res);
+		await addVote(req, res);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -427,7 +511,23 @@ router.post("/:name/vote", async (req, res, next) => {
 
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
-		await removeVote(req as express.Request, res);
+		await removeVote(req, res);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.post("/:name/queue", async (req, res, next) => {
+	try {
+		await addToQueue(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.delete("/:name/queue", async (req, res, next) => {
+	try {
+		await removeFromQueue(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}

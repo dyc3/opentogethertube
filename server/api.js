@@ -1,7 +1,6 @@
 const express = require("express");
 import { v4 as uuidv4 } from "uuid";
 import InfoExtract from "./infoextractor";
-import { RoomRequestType } from "../common/models/messages";
 const { getLogger } = require("./logger.js");
 import roommanager from "./roommanager";
 import { consumeRateLimitPoints } from "./rate-limit";
@@ -16,64 +15,6 @@ import { getApiKey } from "./admin";
 import { conf } from "./ott-config";
 
 const log = getLogger("api");
-
-function handleGetRoomFailure(res, err) {
-	if (err.name === "RoomNotFoundException") {
-		res.status(404).json({
-			success: false,
-			error: {
-				name: err.name,
-				message: "Room not found",
-			},
-		});
-	} else if (
-		err.name === "PermissionDeniedException" ||
-		err.name === "ClientNotFoundInRoomException"
-	) {
-		res.status(400).json({
-			success: false,
-			error: {
-				name: err.name,
-				message: err.message,
-			},
-		});
-	} else {
-		log.error(`Unhandled exception when getting room: ${err} ${err.stack}`);
-		res.status(500).json({
-			success: false,
-			error: {
-				name: "Unknown",
-				message: "Failed to get room",
-			},
-		});
-	}
-}
-
-function handlePostVideoFailure(res, err) {
-	if (
-		err.name === "VideoAlreadyQueuedException" ||
-		err.name === "PermissionDeniedException" ||
-		err.name === "ClientNotFoundInRoomException"
-	) {
-		log.warn(`Failed to post video: ${err.name}`);
-		res.status(400).json({
-			success: false,
-			error: {
-				name: err.name,
-				message: err.message,
-			},
-		});
-	} else {
-		log.error(`Unhandled exception when getting video: ${err} ${err.stack}`);
-		res.status(500).json({
-			success: false,
-			error: {
-				name: "Unknown",
-				message: "Failed to get video",
-			},
-		});
-	}
-}
 
 const router = express.Router();
 
@@ -122,82 +63,6 @@ router.post("/room/generate", async (req, res) => {
 		success: true,
 		room: roomName,
 	});
-});
-
-router.post("/room/:name/queue", async (req, res) => {
-	let room;
-	try {
-		let points = 5;
-		if (req.body.videos) {
-			points = 3 * req.body.videos.length;
-		}
-		if (!(await consumeRateLimitPoints(res, req.ip, points))) {
-			return;
-		}
-		room = await roommanager.getRoom(req.params.name);
-	} catch (err) {
-		handleGetRoomFailure(res, err);
-		return;
-	}
-
-	try {
-		let roomRequest = { type: RoomRequestType.AddRequest };
-		if (req.body.videos) {
-			roomRequest.videos = req.body.videos;
-		} else if (req.body.url) {
-			roomRequest.url = req.body.url;
-		} else if (req.body.service && req.body.id) {
-			roomRequest.video = { service: req.body.service, id: req.body.id };
-		} else {
-			res.status(400).json({
-				success: false,
-				error: "Invalid parameters",
-			});
-			return;
-		}
-		await room.processUnauthorizedRequest(roomRequest, { token: req.token });
-		res.json({
-			success: true,
-		});
-	} catch (err) {
-		handlePostVideoFailure(res, err);
-	}
-});
-
-router.delete("/room/:name/queue", async (req, res) => {
-	let room;
-	try {
-		let points = 5;
-		if (!(await consumeRateLimitPoints(res, req.ip, points))) {
-			return;
-		}
-		room = await roommanager.getRoom(req.params.name);
-	} catch (err) {
-		handleGetRoomFailure(res, err);
-		return;
-	}
-
-	try {
-		if (req.body.service && req.body.id) {
-			await room.processUnauthorizedRequest(
-				{
-					type: RoomRequestType.RemoveRequest,
-					video: { service: req.body.service, id: req.body.id },
-				},
-				{ token: req.token }
-			);
-			res.json({
-				success: true,
-			});
-		} else {
-			res.status(400).json({
-				success: false,
-				error: "Invalid parameters",
-			});
-		}
-	} catch (err) {
-		handlePostVideoFailure(res, err);
-	}
 });
 
 router.get("/data/previewAdd", async (req, res) => {

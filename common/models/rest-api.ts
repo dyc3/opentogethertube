@@ -1,6 +1,6 @@
 import { Grants } from "../permissions";
 import { QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
-import { QueueItem } from "./video";
+import { QueueItem, VideoId } from "./video";
 
 export type OttResponseBody<T = undefined, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
@@ -56,3 +56,14 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 	autoSkipSegments: boolean;
 	users: RoomUserInfo[];
 }
+
+export type OttApiRequestAddToQueue =
+	| {
+			videos: VideoId[];
+	  }
+	| VideoId
+	| {
+			url: string;
+	  };
+
+export type OttApiRequestRemoveFromQueue = VideoId;
