@@ -2,7 +2,6 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_balancer_protocol::*;
-use rand::seq::IteratorRandom;
 use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;

@@ -1,8 +1,8 @@
 use clap::Parser;
 use futures_util::{SinkExt, StreamExt};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncReadExt;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
-use tracing::{debug, error, info, trace, Level};
+use tracing::{debug, error, info, Level};
 use url::Url;
 
 mod cli;

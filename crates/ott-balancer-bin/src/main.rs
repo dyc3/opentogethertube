@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use balancer::{start_dispatcher, Balancer, BalancerContext};
 use rocket::fairing::AdHoc;
-use rocket_ws as ws;
 use tokio::sync::RwLock;
 
 mod balancer;
@@ -17,7 +16,7 @@ fn launch() -> _ {
     console_subscriber::init();
 
     let ctx = Arc::new(RwLock::new(BalancerContext::new()));
-    let balancer = Balancer::new(ctx.clone());
+    let balancer = Balancer::new(ctx);
     let link = balancer.new_link();
 
     rocket::build()

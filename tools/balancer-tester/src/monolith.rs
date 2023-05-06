@@ -75,7 +75,7 @@ impl SimMonolith {
                     room, client_id, payload
                 );
 
-                if let Ok(_) = serde_json::from_str::<SimpleEcho>(&payload.get()) {
+                if serde_json::from_str::<SimpleEcho>(&payload.get()).is_ok() {
                     let msg = MsgM2B::RoomMsg {
                         room,
                         client_id: Some(client_id),
