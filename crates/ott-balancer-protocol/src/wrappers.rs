@@ -10,39 +10,39 @@ pub struct RoomName(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct MonolithId(Uuid);
 
-impl Into<Uuid> for ClientId {
-    fn into(self) -> Uuid {
-        self.0
+impl From<ClientId> for Uuid {
+    fn from(val: ClientId) -> Self {
+        val.0
     }
 }
 
-impl Into<ClientId> for Uuid {
-    fn into(self) -> ClientId {
-        ClientId(self)
+impl From<Uuid> for ClientId {
+    fn from(val: Uuid) -> Self {
+        Self(val)
     }
 }
 
-impl Into<String> for RoomName {
-    fn into(self) -> String {
-        self.0
+impl From<RoomName> for String {
+    fn from(val: RoomName) -> Self {
+        val.0
     }
 }
 
-impl Into<RoomName> for String {
-    fn into(self) -> RoomName {
-        RoomName(self)
+impl From<String> for RoomName {
+    fn from(val: String) -> Self {
+        Self(val)
     }
 }
 
-impl Into<Uuid> for MonolithId {
-    fn into(self) -> Uuid {
-        self.0
+impl From<MonolithId> for Uuid {
+    fn from(val: MonolithId) -> Self {
+        val.0
     }
 }
 
-impl Into<MonolithId> for Uuid {
-    fn into(self) -> MonolithId {
-        MonolithId(self)
+impl From<Uuid> for MonolithId {
+    fn from(val: Uuid) -> Self {
+        Self(val)
     }
 }
 

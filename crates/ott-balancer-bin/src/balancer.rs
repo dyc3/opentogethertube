@@ -224,7 +224,7 @@ impl BalancerContext {
         monolith.add_client(&client.room, client.id);
         monolith
             .send(&MsgB2M::Join {
-                room: client.room.clone().into(),
+                room: client.room.clone(),
                 client: client.id,
                 token: client.token.clone(),
             })
@@ -344,13 +344,13 @@ pub async fn dispatch_client_message(
     let raw_value: Box<RawValue> = msg.message().deserialize()?;
 
     let ctx_read = ctx.read().await;
-    let Some(client) = ctx_read.clients.get(&msg.id()) else {
+    let Some(client) = ctx_read.clients.get(msg.id()) else {
         anyhow::bail!("client not found");
     };
     let Some(monolith_id) = ctx_read.rooms_to_monoliths.get(&client.room) else {
         anyhow::bail!("room not found");
     };
-    let Some(monolith) = ctx_read.monoliths.get(&monolith_id) else {
+    let Some(monolith) = ctx_read.monoliths.get(monolith_id) else {
         anyhow::bail!("monolith not found");
     };
 
@@ -393,12 +393,12 @@ pub async fn dispatch_monolith_message(
     println!("got message from monolith: {:?}", msg);
 
     match msg {
-        MsgM2B::Loaded { room } => todo!(),
-        MsgM2B::Unloaded { room } => todo!(),
-        MsgM2B::Gossip { rooms } => todo!(),
+        MsgM2B::Loaded { room: _ } => todo!(),
+        MsgM2B::Unloaded { room: _ } => todo!(),
+        MsgM2B::Gossip { rooms: _ } => todo!(),
         MsgM2B::RoomMsg {
             room,
-            client_id,
+            client_id: _,
             payload,
         } => {
             let ctx_read = ctx.read().await;
