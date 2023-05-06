@@ -93,6 +93,7 @@ impl SimMonolith {
         self.rooms.insert(room.name.clone(), room);
     }
 
+    #[allow(dead_code)]
     pub fn unload_room(&mut self, room: &RoomName) {
         info!("unloading room {}", room);
         self.rooms.remove(room);

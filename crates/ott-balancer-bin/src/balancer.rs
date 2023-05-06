@@ -7,6 +7,7 @@ use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 use ws::Message;
 
+use crate::monolith::Room;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -246,6 +247,7 @@ impl BalancerContext {
         self.monoliths.insert(monolith.id(), monolith);
     }
 
+    #[allow(dead_code)]
     pub fn remove_monolith(&mut self, monolith_id: MonolithId) {
         self.monoliths.remove(&monolith_id);
     }
@@ -397,8 +399,26 @@ pub async fn dispatch_monolith_message(
     println!("got message from monolith: {:?}", msg);
 
     match msg {
-        MsgM2B::Loaded { room: _ } => todo!(),
-        MsgM2B::Unloaded { room: _ } => todo!(),
+        MsgM2B::Loaded { room } => {
+            let mut ctx_write = ctx.write().await;
+            ctx_write
+                .rooms_to_monoliths
+                .insert(room.clone(), *monolith_id);
+            ctx_write
+                .monoliths
+                .get_mut(monolith_id)
+                .unwrap()
+                .add_room(Room::new(room));
+        }
+        MsgM2B::Unloaded { room } => {
+            let mut ctx_write = ctx.write().await;
+            ctx_write.rooms_to_monoliths.remove(&room);
+            ctx_write
+                .monoliths
+                .get_mut(monolith_id)
+                .unwrap()
+                .remove_room(room);
+        }
         MsgM2B::Gossip { rooms: _ } => todo!(),
         MsgM2B::RoomMsg {
             room,
