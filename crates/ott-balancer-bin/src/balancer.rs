@@ -2,7 +2,6 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_balancer_protocol::*;
-use rand::seq::IteratorRandom;
 use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
@@ -225,7 +224,7 @@ impl BalancerContext {
         monolith.add_client(&client.room, client.id);
         monolith
             .send(&MsgB2M::Join {
-                room: client.room.clone().into(),
+                room: client.room.clone(),
                 client: client.id,
                 token: client.token.clone(),
             })
@@ -331,7 +330,7 @@ pub async fn join_client(
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
     // todo!("inform the monolith that the client left");
     println!("client left: {:?}", id);
-    ctx.write().await.remove_client(id);
+    ctx.write().await.remove_client(id)?;
 
     Ok(())
 }
@@ -345,13 +344,13 @@ pub async fn dispatch_client_message(
     let raw_value: Box<RawValue> = msg.message().deserialize()?;
 
     let ctx_read = ctx.read().await;
-    let Some(client) = ctx_read.clients.get(&msg.id()) else {
+    let Some(client) = ctx_read.clients.get(msg.id()) else {
         anyhow::bail!("client not found");
     };
     let Some(monolith_id) = ctx_read.rooms_to_monoliths.get(&client.room) else {
         anyhow::bail!("room not found");
     };
-    let Some(monolith) = ctx_read.monoliths.get(&monolith_id) else {
+    let Some(monolith) = ctx_read.monoliths.get(monolith_id) else {
         anyhow::bail!("monolith not found");
     };
 
@@ -394,22 +393,22 @@ pub async fn dispatch_monolith_message(
     println!("got message from monolith: {:?}", msg);
 
     match msg {
-        MsgM2B::Loaded { room } => todo!(),
-        MsgM2B::Unloaded { room } => todo!(),
-        MsgM2B::Gossip { rooms } => todo!(),
+        MsgM2B::Loaded { room: _ } => todo!(),
+        MsgM2B::Unloaded { room: _ } => todo!(),
+        MsgM2B::Gossip { rooms: _ } => todo!(),
         MsgM2B::RoomMsg {
             room,
-            client_id,
+            client_id: _,
             payload,
         } => {
             let ctx_read = ctx.read().await;
 
             let Some(room) = ctx_read
                 .monoliths
-                .get(&monolith_id)
+                .get(monolith_id)
                 .unwrap()
                 .rooms()
-                .get(&room.into()) else {
+                .get(&room) else {
                     anyhow::bail!("room not found on monolith");
                 };
 
@@ -420,7 +419,7 @@ pub async fn dispatch_monolith_message(
             // TODO: optimize this using a broadcast channel
             let built_msg = SocketMessage(ws::Message::text(payload.to_string()));
             for client in room.clients() {
-                let Some(client) = ctx_read.clients.get(&client) else {
+                let Some(client) = ctx_read.clients.get(client) else {
                     anyhow::bail!("client not found");
                 };
 

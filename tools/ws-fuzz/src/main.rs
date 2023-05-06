@@ -1,6 +1,5 @@
 use websocket::client::builder::ClientBuilder;
 use websocket::dataframe::DataFrame;
-use websocket::ws::Sender;
 
 fn main() -> anyhow::Result<()> {
     test_auth_message()?;
@@ -8,7 +7,8 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn test_malformed_JSON() -> anyhow::Result<()> {
+#[allow(dead_code)]
+fn test_malformed_json() -> anyhow::Result<()> {
     let mut client = ClientBuilder::new("ws://localhost:3000/api/room/test")?.connect_insecure()?;
 
     client.send_message(&websocket::OwnedMessage::Text("Hello, world!".to_string()))?;
@@ -16,6 +16,7 @@ fn test_malformed_JSON() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn test_malformed_header_rsv2_rsv3() -> anyhow::Result<()> {
     let mut client = ClientBuilder::new("ws://localhost:3000/api/room/test")?.connect_insecure()?;
 
@@ -33,6 +34,7 @@ fn test_malformed_header_rsv2_rsv3() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn test_auth_message() -> anyhow::Result<()> {
     let mut client = ClientBuilder::new("ws://localhost:8081/api/room/test")?.connect_insecure()?;
 

@@ -1,4 +1,4 @@
-use std::{f32::consts::E, time::Duration};
+use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use rocket::State;
