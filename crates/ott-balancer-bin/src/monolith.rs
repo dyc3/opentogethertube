@@ -111,11 +111,11 @@ pub fn monolith_entry(ws: ws::WebSocket, balancer: &State<BalancerLink>) -> ws::
             let monolith_id = Uuid::new_v4().into();
             let monolith = NewMonolith { id: monolith_id };
 
-            let mut receiver = balancer.send_monolith(monolith).await.unwrap();
+            let mut outbound_rx = balancer.send_monolith(monolith).await.unwrap();
 
             loop {
                 tokio::select! {
-                    msg = receiver.recv() => {
+                    msg = outbound_rx.recv() => {
                         if let Some(msg) = msg {
                             if let Err(err) = stream.send(msg.0).await {
                                 eprintln!("Error sending ws message to monolith: {:?}", err);
