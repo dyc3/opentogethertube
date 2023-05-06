@@ -1,0 +1,31 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    # container: rust:1-buster
+
+    steps:
+    - run: rustup component add clippy rustfmt
+    - uses: actions/checkout@v3
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2.2.1
+    - name: Check format
+      run: cargo fmt --all -- --check
+    - name: Check
+      run: cargo check --verbose --all-targets --all-features
+    - name: Clippy
+      run: cargo clippy --workspace --no-deps --all-features --all-targets -- -D warnings
+    - name: Validate documentation
+      run: cargo doc --workspace --no-deps --all-features
+    - name: Run tests
+      run: cargo test --verbose
