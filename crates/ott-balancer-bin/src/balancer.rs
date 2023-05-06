@@ -5,7 +5,9 @@ use ott_balancer_protocol::*;
 use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
+use ws::Message;
 
+use crate::monolith::Room;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -245,6 +247,7 @@ impl BalancerContext {
         self.monoliths.insert(monolith.id(), monolith);
     }
 
+    #[allow(dead_code)]
     pub fn remove_monolith(&mut self, monolith_id: MonolithId) {
         self.monoliths.remove(&monolith_id);
     }
@@ -341,25 +344,28 @@ pub async fn dispatch_client_message(
 ) -> anyhow::Result<()> {
     println!("client message: {:?}", msg);
 
-    let raw_value: Box<RawValue> = msg.message().deserialize()?;
+    match msg.message().0 {
+        Message::Text(_) | Message::Binary(_) => {
+            let raw_value: Box<RawValue> = msg.message().deserialize()?;
 
-    let ctx_read = ctx.read().await;
-    let Some(client) = ctx_read.clients.get(msg.id()) else {
-        anyhow::bail!("client not found");
-    };
-    let Some(monolith_id) = ctx_read.rooms_to_monoliths.get(&client.room) else {
-        anyhow::bail!("room not found");
-    };
-    let Some(monolith) = ctx_read.monoliths.get(monolith_id) else {
-        anyhow::bail!("monolith not found");
-    };
+            let ctx_read = ctx.read().await;
+            let Ok(monolith) = ctx_read.find_monolith(*msg.id()) else {
+                anyhow::bail!("monolith not found");
+            };
 
-    monolith
-        .send(&MsgB2M::ClientMsg {
-            client_id: client.id,
-            payload: raw_value,
-        })
-        .await?;
+            monolith
+                .send(&MsgB2M::ClientMsg {
+                    client_id: *msg.id(),
+                    payload: raw_value,
+                })
+                .await?;
+        }
+        Message::Close(_) => {
+            leave_client(ctx, *msg.id()).await?;
+            return Ok(());
+        }
+        _ => {}
+    }
 
     Ok(())
 }
@@ -393,8 +399,26 @@ pub async fn dispatch_monolith_message(
     println!("got message from monolith: {:?}", msg);
 
     match msg {
-        MsgM2B::Loaded { room: _ } => todo!(),
-        MsgM2B::Unloaded { room: _ } => todo!(),
+        MsgM2B::Loaded { room } => {
+            let mut ctx_write = ctx.write().await;
+            ctx_write
+                .rooms_to_monoliths
+                .insert(room.clone(), *monolith_id);
+            ctx_write
+                .monoliths
+                .get_mut(monolith_id)
+                .unwrap()
+                .add_room(Room::new(room));
+        }
+        MsgM2B::Unloaded { room } => {
+            let mut ctx_write = ctx.write().await;
+            ctx_write.rooms_to_monoliths.remove(&room);
+            ctx_write
+                .monoliths
+                .get_mut(monolith_id)
+                .unwrap()
+                .remove_room(room);
+        }
         MsgM2B::Gossip { rooms: _ } => todo!(),
         MsgM2B::RoomMsg {
             room,

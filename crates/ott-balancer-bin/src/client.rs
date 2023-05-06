@@ -118,26 +118,22 @@ pub fn client_entry<'r>(
                 tokio::select! {
                     msg = outbound_rx.recv() => {
                         if let Some(msg) = msg {
-                            stream.send(msg.0).await;
+                            if let Err(err) = stream.send(msg.0).await {
+                                eprintln!("Error sending ws message to client: {:?}", err);
+                                break;
+                            }
                         } else {
                             break;
                         }
                     }
-                    Some(Ok(message)) = stream.next() => {
-                        match message {
-                            ws::Message::Text(_) => {
-                                balancer
-                                    .send_client_message(client_id, SocketMessage(message))
-                                    .await;
-                            }
-                            ws::Message::Close(_) => {
-                                println!("client socket closed: {}", client_id);
+
+                    Some(Ok(msg)) = stream.next() => {
+                        if let Err(err) = balancer
+                            .send_client_message(client_id, SocketMessage(msg))
+                            .await {
+                                eprintln!("Error sending client message to balancer: {:?}", err);
                                 break;
                             }
-                            _ => {
-                                println!("unhandled client message: {:?}", message)
-                            }
-                        }
                     }
                 }
             }

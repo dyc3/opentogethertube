@@ -111,32 +111,28 @@ pub fn monolith_entry(ws: ws::WebSocket, balancer: &State<BalancerLink>) -> ws::
             let monolith_id = Uuid::new_v4().into();
             let monolith = NewMonolith { id: monolith_id };
 
-            let mut receiver = balancer.send_monolith(monolith).await.unwrap();
+            let mut outbound_rx = balancer.send_monolith(monolith).await.unwrap();
 
             loop {
                 tokio::select! {
-                    msg = receiver.recv() => {
+                    msg = outbound_rx.recv() => {
                         if let Some(msg) = msg {
-                            stream.send(msg.0).await;
+                            if let Err(err) = stream.send(msg.0).await {
+                                eprintln!("Error sending ws message to monolith: {:?}", err);
+                                break;
+                            }
                         } else {
                             break;
                         }
                     }
 
                     Some(Ok(msg)) = stream.next() => {
-                        match msg {
-                            ws::Message::Text(_) => {
-                                balancer
-                                    .send_monolith_message(monolith_id, SocketMessage(msg))
-                                    .await;
+                        if let Err(err) = balancer
+                            .send_monolith_message(monolith_id, SocketMessage(msg))
+                            .await {
+                                eprintln!("Error sending monolith message to balancer: {:?}", err);
+                                break;
                             }
-                            ws::Message::Close(_) => {
-                                println!("monolith socket closed: {}", monolith_id);
-                            }
-                            _ => {
-                                println!("unhandled monolith message: {:?}", msg);
-                            }
-                        }
                     }
                 }
             }
