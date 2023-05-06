@@ -330,7 +330,7 @@ pub async fn join_client(
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
     // todo!("inform the monolith that the client left");
     println!("client left: {:?}", id);
-    ctx.write().await.remove_client(id);
+    ctx.write().await.remove_client(id)?;
 
     Ok(())
 }
@@ -405,10 +405,10 @@ pub async fn dispatch_monolith_message(
 
             let Some(room) = ctx_read
                 .monoliths
-                .get(&monolith_id)
+                .get(monolith_id)
                 .unwrap()
                 .rooms()
-                .get(&room.into()) else {
+                .get(&room) else {
                     anyhow::bail!("room not found on monolith");
                 };
 
@@ -419,7 +419,7 @@ pub async fn dispatch_monolith_message(
             // TODO: optimize this using a broadcast channel
             let built_msg = SocketMessage(ws::Message::text(payload.to_string()));
             for client in room.clients() {
-                let Some(client) = ctx_read.clients.get(&client) else {
+                let Some(client) = ctx_read.clients.get(client) else {
                     anyhow::bail!("client not found");
                 };
 
