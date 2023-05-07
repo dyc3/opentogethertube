@@ -8,11 +8,13 @@ use hyper::service::Service;
 use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
+use ott_balancer_protocol::RoomName;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info};
 
 use crate::balancer::{BalancerContext, BalancerLink};
+use crate::client::client_entry;
 use crate::monolith::monolith_entry;
 
 static NOTFOUND: &[u8] = b"Not Found";
@@ -63,7 +65,30 @@ impl Service<Request<IncomingBody>> for BalancerService {
                 "health" => mk_response("OK".to_owned()),
                 "status" => mk_response(format!("monoliths: {}", ctx_read.monoliths.len())),
                 "metrics" => mk_response("TODO: prometheus metrics".to_owned()),
-                "room" => todo!("handle room api"),
+                "room" => {
+                    let Some(room_name) = route.params().find("room_name") else {
+                        return Ok(not_found());
+                    };
+
+                    let room_name: RoomName = room_name.to_owned().into();
+                    if crate::websocket::is_websocket_upgrade(&req) {
+                        let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();
+
+                        // Spawn a task to handle the websocket connection.
+                        let _ = tokio::task::Builder::new().name("client connection").spawn(
+                            async move {
+                                if let Err(e) = client_entry(room_name, websocket, link).await {
+                                    error!("Error in websocket connection: {}", e);
+                                }
+                            },
+                        );
+
+                        // Return the response so the spawned future can continue.
+                        Ok(response)
+                    } else {
+                        todo!("proxy room API request");
+                    }
+                }
                 "monolith" => {
                     if crate::websocket::is_websocket_upgrade(&req) {
                         let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();

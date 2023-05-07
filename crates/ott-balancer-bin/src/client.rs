@@ -1,12 +1,12 @@
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
-use rocket::State;
 use rocket_ws as ws;
+use tracing::info;
 use uuid::Uuid;
 
-use crate::balancer::BalancerLink;
 use crate::messages::*;
+use crate::{balancer::BalancerLink, websocket::HyperWebsocket};
 use ott_balancer_protocol::{client::*, *};
 
 pub struct UnauthorizedClient {
@@ -57,23 +57,22 @@ impl BalancerClient {
     }
 }
 
-// #[get("/api/room/<room_name>")]
-pub fn client_entry<'r>(
-    room_name: &str,
-    ws: ws::WebSocket,
-    balancer: &'r State<BalancerLink>,
-) -> ws::Channel<'r> {
-    println!("client connected, room: {}", room_name);
+pub async fn client_entry<'r>(
+    room_name: RoomName,
+    ws: HyperWebsocket,
+    balancer: BalancerLink,
+) -> anyhow::Result<()> {
+    info!("client connected, room: {}", room_name);
+    let mut stream = ws.await?;
+
     let client_id = Uuid::new_v4().into();
     let client = UnauthorizedClient {
         id: client_id,
-        room: room_name.to_string().into(),
+        room: room_name,
     };
 
-    ws.channel(move |mut stream| {
-        Box::pin(async move {
-            let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
-            let Ok(Some(Ok(message))) = result else {
+    let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
+    let Ok(Some(Ok(message))) = result else {
                 stream.close(Some(ws::frame::CloseFrame {
                     code: ws::frame::CloseCode::Library(4004),
                     reason: "did not send auth token".into(),
@@ -81,64 +80,62 @@ pub fn client_entry<'r>(
                 return Ok(());
             };
 
-            let mut outbound_rx;
+    let mut outbound_rx;
+    match message {
+        ws::Message::Text(text) => {
+            let message: ClientMessage = serde_json::from_str(&text).unwrap();
             match message {
-                ws::Message::Text(text) => {
-                    let message: ClientMessage = serde_json::from_str(&text).unwrap();
-                    match message {
-                        ClientMessage::Auth(message) => {
-                            println!("client authenticated, handing off to balancer");
-                            let client = client.into_new_client(message.token);
-                            let Ok(rx) = balancer.send_client(client).await else {
+                ClientMessage::Auth(message) => {
+                    println!("client authenticated, handing off to balancer");
+                    let client = client.into_new_client(message.token);
+                    let Ok(rx) = balancer.send_client(client).await else {
                                 stream.close(Some(ws::frame::CloseFrame {
                                     code: ws::frame::CloseCode::Library(4000),
                                     reason: "failed to send client to balancer".into(),
                                 })).await?;
                                 return Ok(());
                             };
-                            outbound_rx = rx;
-                        }
-                        _ => {
-                            stream
-                                .close(Some(ws::frame::CloseFrame {
-                                    code: ws::frame::CloseCode::Library(4004),
-                                    reason: "did not send auth token".into(),
-                                }))
-                                .await?;
-                            return Ok(());
-                        }
-                    }
+                    outbound_rx = rx;
                 }
                 _ => {
+                    stream
+                        .close(Some(ws::frame::CloseFrame {
+                            code: ws::frame::CloseCode::Library(4004),
+                            reason: "did not send auth token".into(),
+                        }))
+                        .await?;
                     return Ok(());
                 }
             }
+        }
+        _ => {
+            return Ok(());
+        }
+    }
 
-            loop {
-                tokio::select! {
-                    msg = outbound_rx.recv() => {
-                        if let Some(msg) = msg {
-                            if let Err(err) = stream.send(msg.0).await {
-                                eprintln!("Error sending ws message to client: {:?}", err);
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
+    loop {
+        tokio::select! {
+            msg = outbound_rx.recv() => {
+                if let Some(msg) = msg {
+                    if let Err(err) = stream.send(msg.0).await {
+                        eprintln!("Error sending ws message to client: {:?}", err);
+                        break;
                     }
-
-                    Some(Ok(msg)) = stream.next() => {
-                        if let Err(err) = balancer
-                            .send_client_message(client_id, SocketMessage(msg))
-                            .await {
-                                eprintln!("Error sending client message to balancer: {:?}", err);
-                                break;
-                            }
-                    }
+                } else {
+                    break;
                 }
             }
 
-            Ok(())
-        })
-    })
+            Some(Ok(msg)) = stream.next() => {
+                if let Err(err) = balancer
+                    .send_client_message(client_id, SocketMessage(msg))
+                    .await {
+                        eprintln!("Error sending client message to balancer: {:?}", err);
+                        break;
+                    }
+            }
+        }
+    }
+
+    Ok(())
 }
