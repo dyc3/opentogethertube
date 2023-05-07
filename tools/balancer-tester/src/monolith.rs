@@ -28,10 +28,14 @@ impl SimMonolith {
             loop {
                 tokio::select! {
                     msg = inbound_rx.recv() => {
-                        self.handle_msg(msg.unwrap(), &outbound_tx).await;
+                        match msg {
+                            Some(msg) => self.handle_msg(msg, &outbound_tx).await,
+                            None => break,
+                        }
                     }
                 }
             }
+            info!("connection ended");
         });
         (handle, inbound_tx, outbound_rx)
     }

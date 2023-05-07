@@ -10,7 +10,7 @@ use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::monolith::monolith_entry;
@@ -52,7 +52,12 @@ impl Service<Request<IncomingBody>> for BalancerService {
             let Ok(route) = ROUTER.recognize(req.uri().path()) else {
                 return Ok(not_found());
             };
-            debug!("Inbound request: {} {}", req.method(), route.handler());
+            info!(
+                "Inbound request: {} {} => {}",
+                req.method(),
+                req.uri().path(),
+                route.handler()
+            );
 
             let res = match **route.handler() {
                 "health" => mk_response("OK".to_owned()),

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::{monolith::*, *};
 use rocket_ws as ws;
-use tracing::error;
+use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::websocket::HyperWebsocket;
@@ -106,12 +106,14 @@ pub struct NewMonolith {
 pub async fn monolith_entry(ws: HyperWebsocket, balancer: BalancerLink) -> anyhow::Result<()> {
     // TODO: maybe wait for first gossip?
 
+    info!("Monolith connected");
     let mut stream = ws.await?;
 
     let monolith_id = Uuid::new_v4().into();
     let monolith = NewMonolith { id: monolith_id };
 
     let mut outbound_rx = balancer.send_monolith(monolith).await.unwrap();
+    info!("Monolith {id} linked to balancer", id = monolith_id);
 
     loop {
         tokio::select! {

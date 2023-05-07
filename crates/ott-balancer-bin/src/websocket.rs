@@ -4,6 +4,7 @@ use http_body_util::Full;
 use hyper::body::Bytes;
 use hyper::{Request, Response};
 use pin_project::pin_project;
+use rocket::log::private::error;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -30,12 +31,18 @@ impl std::future::Future for HyperWebsocket {
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let this = self.project();
-        let upgraded = match this.inner.poll(cx) {
+        let maybe_upgraded = match this.inner.poll(cx) {
             Poll::Pending => return Poll::Pending,
             Poll::Ready(x) => x,
         };
 
-        let upgraded = upgraded.map_err(|_| Error::Protocol(ProtocolError::HandshakeIncomplete))?;
+        let upgraded = match maybe_upgraded {
+            Ok(upgraded) => upgraded,
+            Err(err) => {
+                error!("Error upgrading websocket: {err}");
+                return Poll::Ready(Err(Error::Protocol(ProtocolError::HandshakeIncomplete)));
+            }
+        };
 
         let stream = WebSocketStream::from_raw_socket(upgraded, Role::Server, this.config.take());
         tokio::pin!(stream);

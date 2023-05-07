@@ -5,9 +5,10 @@ use http_body_util::Full;
 use hyper::{body::Bytes, server::conn::http1, service::service_fn, Request, Response};
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
-use tracing::{error, info};
+use tracing::{error, info, Level};
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 
 use crate::service::BalancerService;
 
@@ -23,8 +24,11 @@ mod websocket;
 async fn main() -> anyhow::Result<()> {
     let console_layer = console_subscriber::spawn();
     let fmt_layer = tracing_subscriber::fmt::layer();
+    let filter_layer =
+        EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new("debug"))?;
     tracing_subscriber::registry()
         .with(console_layer)
+        .with(filter_layer)
         .with(fmt_layer)
         .init();
 
@@ -50,10 +54,10 @@ async fn main() -> anyhow::Result<()> {
 
         // Spawn a tokio task to serve multiple connections concurrently
         tokio::task::spawn(async move {
-            if let Err(err) = http1::Builder::new()
+            let conn = http1::Builder::new()
                 .serve_connection(stream, service)
-                .await
-            {
+                .with_upgrades();
+            if let Err(err) = conn.await {
                 error!("Error serving connection: {:?}", err);
             }
         });
