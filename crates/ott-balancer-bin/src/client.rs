@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use rocket_ws as ws;
-use tracing::info;
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use crate::messages::*;
@@ -86,7 +86,7 @@ pub async fn client_entry<'r>(
             let message: ClientMessage = serde_json::from_str(&text).unwrap();
             match message {
                 ClientMessage::Auth(message) => {
-                    println!("client authenticated, handing off to balancer");
+                    debug!("client authenticated, handing off to balancer");
                     let client = client.into_new_client(message.token);
                     let Ok(rx) = balancer.send_client(client).await else {
                                 stream.close(Some(ws::frame::CloseFrame {
@@ -118,7 +118,7 @@ pub async fn client_entry<'r>(
             msg = outbound_rx.recv() => {
                 if let Some(msg) = msg {
                     if let Err(err) = stream.send(msg.0).await {
-                        eprintln!("Error sending ws message to client: {:?}", err);
+                        error!("Error sending ws message to client: {:?}", err);
                         break;
                     }
                 } else {
@@ -130,7 +130,7 @@ pub async fn client_entry<'r>(
                 if let Err(err) = balancer
                     .send_client_message(client_id, SocketMessage(msg))
                     .await {
-                        eprintln!("Error sending client message to balancer: {:?}", err);
+                        error!("Error sending client message to balancer: {:?}", err);
                         break;
                     }
             }
