@@ -1547,6 +1547,7 @@ dependencies = [
  "futures-util",
  "http-body-util",
  "hyper 1.0.0-rc.3",
+ "once_cell",
  "ott-balancer-protocol",
  "rand 0.8.5",
  "rocket",

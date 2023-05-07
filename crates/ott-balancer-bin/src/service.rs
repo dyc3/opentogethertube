@@ -7,11 +7,24 @@ use hyper::body::Bytes;
 use hyper::service::Service;
 use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
+use once_cell::sync::Lazy;
+use route_recognizer::Router;
 use tokio::sync::RwLock;
+use tracing::debug;
 
 use crate::balancer::{BalancerContext, BalancerLink};
 
 static NOTFOUND: &[u8] = b"Not Found";
+
+static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
+    let mut router = Router::new();
+    router.add("/api/status", "status");
+    router.add("/api/status/metrics", "metrics");
+    router.add("/api/room/:room_name", "room");
+    router.add("/monolith", "monolith");
+    router.add("/*", "other");
+    router
+});
 
 #[derive(Clone)]
 pub struct BalancerService {
@@ -34,9 +47,16 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         Box::pin(async move {
             let ctx_read = ctx.read().await;
-            let res = match req.uri().path() {
-                "/status" => mk_response("OK".to_owned()),
-                "/balance" => mk_response(format!("monoliths: {:?}", ctx_read.monoliths)),
+            let Ok(route) = ROUTER.recognize(req.uri().path()) else {
+                return Ok(not_found());
+            };
+            debug!("Inbound request: {} {}", req.method(), route.handler());
+
+            let res = match **route.handler() {
+                "status" => mk_response("OK".to_owned()),
+                "metrics" => mk_response("TODO: prometheus metrics".to_owned()),
+                "room" => todo!("handle room api"),
+                "monolith" => todo!("handle monolith connection"),
                 _ => Ok(not_found()),
             };
             res
