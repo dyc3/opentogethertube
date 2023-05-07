@@ -75,7 +75,10 @@ export abstract class Client {
 
 	getClientInfo(): ClientInfo {
 		if (!this.session) {
-			throw new Error("No session info present");
+			log.warn("Client has no session, client info will be incomplete");
+			return {
+				id: this.id,
+			};
 		}
 		if (this.session.isLoggedIn) {
 			return {
