@@ -57,7 +57,7 @@ impl BalancerClient {
     }
 }
 
-#[get("/api/room/<room_name>")]
+// #[get("/api/room/<room_name>")]
 pub fn client_entry<'r>(
     room_name: &str,
     ws: ws::WebSocket,

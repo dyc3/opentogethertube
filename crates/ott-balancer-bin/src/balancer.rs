@@ -15,7 +15,7 @@ use crate::{
 };
 
 pub struct Balancer {
-    ctx: Arc<RwLock<BalancerContext>>,
+    pub(crate) ctx: Arc<RwLock<BalancerContext>>,
 
     new_client_rx: tokio::sync::mpsc::Receiver<(
         NewClient,
@@ -129,12 +129,15 @@ impl Balancer {
     }
 }
 
-pub fn start_dispatcher(mut balancer: Balancer) -> tokio::task::JoinHandle<()> {
-    tokio::spawn(async move {
-        balancer.dispatch_loop().await;
-    })
+pub fn start_dispatcher(mut balancer: Balancer) -> anyhow::Result<tokio::task::JoinHandle<()>> {
+    Ok(tokio::task::Builder::new()
+        .name("dispatcher")
+        .spawn(async move {
+            balancer.dispatch_loop().await;
+        })?)
 }
 
+#[derive(Clone)]
 pub struct BalancerLink {
     new_client_tx: tokio::sync::mpsc::Sender<(
         NewClient,

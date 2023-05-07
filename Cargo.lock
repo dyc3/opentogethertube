@@ -167,7 +167,7 @@ dependencies = [
  "bytes 1.4.0",
  "futures-util",
  "http",
- "http-body",
+ "http-body 0.4.5",
  "hyper 0.14.26",
  "itoa",
  "matchit",
@@ -193,7 +193,7 @@ dependencies = [
  "bytes 1.4.0",
  "futures-util",
  "http",
- "http-body",
+ "http-body 0.4.5",
  "mime 0.3.17",
  "rustversion",
  "tower-layer",
@@ -975,6 +975,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "http-body"
+version = "1.0.0-rc.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "951dfc2e32ac02d67c90c0d65bd27009a635dc9b381a2cc7d284ab01e3a0150d"
+dependencies = [
+ "bytes 1.4.0",
+ "http",
+]
+
+[[package]]
+name = "http-body-util"
+version = "0.1.0-rc.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92445bc9cc14bfa0a3ce56817dc3b5bcc227a168781a356b702410789cec0d10"
+dependencies = [
+ "bytes 1.4.0",
+ "futures-util",
+ "http",
+ "http-body 1.0.0-rc.2",
+ "pin-project-lite",
+]
+
+[[package]]
 name = "httparse"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1023,7 +1046,7 @@ dependencies = [
  "futures-util",
  "h2",
  "http",
- "http-body",
+ "http-body 0.4.5",
  "httparse",
  "httpdate",
  "itoa",
@@ -1031,6 +1054,28 @@ dependencies = [
  "socket2",
  "tokio",
  "tower-service",
+ "tracing",
+ "want",
+]
+
+[[package]]
+name = "hyper"
+version = "1.0.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b75264b2003a3913f118d35c586e535293b3e22e41f074930762929d071e092"
+dependencies = [
+ "bytes 1.4.0",
+ "futures-channel",
+ "futures-core",
+ "futures-util",
+ "h2",
+ "http",
+ "http-body 1.0.0-rc.2",
+ "httparse",
+ "httpdate",
+ "itoa",
+ "pin-project-lite",
+ "tokio",
  "tracing",
  "want",
 ]
@@ -1500,14 +1545,19 @@ dependencies = [
  "async-trait",
  "console-subscriber",
  "futures-util",
+ "http-body-util",
+ "hyper 1.0.0-rc.3",
  "ott-balancer-protocol",
  "rand 0.8.5",
  "rocket",
  "rocket_ws",
+ "route-recognizer",
  "serde",
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "tracing",
+ "tracing-subscriber",
  "tungstenite 0.19.0",
  "uuid",
 ]
@@ -2038,6 +2088,12 @@ dependencies = [
  "rocket",
  "tokio-tungstenite",
 ]
+
+[[package]]
+name = "route-recognizer"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afab94fb28594581f62d981211a9a4d53cc8130bbcbbb89a0440d9b8e81a7746"
 
 [[package]]
 name = "rustc_version"
@@ -2604,7 +2660,7 @@ dependencies = [
  "futures-util",
  "h2",
  "http",
- "http-body",
+ "http-body 0.4.5",
  "hyper 0.14.26",
  "hyper-timeout",
  "percent-encoding 2.2.0",

@@ -102,7 +102,7 @@ pub struct NewMonolith {
     pub id: MonolithId,
 }
 
-#[get("/monolith")]
+// #[get("/monolith")]
 pub fn monolith_entry(ws: ws::WebSocket, balancer: &State<BalancerLink>) -> ws::Channel<'_> {
     ws.channel(move |mut stream| {
         Box::pin(async move {
