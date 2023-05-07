@@ -17,6 +17,7 @@ mod messages;
 mod monolith;
 mod proxy;
 mod service;
+mod websocket;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

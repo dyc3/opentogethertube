@@ -1549,6 +1549,7 @@ dependencies = [
  "hyper 1.0.0-rc.3",
  "once_cell",
  "ott-balancer-protocol",
+ "pin-project",
  "rand 0.8.5",
  "rocket",
  "rocket_ws",

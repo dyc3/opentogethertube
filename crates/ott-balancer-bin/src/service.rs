@@ -10,15 +10,16 @@ use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::debug;
+use tracing::{debug, error};
 
 use crate::balancer::{BalancerContext, BalancerLink};
+use crate::monolith::monolith_entry;
 
 static NOTFOUND: &[u8] = b"Not Found";
 
 static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     let mut router = Router::new();
-    router.add("/api/status", "status");
+    router.add("/api/status", "health");
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/monolith", "monolith");
@@ -44,6 +45,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
         }
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
+        let link = self.link.clone();
 
         Box::pin(async move {
             let ctx_read = ctx.read().await;
@@ -53,10 +55,29 @@ impl Service<Request<IncomingBody>> for BalancerService {
             debug!("Inbound request: {} {}", req.method(), route.handler());
 
             let res = match **route.handler() {
-                "status" => mk_response("OK".to_owned()),
+                "health" => mk_response("OK".to_owned()),
+                "status" => mk_response(format!("monoliths: {}", ctx_read.monoliths.len())),
                 "metrics" => mk_response("TODO: prometheus metrics".to_owned()),
                 "room" => todo!("handle room api"),
-                "monolith" => todo!("handle monolith connection"),
+                "monolith" => {
+                    if crate::websocket::is_websocket_upgrade(&req) {
+                        let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();
+
+                        // Spawn a task to handle the websocket connection.
+                        let _ = tokio::task::Builder::new()
+                            .name("monolith connection")
+                            .spawn(async move {
+                                if let Err(e) = monolith_entry(websocket, link).await {
+                                    error!("Error in websocket connection: {}", e);
+                                }
+                            });
+
+                        // Return the response so the spawned future can continue.
+                        Ok(response)
+                    } else {
+                        mk_response("must upgrade to websocket".to_owned())
+                    }
+                }
                 _ => Ok(not_found()),
             };
             res
