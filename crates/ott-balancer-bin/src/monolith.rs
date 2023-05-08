@@ -2,10 +2,11 @@ use std::collections::HashMap;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::{monolith::*, *};
-use rocket::State;
-use rocket_ws as ws;
+use tokio_tungstenite::tungstenite::Message;
+use tracing::{error, info};
 use uuid::Uuid;
 
+use crate::websocket::HyperWebsocket;
 use crate::{balancer::BalancerLink, messages::*};
 
 /// A Monolith refers to the NodeJS server that manages rooms and performs all business logic.
@@ -57,7 +58,7 @@ impl BalancerMonolith {
 
     pub async fn send(&self, msg: &MsgB2M) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg)?;
-        let socket_msg = SocketMessage(ws::Message::Text(text));
+        let socket_msg = SocketMessage(Message::Text(text));
         self.socket_tx.send(socket_msg).await?;
 
         Ok(())
@@ -102,42 +103,41 @@ pub struct NewMonolith {
     pub id: MonolithId,
 }
 
-#[get("/monolith")]
-pub fn monolith_entry(ws: ws::WebSocket, balancer: &State<BalancerLink>) -> ws::Channel<'_> {
-    ws.channel(move |mut stream| {
-        Box::pin(async move {
-            // TODO: maybe wait for first gossip?
+pub async fn monolith_entry(ws: HyperWebsocket, balancer: BalancerLink) -> anyhow::Result<()> {
+    // TODO: maybe wait for first gossip?
 
-            let monolith_id = Uuid::new_v4().into();
-            let monolith = NewMonolith { id: monolith_id };
+    info!("Monolith connected");
+    let mut stream = ws.await?;
 
-            let mut outbound_rx = balancer.send_monolith(monolith).await.unwrap();
+    let monolith_id = Uuid::new_v4().into();
+    let monolith = NewMonolith { id: monolith_id };
 
-            loop {
-                tokio::select! {
-                    msg = outbound_rx.recv() => {
-                        if let Some(msg) = msg {
-                            if let Err(err) = stream.send(msg.0).await {
-                                eprintln!("Error sending ws message to monolith: {:?}", err);
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
+    let mut outbound_rx = balancer.send_monolith(monolith).await.unwrap();
+    info!("Monolith {id} linked to balancer", id = monolith_id);
+
+    loop {
+        tokio::select! {
+            msg = outbound_rx.recv() => {
+                if let Some(msg) = msg {
+                    if let Err(err) = stream.send(msg.0).await {
+                        error!("Error sending ws message to monolith: {:?}", err);
+                        break;
                     }
-
-                    Some(Ok(msg)) = stream.next() => {
-                        if let Err(err) = balancer
-                            .send_monolith_message(monolith_id, SocketMessage(msg))
-                            .await {
-                                eprintln!("Error sending monolith message to balancer: {:?}", err);
-                                break;
-                            }
-                    }
+                } else {
+                    break;
                 }
             }
 
-            Ok(())
-        })
-    })
+            Some(Ok(msg)) = stream.next() => {
+                if let Err(err) = balancer
+                    .send_monolith_message(monolith_id, SocketMessage(msg))
+                    .await {
+                        error!("Error sending monolith message to balancer: {:?}", err);
+                        break;
+                    }
+            }
+        }
+    }
+
+    Ok(())
 }

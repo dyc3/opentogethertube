@@ -2,10 +2,10 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_balancer_protocol::*;
-use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
-use ws::Message;
+use tokio_tungstenite::tungstenite::Message;
+use tracing::{debug, error, info, trace};
 
 use crate::monolith::Room;
 use crate::{
@@ -15,7 +15,7 @@ use crate::{
 };
 
 pub struct Balancer {
-    ctx: Arc<RwLock<BalancerContext>>,
+    pub(crate) ctx: Arc<RwLock<BalancerContext>>,
 
     new_client_rx: tokio::sync::mpsc::Receiver<(
         NewClient,
@@ -86,7 +86,7 @@ impl Balancer {
                         tokio::spawn(async move {
                             match join_client(ctx, new_client, receiver_tx).await {
                                 Ok(_) => {},
-                                Err(err) => println!("failed to join client: {:?}", err)
+                                Err(err) => error!("failed to join client: {:?}", err)
                             };
                         });
                     }
@@ -97,7 +97,7 @@ impl Balancer {
                         tokio::spawn(async move {
                             match dispatch_client_message(ctx, msg).await {
                                 Ok(_) => {},
-                                Err(err) => println!("failed to dispatch client message: {:?}", err)
+                                Err(err) => error!("failed to dispatch client message: {:?}", err)
                             }
                         });
                     }
@@ -108,7 +108,7 @@ impl Balancer {
                         tokio::spawn(async move {
                             match join_monolith(ctx, new_monolith, receiver_tx).await {
                                 Ok(_) => {},
-                                Err(err) => println!("failed to join monolith: {:?}", err)
+                                Err(err) => error!("failed to join monolith: {:?}", err)
                             }
                         });
                     }
@@ -119,7 +119,7 @@ impl Balancer {
                         tokio::spawn(async move {
                             match dispatch_monolith_message(ctx, msg).await {
                                 Ok(_) => {},
-                                Err(err) => println!("failed to dispatch monolith message: {:?}", err)
+                                Err(err) => error!("failed to dispatch monolith message: {:?}", err)
                             }
                         });
                     }
@@ -129,12 +129,15 @@ impl Balancer {
     }
 }
 
-pub fn start_dispatcher(mut balancer: Balancer) -> tokio::task::JoinHandle<()> {
-    tokio::spawn(async move {
-        balancer.dispatch_loop().await;
-    })
+pub fn start_dispatcher(mut balancer: Balancer) -> anyhow::Result<tokio::task::JoinHandle<()>> {
+    Ok(tokio::task::Builder::new()
+        .name("dispatcher")
+        .spawn(async move {
+            balancer.dispatch_loop().await;
+        })?)
 }
 
+#[derive(Clone)]
 pub struct BalancerLink {
     new_client_tx: tokio::sync::mpsc::Sender<(
         NewClient,
@@ -216,7 +219,7 @@ impl BalancerContext {
         client: BalancerClient,
         monolith_id: MonolithId,
     ) -> anyhow::Result<()> {
-        println!(
+        info!(
             "adding client {:?} to monolith {:?}",
             client.id, monolith_id
         );
@@ -296,7 +299,7 @@ pub async fn join_client(
     new_client: NewClient,
     receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
 ) -> anyhow::Result<()> {
-    println!("new client: {:?}", new_client);
+    info!("new client: {:?}", new_client);
 
     let (client_tx, client_rx) = tokio::sync::mpsc::channel(100);
     let client = BalancerClient::new(new_client, client_tx);
@@ -332,7 +335,7 @@ pub async fn join_client(
 
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
     // todo!("inform the monolith that the client left");
-    println!("client left: {:?}", id);
+    info!("client left: {:?}", id);
     ctx.write().await.remove_client(id)?;
 
     Ok(())
@@ -342,7 +345,7 @@ pub async fn dispatch_client_message(
     ctx: Arc<RwLock<BalancerContext>>,
     msg: Context<ClientId, SocketMessage>,
 ) -> anyhow::Result<()> {
-    println!("client message: {:?}", msg);
+    trace!("client message: {:?}", msg);
 
     match msg.message().0 {
         Message::Text(_) | Message::Binary(_) => {
@@ -375,7 +378,7 @@ pub async fn join_monolith(
     monolith: NewMonolith,
     receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
 ) -> anyhow::Result<()> {
-    println!("new monolith: {:?}", monolith);
+    info!("new monolith: {:?}", monolith);
     let mut b = ctx.write().await;
     let (monolith_tx, monolith_rx) = tokio::sync::mpsc::channel(100);
     let monolith = BalancerMonolith::new(monolith, monolith_tx);
@@ -390,13 +393,13 @@ pub async fn dispatch_monolith_message(
     ctx: Arc<RwLock<BalancerContext>>,
     msg: Context<MonolithId, SocketMessage>,
 ) -> anyhow::Result<()> {
-    println!("monolith message: {:?}", msg);
+    trace!("monolith message: {:?}", msg);
 
     let monolith_id = msg.id();
 
     let msg: MsgM2B = msg.message().deserialize()?;
 
-    println!("got message from monolith: {:?}", msg);
+    debug!("got message from monolith: {:?}", msg);
 
     match msg {
         MsgM2B::Loaded { room } => {
@@ -439,9 +442,9 @@ pub async fn dispatch_monolith_message(
             // TODO: also handle the case where the client_id is Some
 
             // broadcast to all clients
-            println!("broadcasting to clients in room: {:?}", room.name());
+            debug!("broadcasting to clients in room: {:?}", room.name());
             // TODO: optimize this using a broadcast channel
-            let built_msg = SocketMessage(ws::Message::text(payload.to_string()));
+            let built_msg = SocketMessage(Message::text(payload.to_string()));
             for client in room.clients() {
                 let Some(client) = ctx_read.clients.get(client) else {
                     anyhow::bail!("client not found");

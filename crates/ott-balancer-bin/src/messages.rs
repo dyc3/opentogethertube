@@ -1,8 +1,8 @@
-use rocket_ws as ws;
 use serde::Deserialize;
+use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug, Clone)]
-pub struct SocketMessage(pub ws::Message);
+pub struct SocketMessage(pub Message);
 
 impl<'de> SocketMessage {
     pub fn deserialize<T: Deserialize<'de>>(&'de self) -> anyhow::Result<T> {
