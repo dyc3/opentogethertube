@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_balancer_protocol::*;
+use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::Message;
@@ -292,6 +293,27 @@ impl BalancerContext {
             .ok_or(anyhow::anyhow!("monolith not found"))?;
         Ok(monolith)
     }
+
+    /// When loading a room, call this to select the best monolith to load it on.
+    pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let selected = self
+            .monoliths
+            .values()
+            .min_by(|x, y| x.rooms().len().cmp(&y.rooms().len()));
+        match selected {
+            Some(s) => Ok(s),
+            None => anyhow::bail!("no monoliths available"),
+        }
+    }
+
+    pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let selected = self
+            .monoliths
+            .values()
+            .choose(&mut rand::thread_rng())
+            .ok_or(anyhow::anyhow!("no monoliths available"))?;
+        Ok(selected)
+    }
 }
 
 pub async fn join_client(
@@ -315,14 +337,8 @@ pub async fn join_client(
         }
         None => {
             // the room is not loaded, randomly select a monolith
-            let selected = ctx_read
-                .monoliths
-                .values()
-                .min_by(|x, y| x.rooms().len().cmp(&y.rooms().len()));
-            match selected {
-                Some(s) => s.id(),
-                None => anyhow::bail!("no monoliths available"),
-            }
+            let selected = ctx_read.select_monolith()?;
+            selected.id()
         }
     };
     drop(ctx_read);
