@@ -13,6 +13,7 @@ futures-util.workspace = true
 hyper.workspace = true
 http-body-util = "0.1.0-rc.2"
 rand.workspace = true
+reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true

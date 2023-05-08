@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::net::SocketAddr;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::{monolith::*, *};
@@ -15,6 +16,8 @@ pub struct BalancerMonolith {
     id: MonolithId,
     rooms: HashMap<RoomName, Room>,
     socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    address: SocketAddr,
+    http_client: reqwest::Client,
 }
 
 impl BalancerMonolith {
@@ -23,6 +26,8 @@ impl BalancerMonolith {
             id: m.id,
             rooms: HashMap::new(),
             socket_tx,
+            address: m.address,
+            http_client: reqwest::Client::new(),
         }
     }
 
@@ -101,16 +106,24 @@ impl Room {
 #[derive(Debug)]
 pub struct NewMonolith {
     pub id: MonolithId,
+    pub address: SocketAddr,
 }
 
-pub async fn monolith_entry(ws: HyperWebsocket, balancer: BalancerLink) -> anyhow::Result<()> {
+pub async fn monolith_entry(
+    address: SocketAddr,
+    ws: HyperWebsocket,
+    balancer: BalancerLink,
+) -> anyhow::Result<()> {
     // TODO: maybe wait for first gossip?
 
     info!("Monolith connected");
     let mut stream = ws.await?;
 
     let monolith_id = Uuid::new_v4().into();
-    let monolith = NewMonolith { id: monolith_id };
+    let monolith = NewMonolith {
+        id: monolith_id,
+        address,
+    };
 
     let mut outbound_rx = balancer.send_monolith(monolith).await.unwrap();
     info!("Monolith {id} linked to balancer", id = monolith_id);

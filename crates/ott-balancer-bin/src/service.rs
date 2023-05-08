@@ -29,10 +29,14 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     router
 });
 
+/// A service that handles HTTP requests.
+///
+/// An instance of this service is spawned for each incoming connection.
 #[derive(Clone)]
 pub struct BalancerService {
     pub(crate) ctx: Arc<RwLock<BalancerContext>>,
     pub(crate) link: BalancerLink,
+    pub(crate) addr: std::net::SocketAddr,
 }
 
 #[async_trait::async_trait]
@@ -48,6 +52,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
         let link = self.link.clone();
+        let addr = self.addr.clone();
 
         Box::pin(async move {
             let ctx_read = ctx.read().await;
@@ -97,7 +102,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         let _ = tokio::task::Builder::new()
                             .name("monolith connection")
                             .spawn(async move {
-                                if let Err(e) = monolith_entry(websocket, link).await {
+                                if let Err(e) = monolith_entry(addr, websocket, link).await {
                                     error!("Error in websocket connection: {}", e);
                                 }
                             });

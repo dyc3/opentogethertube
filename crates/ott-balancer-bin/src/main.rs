@@ -37,7 +37,11 @@ async fn main() -> anyhow::Result<()> {
     let _dispatcher_handle = start_dispatcher(balancer)?;
     info!("Dispatcher started");
 
-    let service = BalancerService { ctx, link };
+    let service = BalancerService {
+        ctx,
+        link,
+        addr: SocketAddr::from(([127, 0, 0, 1], 8081)),
+    };
 
     // TODO: make configurable
     let addr = SocketAddr::from(([127, 0, 0, 1], 8081));
@@ -46,9 +50,10 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Serving on {}", addr);
     loop {
-        let (stream, _) = listener.accept().await?;
+        let (stream, addr) = listener.accept().await?;
 
-        let service = service.clone();
+        let mut service = service.clone();
+        service.addr = addr;
 
         // Spawn a tokio task to serve multiple connections concurrently
         tokio::task::spawn(async move {
