@@ -39,6 +39,22 @@ impl BalancerMonolith {
         &self.rooms
     }
 
+    /// The network address and port from which this Monolith is connected.
+    pub fn address(&self) -> SocketAddr {
+        self.address
+    }
+
+    /// The network address that can be used to send HTTP requests to this Monolith.
+    pub fn proxy_address(&self) -> SocketAddr {
+        // TODO: this port needs to conveyed by the monolith instead of hardcoded
+        // because the monolith could be running on any port.
+        SocketAddr::from((self.address.ip(), 3000))
+    }
+
+    pub fn http_client(&self) -> &reqwest::Client {
+        &self.http_client
+    }
+
     pub fn add_room(&mut self, room: Room) {
         self.rooms.insert(room.name.clone(), room);
     }

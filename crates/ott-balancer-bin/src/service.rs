@@ -1,21 +1,22 @@
 use std::pin::Pin;
 use std::sync::Arc;
 
+use bytes::{Buf, Bytes};
 use futures_util::Future;
-use http_body_util::Full;
-use hyper::body::Bytes;
+use http_body_util::{BodyExt, Collected, Full};
 use hyper::service::Service;
 use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
 use ott_balancer_protocol::RoomName;
+use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
-use crate::monolith::monolith_entry;
+use crate::monolith::{monolith_entry, BalancerMonolith};
 
 static NOTFOUND: &[u8] = b"Not Found";
 
@@ -91,7 +92,27 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         // Return the response so the spawned future can continue.
                         Ok(response)
                     } else {
-                        todo!("proxy room API request");
+                        if room_name.to_string() == "list" {
+                            // special case for listing rooms
+                            return mk_response("TODO: list rooms across all monoliths".to_owned());
+                        } else {
+                            let monolith = if let Some(monolith_id) =
+                                ctx_read.rooms_to_monoliths.get(&room_name)
+                            {
+                                ctx_read.monoliths.get(monolith_id)
+                            } else {
+                                ctx_read.select_monolith().ok()
+                            };
+                            if let Some(monolith) = monolith {
+                                if let Ok(res) = proxy_request(req, monolith).await {
+                                    Ok(res)
+                                } else {
+                                    mk_response("error proxying request".to_owned())
+                                }
+                            } else {
+                                mk_response("no monoliths available".to_owned())
+                            }
+                        }
                     }
                 }
                 "monolith" => {
@@ -126,4 +147,31 @@ fn not_found() -> Response<Full<Bytes>> {
         .status(StatusCode::NOT_FOUND)
         .body(Full::new(NOTFOUND.into()))
         .unwrap()
+}
+
+async fn proxy_request(
+    in_req: Request<IncomingBody>,
+    target: &BalancerMonolith,
+) -> anyhow::Result<Response<Full<Bytes>>> {
+    let client = target.http_client();
+    let url: Url = format!("http://{}{}", target.proxy_address(), in_req.uri().path()).parse()?;
+    let method = in_req.method().clone();
+    let headers = in_req.headers().clone();
+    // TODO: update X-Forwarded-For header
+    // TODO: stream the body instead of loading it all into memory?
+    let body: Bytes = in_req.collect().await?.to_bytes();
+    let out_body = reqwest::Body::from(body);
+    let req = client
+        .request(method, url)
+        .headers(headers)
+        .body(out_body)
+        .build()?;
+    let res = client.execute(req).await?;
+    let status = res.status();
+    let mut builder = Response::builder().status(status);
+    for (k, v) in res.headers().iter() {
+        builder = builder.header(k, v);
+    }
+    let body = res.bytes().await?;
+    Ok(builder.body(Full::new(body)).unwrap())
 }
