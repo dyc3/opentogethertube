@@ -2,11 +2,10 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_balancer_protocol::*;
-use rocket_ws as ws;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
+use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, trace};
-use ws::Message;
 
 use crate::monolith::Room;
 use crate::{
@@ -445,7 +444,7 @@ pub async fn dispatch_monolith_message(
             // broadcast to all clients
             debug!("broadcasting to clients in room: {:?}", room.name());
             // TODO: optimize this using a broadcast channel
-            let built_msg = SocketMessage(ws::Message::text(payload.to_string()));
+            let built_msg = SocketMessage(Message::text(payload.to_string()));
             for client in room.clients() {
                 let Some(client) = ctx_read.clients.get(client) else {
                     anyhow::bail!("client not found");

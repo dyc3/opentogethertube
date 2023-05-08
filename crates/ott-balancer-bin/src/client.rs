@@ -1,7 +1,9 @@
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
-use rocket_ws as ws;
+use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+use tokio_tungstenite::tungstenite::protocol::CloseFrame;
+use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info};
 use uuid::Uuid;
 
@@ -73,8 +75,8 @@ pub async fn client_entry<'r>(
 
     let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
     let Ok(Some(Ok(message))) = result else {
-                stream.close(Some(ws::frame::CloseFrame {
-                    code: ws::frame::CloseCode::Library(4004),
+                stream.close(Some(CloseFrame {
+                    code: CloseCode::Library(4004),
                     reason: "did not send auth token".into(),
                 })).await?;
                 return Ok(());
@@ -82,15 +84,15 @@ pub async fn client_entry<'r>(
 
     let mut outbound_rx;
     match message {
-        ws::Message::Text(text) => {
+        Message::Text(text) => {
             let message: ClientMessage = serde_json::from_str(&text).unwrap();
             match message {
                 ClientMessage::Auth(message) => {
                     debug!("client authenticated, handing off to balancer");
                     let client = client.into_new_client(message.token);
                     let Ok(rx) = balancer.send_client(client).await else {
-                                stream.close(Some(ws::frame::CloseFrame {
-                                    code: ws::frame::CloseCode::Library(4000),
+                                stream.close(Some(CloseFrame {
+                                    code: CloseCode::Library(4000),
                                     reason: "failed to send client to balancer".into(),
                                 })).await?;
                                 return Ok(());
@@ -99,8 +101,8 @@ pub async fn client_entry<'r>(
                 }
                 _ => {
                     stream
-                        .close(Some(ws::frame::CloseFrame {
-                            code: ws::frame::CloseCode::Library(4004),
+                        .close(Some(CloseFrame {
+                            code: CloseCode::Library(4004),
                             reason: "did not send auth token".into(),
                         }))
                         .await?;

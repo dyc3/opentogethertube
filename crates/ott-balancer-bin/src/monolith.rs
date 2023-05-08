@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::{monolith::*, *};
-use rocket_ws as ws;
+use tokio_tungstenite::tungstenite::Message;
 use tracing::{error, info};
 use uuid::Uuid;
 
@@ -58,7 +58,7 @@ impl BalancerMonolith {
 
     pub async fn send(&self, msg: &MsgB2M) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg)?;
-        let socket_msg = SocketMessage(ws::Message::Text(text));
+        let socket_msg = SocketMessage(Message::Text(text));
         self.socket_tx.send(socket_msg).await?;
 
         Ok(())

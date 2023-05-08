@@ -11,7 +11,7 @@ use once_cell::sync::Lazy;
 use ott_balancer_protocol::RoomName;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;

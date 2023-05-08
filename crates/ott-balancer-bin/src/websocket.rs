@@ -4,9 +4,9 @@ use http_body_util::Full;
 use hyper::body::Bytes;
 use hyper::{Request, Response};
 use pin_project::pin_project;
-use rocket::log::private::error;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use tracing::error;
 
 use tokio_tungstenite::tungstenite::protocol::{Role, WebSocketConfig};
 use tungstenite::handshake::derive_accept_key;
