@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_balancer_protocol::*;
+use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::Message;
@@ -303,6 +304,15 @@ impl BalancerContext {
             Some(s) => Ok(s),
             None => anyhow::bail!("no monoliths available"),
         }
+    }
+
+    pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let selected = self
+            .monoliths
+            .values()
+            .choose(&mut rand::thread_rng())
+            .ok_or(anyhow::anyhow!("no monoliths available"))?;
+        Ok(selected)
     }
 }
 
