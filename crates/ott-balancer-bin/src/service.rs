@@ -1,9 +1,9 @@
 use std::pin::Pin;
 use std::sync::Arc;
 
-use bytes::{Buf, Bytes};
+use bytes::{Bytes};
 use futures_util::Future;
-use http_body_util::{BodyExt, Collected, Full};
+use http_body_util::{BodyExt, Full};
 use hyper::service::Service;
 use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
@@ -53,7 +53,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
         let link = self.link.clone();
-        let addr = self.addr.clone();
+        let addr = self.addr;
 
         Box::pin(async move {
             let ctx_read = ctx.read().await;
@@ -91,29 +91,27 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
                         // Return the response so the spawned future can continue.
                         Ok(response)
+                    } else if room_name.to_string() == "list" {
+                        // special case for listing rooms
+                        return mk_response("TODO: list rooms across all monoliths".to_owned());
                     } else {
-                        if room_name.to_string() == "list" {
-                            // special case for listing rooms
-                            return mk_response("TODO: list rooms across all monoliths".to_owned());
+                        let monolith = if let Some(monolith_id) =
+                            ctx_read.rooms_to_monoliths.get(&room_name)
+                        {
+                            info!("found room {} in monolith {}", room_name, monolith_id);
+                            ctx_read.monoliths.get(monolith_id)
                         } else {
-                            let monolith = if let Some(monolith_id) =
-                                ctx_read.rooms_to_monoliths.get(&room_name)
-                            {
-                                info!("found room {} in monolith {}", room_name, monolith_id);
-                                ctx_read.monoliths.get(monolith_id)
+                            ctx_read.select_monolith().ok()
+                        };
+                        if let Some(monolith) = monolith {
+                            info!("proxying request to monolith {}", monolith.id());
+                            if let Ok(res) = proxy_request(req, monolith).await {
+                                Ok(res)
                             } else {
-                                ctx_read.select_monolith().ok()
-                            };
-                            if let Some(monolith) = monolith {
-                                info!("proxying request to monolith {}", monolith.id());
-                                if let Ok(res) = proxy_request(req, monolith).await {
-                                    Ok(res)
-                                } else {
-                                    mk_response("error proxying request".to_owned())
-                                }
-                            } else {
-                                mk_response("no monoliths available".to_owned())
+                                mk_response("error proxying request".to_owned())
                             }
+                        } else {
+                            mk_response("no monoliths available".to_owned())
                         }
                     }
                 }
