@@ -102,31 +102,39 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 		roomJoins.set(room.name, clients);
 	}
 	clients.push(client);
-	await makeRoomRequest(client, {
-		type: RoomRequestType.JoinRequest,
-		token: token,
-		info: client.getClientInfo(),
-	});
+	try {
+		await makeRoomRequest(client, {
+			type: RoomRequestType.JoinRequest,
+			token: token,
+			info: client.getClientInfo(),
+		});
+	} catch (e) {
+		log.error(`Failed to process join request for client ${client.id}: ${e}`);
+	}
 }
 
 async function onClientMessage(client: Client, msg: ClientMessage) {
-	if (msg.action === "kickme") {
-		client.kick(msg.reason ?? OttWebsocketError.UNKNOWN);
-		return;
-	} else if (msg.action === "status") {
-		let request: RoomRequest = {
-			type: RoomRequestType.UpdateUser,
-			info: {
-				id: client.id,
-				status: msg.status,
-			},
-		};
-		await makeRoomRequest(client, request);
-	} else if (msg.action === "req") {
-		await makeRoomRequest(client, msg.request);
-	} else {
-		log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
-		return;
+	try {
+		if (msg.action === "kickme") {
+			client.kick(msg.reason ?? OttWebsocketError.UNKNOWN);
+			return;
+		} else if (msg.action === "status") {
+			let request: RoomRequest = {
+				type: RoomRequestType.UpdateUser,
+				info: {
+					id: client.id,
+					status: msg.status,
+				},
+			};
+			await makeRoomRequest(client, request);
+		} else if (msg.action === "req") {
+			await makeRoomRequest(client, msg.request);
+		} else {
+			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
+			return;
+		}
+	} catch (err) {
+		log.error(`Failed to process client message: ${err}`);
 	}
 }
 
