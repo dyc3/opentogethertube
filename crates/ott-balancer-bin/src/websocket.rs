@@ -111,6 +111,6 @@ pub fn is_websocket_upgrade<B>(req: &hyper::Request<B>) -> bool {
             }
             _ => false,
         },
-        _ => return false,
+        _ => false,
     }
 }

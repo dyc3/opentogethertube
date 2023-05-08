@@ -1,11 +1,10 @@
-use std::{convert::Infallible, net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc};
 
 use balancer::{start_dispatcher, Balancer, BalancerContext};
-use http_body_util::Full;
-use hyper::{body::Bytes, server::conn::http1, service::service_fn, Request, Response};
+use hyper::server::conn::http1;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
-use tracing::{error, info, Level};
+use tracing::{error, info};
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
@@ -16,7 +15,6 @@ mod balancer;
 mod client;
 mod messages;
 mod monolith;
-mod proxy;
 mod service;
 mod websocket;
 
@@ -36,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let ctx = Arc::new(RwLock::new(BalancerContext::new()));
     let balancer = Balancer::new(ctx.clone());
     let link = balancer.new_link();
-    let dispatcher_handle = start_dispatcher(balancer)?;
+    let _dispatcher_handle = start_dispatcher(balancer)?;
     info!("Dispatcher started");
 
     let service = BalancerService { ctx, link };
