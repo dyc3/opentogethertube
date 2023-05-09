@@ -148,10 +148,17 @@ export class DirectClient extends Client {
  * A client that is connected from a load balancer.
  */
 export class BalancerClient extends Client {
-	constructor(room: string) {
+	constructor(room: string, client_id: ClientId) {
 		super(room);
-		// The balancer takes care of waiting for auth.
-		this.joinStatus = ClientJoinStatus.Joined;
+		this.id = client_id;
+	}
+
+	leave() {
+		this.emit("disconnect", this);
+	}
+
+	receiveMessage(msg: ClientMessage) {
+		this.emit("message", this, msg);
 	}
 
 	sendRaw(msg: string) {

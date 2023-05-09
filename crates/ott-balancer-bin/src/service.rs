@@ -23,6 +23,7 @@ static NOTFOUND: &[u8] = b"Not Found";
 static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     let mut router = Router::new();
     router.add("/api/status", "health");
+    router.add("/api/balancing", "status");
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/monolith", "monolith");

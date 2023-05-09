@@ -31,7 +31,7 @@ import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
 import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
-import { initBalancerConnections } from "./balancer";
+import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -57,6 +57,10 @@ export function setup(): void {
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
 
+	balancerManager.on("connect", onBalancerConnect);
+	balancerManager.on("disconnect", onBalancerDisconnect);
+	balancerManager.on("message", onBalancerMessage);
+	balancerManager.on("error", onBalancerError);
 	initBalancerConnections();
 }
 
@@ -168,6 +172,51 @@ async function onClientDisconnect(client: Client) {
 	} catch (err) {
 		log.error(`Failed to process leave request for client ${client.id}: ${err}`);
 	}
+}
+
+function onBalancerConnect(conn: BalancerConnection) {
+	log.info(`Connected to balancer ${conn.id}`);
+}
+
+function onBalancerDisconnect(conn: BalancerConnection) {
+	log.info(`Disconnected from balancer ${conn.id}`);
+	// TODO: remove all clients from this balancer
+	// TODO: handle reconnecting
+}
+
+function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
+	if (message.type === "join") {
+		const client = new BalancerClient(message.room, message.client);
+		connections.push(client);
+		client.on("auth", onClientAuth);
+		client.on("message", onClientMessage);
+		client.on("disconnect", onClientDisconnect);
+		client.auth(message.token);
+	} else if (message.type === "leave") {
+		const client = connections.find(c => c.id === message.client);
+		if (client instanceof BalancerClient) {
+			client.leave();
+		} else {
+			log.error(
+				`Balancer tried to make client leave that does not exist or is not a balancer client`
+			);
+		}
+	} else if (message.type === "client_msg") {
+		const client = connections.find(c => c.id === message.client_id);
+		if (client instanceof BalancerClient) {
+			client.receiveMessage(message.payload as ClientMessage);
+		} else {
+			log.error(
+				`Balancer sent message for client that does not exist or is not a balancer client`
+			);
+		}
+	} else {
+		log.error(`Unknown balancer message type: ${(message as { type: string }).type}`);
+	}
+}
+
+function onBalancerError(conn: BalancerConnection, error: WebSocket.ErrorEvent) {
+	log.error(`Error from balancer ${conn.id}: ${error}`);
 }
 
 async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {

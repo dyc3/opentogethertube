@@ -9,7 +9,6 @@ import { Result, err, ok, intoResult } from "../common/result";
 import { AuthToken, ClientId } from "../common/models/types";
 
 const log = getLogger("balancer");
-export const balancerConnections: BalancerConnection[] = [];
 
 export function initBalancerConnections() {
 	const configs = conf.get("balancers");
@@ -20,15 +19,69 @@ export function initBalancerConnections() {
 	log.info("Initializing balancer connections...");
 	for (const config of configs) {
 		const conn = new BalancerConnection(config);
-		balancerConnections.push(conn);
+		balancerManager.addBalancerConnection(conn);
+	}
+}
+
+class BalancerManager {
+	balancerConnections: BalancerConnection[] = [];
+	bus = new EventEmitter();
+
+	addBalancerConnection(conn: BalancerConnection) {
+		this.balancerConnections.push(conn);
+		conn.on("connect", () => this.onBalancerConnect(conn));
+		conn.on("disconnect", () => this.onBalancerDisconnect(conn));
+		conn.on("message", msg => this.onBalancerMessage(conn, msg));
+		conn.on("error", error => this.onBalancerError(conn, error));
 		const result = conn.connect();
-		if (result.ok) {
-			log.info(`Connected to balancer ${conn.id}`);
-		} else {
+		if (!result.ok) {
 			log.error(`Error connecting to balancer ${conn.id}: ${result.value}`);
 		}
 	}
+
+	private onBalancerConnect(conn: BalancerConnection) {
+		log.info(`Connected to balancer ${conn.id}`);
+		this.emit("connect", conn);
+	}
+
+	private onBalancerDisconnect(conn: BalancerConnection) {
+		log.info(`Disconnected from balancer ${conn.id}`);
+		this.emit("disconnect", conn);
+	}
+
+	private onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
+		this.emit("message", conn, message);
+	}
+
+	private onBalancerError(conn: BalancerConnection, error: WebSocket.ErrorEvent) {
+		log.error(`Error from balancer ${conn.id}: ${error}`);
+		this.emit("error", conn, error);
+	}
+
+	on<E extends BalancerManagerEvemts>(event: E, handler: BalancerManagerEventHandlers<E>) {
+		this.bus.on(event, handler);
+	}
+
+	private emit<E extends BalancerManagerEvemts>(
+		event: E,
+		...args: Parameters<BalancerManagerEventHandlers<E>>
+	) {
+		this.bus.emit(event, ...args);
+	}
 }
+
+export const balancerManager = new BalancerManager();
+
+type BalancerManagerEvemts = BalancerConnectionEvents;
+type BalancerManagerEventHandlers<E> = E extends "connect"
+	? (conn: BalancerConnection) => void
+	: E extends "disconnect"
+	? (conn: BalancerConnection) => void
+	: E extends "message"
+	? (conn: BalancerConnection, message: MsgB2M) => void
+	: E extends "error"
+	? (conn: BalancerConnection, error: WebSocket.ErrorEvent) => void
+	: never;
 
 type BalancerConnectionEvents = "connect" | "disconnect" | "message" | "error";
 type BalancerConnectionEventHandlers<E> = E extends "connect"
@@ -42,7 +95,7 @@ type BalancerConnectionEventHandlers<E> = E extends "connect"
 	: never;
 
 /** Manages the websocket connection to a Balancer. */
-class BalancerConnection {
+export class BalancerConnection {
 	/** A local identifier for the balancer. Other monoliths will have different IDs for the same balancer. */
 	id: string;
 	config: BalancerConfig;
@@ -156,7 +209,7 @@ function validateB2M(message: unknown): message is MsgB2M {
 }
 
 // TODO: use typeshare?
-type MsgB2M = MsgB2MJoin | MsgB2MLeave | MsgB2MClientMsg<unknown>;
+export type MsgB2M = MsgB2MJoin | MsgB2MLeave | MsgB2MClientMsg<unknown>;
 
 interface MsgB2MJoin {
 	type: "join";
@@ -176,7 +229,7 @@ interface MsgB2MClientMsg<T> {
 	payload: T;
 }
 
-type MsgM2B = MsgM2BLoaded | MsgM2BUnloaded | MsgM2BGossip | MsgM2BRoomMsg<unknown>;
+export type MsgM2B = MsgM2BLoaded | MsgM2BUnloaded | MsgM2BGossip | MsgM2BRoomMsg<unknown>;
 
 interface MsgM2BLoaded {
 	type: "loaded";
