@@ -188,7 +188,7 @@ function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 	log.silly("balancer message: " + JSON.stringify(message));
 	if (message.type === "join") {
 		const msg = message.payload;
-		const client = new BalancerClient(msg.room, msg.client);
+		const client = new BalancerClient(msg.room, msg.client, conn);
 		connections.push(client);
 		client.on("auth", onClientAuth);
 		client.on("message", onClientMessage);
@@ -240,26 +240,47 @@ async function makeRoomRequest(client: Client, request: RoomRequest): Promise<vo
 	});
 }
 
-async function broadcast(roomName: string, text: string) {
+async function broadcast(roomName: string, msg: ServerMessage) {
 	const clients = roomJoins.get(roomName);
 	if (!clients) {
 		return;
 	}
+	const text = JSON.stringify(msg, replacer);
+	const balancers = new Set<string>();
 	for (const client of clients) {
-		try {
-			client.sendRaw(text);
-		} catch (e) {
-			if (e instanceof Error) {
-				log.error(`failed to send to client: ${e.message}`);
-			} else {
-				log.error(`failed to send to client`);
+		if (client instanceof BalancerClient) {
+			balancers.add(client.conn.id);
+		} else {
+			try {
+				client.sendRaw(text);
+			} catch (e) {
+				if (e instanceof Error) {
+					log.error(`failed to send to client: ${e.message}`);
+				} else {
+					log.error(`failed to send to client`);
+				}
 			}
 		}
+	}
+
+	// broadcast to balancers
+	for (const balancerId of balancers) {
+		const conn = balancerManager.getConnection(balancerId);
+		if (!conn) {
+			log.error(`Balancer ${balancerId} not found`);
+			continue;
+		}
+		conn.send({
+			type: "room_msg",
+			payload: {
+				room: roomName,
+				payload: msg,
+			},
+		});
 	}
 }
 
 async function onRoomPublish(roomName: string, msg: ServerMessage) {
-	const text = JSON.stringify(msg, replacer);
 	if (msg.action === "sync") {
 		let state = roomStates.get(roomName);
 		if (state === undefined) {
@@ -278,11 +299,11 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 		}
 		roomStates.set(roomName, state);
 
-		await broadcast(roomName, text);
+		await broadcast(roomName, msg);
 	} else if (msg.action === "chat") {
-		await broadcast(roomName, text);
+		await broadcast(roomName, msg);
 	} else if (msg.action === "event" || msg.action === "eventcustom") {
-		await broadcast(roomName, text);
+		await broadcast(roomName, msg);
 	} else if (msg.action === "user") {
 		const clients = roomJoins.get(roomName);
 		if (!clients) {

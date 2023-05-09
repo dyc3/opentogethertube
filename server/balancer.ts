@@ -7,6 +7,7 @@ import { getLogger } from "./logger";
 import { BalancerConfig, conf } from "./ott-config";
 import { Result, err, ok, intoResult } from "../common/result";
 import { AuthToken, ClientId } from "../common/models/types";
+import { replacer } from "../common/serialize";
 
 const log = getLogger("balancer");
 
@@ -37,6 +38,10 @@ class BalancerManager {
 		if (!result.ok) {
 			log.error(`Error connecting to balancer ${conn.id}: ${result.value}`);
 		}
+	}
+
+	getConnection(id: string): BalancerConnection | undefined {
+		return this.balancerConnections.find(conn => conn.id === id);
 	}
 
 	private onBalancerConnect(conn: BalancerConnection) {
@@ -182,7 +187,7 @@ export class BalancerConnection {
 			return err(new Error("Not connected"));
 		}
 		try {
-			this.socket.send(JSON.stringify(message));
+			this.socket.send(JSON.stringify(message, replacer));
 		} catch (e) {
 			return err(e);
 		}
@@ -246,22 +251,30 @@ export type MsgM2B = MsgM2BLoaded | MsgM2BUnloaded | MsgM2BGossip | MsgM2BRoomMs
 
 interface MsgM2BLoaded {
 	type: "loaded";
-	room: string;
+	payload: {
+		room: string;
+	};
 }
 
 interface MsgM2BUnloaded {
 	type: "unloaded";
-	room: string;
+	payload: {
+		room: string;
+	};
 }
 
 interface MsgM2BGossip {
 	type: "gossip";
-	rooms: string[];
+	payload: {
+		rooms: string[];
+	};
 }
 
 interface MsgM2BRoomMsg<T> {
 	type: "room_msg";
-	room: string;
-	client_id?: ClientId;
-	payload: T;
+	payload: {
+		room: string;
+		client_id?: ClientId;
+		payload: T;
+	};
 }

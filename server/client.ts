@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import { getLogger } from "./logger";
 import { getSessionInfo } from "./auth/tokens";
+import { BalancerConnection } from "./balancer";
 
 const log = getLogger("client");
 
@@ -148,9 +149,12 @@ export class DirectClient extends Client {
  * A client that is connected from a load balancer.
  */
 export class BalancerClient extends Client {
-	constructor(room: string, client_id: ClientId) {
+	conn: BalancerConnection;
+
+	constructor(room: string, client_id: ClientId, conn: BalancerConnection) {
 		super(room);
 		this.id = client_id;
+		this.conn = conn;
 	}
 
 	leave() {
@@ -159,6 +163,17 @@ export class BalancerClient extends Client {
 
 	receiveMessage(msg: ClientMessage) {
 		this.emit("message", this, msg);
+	}
+
+	send(msg: ServerMessage) {
+		this.conn.send({
+			type: "room_msg",
+			payload: {
+				room: this.room,
+				client_id: this.id,
+				payload: msg,
+			},
+		});
 	}
 
 	sendRaw(msg: string) {
