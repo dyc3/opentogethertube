@@ -169,7 +169,9 @@ async fn proxy_request(
     target: &BalancerMonolith,
 ) -> anyhow::Result<Response<Full<Bytes>>> {
     let client = target.http_client();
-    let url: Url = format!("http://{}{}", target.proxy_address(), in_req.uri().path()).parse()?;
+    let mut url: Url =
+        format!("http://{}{}", target.proxy_address(), in_req.uri().path()).parse()?;
+    url.set_query(in_req.uri().query());
     let method = in_req.method().clone();
     let headers = in_req.headers().clone();
     // TODO: update X-Forwarded-For header
