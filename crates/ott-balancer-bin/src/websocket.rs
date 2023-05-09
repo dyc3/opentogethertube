@@ -107,7 +107,8 @@ pub fn is_websocket_upgrade<B>(req: &hyper::Request<B>) -> bool {
     match (connection, upgrade) {
         (Some(connection), Some(upgrade)) => match (connection.to_str(), upgrade.to_str()) {
             (Ok(connection), Ok(upgrade)) => {
-                connection.trim() == "Upgrade" && upgrade.trim() == "websocket"
+                connection.to_lowercase().contains("upgrade")
+                    && upgrade.trim().to_lowercase() == "websocket"
             }
             _ => false,
         },

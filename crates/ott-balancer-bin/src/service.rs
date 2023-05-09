@@ -12,7 +12,7 @@ use ott_balancer_protocol::RoomName;
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -79,6 +79,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
                     let room_name: RoomName = room_name.to_owned().into();
                     if crate::websocket::is_websocket_upgrade(&req) {
+                        debug!("upgrading to websocket");
                         let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();
 
                         // Spawn a task to handle the websocket connection.
