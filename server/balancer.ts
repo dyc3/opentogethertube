@@ -147,16 +147,18 @@ export class BalancerConnection {
 		this.emit("disconnect");
 	}
 
-	private onSocketMessage(event: WebSocket.MessageEvent) {
-		let result = intoResult(() => JSON.parse(event.data.toString()));
+	private onSocketMessage(data: WebSocket.Data) {
+		let result = intoResult(() => JSON.parse(data.toString()));
 		if (result.ok) {
 			if (!validateB2M(result.value)) {
-				log.error(`Error validating incoming balancer message: ${result.value}`);
+				log.error(
+					`Error validating incoming balancer message: ${JSON.stringify(result.value)}`
+				);
 				return;
 			}
 			this.emit("message", result.value);
 		} else {
-			log.error(`Error parsing incoming balancer message: ${result.value}`);
+			log.error(`Error parsing incoming balancer message: ${result.value} - ${data}`);
 		}
 	}
 
@@ -196,13 +198,18 @@ function validateB2M(message: unknown): message is MsgB2M {
 	if (typeof msg.type !== "string") {
 		return false;
 	}
+	if (typeof msg.payload !== "object") {
+		return false;
+	}
 	switch (msg.type) {
 		case "join":
-			return typeof msg.room === "string" && typeof msg.client === "string";
+			return typeof msg.payload.room === "string" && typeof msg.payload.client === "string";
 		case "leave":
-			return typeof msg.client === "string";
+			return typeof msg.payload.client === "string";
 		case "client_msg":
-			return typeof msg.client_id === "string" && typeof msg.payload === "object";
+			return (
+				typeof msg.payload.client_id === "string" && typeof msg.payload.payload === "object"
+			);
 		default:
 			return false;
 	}
@@ -213,20 +220,26 @@ export type MsgB2M = MsgB2MJoin | MsgB2MLeave | MsgB2MClientMsg<unknown>;
 
 interface MsgB2MJoin {
 	type: "join";
-	room: string;
-	client: ClientId;
-	token: AuthToken;
+	payload: {
+		room: string;
+		client: ClientId;
+		token: AuthToken;
+	};
 }
 
 interface MsgB2MLeave {
 	type: "leave";
-	client: ClientId;
+	payload: {
+		client: ClientId;
+	};
 }
 
 interface MsgB2MClientMsg<T> {
 	type: "client_msg";
-	client_id: ClientId;
-	payload: T;
+	payload: {
+		client_id: ClientId;
+		payload: T;
+	};
 }
 
 export type MsgM2B = MsgM2BLoaded | MsgM2BUnloaded | MsgM2BGossip | MsgM2BRoomMsg<unknown>;

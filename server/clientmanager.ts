@@ -185,15 +185,18 @@ function onBalancerDisconnect(conn: BalancerConnection) {
 }
 
 function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
+	log.silly("balancer message: " + JSON.stringify(message));
 	if (message.type === "join") {
-		const client = new BalancerClient(message.room, message.client);
+		const msg = message.payload;
+		const client = new BalancerClient(msg.room, msg.client);
 		connections.push(client);
 		client.on("auth", onClientAuth);
 		client.on("message", onClientMessage);
 		client.on("disconnect", onClientDisconnect);
-		client.auth(message.token);
+		client.auth(msg.token);
 	} else if (message.type === "leave") {
-		const client = connections.find(c => c.id === message.client);
+		const msg = message.payload;
+		const client = connections.find(c => c.id === msg.client);
 		if (client instanceof BalancerClient) {
 			client.leave();
 		} else {
@@ -202,9 +205,10 @@ function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 			);
 		}
 	} else if (message.type === "client_msg") {
-		const client = connections.find(c => c.id === message.client_id);
+		const msg = message.payload;
+		const client = connections.find(c => c.id === msg.client_id);
 		if (client instanceof BalancerClient) {
-			client.receiveMessage(message.payload as ClientMessage);
+			client.receiveMessage(msg.payload as ClientMessage);
 		} else {
 			log.error(
 				`Balancer sent message for client that does not exist or is not a balancer client`
