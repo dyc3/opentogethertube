@@ -30,7 +30,8 @@ import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
-import { Client, ClientJoinStatus, DirectClient } from "./client";
+import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
+import { initBalancerConnections } from "./balancer";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -55,6 +56,8 @@ export function setup(): void {
 	});
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
+
+	initBalancerConnections();
 }
 
 /**
