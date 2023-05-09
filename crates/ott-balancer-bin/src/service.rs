@@ -12,7 +12,7 @@ use ott_balancer_protocol::RoomName;
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -23,6 +23,7 @@ static NOTFOUND: &[u8] = b"Not Found";
 static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     let mut router = Router::new();
     router.add("/api/status", "health");
+    router.add("/api/balancing", "status");
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/monolith", "monolith");
@@ -78,6 +79,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
                     let room_name: RoomName = room_name.to_owned().into();
                     if crate::websocket::is_websocket_upgrade(&req) {
+                        debug!("upgrading to websocket");
                         let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();
 
                         // Spawn a task to handle the websocket connection.
@@ -167,7 +169,9 @@ async fn proxy_request(
     target: &BalancerMonolith,
 ) -> anyhow::Result<Response<Full<Bytes>>> {
     let client = target.http_client();
-    let url: Url = format!("http://{}{}", target.proxy_address(), in_req.uri().path()).parse()?;
+    let mut url: Url =
+        format!("http://{}{}", target.proxy_address(), in_req.uri().path()).parse()?;
+    url.set_query(in_req.uri().query());
     let method = in_req.method().clone();
     let headers = in_req.headers().clone();
     // TODO: update X-Forwarded-For header

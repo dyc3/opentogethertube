@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import { getLogger } from "./logger";
 import { getSessionInfo } from "./auth/tokens";
+import { BalancerConnection } from "./balancer";
 
 const log = getLogger("client");
 
@@ -148,10 +149,31 @@ export class DirectClient extends Client {
  * A client that is connected from a load balancer.
  */
 export class BalancerClient extends Client {
-	constructor(room: string) {
+	conn: BalancerConnection;
+
+	constructor(room: string, client_id: ClientId, conn: BalancerConnection) {
 		super(room);
-		// The balancer takes care of waiting for auth.
-		this.joinStatus = ClientJoinStatus.Joined;
+		this.id = client_id;
+		this.conn = conn;
+	}
+
+	leave() {
+		this.emit("disconnect", this);
+	}
+
+	receiveMessage(msg: ClientMessage) {
+		this.emit("message", this, msg);
+	}
+
+	send(msg: ServerMessage) {
+		this.conn.send({
+			type: "room_msg",
+			payload: {
+				room: this.room,
+				client_id: this.id,
+				payload: msg,
+			},
+		});
 	}
 
 	sendRaw(msg: string) {
@@ -159,6 +181,12 @@ export class BalancerClient extends Client {
 	}
 
 	kick(code: OttWebsocketError) {
-		throw new Error("Not implemented");
+		this.conn.send({
+			type: "kick",
+			payload: {
+				client_id: this.id,
+				reason: code,
+			},
+		});
 	}
 }

@@ -30,7 +30,8 @@ import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
-import { Client, ClientJoinStatus, DirectClient } from "./client";
+import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
+import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -55,6 +56,12 @@ export function setup(): void {
 	});
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
+
+	balancerManager.on("connect", onBalancerConnect);
+	balancerManager.on("disconnect", onBalancerDisconnect);
+	balancerManager.on("message", onBalancerMessage);
+	balancerManager.on("error", onBalancerError);
+	initBalancerConnections();
 }
 
 /**
@@ -175,6 +182,55 @@ async function onClientDisconnect(client: Client) {
 	}
 }
 
+function onBalancerConnect(conn: BalancerConnection) {
+	log.info(`Connected to balancer ${conn.id}`);
+}
+
+function onBalancerDisconnect(conn: BalancerConnection) {
+	log.info(`Disconnected from balancer ${conn.id}`);
+	// TODO: remove all clients from this balancer
+	// TODO: handle reconnecting
+}
+
+function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
+	log.silly("balancer message: " + JSON.stringify(message));
+	if (message.type === "join") {
+		const msg = message.payload;
+		const client = new BalancerClient(msg.room, msg.client, conn);
+		connections.push(client);
+		client.on("auth", onClientAuth);
+		client.on("message", onClientMessage);
+		client.on("disconnect", onClientDisconnect);
+		client.auth(msg.token);
+	} else if (message.type === "leave") {
+		const msg = message.payload;
+		const client = connections.find(c => c.id === msg.client);
+		if (client instanceof BalancerClient) {
+			client.leave();
+		} else {
+			log.error(
+				`Balancer tried to make client leave that does not exist or is not a balancer client`
+			);
+		}
+	} else if (message.type === "client_msg") {
+		const msg = message.payload;
+		const client = connections.find(c => c.id === msg.client_id);
+		if (client instanceof BalancerClient) {
+			client.receiveMessage(msg.payload as ClientMessage);
+		} else {
+			log.error(
+				`Balancer sent message for client that does not exist or is not a balancer client`
+			);
+		}
+	} else {
+		log.error(`Unknown balancer message type: ${(message as { type: string }).type}`);
+	}
+}
+
+function onBalancerError(conn: BalancerConnection, error: WebSocket.ErrorEvent) {
+	log.error(`Error from balancer ${conn.id}: ${error}`);
+}
+
 async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {
 	if (!client.token) {
 		throw new Error("No token present");
@@ -192,26 +248,47 @@ async function makeRoomRequest(client: Client, request: RoomRequest): Promise<vo
 	});
 }
 
-async function broadcast(roomName: string, text: string) {
+async function broadcast(roomName: string, msg: ServerMessage) {
 	const clients = roomJoins.get(roomName);
 	if (!clients) {
 		return;
 	}
+	const text = JSON.stringify(msg, replacer);
+	const balancers = new Set<string>();
 	for (const client of clients) {
-		try {
-			client.sendRaw(text);
-		} catch (e) {
-			if (e instanceof Error) {
-				log.error(`failed to send to client: ${e.message}`);
-			} else {
-				log.error(`failed to send to client`);
+		if (client instanceof BalancerClient) {
+			balancers.add(client.conn.id);
+		} else {
+			try {
+				client.sendRaw(text);
+			} catch (e) {
+				if (e instanceof Error) {
+					log.error(`failed to send to client: ${e.message}`);
+				} else {
+					log.error(`failed to send to client`);
+				}
 			}
 		}
+	}
+
+	// broadcast to balancers
+	for (const balancerId of balancers) {
+		const conn = balancerManager.getConnection(balancerId);
+		if (!conn) {
+			log.error(`Balancer ${balancerId} not found`);
+			continue;
+		}
+		conn.send({
+			type: "room_msg",
+			payload: {
+				room: roomName,
+				payload: msg,
+			},
+		});
 	}
 }
 
 async function onRoomPublish(roomName: string, msg: ServerMessage) {
-	const text = JSON.stringify(msg, replacer);
 	if (msg.action === "sync") {
 		let state = roomStates.get(roomName);
 		if (state === undefined) {
@@ -230,11 +307,11 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 		}
 		roomStates.set(roomName, state);
 
-		await broadcast(roomName, text);
+		await broadcast(roomName, msg);
 	} else if (msg.action === "chat") {
-		await broadcast(roomName, text);
+		await broadcast(roomName, msg);
 	} else if (msg.action === "event" || msg.action === "eventcustom") {
-		await broadcast(roomName, text);
+		await broadcast(roomName, msg);
 	} else if (msg.action === "user") {
 		const clients = roomJoins.get(roomName);
 		if (!clients) {

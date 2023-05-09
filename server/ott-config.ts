@@ -10,6 +10,24 @@ convict.addParser({ extension: "toml", parse: toml.parse });
 // Note that all schema objects MUST include `default`, even if its set to null
 // A default value of null and nullable == false will make the option required
 
+convict.addFormat({
+	name: "balancer-config",
+	validate: (sources, schema) => {
+		if (!Array.isArray(sources)) {
+			throw new Error("Balancer config must be an array");
+		}
+
+		for (let source of sources) {
+			convict(schema.children).load(source).validate();
+		}
+	},
+});
+
+export interface BalancerConfig {
+	host: string;
+	port: number;
+}
+
 export const conf = convict({
 	env: {
 		doc: "The application environment.",
@@ -275,6 +293,23 @@ export const conf = convict({
 		format: Boolean,
 		default: false,
 		env: "FORCE_INSECURE_COOKIES",
+	},
+	balancers: {
+		doc: "The list of balancers that are available for the monolith to use. If this array is empty, it is ignored.",
+		format: "balancer-config",
+		default: [] as BalancerConfig[],
+		children: {
+			host: {
+				doc: "The hostname of the balancer server.",
+				format: String,
+				default: null,
+			},
+			port: {
+				doc: "The port of the balancer server.",
+				format: "port",
+				default: null,
+			},
+		},
 	},
 });
 

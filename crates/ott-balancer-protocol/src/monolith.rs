@@ -20,7 +20,9 @@ pub enum MsgB2M {
         client: ClientId,
     },
     ClientMsg {
+        /// The client that sent the message.
         client_id: ClientId,
+        /// The message that was received from the client, verbatim.
         payload: Box<RawValue>,
     },
 }
@@ -38,8 +40,15 @@ pub enum MsgM2B {
         rooms: Vec<RoomName>,
     },
     RoomMsg {
+        /// The room to send the message to.
         room: RoomName,
+        /// The client to send the message to. If `None`, send to all clients in the room.
         client_id: Option<ClientId>,
+        /// The message to send, verbatim.
         payload: Box<RawValue>,
+    },
+    Kick {
+        client_id: ClientId,
+        reason: u16,
     },
 }
