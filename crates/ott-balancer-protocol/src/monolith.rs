@@ -47,4 +47,8 @@ pub enum MsgM2B {
         /// The message to send, verbatim.
         payload: Box<RawValue>,
     },
+    Kick {
+        client_id: ClientId,
+        reason: u16,
+    },
 }

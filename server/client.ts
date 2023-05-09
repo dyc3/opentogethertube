@@ -181,6 +181,12 @@ export class BalancerClient extends Client {
 	}
 
 	kick(code: OttWebsocketError) {
-		throw new Error("Not implemented");
+		this.conn.send({
+			type: "kick",
+			payload: {
+				client_id: this.id,
+				reason: code,
+			},
+		});
 	}
 }

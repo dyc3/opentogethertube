@@ -8,6 +8,7 @@ import { BalancerConfig, conf } from "./ott-config";
 import { Result, err, ok, intoResult } from "../common/result";
 import { AuthToken, ClientId } from "../common/models/types";
 import { replacer } from "../common/serialize";
+import { OttWebsocketError } from "ott-common/models/types";
 
 const log = getLogger("balancer");
 
@@ -247,7 +248,12 @@ interface MsgB2MClientMsg<T> {
 	};
 }
 
-export type MsgM2B = MsgM2BLoaded | MsgM2BUnloaded | MsgM2BGossip | MsgM2BRoomMsg<unknown>;
+export type MsgM2B =
+	| MsgM2BLoaded
+	| MsgM2BUnloaded
+	| MsgM2BGossip
+	| MsgM2BRoomMsg<unknown>
+	| MsgM2BKick;
 
 interface MsgM2BLoaded {
 	type: "loaded";
@@ -276,5 +282,13 @@ interface MsgM2BRoomMsg<T> {
 		room: string;
 		client_id?: ClientId;
 		payload: T;
+	};
+}
+
+interface MsgM2BKick {
+	type: "kick";
+	payload: {
+		client_id: ClientId;
+		reason: OttWebsocketError;
 	};
 }

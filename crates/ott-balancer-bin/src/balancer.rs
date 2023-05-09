@@ -5,6 +5,8 @@ use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
+use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, trace};
 
@@ -468,6 +470,18 @@ pub async fn dispatch_monolith_message(
 
                 client.send(built_msg.clone()).await?;
             }
+        }
+        MsgM2B::Kick { client_id, reason } => {
+            let ctx_read = ctx.read().await;
+            let Some(client) = ctx_read.clients.get(&client_id) else {
+                anyhow::bail!("client not found");
+            };
+            client
+                .send(SocketMessage(Message::Close(Some(CloseFrame {
+                    code: CloseCode::Library(reason),
+                    reason: "".into(),
+                }))))
+                .await?;
         }
     }
 
