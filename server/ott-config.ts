@@ -254,7 +254,7 @@ export const conf = convict({
 	},
 	session_secret: {
 		default: null as unknown as string,
-		format: "*",
+		format: String,
 		env: "SESSION_SECRET",
 		sensitive: true,
 	},
