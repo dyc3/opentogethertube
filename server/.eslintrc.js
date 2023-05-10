@@ -52,6 +52,9 @@ module.exports = {
 				"@typescript-eslint/no-unsafe-member-access": "off", // TODO: switch to warn
 				"@typescript-eslint/no-unsafe-assignment": "off", // TODO: switch to warn
 			},
+			globals: {
+				NodeJS: true,
+			},
 		},
 		{
 			files: ["migrations/**"],
