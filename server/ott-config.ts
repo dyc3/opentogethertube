@@ -385,7 +385,6 @@ function postProcessConfig(): void {
 	}
 
 	if (conf.get("env") === "test") {
-		// @ts-expect-error
 		conf.set("session_secret", "test");
 	}
 }
