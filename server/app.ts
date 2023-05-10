@@ -58,6 +58,7 @@ if (fs.existsSync("../client/dist")) {
 
 import session, { SessionOptions } from "express-session";
 import connectRedis from "connect-redis";
+log.warn("session secret: {}", conf.get("session_secret"));
 let RedisStore = connectRedis(session);
 let sessionOpts: SessionOptions = {
 	store: new RedisStore({ client: redisClient }),
