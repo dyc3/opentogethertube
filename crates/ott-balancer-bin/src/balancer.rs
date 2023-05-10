@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::monolith::Room;
 use crate::{
@@ -92,6 +92,8 @@ impl Balancer {
                                 Err(err) => error!("failed to join client: {:?}", err)
                             };
                         });
+                    } else {
+                        warn!("new client channel closed")
                     }
                 }
                 msg = self.client_msg_rx.recv() => {
@@ -103,6 +105,8 @@ impl Balancer {
                                 Err(err) => error!("failed to dispatch client message: {:?}", err)
                             }
                         });
+                    } else {
+                        warn!("client message channel closed")
                     }
                 }
                 new_monolith = self.new_monolith_rx.recv() => {
@@ -114,6 +118,8 @@ impl Balancer {
                                 Err(err) => error!("failed to join monolith: {:?}", err)
                             }
                         });
+                    } else {
+                        warn!("new monolith channel closed")
                     }
                 }
                 msg = self.monolith_msg_rx.recv() => {
@@ -125,6 +131,8 @@ impl Balancer {
                                 Err(err) => error!("failed to dispatch monolith message: {:?}", err)
                             }
                         });
+                    } else {
+                        warn!("monolith message channel closed")
                     }
                 }
             }
