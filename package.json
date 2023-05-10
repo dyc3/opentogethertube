@@ -18,7 +18,6 @@
     "lint": "yarn workspace ott-server lint && yarn workspace ott-client lint",
     "lint-ci": "yarn workspace ott-server lint-ci && yarn workspace ott-client lint-ci",
     "test": "yarn workspace ott-server test && yarn workspace ott-client test",
-    "test-e2e": "start-server-and-test optic-dev http-get://localhost:8080 cy:run",
     "cy:run": "cypress run --headless",
     "cy:open": "cypress open",
     "api-server": "yarn workspace ott-server debug",
