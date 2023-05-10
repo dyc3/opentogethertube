@@ -385,6 +385,7 @@ pub async fn dispatch_client_message(
             leave_client(ctx, *msg.id()).await?;
             return Ok(());
         }
+        Message::Frame(_) => unreachable!(),
         _ => {}
     }
 
@@ -407,6 +408,15 @@ pub async fn join_monolith(
     Ok(())
 }
 
+pub async fn leave_monolith(
+    ctx: Arc<RwLock<BalancerContext>>,
+    id: MonolithId,
+) -> anyhow::Result<()> {
+    info!("monolith left: {:?}", id);
+    ctx.write().await.remove_monolith(id);
+    Ok(())
+}
+
 pub async fn dispatch_monolith_message(
     ctx: Arc<RwLock<BalancerContext>>,
     msg: Context<MonolithId, SocketMessage>,
@@ -415,40 +425,42 @@ pub async fn dispatch_monolith_message(
 
     let monolith_id = msg.id();
 
-    let msg: MsgM2B = msg.message().deserialize()?;
+    match msg.message().0 {
+        Message::Text(_) | Message::Binary(_) => {
+            let msg: MsgM2B = msg.message().deserialize()?;
 
-    debug!("got message from monolith: {:?}", msg);
+            debug!("got message from monolith: {:?}", msg);
 
-    match msg {
-        MsgM2B::Loaded { room } => {
-            let mut ctx_write = ctx.write().await;
-            ctx_write
-                .rooms_to_monoliths
-                .insert(room.clone(), *monolith_id);
-            ctx_write
-                .monoliths
-                .get_mut(monolith_id)
-                .unwrap()
-                .add_room(Room::new(room));
-        }
-        MsgM2B::Unloaded { room } => {
-            let mut ctx_write = ctx.write().await;
-            ctx_write.rooms_to_monoliths.remove(&room);
-            ctx_write
-                .monoliths
-                .get_mut(monolith_id)
-                .unwrap()
-                .remove_room(room);
-        }
-        MsgM2B::Gossip { rooms: _ } => todo!(),
-        MsgM2B::RoomMsg {
-            room,
-            client_id: _,
-            payload,
-        } => {
-            let ctx_read = ctx.read().await;
+            match msg {
+                MsgM2B::Loaded { room } => {
+                    let mut ctx_write = ctx.write().await;
+                    ctx_write
+                        .rooms_to_monoliths
+                        .insert(room.clone(), *monolith_id);
+                    ctx_write
+                        .monoliths
+                        .get_mut(monolith_id)
+                        .unwrap()
+                        .add_room(Room::new(room));
+                }
+                MsgM2B::Unloaded { room } => {
+                    let mut ctx_write = ctx.write().await;
+                    ctx_write.rooms_to_monoliths.remove(&room);
+                    ctx_write
+                        .monoliths
+                        .get_mut(monolith_id)
+                        .unwrap()
+                        .remove_room(room);
+                }
+                MsgM2B::Gossip { rooms: _ } => todo!(),
+                MsgM2B::RoomMsg {
+                    room,
+                    client_id: _,
+                    payload,
+                } => {
+                    let ctx_read = ctx.read().await;
 
-            let Some(room) = ctx_read
+                    let Some(room) = ctx_read
                 .monoliths
                 .get(monolith_id)
                 .unwrap()
@@ -457,32 +469,39 @@ pub async fn dispatch_monolith_message(
                     anyhow::bail!("room not found on monolith");
                 };
 
-            // TODO: also handle the case where the client_id is Some
+                    // TODO: also handle the case where the client_id is Some
 
-            // broadcast to all clients
-            debug!("broadcasting to clients in room: {:?}", room.name());
-            // TODO: optimize this using a broadcast channel
-            let built_msg = SocketMessage(Message::text(payload.to_string()));
-            for client in room.clients() {
-                let Some(client) = ctx_read.clients.get(client) else {
+                    // broadcast to all clients
+                    debug!("broadcasting to clients in room: {:?}", room.name());
+                    // TODO: optimize this using a broadcast channel
+                    let built_msg = SocketMessage(Message::text(payload.to_string()));
+                    for client in room.clients() {
+                        let Some(client) = ctx_read.clients.get(client) else {
                     anyhow::bail!("client not found");
                 };
 
-                client.send(built_msg.clone()).await?;
-            }
-        }
-        MsgM2B::Kick { client_id, reason } => {
-            let ctx_read = ctx.read().await;
-            let Some(client) = ctx_read.clients.get(&client_id) else {
+                        client.send(built_msg.clone()).await?;
+                    }
+                }
+                MsgM2B::Kick { client_id, reason } => {
+                    let ctx_read = ctx.read().await;
+                    let Some(client) = ctx_read.clients.get(&client_id) else {
                 anyhow::bail!("client not found");
             };
-            client
-                .send(SocketMessage(Message::Close(Some(CloseFrame {
-                    code: CloseCode::Library(reason),
-                    reason: "".into(),
-                }))))
-                .await?;
+                    client
+                        .send(SocketMessage(Message::Close(Some(CloseFrame {
+                            code: CloseCode::Library(reason),
+                            reason: "".into(),
+                        }))))
+                        .await?;
+                }
+            }
         }
+        Message::Close(_) => {
+            leave_monolith(ctx, *monolith_id).await?;
+        }
+        Message::Frame(_) => unreachable!(),
+        _ => {}
     }
 
     Ok(())
