@@ -253,7 +253,7 @@ export const conf = convict({
 		sensitive: true,
 	},
 	session_secret: {
-		default: null,
+		default: null as unknown as string,
 		format: "*",
 		env: "SESSION_SECRET",
 		sensitive: true,
@@ -349,7 +349,7 @@ export function loadConfigFile() {
 		log.info(`Loading environment config from ${envConfigPath}`);
 		conf.loadFile(envConfigPath);
 	} else {
-		log.warn(`No environment config found at ${configPath}`);
+		log.warn(`No environment config found at ${envConfigPath}`);
 	}
 
 	conf.validate({ allowed: "warn" });
