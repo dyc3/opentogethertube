@@ -373,8 +373,8 @@ pub async fn dispatch_client_message(
 ) -> anyhow::Result<()> {
     trace!("client message: {:?}", msg);
 
-    match msg.message().0 {
-        Message::Text(_) | Message::Binary(_) => {
+    match msg.message() {
+        SocketMessage::Message(Message::Text(_) | Message::Binary(_)) => {
             let raw_value: Box<RawValue> = msg.message().deserialize()?;
 
             let ctx_read = ctx.read().await;
@@ -389,11 +389,11 @@ pub async fn dispatch_client_message(
                 })
                 .await?;
         }
-        Message::Close(_) => {
+        SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
             leave_client(ctx, *msg.id()).await?;
             return Ok(());
         }
-        Message::Frame(_) => unreachable!(),
+        SocketMessage::Message(Message::Frame(_)) => unreachable!(),
         _ => {}
     }
 
@@ -433,8 +433,8 @@ pub async fn dispatch_monolith_message(
 
     let monolith_id = msg.id();
 
-    match msg.message().0 {
-        Message::Text(_) | Message::Binary(_) => {
+    match msg.message() {
+        SocketMessage::Message(Message::Text(_) | Message::Binary(_)) => {
             let msg: MsgM2B = msg.message().deserialize()?;
 
             debug!("got message from monolith: {:?}", msg);
@@ -482,11 +482,11 @@ pub async fn dispatch_monolith_message(
                     // broadcast to all clients
                     debug!("broadcasting to clients in room: {:?}", room.name());
                     // TODO: optimize this using a broadcast channel
-                    let built_msg = SocketMessage(Message::text(payload.to_string()));
+                    let built_msg = Message::text(payload.to_string());
                     for client in room.clients() {
                         let Some(client) = ctx_read.clients.get(client) else {
-                    anyhow::bail!("client not found");
-                };
+                            anyhow::bail!("client not found");
+                        };
 
                         client.send(built_msg.clone()).await?;
                     }
@@ -494,21 +494,21 @@ pub async fn dispatch_monolith_message(
                 MsgM2B::Kick { client_id, reason } => {
                     let ctx_read = ctx.read().await;
                     let Some(client) = ctx_read.clients.get(&client_id) else {
-                anyhow::bail!("client not found");
-            };
+                        anyhow::bail!("client not found");
+                    };
                     client
-                        .send(SocketMessage(Message::Close(Some(CloseFrame {
+                        .send(Message::Close(Some(CloseFrame {
                             code: CloseCode::Library(reason),
                             reason: "".into(),
-                        }))))
+                        })))
                         .await?;
                 }
             }
         }
-        Message::Close(_) => {
+        SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
             leave_monolith(ctx, *monolith_id).await?;
         }
-        Message::Frame(_) => unreachable!(),
+        SocketMessage::Message(Message::Frame(_)) => unreachable!(),
         _ => {}
     }
 
