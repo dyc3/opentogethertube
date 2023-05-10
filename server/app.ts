@@ -24,6 +24,7 @@ log.info(`Search provider: ${searchProvider}`);
 
 const rateLimitEnabled = conf.get("rate_limit.enabled");
 log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
+log.warn("session secret: {}", conf.get("session_secret"));
 
 const app = express();
 app.use(metricsMiddleware);
