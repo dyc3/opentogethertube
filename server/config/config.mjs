@@ -78,7 +78,7 @@ export default {
 	"development": {
 		username: "root",
 		password: null,
-		database: "db_opentogethertube_dev",
+		database: conf.get("db.name"),
 		host: "127.0.0.1",
 		dialect: "sqlite",
 		storage: "db/dev.sqlite",
@@ -86,7 +86,7 @@ export default {
 	"test": {
 		username: "root",
 		password: null,
-		database: "db_opentogethertube_test",
+		database: conf.get("db.name"),
 		host: "127.0.0.1",
 		dialect: "sqlite",
 		storage: "db/test.sqlite",
