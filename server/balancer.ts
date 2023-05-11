@@ -53,6 +53,11 @@ class BalancerManager {
 	private onBalancerDisconnect(conn: BalancerConnection) {
 		log.info(`Disconnected from balancer ${conn.id}`);
 		this.emit("disconnect", conn);
+
+		if (!conn.reconnecting) {
+			log.info(`Reconnecting to balancer ${conn.id}`);
+			conn.reconnect();
+		}
 	}
 
 	private onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
@@ -107,6 +112,9 @@ export class BalancerConnection {
 	config: BalancerConfig;
 	private socket: WebSocket | null = null;
 	private bus: EventEmitter = new EventEmitter();
+	reconnecting = false;
+	private reconnectAttempts = 0;
+	private reconnectTimeout: NodeJS.Timeout | null = null;
 
 	constructor(config: BalancerConfig) {
 		this.id = uuidv4();
@@ -124,6 +132,10 @@ export class BalancerConnection {
 		return this.socket.readyState;
 	}
 
+	get reconnectDelay(): number {
+		return Math.min(1000 * 2 ** this.reconnectAttempts, 1000 * 60);
+	}
+
 	connect(): Result<void, Error> {
 		if (this.socket !== null) {
 			return err(new Error("Already connected"));
@@ -136,21 +148,56 @@ export class BalancerConnection {
 		return ok(undefined);
 	}
 
+	/** Attempt to reconnect until successful */
+	reconnect(): Result<void, Error> {
+		if (this.socket !== null) {
+			this.socket.close();
+		}
+		this.reconnecting = true;
+		this.reconnectAttempts++;
+		if (this.reconnectTimeout !== null) {
+			clearTimeout(this.reconnectTimeout);
+			this.reconnectTimeout = null;
+		}
+		return this.connect();
+	}
+
 	disconnect(): Result<void, Error> {
+		if (this.reconnecting) {
+			this.reconnecting = false;
+			this.reconnectAttempts = 0;
+			if (this.reconnectTimeout !== null) {
+				clearTimeout(this.reconnectTimeout);
+				this.reconnectTimeout = null;
+			}
+		}
 		if (this.socket === null) {
 			return err(new Error("Not connected"));
 		}
 		this.socket.close();
+		this.socket = null;
 		return ok(undefined);
 	}
 
 	private onSocketConnect(event: WebSocket.OpenEvent) {
+		this.reconnecting = false;
+		this.reconnectAttempts = 0;
+		this.reconnectTimeout = null;
 		this.emit("connect");
 	}
 
 	private onSocketDisconnect(event: WebSocket.CloseEvent) {
 		this.socket = null;
 		this.emit("disconnect");
+		if (this.reconnecting) {
+			log.info(
+				`Reconnecting to balancer ${this.id} in ${this.reconnectDelay}ms (attempt ${this.reconnectAttempts}))`
+			);
+			this.reconnectTimeout = setTimeout(() => {
+				let result = this.reconnect();
+				log.info(`Reconnect result: ${result.ok ? "success" : result.value}`);
+			}, this.reconnectDelay);
+		}
 	}
 
 	private onSocketMessage(data: WebSocket.Data) {

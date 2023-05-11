@@ -52,8 +52,8 @@ impl BalancerClient {
         }
     }
 
-    pub async fn send(&self, msg: SocketMessage) -> anyhow::Result<()> {
-        self.socket_tx.send(msg).await?;
+    pub async fn send(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
+        self.socket_tx.send(msg.into()).await?;
 
         Ok(())
     }
@@ -118,8 +118,8 @@ pub async fn client_entry<'r>(
     loop {
         tokio::select! {
             msg = outbound_rx.recv() => {
-                if let Some(msg) = msg {
-                    if let Err(err) = stream.send(msg.0).await {
+                if let Some(SocketMessage::Message(msg)) = msg {
+                    if let Err(err) = stream.send(msg).await {
                         error!("Error sending ws message to client: {:?}", err);
                         break;
                     }
@@ -128,13 +128,24 @@ pub async fn client_entry<'r>(
                 }
             }
 
-            Some(Ok(msg)) = stream.next() => {
-                if let Err(err) = balancer
-                    .send_client_message(client_id, SocketMessage(msg))
-                    .await {
-                        error!("Error sending client message to balancer: {:?}", err);
-                        break;
-                    }
+            msg = stream.next() => {
+                if let Some(Ok(msg)) = msg {
+                    if let Err(err) = balancer
+                        .send_client_message(client_id, SocketMessage::Message(msg))
+                        .await {
+                            error!("Error sending client message to balancer: {:?}", err);
+                            break;
+                        }
+                } else {
+                    info!("Client websocket stream ended: {}", client_id);
+                    if let Err(err) = balancer
+                        .send_client_message(client_id, SocketMessage::End)
+                        .await {
+                            error!("Error sending client message to balancer: {:?}", err);
+                            break;
+                        }
+                    break;
+                }
             }
         }
     }

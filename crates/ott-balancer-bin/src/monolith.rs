@@ -79,7 +79,7 @@ impl BalancerMonolith {
 
     pub async fn send(&self, msg: &MsgB2M) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg)?;
-        let socket_msg = SocketMessage(Message::Text(text));
+        let socket_msg = Message::Text(text).into();
         self.socket_tx.send(socket_msg).await?;
 
         Ok(())
@@ -147,8 +147,8 @@ pub async fn monolith_entry(
     loop {
         tokio::select! {
             msg = outbound_rx.recv() => {
-                if let Some(msg) = msg {
-                    if let Err(err) = stream.send(msg.0).await {
+                if let Some(SocketMessage::Message(msg)) = msg {
+                    if let Err(err) = stream.send(msg).await {
                         error!("Error sending ws message to monolith: {:?}", err);
                         break;
                     }
@@ -157,13 +157,24 @@ pub async fn monolith_entry(
                 }
             }
 
-            Some(Ok(msg)) = stream.next() => {
-                if let Err(err) = balancer
-                    .send_monolith_message(monolith_id, SocketMessage(msg))
-                    .await {
-                        error!("Error sending monolith message to balancer: {:?}", err);
-                        break;
-                    }
+            msg = stream.next() => {
+                if let Some(Ok(msg)) = msg {
+                    if let Err(err) = balancer
+                        .send_monolith_message(monolith_id, SocketMessage::Message(msg))
+                        .await {
+                            error!("Error sending monolith message to balancer: {:?}", err);
+                            break;
+                        }
+                } else {
+                    info!("Monolith websocket stream ended: {}", monolith_id);
+                    if let Err(err) = balancer
+                        .send_monolith_message(monolith_id, SocketMessage::End)
+                        .await {
+                            error!("Error sending monolith message to balancer: {:?}", err);
+                            break;
+                        }
+                    break;
+                }
             }
         }
     }
