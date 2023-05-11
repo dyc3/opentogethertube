@@ -352,9 +352,9 @@ export function loadConfigFile() {
 		log.warn(`No environment config found at ${envConfigPath}`);
 	}
 
-	conf.validate({ allowed: "warn" });
-
 	postProcessConfig();
+
+	conf.validate({ allowed: "warn" });
 }
 
 function postProcessConfig(): void {
