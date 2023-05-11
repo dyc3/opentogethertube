@@ -56,10 +56,10 @@ if (fs.existsSync("../client/dist")) {
 	log.warn("no dist folder found");
 }
 
-import session from "express-session";
+import session, { SessionOptions } from "express-session";
 import connectRedis from "connect-redis";
 let RedisStore = connectRedis(session);
-let sessionOpts = {
+let sessionOpts: SessionOptions = {
 	store: new RedisStore({ client: redisClient }),
 	secret: conf.get("session_secret"),
 	resave: false,
@@ -67,7 +67,6 @@ let sessionOpts = {
 	unset: "keep",
 	proxy: conf.get("env") === "production",
 	cookie: {
-		expires: false,
 		maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
 	},
 };
@@ -86,7 +85,6 @@ if (conf.get("force_insecure_cookies")) {
 	// @ts-expect-error
 	sessionOpts.cookie.secure = false;
 }
-// @ts-expect-error im too lazy to fix this right now
 const sessions = session(sessionOpts);
 app.use(sessions);
 

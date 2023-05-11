@@ -118,6 +118,9 @@ jobs:
         # run copies of the current job in parallel
         containers: [1, 2]
         browsers: [electron]
+    env:
+      # this is safe because it's only used for testing
+      SESSION_SECRET: LERTmi2Jiz6gJHt21AZUWBstezP41P3odxzEsCo1w4zL8XqGyjGdMZ2QPXUenVQQ2fY1xzGBYseB1g9teRHbxF
     services:
       redis:
         image: redis

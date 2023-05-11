@@ -13,6 +13,12 @@ if (process.env.NODE_ENV !== "production") {
 // HACK: we can't import the config here because sequelize-cli doesn't support typescript imports
 // which is actually really really annoying
 const conf = convict({
+	env: {
+		doc: "The application environment.",
+		format: ["production", "development", "test"],
+		default: "development",
+		env: "NODE_ENV",
+	},
 	db: {
 		mode: {
 			doc: "The database mode to use.",
@@ -78,18 +84,18 @@ export default {
 	"development": {
 		username: "root",
 		password: null,
-		database: "db_opentogethertube_dev",
+		database: conf.get("db.name"),
 		host: "127.0.0.1",
 		dialect: "sqlite",
-		storage: "db/dev.sqlite",
+		storage: `db/${conf.get("env")}.sqlite`,
 	},
 	"test": {
 		username: "root",
 		password: null,
-		database: "db_opentogethertube_test",
+		database: conf.get("db.name"),
 		host: "127.0.0.1",
 		dialect: "sqlite",
-		storage: "db/test.sqlite",
+		storage: `db/${conf.get("env")}.sqlite`,
 	},
 	"production": conf.get("db.url")
 		? {
@@ -110,9 +116,9 @@ export default {
 	"production-sqlite": {
 		username: "root",
 		password: null,
-		database: "db_opentogethertube_prod",
+		database: conf.get("db.name"),
 		host: "127.0.0.1",
 		dialect: "sqlite",
-		storage: "db/production.sqlite",
+		storage: `db/${conf.get("env")}.sqlite`,
 	},
 };

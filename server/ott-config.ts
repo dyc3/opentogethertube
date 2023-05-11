@@ -253,8 +253,8 @@ export const conf = convict({
 		sensitive: true,
 	},
 	session_secret: {
-		default: null,
-		format: "*",
+		default: null as unknown as string,
+		format: String,
 		env: "SESSION_SECRET",
 		sensitive: true,
 	},
@@ -349,12 +349,12 @@ export function loadConfigFile() {
 		log.info(`Loading environment config from ${envConfigPath}`);
 		conf.loadFile(envConfigPath);
 	} else {
-		log.warn(`No environment config found at ${configPath}`);
+		log.warn(`No environment config found at ${envConfigPath}`);
 	}
 
-	conf.validate({ allowed: "warn" });
-
 	postProcessConfig();
+
+	conf.validate({ allowed: "warn" });
 }
 
 function postProcessConfig(): void {
@@ -385,7 +385,6 @@ function postProcessConfig(): void {
 	}
 
 	if (conf.get("env") === "test") {
-		// @ts-expect-error
 		conf.set("session_secret", "test");
 	}
 }
