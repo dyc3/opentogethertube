@@ -19,6 +19,26 @@
 			<v-btn icon @click="roomapi.shuffle()">
 				<v-icon>fa:fas fa-random</v-icon>
 			</v-btn>
+			<v-dialog v-model="exportDialog" width="600">
+				<template v-slot:activator="{ props }">
+					<v-btn v-bind="props">
+						{{ $t("video-queue.export") }}
+					</v-btn>
+				</template>
+				<v-card>
+					<v-card-text>
+						<v-textarea v-model="exportedQueue" readonly />
+					</v-card-text>
+					<v-card-actions>
+						<v-btn color="primary" @click="copyExported">
+							{{ $t("common.copy") }}
+						</v-btn>
+						<v-btn @click="exportDialog = false">
+							{{ $t("common.close") }}
+						</v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-dialog>
 		</div>
 		<Sortable
 			:list="store.state.room.queue"
@@ -31,17 +51,19 @@
 				<VideoQueueItem :key="element.id" :item="element" />
 			</template>
 		</Sortable>
+
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, computed } from "vue";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import { granted } from "@/util/grants";
 import { useStore } from "@/store";
 import { Sortable } from "sortablejs-vue3";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import { exportQueue } from "ott-common/queueexport";
 
 const VideoQueue = defineComponent({
 	name: "VideoQueue",
@@ -57,8 +79,22 @@ const VideoQueue = defineComponent({
 			roomapi.queueMove(e.oldIndex, e.newIndex);
 		}
 
+		const exportDialog = ref(false);
+		const exportedQueue = computed(() => {
+			return exportQueue(store.state.room.queue);
+		});
+		function copyExported() {
+			// TODO: reuse code from ShareInvite component
+			if (navigator.clipboard) {
+				navigator.clipboard.writeText(exportedQueue.value);
+			}
+		}
+
 		return {
 			onQueueDragDrop,
+			exportDialog,
+			exportedQueue,
+			copyExported,
 
 			roomapi,
 			granted,
