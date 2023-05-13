@@ -1,4 +1,4 @@
-import URL from "url";
+import { URL } from "url";
 import _ from "lodash";
 import DailyMotionAdapter from "./services/dailymotion";
 import GoogleDriveAdapter from "./services/googledrive";
@@ -23,10 +23,13 @@ import { OttException } from "../common/exceptions";
 import TubiAdapter from "./services/tubi";
 import { Counter } from "prom-client";
 import { conf } from "./ott-config";
+import { OttTranslator } from "./services/translators/ott";
+import { ServiceTranslator } from "./servicetranslator";
+import { Result, ok, err } from "../common/result";
 
 const log = getLogger("infoextract");
 
-const adapters = [
+const adapters: ServiceAdapter[] = [
 	new DailyMotionAdapter(),
 	new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") ?? ""),
 	new VimeoAdapter(),
@@ -34,6 +37,10 @@ const adapters = [
 	new DirectVideoAdapter(),
 	new RedditAdapter(),
 	new TubiAdapter(),
+];
+
+const translators: ServiceTranslator[] = [
+	new OttTranslator(),
 ];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = conf.get("add_preview.search.min_query_length");
@@ -48,7 +55,7 @@ function mergeVideo(a: Video, b: Video): Video {
 
 export default {
 	isURL(str: string): boolean {
-		return URL.parse(str).host !== null;
+		return !!(new URL(str).host);
 	},
 
 	/**
@@ -125,6 +132,14 @@ export default {
 			throw new UnsupportedServiceException(url);
 		}
 		return adapter;
+	},
+
+	getServiceTranslatorForUrl(url: string): Result<ServiceTranslator, UnsupportedServiceException> {
+		const translator = translators.find(translator => translator.canHandleURL(new URL(url)));
+		if (!translator) {
+			return err(new UnsupportedServiceException(url));
+		}
+		return ok(translator);
 	},
 
 	/**
@@ -241,6 +256,22 @@ export default {
 		return result;
 	},
 
+	resolveToVideoId(url: string): VideoId {
+		const translator = this.getServiceTranslatorForUrl(url);
+		if (translator.ok) {
+			const result = translator.value.resolveVideoId(new URL(url));
+			if (result.ok) {
+				return result.value;
+			}
+		}
+
+		const adapter = this.getServiceAdapterForURL(url);
+		return {
+			service: adapter.serviceId,
+			id: adapter.getVideoId(url),
+		};
+	},
+
 	/**
 	 * Turns a search query into a list of videos, regardless of whether it contains a link to a single
 	 * video or a video collection, or search terms to run against an API. If query is a URL, a service
@@ -272,15 +303,19 @@ export default {
 				.filter(line => this.isURL(line));
 
 			const videoIds = lines.map(line => {
-				const adapter = this.getServiceAdapterForURL(line);
-				return {
-					service: adapter.serviceId,
-					id: adapter.getVideoId(line),
-				};
+				return this.resolveToVideoId(line);
 			});
 
 			results = await this.getManyVideoInfo(videoIds);
 		} else if (this.isURL(query)) {
+			const translator = this.getServiceTranslatorForUrl(query);
+			if (translator.ok) {
+				const result = translator.value.resolveVideoId(new URL(query));
+				if (result.ok) {
+					return [await this.getVideoInfo(result.value.service, result.value.id)];
+				}
+			}
+
 			const adapter = this.getServiceAdapterForURL(query);
 
 			if (!adapter) {
