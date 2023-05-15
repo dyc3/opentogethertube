@@ -1,4 +1,4 @@
-import { QueueItem } from "models/video";
+import { QueueItem } from "./models/video";
 
 export function exportQueue(queue: QueueItem[]): string {
 	return queue.map(buildUrlForQueueItem).join("\n");
