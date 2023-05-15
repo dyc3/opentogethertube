@@ -53,7 +53,11 @@ function mergeVideo(a: Video, b: Video): Video {
 
 export default {
 	isURL(str: string): boolean {
-		return !!new URL(str).host;
+		try {
+			return !!new URL(str).host;
+		} catch {
+			return false;
+		}
 	},
 
 	/**
