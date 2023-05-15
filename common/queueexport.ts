@@ -5,12 +5,20 @@ export function exportQueue(queue: QueueItem[]): string {
 }
 
 export function buildUrlForQueueItem(item: QueueItem): string {
-	const url = new URL(`ott://video/${item.service}/${item.id}`);
-	if (item.startAt) {
-		url.searchParams.set("start", item.startAt.toString());
+	switch (item.service) {
+		case "youtube":
+			return `https://youtu.be/${item.id}`;
+		case "vimeo":
+			return `https://vimeo.com/${item.id}`;
+		case "dailymotion":
+			return `https://dailymotion.com/video/${item.id}`;
+		case "direct":
+			return item.id;
+		case "hls":
+			return item.id;
+		case "dash":
+			return item.id;
+		default:
+			throw new Error(`Unknown service: ${item.service}`);
 	}
-	if (item.endAt) {
-		url.searchParams.set("end", item.endAt.toString());
-	}
-	return url.toString();
 }
