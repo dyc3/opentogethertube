@@ -39,9 +39,7 @@ const adapters: ServiceAdapter[] = [
 	new TubiAdapter(),
 ];
 
-const translators: ServiceTranslator[] = [
-	new OttTranslator(),
-];
+const translators: ServiceTranslator[] = [new OttTranslator()];
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = conf.get("add_preview.search.min_query_length");
 const ENABLE_SEARCH = conf.get("add_preview.search.enabled");
@@ -55,7 +53,7 @@ function mergeVideo(a: Video, b: Video): Video {
 
 export default {
 	isURL(str: string): boolean {
-		return !!(new URL(str).host);
+		return !!new URL(str).host;
 	},
 
 	/**
@@ -134,7 +132,9 @@ export default {
 		return adapter;
 	},
 
-	getServiceTranslatorForUrl(url: string): Result<ServiceTranslator, UnsupportedServiceException> {
+	getServiceTranslatorForUrl(
+		url: string
+	): Result<ServiceTranslator, UnsupportedServiceException> {
 		const translator = translators.find(translator => translator.canHandleURL(new URL(url)));
 		if (!translator) {
 			return err(new UnsupportedServiceException(url));

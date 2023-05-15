@@ -51,7 +51,6 @@
 				<VideoQueueItem :key="element.id" :item="element" />
 			</template>
 		</Sortable>
-
 	</div>
 </template>
 
