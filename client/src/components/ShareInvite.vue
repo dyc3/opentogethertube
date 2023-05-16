@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, Ref } from "vue";
+import { defineComponent, ref, computed } from "vue";
 import { useStore } from "@/store";
 import { useCopyFromTextbox } from "./composables";
 
