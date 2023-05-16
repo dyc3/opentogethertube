@@ -26,7 +26,9 @@
 					</v-btn>
 				</template>
 				<v-card>
+					<v-card-title>{{ $t("video-queue.export-diag-title") }}</v-card-title>
 					<v-card-text>
+						<span>{{ $t("video-queue.export-hint") }}</span>
 						<v-textarea v-model="exportedQueue" readonly />
 					</v-card-text>
 					<v-card-actions>
