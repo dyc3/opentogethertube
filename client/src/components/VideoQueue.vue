@@ -29,7 +29,13 @@
 					<v-card-title>{{ $t("video-queue.export-diag-title") }}</v-card-title>
 					<v-card-text>
 						<span>{{ $t("video-queue.export-hint") }}</span>
-						<v-textarea v-model="exportedQueue" readonly />
+						<v-textarea
+							v-model="exportedQueue"
+							readonly
+							ref="exportTextBox"
+							:class="copyExportSuccess ? 'text-success' : ''"
+							:messages="copyExportSuccess ? $t('share-invite.copied') : ''"
+						/>
 					</v-card-text>
 					<v-card-actions>
 						<v-btn color="primary" @click="copyExported">
@@ -65,6 +71,7 @@ import { Sortable } from "sortablejs-vue3";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { exportQueue } from "ott-common/queueexport";
+import { useCopyFromTextbox } from "./composables";
 
 const VideoQueue = defineComponent({
 	name: "VideoQueue",
@@ -84,18 +91,19 @@ const VideoQueue = defineComponent({
 		const exportedQueue = computed(() => {
 			return exportQueue(store.state.room.queue);
 		});
-		function copyExported() {
-			// TODO: reuse code from ShareInvite component
-			if (navigator.clipboard) {
-				navigator.clipboard.writeText(exportedQueue.value);
-			}
-		}
+		const exportTextBox = ref();
+		const { copy: copyExported, copySuccess: copyExportSuccess } = useCopyFromTextbox(
+			exportedQueue,
+			exportTextBox
+		);
 
 		return {
 			onQueueDragDrop,
 			exportDialog,
 			exportedQueue,
+			exportTextBox,
 			copyExported,
+			copyExportSuccess,
 
 			roomapi,
 			granted,
