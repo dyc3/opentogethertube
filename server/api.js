@@ -47,24 +47,6 @@ if (conf.get("env") === "development") {
 	})();
 }
 
-router.post("/room/generate", async (req, res) => {
-	let points = 50;
-	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
-		return;
-	}
-	let roomName = uuidv4();
-	log.debug(`Generating room: ${roomName}`);
-	await roommanager.createRoom({
-		name: roomName,
-		isTemporary: true,
-	});
-	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
-	res.json({
-		success: true,
-		room: roomName,
-	});
-});
-
 router.get("/data/previewAdd", async (req, res) => {
 	let points = 5;
 	if (!InfoExtract.isURL(req.query.input)) {
