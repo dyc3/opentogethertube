@@ -2,7 +2,7 @@ import { Grants } from "../permissions";
 import { QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, VideoId } from "./video";
 
-export type OttResponseBody<T = undefined, E extends OttApiError = OttApiError> =
+export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
 	| OttErrorResponseBody<E>;
 

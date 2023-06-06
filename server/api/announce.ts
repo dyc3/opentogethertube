@@ -1,32 +1,46 @@
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config";
-import express, { RequestHandler, ErrorRequestHandler } from "express";
+import express, { RequestHandler } from "express";
 import { redisClientAsync } from "../redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../../common/constants";
+import { OttResponseBody } from "common/models/rest-api.js";
 
 const router = express.Router();
 const log = getLogger("api/announce");
 
-const announce: RequestHandler = async (req, res, next) => {
+const announce: RequestHandler<unknown, OttResponseBody, { text: string }> = async (
+	req,
+	res,
+	next
+) => {
 	if (req.get("apikey")) {
 		if (req.get("apikey") !== conf.get("api_key")) {
 			res.status(400).json({
 				success: false,
-				error: "apikey is invalid",
+				error: {
+					name: "InvalidApiKey",
+					message: "apikey is invalid",
+				},
 			});
 			return;
 		}
 	} else {
 		res.status(400).json({
 			success: false,
-			error: "apikey was not supplied",
+			error: {
+				name: "MissingApiKey",
+				message: "apikey was not supplied",
+			},
 		});
 		return;
 	}
 	if (!req.body.text) {
 		res.status(400).json({
 			success: false,
-			error: "text was not supplied",
+			error: {
+				name: "MissingText",
+				message: "text was not supplied",
+			},
 		});
 		return;
 	}
