@@ -3,13 +3,10 @@ import InfoExtract from "./infoextractor";
 const { getLogger } = require("./logger.js");
 import { consumeRateLimitPoints } from "./rate-limit";
 import roomapi from "./api/room";
-import { redisClient } from "./redisclient";
-import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import auth from "./auth";
 import usermanager from "./usermanager";
 import passport from "passport";
 import statusapi from "./api/status";
-import { getApiKey } from "./admin";
 import { conf } from "./ott-config";
 import announceapi from "./api/announce";
 
@@ -95,54 +92,6 @@ router.get("/data/previewAdd", async (req, res) => {
 			});
 		}
 	}
-});
-
-router.post("/announce", (req, res) => {
-	if (req.get("apikey")) {
-		if (req.get("apikey") !== getApiKey()) {
-			res.status(400).json({
-				success: false,
-				error: "apikey is invalid",
-			});
-			return;
-		}
-	} else {
-		res.status(400).json({
-			success: false,
-			error: "apikey was not supplied",
-		});
-		return;
-	}
-	if (!req.body.text) {
-		res.status(400).json({
-			success: false,
-			error: "text was not supplied",
-		});
-		return;
-	}
-
-	try {
-		redisClient.publish(
-			ANNOUNCEMENT_CHANNEL,
-			JSON.stringify({
-				action: "announcement",
-				text: req.body.text,
-			})
-		);
-	} catch (error) {
-		log.error(`An unknown error occurred while sending an announcement: ${error}`);
-		res.status(500).json({
-			success: false,
-			error: {
-				name: "Unknown",
-				message: "Unknown, check logs",
-			},
-		});
-		return;
-	}
-	res.json({
-		success: true,
-	});
 });
 
 export default router;
