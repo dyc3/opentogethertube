@@ -2,13 +2,26 @@ use serde::Deserialize;
 use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug, Clone)]
-pub struct SocketMessage(pub Message);
+pub enum SocketMessage {
+    Message(Message),
+    End,
+}
 
 impl<'de> SocketMessage {
     pub fn deserialize<T: Deserialize<'de>>(&'de self) -> anyhow::Result<T> {
-        let text = self.0.to_text()?;
-        let obj = serde_json::from_str(text)?;
+        match self {
+            SocketMessage::Message(msg) => {
+                let text = msg.to_text()?;
+                let obj = serde_json::from_str(text)?;
+                Ok(obj)
+            }
+            SocketMessage::End => anyhow::bail!("SocketMessage::End"),
+        }
+    }
+}
 
-        Ok(obj)
+impl From<Message> for SocketMessage {
+    fn from(msg: Message) -> Self {
+        Self::Message(msg)
     }
 }

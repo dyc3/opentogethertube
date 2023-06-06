@@ -188,8 +188,12 @@ function onBalancerConnect(conn: BalancerConnection) {
 
 function onBalancerDisconnect(conn: BalancerConnection) {
 	log.info(`Disconnected from balancer ${conn.id}`);
-	// TODO: remove all clients from this balancer
-	// TODO: handle reconnecting
+	for (const client of connections) {
+		if (client instanceof BalancerClient && client.conn.id === conn.id) {
+			log.debug(`Kicking balancer client ${client.id}`);
+			client.leave();
+		}
+	}
 }
 
 function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
