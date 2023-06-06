@@ -1,8 +1,6 @@
 const express = require("express");
-import { v4 as uuidv4 } from "uuid";
 import InfoExtract from "./infoextractor";
 const { getLogger } = require("./logger.js");
-import roommanager from "./roommanager";
 import { consumeRateLimitPoints } from "./rate-limit";
 import roomapi from "./api/room";
 import { redisClient } from "./redisclient";
@@ -13,6 +11,7 @@ import passport from "passport";
 import statusapi from "./api/status";
 import { getApiKey } from "./admin";
 import { conf } from "./ott-config";
+import announceapi from "./api/announce";
 
 const log = getLogger("api");
 
@@ -40,6 +39,7 @@ router.use((req, res, next) => {
 router.use(auth.authTokenMiddleware);
 router.use("/user", usermanager.router);
 router.use("/room", roomapi);
+router.use("/announce", announceapi);
 
 if (conf.get("env") === "development") {
 	(async () => {
