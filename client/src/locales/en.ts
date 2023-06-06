@@ -16,6 +16,7 @@ export default {
 		"save": "Save",
 		"search": "Search",
 		"undo": "Undo",
+		"copy": "Copy",
 	},
 	"landing": {
 		hero: {
@@ -193,6 +194,9 @@ export default {
 	"video-queue": {
 		"no-videos": "There aren't any videos queued up.",
 		"add-video": "Add a video",
+		"export": "Export",
+		"export-diag-title": "Export Queue",
+		"export-hint": 'Copy and paste this text into the "Add" tab to restore this queue.',
 	},
 	"video-queue-item": {
 		"experimental": "Experimental support for this service! Expect it to break a lot.",

@@ -1,4 +1,4 @@
-import URL from "url";
+import { URL } from "url";
 import _ from "lodash";
 import DailyMotionAdapter from "./services/dailymotion";
 import GoogleDriveAdapter from "./services/googledrive";
@@ -48,7 +48,11 @@ function mergeVideo(a: Video, b: Video): Video {
 
 export default {
 	isURL(str: string): boolean {
-		return URL.parse(str).host !== null;
+		try {
+			return !!new URL(str).host;
+		} catch {
+			return false;
+		}
 	},
 
 	/**

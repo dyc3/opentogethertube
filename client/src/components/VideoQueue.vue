@@ -19,6 +19,34 @@
 			<v-btn icon @click="roomapi.shuffle()">
 				<v-icon>fa:fas fa-random</v-icon>
 			</v-btn>
+			<v-dialog v-model="exportDialog" width="600">
+				<template v-slot:activator="{ props }">
+					<v-btn v-bind="props">
+						{{ $t("video-queue.export") }}
+					</v-btn>
+				</template>
+				<v-card>
+					<v-card-title>{{ $t("video-queue.export-diag-title") }}</v-card-title>
+					<v-card-text>
+						<span>{{ $t("video-queue.export-hint") }}</span>
+						<v-textarea
+							v-model="exportedQueue"
+							readonly
+							ref="exportTextBox"
+							:class="copyExportSuccess ? 'text-success' : ''"
+							:messages="copyExportSuccess ? $t('share-invite.copied') : ''"
+						/>
+					</v-card-text>
+					<v-card-actions>
+						<v-btn color="primary" @click="copyExported">
+							{{ $t("common.copy") }}
+						</v-btn>
+						<v-btn @click="exportDialog = false">
+							{{ $t("common.close") }}
+						</v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-dialog>
 		</div>
 		<Sortable
 			:list="store.state.room.queue"
@@ -35,13 +63,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, computed } from "vue";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import { granted } from "@/util/grants";
 import { useStore } from "@/store";
 import { Sortable } from "sortablejs-vue3";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import { exportQueue } from "ott-common/queueexport";
+import { useCopyFromTextbox } from "./composables";
 
 const VideoQueue = defineComponent({
 	name: "VideoQueue",
@@ -57,8 +87,23 @@ const VideoQueue = defineComponent({
 			roomapi.queueMove(e.oldIndex, e.newIndex);
 		}
 
+		const exportDialog = ref(false);
+		const exportedQueue = computed(() => {
+			return exportQueue(store.state.room.queue);
+		});
+		const exportTextBox = ref();
+		const { copy: copyExported, copySuccess: copyExportSuccess } = useCopyFromTextbox(
+			exportedQueue,
+			exportTextBox
+		);
+
 		return {
 			onQueueDragDrop,
+			exportDialog,
+			exportedQueue,
+			exportTextBox,
+			copyExported,
+			copyExportSuccess,
 
 			roomapi,
 			granted,

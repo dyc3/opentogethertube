@@ -26,6 +26,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from "vue";
 import { useStore } from "@/store";
+import { useCopyFromTextbox } from "./composables";
 
 export function buildInviteLink(
 	currentLocation: string,
@@ -43,9 +44,7 @@ const ShareInvite = defineComponent({
 	setup() {
 		const store = useStore();
 
-		let copySuccess = ref(false);
 		let inviteLinkText = ref();
-		let copySuccessTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 		function getInviteLink() {
 			return buildInviteLink(
@@ -56,39 +55,14 @@ const ShareInvite = defineComponent({
 		}
 		const inviteLink = computed(getInviteLink);
 
-		async function copyInviteLink() {
-			if (navigator.clipboard) {
-				try {
-					await navigator.clipboard.writeText(inviteLink.value);
-				} catch (err) {
-					console.error("Failed to copy invite link", err);
-				}
-				if (copySuccessTimeoutId) {
-					clearTimeout(copySuccessTimeoutId);
-				}
-				copySuccessTimeoutId = setTimeout(() => {
-					copySuccess.value = false;
-				}, 3000);
-			} else {
-				// @ts-expect-error $el actually does exist
-				let textfield = (inviteLinkText.value.$el as Element).querySelector("input");
-				if (!textfield) {
-					console.error("failed to copy link: input not found");
-					return;
-				}
-				textfield.select();
-				document.execCommand("copy");
-				setTimeout(() => {
-					copySuccess.value = false;
-					textfield?.blur();
-				}, 3000);
-			}
-			copySuccess.value = true;
-		}
-
 		function onFocusHighlightText(e) {
 			e.target.select();
 		}
+
+		const { copy: copyInviteLink, copySuccess } = useCopyFromTextbox(
+			inviteLink,
+			inviteLinkText
+		);
 
 		return {
 			copySuccess,
