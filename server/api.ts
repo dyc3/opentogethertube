@@ -1,5 +1,5 @@
-const express = require("express");
-const { getLogger } = require("./logger.js");
+import express from "express";
+import { getLogger } from "./logger.js";
 import roomapi from "./api/room";
 import auth from "./auth";
 import usermanager from "./usermanager";
