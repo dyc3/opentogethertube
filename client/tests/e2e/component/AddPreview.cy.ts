@@ -19,15 +19,18 @@ describe("<AddPreview />", () => {
 		cy.intercept(
 			"GET",
 			"/api/data/previewAdd?input=https%3A%2F%2Fyoutube.com%2Fwatch%3Fv%3DLP8GRjv6AIo",
-			[
-				{
-					service: "youtube",
-					id: "1",
-					title: "Foo",
-					description: "Bar",
-					length: 100,
-				},
-			]
+			{
+				success: true,
+				result: [
+					{
+						service: "youtube",
+						id: "1",
+						title: "Foo",
+						description: "Bar",
+						length: 100,
+					},
+				],
+			}
 		).as("previewAdd");
 		cy.mount(page);
 
@@ -41,15 +44,18 @@ describe("<AddPreview />", () => {
 	});
 
 	it("should not make a query if not given a URL until the user explicitly searches", () => {
-		cy.intercept("GET", "/api/data/previewAdd?input=foo", [
-			{
-				service: "youtube",
-				id: "1",
-				title: "Foo",
-				description: "Bar",
-				length: 100,
-			},
-		]).as("previewAdd");
+		cy.intercept("GET", "/api/data/previewAdd?input=foo", {
+			success: true,
+			result: [
+				{
+					service: "youtube",
+					id: "1",
+					title: "Foo",
+					description: "Bar",
+					length: 100,
+				},
+			],
+		}).as("previewAdd");
 		cy.mount(page);
 
 		cy.get('[data-cy="add-preview-input"]').click();
