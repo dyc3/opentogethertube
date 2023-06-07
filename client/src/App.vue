@@ -3,9 +3,9 @@
 		<v-app-bar
 			app
 			:density="$vuetify.display.mdAndUp ? 'default' : 'compact'"
-			v-if="!fullscreen"
+			:scroll-behavior="fullscreen ? 'inverted hide' : ' '"
 		>
-			<!-- TODO: replace v-if here with hide on scroll and inverted scroll when vuetify 3.2 comes out. -->
+			<!-- TODO: replace the ' ' here with '' when this bug is fixed: https://github.com/vuetifyjs/vuetify/issues/17554 -->
 			<v-app-bar-nav-icon @click="drawer = true" role="menu" aria-label="nav menu" />
 			<v-img
 				:src="logoUrl"
