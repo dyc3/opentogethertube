@@ -144,7 +144,7 @@ export class Room implements RoomState {
 	_name = "";
 	_title = "";
 	_description = "";
-	_visibility: Visibility = Visibility.Public;
+	_visibility: Visibility = Visibility.Unlisted;
 	_queueMode: QueueMode = QueueMode.Manual;
 	isTemporary = false;
 	_owner: User | null = null;
