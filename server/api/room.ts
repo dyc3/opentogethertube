@@ -81,7 +81,10 @@ router.get("/list", (req, res) => {
 	res.json(rooms);
 });
 
-const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGenerate>> = async (req, res) => {
+const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGenerate>> = async (
+	req,
+	res
+) => {
 	let points = 50;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;

@@ -3,7 +3,7 @@ import { conf } from "../ott-config";
 import express, { RequestHandler } from "express";
 import { redisClientAsync } from "../redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../../common/constants";
-import { OttResponseBody } from "common/models/rest-api.js";
+import { OttResponseBody } from "../../common/models/rest-api";
 
 const router = express.Router();
 const log = getLogger("api/announce");
