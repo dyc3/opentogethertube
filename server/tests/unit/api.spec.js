@@ -5,7 +5,7 @@ const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
 const usermanager = require("../../usermanager.js");
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
-import { redisClient, redisClientAsync } from "../../redisclient";
+import { redisClientAsync } from "../../redisclient";
 import tokens from "../../auth/tokens";
 import { setApiKey } from "../../admin";
 
