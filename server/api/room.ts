@@ -18,10 +18,12 @@ import {
 	OttApiRequestRoomCreate,
 	OttApiResponseGetRoom,
 	OttApiResponseRoomCreate,
+	OttApiResponseRoomGenerate,
 	OttResponseBody,
 } from "../../common/models/rest-api";
 import { getApiKey } from "../admin";
 import { AddRequest } from "ott-common/models/messages";
+import { v4 as uuidv4 } from "uuid";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -78,6 +80,27 @@ router.get("/list", (req, res) => {
 	rooms = _.orderBy(rooms, ["users", "name"], ["desc", "asc"]);
 	res.json(rooms);
 });
+
+const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGenerate>> = async (
+	req,
+	res
+) => {
+	let points = 50;
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	let roomName = uuidv4();
+	log.debug(`Generating room: ${roomName}`);
+	await roommanager.createRoom({
+		name: roomName,
+		isTemporary: true,
+	});
+	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
+	res.json({
+		success: true,
+		room: roomName,
+	});
+};
 
 const createRoom: RequestHandler<
 	unknown,
@@ -461,6 +484,14 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 
 // HACK: Ideally, this error handling would be handled with a proper express error handler.
 // I was not able to figure out how to make it work in this context, so this is what we are stuck with.
+router.post("/generate", async (req, res, next) => {
+	try {
+		await generateRoom(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
 router.post("/create", async (req, res, next) => {
 	try {
 		await createRoom(req, res, next);

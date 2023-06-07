@@ -175,6 +175,8 @@ import ProcessedText from "@/components/ProcessedText.vue";
 import { ToastStyle } from "@/models/toast";
 import toast from "@/util/toast";
 import { Video } from "ott-common/models/video";
+import { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
+import axios, { AxiosResponse } from "axios";
 
 export const AddPreview = defineComponent({
 	name: "AddPreview",
@@ -243,20 +245,32 @@ export const AddPreview = defineComponent({
 		});
 
 		async function requestAddPreview() {
-			await API.get(`/data/previewAdd?input=${encodeURIComponent(inputAddPreview.value)}`, {
-				validateStatus: status => status < 500,
-			})
-				.then(res => {
-					isLoadingAddPreview.value = false;
-					if (res.status === 200) {
-						hasAddPreviewFailed.value = false;
-						videos.value = res.data;
-						console.log(`Got add preview with ${videos.value.length}`);
-					} else if (res.status === 400) {
-						hasAddPreviewFailed.value = true;
-						videosLoadFailureText.value = res.data.error.message;
+			try {
+				const res = await API.get<OttResponseBody<OttApiResponseAddPreview>>(
+					`/data/previewAdd?input=${encodeURIComponent(inputAddPreview.value)}`
+				);
+
+				hasAddPreviewFailed.value = false;
+				if (res.data.success) {
+					videos.value = res.data.result;
+					console.log(`Got add preview with ${videos.value.length}`);
+				} else {
+					throw new Error(res.data.error.message);
+				}
+			} catch (err) {
+				hasAddPreviewFailed.value = true;
+				videosLoadFailureText.value = t("add-preview.messages.unknown-error");
+				console.error("Failed to get add preview", err);
+				if (axios.isAxiosError(err) && err.response) {
+					console.error(
+						`add preview response: ${err.response.status}`,
+						err.response.data
+					);
+
+					if (err.response.status === 400) {
+						videosLoadFailureText.value = err.response.data.error.message;
 						if (
-							res.data.error.name === "FeatureDisabledException" &&
+							err.response.data.error.name === "FeatureDisabledException" &&
 							!isAddPreviewInputUrl.value
 						) {
 							window.open(
@@ -266,27 +280,17 @@ export const AddPreview = defineComponent({
 								"_blank"
 							);
 						}
-					} else {
-						console.warn("Unknown status for add preview response:", res.status);
-						toast.add({
-							style: ToastStyle.Error,
-							content: t("add-preview.messages.unknown-status", {
-								status: res.status,
-							}),
-						});
 					}
-				})
-				.catch(err => {
-					isLoadingAddPreview.value = false;
-					hasAddPreviewFailed.value = true;
-					videosLoadFailureText.value = t("add-preview.messages.unknown-error");
-					console.error("Failed to get add preview", err);
-					toast.add({
-						style: ToastStyle.Error,
-						content: t("add-preview.messages.failed-to-get-add-preview"),
-						duration: 6000,
-					});
+				}
+
+				toast.add({
+					style: ToastStyle.Error,
+					content: t("add-preview.messages.failed-to-get-add-preview"),
+					duration: 6000,
 				});
+			} finally {
+				isLoadingAddPreview.value = false;
+			}
 		}
 		const requestAddPreviewDebounced = _.debounce(requestAddPreview, 1000);
 		/**
