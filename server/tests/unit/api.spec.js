@@ -5,7 +5,7 @@ const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
 const usermanager = require("../../usermanager.js");
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
-import { redisClient } from "../../redisclient";
+import { redisClient, redisClientAsync } from "../../redisclient";
 import tokens from "../../auth/tokens";
 import { setApiKey } from "../../admin";
 
@@ -786,7 +786,8 @@ describe("Data API", () => {
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.then(resp => {
-				expect(resp.body).toHaveLength(0);
+				expect(resp.body.success).toBe(true);
+				expect(resp.body.result).toHaveLength(0);
 				expect(resolveQuerySpy).toBeCalled();
 			});
 
@@ -873,7 +874,7 @@ describe("Announcements API", () => {
 	});
 
 	beforeEach(() => {
-		publishSpy = jest.spyOn(redisClient, "publish").mockImplementation(() => {});
+		publishSpy = jest.spyOn(redisClientAsync, "publish").mockImplementation(() => {});
 	});
 
 	afterEach(() => {
@@ -914,7 +915,10 @@ describe("Announcements API", () => {
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
-					error: "apikey was not supplied",
+					error: {
+						name: "MissingApiKey",
+						message: "apikey was not supplied",
+					},
 				});
 			});
 		expect(publishSpy).not.toHaveBeenCalled();
@@ -949,7 +953,10 @@ describe("Announcements API", () => {
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
-					error: "text was not supplied",
+					error: {
+						name: "MissingText",
+						message: "text was not supplied",
+					},
 				});
 			});
 		expect(publishSpy).not.toHaveBeenCalled();
