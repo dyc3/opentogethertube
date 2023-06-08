@@ -19,7 +19,7 @@ function buildFindRoomWhere(roomName: string) {
 
 export async function getRoomByName(roomName: string): Promise<RoomOptions | null> {
 	try {
-		const dbroom = await DbRoomModel.findOne({
+		const dbroom: DbRoom = await DbRoomModel.findOne({
 			where: buildFindRoomWhere(roomName),
 			include: { model: UserModel, as: "owner" },
 		});
@@ -36,7 +36,7 @@ export async function getRoomByName(roomName: string): Promise<RoomOptions | nul
 
 export async function isRoomNameTaken(roomName: string): Promise<boolean> {
 	try {
-		const room = await DbRoomModel.findOne({
+		const room: DbRoom = await DbRoomModel.findOne({
 			where: buildFindRoomWhere(roomName),
 		});
 		return !!room;
@@ -57,7 +57,7 @@ export async function saveRoom(room: Room): Promise<boolean> {
 		return false;
 	}
 	try {
-		const room = await DbRoomModel.create(options);
+		const room: DbRoom = await DbRoomModel.create(options);
 		log.info(`Saved room to db: id ${room.dataValues.id}`);
 		return true;
 	} catch (err) {
@@ -72,13 +72,13 @@ export async function saveRoom(room: Room): Promise<boolean> {
  */
 export async function updateRoom(room: Room): Promise<boolean> {
 	try {
-		const dbroom = await DbRoomModel.findOne({
+		const dbroom: DbRoom = await DbRoomModel.findOne({
 			where: buildFindRoomWhere(room.name),
 		});
 		if (!dbroom) {
 			return false;
 		}
-		const options = roomToDb(dbroom);
+		const options = roomToDb(room);
 		log.debug(`updating room in database ${JSON.stringify(options)}`);
 		await dbroom.update(options);
 		return true;
