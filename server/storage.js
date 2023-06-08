@@ -13,38 +13,6 @@ if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
 	setupPostgresMetricsCollection(sequelize);
 }
 
-/**
- * Converts a room into an object that can be stored in the database;
- * @param {roommanager.Room} room
- */
-function roomToDb(room) {
-	let db = {
-		name: room.name,
-		title: room.title,
-		description: room.description,
-		visibility: room.visibility,
-		queueMode: room.queueMode,
-		autoSkipSegments: room.autoSkipSegments,
-	};
-	if (room.grants) {
-		db.permissions = room.grants.serialize();
-	}
-	if (room.owner) {
-		db.ownerId = room.owner.id;
-	}
-	if (room.userRoles) {
-		for (let i = 0; i <= 4; i++) {
-			if (i >= 2) {
-				// trusted user, FIXME: replace with Role enum
-				db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(
-					Array.from(room.userRoles.get(i))
-				);
-			}
-		}
-	}
-	return db;
-}
-
 module.exports = {
 	getRoomByName,
 	saveRoom,
