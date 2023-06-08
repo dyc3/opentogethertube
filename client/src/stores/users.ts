@@ -14,9 +14,9 @@ export interface UsersState {
 export const usersModule: Module<UsersState, unknown> = {
 	state: {
 		users: reactive(new Map()),
-		you: reactive({
+		you: {
 			id: "",
-		}),
+		},
 	},
 	getters: {
 		token(): string | null {

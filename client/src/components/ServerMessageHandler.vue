@@ -25,6 +25,9 @@ const ServerMessageHandler = defineComponent({
 		connection.addMessageHandler("user", msg => {
 			store.dispatch("user", msg);
 		});
+		connection.addMessageHandler("you", msg => {
+			store.dispatch("you", msg);
+		});
 		connection.addMessageHandler("event", msg => {
 			store.dispatch("event", msg);
 		});
