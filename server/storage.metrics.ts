@@ -50,6 +50,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 	const guagePostgresTableOps = new Gauge({
 		name: "postgres_table_ops",
 		help: "Number of table operations in the database",
+		labelNames: ["table", "operation"],
 		async collect() {
 			interface ResultRow {
 				relname: string;
