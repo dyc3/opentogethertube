@@ -1,5 +1,5 @@
 import { ServerMessageUser, ServerMessageYou, PartialUserInfo } from "ott-common/models/messages";
-import { ClientId, RoomUserInfo } from "ott-common/models/types";
+import { ClientId, Role, RoomUserInfo } from "ott-common/models/types";
 import { Module } from "vuex/types";
 import { API } from "@/common-http";
 import { reactive } from "vue";
@@ -29,8 +29,7 @@ export const usersModule: Module<UsersState, FullOTTStoreState> = {
 			return state.users.get(state.you.id);
 		},
 		grants(state, getters, rootState): GrantMask {
-			const self = getters.self;
-			throw new Error("TODO: impl grants getter");
+			return rootState.room.grants.getMask(getters.self?.role ?? Role.Owner);
 		},
 	},
 	mutations: {

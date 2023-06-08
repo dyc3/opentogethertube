@@ -129,10 +129,7 @@ export interface RoomStateComputed {
 }
 
 // Only these should be sent to clients, all others should be considered unsafe
-export type RoomStateSyncable = Omit<
-	RoomState,
-	"owner" | "votes" | "userRoles" | "grants" | "users"
->;
+export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "users">;
 
 // Only these should be stored in redis
 export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">;
@@ -943,6 +940,7 @@ export class Room implements RoomState {
 
 	public async setGrants(grants: Grants): Promise<void> {
 		this.grants.setAllGrants(grants);
+		this.markDirty("grants");
 	}
 
 	public async play(): Promise<void> {
@@ -1395,6 +1393,7 @@ export class Room implements RoomState {
 			for (const role of request.settings.grants.getRoles()) {
 				if (Object.hasOwnProperty.call(roleToPerms, role)) {
 					this.grants.setRoleGrants(role, request.settings.grants.getMask(role));
+					this.markDirty("grants");
 				}
 			}
 		}
