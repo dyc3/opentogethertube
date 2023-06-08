@@ -70,7 +70,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 				"n_tup_ins",
 				"n_tup_upd",
 				"n_tup_del",
-			]
+			];
 
 			try {
 				const result: ResultRow[] = await sequelize.query(
@@ -88,6 +88,6 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 			} catch (e) {
 				log.error("Failed to collect postgres table stats", e);
 			}
-		}
-	})
+		},
+	});
 }
