@@ -72,6 +72,7 @@ export async function saveRoom(room: Room): Promise<boolean> {
  */
 export async function updateRoom(room: Room): Promise<boolean> {
 	try {
+		// TODO: optimize this to just do an update query, instead of a find and then update
 		const dbroom: DbRoom = await DbRoomModel.findOne({
 			where: buildFindRoomWhere(room.name),
 		});
