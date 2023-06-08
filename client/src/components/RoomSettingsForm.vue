@@ -120,7 +120,7 @@
 import _ from "lodash";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import { Visibility, QueueMode, RoomSettings } from "ott-common/models/types";
 import type { Grants } from "ott-common/permissions";
 import { granted } from "@/util/grants";

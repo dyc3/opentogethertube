@@ -154,7 +154,7 @@
 </template>
 
 <script lang="ts">
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { defineComponent, reactive, ref, watch } from "vue";

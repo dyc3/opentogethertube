@@ -168,7 +168,7 @@ import { defineComponent, ref, computed, watch, Ref } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import ProcessedText from "@/components/ProcessedText.vue";

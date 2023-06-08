@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts">
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import { defineComponent, ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
