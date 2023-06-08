@@ -1139,7 +1139,7 @@ export class Room implements RoomState {
 		this.log.debug(`User was updated: ${request.info.id} ${JSON.stringify(request.info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === request.info.id) {
-				this.realusers[i].updateInfo(request.info);
+				await this.realusers[i].updateInfo(request.info);
 				await this.syncUser(this.getUserInfo(this.realusers[i].id));
 				break;
 			}
