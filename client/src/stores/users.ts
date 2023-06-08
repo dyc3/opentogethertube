@@ -3,6 +3,8 @@ import { ClientId, RoomUserInfo } from "ott-common/models/types";
 import { Module } from "vuex/types";
 import { API } from "@/common-http";
 import { reactive } from "vue";
+import type { GrantMask } from "ott-common/permissions";
+import type { FullOTTStoreState } from "../store";
 
 export interface UsersState {
 	users: Map<ClientId, RoomUserInfo>;
@@ -11,7 +13,8 @@ export interface UsersState {
 	};
 }
 
-export const usersModule: Module<UsersState, unknown> = {
+export const usersModule: Module<UsersState, FullOTTStoreState> = {
+	namespaced: true,
 	state: {
 		users: reactive(new Map()),
 		you: {
@@ -24,6 +27,10 @@ export const usersModule: Module<UsersState, unknown> = {
 		},
 		self(state): RoomUserInfo | undefined {
 			return state.users.get(state.you.id);
+		},
+		grants(state, getters, rootState): GrantMask {
+			const self = getters.self;
+			throw new Error("TODO: impl grants getter");
 		},
 	},
 	mutations: {

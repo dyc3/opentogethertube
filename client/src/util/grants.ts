@@ -8,7 +8,7 @@ export function granted(permission: PermissionName) {
 		console.error("granted(): No store found.");
 		return true;
 	}
-	// let usermask = store.state.users.grants;
+	// let usermask = store.getters.['users/grants'];
 	let usermask = 4194303; // FIXME: grab from store
 	let permMask = parseIntoGrantMask([permission]);
 	return (usermask & permMask) > 0;

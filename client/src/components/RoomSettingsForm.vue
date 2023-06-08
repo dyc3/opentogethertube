@@ -76,7 +76,7 @@
 					!store.state.room.isTemporary && store.state.user && store.state.room.hasOwner
 				"
 				v-model="inputRoomSettings.grants"
-				:current-role="store.state.users.you.role"
+				:current-role="store.getters['users/self'].role"
 			/>
 			<div v-else-if="store.state.room.isTemporary">
 				{{ $t("room-settings.permissions-not-available") }}
