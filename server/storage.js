@@ -6,6 +6,7 @@ const { getLogger } = require("./logger.js");
 const permissions = require("../common/permissions");
 import { setupPostgresMetricsCollection } from "./storage.metrics";
 import { conf } from "./ott-config";
+import { getRoomByName, isRoomNameTaken } from "./storage/room";
 
 const log = getLogger("storage");
 if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
@@ -44,54 +45,8 @@ function roomToDb(room) {
 	return db;
 }
 
-function dbToRoomArgs(db) {
-	let room = {
-		name: db.name,
-		title: db.title,
-		description: db.description,
-		visibility: db.visibility,
-		queueMode: db.queueMode,
-		owner: db.owner,
-		grants: new permissions.Grants(),
-		userRoles: {},
-		autoSkipSegments: db.autoSkipSegments,
-	};
-	if (db.permissions) {
-		room.grants.deserialize(db.permissions);
-	}
-	for (let i = 0; i <= 4; i++) {
-		if (i >= 2) {
-			// trusted user, FIXME: replace with Role enum
-			room.userRoles[i] = JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`]);
-		}
-	}
-	return room;
-}
-
 module.exports = {
-	getRoomByName(roomName) {
-		return Room.findOne({
-			where: {
-				// I have no idea if this is the correct way to do this because the documentation is unclear
-				$and: Sequelize.where(
-					Sequelize.fn("lower", Sequelize.col("name")),
-					Sequelize.fn("lower", roomName)
-				),
-			},
-			include: { model: User, as: "owner" },
-		})
-			.then(room => {
-				if (!room) {
-					log.debug(`Room ${roomName} does not exist in db.`);
-					return null;
-				}
-				return dbToRoomArgs(room);
-			})
-			.catch(err => {
-				log.error(`Failed to get room by name: ${err}`);
-				throw err;
-			});
-	},
+	getRoomByName,
 	async saveRoom(room) {
 		let options = roomToDb(room);
 		// HACK: search for the room to see if it exists
@@ -108,21 +63,7 @@ module.exports = {
 				return false;
 			});
 	},
-	async isRoomNameTaken(roomName) {
-		return await Room.findOne({
-			where: {
-				$and: Sequelize.where(
-					Sequelize.fn("lower", Sequelize.col("name")),
-					Sequelize.fn("lower", roomName)
-				),
-			},
-		})
-			.then(room => !!room)
-			.catch(err => {
-				log.error(`${err} ${err.stack}`);
-				throw err;
-			});
-	},
+	isRoomNameTaken,
 	updateRoom(room) {
 		return Room.findOne({
 			where: { name: room.name },
