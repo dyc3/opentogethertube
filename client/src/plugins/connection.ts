@@ -207,7 +207,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	private handleMessage(msg: ServerMessage) {
 		let handlers = this.messageHandlers.get(msg.action) ?? [];
 		if (handlers.length === 0) {
-			console.warn("connection: no message handlers for message: ", msg.action);
+			console.error("connection: no message handlers for message: ", msg.action);
 			return;
 		}
 		for (let handler of handlers) {
