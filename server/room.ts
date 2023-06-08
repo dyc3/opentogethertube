@@ -1,4 +1,4 @@
-import permissions, { Grants } from "../common/permissions";
+import permissions, { GrantMask, Grants } from "../common/permissions";
 import { redisClient } from "./redisclient";
 import { promisify } from "util";
 import { getLogger } from "./logger.js";
@@ -129,7 +129,10 @@ export interface RoomStateComputed {
 }
 
 // Only these should be sent to clients, all others should be considered unsafe
-export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "grants">;
+export type RoomStateSyncable = Omit<
+	RoomState,
+	"owner" | "votes" | "userRoles" | "grants" | "users"
+>;
 
 // Only these should be stored in redis
 export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">;
@@ -330,7 +333,6 @@ export class Room implements RoomState {
 	public set owner(value: User | null) {
 		this._owner = value;
 		this.markDirty("hasOwner");
-		this.markDirty("users");
 	}
 
 	public get videoSegments(): Segment[] {
@@ -738,7 +740,6 @@ export class Room implements RoomState {
 			"isPlaying",
 			"playbackPosition",
 			"grants",
-			"users",
 			"voteCounts",
 			"hasOwner",
 			"videoSegments",
@@ -775,9 +776,9 @@ export class Room implements RoomState {
 		this.log.debug(`syncing user: ${info.name}`);
 		await this.publish({
 			action: "user",
-			user: {
-				grants: this.grants.getMask(info.role),
-				...info,
+			update: {
+				kind: "update",
+				value: info,
 			},
 		});
 	}
@@ -930,6 +931,14 @@ export class Room implements RoomState {
 		} else {
 			this.log.error(`No room request handler: ${request.type}`);
 		}
+	}
+
+	public getGrantsForUser(id: ClientId): GrantMask {
+		const user = this.getUser(id);
+		if (!user) {
+			return 0;
+		}
+		return this.grants.getMask(this.getRole(user));
 	}
 
 	public async setGrants(grants: Grants): Promise<void> {
@@ -1097,10 +1106,8 @@ export class Room implements RoomState {
 		user.token = request.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
-		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
 		await this.publishRoomEvent(request, context);
-		await this.syncUser(this.getUserInfo(user.id));
 		// HACK: force the client to receive the correct playback position
 		await this.publish({ action: "sync", playbackPosition: this.realPlaybackPosition });
 	}
@@ -1124,7 +1131,7 @@ export class Room implements RoomState {
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === context.clientId) {
 				this.realusers.splice(i--, 1);
-				this.markDirty("users");
+				// sending the user update to remove the user is handled by clientmanager
 				break;
 			}
 		}
@@ -1135,8 +1142,8 @@ export class Room implements RoomState {
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === request.info.id) {
 				this.realusers[i].updateInfo(request.info);
-				this.markDirty("users");
 				await this.syncUser(this.getUserInfo(this.realusers[i].id));
+				break;
 			}
 		}
 	}
@@ -1291,7 +1298,6 @@ export class Room implements RoomState {
 				this.userRoles.get(request.role)?.add(targetUser.user_id);
 			}
 		}
-		this.markDirty("users");
 		await this.syncUser(this.getUserInfo(targetUser.id));
 		if (!this.isTemporary) {
 			try {

@@ -41,7 +41,6 @@ interface BaseStoreState {
 			videoDuration: number;
 			category: string;
 		}[];
-		users: RoomUserInfo[];
 	};
 
 	keepAliveInterval: number | null;
@@ -90,8 +89,6 @@ export function buildNewStore() {
 					chatMessages: [],
 					voteCounts: undefined,
 					playbackStartTime: undefined,
-					/** @deprecated: move this to users store, and update this list based on the ServerMessageUser packets, and make the server not include this in sync packets anymore. */
-					users: [],
 				},
 
 				keepAliveInterval: null,

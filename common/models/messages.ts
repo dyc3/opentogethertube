@@ -1,3 +1,4 @@
+import { GrantMask } from "permissions";
 import {
 	ClientId,
 	ClientInfo,
@@ -19,7 +20,8 @@ export type ServerMessage =
 	| ServerMessageEvent
 	| ServerMessageEventCustom
 	| ServerMessageAnnouncement
-	| ServerMessageUser;
+	| ServerMessageUser
+	| ServerMessageYou;
 
 export type ServerMessageActionType = ServerMessage["action"];
 
@@ -74,11 +76,35 @@ export interface ServerMessageAnnouncement extends ServerMessageBase {
 
 export interface ServerMessageUser extends ServerMessageBase {
 	action: "user";
-	user: UserInfo;
+	update: UserUpdate;
 }
 
-export interface UserInfo extends Omit<RoomUserInfo, "status"> {
-	isYou?: boolean;
+export interface ServerMessageYou extends ServerMessageBase {
+	action: "you";
+	info: {
+		id: ClientId;
+	};
+}
+
+export type UserUpdate =
+	| {
+			kind: "init";
+			value: RoomUserInfo[];
+	  }
+	| {
+			// can be used to update an existing user, or add a new user
+			kind: "update";
+			value: PartialUserInfo;
+	  }
+	| {
+			kind: "remove";
+			value: ClientId;
+	  };
+
+export type PartialUserInfo = Required<Pick<RoomUserInfo, "id">> &
+	Partial<Omit<RoomUserInfo, "id">>;
+
+export interface UserInfo extends RoomUserInfo {
 	grants: number;
 }
 
