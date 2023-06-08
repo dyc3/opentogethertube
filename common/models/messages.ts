@@ -1,4 +1,3 @@
-import { GrantMask } from "permissions";
 import {
 	ClientId,
 	ClientInfo,
@@ -104,6 +103,7 @@ export type UserUpdate =
 export type PartialUserInfo = Required<Pick<RoomUserInfo, "id">> &
 	Partial<Omit<RoomUserInfo, "id">>;
 
+/** @deprecated: should no longer be used */
 export interface UserInfo extends RoomUserInfo {
 	grants: number;
 }

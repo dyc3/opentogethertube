@@ -15,19 +15,10 @@ import {
 	ServerMessageUser,
 	ServerMessageYou,
 } from "../common/models/messages";
-import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
-import { InvalidTokenException } from "../common/exceptions";
-import {
-	ClientInfo,
-	MySession,
-	OttWebsocketError,
-	ClientId,
-	AuthToken,
-	Role,
-} from "../common/models/types";
+import { ClientNotFoundInRoomException } from "./exceptions";
+import { MySession, OttWebsocketError, AuthToken } from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
@@ -128,8 +119,8 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 		action: "user",
 		update: {
 			kind: "init",
-			value: room.users
-		}
+			value: room.users,
+		},
 	};
 	client.send(clientsInit);
 

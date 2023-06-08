@@ -67,7 +67,7 @@ export const usersModule: Module<UsersState, FullOTTStoreState> = {
 					context.commit("REMOVE_USER", message.update.value);
 					break;
 				default:
-					console.error("Unknown user update kind", message.update.kind);
+					console.error("Unknown user update kind", message.update);
 					break;
 			}
 		},
