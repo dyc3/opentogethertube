@@ -54,13 +54,13 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 		async collect() {
 			interface ResultRow {
 				relname: string;
-				seq_scan: BigInt;
-				seq_tup_read: BigInt;
-				idx_scan: BigInt;
-				idx_tup_fetch: BigInt;
-				n_tup_ins: BigInt;
-				n_tup_upd: BigInt;
-				n_tup_del: BigInt;
+				seq_scan: string;
+				seq_tup_read: string;
+				idx_scan: string;
+				idx_tup_fetch: string;
+				n_tup_ins: string;
+				n_tup_upd: string;
+				n_tup_del: string;
 			}
 
 			const tableOps = [
@@ -83,7 +83,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 				log.debug(`result from query: ${JSON.stringify(result)}`);
 				for (const row of result) {
 					for (const op of tableOps) {
-						this.labels({ table: row.relname, operation: op }).set(row[op]);
+						this.labels({ table: row.relname, operation: op }).set(parseInt(row[op]));
 					}
 				}
 			} catch (e) {
