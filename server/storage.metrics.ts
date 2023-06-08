@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 import { QueryTypes } from "sequelize";
-import { Gauge } from "prom-client";
+import { Counter, Gauge } from "prom-client";
 import { getLogger } from "./logger.js";
 
 const log = getLogger("storage");
@@ -46,4 +46,48 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 			}
 		},
 	});
+
+	const guagePostgresTableOps = new Gauge({
+		name: "postgres_table_ops",
+		help: "Number of table operations in the database",
+		async collect() {
+			interface ResultRow {
+				relname: string;
+				seq_scan: BigInt;
+				seq_tup_read: BigInt;
+				idx_scan: BigInt;
+				idx_tup_fetch: BigInt;
+				n_tup_ins: BigInt;
+				n_tup_upd: BigInt;
+				n_tup_del: BigInt;
+			}
+
+			const tableOps = [
+				"seq_scan",
+				"seq_tup_read",
+				"idx_scan",
+				"idx_tup_fetch",
+				"n_tup_ins",
+				"n_tup_upd",
+				"n_tup_del",
+			]
+
+			try {
+				const result: ResultRow[] = await sequelize.query(
+					`SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del FROM pg_stat_user_tables`,
+					{
+						type: QueryTypes.SELECT,
+					}
+				);
+				log.debug(`result from query: ${JSON.stringify(result)}`);
+				for (const row of result) {
+					for (const op of tableOps) {
+						this.labels({ table: row.relname, operation: op }).set(row[op]);
+					}
+				}
+			} catch (e) {
+				log.error("Failed to collect postgres table stats", e);
+			}
+		}
+	})
 }
