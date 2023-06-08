@@ -1,9 +1,8 @@
 const _ = require("lodash");
 const dayjs = require("dayjs");
-const { Room, CachedVideo, User, sequelize } = require("./models");
+const { CachedVideo, sequelize } = require("./models");
 const Sequelize = require("sequelize");
 const { getLogger } = require("./logger.js");
-const permissions = require("../common/permissions");
 import { setupPostgresMetricsCollection } from "./storage.metrics";
 import { conf } from "./ott-config";
 import { getRoomByName, isRoomNameTaken, saveRoom, updateRoom } from "./storage/room";
