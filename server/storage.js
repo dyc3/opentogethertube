@@ -6,7 +6,7 @@ const { getLogger } = require("./logger.js");
 const permissions = require("../common/permissions");
 import { setupPostgresMetricsCollection } from "./storage.metrics";
 import { conf } from "./ott-config";
-import { getRoomByName, isRoomNameTaken } from "./storage/room";
+import { getRoomByName, isRoomNameTaken, saveRoom, updateRoom } from "./storage/room";
 
 const log = getLogger("storage");
 if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
@@ -47,35 +47,9 @@ function roomToDb(room) {
 
 module.exports = {
 	getRoomByName,
-	async saveRoom(room) {
-		let options = roomToDb(room);
-		// HACK: search for the room to see if it exists
-		if (await this.isRoomNameTaken(options.name)) {
-			return false;
-		}
-		return Room.create(options)
-			.then(result => {
-				log.info(`Saved room to db: id ${result.dataValues.id}`);
-				return true;
-			})
-			.catch(err => {
-				log.error(`Failed to save room to storage: ${err}`);
-				return false;
-			});
-	},
+	saveRoom,
 	isRoomNameTaken,
-	updateRoom(room) {
-		return Room.findOne({
-			where: { name: room.name },
-		}).then(dbRoom => {
-			if (!dbRoom) {
-				return false;
-			}
-			let options = roomToDb(room);
-			log.debug(`updating room in database ${JSON.stringify(options)}`);
-			return dbRoom.update(options).then(() => true);
-		});
-	},
+	updateRoom,
 	/**
 	 * Gets cached video information from the database. If cached information
 	 * is invalid, it will be omitted from the returned video object.
