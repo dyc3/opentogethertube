@@ -150,7 +150,7 @@ router.post("/", nocache(), async (req, res) => {
 			req.ottsession = {
 				isLoggedIn: false,
 				username: uniqueNamesGenerator(),
-			}
+			};
 		}
 		oldUsername = req.ottsession.username;
 		req.ottsession.username = req.body.username;
@@ -247,7 +247,7 @@ router.post("/login", async (req, res, next) => {
 router.post("/logout", async (req, res) => {
 	if (req.user) {
 		let user = req.user;
-		req.logout(async (err) => {
+		req.logout(async err => {
 			if (err) {
 				log.error(`Error logging out user ${err}`);
 				return;
@@ -557,16 +557,14 @@ async function connectSocial(user: User, options: { discordId: string }) {
 	}
 	if (socialUser) {
 		if (socialUser.email || socialUser.salt || socialUser.hash) {
-			log.error(
-				"Unable to merge accounts, local login credentials found in other account."
-			);
+			log.error("Unable to merge accounts, local login credentials found in other account.");
 			return Promise.reject(
 				"Unable to link accounts. Another account is linked to this discord account. Login credentials were found in the other account, so a merge could not be performed."
 			);
 		}
 		log.warn(
 			`Merging local account ${user.username} with social account ${socialUser.username}...`
-	);
+		);
 		// transfer all owned rooms to local account
 		await RoomModel.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
 		// delete old account
@@ -578,7 +576,11 @@ async function connectSocial(user: User, options: { discordId: string }) {
 /**
  * Gets a User based on either their email or id.
  */
-async function getUser(options: { email?: string, id?: number, discordId?: string }): Promise<User> {
+async function getUser(options: {
+	email?: string;
+	id?: number;
+	discordId?: string;
+}): Promise<User> {
 	if (!options.email && !options.id && !options.discordId) {
 		log.error("Invalid parameters to find user");
 		throw new Error("Invalid parameters to find user");
