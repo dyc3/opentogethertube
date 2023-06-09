@@ -190,9 +190,6 @@ const RoomSettingsForm = defineComponent({
 					blocked.push(prop as keyof typeof propsToGrants);
 				}
 			}
-			if (store.state.room.isTemporary) {
-				blocked.push("grants");
-			}
 			return _.omit(inputRoomSettings.value, blocked);
 		}
 
