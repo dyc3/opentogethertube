@@ -519,6 +519,9 @@ async function registerUser({ email, username, password }): Promise<User> {
 	if (username.length > USERNAME_LENGTH_MAX) {
 		throw new LengthOutOfRangeException("Username length", { max: USERNAME_LENGTH_MAX });
 	}
+	if (email === "") {
+		email = null;
+	}
 
 	const salt = crypto.randomBytes(128);
 	// eslint-disable-next-line array-bracket-newline
@@ -528,7 +531,7 @@ async function registerUser({ email, username, password }): Promise<User> {
 	if (await isUsernameTaken(username)) {
 		throw new UsernameTakenError();
 	}
-	if (await isEmailTaken(email)) {
+	if (email && (await isEmailTaken(email))) {
 		throw new EmailAlreadyInUseError();
 	}
 
