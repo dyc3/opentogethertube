@@ -5,7 +5,7 @@ import { User as UserModel } from "../../../models";
 
 describe("User API", () => {
 	let token;
-	beforeAll(async () => {
+	beforeEach(async () => {
 		await UserModel.destroy({ where: {} });
 
 		await usermanager.registerUser({
@@ -24,9 +24,7 @@ describe("User API", () => {
 			username: "social user",
 			discordId: 1234567890,
 		});
-	});
 
-	beforeEach(async () => {
 		let resp = await request(app).get("/api/auth/grant").expect(200);
 		token = resp.body.token;
 	});
@@ -311,6 +309,28 @@ describe("User API", () => {
 							},
 						});
 						expect(onUserLogInSpy).toBeCalled();
+					});
+			});
+
+			it("should register user, but ignore email if it's an empty string ", async () => {
+				await request(app)
+					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
+					.send({ email: "", username: "registered", password: "test1234" })
+					.expect(200)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBe(true);
+					});
+
+				await request(app)
+					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
+					.send({ email: "", username: "registered2", password: "test1234" })
+					.expect(200)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBe(true);
 					});
 			});
 
