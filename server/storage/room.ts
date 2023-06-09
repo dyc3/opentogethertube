@@ -4,7 +4,7 @@ import { Role, RoomOptions } from "../../common/models/types";
 import { getLogger } from "../logger.js";
 import Sequelize from "sequelize";
 import permissions from "../../common/permissions";
-import type { Room } from "server/room";
+import type { RoomStatePersistable } from "../room";
 
 const log = getLogger("storage");
 
@@ -50,7 +50,7 @@ export async function isRoomNameTaken(roomName: string): Promise<boolean> {
  * Create a room in the database, if it doesn't already exist
  * @returns boolean indicating whether the room was saved successfully
  */
-export async function saveRoom(room: Room): Promise<boolean> {
+export async function saveRoom(room: RoomStatePersistable): Promise<boolean> {
 	const options = roomToDb(room);
 	// HACK: search for the room to see if it exists
 	if (await isRoomNameTaken(options.name)) {
@@ -70,7 +70,7 @@ export async function saveRoom(room: Room): Promise<boolean> {
  *Create a room in the database, if it doesn't already exist
  * @returns boolean indicating whether the room was saved successfully
  */
-export async function updateRoom(room: Room): Promise<boolean> {
+export async function updateRoom(room: RoomStatePersistable): Promise<boolean> {
 	try {
 		// TODO: optimize this to just do an update query, instead of a find and then update
 		const dbroom: DbRoom = await DbRoomModel.findOne({
@@ -114,7 +114,7 @@ function dbToRoomArgs(db: DbRoom): RoomOptions {
 /**
  * Converts a room into an object that can be stored in the database
  */
-function roomToDb(room: Room): Omit<RoomAttributes, "id"> {
+function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
 	const db: Omit<RoomAttributes, "id"> = {
 		"name": room.name,
 		"title": room.title,
@@ -122,7 +122,7 @@ function roomToDb(room: Room): Omit<RoomAttributes, "id"> {
 		"visibility": room.visibility,
 		"queueMode": room.queueMode,
 		"autoSkipSegments": room.autoSkipSegments,
-		"permissions": room.grants.serialize() ?? undefined,
+		"permissions": room.grants?.serialize() ?? undefined,
 		"ownerId": -1,
 		"role-trusted": "[]",
 		"role-mod": "[]",
