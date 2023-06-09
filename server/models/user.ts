@@ -72,9 +72,9 @@ const createModel = (sequelize: Sequelize) => {
 			modelName: "User",
 			validate: {
 				ensureCredentials() {
-					if ((!this.email || !this.hash || !this.salt) && !this.discordId) {
+					if ((!this.username || !this.hash || !this.salt) && !this.discordId) {
 						throw new Error(
-							"Incomplete login credentials. Requires social login or email/password."
+							"Incomplete login credentials. Requires social login or username/password."
 						);
 					}
 				},
