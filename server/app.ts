@@ -89,7 +89,7 @@ const sessions = session(sessionOpts);
 app.use(sessions);
 
 import usermanager from "./usermanager";
-passport.use(new LocalStrategy({ usernameField: "email" }, usermanager.authCallback));
+passport.use(new LocalStrategy({ usernameField: "user" }, usermanager.authCallback));
 passport.use(
 	new DiscordStrategy(
 		{

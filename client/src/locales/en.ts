@@ -270,6 +270,7 @@ export default {
 		"register": "Register",
 		"login-discord": "Log in with Discord",
 		"email": "Email",
+		"email-or-username": "Email or Username",
 		"username": "Username",
 		"password": "Password",
 		"retype-password": "Retype Password",

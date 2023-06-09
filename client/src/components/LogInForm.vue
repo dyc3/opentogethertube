@@ -37,12 +37,11 @@
 											<v-col>
 												<v-text-field
 													:loading="isLoading"
-													:label="$t('login-form.email')"
+													:label="$t('login-form.email-or-username')"
 													required
-													v-model="email"
+													v-model="emailOrUsername"
 													:error-messages="logInFailureMessage"
-													:rules="emailRules"
-													data-cy="login-email"
+													data-cy="login-user"
 												/>
 												<v-text-field
 													:loading="isLoading"
@@ -171,6 +170,7 @@ const LogInForm = defineComponent({
 
 		let email = ref("");
 		let username = ref("");
+		let emailOrUsername = ref("");
 		let password = ref("");
 		let password2 = ref("");
 
@@ -202,6 +202,7 @@ const LogInForm = defineComponent({
 				(!!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX) ||
 				t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
 		];
+
 		const passwordRules = [
 			v => !!v || t("login-form.rules.password-required"),
 			v =>
@@ -242,14 +243,14 @@ const LogInForm = defineComponent({
 			logInFailureMessage.value = "";
 			try {
 				let resp = await API.post("/user/login", {
-					email: email.value,
+					user: emailOrUsername.value,
 					password: password.value,
 				});
 				if (resp.data.success) {
 					console.log("Log in success");
 					store.commit("LOGIN", resp.data.user);
 					emit("shouldClose");
-					email.value = "";
+					emailOrUsername.value = "";
 					password.value = "";
 				} else {
 					console.log("Log in failed");
@@ -338,6 +339,7 @@ const LogInForm = defineComponent({
 		return {
 			email,
 			username,
+			emailOrUsername,
 			password,
 			password2,
 			mode,
