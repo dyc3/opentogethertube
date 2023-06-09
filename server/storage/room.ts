@@ -122,15 +122,12 @@ function roomToDb(room: Room): Omit<RoomAttributes, "id"> {
 		"visibility": room.visibility,
 		"queueMode": room.queueMode,
 		"autoSkipSegments": room.autoSkipSegments,
-		"permissions": "",
+		"permissions": room.grants.serialize(),
 		"ownerId": -1,
 		"role-trusted": "[]",
 		"role-mod": "[]",
 		"role-admin": "[]",
 	};
-	if (room.grants) {
-		db.permissions = room.grants.serialize();
-	}
 	if (room.owner) {
 		db.ownerId = room.owner.id;
 	}
