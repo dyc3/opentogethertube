@@ -41,10 +41,23 @@ const limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
 const pwd = securePassword();
 const log = getLogger("usermanager");
 export const router = express.Router();
+
+export type UserManagerEvents = "userModified" | "login" | "logout";
+export type UserManagerEventHandlers<E> = E extends "userModified"
+	? (token: AuthToken) => void
+	: E extends "login"
+	? (user: User, token: AuthToken) => void
+	: E extends "logout"
+	? (user: User, token: AuthToken) => void
+	: never;
 const bus = new EventEmitter();
 
-function on(event: "userModified", listener: (token: AuthToken) => void) {
+function on<E extends UserManagerEvents>(event: E, listener: UserManagerEventHandlers<E>) {
 	bus.on(event, listener);
+}
+
+function off<E extends UserManagerEvents>(event: E, listener: UserManagerEventHandlers<E>) {
+	bus.off(event, listener);
 }
 
 router.get("/", nocache(), (req, res) => {
@@ -553,7 +566,7 @@ async function connectSocial(user: User, options: { discordId: string }) {
 		}
 		log.warn(
 			`Merging local account ${user.username} with social account ${socialUser.username}...`
-		);
+	);
 		// transfer all owned rooms to local account
 		await RoomModel.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
 		// delete old account
@@ -589,11 +602,13 @@ async function getUser(options: { email?: string, id?: number, discordId?: strin
 function onUserLogIn(user: User, token: AuthToken) {
 	log.info(`${user.username} (id: ${user.id}) has logged in.`);
 	onUserModified(token);
+	bus.emit("login", user, token);
 }
 
 function onUserLogOut(user: User, token: AuthToken) {
 	log.info(`${user.username} (id: ${user.id}) has logged out.`);
 	onUserModified(token);
+	bus.emit("logout", user, token);
 }
 
 function onUserModified(token: AuthToken) {
@@ -640,6 +655,7 @@ if (conf.get("env") === "test") {
 export default {
 	router,
 	on,
+	off,
 	isPasswordValid,
 	authCallback,
 	authCallbackDiscord,
