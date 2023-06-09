@@ -117,3 +117,7 @@ db["Room"].belongsTo(db["User"], { foreignKey: "ownerId", as: "owner" });
 
 module.exports = db;
 export default db;
+
+export const Room = db["Room"];
+export const User = db["User"];
+export const CachedVideo = db["CachedVideo"];

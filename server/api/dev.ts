@@ -3,7 +3,7 @@ import express from "express";
 import { rateLimiter } from "../rate-limit";
 import roommanager from "../roommanager";
 import { RoomRequestType } from "../../common/models/messages";
-import usermanager from "../usermanager.js";
+import usermanager from "../usermanager";
 import faker from "faker";
 import tokens from "../auth/tokens";
 import { setApiKey } from "../admin";

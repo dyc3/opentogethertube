@@ -25,6 +25,7 @@ import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
 import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
 import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
+import usermanager from "./usermanager";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -49,6 +50,8 @@ export function setup(): void {
 	});
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
+
+	usermanager.on("userModified", onUserModified);
 
 	balancerManager.on("connect", onBalancerConnect);
 	balancerManager.on("disconnect", onBalancerDisconnect);
