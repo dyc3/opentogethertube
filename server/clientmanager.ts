@@ -12,20 +12,13 @@ import {
 	RoomRequestType,
 	ServerMessage,
 	ServerMessageSync,
+	ServerMessageUser,
+	ServerMessageYou,
 } from "../common/models/messages";
-import { ClientNotFoundInRoomException, RoomNotFoundException } from "./exceptions";
-import { InvalidTokenException } from "../common/exceptions";
-import {
-	ClientInfo,
-	MySession,
-	OttWebsocketError,
-	ClientId,
-	AuthToken,
-	Role,
-} from "../common/models/types";
+import { ClientNotFoundInRoomException } from "./exceptions";
+import { MySession, OttWebsocketError, AuthToken } from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
@@ -101,7 +94,7 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	) as ServerMessageSync;
 	client.send(syncMsg);
 
-	// actually join the room
+	// join the room
 	let clients = roomJoins.get(room.name);
 	if (clients === undefined) {
 		log.warn("room joins not present, creating");
@@ -109,6 +102,8 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 		roomJoins.set(room.name, clients);
 	}
 	clients.push(client);
+
+	// actually join the room
 	try {
 		await makeRoomRequest(client, {
 			type: RoomRequestType.JoinRequest,
@@ -118,6 +113,24 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	} catch (e) {
 		log.error(`Failed to process join request for client ${client.id}: ${e}`);
 	}
+
+	// initialize client info
+	const clientsInit: ServerMessageUser = {
+		action: "user",
+		update: {
+			kind: "init",
+			value: room.users,
+		},
+	};
+	client.send(clientsInit);
+
+	const youmsg: ServerMessageYou = {
+		action: "you",
+		info: {
+			id: client.id,
+		},
+	};
+	client.send(youmsg);
 }
 
 async function onClientMessage(client: Client, msg: ClientMessage) {
@@ -180,6 +193,14 @@ async function onClientDisconnect(client: Client) {
 	} catch (err) {
 		log.error(`Failed to process leave request for client ${client.id}: ${err}`);
 	}
+
+	await broadcast(room.name, {
+		action: "user",
+		update: {
+			kind: "remove",
+			value: client.id,
+		},
+	});
 }
 
 function onBalancerConnect(conn: BalancerConnection) {
@@ -310,27 +331,9 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 			throw new Error("state is still undefined, can't broadcast to clients");
 		}
 		roomStates.set(roomName, state);
-
-		await broadcast(roomName, msg);
-	} else if (msg.action === "chat") {
-		await broadcast(roomName, msg);
-	} else if (msg.action === "event" || msg.action === "eventcustom") {
-		await broadcast(roomName, msg);
-	} else if (msg.action === "user") {
-		const clients = roomJoins.get(roomName);
-		if (!clients) {
-			return;
-		}
-		for (const client of clients) {
-			if (msg.user.id === client.id) {
-				msg.user.isYou = true;
-				client.send(msg);
-				break;
-			}
-		}
-	} else {
-		log.error(`Unknown server message: ${(msg as { action: string }).action}`);
 	}
+
+	await broadcast(roomName, msg);
 }
 
 function onRoomUnload(roomName: string) {

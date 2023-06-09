@@ -11,6 +11,7 @@ import { miscModule, MiscState } from "@/stores/misc";
 import { captionsModule, CaptionsState } from "@/stores/captions";
 import { QueueItem } from "ott-common/models/video";
 import { InjectionKey } from "vue";
+import { Grants } from "ott-common/permissions";
 
 export type FullOTTStoreState = BaseStoreState & {
 	toast: ToastState;
@@ -41,7 +42,7 @@ interface BaseStoreState {
 			videoDuration: number;
 			category: string;
 		}[];
-		users: RoomUserInfo[];
+		grants: Grants;
 	};
 
 	keepAliveInterval: number | null;
@@ -90,8 +91,7 @@ export function buildNewStore() {
 					chatMessages: [],
 					voteCounts: undefined,
 					playbackStartTime: undefined,
-					/** @deprecated: move this to users store, and update this list based on the ServerMessageUser packets, and make the server not include this in sync packets anymore. */
-					users: [],
+					grants: new Grants(),
 				},
 
 				keepAliveInterval: null,
@@ -148,6 +148,9 @@ export function buildNewStore() {
 				}
 				if (message.voteCounts) {
 					message.voteCounts = deserializeMap(message.voteCounts);
+				}
+				if (message.grants) {
+					message.grants = new Grants(message.grants);
 				}
 				// HACK: this lets vue detect the changes and react to them
 				// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats

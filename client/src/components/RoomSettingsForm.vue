@@ -76,7 +76,7 @@
 					!store.state.room.isTemporary && store.state.user && store.state.room.hasOwner
 				"
 				v-model="inputRoomSettings.grants"
-				:current-role="store.state.users.you.role"
+				:current-role="store.getters['users/self']?.role ?? Role.Owner"
 			/>
 			<div v-else-if="store.state.room.isTemporary">
 				{{ $t("room-settings.permissions-not-available") }}
@@ -121,7 +121,7 @@ import _ from "lodash";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http.js";
-import { Visibility, QueueMode, RoomSettings } from "ott-common/models/types";
+import { Visibility, QueueMode, RoomSettings, Role } from "ott-common/models/types";
 import type { Grants } from "ott-common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
@@ -257,6 +257,7 @@ const RoomSettingsForm = defineComponent({
 			granted,
 			Visibility,
 			QueueMode,
+			Role,
 		};
 	},
 });

@@ -165,7 +165,7 @@
 								</v-list-item>
 							</v-card>
 						</div>
-						<UserList :users="store.state.room.users" />
+						<UserList :users="Array.from(store.state.users.users.values())" />
 						<ShareInvite />
 					</v-col>
 				</v-row>
