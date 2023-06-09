@@ -23,7 +23,10 @@ const ServerMessageHandler = defineComponent({
 			store.dispatch("announcement", msg);
 		});
 		connection.addMessageHandler("user", msg => {
-			store.dispatch("user", msg);
+			store.dispatch("users/user", msg);
+		});
+		connection.addMessageHandler("you", msg => {
+			store.dispatch("users/you", msg);
 		});
 		connection.addMessageHandler("event", msg => {
 			store.dispatch("event", msg);

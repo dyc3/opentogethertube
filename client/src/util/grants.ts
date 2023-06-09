@@ -3,12 +3,12 @@ import { useStore } from "../store";
 
 /** Checks if the current user is granted the given permission. */
 export function granted(permission: PermissionName) {
-	let store = useStore();
+	const store = useStore();
 	if (!store) {
 		console.error("granted(): No store found.");
 		return true;
 	}
-	let usermask = store.state.users.you.grants;
-	let permMask = parseIntoGrantMask([permission]);
+	const usermask = store.getters["users/grants"];
+	const permMask = parseIntoGrantMask([permission]);
 	return (usermask & permMask) > 0;
 }
