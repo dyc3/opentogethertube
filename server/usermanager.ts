@@ -415,7 +415,9 @@ async function authCallback(email_or_user: string, password: string, done) {
 	);
 	switch (result) {
 		case securePassword.INVALID_UNRECOGNIZED_HASH:
-			log.error(`User ${user.username} (${user.id}): Unrecognized hash. I don't think this should ever happen.`);
+			log.error(
+				`User ${user.username} (${user.id}): Unrecognized hash. I don't think this should ever happen.`
+			);
 			done(null, false);
 			break;
 		case securePassword.INVALID:
@@ -588,22 +590,21 @@ async function connectSocial(user: User, options: { discordId: string }) {
  *
  * `user` can be either an email or a username.
  */
-async function getUser(options: {
-	user?: string;
-	id?: number;
-	discordId?: string;
-}): Promise<User> {
+async function getUser(options: { user?: string; id?: number; discordId?: string }): Promise<User> {
 	if (!options.user && !options.id && !options.discordId) {
 		log.error("Invalid parameters to find user");
 		throw new Error("Invalid parameters to find user");
 	}
 	let where = {};
 	if (options.user) {
-		where = Sequelize.or(Sequelize.where(Sequelize.col("email"), options.user), Sequelize.where(
-			Sequelize.fn("lower", Sequelize.col("username")),
-			Sequelize.fn("lower", options.user)
-		));
-	}else if (options.id) {
+		where = Sequelize.or(
+			Sequelize.where(Sequelize.col("email"), options.user),
+			Sequelize.where(
+				Sequelize.fn("lower", Sequelize.col("username")),
+				Sequelize.fn("lower", options.user)
+			)
+		);
+	} else if (options.id) {
 		where = { id: options.id };
 	} else if (options.discordId) {
 		where = { discordId: options.discordId };
