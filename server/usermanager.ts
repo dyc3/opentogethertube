@@ -531,7 +531,7 @@ async function registerUser({ email, username, password }): Promise<User> {
 	if (await isUsernameTaken(username)) {
 		throw new UsernameTakenError();
 	}
-	if (email && await isEmailTaken(email)) {
+	if (email && (await isEmailTaken(email))) {
 		throw new EmailAlreadyInUseError();
 	}
 
