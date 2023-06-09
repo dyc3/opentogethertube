@@ -194,3 +194,10 @@ export class LengthOutOfRangeException extends OttException {
 		}
 	}
 }
+
+export class MissingToken extends Error {
+	constructor() {
+		super("Missing token");
+		this.name = "MissingToken";
+	}
+}
