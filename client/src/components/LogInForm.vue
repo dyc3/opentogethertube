@@ -192,10 +192,7 @@ const LogInForm = defineComponent({
 		const loginForm = ref<VForm | undefined>(null);
 		const registerForm = ref<VForm | undefined>(null);
 
-		const emailRules = [
-			v => !!v || t("login-form.rules.email-required"),
-			v => (v && isEmail(v)) || t("login-form.rules.valid-email"),
-		];
+		const emailRules = [v => (v && isEmail(v)) || !v || t("login-form.rules.valid-email")];
 		const usernameRules = [
 			v => !!v || t("login-form.rules.username-required"),
 			v =>
