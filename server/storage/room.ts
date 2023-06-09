@@ -1,4 +1,4 @@
-const { Room: DbRoomModel, User: UserModel } = require("../models");
+import { Room as DbRoomModel, User as UserModel } from "../models";
 import { Room as DbRoom, RoomAttributes } from "../models/room";
 import { Role, RoomOptions } from "../../common/models/types";
 import { getLogger } from "../logger.js";
@@ -58,10 +58,10 @@ export async function saveRoom(room: Room): Promise<boolean> {
 	}
 	try {
 		const room: DbRoom = await DbRoomModel.create(options);
-		log.info(`Saved room to db: id ${room.dataValues.id}`);
+		log.info(`Saved room ${room.name} to db: id ${room.dataValues.id}`);
 		return true;
 	} catch (err) {
-		log.error(`Failed to save room to storage: ${err}`);
+		log.error(`Failed to save room ${room.name} to storage: ${err}`);
 		return false;
 	}
 }
@@ -80,11 +80,11 @@ export async function updateRoom(room: Room): Promise<boolean> {
 			return false;
 		}
 		const options = roomToDb(room);
-		log.debug(`updating room in database ${JSON.stringify(options)}`);
+		log.debug(`updating room ${room.name} in database ${JSON.stringify(options)}`);
 		await dbroom.update(options);
 		return true;
 	} catch (error) {
-		log.error(`Failed to update room in storage: ${error}`);
+		log.error(`Failed to update room ${room.name} in storage: ${error}`);
 		return false;
 	}
 }
@@ -122,7 +122,7 @@ function roomToDb(room: Room): Omit<RoomAttributes, "id"> {
 		"visibility": room.visibility,
 		"queueMode": room.queueMode,
 		"autoSkipSegments": room.autoSkipSegments,
-		"permissions": room.grants.serialize(),
+		"permissions": room.grants.serialize() ?? undefined,
 		"ownerId": -1,
 		"role-trusted": "[]",
 		"role-mod": "[]",
