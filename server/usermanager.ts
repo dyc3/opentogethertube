@@ -17,6 +17,7 @@ import { LengthOutOfRangeException } from "./exceptions";
 import { conf } from "./ott-config";
 import { AuthToken } from "ott-common/models/types";
 import { EventEmitter } from "stream";
+import { Sequelize } from "sequelize";
 
 const maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;
 const maxConsecutiveFailsByUsernameAndIP = conf.get("env") === "test" ? 9999999999 : 10;
@@ -165,7 +166,7 @@ router.post("/", nocache(), async (req, res) => {
 
 router.post("/login", async (req, res, next) => {
 	const ipAddr = req.ip;
-	const usernameIPkey = `${req.body.email ? req.body.email : req.body.username}_${ipAddr}`;
+	const usernameIPkey = `${req.body.user ?? req.body.email ?? req.body.username}_${ipAddr}`;
 
 	if (ENABLE_RATE_LIMIT) {
 		const [resUsernameAndIP, resSlowByIP] = await Promise.all([
@@ -197,7 +198,10 @@ router.post("/login", async (req, res, next) => {
 		}
 	}
 
-	passport.authenticate("local", (err, user) => {
+	// For backwards compatibility
+	req.body.user = req.body.user ?? req.body.email ?? req.body.username;
+
+	passport.authenticate("local", (err, user: User) => {
 		if (err) {
 			res.status(401).json({
 				success: false,
@@ -237,7 +241,7 @@ router.post("/login", async (req, res, next) => {
 			res.status(401).json({
 				success: false,
 				error: {
-					message: "Either the email or password was not provided.",
+					message: "Either the user or password was not provided.",
 				},
 			});
 		}
@@ -385,10 +389,10 @@ export function isPasswordValid(password: string): boolean {
 /**
  * Callback used by passport LocalStrategy to authenticate Users.
  */
-async function authCallback(email: string, password: string, done) {
-	let user;
+async function authCallback(email_or_user: string, password: string, done) {
+	let user: User;
 	try {
-		user = await getUser({ email });
+		user = await getUser({ user: email_or_user });
 	} catch (err) {
 		if (err.message === "User not found") {
 			done(new Error("Email or password is incorrect."));
@@ -398,28 +402,34 @@ async function authCallback(email: string, password: string, done) {
 		}
 		return;
 	}
+	if (!user.hash || !user.salt) {
+		log.error(`User ${user.username} (${user.id}) has no hash or salt, so no password is set.`);
+		done(new Error("An unknown error occurred. This is a bug."));
+		return;
+	}
+
 	// eslint-disable-next-line array-bracket-newline
-	let result = await pwd.verify(
+	const result = await pwd.verify(
 		Buffer.concat([user.salt, Buffer.from(password)]),
 		Buffer.from(user.hash)
 	);
 	switch (result) {
 		case securePassword.INVALID_UNRECOGNIZED_HASH:
-			log.error(`${email}: Unrecognized hash. I don't think this should ever happen.`);
+			log.error(`User ${user.username} (${user.id}): Unrecognized hash. I don't think this should ever happen.`);
 			done(null, false);
 			break;
 		case securePassword.INVALID:
-			log.debug(`${email}: Hash is invalid`);
+			log.debug(`User ${user.username} (${user.id}): Hash is invalid`);
 			done(new Error("Email or password is incorrect."), false);
 			break;
 		case securePassword.VALID_NEEDS_REHASH:
-			log.debug(`${email}: Hash is valid, needs rehash`);
+			log.debug(`User ${user.username} (${user.id}): Hash is valid, needs rehash`);
 			// eslint-disable-next-line array-bracket-newline
 			user.hash = await pwd.hash(Buffer.concat([user.salt, Buffer.from(password)]));
 			await user.save();
 		// eslint-disable-next-line no-fallthrough
 		case securePassword.VALID:
-			log.debug(`${email}: Hash is valid`);
+			log.debug(`User ${user.username} (${user.id}): Hash is valid`);
 			done(null, user);
 			break;
 
@@ -446,7 +456,7 @@ async function authCallbackDiscord(req, accessToken, refreshToken, profile, done
 	} catch (e) {
 		log.warn("Couldn't find existing user for discord profile, making a new one...");
 		try {
-			let user = await registerUserSocial({
+			const user = await registerUserSocial({
 				username: `${profile.username}#${profile.discriminator}`,
 				discordId: profile.id,
 			});
@@ -575,23 +585,31 @@ async function connectSocial(user: User, options: { discordId: string }) {
 
 /**
  * Gets a User based on either their email or id.
+ *
+ * `user` can be either an email or a username.
  */
 async function getUser(options: {
-	email?: string;
+	user?: string;
 	id?: number;
 	discordId?: string;
 }): Promise<User> {
-	if (!options.email && !options.id && !options.discordId) {
+	if (!options.user && !options.id && !options.discordId) {
 		log.error("Invalid parameters to find user");
 		throw new Error("Invalid parameters to find user");
 	}
 	let where = {};
-	if (options.email) {
-		where = { email: options.email };
-	} else if (options.id) {
+	if (options.user) {
+		where = Sequelize.or(Sequelize.where(Sequelize.col("email"), options.user), Sequelize.where(
+			Sequelize.fn("lower", Sequelize.col("username")),
+			Sequelize.fn("lower", options.user)
+		));
+	}else if (options.id) {
 		where = { id: options.id };
 	} else if (options.discordId) {
 		where = { discordId: options.discordId };
+	} else {
+		log.error("Invalid parameters to find user");
+		throw new Error("Invalid parameters to find user");
 	}
 	let user = await UserModel.findOne({ where });
 	if (!user) {
@@ -643,7 +661,7 @@ async function clearAllRateLimiting() {
 
 if (conf.get("env") === "test") {
 	router.get("/test/forceLogin", async (req, res) => {
-		const user = await getUser({ email: "forced@localhost" });
+		const user = await getUser({ user: "forced@localhost" });
 		req.login(user, async err => {
 			req.ottsession = { isLoggedIn: true, user_id: user.id };
 			await tokens.setSessionInfo(req.token, req.ottsession);

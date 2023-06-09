@@ -19,6 +19,11 @@ describe("User API", () => {
 			username: "test user",
 			password: "test1234",
 		});
+
+		await usermanager.registerUserSocial({
+			username: "social user",
+			discordId: 1234567890,
+		});
 	});
 
 	beforeEach(async () => {
@@ -180,7 +185,7 @@ describe("User API", () => {
 				await request(app)
 					.post("/api/user/login")
 					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "test@localhost", password: "test1234" })
+					.send({ user: "test@localhost", password: "test1234" })
 					.then(resp => {
 						expect(resp.body).toEqual({
 							success: true,
@@ -197,7 +202,7 @@ describe("User API", () => {
 				await request(app)
 					.post("/api/user/login")
 					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "notreal@localhost", password: "test1234" })
+					.send({ user: "notreal@localhost", password: "test1234" })
 					.then(resp => {
 						expect(resp.body.success).toBe(false);
 						expect(onUserLogInSpy).not.toBeCalled();
@@ -205,7 +210,18 @@ describe("User API", () => {
 				await request(app)
 					.post("/api/user/login")
 					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "test@localhost", password: "wrong" })
+					.send({ user: "test@localhost", password: "wrong" })
+					.then(resp => {
+						expect(resp.body.success).toBe(false);
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
+
+			it("should not log in the social user with no password", async () => {
+				await request(app)
+					.post("/api/user/login")
+					.set("Authorization", `Bearer ${token}`)
+					.send({ user: "social@localhost", password: "test1234" })
 					.then(resp => {
 						expect(resp.body.success).toBe(false);
 						expect(onUserLogInSpy).not.toBeCalled();
