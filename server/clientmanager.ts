@@ -15,7 +15,7 @@ import {
 	ServerMessageUser,
 	ServerMessageYou,
 } from "../common/models/messages";
-import { ClientNotFoundInRoomException } from "./exceptions";
+import { ClientNotFoundInRoomException, MissingToken } from "./exceptions";
 import { MySession, OttWebsocketError, AuthToken } from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
@@ -157,7 +157,14 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			return;
 		}
 	} catch (err) {
-		log.error(`Failed to process client message: ${err}`);
+		log.error(
+			`Failed to process client (id=${client.id}, room=${client.room}) message (action=${msg.action}), kicking: ${err}`
+		);
+		let reason: OttWebsocketError = OttWebsocketError.UNKNOWN;
+		if (err instanceof MissingToken) {
+			reason = OttWebsocketError.MISSING_TOKEN;
+		}
+		client.kick(reason);
 	}
 }
 
@@ -266,7 +273,7 @@ function onBalancerError(conn: BalancerConnection, error: WebSocket.ErrorEvent) 
 
 async function makeRoomRequest(client: Client, request: RoomRequest): Promise<void> {
 	if (!client.token) {
-		throw new Error("No token present");
+		throw new MissingToken();
 	}
 	const result = await roommanager.getRoom(client.room, {
 		mustAlreadyBeLoaded: true,
