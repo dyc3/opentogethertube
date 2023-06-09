@@ -179,6 +179,11 @@ async function onClientDisconnect(client: Client) {
 		}
 	}
 
+	if (client.joinStatus !== ClientJoinStatus.Joined) {
+		log.debug(`Client ${client.id} disconnected before joining`);
+		return;
+	}
+
 	const result = await roommanager.getRoom(client.room, { mustAlreadyBeLoaded: true });
 	if (!result.ok) {
 		log.error(`Failed to get room ${client.room} when processing disconnect`);
