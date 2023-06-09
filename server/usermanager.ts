@@ -4,7 +4,7 @@ import securePassword from "secure-password";
 import express from "express";
 import passport from "passport";
 import crypto from "crypto";
-import { User as UserModel, Room } from "./models/index";
+import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
 import { redisClient, redisClientAsync } from "./redisclient";
 import { RateLimiterRedis } from "rate-limiter-flexible";
@@ -508,7 +508,7 @@ async function registerUser({ email, username, password }) {
 	}
 
 	try {
-		return await User.create({
+		return await UserModel.create({
 			email,
 			username,
 			salt,
@@ -521,7 +521,7 @@ async function registerUser({ email, username, password }) {
 }
 
 async function registerUserSocial({ username, discordId }): Promise<User> {
-	return await User.create({
+	return await UserModel.create({
 		discordId,
 		username,
 	});
@@ -555,7 +555,7 @@ async function connectSocial(user: User, options: { discordId: string }) {
 			`Merging local account ${user.username} with social account ${socialUser.username}...`
 		);
 		// transfer all owned rooms to local account
-		await Room.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
+		await RoomModel.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
 		// delete old account
 		await socialUser.destroy();
 	}
