@@ -500,7 +500,7 @@ function passportErrorHandler(err, req, res, next) {
 	}
 }
 
-async function registerUser({ email, username, password }) {
+async function registerUser({ email, username, password }): Promise<User> {
 	if (!isPasswordValid(password)) {
 		throw new BadPasswordError();
 	}
