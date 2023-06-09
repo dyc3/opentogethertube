@@ -252,12 +252,12 @@ router.post("/logout", async (req, res) => {
 				log.error(`Error logging out user ${err}`);
 				return;
 			}
-			req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
-			await tokens.setSessionInfo(req.token, req.ottsession);
-			onUserLogOut(user, req.token);
-			res.json({
-				success: true,
-			});
+		});
+		req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
+		await tokens.setSessionInfo(req.token, req.ottsession);
+		onUserLogOut(user, req.token);
+		res.json({
+			success: true,
 		});
 	} else {
 		res.status(400).json({
