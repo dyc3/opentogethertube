@@ -37,12 +37,11 @@
 											<v-col>
 												<v-text-field
 													:loading="isLoading"
-													:label="$t('login-form.email')"
+													:label="$t('login-form.email-or-username')"
 													required
 													v-model="email"
 													:error-messages="logInFailureMessage"
-													:rules="emailRules"
-													data-cy="login-email"
+													data-cy="login-user"
 												/>
 												<v-text-field
 													:loading="isLoading"
@@ -202,6 +201,7 @@ const LogInForm = defineComponent({
 				(!!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX) ||
 				t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
 		];
+
 		const passwordRules = [
 			v => !!v || t("login-form.rules.password-required"),
 			v =>

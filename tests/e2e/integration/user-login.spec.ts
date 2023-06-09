@@ -56,7 +56,7 @@ describe("User login/registration", () => {
 		cy.get('[data-cy="user-logged-in"]').should("be.visible").should("contain", username);
 	});
 
-	it("should log in an existing user", () => {
+	it("should log in an existing user using email/password", () => {
 		// setup
 		let userCreds = {
 			email: faker.internet.email(),
@@ -70,7 +70,30 @@ describe("User login/registration", () => {
 
 		// test
 		cy.contains("button", "Log In").click();
-		cy.get('[data-cy="login-email"]').click().type(userCreds.email);
+		cy.get('[data-cy="login-user"]').click().type(userCreds.email);
+		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
+		cy.get('[data-cy="login-button"]').should("not.be.disabled").click();
+		cy.wait(500);
+		cy.get('[data-cy="user-logged-in"]')
+			.should("be.visible")
+			.should("contain", userCreds.username);
+	});
+
+	it("should log in an existing user using username/password", () => {
+		// setup
+		let userCreds = {
+			email: faker.internet.email(),
+			username: faker.internet.userName(),
+			password: faker.internet.password(12),
+		};
+		cy.ottCreateUser(userCreds);
+		cy.clearCookies();
+		cy.clearLocalStorage();
+		cy.ottEnsureToken();
+
+		// test
+		cy.contains("button", "Log In").click();
+		cy.get('[data-cy="login-user"]').click().type(userCreds.username);
 		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
 		cy.get('[data-cy="login-button"]').should("not.be.disabled").click();
 		cy.wait(500);
@@ -93,7 +116,7 @@ describe("User login/registration", () => {
 
 		// log in
 		cy.contains("button", "Log In").click();
-		cy.get('[data-cy="login-email"]').click().type(userCreds.email);
+		cy.get('[data-cy="login-user"]').click().type(userCreds.email);
 		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
 		cy.get('[data-cy="login-button"]').should("not.be.disabled").click();
 		cy.wait(500);
