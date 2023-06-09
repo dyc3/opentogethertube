@@ -1,12 +1,12 @@
-const request = require("supertest");
-import { app } from "../../app";
-const usermanager = require("../../usermanager");
-const { User } = require("../../models");
+import request from "supertest";
+import { app } from "../../../app";
+import usermanager from "../../../usermanager";
+import { User as UserModel } from "../../../models";
 
 describe("User API", () => {
 	let token;
 	beforeEach(async () => {
-		await User.destroy({ where: {} });
+		await UserModel.destroy({ where: {} });
 
 		await usermanager.registerUser({
 			email: "forced@localhost",
@@ -64,9 +64,8 @@ describe("User API", () => {
 		let onUserModifiedSpy;
 
 		beforeAll(() => {
-			onUserModifiedSpy = jest
-				.spyOn(usermanager, "onUserModified")
-				.mockImplementation(() => {});
+			onUserModifiedSpy = jest.fn();
+			usermanager.on("userModified", onUserModifiedSpy);
 		});
 
 		beforeEach(async () => {
@@ -75,6 +74,7 @@ describe("User API", () => {
 
 		afterAll(() => {
 			onUserModifiedSpy.mockRestore();
+			usermanager.off("userModified", onUserModifiedSpy);
 		});
 
 		it("should change the unregistered user's name without failing", async () => {
@@ -157,9 +157,8 @@ describe("User API", () => {
 			let onUserLogInSpy;
 
 			beforeAll(() => {
-				onUserLogInSpy = jest
-					.spyOn(usermanager, "onUserLogIn")
-					.mockImplementation(() => {});
+				onUserLogInSpy = jest.fn();
+				usermanager.on("login", onUserLogInSpy);
 			});
 
 			beforeEach(async () => {
@@ -168,6 +167,7 @@ describe("User API", () => {
 
 			afterAll(() => {
 				onUserLogInSpy.mockRestore();
+				usermanager.off("login", onUserLogInSpy);
 			});
 
 			it("should log in the test user", async () => {
@@ -211,9 +211,8 @@ describe("User API", () => {
 			let onUserLogOutSpy;
 
 			beforeAll(() => {
-				onUserLogOutSpy = jest
-					.spyOn(usermanager, "onUserLogOut")
-					.mockImplementation(() => {});
+				onUserLogOutSpy = jest.fn();
+				usermanager.on("logout", onUserLogOutSpy);
 			});
 
 			beforeEach(async () => {
@@ -222,6 +221,7 @@ describe("User API", () => {
 
 			afterAll(() => {
 				onUserLogOutSpy.mockRestore();
+				usermanager.off("logout", onUserLogOutSpy);
 			});
 
 			it("should log out the test uesr", async () => {
@@ -256,9 +256,8 @@ describe("User API", () => {
 			let onUserLogInSpy;
 
 			beforeAll(() => {
-				onUserLogInSpy = jest
-					.spyOn(usermanager, "onUserLogIn")
-					.mockImplementation(() => {});
+				onUserLogInSpy = jest.fn();
+				usermanager.on("login", onUserLogInSpy);
 			});
 
 			beforeEach(async () => {
@@ -267,6 +266,7 @@ describe("User API", () => {
 
 			afterAll(() => {
 				onUserLogInSpy.mockRestore();
+				usermanager.off("login", onUserLogInSpy);
 			});
 
 			it("should register user", async () => {

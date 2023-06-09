@@ -25,7 +25,7 @@ log.info(`Search provider: ${searchProvider}`);
 const rateLimitEnabled = conf.get("rate_limit.enabled");
 log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
 
-const app = express();
+export const app = express();
 app.use(metricsMiddleware);
 const server = http.createServer(app);
 
