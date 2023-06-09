@@ -148,7 +148,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, toRefs, computed, watchEffect, PropType } from "vue";
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
 import { QueueItem, VideoId } from "ott-common/models/video";

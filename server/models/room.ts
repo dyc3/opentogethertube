@@ -4,7 +4,7 @@ import { QueueMode, Visibility } from "../../common/models/types";
 import { User } from "./user";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 
-interface RoomAttributes {
+export interface RoomAttributes {
 	"id": number;
 	"name": string;
 	"title": string;
@@ -78,6 +78,9 @@ const createModel = (sequelize: Sequelize) => {
 				type: DataTypes.INTEGER,
 				defaultValue: -1,
 				allowNull: false,
+				validate: {
+					min: -1,
+				},
 			},
 			"permissions": {
 				type: DataTypes.TEXT,

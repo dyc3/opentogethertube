@@ -133,7 +133,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref, computed } from "vue";
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
 import NavUser from "@/components/navbar/NavUser.vue";

@@ -1,4 +1,4 @@
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import { ToastStyle } from "@/models/toast";
 import {
 	OttResponseBody,
