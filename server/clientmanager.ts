@@ -51,6 +51,8 @@ export function setup(): void {
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
 
+	usermanager.on("userModified", onUserModified);
+
 	balancerManager.on("connect", onBalancerConnect);
 	balancerManager.on("disconnect", onBalancerDisconnect);
 	balancerManager.on("message", onBalancerMessage);
@@ -386,8 +388,6 @@ async function onUserModified(token: AuthToken): Promise<void> {
 		}
 	}
 }
-
-usermanager.on("userModified", onUserModified);
 
 function getClient(token: AuthToken, roomName: string): Client {
 	for (const client of connections) {
