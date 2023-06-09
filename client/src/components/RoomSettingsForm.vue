@@ -154,9 +154,6 @@ const RoomSettingsForm = defineComponent({
 			isLoadingRoomSettings.value = true;
 			try {
 				let res = await API.get(`/room/${store.state.room.name}`);
-				if (res.data.permissions && !res.data.grants) {
-					res.data.grants = res.data.permissions;
-				}
 				inputRoomSettings.value = _.pick(
 					res.data,
 					"title",
