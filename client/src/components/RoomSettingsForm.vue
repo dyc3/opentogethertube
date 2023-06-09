@@ -72,15 +72,10 @@
 				data-cy="input-auto-skip"
 			/>
 			<PermissionsEditor
-				v-if="
-					!store.state.room.isTemporary && store.state.user && store.state.room.hasOwner
-				"
+				v-if="store.state.user && store.state.room.hasOwner"
 				v-model="inputRoomSettings.grants"
 				:current-role="store.getters['users/self']?.role ?? Role.Owner"
 			/>
-			<div v-else-if="store.state.room.isTemporary">
-				{{ $t("room-settings.permissions-not-available") }}
-			</div>
 			<div v-else-if="!store.state.room.hasOwner">
 				{{ $t("room-settings.room-needs-owner") }}
 				<span v-if="!store.state.user">
@@ -95,13 +90,14 @@
 					size="large"
 					block
 					color="blue"
-					v-if="!store.state.room.isTemporary && !store.state.room.hasOwner"
+					v-if="!store.state.room.hasOwner"
 					:disabled="!store.state.user"
 					role="submit"
 					@click="claimOwnership"
 					data-cy="claim"
-					>Claim Room</v-btn
 				>
+					Claim Room
+				</v-btn>
 				<v-btn
 					size="x-large"
 					block
@@ -109,8 +105,9 @@
 					role="submit"
 					:loading="isLoadingRoomSettings"
 					data-cy="save"
-					>{{ $t("common.save") }}</v-btn
 				>
+					{{ $t("common.save") }}
+				</v-btn>
 			</div>
 		</v-form>
 	</div>
