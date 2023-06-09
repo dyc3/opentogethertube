@@ -157,7 +157,9 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			return;
 		}
 	} catch (err) {
-		log.error(`Failed to process client (id=${client.id}, room=${client.room}) message (action=${msg.action}), kicking: ${err}`);
+		log.error(
+			`Failed to process client (id=${client.id}, room=${client.room}) message (action=${msg.action}), kicking: ${err}`
+		);
 		let reason: OttWebsocketError = OttWebsocketError.UNKNOWN;
 		if (err instanceof MissingToken) {
 			reason = OttWebsocketError.MISSING_TOKEN;
