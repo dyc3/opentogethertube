@@ -274,6 +274,8 @@ export default {
 		"username": "Username",
 		"password": "Password",
 		"retype-password": "Retype Password",
+		"email-optional":
+			"Providing an email is optional, but recommended in case you forget your password.",
 		"rules": {
 			"email-required": "Email is required",
 			"valid-email": "Must be a valid email",

@@ -98,6 +98,7 @@
 											v-model="email"
 											:error-messages="registerFieldErrors.email"
 											:rules="emailRules"
+											:hint="$t('login-form.email-optional')"
 										/>
 										<v-text-field
 											:loading="isLoading"
