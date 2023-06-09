@@ -1,6 +1,6 @@
 const request = require("supertest");
 import { app } from "../../app";
-const usermanager = require("../../usermanager.js");
+const usermanager = require("../../usermanager");
 const { User } = require("../../models");
 
 describe("User API", () => {

@@ -25,6 +25,7 @@ import { Gauge } from "prom-client";
 import { replacer } from "../common/serialize";
 import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
 import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
+import usermanager from "./usermanager";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -385,6 +386,8 @@ async function onUserModified(token: AuthToken): Promise<void> {
 		}
 	}
 }
+
+usermanager.on("userModified", onUserModified);
 
 function getClient(token: AuthToken, roomName: string): Client {
 	for (const client of connections) {

@@ -3,7 +3,7 @@ import roommanager from "../../roommanager";
 import { app } from "../../app";
 const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
-const usermanager = require("../../usermanager.js");
+const usermanager = require("../../usermanager");
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
 import { redisClientAsync } from "../../redisclient";
 import tokens from "../../auth/tokens";
