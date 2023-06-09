@@ -94,6 +94,7 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 	await roommanager.createRoom({
 		name: roomName,
 		isTemporary: true,
+		owner: req.user,
 	});
 	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 	res.json({
