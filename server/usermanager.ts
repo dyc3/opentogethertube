@@ -256,12 +256,12 @@ router.post("/logout", async (req, res) => {
 				log.error(`Error logging out user ${err}`);
 				return;
 			}
-		});
-		req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
-		await tokens.setSessionInfo(req.token, req.ottsession);
-		onUserLogOut(user, req.token);
-		res.json({
-			success: true,
+			req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
+			await tokens.setSessionInfo(req.token, req.ottsession);
+			onUserLogOut(user, req.token);
+			res.json({
+				success: true,
+			});
 		});
 	} else {
 		res.status(400).json({
@@ -519,11 +519,16 @@ async function deserializeUser(id: number, done) {
 /**
  * Middleware to handle errors in serialize and deserialize callbacks
  */
-function passportErrorHandler(err, req, res, next) {
+function passportErrorHandler(err, req: express.Request, res: express.Response, next) {
 	if (err) {
 		log.error(`Error in middleware ${err}, logging user out.`);
-		req.logout();
-		next();
+		req.logout(err => {
+			if (err) {
+				log.error(`Error logging out user ${err}`);
+				return;
+			}
+			next();
+		});
 	} else {
 		next();
 	}

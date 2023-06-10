@@ -7,31 +7,29 @@ describe("<Notifier />", () => {
 	});
 
 	afterEach(() => {
-		cy.get("@wrapper").then((w: any) => {
-			w.wrapper.vm.$store.state.toast.notifications = [];
+		cy.store().then(store => {
+			store.state.toast.notifications = [];
 		});
 		cy.clock().invoke("restore");
 	});
 
 	it("renders a toast notification", () => {
-		cy.mount(Notifier)
-			.then(wrapper => {
-				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", { content: "test" });
-			})
-			.as("wrapper");
+		cy.mount(Notifier).as("wrapper");
+		cy.store().then(store => {
+			store.commit("toast/ADD_TOAST", { content: "test" });
+		});
 
 		cy.get(".toast").should("have.length", 1).should("be.visible");
 	});
 
 	it("renders a toast notification with a custom duration", () => {
-		cy.mount(Notifier)
-			.then(wrapper => {
-				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", {
-					content: "test",
-					duration: 1000,
-				});
-			})
-			.as("wrapper");
+		cy.mount(Notifier).as("wrapper");
+		cy.store().then(store => {
+			store.commit("toast/ADD_TOAST", {
+				content: "test",
+				duration: 1000,
+			});
+		});
 
 		cy.get(".toast").should("have.length", 1).should("be.visible");
 
@@ -45,14 +43,13 @@ describe("<Notifier />", () => {
 		[ToastStyle.Error, "bg-error"],
 	]) {
 		it(`renders a toast notification with ${style} style`, () => {
-			cy.mount(Notifier)
-				.then(wrapper => {
-					wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", {
-						content: "test",
-						style: style,
-					});
-				})
-				.as("wrapper");
+			cy.mount(Notifier).as("wrapper");
+			cy.store().then(store => {
+				store.commit("toast/ADD_TOAST", {
+					content: "test",
+					style: style,
+				});
+			});
 
 			cy.get(".toast").should("have.length", 1).should("be.visible");
 			cy.get(".toast").should("have.class", cssClass);
@@ -60,12 +57,11 @@ describe("<Notifier />", () => {
 	}
 
 	it("should show a close all button if there is more than 1 toast", () => {
-		cy.mount(Notifier)
-			.then(wrapper => {
-				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", { content: "test" });
-				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", { content: "test" });
-			})
-			.as("wrapper");
+		cy.mount(Notifier).as("wrapper");
+		cy.store().then(store => {
+			store.commit("toast/ADD_TOAST", { content: "test" });
+			store.commit("toast/ADD_TOAST", { content: "test" });
+		});
 
 		cy.get(".toast").should("have.length", 2).should("be.visible");
 
@@ -75,16 +71,15 @@ describe("<Notifier />", () => {
 	});
 
 	it("should let toasts grow/shrink to fit content", () => {
-		cy.mount(Notifier)
-			.then(wrapper => {
-				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", {
-					content: "test",
-				});
-				wrapper.wrapper.vm.$store.commit("toast/ADD_TOAST", {
-					content: "test ".repeat(100),
-				});
-			})
-			.as("wrapper");
+		cy.mount(Notifier).as("wrapper");
+		cy.store().then(store => {
+			store.commit("toast/ADD_TOAST", {
+				content: "test",
+			});
+			store.commit("toast/ADD_TOAST", {
+				content: "test ".repeat(100),
+			});
+		});
 
 		cy.get(".toast").should("have.length", 2).should("be.visible");
 
