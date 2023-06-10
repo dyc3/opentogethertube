@@ -209,7 +209,7 @@ export const App = defineComponent({
 			});
 
 			await store.dispatch("settings/load");
-			await store.dispatch("getNewToken");
+			await store.dispatch("users/getNewToken");
 			await setLocale(store.state.settings.locale);
 
 			// ask the server if we are logged in or not, and update the client to reflect that status.
