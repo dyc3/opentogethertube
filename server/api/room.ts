@@ -240,6 +240,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 
 	if (req.body.claim && !room.owner) {
 		if (req.user) {
+			log.info(`Room ${room.name} claimed by ${req.user.username} (${req.user.id})`);
 			room.owner = req.user;
 			// HACK: force the room to send the updated user info to the client
 			for (const user of room.realusers) {
