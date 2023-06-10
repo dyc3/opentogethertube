@@ -119,12 +119,13 @@ import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http";
 import { Visibility, QueueMode, RoomSettings, Role } from "ott-common/models/types";
-import type { Grants } from "ott-common/permissions";
+import { Grants } from "ott-common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
 import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
+import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
 
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
@@ -141,7 +142,7 @@ const RoomSettingsForm = defineComponent({
 			description: "",
 			visibility: Visibility.Public,
 			queueMode: QueueMode.Manual,
-			grants: {} as Grants,
+			grants: new Grants(),
 			autoSkipSegments: true,
 		});
 
@@ -153,9 +154,11 @@ const RoomSettingsForm = defineComponent({
 			// we have to make an API request becuase visibility is not sent in sync messages.
 			isLoadingRoomSettings.value = true;
 			try {
-				let res = await API.get(`/room/${store.state.room.name}`);
+				let res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);
+				let settings = res.data;
+				settings.grants = new Grants(res.data.grants);
 				inputRoomSettings.value = _.pick(
-					res.data,
+					settings,
 					"title",
 					"description",
 					"visibility",
