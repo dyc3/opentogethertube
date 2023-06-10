@@ -458,8 +458,13 @@ async function authCallbackDiscord(req, accessToken, refreshToken, profile, done
 	} catch (e) {
 		log.warn("Couldn't find existing user for discord profile, making a new one...");
 		try {
+			let username = buildUsernameFromDiscordProfile(profile);
+			if (await isUsernameTaken(username)) {
+				log.warn("username from discord profile is taken, generating a new one...");
+				username = uniqueNamesGenerator();
+			}
 			const user = await registerUserSocial({
-				username: `${profile.username}#${profile.discriminator}`,
+				username,
 				discordId: profile.id,
 			});
 			if (user) {
@@ -469,6 +474,18 @@ async function authCallbackDiscord(req, accessToken, refreshToken, profile, done
 			log.error(`Unable to create new social user: ${error}`);
 			return done(error);
 		}
+	}
+}
+
+function buildUsernameFromDiscordProfile(profile): string {
+	// See: https://discord.com/developers/docs/change-log#unique-usernames-on-discord
+	if (profile.discriminator && profile.discriminator === "0") {
+		if (profile.global_name) {
+			return profile.global_name;
+		}
+		return profile.username;
+	} else {
+		return `${profile.username}#${profile.discriminator}`;
 	}
 }
 
