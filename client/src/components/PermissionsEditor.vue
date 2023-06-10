@@ -45,8 +45,7 @@ import {
 	ROLE_NAMES,
 	ROLE_DISPLAY_NAMES,
 	Permission,
-	RoleGrants,
-	OldRoleGrants,
+	Grants,
 } from "ott-common/permissions";
 import { Role } from "ott-common/models/types";
 
@@ -54,8 +53,11 @@ export const PermissionsEditor = defineComponent({
 	name: "PermissionsEditor",
 	props: {
 		modelValue: {
-			type: [Object, Array] as PropType<RoleGrants | OldRoleGrants>,
+			type: Object as PropType<Grants>,
 			required: true,
+			validator: val => {
+				return val instanceof Grants;
+			},
 		},
 		currentRole: { type: Number, default: 4 },
 	},
@@ -79,7 +81,7 @@ export const PermissionsEditor = defineComponent({
 		/**
 		 * Gets the id of the lowest role with this permission granted.
 		 */
-		function getLowestGranted(permission) {
+		function getLowestGranted(permission): Role {
 			let value = _.min(_.keys(_.pickBy(permission, v => v === true)));
 			if (value !== undefined) {
 				return parseInt(value);
@@ -91,7 +93,7 @@ export const PermissionsEditor = defineComponent({
 		/**
 		 * Gets the id of the highest role with this permission denied.
 		 */
-		function getHighestDenied(permission) {
+		function getHighestDenied(permission): Role | null {
 			let value = _.max(_.keys(_.pickBy(permission, v => v === false)));
 			if (value !== undefined) {
 				let v = parseInt(value);
@@ -104,12 +106,11 @@ export const PermissionsEditor = defineComponent({
 			}
 		}
 
-		function extractFromGrants(grants): Permission[] {
+		function extractFromGrants(grants: Grants): Permission[] {
 			let extracted: Permission[] = [];
-			for (let i = 0; i < PERMISSIONS.length; i++) {
-				let perm = PERMISSIONS[i];
+			for (const perm of PERMISSIONS) {
 				for (let role = 4; role >= 0; role--) {
-					let fullmask = grants[role];
+					let fullmask = grants.getMask(role);
 					for (let r = role - 1; r >= 0; r--) {
 						fullmask |= grants[r];
 					}
@@ -120,7 +121,7 @@ export const PermissionsEditor = defineComponent({
 			return extracted;
 		}
 
-		function rebuildMasks() {
+		function rebuildMasks(): Grants {
 			let grants = {};
 			for (let role = 4; role >= 0; role--) {
 				grants[role] = 0;
@@ -129,19 +130,14 @@ export const PermissionsEditor = defineComponent({
 				let lowest = getLowestGranted(permissions.value[i]);
 				grants[lowest] |= PERMISSIONS[i].mask;
 			}
-			return grants;
+			return new Grants(grants);
 		}
 
 		watch(props, () => {
 			if (shouldAcceptExternalUpdate.value) {
 				dirty.value = false;
 				updateEpoch.value++;
-				// HACK: coerce to OldRoleGrants format
-				let grants = props.modelValue;
-				if (Array.isArray(grants)) {
-					grants = _.fromPairs(grants);
-				}
-				permissions.value = extractFromGrants(grants);
+				permissions.value = extractFromGrants(props.modelValue);
 			} else {
 				shouldAcceptExternalUpdate.value = true;
 			}

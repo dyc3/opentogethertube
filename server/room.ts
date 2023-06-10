@@ -473,7 +473,7 @@ export class Room implements RoomState {
 
 	getRoleFromSession(session: SessionInfo): Role {
 		if (session && "user_id" in session) {
-			if (this.owner !== null && this.owner.id === session.user_id) {
+			if (this.owner && this.owner.id === session.user_id) {
 				return Role.Owner;
 			}
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {

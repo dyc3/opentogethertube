@@ -94,6 +94,7 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 	await roommanager.createRoom({
 		name: roomName,
 		isTemporary: true,
+		owner: req.user,
 	});
 	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 	res.json({
@@ -225,9 +226,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 	}
 	const room = result.value;
 	if (req.body.claim) {
-		if (room.isTemporary) {
-			throw new BadApiArgumentException("claim", `Can't claim temporary rooms.`);
-		} else if (room.owner) {
+		if (room.owner) {
 			throw new BadApiArgumentException("claim", `Room already has owner.`);
 		}
 	}
@@ -239,28 +238,29 @@ const patchRoom: RequestHandler = async (req, res) => {
 
 	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 
-	if (!room.isTemporary) {
-		if (req.body.claim && !room.owner) {
-			if (req.user) {
-				room.owner = req.user;
-				// HACK: force the room to send the updated user info to the client
-				for (const user of room.realusers) {
-					if (user.user_id === room.owner.id) {
-						room.syncUser(room.getUserInfo(user.id));
-						break;
-					}
+	if (req.body.claim && !room.owner) {
+		if (req.user) {
+			log.info(`Room ${room.name} claimed by ${req.user.username} (${req.user.id})`);
+			room.owner = req.user;
+			// HACK: force the room to send the updated user info to the client
+			for (const user of room.realusers) {
+				if (user.user_id === room.owner.id) {
+					room.syncUser(room.getUserInfo(user.id));
+					break;
 				}
-			} else {
-				res.status(401).json({
-					success: false,
-					error: {
-						message: "Must be logged in to claim room ownership.",
-					},
-				});
-				return;
 			}
+		} else {
+			res.status(401).json({
+				success: false,
+				error: {
+					message: "Must be logged in to claim room ownership.",
+				},
+			});
+			return;
 		}
+	}
 
+	if (!room.isTemporary) {
 		try {
 			await storage.updateRoom(room);
 		} catch (err) {
