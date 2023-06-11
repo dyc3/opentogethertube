@@ -430,6 +430,7 @@ export class Room implements RoomState {
 		if (!this.currentSource && this.videoSegments.length > 0) {
 			this.videoSegments = [];
 		}
+		this.playbackSpeed = 1;
 
 		this.log.debug(`Dirty props: ${Array.from(this._dirty)}`);
 	}
