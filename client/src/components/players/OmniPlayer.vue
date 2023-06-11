@@ -66,23 +66,7 @@
 			@buffer-spans="onBufferSpans"
 		/>
 		<GenericHlsPlayer
-			v-else-if="!!source && source.service == 'reddit'"
-			ref="player"
-			:videoid="source.id"
-			:hls-url="source.hls_url!"
-			:thumbnail="source.thumbnail"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-			@buffer-progress="onBufferProgress"
-			@buffer-spans="onBufferSpans"
-		/>
-		<GenericHlsPlayer
-			v-else-if="!!source && source.service == 'tubi'"
+			v-else-if="!!source && ['reddit', 'tubi', 'hls'].includes(source.service)"
 			ref="player"
 			:videoid="source.id"
 			:hls-url="source.hls_url!"
