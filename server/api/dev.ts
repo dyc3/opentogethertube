@@ -3,7 +3,7 @@ import express from "express";
 import { rateLimiter } from "../rate-limit";
 import roommanager from "../roommanager";
 import { RoomRequestType } from "../../common/models/messages";
-import usermanager from "../usermanager.js";
+import usermanager from "../usermanager";
 import faker from "faker";
 import tokens from "../auth/tokens";
 import { setApiKey } from "../admin";
@@ -37,7 +37,18 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 		await tokens.setSessionInfo(token, { isLoggedIn: false, username: "fake_user" });
 	}
 
-	const room = await roommanager.GetRoom(req.params.name);
+	const result = await roommanager.getRoom(req.params.name);
+	if (!result.ok) {
+		res.json({
+			success: false,
+			error: {
+				name: "RoomNotFound",
+				message: "Room not found",
+			},
+		});
+		return;
+	}
+	const room = result.value;
 	try {
 		await room.processUnauthorizedRequest(
 			{

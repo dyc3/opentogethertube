@@ -11,7 +11,7 @@ export const wss = new WebSocket.Server({ noServer: true });
  * @param {*} httpServer
  * @param {*} sessions
  */
-export function Setup(httpServer, sessions) {
+export function setup(httpServer, sessions) {
 	log.debug("setting up websocket upgrader...");
 	wss.on("error", e => {
 		log.error(`Websocket server error: ${e}`);
@@ -26,6 +26,6 @@ export function Setup(httpServer, sessions) {
 }
 
 export default {
-	Setup,
+	setup,
 	wss,
 };

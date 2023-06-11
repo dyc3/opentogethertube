@@ -37,12 +37,11 @@
 											<v-col>
 												<v-text-field
 													:loading="isLoading"
-													:label="$t('login-form.email')"
+													:label="$t('login-form.email-or-username')"
 													required
-													v-model="email"
+													v-model="emailOrUsername"
 													:error-messages="logInFailureMessage"
-													:rules="emailRules"
-													data-cy="login-email"
+													data-cy="login-user"
 												/>
 												<v-text-field
 													:loading="isLoading"
@@ -99,6 +98,7 @@
 											v-model="email"
 											:error-messages="registerFieldErrors.email"
 											:rules="emailRules"
+											:hint="$t('login-form.email-optional')"
 										/>
 										<v-text-field
 											:loading="isLoading"
@@ -154,7 +154,7 @@
 </template>
 
 <script lang="ts">
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { defineComponent, reactive, ref, watch } from "vue";
@@ -171,6 +171,7 @@ const LogInForm = defineComponent({
 
 		let email = ref("");
 		let username = ref("");
+		let emailOrUsername = ref("");
 		let password = ref("");
 		let password2 = ref("");
 
@@ -192,16 +193,14 @@ const LogInForm = defineComponent({
 		const loginForm = ref<VForm | undefined>(null);
 		const registerForm = ref<VForm | undefined>(null);
 
-		const emailRules = [
-			v => !!v || t("login-form.rules.email-required"),
-			v => (v && isEmail(v)) || t("login-form.rules.valid-email"),
-		];
+		const emailRules = [v => (v && isEmail(v)) || !v || t("login-form.rules.valid-email")];
 		const usernameRules = [
 			v => !!v || t("login-form.rules.username-required"),
 			v =>
 				(!!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX) ||
 				t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
 		];
+
 		const passwordRules = [
 			v => !!v || t("login-form.rules.password-required"),
 			v =>
@@ -242,14 +241,14 @@ const LogInForm = defineComponent({
 			logInFailureMessage.value = "";
 			try {
 				let resp = await API.post("/user/login", {
-					email: email.value,
+					user: emailOrUsername.value,
 					password: password.value,
 				});
 				if (resp.data.success) {
 					console.log("Log in success");
 					store.commit("LOGIN", resp.data.user);
 					emit("shouldClose");
-					email.value = "";
+					emailOrUsername.value = "";
 					password.value = "";
 				} else {
 					console.log("Log in failed");
@@ -338,6 +337,7 @@ const LogInForm = defineComponent({
 		return {
 			email,
 			username,
+			emailOrUsername,
 			password,
 			password2,
 			mode,

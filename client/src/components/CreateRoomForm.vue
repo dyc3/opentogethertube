@@ -59,7 +59,7 @@
 					color="primary"
 					>{{ $t("create-room-form.create-room") }}</v-btn
 				>
-				<v-btn variant="text" @click="$emit('cancel')">{{ $t("actions.cancel") }}</v-btn>
+				<v-btn variant="text" @click="$emit('cancel')">{{ $t("common.cancel") }}</v-btn>
 			</v-card-actions>
 		</v-form>
 	</v-card>

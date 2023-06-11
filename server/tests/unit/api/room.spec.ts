@@ -4,8 +4,9 @@ import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
 import roommanager from "../../../../server/roommanager";
 import { RoomNotFoundException } from "../../../../server/exceptions";
-const { app } = require("../../../app");
-const { Room, User } = require("../../../models");
+import { app } from "../../../app";
+import { Room as RoomModel, User as UserModel } from "../../../models";
+import usermanager from "../../../usermanager";
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -21,12 +22,13 @@ expect.extend({
 		});
 		if (pass) {
 			return {
-				message: () => `expected error to not be RoomNotFoundException`,
+				message: () =>
+					`expected error to not be RoomNotFoundException, but got ${error.name}`,
 				pass,
 			};
 		} else {
 			return {
-				message: () => `expected error to be RoomNotFoundException`,
+				message: () => `expected error to be RoomNotFoundException, but got ${error.name}`,
 				pass,
 			};
 		}
@@ -78,7 +80,7 @@ describe("Room API", () => {
 
 		afterEach(async () => {
 			try {
-				await roommanager.UnloadRoom("test1");
+				await roommanager.unloadRoom("test1");
 			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
@@ -89,7 +91,7 @@ describe("Room API", () => {
 		it.each([Visibility.Public, Visibility.Unlisted])(
 			"should get %s room metadata",
 			async (visibility: Visibility) => {
-				await roommanager.CreateRoom({
+				await roommanager.createRoom({
 					name: "test1",
 					isTemporary: true,
 					visibility: visibility,
@@ -144,6 +146,7 @@ describe("Room API", () => {
 					throw e;
 				}
 			}
+			await UserModel.destroy({ where: {} });
 		});
 
 		it.each([Visibility.Public, Visibility.Unlisted])(
@@ -236,12 +239,16 @@ describe("Room API", () => {
 				name: "testnoowner",
 				owner: null,
 			});
-			await roommanager.UnloadRoom("testnoowner");
-			await Room.destroy({ where: { name: "testnoowner" } });
+			await roommanager.unloadRoom("testnoowner");
+			await RoomModel.destroy({ where: { name: "testnoowner" } });
 		});
 
 		it("should create permanent room with owner", async () => {
-			let user = await User.findOne({ where: { email: "forced@localhost" } });
+			const user = await usermanager.registerUser({
+				email: "forced@localhost",
+				username: "owner",
+				password: "password1234",
+			});
 			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: true,
 				user_id: user.id,
@@ -259,8 +266,8 @@ describe("Room API", () => {
 					email: user.email,
 				},
 			});
-			await roommanager.UnloadRoom("testowner");
-			await Room.destroy({ where: { name: "testowner" } });
+			await roommanager.unloadRoom("testowner");
+			await RoomModel.destroy({ where: { name: "testowner" } });
 		});
 	});
 });

@@ -15,7 +15,7 @@
 			v-if="$store.state.toast.notifications.length > 1"
 			data-cy="toast-close-all"
 		>
-			{{ $t("actions.close-all") }}
+			{{ $t("common.close-all") }}
 		</v-btn>
 	</transition-group>
 </template>

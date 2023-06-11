@@ -1,4 +1,4 @@
-import permissions, { Grants } from "ott-common/permissions";
+import permissions, { GrantMask, Grants } from "../common/permissions";
 import { redisClient } from "./redisclient";
 import { promisify } from "util";
 import { getLogger } from "./logger.js";
@@ -62,9 +62,9 @@ import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
-import { calculateCurrentPosition } from "ott-common/timestamp";
+import roommanager from "./roommanager";
+import { calculateCurrentPosition } from "../common/timestamp";
 
-const publish = promisify(redisClient.publish).bind(redisClient);
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
 
@@ -132,7 +132,7 @@ export interface RoomStateComputed {
 }
 
 // Only these should be sent to clients, all others should be considered unsafe
-export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "grants">;
+export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "users">;
 
 // Only these should be stored in redis
 export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">;
@@ -156,7 +156,7 @@ export class Room implements RoomState {
 	_name = "";
 	_title = "";
 	_description = "";
-	_visibility: Visibility = Visibility.Public;
+	_visibility: Visibility = Visibility.Unlisted;
 	_queueMode: QueueMode = QueueMode.Manual;
 	isTemporary = false;
 	_owner: User | null = null;
@@ -353,7 +353,6 @@ export class Room implements RoomState {
 	public set owner(value: User | null) {
 		this._owner = value;
 		this.markDirty("hasOwner");
-		this.markDirty("users");
 	}
 
 	public get videoSegments(): Segment[] {
@@ -440,7 +439,7 @@ export class Room implements RoomState {
 	 * @param msg The message to publish.
 	 */
 	async publish(msg: ServerMessage): Promise<void> {
-		await publish(`room:${this.name}`, JSON.stringify(msg, replacer));
+		roommanager.publish(this.name, msg);
 	}
 
 	async publishRoomEvent(
@@ -497,7 +496,7 @@ export class Room implements RoomState {
 
 	getRoleFromSession(session: SessionInfo): Role {
 		if (session && "user_id" in session) {
-			if (this.owner !== null && this.owner.id === session.user_id) {
+			if (this.owner && this.owner.id === session.user_id) {
 				return Role.Owner;
 			}
 			for (let i = Role.Administrator; i >= Role.TrustedUser; i--) {
@@ -762,7 +761,6 @@ export class Room implements RoomState {
 			"playbackPosition",
 			"playbackSpeed",
 			"grants",
-			"users",
 			"voteCounts",
 			"hasOwner",
 			"videoSegments",
@@ -799,16 +797,14 @@ export class Room implements RoomState {
 		this.log.debug(`syncing user: ${info.name}`);
 		await this.publish({
 			action: "user",
-			user: {
-				grants: this.grants.getMask(info.role),
-				...info,
+			update: {
+				kind: "update",
+				value: info,
 			},
 		});
 	}
 
-	public async onBeforeUnload(): Promise<void> {
-		await this.publish({ action: "unload" });
-	}
+	public async onBeforeUnload(): Promise<void> {}
 
 	/**
 	 * If true, the room is stale, and should be unloaded.
@@ -968,8 +964,17 @@ export class Room implements RoomState {
 		}
 	}
 
+	public getGrantsForUser(id: ClientId): GrantMask {
+		const user = this.getUser(id);
+		if (!user) {
+			return 0;
+		}
+		return this.grants.getMask(this.getRole(user));
+	}
+
 	public async setGrants(grants: Grants): Promise<void> {
 		this.grants.setAllGrants(grants);
+		this.markDirty("grants");
 	}
 
 	public async play(): Promise<void> {
@@ -1129,10 +1134,8 @@ export class Room implements RoomState {
 		user.token = request.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
-		this.markDirty("users");
 		this.log.info(`${user.username} joined the room`);
 		await this.publishRoomEvent(request, context);
-		await this.syncUser(this.getUserInfo(user.id));
 		// HACK: force the client to receive the correct playback position
 		await this.publish({ action: "sync", playbackPosition: this.realPlaybackPosition });
 	}
@@ -1156,7 +1159,7 @@ export class Room implements RoomState {
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === context.clientId) {
 				this.realusers.splice(i--, 1);
-				this.markDirty("users");
+				// sending the user update to remove the user is handled by clientmanager
 				break;
 			}
 		}
@@ -1166,9 +1169,9 @@ export class Room implements RoomState {
 		this.log.debug(`User was updated: ${request.info.id} ${JSON.stringify(request.info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === request.info.id) {
-				this.realusers[i].updateInfo(request.info);
-				this.markDirty("users");
+				await this.realusers[i].updateInfo(request.info);
 				await this.syncUser(this.getUserInfo(this.realusers[i].id));
+				break;
 			}
 		}
 	}
@@ -1323,7 +1326,6 @@ export class Room implements RoomState {
 				this.userRoles.get(request.role)?.add(targetUser.user_id);
 			}
 		}
-		this.markDirty("users");
 		await this.syncUser(this.getUserInfo(targetUser.id));
 		if (!this.isTemporary) {
 			try {
@@ -1421,6 +1423,7 @@ export class Room implements RoomState {
 			for (const role of request.settings.grants.getRoles()) {
 				if (Object.hasOwnProperty.call(roleToPerms, role)) {
 					this.grants.setRoleGrants(role, request.settings.grants.getMask(role));
+					this.markDirty("grants");
 				}
 			}
 		}

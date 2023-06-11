@@ -37,7 +37,7 @@
 // }
 
 import { mount } from "cypress/vue";
-import { h } from "vue";
+import { ComponentPublicInstance, h } from "vue";
 import vuetify from "../../../src/plugins/vuetify";
 import { key, buildNewStore } from "../../../src/store";
 import { i18n } from "../../../src/i18n";
@@ -50,7 +50,9 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global = options.global || {};
 	options.global.plugins = options.global.plugins || [];
 	options.global.plugins.push(vuetify);
-	options.global.plugins.push([buildNewStore(), key]);
+	let store = buildNewStore();
+	cy.wrap(store).as("store");
+	options.global.plugins.push([store, key]);
 	options.global.plugins.push(i18n);
 	let mockConnection = new OttRoomConnectionMock();
 	cy.wrap(mockConnection).as("connection");
@@ -113,11 +115,7 @@ Cypress.Commands.add("emitted", (event: string) => {
 });
 
 Cypress.Commands.add("store", () => {
-	return cy.get("@wrapper").then((w: any) => {
-		const vueWrapper = (w.wrapper || Cypress.vueWrapper) as unknown as VueWrapper<any>;
-
-		return vueWrapper.vm.$store;
-	}) as any;
+	return cy.get("@store") as any;
 });
 
 Cypress.Commands.add("connection", () => {

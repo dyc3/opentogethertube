@@ -28,7 +28,7 @@ wait_for_db() {
       exit 3
     fi
 
-    nc -z "$POSTGRES_DB_HOST" "$POSTGRES_DB_PORT" > /dev/null 2>&1
+    nc -z "$POSTGRES_HOST" "$POSTGRES_PORT" > /dev/null 2>&1
 
     result=$?
     if [ $result -eq 0 ] ; then
@@ -51,8 +51,8 @@ while [ $# -gt 0 ]
 do
   case "$1" in
     *:* )
-    POSTGRES_DB_HOST=$(printf "%s\n" "$1"| cut -d : -f 1)
-    POSTGRES_DB_PORT=$(printf "%s\n" "$1"| cut -d : -f 2)
+    POSTGRES_HOST=$(printf "%s\n" "$1"| cut -d : -f 1)
+    POSTGRES_PORT=$(printf "%s\n" "$1"| cut -d : -f 2)
     shift 1
     ;;
     -q | --quiet)
@@ -82,10 +82,18 @@ do
   esac
 done
 
-POSTGRES_DB_HOST=${POSTGRES_DB_HOST:-localhost}
-POSTGRES_DB_PORT=${POSTGRES_DB_PORT:-5432}
-if [ "$POSTGRES_DB_HOST" = "" ] || [ "$POSTGRES_DB_PORT" = "" ]; then
-  echoerr "Error: you need to provide a host and port to test. Got: $POSTGRES_DB_HOST:$POSTGRES_DB_PORT"
+# backwards compatibility
+if [ "$POSTGRES_DB_HOST" != "" ]; then
+  POSTGRES_HOST=$POSTGRES_DB_HOST
+fi
+if [ "$POSTGRES_DB_PORT" != "" ]; then
+  POSTGRES_PORT=$POSTGRES_DB_PORT
+fi
+
+POSTGRES_HOST=${POSTGRES_HOST:-localhost}
+POSTGRES_PORT=${POSTGRES_PORT:-5432}
+if [ "$POSTGRES_HOST" = "" ] || [ "$POSTGRES_PORT" = "" ]; then
+  echoerr "Error: you need to provide a host and port to test. Got: $POSTGRES_HOST:$POSTGRES_PORT"
   usage 2
 fi
 

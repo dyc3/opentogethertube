@@ -128,7 +128,7 @@
 							<v-icon v-if="hasError">fas fa-exclamation</v-icon>
 							<v-icon v-else-if="hasBeenAdded">fa:fas fa-check</v-icon>
 							<v-icon v-else>fa:fas fa-plus</v-icon>
-							<span>{{ $t("video-queue-item.add") }}</span>
+							<span>{{ $t("common.add") }}</span>
 						</v-list-item>
 						<v-list-item
 							class="button-with-icon"
@@ -137,7 +137,7 @@
 							data-cy="menu-btn-remove-from-queue"
 						>
 							<v-icon>fa:fas fa-trash</v-icon>
-							<span>{{ $t("video-queue-item.remove") }}</span>
+							<span>{{ $t("common.remove") }}</span>
 						</v-list-item>
 					</v-list>
 				</v-menu>
@@ -148,7 +148,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, toRefs, computed, watchEffect, PropType } from "vue";
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
 import { QueueItem, VideoId } from "ott-common/models/video";

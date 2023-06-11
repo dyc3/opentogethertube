@@ -13,11 +13,17 @@ import { Grants } from "../../common/permissions";
 import { Video } from "common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import {
+	OttApiRequestAddToQueue,
+	OttApiRequestRemoveFromQueue,
 	OttApiRequestRoomCreate,
+	OttApiResponseGetRoom,
 	OttApiResponseRoomCreate,
+	OttApiResponseRoomGenerate,
 	OttResponseBody,
 } from "../../common/models/rest-api";
 import { getApiKey } from "../admin";
+import { AddRequest } from "ott-common/models/messages";
+import { v4 as uuidv4 } from "uuid";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -75,6 +81,28 @@ router.get("/list", (req, res) => {
 	res.json(rooms);
 });
 
+const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGenerate>> = async (
+	req,
+	res
+) => {
+	let points = 50;
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	let roomName = uuidv4();
+	log.debug(`Generating room: ${roomName}`);
+	await roommanager.createRoom({
+		name: roomName,
+		isTemporary: true,
+		owner: req.user,
+	});
+	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
+	res.json({
+		success: true,
+		room: roomName,
+	});
+};
+
 const createRoom: RequestHandler<
 	unknown,
 	OttResponseBody<OttApiResponseRoomCreate>,
@@ -128,9 +156,9 @@ const createRoom: RequestHandler<
 		req.body.visibility = Visibility.Public;
 	}
 	if (req.user) {
-		await roommanager.CreateRoom({ ...req.body, owner: req.user });
+		await roommanager.createRoom({ ...req.body, owner: req.user });
 	} else {
-		await roommanager.CreateRoom(req.body);
+		await roommanager.createRoom(req.body);
 	}
 	log.info(
 		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${
@@ -140,6 +168,32 @@ const createRoom: RequestHandler<
 	res.json({
 		success: true,
 	});
+};
+
+const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> = async (
+	req,
+	res
+) => {
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+	const resp: OttApiResponseGetRoom = {
+		..._.cloneDeep(
+			_.pick(room, [
+				"name",
+				"title",
+				"description",
+				"isTemporary",
+				"visibility",
+				"queueMode",
+				"users",
+				"grants",
+				"autoSkipSegments",
+			])
+		),
+		queue: room.queue.items,
+		permissions: room.grants,
+		hasOwner: !!room.owner,
+	};
+	res.json(resp);
 };
 
 const patchRoom: RequestHandler = async (req, res) => {
@@ -166,11 +220,13 @@ const patchRoom: RequestHandler = async (req, res) => {
 
 	req.body.grants = new Grants(req.body.grants);
 
-	const room = await roommanager.GetRoom(req.params.name);
+	const result = await roommanager.getRoom(req.params.name);
+	if (!result.ok) {
+		throw result.value;
+	}
+	const room = result.value;
 	if (req.body.claim) {
-		if (room.isTemporary) {
-			throw new BadApiArgumentException("claim", `Can't claim temporary rooms.`);
-		} else if (room.owner) {
+		if (room.owner) {
 			throw new BadApiArgumentException("claim", `Room already has owner.`);
 		}
 	}
@@ -182,28 +238,29 @@ const patchRoom: RequestHandler = async (req, res) => {
 
 	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 
-	if (!room.isTemporary) {
-		if (req.body.claim && !room.owner) {
-			if (req.user) {
-				room.owner = req.user;
-				// HACK: force the room to send the updated user info to the client
-				for (const user of room.realusers) {
-					if (user.user_id === room.owner.id) {
-						room.syncUser(room.getUserInfo(user.id));
-						break;
-					}
+	if (req.body.claim && !room.owner) {
+		if (req.user) {
+			log.info(`Room ${room.name} claimed by ${req.user.username} (${req.user.id})`);
+			room.owner = req.user;
+			// HACK: force the room to send the updated user info to the client
+			for (const user of room.realusers) {
+				if (user.user_id === room.owner.id) {
+					room.syncUser(room.getUserInfo(user.id));
+					break;
 				}
-			} else {
-				res.status(401).json({
-					success: false,
-					error: {
-						message: "Must be logged in to claim room ownership.",
-					},
-				});
-				return;
 			}
+		} else {
+			res.status(401).json({
+				success: false,
+				error: {
+					message: "Must be logged in to claim room ownership.",
+				},
+			});
+			return;
 		}
+	}
 
+	if (!room.isTemporary) {
 		try {
 			await storage.updateRoom(room);
 		} catch (err) {
@@ -233,7 +290,7 @@ const deleteRoom: RequestHandler = async (req, res) => {
 		});
 		return;
 	}
-	await roommanager.UnloadRoom(req.params.name);
+	await roommanager.unloadRoom(req.params.name);
 	res.json({
 		success: true,
 	});
@@ -249,7 +306,7 @@ const undoEvent = async (req: express.Request, res) => {
 		event: req.body.data.event,
 	};
 
-	await client.makeRoomRequest(request);
+	await clientmanager.makeRoomRequest(client, request);
 	res.json({
 		success: true,
 	});
@@ -267,7 +324,7 @@ const addVote = async (req: express.Request, res) => {
 	}
 
 	const client = clientmanager.getClient(req.token, req.params.name);
-	await client.makeRoomRequest({
+	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
 		add: true,
@@ -289,7 +346,7 @@ const removeVote = async (req: express.Request, res) => {
 	}
 
 	const client = clientmanager.getClient(req.token, req.params.name);
-	await client.makeRoomRequest({
+	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
 		add: false,
@@ -299,11 +356,101 @@ const removeVote = async (req: express.Request, res) => {
 	});
 };
 
+const addToQueue: RequestHandler<
+	{ name: string },
+	OttResponseBody<unknown>,
+	OttApiRequestAddToQueue
+> = async (req, res) => {
+	let points = 5;
+	if ("videos" in req.body) {
+		points = 3 * req.body.videos.length;
+	}
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+
+	let roomRequest: AddRequest;
+	if ("videos" in req.body) {
+		roomRequest = {
+			type: RoomRequestType.AddRequest,
+			videos: req.body.videos,
+		};
+	} else if ("url" in req.body) {
+		roomRequest = {
+			type: RoomRequestType.AddRequest,
+			url: req.body.url,
+		};
+	} else if ("service" in req.body && "id" in req.body) {
+		roomRequest = {
+			type: RoomRequestType.AddRequest,
+			video: {
+				service: req.body.service,
+				id: req.body.id,
+			},
+		};
+	} else {
+		throw new BadApiArgumentException("service,id", "missing");
+	}
+	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
+	res.json({
+		success: true,
+	});
+};
+
+const removeFromQueue: RequestHandler<
+	{ name: string },
+	OttResponseBody<unknown>,
+	OttApiRequestRemoveFromQueue
+> = async (req, res) => {
+	let points = 5;
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+
+	if (req.body.service && req.body.id) {
+		await room.processUnauthorizedRequest(
+			{
+				type: RoomRequestType.RemoveRequest,
+				video: { service: req.body.service, id: req.body.id },
+			},
+			{ token: req.token }
+		);
+		res.json({
+			success: true,
+		});
+	} else {
+		throw new BadApiArgumentException("service,id", "missing");
+	}
+};
+
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	if (err instanceof OttException) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
 		// FIXME: allow for type narrowing based on err.name
-		if (err.name === "BadApiArgumentException") {
+		if (err.name === "RoomNotFoundException") {
+			res.status(404).json({
+				success: false,
+				error: {
+					name: err.name,
+					message: "Room not found",
+				},
+			});
+		} else if (
+			err.name === "VideoAlreadyQueuedException" ||
+			err.name === "PermissionDeniedException" ||
+			err.name === "ClientNotFoundInRoomException"
+		) {
+			log.warn(`Failed to post video: ${err.name}`);
+			res.status(400).json({
+				success: false,
+				error: {
+					name: err.name,
+					message: err.message,
+				},
+			});
+		} else if (err.name === "BadApiArgumentException") {
 			const e = err as BadApiArgumentException;
 			res.status(400).json({
 				success: false,
@@ -337,9 +484,25 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 
 // HACK: Ideally, this error handling would be handled with a proper express error handler.
 // I was not able to figure out how to make it work in this context, so this is what we are stuck with.
+router.post("/generate", async (req, res, next) => {
+	try {
+		await generateRoom(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
 router.post("/create", async (req, res, next) => {
 	try {
 		await createRoom(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.get("/:name", async (req, res, next) => {
+	try {
+		await getRoom(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -355,7 +518,7 @@ router.patch("/:name", async (req, res, next) => {
 
 router.delete("/:name", async (req, res, next) => {
 	try {
-		await deleteRoom(req as express.Request, res, next);
+		await deleteRoom(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -363,7 +526,7 @@ router.delete("/:name", async (req, res, next) => {
 
 router.post("/:name/undo", async (req, res, next) => {
 	try {
-		await undoEvent(req as express.Request, res);
+		await undoEvent(req, res);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -371,7 +534,7 @@ router.post("/:name/undo", async (req, res, next) => {
 
 router.post("/:name/vote", async (req, res, next) => {
 	try {
-		await addVote(req as express.Request, res);
+		await addVote(req, res);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -379,7 +542,23 @@ router.post("/:name/vote", async (req, res, next) => {
 
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
-		await removeVote(req as express.Request, res);
+		await removeVote(req, res);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.post("/:name/queue", async (req, res, next) => {
+	try {
+		await addToQueue(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.delete("/:name/queue", async (req, res, next) => {
+	try {
+		await removeFromQueue(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}

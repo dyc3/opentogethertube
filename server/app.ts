@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import fs from "fs";
-import { getLogger } from "./logger.js";
+import { getLogger, setLogLevel } from "./logger.js";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
@@ -10,19 +10,22 @@ import { metricsMiddleware } from "./metrics";
 
 const log = getLogger("app");
 
-if (!process.env.NODE_ENV) {
-	log.warn("NODE_ENV not set, assuming dev environment");
-	process.env.NODE_ENV = "development";
-}
+import { loadConfigFile, conf, setLogger } from "./ott-config";
 
-if (process.env.NODE_ENV === "example") {
-	log.error("Invalid NODE_ENV! Aborting...");
-	process.exit(1);
-}
+setLogger(getLogger("config"));
+loadConfigFile();
+setLogLevel(conf.get("log.level"));
 
-import "./ott-config";
+const searchEnabled = conf.get("add_preview.search.enabled");
+log.info(`Search enabled: ${searchEnabled}`);
 
-const app = express();
+const searchProvider = conf.get("add_preview.search.provider");
+log.info(`Search provider: ${searchProvider}`);
+
+const rateLimitEnabled = conf.get("rate_limit.enabled");
+log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
+
+export const app = express();
 app.use(metricsMiddleware);
 const server = http.createServer(app);
 
@@ -53,51 +56,49 @@ if (fs.existsSync("../client/dist")) {
 	log.warn("no dist folder found");
 }
 
-import session from "express-session";
+import session, { SessionOptions } from "express-session";
 import connectRedis from "connect-redis";
 let RedisStore = connectRedis(session);
-let sessionOpts = {
+let sessionOpts: SessionOptions = {
 	store: new RedisStore({ client: redisClient }),
-	secret: process.env.SESSION_SECRET || "opentogethertube",
+	secret: conf.get("session_secret"),
 	resave: false,
 	saveUninitialized: false,
 	unset: "keep",
-	proxy: process.env.NODE_ENV === "production",
+	proxy: conf.get("env") === "production",
 	cookie: {
-		expires: false,
 		maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
 	},
 };
 if (
-	process.env.NODE_ENV === "production" &&
-	process.env.OTT_HOSTNAME &&
-	!process.env.OTT_HOSTNAME.includes("localhost")
+	conf.get("env") === "production" &&
+	!!conf.get("hostname") &&
+	!conf.get("hostname").includes("localhost")
 ) {
 	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
-	app.set("trust proxy", parseInt(process.env["TRUST_PROXY"] ?? "1", 10) || 1);
+	app.set("trust proxy", conf.get("trust_proxy"));
 	// @ts-expect-error
 	sessionOpts.cookie.secure = true;
 }
-if (process.env.FORCE_INSECURE_COOKIES) {
+if (conf.get("force_insecure_cookies")) {
 	log.warn("FORCE_INSECURE_COOKIES found, cookies will only be set on http, not https");
 	// @ts-expect-error
 	sessionOpts.cookie.secure = false;
 }
-// @ts-expect-error im too lazy to fix this right now
 const sessions = session(sessionOpts);
 app.use(sessions);
 
 import usermanager from "./usermanager";
-passport.use(new LocalStrategy({ usernameField: "email" }, usermanager.authCallback));
+passport.use(new LocalStrategy({ usernameField: "user" }, usermanager.authCallback));
 passport.use(
 	new DiscordStrategy(
 		{
-			clientID: process.env.DISCORD_CLIENT_ID || "NONE",
-			clientSecret: process.env.DISCORD_CLIENT_SECRET || "NONE",
+			clientID: conf.get("discord.client_id") ?? "NONE",
+			clientSecret: conf.get("discord.client_secret") ?? "NONE",
 			callbackURL:
-				(!process.env.OTT_HOSTNAME || process.env.OTT_HOSTNAME.includes("localhost")
+				(!conf.get("hostname") || conf.get("hostname").includes("localhost")
 					? "http"
-					: "https") + `://${process.env.OTT_HOSTNAME}/api/auth/discord/callback`,
+					: "https") + `://${conf.get("hostname")}/api/auth/discord/callback`,
 			scope: ["identify"],
 			passReqToCallback: true,
 		},
@@ -122,9 +123,9 @@ passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
 app.use(usermanager.passportErrorHandler);
 import websockets from "./websockets.js";
-websockets.Setup(server, sessions);
+websockets.setup(server, sessions);
 import clientmanager from "./clientmanager";
-clientmanager.Setup();
+clientmanager.setup();
 import roommanager from "./roommanager";
 roommanager.start();
 
@@ -166,8 +167,8 @@ if (fs.existsSync("../client/dist")) {
 }
 
 //start our server
-if (process.env.NODE_ENV !== "test") {
-	server.listen(process.env.PORT || 3000, () => {
+if (conf.get("env") !== "test") {
+	server.listen(conf.get("port"), () => {
 		let addr = server.address();
 		if (!addr) {
 			log.error("Failed to start server!");

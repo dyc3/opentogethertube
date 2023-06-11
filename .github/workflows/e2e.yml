@@ -36,10 +36,11 @@ jobs:
           key: cache-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true
+          cache: "yarn"
 
       - run: yarn --frozen-lockfile
       - run: yarn build
@@ -117,6 +118,9 @@ jobs:
         # run copies of the current job in parallel
         containers: [1, 2]
         browsers: [electron]
+    env:
+      # this is safe because it's only used for testing
+      SESSION_SECRET: LERTmi2Jiz6gJHt21AZUWBstezP41P3odxzEsCo1w4zL8XqGyjGdMZ2QPXUenVQQ2fY1xzGBYseB1g9teRHbxF
     services:
       redis:
         image: redis
@@ -132,10 +136,11 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true
+          cache: "yarn"
 
       - name: Download node_modules artifact
         uses: actions/download-artifact@v3
@@ -148,6 +153,8 @@ jobs:
           mv dl/node_modules.tar.gz .
           rm -d dl
           tar -xzf node_modules.tar.gz
+
+      - run: yarn install --frozen-lockfile
 
       - name: Download the build folders
         uses: actions/download-artifact@v3

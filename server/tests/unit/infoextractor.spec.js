@@ -22,6 +22,7 @@ describe("InfoExtractor", () => {
 			"http://vimeo.com/98239832",
 			"http://youtu.be/98239832",
 			"http://example.com/video.mp4",
+			"ott://video/youtube/1",
 		];
 
 		it.each(validUrls)("Should be valid URL: %s", link => {

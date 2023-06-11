@@ -3,9 +3,9 @@
 		<v-app-bar
 			app
 			:density="$vuetify.display.mdAndUp ? 'default' : 'compact'"
-			v-if="!fullscreen"
+			:scroll-behavior="fullscreen ? 'inverted hide' : ' '"
 		>
-			<!-- TODO: replace v-if here with hide on scroll and inverted scroll when vuetify 3.2 comes out. -->
+			<!-- TODO: replace the ' ' here with '' when this bug is fixed: https://github.com/vuetifyjs/vuetify/issues/17554 -->
 			<v-app-bar-nav-icon @click="drawer = true" role="menu" aria-label="nav menu" />
 			<v-img
 				:src="logoUrl"
@@ -19,7 +19,13 @@
 			</v-app-bar-title>
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-btn variant="text" to="/rooms">{{ $t("nav.browse") }}</v-btn>
-				<v-btn variant="text" to="/faq">{{ $t("nav.faq") }}</v-btn>
+				<v-btn
+					variant="text"
+					href="https://github.com/dyc3/opentogethertube/discussions/830"
+					target="_blank"
+				>
+					{{ $t("nav.faq") }}
+				</v-btn>
 				<v-btn
 					variant="text"
 					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
@@ -61,7 +67,10 @@
 				<v-list-item to="/rooms">
 					{{ $t("nav.browse") }}
 				</v-list-item>
-				<v-list-item to="/faq">
+				<v-list-item
+					href="https://github.com/dyc3/opentogethertube/discussions/830"
+					target="_blank"
+				>
 					{{ $t("nav.faq") }}
 				</v-list-item>
 				<v-list-item
@@ -114,7 +123,7 @@
 			<v-container class="overlay-loading-create-room">
 				<v-progress-circular indeterminate />
 				<v-btn elevation="12" size="x-large" @click="cancelRoom" style="margin-top: 24px">
-					{{ $t("actions.cancel") }}
+					{{ $t("common.cancel") }}
 				</v-btn>
 			</v-container>
 		</v-overlay>
@@ -124,7 +133,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref, computed } from "vue";
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
 import NavUser from "@/components/navbar/NavUser.vue";
@@ -135,7 +144,7 @@ import { createRoomHelper } from "@/util/roomcreator";
 import { useRouter } from "vue-router";
 import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
-import { LocaleSelector } from "@/components/navbar/LocaleSelector.vue";
+import LocaleSelector from "@/components/navbar/LocaleSelector.vue";
 
 export const App = defineComponent({
 	name: "app",
@@ -200,7 +209,7 @@ export const App = defineComponent({
 			});
 
 			await store.dispatch("settings/load");
-			await store.dispatch("getNewToken");
+			await store.dispatch("users/getNewToken");
 			await setLocale(store.state.settings.locale);
 
 			// ask the server if we are logged in or not, and update the client to reflect that status.

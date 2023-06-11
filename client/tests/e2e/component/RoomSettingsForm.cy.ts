@@ -1,26 +1,34 @@
 import { defineComponent, h } from "vue";
 import RoomSettingsForm from "../../../src/components/RoomSettingsForm.vue";
-import Norifier from "../../../src/components/Notifier.vue";
+import Notifier from "../../../src/components/Notifier.vue";
 import { useStore } from "../../../src/store";
-import { parseIntoGrantMask } from "ott-common/permissions";
-import { Role } from "ott-common/models/types";
+import { Grants, parseIntoGrantMask } from "ott-common/permissions";
+import { PlayerStatus, Role, RoomUserInfo } from "ott-common/models/types";
 
 let page = defineComponent({
 	setup() {
 		const store = useStore();
 		store.state.room.name = "foo";
+		store.state.users.users = new Map([
+			[
+				"1",
+				{
+					id: "1",
+					name: "bar",
+					isLoggedIn: true,
+					role: Role.Owner,
+					isYou: true,
+					status: PlayerStatus.ready,
+				},
+			],
+		]);
 		store.state.users.you = {
 			id: "1",
-			name: "bar",
-			isLoggedIn: true,
-			role: Role.Owner,
-			isYou: true,
-			grants: parseIntoGrantMask(["*"]),
 		};
 		return {};
 	},
 	render() {
-		return h("div", {}, [h(RoomSettingsForm), h(Norifier)]);
+		return h("div", {}, [h(RoomSettingsForm), h(Notifier)]);
 	},
 });
 
@@ -67,19 +75,31 @@ describe("<RoomSettingsForm />", () => {
 			setup() {
 				const store = useStore();
 				store.state.room.name = "foo";
+				store.state.room.grants = new Grants();
+				store.state.room.grants.setRoleGrants(
+					Role.UnregisteredUser,
+					parseIntoGrantMask(["*"]) ^ parseIntoGrantMask(["configure-room"])
+				);
+				store.state.users.users = new Map([
+					[
+						"1",
+						{
+							id: "1",
+							name: "bar",
+							isLoggedIn: true,
+							role: Role.UnregisteredUser,
+							status: PlayerStatus.ready,
+						},
+					],
+				]);
 				store.state.users.you = {
 					id: "1",
-					name: "bar",
-					isLoggedIn: false,
-					role: Role.UnregisteredUser,
-					isYou: true,
-					grants: parseIntoGrantMask(["*"]) ^ parseIntoGrantMask(["configure-room"]),
 				};
 				return () =>
 					h("div", {}, [
-						h("div", {}, [`Grants: ${store.state.users.you.grants}`]),
+						h("div", {}, [`Grants: ${store.getters["users/grants"]}`]),
 						h(RoomSettingsForm),
-						h(Norifier),
+						h(Notifier),
 					]);
 			},
 		});

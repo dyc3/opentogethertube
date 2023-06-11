@@ -97,7 +97,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, inject } from "vue";
-import { API } from "@/common-http.js";
+import { API } from "@/common-http";
 import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { granted } from "@/util/grants";

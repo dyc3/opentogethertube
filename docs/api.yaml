@@ -371,27 +371,30 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    thumbnail:
-                      type: string
-                    service:
-                      type: string
-                    length:
-                      type: number
-                    id:
-                      type: string
-                    description:
-                      type: string
-                    mime:
-                      type: string
-                  required:
-                    - service
-                    - id
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        thumbnail:
+                          type: string
+                        service:
+                          type: string
+                        length:
+                          type: number
+                        id:
+                          type: string
+                        description:
+                          type: string
+                        mime:
+                          type: string
+                      required:
+                        - service
+                        - id
         "400":
           $ref: "#/components/responses/Error"
   /api/user/auth/discord:

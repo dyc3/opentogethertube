@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { i18n } from "@/i18n";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
+import { Grants } from "ott-common/permissions";
 
 const mountOptions = {
 	global: {
@@ -15,7 +16,7 @@ describe("PermissionsEditor Component", () => {
 		let wrapper = mount(PermissionsEditor, {
 			...mountOptions,
 			props: {
-				modelValue: { 0: 1 << 0 },
+				modelValue: new Grants({ 0: 1 << 0 }),
 			},
 		});
 
@@ -35,7 +36,7 @@ describe("PermissionsEditor Component", () => {
 		wrapper = mount(PermissionsEditor, {
 			...mountOptions,
 			props: {
-				modelValue: { 0: 1 << 0, 1: 1 << 1 },
+				modelValue: new Grants({ 0: 1 << 0, 1: 1 << 1 }),
 			},
 		});
 		await wrapper.vm.$nextTick();
@@ -54,7 +55,7 @@ describe("PermissionsEditor Component", () => {
 		let component = mount(PermissionsEditor, {
 			...mountOptions,
 			props: {
-				modelValue: { 0: 1 << 0 },
+				modelValue: new Grants({ 0: 1 << 0 }),
 			},
 		}).vm;
 		expect(
@@ -90,7 +91,7 @@ describe("PermissionsEditor Component", () => {
 		let component = mount(PermissionsEditor, {
 			...mountOptions,
 			props: {
-				modelValue: { 0: 1 << 0 },
+				modelValue: new Grants({ 0: 1 << 0 }),
 			},
 		}).vm;
 		expect(

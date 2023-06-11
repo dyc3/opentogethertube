@@ -1,6 +1,8 @@
-import { Visibility } from "./types";
+import { Grants } from "../permissions";
+import { QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
+import { QueueItem, Video, VideoId } from "./video";
 
-export type OttResponseBody<T = undefined, E extends OttApiError = OttApiError> =
+export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
 	| OttErrorResponseBody<E>;
 
@@ -37,3 +39,35 @@ export interface OttApiRequestRoomCreate {
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiResponseRoomCreate {}
+
+/** Endpoint: `GET /api/room/:name` */
+export interface OttApiResponseGetRoom extends RoomSettings {
+	name: string;
+	title: string;
+	description: string;
+	isTemporary: boolean;
+	visibility: Visibility;
+	queueMode: QueueMode;
+	queue: QueueItem[];
+	hasOwner: boolean;
+	grants: Grants;
+	/** @deprecated */
+	permissions: Grants;
+	autoSkipSegments: boolean;
+	users: RoomUserInfo[];
+}
+
+export type OttApiRequestAddToQueue =
+	| {
+			videos: VideoId[];
+	  }
+	| VideoId
+	| {
+			url: string;
+	  };
+
+export type OttApiRequestRemoveFromQueue = VideoId;
+
+export type OttApiResponseAddPreview = {
+	result: Video[];
+};

@@ -7,20 +7,21 @@ import {
 	RateLimiterAbstract,
 	RateLimiterRes,
 } from "rate-limiter-flexible";
+import { conf } from "./ott-config";
 
 const log = getLogger("api/rate-limit");
 
 const rateLimitOpts: IRateLimiterStoreOptions = {
 	storeClient: redisClient,
-	points: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
+	points: conf.get("env") === "test" ? 9999999999 : 1000,
 	duration: 60 * 60, // seconds
-	blockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
-	inmemoryBlockOnConsumed: process.env.NODE_ENV === "test" ? 9999999999 : 1000,
-	inmemoryBlockDuration: process.env.NODE_ENV === "development" ? 1 : 120,
-	keyPrefix: process.env.RATE_LIMIT_KEY_PREFIX ?? "rateLimit",
+	blockDuration: conf.get("env") === "development" ? 1 : 120,
+	inmemoryBlockOnConsumed: conf.get("env") === "test" ? 9999999999 : 1000,
+	inmemoryBlockDuration: conf.get("env") === "development" ? 1 : 120,
+	keyPrefix: conf.get("rate_limit.key_prefix"),
 };
 export const rateLimiter =
-	process.env.NODE_ENV === "test"
+	conf.get("env") === "test"
 		? new RateLimiterMemory(rateLimitOpts)
 		: new RateLimiterRedis(rateLimitOpts);
 
@@ -30,7 +31,7 @@ export async function consumeRateLimitPoints(
 	points: number,
 	limiter: RateLimiterAbstract = rateLimiter
 ): Promise<boolean> {
-	if (process.env.ENABLE_RATE_LIMIT === "false") {
+	if (!conf.get("rate_limit.enabled")) {
 		return true;
 	}
 	try {

@@ -1,6 +1,7 @@
 "use strict";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 import { UserAccountAttributes } from "ott-common/models/types";
+import { conf } from "../ott-config";
 
 type UserCreationAttributes = Optional<UserAccountAttributes, "id">;
 
@@ -44,7 +45,7 @@ const createModel = (sequelize: Sequelize) => {
 						// @ts-ignore because I think the type annotation is wrong.
 						args: [
 							{
-								require_tld: process.env.NODE_ENV === "production",
+								require_tld: conf.get("env") === "production",
 							},
 						],
 					},
@@ -71,9 +72,9 @@ const createModel = (sequelize: Sequelize) => {
 			modelName: "User",
 			validate: {
 				ensureCredentials() {
-					if ((!this.email || !this.hash || !this.salt) && !this.discordId) {
+					if ((!this.username || !this.hash || !this.salt) && !this.discordId) {
 						throw new Error(
-							"Incomplete login credentials. Requires social login or email/password."
+							"Incomplete login credentials. Requires social login or username/password."
 						);
 					}
 				},

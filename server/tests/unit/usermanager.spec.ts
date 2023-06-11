@@ -1,4 +1,4 @@
-import usermanager from "../../usermanager.js";
+import usermanager from "../../usermanager";
 
 describe("Usermanager spec", () => {
 	it("should check passwords correctly", () => {

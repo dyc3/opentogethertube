@@ -1,16 +1,23 @@
 import { OttException } from "../common/exceptions";
+import { conf } from "./ott-config";
 
-let apikey = process.env.OPENTOGETHERTUBE_API_KEY;
-
+/**
+ * @deprecated use `conf.get("api_key")` instead
+ * @returns the api key
+ */
 export function getApiKey() {
-	return apikey;
+	return conf.get("api_key");
 }
 
+/**
+ * @deprecated use `conf.set("api_key", key)` instead
+ */
 export function setApiKey(key: string) {
-	apikey = key;
+	conf.set("api_key", key);
 }
 
 export function requireApiKey(input: string) {
+	let apikey = conf.get("api_key");
 	if (!apikey) {
 		throw new OttException("apikey is not set");
 	}

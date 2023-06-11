@@ -8,10 +8,10 @@ You can run the application using the development image or production/deployment
 
 ## Use Image
 
-Make sure to supply the `YOUTUBE_API_KEY` in `env/production.env`
+Make sure to supply the youtube api key in `env/production.toml`
 
 ```bash
-cp env/example.env env/production.env
+cp env/example.toml env/production.toml
 ```
 
 You run the docker container using the docker-compose file in the root directory by using the following command.
@@ -29,22 +29,22 @@ The production image uses docker-compose with redis and postgres in separate con
 To use the production image, please follow the steps below.
 
 1. Next you need to set up your configuration. Start by copying the example
-   config in the `env` folder to a new file called `production.env`
+   config in the `env` folder to a new file called `production.toml`
 
 ```bash
-cp env/example.env env/production.env
+cp env/example.toml env/production.toml
 ```
 
-2. Open `env/production.env` and replace `API_KEY_GOES_HERE` with the api keys.
+1. Open `env/production.toml` and put your youtube API key in.
 
-3. To build the image locally using the prod image make sure you are in the project root `/opentogethertube`
+2. To build the image locally using the prod image make sure you are in the project root `/opentogethertube`
    before runing the command below.
 
 ```bash
-docker-compose -f docker/docker-compose.yml --env-file env/production.env up -d
+docker-compose -f docker/docker-compose.yml up -d
 ```
 
-4. After Go to http://localhost:8080/
+4. Wait for everything to finish starting, and go to http://localhost:8080/
 
 ## Debug
 
@@ -70,13 +70,4 @@ You also rebuild the docker image with the following command.
 
 ```bash
 docker-compose -f docker/docker-compose.yml up -d --build
-```
-
-# Developing for OTT using Docker
-
-`docker-compose-dev.yml` is a special docker compose that is intended to assist in debugging bugs that only appear in production (which are usually bugs that occur when interacting with postgres instead of sqlite).
-
-In order to use this setup, you **must** be able to run OTT outside of docker. After that, you can start it with:
-```bash
-docker-compose -f docker/docker-compose-dev.yml up --build
 ```

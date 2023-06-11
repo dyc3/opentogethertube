@@ -8,6 +8,12 @@ coverage
 *.yml
 db/
 dist/
+client/dist/
+client/coverage/
+server/coverage/
 .git/
 .optic/
 node_modules/
+benchmarks/
+tools/
+target/

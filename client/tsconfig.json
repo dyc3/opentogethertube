@@ -5,7 +5,6 @@
 		"baseUrl": ".",
 		"types": [
 			"jest",
-			"vuetify"
 		],
 		"paths": {
 			"@/*": [

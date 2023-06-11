@@ -1,0 +1,4 @@
+heroku = true
+
+[db]
+mode = "postgres"

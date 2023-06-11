@@ -3,6 +3,7 @@ import axios from "axios";
 import { getLogger } from "../logger";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import { Video, VideoMetadata } from "common/models/video";
+import { conf } from "../ott-config";
 
 const log = getLogger("tubi");
 
@@ -46,7 +47,7 @@ interface TubiSeriesInfo {
 
 export default class TubiAdapter extends ServiceAdapter {
 	api = axios.create({
-		headers: { "User-Agent": `OpenTogetherTube @ ${process.env.OTT_HOSTNAME}` },
+		headers: { "User-Agent": `OpenTogetherTube @ ${conf.get("hostname")}` },
 	});
 
 	get serviceId() {

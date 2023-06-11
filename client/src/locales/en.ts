@@ -1,6 +1,23 @@
 import { OttWebsocketError } from "ott-common/models/types";
 
 export default {
+	"common": {
+		"yes": "Yes",
+		"no": "No",
+		"ok": "OK",
+		"cancel": "Cancel",
+		"close": "Close",
+		"close-all": "Close All",
+		"add": "Add",
+		"remove": "Remove",
+		"delete": "Delete",
+		"play": "Play",
+		"pause": "Pause",
+		"save": "Save",
+		"search": "Search",
+		"undo": "Undo",
+		"copy": "Copy",
+	},
 	"landing": {
 		hero: {
 			title: "Enjoy Together.",
@@ -77,40 +94,6 @@ export default {
 	"attribution": {
 		"sponsorblock-text": "Uses SponsorBlock data from",
 	},
-	"faq": {
-		title: "Frequently Asked Questions",
-		questions: [
-			{
-				question: "What kind of videos can be played?",
-				answer: "Youtube, Vimeo, and Dailymotion videos, as well as direct links to supported video files, like .mp4 (and sometimes .webm).",
-			},
-			{
-				question: "Can you add support X?",
-				answer: "If X has an iframe API, then yes, that is possible.",
-			},
-			{
-				question: "Will you add support for X?",
-				answer: "Maybe, it depends on demand. Add a github issue or upvote an existing one to express your interest.",
-			},
-			{
-				question: "I want a permanent room with a custom URL.",
-				answer: "Create one by clicking the button in the top right corner.",
-			},
-			{
-				question:
-					"Why do videos sometimes have no title or thumbnail, but they can still be played?",
-				answer: "This probably means that the server was unable to get that information because it ran out of Youtube API quota.",
-			},
-			{
-				question: 'Why does it say "Out of quota" when searching for youtube videos?',
-				answer: "Youtube searches are expensive to perform. Because of this, searches are rate limted. If this happens, just do the search on youtube and copy the link.",
-			},
-			{
-				question: "How do permanent rooms work?",
-				answer: 'Right now, permanent rooms just serve to provide custom room URLs, and anybody can access all permanent rooms. If you are logged in, you can claim ownership of permanent rooms that have not been claimed. Eventually, rooms will be able to be set visibility as private, and only allow invited users into the room. This will require all invited users to have accounts, but it will prevent random or unwanted people from entering private rooms. Check the progress of private rooms here: <a href="https://github.com/dyc3/opentogethertube/issues/261">dyc3/opentogethertube#261</a>',
-			},
-		],
-	},
 	"nav": {
 		"home": "Home",
 		"browse": "Browse",
@@ -148,7 +131,6 @@ export default {
 		},
 		"tabs": {
 			queue: "Queue",
-			add: "Add",
 			settings: "Settings",
 		},
 		"users": {
@@ -188,7 +170,6 @@ export default {
 		"playlists": "Playlists",
 		"playlist": "Playlist",
 		"text": "Or just type text to search Youtube.",
-		"search": "Search",
 		"search-for": 'Search YouTube for "{search}" by pressing enter, or by clicking search.',
 		"platforms": {
 			"youtube-videos": "Youtube videos: {url}",
@@ -213,13 +194,14 @@ export default {
 	"video-queue": {
 		"no-videos": "There aren't any videos queued up.",
 		"add-video": "Add a video",
+		"export": "Export",
+		"export-diag-title": "Export Queue",
+		"export-hint": 'Copy and paste this text into the "Add" tab to restore this queue.',
 	},
 	"video-queue-item": {
 		"experimental": "Experimental support for this service! Expect it to break a lot.",
 		"play-next": "Play Next",
 		"play-last": "Play Last",
-		"add": "Add",
-		"remove": "Remove",
 		"messages": {
 			"video-added": "Video added",
 			"video-removed": "Video removed",
@@ -288,9 +270,12 @@ export default {
 		"register": "Register",
 		"login-discord": "Log in with Discord",
 		"email": "Email",
+		"email-or-username": "Email or Username",
 		"username": "Username",
 		"password": "Password",
 		"retype-password": "Retype Password",
+		"email-optional":
+			"Providing an email is optional, but recommended in case you forget your password.",
 		"rules": {
 			"email-required": "Email is required",
 			"valid-email": "Must be a valid email",
@@ -322,12 +307,6 @@ export default {
 			"Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.",
 		"viewing-as": "Viewing as",
 		"permission": "Permission",
-	},
-	"actions": {
-		"cancel": "Cancel",
-		"close-all": "Close All",
-		"undo": "undo",
-		"save": "Save",
 	},
 	"client-settings": {
 		title: "Preferences",
