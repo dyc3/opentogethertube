@@ -143,6 +143,11 @@ export const PERMISSIONS = [
 		mask: 1 << 22,
 		minRole: Role.UnregisteredUser,
 	}),
+	new Permission({
+		name: "playback.speed",
+		mask: 1 << 23,
+		minRole: Role.UnregisteredUser,
+	}),
 ];
 
 const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));

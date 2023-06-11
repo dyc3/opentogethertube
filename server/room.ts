@@ -1486,7 +1486,7 @@ export class Room implements RoomState {
 		request: PlaybackSpeedRequest,
 		context: RoomRequestContext
 	): Promise<void> {
-		// this.grants.check(context.role, "playback-speed");
+		this.grants.check(context.role, "playback.speed");
 
 		this.flushPlaybackPosition();
 		this.playbackSpeed = request.speed;
