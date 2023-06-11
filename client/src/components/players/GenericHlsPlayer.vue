@@ -4,78 +4,120 @@
 	</div>
 </template>
 
-<script>
-import videojs from "video.js";
+<script lang="ts">
+import { defineComponent, onMounted, onBeforeUnmount, ref, toRefs, watch } from "vue";
+import videojs, { VideoJsPlayer } from "video.js";
 
-export default {
+export default defineComponent({
 	name: "GenericHlsPlayer",
 	props: {
 		videoid: { type: String, required: true },
 		hlsUrl: { type: String, required: true },
 		thumbnail: { type: String },
 	},
-	data() {
-		return {
-			player: null,
+	emits: [
+		"apiready",
+		"ready",
+		"playing",
+		"paused",
+		"waiting",
+		"buffering",
+		"error",
+		"end",
+		"buffer-progress",
+		"buffer-spans",
+	],
+	setup(props, { emit }) {
+		let { videoid, hlsUrl, thumbnail } = toRefs(props);
+		let player = ref<VideoJsPlayer | undefined>();
+		let hasEmittedApiReady = false;
 
-			hasEmittedApiReady: false,
-			videoUrl: "",
-		};
-	},
-	mounted() {
-		this.beginNewVideo();
-	},
-	beforeUnmount() {
-		if (this.player) {
-			this.player.dispose();
+		function play() {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			return player.value.play();
 		}
-	},
-	methods: {
-		play() {
-			console.log("GenericHlsPlayer: play()");
-			return this.player.play();
-		},
-		pause() {
-			console.log("GenericHlsPlayer: pause()");
-			return this.player.pause();
-		},
-		setVolume(volume) {
-			return this.player.volume(volume / 100);
-		},
-		getPosition() {
-			return this.player.currentTime();
-		},
-		setPosition(position) {
-			return this.player.currentTime(position);
-		},
-		isCaptionsSupported() {
-			return false;
-		},
-		getAvailablePlaybackRates() {
-			return [1];
-		},
-		async loadVideoSource() {
-			console.log("GenericHlsPlayer: loading video source:", this.hlsUrl);
 
-			this.player.src({
-				src: this.hlsUrl,
-				type: "application/x-mpegurl",
-			});
-			this.player.load();
-		},
-		beginNewVideo() {
-			this.player = videojs(document.getElementById("generichlsplayer"), {
+		function pause() {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			return player.value.pause();
+		}
+
+		function setVolume(volume: number) {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			return player.value.volume(volume / 100);
+		}
+
+		function getPosition() {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			return player.value.currentTime();
+		}
+
+		function setPosition(position: number) {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			return player.value.currentTime(position);
+		}
+
+		function isCaptionsSupported() {
+			return false;
+		}
+
+		function loadVideoSource() {
+			console.log("GenericHlsPlayer: loading video source:", hlsUrl.value);
+
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+
+			player.value.reset();
+			player.value.loadMedia(
+				{
+					src: {
+						src: hlsUrl.value,
+						type: "application/x-mpegurl",
+					},
+					poster: thumbnail.value,
+				},
+				() => {
+					emit("ready");
+					play();
+				}
+			);
+		}
+
+		function beginNewVideo() {
+			let element = document.getElementById("generichlsplayer");
+			if (!element) {
+				console.error("GenericHlsPlayer: element not found");
+				return;
+			}
+			player.value = videojs(element, {
 				controls: false,
 				responsive: true,
 				loop: false,
 				preload: "auto",
-				poster: this.thumbnail,
+				poster: thumbnail.value,
 			});
 			// required for iOS
-			// this.player.setPlaysinline(true);
-			if (!this.hasEmittedApiReady) {
-				this.$emit("apiready");
-				this.hasEmittedApiReady = true;
+			// player.value.setPlaysinline(true);
+			if (!hasEmittedApiReady) {
+				emit("apiready");
+				hasEmittedApiReady = true;
 			}
 			if (import.meta.env.NODE_ENV === "development") {
 				for (const event of [
@@ -100,37 +142,65 @@ export default {
 					"pause",
 					"ratechange",
 				]) {
-					this.player.on(event, () => console.log("TubiPlayer event:", event));
+					player.value.on(event, () => console.log("GenericHlsPlayer event:", event));
 				}
 				videojs.log.level("debug");
 			}
-			this.player.on("ready", () => this.$emit("ready"));
-			this.player.on("ended", () => this.$emit("end"));
-			this.player.on("ended", this.onVideoEnd);
-			this.player.on("playing", () => this.$emit("playing"));
-			this.player.on("pause", () => this.$emit("paused"));
-			this.player.on("play", () => this.$emit("waiting"));
-			this.player.on("stalled", () => this.$emit("buffering"));
-			this.player.on("loadstart", () => this.$emit("buffering"));
-			this.player.on("canplay", () => this.$emit("ready"));
-			this.player.on("error", () => this.$emit("error"));
-			this.player.on("progress", () => {
-				this.$emit("buffer-progress", this.player.bufferedPercent());
-				this.$emit("buffer-spans", this.player.buffered());
+			player.value.on("ready", () => emit("ready"));
+			player.value.on("ended", () => emit("end"));
+			player.value.on("ended", onVideoEnd);
+			player.value.on("playing", () => emit("playing"));
+			player.value.on("pause", () => emit("paused"));
+			player.value.on("play", () => emit("waiting"));
+			player.value.on("stalled", () => emit("buffering"));
+			player.value.on("loadstart", () => emit("buffering"));
+			player.value.on("canplay", () => emit("ready"));
+			player.value.on("error", () => emit("error"));
+			player.value.on("progress", () => {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				emit("buffer-progress", player.value.bufferedPercent());
+				emit("buffer-spans", player.value.buffered());
 			});
-			this.loadVideoSource();
-		},
-		onVideoEnd() {
-			this.player.reset();
-		},
+			loadVideoSource();
+		}
+		function onVideoEnd() {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			player.value.reset();
+		}
+
+		onMounted(beginNewVideo);
+		onBeforeUnmount(() => {
+			if (player.value) {
+				player.value.dispose();
+			}
+		});
+
+		watch(props, () => {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			player.value.reset();
+			loadVideoSource();
+		});
+
+		return {
+			player,
+			play,
+			pause,
+			setVolume,
+			getPosition,
+			setPosition,
+			isCaptionsSupported,
+		};
 	},
-	watch: {
-		redditPostId() {
-			this.player.reset();
-			this.loadVideoSource();
-		},
-	},
-};
+});
 </script>
 
 <style lang="scss" scoped>
