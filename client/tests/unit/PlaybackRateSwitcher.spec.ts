@@ -3,10 +3,11 @@ import { mount } from "@vue/test-utils";
 import PlaybackRateSwitcher from "@/components/controls/PlaybackRateSwitcher.vue";
 import { i18n } from "@/i18n";
 import { createVuetify } from "vuetify";
+import { MockOttRoomConnectionPlugin } from "@/plugins/connection";
 
 const mountOptions = {
 	global: {
-		plugins: [createVuetify(), i18n],
+		plugins: [createVuetify(), i18n, MockOttRoomConnectionPlugin],
 	},
 };
 

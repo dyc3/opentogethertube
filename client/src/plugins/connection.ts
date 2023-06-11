@@ -304,3 +304,8 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 		}
 	}
 }
+
+export const MockOttRoomConnectionPlugin: Plugin = (app: App, options) => {
+	const connection = new OttRoomConnectionMock();
+	app.provide(connectionInjectKey, connection);
+};
