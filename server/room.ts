@@ -572,7 +572,7 @@ export class Room implements RoomState {
 	/** Get how much time (in seconds) has elapsed, in terms of where the playback head should be, since playback started. Returns 0 if the media is not playing. */
 	calcDurationFromPlaybackStart(): number {
 		if (this._playbackStart !== null) {
-			return calculateCurrentPosition(this._playbackStart, dayjs(), 0);
+			return calculateCurrentPosition(this._playbackStart, dayjs(), 0, this.playbackSpeed);
 		} else {
 			return 0;
 		}
