@@ -2,8 +2,10 @@ import winston from "winston";
 const { createLogger, format, transports } = winston;
 import colors from "ansi-colors";
 import { conf } from "./ott-config";
+import { Counter } from "prom-client";
 
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
+	counterLogs.inc({ level });
 	if (roomEvent) {
 		// HACK: video descriptions are long, so remove then to make logs easier to read.
 		if (roomEvent.parameters && roomEvent.parameters.video) {
@@ -81,3 +83,9 @@ export function getLogger(namespace) {
 export function setLogLevel(level) {
 	logger.level = level;
 }
+
+const counterLogs = new Counter({
+	name: "ott_logs",
+	help: "The number of messages logged",
+	labelNames: ["level"],
+});
