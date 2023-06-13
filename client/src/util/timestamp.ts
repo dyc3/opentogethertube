@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { calculateCurrentPosition as _calculateCurrentPosition } from "ott-common/timestamp";
 
 /**
  * Formats seconds into mm:ss if less than an hour, hh:mm:ss if greater than an hour
@@ -10,12 +11,15 @@ export function secondsToTimestamp(seconds: number): string {
 	return seconds < 0 ? "-" + subTimeString : subTimeString;
 }
 
+/** Calculate where the playback head should be, given a start time since playback started.
+ * @deprecated Use the version from `ott-common/timestamp` instead
+ */
 export function calculateCurrentPosition(
 	start_time: dayjs.ConfigType,
 	now_time: dayjs.ConfigType,
 	offset: number
 ): number {
-	return offset + dayjs(now_time).diff(start_time, "milliseconds") / 1000;
+	return _calculateCurrentPosition(start_time, now_time, offset);
 }
 
 export function timestampToSeconds(timestamp: string): number {

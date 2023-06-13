@@ -123,14 +123,21 @@ export interface MediaPlayer {
 	setVolume(volume: number): void | Promise<void>;
 	getPosition(): number | Promise<number>;
 	setPosition(position: number): void | Promise<void>;
+
+	isCaptionsSupported(): boolean;
+	getAvailablePlaybackRates(): number[];
 }
 
 export interface MediaPlayerWithCaptions extends MediaPlayer {
-	isCaptionsSupported(): boolean;
 	isCaptionsEnabled(): boolean;
 	setCaptionsEnabled(enabled: boolean): void;
 	getCaptionsTracks(): string[];
 	setCaptionsTrack(track: string): void;
+}
+
+export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
+	getPlaybackRate(): Promise<number>;
+	setPlaybackRate(rate: number): Promise<void>;
 }
 
 export default defineComponent({
@@ -175,7 +182,11 @@ export default defineComponent({
 		}
 
 		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
-			return !!p && (p as MediaPlayerWithCaptions).isCaptionsSupported !== undefined;
+			return !!p && p.isCaptionsSupported();
+		}
+
+		function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
+			return !!p && p.getAvailablePlaybackRates().length > 0;
 		}
 
 		const isPlayerPresent = computed(() => !!player.value);
@@ -263,6 +274,37 @@ export default defineComponent({
 			player.value.setCaptionsTrack(track);
 		}
 
+		function getAvailablePlaybackRates(): number[] {
+			if (!checkForPlayer(player.value)) {
+				return [1];
+			}
+			return player.value.getAvailablePlaybackRates();
+		}
+		function getPlaybackRate(): Promise<number> {
+			if (!checkForPlayer(player.value)) {
+				return Promise.resolve(1);
+			}
+			if (!implementsPlaybackRate(player.value)) {
+				return Promise.resolve(1);
+			}
+			return player.value.getPlaybackRate();
+		}
+		function setPlaybackRate(rate: number) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			if (!implementsPlaybackRate(player.value)) {
+				return;
+			}
+			player.value.setPlaybackRate(rate);
+		}
+		watch(
+			() => store.state.room.playbackSpeed,
+			(speed: number) => {
+				setPlaybackRate(speed);
+			}
+		);
+
 		// player events re-emitted or data stored
 		function onApiReady() {
 			emit("apiready");
@@ -334,6 +376,9 @@ export default defineComponent({
 			toggleCaptions,
 			getCaptionsTracks,
 			setCaptionsTrack,
+			getAvailablePlaybackRates,
+			getPlaybackRate,
+			setPlaybackRate,
 		};
 	},
 });

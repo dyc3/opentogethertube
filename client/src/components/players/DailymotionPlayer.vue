@@ -82,6 +82,9 @@ const DailymotionPlayer = defineComponent({
 		function isCaptionsSupported(): boolean {
 			return false;
 		}
+		function getAvailablePlaybackRates(): number[] {
+			return [1];
+		}
 
 		expose({
 			play,
@@ -90,6 +93,7 @@ const DailymotionPlayer = defineComponent({
 			setPosition,
 			setVolume,
 			isCaptionsSupported,
+			getAvailablePlaybackRates,
 		});
 
 		return {
@@ -99,6 +103,7 @@ const DailymotionPlayer = defineComponent({
 			setPosition,
 			setVolume,
 			isCaptionsSupported,
+			getAvailablePlaybackRates,
 		};
 	},
 });

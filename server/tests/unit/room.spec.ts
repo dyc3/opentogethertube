@@ -275,6 +275,28 @@ describe("Room", () => {
 				expect(room.queue).toHaveLength(5);
 			});
 		});
+
+		describe("PlaybackSpeedRequest", () => {
+			it("should set the playback speed", async () => {
+				await room.processRequest(
+					{
+						type: RoomRequestType.PlaybackSpeedRequest,
+						speed: 1.5,
+					},
+					{ username: "test", role: Role.Owner, clientId: "1234" }
+				);
+				expect(room.playbackSpeed).toEqual(1.5);
+
+				await room.processRequest(
+					{
+						type: RoomRequestType.PlaybackSpeedRequest,
+						speed: 1,
+					},
+					{ username: "test", role: Role.Owner, clientId: "1234" }
+				);
+				expect(room.playbackSpeed).toEqual(1);
+			});
+		});
 	});
 
 	describe("auto dequeuing next video", () => {

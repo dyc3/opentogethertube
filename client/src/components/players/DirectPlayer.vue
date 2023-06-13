@@ -76,6 +76,26 @@ export default defineComponent({
 			return false;
 		}
 
+		function getAvailablePlaybackRates() {
+			return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+		}
+
+		async function getPlaybackRate(): Promise<number> {
+			if (!player.value) {
+				console.error("player not ready");
+				return 1;
+			}
+			return player.value.playbackRate();
+		}
+
+		async function setPlaybackRate(rate: number): Promise<void> {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			player.value.playbackRate(rate);
+		}
+
 		function loadVideoSource() {
 			console.log("DirectPlayer: loading video source:", videoUrl, videoMime);
 			if (!player.value) {
@@ -196,6 +216,9 @@ export default defineComponent({
 			getPosition,
 			setPosition,
 			isCaptionsSupported,
+			getAvailablePlaybackRates,
+			getPlaybackRate,
+			setPlaybackRate,
 		};
 	},
 });

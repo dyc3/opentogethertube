@@ -204,7 +204,7 @@ import {
 	provide,
 } from "vue";
 import AddPreview from "@/components/AddPreview.vue";
-import { calculateCurrentPosition } from "@/util/timestamp";
+import { calculateCurrentPosition } from "ott-common/timestamp";
 import _ from "lodash";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
@@ -299,7 +299,8 @@ export default defineComponent({
 				? calculateCurrentPosition(
 						store.state.room.playbackStartTime,
 						new Date(),
-						store.state.room.playbackPosition
+						store.state.room.playbackPosition,
+						store.state.room.playbackSpeed
 				  )
 				: store.state.room.playbackPosition;
 			sliderPosition.value = _.clamp(

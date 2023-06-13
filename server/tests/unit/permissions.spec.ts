@@ -13,7 +13,7 @@ describe("Permission System", () => {
 
 	it("should parse wildcard permissions list into correct grant mask", () => {
 		const grantMask = permissions.parseIntoGrantMask(["playback"]);
-		expect(grantMask).toEqual((1 << 0) | (1 << 1) | (1 << 2));
+		expect(grantMask).toEqual((1 << 0) | (1 << 1) | (1 << 2) | (1 << 23));
 	});
 
 	it("should evaluate permission grants accurately", () => {
@@ -60,7 +60,7 @@ describe("Permission System", () => {
 	it("should evaluate multiple/wildcard permission grants correctly", () => {
 		const grants: Grants = new Grants(
 			new Map([
-				[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2)],
+				[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2) | (1 << 23)],
 				[Role.RegisteredUser, (1 << 3) | (1 << 4) | (1 << 7)],
 				[Role.TrustedUser, 1 << 8],
 			])

@@ -91,6 +91,10 @@ const VimeoPlayer = defineComponent({
 			return false;
 		}
 
+		function getAvailablePlaybackRates(): number[] {
+			return [1];
+		}
+
 		return {
 			isBuffering,
 
@@ -100,6 +104,7 @@ const VimeoPlayer = defineComponent({
 			setPosition,
 			setVolume,
 			isCaptionsSupported,
+			getAvailablePlaybackRates,
 		};
 	},
 });

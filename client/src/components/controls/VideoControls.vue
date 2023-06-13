@@ -20,6 +20,10 @@
 				@enable-cc="value => player.setCaptionsEnabled(value)"
 				@cc-track="value => player.setCaptionsTrack(value)"
 			/>
+			<PlaybackRateSwitcher
+				:current-rate="store.state.room.playbackSpeed"
+				:available-rates="player?.getAvailablePlaybackRates() ?? [1]"
+			/>
 			<LayoutSwitcher />
 		</v-row>
 	</v-col>
@@ -34,6 +38,7 @@ import LayoutSwitcher from "./LayoutSwitcher.vue";
 import TimestampDisplay from "./TimestampDisplay.vue";
 import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
+import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 
 import type OmniPlayer from "../players/OmniPlayer.vue";
 import type { MediaPlayer, MediaPlayerWithCaptions } from "../players/OmniPlayer.vue";
@@ -48,6 +53,7 @@ export default defineComponent({
 		TimestampDisplay,
 		VideoProgressSlider,
 		VolumeControl,
+		PlaybackRateSwitcher,
 	},
 	props: {
 		sliderPosition: {

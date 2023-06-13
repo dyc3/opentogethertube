@@ -27,6 +27,7 @@ import {
 	RoomRequestAuthorization,
 	RoomRequestContext,
 	ShuffleRequest,
+	PlaybackSpeedRequest,
 } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
@@ -45,9 +46,9 @@ import {
 	AuthToken,
 } from "../common/models/types";
 import { User } from "./models/user";
-import { QueueItem, Video, VideoId } from "../common/models/video";
+import type { QueueItem, Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from "dayjs";
-import { PickFunctions } from "../common/typeutils";
+import type { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import {
 	ImpossiblePromotionException,
@@ -62,6 +63,7 @@ import { ResponseError as SponsorblockResponseError, Segment } from "sponsorbloc
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
 import roommanager from "./roommanager";
+import { calculateCurrentPosition } from "../common/timestamp";
 
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
@@ -118,6 +120,7 @@ export interface RoomState extends RoomOptions, RoomStateComputed {
 	queue: VideoQueue;
 	isPlaying: boolean;
 	playbackPosition: number;
+	playbackSpeed: number;
 	users: RoomUserInfo[];
 	votes: Map<string, Set<ClientId>>;
 	videoSegments: Segment[];
@@ -137,7 +140,16 @@ export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCoun
 /** Only these should be stored in persistent storage */
 export type RoomStatePersistable = Omit<
 	RoomState,
-	"currentSource" | "queue" | "isPlaying" | "playbackPosition"
+	| "currentSource"
+	| "queue"
+	| "isPlaying"
+	| "playbackPosition"
+	| "playbackSpeed"
+	| "users"
+	| "votes"
+	| "videoSegments"
+	| "hasOwner"
+	| "voteCounts"
 >;
 
 export class Room implements RoomState {
@@ -156,6 +168,7 @@ export class Room implements RoomState {
 	queue: VideoQueue;
 	_isPlaying = false;
 	_playbackPosition = 0;
+	_playbackSpeed = 1;
 	realusers: RoomUser[] = [];
 	/**
 	 * Map of videos in the format service + id to a set of client votes.
@@ -199,6 +212,7 @@ export class Room implements RoomState {
 				"queue",
 				"playbackPosition",
 				"isPlaying",
+				"playbackSpeed",
 				"autoSkipSegments"
 			)
 		);
@@ -323,6 +337,15 @@ export class Room implements RoomState {
 		this.markDirty("playbackPosition");
 	}
 
+	public get playbackSpeed(): number {
+		return this._playbackSpeed;
+	}
+
+	public set playbackSpeed(value: number) {
+		this._playbackSpeed = value;
+		this.markDirty("playbackSpeed");
+	}
+
 	public get owner(): User | null {
 		return this._owner;
 	}
@@ -407,6 +430,7 @@ export class Room implements RoomState {
 		if (!this.currentSource && this.videoSegments.length > 0) {
 			this.videoSegments = [];
 		}
+		this.playbackSpeed = 1;
 
 		this.log.debug(`Dirty props: ${Array.from(this._dirty)}`);
 	}
@@ -531,9 +555,7 @@ export class Room implements RoomState {
 			};
 		} else {
 			return {
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore
-				name: session.username, // Typescript bug? even though the type is being narrowed here, its not working correctly.
+				name: session.username,
 				isLoggedIn: false,
 			};
 		}
@@ -548,10 +570,10 @@ export class Room implements RoomState {
 		throw new Error("Client not found");
 	}
 
-	/** Get how much time has elapsed since playback started. Returns 0 if the media is not playing. */
+	/** Get how much time (in seconds) has elapsed, in terms of where the playback head should be, since playback started. Returns 0 if the media is not playing. */
 	calcDurationFromPlaybackStart(): number {
 		if (this._playbackStart !== null) {
-			return dayjs().diff(this._playbackStart, "millisecond") / 1000;
+			return calculateCurrentPosition(this._playbackStart, dayjs(), 0, this.playbackSpeed);
 		} else {
 			return 0;
 		}
@@ -678,6 +700,7 @@ export class Room implements RoomState {
 			"queue",
 			"isPlaying",
 			"playbackPosition",
+			"playbackSpeed",
 			"grants",
 			"userRoles",
 			"owner",
@@ -702,6 +725,7 @@ export class Room implements RoomState {
 			"queue",
 			"isPlaying",
 			"playbackPosition",
+			"playbackSpeed",
 			"users",
 			"grants",
 			"hasOwner",
@@ -736,6 +760,7 @@ export class Room implements RoomState {
 			"queue",
 			"isPlaying",
 			"playbackPosition",
+			"playbackSpeed",
 			"grants",
 			"voteCounts",
 			"hasOwner",
@@ -823,6 +848,15 @@ export class Room implements RoomState {
 			"selfpromo",
 			"preview",
 		]);
+	}
+
+	/** Updates playbackPosition according to the computed value, and resets _playbackStart */
+	flushPlaybackPosition(): void {
+		counterSecondsWatched
+			.labels({ service: this.currentSource?.service })
+			.inc(this.calcDurationFromPlaybackStart());
+		this.playbackPosition = this.realPlaybackPosition;
+		this._playbackStart = dayjs();
 	}
 
 	getSegmentForTime(time: number): Segment | undefined {
@@ -919,6 +953,7 @@ export class Room implements RoomState {
 			[RoomRequestType.ApplySettingsRequest]: "applySettings",
 			[RoomRequestType.PlayNowRequest]: "playNow",
 			[RoomRequestType.ShuffleRequest]: "shuffle",
+			[RoomRequestType.PlaybackSpeedRequest]: "setPlaybackSpeed",
 		};
 
 		const handler = handlers[request.type];
@@ -959,11 +994,7 @@ export class Room implements RoomState {
 			return;
 		}
 		this.log.debug("playback paused");
-		// The order of the following lines matter.
-		counterSecondsWatched
-			.labels({ service: this.currentSource?.service })
-			.inc(this.calcDurationFromPlaybackStart());
-		this.playbackPosition = this.realPlaybackPosition;
+		this.flushPlaybackPosition();
 		this._playbackStart = null;
 		this.isPlaying = false;
 	}
@@ -1449,6 +1480,16 @@ export class Room implements RoomState {
 	public async shuffle(request: ShuffleRequest, context: RoomRequestContext): Promise<void> {
 		this.grants.check(context.role, "manage-queue.order");
 		await this.queue.shuffle();
+	}
+
+	public async setPlaybackSpeed(
+		request: PlaybackSpeedRequest,
+		context: RoomRequestContext
+	): Promise<void> {
+		this.grants.check(context.role, "playback.speed");
+
+		this.flushPlaybackPosition();
+		this.playbackSpeed = request.speed;
 	}
 }
 
