@@ -195,7 +195,7 @@ export class LengthOutOfRangeException extends OttException {
 	}
 }
 
-export class MissingToken extends Error {
+export class MissingToken extends OttException {
 	constructor() {
 		super("Missing token");
 		this.name = "MissingToken";

@@ -26,6 +26,7 @@ import { replacer } from "../common/serialize";
 import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
 import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
 import usermanager from "./usermanager";
+import { OttException } from "../common/exceptions";
 
 const log = getLogger("clientmanager");
 const redisSubscriber = createSubscriber();
@@ -158,13 +159,17 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 		}
 	} catch (err) {
 		log.error(
-			`Failed to process client (id=${client.id}, room=${client.room}) message (action=${msg.action}), kicking: ${err}`
+			`Failed to process client (id=${client.id}, room=${client.room}) message (action=${msg.action}): ${err}`
 		);
-		let reason: OttWebsocketError = OttWebsocketError.UNKNOWN;
-		if (err instanceof MissingToken) {
-			reason = OttWebsocketError.MISSING_TOKEN;
+		if (err instanceof OttException) {
+			if (err instanceof MissingToken) {
+				log.error("Client is missing token, kicking client");
+				client.kick(OttWebsocketError.MISSING_TOKEN);
+			}
+		} else {
+			log.error("Unknown error type, kicking client");
+			client.kick(OttWebsocketError.UNKNOWN);
 		}
-		client.kick(reason);
 	}
 }
 
