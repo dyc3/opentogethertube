@@ -2,7 +2,6 @@
 
 [![CI/CD](https://github.com/dyc3/opentogethertube/actions/workflows/main.yml/badge.svg)](https://github.com/dyc3/opentogethertube/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/dyc3/opentogethertube/branch/master/graph/badge.svg)](https://codecov.io/gh/dyc3/opentogethertube)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=dyc3_opentogethertube&metric=alert_status)](https://sonarcloud.io/dashboard?id=dyc3_opentogethertube)
 [![Docker size](https://img.shields.io/docker/image-size/dyc3/opentogethertube)](https://hub.docker.com/r/dyc3/opentogethertube)
 
 The easy way to watch videos with your friends.
@@ -11,62 +10,7 @@ https://opentogethertube.com/
 
 # Deployment
 
-### Prerequisites
-
-This project targets node 16 and up.
-
-### Setup
-
-1. Clone this repo.
-```
-git clone https://github.com/dyc3/opentogethertube.git
-```
-
-2. Install redis
-
-Ubuntu
-```
-sudo apt install redis
-```
-
-3. Install dependencies.
-```
-npm install -g yarn
-yarn
-```
-
-4. Copy and fill out the configuration file
-```
-cp env/example.toml env/production.toml
-```
-
-**Please read the [config docs here](docs/config.md) for which options are required.**
-
-5. Build Vue files so they can be served statically.
-```
-yarn run build
-```
-
-6. Run database migrations
-```
-NODE_ENV=production-sqlite yarn workspace ott-server run sequelize-cli db:migrate
-```
-
-7. Run the server.
-```
-NODE_ENV=production yarn start
-```
-
-You can also specify the port the server will listen on by setting the
-`PORT` environment variable.
-
-```
-PORT=8080 NODE_ENV=production yarn start
-```
-
-## Docker
-
-See the [Docker README](docker/README.md)
+See the [deployment docs](docs/how-to-deploy.md).
 
 # Contributing
 
