@@ -258,7 +258,6 @@ const patchRoom: RequestHandler = async (req, res) => {
 		await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 	}
 
-
 	if (!room.isTemporary) {
 		try {
 			await storage.updateRoom(room);
