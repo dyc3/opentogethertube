@@ -229,16 +229,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 		if (room.owner) {
 			throw new BadApiArgumentException("claim", `Room already has owner.`);
 		}
-	}
 
-	const roomRequest: ApplySettingsRequest = {
-		type: RoomRequestType.ApplySettingsRequest,
-		settings: req.body,
-	};
-
-	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
-
-	if (req.body.claim && !room.owner) {
 		if (req.user) {
 			log.info(`Room ${room.name} claimed by ${req.user.username} (${req.user.id})`);
 			room.owner = req.user;
@@ -258,6 +249,13 @@ const patchRoom: RequestHandler = async (req, res) => {
 			});
 			return;
 		}
+	} else {
+		const roomRequest: ApplySettingsRequest = {
+			type: RoomRequestType.ApplySettingsRequest,
+			settings: req.body,
+		};
+
+		await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 	}
 
 	if (!room.isTemporary) {
