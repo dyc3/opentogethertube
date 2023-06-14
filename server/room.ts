@@ -140,6 +140,7 @@ export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCoun
 /** Only these should be stored in persistent storage */
 export type RoomStatePersistable = Omit<
 	RoomState,
+	| "isTemporary"
 	| "currentSource"
 	| "queue"
 	| "isPlaying"
@@ -773,20 +774,20 @@ export class Room implements RoomState {
 		await set(`room-sync:${this.name}`, this.serializeSyncableState());
 		await this.publish(msg);
 
-		let settings: Partial<Omit<RoomOptions, "name" | "isTemporary">> = _.pick(
+		let settings: Partial<RoomStatePersistable> = _.pick(
 			this,
+			"name",
 			"title",
 			"description",
 			"visibility",
 			"queueMode",
+			"autoSkipSegments",
 			"grants",
 			"userRoles",
 			"owner"
 		);
-		settings = Object.assign({}, _.pick(settings, Array.from(this._dirty)));
 		if (!_.isEmpty(settings)) {
 			await storage.updateRoom({
-				name: this.name,
 				...settings,
 			});
 		}
