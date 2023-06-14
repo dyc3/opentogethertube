@@ -81,7 +81,7 @@ try {
 }
 
 export default {
-	"development": {
+	development: {
 		username: "root",
 		password: null,
 		database: conf.get("db.name"),
@@ -89,7 +89,7 @@ export default {
 		dialect: "sqlite",
 		storage: `db/${conf.get("env")}.sqlite`,
 	},
-	"test": {
+	test: {
 		username: "root",
 		password: null,
 		database: conf.get("db.name"),
@@ -97,28 +97,30 @@ export default {
 		dialect: "sqlite",
 		storage: `db/${conf.get("env")}.sqlite`,
 	},
-	"production": conf.get("db.url")
-		? {
-				url: conf.get("db.url"),
-				dialect: "postgres",
-				ssl: { rejectUnauthorized: false },
-				dialectOptions: {
+	production:
+		conf.get("db.mode") === "sqlite"
+			? {
+					username: "root",
+					password: null,
+					database: conf.get("db.name"),
+					host: "127.0.0.1",
+					dialect: "sqlite",
+					storage: `db/${conf.get("env")}.sqlite`,
+			  }
+			: conf.get("db.url")
+			? {
+					url: conf.get("db.url"),
+					dialect: "postgres",
 					ssl: { rejectUnauthorized: false },
-				},
-		  }
-		: {
-				username: conf.get("db.user"),
-				password: conf.get("db.password"),
-				database: conf.get("db.name"),
-				host: conf.get("db.host"),
-				dialect: "postgres",
-		  },
-	"production-sqlite": {
-		username: "root",
-		password: null,
-		database: conf.get("db.name"),
-		host: "127.0.0.1",
-		dialect: "sqlite",
-		storage: `db/${conf.get("env")}.sqlite`,
-	},
+					dialectOptions: {
+						ssl: { rejectUnauthorized: false },
+					},
+			  }
+			: {
+					username: conf.get("db.user"),
+					password: conf.get("db.password"),
+					database: conf.get("db.name"),
+					host: conf.get("db.host"),
+					dialect: "postgres",
+			  },
 };
