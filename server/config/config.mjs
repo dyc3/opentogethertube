@@ -23,7 +23,7 @@ const conf = convict({
 		mode: {
 			doc: "The database mode to use.",
 			format: ["sqlite", "postgres"],
-			default: "sqlite",
+			default: process.env.NODE_ENV === "production" ? "postgres" : "sqlite",
 			env: "DB_MODE",
 		},
 		url: {
