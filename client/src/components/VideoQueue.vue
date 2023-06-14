@@ -89,7 +89,11 @@ const VideoQueue = defineComponent({
 
 		const exportDialog = ref(false);
 		const exportedQueue = computed(() => {
-			return exportQueue(store.state.room.queue);
+			const queue = [...store.state.room.queue];
+			if (store.state.room.currentSource) {
+				queue.unshift(store.state.room.currentSource);
+			}
+			return exportQueue(queue);
 		});
 		const exportTextBox = ref();
 		const { copy: copyExported, copySuccess: copyExportSuccess } = useCopyFromTextbox(
