@@ -786,7 +786,6 @@ export class Room implements RoomState {
 			"userRoles",
 			"owner"
 		);
-		settings = Object.assign({}, _.pick(settings, Array.from(this._dirty)));
 		if (!_.isEmpty(settings)) {
 			await storage.updateRoom({
 				...settings,
