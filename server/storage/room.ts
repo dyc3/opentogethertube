@@ -123,7 +123,7 @@ function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
 		"queueMode": room.queueMode,
 		"autoSkipSegments": room.autoSkipSegments,
 		"permissions": room.grants.toJSON(),
-		"ownerId": -1,
+		"ownerId": null,
 		"role-trusted": [],
 		"role-mod": [],
 		"role-admin": [],

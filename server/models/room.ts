@@ -12,7 +12,7 @@ export interface RoomAttributes {
 	"description": string;
 	"visibility": Visibility;
 	"queueMode": QueueMode;
-	"ownerId": number;
+	"ownerId": number | null;
 	"permissions": [Role, GrantMask][] | OldRoleGrants;
 	"role-admin": Array<number>;
 	"role-mod": Array<number>;
@@ -31,7 +31,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "description": string;
 	declare "visibility": Visibility;
 	declare "queueMode": QueueMode;
-	declare "ownerId": number;
+	declare "ownerId": number | null;
 	declare "owner": User | null;
 	declare "permissions": [Role, GrantMask][] | OldRoleGrants;
 	declare "role-admin": Array<number>;
@@ -77,11 +77,7 @@ export const createModel = (sequelize: Sequelize) => {
 			},
 			"ownerId": {
 				type: DataTypes.INTEGER,
-				defaultValue: -1,
-				allowNull: false,
-				validate: {
-					min: -1,
-				},
+				allowNull: true,
 			},
 			"permissions": {
 				type: DataTypes.JSONB,
