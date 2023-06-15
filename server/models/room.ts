@@ -1,8 +1,9 @@
 "use strict";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { QueueMode, Visibility } from "../../common/models/types";
+import { QueueMode, Visibility, Role } from "../../common/models/types";
 import { User } from "./user";
 import { ROOM_NAME_REGEX } from "../../common/constants";
+import type { OldRoleGrants, GrantMask } from "../../common/permissions";
 
 export interface RoomAttributes {
 	"id": number;
@@ -12,10 +13,10 @@ export interface RoomAttributes {
 	"visibility": Visibility;
 	"queueMode": QueueMode;
 	"ownerId": number;
-	"permissions": string;
-	"role-admin": string;
-	"role-mod": string;
-	"role-trusted": string;
+	"permissions": [Role, GrantMask][] | OldRoleGrants;
+	"role-admin": Array<number>;
+	"role-mod": Array<number>;
+	"role-trusted": Array<number>;
 	"autoSkipSegments": boolean;
 }
 
@@ -32,10 +33,10 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "queueMode": QueueMode;
 	declare "ownerId": number;
 	declare "owner": User | null;
-	declare "permissions": string;
-	declare "role-admin": string;
-	declare "role-mod": string;
-	declare "role-trusted": string;
+	declare "permissions": [Role, GrantMask][] | OldRoleGrants;
+	declare "role-admin": Array<number>;
+	declare "role-mod": Array<number>;
+	declare "role-trusted": Array<number>;
 	declare "autoSkipSegments": boolean;
 }
 
@@ -83,16 +84,16 @@ export const createModel = (sequelize: Sequelize) => {
 				},
 			},
 			"permissions": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"role-admin": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"role-mod": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"role-trusted": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"autoSkipSegments": {
 				type: DataTypes.BOOLEAN,

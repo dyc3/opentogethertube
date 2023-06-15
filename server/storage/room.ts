@@ -6,7 +6,7 @@ import Sequelize from "sequelize";
 import permissions from "../../common/permissions";
 import type { RoomStatePersistable } from "../room";
 
-const log = getLogger("storage");
+const log = getLogger("storage/room");
 
 function buildFindRoomWhere(roomName: string) {
 	return Sequelize.and(
@@ -29,7 +29,7 @@ export async function getRoomByName(roomName: string): Promise<RoomOptions | nul
 		}
 		return dbToRoomArgs(dbroom);
 	} catch (err) {
-		log.error(`Failed to get room by name: ${err}`);
+		log.error(`Failed to get room by name: ${err} ${err.stack}`);
 	}
 	return null;
 }
@@ -101,15 +101,12 @@ function dbToRoomArgs(db: DbRoom): RoomOptions {
 		visibility: db.visibility,
 		queueMode: db.queueMode,
 		owner: db.owner,
-		grants: new permissions.Grants(),
+		grants: new permissions.Grants(db.permissions),
 		userRoles: new Map<Role, Set<number>>(),
 		autoSkipSegments: db.autoSkipSegments,
 	};
-	if (db.permissions) {
-		room.grants.deserialize(db.permissions);
-	}
 	for (let i = Role.TrustedUser; i <= 4; i++) {
-		room.userRoles.set(i, new Set(JSON.parse(db[`role-${permissions.ROLE_NAMES[i]}`])));
+		room.userRoles.set(i, new Set(db[`role-${permissions.ROLE_NAMES[i]}`]));
 	}
 	return room;
 }
@@ -125,20 +122,18 @@ function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
 		"visibility": room.visibility,
 		"queueMode": room.queueMode,
 		"autoSkipSegments": room.autoSkipSegments,
-		"permissions": room.grants?.serialize() ?? undefined,
+		"permissions": room.grants.toJSON(),
 		"ownerId": -1,
-		"role-trusted": "[]",
-		"role-mod": "[]",
-		"role-admin": "[]",
+		"role-trusted": [],
+		"role-mod": [],
+		"role-admin": [],
 	};
 	if (room.owner) {
 		db.ownerId = room.owner.id;
 	}
 	if (room.userRoles) {
 		for (let i = Role.TrustedUser; i <= 4; i++) {
-			db[`role-${permissions.ROLE_NAMES[i]}`] = JSON.stringify(
-				Array.from(room.userRoles.get(i)?.values() ?? [])
-			);
+			db[`role-${permissions.ROLE_NAMES[i]}`] = Array.from(room.userRoles.get(i)?.values() ?? []);
 		}
 	}
 	return db;
