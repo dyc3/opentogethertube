@@ -31,7 +31,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "visibility": Visibility;
 	declare "queueMode": QueueMode;
 	declare "ownerId": number;
-	declare "owner": User;
+	declare "owner": User | null;
 	declare "permissions": string;
 	declare "role-admin": string;
 	declare "role-mod": string;
@@ -39,7 +39,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "autoSkipSegments": boolean;
 }
 
-const createModel = (sequelize: Sequelize) => {
+export const createModel = (sequelize: Sequelize) => {
 	Room.init(
 		{
 			"id": {
@@ -110,4 +110,3 @@ const createModel = (sequelize: Sequelize) => {
 };
 
 export default createModel;
-module.exports = createModel;

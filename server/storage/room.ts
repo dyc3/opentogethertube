@@ -19,7 +19,7 @@ function buildFindRoomWhere(roomName: string) {
 
 export async function getRoomByName(roomName: string): Promise<RoomOptions | null> {
 	try {
-		const dbroom: DbRoom = await DbRoomModel.findOne({
+		const dbroom = await DbRoomModel.findOne({
 			where: buildFindRoomWhere(roomName),
 			include: { model: UserModel, as: "owner" },
 		});
@@ -36,7 +36,7 @@ export async function getRoomByName(roomName: string): Promise<RoomOptions | nul
 
 export async function isRoomNameTaken(roomName: string): Promise<boolean> {
 	try {
-		const room: DbRoom = await DbRoomModel.findOne({
+		const room = await DbRoomModel.findOne({
 			where: buildFindRoomWhere(roomName),
 		});
 		return !!room;
@@ -76,7 +76,7 @@ export async function updateRoom(room: RoomStatePersistable): Promise<boolean> {
 	}
 	try {
 		// TODO: optimize this to just do an update query, instead of a find and then update
-		const dbroom: DbRoom = await DbRoomModel.findOne({
+		const dbroom = await DbRoomModel.findOne({
 			where: buildFindRoomWhere(room.name),
 		});
 		if (!dbroom) {

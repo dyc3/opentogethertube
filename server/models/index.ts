@@ -3,7 +3,7 @@
 import fs from "fs";
 import path from "path";
 import Sequelize from "sequelize";
-import type { Options } from "sequelize";
+import type { Model, Options } from "sequelize";
 import { getLogger } from "../logger";
 const basename = path.basename(__filename);
 
@@ -52,7 +52,7 @@ function getDbConfig(): Options {
 let config = getDbConfig();
 config.logging = msg => log.silly(msg);
 
-let sequelize;
+export let sequelize;
 if (dburl && heroku) {
 	// for heroku
 	sequelize = new Sequelize.Sequelize(dburl, {
@@ -91,33 +91,21 @@ const db = {
 	Sequelize,
 };
 
-fs.readdirSync(__dirname)
-	.filter(file => {
-		return (
-			file.indexOf(".") !== 0 &&
-			file !== basename &&
-			(file.slice(-3) === ".js" || file.slice(-3) === ".ts")
-		);
-	})
-	.forEach(file => {
-		const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-		db[model.name] = model;
-	});
-
-Object.keys(db).forEach(modelName => {
-	if (db[modelName].associate) {
-		db[modelName].associate(db);
-	}
-});
-
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
-db["Room"].belongsTo(db["User"], { foreignKey: "ownerId", as: "owner" });
-
-module.exports = db;
 export default db;
 
-export const Room = db["Room"];
-export const User = db["User"];
-export const CachedVideo = db["CachedVideo"];
+import { createModel as createModel_Room } from "./room";
+import { createModel as createModel_User } from "./user";
+import { createModel as createModel_CachedVideo } from "./cachedvideo";
+
+const models = {
+	Room: createModel_Room(sequelize),
+	User: createModel_User(sequelize),
+	CachedVideo: createModel_CachedVideo(sequelize),
+};
+
+export const Room = models.Room;
+export const User = models.User;
+export const CachedVideo = models.CachedVideo;
+
+Room.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
+
