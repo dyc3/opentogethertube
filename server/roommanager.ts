@@ -52,7 +52,7 @@ export async function start() {
 	setInterval(update, 1000);
 }
 
-function redisStateToState(state: RoomStateFromRedis): RoomState {
+export function redisStateToState(state: RoomStateFromRedis): RoomState {
 	const userRoles = new Map<Role, Set<number>>();
 	for (const [role, userIds] of state.userRoles) {
 		userRoles.set(role as Role, new Set(userIds));

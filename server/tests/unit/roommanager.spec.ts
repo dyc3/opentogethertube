@@ -1,8 +1,8 @@
-import roommanager from "../../roommanager";
+import roommanager, { redisStateToState } from "../../roommanager";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Room as DbRoom } from "../../models";
-import { Room } from "../../room";
+import { Room, RoomStateFromRedis } from "../../room";
 import { AuthToken, QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
 import { RoomNotFoundException } from "../../exceptions";
@@ -67,8 +67,8 @@ describe("Room manager", () => {
 			room.playbackPosition = 10;
 
 			const text = room.serializeState();
-			const options = JSON.parse(text);
-			const loadedRoom = new Room(options);
+			const options = JSON.parse(text) as RoomStateFromRedis;
+			const loadedRoom = new Room(redisStateToState(options));
 			// HACK: room constructor sets the on dirty callback, so we manually remove it here
 			loadedRoom.queue.onDirty(undefined);
 
