@@ -8,9 +8,7 @@ import { i18n } from "@/i18n";
 function createStore() {
 	return new Vuex.Store({
 		state: {
-			room: {
-				chatMessages: [],
-			},
+			room: {},
 		},
 	});
 }

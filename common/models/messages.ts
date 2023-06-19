@@ -10,7 +10,7 @@ import {
 	RoomSettings,
 	AuthToken,
 } from "./types";
-import { VideoId } from "./video";
+import { QueueItem, VideoId } from "./video";
 
 export type ServerMessage =
 	| ServerMessageSync
@@ -38,6 +38,11 @@ export interface ServerMessageSync extends ServerMessageBase {
 	queueMode?: QueueMode;
 	isPlaying?: boolean;
 	playbackPosition?: number;
+	currentSource?: QueueItem;
+	grants?: [Role, number][];
+	playbackSpeed?: number;
+	voteCounts?: [string, number][];
+	hasOwner?: boolean;
 }
 
 /**

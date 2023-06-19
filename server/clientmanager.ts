@@ -92,10 +92,7 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 		state = JSON.parse(stateText) as RoomStateSyncable;
 		roomStates.set(room.name, state);
 	}
-	const syncMsg: ServerMessageSync = Object.assign(
-		{ action: "sync" },
-		state
-	) as ServerMessageSync;
+	const syncMsg = Object.assign({ action: "sync" }, state) as unknown as ServerMessageSync;
 	client.send(syncMsg);
 
 	// join the room
