@@ -34,7 +34,6 @@ interface BaseStoreState {
 		playbackPosition: number;
 		playbackSpeed: number;
 		hasOwner: boolean;
-		chatMessages: unknown[];
 		voteCounts?: Map<string, number>;
 		playbackStartTime: Dayjs | undefined;
 		videoSegments?: {
@@ -90,7 +89,6 @@ export function buildNewStore() {
 					playbackPosition: 0,
 					playbackSpeed: 1,
 					hasOwner: false,
-					chatMessages: [],
 					voteCounts: undefined,
 					playbackStartTime: undefined,
 					grants: new Grants(),
@@ -157,9 +155,6 @@ export function buildNewStore() {
 				// HACK: this lets vue detect the changes and react to them
 				// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
 				this.state.room = Object.assign({}, this.state.room, message);
-			},
-			chat(context, message) {
-				this.state.room.chatMessages.push(message);
 			},
 			announcement(context, message) {
 				this.commit("toast/ADD_TOAST", {
