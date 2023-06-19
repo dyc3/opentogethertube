@@ -170,23 +170,21 @@ describe.skip("Storage: Room Spec", () => {
 	});
 
 	it("should save and load userRoles correctly", async () => {
-		let userRoles = {
-			// eslint-disable-next-line array-bracket-newline
-			2: [1, 2, 3],
-			3: [4],
-			4: [8, 9],
-		};
+		let userRoles = new Map([
+			[2, new Set([1, 2, 3])],
+			[3, new Set([4])],
+			[4, new Set([8, 9])],
+		]);
 		await storage.saveRoom({ name: "example", userRoles });
 
 		let room = await storage.getRoomByName("example");
 		expect(room.userRoles).toEqual(userRoles);
 
-		userRoles = {
-			// eslint-disable-next-line array-bracket-newline
-			2: [1, 3],
-			3: [4, 7],
-			4: [8],
-		};
+		userRoles = new Map([
+			[2, new Set([1, 3])],
+			[3, new Set([4, 7])],
+			[4, new Set([8])],
+		]);
 		await storage.updateRoom({ name: "example", userRoles });
 
 		room = await storage.getRoomByName("example");

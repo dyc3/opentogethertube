@@ -126,6 +126,11 @@ export interface RoomState extends RoomOptions, RoomStateComputed {
 	videoSegments: Segment[];
 }
 
+export type RoomStateFromRedis = Omit<RoomState, "userRoles" | "grants"> & {
+	grants: [Role, GrantMask][];
+	userRoles: [Role, number[]][];
+};
+
 export interface RoomStateComputed {
 	hasOwner: boolean;
 	voteCounts: Map<string, number>;
@@ -234,11 +239,10 @@ export class Room implements RoomState {
 			this.grants = new Grants();
 		}
 		if (options.userRoles) {
-			if (Array.isArray(options.userRoles)) {
-				for (const [role, ids] of options.userRoles) {
-					this.userRoles.set(role, new Set(ids));
-				}
+			if (options.userRoles instanceof Map) {
+				this.userRoles = options.userRoles;
 			} else {
+				this.log.warn("userRoles was not an instance of Map");
 				for (let role = Role.TrustedUser; role <= Role.Administrator; role++) {
 					if (options.userRoles[role]) {
 						this.userRoles.set(role, new Set(options.userRoles[role]));
