@@ -1,5 +1,5 @@
-import { Room, RoomState, RoomStatePersistable } from "./room";
-import { AuthToken, RoomOptions, Visibility } from "../common/models/types";
+import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room";
+import { AuthToken, Role, RoomOptions, Visibility } from "../common/models/types";
 import { ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import _ from "lodash";
 import { getLogger } from "./logger.js";
@@ -10,10 +10,11 @@ import {
 	RoomNameTakenException,
 	RoomNotFoundException,
 } from "./exceptions";
-import { RoomRequest, RoomRequestContext, ServerMessage } from "common/models/messages";
+import { RoomRequest, RoomRequestContext, ServerMessage } from "../common/models/messages";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
 import { Result, ok, err } from "../common/result";
+import { Grants } from "../common/permissions";
 
 export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
@@ -41,13 +42,27 @@ export async function start() {
 		if (!text) {
 			continue;
 		}
-		const state = JSON.parse(text) as RoomState;
-		const room = new Room(state);
+		const state = JSON.parse(text) as RoomStateFromRedis;
+		const fixedState = redisStateToState(state);
+		const room = new Room(fixedState);
 		addRoom(room);
 	}
 	log.info(`Loaded ${keys.length} rooms from redis`);
 
 	setInterval(update, 1000);
+}
+
+function redisStateToState(state: RoomStateFromRedis): RoomState {
+	const userRoles = new Map<Role, Set<number>>();
+	for (const [role, userIds] of state.userRoles) {
+		userRoles.set(role as Role, new Set(userIds));
+	}
+	const grants = new Grants(state.grants);
+	return {
+		...state,
+		grants,
+		userRoles,
+	}
 }
 
 export async function update(): Promise<void> {
