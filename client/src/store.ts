@@ -156,6 +156,7 @@ export function buildNewStore() {
 				// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
 				this.state.room = Object.assign({}, this.state.room, message);
 			},
+			chat() {},
 			announcement(context, message) {
 				this.commit("toast/ADD_TOAST", {
 					style: ToastStyle.Neutral,
