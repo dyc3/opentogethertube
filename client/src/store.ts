@@ -12,6 +12,8 @@ import { captionsModule, CaptionsState } from "@/stores/captions";
 import { QueueItem } from "ott-common/models/video";
 import { InjectionKey } from "vue";
 import { Grants } from "ott-common/permissions";
+import { ServerMessageSync } from "ott-common/models/messages";
+import _, { omit } from "lodash";
 
 export type FullOTTStoreState = BaseStoreState & {
 	toast: ToastState;
@@ -126,9 +128,11 @@ export function buildNewStore() {
 			},
 		},
 		actions: {
-			sync(context, message) {
+			sync(context, message: ServerMessageSync) {
 				console.debug("SYNC", message);
-				delete message.action;
+				const stateupdate: Partial<BaseStoreState["room"]> = {
+					...(_.omit(message, ["action", "grants", "voteCounts"]))
+				};
 				if (
 					message.isPlaying !== undefined &&
 					this.state.room.isPlaying !== message.isPlaying
@@ -147,14 +151,13 @@ export function buildNewStore() {
 					this.commit("PLAYBACK_BUFFER_RESET");
 				}
 				if (message.voteCounts) {
-					message.voteCounts = deserializeMap(message.voteCounts);
+					stateupdate.voteCounts = deserializeMap(message.voteCounts);
 				}
 				if (message.grants) {
-					message.grants = new Grants(message.grants);
+					stateupdate.grants = new Grants(message.grants);
 				}
 				// HACK: this lets vue detect the changes and react to them
-				// https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-				this.state.room = Object.assign({}, this.state.room, message);
+				Object.assign(this.state.room, stateupdate);
 			},
 			chat() {},
 			announcement(context, message) {
