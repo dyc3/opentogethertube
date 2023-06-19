@@ -33,7 +33,6 @@
 					>
 						<v-responsive
 							class="player-container"
-							:key="currentSource?.service"
 							:aspect-ratio="16 / 9"
 							:max-height="store.state.fullscreen ? '100vh' : '90vh'"
 						>
