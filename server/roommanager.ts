@@ -55,14 +55,14 @@ export async function start() {
 export function redisStateToState(state: RoomStateFromRedis): RoomState {
 	const userRoles = new Map<Role, Set<number>>();
 	for (const [role, userIds] of state.userRoles) {
-		userRoles.set(role as Role, new Set(userIds));
+		userRoles.set(role, new Set(userIds));
 	}
 	const grants = new Grants(state.grants);
 	return {
 		...state,
 		grants,
 		userRoles,
-	}
+	};
 }
 
 export async function update(): Promise<void> {
