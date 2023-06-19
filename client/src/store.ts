@@ -131,7 +131,7 @@ export function buildNewStore() {
 			sync(context, message: ServerMessageSync) {
 				console.debug("SYNC", message);
 				const stateupdate: Partial<BaseStoreState["room"]> = {
-					...(_.omit(message, ["action", "grants", "voteCounts"]))
+					..._.omit(message, ["action", "grants", "voteCounts"]),
 				};
 				if (
 					message.isPlaying !== undefined &&
