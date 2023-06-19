@@ -234,10 +234,8 @@ export class Room implements RoomState {
 			this.grants = new Grants();
 		}
 		if (options.userRoles) {
-			if (Array.isArray(options.userRoles)) {
-				for (const [role, ids] of options.userRoles) {
-					this.userRoles.set(role, new Set(ids));
-				}
+			if (options.userRoles instanceof Map) {
+				this.userRoles = options.userRoles;
 			} else {
 				for (let role = Role.TrustedUser; role <= Role.Administrator; role++) {
 					if (options.userRoles[role]) {
