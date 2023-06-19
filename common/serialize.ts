@@ -1,16 +1,16 @@
-export function serializeMap<T extends Map<unknown, unknown>>(map: T): [unknown, unknown][] {
+export function serializeMap<K, V>(map: Map<K, V>): [K, V][] {
 	return Array.from(map.entries());
 }
 
-export function deserializeMap<T extends [unknown, unknown][]>(kvpairs: T): Map<unknown, unknown> {
+export function deserializeMap<K, V>(kvpairs: [K, V][]): Map<K, V> {
 	return new Map(kvpairs);
 }
 
-export function serializeSet<T extends Set<unknown>>(set: T): unknown[] {
+export function serializeSet<T>(set: Set<T>): T[] {
 	return Array.from(set);
 }
 
-export function deserializeSet<T extends unknown[]>(set: T): Set<unknown> {
+export function deserializeSet<T>(set: T[]): Set<T> {
 	return new Set(set);
 }
 
