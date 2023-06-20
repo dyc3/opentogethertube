@@ -31,11 +31,7 @@
 						class="video-subcontainer"
 						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
 					>
-						<v-responsive
-							class="player-container"
-							:aspect-ratio="16 / 9"
-							:max-height="store.state.fullscreen ? '100vh' : '90vh'"
-						>
+						<div class="player-container">
 							<OmniPlayer
 								ref="player"
 								:source="store.state.room.currentSource"
@@ -61,7 +57,7 @@
 									Play
 								</v-btn>
 							</div>
-						</v-responsive>
+						</div>
 					</div>
 					<VideoControls
 						:slider-position="sliderPosition"
@@ -808,6 +804,11 @@ $in-video-chat-width-small: 250px;
 	transition: transform 0s;
 }
 
+.player-container {
+	width: 100%;
+	height: 100%;
+}
+
 .fullscreen {
 	padding: 0;
 
@@ -826,9 +827,9 @@ $in-video-chat-width-small: 250px;
 		}
 	}
 
-	// .player-container {
-	// 	height: 100vh;
-	// }
+	.player-container {
+		height: 100vh;
+	}
 }
 
 .room {
