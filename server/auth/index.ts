@@ -101,11 +101,15 @@ router.get("/grant", async (req, res) => {
 	});
 });
 
-router.get("/discord", async (req, res, next) => {
-	// @ts-expect-error ts really doesn't like express's query type
-	(req.session as MySession).postLoginRedirect = req.query.redirect ?? "/";
-	next();
-}, passport.authenticate("discord", { keepSessionInfo: true }));
+router.get(
+	"/discord",
+	async (req, res, next) => {
+		// @ts-expect-error ts really doesn't like express's query type
+		(req.session as MySession).postLoginRedirect = req.query.redirect ?? "/";
+		next();
+	},
+	passport.authenticate("discord", { keepSessionInfo: true })
+);
 router.get(
 	"/discord/callback",
 	passport.authenticate("discord", {
