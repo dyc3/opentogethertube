@@ -101,11 +101,12 @@ router.get("/grant", async (req, res) => {
 	});
 });
 
-router.get("/discord", passport.authenticate("discord"));
+router.get("/discord", passport.authenticate("discord", { keepSessionInfo: true }));
 router.get(
 	"/discord/callback",
 	passport.authenticate("discord", {
 		failureRedirect: "/",
+		keepSessionInfo: true,
 	}),
 	async (_req, res) => {
 		const req = _req as express.Request;
