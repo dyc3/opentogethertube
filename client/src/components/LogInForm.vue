@@ -23,10 +23,11 @@
 										<v-btn
 											size="x-large"
 											block
-											href="/api/auth/discord"
+											@click="goLoginDiscord"
 											color="#7289DA"
-											>{{ $t("login-form.login-discord") }}</v-btn
 										>
+											{{ $t("login-form.login-discord") }}
+										</v-btn>
 										<!-- TODO: <v-btn size="x-large" block>Log in with Google</v-btn> -->
 									</v-container>
 								</v-col>
@@ -161,6 +162,7 @@ import { defineComponent, reactive, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
+import { goLoginDiscord } from "@/util/discord";
 
 const LogInForm = defineComponent({
 	name: "LogInForm",
@@ -358,6 +360,7 @@ const LogInForm = defineComponent({
 
 			login,
 			register,
+			goLoginDiscord,
 		};
 	},
 });

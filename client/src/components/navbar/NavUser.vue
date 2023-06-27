@@ -11,11 +11,7 @@
 			</v-btn>
 		</template>
 		<v-list two-line max-width="400">
-			<v-list-item
-				href="/api/auth/discord"
-				target="_blank"
-				v-if="!$store.state.user.discordLinked"
-			>
+			<v-list-item @click="goLoginDiscord" v-if="!$store.state.user.discordLinked">
 				<v-list-item-title>{{ $t("nav.link-discord") }}</v-list-item-title>
 			</v-list-item>
 			<v-list-item @click="$emit('logout')">
@@ -30,9 +26,15 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { goLoginDiscord } from "@/util/discord";
 
 export default defineComponent({
 	name: "NavUser",
 	emits: ["login", "logout"],
+	setup() {
+		return {
+			goLoginDiscord,
+		};
+	},
 });
 </script>
