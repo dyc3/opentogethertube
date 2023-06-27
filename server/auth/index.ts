@@ -101,11 +101,20 @@ router.get("/grant", async (req, res) => {
 	});
 });
 
-router.get("/discord", passport.authenticate("discord"));
+router.get(
+	"/discord",
+	async (req, res, next) => {
+		// @ts-expect-error ts really doesn't like express's query type
+		(req.session as MySession).postLoginRedirect = req.query.redirect ?? "/";
+		next();
+	},
+	passport.authenticate("discord", { keepSessionInfo: true })
+);
 router.get(
 	"/discord/callback",
 	passport.authenticate("discord", {
 		failureRedirect: "/",
+		keepSessionInfo: true,
 	}),
 	async (_req, res) => {
 		const req = _req as express.Request;
@@ -124,7 +133,10 @@ router.get(
 			user_id: req.user.id,
 		});
 		log.info(`${req.user.username} logged in via social login.`);
-		res.redirect("/"); // Successful auth
+		const redirect = (req.session as MySession).postLoginRedirect ?? "/";
+		log.debug(`redirecting to ${redirect}`);
+		res.redirect(redirect); // Successful auth
+		delete (req.session as MySession).postLoginRedirect;
 	}
 );
 
