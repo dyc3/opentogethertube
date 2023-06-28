@@ -553,13 +553,16 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	private async getManyVideoLengthsFallback(ids: string[]) {
 		const getLengthPromises = ids.map(id => this.getVideoLengthFallback(id));
 		const results = await Promise.all(getLengthPromises);
-		const videos: Partial<Video>[] = _.zip(ids, results).map(([id, length]) => ({
-			service: "youtube",
-			id,
-			length,
-			// HACK: we can guess what the thumbnail url is, but this could possibly change without warning
-			thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
-		}));
+		const videos: Video[] = _.zip(ids, results).map(
+			([id, length]) =>
+				({
+					service: "youtube",
+					id,
+					length,
+					// HACK: we can guess what the thumbnail url is, but this could possibly change without warning
+					thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
+				} as Video)
+		);
 		try {
 			await storage.updateManyVideoInfo(videos);
 		} catch (err) {

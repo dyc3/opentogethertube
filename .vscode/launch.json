@@ -31,8 +31,9 @@
 			"args": [
 				"--runInBand",
 				"--config",
-				"./tests/unit/server/jest.config.js",
+				"./tests/unit/jest.config.js",
 			],
+			"cwd": "${workspaceFolder}/server",
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
 			"disableOptimisticBPs": true,

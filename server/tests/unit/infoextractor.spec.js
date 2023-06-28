@@ -1,5 +1,5 @@
 import InfoExtractor from "../../infoextractor";
-const storage = require("../../storage");
+import storage from "../../storage";
 const { getMimeType } = require("../../mime");
 const YouTubeAdapter = require("../../services/youtube");
 const { UnsupportedMimeTypeException, OutOfQuotaException } = require("../../exceptions");

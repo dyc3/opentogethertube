@@ -89,9 +89,9 @@ export default {
 	 */
 	async updateCache(videos: Video[] | Video): Promise<void> {
 		if (Array.isArray(videos)) {
-			return storage.updateManyVideoInfo(videos);
+			await storage.updateManyVideoInfo(videos);
 		} else {
-			return storage.updateVideoInfo(videos);
+			await storage.updateVideoInfo(videos);
 		}
 	},
 
