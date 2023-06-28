@@ -44,7 +44,16 @@ module.exports = {
 				"no-unused-vars": "off",
 				"@typescript-eslint/adjacent-overload-signatures": "error",
 				"@typescript-eslint/switch-exhaustiveness-check": "error",
-				"@typescript-eslint/restrict-template-expressions": "warn",
+				"@typescript-eslint/restrict-template-expressions": [
+					"warn",
+					{
+						allowNumber: true,
+						allowBoolean: true,
+						allowNullish: true,
+						allowRegExp: true,
+						allowNever: true,
+					},
+				],
 				"@typescript-eslint/no-unnecessary-type-assertion": "warn",
 				"@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
 
