@@ -131,4 +131,14 @@ class RoomApi {
 			},
 		});
 	}
+
+	restoreQueue(options?: { discard?: boolean }) {
+		this.connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.RestoreQueueRequest,
+				discard: options?.discard,
+			},
+		});
+	}
 }
