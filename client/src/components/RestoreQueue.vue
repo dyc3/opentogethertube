@@ -5,6 +5,8 @@
 			color="primary"
 			:text="$t('video-queue.restore')"
 			:stacked="false"
+			lines="one"
+			sticky
 			v-if="(store.state.room.prevQueue?.length ?? 0) > 0"
 		>
 			<template v-slot:actions>
@@ -55,6 +57,16 @@ export default defineComponent({
 .restore-enter,
 .restore-leave-to {
 	opacity: 0;
-	transform: translateY(100%);
+	transform: scaleY(0);
+}
+
+.restore-enter-to,
+.restore-leave {
+	opacity: 1;
+	transform: scaleY(100%);
+}
+
+.restore {
+	margin-top: 10px;
 }
 </style>
