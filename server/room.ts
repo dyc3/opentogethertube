@@ -172,6 +172,7 @@ export class Room implements RoomState {
 
 	_currentSource: QueueItem | null = null;
 	queue: VideoQueue;
+	prevQueue: QueueItem[] | null = null;
 	_isPlaying = false;
 	_playbackPosition = 0;
 	_playbackSpeed = 1;
@@ -219,7 +220,8 @@ export class Room implements RoomState {
 				"playbackPosition",
 				"isPlaying",
 				"playbackSpeed",
-				"autoSkipSegments"
+				"autoSkipSegments",
+				"prevQueue"
 			)
 		);
 		if (Array.isArray(this.queue)) {
@@ -711,7 +713,8 @@ export class Room implements RoomState {
 			"owner",
 			"_playbackStart",
 			"videoSegments",
-			"autoSkipSegments"
+			"autoSkipSegments",
+			"prevQueue"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -736,7 +739,8 @@ export class Room implements RoomState {
 			"hasOwner",
 			"voteCounts",
 			"videoSegments",
-			"autoSkipSegments"
+			"autoSkipSegments",
+			"prevQueue"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -770,7 +774,8 @@ export class Room implements RoomState {
 			"voteCounts",
 			"hasOwner",
 			"videoSegments",
-			"autoSkipSegments"
+			"autoSkipSegments",
+			"prevQueue"
 		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
@@ -788,7 +793,8 @@ export class Room implements RoomState {
 			"autoSkipSegments",
 			"grants",
 			"userRoles",
-			"owner"
+			"owner",
+			"prevQueue"
 		);
 		if (!_.isEmpty(settings)) {
 			await storage.updateRoom({
@@ -810,7 +816,14 @@ export class Room implements RoomState {
 		});
 	}
 
-	public async onBeforeUnload(): Promise<void> {}
+	public async onBeforeUnload(): Promise<void> {
+		if (!this.isTemporary) {
+			await storage.updateRoom({
+				name: this.name,
+				prevQueue: this.queue.length > 0 ? this.queue.items : null,
+			});
+		}
+	}
 
 	/**
 	 * If true, the room is stale, and should be unloaded.
