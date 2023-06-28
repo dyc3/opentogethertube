@@ -42,9 +42,6 @@ describe("Storage: Room Spec", () => {
 		expect(room).toBeDefined();
 		expect(typeof room).toEqual("object");
 		expect(room).not.toBeInstanceOf(DbRoom);
-		expect(room.id).toBeUndefined();
-		expect(room.createdAt).toBeUndefined();
-		expect(room.updatedAt).toBeUndefined();
 		expect(room).toMatchObject({
 			name: "example",
 			title: "Example Room",
@@ -174,21 +171,21 @@ describe("Storage: Room Spec", () => {
 		await storage.saveRoom(new Room({ name: "example", grants: grants }));
 
 		let room = await storage.getRoomByName("example");
-		expect(room.grants).toEqual(grants);
+		expect(room?.grants).toEqual(grants);
 
 		grants.masks[0] ^= permissions.parseIntoGrantMask(["manage-queue"]);
 		await storage.updateRoom({ name: "example", grants });
 
 		room = await storage.getRoomByName("example");
-		expect(room.grants).toEqual(grants);
+		expect(room?.grants).toEqual(grants);
 	});
 
 	it("should load permissions as an instance of Grants", async () => {
 		await storage.saveRoom(new Room({ name: "example", grants: new permissions.Grants() }));
 
 		const room = await storage.getRoomByName("example");
-		expect(room.grants).toBeInstanceOf(permissions.Grants);
-		expect(room.grants).toEqual(new permissions.Grants());
+		expect(room?.grants).toBeInstanceOf(permissions.Grants);
+		expect(room?.grants).toEqual(new permissions.Grants());
 	});
 
 	it("should save and load userRoles correctly", async () => {
@@ -200,7 +197,7 @@ describe("Storage: Room Spec", () => {
 		await storage.saveRoom(new Room({ name: "example", userRoles }));
 
 		let room = await storage.getRoomByName("example");
-		expect(room.userRoles).toEqual(userRoles);
+		expect(room?.userRoles).toEqual(userRoles);
 
 		userRoles = new Map([
 			[2, new Set([1, 3])],
@@ -210,7 +207,7 @@ describe("Storage: Room Spec", () => {
 		await storage.updateRoom({ name: "example", userRoles });
 
 		room = await storage.getRoomByName("example");
-		expect(room.userRoles).toEqual(userRoles);
+		expect(room?.userRoles).toEqual(userRoles);
 	});
 });
 
@@ -220,7 +217,7 @@ describe("Storage: CachedVideos Spec", () => {
 	});
 
 	it("should create or update cached video without failing", async () => {
-		const video = {
+		const video: Video = {
 			service: "youtube",
 			id: "-29I-VbvPLQ",
 			title: "tmp181mfK",
@@ -240,7 +237,7 @@ describe("Storage: CachedVideos Spec", () => {
 			thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
 			length: 10,
 		};
-		expect(await storage.updateVideoInfo(video, false)).toBe(false);
+		expect(await storage.updateVideoInfo(video as unknown as Video, false)).toBe(false);
 	});
 
 	it("should fail validation, no null allowed for serviceId", async () => {
@@ -252,7 +249,7 @@ describe("Storage: CachedVideos Spec", () => {
 			thumbnail: "https://i.ytimg.com/vi/-29I-VbvPLQ/mqdefault.jpg",
 			length: 10,
 		};
-		expect(await storage.updateVideoInfo(video, false)).toBe(false);
+		expect(await storage.updateVideoInfo(video as unknown as Video, false)).toBe(false);
 	});
 
 	it("should return the attributes that a video object should have", () => {

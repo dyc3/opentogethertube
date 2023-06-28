@@ -12,7 +12,7 @@ interface CachedVideoAttributes {
 	mime?: string;
 }
 
-type CachedVideoCreationAttributes = Optional<CachedVideoAttributes, "id">;
+export type CachedVideoCreationAttributes = Omit<CachedVideoAttributes, "id">;
 
 export class CachedVideo
 	extends Model<CachedVideoAttributes, CachedVideoCreationAttributes>

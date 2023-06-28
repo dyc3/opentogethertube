@@ -102,7 +102,7 @@ describe("Room manager", () => {
 		const getRoomByNameSpy = jest
 			.spyOn(storage, "getRoomByName")
 			.mockImplementation()
-			.mockReturnValue(null);
+			.mockResolvedValue(null);
 		let result = await roommanager.getRoom("test", {
 			mustAlreadyBeLoaded: true,
 		});
