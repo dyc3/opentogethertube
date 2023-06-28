@@ -5,7 +5,7 @@
 			color="primary"
 			:text="$t('video-queue.restore')"
 			:stacked="false"
-			v-if="!!store.state.prevQueue"
+			v-if="(store.state.room.prevQueue?.length ?? 0) > 0"
 		>
 			<template v-slot:actions>
 				<v-btn color="primary" @click="restore">{{ $t("common.show") }}</v-btn>
