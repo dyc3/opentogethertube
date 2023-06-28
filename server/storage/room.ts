@@ -71,6 +71,9 @@ export async function saveRoom(room: RoomStatePersistable): Promise<boolean> {
  * @returns boolean indicating whether the room was saved successfully
  */
 export async function updateRoom(room: RoomStatePersistable): Promise<boolean> {
+	if (!room.name) {
+		throw new Error(`Cannot update room with no name`);
+	}
 	try {
 		// TODO: optimize this to just do an update query, instead of a find and then update
 		const dbroom: DbRoom = await DbRoomModel.findOne({
