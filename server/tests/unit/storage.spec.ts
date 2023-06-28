@@ -1,5 +1,5 @@
 import _ from "lodash";
-const { CachedVideo, Room } = require("../../models");
+import { CachedVideo, Room } from "../../models";
 import storage from "../../storage";
 import permissions from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
