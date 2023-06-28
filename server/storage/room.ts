@@ -133,7 +133,9 @@ function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
 	}
 	if (room.userRoles) {
 		for (let i = Role.TrustedUser; i <= 4; i++) {
-			db[`role-${permissions.ROLE_NAMES[i]}`] = Array.from(room.userRoles.get(i)?.values() ?? []);
+			db[`role-${permissions.ROLE_NAMES[i]}`] = Array.from(
+				room.userRoles.get(i)?.values() ?? []
+			);
 		}
 	}
 	return db;

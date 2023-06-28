@@ -108,4 +108,3 @@ export const User = models.User;
 export const CachedVideo = models.CachedVideo;
 
 Room.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
-
