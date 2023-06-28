@@ -4,6 +4,7 @@ import storage from "../../storage";
 import permissions, { Grants } from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
 import { Video } from "../../../common/models/video";
+import { Room } from "../../room";
 
 describe("Storage: Room Spec", () => {
 	beforeEach(async () => {
@@ -11,13 +12,15 @@ describe("Storage: Room Spec", () => {
 	});
 
 	it("should return room object without extra properties", async () => {
-		await storage.saveRoom({
-			name: "example",
-			title: "Example Room",
-			description: "This is an example room.",
-			visibility: Visibility.Public,
-			queueMode: QueueMode.Vote,
-		});
+		await storage.saveRoom(
+			new Room({
+				name: "example",
+				title: "Example Room",
+				description: "This is an example room.",
+				visibility: Visibility.Public,
+				queueMode: QueueMode.Vote,
+			})
+		);
 
 		const room = await storage.getRoomByName("example");
 		expect(room).not.toBeNull();
@@ -38,12 +41,14 @@ describe("Storage: Room Spec", () => {
 	});
 
 	it("should return room object from room name, case insensitive", async () => {
-		await storage.saveRoom({
-			name: "CapitalizedExampleRoom",
-			title: "Example Room",
-			description: "This is an example room.",
-			visibility: Visibility.Public,
-		});
+		await storage.saveRoom(
+			new Room({
+				name: "CapitalizedExampleRoom",
+				title: "Example Room",
+				description: "This is an example room.",
+				visibility: Visibility.Public,
+			})
+		);
 
 		const room = await storage.getRoomByName("capitalizedexampleroom");
 		expect(room).toMatchObject({
@@ -56,7 +61,7 @@ describe("Storage: Room Spec", () => {
 	});
 
 	it("should load queueMode from storage", async () => {
-		await storage.saveRoom({ name: "example", queueMode: QueueMode.Vote });
+		await storage.saveRoom(new Room({ name: "example", queueMode: QueueMode.Vote }));
 
 		const room = await storage.getRoomByName("example");
 		expect(_.pick(room, "queueMode")).toEqual({
@@ -68,12 +73,14 @@ describe("Storage: Room Spec", () => {
 		expect(await DbRoom.findOne({ where: { name: "example" } })).toBeNull();
 
 		expect(
-			await storage.saveRoom({
-				name: "example",
-				title: "Example Room",
-				description: "This is an example room.",
-				visibility: Visibility.Public,
-			})
+			await storage.saveRoom(
+				new Room({
+					name: "example",
+					title: "Example Room",
+					description: "This is an example room.",
+					visibility: Visibility.Public,
+				})
+			)
 		).toBe(true);
 
 		let room = await DbRoom.findOne({ where: { name: "example" } });
@@ -88,16 +95,20 @@ describe("Storage: Room Spec", () => {
 	});
 
 	it("should not create room if name matches existing room, case insensitive", async () => {
-		await storage.saveRoom({ name: "CapitalizedExampleRoom", visibility: "public" });
+		await storage.saveRoom(
+			new Room({ name: "CapitalizedExampleRoom", visibility: Visibility.Public })
+		);
 
 		expect(
-			await storage.saveRoom({ name: "capitalizedexampleroom", visibility: "public" })
+			await storage.saveRoom(
+				new Room({ name: "capitalizedexampleroom", visibility: Visibility.Public })
+			)
 		).toBe(false);
 	});
 
 	it("should update the matching room in the database with the provided properties", async () => {
 		expect(await DbRoom.findOne({ where: { name: "example" } })).toBeNull();
-		expect(await storage.saveRoom({ name: "example" })).toBe(true);
+		expect(await storage.saveRoom(new Room({ name: "example" }))).toBe(true);
 
 		expect(
 			await storage.updateRoom({
@@ -132,12 +143,12 @@ describe("Storage: Room Spec", () => {
 	it("should return true if room name is taken", async () => {
 		expect(await DbRoom.findOne({ where: { name: "example" } })).toBeNull();
 		expect(await storage.isRoomNameTaken("example")).toBe(false);
-		expect(await storage.saveRoom({ name: "example" })).toBe(true);
+		expect(await storage.saveRoom(new Room({ name: "example" }))).toBe(true);
 		expect(await storage.isRoomNameTaken("example")).toBe(true);
 	});
 
 	it("should return true if room name is taken, case insensitive", async () => {
-		await storage.saveRoom({ name: "Example" });
+		await storage.saveRoom(new Room({ name: "Example" }));
 		expect(await storage.isRoomNameTaken("example")).toBe(true);
 		expect(await storage.isRoomNameTaken("exAMple")).toBe(true);
 	});
@@ -145,7 +156,7 @@ describe("Storage: Room Spec", () => {
 	it("should save and load permissions correctly", async () => {
 		const grants = permissions.defaultPermissions();
 		grants.masks[0] ^= permissions.parseIntoGrantMask(["playback"]);
-		await storage.saveRoom({ name: "example", grants: grants });
+		await storage.saveRoom(new Room({ name: "example", grants: grants }));
 
 		let room = await storage.getRoomByName("example");
 		expect(room.grants).toEqual(grants);
@@ -158,7 +169,7 @@ describe("Storage: Room Spec", () => {
 	});
 
 	it("should load permissions as an instance of Grants", async () => {
-		await storage.saveRoom({ name: "example", grants: new permissions.Grants() });
+		await storage.saveRoom(new Room({ name: "example", grants: new permissions.Grants() }));
 
 		const room = await storage.getRoomByName("example");
 		expect(room.grants).toBeInstanceOf(permissions.Grants);
@@ -171,7 +182,7 @@ describe("Storage: Room Spec", () => {
 			[3, new Set([4])],
 			[4, new Set([8, 9])],
 		]);
-		await storage.saveRoom({ name: "example", userRoles });
+		await storage.saveRoom(new Room({ name: "example", userRoles }));
 
 		let room = await storage.getRoomByName("example");
 		expect(room.userRoles).toEqual(userRoles);

@@ -54,7 +54,7 @@ export async function isRoomNameTaken(roomName: string): Promise<boolean> {
 export async function saveRoom(room: RoomStatePersistable): Promise<boolean> {
 	const options = roomToDb(room);
 	// HACK: search for the room to see if it exists
-	if (await isRoomNameTaken(options.name)) {
+	if (await isRoomNameTaken(room.name)) {
 		return false;
 	}
 	try {
@@ -71,7 +71,7 @@ export async function saveRoom(room: RoomStatePersistable): Promise<boolean> {
  *Create a room in the database, if it doesn't already exist
  * @returns boolean indicating whether the room was saved successfully
  */
-export async function updateRoom(room: RoomStatePersistable): Promise<boolean> {
+export async function updateRoom(room: Partial<RoomStatePersistable>): Promise<boolean> {
 	if (!room.name) {
 		throw new Error(`Cannot update room with no name`);
 	}
@@ -83,7 +83,7 @@ export async function updateRoom(room: RoomStatePersistable): Promise<boolean> {
 		if (!dbroom) {
 			return false;
 		}
-		const options = roomToDb(room);
+		const options = roomToDbPartial(room);
 		log.debug(`updating room ${room.name} in database ${JSON.stringify(options)}`);
 		await dbroom.update(options);
 		return true;
@@ -134,6 +134,37 @@ function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
 		"role-mod": [],
 		"role-admin": [],
 	};
+	if (room.owner) {
+		db.ownerId = room.owner.id;
+	}
+	if (room.userRoles) {
+		for (let i = Role.TrustedUser; i <= 4; i++) {
+			db[`role-${permissions.ROLE_NAMES[i]}`] = Array.from(
+				room.userRoles.get(i)?.values() ?? []
+			);
+		}
+	}
+	return db;
+}
+
+/**
+ * Converts a room into an object that can be stored in the database
+ */
+function roomToDbPartial(room: Partial<RoomStatePersistable>): Partial<Omit<RoomAttributes, "id" | "name">> {
+	const db: Partial<Omit<RoomAttributes, "id" | "name">> = _.pickBy({
+		"title": room.title,
+		"description": room.description,
+		"visibility": room.visibility,
+		"queueMode": room.queueMode,
+		"autoSkipSegments": room.autoSkipSegments,
+	}, v => !!v);
+	if (room.grants) {
+		let grantsFiltered = _.cloneDeep(room.grants);
+		// No need to waste storage space on these
+		grantsFiltered.deleteRole(Role.Administrator);
+		grantsFiltered.deleteRole(Role.Owner);
+		db.permissions = grantsFiltered.toJSON();
+	}
 	if (room.owner) {
 		db.ownerId = room.owner.id;
 	}
