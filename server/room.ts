@@ -377,6 +377,9 @@ export class Room implements RoomState {
 	}
 
 	public set prevQueue(value: QueueItem[] | null) {
+		if (value === null && this._prevQueue === null) {
+			return;
+		}
 		this._prevQueue = value;
 		this.markDirty("prevQueue");
 	}
