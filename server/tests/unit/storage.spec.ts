@@ -78,7 +78,7 @@ describe("Storage: Room Spec", () => {
 
 		let room = await DbRoom.findOne({ where: { name: "example" } });
 		expect(room).toBeInstanceOf(DbRoom);
-		expect(room.id).toBeDefined();
+		expect(room?.id).toBeDefined();
 		expect(room).toMatchObject({
 			name: "example",
 			title: "Example Room",
@@ -110,7 +110,7 @@ describe("Storage: Room Spec", () => {
 
 		let room = await DbRoom.findOne({ where: { name: "example" } });
 		expect(room).toBeInstanceOf(DbRoom);
-		expect(room.id).toBeDefined();
+		expect(room?.id).toBeDefined();
 		expect(room).toMatchObject({
 			name: "example",
 			title: "Example Room",
