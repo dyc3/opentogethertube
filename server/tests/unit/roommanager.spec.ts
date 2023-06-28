@@ -24,11 +24,19 @@ describe("Room manager", () => {
 		it("should never save null to permissions or user role columns", async () => {
 			await roommanager.createRoom({ name: "test", isTemporary: false, title: "asdf1234" });
 			const room = await DbRoom.findOne({ where: { name: "test" } });
-			expect(room.permissions).not.toBeNull();
-			expect(room.permissions).toMatch(/^\[(\[-?\d+,\d+\],?)+\]$/);
-			expect(room["role-admin"]).not.toBeNull();
-			expect(room["role-mod"]).not.toBeNull();
-			expect(room["role-trusted"]).not.toBeNull();
+			expect(room).not.toBeNull();
+			expect(room?.permissions).not.toBeNull();
+			// eslint-disable-next-line jest/no-if
+			if (Array.isArray(room?.permissions)) {
+				let roles = room?.permissions.map(p => p[0]);
+				expect(roles).not.toContain(Role.Administrator);
+				expect(roles).not.toContain(Role.Owner);
+			} else {
+				throw new Error("permissions should be an array on a newly created room");
+			}
+			expect(room?.["role-admin"]).toBeInstanceOf(Array);
+			expect(room?.["role-mod"]).toBeInstanceOf(Array);
+			expect(room?.["role-trusted"]).toBeInstanceOf(Array);
 		});
 
 		it("should be able to load saved settings from database", async () => {
@@ -41,10 +49,14 @@ describe("Room manager", () => {
 				queueMode: QueueMode.Vote,
 			});
 			const room = await DbRoom.findOne({ where: { name: "test" } });
-			expect(room.title).toEqual("asdf1234");
-			expect(room.description).toEqual("0987asdf");
-			expect(room.visibility).toEqual(Visibility.Unlisted);
-			expect(room.queueMode).toEqual(QueueMode.Vote);
+			expect(room).not.toBeNull();
+			expect(room).toMatchObject({
+				name: "test",
+				title: "asdf1234",
+				description: "0987asdf",
+				visibility: Visibility.Unlisted,
+				queueMode: QueueMode.Vote,
+			});
 		});
 	});
 

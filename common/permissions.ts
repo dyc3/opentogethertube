@@ -275,6 +275,7 @@ export class Grants {
 		}
 		this.setAllGrants(grants);
 		// HACK: force owner to always have all permissions
+		this.setRoleGrants(Role.Administrator, parseIntoGrantMask(["*"]));
 		this.setRoleGrants(Role.Owner, parseIntoGrantMask(["*"]));
 	}
 

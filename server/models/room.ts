@@ -1,8 +1,9 @@
 "use strict";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { QueueMode, Visibility } from "../../common/models/types";
+import { QueueMode, Visibility, Role } from "../../common/models/types";
 import { User } from "./user";
 import { ROOM_NAME_REGEX } from "../../common/constants";
+import type { OldRoleGrants, GrantMask } from "../../common/permissions";
 
 export interface RoomAttributes {
 	"id": number;
@@ -11,11 +12,11 @@ export interface RoomAttributes {
 	"description": string;
 	"visibility": Visibility;
 	"queueMode": QueueMode;
-	"ownerId": number;
-	"permissions": string;
-	"role-admin": string;
-	"role-mod": string;
-	"role-trusted": string;
+	"ownerId": number | null;
+	"permissions": [Role, GrantMask][] | OldRoleGrants;
+	"role-admin": Array<number>;
+	"role-mod": Array<number>;
+	"role-trusted": Array<number>;
 	"autoSkipSegments": boolean;
 }
 
@@ -30,16 +31,16 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "description": string;
 	declare "visibility": Visibility;
 	declare "queueMode": QueueMode;
-	declare "ownerId": number;
-	declare "owner": User;
-	declare "permissions": string;
-	declare "role-admin": string;
-	declare "role-mod": string;
-	declare "role-trusted": string;
+	declare "ownerId": number | null;
+	declare "owner": User | null;
+	declare "permissions": [Role, GrantMask][] | OldRoleGrants;
+	declare "role-admin": Array<number>;
+	declare "role-mod": Array<number>;
+	declare "role-trusted": Array<number>;
 	declare "autoSkipSegments": boolean;
 }
 
-const createModel = (sequelize: Sequelize) => {
+export const createModel = (sequelize: Sequelize) => {
 	Room.init(
 		{
 			"id": {
@@ -76,23 +77,19 @@ const createModel = (sequelize: Sequelize) => {
 			},
 			"ownerId": {
 				type: DataTypes.INTEGER,
-				defaultValue: -1,
-				allowNull: false,
-				validate: {
-					min: -1,
-				},
+				allowNull: true,
 			},
 			"permissions": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"role-admin": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"role-mod": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"role-trusted": {
-				type: DataTypes.TEXT,
+				type: DataTypes.JSONB,
 			},
 			"autoSkipSegments": {
 				type: DataTypes.BOOLEAN,
@@ -110,4 +107,3 @@ const createModel = (sequelize: Sequelize) => {
 };
 
 export default createModel;
-module.exports = createModel;

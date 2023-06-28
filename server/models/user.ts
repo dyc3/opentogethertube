@@ -19,7 +19,7 @@ export class User
 	declare discordId: string | null;
 }
 
-const createModel = (sequelize: Sequelize) => {
+export const createModel = (sequelize: Sequelize) => {
 	User.init(
 		{
 			id: {
@@ -89,4 +89,3 @@ const createModel = (sequelize: Sequelize) => {
 };
 
 export default createModel;
-module.exports = createModel;

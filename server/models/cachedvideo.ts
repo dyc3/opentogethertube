@@ -30,7 +30,7 @@ export class CachedVideo
 	declare mime?: string;
 }
 
-const createModel = (sequelize: Sequelize) => {
+export const createModel = (sequelize: Sequelize) => {
 	CachedVideo.init(
 		{
 			id: {
@@ -62,4 +62,3 @@ const createModel = (sequelize: Sequelize) => {
 };
 
 export default createModel;
-module.exports = createModel;
