@@ -1,14 +1,29 @@
 import _ from "lodash";
-import { CachedVideo, Room as DbRoom } from "../../models";
+import { CachedVideo, Room as DbRoom, User } from "../../models";
 import storage from "../../storage";
 import permissions, { Grants } from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
 import { Video } from "../../../common/models/video";
 import { Room } from "../../room";
+import { roomToDb, roomToDbPartial } from "../../storage/room";
 
 describe("Storage: Room Spec", () => {
 	beforeEach(async () => {
 		await DbRoom.destroy({ where: {} });
+	});
+
+	it("roomToDb and roomToDbPartial should return the same object", () => {
+		const user = new User();
+		user.id = 1;
+		const room = new Room({
+			name: "example",
+			title: "Example Room",
+			description: "This is an example room.",
+			owner: user,
+		});
+		let dbroom = roomToDb(room);
+		let dbroomPartial = roomToDbPartial(room);
+		expect(dbroom).toMatchObject(dbroomPartial);
 	});
 
 	it("should return room object without extra properties", async () => {

@@ -115,7 +115,7 @@ function dbToRoomArgs(db: DbRoom): RoomOptions {
 /**
  * Converts a room into an object that can be stored in the database
  */
-function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
+export function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
 	let grantsFiltered = _.cloneDeep(room.grants);
 	// No need to waste storage space on these
 	grantsFiltered.deleteRole(Role.Administrator);
@@ -150,7 +150,7 @@ function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
 /**
  * Converts a room into an object that can be stored in the database
  */
-function roomToDbPartial(
+export function roomToDbPartial(
 	room: Partial<RoomStatePersistable>
 ): Partial<Omit<RoomAttributes, "id" | "name">> {
 	const db: Partial<Omit<RoomAttributes, "id" | "name">> = _.pickBy(
