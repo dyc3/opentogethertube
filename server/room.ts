@@ -818,9 +818,17 @@ export class Room implements RoomState {
 
 	public async onBeforeUnload(): Promise<void> {
 		if (!this.isTemporary) {
+			const prevQueue = this.queue.items;
+			if (this.currentSource) {
+				prevQueue.unshift({
+					...this.currentSource,
+					startAt: this.realPlaybackPosition,
+				});
+			}
+
 			await storage.updateRoom({
 				name: this.name,
-				prevQueue: this.queue.length > 0 ? this.queue.items : null,
+				prevQueue: prevQueue.length > 0 ? prevQueue : null,
 			});
 		}
 	}
