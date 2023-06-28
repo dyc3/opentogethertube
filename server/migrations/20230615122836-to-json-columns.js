@@ -12,13 +12,6 @@ module.exports = {
 			if (dialect === "sqlite") {
 				await queryInterface.changeColumn("Rooms", column, DataTypes.JSONB);
 			} else if (dialect === "postgres") {
-				// await queryInterface.addColumn("Rooms", `${column}-new`, DataTypes.JSONB);
-				// await queryInterface.sequelize.query(
-				// 	`UPDATE Rooms SET \`${column}-new\` = to_jsonb(\`${column}\`);`
-				// );
-				// await queryInterface.removeColumn("Rooms", column);
-				// await queryInterface.renameColumn("Rooms", `${column}-new`, column);
-
 				await queryInterface.sequelize.query(
 					`ALTER TABLE "Rooms" ALTER "${column}" TYPE JSONB USING "${column}"::JSONB`
 				);
@@ -34,13 +27,6 @@ module.exports = {
 			if (dialect === "sqlite") {
 				await queryInterface.changeColumn("Rooms", column, DataTypes.TEXT);
 			} else if (dialect === "postgres") {
-				// await queryInterface.addColumn("Rooms", `${column}-new`, DataTypes.TEXT);
-				// await queryInterface.sequelize.query(
-				// 	`UPDATE Rooms SET \`${column}-new\` = \`${column}\`::TEXT;`
-				// );
-				// await queryInterface.removeColumn("Rooms", column);
-				// await queryInterface.renameColumn("Rooms", `${column}-new`, column);
-
 				await queryInterface.sequelize.query(
 					`ALTER TABLE "Rooms" ALTER "${column}" TYPE TEXT USING "${column}"::TEXT`
 				);
