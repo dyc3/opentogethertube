@@ -64,6 +64,7 @@ import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
 import roommanager from "./roommanager";
 import { calculateCurrentPosition } from "../common/timestamp";
+import { RestoreQueueRequest } from "../common/models/messages";
 
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
@@ -172,7 +173,7 @@ export class Room implements RoomState {
 
 	_currentSource: QueueItem | null = null;
 	queue: VideoQueue;
-	prevQueue: QueueItem[] | null = null;
+	_prevQueue: QueueItem[] | null = null;
 	_isPlaying = false;
 	_playbackPosition = 0;
 	_playbackSpeed = 1;
@@ -369,6 +370,15 @@ export class Room implements RoomState {
 	public set videoSegments(value: Segment[]) {
 		this._videoSegments = value;
 		this.markDirty("videoSegments");
+	}
+
+	public get prevQueue(): QueueItem[] | null {
+		return this._prevQueue;
+	}
+
+	public set prevQueue(value: QueueItem[] | null) {
+		this._prevQueue = value;
+		this.markDirty("prevQueue");
 	}
 
 	get users(): RoomUserInfo[] {
@@ -980,6 +990,7 @@ export class Room implements RoomState {
 			[RoomRequestType.PlayNowRequest]: "playNow",
 			[RoomRequestType.ShuffleRequest]: "shuffle",
 			[RoomRequestType.PlaybackSpeedRequest]: "setPlaybackSpeed",
+			[RoomRequestType.RestoreQueueRequest]: "restoreQueue",
 		};
 
 		const handler = handlers[request.type];
@@ -1107,6 +1118,7 @@ export class Room implements RoomState {
 			}
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
+			this.prevQueue = null;
 			await this.publishRoomEvent(request, context, { video });
 			counterMediaQueued.labels({ service: video.service }).inc();
 		} else if (request.videos) {
@@ -1516,6 +1528,24 @@ export class Room implements RoomState {
 
 		this.flushPlaybackPosition();
 		this.playbackSpeed = request.speed;
+	}
+
+	public async restoreQueue(
+		request: RestoreQueueRequest,
+		_context: RoomRequestContext
+	): Promise<void> {
+		if (this.prevQueue === null) {
+			throw new Error("No previous queue to restore");
+		}
+
+		if (request.discard) {
+			this.log.debug("Discarding previous queue");
+			this.prevQueue = null;
+			return;
+		} else {
+			await this.queue.enqueue(...this.prevQueue);
+			this.prevQueue = null;
+		}
 	}
 }
 
