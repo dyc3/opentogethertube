@@ -26,10 +26,17 @@ describe("Room manager", () => {
 			const room = await DbRoom.findOne({ where: { name: "test" } });
 			expect(room).not.toBeNull();
 			expect(room?.permissions).not.toBeNull();
-			expect(room?.permissions).toMatch(/^\[(\[-?\d+,\d+\],?)+\]$/);
-			expect(room?.["role-admin"]).not.toBeNull();
-			expect(room?.["role-mod"]).not.toBeNull();
-			expect(room?.["role-trusted"]).not.toBeNull();
+			// eslint-disable-next-line jest/no-if
+			if (Array.isArray(room?.permissions)) {
+				let roles = room?.permissions.map(p => p[0]);
+				expect(roles).not.toContain(Role.Administrator);
+				expect(roles).not.toContain(Role.Owner);
+			} else {
+				throw new Error("permissions should be an array on a newly created room");
+			}
+			expect(room?.["role-admin"]).toBeInstanceOf(Array);
+			expect(room?.["role-mod"]).toBeInstanceOf(Array);
+			expect(room?.["role-trusted"]).toBeInstanceOf(Array);
 		});
 
 		it("should be able to load saved settings from database", async () => {
