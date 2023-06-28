@@ -153,25 +153,17 @@ export async function updateVideoInfo(video: Video, shouldLog = true): Promise<b
 		return false;
 	}
 
-	// TODO: do an upsert instead of a find and then create
-	// try {
-	// 	await CachedVideo.upsert(toDbVideo(video), {
-	// 		conflictWhere: { service: video.service, serviceId: video.id },
-	// 		conflictFields: ["service", "serviceId"],
-	// 	});
-	// } catch (err) {
-	// 	log.error(`Failed to cache video info ${err}`);
-	// 	// return false;
-	// 	throw err;
-	// }
-
-	let cached = await CachedVideo.findOne({
-		where: { service: video.service, serviceId: video.id },
-	});
-	if (cached) {
-		await cached.update(toDbVideo(video));
-	} else {
-		await CachedVideo.create(toDbVideo(video));
+	try {
+		if (shouldLog) {
+			log.debug(`Updating video cache: ${video.service} ${video.id}`);
+		}
+		await CachedVideo.upsert(toDbVideo(video), {
+			conflictWhere: { service: video.service, serviceId: video.id },
+			conflictFields: ["service", "serviceId"],
+		});
+	} catch (err) {
+		log.error(`Failed to cache video info ${err}`);
+		return false;
 	}
 
 	return true;
