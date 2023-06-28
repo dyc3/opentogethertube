@@ -3,6 +3,14 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
 	async up(queryInterface, Sequelize) {
+		await queryInterface.sequelize.query(`
+			DELETE FROM "CachedVideos"
+			WHERE "id" NOT IN (
+				SELECT MIN("id")
+				FROM "CachedVideos"
+				GROUP BY "service", "serviceId"
+			);
+		`);
 		await queryInterface.addConstraint("CachedVideos", {
 			fields: ["service", "serviceId"],
 			type: "UNIQUE",
