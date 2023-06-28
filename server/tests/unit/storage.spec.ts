@@ -1,13 +1,13 @@
 import _ from "lodash";
-const { CachedVideo, Room } = require("../../models");
+import { CachedVideo, Room as DbRoom } from "../../models";
 import storage from "../../storage";
-import permissions from "../../../common/permissions";
+import permissions, { Grants } from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
 import { Video } from "../../../common/models/video";
 
-describe.skip("Storage: Room Spec", () => {
+describe("Storage: Room Spec", () => {
 	beforeEach(async () => {
-		await Room.destroy({ where: {} });
+		await DbRoom.destroy({ where: {} });
 	});
 
 	it("should return room object without extra properties", async () => {
@@ -16,27 +16,25 @@ describe.skip("Storage: Room Spec", () => {
 			title: "Example Room",
 			description: "This is an example room.",
 			visibility: Visibility.Public,
+			queueMode: QueueMode.Vote,
 		});
 
 		const room = await storage.getRoomByName("example");
 		expect(room).not.toBeNull();
 		expect(room).toBeDefined();
 		expect(typeof room).toEqual("object");
-		expect(room).not.toBeInstanceOf(Room);
+		expect(room).not.toBeInstanceOf(DbRoom);
 		expect(room.id).toBeUndefined();
 		expect(room.createdAt).toBeUndefined();
 		expect(room.updatedAt).toBeUndefined();
-		expect(_.pick(room, "name", "title", "description", "visibility", "owner")).toEqual({
+		expect(room).toMatchObject({
 			name: "example",
 			title: "Example Room",
 			description: "This is an example room.",
 			visibility: Visibility.Public,
+			queueMode: QueueMode.Vote,
 			owner: null,
 		});
-		expect(room.permissions).toBeDefined();
-		expect(typeof room.permissions).toEqual("object");
-		expect(room.userRoles).toBeDefined();
-		expect(typeof room.userRoles).toEqual("object");
 	});
 
 	it("should return room object from room name, case insensitive", async () => {
@@ -48,7 +46,7 @@ describe.skip("Storage: Room Spec", () => {
 		});
 
 		const room = await storage.getRoomByName("capitalizedexampleroom");
-		expect(_.pick(room, "name", "title", "description", "visibility", "owner")).toEqual({
+		expect(room).toMatchObject({
 			name: "CapitalizedExampleRoom",
 			title: "Example Room",
 			description: "This is an example room.",
@@ -67,7 +65,7 @@ describe.skip("Storage: Room Spec", () => {
 	});
 
 	it("should create room in database", async () => {
-		expect(await Room.findOne({ where: { name: "example" } })).toBeNull();
+		expect(await DbRoom.findOne({ where: { name: "example" } })).toBeNull();
 
 		expect(
 			await storage.saveRoom({
@@ -78,16 +76,15 @@ describe.skip("Storage: Room Spec", () => {
 			})
 		).toBe(true);
 
-		let room = Room.findOne({ where: { name: "example" } });
-		expect(room).toBeInstanceOf(Room);
+		let room = await DbRoom.findOne({ where: { name: "example" } });
+		expect(room).toBeInstanceOf(DbRoom);
 		expect(room.id).toBeDefined();
-		expect(room.name).toBeDefined();
-		expect(room.name).toEqual("example");
-		expect(room.title).toBeDefined();
-		expect(room.title).toEqual("Example Room");
-		expect(room.description).toBeDefined();
-		expect(room.description).toEqual("This is an example room.");
-		expect(room.visibility).toEqual("public");
+		expect(room).toMatchObject({
+			name: "example",
+			title: "Example Room",
+			description: "This is an example room.",
+			visibility: Visibility.Public,
+		});
 	});
 
 	it("should not create room if name matches existing room, case insensitive", async () => {
@@ -99,7 +96,7 @@ describe.skip("Storage: Room Spec", () => {
 	});
 
 	it("should update the matching room in the database with the provided properties", async () => {
-		expect(await Room.findOne({ where: { name: "example" } })).toBeNull();
+		expect(await DbRoom.findOne({ where: { name: "example" } })).toBeNull();
 		expect(await storage.saveRoom({ name: "example" })).toBe(true);
 
 		expect(
@@ -111,16 +108,15 @@ describe.skip("Storage: Room Spec", () => {
 			})
 		).toBe(true);
 
-		let room = await Room.findOne({ where: { name: "example" } });
-		expect(room).toBeInstanceOf(Room);
+		let room = await DbRoom.findOne({ where: { name: "example" } });
+		expect(room).toBeInstanceOf(DbRoom);
 		expect(room.id).toBeDefined();
-		expect(room.name).toBeDefined();
-		expect(room.name).toEqual("example");
-		expect(room.title).toBeDefined();
-		expect(room.title).toEqual("Example Room");
-		expect(room.description).toBeDefined();
-		expect(room.description).toEqual("This is an example room.");
-		expect(room.visibility).toEqual("unlisted");
+		expect(room).toMatchObject({
+			name: "example",
+			title: "Example Room",
+			description: "This is an example room.",
+			visibility: Visibility.Unlisted,
+		});
 	});
 
 	it("should fail to update if provided properties does not include name", () => {
@@ -134,7 +130,7 @@ describe.skip("Storage: Room Spec", () => {
 	});
 
 	it("should return true if room name is taken", async () => {
-		expect(await Room.findOne({ where: { name: "example" } })).toBeNull();
+		expect(await DbRoom.findOne({ where: { name: "example" } })).toBeNull();
 		expect(await storage.isRoomNameTaken("example")).toBe(false);
 		expect(await storage.saveRoom({ name: "example" })).toBe(true);
 		expect(await storage.isRoomNameTaken("example")).toBe(true);
@@ -147,26 +143,26 @@ describe.skip("Storage: Room Spec", () => {
 	});
 
 	it("should save and load permissions correctly", async () => {
-		const perms = permissions.defaultPermissions();
-		perms.masks[0] ^= permissions.parseIntoGrantMask(["playback"]);
-		await storage.saveRoom({ name: "example", permissions: perms });
+		const grants = permissions.defaultPermissions();
+		grants.masks[0] ^= permissions.parseIntoGrantMask(["playback"]);
+		await storage.saveRoom({ name: "example", grants: grants });
 
 		let room = await storage.getRoomByName("example");
-		expect(room.permissions).toEqual(perms);
+		expect(room.grants).toEqual(grants);
 
-		perms.masks[0] ^= permissions.parseIntoGrantMask(["manage-queue"]);
-		await storage.updateRoom({ name: "example", permissions: perms });
+		grants.masks[0] ^= permissions.parseIntoGrantMask(["manage-queue"]);
+		await storage.updateRoom({ name: "example", grants });
 
 		room = await storage.getRoomByName("example");
-		expect(room.permissions).toEqual(perms);
+		expect(room.grants).toEqual(grants);
 	});
 
 	it("should load permissions as an instance of Grants", async () => {
-		await storage.saveRoom({ name: "example", permissions: new permissions.Grants() });
+		await storage.saveRoom({ name: "example", grants: new permissions.Grants() });
 
 		const room = await storage.getRoomByName("example");
-		expect(room.permissions).toBeInstanceOf(permissions.Grants);
-		expect(room.permissions).toEqual(new permissions.Grants());
+		expect(room.grants).toBeInstanceOf(permissions.Grants);
+		expect(room.grants).toEqual(new permissions.Grants());
 	});
 
 	it("should save and load userRoles correctly", async () => {
