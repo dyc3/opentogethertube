@@ -8,6 +8,7 @@ import statusapi from "./api/status";
 import { conf } from "./ott-config";
 import announceapi from "./api/announce";
 import dataapi from "./api/data";
+import { Counter } from "prom-client";
 
 const log = getLogger("api");
 

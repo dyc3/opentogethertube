@@ -6,6 +6,7 @@ import { OttException } from "../../common/exceptions";
 import { BadApiArgumentException } from "../exceptions";
 import InfoExtract from "../infoextractor";
 import { consumeRateLimitPoints } from "../rate-limit";
+import { counterHttpErrors } from "../metrics";
 
 const router = express.Router();
 const log = getLogger("api/data");
@@ -77,6 +78,7 @@ router.get("/previewAdd", async (req, res, next) => {
 });
 
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
+	counterHttpErrors.labels({ error: err.name }).inc();
 	if (err instanceof OttException) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
 		if (err.name === "BadApiArgumentException") {
