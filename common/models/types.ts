@@ -1,5 +1,5 @@
 import { Session } from "express-session";
-import { Video } from "./video";
+import { QueueItem, Video } from "./video";
 import { Grants } from "../permissions";
 import type { Segment } from "sponsorblock-api";
 
@@ -61,6 +61,8 @@ export interface RoomOptions extends RoomSettings {
 	isTemporary: boolean
 	owner: UserAccountAttributes | null
 	userRoles: Map<Role, Set<number>>
+	/** The queue as it was when the room was last unloaded. */
+	prevQueue: QueueItem[] | null;
 }
 
 export type RoomUserInfo = {

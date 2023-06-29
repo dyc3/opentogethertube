@@ -17,6 +17,12 @@ export default {
 		"search": "Search",
 		"undo": "Undo",
 		"copy": "Copy",
+		"show": "Show",
+		"hide": "Hide",
+		"discard": "Discard",
+		"loading": "Loading...",
+		"view": "View",
+		"restore": "Restore",
 	},
 	"landing": {
 		hero: {
@@ -197,6 +203,10 @@ export default {
 		"export": "Export",
 		"export-diag-title": "Export Queue",
 		"export-hint": 'Copy and paste this text into the "Add" tab to restore this queue.',
+		"restore": "Would you like to restore the videos from the previous queue?",
+		"restore-queue": "Restore Queue?",
+		"restore-queue-hint":
+			"This is what was in the queue last time this room was active. Would you like to restore it?",
 	},
 	"video-queue-item": {
 		"experimental": "Experimental support for this service! Expect it to break a lot.",

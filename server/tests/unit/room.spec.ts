@@ -297,6 +297,47 @@ describe("Room", () => {
 				expect(room.playbackSpeed).toEqual(1);
 			});
 		});
+
+		describe("RestoreQueueRequest", () => {
+			it("should restore the queue", async () => {
+				const prevQueue = [
+					{ service: "fakeservice", id: "video1" },
+					{ service: "fakeservice", id: "video2" },
+					{ service: "fakeservice", id: "video3" },
+					{ service: "fakeservice", id: "video4" },
+					{ service: "fakeservice", id: "video5" },
+				];
+				room.prevQueue = _.cloneDeep(prevQueue);
+				await room.processRequest(
+					{
+						type: RoomRequestType.RestoreQueueRequest,
+					},
+					{ username: "test", role: Role.Owner, clientId: "1234" }
+				);
+				expect(room.queue.items).toEqual(prevQueue);
+				expect(room.prevQueue).toBeNull();
+			});
+
+			it("should discard the queue", async () => {
+				room.prevQueue = [
+					{ service: "fakeservice", id: "video1" },
+					{ service: "fakeservice", id: "video2" },
+					{ service: "fakeservice", id: "video3" },
+					{ service: "fakeservice", id: "video4" },
+					{ service: "fakeservice", id: "video5" },
+				];
+				await room.processRequest(
+					{
+						type: RoomRequestType.RestoreQueueRequest,
+						discard: true,
+					},
+					{ username: "test", role: Role.Owner, clientId: "1234" }
+				);
+				expect(room.queue.items).not.toEqual(room.prevQueue);
+				expect(room.queue.items).toEqual([]);
+				expect(room.prevQueue).toBeNull();
+			});
+		});
 	});
 
 	describe("auto dequeuing next video", () => {

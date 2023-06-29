@@ -45,6 +45,7 @@ interface BaseStoreState {
 			category: string;
 		}[];
 		grants: Grants;
+		prevQueue: QueueItem[] | null;
 	};
 
 	keepAliveInterval: number | null;
@@ -94,6 +95,7 @@ export function buildNewStore() {
 					voteCounts: undefined,
 					playbackStartTime: undefined,
 					grants: new Grants(),
+					prevQueue: null,
 				},
 
 				keepAliveInterval: null,

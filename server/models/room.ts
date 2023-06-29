@@ -4,6 +4,7 @@ import { QueueMode, Visibility, Role } from "../../common/models/types";
 import { User } from "./user";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import type { OldRoleGrants, GrantMask } from "../../common/permissions";
+import { QueueItem } from "../../common/models/video";
 
 export interface RoomAttributes {
 	"id": number;
@@ -18,6 +19,7 @@ export interface RoomAttributes {
 	"role-mod": Array<number>;
 	"role-trusted": Array<number>;
 	"autoSkipSegments": boolean;
+	"prevQueue": Array<QueueItem> | null;
 }
 
 type RoomCreationAttributes = Optional<RoomAttributes, "id">;
@@ -38,6 +40,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "role-mod": Array<number>;
 	declare "role-trusted": Array<number>;
 	declare "autoSkipSegments": boolean;
+	declare "prevQueue": Array<QueueItem> | null;
 }
 
 export const createModel = (sequelize: Sequelize) => {
@@ -95,6 +98,10 @@ export const createModel = (sequelize: Sequelize) => {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,
 				defaultValue: true,
+			},
+			"prevQueue": {
+				type: DataTypes.JSONB,
+				allowNull: true,
 			},
 		},
 		{

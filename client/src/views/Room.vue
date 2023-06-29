@@ -26,6 +26,7 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
+				<RestoreQueue />
 				<div no-gutters class="video-container">
 					<div
 						class="video-subcontainer"
@@ -223,6 +224,7 @@ import { useScreenOrientation, useMouse } from "@vueuse/core";
 import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
 import VideoControls from "@/components/controls/VideoControls.vue";
 import { VOLUME_KEY } from "@/components/controls/controlkeys";
+import RestoreQueue from "@/components/RestoreQueue.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -241,6 +243,7 @@ export default defineComponent({
 		RoomDisconnected,
 		ServerMessageHandler,
 		WorkaroundPlaybackStatusUpdater,
+		RestoreQueue,
 	},
 	setup() {
 		const store = useStore();
