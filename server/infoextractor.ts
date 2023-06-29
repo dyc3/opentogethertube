@@ -25,6 +25,7 @@ import TubiAdapter from "./services/tubi";
 import { Counter } from "prom-client";
 import { conf } from "./ott-config";
 import PeertubeAdapter from "./services/peertube";
+import PlutoAdapter from "./services/pluto";
 
 const log = getLogger("infoextract");
 
@@ -80,6 +81,9 @@ export async function initExtractor() {
 	}
 	if (enabled.includes("hls")) {
 		adapters.push(new HlsVideoAdapter());
+	}
+	if (enabled.includes("pluto")) {
+		adapters.push(new PlutoAdapter());
 	}
 
 	await Promise.all(adapters.map(adapter => adapter.initialize()));

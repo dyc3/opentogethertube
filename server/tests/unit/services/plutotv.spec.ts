@@ -1,34 +1,34 @@
-import PlutoAdapter, { type PlutoParsedSlugs } from "../../../services/pluto";
+import PlutoAdapter, { type PlutoParsedIds } from "../../../services/pluto";
 
-const singleVideoLinks: [string, PlutoParsedSlugs][] = [
+const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[
 		"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/season/1/episode/603db2a8e7c979001a890535",
 		{
 			videoType: "series",
-			slug: "603db25de7c979001a88f77a",
-			subslug: "603db2a8e7c979001a890535",
+			id: "603db25de7c979001a88f77a",
+			subid: "603db2a8e7c979001a890535",
 		},
 	],
 	[
 		"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/season/2/episode/624ddac8d0f36a0013e5477f",
 		{
 			videoType: "series",
-			slug: "603db25de7c979001a88f77a",
-			subslug: "624ddac8d0f36a0013e5477f",
+			id: "603db25de7c979001a88f77a",
+			subid: "624ddac8d0f36a0013e5477f",
 		},
 	],
 	[
 		"https://pluto.tv/en/on-demand/movies/616872fc0b4e8f001a960443/details",
 		{
 			videoType: "movie",
-			slug: "616872fc0b4e8f001a960443",
+			id: "616872fc0b4e8f001a960443",
 		},
 	],
 	[
 		"https://pluto.tv/en/on-demand/movies/616872fc0b4e8f001a960443",
 		{
 			videoType: "movie",
-			slug: "616872fc0b4e8f001a960443",
+			id: "616872fc0b4e8f001a960443",
 		},
 	],
 ];
@@ -61,7 +61,7 @@ describe("Pluto TV", () => {
 	describe("getVideoId", () => {
 		it.each(singleVideoLinks)("should be able to get the video id from %s", (link, data) => {
 			expect(adapter.getVideoId(link)).toEqual(
-				`${data.slug}${data.subslug ? `/${data.subslug}` : ""}`
+				`${data.id}${data.subid ? `/${data.subid}` : ""}`
 			);
 		});
 	});

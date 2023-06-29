@@ -50,7 +50,9 @@
 			@error="onError"
 		/>
 		<PlyrPlayer
-			v-else-if="!!source && ['direct', 'hls', 'reddit', 'tubi'].includes(source.service)"
+			v-else-if="
+				!!source && ['direct', 'hls', 'reddit', 'tubi', 'pluto'].includes(source.service)
+			"
 			ref="player"
 			:service="source.service"
 			:video-url="source.hls_url ?? source.id"
