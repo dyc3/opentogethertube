@@ -1,0 +1,45 @@
+version: '3.7'
+x-environment:
+  &default-environment
+  POSTGRES_USER: vscode
+  POSTGRES_PASSWORD: notsecure
+  POSTGRES_DB: opentogethertube
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    environment:
+      <<: *default-environment
+      REDIS_HOST: redis_db
+      POSTGRES_HOST: postgres_db
+    user: vscode
+    command: sleep infinity
+    volumes:
+      - ..:/workspace
+    links:
+      - redis_db
+      - postgres_db
+    depends_on:
+      - redis_db
+      - postgres_db
+  redis_db:
+    image: redis
+    healthcheck:
+      test: "redis-cli ping"
+    volumes:
+      - db-data-redis:/data
+
+  postgres_db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      <<: *default-environment
+    healthcheck:
+      test: "pg_isready -U opentogethertube"
+    volumes:
+      - db-data-postgres:/var/lib/postgresql/data
+
+volumes:
+  db-data-postgres:
+  db-data-redis:
