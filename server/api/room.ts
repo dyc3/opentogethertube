@@ -24,6 +24,7 @@ import {
 import { getApiKey } from "../admin";
 import { AddRequest } from "ott-common/models/messages";
 import { v4 as uuidv4 } from "uuid";
+import { counterHttpErrors } from "../metrics";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -424,6 +425,7 @@ const removeFromQueue: RequestHandler<
 };
 
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
+	counterHttpErrors.labels({ error: err.name }).inc();
 	if (err instanceof OttException) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
 		// FIXME: allow for type narrowing based on err.name

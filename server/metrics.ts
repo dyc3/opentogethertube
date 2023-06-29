@@ -24,6 +24,12 @@ const histHttpRequestDuration = new Histogram({
 	labelNames: ["http_method", "http_status"],
 });
 
+export const counterHttpErrors = new Counter({
+	name: "ott_http_errors",
+	help: "Errors thrown by handling API requests",
+	labelNames: ["error"],
+});
+
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction) {
 	counterHttpRequestsReceived.labels({ http_method: req.method }).inc();
 	let start = process.hrtime();
