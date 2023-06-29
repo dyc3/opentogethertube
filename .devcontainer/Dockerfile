@@ -37,10 +37,13 @@ RUN apt-get -y update --no-install-recommends \
 	libcairo2 \
 	libasound2 \
 	libsodium-dev \
+	libtool-bin \
 	&& apt-get autoremove -y \
 	&& apt-get clean -y
 
-RUN curl -fsSL https://raw.githubusercontent.com/devcontainers/features/main/src/node/install.sh | bash -
+RUN curl -fsSL https://raw.githubusercontent.com/devcontainers/features/main/src/node/install.sh | VERSION=16 bash -
+RUN curl -fsSL https://raw.githubusercontent.com/devcontainers/features/main/src/rust/install.sh | bash -
+RUN curl -fsSL https://raw.githubusercontent.com/devcontainers/features/main/src/github-cli/install.sh | bash -
 
 ENV DEBIAN_FRONTEND=dialog
 
