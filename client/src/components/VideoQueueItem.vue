@@ -29,7 +29,7 @@
 			</div>
 		</div>
 		<div class="d-flex" style="justify-content: center; flex-direction: column">
-			<div class="button-container">
+			<div class="button-container" v-if="!hideAllButtons">
 				<v-btn
 					class="button-with-icon"
 					@click="vote"
@@ -164,6 +164,7 @@ import { useConnection } from "@/plugins/connection";
 interface VideoQueueItemProps {
 	item: QueueItem;
 	isPreview: boolean;
+	hideAllButtons: boolean;
 	index: number;
 }
 
@@ -172,6 +173,7 @@ const VideoQueueItem = defineComponent({
 	props: {
 		item: { type: Object as PropType<QueueItem>, required: true },
 		isPreview: { type: Boolean, default: false },
+		hideAllButtons: { type: Boolean, default: false },
 		index: { type: Number, required: false },
 	},
 	setup(props: VideoQueueItemProps) {
