@@ -134,12 +134,11 @@ describe("Storage: Room Spec", () => {
 		let room = await DbRoom.findOne({ where: { name: "example" } });
 		expect(room).toBeInstanceOf(DbRoom);
 		expect(room?.id).toBeDefined();
-		expect(room).toMatchObject({
-			name: "example",
-			title: "Example Room",
-			description: "This is an example room.",
-			visibility: Visibility.Unlisted,
-		});
+		// For some reason, toMatchObject was causing this test to be super flaky on CI across all node versions
+		expect(room?.name).toEqual("example");
+		expect(room?.title).toEqual("Example Room");
+		expect(room?.description).toEqual("This is an example room.");
+		expect(room?.visibility).toEqual(Visibility.Unlisted);
 	});
 
 	it("should fail to update if provided properties does not include name", () => {
