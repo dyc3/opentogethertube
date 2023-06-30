@@ -11,6 +11,7 @@
     "server",
     "client"
   ],
+  "type": "module",
   "scripts": {
     "start": "yarn workspace ott-server start",
     "serve": "yarn workspace ott-client serve",
