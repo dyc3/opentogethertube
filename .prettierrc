@@ -1,4 +1,4 @@
-module.exports = {
+{
 	"arrowParens": "avoid",
 	"bracketSpacing": true,
 	"embeddedLanguageFormatting": "auto",
@@ -16,13 +16,13 @@ module.exports = {
 	"trailingComma": "es5",
 	"useTabs": true,
 	"vueIndentScriptAndStyle": false,
-	overrides: [
+	"overrides": [
 		{
-			files: ["*.yaml", "*.yml"],
-			options: {
-				useTabs: false,
-				tabWidth: 2,
-			},
-		},
-	],
-};
+			"files": ["*.yaml", "*.yml"],
+			"options": {
+				"useTabs": false,
+				"tabWidth": 2
+			}
+		}
+	]
+}

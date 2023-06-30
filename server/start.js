@@ -1,5 +1,5 @@
-const tsnode = require("ts-node");
-tsnode.register({
-	transpileOnly: true,
-});
-require("./app.ts");
+// import { register } from "ts-node";
+// register({
+// 	transpileOnly: true,
+// });
+import "./app.ts";

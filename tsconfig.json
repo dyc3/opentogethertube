@@ -30,7 +30,4 @@
 		"tests/**/*.tsx"
 	],
 	"exclude": ["node_modules", "dist", "ts-out"],
-	"references": [
-		{ "path": "./common" },
-	]
 }

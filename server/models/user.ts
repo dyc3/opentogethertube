@@ -1,4 +1,3 @@
-"use strict";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 import { UserAccountAttributes } from "ott-common/models/types";
 import { conf } from "../ott-config";

@@ -1,7 +1,6 @@
-import { Session } from "express-session";
+import type { Session } from "express-session";
 import { QueueItem, Video } from "./video";
 import { Grants } from "../permissions";
-import type { Segment } from "sponsorblock-api";
 
 export enum Visibility {
 	Public = "public",
