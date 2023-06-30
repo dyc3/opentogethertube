@@ -1,4 +1,3 @@
-"use strict";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 import { QueueMode, Visibility, Role } from "../../common/models/types";
 import { User } from "./user";
