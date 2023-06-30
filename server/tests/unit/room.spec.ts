@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import tokens from "../../../server/auth/tokens";
 import { RoomRequestType } from "../../../common/models/messages";
-import { QueueMode, Role } from "../../../common/models/types";
+import { BehaviorOption, QueueMode, Role } from "../../../common/models/types";
 import { Room, RoomUser } from "../../../server/room";
 import infoextractor from "../../../server/infoextractor";
 import { Video } from "../../../common/models/video";
@@ -431,5 +431,29 @@ describe("Room", () => {
 		});
 
 		expect(await room.getRoleFromToken("fake")).toEqual(Role.RegisteredUser);
+	});
+
+	describe("restore queue behavior", () => {
+		it("should always restore the queue when behavior is always", async () => {
+			const room = new Room({
+				name: "test",
+				prevQueue: [{ service: "fakeservice", id: "foo" }],
+				restoreQueueBehavior: BehaviorOption.Always,
+			});
+
+			expect(room.queue.items).toEqual([{ service: "fakeservice", id: "foo" }]);
+			expect(room.prevQueue).toBeNull();
+		});
+
+		it("should never restore the queue when behavior is never", async () => {
+			const room = new Room({
+				name: "test",
+				prevQueue: [{ service: "fakeservice", id: "foo" }],
+				restoreQueueBehavior: BehaviorOption.Never,
+			});
+
+			expect(room.queue.items).toEqual([]);
+			expect(room.prevQueue).toBeNull();
+		});
 	});
 });
