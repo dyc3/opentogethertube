@@ -1,4 +1,4 @@
-import { OttWebsocketError } from "ott-common/models/types";
+import { OttWebsocketError, BehaviorOption } from "ott-common/models/types";
 
 export default {
 	"common": {
@@ -23,6 +23,11 @@ export default {
 		"loading": "Loading...",
 		"view": "View",
 		"restore": "Restore",
+	},
+	"behavior": {
+		[BehaviorOption.Always]: "Always",
+		[BehaviorOption.Prompt]: "Prompt",
+		[BehaviorOption.Never]: "Never",
 	},
 	"landing": {
 		hero: {
@@ -244,6 +249,7 @@ export default {
 		"settings-applied": "Settings applied",
 		"now-own-the-room": "You now own the room {room}.",
 		"load-failed": "Failed to load room settings.",
+		"restore-queue": "Restore the queue when the room is loaded",
 	},
 	"create-room-form": {
 		"card-title": "Create a Permanent Room",

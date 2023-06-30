@@ -1,5 +1,5 @@
 import { Grants } from "../permissions";
-import { QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
+import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
@@ -54,6 +54,7 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 	/** @deprecated */
 	permissions: Grants;
 	autoSkipSegments: boolean;
+	restoreQueueBehavior: BehaviorOption;
 	users: RoomUserInfo[];
 }
 

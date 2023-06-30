@@ -18,8 +18,8 @@
 			<v-select
 				:label="$t('room-settings.visibility')"
 				:items="[
-					{ title: $t('room-settings.public'), value: 'public' },
-					{ title: $t('room-settings.unlisted'), value: 'unlisted' },
+					{ title: $t('room-settings.public'), value: Visibility.Public },
+					{ title: $t('room-settings.unlisted'), value: Visibility.Unlisted },
 				]"
 				v-model="inputRoomSettings.visibility"
 				:loading="isLoadingRoomSettings"
@@ -68,9 +68,35 @@
 			<v-checkbox
 				v-model="inputRoomSettings.autoSkipSegments"
 				:label="$t('room-settings.auto-skip-text')"
-				:disabled="!granted('configure-room.set-auto-skip')"
+				:disabled="!granted('configure-room.other')"
 				data-cy="input-auto-skip"
 			/>
+			<v-select
+				density="compact"
+				:label="$t('room-settings.restore-queue')"
+				:items="[
+					{
+						title: $t(`behavior.${BehaviorOption.Always}`),
+						value: BehaviorOption.Always,
+					},
+					{
+						title: $t(`behavior.${BehaviorOption.Prompt}`),
+						value: BehaviorOption.Prompt,
+					},
+					{
+						title: $t(`behavior.${BehaviorOption.Never}`),
+						value: BehaviorOption.Never,
+					},
+				]"
+				v-model="inputRoomSettings.restoreQueueBehavior"
+				:loading="isLoadingRoomSettings"
+				:disabled="!granted('configure-room.other')"
+				data-cy="select-restore-queue"
+			>
+				<template #item="{ props }">
+					<v-list-item v-bind="props" />
+				</template>
+			</v-select>
 			<PermissionsEditor
 				v-if="store.state.user && store.state.room.hasOwner"
 				v-model="inputRoomSettings.grants"
@@ -118,7 +144,7 @@ import _ from "lodash";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http";
-import { Visibility, QueueMode, RoomSettings, Role } from "ott-common/models/types";
+import { Visibility, QueueMode, RoomSettings, Role, BehaviorOption } from "ott-common/models/types";
 import { Grants } from "ott-common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
@@ -144,6 +170,7 @@ const RoomSettingsForm = defineComponent({
 			queueMode: QueueMode.Manual,
 			grants: new Grants(),
 			autoSkipSegments: true,
+			restoreQueueBehavior: BehaviorOption.Prompt,
 		});
 
 		onMounted(async () => {
@@ -164,7 +191,8 @@ const RoomSettingsForm = defineComponent({
 					"visibility",
 					"queueMode",
 					"grants",
-					"autoSkipSegments"
+					"autoSkipSegments",
+					"restoreQueueBehavior"
 				);
 			} catch (err) {
 				toast.add({
@@ -182,7 +210,8 @@ const RoomSettingsForm = defineComponent({
 				description: "set-description",
 				visibility: "set-visibility",
 				queueMode: "set-queue-mode",
-				autoSkipSegments: "set-auto-skip",
+				autoSkipSegments: "other",
+				restoreQueueBehavior: "other",
 			};
 			let blocked: (keyof RoomSettings)[] = [];
 			for (let prop of Object.keys(propsToGrants)) {
@@ -252,6 +281,7 @@ const RoomSettingsForm = defineComponent({
 			Visibility,
 			QueueMode,
 			Role,
+			BehaviorOption,
 		};
 	},
 });
