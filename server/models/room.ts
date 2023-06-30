@@ -1,5 +1,5 @@
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { QueueMode, Visibility, Role } from "../../common/models/types";
+import { QueueMode, Visibility, Role, BehaviorOption } from "../../common/models/types";
 import { User } from "./user";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import type { OldRoleGrants, GrantMask } from "../../common/permissions";
@@ -19,6 +19,7 @@ export interface RoomAttributes {
 	"role-trusted": Array<number>;
 	"autoSkipSegments": boolean;
 	"prevQueue": Array<QueueItem> | null;
+	"restoreQueueBehavior": BehaviorOption;
 }
 
 type RoomCreationAttributes = Optional<RoomAttributes, "id">;
@@ -40,6 +41,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "role-trusted": Array<number>;
 	declare "autoSkipSegments": boolean;
 	declare "prevQueue": Array<QueueItem> | null;
+	declare "restoreQueueBehavior": BehaviorOption;
 }
 
 export const createModel = (sequelize: Sequelize) => {
@@ -101,6 +103,14 @@ export const createModel = (sequelize: Sequelize) => {
 			"prevQueue": {
 				type: DataTypes.JSONB,
 				allowNull: true,
+			},
+			"restoreQueueBehavior": {
+				type: DataTypes.NUMBER,
+				allowNull: false,
+				defaultValue: BehaviorOption.Prompt,
+				validate: {
+					isIn: [[BehaviorOption.Always, BehaviorOption.Prompt, BehaviorOption.Never]],
+				},
 			},
 		},
 		{

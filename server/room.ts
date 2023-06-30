@@ -44,6 +44,7 @@ import {
 	RoomEventContext,
 	RoomSettings,
 	AuthToken,
+	BehaviorOption,
 } from "../common/models/types";
 import { User } from "./models/user";
 import type { QueueItem, Video, VideoId } from "../common/models/video";
@@ -170,6 +171,7 @@ export class Room implements RoomState {
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>;
 	_autoSkipSegments = true;
+	restoreQueueBehavior: BehaviorOption = BehaviorOption.Prompt;
 
 	_currentSource: QueueItem | null = null;
 	queue: VideoQueue;
@@ -222,11 +224,26 @@ export class Room implements RoomState {
 				"isPlaying",
 				"playbackSpeed",
 				"autoSkipSegments",
-				"prevQueue"
+				"prevQueue",
+				"restoreQueueBehavior"
 			)
 		);
+		if (this.restoreQueueBehavior === BehaviorOption.Never) {
+			this.prevQueue = null;
+		}
 		if (Array.isArray(this.queue)) {
 			this.queue = new VideoQueue(this.queue);
+		}
+		if (
+			this.queue.length === 0 &&
+			this.restoreQueueBehavior === BehaviorOption.Always &&
+			this.prevQueue
+		) {
+			// unsafe enqueue to avoid event loop load
+			// safe because we're in the constructor
+			this.queue.items.push(...this.prevQueue);
+			this.markDirty("queue");
+			this.prevQueue = null;
 		}
 		if (options.grants instanceof Grants) {
 			this.grants = options.grants;
@@ -727,7 +744,8 @@ export class Room implements RoomState {
 			"_playbackStart",
 			"videoSegments",
 			"autoSkipSegments",
-			"prevQueue"
+			"prevQueue",
+			"restoreQueueBehavior"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -753,7 +771,8 @@ export class Room implements RoomState {
 			"voteCounts",
 			"videoSegments",
 			"autoSkipSegments",
-			"prevQueue"
+			"prevQueue",
+			"restoreQueueBehavior"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -788,7 +807,8 @@ export class Room implements RoomState {
 			"hasOwner",
 			"videoSegments",
 			"autoSkipSegments",
-			"prevQueue"
+			"prevQueue",
+			"restoreQueueBehavior"
 		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
@@ -1394,7 +1414,8 @@ export class Room implements RoomState {
 			description: "configure-room.set-description",
 			visibility: "configure-room.set-visibility",
 			queueMode: "configure-room.set-queue-mode",
-			autoSkipSegments: "configure-room.set-auto-skip",
+			autoSkipSegments: "configure-room.other",
+			restoreQueueBehavior: "configure-room.other",
 		};
 		const roleToPerms: Record<Exclude<Role, Role.Owner | Role.Administrator>, string> = {
 			[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",

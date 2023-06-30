@@ -188,6 +188,7 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 				"users",
 				"grants",
 				"autoSkipSegments",
+				"restoreQueueBehavior",
 			])
 		),
 		queue: room.queue.items,

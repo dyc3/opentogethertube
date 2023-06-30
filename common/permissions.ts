@@ -139,7 +139,7 @@ export const PERMISSIONS = [
 		minRole: Role.TrustedUser,
 	}),
 	new Permission({
-		name: "configure-room.set-auto-skip",
+		name: "configure-room.other",
 		mask: 1 << 22,
 		minRole: Role.UnregisteredUser,
 	}),
@@ -166,7 +166,7 @@ function defaultPermissions(): Grants {
 			"configure-room.set-description",
 			"configure-room.set-visibility",
 			"configure-room.set-queue-mode",
-			"configure-room.set-auto-skip",
+			"configure-room.other",
 		]),
 		[Role.RegisteredUser]: parseIntoGrantMask([]),
 		[Role.TrustedUser]: parseIntoGrantMask([]),
