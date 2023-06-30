@@ -30,4 +30,7 @@
 		"tests/**/*.tsx"
 	],
 	"exclude": ["node_modules", "dist", "ts-out"],
+	"ts-node": {
+		"transpileOnly": true
+	}
 }
