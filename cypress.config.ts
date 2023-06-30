@@ -1,5 +1,5 @@
 import { defineConfig } from "cypress";
-import viteConfig from "client/vite.config";
+import viteConfig from "ott-client/vite.config";
 
 export default defineConfig({
 	projectId: "3utpz8",
@@ -14,11 +14,6 @@ export default defineConfig({
 		OTT_API_KEY: `TESTAPIKEY-abcdefghijklmnopqrstuvwxyz`,
 	},
 	e2e: {
-		// We've imported your old cypress plugins here.
-		// You may want to clean this up later by importing these.
-		setupNodeEvents(on, config) {
-			return require("./tests/e2e/plugins/index.js")(on, config);
-		},
 		baseUrl: "http://localhost:8080/",
 		specPattern: "tests/e2e/integration/**/*.{js,jsx,ts,tsx}",
 		supportFile: "tests/e2e/support/index.ts",
