@@ -106,6 +106,7 @@ function dbToRoomArgs(db: DbRoom): RoomOptions {
 		userRoles: new Map<Role, Set<number>>(),
 		autoSkipSegments: db.autoSkipSegments,
 		prevQueue: db.prevQueue,
+		restoreQueueBehavior: db.restoreQueueBehavior,
 	};
 	for (let i = Role.TrustedUser; i <= 4; i++) {
 		room.userRoles.set(i, new Set(db[`role-${permissions.ROLE_NAMES[i]}`]));
@@ -135,6 +136,7 @@ export function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id">
 		"role-mod": [],
 		"role-admin": [],
 		"prevQueue": room.prevQueue,
+		"restoreQueueBehavior": room.restoreQueueBehavior,
 	};
 	if (room.owner) {
 		db.ownerId = room.owner.id;
@@ -163,6 +165,7 @@ export function roomToDbPartial(
 			queueMode: room.queueMode,
 			autoSkipSegments: room.autoSkipSegments,
 			prevQueue: room.prevQueue,
+			restoreQueueBehavior: room.restoreQueueBehavior,
 		},
 		v => !!v
 	);
