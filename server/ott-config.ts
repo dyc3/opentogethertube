@@ -116,7 +116,7 @@ export const conf = convict({
 		password: {
 			doc: "The database user's password.",
 			format: String,
-			default: null,
+			default: null as string | null,
 			env: "POSTGRES_PASSWORD",
 			nullable: true,
 			sensitive: true,
