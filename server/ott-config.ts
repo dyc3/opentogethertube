@@ -148,7 +148,7 @@ export const conf = convict({
 		password: {
 			doc: "The redis password. The redis URL will take precedence over this option.",
 			format: String,
-			default: null,
+			default: null as string | null,
 			env: "REDIS_PASSWORD",
 			nullable: true,
 			sensitive: true,
@@ -370,7 +370,6 @@ function postProcessConfig(): void {
 
 	if (process.env.POSTGRES_DB_PASSWORD) {
 		log.warn("POSTGRES_DB_PASSWORD is deprecated. Please use POSTGRES_PASSWORD instead.");
-		// @ts-expect-error it's supposed to be a string, but ts thinks its null
 		conf.set("db.password", process.env.POSTGRES_DB_PASSWORD);
 	}
 
