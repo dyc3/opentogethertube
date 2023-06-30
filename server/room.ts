@@ -224,7 +224,8 @@ export class Room implements RoomState {
 				"isPlaying",
 				"playbackSpeed",
 				"autoSkipSegments",
-				"prevQueue"
+				"prevQueue",
+				"restoreQueueBehavior"
 			)
 		);
 		if (this.restoreQueueBehavior === BehaviorOption.Never) {
@@ -232,9 +233,17 @@ export class Room implements RoomState {
 		}
 		if (Array.isArray(this.queue)) {
 			this.queue = new VideoQueue(this.queue);
-			if (this.restoreQueueBehavior === BehaviorOption.Always && this.prevQueue) {
-				this.queue.enqueue(...this.prevQueue);
-			}
+		}
+		if (
+			this.queue.length === 0 &&
+			this.restoreQueueBehavior === BehaviorOption.Always &&
+			this.prevQueue
+		) {
+			// unsafe enqueue to avoid event loop load
+			// safe because we're in the constructor
+			this.queue.items.push(...this.prevQueue);
+			this.markDirty("queue");
+			this.prevQueue = null;
 		}
 		if (options.grants instanceof Grants) {
 			this.grants = options.grants;
@@ -735,7 +744,8 @@ export class Room implements RoomState {
 			"_playbackStart",
 			"videoSegments",
 			"autoSkipSegments",
-			"prevQueue"
+			"prevQueue",
+			"restoreQueueBehavior"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -761,7 +771,8 @@ export class Room implements RoomState {
 			"voteCounts",
 			"videoSegments",
 			"autoSkipSegments",
-			"prevQueue"
+			"prevQueue",
+			"restoreQueueBehavior"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -796,7 +807,8 @@ export class Room implements RoomState {
 			"hasOwner",
 			"videoSegments",
 			"autoSkipSegments",
-			"prevQueue"
+			"prevQueue",
+			"restoreQueueBehavior"
 		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));

@@ -455,5 +455,17 @@ describe("Room", () => {
 			expect(room.queue.items).toEqual([]);
 			expect(room.prevQueue).toBeNull();
 		});
+
+		it("should never overwrite an existing queue when behavior is always", async () => {
+			const room = new Room({
+				name: "test",
+				// @ts-expect-error testing restoring from redis
+				queue: [{ service: "fakeservice", id: "bar" }],
+				prevQueue: [{ service: "fakeservice", id: "foo" }],
+				restoreQueueBehavior: BehaviorOption.Always,
+			});
+
+			expect(room.queue.items).toEqual([{ service: "fakeservice", id: "bar" }]);
+		});
 	});
 });
