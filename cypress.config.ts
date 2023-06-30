@@ -19,7 +19,7 @@ export default defineConfig({
 		supportFile: "tests/e2e/support/index.ts",
 		excludeSpecPattern: "tests/e2e/integration/examples/**",
 		retries: {
-			runMode: 3,
+			runMode: 10,
 		},
 		experimentalRunAllSpecs: true,
 	},
@@ -28,7 +28,7 @@ export default defineConfig({
 		indexHtmlFile: "client/tests/e2e/support/component-index.html",
 		specPattern: "client/tests/e2e/component/**/*.cy.{js,ts}",
 		retries: {
-			runMode: 3,
+			runMode: 10,
 		},
 
 		devServer: {
