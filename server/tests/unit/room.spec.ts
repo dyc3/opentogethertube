@@ -468,4 +468,62 @@ describe("Room", () => {
 			expect(room.queue.items).toEqual([{ service: "fakeservice", id: "bar" }]);
 		});
 	});
+
+	describe("vote skip", () => {
+		it("should add a vote when vote skip is enabled", async () => {
+			const room = new Room({
+				name: "test",
+				enableVoteSkip: true,
+			});
+			room.currentSource = { service: "fakeservice", id: "foo" };
+			room.realusers = [new RoomUser("user"), new RoomUser("user2"), new RoomUser("user3")];
+
+			await room.processRequest(
+				{
+					type: RoomRequestType.SkipRequest,
+				},
+				{
+					username: "user",
+					role: Role.UnregisteredUser,
+					clientId: "user",
+				}
+			);
+
+			expect(room.currentSource).toEqual({ service: "fakeservice", id: "foo" });
+			expect(room.votesToSkip.has("user")).toEqual(true);
+		});
+
+		it("should skip when enough votes are cast", async () => {
+			const room = new Room({
+				name: "test",
+				enableVoteSkip: true,
+			});
+			room.currentSource = { service: "fakeservice", id: "foo" };
+			room.realusers = [new RoomUser("user"), new RoomUser("user2"), new RoomUser("user3")];
+
+			await room.processRequest(
+				{
+					type: RoomRequestType.SkipRequest,
+				},
+				{
+					username: "user",
+					role: Role.UnregisteredUser,
+					clientId: "user",
+				}
+			);
+			await room.processRequest(
+				{
+					type: RoomRequestType.SkipRequest,
+				},
+				{
+					username: "user2",
+					role: Role.UnregisteredUser,
+					clientId: "user2",
+				}
+			);
+
+			expect(room.currentSource).toEqual(null);
+			expect(room.votesToSkip.size).toEqual(0);
+		});
+	});
 });
