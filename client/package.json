@@ -19,6 +19,7 @@
 		"@vueuse/core": "^9.6.0",
 		"load-script": "^1.0.0",
 		"material-design-icons-iconfont": "^5.0.1",
+		"ott-common": "./common",
 		"sortablejs": "^1.15.0",
 		"sortablejs-vue3": "^1.2.3",
 		"video.js": "^7.15.4",
