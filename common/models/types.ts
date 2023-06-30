@@ -15,6 +15,12 @@ export enum QueueMode {
 	Dj = "dj",
 }
 
+export enum BehaviorOption {
+	Always = 2,
+	Prompt = 1,
+	Never = 0,
+}
+
 export enum OttWebsocketError {
 	UNKNOWN = 4000,
 	INVALID_CONNECTION_URL = 4001,
@@ -50,6 +56,7 @@ export interface RoomSettings {
 	queueMode: QueueMode
 	grants: Grants
 	autoSkipSegments: boolean
+	restoreQueueBehavior: BehaviorOption
 }
 
 /**
