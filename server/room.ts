@@ -1109,8 +1109,13 @@ export class Room implements RoomState {
 		let shouldSkip = false;
 		if (this.enableVoteSkip) {
 			if (context.clientId) {
-				this.log.debug(`adding vote to skip from ${context.clientId}`);
-				this.votesToSkip.add(context.clientId);
+				if (this.votesToSkip.has(context.clientId)) {
+					this.log.debug(`removing vote to skip from ${context.clientId}`);
+					this.votesToSkip.delete(context.clientId);
+				} else {
+					this.log.debug(`adding vote to skip from ${context.clientId}`);
+					this.votesToSkip.add(context.clientId);
+				}
 				this.markDirty("votesToSkip");
 			}
 
@@ -1258,6 +1263,11 @@ export class Room implements RoomState {
 		const removed = this.getUserInfo(context.clientId);
 		// We must publish the event before removing the user, otherwise publishing the event will fail because the user is gone.
 		await this.publishRoomEvent(request, context, { user: removed });
+
+		if (this.enableVoteSkip) {
+			this.votesToSkip.delete(context.clientId);
+			this.markDirty("votesToSkip");
+		}
 
 		if (this.queueMode === QueueMode.Vote) {
 			this.log.debug(`removing votes for leaving client ${context.clientId}`);
