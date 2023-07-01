@@ -144,7 +144,10 @@ export interface RoomStateComputed {
 export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "users">;
 
 // Only these should be stored in redis
-export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">;
+export type RoomStateStorable = Omit<
+	RoomState,
+	"hasOwner" | "votes" | "voteCounts" | "users" | "votesToSkip"
+>;
 
 /** Only these should be stored in persistent storage */
 export type RoomStatePersistable = Omit<
@@ -770,8 +773,7 @@ export class Room implements RoomState {
 			"autoSkipSegments",
 			"prevQueue",
 			"restoreQueueBehavior",
-			"enableVoteSkip",
-			"votesToSkip"
+			"enableVoteSkip"
 		);
 
 		return JSON.stringify(state, replacer);
