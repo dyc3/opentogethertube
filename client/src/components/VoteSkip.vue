@@ -7,8 +7,7 @@
 			v-if="store.state.room.enableVoteSkip && currentVotes > 0"
 		>
 			<v-banner-text>
-				{{ votesRemaining }}
-				more votes to skip
+				{{ $t("vote-skip.remaining", { count: votesRemaining }) }}
 			</v-banner-text>
 		</v-banner>
 	</Transition>

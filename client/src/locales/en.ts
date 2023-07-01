@@ -343,4 +343,7 @@ export default {
 			unknown: "Something happened, but we don't know what. Please report this as a bug.",
 		},
 	},
+	"vote-skip": {
+		remaining: "{count} more votes to skip",
+	},
 };
