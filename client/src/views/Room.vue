@@ -878,6 +878,6 @@ $in-video-chat-width-small: 250px;
 }
 
 .banners {
-	margin-top: 10px;
+	margin: 10px 0;
 }
 </style>

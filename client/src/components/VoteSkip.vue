@@ -1,14 +1,15 @@
 <template>
 	<Transition appear name="banner">
 		<v-banner
+			lines="one"
 			density="compact"
 			class="vote-skip"
 			v-if="store.state.room.enableVoteSkip && currentVotes > 0"
 		>
-			<span>
+			<v-banner-text>
 				{{ votesRemaining }}
 				more votes to skip
-			</span>
+			</v-banner-text>
 		</v-banner>
 	</Transition>
 </template>
