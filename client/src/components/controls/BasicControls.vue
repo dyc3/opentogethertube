@@ -128,9 +128,4 @@ export default BasicControls;
 
 <style lang="scss">
 @use "./media-controls.scss";
-
-.vote-skip {
-	position: absolute;
-	top: -100%;
-}
 </style>
