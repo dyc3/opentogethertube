@@ -71,13 +71,13 @@ import placeholderUrl from "@/assets/placeholder.svg";
 const RoomListView = defineComponent({
 	name: "RoomListView",
 	setup() {
-		let isLoading = ref(false);
-		let rooms = ref([]);
+		const isLoading = ref(false);
+		const rooms = ref([]);
 		const store = useStore();
 
 		onMounted(async () => {
 			isLoading.value = true;
-			let result = await API.get("/room/list");
+			const result = await API.get("/room/list");
 			isLoading.value = false;
 			rooms.value = result.data;
 		});

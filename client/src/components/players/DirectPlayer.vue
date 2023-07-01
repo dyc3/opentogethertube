@@ -28,8 +28,8 @@ export default defineComponent({
 		"buffer-spans",
 	],
 	setup(props, { emit }) {
-		let { videoUrl, videoMime, thumbnail } = toRefs(props);
-		let player = ref<VideoJsPlayer | undefined>();
+		const { videoUrl, videoMime, thumbnail } = toRefs(props);
+		const player = ref<VideoJsPlayer | undefined>();
 		let hasEmittedApiReady = false;
 
 		function play() {
@@ -119,7 +119,7 @@ export default defineComponent({
 		}
 
 		function beginNewVideo() {
-			let element = document.getElementById("directplayer");
+			const element = document.getElementById("directplayer");
 			if (!element) {
 				console.error("DirectPlayer: element not found");
 				return;

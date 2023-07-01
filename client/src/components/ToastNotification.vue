@@ -38,10 +38,10 @@ const ToastNotification = defineComponent({
 		number: { type: Number },
 	},
 	setup(props) {
-		let { toast } = toRefs(props);
+		const { toast } = toRefs(props);
 		const store = useStore();
-		let padding = ref(8);
-		let closeTimeoutId: Ref<ReturnType<typeof setTimeout> | null> = ref(null);
+		const padding = ref(8);
+		const closeTimeoutId: Ref<ReturnType<typeof setTimeout> | null> = ref(null);
 
 		onMounted(() => {
 			if (toast.value.duration) {
@@ -57,7 +57,7 @@ const ToastNotification = defineComponent({
 			}
 		});
 
-		let color = computed(() => {
+		const color = computed(() => {
 			if (toast.value.style === ToastStyle.Success) {
 				return "success";
 			} else if (toast.value.style === ToastStyle.Error) {
@@ -66,11 +66,11 @@ const ToastNotification = defineComponent({
 			return undefined;
 		});
 
-		let undoable = computed(() => {
+		const undoable = computed(() => {
 			if (!toast.value.event) {
 				return false;
 			}
-			let eventType = toast.value.event.request.type;
+			const eventType = toast.value.event.request.type;
 			return (
 				eventType === RoomRequestType.SeekRequest ||
 				eventType === RoomRequestType.SkipRequest ||

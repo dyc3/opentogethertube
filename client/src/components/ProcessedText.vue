@@ -37,8 +37,8 @@ const ProcessedText = defineComponent({
 	},
 	emits: ["link-click"],
 	setup(props, { emit }) {
-		let { text } = toRefs(props);
-		let content: Ref<ContentItem[]> = ref([]);
+		const { text } = toRefs(props);
+		const content: Ref<ContentItem[]> = ref([]);
 
 		function onLinkClick(e: Event, link: string) {
 			e.preventDefault();

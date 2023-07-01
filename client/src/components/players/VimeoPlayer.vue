@@ -17,11 +17,11 @@ const VimeoPlayer = defineComponent({
 		let isBuffering = false;
 
 		onMounted(async () => {
-			let container = document.getElementById("vimeo-player");
+			const container = document.getElementById("vimeo-player");
 			if (!container) {
 				return;
 			}
-			let parsedId = parseInt(props.videoId);
+			const parsedId = parseInt(props.videoId);
 			player = new vimeo(container, {
 				id: parsedId,
 				controls: false,
@@ -53,7 +53,7 @@ const VimeoPlayer = defineComponent({
 			if (!player) {
 				return;
 			}
-			let parsedId = parseInt(props.videoId);
+			const parsedId = parseInt(props.videoId);
 			player.loadVideo(parsedId);
 		});
 

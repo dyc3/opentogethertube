@@ -177,26 +177,26 @@ const VideoQueueItem = defineComponent({
 		index: { type: Number, required: false },
 	},
 	setup(props: VideoQueueItemProps) {
-		let { item, index } = toRefs(props);
+		const { item, index } = toRefs(props);
 		const store = useStore();
 		const { t } = useI18n();
 		const roomapi = useRoomApi(useConnection());
 
-		let isLoadingAdd = ref(false);
-		let isLoadingVote = ref(false);
-		let hasBeenAdded = ref(false);
-		let thumbnailHasError = ref(false);
-		let hasError = ref(false);
-		let voted = ref(false);
+		const isLoadingAdd = ref(false);
+		const isLoadingVote = ref(false);
+		const hasBeenAdded = ref(false);
+		const thumbnailHasError = ref(false);
+		const hasError = ref(false);
+		const voted = ref(false);
 
-		let videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
-		let videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
-		let thumbnailSource = computed(() => {
+		const videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
+		const videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
+		const thumbnailSource = computed(() => {
 			return !thumbnailHasError.value && item.value.thumbnail
 				? item.value.thumbnail
 				: placeholderUrl;
 		});
-		let votes = computed(() => {
+		const votes = computed(() => {
 			const store = useStore();
 			return store.state.room.voteCounts?.get(item.value.service + item.value.id) ?? 0;
 		});
@@ -210,7 +210,7 @@ const VideoQueueItem = defineComponent({
 				hasBeenAdded.value = true;
 				return;
 			}
-			for (let video of store.state.room.queue) {
+			for (const video of store.state.room.queue) {
 				if (item.value.id === video.id && item.value.service === video.service) {
 					hasBeenAdded.value = true;
 					return;
@@ -220,7 +220,7 @@ const VideoQueueItem = defineComponent({
 		}
 
 		function getPostData(): VideoId {
-			let data = {
+			const data = {
 				service: item.value.service,
 				id: item.value.id,
 			};
@@ -230,7 +230,7 @@ const VideoQueueItem = defineComponent({
 		async function addToQueue() {
 			isLoadingAdd.value = true;
 			try {
-				let resp = await API.post(`/room/${store.state.room.name}/queue`, getPostData());
+				const resp = await API.post(`/room/${store.state.room.name}/queue`, getPostData());
 				hasError.value = !resp.data.success;
 				hasBeenAdded.value = true;
 				toast.add({
@@ -254,7 +254,7 @@ const VideoQueueItem = defineComponent({
 		async function removeFromQueue() {
 			isLoadingAdd.value = true;
 			try {
-				let resp = await API.delete(`/room/${store.state.room.name}/queue`, {
+				const resp = await API.delete(`/room/${store.state.room.name}/queue`, {
 					data: getPostData(),
 				});
 				hasError.value = !resp.data.success;

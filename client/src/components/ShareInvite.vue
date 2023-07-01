@@ -44,7 +44,7 @@ const ShareInvite = defineComponent({
 	setup() {
 		const store = useStore();
 
-		let inviteLinkText = ref();
+		const inviteLinkText = ref();
 
 		function getInviteLink() {
 			return buildInviteLink(

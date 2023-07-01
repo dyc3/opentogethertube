@@ -21,9 +21,9 @@ const DailymotionPlayer = defineComponent({
 	},
 	emits: ["apiready", "playing", "paused", "ready", "buffering", "error", "end"],
 	setup(props: DailymotionPlayerProps, { emit, expose }) {
-		let { videoId } = toRefs(props);
-		let DM = ref();
-		let player = ref();
+		const { videoId } = toRefs(props);
+		const DM = ref();
+		const player = ref();
 
 		function updateIframe() {
 			player.value = new DM.value.player(document.getElementById("dailymotion-player"), {
@@ -50,7 +50,7 @@ const DailymotionPlayer = defineComponent({
 		}
 
 		onMounted(async () => {
-			let _DM = await getSdk(DAILYMOTION_SDK_URL, "DM", "dmAsyncInit");
+			const _DM = await getSdk(DAILYMOTION_SDK_URL, "DM", "dmAsyncInit");
 			DM.value = _DM;
 			DM.value.init({
 				status: false,
