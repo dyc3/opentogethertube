@@ -92,33 +92,33 @@ const Chat = defineComponent({
 	},
 	emits: ["link-click"],
 	setup() {
-		let connection = useConnection();
-		let roomapi = useRoomApi(connection);
+		const connection = useConnection();
+		const roomapi = useRoomApi(connection);
 
-		let inputValue = ref("");
-		let stickToBottom = ref(true);
+		const inputValue = ref("");
+		const stickToBottom = ref(true);
 		/**
 		 * When chat is activated, all messages are shown. and the
 		 * user can scroll through message history, type in chat, etc.
 		 * When chat is NOT activated, when messages are received,
 		 * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
 		 */
-		let activated = ref(false);
-		let deactivateOnBlur = ref(false);
+		const activated = ref(false);
+		const deactivateOnBlur = ref(false);
 		/**
 		 * All past chat messages. They are are no longer
 		 * shown when deactivated.
 		 */
-		let chatMessagePast: Ref<ChatMessage[]> = ref([]);
+		const chatMessagePast: Ref<ChatMessage[]> = ref([]);
 		/**
 		 * All recent chat messages that are currently shown when deactivated.
 		 * They will fade away after `MSG_SHOW_TIMEOUT` ms, and moved into `chatMessagePast`.
 		 */
-		let chatMessageRecent: Ref<ChatMessage[]> = ref([]);
-		let messages = ref();
-		let chatInput: Ref<HTMLInputElement | undefined> = ref();
+		const chatMessageRecent: Ref<ChatMessage[]> = ref([]);
+		const messages = ref();
+		const chatInput: Ref<HTMLInputElement | undefined> = ref();
 
-		let shortcuts = useRoomKeyboardShortcuts();
+		const shortcuts = useRoomKeyboardShortcuts();
 		onMounted(() => {
 			connection.addMessageHandler("chat", onChatReceived);
 			if (shortcuts) {

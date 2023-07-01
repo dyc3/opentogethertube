@@ -41,7 +41,6 @@
 		"secure-password": "^3.1.0",
 		"sequelize": "^6.25.7",
 		"sequelize-cli": "^6.6.0",
-		"sequelize-typescript": "^2.1.0",
 		"sponsorblock-api": "^0.2.2",
 		"toml": "^3.0.0",
 		"ts-node": "^10.9.1",

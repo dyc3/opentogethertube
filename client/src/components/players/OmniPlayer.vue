@@ -162,7 +162,7 @@ export default defineComponent({
 	setup(props, { emit }) {
 		const store = useStore();
 
-		let player: Ref<MediaPlayer | null> = ref(null);
+		const player: Ref<MediaPlayer | null> = ref(null);
 		watch(player, () => {
 			console.debug("Player changed", player.value);
 			if (player.value) {

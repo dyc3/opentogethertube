@@ -118,10 +118,10 @@ export const UserList = defineComponent({
 		const roomapi = useRoomApi(useConnection());
 		const debugMode = inject("debugMode", false);
 
-		let inputUsername = ref("");
-		let showEditName = ref(false);
-		let setUsernameLoading = ref(false);
-		let setUsernameFailureText = ref("");
+		const inputUsername = ref("");
+		const showEditName = ref(false);
+		const setUsernameLoading = ref(false);
+		const setUsernameFailureText = ref("");
 
 		function openEditName() {
 			if (!inputUsername.value) {
@@ -148,7 +148,7 @@ export const UserList = defineComponent({
 
 		/** Gets the appropriate permission name for the role and promotion/demotion. */
 		function roleToPermission(role: Role, demote = false) {
-			let r = {
+			const r = {
 				[Role.Administrator]: "admin",
 				[Role.Moderator]: "moderator",
 				[Role.TrustedUser]: "trusted-user",
@@ -157,7 +157,7 @@ export const UserList = defineComponent({
 		}
 
 		function getUserCssClasses(user: RoomUserInfo) {
-			let cls = ["user", `role-${ROLE_NAMES[user.role]}`];
+			const cls = ["user", `role-${ROLE_NAMES[user.role]}`];
 			if (user.isLoggedIn) {
 				cls.push("registered");
 			}

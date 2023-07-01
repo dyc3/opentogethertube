@@ -327,7 +327,7 @@ export default defineComponent({
 			if (!isPlayerPresent(player)) {
 				return;
 			}
-			let currentTime = await player.value.getPosition();
+			const currentTime = await player.value.getPosition();
 
 			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
 				player.value.setPosition(newPosition);
@@ -580,7 +580,7 @@ export default defineComponent({
 		}
 
 		// keyboard shortcuts
-		let shortcuts = new KeyboardShortcuts();
+		const shortcuts = new KeyboardShortcuts();
 		shortcuts.bind([{ code: "Space" }, { code: "KeyK" }], () => {
 			if (granted("playback.play-pause")) {
 				togglePlayback();

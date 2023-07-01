@@ -50,7 +50,7 @@ export const VideoProgressSlider = defineComponent({
 		const store = useStore();
 		const roomapi = useRoomApi(useConnection());
 
-		let sliderTooltipFormatter = ref(secondsToTimestamp);
+		const sliderTooltipFormatter = ref(secondsToTimestamp);
 
 		function sliderChange(value: number) {
 			roomapi.seek(value);
@@ -63,19 +63,19 @@ export const VideoProgressSlider = defineComponent({
 		 * Values are from 0 to 100, regardless of min and max values of the slider.
 		 */
 		function getSliderProcesses(dotsPos: number[]) {
-			let processes: [number, number, { backgroundColor: string }][] = [];
+			const processes: [number, number, { backgroundColor: string }][] = [];
 
 			const bufferedColor = "rgb(var(--v-theme-primary-lighten-1))";
 			// show buffered spans
-			let bufferSpans = store.state.playerBufferSpans;
+			const bufferSpans = store.state.playerBufferSpans;
 			if (
 				bufferSpans &&
 				store.state.room.currentSource &&
 				store.state.room.currentSource.length
 			) {
 				for (let i = 0; i < bufferSpans.length; i++) {
-					let start = bufferSpans.start(i) / store.state.room.currentSource.length;
-					let end = bufferSpans.end(i) / store.state.room.currentSource.length;
+					const start = bufferSpans.start(i) / store.state.room.currentSource.length;
+					const end = bufferSpans.end(i) / store.state.room.currentSource.length;
 					processes.push([start, end, { backgroundColor: bufferedColor }]);
 				}
 			} else if (store.state.playerBufferPercent) {
@@ -106,8 +106,8 @@ export const VideoProgressSlider = defineComponent({
 			]);
 			if (store.state.room.videoSegments) {
 				for (const segment of store.state.room.videoSegments) {
-					let start = (segment.startTime / segment.videoDuration) * 100;
-					let end = (segment.endTime / segment.videoDuration) * 100;
+					const start = (segment.startTime / segment.videoDuration) * 100;
+					const end = (segment.endTime / segment.videoDuration) * 100;
 					processes.push([
 						start,
 						end,
@@ -120,32 +120,32 @@ export const VideoProgressSlider = defineComponent({
 		}
 
 		// computed as a percentage of the slider width
-		let seekPreviewPercent: Ref<number | null> = ref(null);
-		let seekPreviewTimestamp = ref("");
-		let seekPreviewX = ref(0); // x position of the timestamp
-		let railHovered = ref(false);
-		let seekPreviewVisible = computed(() => {
+		const seekPreviewPercent: Ref<number | null> = ref(null);
+		const seekPreviewTimestamp = ref("");
+		const seekPreviewX = ref(0); // x position of the timestamp
+		const railHovered = ref(false);
+		const seekPreviewVisible = computed(() => {
 			return railHovered.value;
 		});
 
 		function updateSeekPreview(e) {
-			let slider = document.getElementById("videoSlider");
+			const slider = document.getElementById("videoSlider");
 			if (!slider) {
 				return;
 			}
 			railHovered.value = true;
-			let sliderRect = slider.getBoundingClientRect();
-			let sliderPos = e.clientX - sliderRect.left;
+			const sliderRect = slider.getBoundingClientRect();
+			const sliderPos = e.clientX - sliderRect.left;
 			seekPreviewPercent.value = sliderPos / sliderRect.width;
 			seekPreviewTimestamp.value = secondsToTimestamp(
 				seekPreviewPercent.value * (store.state.room.currentSource?.length ?? 0)
 			);
-			let seekPreview = document.getElementById("seek-preview");
+			const seekPreview = document.getElementById("seek-preview");
 			if (!seekPreview) {
 				return;
 			}
-			let baseX = sliderPos;
-			let seekPreviewRect = seekPreview.getBoundingClientRect();
+			const baseX = sliderPos;
+			const seekPreviewRect = seekPreview.getBoundingClientRect();
 			seekPreviewX.value = baseX + 12 - seekPreviewRect.width / 2;
 		}
 
@@ -155,7 +155,7 @@ export const VideoProgressSlider = defineComponent({
 		}
 
 		onMounted(() => {
-			let slider = document.getElementById("videoSlider");
+			const slider = document.getElementById("videoSlider");
 			if (!slider) {
 				return;
 			}
@@ -164,7 +164,7 @@ export const VideoProgressSlider = defineComponent({
 		});
 
 		onUpdated(() => {
-			let slider = document.getElementById("videoSlider");
+			const slider = document.getElementById("videoSlider");
 			if (!slider) {
 				return;
 			}

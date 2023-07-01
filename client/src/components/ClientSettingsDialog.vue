@@ -62,13 +62,13 @@ const EXCLUDED: ExcludedFields[] = ["volume", "locale"];
 export const ClientSettingsDialog = defineComponent({
 	name: "ClientSettingsDialog",
 	setup() {
-		let show = ref(false);
+		const show = ref(false);
 		const store = useStore();
-		let settings: Ref<ExposedSettings> = ref(loadSettings());
+		const settings: Ref<ExposedSettings> = ref(loadSettings());
 
 		function loadSettings(): ExposedSettings {
-			let copy = _.cloneDeep(store.state.settings);
-			let filtered = _.omit(copy, EXCLUDED);
+			const copy = _.cloneDeep(store.state.settings);
+			const filtered = _.omit(copy, EXCLUDED);
 			return filtered;
 		}
 
