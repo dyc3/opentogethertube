@@ -447,7 +447,11 @@ export class Room implements RoomState {
 
 	async dequeueNext() {
 		this.log.debug(`dequeuing next video. mode: ${this.queueMode}`);
-		this.votesToSkip.clear();
+		if (this.enableVoteSkip) {
+			this.votesToSkip.clear();
+			this.markDirty("votesToSkip");
+		}
+
 		if (this.currentSource !== null) {
 			counterSecondsWatched
 				.labels({ service: this.currentSource.service })
@@ -1107,6 +1111,7 @@ export class Room implements RoomState {
 			if (context.clientId) {
 				this.log.debug(`adding vote to skip from ${context.clientId}`);
 				this.votesToSkip.add(context.clientId);
+				this.markDirty("votesToSkip");
 			}
 
 			if (this.votesToSkip.size >= voteSkipThreshold(this.realusers.length)) {
