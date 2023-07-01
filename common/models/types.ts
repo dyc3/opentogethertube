@@ -57,6 +57,7 @@ export interface RoomSettings {
 	grants: Grants
 	autoSkipSegments: boolean
 	restoreQueueBehavior: BehaviorOption
+	enableVoteSkip: boolean
 }
 
 /**

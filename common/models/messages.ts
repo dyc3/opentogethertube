@@ -43,6 +43,8 @@ export interface ServerMessageSync extends ServerMessageBase {
 	playbackSpeed?: number;
 	voteCounts?: [string, number][];
 	hasOwner?: boolean;
+	enableVoteSkip?: boolean;
+	votesToSkip?: string[];
 }
 
 /**

@@ -97,6 +97,12 @@
 					<v-list-item v-bind="props" />
 				</template>
 			</v-select>
+			<v-checkbox
+				v-model="inputRoomSettings.enableVoteSkip"
+				:label="$t('room-settings.enable-vote-skip')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-vote-skip"
+			/>
 			<PermissionsEditor
 				v-if="store.state.user && store.state.room.hasOwner"
 				v-model="inputRoomSettings.grants"
@@ -171,6 +177,7 @@ const RoomSettingsForm = defineComponent({
 			grants: new Grants(),
 			autoSkipSegments: true,
 			restoreQueueBehavior: BehaviorOption.Prompt,
+			enableVoteSkip: false,
 		});
 
 		onMounted(async () => {
@@ -192,7 +199,8 @@ const RoomSettingsForm = defineComponent({
 					"queueMode",
 					"grants",
 					"autoSkipSegments",
-					"restoreQueueBehavior"
+					"restoreQueueBehavior",
+					"enableVoteSkip"
 				);
 			} catch (err) {
 				toast.add({
@@ -212,6 +220,7 @@ const RoomSettingsForm = defineComponent({
 				queueMode: "set-queue-mode",
 				autoSkipSegments: "other",
 				restoreQueueBehavior: "other",
+				enableVoteSkip: "other",
 			};
 			let blocked: (keyof RoomSettings)[] = [];
 			for (let prop of Object.keys(propsToGrants)) {
