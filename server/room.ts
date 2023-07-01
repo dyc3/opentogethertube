@@ -66,6 +66,7 @@ import { Counter } from "prom-client";
 import roommanager from "./roommanager";
 import { calculateCurrentPosition } from "../common/timestamp";
 import { RestoreQueueRequest } from "../common/models/messages";
+import { voteSkipThreshold } from "../common";
 
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
@@ -1108,7 +1109,7 @@ export class Room implements RoomState {
 				this.votesToSkip.add(context.clientId);
 			}
 
-			if (this.votesToSkip.size >= this.users.length / 2) {
+			if (this.votesToSkip.size >= voteSkipThreshold(this.realusers.length)) {
 				this.log.debug("vote threshold met, skipping video");
 				shouldSkip = true;
 			}
