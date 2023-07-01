@@ -289,6 +289,8 @@ export class Room implements RoomState {
 		}
 		if (Array.isArray(this.votesToSkip)) {
 			this.votesToSkip = new Set(this.votesToSkip);
+		} else {
+			this.votesToSkip = new Set();
 		}
 
 		this.queue.onDirty(() => this.markDirty("queue"));
