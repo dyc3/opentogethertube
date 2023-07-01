@@ -4,7 +4,7 @@
 module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.addColumn("Rooms", "restoreQueueBehavior", {
-			type: Sequelize.NUMBER,
+			type: Sequelize.INTEGER,
 			allowNull: false,
 			defaultValue: 1,
 		});
