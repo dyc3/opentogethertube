@@ -41,6 +41,7 @@
   "devDependencies": {
     "@jest/globals": "^29.5.0",
     "@types/jest": "29.5.0",
+    "@types/node": "^16.11.7",
     "@types/uuid": "^3.4.0",
     "@typescript-eslint/eslint-plugin": "5.51.0",
     "@typescript-eslint/parser": "5.51.0",
