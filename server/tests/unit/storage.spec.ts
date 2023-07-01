@@ -131,6 +131,10 @@ describe("Storage: Room Spec", () => {
 			})
 		).toBe(true);
 
+		// HACK: wait for the database to update. This test is flaky without this.
+		const wait = new Promise(resolve => setTimeout(resolve, 200));
+		await wait;
+
 		let room = await DbRoom.findOne({ where: { name: "example" } });
 		expect(room).toBeInstanceOf(DbRoom);
 		expect(room?.id).toBeDefined();
