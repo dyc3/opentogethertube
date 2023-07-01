@@ -135,6 +135,7 @@ export default {
 		"skip": "Skip 10s",
 		"play-pause": "Play/Pause",
 		"next-video": "Next video",
+		"next-video-vote": "Vote to skip video",
 		"toggle-fullscreen": "Toggle fullscreen",
 		"con-status": {
 			connecting: "Connecting...",
