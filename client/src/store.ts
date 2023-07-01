@@ -6,14 +6,14 @@ import { settingsModule, SettingsState } from "@/stores/settings";
 import { ToastStyle } from "./models/toast";
 import { eventsModule } from "@/stores/events";
 import { QueueMode, RoomUserInfo } from "ott-common/models/types";
-import { deserializeMap } from "ott-common/serialize";
+import { deserializeMap, deserializeSet } from "ott-common/serialize";
 import { miscModule, MiscState } from "@/stores/misc";
 import { captionsModule, CaptionsState } from "@/stores/captions";
 import { QueueItem } from "ott-common/models/video";
 import { InjectionKey } from "vue";
 import { Grants } from "ott-common/permissions";
 import { ServerMessageSync } from "ott-common/models/messages";
-import _, { omit } from "lodash";
+import _ from "lodash";
 
 export type FullOTTStoreState = BaseStoreState & {
 	toast: ToastState;
@@ -46,6 +46,8 @@ interface BaseStoreState {
 		}[];
 		grants: Grants;
 		prevQueue: QueueItem[] | null;
+		enableVoteSkip: boolean;
+		votesToSkip: Set<string>;
 	};
 
 	keepAliveInterval: number | null;
@@ -96,6 +98,8 @@ export function buildNewStore() {
 					playbackStartTime: undefined,
 					grants: new Grants(),
 					prevQueue: null,
+					enableVoteSkip: false,
+					votesToSkip: new Set(),
 				},
 
 				keepAliveInterval: null,
@@ -133,7 +137,7 @@ export function buildNewStore() {
 			sync(context, message: ServerMessageSync) {
 				console.debug("SYNC", message);
 				const stateupdate: Partial<BaseStoreState["room"]> = {
-					..._.omit(message, ["action", "grants", "voteCounts"]),
+					..._.omit(message, ["action", "grants", "voteCounts", "votesToSkip"]),
 				};
 				if (
 					message.isPlaying !== undefined &&
@@ -157,6 +161,9 @@ export function buildNewStore() {
 				}
 				if (message.grants) {
 					stateupdate.grants = new Grants(message.grants);
+				}
+				if (message.votesToSkip) {
+					stateupdate.votesToSkip = deserializeSet(message.votesToSkip);
 				}
 				// HACK: this lets vue detect the changes and react to them
 				Object.assign(this.state.room, stateupdate);
