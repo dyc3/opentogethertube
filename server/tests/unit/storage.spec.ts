@@ -131,6 +131,10 @@ describe("Storage: Room Spec", () => {
 			})
 		).toBe(true);
 
+		// HACK: wait for the database to update. This test is flaky without this.
+		const wait = new Promise(resolve => setTimeout(resolve, 200));
+		await wait;
+
 		let room = await DbRoom.findOne({ where: { name: "example" } });
 		expect(room).toBeInstanceOf(DbRoom);
 		expect(room?.id).toBeDefined();
@@ -196,6 +200,9 @@ describe("Storage: Room Spec", () => {
 		]);
 		await storage.saveRoom(new Room({ name: "example", userRoles }));
 
+		const wait = new Promise(resolve => setTimeout(resolve, 200));
+		await wait;
+
 		let room = await storage.getRoomByName("example");
 		expect(room?.userRoles).toEqual(userRoles);
 
@@ -205,6 +212,9 @@ describe("Storage: Room Spec", () => {
 			[4, new Set([8])],
 		]);
 		await storage.updateRoom({ name: "example", userRoles });
+
+		const wait2 = new Promise(resolve => setTimeout(resolve, 200));
+		await wait2;
 
 		room = await storage.getRoomByName("example");
 		expect(room?.userRoles).toEqual(userRoles);
