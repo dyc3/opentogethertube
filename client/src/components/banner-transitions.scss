@@ -1,0 +1,17 @@
+.banner-enter-active,
+.banner-leave-active {
+	transition: all 0.5s;
+}
+
+.banner-enter,
+.banner-leave-to {
+	opacity: 0;
+	transform: scaleY(0);
+	// height: 0;
+}
+
+.banner-enter-to,
+.banner-leave {
+	opacity: 1;
+	transform: scaleY(100%);
+}

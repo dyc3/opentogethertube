@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<Transition name="restore">
+		<Transition name="banner">
 			<v-banner
 				class="restore"
 				color="primary"
@@ -83,22 +83,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.restore-enter-active,
-.restore-leave-active {
-	transition: all 0.5s;
-}
-
-.restore-enter,
-.restore-leave-to {
-	opacity: 0;
-	transform: scaleY(0);
-}
-
-.restore-enter-to,
-.restore-leave {
-	opacity: 1;
-	transform: scaleY(100%);
-}
+@import "./banner-transitions.scss";
 
 .restore {
 	margin-top: 10px;

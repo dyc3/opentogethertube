@@ -26,7 +26,6 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
-				<RestoreQueue />
 				<div no-gutters class="video-container">
 					<div
 						class="video-subcontainer"
@@ -69,6 +68,10 @@
 						:is-captions-supported="isCaptionsSupported()"
 						:mode="currentSource?.service === 'youtube' ? 'outside-video' : 'in-video'"
 					/>
+				</div>
+				<div class="banners">
+					<RestoreQueue />
+					<VoteSkip />
 				</div>
 				<v-row no-gutters>
 					<v-col cols="12" md="8" sm="12">
@@ -225,6 +228,7 @@ import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-sho
 import VideoControls from "@/components/controls/VideoControls.vue";
 import { VOLUME_KEY } from "@/components/controls/controlkeys";
 import RestoreQueue from "@/components/RestoreQueue.vue";
+import VoteSkip from "@/components/VoteSkip.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -244,6 +248,7 @@ export default defineComponent({
 		ServerMessageHandler,
 		WorkaroundPlaybackStatusUpdater,
 		RestoreQueue,
+		VoteSkip,
 	},
 	setup() {
 		const store = useStore();
@@ -870,5 +875,9 @@ $in-video-chat-width-small: 250px;
 		height: 100%;
 		position: inherit;
 	}
+}
+
+.banners {
+	margin-top: 10px;
 }
 </style>
