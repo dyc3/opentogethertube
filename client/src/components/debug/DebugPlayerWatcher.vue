@@ -31,5 +31,6 @@ export default DebugPlayerWatcher;
 	left: 0;
 	background: #04f;
 	font-size: 12px;
+	z-index: 1000;
 }
 </style>

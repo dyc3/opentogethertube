@@ -52,6 +52,7 @@
 		<PlyrPlayer
 			v-else-if="!!source && ['direct', 'hls', 'reddit', 'tubi'].includes(source.service)"
 			ref="player"
+			:service="source.service"
 			:video-url="source.hls_url ?? source.id"
 			:video-mime="source.mime!"
 			:thumbnail="source.thumbnail"
