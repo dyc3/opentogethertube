@@ -138,6 +138,7 @@ export default class RedditAdapter extends ServiceAdapter {
 						length: thing.data.media.reddit_video.duration,
 						thumbnail: thing.data.thumbnail,
 						hls_url: thing.data.media.reddit_video.hls_url,
+						mime: "application/x-mpegURL",
 					});
 				}
 			} else {

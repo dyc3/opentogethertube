@@ -49,7 +49,7 @@
 			@buffering="onBuffering"
 			@error="onError"
 		/>
-		<GenericHlsPlayer
+		<!-- <GenericHlsPlayer
 			v-else-if="!!source && ['reddit', 'tubi'].includes(source.service)"
 			ref="player"
 			:videoid="source.id"
@@ -64,9 +64,9 @@
 			@error="onError"
 			@buffer-progress="onBufferProgress"
 			@buffer-spans="onBufferSpans"
-		/>
+		/> -->
 		<PlyrPlayer
-			v-else-if="!!source && ['direct', 'hls'].includes(source.service)"
+			v-else-if="!!source && ['direct', 'hls', 'reddit', 'tubi'].includes(source.service)"
 			ref="player"
 			:video-url="source.hls_url ?? source.id"
 			:video-mime="source.mime!"
