@@ -1258,6 +1258,7 @@ export class Room implements RoomState {
 		await this.publishRoomEvent(request, context);
 		// HACK: force the client to receive the correct playback position
 		await this.publish({ action: "sync", playbackPosition: this.realPlaybackPosition });
+		await this.syncUser(this.getUserInfo(user.id));
 	}
 
 	public async leaveRoom(request: LeaveRequest, context: RoomRequestContext): Promise<void> {
