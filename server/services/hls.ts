@@ -1,10 +1,7 @@
 import URL from "url";
 import _ from "lodash";
 import { ServiceAdapter } from "../serviceadapter";
-import {
-	LocalFileException,
-	UnsupportedMimeTypeException,
-} from "../exceptions";
+import { LocalFileException, UnsupportedMimeTypeException } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
 import ffprobe from "../ffprobe";
 import { getLogger } from "../logger";
