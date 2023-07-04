@@ -108,7 +108,6 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	try {
 		await makeRoomRequest(client, {
 			type: RoomRequestType.JoinRequest,
-			token: token,
 			info: client.getClientInfo(),
 		});
 	} catch (e) {

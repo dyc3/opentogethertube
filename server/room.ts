@@ -963,13 +963,16 @@ export class Room implements RoomState {
 	public async deriveRequestContext(
 		authorization: RoomRequestAuthorization
 	): Promise<RoomRequestContext> {
-		const user = this.getUser(authorization.clientId);
-		if (user) {
-			return {
-				username: user.username,
-				role: this.getRole(user),
-				clientId: authorization.clientId,
-			};
+		if (authorization.clientId) {
+			const user = this.getUser(authorization.clientId);
+			if (user) {
+				return {
+					username: user.username,
+					role: this.getRole(user),
+					clientId: authorization.clientId,
+					auth: authorization,
+				};
+			}
 		}
 
 		// the user is not in the room, but they may have a valid session
@@ -983,6 +986,7 @@ export class Room implements RoomState {
 			username: session.username,
 			role: this.getRoleFromSession(session),
 			clientId: authorization.clientId,
+			auth: authorization,
 		};
 	}
 
@@ -1249,8 +1253,12 @@ export class Room implements RoomState {
 	}
 
 	public async joinRoom(request: JoinRequest, context: RoomRequestContext): Promise<void> {
+		if (!context.auth?.token) {
+			this.log.error("Received a join request without an auth token");
+			throw new Error("No auth token");
+		}
 		const user = new RoomUser(request.info.id);
-		user.token = request.token;
+		user.token = context.auth?.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.log.info(`${user.username} joined the room`);
