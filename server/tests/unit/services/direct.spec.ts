@@ -31,8 +31,6 @@ describe("Direct", () => {
 			"ogv",
 			"m4v",
 			"h264",
-			"m3u",
-			"m3u8",
 			"ogg",
 			"mp3",
 		];

@@ -25,6 +25,7 @@
 		"convict": "^6.2.4",
 		"express": "^4.17.1",
 		"express-session": "^1.17.0",
+		"m3u8-parser": "^6.2.0",
 		"nocache": "^3.0.0",
 		"node-abort-controller": "3.0.1",
 		"ott-common": "./common",

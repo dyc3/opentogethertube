@@ -49,10 +49,10 @@
 			@buffering="onBuffering"
 			@error="onError"
 		/>
-		<DirectPlayer
-			v-else-if="!!source && source.service == 'direct'"
+		<PlyrPlayer
+			v-else-if="!!source && ['direct', 'hls', 'reddit', 'tubi'].includes(source.service)"
 			ref="player"
-			:video-url="source.id"
+			:video-url="source.hls_url ?? source.id"
 			:video-mime="source.mime!"
 			:thumbnail="source.thumbnail"
 			class="player"
@@ -65,38 +65,7 @@
 			@buffer-progress="onBufferProgress"
 			@buffer-spans="onBufferSpans"
 		/>
-		<GenericHlsPlayer
-			v-else-if="!!source && source.service == 'reddit'"
-			ref="player"
-			:videoid="source.id"
-			:hls-url="source.hls_url!"
-			:thumbnail="source.thumbnail"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-			@buffer-progress="onBufferProgress"
-			@buffer-spans="onBufferSpans"
-		/>
-		<GenericHlsPlayer
-			v-else-if="!!source && source.service == 'tubi'"
-			ref="player"
-			:videoid="source.id"
-			:hls-url="source.hls_url!"
-			:thumbnail="source.thumbnail"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-			@buffer-progress="onBufferProgress"
-			@buffer-spans="onBufferSpans"
-		/>
+
 		<v-container v-else fluid fill-height class="no-video">
 			<h1>{{ $t("video.no-video") }}</h1>
 			<span>{{ $t("video.no-video-text") }}</span>
@@ -156,8 +125,7 @@ export default defineComponent({
 		VimeoPlayer: defineAsyncComponent(() => import("./VimeoPlayer.vue")),
 		DailymotionPlayer: defineAsyncComponent(() => import("./DailymotionPlayer.vue")),
 		GoogleDrivePlayer: defineAsyncComponent(() => import("./GoogleDrivePlayer.vue")),
-		DirectPlayer: defineAsyncComponent(() => import("./DirectPlayer.vue")),
-		GenericHlsPlayer: defineAsyncComponent(() => import("./GenericHlsPlayer.vue")),
+		PlyrPlayer: defineAsyncComponent(() => import("./PlyrPlayer.vue")),
 	},
 	setup(props, { emit }) {
 		const store = useStore();

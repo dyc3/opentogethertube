@@ -1,15 +1,16 @@
 <template>
 	<div class="direct">
-		<video id="directplayer" class="video-js vjs-default-skin"></video>
+		<video id="directplayer"></video>
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
-import videojs, { VideoJsPlayer } from "video.js";
+import Plyr from "plyr";
+import Hls from "hls.js";
 
 export default defineComponent({
-	name: "DirectPlayer",
+	name: "PlyrPlayer",
 	props: {
 		videoUrl: { type: String, required: true },
 		videoMime: { type: String, required: true },
@@ -29,8 +30,8 @@ export default defineComponent({
 	],
 	setup(props, { emit }) {
 		const { videoUrl, videoMime, thumbnail } = toRefs(props);
-		const player = ref<VideoJsPlayer | undefined>();
-		let hasEmittedApiReady = false;
+		const videoElem = ref<HTMLVideoElement | undefined>();
+		const player = ref<Plyr | undefined>();
 
 		function play() {
 			if (!player.value) {
@@ -53,7 +54,7 @@ export default defineComponent({
 				console.error("player not ready");
 				return;
 			}
-			return player.value.volume(volume / 100);
+			player.value.volume = volume / 100;
 		}
 
 		function getPosition() {
@@ -61,7 +62,7 @@ export default defineComponent({
 				console.error("player not ready");
 				return;
 			}
-			return player.value.currentTime();
+			return player.value.currentTime;
 		}
 
 		function setPosition(position: number) {
@@ -69,7 +70,7 @@ export default defineComponent({
 				console.error("player not ready");
 				return;
 			}
-			return player.value.currentTime(position);
+			player.value.currentTime = position;
 		}
 
 		function isCaptionsSupported() {
@@ -85,7 +86,7 @@ export default defineComponent({
 				console.error("player not ready");
 				return 1;
 			}
-			return player.value.playbackRate();
+			return player.value.speed;
 		}
 
 		async function setPlaybackRate(rate: number): Promise<void> {
@@ -93,118 +94,96 @@ export default defineComponent({
 				console.error("player not ready");
 				return;
 			}
-			player.value.playbackRate(rate);
+			player.value.speed = rate;
 		}
 
-		function loadVideoSource() {
-			console.log("DirectPlayer: loading video source:", videoUrl, videoMime);
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			player.value.reset();
-			player.value.loadMedia(
-				{
-					src: {
-						src: videoUrl.value,
-						type: videoMime.value,
-					},
-					poster: thumbnail.value,
+		onMounted(() => {
+			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
+			player.value = new Plyr(videoElem.value, {
+				controls: [],
+				clickToPlay: false,
+				keyboard: {
+					focused: false,
+					global: false,
 				},
-				() => {
-					emit("ready");
-					play();
-				}
-			);
-		}
-
-		function beginNewVideo() {
-			const element = document.getElementById("directplayer");
-			if (!element) {
-				console.error("DirectPlayer: element not found");
-				return;
-			}
-			player.value = videojs(element, {
-				controls: false,
-				responsive: true,
-				loop: false,
-				preload: "auto",
-				poster: thumbnail.value,
+				disableContextMenu: false,
+				fullscreen: {
+					enabled: false,
+				},
 			});
-			// required for iOS
-			// player.value.setPlaysinline(true);
-			if (!hasEmittedApiReady) {
-				emit("apiready");
-				hasEmittedApiReady = true;
-			}
-			if (import.meta.env.NODE_ENV === "development") {
-				for (const event of [
-					"ready",
-					"loadstart",
-					"suspend",
-					"abort",
-					"error",
-					"emptied",
-					"stalled",
-					"loadedmetadata",
-					"loadeddata",
-					"canplay",
-					"playing",
-					"waiting",
-					"seeking",
-					"seeked",
-					"ended",
-					"durationchange",
-					"progress",
-					"play",
-					"pause",
-					"ratechange",
-				]) {
-					player.value.on(event, () => console.log("DirectPlayer event:", event));
-				}
-				videojs.log.level("debug");
-			}
+			emit("apiready");
+
 			player.value.on("ready", () => emit("ready"));
 			player.value.on("ended", () => emit("end"));
-			player.value.on("ended", onVideoEnd);
 			player.value.on("playing", () => emit("playing"));
 			player.value.on("pause", () => emit("paused"));
 			player.value.on("play", () => emit("waiting"));
 			player.value.on("stalled", () => emit("buffering"));
 			player.value.on("loadstart", () => emit("buffering"));
 			player.value.on("canplay", () => emit("ready"));
-			player.value.on("error", () => emit("error"));
 			player.value.on("progress", () => {
 				if (!player.value) {
-					console.error("player not ready");
 					return;
 				}
-				emit("buffer-progress", player.value.bufferedPercent());
-				emit("buffer-spans", player.value.buffered());
+				emit("buffer-progress", player.value.buffered);
 			});
-			loadVideoSource();
-		}
-		function onVideoEnd() {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			player.value.reset();
-		}
+			player.value.on("error", err => {
+				emit("error");
+				console.error("PlyrPlayer: error:", err);
+			});
 
-		onMounted(beginNewVideo);
+			loadVideoSource();
+		});
 		onBeforeUnmount(() => {
 			if (player.value) {
-				player.value.dispose();
+				player.value.destroy();
 			}
 		});
 
-		watch(props, () => {
+		function loadVideoSource() {
+			console.log("PlyrPlayer: loading video source:", videoUrl.value, videoMime.value);
 			if (!player.value) {
 				console.error("player not ready");
 				return;
 			}
-			player.value.reset();
+
+			if (videoMime.value === "application/x-mpegURL") {
+				if (!videoElem.value) {
+					console.error("video element not ready");
+					return;
+				}
+				// HACK: force the video element to be recreated...
+				player.value.source = {
+					type: "video",
+					sources: [],
+					poster: thumbnail.value,
+				};
+				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+				// ...so that we can use hls.js to change the video source
+				const hls = new Hls();
+				hls.loadSource(videoUrl.value);
+				hls.attachMedia(videoElem.value);
+			} else {
+				player.value.source = {
+					sources: [
+						{
+							src: videoUrl.value,
+							type: videoMime.value,
+						},
+					],
+					type: "video",
+					poster: thumbnail.value,
+				};
+			}
+			player.value.play();
+		}
+
+		watch(videoUrl, () => {
+			console.log("PlyrPlayer: videoUrl changed");
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
 			loadVideoSource();
 		});
 
@@ -224,11 +203,30 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@import url("https://vjs.zencdn.net/5.4.6/video-js.min.css");
-
-.video-js {
+<style lang="scss">
+.direct,
+.plyr {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+	max-height: 100%;
 	width: 100%;
 	height: 100%;
+}
+
+.plyr__video-wrapper {
+	max-width: 100%;
+	max-height: 100%;
+	width: 100%;
+	height: 100%;
+}
+
+.direct video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	object-position: 50% 50%;
 }
 </style>
