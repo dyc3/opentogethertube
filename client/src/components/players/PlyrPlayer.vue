@@ -1,5 +1,5 @@
 <template>
-	<div class="direct plyr__video-embed">
+	<div class="direct">
 		<video crossorigin="true" id="directplayer"></video>
 	</div>
 </template>
@@ -186,7 +186,29 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.direct video {
+.direct,
+.plyr {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+	max-height: 100%;
 	width: 100%;
+	height: 100%;
+}
+
+.plyr__video-wrapper {
+	max-width: 100%;
+	max-height: 100%;
+	width: 100%;
+	height: 100%;
+}
+
+.direct video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	object-position: 50% 50%;
 }
 </style>
