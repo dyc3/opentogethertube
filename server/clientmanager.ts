@@ -287,6 +287,7 @@ async function makeRoomRequest(client: Client, request: RoomRequest): Promise<vo
 	const room = result.value;
 	await room.processUnauthorizedRequest(request, {
 		token: client.token,
+		clientId: client.id,
 	});
 }
 

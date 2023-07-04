@@ -153,6 +153,7 @@ export interface ClientMessageRoomRequest extends ClientMessageBase {
  */
 export interface RoomRequestAuthorization {
 	token: AuthToken;
+	clientId: ClientId;
 }
 
 /**
