@@ -1,6 +1,6 @@
 <template>
 	<div class="direct">
-		<video crossorigin="true" id="directplayer"></video>
+		<video id="directplayer"></video>
 	</div>
 </template>
 
@@ -107,6 +107,9 @@ export default defineComponent({
 					global: false,
 				},
 				disableContextMenu: false,
+				fullscreen: {
+					enabled: false,
+				},
 			});
 			emit("apiready");
 
@@ -138,7 +141,7 @@ export default defineComponent({
 		});
 
 		function loadVideoSource() {
-			console.log("DirectPlayer: loading video source:", videoUrl.value, videoMime.value);
+			console.log("PlyrPlayer: loading video source:", videoUrl.value, videoMime.value);
 			if (!player.value) {
 				console.error("player not ready");
 				return;
@@ -154,14 +157,21 @@ export default defineComponent({
 				hls.attachMedia(videoElem.value);
 			} else {
 				player.value.source = {
-					sources: [{ src: videoUrl.value, type: videoMime.value }],
+					sources: [
+						{
+							src: videoUrl.value,
+							type: videoMime.value,
+						},
+					],
 					type: "video",
 					poster: thumbnail.value,
 				};
 			}
+			player.value.play();
 		}
 
-		watch(props, () => {
+		watch(videoUrl, () => {
+			console.log("PlyrPlayer: videoUrl changed");
 			if (!player.value) {
 				console.error("player not ready");
 				return;
