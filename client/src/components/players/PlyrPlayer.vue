@@ -8,10 +8,13 @@
 import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Plyr from "plyr";
 import Hls from "hls.js";
+import "plyr/src/sass/plyr.scss";
+import { useStore } from "@/store";
 
 export default defineComponent({
 	name: "PlyrPlayer",
 	props: {
+		service: { type: String, required: true },
 		videoUrl: { type: String, required: true },
 		videoMime: { type: String, required: true },
 		thumbnail: { type: String },
@@ -32,6 +35,8 @@ export default defineComponent({
 		const { videoUrl, videoMime, thumbnail } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
+		const hls = ref<Hls | undefined>();
+		const store = useStore();
 
 		function play() {
 			if (!player.value) {
@@ -73,8 +78,62 @@ export default defineComponent({
 			player.value.currentTime = position;
 		}
 
-		function isCaptionsSupported() {
-			return false;
+		function isCaptionsSupported(): boolean {
+			return ["direct", "hls"].includes(props.service);
+		}
+
+		function setCaptionsEnabled(enabled: boolean): void {
+			if (hls.value) {
+				hls.value.subtitleDisplay = enabled;
+			} else {
+				player.value?.toggleCaptions(enabled);
+			}
+		}
+
+		function isCaptionsEnabled(): boolean {
+			if (hls.value) {
+				return hls.value.subtitleDisplay;
+			} else {
+				return player.value?.currentTrack !== -1;
+			}
+		}
+
+		function getCaptionsTracks(): string[] {
+			const tracks: string[] = [];
+			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
+				const track = videoElem.value?.textTracks[i];
+				if (!track || track.kind !== "captions") {
+					continue;
+				}
+				tracks.push(track.language);
+			}
+			return tracks;
+		}
+
+		function setCaptionsTrack(track: string): void {
+			if (!player.value) {
+				console.error("player not ready");
+				return;
+			}
+			console.log("PlyrPlayer: setCaptionsTrack:", track);
+			if (hls.value) {
+				hls.value.subtitleTrack = findTrackIdx(track);
+			} else {
+				player.value.currentTrack = findTrackIdx(track);
+			}
+		}
+
+		function findTrackIdx(language: string): number {
+			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
+				const track = videoElem.value?.textTracks[i];
+				if (!track || track.kind !== "captions") {
+					continue;
+				}
+				if (track.language === language) {
+					return i;
+				}
+			}
+			return 0;
 		}
 
 		function getAvailablePlaybackRates() {
@@ -120,7 +179,12 @@ export default defineComponent({
 			player.value.on("play", () => emit("waiting"));
 			player.value.on("stalled", () => emit("buffering"));
 			player.value.on("loadstart", () => emit("buffering"));
-			player.value.on("canplay", () => emit("ready"));
+			player.value.on("canplay", () => {
+				emit("ready");
+				store.commit("captions/SET_AVAILABLE_TRACKS", {
+					tracks: getCaptionsTracks(),
+				});
+			});
 			player.value.on("progress", () => {
 				if (!player.value) {
 					return;
@@ -135,9 +199,8 @@ export default defineComponent({
 			loadVideoSource();
 		});
 		onBeforeUnmount(() => {
-			if (player.value) {
-				player.value.destroy();
-			}
+			player.value?.destroy();
+			hls.value?.destroy();
 		});
 
 		function loadVideoSource() {
@@ -160,10 +223,12 @@ export default defineComponent({
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// ...so that we can use hls.js to change the video source
-				const hls = new Hls();
-				hls.loadSource(videoUrl.value);
-				hls.attachMedia(videoElem.value);
+				hls.value = new Hls();
+				hls.value.loadSource(videoUrl.value);
+				hls.value.attachMedia(videoElem.value);
 			} else {
+				hls.value?.destroy();
+				hls.value = undefined;
 				player.value.source = {
 					sources: [
 						{
@@ -195,6 +260,10 @@ export default defineComponent({
 			getPosition,
 			setPosition,
 			isCaptionsSupported,
+			setCaptionsEnabled,
+			isCaptionsEnabled,
+			getCaptionsTracks,
+			setCaptionsTrack,
 			getAvailablePlaybackRates,
 			getPlaybackRate,
 			setPlaybackRate,
