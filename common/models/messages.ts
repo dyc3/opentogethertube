@@ -153,6 +153,7 @@ export interface ClientMessageRoomRequest extends ClientMessageBase {
  */
 export interface RoomRequestAuthorization {
 	token: AuthToken;
+	clientId?: ClientId;
 }
 
 /**
@@ -163,6 +164,7 @@ export interface RoomRequestContext {
 	role: Role;
 	/** If the user is connected to the room, then we can use it's client id to identify the websocket connection. */
 	clientId?: ClientId;
+	auth?: RoomRequestAuthorization;
 }
 
 export type RoomRequest =
@@ -212,10 +214,6 @@ export interface RoomRequestBase {
 
 export interface JoinRequest extends RoomRequestBase {
 	type: RoomRequestType.JoinRequest;
-	/**
-	 * We need to know the user's token when they join the room in order to authorize their later requests without pinging redis.
-	 */
-	token: AuthToken;
 	info: ClientInfo;
 }
 

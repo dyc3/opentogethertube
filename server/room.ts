@@ -521,7 +521,7 @@ export class Room implements RoomState {
 		const user = this.getUserInfo(context.clientId);
 		await this.publish({
 			action: "event",
-			request: _.omit(request, "token") as RoomRequest,
+			request,
 			user,
 			additional: additional ?? {},
 		});
@@ -961,18 +961,21 @@ export class Room implements RoomState {
 	}
 
 	public async deriveRequestContext(
-		authorization: RoomRequestAuthorization,
-		request: RoomRequest
+		authorization: RoomRequestAuthorization
 	): Promise<RoomRequestContext> {
-		for (const user of this.realusers) {
-			if (user.token === authorization.token) {
+		if (authorization.clientId) {
+			const user = this.getUser(authorization.clientId);
+			if (user) {
 				return {
 					username: user.username,
-					role: await this.getRoleFromToken(authorization.token),
-					clientId: user.id,
+					role: this.getRole(user),
+					clientId: authorization.clientId,
+					auth: authorization,
 				};
 			}
 		}
+
+		// the user is not in the room, but they may have a valid session
 
 		let session = await tokens.getSessionInfo(authorization.token);
 		if (!session) {
@@ -982,8 +985,8 @@ export class Room implements RoomState {
 		return {
 			username: session.username,
 			role: this.getRoleFromSession(session),
-			// we don't have the client id for join requests because the info hasn't been added to the room yet
-			clientId: request.type === RoomRequestType.JoinRequest ? request.info.id : undefined,
+			clientId: authorization.clientId,
+			auth: authorization,
 		};
 	}
 
@@ -991,7 +994,7 @@ export class Room implements RoomState {
 		request: RoomRequest,
 		authorization: RoomRequestAuthorization
 	): Promise<void> {
-		await this.processRequest(request, await this.deriveRequestContext(authorization, request));
+		await this.processRequest(request, await this.deriveRequestContext(authorization));
 	}
 
 	/** Process the room request, but unsafely trust the client id of the room request */
@@ -1250,8 +1253,12 @@ export class Room implements RoomState {
 	}
 
 	public async joinRoom(request: JoinRequest, context: RoomRequestContext): Promise<void> {
+		if (!context.auth?.token) {
+			this.log.error("Received a join request without an auth token");
+			throw new Error("No auth token");
+		}
 		const user = new RoomUser(request.info.id);
-		user.token = request.token;
+		user.token = context.auth?.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.log.info(`${user.username} joined the room`);

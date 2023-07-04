@@ -108,7 +108,6 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	try {
 		await makeRoomRequest(client, {
 			type: RoomRequestType.JoinRequest,
-			token: token,
 			info: client.getClientInfo(),
 		});
 	} catch (e) {
@@ -287,6 +286,7 @@ async function makeRoomRequest(client: Client, request: RoomRequest): Promise<vo
 	const room = result.value;
 	await room.processUnauthorizedRequest(request, {
 		token: client.token,
+		clientId: client.id,
 	});
 }
 
