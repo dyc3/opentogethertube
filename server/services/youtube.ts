@@ -152,6 +152,10 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		return "youtube";
 	}
 
+	get isCacheSafe(): boolean {
+		return true;
+	}
+
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
 
