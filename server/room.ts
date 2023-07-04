@@ -521,7 +521,7 @@ export class Room implements RoomState {
 		const user = this.getUserInfo(context.clientId);
 		await this.publish({
 			action: "event",
-			request: _.omit(request, "token") as RoomRequest,
+			request,
 			user,
 			additional: additional ?? {},
 		});
