@@ -152,6 +152,14 @@ export default defineComponent({
 					console.error("video element not ready");
 					return;
 				}
+				// HACK: force the video element to be recreated...
+				player.value.source = {
+					type: "video",
+					sources: [],
+					poster: thumbnail.value,
+				};
+				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+				// ...so that we can use hls.js to change the video source
 				const hls = new Hls();
 				hls.loadSource(videoUrl.value);
 				hls.attachMedia(videoElem.value);
