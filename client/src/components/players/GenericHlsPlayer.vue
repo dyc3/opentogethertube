@@ -28,8 +28,8 @@ export default defineComponent({
 		"buffer-spans",
 	],
 	setup(props, { emit }) {
-		let { videoid, hlsUrl, thumbnail } = toRefs(props);
-		let player = ref<VideoJsPlayer | undefined>();
+		const { videoid, hlsUrl, thumbnail } = toRefs(props);
+		const player = ref<VideoJsPlayer | undefined>();
 		let hasEmittedApiReady = false;
 
 		function play() {
@@ -76,6 +76,10 @@ export default defineComponent({
 			return false;
 		}
 
+		function getAvailablePlaybackRates() {
+			return [1];
+		}
+
 		function loadVideoSource() {
 			console.log("GenericHlsPlayer: loading video source:", hlsUrl.value);
 
@@ -101,7 +105,7 @@ export default defineComponent({
 		}
 
 		function beginNewVideo() {
-			let element = document.getElementById("generichlsplayer");
+			const element = document.getElementById("generichlsplayer");
 			if (!element) {
 				console.error("GenericHlsPlayer: element not found");
 				return;
@@ -198,6 +202,7 @@ export default defineComponent({
 			getPosition,
 			setPosition,
 			isCaptionsSupported,
+			getAvailablePlaybackRates,
 		};
 	},
 });
