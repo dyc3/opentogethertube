@@ -301,7 +301,7 @@ const undoEvent = async (req: express.Request, res) => {
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
-	const client = clientmanager.getClient(req.token, req.params.name);
+	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	const request: UndoRequest = {
 		type: RoomRequestType.UndoRequest,
 		event: req.body.data.event,
@@ -324,7 +324,7 @@ const addVote = async (req: express.Request, res) => {
 		throw new BadApiArgumentException("id", "missing");
 	}
 
-	const client = clientmanager.getClient(req.token, req.params.name);
+	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
@@ -346,7 +346,7 @@ const removeVote = async (req: express.Request, res) => {
 		throw new BadApiArgumentException("id", "missing");
 	}
 
-	const client = clientmanager.getClient(req.token, req.params.name);
+	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },

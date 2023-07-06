@@ -148,6 +148,11 @@ export const PERMISSIONS = [
 		mask: 1 << 23,
 		minRole: Role.UnregisteredUser,
 	}),
+	new Permission({
+		name: "manage-users.kick",
+		mask: 1 << 24,
+		minRole: Role.TrustedUser,
+	}),
 ];
 
 const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));

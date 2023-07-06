@@ -185,7 +185,8 @@ export type RoomRequest =
 	| PlayNowRequest
 	| ShuffleRequest
 	| PlaybackSpeedRequest
-	| RestoreQueueRequest;
+	| RestoreQueueRequest
+	| KickRequest;
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -206,6 +207,7 @@ export enum RoomRequestType {
 	ShuffleRequest,
 	PlaybackSpeedRequest,
 	RestoreQueueRequest,
+	KickRequest,
 }
 
 export interface RoomRequestBase {
@@ -308,4 +310,9 @@ export interface PlaybackSpeedRequest extends RoomRequestBase {
 export interface RestoreQueueRequest extends RoomRequestBase {
 	type: RoomRequestType.RestoreQueueRequest;
 	discard?: boolean;
+}
+
+export interface KickRequest extends RoomRequestBase {
+	type: RoomRequestType.KickRequest;
+	clientId: ClientId;
 }

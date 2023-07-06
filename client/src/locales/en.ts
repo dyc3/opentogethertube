@@ -340,6 +340,7 @@ export default {
 			[OttWebsocketError.ROOM_UNLOADED]: "Room was unloaded.",
 			[OttWebsocketError.MISSING_TOKEN]:
 				"A token was not provided. Refresh the page and try again. Otherwise, please open an issue on GitHub.",
+			[OttWebsocketError.KICKED]: "You were kicked from the room.",
 			unknown: "Something happened, but we don't know what. Please report this as a bug.",
 		},
 	},

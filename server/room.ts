@@ -28,6 +28,7 @@ import {
 	RoomRequestContext,
 	ShuffleRequest,
 	PlaybackSpeedRequest,
+	KickRequest,
 } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
@@ -67,6 +68,7 @@ import roommanager from "./roommanager";
 import { calculateCurrentPosition } from "../common/timestamp";
 import { RestoreQueueRequest } from "../common/models/messages";
 import { voteSkipThreshold } from "../common";
+import type { ClientManagerCommand } from "./clientmanager";
 
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
@@ -502,11 +504,18 @@ export class Room implements RoomState {
 	}
 
 	/**
-	 * Publish a message to the client manager. In general, these messages get sent to all the clients connected, and joined to this room. However, centain messages may be directed at a specific client, depending on what they do.
+	 * Publish a message to the client manager. These messages get broadcasted to all the clients connected, and joined to this room.
 	 * @param msg The message to publish.
 	 */
 	async publish(msg: ServerMessage): Promise<void> {
 		roommanager.publish(this.name, msg);
+	}
+
+	/**
+	 * Send a command to the ClientManager. This is used for things like kicking users, or sending a message to a specific client.
+	 */
+	async command(roomName: string, cmd: ClientManagerCommand): Promise<void> {
+		roommanager.command(roomName, cmd);
 	}
 
 	async publishRoomEvent(
@@ -1018,6 +1027,7 @@ export class Room implements RoomState {
 			[RoomRequestType.OrderRequest, "manage-queue.order"],
 			[RoomRequestType.VoteRequest, "manage-queue.vote"],
 			[RoomRequestType.ChatRequest, "chat"],
+			[RoomRequestType.KickRequest, "manage-users.kick"],
 		]);
 		const permission = permissions.get(request.type);
 		if (permission) {
@@ -1051,6 +1061,7 @@ export class Room implements RoomState {
 			[RoomRequestType.ShuffleRequest]: "shuffle",
 			[RoomRequestType.PlaybackSpeedRequest]: "setPlaybackSpeed",
 			[RoomRequestType.RestoreQueueRequest]: "restoreQueue",
+			[RoomRequestType.KickRequest]: "kickUser",
 		};
 
 		const handler = handlers[request.type];
@@ -1642,6 +1653,15 @@ export class Room implements RoomState {
 			await this.queue.enqueue(...this.prevQueue);
 			this.prevQueue = null;
 		}
+	}
+
+	public async kickUser(request: KickRequest, context: RoomRequestContext): Promise<void> {
+		const user = this.getUser(request.clientId);
+		if (!user) {
+			throw new OttException("Client not found.");
+		}
+		this.log.info(`${context.username} is kicking ${user.username}`);
+		this.publish({});
 	}
 }
 
