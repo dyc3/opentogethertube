@@ -33,10 +33,9 @@ export async function setSessionInfo(token: AuthToken, session: SessionInfo): Pr
 	await redisClientAsync.set(`${PREFIX}:${token}`, JSON.stringify(session), "EX", expiration);
 }
 
-module.exports = {
+export default {
 	validate,
 	mint,
 	getSessionInfo,
 	setSessionInfo,
 };
-export default module.exports;

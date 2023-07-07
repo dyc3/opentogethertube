@@ -1,4 +1,4 @@
-const request = require("supertest");
+import request from "supertest";
 import roommanager from "../../roommanager";
 import { app } from "../../app";
 const InfoExtract = require("../../infoextractor");

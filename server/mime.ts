@@ -40,10 +40,6 @@ export function isSupportedMimeType(mimeType: string): boolean {
 	return false;
 }
 
-module.exports = {
-	getMimeType,
-	isSupportedMimeType,
-};
 export default {
 	getMimeType,
 	isSupportedMimeType,

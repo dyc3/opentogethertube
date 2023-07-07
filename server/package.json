@@ -2,9 +2,11 @@
 	"name": "ott-server",
 	"version": "0.3.0",
 	"license": "AGPL-3.0-or-later",
+	"type": "module",
+	"module": "esnext",
 	"scripts": {
-		"start": "node --loader ts-node/esm start.js",
-		"debug": "nodemon --loader ts-node/esm --ignore 'tests/*' --inspect -e ts,js start.js",
+		"start": "node --experimental-specifier-resolution=node --loader ts-node/esm start.js",
+		"debug": "nodemon --experimental-specifier-resolution=node --loader ts-node/esm --ignore 'tests/*' --inspect -e ts,js start.js",
 		"lint": "tsc --noEmit && eslint --fix .",
 		"lint-ci": "tsc --noEmit && eslint .",
 		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"

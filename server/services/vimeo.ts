@@ -71,5 +71,3 @@ export default class VimeoAdapter extends ServiceAdapter {
 		}
 	}
 }
-
-module.exports = VimeoAdapter;

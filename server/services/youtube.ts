@@ -723,5 +723,3 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		return days * (24 * 3600) + hours * 3600 + minutes * 60 + seconds;
 	}
 }
-
-module.exports = YouTubeAdapter;
