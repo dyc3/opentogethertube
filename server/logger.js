@@ -1,5 +1,4 @@
-import winston from "winston";
-const { createLogger, format, transports } = winston;
+import { createLogger, format, transports } from "winston";
 import colors from "ansi-colors";
 import { conf } from "./ott-config";
 import { Counter } from "prom-client";

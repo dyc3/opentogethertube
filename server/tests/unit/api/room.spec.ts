@@ -66,16 +66,19 @@ expect.extend({
 
 describe("Room API", () => {
 	describe("GET /room/:name", () => {
+		let getSessionInfoSpy: jest.SpyInstance;
+		let validateSpy: jest.SpyInstance;
 		beforeAll(async () => {
-			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+				isLoggedIn: false,
 				username: "test",
 			});
-			jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
-			tokens.getSessionInfo.mockRestore();
-			tokens.validate.mockRestore();
+			getSessionInfoSpy.mockRestore();
+			validateSpy.mockRestore();
 		});
 
 		afterEach(async () => {
@@ -126,16 +129,19 @@ describe("Room API", () => {
 	});
 
 	describe("POST /room/create", () => {
+		let getSessionInfoSpy: jest.SpyInstance;
+		let validateSpy: jest.SpyInstance;
 		beforeAll(async () => {
 			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+				isLoggedIn: false,
 				username: "test",
 			});
 			jest.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
-			tokens.getSessionInfo.mockRestore();
-			tokens.validate.mockRestore();
+			getSessionInfoSpy.mockRestore();
+			validateSpy.mockRestore();
 		});
 
 		afterEach(async () => {
