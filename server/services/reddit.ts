@@ -167,5 +167,3 @@ export default class RedditAdapter extends ServiceAdapter {
 		return video;
 	}
 }
-
-module.exports = RedditAdapter;

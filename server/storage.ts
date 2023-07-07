@@ -1,4 +1,4 @@
-const { sequelize } = require("./models");
+import { sequelize } from "./models";
 import { setupPostgresMetricsCollection } from "./storage.metrics";
 import { conf } from "./ott-config";
 import { getRoomByName, isRoomNameTaken, saveRoom, updateRoom } from "./storage/room";

@@ -60,5 +60,3 @@ export default class DailyMotionAdapter extends ServiceAdapter {
 		return video;
 	}
 }
-
-module.exports = DailyMotionAdapter;
