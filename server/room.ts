@@ -514,8 +514,8 @@ export class Room implements RoomState {
 	/**
 	 * Send a command to the ClientManager. This is used for things like kicking users, or sending a message to a specific client.
 	 */
-	async command(roomName: string, cmd: ClientManagerCommand): Promise<void> {
-		roommanager.command(roomName, cmd);
+	async command(cmd: ClientManagerCommand): Promise<void> {
+		roommanager.command(this.name, cmd);
 	}
 
 	async publishRoomEvent(
@@ -1661,7 +1661,7 @@ export class Room implements RoomState {
 			throw new OttException("Client not found.");
 		}
 		this.log.info(`${context.username} is kicking ${user.username}`);
-		this.publish({});
+		this.command({ type: "kick", clientId: request.clientId });
 	}
 }
 
