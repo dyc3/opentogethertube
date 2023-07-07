@@ -43,12 +43,10 @@ function checkRedis() {
 checkRedis();
 registerRedisMetrics();
 
-import * as url from "url";
 if (fs.existsSync("../client/dist")) {
 	// serve static files without creating a bunch of sessions
-	const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 	app.use(
-		express.static(__dirname + "/../client/dist", {
+		express.static("../client/dist", {
 			maxAge: "2 days",
 			redirect: false,
 			index: false,
