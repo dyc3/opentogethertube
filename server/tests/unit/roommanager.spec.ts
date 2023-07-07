@@ -7,7 +7,6 @@ import { AuthToken, QueueMode, Role, Visibility } from "../../../common/models/t
 import dayjs from "dayjs";
 import { RoomNotFoundException } from "../../exceptions";
 import storage from "../../storage";
-import { ROOM_REQUEST_CHANNEL_PREFIX } from "../../../common/constants";
 import { RoomRequest, RoomRequestType } from "../../../common/models/messages";
 import { VideoQueue } from "../../../server/videoqueue";
 
