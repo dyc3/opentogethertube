@@ -10,17 +10,19 @@ import _ from "lodash";
 import { VideoQueue } from "../../../server/videoqueue";
 
 describe("Room", () => {
+	let getSessionInfoSpy: jest.SpyInstance;
+	let validateSpy: jest.SpyInstance;
 	beforeAll(() => {
-		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 			isLoggedIn: false,
 		});
-		jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
 	});
 
 	afterAll(() => {
-		tokens.getSessionInfo.mockRestore();
-		tokens.validate.mockRestore();
+		getSessionInfoSpy.mockRestore();
+		validateSpy.mockRestore();
 	});
 
 	it("should control playback with play/pause", async () => {

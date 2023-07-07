@@ -114,7 +114,7 @@ passport.use(
 			return done(null, false);
 		}
 		let ottsession = await tokens.getSessionInfo(token);
-		if (ottsession.user_id) {
+		if (ottsession.isLoggedIn) {
 			return done(null, ottsession);
 		}
 		return done(null, false);

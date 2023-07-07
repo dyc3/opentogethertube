@@ -993,8 +993,16 @@ export class Room implements RoomState {
 			throw new Error("Invalid token, unauthorized request");
 		}
 
+		let username: string;
+		if (session.isLoggedIn) {
+			const user = await usermanager.getUser({ id: session.user_id });
+			username = user.username;
+		} else {
+			username = session.username;
+		}
+
 		return {
-			username: session.username,
+			username,
 			role: this.getRoleFromSession(session),
 			clientId: authorization.clientId,
 			auth: authorization,
