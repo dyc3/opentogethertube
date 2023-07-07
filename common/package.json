@@ -6,6 +6,6 @@
 	"scripts": {
 		"lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
 		"lint-ci": "tsc --noEmit && eslint .",
-		"test": "jest --coverage"
+		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
 	}
 }
