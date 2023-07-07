@@ -306,6 +306,14 @@ export default {
 			"Les administrateurs ont tous les droits. Le propriétaire de la salle est automatiquement administrateur et ne peut pas être rétrogradé.",
 		"viewing-as": "Affichage en tant que",
 		"permission": "Permission",
+		"roles": {
+			"administrator": "Administrator",
+			"moderator": "Moderator",
+			"trustedUser": "Trusted User",
+			"registeredUser": "Registered User",
+			"unregisteredUser": "Unregistered User",
+			"owner": "Owner",
+		},
 	},
 	"client-settings": {
 		title: "Préférences",

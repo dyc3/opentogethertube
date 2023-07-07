@@ -3,19 +3,28 @@
 		{{ $t("permissions-editor.title") }}<br />
 		{{ $t("permissions-editor.text1") }}<br />
 		{{ $t("permissions-editor.text2") }}<br />
-		{{ $t("permissions-editor.viewing-as") }}: {{ ROLE_DISPLAY_NAMES[currentRole] }}<br />
+		{{ $t("permissions-editor.viewing-as") }}: 
+		{{ $t(
+			(currentRole === -1) ? "permissions-editor.roles.owner" :
+			(currentRole === 0) ? "permissions-editor.roles.unregisteredUser" :
+			(currentRole === 1) ? "permissions-editor.roles.registeredUser" :
+			(currentRole === 2) ? "permissions-editor.roles.trustedUser" :
+			(currentRole === 3) ? "permissions-editor.roles.moderator" :
+									"permissions-editor.roles.administrator") }}<br />
 		<v-table density="compact" :key="updateEpoch">
 			<thead>
 				<tr>
 					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
-					<th class="text-left" scope="col" v-for="i in 5" :key="i">
-						{{ ROLE_NAMES[i - 1] ? ROLE_DISPLAY_NAMES[i - 1] : 0 }}
-					</th>
+					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.unregisteredUser") }}</th>
+					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.registeredUser") }}</th>
+					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.trustedUser") }}</th>
+					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.moderator") }}</th>
+					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.administrator") }}</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr v-for="item in permissions" :key="item.name">
-					<th scope="row">{{ item.name }}</th>
+					<th scope="row">{{item.name}}</th>
 					<td v-for="r in 5" :key="r">
 						<v-checkbox
 							v-if="
@@ -43,7 +52,6 @@ import { granted } from "@/util/grants";
 import {
 	PERMISSIONS,
 	ROLE_NAMES,
-	ROLE_DISPLAY_NAMES,
 	Permission,
 	Grants,
 } from "ott-common/permissions";
@@ -170,7 +178,6 @@ export const PermissionsEditor = defineComponent({
 			updateEpoch,
 			granted,
 			ROLE_NAMES,
-			ROLE_DISPLAY_NAMES,
 			getLowestGranted,
 			getHighestDenied,
 			rolePerms,

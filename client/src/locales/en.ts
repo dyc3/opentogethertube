@@ -323,6 +323,14 @@ export default {
 			"Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.",
 		"viewing-as": "Viewing as",
 		"permission": "Permission",
+		"roles": {
+			"administrator": "Administrator",
+			"moderator": "Moderator",
+			"trustedUser": "Trusted User",
+			"registeredUser": "Registered User",
+			"unregisteredUser": "Unregistered User",
+			"owner": "Owner",
+		},
 	},
 	"client-settings": {
 		title: "Preferences",

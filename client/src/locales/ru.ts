@@ -314,6 +314,14 @@ export default {
 			"Администраторам предоставляется всё. Владелец комнаты автоматически становится администратором и не может быть понижен в должности.",
 		"viewing-as": "Просмотреть как",
 		"permission": "Разрешение",
+		"roles": {
+			"administrator": "Administrator",
+			"moderator": "Moderator",
+			"trustedUser": "Trusted User",
+			"registeredUser": "Registered User",
+			"unregisteredUser": "Unregistered User",
+			"owner": "Owner",
+		},
 	},
 	"client-settings": {
 		title: "Персональные настройки",
