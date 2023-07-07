@@ -152,6 +152,7 @@ export default {
 			you: "You",
 			demote: "Demote",
 			promote: "Promote",
+			kick: "Kick",
 		},
 	},
 	"privacy": {
