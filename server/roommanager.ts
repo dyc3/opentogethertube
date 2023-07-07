@@ -15,18 +15,21 @@ import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
 import { Result, ok, err } from "../common/result";
 import { Grants } from "../common/permissions";
+import type { ClientManagerCommand } from "./clientmanager";
 
 export const log = getLogger("roommanager");
 const redisSubscriber = createSubscriber();
 export const rooms: Room[] = [];
 
-export type RoomManagerEvents = "publish" | "load" | "unload";
+export type RoomManagerEvents = "publish" | "load" | "unload" | "command";
 export type RoomManagerEventHandlers<E> = E extends "publish"
 	? (roomName: string, message: ServerMessage) => void
 	: E extends "load"
 	? (roomName: string) => void
 	: E extends "unload"
 	? (roomName: string) => void
+	: E extends "command"
+	? (roomName: string, command: ClientManagerCommand) => void
 	: never;
 const bus = new EventEmitter();
 
@@ -193,6 +196,10 @@ export function publish(roomName: string, msg: ServerMessage) {
 	bus.emit("publish", roomName, msg);
 }
 
+export function command(roomName: string, cmd: ClientManagerCommand) {
+	bus.emit("command", roomName, cmd);
+}
+
 export function on<E extends RoomManagerEvents>(event: E, listener: RoomManagerEventHandlers<E>) {
 	bus.on(event, listener);
 }
@@ -249,6 +256,7 @@ const roommanager = {
 	clearRooms,
 	unloadAllRooms,
 	publish,
+	command,
 	on,
 };
 

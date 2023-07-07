@@ -16,7 +16,7 @@ import {
 	ServerMessageYou,
 } from "../common/models/messages";
 import { ClientNotFoundInRoomException, MissingToken } from "./exceptions";
-import { MySession, OttWebsocketError, AuthToken } from "../common/models/types";
+import { MySession, OttWebsocketError, AuthToken, ClientId } from "../common/models/types";
 import roommanager from "./roommanager";
 import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
 import tokens, { SessionInfo } from "./auth/tokens";
@@ -51,6 +51,7 @@ export function setup(): void {
 	});
 	roommanager.on("publish", onRoomPublish);
 	roommanager.on("unload", onRoomUnload);
+	roommanager.on("command", handleCommand);
 
 	usermanager.on("userModified", onUserModified);
 
@@ -353,6 +354,13 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 	await broadcast(roomName, msg);
 }
 
+async function handleCommand(roomName: string, command: ClientManagerCommand) {
+	if (command.type === "kick") {
+		const client = getClient(command.clientId);
+		client?.kick(OttWebsocketError.KICKED);
+	}
+}
+
 function onRoomUnload(roomName: string) {
 	const clients = roomJoins.get(roomName);
 	if (clients) {
@@ -403,7 +411,7 @@ async function onUserModified(token: AuthToken): Promise<void> {
 	}
 }
 
-function getClient(token: AuthToken, roomName: string): Client {
+function getClientByToken(token: AuthToken, roomName: string): Client {
 	for (const client of connections) {
 		if (!client.token) {
 			continue;
@@ -415,6 +423,15 @@ function getClient(token: AuthToken, roomName: string): Client {
 	throw new ClientNotFoundInRoomException(roomName);
 }
 
+function getClient(id: ClientId): Client | undefined {
+	for (const client of connections) {
+		if (client.id === id) {
+			return client;
+		}
+	}
+	return undefined;
+}
+
 setInterval(() => {
 	for (const client of connections) {
 		if (client instanceof DirectClient) {
@@ -422,6 +439,17 @@ setInterval(() => {
 		}
 	}
 }, 10000);
+
+export type ClientManagerCommand = CmdKick;
+
+interface CmdBase {
+	type: string;
+}
+
+export interface CmdKick extends CmdBase {
+	type: "kick";
+	clientId: ClientId;
+}
 
 const gaugeWebsocketConnections = new Gauge({
 	name: "ott_websocket_connections",
@@ -447,6 +475,6 @@ const gaugeClients = new Gauge({
 export default {
 	setup,
 	onUserModified,
-	getClient,
+	getClientByToken,
 	makeRoomRequest,
 };
