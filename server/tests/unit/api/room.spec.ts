@@ -132,11 +132,11 @@ describe("Room API", () => {
 		let getSessionInfoSpy: jest.SpyInstance;
 		let validateSpy: jest.SpyInstance;
 		beforeAll(async () => {
-			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
-			jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {

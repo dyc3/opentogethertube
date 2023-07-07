@@ -128,7 +128,18 @@ router.get(
 			return;
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-		await tokens.setSessionInfo((req.session as MySession).token, {
+		const token = (req.session as MySession).token;
+		if (!token) {
+			res.status(400).json({
+				success: false,
+				error: {
+					message: "no token found on request",
+				},
+			});
+			return;
+		}
+
+		await tokens.setSessionInfo(token, {
 			isLoggedIn: true,
 			user_id: req.user.id,
 		});
