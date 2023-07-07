@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	moduleFileExtensions: ["js", "jsx", "ts", "tsx", "json", "vue"],
 	transform: {
 		"^.+\\.tsx?$": "ts-jest",
@@ -7,7 +7,7 @@ module.exports = {
 	rootDir: "../..",
 	testMatch: ["**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)"],
 	watchPlugins: ["jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
-	// collectCoverage: true,
+	collectCoverage: true,
 	coverageReporters: ["text-summary", "text", "json", "html"],
 	collectCoverageFrom: [
 		"**/*.{js,ts}",
