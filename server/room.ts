@@ -53,6 +53,7 @@ import dayjs, { Dayjs } from "dayjs";
 import type { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import {
+	ClientNotFoundInRoomException,
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
 	VideoNotFoundException,
@@ -69,6 +70,7 @@ import { calculateCurrentPosition } from "../common/timestamp";
 import { RestoreQueueRequest } from "../common/models/messages";
 import { voteSkipThreshold } from "../common";
 import type { ClientManagerCommand } from "./clientmanager";
+import { canKickUser } from "../common/userutils";
 
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
@@ -1658,10 +1660,16 @@ export class Room implements RoomState {
 	public async kickUser(request: KickRequest, context: RoomRequestContext): Promise<void> {
 		const user = this.getUser(request.clientId);
 		if (!user) {
-			throw new OttException("Client not found.");
+			throw new ClientNotFoundInRoomException(this.name);
 		}
-		this.log.info(`${context.username} is kicking ${user.username}`);
-		this.command({ type: "kick", clientId: request.clientId });
+		if (canKickUser(context.role, this.getRole(user))) {
+			this.log.info(`${context.username} is kicking ${user.username}`);
+			this.command({ type: "kick", clientId: request.clientId });
+		} else {
+			this.log.warn(
+				`${context.username} tried to kick ${user.username} but failed the role check`
+			);
+		}
 	}
 }
 
