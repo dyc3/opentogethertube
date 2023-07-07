@@ -182,12 +182,6 @@ if (conf.get("env") !== "test") {
 	});
 }
 
-module.exports = {
-	app,
-	redisClient,
-	server,
-};
-
 export default {
 	app,
 	redisClient,

@@ -16,7 +16,7 @@ import { USERNAME_LENGTH_MAX } from "../common/constants";
 import { LengthOutOfRangeException } from "./exceptions";
 import { conf } from "./ott-config";
 import { AuthToken } from "ott-common/models/types";
-import { EventEmitter } from "stream";
+import { EventEmitter } from "events";
 import { Sequelize } from "sequelize";
 
 const maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;

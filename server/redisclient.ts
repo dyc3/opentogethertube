@@ -261,10 +261,3 @@ const guageRedisDbsize = new Gauge({
 		this.set(dbsize);
 	},
 });
-
-module.exports = {
-	redisClient,
-	createSubscriber,
-	redisClientAsync,
-	registerRedisMetrics,
-};
