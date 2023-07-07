@@ -79,15 +79,14 @@ jobs:
       env:
         NODE_ENV: test
     - run: yarn workspace ott-client build
-    - run: yarn workspace ott-client test
-    - run: yarn workspace ott-server test
+    - run: yarn run test
       env:
         REDIS_HOST: localhost
         REDIS_PORT: 6379
     - name: Upload coverage report
       uses: codecov/codecov-action@v2
       with:
-        files: ./client/coverage/coverage-final.json,./server/coverage/coverage-final.json
+        files: ./common/coverage/coverage-final.json,./client/coverage/coverage-final.json,./server/coverage/coverage-final.json
   deploy-docker:
     runs-on: ubuntu-latest
     name: Deploy docker image
