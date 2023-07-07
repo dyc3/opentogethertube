@@ -141,4 +141,14 @@ class RoomApi {
 			},
 		});
 	}
+
+	kickUser(clientId: ClientId) {
+		this.connection.send({
+			action: "req",
+			request: {
+				type: RoomRequestType.KickRequest,
+				targetClientId: clientId,
+			},
+		});
+	}
 }
