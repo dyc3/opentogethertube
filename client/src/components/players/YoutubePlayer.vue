@@ -168,7 +168,7 @@ export default {
 				this.player.setOption("captions", "reload", true);
 				this.isCaptionsLoaded = true;
 			}
-			let tracklist = this.getCaptionsTracks();
+			const tracklist = this.getCaptionsTracks();
 			console.debug(`youtube: found tracks:`, tracklist);
 			if (tracklist.includes(track)) {
 				this.player.setOption("captions", "track", track);
@@ -259,9 +259,9 @@ export default {
 			if (!this.player) {
 				return;
 			}
-			let iframe = this.player.getIframe();
-			let width = iframe.parentElement.offsetWidth;
-			let height = iframe.parentElement.offsetHeight;
+			const iframe = this.player.getIframe();
+			const width = iframe.parentElement.offsetWidth;
+			const height = iframe.parentElement.offsetHeight;
 			this.player.setSize(width, height);
 		},
 	},

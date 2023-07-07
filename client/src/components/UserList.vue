@@ -83,6 +83,14 @@
 										</v-list-item>
 									</div>
 								</div>
+								<v-list-item
+									@click="kickUser(user.id)"
+									v-if="canSelfKickUser(user)"
+								>
+									<v-list-item-title>
+										{{ $t("room.users.kick") }}
+									</v-list-item-title>
+								</v-list-item>
 							</v-list>
 						</v-menu>
 					</v-btn>
@@ -106,6 +114,7 @@ import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "ott-common/permissions";
 import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import { canKickUser } from "ott-common/userutils";
 
 /** Lists users that are connected to a room. */
 export const UserList = defineComponent({
@@ -118,10 +127,10 @@ export const UserList = defineComponent({
 		const roomapi = useRoomApi(useConnection());
 		const debugMode = inject("debugMode", false);
 
-		let inputUsername = ref("");
-		let showEditName = ref(false);
-		let setUsernameLoading = ref(false);
-		let setUsernameFailureText = ref("");
+		const inputUsername = ref("");
+		const showEditName = ref(false);
+		const setUsernameLoading = ref(false);
+		const setUsernameFailureText = ref("");
 
 		function openEditName() {
 			if (!inputUsername.value) {
@@ -148,7 +157,7 @@ export const UserList = defineComponent({
 
 		/** Gets the appropriate permission name for the role and promotion/demotion. */
 		function roleToPermission(role: Role, demote = false) {
-			let r = {
+			const r = {
 				[Role.Administrator]: "admin",
 				[Role.Moderator]: "moderator",
 				[Role.TrustedUser]: "trusted-user",
@@ -157,14 +166,14 @@ export const UserList = defineComponent({
 		}
 
 		function getUserCssClasses(user: RoomUserInfo) {
-			let cls = ["user", `role-${ROLE_NAMES[user.role]}`];
+			const cls = ["user", `role-${ROLE_NAMES[user.role]}`];
 			if (user.isLoggedIn) {
 				cls.push("registered");
 			}
 			return cls.join(" ");
 		}
 
-		function canUserBePromotedTo(user: RoomUserInfo, role: Role) {
+		function canUserBePromotedTo(user: RoomUserInfo, role: Role): boolean {
 			if (user.role === role) {
 				return false;
 			}
@@ -181,6 +190,14 @@ export const UserList = defineComponent({
 			}
 
 			return false;
+		}
+
+		function canSelfKickUser(user: RoomUserInfo): boolean {
+			const you = store.state.users.users.get(store.state.users.you.id);
+			if (!you) {
+				return false;
+			}
+			return granted("manage-users.kick") && canKickUser(you.role, user.role);
 		}
 
 		function getRoleIcon(role: Role) {
@@ -204,6 +221,10 @@ export const UserList = defineComponent({
 			roomapi.promoteUser(clientId, role);
 		}
 
+		function kickUser(clientId: ClientId) {
+			roomapi.kickUser(clientId);
+		}
+
 		return {
 			store,
 			debugMode,
@@ -217,9 +238,12 @@ export const UserList = defineComponent({
 			roleToPermission,
 			getUserCssClasses,
 			canUserBePromotedTo,
+			canSelfKickUser,
 			getRoleIcon,
 			getPlayerStatusIcon,
 			promoteUser,
+			kickUser,
+			granted,
 
 			ROLE_NAMES,
 			ROLE_DISPLAY_NAMES,

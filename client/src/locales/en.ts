@@ -135,6 +135,7 @@ export default {
 		"skip": "Skip 10s",
 		"play-pause": "Play/Pause",
 		"next-video": "Next video",
+		"next-video-vote": "Vote to skip video",
 		"toggle-fullscreen": "Toggle fullscreen",
 		"con-status": {
 			connecting: "Connecting...",
@@ -151,6 +152,7 @@ export default {
 			you: "You",
 			demote: "Demote",
 			promote: "Promote",
+			kick: "Kick",
 		},
 	},
 	"privacy": {
@@ -250,6 +252,7 @@ export default {
 		"now-own-the-room": "You now own the room {room}.",
 		"load-failed": "Failed to load room settings.",
 		"restore-queue": "Restore the queue when the room is loaded",
+		"enable-vote-skip": "Enable vote skip",
 	},
 	"create-room-form": {
 		"card-title": "Create a Permanent Room",
@@ -346,7 +349,11 @@ export default {
 			[OttWebsocketError.ROOM_UNLOADED]: "Room was unloaded.",
 			[OttWebsocketError.MISSING_TOKEN]:
 				"A token was not provided. Refresh the page and try again. Otherwise, please open an issue on GitHub.",
+			[OttWebsocketError.KICKED]: "You were kicked from the room by a user.",
 			unknown: "Something happened, but we don't know what. Please report this as a bug.",
 		},
+	},
+	"vote-skip": {
+		remaining: "{count} more votes to skip",
 	},
 };

@@ -171,19 +171,19 @@ const LogInForm = defineComponent({
 		const store = useStore();
 		const { t } = useI18n();
 
-		let email = ref("");
-		let username = ref("");
-		let emailOrUsername = ref("");
-		let password = ref("");
-		let password2 = ref("");
+		const email = ref("");
+		const username = ref("");
+		const emailOrUsername = ref("");
+		const password = ref("");
+		const password2 = ref("");
 
-		let mode = ref("");
-		let isLoading = ref(false);
-		let logInFailureMessage = ref("");
-		let registerFailureMessage = ref("");
+		const mode = ref("");
+		const isLoading = ref(false);
+		const logInFailureMessage = ref("");
+		const registerFailureMessage = ref("");
 
-		let loginValid = ref(false);
-		let registerValid = ref(false);
+		const loginValid = ref(false);
+		const registerValid = ref(false);
 		let registerFieldErrors = reactive({
 			email: "",
 			username: "",
@@ -242,7 +242,7 @@ const LogInForm = defineComponent({
 			isLoading.value = true;
 			logInFailureMessage.value = "";
 			try {
-				let resp = await API.post("/user/login", {
+				const resp = await API.post("/user/login", {
 					user: emailOrUsername.value,
 					password: password.value,
 				});
@@ -290,7 +290,7 @@ const LogInForm = defineComponent({
 				password2: "",
 			};
 			try {
-				let resp = await API.post("/user/register", {
+				const resp = await API.post("/user/register", {
 					email: email.value,
 					username: username.value,
 					password: password.value,

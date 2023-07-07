@@ -16,16 +16,6 @@ export type OldRoleGrants = {
  */
 export type RoleGrants = Map<Role, GrantMask>;
 
-/** @deprecated */
-const ROLES = {
-	ADMINISTRATOR: Role.Administrator,
-	MODERATOR: Role.Moderator,
-	TRUSTED_USER: Role.TrustedUser,
-	REGISTERED_USER: Role.RegisteredUser,
-	UNREGISTERED_USER: Role.UnregisteredUser,
-	OWNER: Role.Owner,
-};
-
 export const ROLE_NAMES: { [P in keyof typeof Role]?: string } = {
 	[Role.Administrator]: "admin",
 	[Role.Moderator]: "mod",
@@ -148,6 +138,11 @@ export const PERMISSIONS = [
 		mask: 1 << 23,
 		minRole: Role.UnregisteredUser,
 	}),
+	new Permission({
+		name: "manage-users.kick",
+		mask: 1 << 24,
+		minRole: Role.TrustedUser,
+	}),
 ];
 
 const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));
@@ -173,6 +168,7 @@ function defaultPermissions(): Grants {
 		[Role.Moderator]: parseIntoGrantMask([
 			"manage-users.promote-trusted-user",
 			"manage-users.demote-trusted-user",
+			"manage-users.kick",
 		]),
 		[Role.Administrator]: parseIntoGrantMask(["*"]),
 		[Role.Owner]: parseIntoGrantMask(["*"]),
@@ -195,18 +191,6 @@ export function parseIntoGrantMask(perms: PermissionName[]): GrantMask {
 		});
 	}
 	return mask;
-}
-
-/**
- * Get the full grant mask for a role, accounting for permission inheritance.
- * @deprecated
- */
-function getFullGrantMask(grants: Grants, role: Role): GrantMask {
-	let fullmask = grants[role];
-	for (let i = role - 1; i >= Role.UnregisteredUser; i--) {
-		fullmask |= grants[i];
-	}
-	return fullmask;
 }
 
 /**
@@ -236,25 +220,6 @@ function _normalizeRoleId(role: Role | string | number): Role {
 		role = parseInt(role);
 	}
 	return role;
-}
-
-/**
- * Checks if the given role is granted the permission, given the grants.
- * @deprecated
- */
-function granted(grants: Grants, role: Role, permission: PermissionName): boolean {
-	const g = new Grants(grants);
-	return g.granted(role, permission);
-}
-
-/**
- * Checks to see if the permission is granted. Throws an exception if it fails.
- * @throws PermissionDeniedException
- * @deprecated
- */
-function check(grants: Grants, role: Role, permission: PermissionName): void {
-	const g = new Grants(grants);
-	g.check(role, permission);
 }
 
 /**
@@ -385,7 +350,7 @@ export class Grants {
 	filterRoles(roles: Role[]): void {
 		for (const role of this.masks.keys()) {
 			if (!roles.includes(role)) {
-				this.masks.delete(role);
+				this.deleteRole(role);
 			}
 		}
 	}
@@ -429,16 +394,12 @@ export class Grants {
 }
 
 const _exp = {
-	ROLES,
 	ROLE_NAMES,
 	ROLE_DISPLAY_NAMES,
 	PERMISSIONS,
 	Grants,
 	defaultPermissions,
 	parseIntoGrantMask,
-	getFullGrantMask,
 	getValidationMask,
-	granted,
-	check,
 };
 export default _exp;

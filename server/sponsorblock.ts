@@ -1,13 +1,13 @@
 import { SponsorBlock } from "sponsorblock-api";
 import { redisClientAsync } from "./redisclient";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 const SPONSORBLOCK_USERID_KEY = `sponsorblock-userid`;
 
 export async function getSponsorBlockUserId(): Promise<string> {
 	let userid = await redisClientAsync.get(SPONSORBLOCK_USERID_KEY);
 	if (!userid) {
-		userid = uuid.v4();
+		userid = uuidv4();
 		await redisClientAsync.set(SPONSORBLOCK_USERID_KEY, userid);
 	}
 	return userid;

@@ -6,6 +6,7 @@ import VimeoAdapter from "./services/vimeo";
 import YouTubeAdapter from "./services/youtube";
 import DirectVideoAdapter from "./services/direct";
 import RedditAdapter from "./services/reddit";
+import HlsVideoAdapter from "./services/hls";
 import storage from "./storage";
 import {
 	UnsupportedMimeTypeException,
@@ -32,6 +33,7 @@ const adapters = [
 	new VimeoAdapter(),
 	new YouTubeAdapter(conf.get("info_extractor.youtube.api_key"), redisClient, redisClientAsync),
 	new DirectVideoAdapter(),
+	new HlsVideoAdapter(),
 	new RedditAdapter(),
 	new TubiAdapter(),
 ];

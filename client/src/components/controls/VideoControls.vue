@@ -83,8 +83,8 @@ export default defineComponent({
 	},
 	emits: [],
 	setup(props) {
-		let store = useStore();
-		let { player } = toRefs(props);
+		const store = useStore();
+		const { player } = toRefs(props);
 
 		function isPlayerPresent(p: Ref<typeof OmniPlayer>): p is Ref<typeof OmniPlayer> {
 			return !!p.value;

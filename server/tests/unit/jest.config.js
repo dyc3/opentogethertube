@@ -1,13 +1,10 @@
-module.exports = {
-	moduleFileExtensions: ["js", "jsx", "ts", "tsx", "json", "vue"],
+export default {
+	preset: "ts-jest",
+	testEnvironment: "node",
 	transform: {
-		"^.+\\.tsx?$": "ts-jest",
 		"^.+\\.jsx?$": "babel-jest",
 	},
 	rootDir: "../..",
-	moduleNameMapper: {
-		"^@/(.*)$": "<rootDir>/src/$1",
-	},
 	testMatch: ["**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)"],
 	watchPlugins: ["jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
 	// collectCoverage: true,

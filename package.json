@@ -16,9 +16,9 @@
     "start": "yarn workspace ott-server start",
     "serve": "yarn workspace ott-client serve",
     "build": "yarn workspace ott-client build",
-    "lint": "yarn workspace ott-server lint && yarn workspace ott-client lint",
-    "lint-ci": "yarn workspace ott-server lint-ci && yarn workspace ott-client lint-ci",
-    "test": "yarn workspace ott-server test && yarn workspace ott-client test",
+    "lint": "yarn workspaces run lint",
+    "lint-ci": "yarn workspaces run lint-ci",
+    "test": "yarn workspaces run test",
     "cy:run": "cypress run --headless",
     "cy:open": "cypress open",
     "api-server": "yarn workspace ott-server debug",
@@ -39,8 +39,9 @@
     "winston": "^3.8.2"
   },
   "devDependencies": {
-    "@jest/globals": "^27.0.1",
-    "@types/jest": "27.4.1",
+    "@jest/globals": "^29.5.0",
+    "@types/jest": "29.5.0",
+    "@types/node": "^16.11.7",
     "@types/uuid": "^3.4.0",
     "@typescript-eslint/eslint-plugin": "5.51.0",
     "@typescript-eslint/parser": "5.51.0",
@@ -54,10 +55,10 @@
     "eslint-plugin-jest": "23.13.2",
     "eslint-plugin-prettier": "^4.0.0",
     "faker": "^5.5.3",
-    "jest": "29.4.2",
+    "jest": "29.5.0",
     "prettier": "^2.5.1",
     "start-server-and-test": "^1.12.3",
     "supertest": "6.3.3",
-    "ts-jest": "29.0.5"
+    "ts-jest": "29.1.1"
   }
 }

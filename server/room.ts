@@ -28,6 +28,7 @@ import {
 	RoomRequestContext,
 	ShuffleRequest,
 	PlaybackSpeedRequest,
+	KickRequest,
 } from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
@@ -52,6 +53,7 @@ import dayjs, { Dayjs } from "dayjs";
 import type { PickFunctions } from "../common/typeutils";
 import { replacer } from "../common/serialize";
 import {
+	ClientNotFoundInRoomException,
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
 	VideoNotFoundException,
@@ -66,6 +68,9 @@ import { Counter } from "prom-client";
 import roommanager from "./roommanager";
 import { calculateCurrentPosition } from "../common/timestamp";
 import { RestoreQueueRequest } from "../common/models/messages";
+import { voteSkipThreshold } from "../common";
+import type { ClientManagerCommand } from "./clientmanager";
+import { canKickUser } from "../common/userutils";
 
 const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
@@ -125,6 +130,7 @@ export interface RoomState extends RoomOptions, RoomStateComputed {
 	playbackSpeed: number;
 	users: RoomUserInfo[];
 	votes: Map<string, Set<ClientId>>;
+	votesToSkip: Set<ClientId>;
 	videoSegments: Segment[];
 }
 
@@ -142,7 +148,10 @@ export interface RoomStateComputed {
 export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" | "users">;
 
 // Only these should be stored in redis
-export type RoomStateStorable = Omit<RoomState, "hasOwner" | "votes" | "voteCounts" | "users">;
+export type RoomStateStorable = Omit<
+	RoomState,
+	"hasOwner" | "votes" | "voteCounts" | "users" | "votesToSkip"
+>;
 
 /** Only these should be stored in persistent storage */
 export type RoomStatePersistable = Omit<
@@ -158,6 +167,7 @@ export type RoomStatePersistable = Omit<
 	| "videoSegments"
 	| "hasOwner"
 	| "voteCounts"
+	| "votesToSkip"
 >;
 
 export class Room implements RoomState {
@@ -172,6 +182,7 @@ export class Room implements RoomState {
 	userRoles: Map<Role, Set<number>>;
 	_autoSkipSegments = true;
 	restoreQueueBehavior: BehaviorOption = BehaviorOption.Prompt;
+	_enableVoteSkip: boolean = false;
 
 	_currentSource: QueueItem | null = null;
 	queue: VideoQueue;
@@ -185,6 +196,7 @@ export class Room implements RoomState {
 	 */
 	votes: Map<string, Set<ClientId>> = new Map();
 	_videoSegments: Segment[] = [];
+	votesToSkip: Set<string> = new Set();
 
 	_dirty: Set<keyof RoomStateSyncable> = new Set();
 	log: winston.Logger;
@@ -225,7 +237,9 @@ export class Room implements RoomState {
 				"playbackSpeed",
 				"autoSkipSegments",
 				"prevQueue",
-				"restoreQueueBehavior"
+				"restoreQueueBehavior",
+				"enableVoteSkip",
+				"votesToSkip"
 			)
 		);
 		if (this.restoreQueueBehavior === BehaviorOption.Never) {
@@ -276,6 +290,11 @@ export class Room implements RoomState {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-ignore
 			this._playbackStart = dayjs(options._playbackStart);
+		}
+		if (Array.isArray(this.votesToSkip)) {
+			this.votesToSkip = new Set(this.votesToSkip);
+		} else {
+			this.votesToSkip = new Set();
 		}
 
 		this.queue.onDirty(() => this.markDirty("queue"));
@@ -401,6 +420,15 @@ export class Room implements RoomState {
 		this.markDirty("prevQueue");
 	}
 
+	public get enableVoteSkip(): boolean {
+		return this._enableVoteSkip;
+	}
+
+	public set enableVoteSkip(value: boolean) {
+		this._enableVoteSkip = value;
+		this.markDirty("enableVoteSkip");
+	}
+
 	get users(): RoomUserInfo[] {
 		const infos: RoomUserInfo[] = [];
 		for (const user of this.realusers) {
@@ -428,6 +456,11 @@ export class Room implements RoomState {
 
 	async dequeueNext() {
 		this.log.debug(`dequeuing next video. mode: ${this.queueMode}`);
+		if (this.enableVoteSkip) {
+			this.votesToSkip.clear();
+			this.markDirty("votesToSkip");
+		}
+
 		if (this.currentSource !== null) {
 			counterSecondsWatched
 				.labels({ service: this.currentSource.service })
@@ -473,11 +506,18 @@ export class Room implements RoomState {
 	}
 
 	/**
-	 * Publish a message to the client manager. In general, these messages get sent to all the clients connected, and joined to this room. However, centain messages may be directed at a specific client, depending on what they do.
+	 * Publish a message to the client manager. These messages get broadcasted to all the clients connected, and joined to this room.
 	 * @param msg The message to publish.
 	 */
 	async publish(msg: ServerMessage): Promise<void> {
 		roommanager.publish(this.name, msg);
+	}
+
+	/**
+	 * Send a command to the ClientManager. This is used for things like kicking users, or sending a message to a specific client.
+	 */
+	async command(cmd: ClientManagerCommand): Promise<void> {
+		roommanager.command(this.name, cmd);
 	}
 
 	async publishRoomEvent(
@@ -745,7 +785,8 @@ export class Room implements RoomState {
 			"videoSegments",
 			"autoSkipSegments",
 			"prevQueue",
-			"restoreQueueBehavior"
+			"restoreQueueBehavior",
+			"enableVoteSkip"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -772,7 +813,9 @@ export class Room implements RoomState {
 			"videoSegments",
 			"autoSkipSegments",
 			"prevQueue",
-			"restoreQueueBehavior"
+			"restoreQueueBehavior",
+			"enableVoteSkip",
+			"votesToSkip"
 		);
 
 		return JSON.stringify(state, replacer);
@@ -808,7 +851,9 @@ export class Room implements RoomState {
 			"videoSegments",
 			"autoSkipSegments",
 			"prevQueue",
-			"restoreQueueBehavior"
+			"restoreQueueBehavior",
+			"enableVoteSkip",
+			"votesToSkip"
 		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
@@ -927,29 +972,40 @@ export class Room implements RoomState {
 	}
 
 	public async deriveRequestContext(
-		authorization: RoomRequestAuthorization,
-		request: RoomRequest
+		authorization: RoomRequestAuthorization
 	): Promise<RoomRequestContext> {
-		for (const user of this.realusers) {
-			if (user.token === authorization.token) {
+		if (authorization.clientId) {
+			const user = this.getUser(authorization.clientId);
+			if (user) {
 				return {
 					username: user.username,
-					role: await this.getRoleFromToken(authorization.token),
-					clientId: user.id,
+					role: this.getRole(user),
+					clientId: authorization.clientId,
+					auth: authorization,
 				};
 			}
 		}
+
+		// the user is not in the room, but they may have a valid session
 
 		let session = await tokens.getSessionInfo(authorization.token);
 		if (!session) {
 			throw new Error("Invalid token, unauthorized request");
 		}
 
+		let username: string;
+		if (session.isLoggedIn) {
+			const user = await usermanager.getUser({ id: session.user_id });
+			username = user.username;
+		} else {
+			username = session.username;
+		}
+
 		return {
-			username: session.username,
+			username,
 			role: this.getRoleFromSession(session),
-			// we don't have the client id for join requests because the info hasn't been added to the room yet
-			clientId: request.type === RoomRequestType.JoinRequest ? request.info.id : undefined,
+			clientId: authorization.clientId,
+			auth: authorization,
 		};
 	}
 
@@ -957,7 +1013,7 @@ export class Room implements RoomState {
 		request: RoomRequest,
 		authorization: RoomRequestAuthorization
 	): Promise<void> {
-		await this.processRequest(request, await this.deriveRequestContext(authorization, request));
+		await this.processRequest(request, await this.deriveRequestContext(authorization));
 	}
 
 	/** Process the room request, but unsafely trust the client id of the room request */
@@ -981,6 +1037,7 @@ export class Room implements RoomState {
 			[RoomRequestType.OrderRequest, "manage-queue.order"],
 			[RoomRequestType.VoteRequest, "manage-queue.vote"],
 			[RoomRequestType.ChatRequest, "chat"],
+			[RoomRequestType.KickRequest, "manage-users.kick"],
 		]);
 		const permission = permissions.get(request.type);
 		if (permission) {
@@ -1014,6 +1071,7 @@ export class Room implements RoomState {
 			[RoomRequestType.ShuffleRequest]: "shuffle",
 			[RoomRequestType.PlaybackSpeedRequest]: "setPlaybackSpeed",
 			[RoomRequestType.RestoreQueueRequest]: "restoreQueue",
+			[RoomRequestType.KickRequest]: "kickUser",
 		};
 
 		const handler = handlers[request.type];
@@ -1075,12 +1133,36 @@ export class Room implements RoomState {
 		if (!this.currentSource) {
 			return;
 		}
-		const current = this.currentSource;
-		const prevPosition = this.realPlaybackPosition;
-		counterMediaSkipped.labels({ service: this.currentSource.service }).inc();
-		this.dequeueNext();
-		await this.publishRoomEvent(request, context, { video: current, prevPosition });
-		this.videoSegments = [];
+
+		let shouldSkip = false;
+		if (this.enableVoteSkip) {
+			if (context.clientId) {
+				if (this.votesToSkip.has(context.clientId)) {
+					this.log.debug(`removing vote to skip from ${context.clientId}`);
+					this.votesToSkip.delete(context.clientId);
+				} else {
+					this.log.debug(`adding vote to skip from ${context.clientId}`);
+					this.votesToSkip.add(context.clientId);
+				}
+				this.markDirty("votesToSkip");
+			}
+
+			if (this.votesToSkip.size >= voteSkipThreshold(this.realusers.length)) {
+				this.log.debug("vote threshold met, skipping video");
+				shouldSkip = true;
+			}
+		} else {
+			shouldSkip = true;
+		}
+
+		if (shouldSkip) {
+			const current = this.currentSource;
+			const prevPosition = this.realPlaybackPosition;
+			counterMediaSkipped.labels({ service: this.currentSource.service }).inc();
+			this.dequeueNext();
+			await this.publishRoomEvent(request, context, { video: current, prevPosition });
+			this.videoSegments = [];
+		}
 	}
 
 	/**
@@ -1192,14 +1274,19 @@ export class Room implements RoomState {
 	}
 
 	public async joinRoom(request: JoinRequest, context: RoomRequestContext): Promise<void> {
+		if (!context.auth?.token) {
+			this.log.error("Received a join request without an auth token");
+			throw new Error("No auth token");
+		}
 		const user = new RoomUser(request.info.id);
-		user.token = request.token;
+		user.token = context.auth?.token;
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.log.info(`${user.username} joined the room`);
 		await this.publishRoomEvent(request, context);
 		// HACK: force the client to receive the correct playback position
 		await this.publish({ action: "sync", playbackPosition: this.realPlaybackPosition });
+		await this.syncUser(this.getUserInfo(user.id));
 	}
 
 	public async leaveRoom(request: LeaveRequest, context: RoomRequestContext): Promise<void> {
@@ -1209,6 +1296,11 @@ export class Room implements RoomState {
 		const removed = this.getUserInfo(context.clientId);
 		// We must publish the event before removing the user, otherwise publishing the event will fail because the user is gone.
 		await this.publishRoomEvent(request, context, { user: removed });
+
+		if (this.enableVoteSkip) {
+			this.votesToSkip.delete(context.clientId);
+			this.markDirty("votesToSkip");
+		}
 
 		if (this.queueMode === QueueMode.Vote) {
 			this.log.debug(`removing votes for leaving client ${context.clientId}`);
@@ -1416,6 +1508,7 @@ export class Room implements RoomState {
 			queueMode: "configure-room.set-queue-mode",
 			autoSkipSegments: "configure-room.other",
 			restoreQueueBehavior: "configure-room.other",
+			enableVoteSkip: "configure-room.other",
 		};
 		const roleToPerms: Record<Exclude<Role, Role.Owner | Role.Administrator>, string> = {
 			[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",
@@ -1569,6 +1662,21 @@ export class Room implements RoomState {
 		} else {
 			await this.queue.enqueue(...this.prevQueue);
 			this.prevQueue = null;
+		}
+	}
+
+	public async kickUser(request: KickRequest, context: RoomRequestContext): Promise<void> {
+		const user = this.getUser(request.clientId);
+		if (!user) {
+			throw new ClientNotFoundInRoomException(this.name);
+		}
+		if (canKickUser(context.role, this.getRole(user))) {
+			this.log.info(`${context.username} is kicking ${user.username}`);
+			this.command({ type: "kick", clientId: request.clientId });
+		} else {
+			this.log.warn(
+				`${context.username} tried to kick ${user.username} but failed the role check`
+			);
 		}
 	}
 }

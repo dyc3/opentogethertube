@@ -46,7 +46,7 @@ registerRedisMetrics();
 if (fs.existsSync("../client/dist")) {
 	// serve static files without creating a bunch of sessions
 	app.use(
-		express.static(__dirname + "/../client/dist", {
+		express.static("../client/dist", {
 			maxAge: "2 days",
 			redirect: false,
 			index: false,
@@ -112,7 +112,7 @@ passport.use(
 			return done(null, false);
 		}
 		let ottsession = await tokens.getSessionInfo(token);
-		if (ottsession.user_id) {
+		if (ottsession.isLoggedIn) {
 			return done(null, ottsession);
 		}
 		return done(null, false);
@@ -181,12 +181,6 @@ if (conf.get("env") !== "test") {
 		}
 	});
 }
-
-module.exports = {
-	app,
-	redisClient,
-	server,
-};
 
 export default {
 	app,

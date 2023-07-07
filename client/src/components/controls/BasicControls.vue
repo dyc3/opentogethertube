@@ -42,14 +42,22 @@
 		<v-btn
 			variant="text"
 			icon
-			@click="roomapi.skip()"
+			@click="skip()"
 			:disabled="!granted('playback.skip')"
 			class="media-control"
-			:aria-label="$t('room.next-video')"
+			:aria-label="
+				store.state.room.enableVoteSkip ? $t('room.next-video-vote') : $t('room.next-video')
+			"
 		>
 			<v-icon>fa:fas fa-fast-forward</v-icon>
 			<v-tooltip activator="parent" location="bottom">
-				<span>{{ $t("room.next-video") }}</span>
+				<span>
+					{{
+						store.state.room.enableVoteSkip
+							? $t("room.next-video-vote")
+							: $t("room.next-video")
+					}}
+				</span>
 			</v-tooltip>
 		</v-btn>
 	</div>
@@ -71,7 +79,8 @@ export const BasicControls = defineComponent({
 			default: 0,
 		},
 	},
-	setup(props) {
+	emits: ["seek", "play", "pause", "skip"],
+	setup(props, { emit }) {
 		const store = useStore();
 		const roomapi = useRoomApi(useConnection());
 
@@ -79,8 +88,10 @@ export const BasicControls = defineComponent({
 		function togglePlayback() {
 			if (store.state.room.isPlaying) {
 				roomapi.pause();
+				emit("pause");
 			} else {
 				roomapi.play();
+				emit("play");
 			}
 		}
 
@@ -92,6 +103,12 @@ export const BasicControls = defineComponent({
 					store.state.room.currentSource?.length ?? 0
 				)
 			);
+			emit("seek");
+		}
+
+		function skip() {
+			roomapi.skip();
+			emit("skip");
 		}
 
 		return {
@@ -101,6 +118,7 @@ export const BasicControls = defineComponent({
 
 			togglePlayback,
 			seekDelta,
+			skip,
 		};
 	},
 });

@@ -145,7 +145,7 @@ export const CreateRoomForm = defineComponent({
 			}
 
 			try {
-				let opts = {
+				const opts = {
 					...options,
 					isTemporary: false,
 				};

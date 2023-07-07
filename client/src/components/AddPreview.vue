@@ -213,6 +213,10 @@ export const AddPreview = defineComponent({
 						"test hls 0",
 						"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
 					],
+					[
+						"test hls 1",
+						"https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+					],
 			  ]
 			: [];
 

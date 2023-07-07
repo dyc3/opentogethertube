@@ -23,6 +23,10 @@ export default class VimeoAdapter extends ServiceAdapter {
 		return "vimeo";
 	}
 
+	get isCacheSafe(): boolean {
+		return false;
+	}
+
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
 		return url.host.endsWith("vimeo.com") && /^\/\d+$/.test(url.pathname);
@@ -67,5 +71,3 @@ export default class VimeoAdapter extends ServiceAdapter {
 		}
 	}
 }
-
-module.exports = VimeoAdapter;

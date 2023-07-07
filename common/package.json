@@ -2,5 +2,11 @@
 	"name": "ott-common",
 	"version": "0.3.0",
 	"license": "AGPL-3.0-or-later",
-	"module": "es2020"
+	"module": "es2020",
+	"type": "module",
+	"scripts": {
+		"lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
+		"lint-ci": "tsc --noEmit && eslint .",
+		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
+	}
 }

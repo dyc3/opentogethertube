@@ -21,7 +21,7 @@ const RoomDisconnected = defineComponent({
 
 		function reasonText() {
 			if (connection.kickReason.value) {
-				let reason = connection.kickReason.value;
+				const reason = connection.kickReason.value;
 				return t(`connect-overlay.dc-reasons.${reason}`);
 			} else {
 				return t("connect-overlay.dc-reasons.unknown");

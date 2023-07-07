@@ -32,7 +32,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = URL.parse(link);
-		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|m3u8?|ogg)$/.test(
+		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg)$/.test(
 			(url.path ?? "/").split("?")[0]
 		);
 	}
@@ -82,5 +82,3 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		return video;
 	}
 }
-
-module.exports = DirectVideoAdapter;

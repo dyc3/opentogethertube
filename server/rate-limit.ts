@@ -68,12 +68,6 @@ export function handleRateLimit(res, info: RateLimiterRes) {
 	});
 }
 
-module.exports = {
-	rateLimiter,
-	consumeRateLimitPoints,
-	setRateLimitHeaders,
-	handleRateLimit,
-};
 export default {
 	rateLimiter,
 	consumeRateLimitPoints,

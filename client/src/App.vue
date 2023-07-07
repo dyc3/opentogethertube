@@ -164,7 +164,7 @@ export const App = defineComponent({
 		const drawer = ref(false);
 
 		const logout = async () => {
-			let res = await API.post("/user/logout");
+			const res = await API.post("/user/logout");
 			if (res.data.success) {
 				store.commit("LOGOUT");
 			}
@@ -213,9 +213,9 @@ export const App = defineComponent({
 			await setLocale(store.state.settings.locale);
 
 			// ask the server if we are logged in or not, and update the client to reflect that status.
-			let resp = await API.get("/user");
+			const resp = await API.get("/user");
 			if (resp.data.loggedIn) {
-				let user = resp.data;
+				const user = resp.data;
 				delete user.loggedIn;
 				store.commit("LOGIN", user);
 			}

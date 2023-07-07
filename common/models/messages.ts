@@ -43,6 +43,8 @@ export interface ServerMessageSync extends ServerMessageBase {
 	playbackSpeed?: number;
 	voteCounts?: [string, number][];
 	hasOwner?: boolean;
+	enableVoteSkip?: boolean;
+	votesToSkip?: string[];
 }
 
 /**
@@ -151,6 +153,7 @@ export interface ClientMessageRoomRequest extends ClientMessageBase {
  */
 export interface RoomRequestAuthorization {
 	token: AuthToken;
+	clientId?: ClientId;
 }
 
 /**
@@ -161,6 +164,7 @@ export interface RoomRequestContext {
 	role: Role;
 	/** If the user is connected to the room, then we can use it's client id to identify the websocket connection. */
 	clientId?: ClientId;
+	auth?: RoomRequestAuthorization;
 }
 
 export type RoomRequest =
@@ -181,7 +185,8 @@ export type RoomRequest =
 	| PlayNowRequest
 	| ShuffleRequest
 	| PlaybackSpeedRequest
-	| RestoreQueueRequest;
+	| RestoreQueueRequest
+	| KickRequest;
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -202,6 +207,7 @@ export enum RoomRequestType {
 	ShuffleRequest,
 	PlaybackSpeedRequest,
 	RestoreQueueRequest,
+	KickRequest,
 }
 
 export interface RoomRequestBase {
@@ -210,10 +216,6 @@ export interface RoomRequestBase {
 
 export interface JoinRequest extends RoomRequestBase {
 	type: RoomRequestType.JoinRequest;
-	/**
-	 * We need to know the user's token when they join the room in order to authorize their later requests without pinging redis.
-	 */
-	token: AuthToken;
 	info: ClientInfo;
 }
 
@@ -308,4 +310,9 @@ export interface PlaybackSpeedRequest extends RoomRequestBase {
 export interface RestoreQueueRequest extends RoomRequestBase {
 	type: RoomRequestType.RestoreQueueRequest;
 	discard?: boolean;
+}
+
+export interface KickRequest extends RoomRequestBase {
+	type: RoomRequestType.KickRequest;
+	clientId: ClientId;
 }

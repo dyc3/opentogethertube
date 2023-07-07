@@ -71,11 +71,11 @@ export const PermissionsEditor = defineComponent({
 	},
 	emits: ["update:modelValue"],
 	setup(props, { emit }) {
-		let permissions: Ref<Permission[]> = ref([]);
-		let dirty = ref(false);
-		let shouldAcceptExternalUpdate = ref(true);
-		let isLoading = ref(false);
-		let updateEpoch = ref(0);
+		const permissions: Ref<Permission[]> = ref([]);
+		const dirty = ref(false);
+		const shouldAcceptExternalUpdate = ref(true);
+		const isLoading = ref(false);
+		const updateEpoch = ref(0);
 
 		const rolePerms = {
 			[Role.Moderator]: "configure-room.set-permissions.for-moderator",
@@ -90,7 +90,7 @@ export const PermissionsEditor = defineComponent({
 		 * Gets the id of the lowest role with this permission granted.
 		 */
 		function getLowestGranted(permission): Role {
-			let value = _.min(_.keys(_.pickBy(permission, v => v === true)));
+			const value = _.min(_.keys(_.pickBy(permission, v => v === true)));
 			if (value !== undefined) {
 				return parseInt(value);
 			} else {
@@ -102,7 +102,7 @@ export const PermissionsEditor = defineComponent({
 		 * Gets the id of the highest role with this permission denied.
 		 */
 		function getHighestDenied(permission): Role | null {
-			let value = _.max(_.keys(_.pickBy(permission, v => v === false)));
+			const value = _.max(_.keys(_.pickBy(permission, v => v === false)));
 			if (value !== undefined) {
 				let v = parseInt(value);
 				if (v === 4) {
@@ -115,7 +115,7 @@ export const PermissionsEditor = defineComponent({
 		}
 
 		function extractFromGrants(grants: Grants): Permission[] {
-			let extracted: Permission[] = [];
+			const extracted: Permission[] = [];
 			for (const perm of PERMISSIONS) {
 				for (let role = 4; role >= 0; role--) {
 					let fullmask = grants.getMask(role);
@@ -130,12 +130,12 @@ export const PermissionsEditor = defineComponent({
 		}
 
 		function rebuildMasks(): Grants {
-			let grants = {};
+			const grants = {};
 			for (let role = 4; role >= 0; role--) {
 				grants[role] = 0;
 			}
 			for (let i = 0; i < PERMISSIONS.length; i++) {
-				let lowest = getLowestGranted(permissions.value[i]);
+				const lowest = getLowestGranted(permissions.value[i]);
 				grants[lowest] |= PERMISSIONS[i].mask;
 			}
 			return new Grants(grants);

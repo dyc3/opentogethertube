@@ -97,6 +97,12 @@
 					<v-list-item v-bind="props" />
 				</template>
 			</v-select>
+			<v-checkbox
+				v-model="inputRoomSettings.enableVoteSkip"
+				:label="$t('room-settings.enable-vote-skip')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-vote-skip"
+			/>
 			<PermissionsEditor
 				v-if="store.state.user && store.state.room.hasOwner"
 				v-model="inputRoomSettings.grants"
@@ -162,8 +168,8 @@ const RoomSettingsForm = defineComponent({
 		const store = useStore();
 		const { t } = useI18n();
 
-		let isLoadingRoomSettings = ref(false);
-		let inputRoomSettings: Ref<RoomSettings> = ref({
+		const isLoadingRoomSettings = ref(false);
+		const inputRoomSettings: Ref<RoomSettings> = ref({
 			title: "",
 			description: "",
 			visibility: Visibility.Public,
@@ -171,6 +177,7 @@ const RoomSettingsForm = defineComponent({
 			grants: new Grants(),
 			autoSkipSegments: true,
 			restoreQueueBehavior: BehaviorOption.Prompt,
+			enableVoteSkip: false,
 		});
 
 		onMounted(async () => {
@@ -181,8 +188,8 @@ const RoomSettingsForm = defineComponent({
 			// we have to make an API request becuase visibility is not sent in sync messages.
 			isLoadingRoomSettings.value = true;
 			try {
-				let res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);
-				let settings = res.data;
+				const res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);
+				const settings = res.data;
 				settings.grants = new Grants(res.data.grants);
 				inputRoomSettings.value = _.pick(
 					settings,
@@ -192,7 +199,8 @@ const RoomSettingsForm = defineComponent({
 					"queueMode",
 					"grants",
 					"autoSkipSegments",
-					"restoreQueueBehavior"
+					"restoreQueueBehavior",
+					"enableVoteSkip"
 				);
 			} catch (err) {
 				toast.add({
@@ -212,9 +220,10 @@ const RoomSettingsForm = defineComponent({
 				queueMode: "set-queue-mode",
 				autoSkipSegments: "other",
 				restoreQueueBehavior: "other",
+				enableVoteSkip: "other",
 			};
-			let blocked: (keyof RoomSettings)[] = [];
-			for (let prop of Object.keys(propsToGrants)) {
+			const blocked: (keyof RoomSettings)[] = [];
+			for (const prop of Object.keys(propsToGrants)) {
 				if (!granted(`configure-room.${propsToGrants[prop]}`)) {
 					blocked.push(prop as keyof typeof propsToGrants);
 				}

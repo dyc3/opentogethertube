@@ -59,13 +59,13 @@ export const LayoutSwitcher = defineComponent({
 		}
 
 		function rotateRoomLayout() {
-			let layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
-			let newLayout =
+			const layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
+			const newLayout =
 				layouts[(layouts.indexOf(store.state.settings.roomLayout) + 1) % layouts.length];
 			store.commit("settings/UPDATE", { roomLayout: newLayout });
 		}
 
-		let shortcuts = useRoomKeyboardShortcuts();
+		const shortcuts = useRoomKeyboardShortcuts();
 		onMounted(() => {
 			if (shortcuts) {
 				shortcuts.bind({ code: "KeyF" }, () => toggleFullscreen());

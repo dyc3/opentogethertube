@@ -1,9 +1,6 @@
-import fs from "fs";
-import path from "path";
 import Sequelize from "sequelize";
 import type { Model, Options } from "sequelize";
 import { getLogger } from "../logger";
-const basename = path.basename(__filename);
 
 import { conf } from "../ott-config";
 

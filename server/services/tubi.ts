@@ -88,6 +88,7 @@ export default class TubiAdapter extends ServiceAdapter {
 			thumbnail: data.thumbnails[0],
 			length: data.video_resources[0].manifest.duration,
 			hls_url: data.video_resources[0].manifest.url,
+			mime: "application/x-mpegURL",
 		};
 	}
 

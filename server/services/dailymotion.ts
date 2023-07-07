@@ -13,6 +13,10 @@ export default class DailyMotionAdapter extends ServiceAdapter {
 		return "dailymotion";
 	}
 
+	get isCacheSafe(): boolean {
+		return false;
+	}
+
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
 
@@ -56,5 +60,3 @@ export default class DailyMotionAdapter extends ServiceAdapter {
 		return video;
 	}
 }
-
-module.exports = DailyMotionAdapter;

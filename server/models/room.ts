@@ -20,6 +20,7 @@ export interface RoomAttributes {
 	"autoSkipSegments": boolean;
 	"prevQueue": Array<QueueItem> | null;
 	"restoreQueueBehavior": BehaviorOption;
+	"enableVoteSkip": boolean;
 }
 
 type RoomCreationAttributes = Optional<RoomAttributes, "id">;
@@ -42,6 +43,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "autoSkipSegments": boolean;
 	declare "prevQueue": Array<QueueItem> | null;
 	declare "restoreQueueBehavior": BehaviorOption;
+	declare "enableVoteSkip": boolean;
 }
 
 export const createModel = (sequelize: Sequelize) => {
@@ -111,6 +113,11 @@ export const createModel = (sequelize: Sequelize) => {
 				validate: {
 					isIn: [[BehaviorOption.Always, BehaviorOption.Prompt, BehaviorOption.Never]],
 				},
+			},
+			"enableVoteSkip": {
+				type: DataTypes.BOOLEAN,
+				allowNull: false,
+				defaultValue: false,
 			},
 		},
 		{

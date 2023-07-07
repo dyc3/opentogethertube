@@ -179,5 +179,3 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 		};
 	}
 }
-
-module.exports = GoogleDriveAdapter;
