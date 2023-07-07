@@ -83,6 +83,14 @@
 										</v-list-item>
 									</div>
 								</div>
+								<v-list-item
+									@click="kickUser(user.id)"
+									v-if="granted('manage-users.kick')"
+								>
+									<v-list-item-title>
+										{{ $t("room.users.kick") }}
+									</v-list-item-title>
+								</v-list-item>
 							</v-list>
 						</v-menu>
 					</v-btn>
@@ -204,6 +212,10 @@ export const UserList = defineComponent({
 			roomapi.promoteUser(clientId, role);
 		}
 
+		function kickUser(clientId: ClientId) {
+			roomapi.kickUser(clientId);
+		}
+
 		return {
 			store,
 			debugMode,
@@ -220,6 +232,8 @@ export const UserList = defineComponent({
 			getRoleIcon,
 			getPlayerStatusIcon,
 			promoteUser,
+			kickUser,
+			granted,
 
 			ROLE_NAMES,
 			ROLE_DISPLAY_NAMES,
