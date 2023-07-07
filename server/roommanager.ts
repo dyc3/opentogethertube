@@ -1,6 +1,5 @@
 import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room";
 import { AuthToken, Role, RoomOptions, Visibility } from "../common/models/types";
-import { ROOM_REQUEST_CHANNEL_PREFIX } from "../common/constants";
 import _ from "lodash";
 import { getLogger } from "./logger.js";
 import { redisClientAsync, createSubscriber } from "./redisclient";

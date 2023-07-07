@@ -1,5 +1,6 @@
-import { Role } from "../../../common/models/types";
-import permissions, { Grants, GrantMask } from "../../../common/permissions";
+import { PermissionDeniedException } from "../../exceptions";
+import { Role } from "../../models/types";
+import permissions, { Grants, GrantMask } from "../../permissions";
 
 describe("Permission System", () => {
 	it("should parse exact permissions list into correct grant mask", () => {
@@ -80,6 +81,22 @@ describe("Permission System", () => {
 	it("should guarentee that using numbers for roles works for Grants", () => {
 		const grants = new Grants({ "0": 4095 });
 		expect(grants.getMask(0)).toEqual(4095);
+	});
+
+	it("should throw an error when using check", () => {
+		const grants = new Grants();
+		expect(() => {
+			grants.check(Role.UnregisteredUser, "manage-users.promote-moderator");
+		}).toThrowError(PermissionDeniedException);
+	});
+
+	it("should filter roles", () => {
+		const grants = new Grants();
+
+		grants.filterRoles([Role.UnregisteredUser]);
+		expect(grants.getRoles()).toEqual([Role.UnregisteredUser]);
+		grants.filterRoles([]);
+		expect(grants.isEmpty).toEqual(true);
 	});
 
 	describe("Serialization", () => {

@@ -1,7 +1,5 @@
-import { canKickUser } from "../../../common/userutils";
-import { Role } from "../../../common/models/types";
-
-// TODO: move this to ott-common
+import { canKickUser } from "../../userutils";
+import { Role } from "../../models/types";
 
 describe("canKickUser", () => {
 	it.each([
