@@ -178,6 +178,7 @@ function defaultPermissions(): Grants {
 		[Role.Moderator]: parseIntoGrantMask([
 			"manage-users.promote-trusted-user",
 			"manage-users.demote-trusted-user",
+			"manage-users.kick",
 		]),
 		[Role.Administrator]: parseIntoGrantMask(["*"]),
 		[Role.Owner]: parseIntoGrantMask(["*"]),
