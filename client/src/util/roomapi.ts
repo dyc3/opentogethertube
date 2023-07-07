@@ -147,7 +147,7 @@ class RoomApi {
 			action: "req",
 			request: {
 				type: RoomRequestType.KickRequest,
-				targetClientId: clientId,
+				clientId: clientId,
 			},
 		});
 	}
