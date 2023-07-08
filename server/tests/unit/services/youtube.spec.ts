@@ -5,11 +5,12 @@ import YouTubeAdapter, {
 } from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
-import { redisClient, redisClientAsync } from "../../../redisclient";
+import { buildClients, redisClient, redisClientAsync } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "fs";
 import { VideoRequest } from "server/serviceadapter";
 import { URL } from "url";
+import { loadModels } from "../../../models";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -117,6 +118,11 @@ async function mockYoutubeApi(
 }
 
 describe("Youtube", () => {
+	beforeAll(() => {
+		loadModels();
+		buildClients();
+	});
+
 	describe("canHandleURL", () => {
 		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 
