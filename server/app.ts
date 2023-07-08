@@ -7,6 +7,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as BearerStrategy } from "passport-http-bearer";
 import { metricsMiddleware } from "./metrics";
+import { loadModels } from "./models";
 
 const log = getLogger("app");
 
@@ -33,6 +34,8 @@ log.info(`Search provider: ${searchProvider}`);
 
 const rateLimitEnabled = conf.get("rate_limit.enabled");
 log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
+
+loadModels();
 
 export const app = express();
 app.use(metricsMiddleware);
