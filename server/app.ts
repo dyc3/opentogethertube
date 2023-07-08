@@ -7,7 +7,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as BearerStrategy } from "passport-http-bearer";
 import { metricsMiddleware } from "./metrics";
-import { loadModels } from "./models";
+import { loadModels, sequelize } from "./models";
 import { buildApiRouter } from "./api";
 import { buildClients, redisClient, registerRedisMetrics } from "./redisclient";
 import usermanager from "./usermanager";
