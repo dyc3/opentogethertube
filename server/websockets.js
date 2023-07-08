@@ -11,16 +11,14 @@ export const wss = new WebSocket.Server({ noServer: true });
  * @param {*} httpServer
  * @param {*} sessions
  */
-export function setup(httpServer, sessions) {
+export function setup(httpServer) {
 	log.debug("setting up websocket upgrader...");
 	wss.on("error", e => {
 		log.error(`Websocket server error: ${e}`);
 	});
 	httpServer.on("upgrade", (req, socket, head) => {
-		sessions(req, {}, () => {
-			wss.handleUpgrade(req, socket, head, ws => {
-				wss.emit("connection", ws, req);
-			});
+		wss.handleUpgrade(req, socket, head, ws => {
+			wss.emit("connection", ws, req);
 		});
 	});
 }

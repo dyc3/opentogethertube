@@ -56,38 +56,6 @@ if (fs.existsSync("../client/dist")) {
 	log.warn("no dist folder found");
 }
 
-import session, { SessionOptions } from "express-session";
-import connectRedis from "connect-redis";
-let RedisStore = connectRedis(session);
-let sessionOpts: SessionOptions = {
-	store: new RedisStore({ client: redisClient }),
-	secret: conf.get("session_secret"),
-	resave: false,
-	saveUninitialized: false,
-	unset: "keep",
-	proxy: conf.get("env") === "production",
-	cookie: {
-		maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
-	},
-};
-if (
-	conf.get("env") === "production" &&
-	!!conf.get("hostname") &&
-	!conf.get("hostname").includes("localhost")
-) {
-	log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
-	app.set("trust proxy", conf.get("trust_proxy"));
-	// @ts-expect-error
-	sessionOpts.cookie.secure = true;
-}
-if (conf.get("force_insecure_cookies")) {
-	log.warn("FORCE_INSECURE_COOKIES found, cookies will only be set on http, not https");
-	// @ts-expect-error
-	sessionOpts.cookie.secure = false;
-}
-const sessions = session(sessionOpts);
-app.use(sessions);
-
 import usermanager from "./usermanager";
 passport.use(new LocalStrategy({ usernameField: "user" }, usermanager.authCallback));
 passport.use(
@@ -123,7 +91,7 @@ passport.deserializeUser(usermanager.deserializeUser);
 app.use(passport.initialize());
 app.use(usermanager.passportErrorHandler);
 import websockets from "./websockets.js";
-websockets.setup(server, sessions);
+websockets.setup(server);
 import clientmanager from "./clientmanager";
 clientmanager.setup();
 import roommanager from "./roommanager";
@@ -158,7 +126,8 @@ function serveBuiltFiles(req, res) {
 	});
 }
 
-import api from "./api";
+import { buildApiRouter } from "./api";
+const api = buildApiRouter(app);
 app.use("/api", api);
 if (fs.existsSync("../client/dist")) {
 	app.get("*", serveBuiltFiles);
