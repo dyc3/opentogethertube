@@ -19,6 +19,9 @@ import bodyParser from "body-parser";
 import { loadConfigFile, conf, setLogger } from "./ott-config";
 import { buildRateLimiter } from "./rate-limit";
 import { initExtractor } from "./infoextractor";
+import session, { SessionOptions } from "express-session";
+import connectRedis from "connect-redis";
+
 export const app = express();
 
 function main() {
@@ -64,6 +67,35 @@ function main() {
 	checkRedis();
 	registerRedisMetrics();
 
+	const RedisStore = connectRedis(session);
+	const sessionOpts: SessionOptions = {
+		store: new RedisStore({ client: redisClient }),
+		secret: conf.get("session_secret"),
+		resave: false,
+		saveUninitialized: false,
+		unset: "keep",
+		proxy: conf.get("env") === "production",
+		cookie: {
+			maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month, in milliseconds
+		},
+	};
+	if (
+		conf.get("env") === "production" &&
+		!!conf.get("hostname") &&
+		!conf.get("hostname").includes("localhost")
+	) {
+		log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
+		app.set("trust proxy", conf.get("trust_proxy"));
+		// @ts-expect-error
+		sessionOpts.cookie.secure = true;
+	}
+	if (conf.get("force_insecure_cookies")) {
+		log.warn("FORCE_INSECURE_COOKIES found, cookies will only be set on http, not https");
+		// @ts-expect-error
+		sessionOpts.cookie.secure = false;
+	}
+	const sessions = session(sessionOpts);
+
 	if (fs.existsSync("../client/dist")) {
 		// serve static files without creating a bunch of sessions
 		app.use(
@@ -76,6 +108,8 @@ function main() {
 	} else {
 		log.warn("no dist folder found");
 	}
+
+	app.use(sessions);
 
 	passport.use(new LocalStrategy({ usernameField: "user" }, usermanager.authCallback));
 	passport.use(
