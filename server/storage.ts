@@ -10,10 +10,6 @@ import {
 	getVideoInfoFields,
 } from "./storage/cachedvideo";
 
-if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
-	setupPostgresMetricsCollection(sequelize);
-}
-
 export default {
 	getRoomByName,
 	isRoomNameTaken,

@@ -7,7 +7,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as BearerStrategy } from "passport-http-bearer";
 import { metricsMiddleware } from "./metrics";
-import { loadModels } from "./models";
+import { loadModels, sequelize } from "./models";
 import { buildApiRouter } from "./api";
 import { buildClients, redisClient, registerRedisMetrics } from "./redisclient";
 import usermanager from "./usermanager";
@@ -21,6 +21,7 @@ import { buildRateLimiter } from "./rate-limit";
 import { initExtractor } from "./infoextractor";
 import session, { SessionOptions } from "express-session";
 import connectRedis from "connect-redis";
+import { setupPostgresMetricsCollection } from "./storage.metrics";
 
 export const app = express();
 
@@ -52,6 +53,10 @@ function main() {
 	loadModels();
 	buildClients();
 	buildRateLimiter();
+
+	if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
+		setupPostgresMetricsCollection(sequelize);
+	}
 
 	app.use(metricsMiddleware);
 	const server = http.createServer(app);

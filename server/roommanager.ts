@@ -2,7 +2,7 @@ import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./roo
 import { AuthToken, Role, RoomOptions, Visibility } from "../common/models/types";
 import _ from "lodash";
 import { getLogger } from "./logger.js";
-import { redisClientAsync, createSubscriber } from "./redisclient";
+import { redisClientAsync } from "./redisclient";
 import storage from "./storage";
 import {
 	RoomAlreadyLoadedException,
@@ -17,7 +17,6 @@ import { Grants } from "../common/permissions";
 import type { ClientManagerCommand } from "./clientmanager";
 
 export const log = getLogger("roommanager");
-const redisSubscriber = createSubscriber();
 export const rooms: Room[] = [];
 
 export type RoomManagerEvents = "publish" | "load" | "unload" | "command";
