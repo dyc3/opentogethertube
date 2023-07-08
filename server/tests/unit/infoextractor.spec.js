@@ -1,4 +1,4 @@
-import InfoExtractor from "../../infoextractor";
+import InfoExtractor, { initExtractor } from "../../infoextractor";
 import storage from "../../storage";
 import { getMimeType } from "../../mime";
 import YouTubeAdapter from "../../services/youtube";
@@ -18,6 +18,7 @@ describe("InfoExtractor", () => {
 	beforeAll(() => {
 		loadModels();
 		buildClients();
+		initExtractor();
 	});
 
 	describe("isURL", () => {

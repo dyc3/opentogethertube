@@ -18,6 +18,7 @@ import roommanager from "./roommanager";
 import bodyParser from "body-parser";
 import { loadConfigFile, conf, setLogger } from "./ott-config";
 import { buildRateLimiter } from "./rate-limit";
+import { initExtractor } from "./infoextractor";
 export const app = express();
 
 function main() {
@@ -148,6 +149,8 @@ function main() {
 	} else {
 		log.warn("no dist folder found");
 	}
+
+	initExtractor();
 
 	//start our server
 	if (conf.get("env") !== "test") {

@@ -27,17 +27,6 @@ import { conf } from "./ott-config";
 
 const log = getLogger("infoextract");
 
-const adapters = [
-	new DailyMotionAdapter(),
-	new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") ?? ""),
-	new VimeoAdapter(),
-	new YouTubeAdapter(conf.get("info_extractor.youtube.api_key"), redisClient, redisClientAsync),
-	new DirectVideoAdapter(),
-	new HlsVideoAdapter(),
-	new RedditAdapter(),
-	new TubiAdapter(),
-];
-
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = conf.get("add_preview.search.min_query_length");
 const ENABLE_SEARCH = conf.get("add_preview.search.enabled");
 
@@ -46,6 +35,24 @@ function mergeVideo(a: Video, b: Video): Video {
 		a,
 		_.pickBy(b, x => !!x)
 	);
+}
+
+let adapters: ServiceAdapter[] = [];
+export function initExtractor() {
+	adapters = [
+		new DailyMotionAdapter(),
+		new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") ?? ""),
+		new VimeoAdapter(),
+		new YouTubeAdapter(
+			conf.get("info_extractor.youtube.api_key"),
+			redisClient,
+			redisClientAsync
+		),
+		new DirectVideoAdapter(),
+		new HlsVideoAdapter(),
+		new RedditAdapter(),
+		new TubiAdapter(),
+	];
 }
 
 export default {
