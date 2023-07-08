@@ -8,163 +8,162 @@ import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as BearerStrategy } from "passport-http-bearer";
 import { metricsMiddleware } from "./metrics";
 import { loadModels } from "./models";
-
-const log = getLogger("app");
-
+import { buildApiRouter } from "./api";
+import { buildClients, redisClient, registerRedisMetrics } from "./redisclient";
+import usermanager from "./usermanager";
+import tokens from "./auth/tokens";
+import websockets from "./websockets.js";
+import clientmanager from "./clientmanager";
+import roommanager from "./roommanager";
+import bodyParser from "body-parser";
 import { loadConfigFile, conf, setLogger } from "./ott-config";
-
-setLogger(getLogger("config"));
-loadConfigFile();
-setLogLevel(conf.get("log.level"));
-
-const env = conf.get("env");
-const heroku = conf.get("heroku");
-const docker = conf.get("docker");
-const dbmode = conf.get("db.mode");
-log.info("Environment: " + env);
-log.info("Is Heroku? " + heroku);
-log.info("Is Docker? " + docker);
-log.info("Database mode: " + dbmode);
-
-const searchEnabled = conf.get("add_preview.search.enabled");
-log.info(`Search enabled: ${searchEnabled}`);
-
-const searchProvider = conf.get("add_preview.search.provider");
-log.info(`Search provider: ${searchProvider}`);
-
-const rateLimitEnabled = conf.get("rate_limit.enabled");
-log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
-
-loadModels();
-
+import { buildRateLimiter } from "./rate-limit";
 export const app = express();
-app.use(metricsMiddleware);
-const server = http.createServer(app);
 
-import { redisClient, registerRedisMetrics } from "./redisclient";
+function main() {
+	const log = getLogger("app");
 
-function checkRedis() {
-	if (performance) {
-		let start = performance.now();
-		redisClient.ping(() => {
-			let duration = performance.now() - start;
-			log.info(`Latency to redis: ${duration}ms`);
+	setLogger(getLogger("config"));
+	loadConfigFile();
+	setLogLevel(conf.get("log.level"));
+
+	const env = conf.get("env");
+	const heroku = conf.get("heroku");
+	const docker = conf.get("docker");
+	const dbmode = conf.get("db.mode");
+	log.info("Environment: " + env);
+	log.info("Is Heroku? " + heroku);
+	log.info("Is Docker? " + docker);
+	log.info("Database mode: " + dbmode);
+
+	const searchEnabled = conf.get("add_preview.search.enabled");
+	log.info(`Search enabled: ${searchEnabled}`);
+
+	const searchProvider = conf.get("add_preview.search.provider");
+	log.info(`Search provider: ${searchProvider}`);
+
+	const rateLimitEnabled = conf.get("rate_limit.enabled");
+	log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
+
+	loadModels();
+	buildClients();
+	buildRateLimiter();
+
+	app.use(metricsMiddleware);
+	const server = http.createServer(app);
+	function checkRedis() {
+		if (performance) {
+			let start = performance.now();
+			redisClient.ping(() => {
+				let duration = performance.now() - start;
+				log.info(`Latency to redis: ${duration}ms`);
+			});
+		}
+	}
+	checkRedis();
+	registerRedisMetrics();
+
+	if (fs.existsSync("../client/dist")) {
+		// serve static files without creating a bunch of sessions
+		app.use(
+			express.static("../client/dist", {
+				maxAge: "2 days",
+				redirect: false,
+				index: false,
+			})
+		);
+	} else {
+		log.warn("no dist folder found");
+	}
+
+	passport.use(new LocalStrategy({ usernameField: "user" }, usermanager.authCallback));
+	passport.use(
+		new DiscordStrategy(
+			{
+				clientID: conf.get("discord.client_id") ?? "NONE",
+				clientSecret: conf.get("discord.client_secret") ?? "NONE",
+				callbackURL:
+					(!conf.get("hostname") || conf.get("hostname").includes("localhost")
+						? "http"
+						: "https") + `://${conf.get("hostname")}/api/auth/discord/callback`,
+				scope: ["identify"],
+				passReqToCallback: true,
+			},
+			usermanager.authCallbackDiscord
+		)
+	);
+	passport.use(
+		new BearerStrategy(async (token, done) => {
+			if (!(await tokens.validate(token))) {
+				return done(null, false);
+			}
+			let ottsession = await tokens.getSessionInfo(token);
+			if (ottsession.isLoggedIn) {
+				return done(null, ottsession);
+			}
+			return done(null, false);
+		})
+	);
+	passport.serializeUser(usermanager.serializeUser);
+	passport.deserializeUser(usermanager.deserializeUser);
+	app.use(passport.initialize());
+	app.use(usermanager.passportErrorHandler);
+	usermanager.setup();
+	websockets.setup(server);
+	clientmanager.setup();
+	roommanager.start();
+
+	app.use(bodyParser.json()); // to support JSON-encoded bodies
+	app.use(
+		bodyParser.urlencoded({
+			// to support URL-encoded bodies
+			extended: true,
+		})
+	);
+
+	app.use((req, res, next) => {
+		if (!req.path.startsWith("/api")) {
+			next();
+			return;
+		}
+		log.info(`> ${req.method} ${req.path}`);
+		next();
+	});
+
+	function serveBuiltFiles(req, res) {
+		fs.readFile("../client/dist/index.html", (err, contents) => {
+			res.setHeader("Content-type", "text/html");
+			if (contents) {
+				res.send(contents.toString());
+			} else {
+				res.status(500).send("Failed to serve page, try again later.");
+			}
+		});
+	}
+
+	const api = buildApiRouter(app);
+	app.use("/api", api);
+	if (fs.existsSync("../client/dist")) {
+		app.get("*", serveBuiltFiles);
+	} else {
+		log.warn("no dist folder found");
+	}
+
+	//start our server
+	if (conf.get("env") !== "test") {
+		server.listen(conf.get("port"), () => {
+			let addr = server.address();
+			if (!addr) {
+				log.error("Failed to start server!");
+				process.exit(1);
+			}
+			if (typeof addr === "string") {
+				log.info(`Server started on ${addr}`);
+			} else {
+				log.info(`Server started on  ${addr.port}`);
+			}
 		});
 	}
 }
-checkRedis();
-registerRedisMetrics();
 
-if (fs.existsSync("../client/dist")) {
-	// serve static files without creating a bunch of sessions
-	app.use(
-		express.static("../client/dist", {
-			maxAge: "2 days",
-			redirect: false,
-			index: false,
-		})
-	);
-} else {
-	log.warn("no dist folder found");
-}
-
-import usermanager from "./usermanager";
-passport.use(new LocalStrategy({ usernameField: "user" }, usermanager.authCallback));
-passport.use(
-	new DiscordStrategy(
-		{
-			clientID: conf.get("discord.client_id") ?? "NONE",
-			clientSecret: conf.get("discord.client_secret") ?? "NONE",
-			callbackURL:
-				(!conf.get("hostname") || conf.get("hostname").includes("localhost")
-					? "http"
-					: "https") + `://${conf.get("hostname")}/api/auth/discord/callback`,
-			scope: ["identify"],
-			passReqToCallback: true,
-		},
-		usermanager.authCallbackDiscord
-	)
-);
-import tokens from "./auth/tokens";
-passport.use(
-	new BearerStrategy(async (token, done) => {
-		if (!(await tokens.validate(token))) {
-			return done(null, false);
-		}
-		let ottsession = await tokens.getSessionInfo(token);
-		if (ottsession.isLoggedIn) {
-			return done(null, ottsession);
-		}
-		return done(null, false);
-	})
-);
-passport.serializeUser(usermanager.serializeUser);
-passport.deserializeUser(usermanager.deserializeUser);
-app.use(passport.initialize());
-app.use(usermanager.passportErrorHandler);
-import websockets from "./websockets.js";
-websockets.setup(server);
-import clientmanager from "./clientmanager";
-clientmanager.setup();
-import roommanager from "./roommanager";
-roommanager.start();
-
-import bodyParser from "body-parser";
-app.use(bodyParser.json()); // to support JSON-encoded bodies
-app.use(
-	bodyParser.urlencoded({
-		// to support URL-encoded bodies
-		extended: true,
-	})
-);
-
-app.use((req, res, next) => {
-	if (!req.path.startsWith("/api")) {
-		next();
-		return;
-	}
-	log.info(`> ${req.method} ${req.path}`);
-	next();
-});
-
-function serveBuiltFiles(req, res) {
-	fs.readFile("../client/dist/index.html", (err, contents) => {
-		res.setHeader("Content-type", "text/html");
-		if (contents) {
-			res.send(contents.toString());
-		} else {
-			res.status(500).send("Failed to serve page, try again later.");
-		}
-	});
-}
-
-import { buildApiRouter } from "./api";
-const api = buildApiRouter(app);
-app.use("/api", api);
-if (fs.existsSync("../client/dist")) {
-	app.get("*", serveBuiltFiles);
-} else {
-	log.warn("no dist folder found");
-}
-
-//start our server
-if (conf.get("env") !== "test") {
-	server.listen(conf.get("port"), () => {
-		let addr = server.address();
-		if (!addr) {
-			log.error("Failed to start server!");
-			process.exit(1);
-		}
-		if (typeof addr === "string") {
-			log.info(`Server started on ${addr}`);
-		} else {
-			log.info(`Server started on  ${addr.port}`);
-		}
-	});
-}
-
-export default {
-	app,
-	redisClient,
-	server,
-};
+main();

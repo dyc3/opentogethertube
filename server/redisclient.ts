@@ -5,24 +5,32 @@ import { conf } from "./ott-config";
 import { getLogger } from "./logger";
 const log = getLogger("redisclient");
 
-const redisOptions: redis.ClientOpts = conf.get("redis.url")
-	? {
-			url: conf.get("redis.url"),
-			tls: {
-				rejectUnauthorized: false,
-			},
-	  }
-	: {
-			port: conf.get("redis.port") ?? undefined,
-			host: conf.get("redis.host") ?? undefined,
-			password: conf.get("redis.password") ?? undefined,
-			db: conf.get("redis.db") ?? undefined,
-	  };
+function buildOptions(): redis.ClientOpts {
+	const redisOptions: redis.ClientOpts = conf.get("redis.url")
+		? {
+				url: conf.get("redis.url"),
+				tls: {
+					rejectUnauthorized: false,
+				},
+		  }
+		: {
+				port: conf.get("redis.port") ?? undefined,
+				host: conf.get("redis.host") ?? undefined,
+				password: conf.get("redis.password") ?? undefined,
+				db: conf.get("redis.db") ?? undefined,
+		  };
+	return redisOptions;
+}
 
-export const redisClient = redis.createClient(redisOptions);
-
+export let redisClient: redis.RedisClient;
+export let redisClientAsync: RedisClientAsync;
+export function buildClients() {
+	log.info("Building redis clients");
+	redisClient = redis.createClient(buildOptions());
+	redisClientAsync = wrapInAsync(redisClient);
+}
 export function createSubscriber(): redis.RedisClient {
-	return redis.createClient(redisOptions);
+	return redis.createClient(buildOptions());
 }
 
 // All of the other package solutions I've tried are broken af, so I'll just do this instead.
@@ -85,9 +93,6 @@ export interface RedisClientAsync {
 
 	delPattern(...patterns: string[]): Promise<void>;
 }
-
-export const redisClientAsync: RedisClientAsync = wrapInAsync(redisClient);
-
 function parseRedisInfo(lines: string[]): Record<string, string> {
 	const info: Record<string, string> = {};
 	for (const _line of lines) {
