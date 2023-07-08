@@ -16,6 +16,15 @@ setLogger(getLogger("config"));
 loadConfigFile();
 setLogLevel(conf.get("log.level"));
 
+const env = conf.get("env");
+const heroku = conf.get("heroku");
+const docker = conf.get("docker");
+const dbmode = conf.get("db.mode");
+log.info("Environment: " + env);
+log.info("Is Heroku? " + heroku);
+log.info("Is Docker? " + docker);
+log.info("Database mode: " + dbmode);
+
 const searchEnabled = conf.get("add_preview.search.enabled");
 log.info(`Search enabled: ${searchEnabled}`);
 

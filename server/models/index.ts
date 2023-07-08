@@ -6,16 +6,11 @@ import { conf } from "../ott-config";
 
 const log = getLogger("db");
 
-const env = conf.get("env");
-const docker = conf.get("docker");
 const heroku = conf.get("heroku");
 const dbmode = conf.get("db.mode");
 const dburl: string | null = conf.get("db.url");
 
-log.info("Environment: " + env);
-log.info("Database mode: " + dbmode);
-log.info("Is Heroku? " + heroku);
-log.info("Is Docker? " + docker);
+log.info("Database models loading");
 
 function getDbConfig(): Options {
 	if (dbmode === "postgres") {
