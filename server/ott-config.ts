@@ -358,10 +358,10 @@ export function loadConfigFile() {
 }
 
 function postProcessConfig(): void {
-	// if (process.env.REDIS_TLS_URL) {
-	// 	log.info("Found REDIS_TLS_URL. Using it for redis.url.");
-	// 	conf.set("redis.url", process.env.REDIS_TLS_URL);
-	// }
+	if (process.env.REDIS_TLS_URL) {
+		log.info("Found REDIS_TLS_URL. Using it for redis.url.");
+		conf.set("redis.url", process.env.REDIS_TLS_URL);
+	}
 
 	if (process.env.POSTGRES_DB_USERNAME) {
 		log.warn("POSTGRES_DB_USERNAME is deprecated. Please use POSTGRES_USER instead.");
