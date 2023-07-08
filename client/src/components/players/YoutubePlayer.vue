@@ -161,7 +161,11 @@ export default {
 			this.captionsEnabled = value;
 		},
 		getCaptionsTracks() {
-			return this.player.getOption("captions", "tracklist").map(t => t.languageCode);
+			const tracks = this.player.getOption("captions", "tracklist");
+			if (!tracks) {
+				return [];
+			}
+			return tracks.map(track => track.languageCode);
 		},
 		setCaptionsTrack(track) {
 			if (!this.isCaptionsLoaded) {
