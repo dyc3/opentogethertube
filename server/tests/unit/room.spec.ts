@@ -1,18 +1,23 @@
 import dayjs from "dayjs";
-import tokens from "../../../server/auth/tokens";
+import tokens from "../../auth/tokens";
 import { RoomRequestType } from "../../../common/models/messages";
 import { BehaviorOption, QueueMode, Role } from "../../../common/models/types";
-import { Room, RoomUser } from "../../../server/room";
-import infoextractor from "../../../server/infoextractor";
+import { Room, RoomUser } from "../../room";
+import infoextractor from "../../infoextractor";
 import { Video } from "../../../common/models/video";
 import permissions from "../../../common/permissions";
 import _ from "lodash";
-import { VideoQueue } from "../../../server/videoqueue";
+import { VideoQueue } from "../../videoqueue";
+import { loadModels } from "../../models";
+import { buildClients } from "../../redisclient";
 
 describe("Room", () => {
 	let getSessionInfoSpy: jest.SpyInstance;
 	let validateSpy: jest.SpyInstance;
 	beforeAll(() => {
+		loadModels();
+		buildClients();
+
 		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 			isLoggedIn: false,

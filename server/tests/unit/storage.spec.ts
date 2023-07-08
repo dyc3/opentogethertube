@@ -1,13 +1,19 @@
 import _ from "lodash";
-import { CachedVideo, Room as DbRoom, User } from "../../models";
+import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models";
 import storage from "../../storage";
 import permissions, { Grants } from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
 import { Video } from "../../../common/models/video";
 import { Room } from "../../room";
 import { roomToDb, roomToDbPartial } from "../../storage/room";
+import { buildClients } from "../../redisclient";
 
 describe("Storage: Room Spec", () => {
+	beforeAll(() => {
+		loadModels();
+		buildClients();
+	});
+
 	beforeEach(async () => {
 		await DbRoom.destroy({ where: {} });
 	});

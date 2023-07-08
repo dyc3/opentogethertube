@@ -1,23 +1,25 @@
 import Sequelize from "sequelize";
 import type { Model, Options } from "sequelize";
 import { getLogger } from "../logger";
-
 import { conf } from "../ott-config";
+import { createModel as createModel_Room } from "./room";
+import { createModel as createModel_User } from "./user";
+import { createModel as createModel_CachedVideo } from "./cachedvideo";
 
 const log = getLogger("db");
 
-const env = conf.get("env");
-const docker = conf.get("docker");
-const heroku = conf.get("heroku");
-const dbmode = conf.get("db.mode");
-const dburl: string | null = conf.get("db.url");
-
-log.info("Environment: " + env);
-log.info("Database mode: " + dbmode);
-log.info("Is Heroku? " + heroku);
-log.info("Is Docker? " + docker);
+export let sequelize: Sequelize.Sequelize;
+export function loadModels() {
+	log.info("Database models loading");
+	const config = getDbConfig();
+	sequelize = buildConnection(config);
+	buildModels(sequelize);
+}
 
 function getDbConfig(): Options {
+	const dbmode = conf.get("db.mode");
+	const dburl: string | null = conf.get("db.url");
+
 	if (dbmode === "postgres") {
 		if (dburl) {
 			return {
@@ -44,62 +46,54 @@ function getDbConfig(): Options {
 	}
 }
 
-let config = getDbConfig();
-config.logging = msg => log.silly(msg);
+function buildConnection(config: Sequelize.Options): Sequelize.Sequelize {
+	const heroku = conf.get("heroku");
+	const dbmode = conf.get("db.mode");
+	const dburl: string | null = conf.get("db.url");
 
-export let sequelize;
-if (dburl && heroku) {
-	// for heroku
-	sequelize = new Sequelize.Sequelize(dburl, {
-		dialect: "postgres",
-		protocol: "postgres",
-		dialectOptions: {
-			ssl: { rejectUnauthorized: false },
-		},
-		logging: msg => log.silly(msg),
-	});
-} else {
-	if (!config.database) {
-		log.error("No database name specified.");
-		throw new Error("No database name specified.");
-	}
-	log.info(`Using database: ${config.database}`);
-	if (dbmode === "sqlite") {
-		log.info(`Using storage: ${config.storage}`);
-		sequelize = new Sequelize.Sequelize(config.database, "", "", config);
+	config.logging = msg => log.silly(msg);
+
+	if (dburl && heroku) {
+		// for heroku
+		return new Sequelize.Sequelize(dburl, {
+			dialect: "postgres",
+			protocol: "postgres",
+			dialectOptions: {
+				ssl: { rejectUnauthorized: false },
+			},
+			logging: msg => log.silly(msg),
+		});
 	} else {
-		if (!config.username) {
-			log.error("No username specified.");
-			throw new Error("No username specified.");
+		if (!config.database) {
+			log.error("No database name specified.");
+			throw new Error("No database name specified.");
 		}
-		sequelize = new Sequelize.Sequelize(
-			config.database,
-			config.username,
-			config.password,
-			config
-		);
+		log.info(`Using database: ${config.database}`);
+		if (dbmode === "sqlite") {
+			log.info(`Using storage: ${config.storage}`);
+			return new Sequelize.Sequelize(config.database, "", "", config);
+		} else {
+			if (!config.username) {
+				log.error("No username specified.");
+				throw new Error("No username specified.");
+			}
+			return new Sequelize.Sequelize(
+				config.database,
+				config.username,
+				config.password,
+				config
+			);
+		}
 	}
 }
 
-const db = {
-	sequelize,
-	Sequelize,
-};
+export let Room: ReturnType<typeof createModel_Room>;
+export let User: ReturnType<typeof createModel_User>;
+export let CachedVideo: ReturnType<typeof createModel_CachedVideo>;
+function buildModels(sequelize: Sequelize.Sequelize) {
+	Room = createModel_Room(sequelize);
+	User = createModel_User(sequelize);
+	CachedVideo = createModel_CachedVideo(sequelize);
 
-export default db;
-
-import { createModel as createModel_Room } from "./room";
-import { createModel as createModel_User } from "./user";
-import { createModel as createModel_CachedVideo } from "./cachedvideo";
-
-const models = {
-	Room: createModel_Room(sequelize),
-	User: createModel_User(sequelize),
-	CachedVideo: createModel_CachedVideo(sequelize),
-};
-
-export const Room = models.Room;
-export const User = models.User;
-export const CachedVideo = models.CachedVideo;
-
-Room.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
+	Room.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
+}

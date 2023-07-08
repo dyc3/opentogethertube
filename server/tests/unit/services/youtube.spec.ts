@@ -5,11 +5,12 @@ import YouTubeAdapter, {
 } from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
-import { redisClient, redisClientAsync } from "../../../redisclient";
+import { buildClients, redisClient, redisClientAsync } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "fs";
 import { VideoRequest } from "server/serviceadapter";
 import { URL } from "url";
+import { loadModels } from "../../../models";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -117,9 +118,14 @@ async function mockYoutubeApi(
 }
 
 describe("Youtube", () => {
-	describe("canHandleURL", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+	let adapter: YouTubeAdapter;
+	beforeAll(() => {
+		loadModels();
+		buildClients();
+		adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+	});
 
+	describe("canHandleURL", () => {
 		it.each(validVideoLinks.map(l => l[1]).concat(validCollectionLinks))("Accepts %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(true);
 		});
@@ -130,8 +136,6 @@ describe("Youtube", () => {
 	});
 
 	describe("isCollectionURL", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
-
 		it.each(validVideoLinks.map(l => l[1]))("Returns false for %s", link => {
 			expect(adapter.isCollectionURL(link)).toBe(false);
 		});
@@ -142,15 +146,12 @@ describe("Youtube", () => {
 	});
 
 	describe("getVideoId", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
-
 		it.each(validVideoLinks)("Extracts %s from %s", (id, link) => {
 			expect(adapter.getVideoId(link)).toBe(id);
 		});
 	});
 
 	describe("fetchVideoInfo", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		let apiGet: jest.SpyInstance;
 		const videoId = "BTZ5KVRUy1Q";
 
@@ -177,7 +178,6 @@ describe("Youtube", () => {
 	});
 
 	describe("fetchManyVideoInfo", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		let apiGet: jest.SpyInstance;
 
 		beforeAll(() => {
@@ -224,7 +224,6 @@ describe("Youtube", () => {
 	});
 
 	describe("resolveURL", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		let apiGet: jest.SpyInstance;
 
 		beforeAll(() => {
@@ -534,7 +533,6 @@ describe("Youtube", () => {
 	});
 
 	describe("parseVideoLength", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		it.each([
 			["PT10S", 10],
 			["PT5M", 5 * 60],
@@ -549,7 +547,6 @@ describe("Youtube", () => {
 	});
 
 	describe("getChannelId", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 		it.each([
 			["https://youtube.com/@rollthedyc3", { handle: "@rollthedyc3" }],
 			["https://youtube.com/user/vinesauce", { user: "vinesauce" }],

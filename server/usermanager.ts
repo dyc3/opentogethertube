@@ -19,26 +19,6 @@ import { AuthToken } from "ott-common/models/types";
 import { EventEmitter } from "events";
 import { Sequelize } from "sequelize";
 
-const maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;
-const maxConsecutiveFailsByUsernameAndIP = conf.get("env") === "test" ? 9999999999 : 10;
-const ENABLE_RATE_LIMIT = conf.get("rate_limit.enabled");
-
-const limiterSlowBruteByIP = new RateLimiterRedis({
-	storeClient: redisClient,
-	keyPrefix: "login_fail_ip_per_day",
-	points: maxWrongAttemptsByIPperDay,
-	duration: 60 * 60 * 24,
-	blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
-});
-
-const limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
-	storeClient: redisClient,
-	keyPrefix: "login_fail_consecutive_username_and_ip",
-	points: maxConsecutiveFailsByUsernameAndIP,
-	duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
-	blockDuration: 60 * 60, // Block for 1 hour
-});
-
 const pwd = securePassword();
 const log = getLogger("usermanager");
 export const router = express.Router();
@@ -52,6 +32,32 @@ export type UserManagerEventHandlers<E> = E extends "userModified"
 	? (user: User, token: AuthToken) => void
 	: never;
 const bus = new EventEmitter();
+
+let maxWrongAttemptsByIPperDay;
+let maxConsecutiveFailsByUsernameAndIP;
+let limiterSlowBruteByIP: RateLimiterRedis;
+let limiterConsecutiveFailsByUsernameAndIP: RateLimiterRedis;
+
+export function setup() {
+	maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;
+	maxConsecutiveFailsByUsernameAndIP = conf.get("env") === "test" ? 9999999999 : 10;
+
+	limiterSlowBruteByIP = new RateLimiterRedis({
+		storeClient: redisClient,
+		keyPrefix: "login_fail_ip_per_day",
+		points: maxWrongAttemptsByIPperDay,
+		duration: 60 * 60 * 24,
+		blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
+	});
+
+	limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
+		storeClient: redisClient,
+		keyPrefix: "login_fail_consecutive_username_and_ip",
+		points: maxConsecutiveFailsByUsernameAndIP,
+		duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
+		blockDuration: 60 * 60, // Block for 1 hour
+	});
+}
 
 function on<E extends UserManagerEvents>(event: E, listener: UserManagerEventHandlers<E>) {
 	bus.on(event, listener);
@@ -168,7 +174,7 @@ router.post("/login", async (req, res, next) => {
 	const ipAddr = req.ip;
 	const usernameIPkey = `${req.body.user ?? req.body.email ?? req.body.username}_${ipAddr}`;
 
-	if (ENABLE_RATE_LIMIT) {
+	if (conf.get("rate_limit.enabled")) {
 		const [resUsernameAndIP, resSlowByIP] = await Promise.all([
 			limiterConsecutiveFailsByUsernameAndIP.get(usernameIPkey),
 			limiterSlowBruteByIP.get(ipAddr),
@@ -700,6 +706,7 @@ if (conf.get("env") === "test") {
 
 export default {
 	router,
+	setup,
 	on,
 	off,
 	isPasswordValid,

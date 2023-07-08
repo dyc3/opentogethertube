@@ -1,11 +1,12 @@
-import InfoExtractor from "../../infoextractor";
+import InfoExtractor, { initExtractor } from "../../infoextractor";
 import storage from "../../storage";
 import { getMimeType } from "../../mime";
 import YouTubeAdapter from "../../services/youtube";
 import { UnsupportedMimeTypeException, OutOfQuotaException } from "../../exceptions";
 import { ServiceAdapter } from "../../serviceadapter";
-import { redisClientAsync } from "../../redisclient";
+import { buildClients, redisClientAsync } from "../../redisclient";
 import _ from "lodash";
+import { loadModels } from "../../models";
 
 class TestAdapter extends ServiceAdapter {
 	get serviceId() {
@@ -14,6 +15,12 @@ class TestAdapter extends ServiceAdapter {
 }
 
 describe("InfoExtractor", () => {
+	beforeAll(() => {
+		loadModels();
+		buildClients();
+		initExtractor();
+	});
+
 	describe("isURL", () => {
 		const validUrls = [
 			"https://example.com",

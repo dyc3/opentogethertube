@@ -11,19 +11,23 @@ import { conf } from "./ott-config";
 
 const log = getLogger("api/rate-limit");
 
-const rateLimitOpts: IRateLimiterStoreOptions = {
-	storeClient: redisClient,
-	points: conf.get("env") === "test" ? 9999999999 : 1000,
-	duration: 60 * 60, // seconds
-	blockDuration: conf.get("env") === "development" ? 1 : 120,
-	inmemoryBlockOnConsumed: conf.get("env") === "test" ? 9999999999 : 1000,
-	inmemoryBlockDuration: conf.get("env") === "development" ? 1 : 120,
-	keyPrefix: conf.get("rate_limit.key_prefix"),
-};
-export const rateLimiter =
-	conf.get("env") === "test"
-		? new RateLimiterMemory(rateLimitOpts)
-		: new RateLimiterRedis(rateLimitOpts);
+export let rateLimiter: RateLimiterAbstract;
+export function buildRateLimiter() {
+	const rateLimitOpts: IRateLimiterStoreOptions = {
+		storeClient: redisClient,
+		points: conf.get("env") === "test" ? 9999999999 : 1000,
+		duration: 60 * 60, // seconds
+		blockDuration: conf.get("env") === "development" ? 1 : 120,
+		inmemoryBlockOnConsumed: conf.get("env") === "test" ? 9999999999 : 1000,
+		inmemoryBlockDuration: conf.get("env") === "development" ? 1 : 120,
+		keyPrefix: conf.get("rate_limit.key_prefix"),
+	};
+
+	rateLimiter =
+		conf.get("env") === "test"
+			? new RateLimiterMemory(rateLimitOpts)
+			: new RateLimiterRedis(rateLimitOpts);
+}
 
 export async function consumeRateLimitPoints(
 	res,
@@ -49,7 +53,7 @@ export async function consumeRateLimitPoints(
 }
 
 export function setRateLimitHeaders(res, info: RateLimiterRes) {
-	res.set("X-RateLimit-Limit", rateLimitOpts.points);
+	res.set("X-RateLimit-Limit", rateLimiter.points);
 	res.set("X-RateLimit-Remaining", info.remainingPoints);
 	res.set("X-RateLimit-Reset", new Date(Date.now() + info.msBeforeNext));
 }
@@ -69,7 +73,6 @@ export function handleRateLimit(res, info: RateLimiterRes) {
 }
 
 export default {
-	rateLimiter,
 	consumeRateLimitPoints,
 	setRateLimitHeaders,
 	handleRateLimit,

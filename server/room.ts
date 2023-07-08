@@ -1,6 +1,5 @@
 import permissions, { GrantMask, Grants } from "../common/permissions";
-import { redisClient } from "./redisclient";
-import { promisify } from "util";
+import { redisClientAsync } from "./redisclient";
 import { getLogger } from "./logger.js";
 import winston from "winston";
 import {
@@ -72,7 +71,6 @@ import { voteSkipThreshold } from "../common";
 import type { ClientManagerCommand } from "./clientmanager";
 import { canKickUser } from "../common/userutils";
 
-const set = promisify(redisClient.set).bind(redisClient);
 const ROOM_UNLOAD_AFTER = 240; // seconds
 
 /**
@@ -857,8 +855,8 @@ export class Room implements RoomState {
 		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
-		await set(`room:${this.name}`, this.serializeState());
-		await set(`room-sync:${this.name}`, this.serializeSyncableState());
+		await redisClientAsync.set(`room:${this.name}`, this.serializeState());
+		await redisClientAsync.set(`room-sync:${this.name}`, this.serializeSyncableState());
 		await this.publish(msg);
 
 		let settings: Partial<RoomStatePersistable> = _.pick(

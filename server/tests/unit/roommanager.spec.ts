@@ -1,7 +1,7 @@
 import roommanager, { redisStateToState } from "../../roommanager";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { Room as DbRoom } from "../../models";
+import { Room as DbRoom, loadModels } from "../../models";
 import { Room, RoomStateFromRedis } from "../../room";
 import { AuthToken, QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
@@ -9,8 +9,14 @@ import { RoomNotFoundException } from "../../exceptions";
 import storage from "../../storage";
 import { RoomRequest, RoomRequestType } from "../../../common/models/messages";
 import { VideoQueue } from "../../../server/videoqueue";
+import { buildClients } from "../../redisclient";
 
 describe("Room manager", () => {
+	beforeAll(() => {
+		loadModels();
+		buildClients();
+	});
+
 	beforeEach(async () => {
 		await DbRoom.destroy({ where: {} });
 		for (const room of roommanager.rooms) {
