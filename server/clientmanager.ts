@@ -5,7 +5,6 @@ import { wss } from "./websockets.js";
 import { getLogger } from "./logger.js";
 import { Request } from "express";
 import { createSubscriber, redisClientAsync } from "./redisclient";
-import { promisify } from "util";
 import {
 	ClientMessage,
 	RoomRequest,
@@ -29,15 +28,10 @@ import usermanager from "./usermanager";
 import { OttException } from "../common/exceptions";
 
 const log = getLogger("clientmanager");
-const redisSubscriber = createSubscriber();
-const subscribe: (channel: string) => Promise<string> = promisify(redisSubscriber.subscribe).bind(
-	redisSubscriber
-);
+
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
-subscribe(ANNOUNCEMENT_CHANNEL);
-
 export function setup(): void {
 	log.debug("setting up client manager...");
 	const server = wss;
@@ -60,6 +54,10 @@ export function setup(): void {
 	balancerManager.on("message", onBalancerMessage);
 	balancerManager.on("error", onBalancerError);
 	initBalancerConnections();
+
+	const redisSubscriber = createSubscriber();
+	redisSubscriber.on("message", onRedisMessage);
+	redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL);
 }
 
 /**
@@ -395,8 +393,6 @@ async function onRedisMessage(channel: string, text: string) {
 		log.error(`Unhandled message from redis channel: ${channel}`);
 	}
 }
-
-redisSubscriber.on("message", onRedisMessage);
 
 async function onUserModified(token: AuthToken): Promise<void> {
 	log.debug(`User was modified, pulling info and telling rooms`);

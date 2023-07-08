@@ -27,10 +27,24 @@ export let redisClientAsync: RedisClientAsync;
 export function buildClients() {
 	log.info("Building redis clients");
 	redisClient = redis.createClient(buildOptions());
+	redisClient.on("error", errorLogger("main"));
 	redisClientAsync = wrapInAsync(redisClient);
 }
 export function createSubscriber(): redis.RedisClient {
-	return redis.createClient(buildOptions());
+	const client = redis.createClient(buildOptions());
+	client.on("error", errorLogger("subscriber"));
+	return client;
+}
+
+function errorLogger(note: string) {
+	return (err: unknown) => {
+		log.error(`Redis client error (${note}): ${err}`);
+		if (err instanceof Error) {
+			counterRedisClientErrors.inc({ error: err.name });
+		} else {
+			counterRedisClientErrors.inc({ error: "Unknown" });
+		}
+	};
 }
 
 // All of the other package solutions I've tried are broken af, so I'll just do this instead.
@@ -38,32 +52,30 @@ export function createSubscriber(): redis.RedisClient {
 
 function wrapInAsync(client: redis.RedisClient): RedisClientAsync {
 	return {
-		get: promisify(redisClient.get).bind(redisClient) as (key: string) => Promise<string>,
-		set: promisify(redisClient.set).bind(redisClient) as (
+		get: promisify(client.get).bind(client) as (key: string) => Promise<string>,
+		set: promisify(client.set).bind(client) as (
 			key: string,
 			value: string,
 			mode?: string,
 			duration?: number
 		) => Promise<"OK">,
-		del: promisify(redisClient.del).bind(redisClient) as (key: string) => Promise<number>,
-		exists: promisify(redisClient.exists).bind(redisClient) as (key: string) => Promise<number>,
-		keys: promisify(redisClient.keys).bind(redisClient) as (
-			pattern: string
-		) => Promise<string[]>,
-		incr: promisify(redisClient.incr).bind(redisClient) as (key: string) => Promise<number>,
-		incrby: promisify(redisClient.incrby).bind(redisClient) as (
+		del: promisify(client.del).bind(client) as (key: string) => Promise<number>,
+		exists: promisify(client.exists).bind(client) as (key: string) => Promise<number>,
+		keys: promisify(client.keys).bind(client) as (pattern: string) => Promise<string[]>,
+		incr: promisify(client.incr).bind(client) as (key: string) => Promise<number>,
+		incrby: promisify(client.incrby).bind(client) as (
 			key: string,
 			amount: number
 		) => Promise<number>,
-		publish: promisify(redisClient.publish).bind(redisClient) as (
+		publish: promisify(client.publish).bind(client) as (
 			channel: string,
 			message: string
 		) => Promise<number>,
 		// HACK: redis-mock doesn't implement info, so we have to do this.
-		info: promisify(redisClient.info ?? (() => {})).bind(redisClient) as (
+		info: promisify(client.info ?? (() => {})).bind(client) as (
 			section?: string
 		) => Promise<string>,
-		dbsize: promisify(redisClient.dbsize).bind(redisClient) as () => Promise<number>,
+		dbsize: promisify(client.dbsize).bind(client) as () => Promise<number>,
 
 		/**
 		 * Deletes keys that match the specified pattern. Probably very slow. Not for use in production.
@@ -265,4 +277,10 @@ const guageRedisDbsize = new Gauge({
 		const dbsize = await redisClientAsync.dbsize();
 		this.set(dbsize);
 	},
+});
+
+const counterRedisClientErrors = new Counter({
+	name: "ott_redis_client_errors",
+	help: "The number of errors encountered by the redis client",
+	labelNames: ["error"],
 });
