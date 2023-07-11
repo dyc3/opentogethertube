@@ -22,6 +22,9 @@ const v4Client = {
 	mGet: promisify(client.mget).bind(client),
 	pSetEx: (key: string, ms: number, value: string) => setEx(key, ms / 1000, value),
 	on: () => undefined,
+	publish: promisify(client.publish).bind(client),
+	ping: promisify(client.ping).bind(client),
+	exists: promisify(client.exists).bind(client),
 	// Add additional functions as needed...
 };
 export default { ...redis, createClient: () => v4Client };
