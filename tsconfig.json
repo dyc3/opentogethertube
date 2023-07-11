@@ -20,7 +20,8 @@
 		],
 		"outDir": "ts-out",
 		"strictNullChecks": true,
-		"strictPropertyInitialization": true
+		"strictPropertyInitialization": true,
+		"strictBindCallApply": true
 	},
 	"include": [
 		"**/*.ts",
