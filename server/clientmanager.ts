@@ -55,7 +55,9 @@ export async function setup(): Promise<void> {
 	balancerManager.on("error", onBalancerError);
 	initBalancerConnections();
 
+	log.silly("creating redis subscriber");
 	const redisSubscriber = await createSubscriber();
+	log.silly("subscribing to announcement channel");
 	await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
 }
 
@@ -371,6 +373,7 @@ function onRoomUnload(roomName: string) {
 }
 
 function onAnnouncement(text: string) {
+	log.debug(`Announcement: ${text}`);
 	for (const client of connections) {
 		try {
 			client.sendRaw(text);

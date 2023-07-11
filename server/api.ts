@@ -14,6 +14,7 @@ import connectRedis from "connect-redis";
 
 const log = getLogger("api");
 export function buildApiRouter(app: express.Express): express.Router {
+	log.debug("Building API router");
 	const router = express.Router();
 
 	router.use("/status", statusapi);

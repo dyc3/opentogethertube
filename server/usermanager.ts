@@ -39,6 +39,7 @@ let limiterSlowBruteByIP: RateLimiterRedis;
 let limiterConsecutiveFailsByUsernameAndIP: RateLimiterRedis;
 
 export function setup() {
+	log.debug("Setting up user manager");
 	maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;
 	maxConsecutiveFailsByUsernameAndIP = conf.get("env") === "test" ? 9999999999 : 10;
 
