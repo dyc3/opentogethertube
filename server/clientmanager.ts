@@ -89,8 +89,10 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	if (state === undefined) {
 		log.warn("room state not present, grabbing");
 		const stateText = await redisClientAsync.get(`room-sync:${room.name}`);
-		state = JSON.parse(stateText) as RoomStateSyncable;
-		roomStates.set(room.name, state);
+		if (stateText) {
+			state = JSON.parse(stateText) as RoomStateSyncable;
+			roomStates.set(room.name, state);
+		}
 	}
 	const syncMsg = Object.assign({ action: "sync" }, state) as unknown as ServerMessageSync;
 	client.send(syncMsg);
@@ -335,7 +337,11 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 		let state = roomStates.get(roomName);
 		if (state === undefined) {
 			const stateText = await redisClientAsync.get(`room-sync:${roomName}`);
-			state = JSON.parse(stateText) as RoomStateSyncable;
+			if (stateText) {
+				state = JSON.parse(stateText) as RoomStateSyncable;
+			} else {
+				state = {} as RoomStateSyncable;
+			}
 		}
 		const filtered = _.omit(msg, "action");
 		if (state) {

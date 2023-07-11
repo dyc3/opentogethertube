@@ -122,7 +122,7 @@ describe("Youtube", () => {
 	beforeAll(async () => {
 		loadModels();
 		await buildClients();
-		adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+		adapter = new YouTubeAdapter("", redisClient);
 	});
 
 	describe("canHandleURL", () => {
@@ -450,7 +450,7 @@ describe("Youtube", () => {
 	});
 
 	describe("searchVideos", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = jest.spyOn(adapter.api, "get");
 
 		beforeEach(() => {
@@ -486,7 +486,7 @@ describe("Youtube", () => {
 	});
 
 	describe("videoApiRequest", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = jest.spyOn(adapter.api, "get");
 		const outOfQuotaResponse = {
 			isAxiosError: true,

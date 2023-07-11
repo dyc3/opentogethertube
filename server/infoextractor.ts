@@ -16,7 +16,7 @@ import {
 	FeatureDisabledException,
 } from "./exceptions";
 import { getLogger } from "./logger";
-import { redisClient, redisClientAsync } from "./redisclient";
+import { redisClient } from "./redisclient";
 import { isSupportedMimeType } from "./mime";
 import { Video, VideoId, VideoMetadata } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
@@ -43,11 +43,7 @@ export function initExtractor() {
 		new DailyMotionAdapter(),
 		new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") ?? ""),
 		new VimeoAdapter(),
-		new YouTubeAdapter(
-			conf.get("info_extractor.youtube.api_key"),
-			redisClient,
-			redisClientAsync
-		),
+		new YouTubeAdapter(conf.get("info_extractor.youtube.api_key"), redisClient),
 		new DirectVideoAdapter(),
 		new HlsVideoAdapter(),
 		new RedditAdapter(),
@@ -105,16 +101,15 @@ export default {
 	},
 
 	async getCachedSearchResults(service: string, query: string): Promise<Video[]> {
-		const value = await redisClientAsync.get(`search:${service}:${query}`);
-		return JSON.parse(value);
+		const value = await redisClient.get(`search:${service}:${query}`);
+		return value ? JSON.parse(value) : [];
 	},
 
 	async cacheSearchResults(service: string, query: string, results: Video[]): Promise<void> {
-		await redisClientAsync.set(
+		await redisClient.setEx(
 			`search:${service}:${query}`,
-			JSON.stringify(results),
-			"EX",
-			60 * 60 * 24
+			60 * 60 * 24,
+			JSON.stringify(results)
 		);
 	},
 

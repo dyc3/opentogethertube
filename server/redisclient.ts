@@ -4,10 +4,10 @@ import { conf } from "./ott-config";
 import { getLogger } from "./logger";
 const log = getLogger("redisclient");
 
-function buildOptions(): RedisClientOptions {
+function buildOptions(): RedisClientOptions<redis.RedisDefaultModules> {
 	const redisUrl = conf.get("redis.url");
 	const tls = redisUrl?.startsWith("rediss");
-	const redisOptions: RedisClientOptions = redisUrl
+	const redisOptions: RedisClientOptions<redis.RedisDefaultModules> = redisUrl
 		? {
 				url: redisUrl,
 				socket: tls
@@ -29,12 +29,12 @@ function buildOptions(): RedisClientOptions {
 	return redisOptions;
 }
 
-export let redisClient: RedisClientType;
+export let redisClient: RedisClientType<redis.RedisDefaultModules>;
 /** @deprecated use redisClient, it uses promises now. */
-export let redisClientAsync: RedisClientType;
+export let redisClientAsync: RedisClientType<redis.RedisDefaultModules>;
 export async function buildClients(): Promise<void> {
 	log.info("Building redis clients");
-	redisClient = redis.createClient(buildOptions());
+	redisClient = redis.createClient(buildOptions()) as RedisClientType<redis.RedisDefaultModules>;
 	redisClient.on("error", errorLogger("main"));
 	redisClientAsync = redisClient;
 	await redisClient.connect();
