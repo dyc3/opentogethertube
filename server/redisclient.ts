@@ -40,8 +40,9 @@ export async function buildClients(): Promise<void> {
 	await redisClient.connect();
 }
 export async function createSubscriber(): Promise<RedisClientType> {
-	const client = redis.createClient(buildOptions());
+	const client = redisClient.duplicate();
 	client.on("error", errorLogger("subscriber"));
+	await client.connect();
 	return client;
 }
 
