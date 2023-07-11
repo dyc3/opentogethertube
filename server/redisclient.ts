@@ -1,38 +1,48 @@
-import redis from "redis";
-import { promisify } from "util";
+import redis, { RedisClientOptions, RedisClientType } from "redis";
 import { Counter, Gauge } from "prom-client";
 import { conf } from "./ott-config";
 import { getLogger } from "./logger";
 const log = getLogger("redisclient");
 
-function buildOptions(): redis.ClientOpts {
-	const redisOptions: redis.ClientOpts = conf.get("redis.url")
+function buildOptions(): RedisClientOptions {
+	const redisUrl = conf.get("redis.url");
+	const tls = redisUrl?.startsWith("rediss");
+	const redisOptions: RedisClientOptions = redisUrl
 		? {
-				url: conf.get("redis.url"),
-				tls: {
-					rejectUnauthorized: false,
-				},
+				url: redisUrl,
+				socket: tls
+					? {
+							tls: true,
+							rejectUnauthorized: false,
+					  }
+					: {},
 		  }
 		: {
-				port: conf.get("redis.port") ?? undefined,
-				host: conf.get("redis.host") ?? undefined,
+				socket: {
+					port: conf.get("redis.port") ?? undefined,
+					host: conf.get("redis.host") ?? undefined,
+				},
+				username: conf.get("redis.username") ?? undefined,
 				password: conf.get("redis.password") ?? undefined,
-				db: conf.get("redis.db") ?? undefined,
+				database: conf.get("redis.db") ?? undefined,
 		  };
 	return redisOptions;
 }
 
-export let redisClient: redis.RedisClient;
-export let redisClientAsync: RedisClientAsync;
-export function buildClients() {
+export let redisClient: RedisClientType;
+/** @deprecated use redisClient, it uses promises now. */
+export let redisClientAsync: RedisClientType;
+export async function buildClients(): Promise<void> {
 	log.info("Building redis clients");
 	redisClient = redis.createClient(buildOptions());
 	redisClient.on("error", errorLogger("main"));
-	redisClientAsync = wrapInAsync(redisClient);
+	redisClientAsync = redisClient;
+	await redisClient.connect();
 }
-export function createSubscriber(): redis.RedisClient {
+export async function createSubscriber(): Promise<RedisClientType> {
 	const client = redis.createClient(buildOptions());
 	client.on("error", errorLogger("subscriber"));
+	await redisClient.connect();
 	return client;
 }
 
@@ -47,64 +57,18 @@ function errorLogger(note: string) {
 	};
 }
 
-// All of the other package solutions I've tried are broken af, so I'll just do this instead.
-// These are by no means complete type annotations, just minimal ones to make me happy.
-
-function wrapInAsync(client: redis.RedisClient): RedisClientAsync {
-	return {
-		get: promisify(client.get).bind(client) as (key: string) => Promise<string>,
-		set: promisify(client.set).bind(client) as (
-			key: string,
-			value: string,
-			mode?: string,
-			duration?: number
-		) => Promise<"OK">,
-		del: promisify(client.del).bind(client) as (key: string) => Promise<number>,
-		exists: promisify(client.exists).bind(client) as (key: string) => Promise<number>,
-		keys: promisify(client.keys).bind(client) as (pattern: string) => Promise<string[]>,
-		incr: promisify(client.incr).bind(client) as (key: string) => Promise<number>,
-		incrby: promisify(client.incrby).bind(client) as (
-			key: string,
-			amount: number
-		) => Promise<number>,
-		publish: promisify(client.publish).bind(client) as (
-			channel: string,
-			message: string
-		) => Promise<number>,
-		// HACK: redis-mock doesn't implement info, so we have to do this.
-		info: promisify(client.info ?? (() => {})).bind(client) as (
-			section?: string
-		) => Promise<string>,
-		dbsize: promisify(client.dbsize).bind(client) as () => Promise<number>,
-
-		/**
-		 * Deletes keys that match the specified pattern. Probably very slow. Not for use in production.
-		 * @param patterns Patterns of keys to delete
-		 */
-		async delPattern(...patterns: string[]): Promise<void> {
-			for (const pattern of patterns) {
-				for (const key of await this.keys(pattern)) {
-					await this.del(key);
-				}
-			}
-		},
-	};
+/**
+ * Deletes keys that match the specified pattern. Probably very slow. Not for use in production.
+ * @param patterns Patterns of keys to delete
+ */
+export async function delPattern(client: RedisClientType, ...patterns: string[]): Promise<void> {
+	for (const pattern of patterns) {
+		for (const key of await client.keys(pattern)) {
+			await client.del(key);
+		}
+	}
 }
 
-export interface RedisClientAsync {
-	get(key: string): Promise<string>;
-	set(key: string, value: string, mode?: string, duration?: number): Promise<"OK">;
-	del(key: string): Promise<number>;
-	exists(key: string): Promise<number>;
-	keys(key: string): Promise<string[]>;
-	incr(key: string): Promise<number>;
-	incrby(key: string, amount: number): Promise<number>;
-	publish(channel: string, message: string): Promise<number>;
-	info(section?: string): Promise<string>;
-	dbsize(): Promise<number>;
-
-	delPattern(...patterns: string[]): Promise<void>;
-}
 function parseRedisInfo(lines: string[]): Record<string, string> {
 	const info: Record<string, string> = {};
 	for (const _line of lines) {
@@ -242,8 +206,8 @@ export async function registerRedisMetrics(): Promise<void> {
 
 async function collectRedisMetrics() {
 	log.silly("Collecting redis metrics");
-	const redisInfoStats = await redisClientAsync.info("stats");
-	const redisInfoMemory = await redisClientAsync.info("memory");
+	const redisInfoStats = await redisClient.info("stats");
+	const redisInfoMemory = await redisClient.info("memory");
 	const redisInfoStatsParsed = parseRedisInfo(redisInfoStats.trim().split("\n"));
 	const redisInfoMemoryParsed = parseRedisInfo(redisInfoMemory.trim().split("\n"));
 	const mergedInfo = { ...redisInfoStatsParsed, ...redisInfoMemoryParsed };
@@ -274,7 +238,7 @@ const guageRedisDbsize = new Gauge({
 	name: "redis_keys_count",
 	help: "The number of keys in the database",
 	async collect() {
-		const dbsize = await redisClientAsync.dbsize();
+		const dbsize = await redisClient.dbSize();
 		this.set(dbsize);
 	},
 });

@@ -145,6 +145,13 @@ export const conf = convict({
 			env: "REDIS_PORT",
 			nullable: true,
 		},
+		username: {
+			doc: "The redis username. The redis URL will take precedence over this option.",
+			format: String,
+			default: null as string | null,
+			env: "REDIS_USERNAME",
+			nullable: true,
+		},
 		password: {
 			doc: "The redis password. The redis URL will take precedence over this option.",
 			format: String,
