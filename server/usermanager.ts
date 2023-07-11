@@ -17,7 +17,7 @@ import { LengthOutOfRangeException } from "./exceptions";
 import { conf } from "./ott-config";
 import { AuthToken } from "ott-common/models/types";
 import { EventEmitter } from "events";
-import { Sequelize } from "sequelize";
+import { Sequelize, UniqueConstraintError } from "sequelize";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -302,57 +302,65 @@ router.post("/register", async (req, res) => {
 			});
 		});
 	} catch (err) {
-		log.error(`Unable to register user ${err} ${err.message}`);
-		if (err.name === "SequelizeUniqueConstraintError") {
-			let fields = err.fields.join(", ");
-			fields = fields.charAt(0).toUpperCase() + fields.slice(1);
-			res.status(400).json({
-				success: false,
-				error: {
-					name: "AlreadyInUse",
-					fields: err.fields,
-					message: `${fields} ${err.fields.length > 1 ? "are" : "is"} already in use.`,
-				},
-			});
-		} else if (err.name === "UsernameTakenError") {
-			res.status(400).json({
-				success: false,
-				error: {
-					name: "AlreadyInUse",
-					fields: ["username"],
-					message: "Username is already in use.",
-				},
-			});
-		} else if (err.name === "EmailAlreadyInUseError") {
-			res.status(400).json({
-				success: false,
-				error: {
-					name: "AlreadyInUse",
-					fields: ["email"],
-					message: "Email is already associated with an account.",
-				},
-			});
-		} else if (
-			err.name === "SequelizeValidationError" ||
-			err.name === "BadPasswordError" ||
-			err.name === "LengthOutOfRangeException"
-		) {
-			res.status(400).json({
-				success: false,
-				error: {
-					name: "ValidationError",
-					message: err.message,
-				},
-			});
+		if (err instanceof Error) {
+			log.error(`Unable to register user ${err} ${err.message}`);
+			if (err instanceof UniqueConstraintError) {
+				const fields = Object.keys(err.fields);
+				res.status(400).json({
+					success: false,
+					error: {
+						name: "AlreadyInUse",
+						fields: fields,
+						message: `${fields.join(",")} ${
+							fields.length > 1 ? "are" : "is"
+						} already in use.`,
+					},
+				});
+				return;
+			} else if (err.name === "UsernameTakenError") {
+				res.status(400).json({
+					success: false,
+					error: {
+						name: "AlreadyInUse",
+						fields: ["username"],
+						message: "Username is already in use.",
+					},
+				});
+				return;
+			} else if (err.name === "EmailAlreadyInUseError") {
+				res.status(400).json({
+					success: false,
+					error: {
+						name: "AlreadyInUse",
+						fields: ["email"],
+						message: "Email is already associated with an account.",
+					},
+				});
+				return;
+			} else if (
+				err.name === "SequelizeValidationError" ||
+				err.name === "BadPasswordError" ||
+				err.name === "LengthOutOfRangeException"
+			) {
+				res.status(400).json({
+					success: false,
+					error: {
+						name: "ValidationError",
+						message: err.message,
+					},
+				});
+				return;
+			}
 		} else {
-			res.status(500).json({
-				success: false,
-				error: {
-					name: "Unknown",
-					message: "An unknown error occurred. Try again later.",
-				},
-			});
+			log.error(`Unable to register user`);
 		}
+		res.status(500).json({
+			success: false,
+			error: {
+				name: "Unknown",
+				message: "An unknown error occurred. Try again later.",
+			},
+		});
 	}
 });
 
@@ -571,7 +579,11 @@ async function registerUser({ email, username, password }): Promise<User> {
 			hash,
 		});
 	} catch (err) {
-		log.error(`Failed to create new user in the database: ${err} ${err.message}`);
+		if (err instanceof Error) {
+			log.error(`Failed to create new user in the database: ${err} ${err.message}`);
+		} else {
+			log.error(`Failed to create new user in the database`);
+		}
 		throw err;
 	}
 }
