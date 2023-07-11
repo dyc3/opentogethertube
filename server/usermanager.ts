@@ -6,7 +6,7 @@ import passport from "passport";
 import crypto from "crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
-import { delPattern, redisClient, redisClient } from "./redisclient";
+import { delPattern, redisClient } from "./redisclient";
 import { RateLimiterRedis } from "rate-limiter-flexible";
 import { consumeRateLimitPoints } from "./rate-limit";
 import tokens from "./auth/tokens";
@@ -43,8 +43,11 @@ export function setup() {
 	maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;
 	maxConsecutiveFailsByUsernameAndIP = conf.get("env") === "test" ? 9999999999 : 10;
 
+	const redisClientLegacy = redisClient.duplicate({
+		legacyMode: true,
+	});
 	limiterSlowBruteByIP = new RateLimiterRedis({
-		storeClient: redisClient,
+		storeClient: redisClientLegacy,
 		keyPrefix: "login_fail_ip_per_day",
 		points: maxWrongAttemptsByIPperDay,
 		duration: 60 * 60 * 24,
@@ -52,7 +55,7 @@ export function setup() {
 	});
 
 	limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
-		storeClient: redisClient,
+		storeClient: redisClientLegacy,
 		keyPrefix: "login_fail_consecutive_username_and_ip",
 		points: maxConsecutiveFailsByUsernameAndIP,
 		duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
