@@ -55,6 +55,7 @@
 		"@babel/core": "^7.20.2",
 		"@babel/plugin-transform-modules-commonjs": "^7.19.6",
 		"@types/convict": "^6.1.1",
+		"@types/redis": "^2.8.29",
 		"babel-jest": "29.5.0",
 		"jest-watch-typeahead": "^2.2.1",
 		"nodemon": "^2.0.4",
