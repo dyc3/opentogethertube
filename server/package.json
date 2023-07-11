@@ -30,7 +30,7 @@
 		"m3u8-parser": "^6.2.0",
 		"nocache": "^3.0.0",
 		"node-abort-controller": "3.0.1",
-		"ott-common": "./common",
+		"ott-common": "../common",
 		"passport": "0.6.0",
 		"passport-discord": "^0.1.4",
 		"passport-google": "^0.3.0",

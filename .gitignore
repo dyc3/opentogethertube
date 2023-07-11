@@ -5,6 +5,7 @@ node_modules
 /logs
 /ts-out
 /target
+.yarn
 
 # local env files
 .env.local
