@@ -1,10 +1,16 @@
 import request from "supertest";
-import { app } from "../../../app";
+import { main } from "../../../app";
 import usermanager from "../../../usermanager";
 import { User as UserModel } from "../../../models";
 
 describe("User API", () => {
 	let token;
+	let app;
+
+	beforeAll(async () => {
+		app = (await main()).app;
+	});
+
 	beforeEach(async () => {
 		await UserModel.destroy({ where: {} });
 

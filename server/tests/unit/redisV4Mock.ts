@@ -25,6 +25,9 @@ const v4Client = {
 	publish: promisify(client.publish).bind(client),
 	ping: promisify(client.ping).bind(client),
 	exists: promisify(client.exists).bind(client),
+	duplicate: () => v4Client,
+	subscribe: () => undefined,
+	keys: promisify(client.keys).bind(client),
 	// Add additional functions as needed...
 };
 export default { ...redis, createClient: () => v4Client };

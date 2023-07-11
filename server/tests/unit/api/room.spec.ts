@@ -4,7 +4,7 @@ import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
 import roommanager from "../../../../server/roommanager";
 import { RoomNotFoundException } from "../../../../server/exceptions";
-import { app } from "../../../app";
+import { main } from "../../../app";
 import { Room as RoomModel, User as UserModel } from "../../../models";
 import usermanager from "../../../usermanager";
 
@@ -65,6 +65,12 @@ expect.extend({
 });
 
 describe("Room API", () => {
+	let app;
+
+	beforeAll(async () => {
+		app = (await main()).app;
+	});
+
 	describe("GET /room/:name", () => {
 		let getSessionInfoSpy: jest.SpyInstance;
 		let validateSpy: jest.SpyInstance;

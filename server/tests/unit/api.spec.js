@@ -1,6 +1,6 @@
 import request from "supertest";
 import roommanager from "../../roommanager";
-import { app } from "../../app";
+import { main } from "../../app";
 const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
 const usermanager = require("../../usermanager");
@@ -762,11 +762,13 @@ describe.skip("Room API", () => {
 });
 
 describe("Data API", () => {
-	beforeAll(() => {
+	let app;
+	beforeAll(async () => {
 		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 		});
 		jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		app = (await main()).app;
 	});
 
 	afterAll(() => {
@@ -863,14 +865,17 @@ describe("Data API", () => {
 });
 
 describe("Announcements API", () => {
+	let app;
 	let publishSpy;
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		setApiKey(TEST_API_KEY);
 		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 		});
 		jest.spyOn(tokens, "validate").mockResolvedValue(true);
+
+		app = (await main()).app;
 	});
 
 	beforeEach(() => {
