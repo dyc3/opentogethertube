@@ -443,13 +443,15 @@ async function authCallback(email_or_user: string, password: string, done) {
 			// eslint-disable-next-line array-bracket-newline
 			user.hash = await pwd.hash(Buffer.concat([user.salt, Buffer.from(password)]));
 			await user.save();
-		// eslint-disable-next-line no-fallthrough
+			done(null, user);
+			break;
 		case securePassword.VALID:
 			log.debug(`User ${user.username} (${user.id}): Hash is valid`);
 			done(null, user);
 			break;
 
 		default:
+			log.error(`Unknown password hash result: ${result}`);
 			break;
 	}
 }
