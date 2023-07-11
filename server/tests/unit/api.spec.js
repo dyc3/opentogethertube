@@ -783,8 +783,8 @@ describe("Data API", () => {
 			.get("/api/data/previewAdd")
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
-			.expect("Content-Type", /json/)
 			.expect(200)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body.success).toBe(true);
 				expect(resp.body.result).toHaveLength(0);
@@ -805,8 +805,8 @@ describe("Data API", () => {
 			.get("/api/data/previewAdd")
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
-			.expect("Content-Type", /json/)
 			.expect(400)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
@@ -828,8 +828,8 @@ describe("Data API", () => {
 			.get("/api/data/previewAdd")
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
-			.expect("Content-Type", /json/)
 			.expect(400)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
@@ -850,8 +850,8 @@ describe("Data API", () => {
 			.get("/api/data/previewAdd")
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
-			.expect("Content-Type", /json/)
 			.expect(400)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
@@ -892,8 +892,8 @@ describe("Announcements API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
-			.expect("Content-Type", /json/)
 			.expect(200)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: true,
@@ -910,8 +910,8 @@ describe("Announcements API", () => {
 			.post("/api/announce")
 			.set({ Authorization: "Bearer foobar" })
 			.send({ text: "test announcement" })
-			.expect("Content-Type", /json/)
 			.expect(400)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
@@ -929,8 +929,8 @@ describe("Announcements API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", "wrong key")
 			.send({ text: "test announcement" })
-			.expect("Content-Type", /json/)
 			.expect(400)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
@@ -948,8 +948,8 @@ describe("Announcements API", () => {
 			.post("/api/announce")
 			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
-			.expect("Content-Type", /json/)
 			.expect(400)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
@@ -972,8 +972,8 @@ describe("Announcements API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
-			.expect("Content-Type", /json/)
 			.expect(500)
+			.expect("Content-Type", /json/)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
