@@ -45,7 +45,7 @@ describe("Room", () => {
 		let user: RoomUser;
 
 		beforeEach(() => {
-			user = new RoomUser("user");
+			user = new RoomUser("user", "a");
 			user.token = "asdf1234";
 			room = new Room({ name: "test" });
 			room.realusers = [user];
@@ -483,7 +483,11 @@ describe("Room", () => {
 				enableVoteSkip: true,
 			});
 			room.currentSource = { service: "fakeservice", id: "foo" };
-			room.realusers = [new RoomUser("user"), new RoomUser("user2"), new RoomUser("user3")];
+			room.realusers = [
+				new RoomUser("user", "a"),
+				new RoomUser("user2", "b"),
+				new RoomUser("user3", "c"),
+			];
 
 			await room.processRequest(
 				{
@@ -506,7 +510,11 @@ describe("Room", () => {
 				enableVoteSkip: true,
 			});
 			room.currentSource = { service: "fakeservice", id: "foo" };
-			room.realusers = [new RoomUser("user"), new RoomUser("user2"), new RoomUser("user3")];
+			room.realusers = [
+				new RoomUser("user", "a"),
+				new RoomUser("user2", "b"),
+				new RoomUser("user3", "c"),
+			];
 
 			await room.processRequest(
 				{

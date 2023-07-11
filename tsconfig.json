@@ -19,7 +19,8 @@
 			"jest"
 		],
 		"outDir": "ts-out",
-		"strictNullChecks": true
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true
 	},
 	"include": [
 		"**/*.ts",

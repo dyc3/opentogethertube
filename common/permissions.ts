@@ -227,7 +227,7 @@ function _normalizeRoleId(role: Role | string | number): Role {
  * If grants are not provided, the defaults will be used.
  */
 export class Grants {
-	masks: RoleGrants;
+	masks: RoleGrants = new Map();
 
 	/**
 	 * @param {Object|undefined} grants Opional object that maps roles to grant masks.
