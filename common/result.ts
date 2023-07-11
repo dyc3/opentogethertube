@@ -39,7 +39,10 @@ export function intoResult<T>(func: () => T): Result<T, Error> {
 		const result = func();
 		return ok(result);
 	} catch (e) {
-		return err(e);
+		if (e instanceof Error) {
+			return err(e);
+		}
+		return err(new Error("Unknown error (did not throw an Error instance)"));
 	}
 }
 

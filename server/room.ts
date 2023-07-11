@@ -84,8 +84,9 @@ export class RoomUser {
 	user: User | null;
 	playerStatus: PlayerStatus = PlayerStatus.none;
 
-	constructor(id: ClientId) {
+	constructor(id: ClientId, token: AuthToken) {
 		this.id = id;
+		this.token = token;
 		this.user = null;
 	}
 
@@ -1276,8 +1277,7 @@ export class Room implements RoomState {
 			this.log.error("Received a join request without an auth token");
 			throw new Error("No auth token");
 		}
-		const user = new RoomUser(request.info.id);
-		user.token = context.auth?.token;
+		const user = new RoomUser(request.info.id, context.auth?.token);
 		await user.updateInfo(request.info);
 		this.realusers.push(user);
 		this.log.info(`${user.username} joined the room`);
