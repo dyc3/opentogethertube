@@ -6,7 +6,7 @@ import passport from "passport";
 import crypto from "crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
-import { delPattern, redisClient, redisClientAsync } from "./redisclient";
+import { delPattern, redisClient, redisClient } from "./redisclient";
 import { RateLimiterRedis } from "rate-limiter-flexible";
 import { consumeRateLimitPoints } from "./rate-limit";
 import tokens from "./auth/tokens";

@@ -5,7 +5,7 @@ const InfoExtract = require("../../infoextractor");
 const { User } = require("../../models");
 const usermanager = require("../../usermanager");
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
-import { redisClientAsync } from "../../redisclient";
+import { redisClient } from "../../redisclient";
 import tokens from "../../auth/tokens";
 import { setApiKey } from "../../admin";
 
@@ -874,7 +874,7 @@ describe("Announcements API", () => {
 	});
 
 	beforeEach(() => {
-		publishSpy = jest.spyOn(redisClientAsync, "publish").mockImplementation(() => {});
+		publishSpy = jest.spyOn(redisClient, "publish").mockImplementation(() => {});
 	});
 
 	afterEach(() => {

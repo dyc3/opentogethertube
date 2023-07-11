@@ -4,7 +4,7 @@ import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "./logger.js";
 import { Request } from "express";
-import { createSubscriber, redisClientAsync } from "./redisclient";
+import { createSubscriber, redisClient } from "./redisclient";
 import {
 	ClientMessage,
 	RoomRequest,
@@ -88,7 +88,7 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	let state = roomStates.get(room.name);
 	if (state === undefined) {
 		log.warn("room state not present, grabbing");
-		const stateText = await redisClientAsync.get(`room-sync:${room.name}`);
+		const stateText = await redisClient.get(`room-sync:${room.name}`);
 		if (stateText) {
 			state = JSON.parse(stateText) as RoomStateSyncable;
 			roomStates.set(room.name, state);
@@ -336,7 +336,7 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 	if (msg.action === "sync") {
 		let state = roomStates.get(roomName);
 		if (state === undefined) {
-			const stateText = await redisClientAsync.get(`room-sync:${roomName}`);
+			const stateText = await redisClient.get(`room-sync:${roomName}`);
 			if (stateText) {
 				state = JSON.parse(stateText) as RoomStateSyncable;
 			} else {

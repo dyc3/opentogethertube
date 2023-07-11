@@ -5,7 +5,7 @@ import YouTubeAdapter, {
 } from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
-import { buildClients, redisClient, redisClientAsync } from "../../../redisclient";
+import { buildClients, redisClient, redisClient } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "fs";
 import { VideoRequest } from "server/serviceadapter";

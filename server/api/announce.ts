@@ -1,7 +1,7 @@
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config";
 import express, { RequestHandler } from "express";
-import { redisClientAsync } from "../redisclient";
+import { redisClient } from "../redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../../common/constants";
 import { OttResponseBody } from "../../common/models/rest-api";
 
@@ -46,7 +46,7 @@ const announce: RequestHandler<unknown, OttResponseBody, { text: string }> = asy
 	}
 
 	try {
-		await redisClientAsync.publish(
+		await redisClient.publish(
 			ANNOUNCEMENT_CHANNEL,
 			JSON.stringify({
 				action: "announcement",

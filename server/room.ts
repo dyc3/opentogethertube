@@ -1,5 +1,5 @@
 import permissions, { GrantMask, Grants } from "../common/permissions";
-import { redisClientAsync } from "./redisclient";
+import { redisClient } from "./redisclient";
 import { getLogger } from "./logger.js";
 import winston from "winston";
 import {
@@ -856,8 +856,8 @@ export class Room implements RoomState {
 		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
-		await redisClientAsync.set(`room:${this.name}`, this.serializeState());
-		await redisClientAsync.set(`room-sync:${this.name}`, this.serializeSyncableState());
+		await redisClient.set(`room:${this.name}`, this.serializeState());
+		await redisClient.set(`room-sync:${this.name}`, this.serializeSyncableState());
 		await this.publish(msg);
 
 		let settings: Partial<RoomStatePersistable> = _.pick(
