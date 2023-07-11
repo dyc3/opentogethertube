@@ -28,7 +28,7 @@ export function buildRateLimiter() {
 	rateLimiter =
 		conf.get("env") === "test"
 			? new RateLimiterMemory(rateLimitOpts)
-			: new RateLimiterMemory(rateLimitOpts);
+			: new RateLimiterRedisv4(rateLimitOpts);
 }
 
 export async function consumeRateLimitPoints(
@@ -88,7 +88,7 @@ return {consumed, ttl} \
  * This rate limiter is a workaround for redis v4 not being supported by rate-limiter-flexible yet.
  * See: https://github.com/animir/node-rate-limiter-flexible/pull/176
  */
-export class RateLimiterRedisv4 extends RateLimiterStoreAbstract implements RateLimiterAbstract {
+export class RateLimiterRedisv4 extends RateLimiterRedis {
 	client: RedisClientType;
 
 	constructor(options: IRateLimiterStoreOptions) {
