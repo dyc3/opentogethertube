@@ -12,9 +12,9 @@ import { VideoQueue } from "../../../server/videoqueue";
 import { buildClients } from "../../redisclient";
 
 describe("Room manager", () => {
-	beforeAll(() => {
+	beforeAll(async () => {
 		loadModels();
-		buildClients();
+		await buildClients();
 	});
 
 	beforeEach(async () => {

@@ -14,9 +14,9 @@ import { buildClients } from "../../redisclient";
 describe("Room", () => {
 	let getSessionInfoSpy: jest.SpyInstance;
 	let validateSpy: jest.SpyInstance;
-	beforeAll(() => {
+	beforeAll(async () => {
 		loadModels();
-		buildClients();
+		await buildClients();
 
 		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",

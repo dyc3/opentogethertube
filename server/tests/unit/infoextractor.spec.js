@@ -15,9 +15,9 @@ class TestAdapter extends ServiceAdapter {
 }
 
 describe("InfoExtractor", () => {
-	beforeAll(() => {
+	beforeAll(async () => {
 		loadModels();
-		buildClients();
+		await buildClients();
 		initExtractor();
 	});
 

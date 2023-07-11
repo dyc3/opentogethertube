@@ -119,9 +119,9 @@ async function mockYoutubeApi(
 
 describe("Youtube", () => {
 	let adapter: YouTubeAdapter;
-	beforeAll(() => {
+	beforeAll(async () => {
 		loadModels();
-		buildClients();
+		await buildClients();
 		adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
 	});
 
