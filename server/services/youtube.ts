@@ -1,8 +1,7 @@
 import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
-import { RedisClient } from "redis";
-import { RedisClientAsync } from "../redisclient";
+import { RedisClientType } from "redis";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import {
 	BadApiArgumentException,
@@ -132,20 +131,17 @@ function isYoutubeApiError(
 
 export default class YouTubeAdapter extends ServiceAdapter {
 	apiKey: string;
-	/** @deprecated use redisClientAsync instead */
-	redisClient: RedisClient;
-	redisClientAsync: RedisClientAsync;
+	redisClient: RedisClientType;
 	api = axios.create({
 		baseURL: "https://www.googleapis.com/youtube/v3",
 	});
 	fallbackApi = axios.create();
 
-	constructor(apiKey: string, redisClient: RedisClient, redisClientAsync: RedisClientAsync) {
+	constructor(apiKey: string, redisClient: RedisClientType) {
 		super();
 
 		this.apiKey = apiKey;
 		this.redisClient = redisClient;
-		this.redisClientAsync = redisClientAsync;
 	}
 
 	get serviceId(): "youtube" {
@@ -339,7 +335,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		const redisKey = `ytchannel:${idKey}:${idValue}`;
 		log.debug(`grabbing channel playlist id from cache: ${redisKey}`);
 
-		let result = await this.redisClientAsync.get(redisKey);
+		let result = await this.redisClient.get(redisKey);
 		log.debug(`got channel playlist id from cache: ${result}`);
 
 		return result;
@@ -357,7 +353,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				const idValue = channelData[key];
 				const redisKey = `ytchannel:${key}:${idValue}`;
 				log.info(`caching channel playlist id: ${redisKey}`);
-				this.redisClientAsync.set(redisKey, playlistId);
+				await this.redisClient.set(redisKey, playlistId);
 			}
 		}
 	}
