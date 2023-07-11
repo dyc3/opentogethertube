@@ -1,5 +1,8 @@
 {
 	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"strictFunctionTypes": true
+	},
 	"include": ["**/*.ts", "tests/**/*.ts", "tests/**/*.tsx"],
 	"exclude": ["node_modules", "dist", "ts-out"],
 	"files": ["./express-types.d.ts"]
