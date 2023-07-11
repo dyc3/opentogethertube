@@ -9,11 +9,11 @@
 			<thead>
 				<tr>
 					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${0}`) }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${1}`) }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${2}`) }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${3}`) }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${4}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${[Role.UnregisteredUser]}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${[Role.RegisteredUser]}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${[Role.TrustedUser]}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${[Role.Moderator]}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${[Role.Administrator]}`) }}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -175,6 +175,7 @@ export const PermissionsEditor = defineComponent({
 			getLowestGranted,
 			getHighestDenied,
 			rolePerms,
+			Role,
 		};
 	},
 });

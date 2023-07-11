@@ -331,12 +331,4 @@ export default {
 			unknown: "Неизвестная ошибка. Пожалуйста, сообщите об этой ошибке на GitHub.",
 		},
 	},
-	"roles": {
-		[Role.Administrator]: undefined,
-		[Role.Moderator]: undefined,
-		[Role.TrustedUser]: undefined,
-		[Role.RegisteredUser]: undefined,
-		[Role.UnregisteredUser]: undefined,
-		[Role.Owner]: undefined,
-	},
 };

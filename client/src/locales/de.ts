@@ -292,12 +292,4 @@ export default {
 	"connect-overlay": {
 		"find-another": "Einen anderen Raum finden",
 	},
-	"roles": {
-		[Role.Administrator]: undefined,
-		[Role.Moderator]: undefined,
-		[Role.TrustedUser]: undefined,
-		[Role.RegisteredUser]: undefined,
-		[Role.UnregisteredUser]: undefined,
-		[Role.Owner]: undefined,
-	},
 };

@@ -326,12 +326,4 @@ export default {
 				"Il s'est passé quelque chose, mais nous ne savons pas quoi. Veuillez signaler ceci comme un bug.",
 		},
 	},
-	"roles": {
-		[Role.Administrator]: undefined,
-		[Role.Moderator]: undefined,
-		[Role.TrustedUser]: undefined,
-		[Role.RegisteredUser]: undefined,
-		[Role.UnregisteredUser]: undefined,
-		[Role.Owner]: undefined,
-	},
 };
