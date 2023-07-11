@@ -4,22 +4,16 @@
 		{{ $t("permissions-editor.text1") }}<br />
 		{{ $t("permissions-editor.text2") }}<br />
 		{{ $t("permissions-editor.viewing-as") }}: 
-		{{ $t(
-			(currentRole === -1) ? "permissions-editor.roles.owner" :
-			(currentRole === 0) ? "permissions-editor.roles.unregisteredUser" :
-			(currentRole === 1) ? "permissions-editor.roles.registeredUser" :
-			(currentRole === 2) ? "permissions-editor.roles.trustedUser" :
-			(currentRole === 3) ? "permissions-editor.roles.moderator" :
-									"permissions-editor.roles.administrator") }}<br />
+		{{ $t(`roles.${currentRole}`) }}<br />
 		<v-table density="compact" :key="updateEpoch">
 			<thead>
 				<tr>
 					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
-					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.unregisteredUser") }}</th>
-					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.registeredUser") }}</th>
-					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.trustedUser") }}</th>
-					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.moderator") }}</th>
-					<th class="text-left" scope="col">{{ $t("permissions-editor.roles.administrator") }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${0}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${1}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${2}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${3}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${4}`) }}</th>
 				</tr>
 			</thead>
 			<tbody>

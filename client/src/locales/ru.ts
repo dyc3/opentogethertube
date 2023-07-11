@@ -1,4 +1,4 @@
-import { OttWebsocketError } from "ott-common/models/types";
+import { OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
 	"common": {
@@ -314,14 +314,6 @@ export default {
 			"Администраторам предоставляется всё. Владелец комнаты автоматически становится администратором и не может быть понижен в должности.",
 		"viewing-as": "Просмотреть как",
 		"permission": "Разрешение",
-		"roles": {
-			"administrator": "Administrator",
-			"moderator": "Moderator",
-			"trustedUser": "Trusted User",
-			"registeredUser": "Registered User",
-			"unregisteredUser": "Unregistered User",
-			"owner": "Owner",
-		},
 	},
 	"client-settings": {
 		title: "Персональные настройки",
@@ -338,5 +330,13 @@ export default {
 				"Токен не был предоставлен. Обновите страницу и попробуйте ещё раз. В противном случае, пожалуйста, сообщите об этой ошибке на GitHub.",
 			unknown: "Неизвестная ошибка. Пожалуйста, сообщите об этой ошибке на GitHub.",
 		},
+	},
+	"roles": {
+		[Role.Administrator]: undefined,
+		[Role.Moderator]: undefined,
+		[Role.TrustedUser]: undefined,
+		[Role.RegisteredUser]: undefined,
+		[Role.UnregisteredUser]: undefined,
+		[Role.Owner]: undefined,
 	},
 };

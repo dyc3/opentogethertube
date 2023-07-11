@@ -1,4 +1,4 @@
-import { OttWebsocketError, BehaviorOption } from "ott-common/models/types";
+import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
 
 export default {
 	"common": {
@@ -326,14 +326,6 @@ export default {
 			"Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.",
 		"viewing-as": "Viewing as",
 		"permission": "Permission",
-		"roles": {
-			"administrator": "Administrator",
-			"moderator": "Moderator",
-			"trustedUser": "Trusted User",
-			"registeredUser": "Registered User",
-			"unregisteredUser": "Unregistered User",
-			"owner": "Owner",
-		},
 	},
 	"client-settings": {
 		title: "Preferences",
@@ -355,5 +347,13 @@ export default {
 	},
 	"vote-skip": {
 		remaining: "{count} more votes to skip",
+	},
+	"roles": {
+		[Role.Administrator]: "Administrator",
+		[Role.Moderator]: "Moderator",
+		[Role.TrustedUser]: "Trusted User",
+		[Role.RegisteredUser]: "Registered User",
+		[Role.UnregisteredUser]: "Unregistered User",
+		[Role.Owner]: "Owner",
 	},
 };

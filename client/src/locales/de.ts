@@ -1,3 +1,5 @@
+import { OttWebsocketError, Role } from "ott-common/models/types";
+
 export default {
 	"common": {
 		"cancel": "Abbrechen",
@@ -281,14 +283,6 @@ export default {
 			"Administratoren haben alle Rechte. Der Raumbesitzer ist automatisch Administrator und kann nicht degradiert werden.",
 		"viewing-as": "Ansicht als",
 		"permission": "Berechtigung",
-		"roles": {
-			"administrator": "Administrator",
-			"moderator": "Moderator",
-			"trustedUser": "Trusted User",
-			"registeredUser": "Registered User",
-			"unregisteredUser": "Unregistered User",
-			"owner": "Owner",
-		},
 	},
 	"client-settings": {
 		title: "Anpassen",
@@ -297,5 +291,13 @@ export default {
 	},
 	"connect-overlay": {
 		"find-another": "Einen anderen Raum finden",
+	},
+	"roles": {
+		[Role.Administrator]: undefined,
+		[Role.Moderator]: undefined,
+		[Role.TrustedUser]: undefined,
+		[Role.RegisteredUser]: undefined,
+		[Role.UnregisteredUser]: undefined,
+		[Role.Owner]: undefined,
 	},
 };

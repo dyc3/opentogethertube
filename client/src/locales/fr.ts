@@ -1,4 +1,4 @@
-import { OttWebsocketError } from "ott-common/models/types";
+import { OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
 	"common": {
@@ -306,14 +306,6 @@ export default {
 			"Les administrateurs ont tous les droits. Le propriétaire de la salle est automatiquement administrateur et ne peut pas être rétrogradé.",
 		"viewing-as": "Affichage en tant que",
 		"permission": "Permission",
-		"roles": {
-			"administrator": "Administrator",
-			"moderator": "Moderator",
-			"trustedUser": "Trusted User",
-			"registeredUser": "Registered User",
-			"unregisteredUser": "Unregistered User",
-			"owner": "Owner",
-		},
 	},
 	"client-settings": {
 		title: "Préférences",
@@ -333,5 +325,13 @@ export default {
 			unknown:
 				"Il s'est passé quelque chose, mais nous ne savons pas quoi. Veuillez signaler ceci comme un bug.",
 		},
+	},
+	"roles": {
+		[Role.Administrator]: undefined,
+		[Role.Moderator]: undefined,
+		[Role.TrustedUser]: undefined,
+		[Role.RegisteredUser]: undefined,
+		[Role.UnregisteredUser]: undefined,
+		[Role.Owner]: undefined,
 	},
 };
