@@ -6,6 +6,8 @@
 	"service": "app",
 	"workspaceFolder": "/workspace",
 	"onCreateCommand": {
+		"corepack": "corepack enable",
+		"yarn-update": "yarn set version stable",
 		"yarn": "yarn install"
 	},
 	"customizations": {
