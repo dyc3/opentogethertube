@@ -6,7 +6,7 @@ import passport from "passport";
 import crypto from "crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
-import { redisClient, redisClientAsync } from "./redisclient";
+import { delPattern, redisClient, redisClientAsync } from "./redisclient";
 import { RateLimiterRedis } from "rate-limiter-flexible";
 import { consumeRateLimitPoints } from "./rate-limit";
 import tokens from "./auth/tokens";
@@ -699,7 +699,8 @@ async function isEmailTaken(email: string): Promise<boolean> {
  * Clears all user manager rate limiters. Intended only to be used during development and automated testing.
  */
 async function clearAllRateLimiting() {
-	await redisClientAsync.delPattern(
+	await delPattern(
+		redisClient,
 		"login_fail_ip_per_day:*",
 		"login_fail_consecutive_username_and_ip:*"
 	);

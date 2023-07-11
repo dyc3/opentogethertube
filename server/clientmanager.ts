@@ -32,7 +32,7 @@ const log = getLogger("clientmanager");
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
-export function setup(): void {
+export async function setup(): Promise<void> {
 	log.debug("setting up client manager...");
 	const server = wss;
 	server.on("connection", async (ws, req: Request & { session: MySession }) => {
@@ -55,9 +55,8 @@ export function setup(): void {
 	balancerManager.on("error", onBalancerError);
 	initBalancerConnections();
 
-	const redisSubscriber = createSubscriber();
-	redisSubscriber.on("message", onRedisMessage);
-	redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL);
+	const redisSubscriber = await createSubscriber();
+	await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
 }
 
 /**
@@ -371,26 +370,17 @@ function onRoomUnload(roomName: string) {
 	roomStates.delete(roomName);
 }
 
-async function onRedisMessage(channel: string, text: string) {
-	// handles sync messages published by the rooms.
-	log.silly(`pubsub message: ${channel}: ${text.substr(0, 200)}`);
-	const msg = JSON.parse(text) as ServerMessage;
-	if (channel.startsWith("room:")) {
-		const roomName = channel.replace("room:", "");
-	} else if (channel === ANNOUNCEMENT_CHANNEL) {
-		for (const client of connections) {
-			try {
-				client.sendRaw(text);
-			} catch (e) {
-				if (e instanceof Error) {
-					log.error(`failed to send to client: ${e.message}`);
-				} else {
-					log.error(`failed to send to client`);
-				}
+function onAnnouncement(text: string) {
+	for (const client of connections) {
+		try {
+			client.sendRaw(text);
+		} catch (e) {
+			if (e instanceof Error) {
+				log.error(`failed to send to client: ${e.message}`);
+			} else {
+				log.error(`failed to send to client`);
 			}
 		}
-	} else {
-		log.error(`Unhandled message from redis channel: ${channel}`);
 	}
 }
 

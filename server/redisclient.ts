@@ -42,7 +42,6 @@ export async function buildClients(): Promise<void> {
 export async function createSubscriber(): Promise<RedisClientType> {
 	const client = redis.createClient(buildOptions());
 	client.on("error", errorLogger("subscriber"));
-	await redisClient.connect();
 	return client;
 }
 

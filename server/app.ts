@@ -25,7 +25,7 @@ import { setupPostgresMetricsCollection } from "./storage.metrics";
 
 export const app = express();
 
-function main() {
+async function main() {
 	const log = getLogger("app");
 
 	setLogger(getLogger("config"));
@@ -51,7 +51,7 @@ function main() {
 	log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
 
 	loadModels();
-	buildClients();
+	await buildClients();
 	buildRateLimiter();
 
 	if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
@@ -60,16 +60,15 @@ function main() {
 
 	app.use(metricsMiddleware);
 	const server = http.createServer(app);
-	function checkRedis() {
+	async function checkRedis() {
 		if (performance) {
 			let start = performance.now();
-			redisClient.ping(() => {
-				let duration = performance.now() - start;
-				log.info(`Latency to redis: ${duration}ms`);
-			});
+			await redisClient.ping();
+			let duration = performance.now() - start;
+			log.info(`Latency to redis: ${duration}ms`);
 		}
 	}
-	checkRedis();
+	await checkRedis();
 	registerRedisMetrics();
 
 	const RedisStore = connectRedis(session);
@@ -150,8 +149,8 @@ function main() {
 	app.use(usermanager.passportErrorHandler);
 	usermanager.setup();
 	websockets.setup(server);
-	clientmanager.setup();
-	roommanager.start();
+	await clientmanager.setup();
+	await roommanager.start();
 
 	app.use(bodyParser.json()); // to support JSON-encoded bodies
 	app.use(
