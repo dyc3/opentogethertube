@@ -13,7 +13,7 @@ import { redisClient } from "./redisclient";
 import connectRedis from "connect-redis";
 
 const log = getLogger("api");
-export function buildApiRouter(app: express.Express): express.Router {
+export function buildApiRouter(): express.Router {
 	log.debug("Building API router");
 	const router = express.Router();
 

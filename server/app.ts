@@ -69,7 +69,9 @@ async function main() {
 		}
 	}
 	await checkRedis();
-	registerRedisMetrics();
+	if (conf.get("env") !== "test") {
+		registerRedisMetrics();
+	}
 
 	const sessionOpts: SessionOptions = {
 		store: new RedisStore({ client: redisClient }),
@@ -179,7 +181,7 @@ async function main() {
 		});
 	}
 
-	const api = buildApiRouter(app);
+	const api = buildApiRouter();
 	app.use("/api", api);
 	if (fs.existsSync("../client/dist")) {
 		app.get("*", serveBuiltFiles);
