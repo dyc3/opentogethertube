@@ -20,7 +20,7 @@ import { loadConfigFile, conf, setLogger } from "./ott-config";
 import { buildRateLimiter } from "./rate-limit";
 import { initExtractor } from "./infoextractor";
 import session, { SessionOptions } from "express-session";
-import connectRedis from "connect-redis";
+import RedisStore from "connect-redis";
 import { setupPostgresMetricsCollection } from "./storage.metrics";
 
 export const app = express();
@@ -71,7 +71,6 @@ async function main() {
 	await checkRedis();
 	registerRedisMetrics();
 
-	const RedisStore = connectRedis(session);
 	const sessionOpts: SessionOptions = {
 		store: new RedisStore({ client: redisClient }),
 		secret: conf.get("session_secret"),

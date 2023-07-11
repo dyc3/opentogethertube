@@ -4,10 +4,12 @@ import {
 	IRateLimiterStoreOptions,
 	RateLimiterMemory,
 	RateLimiterRedis,
-	RateLimiterAbstract,
+	type RateLimiterAbstract,
+	RateLimiterStoreAbstract,
 	RateLimiterRes,
 } from "rate-limiter-flexible";
 import { conf } from "./ott-config";
+import { RedisClientType } from "redis";
 
 const log = getLogger("api/rate-limit");
 
@@ -26,7 +28,7 @@ export function buildRateLimiter() {
 	rateLimiter =
 		conf.get("env") === "test"
 			? new RateLimiterMemory(rateLimitOpts)
-			: new RateLimiterRedis(rateLimitOpts);
+			: new RateLimiterMemory(rateLimitOpts);
 }
 
 export async function consumeRateLimitPoints(
@@ -70,6 +72,83 @@ export function handleRateLimit(res, info: RateLimiterRes) {
 			message: "Too many requests.",
 		},
 	});
+}
+
+const incrTtlLuaScript = `redis.call('set', KEYS[1], 0, 'EX', ARGV[2], 'NX') \
+local consumed = redis.call('incrby', KEYS[1], ARGV[1]) \
+local ttl = redis.call('pttl', KEYS[1]) \
+if ttl == -1 then \
+  redis.call('expire', KEYS[1], ARGV[2]) \
+  ttl = 1000 * ARGV[2] \
+end \
+return {consumed, ttl} \
+`;
+
+/**
+ * This rate limiter is a workaround for redis v4 not being supported by rate-limiter-flexible yet.
+ * See: https://github.com/animir/node-rate-limiter-flexible/pull/176
+ */
+export class RateLimiterRedisv4 extends RateLimiterStoreAbstract implements RateLimiterAbstract {
+	client: RedisClientType;
+
+	constructor(options: IRateLimiterStoreOptions) {
+		super(options);
+
+		this.client = options.storeClient;
+	}
+
+	_getRateLimiterRes(_key, changedPoints, result) {
+		const [consumed, resTtlMs] = result;
+
+		const consumedPoints = parseInt(consumed);
+		const isFirstInDuration = consumedPoints === changedPoints;
+		const remainingPoints = Math.max(this.points - consumedPoints, 0);
+		const msBeforeNext = resTtlMs;
+
+		return new RateLimiterRes(remainingPoints, msBeforeNext, consumedPoints, isFirstInDuration);
+	}
+
+	_upsert(key: string, points: number, msDuration, forceExpire = false) {
+		const multi = this.client.multi();
+
+		if (forceExpire) {
+			if (msDuration > 0) {
+				multi.set(key, points, { PX: msDuration });
+			} else {
+				multi.set(key, points);
+			}
+
+			return multi.pTTL(key).exec(true);
+		}
+
+		if (msDuration > 0) {
+			return this.client.eval(incrTtlLuaScript, {
+				keys: [key],
+				arguments: [String(points), String(msDuration / 1000)],
+			});
+		}
+
+		return multi.incrBy(key, points).pTTL(key).exec(true);
+	}
+
+	_get(key: string) {
+		return this.client
+			.multi()
+			.get(key)
+			.pTTL(key)
+			.exec(true)
+			.then(result => {
+				const [points] = result;
+				if (points === null) {
+					return null;
+				}
+				return result;
+			});
+	}
+
+	_delete(key: string) {
+		return this.client.del(key).then(result => result > 0);
+	}
 }
 
 export default {

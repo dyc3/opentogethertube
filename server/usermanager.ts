@@ -8,7 +8,7 @@ import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
 import { delPattern, redisClient } from "./redisclient";
 import { RateLimiterRedis } from "rate-limiter-flexible";
-import { consumeRateLimitPoints } from "./rate-limit";
+import { RateLimiterRedisv4, consumeRateLimitPoints } from "./rate-limit";
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
@@ -35,27 +35,24 @@ const bus = new EventEmitter();
 
 let maxWrongAttemptsByIPperDay;
 let maxConsecutiveFailsByUsernameAndIP;
-let limiterSlowBruteByIP: RateLimiterRedis;
-let limiterConsecutiveFailsByUsernameAndIP: RateLimiterRedis;
+let limiterSlowBruteByIP: RateLimiterRedisv4;
+let limiterConsecutiveFailsByUsernameAndIP: RateLimiterRedisv4;
 
 export function setup() {
 	log.debug("Setting up user manager");
 	maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;
 	maxConsecutiveFailsByUsernameAndIP = conf.get("env") === "test" ? 9999999999 : 10;
 
-	const redisClientLegacy = redisClient.duplicate({
-		legacyMode: true,
-	});
-	limiterSlowBruteByIP = new RateLimiterRedis({
-		storeClient: redisClientLegacy,
+	limiterSlowBruteByIP = new RateLimiterRedisv4({
+		storeClient: redisClient,
 		keyPrefix: "login_fail_ip_per_day",
 		points: maxWrongAttemptsByIPperDay,
 		duration: 60 * 60 * 24,
 		blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
 	});
 
-	limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
-		storeClient: redisClientLegacy,
+	limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedisv4({
+		storeClient: redisClient,
 		keyPrefix: "login_fail_consecutive_username_and_ip",
 		points: maxConsecutiveFailsByUsernameAndIP,
 		duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
