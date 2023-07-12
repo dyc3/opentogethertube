@@ -19,6 +19,10 @@ interface PeertubeApiVideo {
 		};
 		fileUrl: string;
 	}[];
+	streamingPlaylists: {
+		id: number;
+		playlistUrl: string;
+	}[];
 }
 
 export default class PeertubeAdapter extends ServiceAdapter {
@@ -37,9 +41,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 	}
 
 	async initialize(): Promise<void> {
-		// TODO: fetch instances from https://instances.joinpeertube.org/api/v1/instances?start=0&count=100&sort=-totalVideos maybe?
-
-		this.allowedHosts = ["the.jokertv.eu", "tube.shanti.cafe", "comics.peertube.biz"];
+		this.allowedHosts = conf.get("info_extractor.peertube.instances");
 	}
 
 	canHandleURL(link: string): boolean {
@@ -63,15 +65,57 @@ export default class PeertubeAdapter extends ServiceAdapter {
 			`https://${host}/api/v1/videos/${id}`
 		);
 
+		if (conf.get("info_extractor.peertube.emit_as_direct")) {
+			return this.parseAsDirect(result.data, host);
+		} else {
+			return this.parseVideoAsPeertube(result.data, host, id);
+		}
+	}
+
+	parseVideoAsPeertube(peertubeVideo: PeertubeApiVideo, host: string, id: string): Video {
 		const video: Video = {
 			service: this.serviceId,
-			id: videoId,
-			title: result.data.name,
-			description: result.data.description,
-			length: result.data.duration,
-			thumbnail: `https://${host}${result.data.thumbnailPath}`,
+			id: `${host}:${id}`,
+			title: peertubeVideo.name,
+			description: peertubeVideo.description,
+			length: peertubeVideo.duration,
+			thumbnail: `https://${host}${peertubeVideo.thumbnailPath}`,
 		};
 
 		return video;
+	}
+
+	parseAsDirect(peertubeVideo: PeertubeApiVideo, host: string): Video {
+		const base = {
+			title: peertubeVideo.name,
+			description: peertubeVideo.description,
+			length: peertubeVideo.duration,
+			thumbnail: `https://${host}${peertubeVideo.thumbnailPath}`,
+		};
+
+		if (peertubeVideo.streamingPlaylists.length > 0) {
+			const playlist = peertubeVideo.streamingPlaylists[0];
+
+			const video: Video = {
+				service: "hls",
+				id: playlist.playlistUrl,
+				...base,
+				hls_url: playlist.playlistUrl,
+			};
+
+			return video;
+		} else if (peertubeVideo.files.length > 0) {
+			const file =
+				peertubeVideo.files.find(f => f.resolution.id === 1080) ?? peertubeVideo.files[0];
+
+			const video: Video = {
+				service: "direct",
+				id: file.fileUrl,
+				...base,
+			};
+			return video;
+		} else {
+			throw new Error("Unable to extract video URL from Peertube video");
+		}
 	}
 }
