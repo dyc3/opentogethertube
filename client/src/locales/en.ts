@@ -1,4 +1,4 @@
-import { OttWebsocketError, BehaviorOption } from "ott-common/models/types";
+import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
 
 export default {
 	"common": {
@@ -347,5 +347,13 @@ export default {
 	},
 	"vote-skip": {
 		remaining: "{count} more votes to skip",
+	},
+	"roles": {
+		[Role.Administrator]: "Administrator",
+		[Role.Moderator]: "Moderator",
+		[Role.TrustedUser]: "Trusted User",
+		[Role.RegisteredUser]: "Registered User",
+		[Role.UnregisteredUser]: "Unregistered User",
+		[Role.Owner]: "Owner",
 	},
 };

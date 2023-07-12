@@ -37,12 +37,12 @@
 						class="role"
 						:aria-label="`${
 							user.id === store.state.users.you.id ? 'you' : user.name
-						} is ${ROLE_DISPLAY_NAMES[user.role]}`"
+						} is roles.${user.role}`"
 						v-if="!!getRoleIcon(user.role)"
 						:icon="getRoleIcon(user.role)"
 					/>
 					<v-tooltip activator="parent" location="top">
-						<span>{{ ROLE_DISPLAY_NAMES[user.role] }}</span>
+						<span>{{ $t(`roles.${user.role}`) }}</span>
 					</v-tooltip>
 				</span>
 				<span>
@@ -79,7 +79,7 @@
 													? $t("room.users.demote")
 													: $t("room.users.promote")
 											}}
-											to {{ ROLE_DISPLAY_NAMES[role] }}
+											to {{ $t(`roles.${role}`) }}
 										</v-list-item>
 									</div>
 								</div>
@@ -110,7 +110,7 @@ import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { granted } from "@/util/grants";
 import { Role } from "ott-common/models/types";
-import { ROLE_NAMES, ROLE_DISPLAY_NAMES } from "ott-common/permissions";
+import { ROLE_NAMES } from "ott-common/permissions";
 import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
@@ -246,7 +246,6 @@ export const UserList = defineComponent({
 			granted,
 
 			ROLE_NAMES,
-			ROLE_DISPLAY_NAMES,
 			USERNAME_LENGTH_MAX,
 			PlayerStatus,
 			Role,

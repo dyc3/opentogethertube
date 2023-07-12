@@ -1,4 +1,4 @@
-import { OttWebsocketError } from "ott-common/models/types";
+import { OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
 	"common": {

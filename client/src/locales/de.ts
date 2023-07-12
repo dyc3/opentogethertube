@@ -1,3 +1,5 @@
+import { OttWebsocketError, Role } from "ott-common/models/types";
+
 export default {
 	"common": {
 		"cancel": "Abbrechen",

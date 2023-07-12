@@ -3,14 +3,18 @@
 		{{ $t("permissions-editor.title") }}<br />
 		{{ $t("permissions-editor.text1") }}<br />
 		{{ $t("permissions-editor.text2") }}<br />
-		{{ $t("permissions-editor.viewing-as") }}: {{ ROLE_DISPLAY_NAMES[currentRole] }}<br />
+		{{ $t("permissions-editor.viewing-as") }}: {{ $t(`roles.${currentRole}`) }}<br />
 		<v-table density="compact" :key="updateEpoch">
 			<thead>
 				<tr>
 					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
-					<th class="text-left" scope="col" v-for="i in 5" :key="i">
-						{{ ROLE_NAMES[i - 1] ? ROLE_DISPLAY_NAMES[i - 1] : 0 }}
+					<th class="text-left" scope="col">
+						{{ $t(`roles.${Role.UnregisteredUser}`) }}
 					</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${Role.RegisteredUser}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${Role.TrustedUser}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${Role.Moderator}`) }}</th>
+					<th class="text-left" scope="col">{{ $t(`roles.${Role.Administrator}`) }}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -40,13 +44,7 @@
 import { defineComponent, ref, Ref, watch, PropType } from "vue";
 import _ from "lodash";
 import { granted } from "@/util/grants";
-import {
-	PERMISSIONS,
-	ROLE_NAMES,
-	ROLE_DISPLAY_NAMES,
-	Permission,
-	Grants,
-} from "ott-common/permissions";
+import { PERMISSIONS, ROLE_NAMES, Permission, Grants } from "ott-common/permissions";
 import { Role } from "ott-common/models/types";
 
 export const PermissionsEditor = defineComponent({
@@ -170,10 +168,10 @@ export const PermissionsEditor = defineComponent({
 			updateEpoch,
 			granted,
 			ROLE_NAMES,
-			ROLE_DISPLAY_NAMES,
 			getLowestGranted,
 			getHighestDenied,
 			rolePerms,
+			Role,
 		};
 	},
 });
