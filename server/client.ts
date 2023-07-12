@@ -1,4 +1,4 @@
-import type { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "ott-common/models/types";
+import { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "../common/models/types";
 import type { ClientMessage, ServerMessage } from "ott-common/models/messages";
 import WebSocket from "ws";
 import { SessionInfo, setSessionInfo } from "./auth/tokens";
@@ -61,8 +61,19 @@ export abstract class Client {
 	}
 
 	public async auth(token: AuthToken): Promise<void> {
+		if (!token) {
+			log.warn("Client sent empty auth token, kicking");
+			this.kick(OttWebsocketError.MISSING_TOKEN);
+			return;
+		}
 		this.token = token;
-		this.session = await getSessionInfo(this.token);
+		try {
+			this.session = await getSessionInfo(this.token);
+		} catch (err) {
+			log.warn(`Client sent invalid auth token, kicking: ${err}`);
+			this.kick(OttWebsocketError.MISSING_TOKEN);
+			return;
+		}
 		this.joinStatus = ClientJoinStatus.Joined;
 		this.emit("auth", this, this.token, this.session);
 	}
