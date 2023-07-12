@@ -1,9 +1,6 @@
 import request from "supertest";
-import roommanager from "../../roommanager";
 import { main } from "../../app";
-const InfoExtract = require("../../infoextractor");
-const { User } = require("../../models");
-const usermanager = require("../../usermanager");
+import InfoExtract from "../../infoextractor";
 import { ANNOUNCEMENT_CHANNEL } from "../../../common/constants";
 import { redisClient } from "../../redisclient";
 import tokens from "../../auth/tokens";
