@@ -80,7 +80,7 @@ describe("Data API", () => {
 
 	it("GET /data/previewAdd", async () => {
 		let resolveQuerySpy = jest
-			.spyOn(InfoExtract.default, "resolveVideoQuery")
+			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockReturnValue(Promise.resolve([]));
 
 		await request(app)
@@ -97,7 +97,7 @@ describe("Data API", () => {
 
 		resolveQuerySpy.mockRestore();
 		resolveQuerySpy = jest
-			.spyOn(InfoExtract.default, "resolveVideoQuery")
+			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockImplementation(
 				() =>
 					new Promise((resolve, reject) =>
@@ -118,7 +118,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract.default, "resolveVideoQuery").mockImplementation(
+		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(
 			() =>
 				new Promise((resolve, reject) =>
 					reject({
@@ -142,7 +142,7 @@ describe("Data API", () => {
 
 		resolveQuerySpy.mockRestore();
 		resolveQuerySpy = jest
-			.spyOn(InfoExtract.default, "resolveVideoQuery")
+			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockImplementation(
 				() =>
 					new Promise((resolve, reject) =>
