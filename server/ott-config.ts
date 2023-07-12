@@ -237,6 +237,23 @@ export const conf = convict({
 				nullable: true,
 			},
 		},
+		peertube: {
+			instances: {
+				default: ["the.jokertv.eu", "tube.shanti.cafe", "video.antopie.org"],
+				doc: "List of Peertube instances to allow.",
+				format: Array,
+				env: "PEERTUBE_INSTANCES",
+				children: {
+					format: String,
+				},
+			},
+			emit_as_direct: {
+				default: true,
+				doc: "Whether to emit Peertube videos as direct or hls videos instead of Peertube videos. This is useful if the Peertube embeds are broken.",
+				format: Boolean,
+				env: "PEERTUBE_EMIT_AS_DIRECT",
+			},
+		},
 	},
 	rate_limit: {
 		enabled: {
