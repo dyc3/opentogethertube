@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "engines": {
-    "node": ">=16 <=20",
+    "node": ">=18 <=20",
     "yarn": "1"
   },
   "workspaces": [
