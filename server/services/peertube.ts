@@ -2,6 +2,7 @@ import axios, { type AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { conf } from "../ott-config";
 import { Video } from "ott-common/models/video";
+import { InvalidVideoIdException } from "../exceptions";
 
 interface PeertubeApiVideo {
 	uuid: string;
@@ -59,6 +60,10 @@ export default class PeertubeAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(videoId: string): Promise<Video> {
+		if (!videoId.includes(":")) {
+			throw new InvalidVideoIdException(this.serviceId, videoId);
+		}
+
 		const [host, id] = videoId.split(":");
 
 		const result: AxiosResponse<PeertubeApiVideo> = await this.api.get(
@@ -93,7 +98,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 			thumbnail: `https://${host}${peertubeVideo.thumbnailPath}`,
 		};
 
-		if (peertubeVideo.streamingPlaylists.length > 0) {
+		if (peertubeVideo.streamingPlaylists && peertubeVideo.streamingPlaylists.length > 0) {
 			const playlist = peertubeVideo.streamingPlaylists[0];
 
 			const video: Video = {
@@ -104,7 +109,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 			};
 
 			return video;
-		} else if (peertubeVideo.files.length > 0) {
+		} else if (peertubeVideo.files && peertubeVideo.files.length > 0) {
 			const file =
 				peertubeVideo.files.find(f => f.resolution.id === 1080) ?? peertubeVideo.files[0];
 
