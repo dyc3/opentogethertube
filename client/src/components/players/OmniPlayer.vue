@@ -66,6 +66,18 @@
 			@buffer-progress="onBufferProgress"
 			@buffer-spans="onBufferSpans"
 		/>
+		<PeertubePlayer
+			v-else-if="!!source && source.service == 'peertube'"
+			ref="player"
+			:video-id="source.id"
+			class="player"
+			@apiready="onApiReady"
+			@playing="onPlaying"
+			@paused="onPaused"
+			@ready="onReady"
+			@buffering="onBuffering"
+			@error="onError"
+		/>
 
 		<v-container v-else fluid fill-height class="no-video">
 			<h1>{{ $t("video.no-video") }}</h1>
@@ -85,7 +97,16 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
 
-const services = ["youtube", "vimeo", "dailymotion", "googledrive", "direct", "reddit", "tubi"];
+const services = [
+	"youtube",
+	"vimeo",
+	"dailymotion",
+	"googledrive",
+	"direct",
+	"reddit",
+	"tubi",
+	"peertube",
+];
 
 export interface MediaPlayer {
 	play(): Promise<void>;
@@ -127,6 +148,7 @@ export default defineComponent({
 		DailymotionPlayer: defineAsyncComponent(() => import("./DailymotionPlayer.vue")),
 		GoogleDrivePlayer: defineAsyncComponent(() => import("./GoogleDrivePlayer.vue")),
 		PlyrPlayer: defineAsyncComponent(() => import("./PlyrPlayer.vue")),
+		PeertubePlayer: defineAsyncComponent(() => import("./PeertubePlayer.vue")),
 	},
 	setup(props, { emit }) {
 		const store = useStore();

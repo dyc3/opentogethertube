@@ -217,6 +217,7 @@ export const AddPreview = defineComponent({
 						"test hls 1",
 						"https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
 					],
+					["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
 			  ]
 			: [];
 

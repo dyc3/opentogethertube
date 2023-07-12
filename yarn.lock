@@ -1118,6 +1118,13 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
+"@peertube/embed-api@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@peertube/embed-api/-/embed-api-0.0.6.tgz#f71dbaed50d5cc09bccdd3a12d45f4c39e1064b2"
+  integrity sha512-xOyZfzdsaxw9GxERHv9dbCLubDV3Bj0Vdbq2WrgeZSBvi0VOSzlWUdiP/I3oxDIrCciVP9+rNrcAKOoca6pIkA==
+  dependencies:
+    jschannel "^1.0.2"
+
 "@redis/bloom@1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@redis/bloom/-/bloom-1.2.0.tgz#d3fd6d3c0af3ef92f26767b56414a370c7b63b71"
@@ -5181,6 +5188,11 @@ jsbn@~0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
   integrity sha512-UVU9dibq2JcFWxQPA6KCqj5O42VOmAY3zQUfEKxU0KpTGXwNoCjkX1e13eHNvw/xPynt6pU0rZ1htjWTNTSXsg==
+
+jschannel@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/jschannel/-/jschannel-1.0.2.tgz#8932010e9c6042a27bc93b918dac2e267976ae14"
+  integrity sha512-y3cXMp8IWckhlCOvDxg+TcuNSHYA6PLm9tVuYHdfMhjtFgTrinv6gcoOdeg9RG4XA8UzmgFsM92EpUKJ8qmcpw==
 
 jsdom@^21.1.0:
   version "21.1.0"
