@@ -79,7 +79,7 @@
 													? $t("room.users.demote")
 													: $t("room.users.promote")
 											}}
-											to {{ $t(`roles.${user.role}`) }}
+											to {{ $t(`roles.${role}`) }}
 										</v-list-item>
 									</div>
 								</div>
