@@ -21,7 +21,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
-			"program": "${workspaceFolder}/app.js"
+			"program": "${workspaceFolder}/start.js"
 		},
 		{
 			"type": "node",
@@ -36,10 +36,6 @@
 			"cwd": "${workspaceFolder}/server",
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
-			"disableOptimisticBPs": true,
-			"windows": {
-				"program": "${workspaceFolder}/node_modules/vue-cli-service/bin/vue-cli-service",
-			}
 		},
 		{
 			"name": "Attach",

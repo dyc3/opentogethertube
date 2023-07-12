@@ -9,9 +9,9 @@ import { roomToDb, roomToDbPartial } from "../../storage/room";
 import { buildClients } from "../../redisclient";
 
 describe("Storage: Room Spec", () => {
-	beforeAll(() => {
+	beforeAll(async () => {
 		loadModels();
-		buildClients();
+		await buildClients();
 	});
 
 	beforeEach(async () => {

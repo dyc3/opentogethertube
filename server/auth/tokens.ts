@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { redisClientAsync } from "../redisclient";
+import { redisClient } from "../redisclient";
 import { AuthToken } from "../../common/models/types";
 
 const PREFIX = "auth";
@@ -11,7 +11,7 @@ export type SessionInfo =
 	| { isLoggedIn: true; user_id: number };
 
 export async function validate(token: AuthToken): Promise<boolean> {
-	return (await redisClientAsync.exists(`${PREFIX}:${token}`)) > 0;
+	return (await redisClient.exists(`${PREFIX}:${token}`)) > 0;
 }
 
 /**
@@ -24,13 +24,17 @@ export async function mint(): Promise<AuthToken> {
 }
 
 export async function getSessionInfo(token: AuthToken): Promise<SessionInfo> {
-	const info = JSON.parse(await redisClientAsync.get(`${PREFIX}:${token}`));
+	const text = await redisClient.get(`${PREFIX}:${token}`);
+	if (!text) {
+		throw new Error(`No session info found`);
+	}
+	const info = JSON.parse(text);
 	return info;
 }
 
 export async function setSessionInfo(token: AuthToken, session: SessionInfo): Promise<void> {
 	const expiration = session.isLoggedIn ? EXPIRATION_TIME_LOGGED_IN : EXPIRATION_TIME;
-	await redisClientAsync.set(`${PREFIX}:${token}`, JSON.stringify(session), "EX", expiration);
+	await redisClient.setEx(`${PREFIX}:${token}`, expiration, JSON.stringify(session));
 }
 
 export default {

@@ -4,7 +4,7 @@ import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "./logger.js";
 import { Request } from "express";
-import { createSubscriber, redisClientAsync } from "./redisclient";
+import { createSubscriber, redisClient } from "./redisclient";
 import {
 	ClientMessage,
 	RoomRequest,
@@ -32,7 +32,7 @@ const log = getLogger("clientmanager");
 const connections: Client[] = [];
 const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
-export function setup(): void {
+export async function setup(): Promise<void> {
 	log.debug("setting up client manager...");
 	const server = wss;
 	server.on("connection", async (ws, req: Request & { session: MySession }) => {
@@ -55,9 +55,10 @@ export function setup(): void {
 	balancerManager.on("error", onBalancerError);
 	initBalancerConnections();
 
-	const redisSubscriber = createSubscriber();
-	redisSubscriber.on("message", onRedisMessage);
-	redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL);
+	log.silly("creating redis subscriber");
+	const redisSubscriber = await createSubscriber();
+	log.silly("subscribing to announcement channel");
+	await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
 }
 
 /**
@@ -87,9 +88,11 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	let state = roomStates.get(room.name);
 	if (state === undefined) {
 		log.warn("room state not present, grabbing");
-		const stateText = await redisClientAsync.get(`room-sync:${room.name}`);
-		state = JSON.parse(stateText) as RoomStateSyncable;
-		roomStates.set(room.name, state);
+		const stateText = await redisClient.get(`room-sync:${room.name}`);
+		if (stateText) {
+			state = JSON.parse(stateText) as RoomStateSyncable;
+			roomStates.set(room.name, state);
+		}
 	}
 	const syncMsg = Object.assign({ action: "sync" }, state) as unknown as ServerMessageSync;
 	client.send(syncMsg);
@@ -333,8 +336,12 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 	if (msg.action === "sync") {
 		let state = roomStates.get(roomName);
 		if (state === undefined) {
-			const stateText = await redisClientAsync.get(`room-sync:${roomName}`);
-			state = JSON.parse(stateText) as RoomStateSyncable;
+			const stateText = await redisClient.get(`room-sync:${roomName}`);
+			if (stateText) {
+				state = JSON.parse(stateText) as RoomStateSyncable;
+			} else {
+				state = {} as RoomStateSyncable;
+			}
 		}
 		const filtered = _.omit(msg, "action");
 		if (state) {
@@ -371,26 +378,18 @@ function onRoomUnload(roomName: string) {
 	roomStates.delete(roomName);
 }
 
-async function onRedisMessage(channel: string, text: string) {
-	// handles sync messages published by the rooms.
-	log.silly(`pubsub message: ${channel}: ${text.substr(0, 200)}`);
-	const msg = JSON.parse(text) as ServerMessage;
-	if (channel.startsWith("room:")) {
-		const roomName = channel.replace("room:", "");
-	} else if (channel === ANNOUNCEMENT_CHANNEL) {
-		for (const client of connections) {
-			try {
-				client.sendRaw(text);
-			} catch (e) {
-				if (e instanceof Error) {
-					log.error(`failed to send to client: ${e.message}`);
-				} else {
-					log.error(`failed to send to client`);
-				}
+function onAnnouncement(text: string) {
+	log.debug(`Announcement: ${text}`);
+	for (const client of connections) {
+		try {
+			client.sendRaw(text);
+		} catch (e) {
+			if (e instanceof Error) {
+				log.error(`failed to send to client: ${e.message}`);
+			} else {
+				log.error(`failed to send to client`);
 			}
 		}
-	} else {
-		log.error(`Unhandled message from redis channel: ${channel}`);
 	}
 }
 

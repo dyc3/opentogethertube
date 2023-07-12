@@ -4,7 +4,7 @@ import { getMimeType } from "../../mime";
 import YouTubeAdapter from "../../services/youtube";
 import { UnsupportedMimeTypeException, OutOfQuotaException } from "../../exceptions";
 import { ServiceAdapter } from "../../serviceadapter";
-import { buildClients, redisClientAsync } from "../../redisclient";
+import { buildClients, redisClient } from "../../redisclient";
 import _ from "lodash";
 import { loadModels } from "../../models";
 
@@ -15,9 +15,9 @@ class TestAdapter extends ServiceAdapter {
 }
 
 describe("InfoExtractor", () => {
-	beforeAll(() => {
+	beforeAll(async () => {
 		loadModels();
-		buildClients();
+		await buildClients();
 		initExtractor();
 	});
 
@@ -72,7 +72,7 @@ describe("InfoExtractor", () => {
 		};
 
 		it("should use cached search results", async () => {
-			await redisClientAsync.set("search:fakeservice:asdf", JSON.stringify([vid]));
+			await redisClient.set("search:fakeservice:asdf", JSON.stringify([vid]));
 			let adapter = new TestAdapter();
 			let getAdapterSpy = jest
 				.spyOn(InfoExtractor, "getServiceAdapter")
@@ -120,7 +120,7 @@ describe("InfoExtractor", () => {
 			expect(getManyVideoInfoSpy).toBeCalledTimes(1);
 			expect(searchSpy).toBeCalledTimes(1);
 			expect(
-				(await redisClientAsync.get(`search:${adapter.serviceId}:asdf`)).length
+				(await redisClient.get(`search:${adapter.serviceId}:asdf`)).length
 			).toBeGreaterThan(0);
 
 			getManyVideoInfoSpy.mockRestore();

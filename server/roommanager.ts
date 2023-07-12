@@ -2,7 +2,7 @@ import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./roo
 import { AuthToken, Role, RoomOptions, Visibility } from "../common/models/types";
 import _ from "lodash";
 import { getLogger } from "./logger.js";
-import { redisClientAsync } from "./redisclient";
+import { redisClient } from "./redisclient";
 import storage from "./storage";
 import {
 	RoomAlreadyLoadedException,
@@ -37,9 +37,10 @@ function addRoom(room: Room) {
 }
 
 export async function start() {
-	const keys = await redisClientAsync.keys("room:*");
+	log.info("Starting room manager");
+	const keys = await redisClient.keys("room:*");
 	for (const roomKey of keys) {
-		const text = await redisClientAsync.get(roomKey);
+		const text = await redisClient.get(roomKey);
 		if (!text) {
 			continue;
 		}
@@ -92,7 +93,7 @@ export async function createRoom(options: Partial<RoomOptions> & { name: string 
 			throw new RoomNameTakenException(options.name);
 		}
 	}
-	if (await redisClientAsync.exists(`room:${options.name}`)) {
+	if (await redisClient.exists(`room:${options.name}`)) {
 		log.warn("can't create room, already in redis");
 		throw new RoomNameTakenException(options.name);
 	}
@@ -137,12 +138,12 @@ export async function getRoom(
 
 	const opts = (await storage.getRoomByName(roomName)) as RoomStatePersistable;
 	if (opts) {
-		if (await redisClientAsync.exists(`room:${opts.name}`)) {
+		if (await redisClient.exists(`room:${opts.name}`)) {
 			log.debug("found room in database, but room is already in redis");
 			return err(new RoomAlreadyLoadedException(opts.name));
 		}
 	} else {
-		if (await redisClientAsync.exists(`room:${roomName}`)) {
+		if (await redisClient.exists(`room:${roomName}`)) {
 			log.debug("found room in redis, not loading");
 			return err(new RoomAlreadyLoadedException(roomName));
 		}
@@ -169,8 +170,8 @@ export async function unloadRoom(roomName: string): Promise<void> {
 		throw new RoomNotFoundException(roomName);
 	}
 	rooms.splice(idx, 1);
-	await redisClientAsync.del(`room:${roomName}`);
-	await redisClientAsync.del(`room-sync:${roomName}`);
+	await redisClient.del(`room:${roomName}`);
+	await redisClient.del(`room-sync:${roomName}`);
 	bus.emit("unload", roomName);
 }
 

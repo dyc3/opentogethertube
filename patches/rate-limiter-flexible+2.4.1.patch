@@ -1,0 +1,20 @@
+diff --git a/node_modules/rate-limiter-flexible/index.js b/node_modules/rate-limiter-flexible/index.js
+index 1930772..4cf8469 100644
+--- a/node_modules/rate-limiter-flexible/index.js
++++ b/node_modules/rate-limiter-flexible/index.js
+@@ -10,6 +10,8 @@ const RateLimiterUnion = require('./lib/RateLimiterUnion');
+ const RateLimiterQueue = require('./lib/RateLimiterQueue');
+ const BurstyRateLimiter = require('./lib/BurstyRateLimiter');
+ const RateLimiterRes = require('./lib/RateLimiterRes');
++const RateLimiterAbstract = require('./lib/RateLimiterAbstract');
++const RateLimiterStoreAbstract = require('./lib/RateLimiterStoreAbstract');
+ 
+ module.exports = {
+   RateLimiterRedis,
+@@ -26,4 +28,6 @@ module.exports = {
+   RateLimiterQueue,
+   BurstyRateLimiter,
+   RateLimiterRes,
++  RateLimiterAbstract,
++  RateLimiterStoreAbstract,
+ };

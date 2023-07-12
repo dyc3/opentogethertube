@@ -6,9 +6,9 @@ import passport from "passport";
 import crypto from "crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
-import { redisClient, redisClientAsync } from "./redisclient";
-import { RateLimiterRedis } from "rate-limiter-flexible";
-import { consumeRateLimitPoints } from "./rate-limit";
+import { delPattern, redisClient } from "./redisclient";
+import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
+import { RateLimiterRedisv4, consumeRateLimitPoints } from "./rate-limit";
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
@@ -35,28 +35,33 @@ const bus = new EventEmitter();
 
 let maxWrongAttemptsByIPperDay;
 let maxConsecutiveFailsByUsernameAndIP;
-let limiterSlowBruteByIP: RateLimiterRedis;
-let limiterConsecutiveFailsByUsernameAndIP: RateLimiterRedis;
+let limiterSlowBruteByIP: RateLimiterAbstract;
+let limiterConsecutiveFailsByUsernameAndIP: RateLimiterAbstract;
 
 export function setup() {
+	log.debug("Setting up user manager");
 	maxWrongAttemptsByIPperDay = conf.get("env") === "test" ? 9999999999 : 100;
 	maxConsecutiveFailsByUsernameAndIP = conf.get("env") === "test" ? 9999999999 : 10;
 
-	limiterSlowBruteByIP = new RateLimiterRedis({
+	const opts1 = {
 		storeClient: redisClient,
 		keyPrefix: "login_fail_ip_per_day",
 		points: maxWrongAttemptsByIPperDay,
 		duration: 60 * 60 * 24,
 		blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
-	});
+	};
+	limiterSlowBruteByIP =
+		conf.get("env") === "test" ? new RateLimiterMemory(opts1) : new RateLimiterRedisv4(opts1);
 
-	limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
+	const opts2 = {
 		storeClient: redisClient,
 		keyPrefix: "login_fail_consecutive_username_and_ip",
 		points: maxConsecutiveFailsByUsernameAndIP,
 		duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
 		blockDuration: 60 * 60, // Block for 1 hour
-	});
+	};
+	limiterConsecutiveFailsByUsernameAndIP =
+		conf.get("env") === "test" ? new RateLimiterMemory(opts2) : new RateLimiterRedisv4(opts2);
 }
 
 function on<E extends UserManagerEvents>(event: E, listener: UserManagerEventHandlers<E>) {
@@ -699,7 +704,8 @@ async function isEmailTaken(email: string): Promise<boolean> {
  * Clears all user manager rate limiters. Intended only to be used during development and automated testing.
  */
 async function clearAllRateLimiting() {
-	await redisClientAsync.delPattern(
+	await delPattern(
+		redisClient,
 		"login_fail_ip_per_day:*",
 		"login_fail_consecutive_username_and_ip:*"
 	);

@@ -5,7 +5,7 @@ import YouTubeAdapter, {
 } from "../../../services/youtube";
 import { Video } from "../../../../common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
-import { buildClients, redisClient, redisClientAsync } from "../../../redisclient";
+import { buildClients, redisClient } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "fs";
 import { VideoRequest } from "server/serviceadapter";
@@ -119,10 +119,10 @@ async function mockYoutubeApi(
 
 describe("Youtube", () => {
 	let adapter: YouTubeAdapter;
-	beforeAll(() => {
+	beforeAll(async () => {
 		loadModels();
-		buildClients();
-		adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+		await buildClients();
+		adapter = new YouTubeAdapter("", redisClient);
 	});
 
 	describe("canHandleURL", () => {
@@ -450,7 +450,7 @@ describe("Youtube", () => {
 	});
 
 	describe("searchVideos", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = jest.spyOn(adapter.api, "get");
 
 		beforeEach(() => {
@@ -486,7 +486,7 @@ describe("Youtube", () => {
 	});
 
 	describe("videoApiRequest", () => {
-		const adapter = new YouTubeAdapter("", redisClient, redisClientAsync);
+		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = jest.spyOn(adapter.api, "get");
 		const outOfQuotaResponse = {
 			isAxiosError: true,

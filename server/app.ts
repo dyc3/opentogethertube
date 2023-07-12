@@ -20,12 +20,12 @@ import { loadConfigFile, conf, setLogger } from "./ott-config";
 import { buildRateLimiter } from "./rate-limit";
 import { initExtractor } from "./infoextractor";
 import session, { SessionOptions } from "express-session";
-import connectRedis from "connect-redis";
+import RedisStore from "connect-redis";
 import { setupPostgresMetricsCollection } from "./storage.metrics";
 
-export const app = express();
+const app = express();
 
-function main() {
+export async function main() {
 	const log = getLogger("app");
 
 	setLogger(getLogger("config"));
@@ -51,7 +51,7 @@ function main() {
 	log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
 
 	loadModels();
-	buildClients();
+	await buildClients();
 	buildRateLimiter();
 
 	if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
@@ -60,19 +60,19 @@ function main() {
 
 	app.use(metricsMiddleware);
 	const server = http.createServer(app);
-	function checkRedis() {
+	async function checkRedis() {
 		if (performance) {
 			let start = performance.now();
-			redisClient.ping(() => {
-				let duration = performance.now() - start;
-				log.info(`Latency to redis: ${duration}ms`);
-			});
+			await redisClient.ping();
+			let duration = performance.now() - start;
+			log.info(`Latency to redis: ${duration}ms`);
 		}
 	}
-	checkRedis();
-	registerRedisMetrics();
+	await checkRedis();
+	if (conf.get("env") !== "test") {
+		registerRedisMetrics();
+	}
 
-	const RedisStore = connectRedis(session);
 	const sessionOpts: SessionOptions = {
 		store: new RedisStore({ client: redisClient }),
 		secret: conf.get("session_secret"),
@@ -150,8 +150,8 @@ function main() {
 	app.use(usermanager.passportErrorHandler);
 	usermanager.setup();
 	websockets.setup(server);
-	clientmanager.setup();
-	roommanager.start();
+	await clientmanager.setup();
+	await roommanager.start();
 
 	app.use(bodyParser.json()); // to support JSON-encoded bodies
 	app.use(
@@ -181,7 +181,7 @@ function main() {
 		});
 	}
 
-	const api = buildApiRouter(app);
+	const api = buildApiRouter();
 	app.use("/api", api);
 	if (fs.existsSync("../client/dist")) {
 		app.get("*", serveBuiltFiles);
@@ -206,6 +206,10 @@ function main() {
 			}
 		});
 	}
+
+	return {
+		app,
+	};
 }
 
 main();
