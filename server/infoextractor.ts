@@ -24,6 +24,7 @@ import { OttException } from "../common/exceptions";
 import TubiAdapter from "./services/tubi";
 import { Counter } from "prom-client";
 import { conf } from "./ott-config";
+import PeertubeAdapter from "./services/peertube";
 
 const log = getLogger("infoextract");
 
@@ -38,7 +39,7 @@ function mergeVideo(a: Video, b: Video): Video {
 }
 
 let adapters: ServiceAdapter[] = [];
-export function initExtractor() {
+export async function initExtractor() {
 	adapters = [
 		new DailyMotionAdapter(),
 		new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") ?? ""),
@@ -48,7 +49,10 @@ export function initExtractor() {
 		new HlsVideoAdapter(),
 		new RedditAdapter(),
 		new TubiAdapter(),
+		new PeertubeAdapter(),
 	];
+
+	await Promise.all(adapters.map(adapter => adapter.initialize()));
 }
 
 export default {

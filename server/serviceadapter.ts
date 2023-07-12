@@ -28,6 +28,13 @@ export class ServiceAdapter {
 	}
 
 	/**
+	 * Performs any initialization tasks that need to be done before the service adapter can be used.
+	 */
+	async initialize(): Promise<void> {
+		// Do nothing by default
+	}
+
+	/**
 	 * Returns true if this service adapter can handle a given link.
 	 */
 	canHandleURL(link: string): boolean {
