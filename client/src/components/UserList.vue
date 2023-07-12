@@ -37,7 +37,7 @@
 						class="role"
 						:aria-label="`${
 							user.id === store.state.users.you.id ? 'you' : user.name
-						} is $t{'role', user.role}`"
+						} is roles.${user.role}`"
 						v-if="!!getRoleIcon(user.role)"
 						:icon="getRoleIcon(user.role)"
 					/>
@@ -79,7 +79,7 @@
 													? $t("room.users.demote")
 													: $t("room.users.promote")
 											}}
-											to {{ $t("roles", role) }}
+											to {{ $t(`roles.${user.role}`) }}
 										</v-list-item>
 									</div>
 								</div>
