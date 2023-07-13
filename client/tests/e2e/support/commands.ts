@@ -45,6 +45,7 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import { routes } from "../../../src/router";
 import { VueWrapper } from "@vue/test-utils";
 import { OttRoomConnectionMock, connectionInjectKey } from "../../../src/plugins/connection";
+import { OttSfx, sfxInjectKey } from "../../../src/plugins/sfx";
 
 Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global = options.global || {};
@@ -76,6 +77,13 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 		install(app) {
 			// @ts-expect-error
 			app.use(options.router);
+		},
+	});
+
+	const sfx = new OttSfx();
+	options.global.plugins.push({
+		install(app) {
+			app.provide(sfxInjectKey, sfx);
 		},
 	});
 
