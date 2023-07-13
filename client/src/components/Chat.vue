@@ -82,6 +82,7 @@ import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { ServerMessageChat } from "ott-common/models/messages";
 import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
+import { useSfx } from "@/plugins/sfx";
 
 const MSG_SHOW_TIMEOUT = 20000;
 
@@ -156,10 +157,12 @@ const Chat = defineComponent({
 			}
 		}
 
+		const sfx = useSfx();
 		function onChatReceived(msg: ServerMessageChat): void {
 			chatMessageRecent.value.push(msg);
 			setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
 			nextTick(enforceStickToBottom);
+			sfx.play("pop");
 		}
 
 		function expireChatMessage() {
