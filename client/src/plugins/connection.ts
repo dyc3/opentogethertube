@@ -78,7 +78,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	get connectionUrl() {
 		return `${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${
 			window.location.host
-		}${(import.meta.env.OTT_BASE_URL as string | undefined) ?? "/"}/api/room/${
+		}${(import.meta.env.OTT_BASE_URL as string | undefined) ?? ""}/api/room/${
 			this.roomName.value
 		}`;
 	}
