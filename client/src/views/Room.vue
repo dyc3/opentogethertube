@@ -230,6 +230,7 @@ import { VOLUME_KEY } from "@/components/controls/controlkeys";
 import RestoreQueue from "@/components/RestoreQueue.vue";
 import VoteSkip from "@/components/VoteSkip.vue";
 import { waitForToken } from "@/util/token";
+import { useSfx } from "@/plugins/sfx";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -641,6 +642,11 @@ export default defineComponent({
 		// debug mode
 		const debugMode = ref(!unref(production));
 		provide("debugMode", debugMode);
+
+		const sfx = useSfx();
+		onMounted(async () => {
+			await sfx.loadSfx();
+		});
 
 		return {
 			store,

@@ -17,12 +17,12 @@
 
 			<v-card-text>
 				<v-select
-					label="Room Layout"
+					:label="$t('client-settings.room-layout')"
 					:items="[RoomLayoutMode.default, RoomLayoutMode.theater]"
 					v-model="settings.roomLayout"
 				/>
 				<v-select
-					label="Theme"
+					:label="$t('client-settings.theme')"
 					:items="[Theme.dark, Theme.light, Theme.deepblue, Theme.deepred]"
 					v-model="settings.theme"
 				>
@@ -32,6 +32,18 @@
 						</v-theme-provider>
 					</template>
 				</v-select>
+				<v-checkbox
+					:label="$t('client-settings.sfx-enable')"
+					v-model="settings.sfxEnabled"
+				/>
+				<v-slider
+					:label="$t('client-settings.sfx-volume')"
+					v-model="settings.sfxVolume"
+					v-if="settings.sfxEnabled"
+					min="0"
+					max="1"
+					step="0.01"
+				/>
 			</v-card-text>
 
 			<v-divider />
@@ -54,6 +66,7 @@ import { defineComponent, Ref, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
+import { useSfx } from "@/plugins/sfx";
 
 type ExcludedFields = "volume" | "locale";
 type ExposedSettings = Omit<SettingsState, ExcludedFields>;
@@ -65,6 +78,7 @@ export const ClientSettingsDialog = defineComponent({
 		const show = ref(false);
 		const store = useStore();
 		const settings: Ref<ExposedSettings> = ref(loadSettings());
+		const sfx = useSfx();
 
 		function loadSettings(): ExposedSettings {
 			const copy = _.cloneDeep(store.state.settings);
@@ -83,6 +97,13 @@ export const ClientSettingsDialog = defineComponent({
 
 		watch(show, () => {
 			settings.value = loadSettings();
+		});
+
+		store.subscribe(mutation => {
+			if (mutation.type === "settings/UPDATE") {
+				sfx.enabled = store.state.settings.sfxEnabled;
+				sfx.volume.value = store.state.settings.sfxVolume;
+			}
 		});
 
 		return {

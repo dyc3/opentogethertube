@@ -328,9 +328,13 @@ export default {
 		"permission": "Permission",
 	},
 	"client-settings": {
-		title: "Preferences",
-		description: "These settings are saved in your browser, and only affect you.",
-		activator: "@:client-settings.title",
+		"title": "Preferences",
+		"description": "These settings are saved in your browser, and only affect you.",
+		"activator": "@:client-settings.title",
+		"room-layout": "Room Layout",
+		"theme": "Theme",
+		"sfx-enable": "Enable Sound Effects",
+		"sfx-volume": "Sound Effect Volume",
 	},
 	"connect-overlay": {
 		"title": "Disconnected",
