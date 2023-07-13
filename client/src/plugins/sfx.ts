@@ -12,6 +12,7 @@ export function useSfx(): OttSfx {
 }
 
 import sfxPopUrl from "../assets/sfx/pop.ogg?url";
+import { watch } from "vue";
 
 /**
  * Handles sound effects.
@@ -19,17 +20,28 @@ import sfxPopUrl from "../assets/sfx/pop.ogg?url";
 export class OttSfx {
 	enabled: boolean = true;
 	volume: Ref<number> = ref(1);
+	private loaded: boolean = false;
 
 	private assets: Map<string, Blob> = new Map();
 	private context: AudioContext = new AudioContext();
+	private gain: GainNode = this.context.createGain();
+
+	constructor() {
+		this.gain.connect(this.context.destination);
+
+		watch(this.volume, () => {
+			this.gain.gain.value = this.volume.value;
+		});
+	}
 
 	async loadSfx() {
 		const pop = await axios.get<Blob>(sfxPopUrl, { responseType: "blob" });
 		this.assets.set("pop", pop.data);
+		this.loaded = true;
 	}
 
 	async play(name: string) {
-		if (!this.enabled) {
+		if (!this.enabled || !this.loaded) {
 			return;
 		}
 		const asset = this.assets.get(name);
@@ -40,7 +52,7 @@ export class OttSfx {
 		const source = this.context.createBufferSource();
 		this.context.decodeAudioData(buffer, buffer => {
 			source.buffer = buffer;
-			source.connect(this.context.destination);
+			source.connect(this.gain);
 			source.start(0);
 		});
 	}
