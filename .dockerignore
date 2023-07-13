@@ -17,3 +17,5 @@ node_modules/
 benchmarks/
 tools/
 target/
+.slugignore
+crates/
