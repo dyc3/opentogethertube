@@ -22,7 +22,7 @@ export class OttSfx {
 	volume: Ref<number> = ref(1);
 	private loaded: boolean = false;
 
-	private assets: Map<string, Blob> = new Map();
+	private assets: Map<string, AudioBuffer> = new Map();
 	private context: AudioContext = new AudioContext();
 	private gain: GainNode = this.context.createGain();
 
@@ -36,8 +36,25 @@ export class OttSfx {
 
 	async loadSfx() {
 		const pop = await axios.get<Blob>(sfxPopUrl, { responseType: "blob" });
-		this.assets.set("pop", pop.data);
+		await this.registerBlob("pop", pop.data);
 		this.loaded = true;
+	}
+
+	private async registerBlob(name: string, blob: Blob) {
+		const buf = await blob.arrayBuffer();
+		const buffer = new Promise<AudioBuffer>((resolve, reject) => {
+			this.context.decodeAudioData(
+				buf,
+				buffer => {
+					resolve(buffer);
+				},
+				err => {
+					console.error("Failed to decode audio data", err);
+					reject(err);
+				}
+			);
+		});
+		this.assets.set(name, await buffer);
 	}
 
 	async play(name: string) {
@@ -48,13 +65,10 @@ export class OttSfx {
 		if (!asset) {
 			return;
 		}
-		const buffer = await asset.arrayBuffer();
 		const source = this.context.createBufferSource();
-		this.context.decodeAudioData(buffer, buffer => {
-			source.buffer = buffer;
-			source.connect(this.gain);
-			source.start(0);
-		});
+		source.buffer = asset;
+		source.connect(this.gain);
+		source.start(0);
 	}
 }
 
