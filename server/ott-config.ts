@@ -59,6 +59,12 @@ export const conf = convict({
 		default: "localhost",
 		env: "OTT_HOSTNAME",
 	},
+	base_url: {
+		doc: "The base URL of the server.",
+		format: String,
+		default: "",
+		env: "OTT_BASE_URL",
+	},
 	log: {
 		level: {
 			doc: "The log level to use.",

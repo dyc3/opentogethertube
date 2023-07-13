@@ -5,6 +5,7 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+	base: process.env.OTT_BASE_URL || "/",
 	plugins: [
 		vue(),
 		vuetify({

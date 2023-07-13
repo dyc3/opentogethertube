@@ -104,6 +104,7 @@ export async function main() {
 	if (fs.existsSync("../client/dist")) {
 		// serve static files without creating a bunch of sessions
 		app.use(
+			conf.get("base_url"),
 			express.static("../client/dist", {
 				maxAge: "2 days",
 				redirect: false,
@@ -125,7 +126,8 @@ export async function main() {
 				callbackURL:
 					(!conf.get("hostname") || conf.get("hostname").includes("localhost")
 						? "http"
-						: "https") + `://${conf.get("hostname")}/api/auth/discord/callback`,
+						: "https") +
+					`://${conf.get("hostname")}${conf.get("base_url")}/api/auth/discord/callback`,
 				scope: ["identify"],
 				passReqToCallback: true,
 			},
@@ -182,7 +184,7 @@ export async function main() {
 	}
 
 	const api = buildApiRouter();
-	app.use("/api", api);
+	app.use(`${conf.get("base_url")}/api`, api);
 	if (fs.existsSync("../client/dist")) {
 		app.get("*", serveBuiltFiles);
 	} else {

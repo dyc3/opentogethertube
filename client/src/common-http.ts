@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const API = axios.create({
-	baseURL: "/api",
+	baseURL: `${(import.meta.env.OTT_BASE_URL as string | undefined) ?? ""}/api`,
 	transformRequest: [
 		(data, headers) => {
 			let token = window.localStorage.getItem("token");
