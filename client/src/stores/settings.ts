@@ -6,6 +6,8 @@ export interface SettingsState {
 	locale: string;
 	roomLayout: RoomLayoutMode;
 	theme: Theme;
+	sfxEnabled: boolean;
+	sfxVolume: number;
 }
 
 export enum RoomLayoutMode {
@@ -29,6 +31,8 @@ export const settingsModule: Module<SettingsState, unknown> = {
 		locale: "en",
 		roomLayout: RoomLayoutMode.default,
 		theme: Theme.dark,
+		sfxEnabled: true,
+		sfxVolume: 0.8,
 	},
 	mutations: {
 		UPDATE(state, settings: Partial<SettingsState>) {
