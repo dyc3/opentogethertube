@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, onUnmounted } from "vue";
+import { defineComponent, computed, onMounted } from "vue";
 import { useStore } from "@/store";
 import { RoomLayoutMode } from "@/stores/settings";
 import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";

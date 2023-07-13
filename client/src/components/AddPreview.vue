@@ -176,7 +176,7 @@ import { ToastStyle } from "@/models/toast";
 import toast from "@/util/toast";
 import { Video } from "ott-common/models/video";
 import { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 
 export const AddPreview = defineComponent({
 	name: "AddPreview",
