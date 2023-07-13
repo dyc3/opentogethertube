@@ -79,7 +79,8 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 		},
 	});
 
-	return mount(component, options).as("wrapper");
+	// not sure why the cast to any is necessary, it worked with typescript 4.6.4
+	return mount(component as any, options).as("wrapper");
 });
 
 Cypress.Commands.add("vue", () => {
