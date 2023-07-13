@@ -229,6 +229,7 @@ import VideoControls from "@/components/controls/VideoControls.vue";
 import { VOLUME_KEY } from "@/components/controls/controlkeys";
 import RestoreQueue from "@/components/RestoreQueue.vue";
 import VoteSkip from "@/components/VoteSkip.vue";
+import { waitForToken } from "@/util/token";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -391,7 +392,9 @@ export default defineComponent({
 		}
 
 		let roomCreatedUnsub: (() => void) | null = null;
-		onMounted(() => {
+		onMounted(async () => {
+			await waitForToken(store);
+
 			connection.addMessageHandler("sync", onSyncMsg);
 			if (!connection.active.value) {
 				connection.connect(route.params.roomId as string);

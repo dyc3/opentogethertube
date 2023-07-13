@@ -78,17 +78,5 @@ export const usersModule: Module<UsersState, FullOTTStoreState> = {
 			const resp = await API.get("/auth/grant");
 			context.commit("SET_AUTH_TOKEN", resp.data.token);
 		},
-		async waitForToken(context) {
-			if (context.getters.token) {
-				return;
-			}
-			return new Promise<void>(resolve => {
-				this.subscribe(mutation => {
-					if (mutation.type === "SET_AUTH_TOKEN") {
-						resolve();
-					}
-				});
-			});
-		},
 	},
 };
