@@ -5,6 +5,7 @@ import { store, key } from "./store";
 import { router } from "./router";
 import { i18n } from "./i18n";
 import { OttRoomConnectionPlugin } from "./plugins/connection";
+import { OttSfxPlugin } from "./plugins/sfx";
 
 createApp(App)
 	.use(store, key)
@@ -12,4 +13,5 @@ createApp(App)
 	.use(i18n)
 	.use(vuetify)
 	.use(OttRoomConnectionPlugin)
+	.use(OttSfxPlugin)
 	.mount("#app");
