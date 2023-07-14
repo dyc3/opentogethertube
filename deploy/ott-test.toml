@@ -1,2 +1,6 @@
 [log]
 level = "silly"
+
+[[balancers]]
+host = "ewr.ott-balancer-test.internal"
+port = 8081
