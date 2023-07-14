@@ -121,7 +121,13 @@ impl Service<Request<IncomingBody>> for BalancerService {
                 }
                 "monolith" => {
                     if crate::websocket::is_websocket_upgrade(&req) {
-                        let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();
+                        let (response, websocket) = match crate::websocket::upgrade(req, None) {
+                            Ok((response, websocket)) => (response, websocket),
+                            Err(e) => {
+                                error!("error upgrading websocket for monolith: {}", e);
+                                return Ok(not_found());
+                            }
+                        };
 
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new()
