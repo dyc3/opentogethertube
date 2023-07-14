@@ -19,6 +19,12 @@ const conf = convict({
 		default: "development",
 		env: "NODE_ENV",
 	},
+	heroku: {
+		doc: "Whether the server is running on heroku.",
+		format: Boolean,
+		default: false,
+		env: "HEROKU",
+	},
 	db: {
 		mode: {
 			doc: "The database mode to use.",
@@ -80,47 +86,46 @@ try {
 	console.log(`No ${env} config found`);
 }
 
-export default {
-	development: {
-		username: "root",
-		password: null,
-		database: conf.get("db.name"),
-		host: "127.0.0.1",
-		dialect: "sqlite",
-		storage: `db/${conf.get("env")}.sqlite`,
-	},
-	test: {
-		username: "root",
-		password: null,
-		database: conf.get("db.name"),
-		host: "127.0.0.1",
-		dialect: "sqlite",
-		storage: `db/${conf.get("env")}.sqlite`,
-	},
-	production:
-		conf.get("db.mode") === "sqlite"
-			? {
-					username: "root",
-					password: null,
-					database: conf.get("db.name"),
-					host: "127.0.0.1",
-					dialect: "sqlite",
-					storage: `db/${conf.get("env")}.sqlite`,
-			  }
-			: conf.get("db.url")
-			? {
-					url: conf.get("db.url"),
-					dialect: "postgres",
+function getDbConfig() {
+	const dbmode = conf.get("db.mode");
+	const dburl = conf.get("db.url");
+	const heroku = conf.get("heroku");
+
+	if (dbmode === "postgres") {
+		if (dburl) {
+			const opts = {
+				dialect: "postgres",
+				url: dburl,
+			};
+			if (heroku) {
+				opts.dialectOptions = {
 					ssl: { rejectUnauthorized: false },
-					dialectOptions: {
-						ssl: { rejectUnauthorized: false },
-					},
-			  }
-			: {
-					username: conf.get("db.user"),
-					password: conf.get("db.password"),
-					database: conf.get("db.name"),
-					host: conf.get("db.host"),
-					dialect: "postgres",
-			  },
+				};
+			}
+			return opts;
+		} else {
+			return {
+				dialect: "postgres",
+				host: conf.get("db.host"),
+				port: conf.get("db.port"),
+				database: conf.get("db.name"),
+				username: conf.get("db.user"),
+				password: conf.get("db.password") ?? undefined,
+			};
+		}
+	} else if (dbmode === "sqlite") {
+		return {
+			dialect: "sqlite",
+			database: conf.get("db.name"),
+			storage: `db/${conf.get("env")}.sqlite`,
+		};
+	} else {
+		throw new Error(`Unknown db mode: ${dbmode}`);
+	}
+}
+
+export default {
+	development: getDbConfig(),
+	test: getDbConfig(),
+	production: getDbConfig(),
 };
