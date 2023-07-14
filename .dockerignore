@@ -19,4 +19,4 @@ tools/
 target/
 .slugignore
 crates/
-tests/
+ts-out
