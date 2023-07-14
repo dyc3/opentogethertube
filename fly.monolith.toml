@@ -1,0 +1,39 @@
+# fly.toml app configuration file generated for ott-test on 2023-07-13T14:49:49-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "ott-test"
+primary_region = "ewr"
+
+[build]
+builder = "heroku/buildpacks:20"
+
+[http_service]
+internal_port = 3000
+force_https = true
+# auto_stop_machines = true
+# auto_start_machines = true
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "20s"
+interval = "30s"
+method = "GET"
+timeout = "10s"
+path = "/api/status"
+
+[metrics]
+port = 3000
+path = "/api/status/metrics"
+
+[deploy]
+release_command = "yarn run db:migrate"
+
+[env]
+NODE_ENV = "production"
+ENABLE_SEARCH = "1"
+LOG_LEVEL = "silly"
+OTT_SHORT_URL_HOSTNAME = "s.ottr.cc"
+DB_MODE = "postgres"
+# TRUST_PROXY = "2"
