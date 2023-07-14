@@ -1,0 +1,11 @@
+port = 8080
+trust_proxy = 0
+
+[db]
+mode = "postgres"
+
+[info_extractor.direct]
+ffprobe_path = "/usr/bin/ffprobe"
+
+[add_preview.search]
+enabled = true
