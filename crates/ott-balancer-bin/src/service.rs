@@ -12,7 +12,7 @@ use ott_balancer_protocol::RoomName;
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -27,7 +27,8 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/monolith", "monolith");
-    router.add("/*", "other");
+    router.add("/", "other");
+    router.add("*", "other");
     router
 });
 
@@ -59,6 +60,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
         Box::pin(async move {
             let ctx_read = ctx.read().await;
             let Ok(route) = ROUTER.recognize(req.uri().path()) else {
+                warn!("no route found for {}", req.uri().path());
                 return Ok(not_found());
             };
             info!(
