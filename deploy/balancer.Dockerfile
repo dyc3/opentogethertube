@@ -1,17 +1,21 @@
-FROM rust:1-alpine3.18 as build-stage
+FROM rust:1-slim-buster as build-stage
 
 WORKDIR /usr/app/
 
 COPY . .
 
-RUN apk add --no-cache musl-dev openssl-dev
+RUN apt-get update && apt-get install -y build-essential pkg-config openssl libssl-dev && rm -rf /var/lib/apt/lists/*
 
 RUN cargo build --release --bin ott-balancer-bin && mv ./target/release/ott-balancer-bin . && cargo clean
 
-FROM alpine:3.18 as production-stage
+FROM debian:buster-slim as production-stage
 
 WORKDIR /usr/app/
 
 COPY --from=build-stage /usr/app/ott-balancer-bin /usr/app/
+
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+RUN ulimit -c unlimited
 
 CMD ["./ott-balancer-bin"]
