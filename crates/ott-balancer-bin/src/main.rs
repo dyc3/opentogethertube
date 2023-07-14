@@ -1,3 +1,4 @@
+use std::pin::Pin;
 use std::{net::SocketAddr, sync::Arc};
 
 use balancer::{start_dispatcher, Balancer, BalancerContext};
@@ -66,11 +67,14 @@ async fn main() -> anyhow::Result<()> {
         let mut service = service.clone();
         service.addr = addr;
 
+        let io = hyper_util::rt::TokioIo::new(stream);
+
         // Spawn a tokio task to serve multiple connections concurrently
         tokio::task::spawn(async move {
-            let conn = http1::Builder::new()
-                .serve_connection(stream, service)
+            let mut conn = http1::Builder::new()
+                .serve_connection(io, service)
                 .with_upgrades();
+            let conn = Pin::new(&mut conn);
             if let Err(err) = conn.await {
                 error!("Error serving connection: {:?}", err);
             }

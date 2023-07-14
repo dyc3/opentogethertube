@@ -48,7 +48,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
     type Error = hyper::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
-    fn call(&mut self, req: Request<hyper::body::Incoming>) -> Self::Future {
+    fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
         fn mk_response(s: String) -> anyhow::Result<Response<Full<Bytes>>, hyper::Error> {
             Ok(Response::builder().body(Full::new(Bytes::from(s))).unwrap())
         }
