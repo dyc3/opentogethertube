@@ -20,7 +20,7 @@ RUN apk update -q && apk --no-cache add curl ffmpeg -q
 
 COPY --from=build-stage /usr/app/ /usr/app/
 
-RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitignore client/vite.config.js docker-compose.yml /root/.npm deploy
+RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitignore client/vite.config.js docker-compose.yml /root/.npm deploy crates tools
 
 COPY deploy/base.toml /usr/app/env/
 COPY deploy/$DEPLOY_TARGET.toml /usr/app/env/production.toml

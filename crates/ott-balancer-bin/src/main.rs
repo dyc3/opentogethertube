@@ -40,11 +40,11 @@ async fn main() -> anyhow::Result<()> {
     let service = BalancerService {
         ctx,
         link,
-        addr: SocketAddr::from(([127, 0, 0, 1], 8081)),
+        addr: SocketAddr::from(([0, 0, 0, 0], 8081)),
     };
 
     // TODO: make configurable
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8081));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
 
     let listener = TcpListener::bind(addr).await?;
 
