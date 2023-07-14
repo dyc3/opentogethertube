@@ -37,20 +37,31 @@ async fn main() -> anyhow::Result<()> {
     let _dispatcher_handle = start_dispatcher(balancer)?;
     info!("Dispatcher started");
 
+    // TODO: make configurable
+    // let bind_addr4: SocketAddr = "0.0.0.0:8081".parse().unwrap();
+    let bind_addr6: SocketAddr = "[::]:8081".parse().unwrap();
+
     let service = BalancerService {
         ctx,
         link,
-        addr: SocketAddr::from(([0, 0, 0, 0], 8081)),
+        addr: bind_addr6,
     };
 
-    // TODO: make configurable
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
+    // let listener4 = TcpListener::bind(bind_addr4).await?;
+    let listener6 = TcpListener::bind(bind_addr6).await?;
 
-    let listener = TcpListener::bind(addr).await?;
-
-    info!("Serving on {}", addr);
+    info!("Serving on {}", bind_addr6);
     loop {
-        let (stream, addr) = listener.accept().await?;
+        let (stream, addr) = tokio::select! {
+            // stream = listener4.accept() => {
+            //     let (stream, addr) = stream?;
+            //     (stream, addr)
+            // }
+            stream = listener6.accept() => {
+                let (stream, addr) = stream?;
+                (stream, addr)
+            }
+        };
 
         let mut service = service.clone();
         service.addr = addr;
