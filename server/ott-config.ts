@@ -121,6 +121,11 @@ export const conf = convict({
 			nullable: true,
 			sensitive: true,
 		},
+		metrics: {
+			doc: "Whether to allow OTT to collect database metrics and expose them alongside the rest of the metrics.",
+			format: Boolean,
+			default: true,
+		},
 	},
 	redis: {
 		url: {
@@ -165,6 +170,11 @@ export const conf = convict({
 			format: "nat",
 			default: 0,
 			env: "REDIS_DB",
+		},
+		metrics: {
+			doc: "Whether to allow OTT to collect redis metrics and expose them alongside the rest of the metrics.",
+			format: Boolean,
+			default: true,
 		},
 	},
 	add_preview: {

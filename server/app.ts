@@ -54,7 +54,11 @@ export async function main() {
 	await buildClients();
 	buildRateLimiter();
 
-	if (conf.get("env") === "production" && conf.get("db.mode") !== "sqlite") {
+	if (
+		conf.get("env") === "production" &&
+		conf.get("db.mode") !== "sqlite" &&
+		conf.get("db.metrics")
+	) {
 		setupPostgresMetricsCollection(sequelize);
 	}
 
@@ -69,7 +73,7 @@ export async function main() {
 		}
 	}
 	await checkRedis();
-	if (conf.get("env") !== "test") {
+	if (conf.get("env") !== "test" && conf.get("redis.metrics")) {
 		registerRedisMetrics();
 	}
 
