@@ -1,7 +1,11 @@
+use std::net::Ipv6Addr;
 use std::pin::Pin;
 use std::{net::SocketAddr, sync::Arc};
 
 use balancer::{start_dispatcher, Balancer, BalancerContext};
+use clap::Parser;
+use figment::providers::Format;
+use figment::Figment;
 use hyper::server::conn::http1;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
@@ -10,10 +14,12 @@ use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
+use crate::config::BalancerConfig;
 use crate::service::BalancerService;
 
 mod balancer;
 mod client;
+mod config;
 mod messages;
 mod monolith;
 mod service;
@@ -21,6 +27,13 @@ mod websocket;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let args = config::Cli::parse();
+
+    let config: BalancerConfig = Figment::new()
+        .merge(figment::providers::Toml::file(args.config_path))
+        .merge(figment::providers::Env::prefixed("BALANCER_"))
+        .extract()?;
+
     let console_layer = console_subscriber::spawn();
     let fmt_layer = tracing_subscriber::fmt::layer();
     let filter_layer =
@@ -38,9 +51,8 @@ async fn main() -> anyhow::Result<()> {
     let _dispatcher_handle = start_dispatcher(balancer)?;
     info!("Dispatcher started");
 
-    // TODO: make configurable
-    // let bind_addr4: SocketAddr = "0.0.0.0:8081".parse().unwrap();
-    let bind_addr6: SocketAddr = "[::]:8081".parse().unwrap();
+    let bind_addr6: SocketAddr =
+        SocketAddr::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0).into(), config.port);
 
     let service = BalancerService {
         ctx,
@@ -48,16 +60,12 @@ async fn main() -> anyhow::Result<()> {
         addr: bind_addr6,
     };
 
-    // let listener4 = TcpListener::bind(bind_addr4).await?;
+    // on linux, binding ipv6 will also bind ipv4
     let listener6 = TcpListener::bind(bind_addr6).await?;
 
     info!("Serving on {}", bind_addr6);
     loop {
         let (stream, addr) = tokio::select! {
-            // stream = listener4.accept() => {
-            //     let (stream, addr) = stream?;
-            //     (stream, addr)
-            // }
             stream = listener6.accept() => {
                 let (stream, addr) = stream?;
                 (stream, addr)

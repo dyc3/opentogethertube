@@ -5,7 +5,9 @@ members = ["crates/*", "tools/*"]
 anyhow = "1"
 async-trait = "0.1.68"
 bytes = "1.4.0"
+clap = { version = "4.3.12", features = ["derive"] }
 console-subscriber = "0.1.8"
+figment = { version = "0.10.10", features = ["toml", "env"] }
 futures-util = "0.3.28"
 hyper = { version = "1.0.0-rc.4", features = ["full"] }
 hyper-util = { git ="https://github.com/hyperium/hyper-util.git", rev = "f898015" }
