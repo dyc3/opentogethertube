@@ -9,6 +9,3 @@ ffprobe_path = "/usr/bin/ffprobe"
 
 [add_preview.search]
 enabled = true
-
-[redis]
-db = 1

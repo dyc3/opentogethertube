@@ -1,3 +1,6 @@
+hostname = "staging.opentogethertube.com"
+force_insecure_cookies = true
+
 [log]
 level = "silly"
 
