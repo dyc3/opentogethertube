@@ -3,6 +3,7 @@
 use http_body_util::Full;
 use hyper::body::Bytes;
 use hyper::{Request, Response};
+use hyper_util::rt::TokioIo;
 use pin_project::pin_project;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -27,7 +28,7 @@ pub struct HyperWebsocket {
 }
 
 impl std::future::Future for HyperWebsocket {
-    type Output = Result<WebSocketStream<hyper::upgrade::Upgraded>, Error>;
+    type Output = Result<WebSocketStream<TokioIo<hyper::upgrade::Upgraded>>, Error>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let this = self.project();
@@ -37,7 +38,7 @@ impl std::future::Future for HyperWebsocket {
         };
 
         let upgraded = match maybe_upgraded {
-            Ok(upgraded) => upgraded,
+            Ok(upgraded) => TokioIo::new(upgraded),
             Err(err) => {
                 error!("Error upgrading websocket: {err}");
                 return Poll::Ready(Err(Error::Protocol(ProtocolError::HandshakeIncomplete)));

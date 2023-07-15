@@ -63,6 +63,12 @@ function buildConnection(config: Sequelize.Options): Sequelize.Sequelize {
 			},
 			logging: msg => log.silly(msg),
 		});
+	} else if (dburl) {
+		return new Sequelize.Sequelize(dburl, {
+			dialect: "postgres",
+			protocol: "postgres",
+			logging: msg => log.silly(msg),
+		});
 	} else {
 		if (!config.database) {
 			log.error("No database name specified.");

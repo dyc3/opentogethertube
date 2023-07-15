@@ -12,7 +12,7 @@ use ott_balancer_protocol::RoomName;
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -27,7 +27,8 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/monolith", "monolith");
-    router.add("/*", "other");
+    router.add("/", "other");
+    router.add("*", "other");
     router
 });
 
@@ -47,7 +48,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
     type Error = hyper::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
-    fn call(&mut self, req: Request<hyper::body::Incoming>) -> Self::Future {
+    fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
         fn mk_response(s: String) -> anyhow::Result<Response<Full<Bytes>>, hyper::Error> {
             Ok(Response::builder().body(Full::new(Bytes::from(s))).unwrap())
         }
@@ -59,6 +60,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
         Box::pin(async move {
             let ctx_read = ctx.read().await;
             let Ok(route) = ROUTER.recognize(req.uri().path()) else {
+                warn!("no route found for {}", req.uri().path());
                 return Ok(not_found());
             };
             info!(
@@ -119,7 +121,13 @@ impl Service<Request<IncomingBody>> for BalancerService {
                 }
                 "monolith" => {
                     if crate::websocket::is_websocket_upgrade(&req) {
-                        let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();
+                        let (response, websocket) = match crate::websocket::upgrade(req, None) {
+                            Ok((response, websocket)) => (response, websocket),
+                            Err(e) => {
+                                error!("error upgrading websocket for monolith: {}", e);
+                                return Ok(not_found());
+                            }
+                        };
 
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new()

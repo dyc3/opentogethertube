@@ -1,0 +1,37 @@
+app = "ott-staging"
+primary_region = "ewr"
+
+[build]
+dockerfile = "monolith.Dockerfile"
+
+[build.args]
+DEPLOY_TARGET = "ott-staging"
+
+[http_service]
+internal_port = 8080
+force_https = true
+# auto_stop_machines = true
+# auto_start_machines = true
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+timeout = "10s"
+path = "/api/status"
+
+[metrics]
+port = 8080
+path = "/api/status/metrics"
+
+[deploy]
+release_command = "yarn run db:migrate"
+
+[env]
+NODE_ENV = "production"
+OTT_SHORT_URL_HOSTNAME = "s.ottr.cc"
+
+[[statics]]
+guest_path = "/usr/app/client/dist/assets"
+url_prefix = "/assets"

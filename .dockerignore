@@ -15,5 +15,6 @@ server/coverage/
 .optic/
 node_modules/
 benchmarks/
-tools/
 target/
+.slugignore
+ts-out
