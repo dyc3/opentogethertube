@@ -4,8 +4,6 @@ use std::{net::SocketAddr, sync::Arc};
 
 use balancer::{start_dispatcher, Balancer, BalancerContext};
 use clap::Parser;
-use figment::providers::Format;
-use figment::Figment;
 use hyper::server::conn::http1;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
@@ -29,10 +27,8 @@ mod websocket;
 async fn main() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
-    let config: BalancerConfig = Figment::new()
-        .merge(figment::providers::Toml::file(args.config_path))
-        .merge(figment::providers::Env::prefixed("BALANCER_"))
-        .extract()?;
+    BalancerConfig::load(args.config_path)?;
+    let config = BalancerConfig::get();
 
     let console_layer = console_subscriber::spawn();
     let fmt_layer = tracing_subscriber::fmt::layer();
