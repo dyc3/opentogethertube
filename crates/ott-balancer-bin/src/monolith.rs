@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::{monolith::*, *};
+use serde::Serialize;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{error, info};
 use uuid::Uuid;
@@ -92,6 +93,8 @@ pub struct Room {
     name: RoomName,
     /// List of clients connected to this Balancer that are in this room.
     clients: Vec<ClientId>,
+    /// Metadata about this room, according to the Monolith.
+    metadata: Option<RoomMetadata>,
 }
 
 impl Room {
@@ -99,11 +102,20 @@ impl Room {
         Self {
             name,
             clients: Vec::new(),
+            metadata: None,
         }
     }
 
     pub fn name(&self) -> &RoomName {
         &self.name
+    }
+
+    pub fn metadata(&self) -> Option<&RoomMetadata> {
+        self.metadata.as_ref()
+    }
+
+    pub fn metadata_mut(&mut self) -> &mut Option<RoomMetadata> {
+        &mut self.metadata
     }
 
     pub fn clients(&self) -> &Vec<ClientId> {
@@ -117,6 +129,22 @@ impl Room {
     pub fn remove_client(&mut self, client: ClientId) {
         self.clients.retain(|c| *c != client);
     }
+}
+
+#[derive(Debug, Clone, Serialize)]
+/// Metadata about a room, according to the Monolith.
+pub struct RoomMetadata {
+    pub title: String,
+    pub description: String,
+    #[serde(rename = "isTemporary")]
+    pub is_temporary: bool,
+    pub visibility: String,
+    #[serde(rename = "queueMode")]
+    pub queue_mode: String,
+    #[serde(rename = "currentSource")]
+    pub current_source: serde_json::Value,
+    /// The number of clients in this room.
+    pub users: usize,
 }
 
 #[derive(Debug)]
