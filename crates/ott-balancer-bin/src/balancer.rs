@@ -391,7 +391,6 @@ pub async fn dispatch_client_message(
         }
         SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
             leave_client(ctx, *msg.id()).await?;
-            return Ok(());
         }
         SocketMessage::Message(Message::Frame(_)) => unreachable!(),
         _ => {}

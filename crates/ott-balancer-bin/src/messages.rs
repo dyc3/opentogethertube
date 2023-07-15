@@ -4,6 +4,7 @@ use tokio_tungstenite::tungstenite::Message;
 #[derive(Debug, Clone)]
 pub enum SocketMessage {
     Message(Message),
+    #[deprecated(note = "This should just switched to rely on Message::Close")]
     End,
 }
 
