@@ -27,6 +27,7 @@ path = "/api/status/metrics"
 
 [deploy]
 release_command = "yarn run db:migrate"
+strategy = "canary"
 
 [env]
 NODE_ENV = "production"

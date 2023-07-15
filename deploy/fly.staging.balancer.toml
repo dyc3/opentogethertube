@@ -4,6 +4,9 @@ primary_region = "ewr"
 [build]
 dockerfile = "balancer.Dockerfile"
 
+[deploy]
+strategy = "canary"
+
 [http_service]
 internal_port = 8081
 force_https = true
