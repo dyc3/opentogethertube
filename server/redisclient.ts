@@ -5,17 +5,20 @@ import { getLogger } from "./logger";
 const log = getLogger("redisclient");
 
 function buildOptions(): RedisClientOptions<redis.RedisDefaultModules> {
+	const heroku = conf.get("heroku");
 	const redisUrl = conf.get("redis.url");
 	const tls = redisUrl?.startsWith("rediss");
+	const db = conf.get("redis.db") ?? undefined;
 	const redisOptions: RedisClientOptions<redis.RedisDefaultModules> = redisUrl
 		? {
 				url: redisUrl,
 				socket: tls
 					? {
 							tls: true,
-							rejectUnauthorized: false,
+							rejectUnauthorized: !heroku,
 					  }
 					: {},
+				database: db,
 		  }
 		: {
 				socket: {

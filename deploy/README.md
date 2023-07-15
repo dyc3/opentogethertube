@@ -1,0 +1,1 @@
+This folder contains configuration files for the official deployment of OpenTogetherTube.

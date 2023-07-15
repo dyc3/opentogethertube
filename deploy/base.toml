@@ -1,5 +1,5 @@
 port = 8080
-trust_proxy = 0
+trust_proxy = 1
 
 [db]
 mode = "postgres"
@@ -9,3 +9,6 @@ ffprobe_path = "/usr/bin/ffprobe"
 
 [add_preview.search]
 enabled = true
+
+[redis]
+db = 1

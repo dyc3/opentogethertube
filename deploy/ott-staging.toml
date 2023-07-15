@@ -2,5 +2,5 @@
 level = "silly"
 
 [[balancers]]
-host = "ewr.ott-balancer-test.internal"
+host = "ewr.ott-balancer-staging.internal"
 port = 8081

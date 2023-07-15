@@ -1,16 +1,11 @@
-# fly.toml app configuration file generated for ott-test on 2023-07-13T14:49:49-04:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = "ott-test"
+app = "ott-staging"
 primary_region = "ewr"
 
 [build]
-dockerfile = "deploy/monolith.Dockerfile"
+dockerfile = "monolith.Dockerfile"
 
 [build.args]
-DEPLOY_TARGET = "ott-test"
+DEPLOY_TARGET = "ott-staging"
 
 [http_service]
 internal_port = 8080
@@ -35,4 +30,4 @@ release_command = "yarn run db:migrate"
 
 [env]
 NODE_ENV = "production"
-# OTT_SHORT_URL_HOSTNAME = "s.ottr.cc"
+OTT_SHORT_URL_HOSTNAME = "s.ottr.cc"
