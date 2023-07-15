@@ -250,9 +250,10 @@ impl BalancerContext {
         Ok(())
     }
 
-    pub fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
+    pub async fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
         let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
+        monolith.send(&MsgB2M::Leave { client: client_id }).await?;
 
         Ok(())
     }
@@ -360,9 +361,8 @@ pub async fn join_client(
 }
 
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
-    // todo!("inform the monolith that the client left");
     info!("client left: {:?}", id);
-    ctx.write().await.remove_client(id)?;
+    ctx.write().await.remove_client(id).await?;
 
     Ok(())
 }
