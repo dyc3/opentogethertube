@@ -7,6 +7,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tracing::{error, info};
 use uuid::Uuid;
 
+use crate::config::BalancerConfig;
 use crate::websocket::HyperWebsocket;
 use crate::{balancer::BalancerLink, messages::*};
 
@@ -48,7 +49,8 @@ impl BalancerMonolith {
     pub fn proxy_address(&self) -> SocketAddr {
         // TODO: this port needs to conveyed by the monolith instead of hardcoded
         // because the monolith could be running on any port.
-        SocketAddr::from((self.address().ip(), 8080))
+        let config = BalancerConfig::get();
+        SocketAddr::from((self.address().ip(), config.monolith_port))
     }
 
     pub fn http_client(&self) -> &reqwest::Client {
