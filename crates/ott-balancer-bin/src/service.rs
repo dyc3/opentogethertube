@@ -8,6 +8,7 @@ use hyper::service::Service;
 use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
+use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
 use ott_balancer_protocol::RoomName;
 use reqwest::Url;
 use route_recognizer::Router;
@@ -16,7 +17,7 @@ use tracing::{debug, error, info, warn};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
-use crate::monolith::{monolith_entry, BalancerMonolith, RoomMetadata};
+use crate::monolith::{monolith_entry, BalancerMonolith};
 
 static NOTFOUND: &[u8] = b"Not Found";
 
@@ -223,6 +224,9 @@ async fn list_rooms(ctx: Arc<RwLock<BalancerContext>>) -> anyhow::Result<Respons
         let monolith_rooms = monolith.rooms().values();
         for r in monolith_rooms {
             if let Some(meta) = r.metadata() {
+                if meta.visibility != Visibility::Public {
+                    continue;
+                }
                 let room = ListedRoom {
                     name: r.name(),
                     metadata: meta,
