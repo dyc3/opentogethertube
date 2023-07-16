@@ -320,6 +320,7 @@ function onRoomUnload(roomName: string) {
 }
 
 function gossip() {
+	log.debug("Gossiping");
 	broadcastToBalancers({
 		type: "gossip",
 		payload: {

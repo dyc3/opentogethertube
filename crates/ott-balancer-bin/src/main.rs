@@ -1,5 +1,4 @@
 use std::net::Ipv6Addr;
-use std::pin::Pin;
 use std::{net::SocketAddr, sync::Arc};
 
 use balancer::{start_dispatcher, Balancer, BalancerContext};
@@ -74,14 +73,18 @@ async fn main() -> anyhow::Result<()> {
         let io = hyper_util::rt::TokioIo::new(stream);
 
         // Spawn a tokio task to serve multiple connections concurrently
-        tokio::task::spawn(async move {
-            let mut conn = http1::Builder::new()
-                .serve_connection(io, service)
-                .with_upgrades();
-            let conn = Pin::new(&mut conn);
-            if let Err(err) = conn.await {
-                error!("Error serving connection: {:?}", err);
-            }
-        });
+        let result = tokio::task::Builder::new()
+            .name("serve http")
+            .spawn(async move {
+                let conn = http1::Builder::new()
+                    .serve_connection(io, service)
+                    .with_upgrades();
+                if let Err(err) = conn.await {
+                    error!("Error serving connection: {:?}", err);
+                }
+            });
+        if let Err(err) = result {
+            error!("Error spawning task to serve http: {:?}", err);
+        }
     }
 }

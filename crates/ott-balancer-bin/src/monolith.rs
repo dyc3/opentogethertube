@@ -61,8 +61,8 @@ impl BalancerMonolith {
         self.rooms.insert(room.name.clone(), room);
     }
 
-    pub fn remove_room(&mut self, room: RoomName) {
-        self.rooms.remove(&room);
+    pub fn remove_room(&mut self, room: &RoomName) {
+        self.rooms.remove(room);
     }
 
     pub fn add_client(&mut self, room: &RoomName, client_id: ClientId) {

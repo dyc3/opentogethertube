@@ -86,7 +86,7 @@ impl Balancer {
                 new_client = self.new_client_rx.recv() => {
                     if let Some((new_client, receiver_tx)) = new_client {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("join client").spawn(async move {
                             match join_client(ctx, new_client, receiver_tx).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to join client: {:?}", err)
@@ -99,7 +99,7 @@ impl Balancer {
                 msg = self.client_msg_rx.recv() => {
                     if let Some(msg) = msg {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("dispatch client message").spawn(async move {
                             match dispatch_client_message(ctx, msg).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to dispatch client message: {:?}", err)
@@ -112,7 +112,7 @@ impl Balancer {
                 new_monolith = self.new_monolith_rx.recv() => {
                     if let Some((new_monolith, receiver_tx)) = new_monolith {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("join monolith").spawn(async move {
                             match join_monolith(ctx, new_monolith, receiver_tx).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to join monolith: {:?}", err)
@@ -125,7 +125,7 @@ impl Balancer {
                 msg = self.monolith_msg_rx.recv() => {
                     if let Some(msg) = msg {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("dispatch monolith message").spawn(async move {
                             match dispatch_monolith_message(ctx, msg).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to dispatch monolith message: {:?}", err)
@@ -262,16 +262,28 @@ impl BalancerContext {
         self.monoliths.insert(monolith.id(), monolith);
     }
 
-    #[allow(dead_code)]
     pub fn remove_monolith(&mut self, monolith_id: MonolithId) {
         self.monoliths.remove(&monolith_id);
     }
 
-    pub fn add_room(&mut self, room: RoomName, monolith_id: MonolithId) -> anyhow::Result<()> {
-        self.monoliths
-            .get(&monolith_id)
-            .ok_or(anyhow::anyhow!("monolith not found"))?; // check if monolith exists
-        self.rooms_to_monoliths.insert(room, monolith_id);
+    pub fn add_room(&mut self, room: Room, monolith_id: MonolithId) -> anyhow::Result<()> {
+        let monolith = self
+            .monoliths
+            .get_mut(&monolith_id)
+            .ok_or(anyhow::anyhow!("monolith not found"))?;
+        self.rooms_to_monoliths
+            .insert(room.name().clone(), monolith_id);
+        monolith.add_room(room);
+        Ok(())
+    }
+
+    pub fn remove_room(&mut self, room: &RoomName, monolith_id: MonolithId) -> anyhow::Result<()> {
+        let monolith = self
+            .monoliths
+            .get_mut(&monolith_id)
+            .ok_or(anyhow::anyhow!("monolith not found"))?;
+        self.rooms_to_monoliths.remove(room);
+        monolith.remove_room(room);
         Ok(())
     }
 
@@ -355,7 +367,8 @@ pub async fn join_client(
     drop(ctx_read);
 
     let mut b = ctx.write().await;
-    b.add_room(client.room.clone(), monolith_id)?;
+    let room = Room::new(client.room.clone());
+    b.add_room(room, monolith_id)?;
     b.add_client(client, monolith_id).await?;
     Ok(())
 }
@@ -445,58 +458,38 @@ pub async fn dispatch_monolith_message(
                     metadata,
                 } => {
                     let mut ctx_write = ctx.write().await;
-                    ctx_write
-                        .rooms_to_monoliths
-                        .insert(room.clone(), *monolith_id);
                     let mut room = Room::new(room);
                     room.set_metadata(metadata);
-                    ctx_write
-                        .monoliths
-                        .get_mut(monolith_id)
-                        .unwrap()
-                        .add_room(room);
+                    ctx_write.add_room(room, *monolith_id)?;
                 }
                 MsgM2B::Unloaded { room } => {
                     let mut ctx_write = ctx.write().await;
-                    ctx_write.rooms_to_monoliths.remove(&room);
-                    ctx_write
-                        .monoliths
-                        .get_mut(monolith_id)
-                        .unwrap()
-                        .remove_room(room);
+                    ctx_write.remove_room(&room, *monolith_id)?;
                 }
-                MsgM2B::Gossip { rooms } => {
-                    let mut ctx_write = ctx.write().await;
-                    let to_remove = ctx_write
-                        .monoliths
-                        .get_mut(monolith_id)
-                        .unwrap()
-                        .rooms()
-                        .keys()
-                        .filter(|room| !rooms.iter().any(|r| r.name == **room))
-                        .cloned()
-                        .collect::<Vec<_>>();
-                    for gossip_room in rooms {
-                        ctx_write
-                            .rooms_to_monoliths
-                            .insert(gossip_room.name.clone(), *monolith_id);
-                        let mut room = Room::new(gossip_room.name);
-                        room.set_metadata(gossip_room.metadata);
-                        ctx_write
-                            .monoliths
-                            .get_mut(monolith_id)
-                            .unwrap()
-                            .add_room(room);
-                    }
+                MsgM2B::Gossip { .. } => {
+                    // For some reason, whenever this code is enabled, clients stop receiving websocket messages.
 
-                    for room in to_remove {
-                        ctx_write.rooms_to_monoliths.remove(&room);
-                        ctx_write
-                            .monoliths
-                            .get_mut(monolith_id)
-                            .unwrap()
-                            .remove_room(room);
-                    }
+                    // let mut ctx_write = ctx.write_owned().await;
+                    // let to_remove = ctx_write
+                    //     .monoliths
+                    //     .get_mut(monolith_id)
+                    //     .unwrap()
+                    //     .rooms()
+                    //     .keys()
+                    //     .filter(|room| !rooms.iter().any(|r| r.name == **room))
+                    //     .cloned()
+                    //     .collect::<Vec<_>>();
+                    // debug!("to_remove: {:?}", to_remove);
+                    // let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
+                    // for gossip_room in rooms {
+                    //     let mut room = Room::new(gossip_room.name);
+                    //     room.set_metadata(gossip_room.metadata);
+                    //     monolith.add_room(room);
+                    // }
+
+                    // for room in to_remove {
+                    //     monolith.remove_room(&room)
+                    // }
                 }
                 MsgM2B::RoomMsg {
                     room,
