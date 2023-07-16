@@ -440,16 +440,21 @@ pub async fn dispatch_monolith_message(
             debug!("got message from monolith: {:?}", msg);
 
             match msg {
-                MsgM2B::Loaded { room } => {
+                MsgM2B::Loaded {
+                    name: room,
+                    metadata,
+                } => {
                     let mut ctx_write = ctx.write().await;
                     ctx_write
                         .rooms_to_monoliths
                         .insert(room.clone(), *monolith_id);
+                    let mut room = Room::new(room);
+                    room.set_metadata(metadata);
                     ctx_write
                         .monoliths
                         .get_mut(monolith_id)
                         .unwrap()
-                        .add_room(Room::new(room));
+                        .add_room(room);
                 }
                 MsgM2B::Unloaded { room } => {
                     let mut ctx_write = ctx.write().await;
@@ -460,7 +465,39 @@ pub async fn dispatch_monolith_message(
                         .unwrap()
                         .remove_room(room);
                 }
-                MsgM2B::Gossip { rooms: _ } => todo!(),
+                MsgM2B::Gossip { rooms } => {
+                    let mut ctx_write = ctx.write().await;
+                    let to_remove = ctx_write
+                        .monoliths
+                        .get_mut(monolith_id)
+                        .unwrap()
+                        .rooms()
+                        .keys()
+                        .filter(|room| !rooms.iter().any(|r| r.name == **room))
+                        .cloned()
+                        .collect::<Vec<_>>();
+                    for gossip_room in rooms {
+                        ctx_write
+                            .rooms_to_monoliths
+                            .insert(gossip_room.name.clone(), *monolith_id);
+                        let mut room = Room::new(gossip_room.name);
+                        room.set_metadata(gossip_room.metadata);
+                        ctx_write
+                            .monoliths
+                            .get_mut(monolith_id)
+                            .unwrap()
+                            .add_room(room);
+                    }
+
+                    for room in to_remove {
+                        ctx_write.rooms_to_monoliths.remove(&room);
+                        ctx_write
+                            .monoliths
+                            .get_mut(monolith_id)
+                            .unwrap()
+                            .remove_room(room);
+                    }
+                }
                 MsgM2B::RoomMsg {
                     room,
                     client_id: _,
@@ -469,13 +506,13 @@ pub async fn dispatch_monolith_message(
                     let ctx_read = ctx.read().await;
 
                     let Some(room) = ctx_read
-                .monoliths
-                .get(monolith_id)
-                .unwrap()
-                .rooms()
-                .get(&room) else {
-                    anyhow::bail!("room not found on monolith");
-                };
+                        .monoliths
+                        .get(monolith_id)
+                        .unwrap()
+                        .rooms()
+                        .get(&room) else {
+                            anyhow::bail!("room not found on monolith");
+                        };
 
                     // TODO: also handle the case where the client_id is Some
 

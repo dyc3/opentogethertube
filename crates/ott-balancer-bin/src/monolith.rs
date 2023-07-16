@@ -94,6 +94,8 @@ pub struct Room {
     name: RoomName,
     /// List of clients connected to this Balancer that are in this room.
     clients: Vec<ClientId>,
+    /// Metadata about this room, according to the Monolith.
+    metadata: Option<RoomMetadata>,
 }
 
 impl Room {
@@ -101,11 +103,20 @@ impl Room {
         Self {
             name,
             clients: Vec::new(),
+            metadata: None,
         }
     }
 
     pub fn name(&self) -> &RoomName {
         &self.name
+    }
+
+    pub fn metadata(&self) -> Option<&RoomMetadata> {
+        self.metadata.as_ref()
+    }
+
+    pub fn set_metadata(&mut self, metadata: RoomMetadata) {
+        self.metadata = Some(metadata);
     }
 
     pub fn clients(&self) -> &Vec<ClientId> {

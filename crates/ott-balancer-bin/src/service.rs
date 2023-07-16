@@ -8,6 +8,7 @@ use hyper::service::Service;
 use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
+use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
 use ott_balancer_protocol::RoomName;
 use reqwest::Url;
 use route_recognizer::Router;
@@ -97,7 +98,13 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         Ok(response)
                     } else if room_name.to_string() == "list" {
                         // special case for listing rooms
-                        return mk_response("TODO: list rooms across all monoliths".to_owned());
+                        match list_rooms(ctx.clone()).await {
+                            Ok(res) => Ok(res),
+                            Err(e) => {
+                                error!("error listing rooms: {}", e);
+                                mk_response("error listing rooms".to_owned())
+                            }
+                        }
                     } else {
                         let monolith = if let Some(monolith_id) =
                             ctx_read.rooms_to_monoliths.get(&room_name)
@@ -199,4 +206,44 @@ async fn proxy_request(
     }
     let body = res.bytes().await?;
     Ok(builder.body(Full::new(body)).unwrap())
+}
+
+#[derive(serde::Serialize)]
+struct ListedRoom<'a> {
+    name: &'a RoomName,
+    #[serde(flatten)]
+    metadata: &'a RoomMetadata,
+}
+
+async fn list_rooms(ctx: Arc<RwLock<BalancerContext>>) -> anyhow::Result<Response<Full<Bytes>>> {
+    info!("listing rooms");
+
+    let mut rooms = Vec::new();
+    let ctx_read = ctx.read().await;
+    for monolith in ctx_read.monoliths.values() {
+        let monolith_rooms = monolith.rooms().values();
+        for r in monolith_rooms {
+            if let Some(meta) = r.metadata() {
+                if meta.visibility != Visibility::Public {
+                    continue;
+                }
+                let room = ListedRoom {
+                    name: r.name(),
+                    metadata: meta,
+                };
+                rooms.push(room);
+            }
+        }
+
+        if rooms.len() > 50 {
+            break;
+        }
+    }
+
+    let builder = Response::builder()
+        .status(200)
+        .header("Content-Type", "application/json");
+
+    let body = serde_json::to_vec(&rooms)?;
+    Ok(builder.body(Full::new(body.into())).unwrap())
 }
