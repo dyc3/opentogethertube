@@ -4,6 +4,7 @@ use tokio_tungstenite::tungstenite::Message;
 #[derive(Debug, Clone)]
 pub enum SocketMessage {
     Message(Message),
+    #[deprecated(note = "This should just switched to rely on Message::Close")]
     End,
 }
 
@@ -15,6 +16,7 @@ impl<'de> SocketMessage {
                 let obj = serde_json::from_str(text)?;
                 Ok(obj)
             }
+            #[allow(deprecated)]
             SocketMessage::End => anyhow::bail!("SocketMessage::End"),
         }
     }

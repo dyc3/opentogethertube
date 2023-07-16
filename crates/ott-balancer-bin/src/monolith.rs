@@ -180,6 +180,7 @@ pub async fn monolith_entry(
                         }
                 } else {
                     info!("Monolith websocket stream ended: {}", monolith_id);
+                    #[allow(deprecated)]
                     if let Err(err) = balancer
                         .send_monolith_message(monolith_id, SocketMessage::End)
                         .await {

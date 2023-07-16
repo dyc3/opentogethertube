@@ -138,12 +138,12 @@ pub async fn client_entry<'r>(
                         }
                 } else {
                     info!("Client websocket stream ended: {}", client_id);
-                    if let Err(err) = balancer
-                        .send_client_message(client_id, SocketMessage::End)
-                        .await {
-                            error!("Error sending client message to balancer: {:?}", err);
-                            break;
-                        }
+                    // if let Err(err) = balancer
+                    //     .send_client_message(client_id, SocketMessage::End)
+                    //     .await {
+                    //         error!("Error sending client message to balancer: {:?}", err);
+                    //         break;
+                    //     }
                     break;
                 }
             }

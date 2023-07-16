@@ -250,9 +250,10 @@ impl BalancerContext {
         Ok(())
     }
 
-    pub fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
+    pub async fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
         let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
+        monolith.send(&MsgB2M::Leave { client: client_id }).await?;
 
         Ok(())
     }
@@ -360,9 +361,8 @@ pub async fn join_client(
 }
 
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
-    // todo!("inform the monolith that the client left");
     info!("client left: {:?}", id);
-    ctx.write().await.remove_client(id)?;
+    ctx.write().await.remove_client(id).await?;
 
     Ok(())
 }
@@ -389,9 +389,9 @@ pub async fn dispatch_client_message(
                 })
                 .await?;
         }
+        #[allow(deprecated)]
         SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
             leave_client(ctx, *msg.id()).await?;
-            return Ok(());
         }
         SocketMessage::Message(Message::Frame(_)) => unreachable!(),
         _ => {}
@@ -542,6 +542,7 @@ pub async fn dispatch_monolith_message(
                 }
             }
         }
+        #[allow(deprecated)]
         SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
             leave_monolith(ctx, *monolith_id).await?;
         }
