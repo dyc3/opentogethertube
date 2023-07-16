@@ -9,6 +9,8 @@ import { Result, err, ok, intoResult } from "../common/result";
 import { AuthToken, ClientId } from "../common/models/types";
 import { replacer } from "../common/serialize";
 import { OttWebsocketError } from "ott-common/models/types";
+import roommanager from "./roommanager";
+import type { RoomListItem } from "./api/room";
 
 const log = getLogger("balancer");
 
@@ -23,6 +25,9 @@ export function initBalancerConnections() {
 		const conn = new BalancerConnection(config);
 		balancerManager.addBalancerConnection(conn);
 	}
+
+	roommanager.on("load", onRoomLoad);
+	roommanager.on("unload", onRoomUnload);
 }
 
 class BalancerManager {
@@ -268,6 +273,47 @@ function validateB2M(message: unknown): message is MsgB2M {
 	}
 }
 
+function broadcastToBalancers(message: MsgM2B) {
+	for (const conn of balancerManager.balancerConnections) {
+		conn.send(message);
+	}
+}
+
+async function onRoomLoad(roomName: string) {
+	const result = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
+	if (!result.ok) {
+		log.error(
+			`Failed to grab room that should have been loaded. Can't inform balancers. room=${roomName}: ${result.value}`
+		);
+		return;
+	}
+	const room = result.value;
+	const obj: GossipRoom = {
+		name: room.name,
+		title: room.title,
+		description: room.description,
+		isTemporary: room.isTemporary,
+		visibility: room.visibility,
+		queueMode: room.queueMode,
+		currentSource: room.currentSource,
+		users: room.users.length,
+	};
+
+	broadcastToBalancers({
+		type: "loaded",
+		payload: obj,
+	});
+}
+
+function onRoomUnload(roomName: string) {
+	broadcastToBalancers({
+		type: "unloaded",
+		payload: {
+			room: roomName,
+		},
+	});
+}
+
 // TODO: use typeshare?
 export type MsgB2M = MsgB2MJoin | MsgB2MLeave | MsgB2MClientMsg<unknown>;
 
@@ -304,9 +350,7 @@ export type MsgM2B =
 
 interface MsgM2BLoaded {
 	type: "loaded";
-	payload: {
-		room: string;
-	};
+	payload: GossipRoom;
 }
 
 interface MsgM2BUnloaded {
@@ -319,7 +363,7 @@ interface MsgM2BUnloaded {
 interface MsgM2BGossip {
 	type: "gossip";
 	payload: {
-		rooms: string[];
+		rooms: GossipRoom[];
 	};
 }
 
@@ -339,3 +383,5 @@ interface MsgM2BKick {
 		reason: OttWebsocketError;
 	};
 }
+
+interface GossipRoom extends RoomListItem {}

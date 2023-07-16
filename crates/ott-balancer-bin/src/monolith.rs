@@ -118,6 +118,10 @@ impl Room {
         &mut self.metadata
     }
 
+    pub fn set_metadata(&mut self, metadata: RoomMetadata) {
+        self.metadata = Some(metadata);
+    }
+
     pub fn clients(&self) -> &Vec<ClientId> {
         &self.clients
     }
@@ -129,22 +133,6 @@ impl Room {
     pub fn remove_client(&mut self, client: ClientId) {
         self.clients.retain(|c| *c != client);
     }
-}
-
-#[derive(Debug, Clone, Serialize)]
-/// Metadata about a room, according to the Monolith.
-pub struct RoomMetadata {
-    pub title: String,
-    pub description: String,
-    #[serde(rename = "isTemporary")]
-    pub is_temporary: bool,
-    pub visibility: String,
-    #[serde(rename = "queueMode")]
-    pub queue_mode: String,
-    #[serde(rename = "currentSource")]
-    pub current_source: serde_json::Value,
-    /// The number of clients in this room.
-    pub users: usize,
 }
 
 #[derive(Debug)]

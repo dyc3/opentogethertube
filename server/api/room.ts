@@ -36,7 +36,7 @@ const VALID_ROOM_VISIBILITY = [Visibility.Public, Visibility.Unlisted, Visibilit
 
 const VALID_ROOM_QUEUE_MODE = [QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj];
 
-interface RoomListItem {
+export interface RoomListItem {
 	name: string;
 	title: string;
 	description: string;

@@ -51,7 +51,7 @@ impl SimMonolith {
         match req {
             MsgB2M::Load { room } => {
                 self.load_room(room.clone());
-                let msg = MsgM2B::Loaded { room };
+                let msg = MsgM2B::Loaded { name: room };
                 outbound_tx.send(self.build_message(msg)).await.unwrap();
             }
             MsgB2M::Join { room, client, .. } => {
