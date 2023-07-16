@@ -86,7 +86,7 @@ impl Balancer {
                 new_client = self.new_client_rx.recv() => {
                     if let Some((new_client, receiver_tx)) = new_client {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("join client").spawn(async move {
                             match join_client(ctx, new_client, receiver_tx).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to join client: {:?}", err)
@@ -99,7 +99,7 @@ impl Balancer {
                 msg = self.client_msg_rx.recv() => {
                     if let Some(msg) = msg {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("dispatch client message").spawn(async move {
                             match dispatch_client_message(ctx, msg).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to dispatch client message: {:?}", err)
@@ -112,7 +112,7 @@ impl Balancer {
                 new_monolith = self.new_monolith_rx.recv() => {
                     if let Some((new_monolith, receiver_tx)) = new_monolith {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("join monolith").spawn(async move {
                             match join_monolith(ctx, new_monolith, receiver_tx).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to join monolith: {:?}", err)
@@ -125,7 +125,7 @@ impl Balancer {
                 msg = self.monolith_msg_rx.recv() => {
                     if let Some(msg) = msg {
                         let ctx = self.ctx.clone();
-                        tokio::spawn(async move {
+                        let _ = tokio::task::Builder::new().name("dispatch monolith message").spawn(async move {
                             match dispatch_monolith_message(ctx, msg).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to dispatch monolith message: {:?}", err)
