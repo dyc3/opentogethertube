@@ -3,7 +3,6 @@ use std::net::SocketAddr;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::{monolith::*, *};
-use serde::Serialize;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{error, info};
 use uuid::Uuid;
@@ -112,10 +111,6 @@ impl Room {
 
     pub fn metadata(&self) -> Option<&RoomMetadata> {
         self.metadata.as_ref()
-    }
-
-    pub fn metadata_mut(&mut self) -> &mut Option<RoomMetadata> {
-        &mut self.metadata
     }
 
     pub fn set_metadata(&mut self, metadata: RoomMetadata) {

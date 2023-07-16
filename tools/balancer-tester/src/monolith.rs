@@ -6,7 +6,7 @@ use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::protocol::Message;
 
-use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
+use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B, RoomMetadata, Visibility};
 use tracing::{info, warn};
 
 pub struct SimMonolith {
@@ -51,7 +51,10 @@ impl SimMonolith {
         match req {
             MsgB2M::Load { room } => {
                 self.load_room(room.clone());
-                let msg = MsgM2B::Loaded { name: room };
+                let msg = MsgM2B::Loaded {
+                    name: room,
+                    metadata: generate_random_metadata(),
+                };
                 outbound_tx.send(self.build_message(msg)).await.unwrap();
             }
             MsgB2M::Join { room, client, .. } => {
@@ -116,6 +119,7 @@ impl SimMonolith {
 pub struct SimRoom {
     pub name: RoomName,
     pub clients: Vec<ClientId>,
+    pub metadata: RoomMetadata,
 }
 
 impl SimRoom {
@@ -123,6 +127,7 @@ impl SimRoom {
         Self {
             name: name.into(),
             clients: Vec::new(),
+            metadata: generate_random_metadata(),
         }
     }
 
@@ -140,4 +145,16 @@ impl SimRoom {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SimpleEcho {
     pub echo: String,
+}
+
+fn generate_random_metadata() -> RoomMetadata {
+    RoomMetadata {
+        title: "foo".to_string(),
+        description: "foo".to_string(),
+        is_temporary: false,
+        visibility: Visibility::Public,
+        queue_mode: "manual".to_string(),
+        current_source: serde_json::Value::Null,
+        users: 2,
+    }
 }
