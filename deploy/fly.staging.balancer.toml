@@ -4,6 +4,9 @@ primary_region = "ewr"
 [build]
 dockerfile = "balancer.Dockerfile"
 
+[build.args]
+DEPLOY_TARGET = "ott-balancer-staging"
+
 [deploy]
 strategy = "canary"
 
