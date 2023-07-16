@@ -389,6 +389,7 @@ pub async fn dispatch_client_message(
                 })
                 .await?;
         }
+        #[allow(deprecated)]
         SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
             leave_client(ctx, *msg.id()).await?;
         }
@@ -504,6 +505,7 @@ pub async fn dispatch_monolith_message(
                 }
             }
         }
+        #[allow(deprecated)]
         SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
             leave_monolith(ctx, *monolith_id).await?;
         }

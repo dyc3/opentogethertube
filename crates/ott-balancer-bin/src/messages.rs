@@ -16,6 +16,7 @@ impl<'de> SocketMessage {
                 let obj = serde_json::from_str(text)?;
                 Ok(obj)
             }
+            #[allow(deprecated)]
             SocketMessage::End => anyhow::bail!("SocketMessage::End"),
         }
     }
