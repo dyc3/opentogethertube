@@ -11,6 +11,7 @@ import { replacer } from "../common/serialize";
 import { OttWebsocketError } from "ott-common/models/types";
 import roommanager from "./roommanager";
 import type { RoomListItem } from "./api/room";
+import _ from "lodash";
 
 const log = getLogger("balancer");
 
@@ -28,6 +29,8 @@ export function initBalancerConnections() {
 
 	roommanager.on("load", onRoomLoad);
 	roommanager.on("unload", onRoomUnload);
+
+	gossipDebounced();
 }
 
 class BalancerManager {
@@ -303,6 +306,7 @@ async function onRoomLoad(roomName: string) {
 		type: "loaded",
 		payload: obj,
 	});
+	gossipDebounced();
 }
 
 function onRoomUnload(roomName: string) {
@@ -312,7 +316,29 @@ function onRoomUnload(roomName: string) {
 			room: roomName,
 		},
 	});
+	gossipDebounced();
 }
+
+function gossip() {
+	broadcastToBalancers({
+		type: "gossip",
+		payload: {
+			rooms: roommanager.rooms.map(room => ({
+				name: room.name,
+				title: room.title,
+				description: room.description,
+				isTemporary: room.isTemporary,
+				visibility: room.visibility,
+				queueMode: room.queueMode,
+				currentSource: room.currentSource,
+				users: room.users.length,
+			})),
+		},
+	});
+	gossipDebounced();
+}
+
+const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait: 1000 * 20 });
 
 // TODO: use typeshare?
 export type MsgB2M = MsgB2MJoin | MsgB2MLeave | MsgB2MClientMsg<unknown>;
