@@ -18,4 +18,7 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 RUN ulimit -c unlimited
 
+ARG DEPLOY_TARGET
+COPY deploy/$DEPLOY_TARGET.toml /usr/app/balancer.toml
+
 CMD ["./ott-balancer-bin"]
