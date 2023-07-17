@@ -1,0 +1,5 @@
+app = "ott-job-runner"
+primary_region = "ewr"
+
+[build]
+dockerfile = "job-runner.Dockerfile"
