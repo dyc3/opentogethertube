@@ -28,7 +28,10 @@ impl BalancerMonolith {
             rooms: HashMap::new(),
             socket_tx,
             address: m.address,
-            http_client: reqwest::Client::new(),
+            http_client: reqwest::Client::builder()
+                .redirect(reqwest::redirect::Policy::none())
+                .build()
+                .expect("failed to build http client"),
         }
     }
 
