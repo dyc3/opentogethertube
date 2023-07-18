@@ -17,4 +17,5 @@ export enum ToastStyle {
 	Neutral,
 	Success,
 	Error,
+	Important,
 }

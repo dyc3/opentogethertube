@@ -41,9 +41,11 @@ const ProcessedText = defineComponent({
 		const content: Ref<ContentItem[]> = ref([]);
 
 		function onLinkClick(e: Event, link: string) {
-			e.preventDefault();
-			e.stopPropagation();
-			emit("link-click", link);
+			if (props.showAddQueueTooltip) {
+				e.preventDefault();
+				e.stopPropagation();
+				emit("link-click", link);
+			}
 		}
 
 		function processText() {
