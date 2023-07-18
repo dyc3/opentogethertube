@@ -4,8 +4,8 @@ import express, { RequestHandler } from "express";
 import { redisClient } from "../redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../../common/constants";
 import { OttResponseBody } from "../../common/models/rest-api";
-import { OttException } from "../../common/exceptions.js";
-import { BadApiArgumentException } from "../exceptions.js";
+import { OttException } from "../../common/exceptions";
+import { BadApiArgumentException } from "../exceptions";
 
 const router = express.Router();
 const log = getLogger("api/announce");
