@@ -258,11 +258,12 @@ describe("Announcements API", () => {
 			.expect(400)
 			.expect("Content-Type", /json/)
 			.then(resp => {
-				expect(resp.body).toEqual({
+				expect(resp.body).toMatchObject({
 					success: false,
 					error: {
-						name: "MissingText",
-						message: "text was not supplied",
+						name: "BadApiArgumentException",
+						arg: "text",
+						reason: "missing",
 					},
 				});
 			});

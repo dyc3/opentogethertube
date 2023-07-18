@@ -171,9 +171,9 @@ export function buildNewStore() {
 			chat() {},
 			announcement(context, message) {
 				this.commit("toast/ADD_TOAST", {
-					style: ToastStyle.Neutral,
+					style: ToastStyle.Important,
 					content: message.text,
-					duration: 15000,
+					duration: 60000,
 				});
 			},
 			error(context, message) {

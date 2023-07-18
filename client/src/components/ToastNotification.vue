@@ -6,7 +6,9 @@
 		<v-icon class="toast-icon" v-else-if="toast.style === ToastStyle.Error">
 			fa:fas fa-exclamation-circle
 		</v-icon>
-		<span class="toast-content">{{ toast.content }}</span>
+		<span class="toast-content">
+			<ProcessedText :text="toast.content" :show-add-queue-tooltip="false" />
+		</span>
 		<div class="bar" :style="{ 'animation-duration': `${toast.duration}ms` }"></div>
 		<div class="toast-actions">
 			<v-btn variant="text" v-if="undoable" @click="undo">
@@ -27,6 +29,7 @@ import { RoomRequestType } from "ott-common/models/messages";
 import { API } from "@/common-http";
 import toasts from "@/util/toast";
 import { useStore } from "@/store";
+import ProcessedText from "./ProcessedText.vue";
 
 const ToastNotification = defineComponent({
 	name: "ToastNotification",
@@ -36,6 +39,9 @@ const ToastNotification = defineComponent({
 			required: true,
 		},
 		number: { type: Number },
+	},
+	components: {
+		ProcessedText,
 	},
 	setup(props) {
 		const { toast } = toRefs(props);
@@ -62,6 +68,8 @@ const ToastNotification = defineComponent({
 				return "success";
 			} else if (toast.value.style === ToastStyle.Error) {
 				return "error";
+			} else if (toast.value.style === ToastStyle.Important) {
+				return "warning";
 			}
 			return undefined;
 		});

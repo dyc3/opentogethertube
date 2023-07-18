@@ -4,6 +4,8 @@ import express, { RequestHandler } from "express";
 import { redisClient } from "../redisclient";
 import { ANNOUNCEMENT_CHANNEL } from "../../common/constants";
 import { OttResponseBody } from "../../common/models/rest-api";
+import { OttException } from "../../common/exceptions";
+import { BadApiArgumentException } from "../exceptions";
 
 const router = express.Router();
 const log = getLogger("api/announce");
@@ -35,14 +37,7 @@ const announce: RequestHandler<unknown, OttResponseBody, { text: string }> = asy
 		return;
 	}
 	if (!req.body.text) {
-		res.status(400).json({
-			success: false,
-			error: {
-				name: "MissingText",
-				message: "text was not supplied",
-			},
-		});
-		return;
+		throw new BadApiArgumentException("text", "missing");
 	}
 
 	try {
@@ -55,14 +50,7 @@ const announce: RequestHandler<unknown, OttResponseBody, { text: string }> = asy
 		);
 	} catch (error) {
 		log.error(`An unknown error occurred while sending an announcement: ${error}`);
-		res.status(500).json({
-			success: false,
-			error: {
-				name: "Unknown",
-				message: "Unknown, check logs",
-			},
-		});
-		return;
+		throw error;
 	}
 	res.json({
 		success: true,
@@ -73,13 +61,21 @@ router.post("/", async (req, res, next) => {
 	try {
 		await announce(req, res, next);
 	} catch (e) {
-		res.status(500).json({
-			success: false,
-			error: {
-				name: "Unknown",
-				message: "Unknown, check logs",
-			},
-		});
+		if (e instanceof OttException) {
+			res.status(400).json({
+				success: false,
+				error: e,
+			});
+			return;
+		} else {
+			res.status(500).json({
+				success: false,
+				error: {
+					name: "Unknown",
+					message: "Unknown, check logs",
+				},
+			});
+		}
 	}
 });
 
