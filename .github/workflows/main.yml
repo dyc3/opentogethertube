@@ -106,3 +106,14 @@ jobs:
         docker tag opentogethertube dyc3/opentogethertube:latest
     - name: Push to Dockerhub
       run: docker push dyc3/opentogethertube:latest
+  deploy-fly:
+    runs-on: ubuntu-latest
+    name: Deploy on fly.io
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [test, lint]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --config deploy/fly.prod.monolith.toml --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
