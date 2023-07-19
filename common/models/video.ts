@@ -1,5 +1,9 @@
+import { ALL_VIDEO_SERVICES } from "../constants";
+
+export type VideoService = (typeof ALL_VIDEO_SERVICES)[number];
+
 export interface VideoId {
-	service: string;
+	service: VideoService;
 	id: string;
 }
 
