@@ -16,7 +16,7 @@
 				required
 				:rules="passwordConfirmRules"
 			/>
-			<v-btn type="submit" color="primary">
+			<v-btn type="submit" color="primary" @click.prevent="submitPasswordReset">
 				{{ $t("common.save") }}
 			</v-btn>
 		</v-form>
