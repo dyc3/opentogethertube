@@ -26,6 +26,7 @@ import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client
 import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
 import usermanager from "./usermanager";
 import { OttException } from "../common/exceptions";
+import { conf } from "./ott-config";
 
 const log = getLogger("clientmanager");
 
@@ -36,7 +37,7 @@ export async function setup(): Promise<void> {
 	log.debug("setting up client manager...");
 	const server = wss;
 	server.on("connection", async (ws, req: Request & { session: MySession }) => {
-		if (!req.url.startsWith("/api/room/")) {
+		if (!req.url.startsWith(`${conf.get("base_url")}/api/room/`)) {
 			log.error("Rejecting connection because the connection url was invalid");
 			ws.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid connection url");
 			return;
@@ -66,7 +67,7 @@ export async function setup(): Promise<void> {
  * @param socket
  */
 async function onDirectConnect(socket: WebSocket, req: express.Request) {
-	const roomName = req.url.replace("/api/room/", "");
+	const roomName = req.url.split("/").slice(-1)[0];
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
 	const client = new DirectClient(roomName, socket);
 	connections.push(client);
