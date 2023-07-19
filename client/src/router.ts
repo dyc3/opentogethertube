@@ -35,6 +35,10 @@ export const routes: RouteRecordRaw[] = [
 		redirect: "/room/:roomId",
 	},
 	{
+		path: "/passwordreset",
+		component: () => import("./views/PasswordReset.vue"),
+	},
+	{
 		path: "/:catchAll(.*)",
 		name: "not-found",
 		component: () => import("./views/NotFound.vue"),
