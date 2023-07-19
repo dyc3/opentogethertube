@@ -6,7 +6,7 @@ import {
 	InvalidVideoIdException,
 	OutOfQuotaException,
 } from "../exceptions";
-import { Video } from "../../common/models/video";
+import { Video, VideoService } from "../../common/models/video";
 import { getLogger } from "../logger";
 
 const log = getLogger("googledrive");
@@ -53,7 +53,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 		this.apiKey = apiKey;
 	}
 
-	get serviceId(): "googledrive" {
+	get serviceId(): VideoService {
 		return "googledrive";
 	}
 

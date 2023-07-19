@@ -18,7 +18,7 @@ import {
 import { getLogger } from "./logger";
 import { redisClient } from "./redisclient";
 import { isSupportedMimeType } from "./mime";
-import { Video, VideoId, VideoMetadata } from "../common/models/video";
+import { Video, VideoId, VideoMetadata, VideoService } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
 import { OttException } from "../common/exceptions";
 import TubiAdapter from "./services/tubi";
@@ -70,7 +70,7 @@ export default {
 	 * video object.
 	 */
 	async getCachedVideo(
-		service: string,
+		service: VideoService,
 		videoId: string
 	): Promise<[Video, (keyof VideoMetadata)[]]> {
 		try {
@@ -143,7 +143,7 @@ export default {
 	 * Returns metadata for a single video. Uses cached info if possible and writes newly fetched info
 	 * to the cache.
 	 */
-	async getVideoInfo(service: string, videoId: string): Promise<Video> {
+	async getVideoInfo(service: VideoService, videoId: string): Promise<Video> {
 		counterMethodsInvoked.labels({ method: "getVideoInfo" }).inc();
 
 		const adapter = this.getServiceAdapter(service);

@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { CachedVideo as DbCachedVideo } from "../models";
 import Sequelize from "sequelize";
-import type { Video, VideoMetadata } from "../../common/models/video";
+import type { Video, VideoMetadata, VideoService } from "../../common/models/video";
 import { getLogger } from "../logger";
 import _ from "lodash";
 import { CachedVideoCreationAttributes, CachedVideo } from "../models/cachedvideo";
@@ -15,7 +15,7 @@ const log = getLogger("storage/cachedvideo");
  * @param id The id of the video on the given service.
  * @return Video object, but it may contain missing properties.
  */
-export async function getVideoInfo(service: string, id: string): Promise<Video> {
+export async function getVideoInfo(service: VideoService, id: string): Promise<Video> {
 	try {
 		const cachedVideo = await DbCachedVideo.findOne({
 			where: { service: service, serviceId: id },

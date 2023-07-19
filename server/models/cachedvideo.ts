@@ -1,8 +1,10 @@
+import { ALL_VIDEO_SERVICES } from "../../common/constants";
+import { VideoService } from "../../common/models/video";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 
 interface CachedVideoAttributes {
 	id: number;
-	service: string;
+	service: VideoService;
 	serviceId: string;
 	title?: string;
 	description?: string;
@@ -20,7 +22,7 @@ export class CachedVideo
 	declare id: number;
 	public declare readonly createdAt: Date;
 	public declare readonly updatedAt: Date;
-	declare service: string;
+	declare service: VideoService;
 	declare serviceId: string;
 	declare title?: string;
 	declare description?: string;
@@ -40,6 +42,9 @@ export const createModel = (sequelize: Sequelize) => {
 			service: {
 				type: DataTypes.STRING,
 				allowNull: false,
+				validate: {
+					isIn: [ALL_VIDEO_SERVICES],
+				},
 			},
 			serviceId: {
 				type: DataTypes.STRING,
