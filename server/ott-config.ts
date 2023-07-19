@@ -357,6 +357,45 @@ export const conf = convict({
 			},
 		},
 	},
+	mail: {
+		enabled: {
+			doc: "Whether to enable sending emails.",
+			format: Boolean,
+			default: false,
+		},
+		mailjet_api_key: {
+			doc: "Mailjet API key.",
+			format: String,
+			env: "MAILJET_API_KEY",
+			default: null as string | null,
+			nullable: true,
+			sensitive: true,
+		},
+		mailjet_api_secret: {
+			doc: "Mailjet API secret.",
+			format: String,
+			env: "MAILJET_API_SECRET",
+			default: null as string | null,
+			nullable: true,
+			sensitive: true,
+		},
+		sender_email: {
+			doc: "Email address to send emails from.",
+			format: String,
+			default: null as string | null,
+			nullable: true,
+		},
+		sender_name: {
+			doc: "Display name to send emails as.",
+			format: String,
+			default: "OpenTogetherTube",
+		},
+		mailjet_sandbox: {
+			doc: "Whether to use Mailjet's sandbox mode. This will prevent emails from being sent, but will still validate the request.",
+			format: Boolean,
+			default: false,
+		},
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {
@@ -437,6 +476,11 @@ function postProcessConfig(): void {
 		if (!ALL_VIDEO_SERVICES.includes(service)) {
 			log.warn(`Unknown video service ${service} found in config. Ignoring.`);
 		}
+	}
+
+	const sender = conf.get("mail.sender_email");
+	if (sender && !validator.isEmail(sender)) {
+		log.error(`Invalid email address ${sender} found in config.`);
 	}
 }
 
