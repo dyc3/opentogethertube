@@ -101,8 +101,4 @@ export default ProcessedText;
 
 <style lang="scss" scoped>
 @import "../variables.scss";
-
-.link {
-	text-decoration: underline;
-}
 </style>

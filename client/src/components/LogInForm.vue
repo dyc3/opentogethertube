@@ -53,6 +53,7 @@
 													:error-messages="logInFailureMessage"
 													data-cy="login-password"
 												/>
+												<ForgotPassword />
 											</v-col>
 										</v-row>
 										<v-row v-if="logInFailureMessage">
@@ -144,8 +145,9 @@
 								@click.prevent="register"
 								:disabled="!registerValid"
 								data-cy="register-button"
-								>{{ $t("login-form.register") }}</v-btn
 							>
+								{{ $t("login-form.register") }}
+							</v-btn>
 						</v-card-actions>
 					</v-form>
 				</v-card>
@@ -163,10 +165,14 @@ import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 import { goLoginDiscord } from "@/util/discord";
+import ForgotPassword from "./ForgotPassword.vue";
 
 const LogInForm = defineComponent({
 	name: "LogInForm",
 	emits: ["shouldClose"],
+	components: {
+		ForgotPassword,
+	},
 	setup(props, { emit }) {
 		const store = useStore();
 		const { t } = useI18n();
