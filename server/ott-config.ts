@@ -4,8 +4,7 @@ import validator from "validator";
 import convict from "convict";
 import toml from "toml";
 import type winston from "winston";
-import { VideoService } from "common/models/video";
-import { ALL_VIDEO_SERVICES } from "common/constants";
+import { ALL_VIDEO_SERVICES } from "../common/constants";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 

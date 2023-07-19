@@ -1,7 +1,7 @@
 import { Mutex } from "@divine/synchronization";
 
 import { Dirtyable } from "./util";
-import { QueueItem, Video, VideoId } from "common/models/video";
+import { QueueItem, Video, VideoId } from "../common/models/video";
 import _ from "lodash";
 import { VideoNotFoundException } from "./exceptions";
 

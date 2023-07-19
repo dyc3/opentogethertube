@@ -15,7 +15,7 @@ import {
 } from "../../common/models/messages";
 import storage from "../storage";
 import { Grants } from "../../common/permissions";
-import { Video } from "common/models/video.js";
+import { Video } from "../../common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import {
 	OttApiRequestAddToQueue,
