@@ -7,6 +7,7 @@ import { ServiceAdapter } from "../../serviceadapter";
 import { buildClients, redisClient } from "../../redisclient";
 import _ from "lodash";
 import { loadModels } from "../../models";
+import { loadConfigFile, conf } from "../../ott-config";
 
 class TestAdapter extends ServiceAdapter {
 	get serviceId() {
@@ -16,9 +17,11 @@ class TestAdapter extends ServiceAdapter {
 
 describe("InfoExtractor", () => {
 	beforeAll(async () => {
+		loadConfigFile();
+		conf.set("info_extractor.youtube.api_key", "fake");
 		loadModels();
 		await buildClients();
-		initExtractor();
+		await initExtractor();
 	});
 
 	describe("isURL", () => {
