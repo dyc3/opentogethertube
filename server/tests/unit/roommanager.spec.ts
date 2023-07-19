@@ -73,11 +73,11 @@ describe("Room manager", () => {
 			room.userRoles.get(Role.Moderator)?.add(87).add(23);
 			room.userRoles.get(Role.Administrator)?.add(9);
 			room.grants.setRoleGrants(Role.UnregisteredUser, 1234);
-			room.currentSource = { service: "fake", id: "video" };
+			room.currentSource = { service: "direct", id: "video" };
 			room.queue = new VideoQueue([
-				{ service: "fake", id: "video2" },
-				{ service: "fake", id: "video3" },
-				{ service: "fake", id: "video4" },
+				{ service: "direct", id: "video2" },
+				{ service: "direct", id: "video3" },
+				{ service: "direct", id: "video4" },
 			]);
 			room.isPlaying = true;
 			room._playbackStart = dayjs().subtract(10, "second");

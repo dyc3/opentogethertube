@@ -3,7 +3,7 @@ import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models";
 import storage from "../../storage";
 import permissions, { Grants } from "../../../common/permissions";
 import { Visibility, QueueMode } from "../../../common/models/types";
-import { Video } from "../../../common/models/video";
+import { Video, VideoId } from "../../../common/models/video";
 import { Room } from "../../room";
 import { roomToDb, roomToDbPartial } from "../../storage/room";
 import { buildClients } from "../../redisclient";
@@ -284,29 +284,29 @@ describe("Storage: CachedVideos Spec", () => {
 	});
 
 	it("should create or update multiple videos without failing", async () => {
-		const videos = [
+		const videos: Video[] = [
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc123",
 				title: "test video 1",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc456",
 				title: "test video 2",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc789",
 				title: "test video 3",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def123",
 				title: "test video 4",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def456",
 				title: "test video 5",
 			},
@@ -315,29 +315,29 @@ describe("Storage: CachedVideos Spec", () => {
 	});
 
 	it("should get multiple videos without failing", async () => {
-		const videos = [
+		const videos: Video[] = [
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc123",
 				title: "test video 1",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc456",
 				title: "test video 2",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc789",
 				title: "test video 3",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def123",
 				title: "test video 4",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def456",
 				title: "test video 5",
 			},
@@ -355,28 +355,28 @@ describe("Storage: CachedVideos Spec", () => {
 	});
 
 	it("should return the same number of videos as requested even when some are not in the database", async () => {
-		const videos = [
+		const videos: Video[] = [
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc123",
 				title: "test video 1",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc456",
 				title: "test video 2",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc789",
 				title: "test video 3",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def123",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def456",
 			},
 		];
@@ -408,59 +408,60 @@ describe("Storage: CachedVideos: bulk inserts/updates", () => {
 		// setup
 		const existingVideos = [
 			{
-				service: "fakeservice",
+				service: "direct",
 				serviceId: "abc123",
 				title: "existing video 1",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				serviceId: "abc456",
 				title: "existing video 2",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				serviceId: "abc789",
 				title: "existing video 3",
 			},
 		];
 		for (const video of existingVideos) {
+			// @ts-expect-error it's complaining about the type of `service`, but it's valid
 			await CachedVideo.create(video);
 		}
 
 		// test
-		const videos = [
+		const videos: Video[] = [
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc123",
 				title: "test video 1",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc456",
 				title: "test video 2",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "abc789",
 				title: "test video 3",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def123",
 				title: "test video 4",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "def456",
 				title: "test video 5",
 			},
 		];
 		await storage.updateManyVideoInfo(videos);
 
-		expect(await storage.getVideoInfo("fakeservice", "abc123")).toEqual(videos[0]);
-		expect(await storage.getVideoInfo("fakeservice", "abc456")).toEqual(videos[1]);
-		expect(await storage.getVideoInfo("fakeservice", "abc789")).toEqual(videos[2]);
-		expect(await storage.getVideoInfo("fakeservice", "def123")).toEqual(videos[3]);
-		expect(await storage.getVideoInfo("fakeservice", "def456")).toEqual(videos[4]);
+		expect(await storage.getVideoInfo("direct", "abc123")).toEqual(videos[0]);
+		expect(await storage.getVideoInfo("direct", "abc456")).toEqual(videos[1]);
+		expect(await storage.getVideoInfo("direct", "abc789")).toEqual(videos[2]);
+		expect(await storage.getVideoInfo("direct", "def123")).toEqual(videos[3]);
+		expect(await storage.getVideoInfo("direct", "def456")).toEqual(videos[4]);
 	});
 });

@@ -64,7 +64,7 @@ describe("InfoExtractor", () => {
 
 	describe("searchVideos", () => {
 		const vid = {
-			service: "fakeservice",
+			service: "direct",
 			id: "asdf1234",
 			title: "asdf",
 			description: "desc",
@@ -104,7 +104,7 @@ describe("InfoExtractor", () => {
 				.mockResolvedValue(null);
 			let searchSpy = jest.spyOn(adapter, "searchVideos").mockResolvedValue([
 				{
-					service: "fakeservice",
+					service: "direct",
 					id: "asdf1234",
 				},
 			]);
@@ -154,7 +154,7 @@ describe("InfoExtractor", () => {
 		});
 
 		let vid = {
-			service: "fakeservice",
+			service: "direct",
 			id: "asdf",
 			title: "title",
 			description: "desc",
@@ -268,7 +268,7 @@ describe("InfoExtractor", () => {
 
 		const vids = [
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "asdf",
 				title: "title",
 				description: "desc",
@@ -277,7 +277,7 @@ describe("InfoExtractor", () => {
 				mime: "asdf",
 			},
 			{
-				service: "fakeservice",
+				service: "direct",
 				id: "jklp",
 				title: "title",
 				description: "desc",
