@@ -4,7 +4,7 @@ import { RoomRequestType } from "../../../common/models/messages";
 import { BehaviorOption, QueueMode, Role } from "../../../common/models/types";
 import { Room, RoomUser } from "../../room";
 import infoextractor from "../../infoextractor";
-import { Video } from "../../../common/models/video";
+import { Video, VideoId } from "../../../common/models/video";
 import permissions from "../../../common/permissions";
 import _ from "lodash";
 import { VideoQueue } from "../../videoqueue";
@@ -92,7 +92,7 @@ describe("Room", () => {
 		describe("SkipRequest", () => {
 			beforeEach(() => {
 				room.currentSource = {
-					service: "test",
+					service: "direct",
 					id: "video",
 				};
 			});
@@ -110,7 +110,7 @@ describe("Room", () => {
 			it("skip with non-empty queue", async () => {
 				room.queue = new VideoQueue([
 					{
-						service: "test",
+						service: "direct",
 						id: "video2",
 					},
 				]);
@@ -121,7 +121,7 @@ describe("Room", () => {
 					{ token: user.token }
 				);
 				expect(room.currentSource).toEqual({
-					service: "test",
+					service: "direct",
 					id: "video2",
 				});
 			});
@@ -155,7 +155,7 @@ describe("Room", () => {
 
 		describe("PlayNowRequest", () => {
 			const videoToPlay: Video = {
-				service: "test",
+				service: "direct",
 				id: "video",
 				title: "play me now",
 				description: "test",
@@ -178,7 +178,7 @@ describe("Room", () => {
 			it("should remove the video from the queue", async () => {
 				jest.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 				room.currentSource = {
-					service: "test",
+					service: "direct",
 					id: "asdf123",
 				};
 				room.queue = new VideoQueue([videoToPlay]);
@@ -198,7 +198,7 @@ describe("Room", () => {
 			it("should push the currently playing video into the queue", async () => {
 				jest.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 				room.currentSource = {
-					service: "test",
+					service: "direct",
 					id: "asdf123",
 				};
 				room.queue = new VideoQueue([videoToPlay]);
@@ -210,7 +210,7 @@ describe("Room", () => {
 					{ token: user.token }
 				);
 				expect(_.pick(room.queue.items[0], "service", "id")).toEqual({
-					service: "test",
+					service: "direct",
 					id: "asdf123",
 				});
 				for (const video of room.queue.items) {
@@ -222,7 +222,7 @@ describe("Room", () => {
 			it("should reset playback position to 0", async () => {
 				jest.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 				room.currentSource = {
-					service: "test",
+					service: "direct",
 					id: "asdf123",
 				};
 				room.playbackPosition = 10;
@@ -244,12 +244,12 @@ describe("Room", () => {
 				await room.processRequest(
 					{
 						type: RoomRequestType.VoteRequest,
-						video: { service: "fakeservice", id: "abc123" },
+						video: { service: "direct", id: "abc123" },
 						add: true,
 					},
 					{ username: "test", role: Role.Owner, clientId: "1234" }
 				);
-				expect(Array.from(room.votes.get("fakeserviceabc123")!)).toEqual(["1234"]);
+				expect(Array.from(room.votes.get("directabc123")!)).toEqual(["1234"]);
 			});
 		});
 
@@ -258,11 +258,11 @@ describe("Room", () => {
 
 			beforeEach(() => {
 				room.queue = new VideoQueue([
-					{ service: "fakeservice", id: "video1" },
-					{ service: "fakeservice", id: "video2" },
-					{ service: "fakeservice", id: "video3" },
-					{ service: "fakeservice", id: "video4" },
-					{ service: "fakeservice", id: "video5" },
+					{ service: "direct", id: "video1" },
+					{ service: "direct", id: "video2" },
+					{ service: "direct", id: "video3" },
+					{ service: "direct", id: "video4" },
+					{ service: "direct", id: "video5" },
 				]);
 				shuffleSpy = jest.spyOn(_, "shuffle");
 			});
@@ -307,12 +307,12 @@ describe("Room", () => {
 
 		describe("RestoreQueueRequest", () => {
 			it("should restore the queue", async () => {
-				const prevQueue = [
-					{ service: "fakeservice", id: "video1" },
-					{ service: "fakeservice", id: "video2" },
-					{ service: "fakeservice", id: "video3" },
-					{ service: "fakeservice", id: "video4" },
-					{ service: "fakeservice", id: "video5" },
+				const prevQueue: VideoId[] = [
+					{ service: "direct", id: "video1" },
+					{ service: "direct", id: "video2" },
+					{ service: "direct", id: "video3" },
+					{ service: "direct", id: "video4" },
+					{ service: "direct", id: "video5" },
 				];
 				room.prevQueue = _.cloneDeep(prevQueue);
 				await room.processRequest(
@@ -327,11 +327,11 @@ describe("Room", () => {
 
 			it("should discard the queue", async () => {
 				room.prevQueue = [
-					{ service: "fakeservice", id: "video1" },
-					{ service: "fakeservice", id: "video2" },
-					{ service: "fakeservice", id: "video3" },
-					{ service: "fakeservice", id: "video4" },
-					{ service: "fakeservice", id: "video5" },
+					{ service: "direct", id: "video1" },
+					{ service: "direct", id: "video2" },
+					{ service: "direct", id: "video3" },
+					{ service: "direct", id: "video4" },
+					{ service: "direct", id: "video5" },
 				];
 				await room.processRequest(
 					{
@@ -353,12 +353,12 @@ describe("Room", () => {
 		beforeEach(() => {
 			room = new Room({ name: "test" });
 			room.currentSource = {
-				service: "test",
+				service: "direct",
 				id: "video",
 			};
 			room.queue = new VideoQueue([
 				{
-					service: "test",
+					service: "direct",
 					id: "video2",
 				},
 			]);
@@ -370,7 +370,7 @@ describe("Room", () => {
 				room.queueMode = mode;
 				await room.dequeueNext();
 				expect(room.currentSource).toEqual({
-					service: "test",
+					service: "direct",
 					id: "video2",
 				});
 				expect(room.queue).toHaveLength(0);
@@ -381,12 +381,12 @@ describe("Room", () => {
 			room.queueMode = mode;
 			await room.dequeueNext();
 			expect(room.currentSource).toEqual({
-				service: "test",
+				service: "direct",
 				id: "video2",
 			});
 			expect(room.queue).toHaveLength(1);
 			expect(room.queue.items[0]).toEqual({
-				service: "test",
+				service: "direct",
 				id: "video",
 			});
 		});
@@ -396,13 +396,13 @@ describe("Room", () => {
 			room.playbackPosition = 10;
 			await room.dequeueNext();
 			expect(room.currentSource).toEqual({
-				service: "test",
+				service: "direct",
 				id: "video",
 			});
 			expect(room.playbackPosition).toEqual(0);
 			expect(room.queue).toHaveLength(1);
 			expect(room.queue.items[0]).toEqual({
-				service: "test",
+				service: "direct",
 				id: "video2",
 			});
 		});
@@ -415,7 +415,7 @@ describe("Room", () => {
 				expect(room.queue).toHaveLength(0);
 				await room.dequeueNext();
 				expect(room.currentSource).toEqual({
-					service: "test",
+					service: "direct",
 					id: "video",
 				});
 				expect(room.queue).toHaveLength(0);
@@ -444,18 +444,18 @@ describe("Room", () => {
 		it("should always restore the queue when behavior is always", async () => {
 			const room = new Room({
 				name: "test",
-				prevQueue: [{ service: "fakeservice", id: "foo" }],
+				prevQueue: [{ service: "direct", id: "foo" }],
 				restoreQueueBehavior: BehaviorOption.Always,
 			});
 
-			expect(room.queue.items).toEqual([{ service: "fakeservice", id: "foo" }]);
+			expect(room.queue.items).toEqual([{ service: "direct", id: "foo" }]);
 			expect(room.prevQueue).toBeNull();
 		});
 
 		it("should never restore the queue when behavior is never", async () => {
 			const room = new Room({
 				name: "test",
-				prevQueue: [{ service: "fakeservice", id: "foo" }],
+				prevQueue: [{ service: "direct", id: "foo" }],
 				restoreQueueBehavior: BehaviorOption.Never,
 			});
 
@@ -467,12 +467,12 @@ describe("Room", () => {
 			const room = new Room({
 				name: "test",
 				// @ts-expect-error testing restoring from redis
-				queue: [{ service: "fakeservice", id: "bar" }],
-				prevQueue: [{ service: "fakeservice", id: "foo" }],
+				queue: [{ service: "direct", id: "bar" }],
+				prevQueue: [{ service: "direct", id: "foo" }],
 				restoreQueueBehavior: BehaviorOption.Always,
 			});
 
-			expect(room.queue.items).toEqual([{ service: "fakeservice", id: "bar" }]);
+			expect(room.queue.items).toEqual([{ service: "direct", id: "bar" }]);
 		});
 	});
 
@@ -482,7 +482,7 @@ describe("Room", () => {
 				name: "test",
 				enableVoteSkip: true,
 			});
-			room.currentSource = { service: "fakeservice", id: "foo" };
+			room.currentSource = { service: "direct", id: "foo" };
 			room.realusers = [
 				new RoomUser("user", "a"),
 				new RoomUser("user2", "b"),
@@ -500,7 +500,7 @@ describe("Room", () => {
 				}
 			);
 
-			expect(room.currentSource).toEqual({ service: "fakeservice", id: "foo" });
+			expect(room.currentSource).toEqual({ service: "direct", id: "foo" });
 			expect(room.votesToSkip.has("user")).toEqual(true);
 		});
 
@@ -509,7 +509,7 @@ describe("Room", () => {
 				name: "test",
 				enableVoteSkip: true,
 			});
-			room.currentSource = { service: "fakeservice", id: "foo" };
+			room.currentSource = { service: "direct", id: "foo" };
 			room.realusers = [
 				new RoomUser("user", "a"),
 				new RoomUser("user2", "b"),

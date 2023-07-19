@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { conf } from "../ott-config";
-import { Video } from "ott-common/models/video";
+import { Video, VideoMetadata, VideoService } from "../../common/models/video";
 import { InvalidVideoIdException } from "../exceptions";
 
 interface PeertubeApiVideo {
@@ -33,7 +33,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 
 	allowedHosts: string[] = [];
 
-	get serviceId(): "peertube" {
+	get serviceId(): VideoService {
 		return "peertube";
 	}
 
@@ -59,7 +59,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 		return `${url.host}:${url.pathname.split("/").slice(-1)[0].trim()}`;
 	}
 
-	async fetchVideoInfo(videoId: string): Promise<Video> {
+	async fetchVideoInfo(videoId: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		if (!videoId.includes(":")) {
 			throw new InvalidVideoIdException(this.serviceId, videoId);
 		}

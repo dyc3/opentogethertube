@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
-import { Video, VideoId, VideoMetadata } from "../common/models/video";
+import { Video, VideoId, VideoMetadata, VideoService } from "../common/models/video";
 import { IncompleteServiceAdapterException } from "./exceptions";
 import { getLogger } from "./logger";
 
@@ -14,7 +14,7 @@ export class ServiceAdapter {
 	/**
 	 * A string that identifies this service adapter.
 	 */
-	get serviceId(): string {
+	get serviceId(): VideoService {
 		throw new IncompleteServiceAdapterException(
 			`Service adapter ${this.constructor.name} does not have a serviceId property`
 		);

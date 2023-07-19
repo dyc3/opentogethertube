@@ -18,7 +18,7 @@ import {
 import { getLogger } from "./logger";
 import { redisClient } from "./redisclient";
 import { isSupportedMimeType } from "./mime";
-import { Video, VideoId, VideoMetadata } from "../common/models/video";
+import { Video, VideoId, VideoMetadata, VideoService } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
 import { OttException } from "../common/exceptions";
 import TubiAdapter from "./services/tubi";
@@ -38,19 +38,49 @@ function mergeVideo(a: Video, b: Video): Video {
 	);
 }
 
-let adapters: ServiceAdapter[] = [];
+const adapters: ServiceAdapter[] = [];
 export async function initExtractor() {
-	adapters = [
-		new DailyMotionAdapter(),
-		new GoogleDriveAdapter(conf.get("info_extractor.google_drive.api_key") ?? ""),
-		new VimeoAdapter(),
-		new YouTubeAdapter(conf.get("info_extractor.youtube.api_key"), redisClient),
-		new DirectVideoAdapter(),
-		new HlsVideoAdapter(),
-		new RedditAdapter(),
-		new TubiAdapter(),
-		new PeertubeAdapter(),
-	];
+	const enabled = conf.get("info_extractor.services");
+	log.info(`Enabled video services: ${enabled.join(", ")}`);
+
+	if (enabled.includes("youtube")) {
+		const apiKey = conf.get("info_extractor.youtube.api_key");
+		if (!apiKey) {
+			log.warn("YouTube API key is not set, disabling YouTube service");
+		} else {
+			adapters.push(new YouTubeAdapter(apiKey, redisClient));
+		}
+	}
+
+	if (enabled.includes("vimeo")) {
+		adapters.push(new VimeoAdapter());
+	}
+	if (enabled.includes("dailymotion")) {
+		adapters.push(new DailyMotionAdapter());
+	}
+	if (enabled.includes("googledrive")) {
+		const apiKey = conf.get("info_extractor.google_drive.api_key");
+		if (!apiKey) {
+			log.warn("Google Drive API key is not set, disabling Google Drive service");
+		} else {
+			adapters.push(new GoogleDriveAdapter(apiKey));
+		}
+	}
+	if (enabled.includes("reddit")) {
+		adapters.push(new RedditAdapter());
+	}
+	if (enabled.includes("tubi")) {
+		adapters.push(new TubiAdapter());
+	}
+	if (enabled.includes("peertube")) {
+		adapters.push(new PeertubeAdapter());
+	}
+	if (enabled.includes("direct")) {
+		adapters.push(new DirectVideoAdapter());
+	}
+	if (enabled.includes("hls")) {
+		adapters.push(new HlsVideoAdapter());
+	}
 
 	await Promise.all(adapters.map(adapter => adapter.initialize()));
 }
@@ -70,7 +100,7 @@ export default {
 	 * video object.
 	 */
 	async getCachedVideo(
-		service: string,
+		service: VideoService,
 		videoId: string
 	): Promise<[Video, (keyof VideoMetadata)[]]> {
 		try {
@@ -143,7 +173,7 @@ export default {
 	 * Returns metadata for a single video. Uses cached info if possible and writes newly fetched info
 	 * to the cache.
 	 */
-	async getVideoInfo(service: string, videoId: string): Promise<Video> {
+	async getVideoInfo(service: VideoService, videoId: string): Promise<Video> {
 		counterMethodsInvoked.labels({ method: "getVideoInfo" }).inc();
 
 		const adapter = this.getServiceAdapter(service);

@@ -1,5 +1,5 @@
 import { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "../common/models/types";
-import type { ClientMessage, ServerMessage } from "ott-common/models/messages";
+import type { ClientMessage, ServerMessage } from "../common/models/messages";
 import WebSocket from "ws";
 import { SessionInfo, setSessionInfo } from "./auth/tokens";
 import { v4 as uuidv4 } from "uuid";

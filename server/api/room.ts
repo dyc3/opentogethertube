@@ -7,10 +7,15 @@ import { BadApiArgumentException } from "../exceptions";
 import { OttException } from "../../common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
-import { ApplySettingsRequest, RoomRequestType, UndoRequest } from "../../common/models/messages";
+import {
+	ApplySettingsRequest,
+	RoomRequestType,
+	UndoRequest,
+	AddRequest,
+} from "../../common/models/messages";
 import storage from "../storage";
 import { Grants } from "../../common/permissions";
-import { Video } from "common/models/video.js";
+import { Video } from "../../common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import {
 	OttApiRequestAddToQueue,
@@ -22,7 +27,6 @@ import {
 	OttResponseBody,
 } from "../../common/models/rest-api";
 import { getApiKey } from "../admin";
-import { AddRequest } from "ott-common/models/messages";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 
