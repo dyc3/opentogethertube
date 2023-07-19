@@ -19,20 +19,21 @@ import {
 	InvalidVerifyKey,
 	LengthOutOfRangeException,
 	NoEmail,
+	UserNotFound,
 } from "./exceptions";
 import { conf } from "./ott-config";
 import { AuthToken } from "ott-common/models/types";
 import { EventEmitter } from "events";
 import { Sequelize, UniqueConstraintError } from "sequelize";
-import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer.js";
-import { Result, err } from "../common/result.js";
+import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer";
+import { Result, err } from "../common/result";
 import type {
 	OttApiRequestAccountRecoveryStart,
 	OttApiRequestAccountRecoveryVerify,
 	OttResponseBody,
-} from "../common/models/rest-api.js";
-import { counterHttpErrors } from "./metrics.js";
-import { OttException } from "../common/exceptions.js";
+} from "../common/models/rest-api";
+import { counterHttpErrors } from "./metrics";
+import { OttException } from "../common/exceptions";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -52,7 +53,7 @@ let maxWrongAttemptsByIPperDay;
 let maxConsecutiveFailsByUsernameAndIP;
 let limiterSlowBruteByIP: RateLimiterAbstract;
 let limiterConsecutiveFailsByUsernameAndIP: RateLimiterAbstract;
-let mailer: Mailer;
+export let mailer: Mailer = new MockMailer();
 
 export function setup() {
 	log.debug("Setting up user manager");
@@ -692,7 +693,7 @@ async function getUser(options: { user?: string; id?: number; discordId?: string
 	let user = await UserModel.findOne({ where });
 	if (!user) {
 		log.error("User not found");
-		throw new Error("User not found");
+		throw new UserNotFound();
 	}
 	return user;
 }
@@ -747,15 +748,11 @@ const accountRecoveryStart: RequestHandler<
 	};
 	const user = await getUser(query);
 
-	if (!user) {
-		throw new OttException("User not found.");
-	}
-
 	if (!user.email) {
 		throw new NoEmail();
 	}
 
-	await sendPasswordResetEmail(user.email);
+	(await sendPasswordResetEmail(user.email)).unwrap();
 
 	res.json({
 		success: true,
@@ -789,7 +786,7 @@ const accountRecoveryVerify: RequestHandler<
 
 	const user = await UserModel.findOne({ where: { email: accountEmail } });
 	if (!user) {
-		throw new Error("User not found.");
+		throw new UserNotFound();
 	}
 
 	await changeUserPassword(user, req.body.newPassword, {
@@ -916,6 +913,7 @@ if (conf.get("env") === "test") {
 
 export default {
 	router,
+	mailer,
 	setup,
 	on,
 	off,

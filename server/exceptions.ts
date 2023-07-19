@@ -215,3 +215,10 @@ export class InvalidVerifyKey extends OttException {
 		this.name = "InvalidVerifyKey";
 	}
 }
+
+export class UserNotFound extends OttException {
+	constructor() {
+		super("User not found");
+		this.name = "UserNotFound";
+	}
+}
