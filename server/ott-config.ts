@@ -4,6 +4,8 @@ import validator from "validator";
 import convict from "convict";
 import toml from "toml";
 import type winston from "winston";
+import { VideoService } from "common/models/video";
+import { ALL_VIDEO_SERVICES } from "common/constants";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
@@ -218,6 +220,11 @@ export const conf = convict({
 		},
 	},
 	info_extractor: {
+		services: {
+			doc: "An allowlist of enabled video services. By default, all services are enabled.",
+			format: Array,
+			default: ALL_VIDEO_SERVICES,
+		},
 		youtube: {
 			api_key: {
 				default: "",
@@ -425,6 +432,12 @@ function postProcessConfig(): void {
 
 	if (conf.get("env") === "test") {
 		conf.set("session_secret", "test");
+	}
+
+	for (const service of conf.get("info_extractor.services")) {
+		if (!ALL_VIDEO_SERVICES.includes(service)) {
+			log.warn(`Unknown video service ${service} found in config. Ignoring.`);
+		}
 	}
 }
 
