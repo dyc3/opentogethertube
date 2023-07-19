@@ -478,9 +478,28 @@ function postProcessConfig(): void {
 		}
 	}
 
+	if (conf.get("mail.enabled")) {
+		validateMail();
+	}
+}
+
+function validateMail() {
 	const sender = conf.get("mail.sender_email");
 	if (sender && !validator.isEmail(sender)) {
-		log.error(`Invalid email address ${sender} found in config.`);
+		log.error(`Invalid email address ${sender} found in config, disabling mail.`);
+		conf.set("mail.enabled", false);
+		return;
+	}
+
+	if (!conf.get("mail.mailjet_api_key") || !conf.get("mail.mailjet_api_secret")) {
+		log.error("Mailjet API key and secret are required to send mail, disabling mail.");
+		conf.set("mail.enabled", false);
+		return;
+	}
+
+	if (conf.get("env") === "test") {
+		log.warn("Mail is enabled in test mode. Forcing sandbox mode.");
+		conf.set("mail.mailjet_sandbox", true);
 	}
 }
 
