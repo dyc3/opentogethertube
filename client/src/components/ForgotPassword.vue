@@ -56,6 +56,8 @@ const username = ref("");
 const showForgotPassword = ref(false);
 const isLoading = ref(false);
 
+const emit = defineEmits(["password-reset"]);
+
 async function startPasswordReset() {
 	isLoading.value = true;
 	try {
@@ -72,11 +74,14 @@ async function startPasswordReset() {
 			toast.add({
 				style: ToastStyle.Success,
 				content: i18n.t("login-form.change-password.sent"),
+				duration: 5000,
 			});
+			emit("password-reset");
 		} else {
 			toast.add({
 				style: ToastStyle.Error,
 				content: i18n.t("login-form.change-password.failed"),
+				duration: 5000,
 			});
 		}
 	} catch (e) {

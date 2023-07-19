@@ -53,7 +53,9 @@
 													:error-messages="logInFailureMessage"
 													data-cy="login-password"
 												/>
-												<ForgotPassword />
+												<ForgotPassword
+													@password-reset="$emit('shouldClose')"
+												/>
 											</v-col>
 										</v-row>
 										<v-row v-if="logInFailureMessage">
