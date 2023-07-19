@@ -1,6 +1,17 @@
 import { Role } from "./models/types";
 
-export class OttException extends Error {}
+export class OttException extends Error {
+	constructor(message?: string) {
+		super(message);
+	}
+
+	toJSON() {
+		return {
+			...this,
+			message: this.message,
+		};
+	}
+}
 
 export class PermissionDeniedException extends OttException {
 	name = "PermissionDeniedException";

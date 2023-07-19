@@ -43,7 +43,7 @@ export class MailjetMailer extends Mailer {
 			SandboxMode: conf.get("mail.mailjet_sandbox"),
 		});
 
-		const body = JSON.parse(resp.body.toString());
+		const body = typeof resp.body === "string" ? JSON.parse(resp.body) : resp.body;
 
 		if (body.Messages[0].Status !== "success") {
 			log.error(`Failed to send email: ${JSON.stringify(body)}`);
@@ -67,6 +67,7 @@ export class MockMailer extends Mailer {
 	}
 }
 
+// Intentionally does not extend OttException so it gets logged
 export class MailerError extends Error {
 	constructor(message: string) {
 		super(message);

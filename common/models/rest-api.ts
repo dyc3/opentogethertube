@@ -72,3 +72,13 @@ export type OttApiRequestRemoveFromQueue = VideoId;
 export type OttApiResponseAddPreview = {
 	result: Video[];
 };
+
+export type OttApiRequestAccountRecoveryStart = {
+	email?: string;
+	username?: string;
+};
+
+export type OttApiRequestAccountRecoveryVerify = {
+	verifyKey: string;
+	newPassword: string;
+};
