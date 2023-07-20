@@ -2,6 +2,7 @@ import { Result, ok, err } from "../common/result";
 import Mailjet, { Client as MailjetClient } from "node-mailjet";
 import { conf } from "./ott-config";
 import { getLogger } from "./logger";
+import { Counter } from "prom-client";
 
 const log = getLogger("mailer");
 
@@ -48,9 +49,12 @@ export class MailjetMailer extends Mailer {
 		log.info(`Mailjet response: ${JSON.stringify(body)}`);
 
 		if (body.Messages[0].Status !== "success") {
+			counterEmailsFailed.inc();
 			log.error(`Failed to send email: ${JSON.stringify(body)}`);
 			return err(new MailerError("Failed to send email"));
 		}
+
+		counterEmailsSent.inc();
 
 		return ok(undefined);
 	}
@@ -76,3 +80,13 @@ export class MailerError extends Error {
 		this.name = "MailerError";
 	}
 }
+
+const counterEmailsSent = new Counter({
+	name: "ott_mailer_emails_sent",
+	help: "Number of emails sent",
+});
+
+const counterEmailsFailed = new Counter({
+	name: "ott_mailer_emails_failed",
+	help: "Number of emails failed to send",
+});
