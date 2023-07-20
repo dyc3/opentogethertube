@@ -244,6 +244,11 @@ export default App;
 <style lang="scss">
 @import "variables.scss";
 
+.link {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
 .link-invis {
 	text-decoration: none;
 	color: inherit !important;

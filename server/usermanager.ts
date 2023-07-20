@@ -1,23 +1,39 @@
 import { getLogger } from "./logger.js";
 import _ from "lodash";
 import securePassword from "secure-password";
-import express from "express";
+import express, { ErrorRequestHandler, RequestHandler } from "express";
 import passport from "passport";
 import crypto from "crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
 import { delPattern, redisClient } from "./redisclient";
 import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
-import { RateLimiterRedisv4, consumeRateLimitPoints } from "./rate-limit";
+import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit";
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import { USERNAME_LENGTH_MAX } from "../common/constants";
-import { LengthOutOfRangeException } from "./exceptions";
+import {
+	BadApiArgumentException,
+	FeatureDisabledException,
+	InvalidVerifyKey,
+	LengthOutOfRangeException,
+	NoEmail,
+	UserNotFound,
+} from "./exceptions";
 import { conf } from "./ott-config";
 import { AuthToken } from "ott-common/models/types";
 import { EventEmitter } from "events";
 import { Sequelize, UniqueConstraintError } from "sequelize";
+import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer";
+import { Result, err } from "../common/result";
+import type {
+	OttApiRequestAccountRecoveryStart,
+	OttApiRequestAccountRecoveryVerify,
+	OttResponseBody,
+} from "../common/models/rest-api";
+import { counterHttpErrors } from "./metrics";
+import { OttException } from "../common/exceptions";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -37,6 +53,7 @@ let maxWrongAttemptsByIPperDay;
 let maxConsecutiveFailsByUsernameAndIP;
 let limiterSlowBruteByIP: RateLimiterAbstract;
 let limiterConsecutiveFailsByUsernameAndIP: RateLimiterAbstract;
+export let mailer: Mailer = new MockMailer();
 
 export function setup() {
 	log.debug("Setting up user manager");
@@ -62,6 +79,17 @@ export function setup() {
 	};
 	limiterConsecutiveFailsByUsernameAndIP =
 		conf.get("env") === "test" ? new RateLimiterMemory(opts2) : new RateLimiterRedisv4(opts2);
+
+	if (conf.get("mail.enabled")) {
+		log.debug("Setting up mailer");
+		mailer =
+			conf.get("env") === "test"
+				? new MockMailer()
+				: new MailjetMailer(
+						conf.get("mail.mailjet_api_key"),
+						conf.get("mail.mailjet_api_secret")
+				  );
+	}
 }
 
 function on<E extends UserManagerEvents>(event: E, listener: UserManagerEventHandlers<E>) {
@@ -369,7 +397,7 @@ router.post("/register", async (req, res) => {
 	}
 });
 
-class BadPasswordError extends Error {
+class BadPasswordError extends OttException {
 	constructor() {
 		super(
 			"Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters."
@@ -378,14 +406,14 @@ class BadPasswordError extends Error {
 	}
 }
 
-class UsernameTakenError extends Error {
+class UsernameTakenError extends OttException {
 	constructor() {
 		super("Username taken.");
 		this.name = "UsernameTakenError";
 	}
 }
 
-class EmailAlreadyInUseError extends Error {
+class EmailAlreadyInUseError extends OttException {
 	constructor() {
 		super("Email taken.");
 		this.name = "EmailAlreadyInUseError";
@@ -665,7 +693,7 @@ async function getUser(options: { user?: string; id?: number; discordId?: string
 	let user = await UserModel.findOne({ where });
 	if (!user) {
 		log.error("User not found");
-		throw new Error("User not found");
+		throw new UserNotFound();
 	}
 	return user;
 }
@@ -699,6 +727,171 @@ async function isEmailTaken(email: string): Promise<boolean> {
 		.then(room => (room ? true : false))
 		.catch(() => false);
 }
+const accountRecoveryStart: RequestHandler<
+	unknown,
+	OttResponseBody<{}>,
+	OttApiRequestAccountRecoveryStart
+> = async (req, res) => {
+	if (conf.get("rate_limit.enabled")) {
+		await consumeRateLimitPoints(res, req.ip, 100);
+	}
+
+	if (!("email" in req.body) && !("username" in req.body)) {
+		throw new BadApiArgumentException(
+			"email,username",
+			"Either email or username is required."
+		);
+	}
+
+	const query = {
+		user: req.body.email ?? req.body.username,
+	};
+	const user = await getUser(query);
+
+	if (!user.email) {
+		throw new NoEmail();
+	}
+
+	(await sendPasswordResetEmail(user.email)).unwrap();
+
+	res.json({
+		success: true,
+	});
+};
+
+const accountRecoveryVerify: RequestHandler<
+	unknown,
+	OttResponseBody<{}>,
+	OttApiRequestAccountRecoveryVerify
+> = async (req, res) => {
+	if (!("verifyKey" in req.body)) {
+		throw new BadApiArgumentException("verifyKey", "missing");
+	}
+	if (!("newPassword" in req.body)) {
+		throw new BadApiArgumentException("newPassword", "missing");
+	}
+
+	if (conf.get("rate_limit.enabled")) {
+		await consumeRateLimitPoints(res, req.ip, 10);
+	}
+
+	if (!isPasswordValid(req.body.newPassword)) {
+		throw new BadPasswordError();
+	}
+
+	const accountEmail = await redisClient.get(`accountrecovery:${req.body.verifyKey}`);
+	if (!accountEmail) {
+		throw new InvalidVerifyKey();
+	}
+
+	const user = await UserModel.findOne({ where: { email: accountEmail } });
+	if (!user) {
+		throw new UserNotFound();
+	}
+
+	await changeUserPassword(user, req.body.newPassword, {
+		// we already validated the password above
+		validatePassword: false,
+	});
+
+	await redisClient.del(`accountrecovery:${req.body.verifyKey}`);
+
+	if (req.token) {
+		await tokens.setSessionInfo(req.token, { isLoggedIn: true, user_id: user.id });
+	}
+
+	if (conf.get("rate_limit.enabled")) {
+		// give the points back we took when they started the recovery process
+		await rateLimiter.reward(req.ip, 100);
+	}
+
+	res.json({
+		success: true,
+	});
+};
+
+router.post("/recover/start", async (req, res, next) => {
+	try {
+		await accountRecoveryStart(req, res, next);
+	} catch (err) {
+		errorHandler(err, req, res, next);
+	}
+});
+
+router.post("/recover/verify", async (req, res, next) => {
+	try {
+		await accountRecoveryVerify(req, res, next);
+	} catch (err) {
+		errorHandler(err, req, res, next);
+	}
+});
+
+async function sendPasswordResetEmail(email: string): Promise<Result<void, MailerError>> {
+	if (!conf.get("mail.enabled")) {
+		return err(new FeatureDisabledException("This instance does not have email enabled."));
+	}
+
+	const verificationKey = crypto.randomBytes(32).toString("hex");
+
+	await redisClient.setEx(`accountrecovery:${verificationKey}`, 60 * 10, email);
+
+	const proto = conf.get("hostname").includes("localhost") ? "http" : "https";
+	const resetLink = `${proto}://${conf.get("hostname")}${conf.get(
+		"base_url"
+	)}/passwordreset?verifyKey=${verificationKey}`;
+
+	const mail: Email = {
+		to: email,
+		subject: "OpenTogetherTube - Password Reset",
+		body: `Click this link to reset your password for OpenTogetherTube: <a href="${resetLink}">${resetLink}</a>`,
+	};
+
+	if (conf.get("mail.mailjet_sandbox")) {
+		log.info(`Sandbox mode enabled, verifyKey is ${verificationKey}`);
+	}
+
+	return await mailer.send(mail);
+}
+
+/**
+ * Changes a user's password.
+ */
+async function changeUserPassword(
+	user: User,
+	newPassword: string,
+	opts: { validatePassword?: boolean } = {}
+) {
+	const options = _.defaults(opts, { validatePassword: true });
+	if (options?.validatePassword && !isPasswordValid(newPassword)) {
+		throw new BadPasswordError();
+	}
+	const newSalt = crypto.randomBytes(128);
+	// eslint-disable-next-line array-bracket-newline
+	const hash = await pwd.hash(Buffer.concat([newSalt, Buffer.from(newPassword)]));
+	user.hash = hash;
+	user.salt = newSalt;
+	await user.save();
+}
+
+const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
+	counterHttpErrors.labels({ error: err.name }).inc();
+	if (err instanceof OttException) {
+		log.debug(`OttException: path=${req.path} name=${err.name}`);
+		res.status(400).json({
+			success: false,
+			error: err,
+		});
+	} else {
+		log.error(`Unhandled exception: path=${req.path} ${err.name} ${err.message} ${err.stack}`);
+		res.status(500).json({
+			success: false,
+			error: {
+				name: "Unknown",
+				message: "An unknown error occured. Try again later.",
+			},
+		});
+	}
+};
 
 /**
  * Clears all user manager rate limiters. Intended only to be used during development and automated testing.
@@ -726,6 +919,7 @@ if (conf.get("env") === "test") {
 
 export default {
 	router,
+	mailer,
 	setup,
 	on,
 	off,

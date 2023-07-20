@@ -201,3 +201,24 @@ export class MissingToken extends OttException {
 		this.name = "MissingToken";
 	}
 }
+
+export class NoEmail extends OttException {
+	constructor() {
+		super("The account does not have an email address.");
+		this.name = "NoEmail";
+	}
+}
+
+export class InvalidVerifyKey extends OttException {
+	constructor() {
+		super("Invalid verify key");
+		this.name = "InvalidVerifyKey";
+	}
+}
+
+export class UserNotFound extends OttException {
+	constructor() {
+		super("User not found");
+		this.name = "UserNotFound";
+	}
+}

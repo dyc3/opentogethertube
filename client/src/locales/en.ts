@@ -23,6 +23,7 @@ export default {
 		"loading": "Loading...",
 		"view": "View",
 		"restore": "Restore",
+		"success": "Success",
 	},
 	"behavior": {
 		[BehaviorOption.Always]: "Always",
@@ -294,7 +295,7 @@ export default {
 		"password": "Password",
 		"retype-password": "Retype Password",
 		"email-optional":
-			"Providing an email is optional, but recommended in case you forget your password.",
+			"Providing an email is optional, but makes it impossible to recover your account if you forget your password.",
 		"rules": {
 			"email-required": "Email is required",
 			"valid-email": "Must be a valid email",
@@ -316,6 +317,15 @@ export default {
 			"register-failed":
 				"Failed to register, and I don't know why. Check the console and report this as a bug.",
 			"in-use": "Already in use.",
+		},
+		"change-password": {
+			title: "Change Password",
+			success: "Password change successful.",
+			forgot: "Forgot your password?",
+			prompt: "Enter the email address or the username associated with your account.",
+			reset: "Reset",
+			sent: "Password reset email sent.",
+			failed: "Unable to reset password.",
 		},
 	},
 	"permissions-editor": {
@@ -359,5 +369,10 @@ export default {
 		[Role.RegisteredUser]: "Registered User",
 		[Role.UnregisteredUser]: "Unregistered User",
 		[Role.Owner]: "Owner",
+	},
+	"errors": {
+		BadPasswordError:
+			"Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.",
+		BadApiArgumentException: "Bad API Argument. This is likely a bug, please report it.",
 	},
 };
