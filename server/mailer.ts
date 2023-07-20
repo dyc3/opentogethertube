@@ -45,6 +45,8 @@ export class MailjetMailer extends Mailer {
 
 		const body = typeof resp.body === "string" ? JSON.parse(resp.body) : resp.body;
 
+		log.info(`Mailjet response: ${JSON.stringify(body)}`);
+
 		if (body.Messages[0].Status !== "success") {
 			log.error(`Failed to send email: ${JSON.stringify(body)}`);
 			return err(new MailerError("Failed to send email"));

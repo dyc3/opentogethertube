@@ -370,4 +370,8 @@ export default {
 		[Role.UnregisteredUser]: "Unregistered User",
 		[Role.Owner]: "Owner",
 	},
+	"errors": {
+		BadPasswordError:
+			"Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.",
+	},
 };

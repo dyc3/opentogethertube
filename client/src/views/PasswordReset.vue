@@ -8,6 +8,7 @@
 				type="password"
 				required
 				:rules="passwordRules"
+				:loading="isLoading"
 			/>
 			<v-text-field
 				v-model="passwordConfirm"
@@ -15,8 +16,14 @@
 				type="password"
 				required
 				:rules="passwordConfirmRules"
+				:loading="isLoading"
 			/>
-			<v-btn type="submit" color="primary" @click.prevent="submitPasswordReset">
+			<v-btn
+				type="submit"
+				color="primary"
+				@click.prevent="submitPasswordReset"
+				:loading="isLoading"
+			>
 				{{ $t("common.save") }}
 			</v-btn>
 		</v-form>
@@ -56,30 +63,49 @@ onMounted(async () => {
 	}
 });
 
+const isLoading = ref(false);
+
 async function submitPasswordReset() {
 	if (password.value !== passwordConfirm.value) {
 		console.error("Passwords do not match");
 		return;
 	}
 
-	const resp = await API.post<OttResponseBody>("/user/recovery/verify", {
-		verifyKey: verifyKey.value,
-	});
-
-	if (resp.data.success) {
-		toast.add({
-			style: ToastStyle.Success,
-			content: i18n.t("login-form.change-password.success"),
+	isLoading.value = true;
+	try {
+		const resp = await API.post<OttResponseBody>("/user/recover/verify", {
+			verifyKey: verifyKey.value,
+			newPassword: password.value,
 		});
-		const resp = await API.get("/user");
-		if (resp.data.loggedIn) {
-			const user = resp.data;
-			delete user.loggedIn;
-			store.commit("LOGIN", user);
-		} else {
-			console.warn("Didn't get logged in user after password reset.");
+
+		if (resp.data.success) {
+			toast.add({
+				style: ToastStyle.Success,
+				content: i18n.t("login-form.change-password.success"),
+				duration: 4000,
+			});
+			const resp = await API.get("/user");
+			if (resp.data.loggedIn) {
+				const user = resp.data;
+				delete user.loggedIn;
+				store.commit("LOGIN", user);
+			} else {
+				console.warn("Didn't get logged in user after password reset.");
+			}
+			router.push("/");
 		}
-		router.push("/");
+	} catch (error) {
+		console.error(error);
+		const msg = error.response?.data?.name
+			? i18n.t(`errors.${error.response.data.name}`)
+			: i18n.t("login-form.change-password.failed");
+		toast.add({
+			style: ToastStyle.Error,
+			content: msg,
+			duration: 4000,
+		});
+	} finally {
+		isLoading.value = false;
 	}
 }
 </script>
