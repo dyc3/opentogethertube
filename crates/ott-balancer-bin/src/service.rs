@@ -58,22 +58,24 @@ impl Service<Request<IncomingBody>> for BalancerService {
         let link = self.link.clone();
         let addr = self.addr;
 
-        Box::pin(async move {
-            let ctx_read = ctx.read().await;
-            let Ok(route) = ROUTER.recognize(req.uri().path()) else {
-                warn!("no route found for {}", req.uri().path());
-                return Ok(not_found());
-            };
-            info!(
-                "Inbound request: {} {} => {}",
-                req.method(),
-                req.uri().path(),
-                route.handler()
-            );
+        let Ok(route) = ROUTER.recognize(req.uri().path()) else {
+            warn!("no route found for {}", req.uri().path());
+            return Box::pin(async move {Ok(not_found())});
+        };
+        info!(
+            "Inbound request: {} {} => {}",
+            req.method(),
+            req.uri().path(),
+            route.handler()
+        );
 
+        Box::pin(async move {
             let res = match **route.handler() {
                 "health" => mk_response("OK".to_owned()),
-                "status" => mk_response(format!("monoliths: {}", ctx_read.monoliths.len())),
+                "status" => {
+                    let ctx_read = ctx.read().await;
+                    mk_response(format!("monoliths: {}", ctx_read.monoliths.len()))
+                }
                 "metrics" => mk_response("TODO: prometheus metrics".to_owned()),
                 "room" => {
                     let Some(room_name) = route.params().find("room_name") else {
@@ -106,6 +108,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                             }
                         }
                     } else {
+                        let ctx_read = ctx.read().await;
                         let monolith = if let Some(monolith_id) =
                             ctx_read.rooms_to_monoliths.get(&room_name)
                         {
@@ -152,6 +155,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     }
                 }
                 "other" => {
+                    let ctx_read = ctx.read().await;
                     let monolith = ctx_read.random_monolith().ok();
                     if let Some(monolith) = monolith {
                         info!("proxying request to monolith {}", monolith.id());
