@@ -830,7 +830,8 @@ async function sendPasswordResetEmail(email: string): Promise<Result<void, Maile
 
 	await redisClient.setEx(`accountrecovery:${verificationKey}`, 60 * 10, email);
 
-	const resetLink = `${conf.get("hostname")}${conf.get(
+	const proto = conf.get("hostname").includes("localhost") ? "http" : "https";
+	const resetLink = `${proto}://${conf.get("hostname")}${conf.get(
 		"base_url"
 	)}/passwordreset?verifyKey=${verificationKey}`;
 
