@@ -8,7 +8,7 @@ import { User as UserModel, Room as RoomModel } from "./models/index";
 import { User } from "./models/user";
 import { delPattern, redisClient } from "./redisclient";
 import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
-import { RateLimiterRedisv4, consumeRateLimitPoints } from "./rate-limit";
+import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit";
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
@@ -798,6 +798,11 @@ const accountRecoveryVerify: RequestHandler<
 
 	if (req.token) {
 		await tokens.setSessionInfo(req.token, { isLoggedIn: true, user_id: user.id });
+	}
+
+	if (conf.get("rate_limit.enabled")) {
+		// give the points back we took when they started the recovery process
+		await rateLimiter.reward(req.ip, 100);
 	}
 
 	res.json({
