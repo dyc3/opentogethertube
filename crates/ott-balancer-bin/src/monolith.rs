@@ -169,7 +169,7 @@ pub async fn monolith_entry(
                         break;
                     }
                 } else {
-                    break;
+                    continue;
                 }
             }
 

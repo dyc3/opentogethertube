@@ -124,7 +124,7 @@ pub async fn client_entry<'r>(
                         break;
                     }
                 } else {
-                    break;
+                    continue;
                 }
             }
 
