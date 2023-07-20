@@ -3,3 +3,6 @@ primary_region = "ewr"
 
 [build]
 dockerfile = "job-runner.Dockerfile"
+
+[metrics]
+port = 9746
