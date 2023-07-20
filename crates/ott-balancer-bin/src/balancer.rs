@@ -346,6 +346,8 @@ pub async fn join_client(
 ) -> anyhow::Result<()> {
     info!("new client: {:?}", new_client);
 
+    // create the channel that the client socket will use to be notified of outbound messages to be sent to tbe client
+    // balancer -> client websocket
     let (client_tx, client_rx) = tokio::sync::mpsc::channel(100);
     let client = BalancerClient::new(new_client, client_tx);
     receiver_tx
@@ -353,22 +355,25 @@ pub async fn join_client(
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
 
     let ctx_read = ctx.read().await;
-    let monolith_id = match ctx_read.rooms_to_monoliths.get(&client.room) {
+
+    let (monolith_id, should_create_room) = match ctx_read.rooms_to_monoliths.get(&client.room) {
         Some(id) => {
             // the room is already loaded
-            *id
+            (*id, false)
         }
         None => {
             // the room is not loaded, randomly select a monolith
             let selected = ctx_read.select_monolith()?;
-            selected.id()
+            (selected.id(), true)
         }
     };
     drop(ctx_read);
 
     let mut b = ctx.write().await;
-    let room = Room::new(client.room.clone());
-    b.add_room(room, monolith_id)?;
+    if should_create_room {
+        let room = Room::new(client.room.clone());
+        b.add_room(room, monolith_id)?;
+    }
     b.add_client(client, monolith_id).await?;
     Ok(())
 }

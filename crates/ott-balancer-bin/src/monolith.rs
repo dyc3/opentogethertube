@@ -61,6 +61,10 @@ impl BalancerMonolith {
     }
 
     pub fn add_room(&mut self, room: Room) {
+        if self.rooms.contains_key(&room.name) {
+            error!("Monolith already has room {}", room.name);
+            return;
+        }
         self.rooms.insert(room.name.clone(), room);
     }
 
