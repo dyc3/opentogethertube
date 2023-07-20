@@ -1,5 +1,5 @@
 port = 8080
-trust_proxy = 0
+trust_proxy = 2
 
 [db]
 mode = "postgres"

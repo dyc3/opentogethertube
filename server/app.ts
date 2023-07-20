@@ -91,9 +91,14 @@ export async function main() {
 	if (
 		conf.get("env") === "production" &&
 		!!conf.get("hostname") &&
-		!conf.get("hostname").includes("localhost")
+		!conf.get("hostname").includes("localhost") &&
+		conf.get("trust_proxy") > 0
 	) {
-		log.warn("Trusting proxy, X-Forwarded-* headers will be trusted.");
+		log.warn(
+			`Trusting ${conf.get(
+				"trust_proxy"
+			)} layers of reverse proxy, X-Forwarded-* headers will be trusted.`
+		);
 		app.set("trust proxy", conf.get("trust_proxy"));
 		// @ts-expect-error
 		sessionOpts.cookie.secure = true;
@@ -173,6 +178,7 @@ export async function main() {
 			return;
 		}
 		log.info(`> ${req.method} ${req.path}`);
+		log.silly(`request ip: ${req.ip} X-Forwarded-For: ${req.headers["x-forwarded-for"]}`);
 		next();
 	});
 
