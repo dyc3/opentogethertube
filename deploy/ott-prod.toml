@@ -3,3 +3,6 @@ force_insecure_cookies = true
 
 [log]
 level = "info"
+
+[mail]
+enabled = true
