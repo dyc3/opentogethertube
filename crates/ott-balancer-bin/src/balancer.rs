@@ -471,30 +471,28 @@ pub async fn dispatch_monolith_message(
                     let mut ctx_write = ctx.write().await;
                     ctx_write.remove_room(&room, *monolith_id)?;
                 }
-                MsgM2B::Gossip { .. } => {
-                    // For some reason, whenever this code is enabled, clients stop receiving websocket messages.
+                MsgM2B::Gossip { rooms } => {
+                    let mut ctx_write = ctx.write_owned().await;
+                    let to_remove = ctx_write
+                        .monoliths
+                        .get_mut(monolith_id)
+                        .unwrap()
+                        .rooms()
+                        .keys()
+                        .filter(|room| !rooms.iter().any(|r| r.name == **room))
+                        .cloned()
+                        .collect::<Vec<_>>();
+                    debug!("to_remove: {:?}", to_remove);
+                    let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
+                    for gossip_room in rooms {
+                        let mut room = Room::new(gossip_room.name);
+                        room.set_metadata(gossip_room.metadata);
+                        monolith.add_room(room);
+                    }
 
-                    // let mut ctx_write = ctx.write_owned().await;
-                    // let to_remove = ctx_write
-                    //     .monoliths
-                    //     .get_mut(monolith_id)
-                    //     .unwrap()
-                    //     .rooms()
-                    //     .keys()
-                    //     .filter(|room| !rooms.iter().any(|r| r.name == **room))
-                    //     .cloned()
-                    //     .collect::<Vec<_>>();
-                    // debug!("to_remove: {:?}", to_remove);
-                    // let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
-                    // for gossip_room in rooms {
-                    //     let mut room = Room::new(gossip_room.name);
-                    //     room.set_metadata(gossip_room.metadata);
-                    //     monolith.add_room(room);
-                    // }
-
-                    // for room in to_remove {
-                    //     monolith.remove_room(&room)
-                    // }
+                    for room in to_remove {
+                        monolith.remove_room(&room)
+                    }
                 }
                 MsgM2B::RoomMsg {
                     room,
