@@ -74,6 +74,10 @@ impl BalancerMonolith {
         self.rooms.remove(room);
     }
 
+    pub fn has_room(&self, room: &RoomName) -> bool {
+        self.rooms.contains_key(room)
+    }
+
     pub fn add_client(&mut self, room: &RoomName, client_id: ClientId) {
         let room = self
             .rooms

@@ -491,6 +491,9 @@ pub async fn dispatch_monolith_message(
                     debug!("to_remove: {:?}", to_remove);
                     let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
                     for gossip_room in rooms {
+                        if monolith.has_room(&gossip_room.name) {
+                            continue;
+                        }
                         let mut room = Room::new(gossip_room.name);
                         room.set_metadata(gossip_room.metadata);
                         monolith.add_room(room);
