@@ -469,9 +469,8 @@ pub async fn dispatch_monolith_message(
                     metadata,
                 } => {
                     let mut ctx_write = ctx.write().await;
-                    let mut room = Room::new(room);
-                    room.set_metadata(metadata);
-                    ctx_write.add_room(room, *monolith_id)?;
+                    let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
+                    monolith.add_or_sync_room(&room, metadata);
                 }
                 MsgM2B::Unloaded { room } => {
                     let mut ctx_write = ctx.write().await;
@@ -491,12 +490,7 @@ pub async fn dispatch_monolith_message(
                     debug!("to_remove: {:?}", to_remove);
                     let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
                     for gossip_room in rooms {
-                        if monolith.has_room(&gossip_room.name) {
-                            continue;
-                        }
-                        let mut room = Room::new(gossip_room.name);
-                        room.set_metadata(gossip_room.metadata);
-                        monolith.add_room(room);
+                        monolith.add_or_sync_room(&gossip_room.name, gossip_room.metadata);
                     }
 
                     for room in to_remove {
