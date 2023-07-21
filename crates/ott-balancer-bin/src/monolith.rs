@@ -162,7 +162,7 @@ pub async fn monolith_entry(
     let Ok(Some(Ok(message))) = result else {
                 stream.close(Some(CloseFrame {
                     code: CloseCode::Library(4000),
-                    reason: "did not send auth token".into(),
+                    reason: "did not send init".into(),
                 })).await?;
                 return Ok(());
             };
