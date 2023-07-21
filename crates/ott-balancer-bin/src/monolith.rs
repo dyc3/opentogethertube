@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::{monolith::*, *};
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{error, info};
+use tracing::{debug, error, info};
+use tungstenite::protocol::frame::coding::CloseCode;
+use tungstenite::protocol::CloseFrame;
 use uuid::Uuid;
 
-use crate::config::BalancerConfig;
 use crate::websocket::HyperWebsocket;
 use crate::{balancer::BalancerLink, messages::*};
 
@@ -18,6 +20,7 @@ pub struct BalancerMonolith {
     rooms: HashMap<RoomName, Room>,
     socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
     address: SocketAddr,
+    proxy_address: SocketAddr,
     http_client: reqwest::Client,
 }
 
@@ -28,6 +31,7 @@ impl BalancerMonolith {
             rooms: HashMap::new(),
             socket_tx,
             address: m.address,
+            proxy_address: m.proxy_address,
             http_client: reqwest::Client::builder()
                 .redirect(reqwest::redirect::Policy::none())
                 .build()
@@ -43,17 +47,15 @@ impl BalancerMonolith {
         &self.rooms
     }
 
-    /// The network address and port from which this Monolith is connected.
+    /// The network address and port from which this Monolith is connected via websocket.
+    #[allow(dead_code)]
     pub fn address(&self) -> SocketAddr {
         self.address
     }
 
     /// The network address that can be used to send HTTP requests to this Monolith.
     pub fn proxy_address(&self) -> SocketAddr {
-        // TODO: this port needs to conveyed by the monolith instead of hardcoded
-        // because the monolith could be running on any port.
-        let config = BalancerConfig::get();
-        SocketAddr::from((self.address().ip(), config.monolith_port))
+        self.proxy_address
     }
 
     pub fn http_client(&self) -> &reqwest::Client {
@@ -143,6 +145,7 @@ impl Room {
 pub struct NewMonolith {
     pub id: MonolithId,
     pub address: SocketAddr,
+    pub proxy_address: SocketAddr,
 }
 
 pub async fn monolith_entry(
@@ -150,19 +153,59 @@ pub async fn monolith_entry(
     ws: HyperWebsocket,
     balancer: BalancerLink,
 ) -> anyhow::Result<()> {
-    // TODO: maybe wait for first gossip?
-
     info!("Monolith connected");
     let mut stream = ws.await?;
 
     let monolith_id = Uuid::new_v4().into();
-    let monolith = NewMonolith {
-        id: monolith_id,
-        address,
-    };
 
-    let mut outbound_rx = balancer.send_monolith(monolith).await.unwrap();
-    info!("Monolith {id} linked to balancer", id = monolith_id);
+    let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
+    let Ok(Some(Ok(message))) = result else {
+                stream.close(Some(CloseFrame {
+                    code: CloseCode::Library(4000),
+                    reason: "did not send auth token".into(),
+                })).await?;
+                return Ok(());
+            };
+
+    let mut outbound_rx;
+    match message {
+        Message::Text(text) => {
+            let message: MsgM2B = serde_json::from_str(&text).unwrap();
+            match message {
+                MsgM2B::Init(init) => {
+                    debug!("monolith sent init, handing off to balancer");
+                    let mut proxy_address = address;
+                    proxy_address.set_port(init.port);
+                    let monolith = NewMonolith {
+                        id: monolith_id,
+                        address,
+                        proxy_address,
+                    };
+                    let Ok(rx) = balancer.send_monolith(monolith).await else {
+                        stream.close(Some(CloseFrame {
+                                    code: CloseCode::Library(4000),
+                                    reason: "failed to send monolith to balancer".into(),
+                                })).await?;
+                                return Ok(());
+                            };
+                    info!("Monolith {id} linked to balancer", id = monolith_id);
+                    outbound_rx = rx;
+                }
+                _ => {
+                    stream
+                        .close(Some(CloseFrame {
+                            code: CloseCode::Library(4004),
+                            reason: "did not send auth token".into(),
+                        }))
+                        .await?;
+                    return Ok(());
+                }
+            }
+        }
+        _ => {
+            return Ok(());
+        }
+    }
 
     loop {
         tokio::select! {

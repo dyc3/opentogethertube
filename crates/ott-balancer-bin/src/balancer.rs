@@ -458,6 +458,12 @@ pub async fn dispatch_monolith_message(
             debug!("got message from monolith: {:?}", msg);
 
             match msg {
+                MsgM2B::Init(_) => {
+                    warn!(
+                        "monolith {:?} sent init when it wasn't expected, ignoring",
+                        monolith_id
+                    );
+                }
                 MsgM2B::Loaded {
                     name: room,
                     metadata,
