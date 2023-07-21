@@ -30,6 +30,7 @@ pub enum MsgB2M {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
 pub enum MsgM2B {
+    Init(M2BInit),
     Loaded {
         name: RoomName,
         #[serde(flatten)]
@@ -53,6 +54,11 @@ pub enum MsgM2B {
         client_id: ClientId,
         reason: u16,
     },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct M2BInit {
+    pub port: u16,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

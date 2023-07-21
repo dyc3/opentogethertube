@@ -13,16 +13,11 @@ static CONFIG_INIT: Once = Once::new();
 pub struct BalancerConfig {
     /// The port to listen on for HTTP requests.
     pub port: u16,
-    /// The port to use when connecting to the monolith to proxy requests.
-    pub monolith_port: u16,
 }
 
 impl Default for BalancerConfig {
     fn default() -> Self {
-        Self {
-            port: 8081,
-            monolith_port: 3000,
-        }
+        Self { port: 8081 }
     }
 }
 

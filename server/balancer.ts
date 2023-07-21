@@ -191,6 +191,14 @@ export class BalancerConnection {
 		this.reconnecting = false;
 		this.reconnectAttempts = 0;
 		this.reconnectTimeout = null;
+
+		const init: MsgM2BInit = {
+			type: "init",
+			payload: {
+				port: conf.get("port"),
+			},
+		};
+		this.send(init);
 		this.emit("connect");
 	}
 
@@ -369,11 +377,19 @@ interface MsgB2MClientMsg<T> {
 }
 
 export type MsgM2B =
+	| MsgM2BInit
 	| MsgM2BLoaded
 	| MsgM2BUnloaded
 	| MsgM2BGossip
 	| MsgM2BRoomMsg<unknown>
 	| MsgM2BKick;
+
+interface MsgM2BInit {
+	type: "init";
+	payload: {
+		port: number;
+	};
+}
 
 interface MsgM2BLoaded {
 	type: "loaded";
