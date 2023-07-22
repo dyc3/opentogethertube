@@ -12,7 +12,7 @@ import { buildApiRouter } from "./api";
 import { buildClients, redisClient, registerRedisMetrics } from "./redisclient";
 import usermanager from "./usermanager";
 import tokens from "./auth/tokens";
-import websockets from "./websockets.js";
+import websockets from "./websockets";
 import clientmanager from "./clientmanager";
 import roommanager from "./roommanager";
 import bodyParser from "body-parser";

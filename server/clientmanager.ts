@@ -1,7 +1,7 @@
 import express from "express";
 import WebSocket from "ws";
 import _ from "lodash";
-import { wss } from "./websockets.js";
+import { wss } from "./websockets";
 import { getLogger } from "./logger";
 import { Request } from "express";
 import { createSubscriber, redisClient } from "./redisclient";
