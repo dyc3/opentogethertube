@@ -109,8 +109,8 @@ impl BalancerMonolith {
     }
 
     pub fn add_or_sync_room(&mut self, name: &RoomName, metadata: RoomMetadata) {
-        if self.has_room(&name) {
-            self.set_room_metadata(&name, metadata);
+        if self.has_room(name) {
+            self.set_room_metadata(name, metadata);
         } else {
             let mut room = Room::new(name.clone());
             room.set_metadata(metadata);
