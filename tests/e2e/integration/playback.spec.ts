@@ -26,7 +26,7 @@ describe("Video playback", () => {
 		});
 		cy.get(".video-controls button").eq(1).click();
 		cy.get("#ytcontainer").scrollIntoView();
-		cy.enter("#ytcontainer").then(getBody => {
+		cy.enter("#ytcontainer", { timeout: 15000 }).then(getBody => {
 			getBody()
 				.find("video")
 				.should("exist")

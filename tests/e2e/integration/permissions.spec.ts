@@ -58,20 +58,13 @@ describe("promotion and demotion", () => {
 		});
 	});
 
-	for (let role of roles) {
-		it(`should promote the given user to ${role.display}`, () => {
+	for (const role of roles) {
+		it(`should promote and demote the given user from ${role.display}`, () => {
 			cy.get(".user-actions", {
 				timeout: 10000,
 			}).click();
 			cy.contains(`Promote to ${role.display}`).click();
 			cy.get(`.role-${role.name}`).should("exist");
-		});
-
-		it(`should demote the given user from ${role.display}`, () => {
-			cy.get(".user-actions", {
-				timeout: 10000,
-			}).click();
-			cy.contains(`Promote to ${role.display}`).click();
 			cy.get(`.role-${role.name}`).find("button").click();
 			cy.contains("Demote to Registered User").click();
 			cy.get(".role-registered").should("exist");
