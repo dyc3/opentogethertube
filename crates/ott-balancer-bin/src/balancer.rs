@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
+use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B, RoomMetadata};
 use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
@@ -287,6 +287,19 @@ impl BalancerContext {
         Ok(())
     }
 
+    pub fn add_or_sync_room(
+        &mut self,
+        room: &RoomName,
+        metadata: RoomMetadata,
+        monolith_id: MonolithId,
+    ) -> anyhow::Result<()> {
+        let monolith = self.monoliths.get_mut(&monolith_id).unwrap();
+        self.rooms_to_monoliths.insert(room.clone(), monolith_id);
+        monolith.add_or_sync_room(room, metadata);
+
+        Ok(())
+    }
+
     pub fn find_monolith_id(&self, client: ClientId) -> anyhow::Result<MonolithId> {
         let client = self
             .clients
@@ -358,12 +371,13 @@ pub async fn join_client(
 
     let (monolith_id, should_create_room) = match ctx_read.rooms_to_monoliths.get(&client.room) {
         Some(id) => {
-            // the room is already loaded
+            debug!("room {} already loaded on {}", client.room, id);
             (*id, false)
         }
         None => {
             // the room is not loaded, randomly select a monolith
             let selected = ctx_read.select_monolith()?;
+            debug!("room is not loaded, selected monolith: {:?}", selected.id());
             (selected.id(), true)
         }
     };
@@ -468,10 +482,9 @@ pub async fn dispatch_monolith_message(
                     name: room,
                     metadata,
                 } => {
+                    debug!("room loaded on {}: {:?}", monolith_id, room);
                     let mut ctx_write = ctx.write().await;
-                    let mut room = Room::new(room);
-                    room.set_metadata(metadata);
-                    ctx_write.add_room(room, *monolith_id)?;
+                    ctx_write.add_or_sync_room(&room, metadata, *monolith_id)?;
                 }
                 MsgM2B::Unloaded { room } => {
                     let mut ctx_write = ctx.write().await;
@@ -489,13 +502,17 @@ pub async fn dispatch_monolith_message(
                         .cloned()
                         .collect::<Vec<_>>();
                     debug!("to_remove: {:?}", to_remove);
+                    for gossip_room in rooms.iter() {
+                        ctx_write
+                            .rooms_to_monoliths
+                            .insert(gossip_room.name.clone(), *monolith_id);
+                    }
                     let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
                     for gossip_room in rooms {
-                        let mut room = Room::new(gossip_room.name);
-                        room.set_metadata(gossip_room.metadata);
-                        monolith.add_room(room);
+                        monolith.add_or_sync_room(&gossip_room.name, gossip_room.metadata);
                     }
 
+                    let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
                     for room in to_remove {
                         monolith.remove_room(&room)
                     }

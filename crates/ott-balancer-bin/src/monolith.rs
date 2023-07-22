@@ -74,6 +74,10 @@ impl BalancerMonolith {
         self.rooms.remove(room);
     }
 
+    pub fn has_room(&self, room: &RoomName) -> bool {
+        self.rooms.contains_key(room)
+    }
+
     pub fn add_client(&mut self, room: &RoomName, client_id: ClientId) {
         let room = self
             .rooms
@@ -94,6 +98,24 @@ impl BalancerMonolith {
         self.socket_tx.send(socket_msg).await?;
 
         Ok(())
+    }
+
+    pub fn set_room_metadata(&mut self, room: &RoomName, metadata: RoomMetadata) {
+        let Some(room) = self.rooms.get_mut(room) else {
+            error!("Error setting metadata, Monolith {} does not have room {}", self.id, room);
+            return;
+        };
+        room.set_metadata(metadata);
+    }
+
+    pub fn add_or_sync_room(&mut self, name: &RoomName, metadata: RoomMetadata) {
+        if self.has_room(name) {
+            self.set_room_metadata(name, metadata);
+        } else {
+            let mut room = Room::new(name.clone());
+            room.set_metadata(metadata);
+            self.add_room(room);
+        }
     }
 }
 
@@ -162,7 +184,7 @@ pub async fn monolith_entry(
     let Ok(Some(Ok(message))) = result else {
                 stream.close(Some(CloseFrame {
                     code: CloseCode::Library(4000),
-                    reason: "did not send auth token".into(),
+                    reason: "did not send init".into(),
                 })).await?;
                 return Ok(());
             };

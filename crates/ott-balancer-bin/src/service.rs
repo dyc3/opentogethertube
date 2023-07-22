@@ -74,7 +74,12 @@ impl Service<Request<IncomingBody>> for BalancerService {
                 "health" => mk_response("OK".to_owned()),
                 "status" => {
                     let ctx_read = ctx.read().await;
-                    mk_response(format!("monoliths: {}", ctx_read.monoliths.len()))
+                    let rendered = [
+                        format!("monoliths: {}", ctx_read.monoliths.len()),
+                        format!("mappings: {:#?}", ctx_read.rooms_to_monoliths),
+                    ]
+                    .join("\n");
+                    mk_response(rendered)
                 }
                 "metrics" => mk_response("TODO: prometheus metrics".to_owned()),
                 "room" => {
