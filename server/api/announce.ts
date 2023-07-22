@@ -1,4 +1,4 @@
-import { getLogger } from "../logger.js";
+import { getLogger } from "../logger";
 import { conf } from "../ott-config";
 import express, { RequestHandler } from "express";
 import { redisClient } from "../redisclient";

@@ -136,7 +136,13 @@ export default {
 
 	async getCachedSearchResults(service: string, query: string): Promise<Video[]> {
 		const value = await redisClient.get(`search:${service}:${query}`);
-		return value ? JSON.parse(value) : [];
+		try {
+			return value ? JSON.parse(value) : [];
+		} catch (e) {
+			log.error(`Failed to parse cached search results: ${e.message}, deleting`);
+			await redisClient.del(`search:${service}:${query}`);
+			return [];
+		}
 	},
 
 	async cacheSearchResults(service: string, query: string, results: Video[]): Promise<void> {
@@ -386,7 +392,7 @@ export default {
 		}
 
 		const cachedResults = await this.getCachedSearchResults(service, query);
-		if (cachedResults) {
+		if (cachedResults.length > 0) {
 			log.info("Using cached results for search");
 			const completeResults = await this.getManyVideoInfo(cachedResults);
 			counterMediaSearches.labels({ cached: "cached" }).inc();

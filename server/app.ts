@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import fs from "fs";
-import { getLogger, setLogLevel } from "./logger.js";
+import { getLogger, setLogLevel } from "./logger";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
@@ -12,7 +12,7 @@ import { buildApiRouter } from "./api";
 import { buildClients, redisClient, registerRedisMetrics } from "./redisclient";
 import usermanager from "./usermanager";
 import tokens from "./auth/tokens";
-import websockets from "./websockets.js";
+import websockets from "./websockets";
 import clientmanager from "./clientmanager";
 import roommanager from "./roommanager";
 import bodyParser from "body-parser";

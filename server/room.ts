@@ -1,6 +1,6 @@
 import permissions, { GrantMask, Grants } from "../common/permissions";
 import { redisClient } from "./redisclient";
-import { getLogger } from "./logger.js";
+import { getLogger } from "./logger";
 import winston from "winston";
 import {
 	AddRequest,

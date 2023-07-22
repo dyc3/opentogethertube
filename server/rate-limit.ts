@@ -1,4 +1,4 @@
-import { getLogger } from "./logger.js";
+import { getLogger } from "./logger";
 import { redisClient } from "./redisclient";
 import {
 	IRateLimiterStoreOptions,

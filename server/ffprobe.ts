@@ -1,6 +1,6 @@
 import util from "util";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
-import { getLogger } from "./logger.js";
+import { getLogger } from "./logger";
 import child_process from "child_process";
 import axios from "axios";
 import { Stream } from "stream";

@@ -1,7 +1,7 @@
 import { Room as DbRoomModel, User as UserModel } from "../models";
 import { Room as DbRoom, RoomAttributes } from "../models/room";
 import { Role, RoomOptions } from "../../common/models/types";
-import { getLogger } from "../logger.js";
+import { getLogger } from "../logger";
 import Sequelize from "sequelize";
 import permissions from "../../common/permissions";
 import type { RoomStatePersistable } from "../room";
