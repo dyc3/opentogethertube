@@ -1,76 +1,25 @@
 import request from "supertest";
-import { main } from "../../app";
-import InfoExtract from "../../infoextractor";
-import tokens from "../../auth/tokens";
-
-expect.extend({
-	toBeRoomNotFound(error) {
-		if (typeof error === "string") {
-			return {
-				message: () => `expected error to not be a string`,
-				pass: false,
-			};
-		}
-		let pass = this.equals(error, {
-			name: "RoomNotFoundException",
-			message: "Room not found",
-		});
-		if (pass) {
-			return {
-				message: () => `expected error to not be RoomNotFoundException`,
-				pass,
-			};
-		} else {
-			return {
-				message: () => `expected error to be RoomNotFoundException`,
-				pass,
-			};
-		}
-	},
-
-	toBeUnknownError(error) {
-		if (typeof error === "string") {
-			return {
-				message: () => `expected error to not be a string`,
-				pass: false,
-			};
-		}
-		let pass =
-			this.equals(error, {
-				name: "Unknown",
-				message: "Failed to get room",
-			}) ||
-			this.equals(error, {
-				name: "Unknown",
-				message: "Failed to get video",
-			});
-		if (pass) {
-			return {
-				message: () => `expected error to not be Unknown`,
-				pass,
-			};
-		} else {
-			return {
-				message: () => `expected error to be Unknown`,
-				pass,
-			};
-		}
-	},
-});
+import { main } from "../../../app";
+import InfoExtract from "../../../infoextractor";
+import tokens from "../../../auth/tokens";
 
 describe("Data API", () => {
 	let app;
+	let getSessionInfoSpy;
+	let validateSpy;
+
 	beforeAll(async () => {
-		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			isLoggedIn: false,
 			username: "test",
 		});
-		jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
 		app = (await main()).app;
 	});
 
 	afterAll(() => {
-		tokens.getSessionInfo.mockRestore();
-		tokens.validate.mockRestore();
+		getSessionInfoSpy.mockRestore();
+		validateSpy.mockRestore();
 	});
 
 	it("GET /data/previewAdd", async () => {
