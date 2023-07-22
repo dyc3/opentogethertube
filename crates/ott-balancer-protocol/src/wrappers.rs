@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -6,7 +6,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ClientId(Uuid);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct RoomName(String);
+pub struct RoomName(Arc<str>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct MonolithId(Uuid);
 
@@ -24,13 +24,13 @@ impl From<Uuid> for ClientId {
 
 impl From<RoomName> for String {
     fn from(val: RoomName) -> Self {
-        val.0
+        val.0.to_string()
     }
 }
 
 impl From<String> for RoomName {
     fn from(val: String) -> Self {
-        Self(val)
+        Self(val.into())
     }
 }
 
