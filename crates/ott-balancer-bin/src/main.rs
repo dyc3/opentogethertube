@@ -26,13 +26,13 @@ mod websocket;
 async fn main() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
-    BalancerConfig::load(args.config_path)?;
+    BalancerConfig::load(&args.config_path)?;
     let config = BalancerConfig::get();
 
     let console_layer = console_subscriber::spawn();
     let fmt_layer = tracing_subscriber::fmt::layer();
-    let filter_layer =
-        EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new("debug"))?;
+    let filter = args.build_tracing_filter();
+    let filter_layer = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new(filter))?;
     tracing_subscriber::registry()
         .with(console_layer)
         .with(filter_layer)
