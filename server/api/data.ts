@@ -1,4 +1,4 @@
-import { getLogger } from "../logger.js";
+import { getLogger } from "../logger";
 import { conf } from "../ott-config";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import { OttApiResponseAddPreview, OttResponseBody } from "../../common/models/rest-api";

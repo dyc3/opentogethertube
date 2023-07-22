@@ -1,4 +1,4 @@
-import { getLogger } from "./logger.js";
+import { getLogger } from "./logger";
 import _ from "lodash";
 import securePassword from "secure-password";
 import express, { ErrorRequestHandler, RequestHandler } from "express";

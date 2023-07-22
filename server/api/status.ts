@@ -1,4 +1,4 @@
-import { getLogger } from "../logger.js";
+import { getLogger } from "../logger";
 import express from "express";
 import { register } from "prom-client";
 

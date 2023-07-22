@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { getLogger } from "./logger.js";
+import { getLogger } from "./logger";
 
 const log = getLogger("websockets");
 export const wss = new WebSocket.Server({ noServer: true });

@@ -1,5 +1,5 @@
 import express from "express";
-import { getLogger } from "./logger.js";
+import { getLogger } from "./logger";
 import roomapi from "./api/room";
 import auth from "./auth";
 import usermanager from "./usermanager";

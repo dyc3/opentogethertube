@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import fs from "fs";
-import { getLogger, setLogLevel } from "./logger.js";
+import { getLogger, setLogLevel } from "./logger";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";

@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { getLogger } from "../logger.js";
+import { getLogger } from "../logger";
 import roommanager from "../roommanager";
 import { QueueMode, Visibility } from "../../common/models/types";
 import { consumeRateLimitPoints } from "../rate-limit";

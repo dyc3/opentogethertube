@@ -1,7 +1,7 @@
 import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room";
 import { AuthToken, Role, RoomOptions, Visibility } from "../common/models/types";
 import _ from "lodash";
-import { getLogger } from "./logger.js";
+import { getLogger } from "./logger";
 import { redisClient } from "./redisclient";
 import storage from "./storage";
 import {
