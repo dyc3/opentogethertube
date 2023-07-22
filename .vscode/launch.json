@@ -21,7 +21,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
-			"program": "${workspaceFolder}/start.js"
+			"program": "${workspaceFolder}/app.ts"
 		},
 		{
 			"type": "node",

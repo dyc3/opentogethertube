@@ -1,7 +1,7 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
-		"strictFunctionTypes": true
+		"strictFunctionTypes": true,
 	},
 	"include": ["**/*.ts", "tests/**/*.ts", "tests/**/*.tsx"],
 	"exclude": ["node_modules", "dist", "ts-out"],
