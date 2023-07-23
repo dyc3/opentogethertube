@@ -35,12 +35,28 @@ const singleVideoLinks: [string, PlutoParsedIds][] = [
 	],
 ];
 
-const seriesLinks = [
-	"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/details/season/1",
-	"https://pluto.tv/en/on-demand/series/6234b65ffc8de900130ab0d2/details/season/1",
+const seriesLinks: [string, PlutoParsedIds][] = [
+	[
+		"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/details/season/1",
+		{
+			videoType: "series",
+			id: "603db25de7c979001a88f77a",
+			season: 1,
+		},
+	],
+	[
+		"https://pluto.tv/en/on-demand/series/6234b65ffc8de900130ab0d2/details/season/1",
+		{
+			videoType: "series",
+			id: "6234b65ffc8de900130ab0d2",
+			season: 1,
+		},
+	],
 ];
 
-const validLinks = [...seriesLinks].concat(singleVideoLinks.map(([link, _]) => link));
+const validLinks = [...seriesLinks.map(([link, _]) => link)].concat(
+	singleVideoLinks.map(([link, _]) => link)
+);
 
 describe("Pluto TV", () => {
 	const adapter = new PlutoAdapter();
@@ -52,7 +68,7 @@ describe("Pluto TV", () => {
 	});
 
 	describe("isCollectionURL", () => {
-		it.each(seriesLinks)("should be collection url: %s", link => {
+		it.each(seriesLinks.map(l => l[0]))("should be collection url: %s", link => {
 			expect(adapter.isCollectionURL(link)).toEqual(true);
 		});
 
@@ -67,6 +83,15 @@ describe("Pluto TV", () => {
 				`${data.id}${data.subid ? `/${data.subid}` : ""}`
 			);
 		});
+	});
+
+	describe("parseUrl", () => {
+		it.each(singleVideoLinks.concat(seriesLinks))(
+			"should be able to parse %s",
+			(link, data) => {
+				expect(adapter.parseUrl(link)).toEqual(data);
+			}
+		);
 	});
 
 	describe("resolveUrl", () => {
