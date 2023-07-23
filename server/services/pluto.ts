@@ -237,7 +237,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 			}
 		}
 
-		return [];
+		return videos;
 	}
 
 	parseBootResponseIntoSlugs(resp: PlutoBootResponse): PlutoParsedSlugs {
