@@ -27,4 +27,4 @@ chmod 0600 ~/.pgpass
 
 OUTPUT_FILE="ott-prod-$(date +%Y-%m-%d).sql.gz"
 pg_dumpall --no-password -d "$DATABASE_URL" | gzip --best > "$OUTPUT_FILE"
-./rclone --progress --config ./rclone.conf copy "$OUTPUT_FILE" "b2:ott-backups/ott-prod"
+./rclone --progress --config ./rclone.conf --b2-chunk-size 64M --b2-upload-cutoff 100M --checkers 1 --transfers 1 copy "$OUTPUT_FILE" "b2:ott-backups/ott-prod"
