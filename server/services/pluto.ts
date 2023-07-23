@@ -69,23 +69,31 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 	parseUrl(url: string): PlutoParsedIds {
 		const parsed = new URL(url);
-		const path = parsed.pathname.split("/");
-		let slug = path[4];
-		let subslug: string | undefined;
-		let videoType;
-		if (path[3] === "series") {
-			videoType = "series";
-			subslug = path[8];
-		} else if (path[3] === "movies") {
-			videoType = "movie";
-		} else {
-			throw new Error(`Unable to parse video type from ${url}`);
+		const seriesMatch = parsed.pathname.match(/\/(?:movies|series)\/([a-z0-9]+)/);
+		let series = seriesMatch ? seriesMatch[1] : undefined;
+		if (!series) {
+			throw new Error(`Unable to parse series from ${url}`);
 		}
+		let episode: string | undefined;
+		const episodeMatch = parsed.pathname.match(/episode\/([a-z0-9]+)/);
+		if (episodeMatch) {
+			episode = episodeMatch[1];
+		}
+		let season: number | undefined;
+		if (!episodeMatch) {
+			const seasonMatch = parsed.pathname.match(/season\/(\d+)/);
+			if (seasonMatch) {
+				season = parseInt(seasonMatch[1]);
+			}
+		}
+
+		const videoType = episode ? "series" : "movie";
 
 		return {
 			videoType,
-			id: slug,
-			subid: subslug,
+			id: series,
+			subid: episode,
+			season,
 		};
 	}
 
