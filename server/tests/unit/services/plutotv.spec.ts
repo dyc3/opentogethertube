@@ -35,6 +35,7 @@ const singleVideoLinks: [string, PlutoParsedIds][] = [
 
 const seriesLinks = [
 	"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/details/season/1",
+	"https://pluto.tv/en/on-demand/series/6234b65ffc8de900130ab0d2/details/season/1",
 ];
 
 const validLinks = [...seriesLinks].concat(singleVideoLinks.map(([link, _]) => link));
