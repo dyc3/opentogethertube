@@ -9,11 +9,13 @@ import { v1 as uuidv1 } from "uuid";
 const log = getLogger("pluto");
 
 export interface PlutoParsedIds {
-	videoType: "series" | "movie";
+	// videoType: "series" | "movie";
 	/** The series or movie ID */
 	id: string;
 	/** The episode ID, only present if videoType == "series" */
 	subid?: string;
+	/** The season number, only present if videoType == "series" */
+	season?: number;
 }
 
 export interface PlutoParsedSlugs {
@@ -87,10 +89,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 			}
 		}
 
-		const videoType = episode ? "series" : "movie";
-
 		return {
-			videoType,
 			id: series,
 			subid: episode,
 			season,
@@ -98,9 +97,15 @@ export default class PlutoAdapter extends ServiceAdapter {
 	}
 
 	videoIdToSlugs(id: string): PlutoParsedIds {
+		if (!id.includes("/")) {
+			return {
+				// videoType: "movie",
+				id,
+			};
+		}
 		const [slug, subslug] = id.split("/");
 		return {
-			videoType: subslug ? "series" : "movie",
+			// videoType: subslug ? "series" : "movie",
 			id: slug,
 			subid: subslug,
 		};
@@ -112,25 +117,34 @@ export default class PlutoAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
-		// Functional info URLs:
-		// produces good info, bad video url
-		// - https://service-vod.clusters.pluto.tv/v3/vod/slugs/titanic-1997-1-1?deviceType=web
-		// produces good m3u8 url:
-		// - https://service-vod.clusters.pluto.tv/v3/vod/slugs/titanic-1997-1-1?deviceType=web&deviceModel=web&deviceMake=unknown&sid=201c47b0-1698-11ee-be56-0242ac120002
-		// sid can any uuid v1
+		const plutoIds = this.videoIdToSlugs(id);
 
-		const resp = await this.plutoBoot(id);
+		const resp = await this.plutoBoot(plutoIds.id);
 		const video = this.parseBootResponseIntoVideo(resp);
 
 		return video;
 	}
 
-	async fetchSeriesInfo(id: string): Promise<Video[]> {
-		throw new Error("Method not implemented.");
+	async fetchSeriesInfo(seriesId: string, season?: number): Promise<Video[]> {
+		const resp = await this.plutoBoot(seriesId);
+		const videos = this.parseBootResponseIntoSeries(resp, season);
+		return videos;
 	}
 
 	async resolveURL(url: string): Promise<Video[]> {
-		throw new Error("Method not implemented.");
+		const plutoIds = this.parseUrl(url);
+
+		const isCollection = plutoIds.subid === undefined;
+
+		if (isCollection) {
+			return this.fetchSeriesInfo(plutoIds.id, plutoIds.season);
+		} else {
+			const { id, subid } = this.parseUrl(url);
+			if (subid) {
+				return [await this.fetchVideoInfo(`${id}/${subid}`)];
+			}
+			return [await this.fetchVideoInfo(id)];
+		}
 	}
 
 	async plutoBoot(seriesId: string): Promise<PlutoBootResponse> {
@@ -193,6 +207,40 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return video;
 	}
 
+	parseBootResponseIntoSeries(resp: PlutoBootResponse, season?: number): Video[] {
+		const vod = resp.VOD[0];
+		const seasons = (vod.seasons ?? []).filter(s => !season || s.number === season);
+
+		const videos: Video[] = [];
+		for (const season of seasons) {
+			for (const episode of season.episodes) {
+				const hlsUrl = new URL(
+					resp.servers.stitcher +
+						(episode.stitched.path
+							? `${episode.stitched.path}`
+							: episode.stitched.paths?.find(p => p.type === "hls")?.path ?? "")
+				);
+				hlsUrl.search = this.buildHlsQueryParams(resp).toString();
+				const proxy = conf.get("cors_proxy");
+
+				const video: Video = {
+					service: this.serviceId,
+					id: `${vod.id}/${episode._id}`,
+					title: episode.name,
+					description: episode.description,
+					thumbnail: episode.covers[0].url,
+					length: episode.duration / 1000,
+					mime: "application/x-mpegURL",
+					hls_url: proxy ? `https://${proxy}/${hlsUrl.toString()}` : hlsUrl.toString(),
+				};
+
+				videos.push(video);
+			}
+		}
+
+		return [];
+	}
+
 	parseBootResponseIntoSlugs(resp: PlutoBootResponse): PlutoParsedSlugs {
 		const vod = resp.VOD[0];
 
@@ -204,7 +252,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 	}
 }
 
-interface PlutoBootResponse {
+export interface PlutoBootResponse {
 	servers: {
 		stitcher: string;
 	};
