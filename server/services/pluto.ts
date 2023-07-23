@@ -290,8 +290,8 @@ interface Series {
 interface DistributeAs {
 	AVOD: boolean;
 }
-
 interface Vod {
+	type: string;
 	id: string;
 	name: string;
 	description: string;
@@ -303,7 +303,27 @@ interface Vod {
 	covers: Cover[];
 	seriesID: string;
 	categoryID: string;
-	type: string;
+	seasons?: Season[];
+}
+
+interface Season {
+	number: number;
+	episodes: Episode2[];
+}
+
+interface Episode2 {
+	_id: string;
+	name: string;
+	description: string;
+	duration: number;
+	slug: string;
+	rating: string;
+	genre: string;
+	stitched: Stitched2;
+	covers: Cover[];
+	seriesID: string;
+	categoryID: string;
+	type: "episode";
 }
 
 interface Stitched2 {
