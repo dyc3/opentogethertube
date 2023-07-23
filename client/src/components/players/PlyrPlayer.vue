@@ -35,7 +35,7 @@ export default defineComponent({
 		const { videoUrl, videoMime, thumbnail } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
-		const hls = ref<Hls | undefined>();
+		let hls: Hls | undefined = undefined;
 		const store = useStore();
 
 		function play() {
@@ -83,16 +83,16 @@ export default defineComponent({
 		}
 
 		function setCaptionsEnabled(enabled: boolean): void {
-			if (hls.value) {
-				hls.value.subtitleDisplay = enabled;
+			if (hls) {
+				hls.subtitleDisplay = enabled;
 			} else {
 				player.value?.toggleCaptions(enabled);
 			}
 		}
 
 		function isCaptionsEnabled(): boolean {
-			if (hls.value) {
-				return hls.value.subtitleDisplay;
+			if (hls) {
+				return hls.subtitleDisplay;
 			} else {
 				return player.value?.currentTrack !== -1;
 			}
@@ -116,8 +116,8 @@ export default defineComponent({
 				return;
 			}
 			console.log("PlyrPlayer: setCaptionsTrack:", track);
-			if (hls.value) {
-				hls.value.subtitleTrack = findTrackIdx(track);
+			if (hls) {
+				hls.subtitleTrack = findTrackIdx(track);
 			} else {
 				player.value.currentTrack = findTrackIdx(track);
 			}
@@ -200,7 +200,7 @@ export default defineComponent({
 		});
 		onBeforeUnmount(() => {
 			player.value?.destroy();
-			hls.value?.destroy();
+			hls?.destroy();
 		});
 
 		function loadVideoSource() {
@@ -223,23 +223,33 @@ export default defineComponent({
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// ...so that we can use hls.js to change the video source
-				hls.value = new Hls();
-				hls.value.loadSource(videoUrl.value);
-				hls.value.attachMedia(videoElem.value);
-				hls.value.on(Hls.Events.MANIFEST_PARSED, () => {
+				hls = new Hls();
+				hls.loadSource(videoUrl.value);
+				hls.attachMedia(videoElem.value);
+				hls.on(Hls.Events.MANIFEST_PARSED, () => {
 					console.info("PlyrPlayer: hls.js manifest parsed");
 					emit("ready");
 					store.commit("captions/SET_AVAILABLE_TRACKS", {
 						tracks: getCaptionsTracks(),
 					});
 				});
-				hls.value.on(Hls.Events.ERROR, (event, data) => {
+				hls.on(Hls.Events.ERROR, (event, data) => {
 					console.error("PlyrPlayer: hls.js error:", event, data);
+					console.error("PlyrPlayer: hls.js inner error:", data.error);
 					emit("error");
 				});
+				hls.on(Hls.Events.INIT_PTS_FOUND, () => {
+					console.info("PlyrPlayer: hls.js init pts found");
+				});
+				hls.on(Hls.Events.KEY_LOADING, () => {
+					console.info("PlyrPlayer: hls.js key loading");
+				});
+				hls.on(Hls.Events.KEY_LOADED, () => {
+					console.info("PlyrPlayer: hls.js key loaded");
+				});
 			} else {
-				hls.value?.destroy();
-				hls.value = undefined;
+				hls?.destroy();
+				hls = undefined;
 				player.value.source = {
 					sources: [
 						{
@@ -251,7 +261,7 @@ export default defineComponent({
 					poster: thumbnail.value,
 				};
 			}
-			player.value.play();
+			// player.value.play();
 		}
 
 		watch(videoUrl, () => {
