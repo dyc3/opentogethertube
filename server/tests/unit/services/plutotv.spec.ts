@@ -1,6 +1,22 @@
-import PlutoAdapter, { type PlutoParsedIds } from "../../../services/pluto";
+import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto";
+import { AxiosResponse } from "axios";
+import fs from "fs";
 
 const singleVideoLinks: [string, PlutoParsedIds][] = [
+	[
+		"https://pluto.tv/en/on-demand/movies/616872fc0b4e8f001a960443/details",
+		{
+			videoType: "movie",
+			id: "616872fc0b4e8f001a960443",
+		},
+	],
+	[
+		"https://pluto.tv/en/on-demand/movies/629ff609cb032400134d42bc",
+		{
+			videoType: "movie",
+			id: "629ff609cb032400134d42bc",
+		},
+	],
 	[
 		"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/season/1/episode/603db2a8e7c979001a890535",
 		{
@@ -15,20 +31,6 @@ const singleVideoLinks: [string, PlutoParsedIds][] = [
 			videoType: "series",
 			id: "603db25de7c979001a88f77a",
 			subid: "624ddac8d0f36a0013e5477f",
-		},
-	],
-	[
-		"https://pluto.tv/en/on-demand/movies/616872fc0b4e8f001a960443/details",
-		{
-			videoType: "movie",
-			id: "616872fc0b4e8f001a960443",
-		},
-	],
-	[
-		"https://pluto.tv/en/on-demand/movies/616872fc0b4e8f001a960443",
-		{
-			videoType: "movie",
-			id: "616872fc0b4e8f001a960443",
 		},
 	],
 ];
@@ -66,4 +68,71 @@ describe("Pluto TV", () => {
 			);
 		});
 	});
+
+	describe("resolveUrl", () => {
+		const adapter = new PlutoAdapter();
+		let apiGetSpy: jest.SpyInstance;
+
+		beforeAll(() => {
+			apiGetSpy = jest.spyOn(adapter.api, "get").mockImplementation(mockPlutoBoot);
+		});
+
+		afterEach(() => {
+			apiGetSpy.mockClear();
+		});
+
+		afterAll(() => {
+			apiGetSpy.mockRestore();
+		});
+
+		it.each(singleVideoLinks.map(x => x[0]))(
+			`should handle single video %s`,
+			async (url: string) => {
+				const results = await adapter.resolveURL(url);
+
+				expect(results).toHaveLength(1);
+			}
+		);
+
+		it.each(seriesLinks)(`should handle whole series %s`, async (url: string) => {
+			const results = await adapter.resolveURL(url);
+
+			expect(results).not.toHaveLength(1);
+			expect(results).not.toHaveLength(0);
+		});
+
+		it.each(seriesLinks)(
+			`should only contain episodes from the requested season %s`,
+			async (url: string) => {
+				const results = await adapter.resolveURL(url);
+
+				// TODO
+			}
+		);
+	});
 });
+
+const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/pluto";
+
+const fixtureMappings = {
+	"616872fc0b4e8f001a960443": "boot-v4_movie_titanic.json",
+	"629ff609cb032400134d42bc": "boot-v4_movie_forest_gump.json",
+	"6234b65ffc8de900130ab0d2": "boot-v4_series_stargate.json",
+	"603db25de7c979001a88f77a": "boot-v4_series_judge_judy.json",
+};
+
+async function mockPlutoBoot(url, params): Promise<AxiosResponse<PlutoBootResponse>> {
+	const seriesId = params.params.seriesIds;
+	const file = fixtureMappings[seriesId];
+	const response = JSON.parse(fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8"));
+	// console.log(JSON.stringify(response, null, 2));
+	return {
+		data: response,
+		status: 200,
+		statusText: "OK",
+		headers: {},
+		config: {
+			headers: {} as any,
+		},
+	};
+}
