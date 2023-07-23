@@ -134,16 +134,15 @@ export default class PlutoAdapter extends ServiceAdapter {
 	async resolveURL(url: string): Promise<Video[]> {
 		const plutoIds = this.parseUrl(url);
 
-		const isCollection = plutoIds.subid === undefined;
+		const isCollection = plutoIds.subid === undefined && plutoIds.season !== undefined;
 
 		if (isCollection) {
 			return this.fetchSeriesInfo(plutoIds.id, plutoIds.season);
 		} else {
-			const { id, subid } = this.parseUrl(url);
-			if (subid) {
-				return [await this.fetchVideoInfo(`${id}/${subid}`)];
+			if (plutoIds.subid) {
+				return [await this.fetchVideoInfo(`${plutoIds.id}/${plutoIds.subid}`)];
 			}
-			return [await this.fetchVideoInfo(id)];
+			return [await this.fetchVideoInfo(plutoIds.id)];
 		}
 	}
 
