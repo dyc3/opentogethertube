@@ -226,6 +226,17 @@ export default defineComponent({
 				hls.value = new Hls();
 				hls.value.loadSource(videoUrl.value);
 				hls.value.attachMedia(videoElem.value);
+				hls.value.on(Hls.Events.MANIFEST_PARSED, () => {
+					console.info("PlyrPlayer: hls.js manifest parsed");
+					emit("ready");
+					store.commit("captions/SET_AVAILABLE_TRACKS", {
+						tracks: getCaptionsTracks(),
+					});
+				});
+				hls.value.on(Hls.Events.ERROR, (event, data) => {
+					console.error("PlyrPlayer: hls.js error:", event, data);
+					emit("error");
+				});
 			} else {
 				hls.value?.destroy();
 				hls.value = undefined;
