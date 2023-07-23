@@ -1,5 +1,6 @@
 hostname = "staging.opentogethertube.com"
 force_insecure_cookies = true
+cors_proxy = "cors.opentogethertube.com"
 
 [log]
 level = "silly"
