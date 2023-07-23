@@ -146,8 +146,30 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return resp.data as PlutoBootResponse;
 	}
 
+	buildHlsQueryParams(resp: PlutoBootResponse): URLSearchParams {
+		const params = new URLSearchParams();
+		params.set("appName", "web");
+		params.set("appVersion", "7.3.0-61c941df65e64c5f6a98944137c6e21c21cef2e7");
+		params.append("deviceDNT", "1");
+		params.append("deviceType", "web");
+		params.append("deviceModel", "web");
+		params.append("deviceMake", "unknown");
+		params.append("deviceId", uuidv1());
+		params.append("deviceVersion", "1");
+		params.append("sid", resp.session.sessionID);
+		return params;
+	}
+
 	parseBootResponseIntoVideo(resp: PlutoBootResponse): Video {
 		const vod = resp.VOD[0];
+		const hlsUrl = new URL(
+			vod.stitched.path
+				? `${resp.servers.stitcher}${vod.stitched.path}`
+				: vod.stitched.paths?.find(p => p.type === "hls")?.path ?? ""
+		);
+		hlsUrl.search = this.buildHlsQueryParams(resp).toString();
+		const proxy = conf.get("cors_proxy");
+
 		const video: Video = {
 			service: this.serviceId,
 			id: vod.id,
@@ -155,9 +177,8 @@ export default class PlutoAdapter extends ServiceAdapter {
 			description: vod.description,
 			thumbnail: vod.covers[0].url,
 			length: vod.duration / 1000,
-			hls_url: vod.stitched.path
-				? `${resp.servers.stitcher}${vod.stitched.path}`
-				: vod.stitched.paths?.find(p => p.type === "hls")?.path,
+			mime: "application/x-mpegURL",
+			hls_url: proxy ? `https://${proxy}/${hlsUrl.toString()}` : hlsUrl.toString(),
 		};
 
 		return video;
