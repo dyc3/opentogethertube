@@ -163,9 +163,10 @@ export default class PlutoAdapter extends ServiceAdapter {
 	parseBootResponseIntoVideo(resp: PlutoBootResponse): Video {
 		const vod = resp.VOD[0];
 		const hlsUrl = new URL(
-			vod.stitched.path
-				? `${resp.servers.stitcher}${vod.stitched.path}`
-				: vod.stitched.paths?.find(p => p.type === "hls")?.path ?? ""
+			resp.servers.stitcher +
+				(vod.stitched.path
+					? `${vod.stitched.path}`
+					: vod.stitched.paths?.find(p => p.type === "hls")?.path ?? "")
 		);
 		hlsUrl.search = this.buildHlsQueryParams(resp).toString();
 		const proxy = conf.get("cors_proxy");
