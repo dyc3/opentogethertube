@@ -2,7 +2,7 @@ import { URL } from "url";
 import axios from "axios";
 import { getLogger } from "../logger";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import { Video, VideoMetadata } from "common/models/video";
+import type { Video, VideoMetadata, VideoService } from "../../common/models/video";
 import { conf } from "../ott-config";
 import { v1 as uuidv1 } from "uuid";
 
@@ -49,7 +49,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 	});
 	clientId = uuidv1();
 
-	get serviceId() {
+	get serviceId(): VideoService {
 		return "pluto";
 	}
 
@@ -155,7 +155,9 @@ export default class PlutoAdapter extends ServiceAdapter {
 			description: vod.description,
 			thumbnail: vod.covers[0].url,
 			length: vod.duration / 1000,
-			hls_url: vod.stitched.path ? `${resp.servers.stitcher}${vod.stitched.path}` : vod.stitched.paths?.find(p => p.type === "hls")?.path,
+			hls_url: vod.stitched.path
+				? `${resp.servers.stitcher}${vod.stitched.path}`
+				: vod.stitched.paths?.find(p => p.type === "hls")?.path,
 		};
 
 		return video;
@@ -170,7 +172,6 @@ export default class PlutoAdapter extends ServiceAdapter {
 			// TODO: figure out what the subslug is for episodes
 		};
 	}
-
 }
 
 interface PlutoBootResponse {
