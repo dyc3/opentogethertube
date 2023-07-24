@@ -176,13 +176,14 @@ export default class PlutoAdapter extends ServiceAdapter {
 		);
 		hlsUrl.search = this.buildHlsQueryParams(resp).toString();
 		const proxy = conf.get("cors_proxy");
+		const cover = this.findBestCover(plutoIds.type, vodOrEpisode.covers);
 
 		const video: Video = {
 			service: this.serviceId,
 			id: this.parsedIdsToVideoId(plutoIds),
 			title: vodOrEpisode.name,
 			description: vodOrEpisode.description,
-			thumbnail: vodOrEpisode.covers[0].url,
+			thumbnail: cover?.url,
 			length: vodOrEpisode.duration / 1000,
 			mime: "application/x-mpegURL",
 			hls_url: proxy ? `https://${proxy}/${hlsUrl.toString()}` : hlsUrl.toString(),
@@ -204,13 +205,14 @@ export default class PlutoAdapter extends ServiceAdapter {
 				);
 				hlsUrl.search = this.buildHlsQueryParams(resp).toString();
 				const proxy = conf.get("cors_proxy");
+				const cover = this.findBestCover("series", episode.covers);
 
 				const video: Video = {
 					service: this.serviceId,
 					id: `series/${vod.id}/${episode._id}`,
 					title: episode.name,
 					description: `S${season.number}E${episodeNumber} - ${episode.description}`,
-					thumbnail: episode.covers[0].url,
+					thumbnail: cover?.url,
 					length: episode.duration / 1000,
 					mime: "application/x-mpegURL",
 					hls_url: proxy ? `https://${proxy}/${hlsUrl.toString()}` : hlsUrl.toString(),
@@ -243,6 +245,16 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 	parsedIdsToVideoId(parsed: PlutoParsedIds): string {
 		return `${parsed.type}/${parsed.id}${parsed.subid ? `/${parsed.subid}` : ""}`;
+	}
+
+	findBestCover(type: "series" | "movies", covers: Cover[]): Cover | undefined {
+		if (type === "series") {
+			return covers.find(c => c.aspectRatio === "16:9") ?? covers[0];
+		} else if (type === "movies") {
+			return covers[0];
+		} else {
+			return covers[0];
+		}
 	}
 }
 
