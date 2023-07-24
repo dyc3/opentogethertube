@@ -5,10 +5,12 @@ import { ServiceAdapter, VideoRequest } from "../serviceadapter";
 import type { Video, VideoMetadata, VideoService } from "../../common/models/video";
 import { conf } from "../ott-config";
 import { v1 as uuidv1 } from "uuid";
+import { InvalidVideoIdException } from "../exceptions";
 
 const log = getLogger("pluto");
 
 export interface PlutoParsedIds {
+	type: "series" | "movies";
 	/** The series or movie ID */
 	id: string;
 	/** The episode ID, only present if videoType == "series" */
@@ -43,9 +45,12 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 	parseUrl(url: string): PlutoParsedIds {
 		const parsed = new URL(url);
-		const seriesMatch = parsed.pathname.match(/\/(?:movies|series)\/([a-z0-9]+)/);
-		let series = seriesMatch ? seriesMatch[1] : undefined;
-		if (!series) {
+		const seriesMatch = parsed.pathname.match(/\/(movies|series)\/([a-z0-9]+)/);
+		let videoType: "series" | "movies" | undefined = seriesMatch
+			? (seriesMatch[1] as "series" | "movies")
+			: undefined;
+		let series = seriesMatch ? seriesMatch[2] : undefined;
+		if (!videoType || !series) {
 			throw new Error(`Unable to parse series from ${url}`);
 		}
 		let episode: string | undefined;
@@ -62,6 +67,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 		}
 
 		return {
+			type: videoType,
 			id: series,
 			subid: episode,
 			season,
@@ -70,12 +76,14 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 	videoIdToSlugs(id: string): PlutoParsedIds {
 		if (!id.includes("/")) {
-			return {
-				id,
-			};
+			throw new InvalidVideoIdException(this.serviceId, id);
 		}
-		const [slug, subslug] = id.split("/");
+		const spl = id.split("/");
+		const type = spl[0];
+		const slug = spl[1];
+		const subslug = spl[2];
 		return {
+			type: type as "series" | "movies",
 			id: slug,
 			subid: subslug,
 		};
@@ -83,14 +91,14 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 	getVideoId(url: string): string {
 		const parsed = this.parseUrl(url);
-		return `${parsed.id}${parsed.subid ? `/${parsed.subid}` : ""}`;
+		return this.parsedIdsToVideoId(parsed);
 	}
 
 	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		const plutoIds = this.videoIdToSlugs(id);
 
 		const resp = await this.plutoBoot(plutoIds.id);
-		const video = this.parseBootResponseIntoVideo(resp);
+		const video = this.parseBootResponseIntoVideo(plutoIds, resp);
 
 		return video;
 	}
@@ -104,15 +112,15 @@ export default class PlutoAdapter extends ServiceAdapter {
 	async resolveURL(url: string): Promise<Video[]> {
 		const plutoIds = this.parseUrl(url);
 
-		const isCollection = plutoIds.subid === undefined && plutoIds.season !== undefined;
+		const isCollection =
+			plutoIds.type === "series" &&
+			(plutoIds.subid === undefined || plutoIds.season !== undefined);
 
 		if (isCollection) {
 			return this.fetchSeriesInfo(plutoIds.id, plutoIds.season);
 		} else {
-			if (plutoIds.subid) {
-				return [await this.fetchVideoInfo(`${plutoIds.id}/${plutoIds.subid}`)];
-			}
-			return [await this.fetchVideoInfo(plutoIds.id)];
+			const videoId = this.parsedIdsToVideoId(plutoIds);
+			return [await this.fetchVideoInfo(videoId)];
 		}
 	}
 
@@ -151,24 +159,31 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return params;
 	}
 
-	parseBootResponseIntoVideo(resp: PlutoBootResponse): Video {
-		const vod = resp.VOD[0];
+	parseBootResponseIntoVideo(plutoIds: PlutoParsedIds, resp: PlutoBootResponse): Video {
+		let vodOrEpisode: Vod | Episode2 = resp.VOD[0];
+		if (plutoIds.subid) {
+			const ep = this.findEpisodeInVod(plutoIds.subid, vodOrEpisode);
+			if (!ep) {
+				throw new Error(
+					`Unable to find episode ${plutoIds.subid} in VOD ${vodOrEpisode.id}`
+				);
+			}
+			vodOrEpisode = ep;
+		}
+
 		const hlsUrl = new URL(
-			resp.servers.stitcher +
-				(vod.stitched.path
-					? `${vod.stitched.path}`
-					: vod.stitched.paths?.find(p => p.type === "hls")?.path ?? "")
+			resp.servers.stitcher + this.parseStitchedIntoHlsPath(vodOrEpisode.stitched)
 		);
 		hlsUrl.search = this.buildHlsQueryParams(resp).toString();
 		const proxy = conf.get("cors_proxy");
 
 		const video: Video = {
 			service: this.serviceId,
-			id: vod.id,
-			title: vod.name,
-			description: vod.description,
-			thumbnail: vod.covers[0].url,
-			length: vod.duration / 1000,
+			id: this.parsedIdsToVideoId(plutoIds),
+			title: vodOrEpisode.name,
+			description: vodOrEpisode.description,
+			thumbnail: vodOrEpisode.covers[0].url,
+			length: vodOrEpisode.duration / 1000,
 			mime: "application/x-mpegURL",
 			hls_url: proxy ? `https://${proxy}/${hlsUrl.toString()}` : hlsUrl.toString(),
 		};
@@ -182,21 +197,19 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 		const videos: Video[] = [];
 		for (const season of seasons) {
+			let episodeNumber = 1;
 			for (const episode of season.episodes) {
 				const hlsUrl = new URL(
-					resp.servers.stitcher +
-						(episode.stitched.path
-							? `${episode.stitched.path}`
-							: episode.stitched.paths?.find(p => p.type === "hls")?.path ?? "")
+					resp.servers.stitcher + this.parseStitchedIntoHlsPath(episode.stitched)
 				);
 				hlsUrl.search = this.buildHlsQueryParams(resp).toString();
 				const proxy = conf.get("cors_proxy");
 
 				const video: Video = {
 					service: this.serviceId,
-					id: `${vod.id}/${episode._id}`,
+					id: `series/${vod.id}/${episode._id}`,
 					title: episode.name,
-					description: episode.description,
+					description: `S${season.number}E${episodeNumber} - ${episode.description}`,
 					thumbnail: episode.covers[0].url,
 					length: episode.duration / 1000,
 					mime: "application/x-mpegURL",
@@ -204,10 +217,32 @@ export default class PlutoAdapter extends ServiceAdapter {
 				};
 
 				videos.push(video);
+				episodeNumber++;
 			}
 		}
 
 		return videos;
+	}
+
+	parseStitchedIntoHlsPath(stitched: Stitched2): string {
+		if (stitched.path) {
+			return stitched.path;
+		}
+		return stitched.paths?.find(p => p.type === "hls")?.path ?? "";
+	}
+
+	findEpisodeInVod(subid: string, vod: Vod): Episode2 | undefined {
+		for (const season of vod.seasons ?? []) {
+			for (const episode of season.episodes) {
+				if (episode._id === subid) {
+					return episode;
+				}
+			}
+		}
+	}
+
+	parsedIdsToVideoId(parsed: PlutoParsedIds): string {
+		return `${parsed.type}/${parsed.id}${parsed.subid ? `/${parsed.subid}` : ""}`;
 	}
 }
 

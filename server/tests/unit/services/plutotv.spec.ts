@@ -6,18 +6,21 @@ const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[
 		"https://pluto.tv/en/on-demand/movies/616872fc0b4e8f001a960443/details",
 		{
+			type: "movies",
 			id: "616872fc0b4e8f001a960443",
 		},
 	],
 	[
 		"https://pluto.tv/en/on-demand/movies/629ff609cb032400134d42bc",
 		{
+			type: "movies",
 			id: "629ff609cb032400134d42bc",
 		},
 	],
 	[
 		"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/season/1/episode/603db2a8e7c979001a890535",
 		{
+			type: "series",
 			id: "603db25de7c979001a88f77a",
 			subid: "603db2a8e7c979001a890535",
 		},
@@ -25,6 +28,7 @@ const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[
 		"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/season/2/episode/624ddac8d0f36a0013e5477f",
 		{
+			type: "series",
 			id: "603db25de7c979001a88f77a",
 			subid: "624ddac8d0f36a0013e5477f",
 		},
@@ -35,15 +39,16 @@ const seriesLinks: [string, PlutoParsedIds][] = [
 	[
 		"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/details/season/1",
 		{
+			type: "series",
 			id: "603db25de7c979001a88f77a",
 			season: 1,
 		},
 	],
 	[
-		"https://pluto.tv/en/on-demand/series/6234b65ffc8de900130ab0d2/details/season/1",
+		"https://pluto.tv/en/on-demand/series/6234b65ffc8de900130ab0d2",
 		{
+			type: "series",
 			id: "6234b65ffc8de900130ab0d2",
-			season: 1,
 		},
 	],
 ];
@@ -74,7 +79,7 @@ describe("Pluto TV", () => {
 	describe("getVideoId", () => {
 		it.each(singleVideoLinks)("should be able to get the video id from %s", (link, data) => {
 			expect(adapter.getVideoId(link)).toEqual(
-				`${data.id}${data.subid ? `/${data.subid}` : ""}`
+				`${data.type}/${data.id}${data.subid ? `/${data.subid}` : ""}`
 			);
 		});
 	});
@@ -120,14 +125,15 @@ describe("Pluto TV", () => {
 			expect(results).not.toHaveLength(0);
 		});
 
-		it.each(seriesLinks)(
-			`should only contain episodes from the requested season %s`,
-			async (url: string) => {
-				const results = await adapter.resolveURL(url);
+		it(`should only contain episodes from season 1`, async () => {
+			const results = await adapter.resolveURL(
+				"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/details/season/1"
+			);
 
-				// TODO
+			for (const result of results) {
+				expect(result.description?.slice(0, 2)).toEqual("S1");
 			}
-		);
+		});
 	});
 });
 
