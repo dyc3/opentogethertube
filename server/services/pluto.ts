@@ -9,40 +9,12 @@ import { v1 as uuidv1 } from "uuid";
 const log = getLogger("pluto");
 
 export interface PlutoParsedIds {
-	// videoType: "series" | "movie";
 	/** The series or movie ID */
 	id: string;
 	/** The episode ID, only present if videoType == "series" */
 	subid?: string;
 	/** The season number, only present if videoType == "series" */
 	season?: number;
-}
-
-export interface PlutoParsedSlugs {
-	videoType: "series" | "movie";
-	/** The series or movie slug (its like a human readable id) */
-	slug: string;
-	/** The episode slug, only present if videoType == "series" */
-	subslug?: string;
-}
-
-interface PlutoSlugsV3Response {
-	_id: string;
-	name: string;
-	summary: string;
-	description: string;
-	/** units in milliseconds, probably */
-	duration: number;
-	featuredImage: {
-		path: string;
-	};
-	stitched: {
-		urls: {
-			type: string;
-			url: string;
-		}[];
-		sessionURL: string;
-	};
 }
 
 export default class PlutoAdapter extends ServiceAdapter {
@@ -99,13 +71,11 @@ export default class PlutoAdapter extends ServiceAdapter {
 	videoIdToSlugs(id: string): PlutoParsedIds {
 		if (!id.includes("/")) {
 			return {
-				// videoType: "movie",
 				id,
 			};
 		}
 		const [slug, subslug] = id.split("/");
 		return {
-			// videoType: subslug ? "series" : "movie",
 			id: slug,
 			subid: subslug,
 		};
@@ -238,16 +208,6 @@ export default class PlutoAdapter extends ServiceAdapter {
 		}
 
 		return videos;
-	}
-
-	parseBootResponseIntoSlugs(resp: PlutoBootResponse): PlutoParsedSlugs {
-		const vod = resp.VOD[0];
-
-		return {
-			videoType: vod.type as "series" | "movie",
-			slug: vod.slug,
-			// TODO: figure out what the subslug is for episodes
-		};
 	}
 }
 
