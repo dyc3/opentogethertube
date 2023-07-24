@@ -2,7 +2,7 @@
 
 HEROKU_SOURCE=opentogethertube
 FLY_DEST=ott-db-prod
-FLY_DEST_DB_NAME=ott
+FLY_DEST_DB_NAME=ott_prod
 
 # HEROKU_SOURCE=ott-staging
 # FLY_DEST=ott-db-staging
