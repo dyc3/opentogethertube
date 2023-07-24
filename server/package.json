@@ -6,7 +6,7 @@
 	"module": "esnext",
 	"scripts": {
 		"start": "node --experimental-specifier-resolution=node --loader ts-node/esm app.ts",
-		"debug": "nodemon --inspect",
+		"debug": "nodemon --exec node --experimental-specifier-resolution=node --loader ts-node/esm --ignore 'tests/*' --inspect -e ts,js app.ts",
 		"lint": "tsc --noEmit && eslint --fix .",
 		"lint-ci": "tsc --noEmit && eslint .",
 		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"

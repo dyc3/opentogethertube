@@ -396,6 +396,12 @@ export const conf = convict({
 			default: false,
 		},
 	},
+	cors_proxy: {
+		doc: "The domain name of the cors proxy to use for cors-protected video services. If not provided, cors-protected video services will not work.",
+		format: String,
+		default: null as string | null,
+		nullable: true,
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {

@@ -11,4 +11,5 @@ export const ALL_VIDEO_SERVICES = [
 	"reddit",
 	"googledrive",
 	"peertube",
+	"pluto",
 ] as const;
