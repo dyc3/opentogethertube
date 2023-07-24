@@ -160,6 +160,10 @@ export default class PlutoAdapter extends ServiceAdapter {
 	}
 
 	parseBootResponseIntoVideo(plutoIds: PlutoParsedIds, resp: PlutoBootResponse): Video {
+		if (!resp.servers.stitcher) {
+			throw new Error("No stitcher server found in boot response");
+		}
+
 		let vodOrEpisode: Vod | Episode2 = resp.VOD[0];
 		if (plutoIds.subid) {
 			const ep = this.findEpisodeInVod(plutoIds.subid, vodOrEpisode);
@@ -193,6 +197,10 @@ export default class PlutoAdapter extends ServiceAdapter {
 	}
 
 	parseBootResponseIntoSeries(resp: PlutoBootResponse, season?: number): Video[] {
+		if (!resp.servers.stitcher) {
+			throw new Error("No stitcher server found in boot response");
+		}
+
 		const vod = resp.VOD[0];
 		const seasons = (vod.seasons ?? []).filter(s => !season || s.number === season);
 
