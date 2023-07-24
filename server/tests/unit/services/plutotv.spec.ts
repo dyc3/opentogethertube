@@ -133,6 +133,13 @@ describe("Pluto TV", () => {
 			for (const result of results) {
 				expect(result.description?.slice(0, 2)).toEqual("S1");
 			}
+
+			expect(results[0]).toMatchObject({
+				service: "pluto",
+				id: "series/603db25de7c979001a88f77a/603db2a8e7c979001a890535",
+				title: "Episode 1",
+				length: 1800,
+			});
 		});
 	});
 });
