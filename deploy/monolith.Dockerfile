@@ -29,4 +29,4 @@ COPY deploy/$DEPLOY_TARGET.toml /usr/app/env/production.toml
 HEALTHCHECK --interval=30s --timeout=3s CMD ( curl -f http://localhost:8080/api/status || exit 1 )
 
 # Start Server
-CMD ["yarn", "start"]
+CMD ["yarn", "workspace", "ott-server", "run", "start-lean"]
