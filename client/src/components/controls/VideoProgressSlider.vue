@@ -4,7 +4,7 @@
 		:interval="0.1"
 		:lazy="true"
 		:model-value="currentPosition"
-		:max="store.state.room.currentSource?.length ?? 0"
+		:max="normalisedVideoLength"
 		:tooltip-formatter="sliderTooltipFormatter"
 		:disabled="
 			store.state.room.currentSource?.length === undefined || !granted('playback.seek')
@@ -49,6 +49,21 @@ export const VideoProgressSlider = defineComponent({
 	setup() {
 		const store = useStore();
 		const roomapi = useRoomApi(useConnection());
+
+		/**
+		 * vue-slider-component requires (props.max - props.min) to be divisible by props.interval.
+		 * Some videos have an irregular length (e.g. 100.117), which will break the slider unless rounded (e.g. after rounding, 100.1).
+		 * This function rounds the video length provided by the server to 1 decimal place.
+		 * The video length is then used by the slider to define the maximum value (props.max).
+		 */
+		 const normalisedVideoLength = computed((): number => {
+			if (store.state.room.currentSource && store.state.room.currentSource.length) {
+				const videoLength = store.state.room.currentSource.length;
+				return Math.round(videoLength * 10) / 10;
+			} else {
+				return 0;
+			}
+		})
 
 		const sliderTooltipFormatter = ref(secondsToTimestamp);
 
@@ -177,6 +192,8 @@ export const VideoProgressSlider = defineComponent({
 		return {
 			store,
 			granted,
+
+			normalisedVideoLength,
 
 			sliderTooltipFormatter,
 
