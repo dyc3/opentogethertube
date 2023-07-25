@@ -5,6 +5,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, watch } from "vue";
 import vimeo from "@vimeo/player";
+import { onBeforeUnmount } from "vue";
 
 const VimeoPlayer = defineComponent({
 	name: "VimeoPlayer",
@@ -15,6 +16,7 @@ const VimeoPlayer = defineComponent({
 	setup(props, { emit }) {
 		let player: vimeo | undefined = undefined;
 		let isBuffering = false;
+		let resizeObserver: ResizeObserver | undefined = undefined;
 
 		onMounted(async () => {
 			const container = document.getElementById("vimeo-player");
@@ -26,8 +28,8 @@ const VimeoPlayer = defineComponent({
 				id: parsedId,
 				controls: false,
 				playsinline: true,
-				responsive: true,
 				portrait: false,
+				// do not use the responsive option, it makes the player able to expand beyond the container
 			});
 			setTimeout(() => {
 				if (!player) {
@@ -46,6 +48,11 @@ const VimeoPlayer = defineComponent({
 				});
 				player.on("error", () => emit("error"));
 				emit("apiready");
+
+				if (ResizeObserver) {
+					resizeObserver = new ResizeObserver(fitToContainer);
+					resizeObserver.observe(container);
+				}
 			}, 0);
 		});
 
@@ -56,6 +63,28 @@ const VimeoPlayer = defineComponent({
 			const parsedId = parseInt(props.videoId);
 			player.loadVideo(parsedId);
 		});
+
+		onBeforeUnmount(() => {
+			if (resizeObserver) {
+				resizeObserver.disconnect();
+				resizeObserver = undefined;
+			}
+			if (!player) {
+				return;
+			}
+			player.destroy();
+			player = undefined;
+		});
+
+		function fitToContainer() {
+			const container = document.getElementById("vimeo-player");
+			const iframe = document.querySelector("iframe");
+			if (!iframe || !container) {
+				return;
+			}
+			iframe.width = container.clientWidth.toString();
+			iframe.height = container.clientHeight.toString();
+		}
 
 		function play() {
 			if (!player) {
