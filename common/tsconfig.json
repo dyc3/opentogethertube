@@ -3,7 +3,8 @@
 	"compilerOptions": {
 		"target": "ESNext",
 		"baseUrl": ".",
-		"strictFunctionTypes": true
+		"strictFunctionTypes": true,
+		"outDir": "ts-out",
 	},
 	"include": ["**/*.ts"],
 	"exclude": ["node_modules", "dist", "ts-out"]
