@@ -3,10 +3,10 @@ trust_proxy = 2
 
 [db]
 mode = "postgres"
-metrics = false
+metrics = true
 
 [redis]
-metrics = false
+metrics = true
 
 [info_extractor.direct]
 ffprobe_path = "/usr/bin/ffprobe"
