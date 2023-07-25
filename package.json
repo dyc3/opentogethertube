@@ -17,7 +17,7 @@
     "postinstall": "patch-package",
     "start": "yarn workspace ott-server start",
     "serve": "yarn workspace ott-client serve",
-    "build": "yarn workspace ott-client build",
+    "build": "yarn workspaces run build",
     "lint": "yarn workspaces run lint",
     "lint-ci": "yarn workspaces run lint-ci",
     "test": "yarn workspaces run test",
