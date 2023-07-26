@@ -251,7 +251,10 @@ export default {
 		const results = await Promise.all(
 			Object.entries(grouped).map(async ([service, serviceVideos]) => {
 				// Handle each service separately
-				const cachedVideos: Video[] = await storage.getManyVideoInfo(serviceVideos);
+				const adapter = this.getServiceAdapter(service);
+				const cachedVideos: Video[] = adapter.isCacheSafe
+					? await storage.getManyVideoInfo(serviceVideos)
+					: [];
 				const requests = cachedVideos
 					.map(video => ({
 						id: video.id,
@@ -265,7 +268,6 @@ export default {
 					return cachedVideos;
 				}
 
-				const adapter = this.getServiceAdapter(service);
 				const fetchedVideos = await adapter.fetchManyVideoInfo(requests);
 				const finalResults = cachedVideos.map(video => {
 					const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
