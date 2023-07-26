@@ -56,14 +56,14 @@ export const VideoProgressSlider = defineComponent({
 		 * This function rounds the video length provided by the server to 1 decimal place.
 		 * The video length is then used by the slider to define the maximum value (props.max).
 		 */
-		 const normalisedVideoLength = computed((): number => {
+		const normalisedVideoLength = computed((): number => {
 			if (store.state.room.currentSource && store.state.room.currentSource.length) {
 				const videoLength = store.state.room.currentSource.length;
 				return Math.round(videoLength * 10) / 10;
 			} else {
 				return 0;
 			}
-		})
+		});
 
 		const sliderTooltipFormatter = ref(secondsToTimestamp);
 
