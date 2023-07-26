@@ -1,6 +1,7 @@
 import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto";
 import { AxiosResponse } from "axios";
 import fs from "fs";
+import { VideoRequest } from "../../../serviceadapter";
 
 const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[
@@ -142,6 +143,51 @@ describe("Pluto TV", () => {
 			});
 		});
 	});
+
+	describe("fetchManyVideoInfo", () => {
+		const adapter = new PlutoAdapter();
+		let apiGetSpy: jest.SpyInstance;
+
+		beforeAll(() => {
+			apiGetSpy = jest.spyOn(adapter.api, "get").mockImplementation(mockPlutoBoot);
+		});
+
+		afterEach(() => {
+			apiGetSpy.mockClear();
+		});
+
+		afterAll(() => {
+			apiGetSpy.mockRestore();
+		});
+
+		it("should fetch many videos with a single request", async () => {
+			const requests: VideoRequest[] = [
+				{
+					id: "series/603db25de7c979001a88f77a/603db2a8e7c979001a890535",
+					missingInfo: ["title", "description", "thumbnail", "length"],
+				},
+				{
+					id: "series/603db25de7c979001a88f77a/603db2a8e7c979001a890520",
+					missingInfo: ["title", "description", "thumbnail", "length"],
+				},
+				{
+					id: "series/6234b65ffc8de900130ab0d2/62704a8e73a0a1001450f4c6",
+					missingInfo: ["title", "description", "thumbnail", "length"],
+				},
+				{
+					id: "movies/629ff609cb032400134d42bc",
+					missingInfo: ["title", "description", "thumbnail", "length"],
+				},
+				{
+					id: "movies/616872fc0b4e8f001a960443",
+					missingInfo: ["title", "description", "thumbnail", "length"],
+				},
+			];
+			const result = await adapter.fetchManyVideoInfo(requests);
+
+			expect(result).toHaveLength(5);
+		});
+	});
 });
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/pluto";
@@ -151,6 +197,8 @@ const fixtureMappings = {
 	"629ff609cb032400134d42bc": "boot-v4_movie_forest_gump.json",
 	"6234b65ffc8de900130ab0d2": "boot-v4_series_stargate.json",
 	"603db25de7c979001a88f77a": "boot-v4_series_judge_judy.json",
+	"603db25de7c979001a88f77a,6234b65ffc8de900130ab0d2,629ff609cb032400134d42bc,616872fc0b4e8f001a960443":
+		"boot-v4_series_judge_judy_stargate_forest_gump_titanic.json",
 };
 
 async function mockPlutoBoot(url, params): Promise<AxiosResponse<PlutoBootResponse>> {

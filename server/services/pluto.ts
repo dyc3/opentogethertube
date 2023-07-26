@@ -6,6 +6,7 @@ import type { Video, VideoMetadata, VideoService } from "../../common/models/vid
 import { conf } from "../ott-config";
 import { v1 as uuidv1 } from "uuid";
 import { InvalidVideoIdException } from "../exceptions";
+import _ from "lodash";
 
 const log = getLogger("pluto");
 
@@ -103,9 +104,34 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return video;
 	}
 
-	async fetchSeriesInfo(seriesId: string, season?: number): Promise<Video[]> {
-		const resp = await this.plutoBoot(seriesId);
-		const videos = this.parseBootResponseIntoSeries(resp, season);
+	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
+		const parsedIds = requests.map(r => this.videoIdToSlugs(r.id));
+		const requestsBySeries = _.groupBy(parsedIds, r => r.id);
+		const allSeriesIds = Object.keys(requestsBySeries).join(",");
+		const boot = await this.plutoBoot(allSeriesIds);
+
+		const videos: Video[] = [];
+		for (const seriesId of Object.keys(requestsBySeries)) {
+			const seriesRequests = requestsBySeries[seriesId];
+			for (const request of seriesRequests) {
+				try {
+					const video = this.parseBootResponseIntoVideo(request, boot);
+					videos.push(video);
+				} catch (e) {
+					log.error(`Unable to parse video ${request.id}`, {
+						plutoIds: request,
+						error: e,
+					});
+				}
+			}
+		}
+
+		return videos;
+	}
+
+	async fetchSeriesInfo(plutoIds: PlutoParsedIds): Promise<Video[]> {
+		const resp = await this.plutoBoot(plutoIds.id);
+		const videos = this.parseBootResponseIntoSeries(plutoIds, resp);
 		return videos;
 	}
 
@@ -117,13 +143,17 @@ export default class PlutoAdapter extends ServiceAdapter {
 			(plutoIds.subid === undefined || plutoIds.season !== undefined);
 
 		if (isCollection) {
-			return this.fetchSeriesInfo(plutoIds.id, plutoIds.season);
+			return this.fetchSeriesInfo(plutoIds);
 		} else {
 			const videoId = this.parsedIdsToVideoId(plutoIds);
 			return [await this.fetchVideoInfo(videoId)];
 		}
 	}
 
+	/**
+	 * Call the Pluto boot API to get the server to use for the video, and metadata about the video.
+	 * @param seriesId A comma-separated list of series IDs
+	 */
 	async plutoBoot(seriesId: string): Promise<PlutoBootResponse> {
 		// Sample requests: GET https://boot.pluto.tv/v4/start?appName=web&appVersion=7.3.0-61c941df65e64c5f6a98944137c6e21c21cef2e7&deviceVersion=113.0.0&deviceModel=web&deviceMake=firefox&deviceType=web&clientID=7380ddc0-4922-47de-858d-8c4c8d6dc092&clientModelNumber=1.0.0&episodeSlugs=titanic-1997-1-1&serverSideAds=false&constraints=&drmCapabilities=widevine:L3&blockingMode=&clientTime=2023-06-29T16:28:42.362Z
 		const resp = await this.api.get("https://boot.pluto.tv/v4/start", {
@@ -159,12 +189,23 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return params;
 	}
 
-	parseBootResponseIntoVideo(plutoIds: PlutoParsedIds, resp: PlutoBootResponse): Video {
+	private ensureStitcherServer(resp: PlutoBootResponse): string {
+		if (!resp.servers.stitcher) {
+			throw new Error("No stitcher server found in boot response");
+		}
+		return resp.servers.stitcher;
+	}
+
+	private parseBootResponseIntoVideo(plutoIds: PlutoParsedIds, resp: PlutoBootResponse): Video {
 		if (!resp.servers.stitcher) {
 			throw new Error("No stitcher server found in boot response");
 		}
 
-		let vodOrEpisode: Vod | Episode2 = resp.VOD[0];
+		let vodOrEpisode: Vod | Episode2 | undefined = resp.VOD.find(v => v.id === plutoIds.id);
+		if (!vodOrEpisode) {
+			log.error(`Unable to find VOD ${plutoIds.id} in boot response`, { plutoIds });
+			throw new Error(`Unable to find VOD ${plutoIds.id} in boot response`);
+		}
 		if (plutoIds.subid) {
 			const ep = this.findEpisodeInVod(plutoIds.subid, vodOrEpisode);
 			if (!ep) {
@@ -196,13 +237,22 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return video;
 	}
 
-	parseBootResponseIntoSeries(resp: PlutoBootResponse, season?: number): Video[] {
+	private parseBootResponseIntoSeries(
+		plutoIds: PlutoParsedIds,
+		resp: PlutoBootResponse
+	): Video[] {
 		if (!resp.servers.stitcher) {
 			throw new Error("No stitcher server found in boot response");
 		}
 
-		const vod = resp.VOD[0];
-		const seasons = (vod.seasons ?? []).filter(s => !season || s.number === season);
+		const vod = resp.VOD.find(v => v.id === plutoIds.id);
+		if (!vod) {
+			log.error(`Unable to find VOD ${plutoIds.id} in boot response`, { plutoIds });
+			throw new Error(`Unable to find VOD ${plutoIds.id} in boot response`);
+		}
+		const seasons = (vod.seasons ?? []).filter(
+			s => !plutoIds.season || s.number === plutoIds.season
+		);
 
 		const videos: Video[] = [];
 		for (const season of seasons) {
@@ -234,14 +284,14 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return videos;
 	}
 
-	parseStitchedIntoHlsPath(stitched: Stitched2): string {
+	private parseStitchedIntoHlsPath(stitched: Stitched2): string {
 		if (stitched.path) {
 			return stitched.path;
 		}
 		return stitched.paths?.find(p => p.type === "hls")?.path ?? "";
 	}
 
-	findEpisodeInVod(subid: string, vod: Vod): Episode2 | undefined {
+	private findEpisodeInVod(subid: string, vod: Vod): Episode2 | undefined {
 		for (const season of vod.seasons ?? []) {
 			for (const episode of season.episodes) {
 				if (episode._id === subid) {
@@ -251,11 +301,11 @@ export default class PlutoAdapter extends ServiceAdapter {
 		}
 	}
 
-	parsedIdsToVideoId(parsed: PlutoParsedIds): string {
+	private parsedIdsToVideoId(parsed: PlutoParsedIds): string {
 		return `${parsed.type}/${parsed.id}${parsed.subid ? `/${parsed.subid}` : ""}`;
 	}
 
-	findBestCover(type: "series" | "movies", covers: Cover[]): Cover | undefined {
+	private findBestCover(type: "series" | "movies", covers: Cover[]): Cover | undefined {
 		if (type === "series") {
 			return covers.find(c => c.aspectRatio === "16:9") ?? covers[0];
 		} else if (type === "movies") {
