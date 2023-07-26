@@ -187,6 +187,22 @@ describe("Pluto TV", () => {
 
 			expect(result).toHaveLength(5);
 		});
+
+		it("should not outright fail if some videos aren't present", async () => {
+			const requests: VideoRequest[] = [
+				{
+					id: "series/603db25de7c979001a88f77a/603db2a8e7c979001a890535",
+					missingInfo: ["title", "description", "thumbnail", "length"],
+				},
+				{
+					id: "series/603db25de7c979001a88f77a/703db2a8e7c9e9001z123abc", // doesn't exist
+					missingInfo: ["title", "description", "thumbnail", "length"],
+				},
+			];
+			const result = await adapter.fetchManyVideoInfo(requests);
+
+			expect(result).toHaveLength(1);
+		});
 	});
 });
 

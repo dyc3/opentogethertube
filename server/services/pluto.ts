@@ -189,13 +189,6 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return params;
 	}
 
-	private ensureStitcherServer(resp: PlutoBootResponse): string {
-		if (!resp.servers.stitcher) {
-			throw new Error("No stitcher server found in boot response");
-		}
-		return resp.servers.stitcher;
-	}
-
 	private parseBootResponseIntoVideo(plutoIds: PlutoParsedIds, resp: PlutoBootResponse): Video {
 		if (!resp.servers.stitcher) {
 			throw new Error("No stitcher server found in boot response");
