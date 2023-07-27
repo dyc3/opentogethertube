@@ -6,7 +6,7 @@
 	"module": "esnext",
 	"scripts": {
 		"start": "node --experimental-specifier-resolution=node --loader ts-node/esm app.ts",
-		"start-lean": "node --experimental-specifier-resolution=node ts-out/server/app.js",
+		"start-lean": "node --experimental-specifier-resolution=node --optimize-for-size --max-old-space-size=200 ts-out/server/app.js",
 		"debug": "nodemon --exec node --experimental-specifier-resolution=node --loader ts-node/esm --ignore 'tests/*' --inspect -e ts,js app.ts",
 		"build": "tsc",
 		"lint": "tsc --noEmit && eslint --fix .",
