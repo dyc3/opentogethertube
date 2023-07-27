@@ -5,4 +5,5 @@ primary_region = "ewr"
 dockerfile = "job-runner.Dockerfile"
 
 [metrics]
+path = "/metrics"
 port = 9746

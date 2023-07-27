@@ -6,11 +6,14 @@ cd "$(dirname "$0")"
 
 echo "$DATABASE_URL"
 
-curl https://downloads.rclone.org/rclone-current-linux-amd64.zip -o rclone.zip
-unzip rclone.zip
-find . -name rclone -type f -exec mv {} /app \;
-rm -rf rclone.zip rclone-v*
-chmod +x ./rclone
+if [[ ! -f ./rclone ]]; then
+	echo "rclone not found, downloading..."
+	curl https://downloads.rclone.org/rclone-current-linux-amd64.zip -o rclone.zip
+	unzip rclone.zip
+	find . -name rclone -type f -exec mv {} /app \;
+	rm -rf rclone.zip rclone-v*
+	chmod +x ./rclone
+fi
 
 cat > ./rclone.conf << EOF
 [b2]

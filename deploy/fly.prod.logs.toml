@@ -1,0 +1,18 @@
+# fly.toml app configuration file generated for ott-logs-prod on 2023-07-27T15:12:42-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "ott-logs-prod"
+primary_region = "ewr"
+
+[build]
+image = "ghcr.io/superfly/fly-log-shipper:latest"
+
+[[services]]
+http_checks = []
+internal_port = 8686
+
+[metrics]
+port = 9598
+path = "/metrics"
