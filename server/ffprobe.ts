@@ -14,104 +14,7 @@ import { Counter } from "prom-client";
 import { conf } from "./ott-config";
 
 const log = getLogger("infoextract/ffprobe");
-const FFPROBE_PATH: string =
-	conf.get("info_extractor.direct.ffprobe_path") || ffprobeInstaller.path;
-const DIRECT_PREVIEW_MAX_BYTES = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
-enum FetchMode {
-	PreviewOnDisk,
-	StreamToStdin,
-}
-const FETCH_MODE = FetchMode.StreamToStdin;
 const exec = util.promisify(child_process.exec);
-
-log.debug(`ffprobe installed at ${FFPROBE_PATH}`);
-
-/** @deprecated use any class derived from `FfprobeStrategy` */
-export async function getFileInfo(uri: string) {
-	log.debug(`Grabbing file info from ${uri}`);
-	if (uri.includes('"')) {
-		// if, by some weird off chance, the uri SOMEHOW contains a quote, don't execute the command
-		// because it'll break, and probably lead to an exploit.
-		log.error(
-			"Failed to grab file info: uri contains unescaped double quote, which is a banned character"
-		);
-		throw new Error("Unescaped double quote found in uri");
-	}
-	const httpAgent = new http.Agent({ keepAlive: false });
-	const httpsAgent = new https.Agent({ keepAlive: false });
-	const controller = new AbortController();
-	let resp = await axios.get(uri, {
-		responseType: "stream",
-		signal: controller.signal,
-		httpAgent,
-		httpsAgent,
-	});
-
-	log.debug(`Got response: ${resp.status}`);
-	// @ts-expect-error
-	if (FETCH_MODE === FetchMode.PreviewOnDisk) {
-		let tmpfile: string;
-		try {
-			tmpfile = await saveVideoPreview(resp.data);
-		} finally {
-			controller.abort();
-			httpAgent.destroy();
-			httpsAgent.destroy();
-		}
-		try {
-			const { stdout } = await exec(
-				`${FFPROBE_PATH} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
-			);
-			return JSON.parse(stdout);
-		} finally {
-			await fs.rm(tmpfile);
-		}
-	} else if (FETCH_MODE === FetchMode.StreamToStdin) {
-		try {
-			let stdout = await streamDataIntoFfprobe(FFPROBE_PATH, resp.data, controller);
-			return JSON.parse(stdout);
-		} finally {
-			controller.abort();
-			httpAgent.destroy();
-			httpsAgent.destroy();
-		}
-	} else {
-		throw new Error("Unknown fetch mode");
-	}
-}
-
-async function saveVideoPreview(stream: Stream): Promise<string> {
-	let tmpdir = await fs.mkdtemp("/tmp/ott");
-	let tmpfile = path.join(tmpdir, "./preview");
-	log.debug(`saving preview to ${tmpfile}`);
-	let handle = await fs.open(tmpfile, "w");
-
-	let counter = 0;
-	return new Promise((resolve, reject) => {
-		function finish() {
-			stream.removeAllListeners();
-			handle.close();
-			resolve(tmpfile);
-		}
-		stream.on("data", async data => {
-			await handle.write(data);
-			counter += data.length;
-			counterBytesDownloaded.inc(data.length);
-			if (counter > DIRECT_PREVIEW_MAX_BYTES) {
-				finish();
-			}
-		});
-		stream.on("end", () => {
-			finish();
-		});
-		stream.on("error", error => {
-			log.error(`http stream error: ${error}`);
-			stream.removeAllListeners();
-			handle.close();
-			reject(error);
-		});
-	});
-}
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -190,10 +93,6 @@ export abstract class FfprobeStrategy {
 	constructor() {
 		this.ffprobePath = conf.get("info_extractor.direct.ffprobe_path") || ffprobeInstaller.path;
 		log.debug(`ffprobe installed at ${this.ffprobePath}`);
-	}
-
-	sanitizeUri(uri: string): string {
-		return uri;
 	}
 
 	abstract getFileInfo(uri: string): Promise<any>;
@@ -292,10 +191,6 @@ export class StreamFfprobe extends FfprobeStrategy {
 		}
 	}
 }
-
-export default {
-	getFileInfo,
-};
 
 const counterBytesDownloaded = new Counter({
 	name: "ott_infoextractor_direct_bytes_downloaded",
