@@ -10,6 +10,7 @@ metrics = true
 
 [info_extractor.direct]
 ffprobe_path = "/usr/bin/ffprobe"
+ffprobe_strategy = "run"
 
 [add_preview.search]
 enabled = true
