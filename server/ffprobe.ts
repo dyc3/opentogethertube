@@ -13,7 +13,7 @@ import https from "https";
 import { Counter } from "prom-client";
 import { conf } from "./ott-config";
 
-const log = getLogger("infoextract.ffprobe");
+const log = getLogger("infoextract/ffprobe");
 const FFPROBE_PATH: string =
 	conf.get("info_extractor.direct.ffprobe_path") || ffprobeInstaller.path;
 const DIRECT_PREVIEW_MAX_BYTES = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
@@ -26,6 +26,7 @@ const exec = util.promisify(child_process.exec);
 
 log.debug(`ffprobe installed at ${FFPROBE_PATH}`);
 
+/** @deprecated use any class derived from `FfprobeStrategy` */
 export async function getFileInfo(uri: string) {
 	log.debug(`Grabbing file info from ${uri}`);
 	if (uri.includes('"')) {
@@ -67,7 +68,7 @@ export async function getFileInfo(uri: string) {
 		}
 	} else if (FETCH_MODE === FetchMode.StreamToStdin) {
 		try {
-			let stdout = await streamDataIntoFfprobe(resp.data, controller);
+			let stdout = await streamDataIntoFfprobe(FFPROBE_PATH, resp.data, controller);
 			return JSON.parse(stdout);
 		} finally {
 			controller.abort();
@@ -112,12 +113,16 @@ async function saveVideoPreview(stream: Stream): Promise<string> {
 	});
 }
 
-function streamDataIntoFfprobe(stream: Stream, controller: AbortController): Promise<string> {
+function streamDataIntoFfprobe(
+	ffprobePath: string,
+	stream: Stream,
+	controller: AbortController
+): Promise<string> {
 	return new Promise((resolve, reject) => {
 		let stream_ended = true;
 
 		let child = child_process.spawn(
-			`${FFPROBE_PATH}`,
+			`${ffprobePath}`,
 			["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"],
 			{
 				stdio: "pipe",
@@ -177,6 +182,115 @@ function streamDataIntoFfprobe(stream: Stream, controller: AbortController): Pro
 			finalize();
 		});
 	});
+}
+
+export abstract class FfprobeStrategy {
+	ffprobePath: string;
+
+	constructor() {
+		this.ffprobePath = conf.get("info_extractor.direct.ffprobe_path") || ffprobeInstaller.path;
+		log.debug(`ffprobe installed at ${this.ffprobePath}`);
+	}
+
+	sanitizeUri(uri: string): string {
+		return uri;
+	}
+
+	abstract getFileInfo(uri: string): Promise<any>;
+}
+
+export class RunFfprobe extends FfprobeStrategy {
+	async getFileInfo(uri: string): Promise<any> {
+		log.debug(`Grabbing file info from ${uri}`);
+		if (uri.includes('"')) {
+			// if, by some weird off chance, the uri SOMEHOW contains a quote, don't execute the command
+			// because it'll break, and probably lead to an exploit.
+			log.error(
+				"Failed to grab file info: uri contains unescaped double quote, which is a banned character"
+			);
+			throw new Error("Unescaped double quote found in uri");
+		}
+		const { stdout } = await exec(
+			`${this.ffprobePath} -v quiet -i "${uri}" -print_format json -show_streams -show_format`
+		);
+		return JSON.parse(stdout);
+	}
+}
+
+export class OnDiskPreviewFfprobe extends FfprobeStrategy {
+	async getFileInfo(uri: string): Promise<any> {
+		log.debug(`Grabbing file info from ${uri}`);
+
+		let tmpdir = await fs.mkdtemp("/tmp/ott");
+		let tmpfile = path.join(tmpdir, "./preview");
+		log.debug(`saving preview to ${tmpfile}`);
+		let handle = await fs.open(tmpfile, "w");
+
+		const httpAgent = new http.Agent({ keepAlive: false });
+		const httpsAgent = new https.Agent({ keepAlive: false });
+		const controller = new AbortController();
+		let resp = await axios.get<Stream>(uri, {
+			responseType: "stream",
+			signal: controller.signal,
+			httpAgent,
+			httpsAgent,
+		});
+
+		const byte_limit = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
+
+		try {
+			let counter = 0;
+			resp.data.on("data", data => {
+				log.silly("got data");
+
+				counter += data.length;
+				counterBytesDownloaded.inc(data.length);
+				if (counter > byte_limit) {
+					log.debug(`read ${counter} bytes, stopping`);
+					controller.abort();
+				}
+			});
+
+			await resp.data.pipe(handle.createWriteStream());
+		} finally {
+			controller.abort();
+			httpAgent.destroy();
+			httpsAgent.destroy();
+		}
+
+		try {
+			const { stdout } = await exec(
+				`${this.ffprobePath} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
+			);
+			return JSON.parse(stdout);
+		} finally {
+			await fs.rm(tmpfile);
+		}
+	}
+}
+
+export class StreamFfprobe extends FfprobeStrategy {
+	async getFileInfo(uri: string): Promise<any> {
+		log.debug(`Grabbing file info from ${uri}`);
+
+		const httpAgent = new http.Agent({ keepAlive: false });
+		const httpsAgent = new https.Agent({ keepAlive: false });
+		const controller = new AbortController();
+		let resp = await axios.get<Stream>(uri, {
+			responseType: "stream",
+			signal: controller.signal,
+			httpAgent,
+			httpsAgent,
+		});
+		try {
+			let stdout = await streamDataIntoFfprobe(this.ffprobePath, resp.data, controller);
+			return JSON.parse(stdout);
+		} finally {
+			controller.abort();
+			httpAgent.destroy();
+			httpsAgent.destroy();
+		}
+	}
 }
 
 export default {

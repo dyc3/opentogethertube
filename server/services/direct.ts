@@ -7,13 +7,21 @@ import {
 	MissingMetadataException,
 } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
-import ffprobe from "../ffprobe";
+import { FfprobeStrategy, RunFfprobe, StreamFfprobe } from "../ffprobe";
 import { getLogger } from "../logger";
 import { Video } from "../../common/models/video";
 
 const log = getLogger("direct");
 
 export default class DirectVideoAdapter extends ServiceAdapter {
+	ffprobe: FfprobeStrategy;
+
+	constructor() {
+		super();
+
+		this.ffprobe = new StreamFfprobe();
+	}
+
 	get serviceId(): "direct" {
 		return "direct";
 	}
@@ -67,7 +75,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		if (!isSupportedMimeType(mime)) {
 			throw new UnsupportedMimeTypeException(mime);
 		}
-		const fileInfo = await ffprobe.getFileInfo(link);
+		const fileInfo = await this.ffprobe.getFileInfo(link);
 		const duration = Math.ceil(this.getDuration(fileInfo));
 		const title = fileInfo.format?.tags?.title ?? fileName;
 		const video: Video = {
