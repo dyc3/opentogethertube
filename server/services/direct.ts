@@ -7,9 +7,10 @@ import {
 	MissingMetadataException,
 } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
-import { FfprobeStrategy, RunFfprobe, StreamFfprobe } from "../ffprobe";
+import { FfprobeStrategy, OnDiskPreviewFfprobe, RunFfprobe, StreamFfprobe } from "../ffprobe";
 import { getLogger } from "../logger";
 import { Video } from "../../common/models/video";
+import { conf } from "../ott-config";
 
 const log = getLogger("direct");
 
@@ -19,7 +20,20 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 	constructor() {
 		super();
 
-		this.ffprobe = new StreamFfprobe();
+		const ffprobeStrategy = conf.get("info_extractor.direct.ffprobe_strategy");
+		switch (ffprobeStrategy) {
+			case "stream":
+				this.ffprobe = new StreamFfprobe();
+				break;
+			case "run":
+				this.ffprobe = new RunFfprobe();
+				break;
+			case "disk":
+				this.ffprobe = new OnDiskPreviewFfprobe();
+				break;
+			default:
+				throw new Error(`Unknown ffprobe strategy: ${ffprobeStrategy}`);
+		}
 	}
 
 	get serviceId(): "direct" {

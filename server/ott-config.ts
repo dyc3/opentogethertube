@@ -248,6 +248,12 @@ export const conf = convict({
 				env: "DIRECT_PREVIEW_MAX_BYTES",
 				nullable: true,
 			},
+			ffprobe_strategy: {
+				doc: "The strategy to use for running ffprobe.",
+				format: ["stream", "disk", "run"],
+				default: "stream",
+				env: "FFPROBE_STRATEGY",
+			},
 		},
 		google_drive: {
 			api_key: {
