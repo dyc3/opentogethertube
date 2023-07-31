@@ -7,13 +7,35 @@ import {
 	MissingMetadataException,
 } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
-import ffprobe from "../ffprobe";
+import { FfprobeStrategy, OnDiskPreviewFfprobe, RunFfprobe, StreamFfprobe } from "../ffprobe";
 import { getLogger } from "../logger";
 import { Video } from "../../common/models/video";
+import { conf } from "../ott-config";
 
 const log = getLogger("direct");
 
 export default class DirectVideoAdapter extends ServiceAdapter {
+	ffprobe: FfprobeStrategy;
+
+	constructor() {
+		super();
+
+		const ffprobeStrategy = conf.get("info_extractor.direct.ffprobe_strategy");
+		switch (ffprobeStrategy) {
+			case "stream":
+				this.ffprobe = new StreamFfprobe();
+				break;
+			case "run":
+				this.ffprobe = new RunFfprobe();
+				break;
+			case "disk":
+				this.ffprobe = new OnDiskPreviewFfprobe();
+				break;
+			default:
+				throw new Error(`Unknown ffprobe strategy: ${ffprobeStrategy}`);
+		}
+	}
+
 	get serviceId(): "direct" {
 		return "direct";
 	}
@@ -67,7 +89,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		if (!isSupportedMimeType(mime)) {
 			throw new UnsupportedMimeTypeException(mime);
 		}
-		const fileInfo = await ffprobe.getFileInfo(link);
+		const fileInfo = await this.ffprobe.getFileInfo(link);
 		const duration = Math.ceil(this.getDuration(fileInfo));
 		const title = fileInfo.format?.tags?.title ?? fileName;
 		const video: Video = {

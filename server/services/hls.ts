@@ -3,7 +3,6 @@ import _ from "lodash";
 import { ServiceAdapter } from "../serviceadapter";
 import { LocalFileException, UnsupportedMimeTypeException } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
-import ffprobe from "../ffprobe";
 import { getLogger } from "../logger";
 import { Video } from "../../common/models/video";
 import { Parser as M3u8Parser } from "m3u8-parser";

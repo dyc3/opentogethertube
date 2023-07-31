@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@divine/synchronization": "^1.2.1",
-		"@ffprobe-installer/ffprobe": "^1.0.12",
+		"@ffprobe-installer/ffprobe": "2.1.1",
 		"connect-redis": "7.1.0",
 		"convict": "^6.2.4",
 		"express": "^4.17.1",

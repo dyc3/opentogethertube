@@ -645,10 +645,10 @@
   resolved "https://registry.yarnpkg.com/@ffprobe-installer/darwin-x64/-/darwin-x64-5.1.0.tgz#f52316ac0bbe6f4ac70fdaea8db259ba4a055b00"
   integrity sha512-J+YGscZMpQclFg31O4cfVRGmDpkVsQ2fZujoUdMAAYcP0NtqpC49Hs3SWJpBdsGB4VeqOt5TTm1vSZQzs1NkhA==
 
-"@ffprobe-installer/ffprobe@^1.0.12":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@ffprobe-installer/ffprobe/-/ffprobe-1.4.2.tgz#87729abccd1a0f2dd435ee122a3790a2eb1cab76"
-  integrity sha512-Jowoycg4aGeDVVaz+25hRSjdIDuDDXYMJjbOLvlKq9WF1n9rkAGR7Scce+bFeoRw0QwSPrpPnEH1weTWZU8CQA==
+"@ffprobe-installer/ffprobe@2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@ffprobe-installer/ffprobe/-/ffprobe-2.1.1.tgz#2e6e3766492ee4e9a19ec0abbea1ee32555be50a"
+  integrity sha512-v4nAFp70Gv7yyEvjvlGTOrYn1atjFi6Z9vpGpGvWAiCXL6vnL88gBeIyJ4hY01G/XOw1LVuq1vjUM3gQzxMmIA==
   optionalDependencies:
     "@ffprobe-installer/darwin-arm64" "5.0.1"
     "@ffprobe-installer/darwin-x64" "5.1.0"
