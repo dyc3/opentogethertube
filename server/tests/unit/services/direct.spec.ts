@@ -1,18 +1,34 @@
-jest.mock("../../../ffprobe");
-
 import DirectVideoAdapter from "../../../services/direct";
-import ffprobe from "../../../ffprobe";
+import { FfprobeStrategy } from "../../../ffprobe";
 import fs from "fs";
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/direct";
 
-function getFixture(file: string) {
-	let path = `${FIXTURE_DIRECTORY}/${file}`;
-	if (fs.existsSync(path)) {
-		let content = fs.readFileSync(path, "utf8");
-		return JSON.parse(content);
+class FfprobeFixtures extends FfprobeStrategy {
+	async getFileInfo(uri: string): Promise<any> {
+		const url = new URL(uri);
+
+		return {
+			"/test.mp4": {
+				streams: [
+					{
+						codec_type: "video",
+						duration: 100,
+					},
+				],
+			},
+			"/foo.mp4": this.getFixture("ffprobe-output-has-title.json"),
+		}[url.pathname];
 	}
-	throw new Error("fixture not found");
+
+	getFixture(file: string) {
+		let path = `${FIXTURE_DIRECTORY}/${file}`;
+		if (fs.existsSync(path)) {
+			let content = fs.readFileSync(path, "utf8");
+			return JSON.parse(content);
+		}
+		throw new Error("fixture not found");
+	}
 }
 
 describe("Direct", () => {
@@ -93,25 +109,7 @@ describe("Direct", () => {
 
 	describe("fetchVideoInfo", () => {
 		const adapter = new DirectVideoAdapter();
-
-		beforeEach(() => {
-			const getFileInfoMock = jest.fn().mockImplementation(uri => {
-				const url = new URL(uri);
-
-				return {
-					"/test.mp4": {
-						streams: [
-							{
-								codec_type: "video",
-								duration: 100,
-							},
-						],
-					},
-					"/foo.mp4": getFixture("ffprobe-output-has-title.json"),
-				}[url.pathname];
-			});
-			ffprobe.getFileInfo = getFileInfoMock;
-		});
+		adapter.ffprobe = new FfprobeFixtures();
 
 		it("Returns a promise", async () => {
 			const url = "https://example.com/test.mp4";
