@@ -20,7 +20,7 @@ Contributions are welcome! Check out issues that have the "good first issue" lab
 
 ### Prerequisites
 
-This project targets node 16 and up.
+This project targets node 18 and up.
 
 ### Setup
 
