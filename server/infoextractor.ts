@@ -254,7 +254,7 @@ export default {
 				const adapter = this.getServiceAdapter(service);
 				const cachedVideos: Video[] = adapter.isCacheSafe
 					? await storage.getManyVideoInfo(serviceVideos)
-					: [];
+					: serviceVideos;
 				const requests = cachedVideos
 					.map(video => ({
 						id: video.id,
@@ -264,7 +264,7 @@ export default {
 					}))
 					.filter(request => request.missingInfo.length > 0);
 
-				if (requests.length === 0) {
+				if (requests.length === 0 && adapter.isCacheSafe) {
 					return cachedVideos;
 				}
 
