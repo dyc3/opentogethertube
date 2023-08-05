@@ -163,6 +163,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				(url.pathname.startsWith("/c/") && url.pathname.length > 3) ||
 				(url.pathname.startsWith("/playlist") && !!url.searchParams.get("list")) ||
 				url.pathname.startsWith("/shorts/") ||
+				url.pathname.startsWith("/live/") ||
 				(url.pathname.startsWith("/@") && url.pathname.length > 2) ||
 				(url.host === "studio.youtube.com" && url.pathname.startsWith("/video/"))
 			);
