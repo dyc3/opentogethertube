@@ -39,7 +39,9 @@ function addRoom(room: Room) {
 export async function start() {
 	log.info("Starting room manager");
 	const keys = await redisClient.keys("room:*");
+	log.debug(`Found ${keys.length} rooms in redis`);
 	for (const roomKey of keys) {
+		log.debug(`Loading ${roomKey}`);
 		const text = await redisClient.get(roomKey);
 		if (!text) {
 			continue;
