@@ -18,6 +18,7 @@ const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtu.be/3kw2_89ym31W"],
 	["R5i-cktCTb4", "https://youtube.com/shorts/R5i-cktCTb4?feature=share"],
 	["DMfu0KiqWnk", "https://studio.youtube.com/video/DMfu0KiqWnk/edit"],
+	["l3XUssSglXk", "https://www.youtube.com/live/l3XUssSglXk"],
 ];
 
 const invalidLinks = [
