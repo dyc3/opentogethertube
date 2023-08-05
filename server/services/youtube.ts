@@ -527,7 +527,12 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		};
 		if (item.snippet) {
 			video.title = item.snippet.title;
-			video.description = item.snippet.description;
+			const truncDescription = conf.get("info_extractor.youtube.truncate_description");
+			if (truncDescription && item.snippet.description.length > truncDescription) {
+				video.description = item.snippet.description.substring(0, truncDescription) + "...";
+			} else {
+				video.description = item.snippet.description;
+			}
 			if (item.snippet.thumbnails) {
 				if (item.snippet.thumbnails.medium) {
 					video.thumbnail = item.snippet.thumbnails.medium.url;

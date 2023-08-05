@@ -232,6 +232,12 @@ export const conf = convict({
 				env: "YOUTUBE_API_KEY",
 				sensitive: true,
 			},
+			truncate_description: {
+				doc: "The number of characters to truncate the description to, or null to not truncate.",
+				format: "nat",
+				default: null as number | null,
+				nullable: true,
+			},
 		},
 		direct: {
 			ffprobe_path: {
