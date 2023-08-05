@@ -150,7 +150,30 @@ export type RoomStateSyncable = Omit<RoomState, "owner" | "votes" | "userRoles" 
 export type RoomStateStorable = Omit<
 	RoomState,
 	"hasOwner" | "votes" | "voteCounts" | "users" | "votesToSkip"
->;
+> & { _playbackStart: Dayjs | null };
+
+const storableProps: (keyof RoomStateStorable)[] = [
+	"name",
+	"title",
+	"description",
+	"isTemporary",
+	"visibility",
+	"queueMode",
+	"currentSource",
+	"queue",
+	"isPlaying",
+	"playbackPosition",
+	"playbackSpeed",
+	"grants",
+	"userRoles",
+	"owner",
+	"_playbackStart",
+	"videoSegments",
+	"autoSkipSegments",
+	"prevQueue",
+	"restoreQueueBehavior",
+	"enableVoteSkip",
+];
 
 /** Only these should be stored in persistent storage */
 export type RoomStatePersistable = Omit<
@@ -764,29 +787,7 @@ export class Room implements RoomState {
 	 * Serialize the room's state so that it can be stored in redis
 	 */
 	public serializeState(): string {
-		const state: RoomStateStorable = _.pick(
-			this,
-			"name",
-			"title",
-			"description",
-			"isTemporary",
-			"visibility",
-			"queueMode",
-			"currentSource",
-			"queue",
-			"isPlaying",
-			"playbackPosition",
-			"playbackSpeed",
-			"grants",
-			"userRoles",
-			"owner",
-			"_playbackStart",
-			"videoSegments",
-			"autoSkipSegments",
-			"prevQueue",
-			"restoreQueueBehavior",
-			"enableVoteSkip"
-		);
+		const state: RoomStateStorable = _.pick(this, ...storableProps);
 
 		return JSON.stringify(state, replacer);
 	}
@@ -854,10 +855,17 @@ export class Room implements RoomState {
 			"enableVoteSkip",
 			"votesToSkip"
 		);
+		const isAnyDirtyStorable = Array.from(this._dirty).some(prop =>
+			storableProps.includes(prop as any)
+		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
-		await redisClient.set(`room:${this.name}`, this.serializeState());
+		if (isAnyDirtyStorable) {
+			this.log.debug("saving full state in redis");
+			await redisClient.set(`room:${this.name}`, this.serializeState());
+		}
 		if (!_.isEmpty(msg)) {
+			this.log.debug("sending sync message");
 			await redisClient.set(`room-sync:${this.name}`, this.serializeSyncableState());
 			await this.publish(msg);
 		}
