@@ -857,8 +857,10 @@ export class Room implements RoomState {
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 		await redisClient.set(`room:${this.name}`, this.serializeState());
-		await redisClient.set(`room-sync:${this.name}`, this.serializeSyncableState());
-		await this.publish(msg);
+		if (!_.isEmpty(msg)) {
+			await redisClient.set(`room-sync:${this.name}`, this.serializeSyncableState());
+			await this.publish(msg);
+		}
 
 		let settings: Partial<RoomStatePersistable> = _.pick(
 			this,
