@@ -8,6 +8,9 @@ metrics = true
 [redis]
 metrics = true
 
+[info_extractor.youtube]
+truncate_description = 509
+
 [info_extractor.direct]
 ffprobe_path = "/usr/bin/ffprobe"
 ffprobe_strategy = "stream"
