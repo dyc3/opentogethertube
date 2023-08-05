@@ -8,6 +8,7 @@
 import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Plyr from "plyr";
 import Hls from "hls.js";
+import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import { useStore } from "@/store";
 
@@ -36,6 +37,7 @@ export default defineComponent({
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
 		let hls: Hls | undefined = undefined;
+		let dash: dashjs.MediaPlayerClass | undefined = undefined;
 		const store = useStore();
 
 		function play() {
@@ -246,6 +248,48 @@ export default defineComponent({
 				});
 				hls.on(Hls.Events.KEY_LOADED, () => {
 					console.info("PlyrPlayer: hls.js key loaded");
+				});
+			} else if (videoMime.value === "application/dash+xml") {
+				if (!videoElem.value) {
+					console.error("video element not ready");
+					return;
+				}
+				dash = dashjs.MediaPlayer().create();
+				// HACK: force the video element to be recreated...
+				player.value.source = {
+					type: "video",
+					sources: [],
+					poster: thumbnail.value,
+				};
+				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+				// ...so that we can use dash.js to change the video source
+				dash.initialize(videoElem.value, videoUrl.value, false);
+
+				dash.on("manifestLoaded", () => {
+					console.info("PlyrPlayer: dash.js manifest loaded");
+					emit("ready");
+					store.commit("captions/SET_AVAILABLE_TRACKS", {
+						tracks: getCaptionsTracks(),
+					});
+				});
+				dash.on("error", (event: unknown) => {
+					console.error("PlyrPlayer: dash.js error:", event);
+					emit("error");
+				});
+				dash.on("playbackError", (event: unknown) => {
+					console.error("PlyrPlayer: dash.js playback error:", event);
+					emit("error");
+				});
+				dash.on("streamInitialized", () => {
+					console.info("PlyrPlayer: dash.js stream initialized");
+				});
+				dash.on("bufferStalled", () => {
+					console.info("PlyrPlayer: dash.js buffer stalled");
+					emit("buffering");
+				});
+				dash.on("bufferLoaded", () => {
+					console.info("PlyrPlayer: dash.js buffer loaded");
+					emit("ready");
 				});
 			} else {
 				hls?.destroy();
