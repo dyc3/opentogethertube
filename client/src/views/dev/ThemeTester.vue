@@ -91,7 +91,7 @@ const dummyRoomSync: ServerMessageSync = {
 			category: "sponsor",
 			videoDuration: 20,
 		},
-	],
+	] as any,
 };
 class DummyTimeRanges implements TimeRanges {
 	ranges = [
