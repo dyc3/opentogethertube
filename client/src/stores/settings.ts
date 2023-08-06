@@ -16,8 +16,8 @@ export enum RoomLayoutMode {
 }
 
 export enum Theme {
-	light = "light",
 	dark = "dark",
+	light = "light",
 	deepred = "deepred",
 	deepblue = "deepblue",
 }
