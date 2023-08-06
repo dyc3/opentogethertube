@@ -34,6 +34,8 @@ import { granted } from "@/util/grants";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import "vue-slider-component/theme/default.css";
+import "./slider-tweaks.scss";
 
 export const VideoProgressSlider = defineComponent({
 	name: "VideoProgressSlider",
