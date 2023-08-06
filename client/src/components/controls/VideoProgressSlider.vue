@@ -82,7 +82,7 @@ export const VideoProgressSlider = defineComponent({
 		function getSliderProcesses(dotsPos: number[]) {
 			const processes: [number, number, { backgroundColor: string }][] = [];
 
-			const bufferedColor = "rgb(var(--v-theme-primary-lighten-1))";
+			const bufferedColor = "rgba(var(--v-theme-primary), 60%)";
 			// show buffered spans
 			const bufferSpans = store.state.playerBufferSpans;
 			if (
@@ -108,7 +108,7 @@ export const VideoProgressSlider = defineComponent({
 			processes.push([
 				0,
 				(seekPreviewPercent.value ?? 0) * 100,
-				{ backgroundColor: "rgba(var(--v-theme-secondary), 50%)" },
+				{ backgroundColor: "rgba(var(--v-theme-secondary), 70%)" },
 			]);
 
 			// show video progress
