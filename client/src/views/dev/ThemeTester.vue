@@ -77,7 +77,7 @@ const dummyRoomSync: ServerMessageSync = {
 		length: 20,
 	},
 	videoSegments: [
-	{
+		{
 			UUID: "foo",
 			startTime: 0.5,
 			endTime: 1,
@@ -91,8 +91,9 @@ const dummyRoomSync: ServerMessageSync = {
 			category: "sponsor",
 			videoDuration: 20,
 		},
-	] as any,
+	] as unknown[],
 };
+
 class DummyTimeRanges implements TimeRanges {
 	ranges = [
 		{
