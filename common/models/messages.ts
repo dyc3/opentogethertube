@@ -45,6 +45,7 @@ export interface ServerMessageSync extends ServerMessageBase {
 	hasOwner?: boolean;
 	enableVoteSkip?: boolean;
 	votesToSkip?: string[];
+	videoSegments?: unknown[];
 }
 
 /**

@@ -116,7 +116,7 @@ export function buildNewStore() {
 			PLAYBACK_BUFFER(state, percent) {
 				state.playerBufferPercent = percent;
 			},
-			PLAYBACK_BUFFER_SPANS(state, spans) {
+			PLAYBACK_BUFFER_SPANS(state, spans: TimeRanges) {
 				state.playerBufferSpans = spans;
 			},
 			PLAYBACK_BUFFER_RESET(state) {
