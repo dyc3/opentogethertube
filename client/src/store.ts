@@ -100,6 +100,7 @@ export function buildNewStore() {
 					prevQueue: null,
 					enableVoteSkip: false,
 					votesToSkip: new Set(),
+					videoSegments: [],
 				},
 
 				keepAliveInterval: null,
@@ -138,7 +139,7 @@ export function buildNewStore() {
 				console.debug("SYNC", message);
 				const stateupdate: Partial<BaseStoreState["room"]> = {
 					..._.omit(message, ["action", "grants", "voteCounts", "votesToSkip"]),
-				};
+				} as any;
 				if (
 					message.isPlaying !== undefined &&
 					this.state.room.isPlaying !== message.isPlaying

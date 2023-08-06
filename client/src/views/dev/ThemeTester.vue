@@ -65,7 +65,8 @@ import ToastNotification from "@/components/ToastNotification.vue";
 import { Toast, ToastStyle } from "@/models/toast";
 
 const store = useStore();
-const dummyRoomSync = { // TODO: set type to ServerMessageSync
+// TODO: set type to ServerMessageSync
+const dummyRoomSync = {
 	action: "sync",
 	name: "foo",
 	playbackPosition: 5,
