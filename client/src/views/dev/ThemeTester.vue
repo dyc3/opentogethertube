@@ -36,6 +36,19 @@
 								<v-btn>Default</v-btn>
 							</v-card-actions>
 						</v-card>
+
+						<span>Buttons</span>
+						<div>
+							<v-btn color="primary">Primary</v-btn>
+							<v-btn color="secondary">Secondary</v-btn>
+							<v-btn color="warning">Warning</v-btn>
+							<v-btn>Default</v-btn>
+						</div>
+
+						<span>Toasts</span>
+						<div v-for="toast in dummyToasts" :key="toast.content">
+							<ToastNotification :toast="toast" />
+						</div>
 					</v-container>
 				</v-app>
 			</v-theme-provider>
@@ -49,6 +62,8 @@ import { Theme } from "@/stores/settings";
 import VideoControls from "@/components/controls/VideoControls.vue";
 import { useStore } from "@/store";
 import { ServerMessageSync } from "ott-common/models/messages";
+import ToastNotification from "@/components/ToastNotification.vue";
+import { Toast, ToastStyle } from "@/models/toast";
 
 const store = useStore();
 const dummyRoomSync: ServerMessageSync = {
@@ -109,6 +124,29 @@ class DummyTimeRanges implements TimeRanges {
 	}
 }
 const dummyBufferSpans = new DummyTimeRanges();
+
+const dummyToasts: Toast[] = [
+	{
+		id: Symbol("toast0"),
+		style: ToastStyle.Neutral,
+		content: "Neutral toast",
+	},
+	{
+		id: Symbol("toast1"),
+		style: ToastStyle.Success,
+		content: "Success toast",
+	},
+	{
+		id: Symbol("toast2"),
+		style: ToastStyle.Error,
+		content: "Error toast",
+	},
+	{
+		id: Symbol("toast3"),
+		style: ToastStyle.Important,
+		content: "Important toast",
+	},
+];
 
 onMounted(() => {
 	store.dispatch("sync", dummyRoomSync);
