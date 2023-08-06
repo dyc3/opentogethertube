@@ -61,12 +61,11 @@ import { onMounted } from "vue";
 import { Theme } from "@/stores/settings";
 import VideoControls from "@/components/controls/VideoControls.vue";
 import { useStore } from "@/store";
-import { ServerMessageSync } from "ott-common/models/messages";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { Toast, ToastStyle } from "@/models/toast";
 
 const store = useStore();
-const dummyRoomSync: ServerMessageSync = {
+const dummyRoomSync = { // TODO: set type to ServerMessageSync
 	action: "sync",
 	name: "foo",
 	playbackPosition: 5,
@@ -91,7 +90,7 @@ const dummyRoomSync: ServerMessageSync = {
 			category: "sponsor",
 			videoDuration: 20,
 		},
-	] as unknown[],
+	],
 };
 
 class DummyTimeRanges implements TimeRanges {
