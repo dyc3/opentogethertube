@@ -262,7 +262,8 @@ export default defineComponent({
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 			}
-			// player.value.play();
+			// this is needed to get the player to keep playing after the previous video has ended
+			player.value.play();
 
 			if (videoElem.value) {
 				videoElem.value.addEventListener("progress", () => {
