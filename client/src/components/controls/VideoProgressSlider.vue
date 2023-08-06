@@ -105,7 +105,7 @@ export const VideoProgressSlider = defineComponent({
 			processes.push([
 				0,
 				(seekPreviewPercent.value ?? 0) * 100,
-				{ backgroundColor: "rgb(var(--v-theme-secondary))" },
+				{ backgroundColor: "rgba(var(--v-theme-secondary), 50%)" },
 			]);
 
 			// show video progress
