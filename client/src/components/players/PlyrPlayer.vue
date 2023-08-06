@@ -279,7 +279,6 @@ export default defineComponent({
 				});
 				videoElem.value.addEventListener("waiting", () => {
 					console.debug("PlyrPlayer: video waiting");
-					emit("buffering");
 				});
 				videoElem.value.addEventListener("stalled", () => {
 					console.debug("PlyrPlayer: video stalled");
