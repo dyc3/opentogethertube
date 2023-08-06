@@ -89,8 +89,9 @@ export const VideoProgressSlider = defineComponent({
 				store.state.room.currentSource.length
 			) {
 				for (let i = 0; i < bufferSpans.length; i++) {
-					const start = bufferSpans.start(i) / store.state.room.currentSource.length;
-					const end = bufferSpans.end(i) / store.state.room.currentSource.length;
+					const start =
+						(bufferSpans.start(i) / store.state.room.currentSource.length) * 100;
+					const end = (bufferSpans.end(i) / store.state.room.currentSource.length) * 100;
 					processes.push([start, end, { backgroundColor: bufferedColor }]);
 				}
 			} else if (store.state.playerBufferPercent) {
