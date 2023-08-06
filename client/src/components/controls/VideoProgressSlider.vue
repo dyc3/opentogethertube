@@ -34,6 +34,8 @@ import { granted } from "@/util/grants";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import "vue-slider-component/theme/default.css";
+import "./slider-tweaks.scss";
 
 export const VideoProgressSlider = defineComponent({
 	name: "VideoProgressSlider",
@@ -80,7 +82,7 @@ export const VideoProgressSlider = defineComponent({
 		function getSliderProcesses(dotsPos: number[]) {
 			const processes: [number, number, { backgroundColor: string }][] = [];
 
-			const bufferedColor = "rgb(var(--v-theme-primary-lighten-1))";
+			const bufferedColor = "rgba(var(--v-theme-primary), 60%)";
 			// show buffered spans
 			const bufferSpans = store.state.playerBufferSpans;
 			if (
@@ -89,8 +91,9 @@ export const VideoProgressSlider = defineComponent({
 				store.state.room.currentSource.length
 			) {
 				for (let i = 0; i < bufferSpans.length; i++) {
-					const start = bufferSpans.start(i) / store.state.room.currentSource.length;
-					const end = bufferSpans.end(i) / store.state.room.currentSource.length;
+					const start =
+						(bufferSpans.start(i) / store.state.room.currentSource.length) * 100;
+					const end = (bufferSpans.end(i) / store.state.room.currentSource.length) * 100;
 					processes.push([start, end, { backgroundColor: bufferedColor }]);
 				}
 			} else if (store.state.playerBufferPercent) {
@@ -105,7 +108,7 @@ export const VideoProgressSlider = defineComponent({
 			processes.push([
 				0,
 				(seekPreviewPercent.value ?? 0) * 100,
-				{ backgroundColor: "rgb(var(--v-theme-secondary))" },
+				{ backgroundColor: "rgba(var(--v-theme-secondary), 70%)" },
 			]);
 
 			// show video progress

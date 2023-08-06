@@ -134,9 +134,11 @@
 										)
 											.map(
 												i =>
-													`${i}: [${store.state.playerBufferSpans?.start(
-														i
-													)} => ${store.state.playerBufferSpans?.end(i)}]`
+													`${i}: [${secondsToTimestamp(
+														store.state.playerBufferSpans?.start(i) ?? 0
+													)} => ${secondsToTimestamp(
+														store.state.playerBufferSpans?.end(i) ?? 0
+													)}]`
 											)
 											.join(" ")
 									}}
@@ -231,6 +233,7 @@ import RestoreQueue from "@/components/RestoreQueue.vue";
 import VoteSkip from "@/components/VoteSkip.vue";
 import { waitForToken } from "@/util/token";
 import { useSfx } from "@/plugins/sfx";
+import { secondsToTimestamp } from "@/util/timestamp";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -685,6 +688,7 @@ export default defineComponent({
 
 			mediaPlaybackBlocked,
 			onClickUnblockPlayback,
+			secondsToTimestamp,
 		};
 	},
 });

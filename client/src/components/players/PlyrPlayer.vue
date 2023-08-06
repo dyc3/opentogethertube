@@ -260,8 +260,36 @@ export default defineComponent({
 					type: "video",
 					poster: thumbnail.value,
 				};
+				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 			}
 			// player.value.play();
+
+			if (videoElem.value) {
+				videoElem.value.addEventListener("progress", () => {
+					if (player.value) {
+						emit("buffer-progress", player.value.buffered);
+					}
+					if (videoElem.value) {
+						emit("buffer-spans", videoElem.value.buffered);
+					}
+				});
+				videoElem.value.addEventListener("loadstart", () => {
+					console.debug("PlyrPlayer: video loadstart");
+					emit("buffering");
+				});
+				videoElem.value.addEventListener("waiting", () => {
+					console.debug("PlyrPlayer: video waiting");
+				});
+				videoElem.value.addEventListener("stalled", () => {
+					console.debug("PlyrPlayer: video stalled");
+					emit("buffering");
+				});
+				videoElem.value.addEventListener("canplay", () => {
+					console.debug("PlyrPlayer: video canplay");
+				});
+			} else {
+				console.error("video element not present");
+			}
 		}
 
 		watch(videoUrl, () => {
