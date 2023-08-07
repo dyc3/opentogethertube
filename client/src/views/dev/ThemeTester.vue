@@ -46,8 +46,12 @@
 						</div>
 
 						<span>Toasts</span>
-						<div v-for="toast in dummyToasts" :key="toast.content">
-							<ToastNotification :toast="toast" />
+						<div>
+							<ToastNotification
+								v-for="toast in dummyToasts"
+								:key="toast.content"
+								:toast="toast"
+							/>
 						</div>
 					</v-container>
 				</v-app>
@@ -126,28 +130,18 @@ class DummyTimeRanges implements TimeRanges {
 }
 const dummyBufferSpans = new DummyTimeRanges();
 
-const dummyToasts: Toast[] = [
-	{
-		id: Symbol("toast0"),
-		style: ToastStyle.Neutral,
-		content: "Neutral toast",
-	},
-	{
-		id: Symbol("toast1"),
-		style: ToastStyle.Success,
-		content: "Success toast",
-	},
-	{
-		id: Symbol("toast2"),
-		style: ToastStyle.Error,
-		content: "Error toast",
-	},
-	{
-		id: Symbol("toast3"),
-		style: ToastStyle.Important,
-		content: "Important toast",
-	},
-];
+const dummyToasts: Toast[] = [];
+function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
+	return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[];
+}
+
+for (const style of enumKeys(ToastStyle)) {
+	dummyToasts.push({
+		id: Symbol("toast"),
+		style: ToastStyle[style],
+		content: `${style} toast`,
+	});
+}
 
 onMounted(() => {
 	store.dispatch("sync", dummyRoomSync);
