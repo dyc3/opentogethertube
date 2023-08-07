@@ -18,12 +18,12 @@
 			<v-card-text>
 				<v-select
 					:label="$t('client-settings.room-layout')"
-					:items="[RoomLayoutMode.default, RoomLayoutMode.theater]"
+					:items="layouts"
 					v-model="settings.roomLayout"
 				/>
 				<v-select
 					:label="$t('client-settings.theme')"
-					:items="[Theme.dark, Theme.light, Theme.deepblue, Theme.deepred]"
+					:items="themes"
 					v-model="settings.theme"
 				>
 					<template #item="{ item, props }">
@@ -67,6 +67,7 @@ import { useStore } from "@/store";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
 import { useSfx } from "@/plugins/sfx";
+import { enumKeys } from "@/util/misc";
 
 type ExcludedFields = "volume" | "locale";
 type ExposedSettings = Omit<SettingsState, ExcludedFields>;
@@ -114,6 +115,9 @@ export const ClientSettingsDialog = defineComponent({
 			cancelSettings,
 			RoomLayoutMode,
 			Theme,
+
+			layouts: enumKeys(RoomLayoutMode),
+			themes: enumKeys(Theme),
 		};
 	},
 });

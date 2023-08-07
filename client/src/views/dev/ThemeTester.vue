@@ -67,6 +67,7 @@ import VideoControls from "@/components/controls/VideoControls.vue";
 import { useStore } from "@/store";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { Toast, ToastStyle } from "@/models/toast";
+import { enumKeys } from "@/util/misc";
 
 const store = useStore();
 // TODO: set type to ServerMessageSync
@@ -130,18 +131,11 @@ class DummyTimeRanges implements TimeRanges {
 }
 const dummyBufferSpans = new DummyTimeRanges();
 
-const dummyToasts: Toast[] = [];
-function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
-	return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[];
-}
-
-for (const style of enumKeys(ToastStyle)) {
-	dummyToasts.push({
-		id: Symbol("toast"),
-		style: ToastStyle[style],
-		content: `${style} toast`,
-	});
-}
+const dummyToasts: Toast[] = enumKeys(ToastStyle).map(style => ({
+	id: Symbol("toast"),
+	style: ToastStyle[style],
+	content: `${style} toast`,
+}));
 
 onMounted(() => {
 	store.dispatch("sync", dummyRoomSync);
