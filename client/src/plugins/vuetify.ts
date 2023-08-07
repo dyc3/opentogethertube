@@ -31,21 +31,27 @@ const themeDeepRed: ThemeDefinition = {
 		"primary": "#D00000",
 		"primary-lighten-1": "#f50000",
 		"primary-darken-1": "#b80000",
-		"secondary": "#FFBA08",
+		"secondary": "#CF7826",
 		"background": "#280411",
 		"surface": "#370617",
+		"success": "#00A878",
+		"warning": "#E15112",
+		"error": "#B10F2E",
 	},
 };
 
 const themeDeepBlue: ThemeDefinition = {
 	dark: true,
 	colors: {
-		"primary": "#a8eff0",
+		"primary": "#4288F0",
 		"primary-lighten-1": "#b9f2f3",
-		"primary-darken-1": "#8539ea",
+		"primary-darken-1": "#1b9b9d",
 		"secondary": "#42A5F5",
 		"background": "#001021",
 		"surface": "#001a37",
+		"success": "#00A878",
+		"warning": "#F46036",
+		"error": "#B10F2E",
 	},
 };
 

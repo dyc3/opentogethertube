@@ -46,8 +46,12 @@
 						</div>
 
 						<span>Toasts</span>
-						<div v-for="toast in dummyToasts" :key="toast.content">
-							<ToastNotification :toast="toast" />
+						<div>
+							<ToastNotification
+								v-for="toast in dummyToasts"
+								:key="toast.content"
+								:toast="toast"
+							/>
 						</div>
 					</v-container>
 				</v-app>
@@ -63,6 +67,7 @@ import VideoControls from "@/components/controls/VideoControls.vue";
 import { useStore } from "@/store";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { Toast, ToastStyle } from "@/models/toast";
+import { enumKeys } from "@/util/misc";
 
 const store = useStore();
 // TODO: set type to ServerMessageSync
@@ -126,28 +131,11 @@ class DummyTimeRanges implements TimeRanges {
 }
 const dummyBufferSpans = new DummyTimeRanges();
 
-const dummyToasts: Toast[] = [
-	{
-		id: Symbol("toast0"),
-		style: ToastStyle.Neutral,
-		content: "Neutral toast",
-	},
-	{
-		id: Symbol("toast1"),
-		style: ToastStyle.Success,
-		content: "Success toast",
-	},
-	{
-		id: Symbol("toast2"),
-		style: ToastStyle.Error,
-		content: "Error toast",
-	},
-	{
-		id: Symbol("toast3"),
-		style: ToastStyle.Important,
-		content: "Important toast",
-	},
-];
+const dummyToasts: Toast[] = enumKeys(ToastStyle).map(style => ({
+	id: Symbol("toast"),
+	style: ToastStyle[style],
+	content: `${style} toast`,
+}));
 
 onMounted(() => {
 	store.dispatch("sync", dummyRoomSync);
