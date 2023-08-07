@@ -49,7 +49,12 @@ if (import.meta.env.DEV) {
 	routes.push({
 		path: "/playground",
 		name: "playground",
-		component: () => import("./views/Playground.vue"),
+		component: () => import("./views/dev/Playground.vue"),
+	});
+	routes.push({
+		path: "/themes",
+		name: "themes",
+		component: () => import("./views/dev/ThemeTester.vue"),
 	});
 }
 
