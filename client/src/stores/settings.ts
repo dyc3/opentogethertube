@@ -20,6 +20,7 @@ export enum Theme {
 	light = "light",
 	deepred = "deepred",
 	deepblue = "deepblue",
+	greenslate = "greenslate",
 }
 
 export const ALL_THEMES = Object.keys(Theme).filter(key => Theme[key]);

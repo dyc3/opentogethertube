@@ -49,6 +49,19 @@ const themeDeepBlue: ThemeDefinition = {
 	},
 };
 
+const themeGreenSlate: ThemeDefinition = {
+	dark: true,
+	colors: {
+		primary: "#48e87d",
+		secondary: "#d9bc6a",
+		background: "#1f1f1f",
+		surface: "#303030",
+		success: "#48e87d",
+		warning: "#efeb68",
+		error: "#f66f64",
+	},
+};
+
 const vuetify = createVuetify({
 	components,
 	directives,
@@ -66,6 +79,7 @@ const vuetify = createVuetify({
 			light: themeLight,
 			deepred: themeDeepRed,
 			deepblue: themeDeepBlue,
+			greenslate: themeGreenSlate,
 		},
 	},
 });
