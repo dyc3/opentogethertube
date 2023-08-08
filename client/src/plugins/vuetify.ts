@@ -79,6 +79,7 @@ const themeStrawberry: ThemeDefinition = {
 		"warning": "#F19A3E",
 		"error": "#460b25",
 		"media-control-surface": "#ffffff",
+		"media-control-background": "#460b25",
 		"on-background": "#460b25",
 		"on-surface": "#460b25",
 		"on-warning": "#460b25",
