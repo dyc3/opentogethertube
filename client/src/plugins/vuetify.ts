@@ -68,6 +68,24 @@ const themeGreenSlate: ThemeDefinition = {
 	},
 };
 
+const themeStrawberry: ThemeDefinition = {
+	dark: false,
+	colors: {
+		"primary": "#e8035f",
+		"secondary": "#83b264",
+		"background": "#ffffff",
+		"surface": "#fac7c5",
+		"success": "#83b264",
+		"warning": "#F19A3E",
+		"error": "#460b25",
+		"media-control-surface": "#ffffff",
+		"media-control-background": "#460b25",
+		"on-background": "#460b25",
+		"on-surface": "#460b25",
+		"on-warning": "#460b25",
+	},
+};
+
 const vuetify = createVuetify({
 	components,
 	directives,
@@ -86,6 +104,7 @@ const vuetify = createVuetify({
 			deepred: themeDeepRed,
 			deepblue: themeDeepBlue,
 			greenslate: themeGreenSlate,
+			strawberry: themeStrawberry,
 		},
 	},
 });

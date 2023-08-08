@@ -116,6 +116,7 @@ export default defineComponent({
 
 <style lang="scss">
 $video-controls-height: 80px;
+$media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 
 .video-controls {
 	height: $video-controls-height;
@@ -126,7 +127,11 @@ $video-controls-height: 80px;
 		position: relative;
 		bottom: $video-controls-height;
 
-		background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+		background: linear-gradient(
+			to top,
+			rgba($media-control-background, 0.65),
+			rgba($media-control-background, 0)
+		);
 		transition: all 0.2s;
 
 		&.hide {
@@ -138,7 +143,7 @@ $video-controls-height: 80px;
 
 	&.outside-video {
 		position: relative;
-		background: #000;
+		background: rgb($media-control-background);
 		border-radius: 0 0 10px 10px;
 
 		&.hide {
