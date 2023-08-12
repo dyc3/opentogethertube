@@ -12,11 +12,13 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
 use crate::config::BalancerConfig;
+use crate::discovery::start_discovery_task;
 use crate::service::BalancerService;
 
 mod balancer;
 mod client;
 mod config;
+mod discovery;
 mod messages;
 mod monolith;
 mod service;
@@ -45,6 +47,13 @@ async fn main() -> anyhow::Result<()> {
     let link = balancer.new_link();
     let _dispatcher_handle = start_dispatcher(balancer)?;
     info!("Dispatcher started");
+
+    if config.discovery.enabled {
+        info!("Starting monolith discovery");
+        let discovery = discovery::FlyMonolithDiscoverer::new();
+        start_discovery_task(discovery);
+        info!("Monolith discovery started");
+    }
 
     let bind_addr6: SocketAddr =
         SocketAddr::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0).into(), config.port);

@@ -13,11 +13,34 @@ static CONFIG_INIT: Once = Once::new();
 pub struct BalancerConfig {
     /// The port to listen on for HTTP requests.
     pub port: u16,
+    pub discovery: DiscoveryConfig,
 }
 
 impl Default for BalancerConfig {
     fn default() -> Self {
-        Self { port: 8081 }
+        Self {
+            port: 8081,
+            discovery: DiscoveryConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(default)]
+pub struct DiscoveryConfig {
+    pub enabled: bool,
+    /// The port that monoliths should be listening on for load balancer connections.
+    pub port: u16,
+    pub fly_app: String,
+}
+
+impl Default for DiscoveryConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            port: 3002,
+            fly_app: "".into(),
+        }
     }
 }
 
