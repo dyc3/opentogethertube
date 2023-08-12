@@ -41,6 +41,8 @@ async fn main() -> anyhow::Result<()> {
         .with(fmt_layer)
         .init();
 
+    let (discovery_tx, discovery_rx) = tokio::sync::mpsc::channel(2);
+
     info!("Starting balancer");
     let ctx = Arc::new(RwLock::new(BalancerContext::new()));
     let balancer = Balancer::new(ctx.clone());
@@ -52,11 +54,11 @@ async fn main() -> anyhow::Result<()> {
     let _discovery_handle = match &config.discovery {
         DiscoveryConfig::Fly(config) => {
             let discovery = discovery::FlyMonolithDiscoverer::new(config.clone());
-            start_discovery_task(discovery)
+            start_discovery_task(discovery, discovery_tx)
         }
         DiscoveryConfig::Manual(config) => {
             let discovery = discovery::ManualMonolithDiscoverer::new(config.clone());
-            start_discovery_task(discovery)
+            start_discovery_task(discovery, discovery_tx)
         }
     };
     info!("Monolith discovery started");

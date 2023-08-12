@@ -50,13 +50,18 @@ pub struct DiscoveryTask {
     discovery: Box<dyn MonolithDiscovery + Send + Sync>,
 
     monoliths: HashSet<MonolithConnectionConfig>,
+    discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
 }
 
 impl DiscoveryTask {
-    pub fn new(discovery: impl MonolithDiscovery + Send + Sync + 'static) -> Self {
+    pub fn new(
+        discovery: impl MonolithDiscovery + Send + Sync + 'static,
+        discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
+    ) -> Self {
         Self {
             discovery: Box::new(discovery),
             monoliths: Default::default(),
+            discovery_tx,
         }
     }
 
@@ -72,7 +77,21 @@ impl DiscoveryTask {
 
     async fn do_discovery(&mut self) -> anyhow::Result<()> {
         let monoliths = self.discovery.discover().await?;
-        self.monoliths = monoliths.into_iter().collect();
+        let monoliths_new: HashSet<_> = monoliths.into_iter().collect();
+        let monoliths_added = monoliths_new
+            .difference(&self.monoliths)
+            .cloned()
+            .collect::<Vec<_>>();
+        let monoliths_removed = self
+            .monoliths
+            .difference(&monoliths_new)
+            .cloned()
+            .collect::<Vec<_>>();
+        let msg = MonolithDiscoveryMsg {
+            added: monoliths_added,
+            removed: monoliths_removed,
+        };
+        self.discovery_tx.send(msg).await?;
 
         if self.monoliths.is_empty() {
             warn!("No monoliths discovered");
@@ -88,12 +107,19 @@ impl DiscoveryTask {
 
 pub fn start_discovery_task(
     discovery: impl MonolithDiscovery + Send + Sync + 'static,
+    discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
 ) -> JoinHandle<()> {
     tokio::task::Builder::new()
         .name("discovery")
         .spawn(async move {
-            let mut task = DiscoveryTask::new(discovery);
+            let mut task = DiscoveryTask::new(discovery, discovery_tx);
             task.do_continuous_discovery().await;
         })
         .expect("failed to spawn discovery task")
+}
+
+#[derive(Debug, Clone)]
+pub struct MonolithDiscoveryMsg {
+    pub added: Vec<MonolithConnectionConfig>,
+    pub removed: Vec<MonolithConnectionConfig>,
 }
