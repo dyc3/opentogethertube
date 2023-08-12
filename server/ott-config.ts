@@ -369,6 +369,18 @@ export const conf = convict({
 			},
 		},
 	},
+	balancing: {
+		enabled: {
+			doc: "Whether to listen for connections from load balancers.",
+			format: Boolean,
+			default: false,
+		},
+		port: {
+			doc: "The port to listen for load balancer connections on.",
+			format: "port",
+			default: 3002,
+		},
+	},
 	mail: {
 		enabled: {
 			doc: "Whether to enable sending emails.",

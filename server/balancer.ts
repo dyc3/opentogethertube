@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
-import { URL } from "url";
 import WebSocket from "ws";
 
 import { getLogger } from "./logger";
@@ -15,22 +14,37 @@ import _ from "lodash";
 
 const log = getLogger("balancer");
 
+export let wss: WebSocket.Server | null = null;
+
 export function initBalancerConnections() {
-	const configs = conf.get("balancers");
-	if (configs.length === 0) {
-		log.warn("No balancers configured");
+	const enabled = conf.get("balancing.enabled");
+	if (!enabled) {
+		log.warn("Load balancing is disabled");
 		return;
-	}
-	log.info("Initializing balancer connections...");
-	for (const config of configs) {
-		const conn = new BalancerConnection(config);
-		balancerManager.addBalancerConnection(conn);
 	}
 
 	roommanager.on("load", onRoomLoad);
 	roommanager.on("unload", onRoomUnload);
 
 	gossipDebounced();
+
+	wss = new WebSocket.Server({
+		port: conf.get("balancing.port"),
+	});
+	wss.on("connection", ws => {
+		const conn = new BalancerConnection(ws);
+		balancerManager.addBalancerConnection(conn);
+	});
+	wss.on("error", error => {
+		log.error(`Balancer websocket error: ${error}`);
+	});
+	wss.on("listening", () => {
+		log.info(
+			`Load balancing is enabled. Listening for balancers on port ${conf.get(
+				"balancing.port"
+			)}`
+		);
+	});
 }
 
 class BalancerManager {
@@ -43,10 +57,6 @@ class BalancerManager {
 		conn.on("disconnect", () => this.onBalancerDisconnect(conn));
 		conn.on("message", msg => this.onBalancerMessage(conn, msg));
 		conn.on("error", error => this.onBalancerError(conn, error));
-		const result = conn.connect();
-		if (!result.ok) {
-			log.error(`Error connecting to balancer ${conn.id}: ${result.value}`);
-		}
 	}
 
 	getConnection(id: string): BalancerConnection | undefined {
@@ -61,10 +71,11 @@ class BalancerManager {
 	private onBalancerDisconnect(conn: BalancerConnection) {
 		log.info(`Disconnected from balancer ${conn.id}`);
 		this.emit("disconnect", conn);
-
-		if (!conn.reconnecting) {
-			log.info(`Reconnecting to balancer ${conn.id}`);
-			conn.reconnect();
+		for (const conn of this.balancerConnections) {
+			if (conn.id === conn.id) {
+				this.balancerConnections.splice(this.balancerConnections.indexOf(conn), 1);
+				break;
+			}
 		}
 	}
 
@@ -117,20 +128,17 @@ type BalancerConnectionEventHandlers<E> = E extends "connect"
 export class BalancerConnection {
 	/** A local identifier for the balancer. Other monoliths will have different IDs for the same balancer. */
 	id: string;
-	config: BalancerConfig;
-	private socket: WebSocket | null = null;
+	private socket: WebSocket;
 	private bus: EventEmitter = new EventEmitter();
-	reconnecting = false;
-	private reconnectAttempts = 0;
-	private reconnectTimeout: NodeJS.Timeout | null = null;
 
-	constructor(config: BalancerConfig) {
+	constructor(socket: WebSocket) {
 		this.id = uuidv4();
-		this.config = config;
-	}
+		this.socket = socket;
 
-	get socketUrl(): URL {
-		return new URL(`ws://${this.config.host}:${this.config.port}/monolith`);
+		this.socket.on("open", this.onSocketConnect.bind(this));
+		this.socket.on("close", this.onSocketDisconnect.bind(this));
+		this.socket.on("message", this.onSocketMessage.bind(this));
+		this.socket.on("error", this.onSocketError.bind(this));
 	}
 
 	get readyState(): number {
@@ -140,58 +148,12 @@ export class BalancerConnection {
 		return this.socket.readyState;
 	}
 
-	get reconnectDelay(): number {
-		return Math.min(1000 * 2 ** this.reconnectAttempts, 1000 * 60);
-	}
-
-	connect(): Result<void, Error> {
-		if (this.socket !== null) {
-			return err(new Error("Already connected"));
-		}
-		this.socket = new WebSocket(this.socketUrl);
-		this.socket.on("open", this.onSocketConnect.bind(this));
-		this.socket.on("close", this.onSocketDisconnect.bind(this));
-		this.socket.on("message", this.onSocketMessage.bind(this));
-		this.socket.on("error", this.onSocketError.bind(this));
-		return ok(undefined);
-	}
-
-	/** Attempt to reconnect until successful */
-	reconnect(): Result<void, Error> {
-		if (this.socket !== null) {
-			this.socket.close();
-		}
-		this.reconnecting = true;
-		this.reconnectAttempts++;
-		if (this.reconnectTimeout !== null) {
-			clearTimeout(this.reconnectTimeout);
-			this.reconnectTimeout = null;
-		}
-		return this.connect();
-	}
-
 	disconnect(): Result<void, Error> {
-		if (this.reconnecting) {
-			this.reconnecting = false;
-			this.reconnectAttempts = 0;
-			if (this.reconnectTimeout !== null) {
-				clearTimeout(this.reconnectTimeout);
-				this.reconnectTimeout = null;
-			}
-		}
-		if (this.socket === null) {
-			return err(new Error("Not connected"));
-		}
 		this.socket.close();
-		this.socket = null;
 		return ok(undefined);
 	}
 
 	private onSocketConnect(event: WebSocket.OpenEvent) {
-		this.reconnecting = false;
-		this.reconnectAttempts = 0;
-		this.reconnectTimeout = null;
-
 		const init: MsgM2BInit = {
 			type: "init",
 			payload: {
@@ -203,17 +165,7 @@ export class BalancerConnection {
 	}
 
 	private onSocketDisconnect(event: WebSocket.CloseEvent) {
-		this.socket = null;
 		this.emit("disconnect");
-		if (this.reconnecting) {
-			log.info(
-				`Reconnecting to balancer ${this.id} in ${this.reconnectDelay}ms (attempt ${this.reconnectAttempts}))`
-			);
-			this.reconnectTimeout = setTimeout(() => {
-				let result = this.reconnect();
-				log.info(`Reconnect result: ${result.ok ? "success" : result.value}`);
-			}, this.reconnectDelay);
-		}
 	}
 
 	private onSocketMessage(data: WebSocket.Data) {
