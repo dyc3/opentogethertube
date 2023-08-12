@@ -1,6 +1,6 @@
 <template>
 	<div class="direct">
-		<video id="directplayer"></video>
+		<video id="directplayer" preload="auto"></video>
 	</div>
 </template>
 
