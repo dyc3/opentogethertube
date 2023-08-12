@@ -1,15 +1,21 @@
 //! Handles discovery of Monoliths.
 
-mod fly;
+use std::collections::HashSet;
+use std::net::IpAddr;
+use std::time::Duration;
 
-use std::{collections::HashSet, net::IpAddr, time::Duration};
+mod fly;
+mod manual;
+
+pub use fly::*;
+pub use manual::*;
 
 use async_trait::async_trait;
-pub use fly::*;
+use serde::Deserialize;
 use tokio::task::JoinHandle;
-use tracing::error;
+use tracing::{error, warn};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
 pub struct MonolithConnectionConfig {
     pub host: HostOrIp,
     pub port: u16,
@@ -21,24 +27,35 @@ pub enum HostOrIp {
     Ip(IpAddr),
 }
 
+impl<'de> Deserialize<'de> for HostOrIp {
+    fn deserialize<D>(deserializer: D) -> Result<HostOrIp, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        if let Ok(ip) = s.parse::<IpAddr>() {
+            Ok(HostOrIp::Ip(ip))
+        } else {
+            Ok(HostOrIp::Host(s))
+        }
+    }
+}
+
 #[async_trait]
 pub trait MonolithDiscovery {
     async fn discover(&self) -> anyhow::Result<Vec<MonolithConnectionConfig>>;
 }
 
-pub struct DiscoveryTask<D> {
-    discovery: D,
+pub struct DiscoveryTask {
+    discovery: Box<dyn MonolithDiscovery + Send + Sync>,
 
     monoliths: HashSet<MonolithConnectionConfig>,
 }
 
-impl<D> DiscoveryTask<D>
-where
-    D: MonolithDiscovery,
-{
-    pub fn new(discovery: D) -> Self {
+impl DiscoveryTask {
+    pub fn new(discovery: impl MonolithDiscovery + Send + Sync + 'static) -> Self {
         Self {
-            discovery,
+            discovery: Box::new(discovery),
             monoliths: Default::default(),
         }
     }
@@ -56,6 +73,11 @@ where
     async fn do_discovery(&mut self) -> anyhow::Result<()> {
         let monoliths = self.discovery.discover().await?;
         self.monoliths = monoliths.into_iter().collect();
+
+        if self.monoliths.is_empty() {
+            warn!("No monoliths discovered");
+        }
+
         Ok(())
     }
 
@@ -64,10 +86,9 @@ where
     }
 }
 
-pub fn start_discovery_task<D>(discovery: D) -> JoinHandle<()>
-where
-    D: MonolithDiscovery + Send + Sync + 'static,
-{
+pub fn start_discovery_task(
+    discovery: impl MonolithDiscovery + Send + Sync + 'static,
+) -> JoinHandle<()> {
     tokio::task::Builder::new()
         .name("discovery")
         .spawn(async move {

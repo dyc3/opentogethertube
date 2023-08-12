@@ -4,6 +4,8 @@ use clap::{Parser, ValueEnum};
 use figment::providers::Format;
 use serde::Deserialize;
 
+use crate::discovery::{FlyDiscoveryConfig, ManualDiscoveryConfig};
+
 static mut CONFIG: Option<BalancerConfig> = None;
 
 static CONFIG_INIT: Once = Once::new();
@@ -26,21 +28,15 @@ impl Default for BalancerConfig {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(default)]
-pub struct DiscoveryConfig {
-    pub enabled: bool,
-    /// The port that monoliths should be listening on for load balancer connections.
-    pub port: u16,
-    pub fly_app: String,
+#[serde(tag = "method", rename_all = "lowercase")]
+pub enum DiscoveryConfig {
+    Fly(FlyDiscoveryConfig),
+    Manual(ManualDiscoveryConfig),
 }
 
 impl Default for DiscoveryConfig {
     fn default() -> Self {
-        Self {
-            enabled: false,
-            port: 3002,
-            fly_app: "".into(),
-        }
+        Self::Manual(ManualDiscoveryConfig::default())
     }
 }
 

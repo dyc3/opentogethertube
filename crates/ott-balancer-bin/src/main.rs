@@ -11,7 +11,7 @@ use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
-use crate::config::BalancerConfig;
+use crate::config::{BalancerConfig, DiscoveryConfig};
 use crate::discovery::start_discovery_task;
 use crate::service::BalancerService;
 
@@ -48,12 +48,18 @@ async fn main() -> anyhow::Result<()> {
     let _dispatcher_handle = start_dispatcher(balancer)?;
     info!("Dispatcher started");
 
-    if config.discovery.enabled {
-        info!("Starting monolith discovery");
-        let discovery = discovery::FlyMonolithDiscoverer::new();
-        start_discovery_task(discovery);
-        info!("Monolith discovery started");
-    }
+    info!("Starting monolith discovery");
+    let _discovery_handle = match &config.discovery {
+        DiscoveryConfig::Fly(config) => {
+            let discovery = discovery::FlyMonolithDiscoverer::new(config.clone());
+            start_discovery_task(discovery)
+        }
+        DiscoveryConfig::Manual(config) => {
+            let discovery = discovery::ManualMonolithDiscoverer::new(config.clone());
+            start_discovery_task(discovery)
+        }
+    };
+    info!("Monolith discovery started");
 
     let bind_addr6: SocketAddr =
         SocketAddr::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0).into(), config.port);

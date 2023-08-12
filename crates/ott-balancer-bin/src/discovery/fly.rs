@@ -6,20 +6,26 @@ use crate::config::BalancerConfig;
 
 use super::*;
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct FlyDiscoveryConfig {
+    /// The port that monoliths should be listening on for load balancer connections.
+    pub port: u16,
+    pub fly_app: String,
+}
+
 pub struct FlyMonolithDiscoverer {
+    config: FlyDiscoveryConfig,
     query: String,
 }
 
 impl FlyMonolithDiscoverer {
-    pub fn new() -> Self {
-        let config = BalancerConfig::get();
+    pub fn new(config: FlyDiscoveryConfig) -> Self {
         info!(
             "Creating FlyMonolithDiscoverer, fly app: {}",
-            config.discovery.fly_app
+            &config.fly_app
         );
-        Self {
-            query: format!("global.{}.internal", config.discovery.fly_app),
-        }
+        let query = format!("global.{}.internal", &config.fly_app);
+        Self { config, query }
     }
 }
 
@@ -29,14 +35,13 @@ impl MonolithDiscovery for FlyMonolithDiscoverer {
         let resolver =
             TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default())
                 .expect("failed to create resolver");
-        let config = BalancerConfig::get();
 
         let lookup = resolver.ipv6_lookup(&self.query).await?;
         let monoliths = lookup
             .iter()
             .map(|ip| MonolithConnectionConfig {
                 host: HostOrIp::Ip(IpAddr::V6(*ip)),
-                port: config.discovery.port,
+                port: self.config.port,
             })
             .collect::<Vec<_>>();
 
