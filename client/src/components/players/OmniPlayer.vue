@@ -1,11 +1,12 @@
 <template>
 	<div class="player">
 		<div class="in-player-notifs">
-			<v-banner color="warn" density="compact" v-if="showBufferWarning">
-				<v-banner-text>
+			<!-- TODO: replace with v-banner when this is fixed: https://github.com/vuetifyjs/vuetify/issues/17124 -->
+			<v-sheet color="warning" density="compact" v-if="showBufferWarning">
+				<v-container density="compact">
 					{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}
-				</v-banner-text>
-			</v-banner>
+				</v-container>
+			</v-sheet>
 		</div>
 
 		<Suspense>
