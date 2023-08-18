@@ -14,6 +14,7 @@ import { InjectionKey } from "vue";
 import { Grants } from "ott-common/permissions";
 import { ServerMessageSync } from "ott-common/models/messages";
 import _ from "lodash";
+import { calculateCurrentPosition } from "ott-common/timestamp";
 
 export type FullOTTStoreState = BaseStoreState & {
 	toast: ToastState;

@@ -1,102 +1,115 @@
 <template>
-	<Suspense>
-		<YoutubePlayer
-			v-if="!!source && source.service == 'youtube'"
-			ref="player"
-			:video-id="source.id"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-			@buffer-progress="onBufferProgress"
-		/>
-		<VimeoPlayer
-			v-else-if="!!source && source.service == 'vimeo'"
-			ref="player"
-			:video-id="source.id"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-		/>
-		<DailymotionPlayer
-			v-else-if="!!source && source.service == 'dailymotion'"
-			ref="player"
-			:video-id="source.id"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-		/>
-		<GoogleDrivePlayer
-			v-else-if="!!source && source.service == 'googledrive'"
-			ref="player"
-			:video-id="source.id"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-		/>
-		<PlyrPlayer
-			v-else-if="
-				!!source && ['direct', 'hls', 'reddit', 'tubi', 'pluto'].includes(source.service)
-			"
-			ref="player"
-			:service="source.service"
-			:video-url="source.hls_url ?? source.id"
-			:video-mime="source.mime!"
-			:thumbnail="source.thumbnail"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-			@buffer-progress="onBufferProgress"
-			@buffer-spans="onBufferSpans"
-		/>
-		<PeertubePlayer
-			v-else-if="!!source && source.service == 'peertube'"
-			ref="player"
-			:video-id="source.id"
-			class="player"
-			@apiready="onApiReady"
-			@playing="onPlaying"
-			@paused="onPaused"
-			@ready="onReady"
-			@buffering="onBuffering"
-			@error="onError"
-		/>
+	<div class="player">
+		<div class="in-player-notifs">
+			<!-- TODO: replace with v-banner when this is fixed: https://github.com/vuetifyjs/vuetify/issues/17124 -->
+			<v-sheet color="warning" density="compact" v-if="showBufferWarning">
+				<v-container density="compact">
+					{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}
+				</v-container>
+			</v-sheet>
+		</div>
 
-		<v-container v-else fluid fill-height class="no-video">
-			<h1>{{ $t("video.no-video") }}</h1>
-			<span>{{ $t("video.no-video-text") }}</span>
-		</v-container>
-		<template #fallback>
-			<v-container class="no-video">
-				<v-progress-circular indeterminate />
+		<Suspense>
+			<YoutubePlayer
+				v-if="!!source && source.service == 'youtube'"
+				ref="player"
+				:video-id="source.id"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+				@buffer-progress="onBufferProgress"
+			/>
+			<VimeoPlayer
+				v-else-if="!!source && source.service == 'vimeo'"
+				ref="player"
+				:video-id="source.id"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+			/>
+			<DailymotionPlayer
+				v-else-if="!!source && source.service == 'dailymotion'"
+				ref="player"
+				:video-id="source.id"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+			/>
+			<GoogleDrivePlayer
+				v-else-if="!!source && source.service == 'googledrive'"
+				ref="player"
+				:video-id="source.id"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+			/>
+			<PlyrPlayer
+				v-else-if="
+					!!source &&
+					['direct', 'hls', 'reddit', 'tubi', 'pluto'].includes(source.service)
+				"
+				ref="player"
+				:service="source.service"
+				:video-url="source.hls_url ?? source.id"
+				:video-mime="source.mime!"
+				:thumbnail="source.thumbnail"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+				@buffer-progress="onBufferProgress"
+				@buffer-spans="onBufferSpans"
+			/>
+			<PeertubePlayer
+				v-else-if="!!source && source.service == 'peertube'"
+				ref="player"
+				:video-id="source.id"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+			/>
+			<v-container v-else fluid fill-height class="no-video">
+				<h1>{{ $t("video.no-video") }}</h1>
+				<span>{{ $t("video.no-video-text") }}</span>
 			</v-container>
-		</template>
-	</Suspense>
+			<template #fallback>
+				<v-container class="no-video">
+					<v-progress-circular indeterminate />
+				</v-container>
+			</template>
+		</Suspense>
+	</div>
 </template>
 
 <script lang="ts">
 import { useStore } from "@/store";
+import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
+import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
 
 const services = [
@@ -341,9 +354,38 @@ export default defineComponent({
 			store.commit("PLAYBACK_BUFFER", percent);
 		}
 
-		function onBufferSpans(spans: TimeRanges) {
+		async function onBufferSpans(spans: TimeRanges) {
 			store.commit("PLAYBACK_BUFFER_SPANS", spans);
+
+			const position = store.state.room.isPlaying
+				? calculateCurrentPosition(
+						store.state.room.playbackStartTime,
+						new Date(),
+						store.state.room.playbackPosition,
+						store.state.room.playbackSpeed
+				  )
+				: store.state.room.playbackPosition;
+			const isInSpans = isInTimeRanges(spans, position);
+			showBufferWarning.value = !isInSpans;
 		}
+
+		const showBufferWarning = ref(false);
+		const renderedSpans = computed(() => {
+			const spans = store.state.playerBufferSpans;
+			if (!spans) {
+				return [];
+			}
+			let result: string = "";
+			for (let i = 0; i < spans.length; i++) {
+				result += `${secondsToTimestamp(spans.start(i))} - ${secondsToTimestamp(
+					spans.end(i)
+				)}`;
+				if (i < spans.length - 1) {
+					result += ", ";
+				}
+			}
+			return result;
+		});
 
 		return {
 			player,
@@ -358,6 +400,8 @@ export default defineComponent({
 			onBufferSpans,
 
 			isPlayerPresent,
+			showBufferWarning,
+			renderedSpans,
 			play,
 			pause,
 			setVolume,
@@ -408,5 +452,16 @@ export default defineComponent({
 .player {
 	width: 100%;
 	height: 100%;
+}
+
+.in-player-notifs {
+	display: block;
+	width: 100%;
+	padding: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	font-size: 12px;
+	z-index: 2000;
 }
 </style>

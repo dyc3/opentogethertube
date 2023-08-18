@@ -39,3 +39,12 @@ export function timestampToSeconds(timestamp: string): number {
 	}
 	return seconds;
 }
+
+export function isInTimeRanges(ranges: TimeRanges, time: number): boolean {
+	for (let i = 0; i < ranges.length; i++) {
+		if (time >= ranges.start(i) && time <= ranges.end(i)) {
+			return true;
+		}
+	}
+	return false;
+}
