@@ -375,4 +375,9 @@ export default {
 			"Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.",
 		BadApiArgumentException: "Bad API Argument. This is likely a bug, please report it.",
 	},
+	"player": {
+		"buffer-warn": {
+			spans: "You haven't buffered enough of the video yet. Current time ranges buffered: {ranges}",
+		},
+	},
 };
