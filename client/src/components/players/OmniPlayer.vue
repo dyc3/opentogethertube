@@ -3,7 +3,8 @@
 		<div class="in-player-notifs">
 			<!-- TODO: replace with v-banner when this is fixed: https://github.com/vuetifyjs/vuetify/issues/17124 -->
 			<v-sheet color="warning" density="compact" v-if="showBufferWarning">
-				<v-container density="compact">
+				<v-container fluid style="padding: 6px">
+					<v-progress-circular indeterminate size="16" width="2" />
 					{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}
 				</v-container>
 			</v-sheet>
