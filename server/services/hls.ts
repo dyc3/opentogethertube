@@ -7,6 +7,7 @@ import { getLogger } from "../logger";
 import { Video } from "../../common/models/video";
 import { Parser as M3u8Parser } from "m3u8-parser";
 import axios from "axios";
+import { OttException } from "../../common/exceptions";
 
 const log = getLogger("hls");
 
@@ -54,6 +55,10 @@ export default class HlsVideoAdapter extends ServiceAdapter {
 		const manifest = parser.manifest;
 		// log.silly(`Got m3u8 manifest with ${JSON.stringify(manifest)}`);
 
+		if (manifest.playlists.length === 0) {
+			throw new M3u8ParseError("No playlists found in manifest");
+		}
+
 		const lowestBitratePlaylist = manifest.playlists.reduce(
 			(acc, cur) => {
 				if (cur.attributes.BANDWIDTH < acc.attributes.BANDWIDTH) {
@@ -74,14 +79,26 @@ export default class HlsVideoAdapter extends ServiceAdapter {
 		const manifest2 = parser2.manifest;
 		// log.silly(`Got m3u8 manifest with ${JSON.stringify(manifest2)}`);
 
+		const duration = manifest2.segments.reduce((acc, cur) => acc + cur.duration, 0);
+		if (duration === 0) {
+			throw new M3u8ParseError("Duration of the selected playlist is 0");
+		}
+
 		return {
 			service: "hls",
 			id: url.href,
 			title: manifest2.attributes?.NAME ?? url.href,
 			description: `Full Link: ${url.href}`,
 			mime: "application/x-mpegURL",
-			length: manifest2.segments.reduce((acc, cur) => acc + cur.duration, 0),
+			length: duration,
 			hls_url: url.href,
 		};
+	}
+}
+
+export class M3u8ParseError extends OttException {
+	constructor(public readonly message: string) {
+		super(message);
+		this.name = "M3u8ParseError";
 	}
 }
