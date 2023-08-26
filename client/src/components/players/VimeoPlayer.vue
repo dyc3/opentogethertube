@@ -6,6 +6,7 @@
 import { defineComponent, onMounted, watch } from "vue";
 import vimeo from "@vimeo/player";
 import { onBeforeUnmount } from "vue";
+import "./iframe-bg-hack.scss";
 
 const VimeoPlayer = defineComponent({
 	name: "VimeoPlayer",

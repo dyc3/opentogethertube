@@ -1,0 +1,6 @@
+// HACK: if the color-scheme of a parent iframe is different from a child iframe, the child iframe will get an opqaue background
+// this is a workaround to make the background transparent, it seems counter-intuitive but it works
+// see: https://github.com/dyc3/opentogethertube/issues/1061
+iframe {
+	color-scheme: light;
+}
