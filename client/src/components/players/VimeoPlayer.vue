@@ -6,6 +6,7 @@
 import { defineComponent, onMounted, watch } from "vue";
 import vimeo from "@vimeo/player";
 import { onBeforeUnmount } from "vue";
+import "./iframe-bg-hack.scss";
 
 const VimeoPlayer = defineComponent({
 	name: "VimeoPlayer",
@@ -31,29 +32,28 @@ const VimeoPlayer = defineComponent({
 				portrait: false,
 				// do not use the responsive option, it makes the player able to expand beyond the container
 			});
-			setTimeout(() => {
-				if (!player) {
-					return;
-				}
-				player.on("play", () => emit("playing"));
-				player.on("pause", () => emit("paused"));
-				player.on("loaded", () => emit("ready"));
-				player.on("bufferstart", () => {
-					isBuffering = true;
-					emit("buffering");
-				});
-				player.on("bufferend", () => {
-					isBuffering = false;
-					emit("ready");
-				});
-				player.on("error", () => emit("error"));
-				emit("apiready");
+			player.on("loaded", () => {
+				fitToContainer();
+				emit("ready");
+			});
+			player.on("play", () => emit("playing"));
+			player.on("pause", () => emit("paused"));
 
-				if (ResizeObserver) {
-					resizeObserver = new ResizeObserver(fitToContainer);
-					resizeObserver.observe(container);
-				}
-			}, 0);
+			player.on("bufferstart", () => {
+				isBuffering = true;
+				emit("buffering");
+			});
+			player.on("bufferend", () => {
+				isBuffering = false;
+				emit("ready");
+			});
+			player.on("error", () => emit("error"));
+			emit("apiready");
+
+			if (ResizeObserver) {
+				resizeObserver = new ResizeObserver(fitToContainer);
+				resizeObserver.observe(container);
+			}
 		});
 
 		watch(props, () => {
