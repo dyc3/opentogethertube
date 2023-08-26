@@ -55,8 +55,8 @@
 			:options="{ animation: 200, handle: '.drag-handle' }"
 			item-key="id"
 		>
-			<template #item="{ element }">
-				<VideoQueueItem :key="element.id" :item="element" />
+			<template #item="{ element, index }">
+				<VideoQueueItem :key="element.id" :item="element" :index="index" />
 			</template>
 		</Sortable>
 	</div>
