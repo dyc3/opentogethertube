@@ -157,9 +157,10 @@ import { useStore } from "@/store";
 import toast from "@/util/toast";
 import placeholderUrl from "@/assets/placeholder.svg";
 import { useI18n } from "vue-i18n";
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { useRoomApi } from "@/util/roomapi";
 import { useConnection } from "@/plugins/connection";
+import type { OttResponseBody } from "ott-common/models/rest-api";
 
 interface VideoQueueItemProps {
 	item: QueueItem;
@@ -279,7 +280,7 @@ const VideoQueueItem = defineComponent({
 		async function vote() {
 			isLoadingVote.value = true;
 			try {
-				let resp;
+				let resp: AxiosResponse<OttResponseBody>;
 				if (!voted.value) {
 					resp = await API.post(`/room/${store.state.room.name}/vote`, getPostData());
 					voted.value = true;
