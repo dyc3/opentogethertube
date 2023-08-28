@@ -18,6 +18,7 @@ use crate::service::BalancerService;
 mod balancer;
 mod client;
 mod config;
+mod connection;
 mod discovery;
 mod messages;
 mod monolith;
@@ -46,7 +47,8 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting balancer");
     let ctx = Arc::new(RwLock::new(BalancerContext::new()));
     let balancer = Balancer::new(ctx.clone());
-    let link = balancer.new_link();
+    let service_link = balancer.new_link();
+    let conman_link = balancer.new_link();
     let _dispatcher_handle = start_dispatcher(balancer)?;
     info!("Dispatcher started");
 
@@ -63,12 +65,24 @@ async fn main() -> anyhow::Result<()> {
     };
     info!("Monolith discovery started");
 
+    info!("Starting connection manager");
+    let mut conman = connection::MonolithConnectionManager::new(discovery_rx, conman_link);
+    let _conman_handle = tokio::task::Builder::new()
+        .name("connection manager")
+        .spawn(async move {
+            loop {
+                if let Err(err) = conman.do_connection_job().await {
+                    error!("Error in connection manager: {:?}", err);
+                }
+            }
+        });
+
     let bind_addr6: SocketAddr =
         SocketAddr::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0).into(), config.port);
 
     let service = BalancerService {
         ctx,
-        link,
+        link: service_link,
         addr: bind_addr6,
     };
 
