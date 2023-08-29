@@ -32,6 +32,7 @@ export function initBalancerConnections() {
 		port: conf.get("balancing.port"),
 	});
 	wss.on("connection", ws => {
+		log.debug("New balancer connection");
 		const conn = new BalancerConnection(ws);
 		balancerManager.addBalancerConnection(conn);
 	});
@@ -53,6 +54,7 @@ class BalancerManager {
 
 	addBalancerConnection(conn: BalancerConnection) {
 		this.balancerConnections.push(conn);
+		this.onBalancerConnect(conn);
 		conn.on("connect", () => this.onBalancerConnect(conn));
 		conn.on("disconnect", () => this.onBalancerDisconnect(conn));
 		conn.on("message", msg => this.onBalancerMessage(conn, msg));
