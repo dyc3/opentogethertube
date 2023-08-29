@@ -14,11 +14,29 @@ use async_trait::async_trait;
 use serde::Deserialize;
 use tokio::task::JoinHandle;
 use tracing::{error, warn};
+use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
 pub struct MonolithConnectionConfig {
     pub host: HostOrIp,
     pub port: u16,
+}
+
+impl MonolithConnectionConfig {
+    pub fn uri(&self) -> Url {
+        let mut url = Url::parse("ws://localhost").unwrap();
+        match self.host {
+            HostOrIp::Host(ref host) => {
+                url.set_host(Some(host)).unwrap();
+            }
+            HostOrIp::Ip(ip) => {
+                url.set_ip_host(ip).unwrap();
+            }
+        }
+        url.set_port(Some(self.port)).unwrap();
+
+        url
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
