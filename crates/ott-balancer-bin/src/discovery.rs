@@ -13,7 +13,7 @@ pub use manual::*;
 use async_trait::async_trait;
 use serde::Deserialize;
 use tokio::task::JoinHandle;
-use tracing::{error, warn};
+use tracing::{debug, error, info, warn};
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
@@ -110,6 +110,7 @@ impl DiscoveryTask {
             removed: monoliths_removed,
         };
         self.discovery_tx.send(msg).await?;
+        self.monoliths.extend(monoliths_new);
 
         if self.monoliths.is_empty() {
             warn!("No monoliths discovered");
