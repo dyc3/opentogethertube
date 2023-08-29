@@ -184,6 +184,7 @@ async fn connect_and_maintain(
                         stream = s;
                     } else {
                         warn!("Failed to reconnect to monolith: {}", conf.uri());
+                        tokio::time::sleep(Duration::from_secs(5)).await;
                     }
                 }
             }
