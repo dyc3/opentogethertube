@@ -46,8 +46,11 @@ impl MonolithConnectionManager {
             .await
             .ok_or_else(|| anyhow::anyhow!("Discovery channel closed"))?;
         for m in &msg.removed {
-            // TODO: cancel connection task and remove from connection_tasks
             self.monoliths.remove(m);
+            if let Some(active) = self.connection_tasks.remove(m) {
+                active.cancel.cancel();
+                active.handle.await?;
+            }
         }
 
         for conf in msg.added {
