@@ -51,6 +51,7 @@ impl MonolithConnectionManager {
         }
 
         for conf in msg.added {
+            info!("Connecting to monolith at {}", conf.uri());
             let c = conf.clone();
             let link = self.link.clone();
             self.monoliths.insert(conf.clone());

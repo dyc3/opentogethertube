@@ -56,7 +56,7 @@ class BalancerManager {
 		this.balancerConnections.push(conn);
 		this.onBalancerConnect(conn);
 		conn.on("connect", () => this.onBalancerConnect(conn));
-		conn.on("disconnect", () => this.onBalancerDisconnect(conn));
+		conn.on("disconnect", (code, reason) => this.onBalancerDisconnect(conn, code, reason));
 		conn.on("message", msg => this.onBalancerMessage(conn, msg));
 		conn.on("error", error => this.onBalancerError(conn, error));
 	}
@@ -70,8 +70,8 @@ class BalancerManager {
 		this.emit("connect", conn);
 	}
 
-	private onBalancerDisconnect(conn: BalancerConnection) {
-		log.info(`Disconnected from balancer ${conn.id}`);
+	private onBalancerDisconnect(conn: BalancerConnection, code: number, reason: string) {
+		log.debug(`Disconnected from balancer ${conn.id}: ${code} ${reason}`);
 		this.emit("disconnect", conn);
 		for (const conn of this.balancerConnections) {
 			if (conn.id === conn.id) {
@@ -119,7 +119,7 @@ type BalancerConnectionEvents = "connect" | "disconnect" | "message" | "error";
 type BalancerConnectionEventHandlers<E> = E extends "connect"
 	? () => void
 	: E extends "disconnect"
-	? () => void
+	? (code: number, reason: string) => void
 	: E extends "message"
 	? (message: MsgB2M) => void
 	: E extends "error"
@@ -166,8 +166,8 @@ export class BalancerConnection {
 		this.emit("connect");
 	}
 
-	private onSocketDisconnect(event: WebSocket.CloseEvent) {
-		this.emit("disconnect");
+	private onSocketDisconnect(code: number, reason: string) {
+		this.emit("disconnect", code, reason);
 	}
 
 	private onSocketMessage(data: WebSocket.Data) {
