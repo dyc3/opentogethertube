@@ -56,22 +56,21 @@ impl MonolithConnectionManager {
             let link = self.link.clone();
             self.monoliths.insert(conf.clone());
 
+            let cancel = CancellationToken::new();
+            let cancel_clone = cancel.clone();
             let handle = tokio::task::Builder::new()
                 .name("monolith connection")
                 .spawn(async move {
-                    match connect_and_maintain(conf.clone(), link.clone()).await {
+                    match connect_and_maintain(conf.clone(), link.clone(), cancel_clone).await {
                         Ok(_) => {
-                            info!("Monolith connection ended: {}", conf.uri());
+                            error!("Monolith connection ended, unsafe task end: {}", conf.uri());
                         }
                         Err(err) => {
-                            error!("Monolith connection failed: {}", err);
+                            error!("Monolith connection failed, unsafe task end: {}", err);
                         }
                     }
                 })?;
-            let active = ActiveConnection {
-                handle,
-                cancel: CancellationToken::new(),
-            };
+            let active = ActiveConnection { handle, cancel };
 
             self.connection_tasks.insert(c, active);
         }
@@ -83,7 +82,9 @@ impl MonolithConnectionManager {
 async fn connect_and_maintain(
     conf: MonolithConnectionConfig,
     link: BalancerLink,
+    cancel: CancellationToken,
 ) -> anyhow::Result<()> {
+    // TODO: refactor to not return result to enforce better error handling
     let (mut stream, _) = connect_async(conf.uri()).await?;
 
     let monolith_id = Uuid::new_v4().into();
@@ -158,17 +159,21 @@ async fn connect_and_maintain(
                             break;
                         }
                 } else {
-                    info!("Monolith websocket stream ended: {}", monolith_id);
-                    // TODO: reconnect instead
-                    #[allow(deprecated)]
-                    if let Err(err) = link
-                        .send_monolith_message(monolith_id, SocketMessage::End)
-                        .await {
-                            error!("Error sending monolith message to balancer: {:?}", err);
-                            break;
-                        }
-                    break;
+                    info!("Monolith websocket stream ended, reconnecting: {}", monolith_id);
+                    (stream, _) = connect_async(conf.uri()).await?;
                 }
+            }
+
+            _ = cancel.cancelled() => {
+                info!("Monolith connection cancelled, safely ending: {}", monolith_id);
+                #[allow(deprecated)]
+                if let Err(err) = link
+                    .send_monolith_message(monolith_id, SocketMessage::End)
+                    .await {
+                        error!("Error sending monolith message to balancer: {:?}", err);
+                        break;
+                    }
+                break;
             }
         }
     }
