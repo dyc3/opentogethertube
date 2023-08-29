@@ -1,18 +1,12 @@
 use std::collections::HashMap;
-use std::net::SocketAddr;
-use std::time::Duration;
 
-use futures_util::{SinkExt, StreamExt};
-use ott_balancer_protocol::{monolith::*, *};
+use ott_balancer_protocol::monolith::*;
+use ott_balancer_protocol::*;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error, info};
-use tungstenite::protocol::frame::coding::CloseCode;
-use tungstenite::protocol::CloseFrame;
-use uuid::Uuid;
+use tracing::error;
 
 use crate::discovery::MonolithConnectionConfig;
-use crate::websocket::HyperWebsocket;
-use crate::{balancer::BalancerLink, messages::*};
+use crate::messages::*;
 
 /// A Monolith refers to the NodeJS server that manages rooms and performs all business logic.
 #[derive(Debug)]
