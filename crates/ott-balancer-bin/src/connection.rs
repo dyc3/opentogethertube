@@ -55,18 +55,18 @@ impl MonolithConnectionManager {
 
         for conf in msg.added {
             info!("Connecting to monolith at {}", conf.uri());
-            let c = conf.clone();
             let link = self.link.clone();
             self.monoliths.insert(conf.clone());
 
             let cancel = CancellationToken::new();
+            let conf_clone = conf.clone();
             let cancel_clone = cancel.clone();
             let handle = tokio::task::Builder::new()
                 .name("monolith connection")
                 .spawn(async move {
-                    match connect_and_maintain(conf.clone(), link.clone(), cancel_clone).await {
+                    match connect_and_maintain(conf_clone, link.clone(), cancel_clone).await {
                         Ok(_) => {
-                            error!("Monolith connection ended, unsafe task end: {}", conf.uri());
+                            error!("Monolith connection ended, unsafe task end");
                         }
                         Err(err) => {
                             error!("Monolith connection failed, unsafe task end: {}", err);
@@ -75,7 +75,7 @@ impl MonolithConnectionManager {
                 })?;
             let active = ActiveConnection { handle, cancel };
 
-            self.connection_tasks.insert(c, active);
+            self.connection_tasks.insert(conf, active);
         }
 
         Ok(())
