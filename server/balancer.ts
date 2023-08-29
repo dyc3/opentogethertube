@@ -68,6 +68,14 @@ class BalancerManager {
 	private onBalancerConnect(conn: BalancerConnection) {
 		log.info(`Connected to balancer ${conn.id}`);
 		this.emit("connect", conn);
+
+		const init: MsgM2BInit = {
+			type: "init",
+			payload: {
+				port: conf.get("port"),
+			},
+		};
+		conn.send(init);
 	}
 
 	private onBalancerDisconnect(conn: BalancerConnection, code: number, reason: string) {
