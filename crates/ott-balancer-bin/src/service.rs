@@ -173,6 +173,7 @@ async fn proxy_request(
 ) -> anyhow::Result<Response<Full<Bytes>>> {
     let client = target.http_client();
     let mut url: Url = target.config().uri().clone();
+    url.set_scheme("http").expect("failed to set scheme");
     url.set_port(Some(target.proxy_port()))
         .expect("failed to set port");
     url.set_path(in_req.uri().path());
