@@ -33,8 +33,7 @@ impl FlyMonolithDiscoverer {
 impl MonolithDiscovery for FlyMonolithDiscoverer {
     async fn discover(&self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
         let resolver =
-            TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default())
-                .expect("failed to create resolver");
+            TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
 
         let lookup = resolver.ipv6_lookup(&self.query).await?;
         let monoliths = lookup
