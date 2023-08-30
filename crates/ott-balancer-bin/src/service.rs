@@ -124,10 +124,12 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
-                            if let Ok(res) = proxy_request(req, monolith).await {
-                                Ok(res)
-                            } else {
-                                mk_response("error proxying request".to_owned())
+                            match proxy_request(req, monolith).await {
+                                Ok(res) => Ok(res),
+                                Err(err) => {
+                                    error!("error proxying request: {}", err);
+                                    mk_response("error proxying request".to_owned())
+                                }
                             }
                         } else {
                             mk_response("no monoliths available".to_owned())
@@ -139,10 +141,12 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     let monolith = ctx_read.random_monolith().ok();
                     if let Some(monolith) = monolith {
                         info!("proxying request to monolith {}", monolith.id());
-                        if let Ok(res) = proxy_request(req, monolith).await {
-                            Ok(res)
-                        } else {
-                            mk_response("error proxying request".to_owned())
+                        match proxy_request(req, monolith).await {
+                            Ok(res) => Ok(res),
+                            Err(err) => {
+                                error!("error proxying request: {}", err);
+                                mk_response("error proxying request".to_owned())
+                            }
                         }
                     } else {
                         mk_response("no monoliths available".to_owned())
