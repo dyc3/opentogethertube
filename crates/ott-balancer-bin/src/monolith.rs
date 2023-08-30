@@ -1,17 +1,12 @@
 use std::collections::HashMap;
-use std::net::SocketAddr;
-use std::time::Duration;
 
-use futures_util::{SinkExt, StreamExt};
-use ott_balancer_protocol::{monolith::*, *};
+use ott_balancer_protocol::monolith::*;
+use ott_balancer_protocol::*;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error, info};
-use tungstenite::protocol::frame::coding::CloseCode;
-use tungstenite::protocol::CloseFrame;
-use uuid::Uuid;
+use tracing::error;
 
-use crate::websocket::HyperWebsocket;
-use crate::{balancer::BalancerLink, messages::*};
+use crate::discovery::MonolithConnectionConfig;
+use crate::messages::*;
 
 /// A Monolith refers to the NodeJS server that manages rooms and performs all business logic.
 #[derive(Debug)]
@@ -19,8 +14,8 @@ pub struct BalancerMonolith {
     id: MonolithId,
     rooms: HashMap<RoomName, Room>,
     socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
-    address: SocketAddr,
-    proxy_address: SocketAddr,
+    config: MonolithConnectionConfig,
+    proxy_port: u16,
     http_client: reqwest::Client,
 }
 
@@ -30,8 +25,8 @@ impl BalancerMonolith {
             id: m.id,
             rooms: HashMap::new(),
             socket_tx,
-            address: m.address,
-            proxy_address: m.proxy_address,
+            config: m.config,
+            proxy_port: m.proxy_port,
             http_client: reqwest::Client::builder()
                 .redirect(reqwest::redirect::Policy::none())
                 .build()
@@ -47,15 +42,13 @@ impl BalancerMonolith {
         &self.rooms
     }
 
-    /// The network address and port from which this Monolith is connected via websocket.
-    #[allow(dead_code)]
-    pub fn address(&self) -> SocketAddr {
-        self.address
+    pub fn config(&self) -> &MonolithConnectionConfig {
+        &self.config
     }
 
-    /// The network address that can be used to send HTTP requests to this Monolith.
-    pub fn proxy_address(&self) -> SocketAddr {
-        self.proxy_address
+    /// The network port that can be used to send proxied HTTP requests to this Monolith.
+    pub fn proxy_port(&self) -> u16 {
+        self.proxy_port
     }
 
     pub fn http_client(&self) -> &reqwest::Client {
@@ -102,7 +95,10 @@ impl BalancerMonolith {
 
     pub fn set_room_metadata(&mut self, room: &RoomName, metadata: RoomMetadata) {
         let Some(room) = self.rooms.get_mut(room) else {
-            error!("Error setting metadata, Monolith {} does not have room {}", self.id, room);
+            error!(
+                "Error setting metadata, Monolith {} does not have room {}",
+                self.id, room
+            );
             return;
         };
         room.set_metadata(metadata);
@@ -166,104 +162,6 @@ impl Room {
 #[derive(Debug)]
 pub struct NewMonolith {
     pub id: MonolithId,
-    pub address: SocketAddr,
-    pub proxy_address: SocketAddr,
-}
-
-pub async fn monolith_entry(
-    address: SocketAddr,
-    ws: HyperWebsocket,
-    balancer: BalancerLink,
-) -> anyhow::Result<()> {
-    info!("Monolith connected");
-    let mut stream = ws.await?;
-
-    let monolith_id = Uuid::new_v4().into();
-
-    let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
-    let Ok(Some(Ok(message))) = result else {
-                stream.close(Some(CloseFrame {
-                    code: CloseCode::Library(4000),
-                    reason: "did not send init".into(),
-                })).await?;
-                return Ok(());
-            };
-
-    let mut outbound_rx;
-    match message {
-        Message::Text(text) => {
-            let message: MsgM2B = serde_json::from_str(&text).unwrap();
-            match message {
-                MsgM2B::Init(init) => {
-                    debug!("monolith sent init, handing off to balancer");
-                    let mut proxy_address = address;
-                    proxy_address.set_port(init.port);
-                    let monolith = NewMonolith {
-                        id: monolith_id,
-                        address,
-                        proxy_address,
-                    };
-                    let Ok(rx) = balancer.send_monolith(monolith).await else {
-                        stream.close(Some(CloseFrame {
-                                    code: CloseCode::Library(4000),
-                                    reason: "failed to send monolith to balancer".into(),
-                                })).await?;
-                                return Ok(());
-                            };
-                    info!("Monolith {id} linked to balancer", id = monolith_id);
-                    outbound_rx = rx;
-                }
-                _ => {
-                    stream
-                        .close(Some(CloseFrame {
-                            code: CloseCode::Library(4004),
-                            reason: "did not send auth token".into(),
-                        }))
-                        .await?;
-                    return Ok(());
-                }
-            }
-        }
-        _ => {
-            return Ok(());
-        }
-    }
-
-    loop {
-        tokio::select! {
-            msg = outbound_rx.recv() => {
-                if let Some(SocketMessage::Message(msg)) = msg {
-                    if let Err(err) = stream.send(msg).await {
-                        error!("Error sending ws message to monolith: {:?}", err);
-                        break;
-                    }
-                } else {
-                    continue;
-                }
-            }
-
-            msg = stream.next() => {
-                if let Some(Ok(msg)) = msg {
-                    if let Err(err) = balancer
-                        .send_monolith_message(monolith_id, SocketMessage::Message(msg))
-                        .await {
-                            error!("Error sending monolith message to balancer: {:?}", err);
-                            break;
-                        }
-                } else {
-                    info!("Monolith websocket stream ended: {}", monolith_id);
-                    #[allow(deprecated)]
-                    if let Err(err) = balancer
-                        .send_monolith_message(monolith_id, SocketMessage::End)
-                        .await {
-                            error!("Error sending monolith message to balancer: {:?}", err);
-                            break;
-                        }
-                    break;
-                }
-            }
-        }
-    }
-
-    Ok(())
+    pub config: MonolithConnectionConfig,
+    pub proxy_port: u16,
 }

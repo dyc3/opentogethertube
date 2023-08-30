@@ -75,12 +75,14 @@ pub async fn client_entry<'r>(
 
     let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
     let Ok(Some(Ok(message))) = result else {
-                stream.close(Some(CloseFrame {
-                    code: CloseCode::Library(4004),
-                    reason: "did not send auth token".into(),
-                })).await?;
-                return Ok(());
-            };
+        stream
+            .close(Some(CloseFrame {
+                code: CloseCode::Library(4004),
+                reason: "did not send auth token".into(),
+            }))
+            .await?;
+        return Ok(());
+    };
 
     let mut outbound_rx;
     match message {
@@ -91,12 +93,14 @@ pub async fn client_entry<'r>(
                     debug!("client authenticated, handing off to balancer");
                     let client = client.into_new_client(message.token);
                     let Ok(rx) = balancer.send_client(client).await else {
-                                stream.close(Some(CloseFrame {
-                                    code: CloseCode::Library(4000),
-                                    reason: "failed to send client to balancer".into(),
-                                })).await?;
-                                return Ok(());
-                            };
+                        stream
+                            .close(Some(CloseFrame {
+                                code: CloseCode::Library(4000),
+                                reason: "failed to send client to balancer".into(),
+                            }))
+                            .await?;
+                        return Ok(());
+                    };
                     outbound_rx = rx;
                 }
                 _ => {

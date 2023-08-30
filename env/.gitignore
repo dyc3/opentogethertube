@@ -3,5 +3,6 @@ development.toml
 test.toml
 production.toml
 staging.toml
+balancer.toml
 
 *.env

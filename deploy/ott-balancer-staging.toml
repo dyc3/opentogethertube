@@ -1,0 +1,4 @@
+[discovery]
+method = "fly"
+fly_app = "ott-staging"
+monolith_port = 3002

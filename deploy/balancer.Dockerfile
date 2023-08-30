@@ -14,7 +14,7 @@ WORKDIR /usr/app/
 
 COPY --from=build-stage /usr/app/ott-balancer-bin /usr/app/
 
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl dnsutils && rm -rf /var/lib/apt/lists/*
 
 RUN ulimit -c unlimited
 

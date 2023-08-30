@@ -17,7 +17,7 @@ use tracing::{debug, error, info, warn};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
-use crate::monolith::{monolith_entry, BalancerMonolith};
+use crate::monolith::BalancerMonolith;
 
 static NOTFOUND: &[u8] = b"Not Found";
 
@@ -56,11 +56,11 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
         let link = self.link.clone();
-        let addr = self.addr;
+        let _addr = self.addr;
 
         let Ok(route) = ROUTER.recognize(req.uri().path()) else {
             warn!("no route found for {}", req.uri().path());
-            return Box::pin(async move {Ok(not_found())});
+            return Box::pin(async move { Ok(not_found()) });
         };
         info!(
             "Inbound request: {} {} => {}",
@@ -124,39 +124,16 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
-                            if let Ok(res) = proxy_request(req, monolith).await {
-                                Ok(res)
-                            } else {
-                                mk_response("error proxying request".to_owned())
+                            match proxy_request(req, monolith).await {
+                                Ok(res) => Ok(res),
+                                Err(err) => {
+                                    error!("error proxying request: {}", err);
+                                    mk_response("error proxying request".to_owned())
+                                }
                             }
                         } else {
                             mk_response("no monoliths available".to_owned())
                         }
-                    }
-                }
-                "monolith" => {
-                    if crate::websocket::is_websocket_upgrade(&req) {
-                        let (response, websocket) = match crate::websocket::upgrade(req, None) {
-                            Ok((response, websocket)) => (response, websocket),
-                            Err(e) => {
-                                error!("error upgrading websocket for monolith: {}", e);
-                                return Ok(not_found());
-                            }
-                        };
-
-                        // Spawn a task to handle the websocket connection.
-                        let _ = tokio::task::Builder::new()
-                            .name("monolith connection")
-                            .spawn(async move {
-                                if let Err(e) = monolith_entry(addr, websocket, link).await {
-                                    error!("Error in websocket connection: {}", e);
-                                }
-                            });
-
-                        // Return the response so the spawned future can continue.
-                        Ok(response)
-                    } else {
-                        mk_response("must upgrade to websocket".to_owned())
                     }
                 }
                 "other" => {
@@ -164,10 +141,12 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     let monolith = ctx_read.random_monolith().ok();
                     if let Some(monolith) = monolith {
                         info!("proxying request to monolith {}", monolith.id());
-                        if let Ok(res) = proxy_request(req, monolith).await {
-                            Ok(res)
-                        } else {
-                            mk_response("error proxying request".to_owned())
+                        match proxy_request(req, monolith).await {
+                            Ok(res) => Ok(res),
+                            Err(err) => {
+                                error!("error proxying request: {}", err);
+                                mk_response("error proxying request".to_owned())
+                            }
                         }
                     } else {
                         mk_response("no monoliths available".to_owned())
@@ -193,8 +172,11 @@ async fn proxy_request(
     target: &BalancerMonolith,
 ) -> anyhow::Result<Response<Full<Bytes>>> {
     let client = target.http_client();
-    let mut url: Url =
-        format!("http://{}{}", target.proxy_address(), in_req.uri().path()).parse()?;
+    let mut url: Url = target.config().uri().clone();
+    url.set_scheme("http").expect("failed to set scheme");
+    url.set_port(Some(target.proxy_port()))
+        .expect("failed to set port");
+    url.set_path(in_req.uri().path());
     url.set_query(in_req.uri().query());
     let method = in_req.method().clone();
     let headers = in_req.headers().clone();

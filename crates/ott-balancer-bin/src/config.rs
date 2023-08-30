@@ -4,6 +4,8 @@ use clap::{Parser, ValueEnum};
 use figment::providers::Format;
 use serde::Deserialize;
 
+use crate::discovery::{FlyDiscoveryConfig, ManualDiscoveryConfig};
+
 static mut CONFIG: Option<BalancerConfig> = None;
 
 static CONFIG_INIT: Once = Once::new();
@@ -13,11 +15,28 @@ static CONFIG_INIT: Once = Once::new();
 pub struct BalancerConfig {
     /// The port to listen on for HTTP requests.
     pub port: u16,
+    pub discovery: DiscoveryConfig,
 }
 
 impl Default for BalancerConfig {
     fn default() -> Self {
-        Self { port: 8081 }
+        Self {
+            port: 8081,
+            discovery: DiscoveryConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "method", rename_all = "lowercase")]
+pub enum DiscoveryConfig {
+    Fly(FlyDiscoveryConfig),
+    Manual(ManualDiscoveryConfig),
+}
+
+impl Default for DiscoveryConfig {
+    fn default() -> Self {
+        Self::Manual(ManualDiscoveryConfig::default())
     }
 }
 
