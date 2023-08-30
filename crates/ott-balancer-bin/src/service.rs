@@ -56,7 +56,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
         let link = self.link.clone();
-        let addr = self.addr;
+        let _addr = self.addr;
 
         let Ok(route) = ROUTER.recognize(req.uri().path()) else {
             warn!("no route found for {}", req.uri().path());

@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use tracing::info;
-use trust_dns_resolver::{config::*, TokioAsyncResolver};
+use trust_dns_resolver::{TokioAsyncResolver};
 
-use crate::config::BalancerConfig;
+
 
 use super::*;
 

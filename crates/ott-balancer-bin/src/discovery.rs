@@ -13,7 +13,7 @@ pub use manual::*;
 use async_trait::async_trait;
 use serde::Deserialize;
 use tokio::task::JoinHandle;
-use tracing::{debug, error, info, warn};
+use tracing::{error, warn};
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
@@ -117,10 +117,6 @@ impl DiscoveryTask {
         }
 
         Ok(())
-    }
-
-    pub fn discovered_monoliths(&self) -> &HashSet<MonolithConnectionConfig> {
-        &self.monoliths
     }
 }
 
