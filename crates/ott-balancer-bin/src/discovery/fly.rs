@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use tracing::info;
-use trust_dns_resolver::{TokioAsyncResolver};
-
-
+use trust_dns_resolver::TokioAsyncResolver;
 
 use super::*;
 

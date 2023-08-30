@@ -95,7 +95,10 @@ impl BalancerMonolith {
 
     pub fn set_room_metadata(&mut self, room: &RoomName, metadata: RoomMetadata) {
         let Some(room) = self.rooms.get_mut(room) else {
-            error!("Error setting metadata, Monolith {} does not have room {}", self.id, room);
+            error!(
+                "Error setting metadata, Monolith {} does not have room {}",
+                self.id, room
+            );
             return;
         };
         room.set_metadata(metadata);

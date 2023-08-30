@@ -550,9 +550,10 @@ pub async fn dispatch_monolith_message(
                         .get(monolith_id)
                         .unwrap()
                         .rooms()
-                        .get(&room) else {
-                            anyhow::bail!("room not found on monolith");
-                        };
+                        .get(&room)
+                    else {
+                        anyhow::bail!("room not found on monolith");
+                    };
 
                     // TODO: also handle the case where the client_id is Some
 

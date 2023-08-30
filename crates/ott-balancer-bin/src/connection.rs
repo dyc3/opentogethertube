@@ -108,13 +108,18 @@ async fn connect_and_maintain(
 
     let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
     let Ok(Some(Ok(message))) = result else {
-                let _ = stream.close(Some(CloseFrame {
-                    code: CloseCode::Library(4000),
-                    reason: "did not send init".into(),
-                })).await;
-                warn!("Monolith misbehaved, did not send init, timed out: {}", conf.uri());
-                return;
-            };
+        let _ = stream
+            .close(Some(CloseFrame {
+                code: CloseCode::Library(4000),
+                reason: "did not send init".into(),
+            }))
+            .await;
+        warn!(
+            "Monolith misbehaved, did not send init, timed out: {}",
+            conf.uri()
+        );
+        return;
+    };
 
     // Handle connection initialization
     let mut outbound_rx;
@@ -130,10 +135,12 @@ async fn connect_and_maintain(
                         proxy_port: init.port,
                     };
                     let Ok(rx) = link.send_monolith(monolith).await else {
-                        let _ = stream.close(Some(CloseFrame {
-                            code: CloseCode::Library(4000),
-                            reason: "failed to send monolith to balancer".into(),
-                        })).await;
+                        let _ = stream
+                            .close(Some(CloseFrame {
+                                code: CloseCode::Library(4000),
+                                reason: "failed to send monolith to balancer".into(),
+                            }))
+                            .await;
                         warn!("Could not send Monolith to balancer: {}", conf.uri());
                         return;
                     };

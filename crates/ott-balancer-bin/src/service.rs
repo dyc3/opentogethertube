@@ -60,7 +60,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let Ok(route) = ROUTER.recognize(req.uri().path()) else {
             warn!("no route found for {}", req.uri().path());
-            return Box::pin(async move {Ok(not_found())});
+            return Box::pin(async move { Ok(not_found()) });
         };
         info!(
             "Inbound request: {} {} => {}",
