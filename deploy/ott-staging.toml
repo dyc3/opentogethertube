@@ -5,6 +5,5 @@ cors_proxy = "cors.opentogethertube.com"
 [log]
 level = "silly"
 
-[[balancers]]
-host = "ewr.ott-balancer-staging.internal"
-port = 8081
+[balancing]
+enabled = true

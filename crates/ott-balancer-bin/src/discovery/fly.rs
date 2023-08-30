@@ -9,7 +9,7 @@ use super::*;
 #[derive(Debug, Clone, Deserialize)]
 pub struct FlyDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
-    pub port: u16,
+    pub monolith_port: u16,
     pub fly_app: String,
 }
 
@@ -41,7 +41,7 @@ impl MonolithDiscovery for FlyMonolithDiscoverer {
             .iter()
             .map(|ip| MonolithConnectionConfig {
                 host: HostOrIp::Ip(IpAddr::V6(*ip)),
-                port: self.config.port,
+                port: self.config.monolith_port,
             })
             .collect::<Vec<_>>();
 
