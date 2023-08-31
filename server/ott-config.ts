@@ -24,11 +24,6 @@ convict.addFormat({
 	},
 });
 
-export interface BalancerConfig {
-	host: string;
-	port: number;
-}
-
 export const conf = convict({
 	env: {
 		doc: "The application environment.",
@@ -352,33 +347,18 @@ export const conf = convict({
 		default: false,
 		env: "FORCE_INSECURE_COOKIES",
 	},
-	balancers: {
-		doc: "The list of balancers that are available for the monolith to use. If this array is empty, it is ignored.",
-		format: "balancer-config",
-		default: [] as BalancerConfig[],
-		children: {
-			host: {
-				doc: "The hostname of the balancer server.",
-				format: String,
-				default: null,
-			},
-			port: {
-				doc: "The port of the balancer server.",
-				format: "port",
-				default: null,
-			},
-		},
-	},
 	balancing: {
 		enabled: {
 			doc: "Whether to listen for connections from load balancers.",
 			format: Boolean,
 			default: false,
+			env: "BALANCING_ENABLED",
 		},
 		port: {
 			doc: "The port to listen for load balancer connections on.",
 			format: "port",
 			default: 3002,
+			env: "BALANCING_PORT",
 		},
 	},
 	mail: {
