@@ -27,7 +27,8 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     router.add("/api/balancing", "status");
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
-    router.add("/monolith", "monolith");
+    router.add("/api/room/:room_name/", "room");
+    router.add("/api/room/:room_name/*", "room");
     router.add("/", "other");
     router.add("*", "other");
     router
@@ -237,4 +238,59 @@ async fn list_rooms(ctx: Arc<RwLock<BalancerContext>>) -> anyhow::Result<Respons
 
     let body = serde_json::to_vec(&rooms)?;
     Ok(builder.body(Full::new(body.into())).unwrap())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn route_rules_status() {
+        assert_eq!(
+            ROUTER.recognize("/api/status").unwrap().handler(),
+            &&"health"
+        );
+        assert_eq!(
+            ROUTER.recognize("/api/balancing").unwrap().handler(),
+            &&"status"
+        );
+        assert_eq!(
+            ROUTER.recognize("/api/status/metrics").unwrap().handler(),
+            &&"metrics"
+        );
+    }
+
+    #[test]
+    fn route_rules_room() {
+        let cases = [
+            "/api/room/abc",
+            "/api/room/abc/",
+            "/api/room/abc/def",
+            "/api/room/abc/def/",
+            "/api/room/ded6b388-ff31-4e58-8cbc-24995d9a7356/queue",
+        ];
+        for case in cases.iter() {
+            println!("case: {}", case);
+            assert_eq!(ROUTER.recognize(case).unwrap().handler(), &&"room");
+        }
+    }
+
+    #[test]
+    fn route_rules_other() {
+        let cases = [
+            "/",
+            "/foo",
+            "/foo/bar",
+            "/foo/bar/",
+            "/foo/bar/baz",
+            "/foo/bar/baz/",
+            "/assets/foo.svg",
+            "/api/data/previewAdd",
+            "/api/auth/grant",
+        ];
+        for case in cases.iter() {
+            println!("case: {}", case);
+            assert_eq!(ROUTER.recognize(case).unwrap().handler(), &&"other");
+        }
+    }
 }
