@@ -1,6 +1,6 @@
 import request from "supertest";
 import { main } from "../../../app";
-import InfoExtract from "../../../infoextractor";
+import InfoExtract, { AddPreview } from "../../../infoextractor";
 import tokens from "../../../auth/tokens";
 
 describe("Data API", () => {
@@ -25,7 +25,7 @@ describe("Data API", () => {
 	it("GET /data/previewAdd", async () => {
 		let resolveQuerySpy = jest
 			.spyOn(InfoExtract, "resolveVideoQuery")
-			.mockReturnValue(Promise.resolve([]));
+			.mockReturnValue(Promise.resolve(new AddPreview([], 0)));
 
 		await request(app)
 			.get("/api/data/previewAdd")
