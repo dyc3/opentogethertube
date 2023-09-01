@@ -301,7 +301,7 @@ export default {
 	 * adapter will automatically be selected to handle it. If it is not a URL, searchService will be
 	 * used to perform a search.
 	 */
-	async resolveVideoQuery(query: string, searchService: string): Promise<Video[]> {
+	async resolveVideoQuery(query: string, searchService: string): Promise<AddPreview> {
 		counterAddPreviewsRequested.inc();
 		counterMethodsInvoked.labels({ method: "resolveVideoQuery" }).inc();
 		try {
@@ -316,8 +316,9 @@ export default {
 		}
 	},
 
-	async resolveVideoQueryImpl(query: string, searchService: string): Promise<Video[]> {
+	async resolveVideoQueryImpl(query: string, searchService: string): Promise<AddPreview> {
 		let results: Video[] = [];
+		let cacheDuration = 60 * 60;
 
 		if (query.includes("\n")) {
 			const lines = query
@@ -341,8 +342,15 @@ export default {
 				throw new UnsupportedServiceException(query);
 			}
 
+			if (adapter.isCacheSafe) {
+				cacheDuration = 60 * 60 * 24 * 7;
+			}
+
 			if (!adapter.isCollectionURL(query)) {
-				return [await this.getVideoInfo(adapter.serviceId, adapter.getVideoId(query))];
+				const videos = [
+					await this.getVideoInfo(adapter.serviceId, adapter.getVideoId(query)),
+				];
+				return new AddPreview(videos, cacheDuration);
 			}
 
 			const fetchResults = await adapter.resolveURL(query);
@@ -378,15 +386,10 @@ export default {
 
 			const searchResults = await this.searchVideos(searchService, query);
 			results.push(...searchResults);
-		}
 
-		this.updateCache(
-			results.filter(video => {
-				const adapter = this.getServiceAdapter(video.service);
-				return adapter.isCacheSafe;
-			})
-		);
-		return results;
+			cacheDuration = 60 * 60 * 24 * 7;
+		}
+		return new AddPreview(results, cacheDuration);
 	},
 
 	/**
@@ -413,6 +416,20 @@ export default {
 		return completeResults;
 	},
 };
+
+/**
+ * A completed add preview.
+ */
+export class AddPreview {
+	videos: Video[];
+	/** The number of seconds to allow downstream caches to cache the response. Affects caching HTTP headers. */
+	cacheDuration: number;
+
+	constructor(videos: Video[], cacheDuration: number) {
+		this.videos = videos;
+		this.cacheDuration = cacheDuration;
+	}
+}
 
 const counterAddPreviewsRequested = new Counter({
 	name: "ott_infoextractor_add_previews_requested",

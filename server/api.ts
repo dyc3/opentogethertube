@@ -19,6 +19,7 @@ export function buildApiRouter(): express.Router {
 
 	router.use("/status", statusapi);
 	router.use("/auth", auth.router);
+	router.use("/data", dataapi);
 
 	router.use((req, res, next) => {
 		// eslint-disable-next-line no-unused-vars
@@ -41,7 +42,6 @@ export function buildApiRouter(): express.Router {
 	router.use("/user", usermanager.router);
 	router.use("/room", roomapi);
 	router.use("/announce", announceapi);
-	router.use("/data", dataapi);
 
 	if (conf.get("env") === "development") {
 		(async () => {

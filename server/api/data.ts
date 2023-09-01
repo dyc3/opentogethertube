@@ -25,15 +25,22 @@ const addPreview: RequestHandler<
 	}
 	try {
 		log.info(`Getting queue add preview for ${req.query.input}`);
-		let result = await InfoExtract.resolveVideoQuery(
+		const result = await InfoExtract.resolveVideoQuery(
 			req.query.input.trim(),
 			conf.get("add_preview.search.provider")
 		);
+		const videos = result.videos;
+
+		res.setHeader(
+			"Cache-Control",
+			`public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`
+		);
+
 		res.json({
 			success: true,
-			result,
+			result: videos,
 		});
-		log.info(`Sent add preview response with ${result.length} items`);
+		log.info(`Sent add preview response with ${videos.length} items`);
 	} catch (err) {
 		if (
 			err.name === "UnsupportedServiceException" ||
