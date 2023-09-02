@@ -10,7 +10,7 @@ console-subscriber = "0.1.8"
 figment = { version = "0.10.10", features = ["toml", "env"] }
 futures-util = "0.3.28"
 hyper = { version = "1.0.0-rc.4", features = ["full"] }
-hyper-util = { git ="https://github.com/hyperium/hyper-util.git", rev = "f898015" }
+hyper-util = { git ="https://github.com/hyperium/hyper-util.git", rev = "f898015", features = ["client", "http1", "http2", "tcp"] }
 http-body-util = "0.1.0-rc.2"
 rand = "0.8.5"
 reqwest = { version = "0.11.17", features = ["json", "stream", "rustls-tls"] }
@@ -19,6 +19,7 @@ serde_json = { version = "1", features = ["raw_value"] }
 tokio = { version = "1", features = ["full", "tracing"] }
 tokio-tungstenite = "0.19.0"
 tokio-util = "0.7.8"
+tokio-stream = "0.1.14"
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
 tungstenite = "0.19.0"

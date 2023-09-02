@@ -2,18 +2,21 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures_util::Future;
-use http_body_util::{BodyExt, Full};
+use futures_util::{Future, Stream};
+use http_body_util::{BodyExt, Full, StreamBody};
+use hyper::body::Body;
 use hyper::service::Service;
 use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
+use hyper_util::client::connect::HttpConnector;
+use hyper_util::rt::TokioExecutor;
 use once_cell::sync::Lazy;
 use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
 use ott_balancer_protocol::RoomName;
-use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, warn};
+use url::Url;
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -181,23 +184,28 @@ async fn proxy_request(
     url.set_path(parts.uri.path());
     url.set_query(parts.uri.query());
     // TODO: update X-Forwarded-For header
-    // TODO: stream the body instead of loading it all into memory?
 
-    let body: Bytes = body.collect().await?.to_bytes();
-    let out_body: reqwest::Body = reqwest::Body::from(body);
-    let req = client
-        .request(parts.method, url)
-        .headers(parts.headers)
-        .body(out_body)
-        .build()?;
-    let res = client.execute(req).await?;
+    let uri: hyper::Uri = url.as_str().parse()?; // TODO: avoid this parse
+    let mut req = Request::builder().uri(uri).method(parts.method);
+    let Some(headers) = req.headers_mut() else {
+        anyhow::bail!("failed to set headers on request");
+    };
+    *headers = parts.headers;
+    let req = req.body(body)?;
+
+    let client = hyper_util::client::legacy::Client::builder(TokioExecutor::new())
+        .build(HttpConnector::new());
+    let res = client.request(req).await?;
+
     let status = res.status();
     let mut builder = Response::builder().status(status);
     for (k, v) in res.headers().iter() {
         builder = builder.header(k, v);
     }
-    let body = res.bytes().await?;
-    Ok(builder.body(Full::new(body)).unwrap())
+
+    // TODO: stream the body instead of loading it all into memory?
+    let body = res.collect().await?;
+    Ok(builder.body(Full::new(body.to_bytes())).unwrap())
 }
 
 #[derive(serde::Serialize)]
