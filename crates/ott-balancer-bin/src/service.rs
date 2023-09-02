@@ -173,21 +173,21 @@ async fn proxy_request(
     target: &BalancerMonolith,
 ) -> anyhow::Result<Response<Full<Bytes>>> {
     let client = target.http_client();
+    let (parts, body) = in_req.into_parts();
     let mut url: Url = target.config().uri().clone();
     url.set_scheme("http").expect("failed to set scheme");
     url.set_port(Some(target.proxy_port()))
         .expect("failed to set port");
-    url.set_path(in_req.uri().path());
-    url.set_query(in_req.uri().query());
-    let method = in_req.method().clone();
-    let headers = in_req.headers().clone();
+    url.set_path(parts.uri.path());
+    url.set_query(parts.uri.query());
     // TODO: update X-Forwarded-For header
     // TODO: stream the body instead of loading it all into memory?
-    let body: Bytes = in_req.collect().await?.to_bytes();
-    let out_body = reqwest::Body::from(body);
+
+    let body: Bytes = body.collect().await?.to_bytes();
+    let out_body: reqwest::Body = reqwest::Body::from(body);
     let req = client
-        .request(method, url)
-        .headers(headers)
+        .request(parts.method, url)
+        .headers(parts.headers)
         .body(out_body)
         .build()?;
     let res = client.execute(req).await?;
