@@ -40,4 +40,7 @@ export default defineConfig({
 			inline: ["vuetify"],
 		},
 	},
+	optimizeDeps: {
+		entries: ["client/tests/**/*.ts"],
+	},
 });
