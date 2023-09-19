@@ -744,7 +744,7 @@ export class Room implements RoomState {
 			this._keepAlivePing.add(conf.get("room.unload_after") * 0.9, "second").isBefore(dayjs())
 		) {
 			this._keepAlivePing = dayjs();
-			await redisClient.touch(`room:${this.name}`);
+			await redisClient.expire(`room:${this.name}`, conf.get("room.expire_after"));
 		}
 
 		// sort queue according to queue mode
@@ -848,7 +848,7 @@ export class Room implements RoomState {
 		if (isAnyDirtyStorable) {
 			this.log.debug("saving full state in redis");
 			await redisClient.set(`room:${this.name}`, this.serializeState(), {
-				EX: conf.get("room.unload_after"),
+				EX: conf.get("room.expire_after"),
 			});
 		}
 		if (!_.isEmpty(msg)) {
