@@ -406,6 +406,13 @@ export const conf = convict({
 		default: null as string | null,
 		nullable: true,
 	},
+	room: {
+		unload_after: {
+			doc: "The interval in seconds to after a room is considered inactive that the server will keep the room alive.",
+			format: Number,
+			default: 300,
+		},
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {
