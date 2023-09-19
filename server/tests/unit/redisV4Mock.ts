@@ -11,7 +11,7 @@ const setEx = promisify(client.setex).bind(client);
 const v4Client = {
 	connect: () => undefined,
 	get: promisify(client.get).bind(client),
-	set: promisify(client.set).bind(client),
+	set: setFixed,
 	del: promisify(client.del).bind(client),
 	hSet: promisify(client.hset).bind(client),
 	hGet: promisify(client.hget).bind(client),
@@ -30,4 +30,19 @@ const v4Client = {
 	keys: promisify(client.keys).bind(client),
 	// Add additional functions as needed...
 };
+
+/**
+ * A version of set that supports the EX option. Doesn't any other options.
+ */
+async function setFixed(key: string, value: string, opts: Record<string, any>): Promise<"OK"> {
+	const set: any = promisify(client.set).bind(client);
+	const extras: any[] = [];
+	// eslint-disable-next-line no-prototype-builtins
+	if (opts !== undefined && opts.hasOwnProperty("EX")) {
+		extras.push("EX", opts.EX);
+	}
+	await set(key, value, ...extras);
+	return "OK";
+}
+
 export default { ...redis, createClient: () => v4Client };
