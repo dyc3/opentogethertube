@@ -38,20 +38,6 @@ function addRoom(room: Room) {
 
 export async function start() {
 	log.info("Starting room manager");
-	const keys = await redisClient.keys("room:*");
-	log.debug(`Found ${keys.length} rooms in redis`);
-	for (const roomKey of keys) {
-		log.debug(`Loading ${roomKey}`);
-		const text = await redisClient.get(roomKey);
-		if (!text) {
-			continue;
-		}
-		const state = JSON.parse(text) as RoomStateFromRedis;
-		const fixedState = redisStateToState(state);
-		const room = new Room(fixedState);
-		addRoom(room);
-	}
-	log.info(`Loaded ${keys.length} rooms from redis`);
 
 	setInterval(update, 1000);
 }
@@ -117,7 +103,7 @@ export async function createRoom(options: Partial<RoomOptions> & { name: string 
  * Get a room by name, or load it from storage if it's not loaded.
  * @param roomName
  * @param options
- * @param options.mustAlreadyBeLoaded If true, will throw if the room is not already loaded in the current Node.
+ * @param options.mustAlreadyBeLoaded If true, will throw if the room is not already loaded in the current Monolith.
  * @returns
  */
 export async function getRoom(
@@ -138,17 +124,18 @@ export async function getRoom(
 		return err(new RoomNotFoundException(roomName));
 	}
 
-	const opts = (await storage.getRoomByName(roomName)) as RoomStatePersistable;
-	if (opts) {
-		if (await redisClient.exists(`room:${opts.name}`)) {
-			log.debug("found room in database, but room is already in redis");
-			return err(new RoomAlreadyLoadedException(opts.name));
-		}
-	} else {
-		if (await redisClient.exists(`room:${roomName}`)) {
-			log.debug("found room in redis, not loading");
-			return err(new RoomAlreadyLoadedException(roomName));
-		}
+	const redisState = await redisClient.get(`room:${roomName}`);
+	if (redisState) {
+		log.debug("found room in redis");
+		const state = JSON.parse(redisState) as RoomStateFromRedis;
+		const fixedState = redisStateToState(state);
+		const room = new Room(fixedState);
+		addRoom(room);
+		return ok(room);
+	}
+
+	const opts = await storage.getRoomByName(roomName);
+	if (!opts) {
 		log.debug("room not found in room manager, nor redis, nor database");
 		return err(new RoomNotFoundException(roomName));
 	}
