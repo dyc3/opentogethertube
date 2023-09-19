@@ -7,6 +7,7 @@ import EventEmitter from "events";
 import { getLogger } from "./logger";
 import { getSessionInfo } from "./auth/tokens";
 import { BalancerConnection } from "./balancer";
+import { replacer } from "../common/serialize";
 
 const log = getLogger("client");
 
@@ -79,7 +80,7 @@ export abstract class Client {
 	}
 
 	send(msg: ServerMessage) {
-		this.sendRaw(JSON.stringify(msg));
+		this.sendRaw(JSON.stringify(msg, replacer));
 	}
 
 	abstract sendRaw(msg: string): void;

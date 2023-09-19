@@ -152,6 +152,29 @@ export type RoomStateStorable = Omit<
 	"hasOwner" | "votes" | "voteCounts" | "users" | "votesToSkip"
 > & { _playbackStart: Dayjs | null };
 
+const syncableProps: (keyof RoomStateSyncable)[] = [
+	"name",
+	"title",
+	"description",
+	"isTemporary",
+	"visibility",
+	"queueMode",
+	"currentSource",
+	"queue",
+	"isPlaying",
+	"playbackPosition",
+	"playbackSpeed",
+	"grants",
+	"hasOwner",
+	"voteCounts",
+	"videoSegments",
+	"autoSkipSegments",
+	"prevQueue",
+	"restoreQueueBehavior",
+	"enableVoteSkip",
+	"votesToSkip",
+];
+
 const storableProps: (keyof RoomStateStorable)[] = [
 	"name",
 	"title",
@@ -792,31 +815,12 @@ export class Room implements RoomState {
 		return JSON.stringify(state, replacer);
 	}
 
+	public syncableState(): RoomStateSyncable {
+		return _.pick(this, syncableProps);
+	}
+
 	public serializeSyncableState(): string {
-		const state: RoomStateSyncable = _.pick(
-			this,
-			"name",
-			"title",
-			"description",
-			"isTemporary",
-			"visibility",
-			"queueMode",
-			"currentSource",
-			"queue",
-			"isPlaying",
-			"playbackPosition",
-			"playbackSpeed",
-			"users",
-			"grants",
-			"hasOwner",
-			"voteCounts",
-			"videoSegments",
-			"autoSkipSegments",
-			"prevQueue",
-			"restoreQueueBehavior",
-			"enableVoteSkip",
-			"votesToSkip"
-		);
+		const state: RoomStateSyncable = this.syncableState();
 
 		return JSON.stringify(state, replacer);
 	}
@@ -832,29 +836,7 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
-		const state: RoomStateSyncable = _.pick(
-			this,
-			"name",
-			"title",
-			"description",
-			"isTemporary",
-			"visibility",
-			"queueMode",
-			"currentSource",
-			"queue",
-			"isPlaying",
-			"playbackPosition",
-			"playbackSpeed",
-			"grants",
-			"voteCounts",
-			"hasOwner",
-			"videoSegments",
-			"autoSkipSegments",
-			"prevQueue",
-			"restoreQueueBehavior",
-			"enableVoteSkip",
-			"votesToSkip"
-		);
+		const state: RoomStateSyncable = this.syncableState();
 		const isAnyDirtyStorable = Array.from(this._dirty).some(prop =>
 			storableProps.includes(prop as any)
 		);
@@ -866,7 +848,6 @@ export class Room implements RoomState {
 		}
 		if (!_.isEmpty(msg)) {
 			this.log.debug("sending sync message");
-			await redisClient.set(`room-sync:${this.name}`, this.serializeSyncableState());
 			await this.publish(msg);
 		}
 
