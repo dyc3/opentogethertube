@@ -31,7 +31,6 @@ import { conf } from "./ott-config";
 const log = getLogger("clientmanager");
 
 const connections: Client[] = [];
-const roomStates: Map<string, RoomStateSyncable> = new Map();
 const roomJoins: Map<string, Client[]> = new Map();
 export async function setup(): Promise<void> {
 	log.debug("setting up client manager...");
@@ -86,16 +85,10 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	client.room = room.name;
 
 	// full sync
-	let state = roomStates.get(room.name);
-	if (state === undefined) {
-		log.warn("room state not present, grabbing");
-		const stateText = await redisClient.get(`room-sync:${room.name}`);
-		if (stateText) {
-			state = JSON.parse(stateText) as RoomStateSyncable;
-			roomStates.set(room.name, state);
-		}
-	}
-	const syncMsg = Object.assign({ action: "sync" }, state) as unknown as ServerMessageSync;
+	const syncMsg = Object.assign(
+		{ action: "sync" },
+		room.syncableState()
+	) as unknown as ServerMessageSync;
 	client.send(syncMsg);
 
 	// join the room
@@ -334,29 +327,6 @@ async function broadcast(roomName: string, msg: ServerMessage) {
 }
 
 async function onRoomPublish(roomName: string, msg: ServerMessage) {
-	if (msg.action === "sync") {
-		let state = roomStates.get(roomName);
-		if (state === undefined) {
-			const stateText = await redisClient.get(`room-sync:${roomName}`);
-			if (stateText) {
-				state = JSON.parse(stateText) as RoomStateSyncable;
-			} else {
-				state = {} as RoomStateSyncable;
-			}
-		}
-		const filtered = _.omit(msg, "action");
-		if (state) {
-			Object.assign(state, filtered);
-		} else {
-			// @ts-expect-error
-			state = filtered;
-		}
-		if (!state) {
-			throw new Error("state is still undefined, can't broadcast to clients");
-		}
-		roomStates.set(roomName, state);
-	}
-
 	await broadcast(roomName, msg);
 }
 
@@ -376,7 +346,6 @@ function onRoomUnload(roomName: string) {
 	}
 
 	roomJoins.delete(roomName);
-	roomStates.delete(roomName);
 }
 
 function onAnnouncement(text: string) {
