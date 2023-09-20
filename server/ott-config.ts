@@ -406,6 +406,18 @@ export const conf = convict({
 		default: null as string | null,
 		nullable: true,
 	},
+	room: {
+		unload_after: {
+			doc: "The interval in seconds to after a room is considered inactive that the server will keep the room alive.",
+			format: Number,
+			default: 300, // 5 minutes
+		},
+		expire_after: {
+			doc: "The interval in seconds that redis will keep a room's state when it is not stale.",
+			format: Number,
+			default: 2 * 3600, // 2 hours
+		},
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {

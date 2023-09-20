@@ -70,8 +70,7 @@ import { RestoreQueueRequest } from "../common/models/messages";
 import { voteSkipThreshold } from "../common";
 import type { ClientManagerCommand } from "./clientmanager";
 import { canKickUser } from "../common/userutils";
-
-const ROOM_UNLOAD_AFTER = 240; // seconds
+import { conf } from "./ott-config";
 
 /**
  * Represents a User from the Room's perspective.
@@ -740,8 +739,12 @@ export class Room implements RoomState {
 			await this.dequeueNext();
 		}
 
-		if (this.users.length > 0) {
+		if (
+			this.users.length > 0 &&
+			this._keepAlivePing.add(conf.get("room.unload_after") * 0.9, "second").isBefore(dayjs())
+		) {
 			this._keepAlivePing = dayjs();
+			await redisClient.expire(`room:${this.name}`, conf.get("room.expire_after"));
 		}
 
 		// sort queue according to queue mode
@@ -844,7 +847,9 @@ export class Room implements RoomState {
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 		if (isAnyDirtyStorable) {
 			this.log.debug("saving full state in redis");
-			await redisClient.set(`room:${this.name}`, this.serializeState());
+			await redisClient.set(`room:${this.name}`, this.serializeState(), {
+				EX: conf.get("room.expire_after"),
+			});
 		}
 		if (!_.isEmpty(msg)) {
 			this.log.debug("sending sync message");
@@ -906,7 +911,7 @@ export class Room implements RoomState {
 	 */
 	get isStale(): boolean {
 		const staleTime = dayjs().diff(this._keepAlivePing, "seconds");
-		return staleTime > ROOM_UNLOAD_AFTER;
+		return staleTime > conf.get("room.unload_after");
 	}
 
 	public isVideoInQueue(video: VideoId): boolean {
