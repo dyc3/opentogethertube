@@ -769,10 +769,35 @@ dependencies = [
 [[package]]
 name = "harness"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bytes 1.4.0",
+ "clap",
+ "console-subscriber",
+ "figment",
+ "futures-util",
+ "hyper 1.0.0-rc.4",
+ "hyper-util",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "tungstenite",
+ "url 2.3.1",
+ "uuid",
+]
 
 [[package]]
 name = "harness-tests"
 version = "0.1.0"
+dependencies = [
+ "harness",
+]
 
 [[package]]
 name = "hashbrown"
