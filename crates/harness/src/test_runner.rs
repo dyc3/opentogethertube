@@ -1,6 +1,6 @@
-use std::process::{Child, Command};
+use tokio::process::{Child, Command};
 
-use test_context::TestContext;
+use test_context::AsyncTestContext;
 use tracing::warn;
 
 use crate::util::random_unused_port;
@@ -12,22 +12,42 @@ pub struct TestRunner {
 
 impl TestRunner {}
 
-impl TestContext for TestRunner {
+#[async_trait::async_trait]
+impl AsyncTestContext for TestRunner {
     /// Set up the Balancer and block until it's ready.
-    fn setup() -> Self {
+    async fn setup() -> Self {
         let port = random_unused_port();
         let child = Command::new("../../target/debug/ott-balancer-bin")
             .env("BALANCER_PORT", format!("{}", port))
             .spawn()
             .expect("Failed to start balancer");
 
-        // TODO: make HTTP requests to healthcheck endpoint until it returns 200
+        loop {
+            let client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_millis(100))
+                .build()
+                .expect("failed to build request client");
+            match client
+                .get(&format!("http://localhost:{}/api/status", port))
+                .send()
+                .await
+            {
+                Ok(response) => {
+                    if response.status().is_success() {
+                        break;
+                    }
+                }
+                Err(_) => {
+                    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                }
+            }
+        }
 
         Self { port, child }
     }
 
-    fn teardown(mut self) {
-        if let Err(result) = self.child.kill() {
+    async fn teardown(mut self) {
+        if let Err(result) = self.child.kill().await {
             warn!("teardown: Failed to kill balancer: {:?}", result);
         }
     }

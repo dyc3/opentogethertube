@@ -793,6 +793,7 @@ dependencies = [
  "hyper 1.0.0-rc.4",
  "hyper-util",
  "rand 0.8.5",
+ "reqwest",
  "serde",
  "serde_json",
  "test-context",
@@ -812,6 +813,7 @@ version = "0.1.0"
 dependencies = [
  "harness",
  "test-context",
+ "tokio",
 ]
 
 [[package]]

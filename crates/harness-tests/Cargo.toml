@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 harness.workspace = true
 test-context.workspace = true
+tokio.workspace = true
