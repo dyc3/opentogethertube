@@ -18,7 +18,7 @@ impl AsyncTestContext for TestRunner {
     async fn setup() -> Self {
         let port = random_unused_port();
         let child = Command::new("cargo")
-            .args(&["run", "-p", "ott-balancer-bin"])
+            .args(["run", "-p", "ott-balancer-bin"])
             .env("BALANCER_PORT", format!("{}", port))
             .spawn()
             .expect("Failed to start balancer");
