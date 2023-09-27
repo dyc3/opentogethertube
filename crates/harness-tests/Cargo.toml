@@ -5,8 +5,4 @@ edition = "2021"
 
 [dependencies]
 harness.workspace = true
-
-[[test]]
-name = "integration"
-path = "src/main.rs"
-harness = false # disable the default libtest harness
+test-context.workspace = true

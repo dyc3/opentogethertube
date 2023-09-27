@@ -1,10 +1,8 @@
-use harness::{aggregate_tests, balancer_test, Test};
+use harness::TestRunner;
+use test_context::test_context;
 
-#[balancer_test]
-fn sample_test() {}
+#[test_context(TestRunner)]
+#[test]
+fn sample_test(ctx: &mut TestRunner) {}
 
-fn main() {
-    let tests: Vec<Test> = aggregate_tests!();
-
-    println!("Found tests: {:?}", tests);
-}
+fn main() {}
