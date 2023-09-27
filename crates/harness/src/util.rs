@@ -11,8 +11,5 @@ pub(crate) fn random_unused_port() -> u16 {
 }
 
 pub(crate) fn port_is_available(port: u16) -> bool {
-    match std::net::TcpListener::bind(("localhost", port)) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    std::net::TcpListener::bind(("localhost", port)).is_ok()
 }
