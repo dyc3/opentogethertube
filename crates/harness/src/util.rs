@@ -1,3 +1,3 @@
 pub(crate) fn random_unused_port() -> u16 {
-    unimplemented!()
+    10000
 }
