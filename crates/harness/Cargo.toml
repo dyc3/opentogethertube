@@ -11,6 +11,7 @@ clap.workspace = true
 console-subscriber.workspace = true
 figment.workspace = true
 futures-util.workspace = true
+harness_macros.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true
 rand.workspace = true

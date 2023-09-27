@@ -777,6 +777,7 @@ dependencies = [
  "console-subscriber",
  "figment",
  "futures-util",
+ "harness_macros",
  "hyper 1.0.0-rc.4",
  "hyper-util",
  "rand 0.8.5",
@@ -797,6 +798,16 @@ name = "harness-tests"
 version = "0.1.0"
 dependencies = [
  "harness",
+]
+
+[[package]]
+name = "harness_macros"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
