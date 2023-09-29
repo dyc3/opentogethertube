@@ -9,8 +9,9 @@ async fn sample_test(ctx: &mut TestRunner) {
     let m = Monolith::new(ctx).await.unwrap();
     println!("monolith port: {}", m.port());
     assert_ne!(m.port(), 0);
+    m.show().await;
 
-    tokio::time::sleep(Duration::from_secs(8)).await;
+    tokio::time::sleep(Duration::from_secs(30)).await;
 }
 
 fn main() {}

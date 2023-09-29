@@ -18,6 +18,7 @@ pub struct Monolith {
     pub(crate) outgoing_tx: tokio::sync::mpsc::Sender<Message>,
     pub(crate) incoming_rx: tokio::sync::mpsc::Receiver<Message>,
 
+    monolith_add_tx: tokio::sync::mpsc::Sender<SocketAddr>,
     monolith_remove_tx: tokio::sync::mpsc::Sender<SocketAddr>,
 }
 
@@ -25,9 +26,8 @@ impl Monolith {
     pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
         // TODO: Binding to port 0 will let the OS allocate a random port for us.
         // for prototyping, using a fixed port.
-        let listener = Arc::new(
-            TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 35277)).await?,
-        );
+        let listener =
+            Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
 
         let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
         let (incoming_tx, incoming_rx) = tokio::sync::mpsc::channel(50);
@@ -56,23 +56,35 @@ impl Monolith {
                 }
             })?;
 
-        ctx.monolith_add_tx
-            .send(listener.local_addr().unwrap())
-            .await
-            .unwrap();
-
         Ok(Self {
             listener,
             received_raw: Vec::new(),
             outgoing_tx,
             incoming_rx,
             task,
+            monolith_add_tx: ctx.monolith_add_tx.clone(),
             monolith_remove_tx: ctx.monolith_remove_tx.clone(),
         })
     }
 
     pub fn port(&self) -> u16 {
         self.listener.local_addr().unwrap().port()
+    }
+
+    /// Tell the provider to add this monolith to the list of available monoliths.
+    pub async fn show(&self) {
+        self.monolith_add_tx
+            .send(self.listener.local_addr().unwrap())
+            .await
+            .unwrap();
+    }
+
+    /// Tell the provider to remove this monolith from the list of available monoliths.
+    pub async fn hide(&self) {
+        self.monolith_remove_tx
+            .send(self.listener.local_addr().unwrap())
+            .await
+            .unwrap();
     }
 
     pub async fn recv(&mut self) {
@@ -97,9 +109,6 @@ impl Monolith {
 
 impl Drop for Monolith {
     fn drop(&mut self) {
-        self.monolith_remove_tx
-            .blocking_send(self.listener.local_addr().unwrap())
-            .expect("failed to send monolith remove message to provider");
         self.task.abort();
     }
 }
