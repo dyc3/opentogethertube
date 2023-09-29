@@ -42,7 +42,9 @@ impl HarnessMonolithDiscoverer {
                         match ws.next().await {
                             Some(Ok(msg)) => {
                                 let Ok(text) = msg.into_text() else {
-                                    error!("expected text message from harness, got something else");
+                                    error!(
+                                        "expected text message from harness, got something else"
+                                    );
                                     continue;
                                 };
                                 let Ok(msg) = serde_json::from_str(text.as_str()) else {
