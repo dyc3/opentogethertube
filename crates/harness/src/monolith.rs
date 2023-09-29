@@ -71,8 +71,17 @@ impl Monolith {
         }
     }
 
+    pub fn clear_recv(&mut self) {
+        self.received_raw.clear();
+    }
+
     pub async fn send_raw(&mut self, msg: Message) {
         self.outgoing_tx.send(msg).await.unwrap();
+    }
+
+    pub async fn send(&mut self, msg: impl Into<MsgM2B>) {
+        let msg = serde_json::to_string(&msg.into()).unwrap();
+        self.send_raw(Message::Text(msg)).await;
     }
 }
 
