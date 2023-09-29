@@ -1,5 +1,6 @@
 [discovery]
-method = "manual"
+method = "harness"
+port = 40000
 # fly_app = "test"
 # monolith_port = 8082
 

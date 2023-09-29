@@ -61,6 +61,10 @@ async fn main() -> anyhow::Result<()> {
             let discovery = discovery::ManualMonolithDiscoverer::new(config.clone());
             start_discovery_task(discovery, discovery_tx)
         }
+        DiscoveryConfig::Harness(config) => {
+            let discovery = discovery::HarnessMonolithDiscoverer::new(config.clone());
+            start_discovery_task(discovery, discovery_tx)
+        }
     };
     info!("Monolith discovery started");
 

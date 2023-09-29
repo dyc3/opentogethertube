@@ -1,13 +1,15 @@
 //! Handles discovery of Monoliths.
 
-use std::collections::HashSet;
 use std::net::IpAddr;
 use std::time::Duration;
+use std::{collections::HashSet, net::SocketAddr};
 
 mod fly;
+mod harness;
 mod manual;
 
 pub use fly::*;
+pub use harness::*;
 pub use manual::*;
 
 use async_trait::async_trait;
@@ -36,6 +38,15 @@ impl MonolithConnectionConfig {
         url.set_port(Some(self.port)).unwrap();
 
         url
+    }
+}
+
+impl From<SocketAddr> for MonolithConnectionConfig {
+    fn from(addr: SocketAddr) -> Self {
+        Self {
+            host: HostOrIp::Ip(addr.ip()),
+            port: addr.port(),
+        }
     }
 }
 
