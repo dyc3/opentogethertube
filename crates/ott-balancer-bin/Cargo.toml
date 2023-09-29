@@ -28,8 +28,8 @@ tokio-util.workspace = true
 tungstenite.workspace = true
 uuid.workspace = true
 url.workspace = true
-ott-common = { path = "../ott-common" }
-ott-balancer-protocol = { path = "../ott-balancer-protocol" }
+ott-common.workspace = true
+ott-balancer-protocol.workspace = true
 route-recognizer = "0.3.1"
 once_cell.workspace = true
 pin-project.workspace = true

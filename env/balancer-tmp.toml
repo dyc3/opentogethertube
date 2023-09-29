@@ -1,0 +1,8 @@
+[discovery]
+method = "manual"
+# fly_app = "test"
+# monolith_port = 8082
+
+[[discovery.monoliths]]
+host = "::1"
+port = 35277

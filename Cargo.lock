@@ -792,6 +792,7 @@ dependencies = [
  "futures-util",
  "hyper 1.0.0-rc.4",
  "hyper-util",
+ "ott-balancer-protocol",
  "rand 0.8.5",
  "reqwest",
  "serde",
