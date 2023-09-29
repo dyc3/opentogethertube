@@ -23,7 +23,6 @@ mod discovery;
 mod messages;
 mod monolith;
 mod service;
-mod websocket;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

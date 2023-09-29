@@ -1535,6 +1535,7 @@ dependencies = [
  "hyper-util",
  "once_cell",
  "ott-balancer-protocol",
+ "ott-common",
  "pin-project",
  "rand 0.8.5",
  "reqwest",
@@ -1559,6 +1560,24 @@ dependencies = [
  "serde",
  "serde_json",
  "uuid",
+]
+
+[[package]]
+name = "ott-common"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.0.0-rc.4",
+ "hyper-util",
+ "pin-project",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "tungstenite",
 ]
 
 [[package]]

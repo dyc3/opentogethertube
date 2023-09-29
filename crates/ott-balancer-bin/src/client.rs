@@ -7,9 +7,10 @@ use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info};
 use uuid::Uuid;
 
+use crate::balancer::BalancerLink;
 use crate::messages::*;
-use crate::{balancer::BalancerLink, websocket::HyperWebsocket};
 use ott_balancer_protocol::{client::*, *};
+use ott_common::websocket::HyperWebsocket;
 
 pub struct UnauthorizedClient {
     pub id: ClientId,

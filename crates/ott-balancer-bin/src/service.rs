@@ -10,6 +10,7 @@ use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
 use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
 use ott_balancer_protocol::RoomName;
+use ott_common::websocket::{is_websocket_upgrade, upgrade};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
@@ -89,9 +90,9 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     };
 
                     let room_name: RoomName = room_name.to_owned().into();
-                    if crate::websocket::is_websocket_upgrade(&req) {
+                    if is_websocket_upgrade(&req) {
                         debug!("upgrading to websocket");
-                        let (response, websocket) = crate::websocket::upgrade(req, None).unwrap();
+                        let (response, websocket) = upgrade(req, None).unwrap();
 
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new().name("client connection").spawn(
