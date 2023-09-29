@@ -1,3 +1,5 @@
+use std::net::SocketAddr;
+
 use tokio::process::{Child, Command};
 
 use test_context::AsyncTestContext;
@@ -8,6 +10,9 @@ use crate::util::random_unused_port;
 pub struct TestRunner {
     pub port: u16,
     pub(crate) child: Child,
+
+    pub(crate) monolith_add_tx: tokio::sync::mpsc::Sender<SocketAddr>,
+    pub(crate) monolith_remove_tx: tokio::sync::mpsc::Sender<SocketAddr>,
 }
 
 impl TestRunner {}
@@ -18,7 +23,14 @@ impl AsyncTestContext for TestRunner {
     async fn setup() -> Self {
         let port = random_unused_port();
         let child = Command::new("cargo")
-            .args(["run", "-p", "ott-balancer-bin"])
+            .args([
+                "run",
+                "-p",
+                "ott-balancer-bin",
+                "--",
+                "--config-path",
+                "../env/balancer-tmp.toml",
+            ])
             .env("BALANCER_PORT", format!("{}", port))
             .spawn()
             .expect("Failed to start balancer");
@@ -44,7 +56,15 @@ impl AsyncTestContext for TestRunner {
             }
         }
 
-        Self { port, child }
+        let (_provider_task, monolith_add_tx, monolith_remove_tx) =
+            crate::provider::DiscoveryProvider::connect(40000).await;
+
+        Self {
+            port,
+            child,
+            monolith_add_tx,
+            monolith_remove_tx,
+        }
     }
 
     async fn teardown(mut self) {

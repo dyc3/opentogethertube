@@ -13,6 +13,7 @@ figment.workspace = true
 futures-util.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true
+ott-balancer-protocol.workspace = true
 reqwest.workspace = true
 rand.workspace = true
 serde.workspace = true

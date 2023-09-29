@@ -15,7 +15,7 @@ figment.workspace = true
 futures-util.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true
-http-body-util = "0.1.0-rc.2"
+http-body-util.workspace = true
 rand.workspace = true
 reqwest.workspace = true
 serde.workspace = true
@@ -28,8 +28,9 @@ tokio-util.workspace = true
 tungstenite.workspace = true
 uuid.workspace = true
 url.workspace = true
-ott-balancer-protocol = { path = "../ott-balancer-protocol" }
+ott-common.workspace = true
+ott-balancer-protocol.workspace = true
 route-recognizer = "0.3.1"
 once_cell.workspace = true
-pin-project = "1.0.12"
+pin-project.workspace = true
 trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }

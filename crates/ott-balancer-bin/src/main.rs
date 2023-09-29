@@ -23,7 +23,6 @@ mod discovery;
 mod messages;
 mod monolith;
 mod service;
-mod websocket;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -60,6 +59,10 @@ async fn main() -> anyhow::Result<()> {
         }
         DiscoveryConfig::Manual(config) => {
             let discovery = discovery::ManualMonolithDiscoverer::new(config.clone());
+            start_discovery_task(discovery, discovery_tx)
+        }
+        DiscoveryConfig::Harness(config) => {
+            let discovery = discovery::HarnessMonolithDiscoverer::new(config.clone());
             start_discovery_task(discovery, discovery_tx)
         }
     };
