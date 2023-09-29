@@ -41,7 +41,7 @@ impl DiscoveryProvider {
             provider.start().await;
         });
 
-        return (task, monolith_add_tx, monolith_remove_tx);
+        (task, monolith_add_tx, monolith_remove_tx)
     }
 
     async fn start(mut self) {

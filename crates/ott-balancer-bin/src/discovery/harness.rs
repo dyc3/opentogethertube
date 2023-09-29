@@ -15,7 +15,6 @@ pub struct HarnessDiscoveryConfig {
 }
 
 pub struct HarnessMonolithDiscoverer {
-    config: HarnessDiscoveryConfig,
     monoliths: Arc<Mutex<HarnessMonoliths>>,
 
     task: JoinHandle<()>,
@@ -66,11 +65,7 @@ impl HarnessMonolithDiscoverer {
             })
             .expect("failed to spawn harness discoverer task");
 
-        Self {
-            config,
-            monoliths,
-            task,
-        }
+        Self { monoliths, task }
     }
 }
 

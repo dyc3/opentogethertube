@@ -56,7 +56,7 @@ impl AsyncTestContext for TestRunner {
             }
         }
 
-        let (provider_task, monolith_add_tx, monolith_remove_tx) =
+        let (_provider_task, monolith_add_tx, monolith_remove_tx) =
             crate::provider::DiscoveryProvider::connect(40000).await;
 
         Self {
