@@ -37,6 +37,7 @@ impl HarnessMonolithDiscoverer {
                     info!("Waiting for harness to connect");
                     let (stream, _) = listener.accept().await.unwrap();
                     let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
+                    info!("Harness connected");
 
                     loop {
                         match ws.next().await {
@@ -51,6 +52,7 @@ impl HarnessMonolithDiscoverer {
                                 };
                                 let mut monoliths = monoliths.lock().await;
                                 *monoliths = msg;
+                                info!("updated monoliths: {:?}", *monoliths);
                             }
                             Some(Err(e)) => {
                                 error!("error receiving message from harness: {}", e);

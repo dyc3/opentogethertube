@@ -8,6 +8,8 @@ use ott_balancer_protocol::monolith::*;
 use tokio::net::TcpListener;
 use tungstenite::Message;
 
+use crate::TestRunner;
+
 pub struct Monolith {
     pub(crate) listener: Arc<TcpListener>,
     pub(crate) received_raw: Vec<Message>,
@@ -15,10 +17,12 @@ pub struct Monolith {
     pub(crate) task: tokio::task::JoinHandle<()>,
     pub(crate) outgoing_tx: tokio::sync::mpsc::Sender<Message>,
     pub(crate) incoming_rx: tokio::sync::mpsc::Receiver<Message>,
+
+    monolith_remove_tx: tokio::sync::mpsc::Sender<SocketAddr>,
 }
 
 impl Monolith {
-    pub async fn new() -> anyhow::Result<Self> {
+    pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
         // TODO: Binding to port 0 will let the OS allocate a random port for us.
         // for prototyping, using a fixed port.
         let listener = Arc::new(
@@ -52,12 +56,18 @@ impl Monolith {
                 }
             })?;
 
+        ctx.monolith_add_tx
+            .send(listener.local_addr().unwrap())
+            .await
+            .unwrap();
+
         Ok(Self {
             listener,
             received_raw: Vec::new(),
             outgoing_tx,
             incoming_rx,
             task,
+            monolith_remove_tx: ctx.monolith_remove_tx.clone(),
         })
     }
 
@@ -87,6 +97,9 @@ impl Monolith {
 
 impl Drop for Monolith {
     fn drop(&mut self) {
+        self.monolith_remove_tx
+            .blocking_send(self.listener.local_addr().unwrap())
+            .expect("failed to send monolith remove message to provider");
         self.task.abort();
     }
 }
