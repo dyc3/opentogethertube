@@ -25,6 +25,7 @@ impl ManualMonolithDiscoverer {
 #[async_trait]
 impl MonolithDiscovery for ManualMonolithDiscoverer {
     async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+        #[allow(clippy::while_immutable_condition)]
         while self.discovered {
             // we only ever need to discover once because the monoliths are static
             tokio::time::sleep(Duration::MAX).await;
