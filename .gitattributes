@@ -1,2 +1,4 @@
 server/tests/unit/fixtures/** linguist-vendored
 docs/* linguist-documentation
+
+*.sh text eol=lf
