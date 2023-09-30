@@ -72,7 +72,14 @@ impl<'de> Deserialize<'de> for HostOrIp {
 
 #[async_trait]
 pub trait MonolithDiscovery {
-    async fn discover(&self) -> anyhow::Result<Vec<MonolithConnectionConfig>>;
+    /// In polling mode, this function should immediately return the current list of monoliths. In continuous mode, this function should wait until the list of monoliths changes, then return the new list.
+    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>>;
+    fn mode(&self) -> DiscoveryMode;
+}
+
+pub enum DiscoveryMode {
+    Polling(Duration),
+    Continuous,
 }
 
 pub struct DiscoveryTask {
@@ -98,9 +105,8 @@ impl DiscoveryTask {
         loop {
             if let Err(e) = self.do_discovery().await {
                 error!("Monolith Discovery failed: {:?}", e);
+                tokio::time::sleep(Duration::from_secs(5)).await;
             }
-
-            tokio::time::sleep(Duration::from_secs(10)).await;
         }
     }
 
@@ -125,6 +131,10 @@ impl DiscoveryTask {
 
         if self.monoliths.is_empty() {
             warn!("No monoliths discovered");
+        }
+
+        if let DiscoveryMode::Polling(d) = self.discovery.mode() {
+            tokio::time::sleep(d).await;
         }
 
         Ok(())

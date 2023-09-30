@@ -16,6 +16,7 @@ pub struct HarnessDiscoveryConfig {
 
 pub struct HarnessMonolithDiscoverer {
     monoliths: Arc<Mutex<HarnessMonoliths>>,
+    updated_rx: tokio::sync::mpsc::Receiver<()>,
 
     task: JoinHandle<()>,
 }
@@ -23,6 +24,8 @@ pub struct HarnessMonolithDiscoverer {
 impl HarnessMonolithDiscoverer {
     pub fn new(config: HarnessDiscoveryConfig) -> Self {
         let monoliths = Arc::new(Mutex::new(HarnessMonoliths::default()));
+
+        let (updated_tx, updated_rx) = tokio::sync::mpsc::channel(1);
 
         let _monoliths = monoliths.clone();
         let task = tokio::task::Builder::new()
@@ -54,6 +57,7 @@ impl HarnessMonolithDiscoverer {
                                 let mut monoliths = monoliths.lock().await;
                                 *monoliths = msg;
                                 info!("updated monoliths: {:?}", *monoliths);
+                                updated_tx.send(()).await.unwrap();
                             }
                             Some(Err(e)) => {
                                 error!("error receiving message from harness: {}", e);
@@ -67,13 +71,18 @@ impl HarnessMonolithDiscoverer {
             })
             .expect("failed to spawn harness discoverer task");
 
-        Self { monoliths, task }
+        Self {
+            monoliths,
+            updated_rx,
+            task,
+        }
     }
 }
 
 #[async_trait]
 impl MonolithDiscovery for HarnessMonolithDiscoverer {
-    async fn discover(&self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+        self.updated_rx.recv().await;
         Ok(self
             .monoliths
             .lock()
@@ -82,6 +91,10 @@ impl MonolithDiscovery for HarnessMonolithDiscoverer {
             .iter()
             .map(|addr| (*addr).into())
             .collect())
+    }
+
+    fn mode(&self) -> DiscoveryMode {
+        DiscoveryMode::Continuous
     }
 }
 

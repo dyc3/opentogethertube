@@ -29,7 +29,7 @@ impl FlyMonolithDiscoverer {
 
 #[async_trait]
 impl MonolithDiscovery for FlyMonolithDiscoverer {
-    async fn discover(&self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
         let resolver =
             TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
 
@@ -43,5 +43,9 @@ impl MonolithDiscovery for FlyMonolithDiscoverer {
             .collect::<Vec<_>>();
 
         Ok(monoliths)
+    }
+
+    fn mode(&self) -> DiscoveryMode {
+        DiscoveryMode::Polling(Duration::from_secs(10))
     }
 }
