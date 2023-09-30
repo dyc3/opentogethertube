@@ -17,6 +17,7 @@ services:
       - DOCKER=1
     ports:
       - 8080:8080
+      - 3002:3002
     links:
       - redis_db
       - postgres_db
@@ -40,7 +41,7 @@ services:
 
   postgres_db:
     container_name: opentogethertube_postgres
-    image: postgres
+    image: postgres:15-bullseye
     environment:
       - POSTGRES_DB=opentogethertube
       - POSTGRES_USER=opentogethertube
