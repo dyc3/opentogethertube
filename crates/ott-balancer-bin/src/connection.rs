@@ -45,6 +45,7 @@ impl MonolithConnectionManager {
             .recv()
             .await
             .ok_or_else(|| anyhow::anyhow!("Discovery channel closed"))?;
+        debug!("Monolith discovery message: {:?}", msg);
         for m in &msg.removed {
             self.monoliths.remove(m);
             if let Some(active) = self.connection_tasks.remove(m) {

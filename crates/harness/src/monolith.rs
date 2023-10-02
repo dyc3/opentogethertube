@@ -6,6 +6,7 @@ use std::{
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::monolith::*;
 use tokio::{net::TcpListener, sync::Notify};
+use tracing::{debug, trace, warn};
 use tungstenite::Message;
 
 use crate::TestRunner;
@@ -23,6 +24,7 @@ pub struct Monolith {
 
     notif_connect: Arc<Notify>,
     notif_disconnect: Arc<Notify>,
+    pub(crate) connected: bool,
 }
 
 impl Monolith {
@@ -60,7 +62,7 @@ impl Monolith {
                                 match msg {
                                     Ok(msg) => incoming_tx.send(msg).await.unwrap(),
                                     Err(e) => {
-                                        println!("monolith: websocket error: {:?}", e);
+                                        warn!("monolith: websocket error: {:?}", e);
                                         break;
                                     }
                                 }
@@ -82,6 +84,7 @@ impl Monolith {
             monolith_remove_tx: ctx.monolith_remove_tx.clone(),
             notif_connect,
             notif_disconnect,
+            connected: false,
         })
     }
 
@@ -89,22 +92,32 @@ impl Monolith {
         self.listener.local_addr().unwrap().port()
     }
 
+    pub fn connected(&self) -> bool {
+        self.connected
+    }
+
     /// Tell the provider to add this monolith to the list of available monoliths.
-    pub async fn show(&self) {
+    pub async fn show(&mut self) {
+        println!("showing monolith");
         self.monolith_add_tx
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
+        println!("waiting for notification");
         self.notif_connect.notified().await;
+        self.connected = true;
     }
 
     /// Tell the provider to remove this monolith from the list of available monoliths.
-    pub async fn hide(&self) {
+    pub async fn hide(&mut self) {
+        println!("hiding monolith");
         self.monolith_remove_tx
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
+        println!("waiting for notification");
         self.notif_disconnect.notified().await;
+        self.connected = false;
     }
 
     pub async fn recv(&mut self) {

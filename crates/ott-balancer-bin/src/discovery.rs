@@ -15,7 +15,7 @@ pub use manual::*;
 use async_trait::async_trait;
 use serde::Deserialize;
 use tokio::task::JoinHandle;
-use tracing::{error, warn};
+use tracing::{debug, error, warn};
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
@@ -112,22 +112,16 @@ impl DiscoveryTask {
 
     async fn do_discovery(&mut self) -> anyhow::Result<()> {
         let monoliths = self.discovery.discover().await?;
+        debug!("Discovered monoliths: {:?}", monoliths);
         let monoliths_new: HashSet<_> = monoliths.into_iter().collect();
-        let monoliths_added = monoliths_new
-            .difference(&self.monoliths)
-            .cloned()
-            .collect::<Vec<_>>();
-        let monoliths_removed = self
-            .monoliths
-            .difference(&monoliths_new)
-            .cloned()
-            .collect::<Vec<_>>();
-        let msg = MonolithDiscoveryMsg {
-            added: monoliths_added,
-            removed: monoliths_removed,
-        };
-        self.discovery_tx.send(msg).await?;
+        let msg = build_discovery_msg(&self.monoliths, &monoliths_new);
+        // apply the changes to our state
+        for m in &msg.removed {
+            self.monoliths.remove(m);
+        }
         self.monoliths.extend(monoliths_new);
+        // send the message
+        self.discovery_tx.send(msg).await?;
 
         if self.monoliths.is_empty() {
             warn!("No monoliths discovered");
@@ -138,6 +132,18 @@ impl DiscoveryTask {
         }
 
         Ok(())
+    }
+}
+
+fn build_discovery_msg(
+    current: &HashSet<MonolithConnectionConfig>,
+    new: &HashSet<MonolithConnectionConfig>,
+) -> MonolithDiscoveryMsg {
+    let monoliths_added = new.difference(&current).cloned().collect::<Vec<_>>();
+    let monoliths_removed = current.difference(&new).cloned().collect::<Vec<_>>();
+    MonolithDiscoveryMsg {
+        added: monoliths_added,
+        removed: monoliths_removed,
     }
 }
 

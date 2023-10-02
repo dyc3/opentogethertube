@@ -33,7 +33,14 @@ impl AsyncTestContext for TestRunner {
         }
 
         let child = Command::new("cargo")
-            .args(["run", "-p", "ott-balancer-bin", "--"])
+            .args([
+                "run",
+                "-p",
+                "ott-balancer-bin",
+                "--",
+                "--log-level",
+                "debug",
+            ])
             .env("BALANCER_PORT", format!("{}", port))
             .env(
                 "BALANCER_DISCOVERY",
