@@ -21,17 +21,24 @@ impl TestRunner {}
 impl AsyncTestContext for TestRunner {
     /// Set up the Balancer and block until it's ready.
     async fn setup() -> Self {
-        let port = random_unused_port();
+        let mut port;
+        let mut harness_port;
+        loop {
+            port = random_unused_port();
+            harness_port = random_unused_port();
+            // Ensure that the harness port is different from the balancer port.
+            if port != harness_port {
+                break;
+            }
+        }
+
         let child = Command::new("cargo")
-            .args([
-                "run",
-                "-p",
-                "ott-balancer-bin",
-                "--",
-                "--config-path",
-                "../env/balancer-tmp.toml",
-            ])
+            .args(["run", "-p", "ott-balancer-bin", "--"])
             .env("BALANCER_PORT", format!("{}", port))
+            .env(
+                "BALANCER_DISCOVERY",
+                format!("{{method=\"harness\", port={}}}", harness_port),
+            )
             .spawn()
             .expect("Failed to start balancer");
 
@@ -57,7 +64,7 @@ impl AsyncTestContext for TestRunner {
         }
 
         let (_provider_task, monolith_add_tx, monolith_remove_tx) =
-            crate::provider::DiscoveryProvider::connect(40000).await;
+            crate::provider::DiscoveryProvider::connect(harness_port).await;
 
         Self {
             port,
