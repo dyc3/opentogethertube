@@ -32,6 +32,7 @@ impl HarnessMonolithDiscoverer {
             .name("harness discoverer")
             .spawn(async move {
                 let monoliths = _monoliths;
+                info!("Binding harness discoverer to port {}", config.port);
                 let listener = tokio::net::TcpListener::bind(("::", config.port))
                     .await
                     .expect("failed to bind to port");
