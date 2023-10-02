@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use harness::{Monolith, TestRunner};
 use test_context::test_context;
 
@@ -9,9 +7,11 @@ async fn sample_test(ctx: &mut TestRunner) {
     let m = Monolith::new(ctx).await.unwrap();
     println!("monolith port: {}", m.port());
     assert_ne!(m.port(), 0);
-    m.show().await;
 
-    tokio::time::sleep(Duration::from_secs(30)).await;
+    for _ in 0..10 {
+        m.show().await;
+        m.hide().await;
+    }
 }
 
 fn main() {}

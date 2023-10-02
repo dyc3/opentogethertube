@@ -5,7 +5,7 @@ use std::{
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::monolith::*;
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, sync::Notify};
 use tungstenite::Message;
 
 use crate::TestRunner;
@@ -20,6 +20,9 @@ pub struct Monolith {
 
     monolith_add_tx: tokio::sync::mpsc::Sender<SocketAddr>,
     monolith_remove_tx: tokio::sync::mpsc::Sender<SocketAddr>,
+
+    notif_connect: Arc<Notify>,
+    notif_disconnect: Arc<Notify>,
 }
 
 impl Monolith {
@@ -28,11 +31,15 @@ impl Monolith {
         // for prototyping, using a fixed port.
         let listener =
             Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
+        let notif_connect = Arc::new(Notify::new());
+        let notif_disconnect = Arc::new(Notify::new());
 
         let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
         let (incoming_tx, incoming_rx) = tokio::sync::mpsc::channel(50);
 
         let _listener = listener.clone();
+        let _notif_connect = notif_connect.clone();
+        let _notif_disconnect = notif_disconnect.clone();
         let task = tokio::task::Builder::new()
             .name("emulated monolith")
             .spawn(async move {
@@ -42,17 +49,26 @@ impl Monolith {
                     let init = M2BInit { port: addr.port() };
                     let msg = serde_json::to_string(&MsgM2B::Init(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
+                    _notif_connect.notify_one();
                     loop {
+                        println!("monolith: waiting for message");
                         tokio::select! {
                             Some(msg) = outgoing_rx.recv() => {
                                 ws.send(msg).await.unwrap();
                             }
                             Some(msg) = ws.next() => {
-                                incoming_tx.send(msg.unwrap()).await.unwrap();
+                                match msg {
+                                    Ok(msg) => incoming_tx.send(msg).await.unwrap(),
+                                    Err(e) => {
+                                        println!("monolith: websocket error: {:?}", e);
+                                        break;
+                                    }
+                                }
                             }
                             else => break,
                         }
                     }
+                    _notif_disconnect.notify_one();
                 }
             })?;
 
@@ -64,6 +80,8 @@ impl Monolith {
             task,
             monolith_add_tx: ctx.monolith_add_tx.clone(),
             monolith_remove_tx: ctx.monolith_remove_tx.clone(),
+            notif_connect,
+            notif_disconnect,
         })
     }
 
@@ -77,6 +95,7 @@ impl Monolith {
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
+        self.notif_connect.notified().await;
     }
 
     /// Tell the provider to remove this monolith from the list of available monoliths.
@@ -85,6 +104,7 @@ impl Monolith {
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
+        self.notif_disconnect.notified().await;
     }
 
     pub async fn recv(&mut self) {
