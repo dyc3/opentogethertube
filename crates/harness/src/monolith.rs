@@ -6,7 +6,7 @@ use std::{
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::monolith::*;
 use tokio::{net::TcpListener, sync::Notify};
-use tracing::{debug, trace, warn};
+use tracing::{warn};
 use tungstenite::Message;
 
 use crate::TestRunner;

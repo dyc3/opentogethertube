@@ -139,8 +139,8 @@ fn build_discovery_msg(
     current: &HashSet<MonolithConnectionConfig>,
     new: &HashSet<MonolithConnectionConfig>,
 ) -> MonolithDiscoveryMsg {
-    let monoliths_added = new.difference(&current).cloned().collect::<Vec<_>>();
-    let monoliths_removed = current.difference(&new).cloned().collect::<Vec<_>>();
+    let monoliths_added = new.difference(current).cloned().collect::<Vec<_>>();
+    let monoliths_removed = current.difference(new).cloned().collect::<Vec<_>>();
     MonolithDiscoveryMsg {
         added: monoliths_added,
         removed: monoliths_removed,
