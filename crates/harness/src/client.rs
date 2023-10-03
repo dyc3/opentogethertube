@@ -4,7 +4,7 @@ use futures_util::SinkExt;
 use ott_balancer_protocol::client::*;
 use rand::{distributions::Alphanumeric, Rng};
 use serde::Serialize;
-use tokio::{io::Interest, net::TcpStream};
+use tokio::net::TcpStream;
 use tokio_tungstenite::WebSocketStream;
 use tungstenite::Message;
 
@@ -13,26 +13,13 @@ use crate::TestRunner;
 pub struct Client {
     addr: SocketAddr,
     pub(crate) stream: Option<WebSocketStream<TcpStream>>,
-    // pub(crate) task: tokio::task::JoinHandle<()>,
-    // pub(crate) outgoing_tx: tokio::sync::mpsc::Sender<Message>,
-    // pub(crate) incoming_rx: tokio::sync::mpsc::Receiver<Message>,
-    // notif_connect: Arc<Notify>,
-    // notif_disconnect: Arc<Notify>,
 }
 
 impl Client {
     pub fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
-        // let notif_connect = Arc::new(Notify::new());
-        // let notif_disconnect = Arc::new(Notify::new());
-
-        // let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
-        // let (incoming_tx, incoming_rx) = tokio::sync::mpsc::channel(50);
-
         Ok(Self {
             addr: SocketAddr::new(Ipv4Addr::LOCALHOST.into(), ctx.port),
             stream: None,
-            // notif_connect,
-            // notif_disconnect,
         })
     }
 
