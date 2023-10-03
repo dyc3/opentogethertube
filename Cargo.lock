@@ -813,6 +813,7 @@ name = "harness-tests"
 version = "0.1.0"
 dependencies = [
  "harness",
+ "ott-balancer-protocol",
  "test-context",
  "tokio",
 ]

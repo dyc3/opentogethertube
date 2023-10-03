@@ -1,4 +1,7 @@
-use harness::{Monolith, TestRunner};
+use std::collections::HashMap;
+
+use harness::{Client, Monolith, TestRunner};
+use ott_balancer_protocol::client::*;
 use test_context::test_context;
 
 #[test_context(TestRunner)]
@@ -8,6 +11,25 @@ async fn sample_test(ctx: &mut TestRunner) {
     println!("monolith port: {}", m.port());
     assert_ne!(m.port(), 0);
     m.show().await;
+
+    let mut c = Client::new(ctx).unwrap();
+    c.join("foo").await;
+
+    m.wait_recv().await;
+
+    let recvd = m.collect_recv();
+    assert_eq!(recvd.len(), 1);
+
+    assert!(c.connected());
+    let msg = ClientMessageOther {
+        action: "chat".to_owned(),
+        extra: HashMap::from([("message".to_owned(), "hello".into())]),
+    };
+    c.send(msg).await;
+
+    m.wait_recv().await;
+    let recvd = m.collect_recv();
+    assert_eq!(recvd.len(), 2);
 }
 
 /// Add and remove a monolith a bunch of times to make sure that monolith discovery works.
