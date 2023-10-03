@@ -16,7 +16,7 @@ pub struct Monolith {
 
     pub(crate) task: tokio::task::JoinHandle<()>,
     pub(crate) outgoing_tx: tokio::sync::mpsc::Sender<Message>,
-    // pub(crate) incoming_rx: tokio::sync::mpsc::Receiver<Message>,
+
     monolith_add_tx: tokio::sync::mpsc::Sender<SocketAddr>,
     monolith_remove_tx: tokio::sync::mpsc::Sender<SocketAddr>,
 
@@ -34,8 +34,7 @@ pub(crate) struct MonolithState {
 
 impl Monolith {
     pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
-        // TODO: Binding to port 0 will let the OS allocate a random port for us.
-        // for prototyping, using a fixed port.
+        // Binding to port 0 will let the OS allocate a random port for us.
         let listener =
             Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
         let notif_connect = Arc::new(Notify::new());
@@ -43,7 +42,6 @@ impl Monolith {
         let notif_recv = Arc::new(Notify::new());
 
         let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
-        // let (incoming_tx, incoming_rx) = tokio::sync::mpsc::channel(50);
 
         let state = Arc::new(Mutex::new(MonolithState {
             connected: false,
