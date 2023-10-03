@@ -8,6 +8,7 @@ use tracing::warn;
 use crate::util::random_unused_port;
 
 pub struct TestRunner {
+    /// The port that the balancer is listening on for client connections.
     pub port: u16,
     pub(crate) child: Child,
 

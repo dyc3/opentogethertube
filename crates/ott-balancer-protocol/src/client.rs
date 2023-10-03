@@ -19,7 +19,7 @@ pub struct ClientMessageAuth {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientMessageOther {
-    action: String,
+    pub action: String,
     #[serde(flatten)]
-    extra: HashMap<String, serde_json::Value>,
+    pub extra: HashMap<String, serde_json::Value>,
 }
