@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use harness::{Client, Monolith, TestRunner};
+use harness::{Client, Monolith, TestRunner, WebsocketSender};
 use ott_balancer_protocol::client::*;
 use test_context::test_context;
 
