@@ -9,7 +9,7 @@ use tokio::{net::TcpListener, sync::Notify};
 use tracing::warn;
 use tungstenite::Message;
 
-use crate::TestRunner;
+use crate::{TestRunner, WebsocketSender};
 
 pub struct Monolith {
     pub(crate) listener: Arc<TcpListener>,
@@ -95,7 +95,6 @@ impl Monolith {
         Ok(Self {
             listener,
             outgoing_tx,
-            // incoming_rx,
             task,
             monolith_add_tx: ctx.monolith_add_tx.clone(),
             monolith_remove_tx: ctx.monolith_remove_tx.clone(),
@@ -145,10 +144,6 @@ impl Monolith {
         self.state.lock().unwrap().received_raw.clear();
     }
 
-    pub async fn send_raw(&mut self, msg: impl Into<Message>) {
-        self.outgoing_tx.send(msg.into()).await.unwrap();
-    }
-
     pub async fn send(&mut self, msg: impl Into<MsgM2B>) {
         let msg = serde_json::to_string(&msg.into()).unwrap();
         self.send_raw(Message::Text(msg)).await;
@@ -174,5 +169,12 @@ impl Monolith {
 impl Drop for Monolith {
     fn drop(&mut self) {
         self.task.abort();
+    }
+}
+
+#[async_trait::async_trait]
+impl WebsocketSender for Monolith {
+    async fn send_raw(&mut self, msg: Message) {
+        self.outgoing_tx.try_send(msg).unwrap();
     }
 }

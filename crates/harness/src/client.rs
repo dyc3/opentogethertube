@@ -3,12 +3,11 @@ use std::net::{Ipv4Addr, SocketAddr};
 use futures_util::SinkExt;
 use ott_balancer_protocol::client::*;
 use rand::{distributions::Alphanumeric, Rng};
-use serde::Serialize;
 use tokio::net::TcpStream;
 use tokio_tungstenite::WebSocketStream;
 use tungstenite::Message;
 
-use crate::TestRunner;
+use crate::{TestRunner, WebsocketSender};
 
 pub struct Client {
     addr: SocketAddr,
@@ -55,22 +54,6 @@ impl Client {
         self.send(auth).await;
     }
 
-    pub async fn send_raw(&mut self, msg: impl Into<Message>) {
-        assert!(self.connected(), "not connected");
-
-        if let Some(stream) = self.stream.as_mut() {
-            stream
-                .send(msg.into())
-                .await
-                .expect("failed to send message");
-        }
-    }
-
-    pub async fn send(&mut self, msg: impl Serialize) {
-        let msg = serde_json::to_string(&msg).unwrap();
-        self.send_raw(Message::Text(msg)).await;
-    }
-
     /// Connect to the balancer, targeting the given room, and send the auth message.
     ///
     /// Equivalent to calling [`connect`] and [`auth`] in sequence.
@@ -92,5 +75,16 @@ impl Client {
 
         let mut stream = self.stream.take().unwrap();
         stream.close(None).await.unwrap();
+    }
+}
+
+#[async_trait::async_trait]
+impl WebsocketSender for Client {
+    async fn send_raw(&mut self, msg: Message) {
+        assert!(self.connected(), "not connected");
+
+        if let Some(stream) = self.stream.as_mut() {
+            stream.send(msg).await.expect("failed to send message");
+        }
     }
 }
