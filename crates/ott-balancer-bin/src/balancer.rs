@@ -262,8 +262,23 @@ impl BalancerContext {
         self.monoliths.insert(monolith.id(), monolith);
     }
 
-    pub fn remove_monolith(&mut self, monolith_id: MonolithId) {
+    pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
         self.monoliths.remove(&monolith_id);
+        
+        self.rooms_to_monoliths
+            .retain(|_, v| *v != monolith_id);
+
+        self.clients
+            .retain(|_, v| self.rooms_to_monoliths.contains_key(&v.room));
+        
+        for client in self.clients.values(){ 
+            client.send(SocketMessage::Message(Message::Close(Some(CloseFrame {
+                code: CloseCode::Library(1006),
+                reason: "Monolith disconnect".into(),
+            })))).await?;
+        }
+        
+        Ok(())
     }
 
     pub fn add_room(&mut self, room: Room, monolith_id: MonolithId) -> anyhow::Result<()> {
@@ -474,7 +489,7 @@ pub async fn leave_monolith(
                 .await?;
         }
     }
-    ctx_write.remove_monolith(id);
+    ctx_write.remove_monolith(id).await?;
     Ok(())
 }
 
