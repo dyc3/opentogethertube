@@ -85,7 +85,7 @@ impl WebsocketSender for Client {
 
         if let Some(stream) = self.stream.as_mut() {
             stream
-                .send(msg.into())
+                .send(msg)
                 .await
                 .expect("failed to send message");
         }
