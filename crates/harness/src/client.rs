@@ -84,10 +84,7 @@ impl WebsocketSender for Client {
         assert!(self.connected(), "not connected");
 
         if let Some(stream) = self.stream.as_mut() {
-            stream
-                .send(msg)
-                .await
-                .expect("failed to send message");
+            stream.send(msg).await.expect("failed to send message");
         }
     }
 }
