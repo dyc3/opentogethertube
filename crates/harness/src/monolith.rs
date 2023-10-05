@@ -1,9 +1,18 @@
 use std::{
+    convert::Infallible,
     net::{IpAddr, Ipv6Addr, SocketAddr},
     sync::{Arc, Mutex},
 };
 
-use futures_util::{SinkExt, StreamExt};
+use bytes::Bytes;
+use futures_util::{Future, SinkExt, StreamExt};
+use http_body_util::{BodyExt, Full};
+use hyper::{body::Incoming as IncomingBody, Request};
+use hyper::{
+    service::{service_fn, HttpService, Service},
+    Response,
+};
+
 use ott_balancer_protocol::monolith::*;
 use tokio::{net::TcpListener, sync::Notify};
 use tracing::warn;
@@ -13,8 +22,10 @@ use crate::{TestRunner, WebsocketSender};
 
 pub struct Monolith {
     pub(crate) listener: Arc<TcpListener>,
+    pub(crate) http_listener: Arc<TcpListener>,
 
     pub(crate) task: tokio::task::JoinHandle<()>,
+    pub(crate) http_task: tokio::task::JoinHandle<()>,
     pub(crate) outgoing_tx: tokio::sync::mpsc::Sender<Message>,
 
     monolith_add_tx: tokio::sync::mpsc::Sender<SocketAddr>,
@@ -33,9 +44,22 @@ pub(crate) struct MonolithState {
 }
 
 impl Monolith {
-    pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
+    pub async fn new<S, F>(ctx: &TestRunner, service: S) -> anyhow::Result<Self>
+    where
+        S: Service<
+                Request<IncomingBody>,
+                Response = Response<Full<Bytes>>,
+                Error = hyper::Error,
+                Future = F,
+            > + Send
+            + Clone
+            + 'static,
+        F: Future<Output = Result<S::Response, S::Error>> + Send,
+    {
         // Binding to port 0 will let the OS allocate a random port for us.
         let listener =
+            Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
+        let http_listener =
             Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
         let notif_connect = Arc::new(Notify::new());
         let notif_disconnect = Arc::new(Notify::new());
@@ -54,7 +78,7 @@ impl Monolith {
         let _notif_recv = notif_recv.clone();
         let _state = state.clone();
         let task = tokio::task::Builder::new()
-            .name("emulated monolith")
+            .name("emulated monolith (websocket)")
             .spawn(async move {
                 let state = _state;
                 loop {
@@ -92,10 +116,34 @@ impl Monolith {
                 }
             })?;
 
+        let _http_listener = http_listener.clone();
+        let http_task = tokio::task::Builder::new()
+            .name("emulated monolith (http)")
+            .spawn(async move {
+                let http_listener = _http_listener;
+                let service = service.clone();
+
+                loop {
+                    let (stream, _) = http_listener.accept().await.unwrap();
+                    let stream = tokio::io::BufReader::new(stream);
+                    let io = hyper_util::rt::TokioIo::new(stream);
+
+                    let service = service.clone();
+                    let conn =
+                        hyper::server::conn::http1::Builder::new().serve_connection(io, service);
+
+                    if let Err(err) = conn.await {
+                        warn!("Error serving connection: {:?}", err);
+                    }
+                }
+            })?;
+
         Ok(Self {
             listener,
+            http_listener,
             outgoing_tx,
             task,
+            http_task,
             monolith_add_tx: ctx.monolith_add_tx.clone(),
             monolith_remove_tx: ctx.monolith_remove_tx.clone(),
             notif_connect,
@@ -105,8 +153,14 @@ impl Monolith {
         })
     }
 
-    pub fn port(&self) -> u16 {
+    /// The port that balancer websocket connections should connect to.
+    pub fn balancer_port(&self) -> u16 {
         self.listener.local_addr().unwrap().port()
+    }
+
+    /// The port that HTTP requests should be sent to.
+    pub fn http_port(&self) -> u16 {
+        self.http_listener.local_addr().unwrap().port()
     }
 
     pub fn connected(&self) -> bool {
@@ -169,6 +223,7 @@ impl Monolith {
 impl Drop for Monolith {
     fn drop(&mut self) {
         self.task.abort();
+        self.http_task.abort();
     }
 }
 
@@ -177,4 +232,10 @@ impl WebsocketSender for Monolith {
     async fn send_raw(&mut self, msg: Message) {
         self.outgoing_tx.try_send(msg).unwrap();
     }
+}
+
+pub async fn hello(
+    _: Request<hyper::body::Incoming>,
+) -> Result<Response<Full<Bytes>>, hyper::Error> {
+    Ok(Response::new(Full::new(Bytes::from("Hello, World!"))))
 }

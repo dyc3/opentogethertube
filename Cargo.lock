@@ -790,6 +790,7 @@ dependencies = [
  "console-subscriber",
  "figment",
  "futures-util",
+ "http-body-util",
  "hyper 1.0.0-rc.4",
  "hyper-util",
  "ott-balancer-protocol",
