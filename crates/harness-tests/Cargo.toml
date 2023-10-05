@@ -6,5 +6,6 @@ edition = "2021"
 [dependencies]
 harness.workspace = true
 ott-balancer-protocol.workspace = true
+reqwest.workspace = true
 test-context.workspace = true
 tokio.workspace = true

@@ -7,8 +7,7 @@ use test_context::test_context;
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn sample_test(ctx: &mut TestRunner) {
-    let s = service_fn(hello);
-    let mut m = Monolith::new(ctx, s).await.unwrap();
+    let mut m = Monolith::new(ctx, service_fn(hello)).await.unwrap();
     println!("monolith port: {}", m.balancer_port());
     assert_ne!(m.balancer_port(), 0);
     m.show().await;
@@ -47,6 +46,24 @@ async fn discovery_add_remove(ctx: &mut TestRunner) {
         m.hide().await;
         assert!(!m.connected());
     }
+}
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn sample_http(ctx: &mut TestRunner) {
+    let mut m = Monolith::new(ctx, service_fn(hello)).await.unwrap();
+    println!(
+        "monolith port: {} http: {}",
+        m.balancer_port(),
+        m.http_port()
+    );
+    m.show().await;
+
+    reqwest::get(format!("http://[::1]:{}/", m.http_port()))
+        .await
+        .expect("http request failed")
+        .error_for_status()
+        .expect("bad http status");
 }
 
 fn main() {}
