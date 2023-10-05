@@ -1,17 +1,13 @@
 use std::{
-    convert::Infallible,
     net::{IpAddr, Ipv6Addr, SocketAddr},
     sync::{Arc, Mutex},
 };
 
 use bytes::Bytes;
 use futures_util::{Future, SinkExt, StreamExt};
-use http_body_util::{BodyExt, Full};
+use http_body_util::Full;
 use hyper::{body::Incoming as IncomingBody, Request};
-use hyper::{
-    service::{service_fn, HttpService, Service},
-    Response,
-};
+use hyper::{service::Service, Response};
 
 use ott_balancer_protocol::monolith::*;
 use tokio::{net::TcpListener, sync::Notify};
@@ -77,14 +73,15 @@ impl Monolith {
         let _notif_disconnect = notif_disconnect.clone();
         let _notif_recv = notif_recv.clone();
         let _state = state.clone();
+        let http_port = http_listener.local_addr().unwrap().port();
         let task = tokio::task::Builder::new()
             .name("emulated monolith (websocket)")
             .spawn(async move {
                 let state = _state;
                 loop {
-                    let (stream, addr) = _listener.accept().await.unwrap();
+                    let (stream, _) = _listener.accept().await.unwrap();
                     let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
-                    let init = M2BInit { port: addr.port() };
+                    let init = M2BInit { port: http_port };
                     let msg = serde_json::to_string(&MsgM2B::Init(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
                     state.lock().unwrap().connected = true;
