@@ -68,7 +68,7 @@ pub struct GossipRoom {
     pub metadata: RoomMetadata,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 /// Metadata about a room, according to the Monolith.
 pub struct RoomMetadata {
     pub title: String,
@@ -84,10 +84,11 @@ pub struct RoomMetadata {
     pub users: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Visibility {
     Public,
+    #[default]
     Unlisted,
     Private,
 }

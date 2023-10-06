@@ -9,5 +9,3 @@ pub use client::*;
 pub use monolith::*;
 pub use test_runner::*;
 pub use traits::*;
-
-pub use hyper::service::*;

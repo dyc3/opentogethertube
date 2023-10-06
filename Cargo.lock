@@ -816,6 +816,8 @@ dependencies = [
  "harness",
  "ott-balancer-protocol",
  "reqwest",
+ "serde",
+ "serde_json",
  "test-context",
  "tokio",
 ]
