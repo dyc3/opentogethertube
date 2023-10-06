@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
-use harness::{hello, service_fn, Client, Monolith, TestRunner, WebsocketSender};
+use harness::{Client, Monolith, TestRunner, WebsocketSender};
 use ott_balancer_protocol::client::*;
 use test_context::test_context;
+
+mod routing;
 
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn sample_test(ctx: &mut TestRunner) {
-    let mut m = Monolith::new(ctx, service_fn(hello)).await.unwrap();
+    let mut m = Monolith::new(ctx).await.unwrap();
     println!("monolith port: {}", m.balancer_port());
     assert_ne!(m.balancer_port(), 0);
     m.show().await;
@@ -36,7 +38,7 @@ async fn sample_test(ctx: &mut TestRunner) {
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn discovery_add_remove(ctx: &mut TestRunner) {
-    let mut m = Monolith::new(ctx, service_fn(hello)).await.unwrap();
+    let mut m = Monolith::new(ctx).await.unwrap();
     println!("monolith port: {}", m.balancer_port());
     assert_ne!(m.balancer_port(), 0);
 
@@ -51,7 +53,7 @@ async fn discovery_add_remove(ctx: &mut TestRunner) {
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn sample_http(ctx: &mut TestRunner) {
-    let mut m = Monolith::new(ctx, service_fn(hello)).await.unwrap();
+    let mut m = Monolith::new(ctx).await.unwrap();
     println!(
         "monolith port: {} http: {}",
         m.balancer_port(),

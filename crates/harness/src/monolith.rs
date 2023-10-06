@@ -1,11 +1,13 @@
 use std::{
+    collections::HashMap,
     net::{IpAddr, Ipv6Addr, SocketAddr},
+    pin::Pin,
     sync::{Arc, Mutex},
 };
 
 use bytes::Bytes;
 use futures_util::{Future, SinkExt, StreamExt};
-use http_body_util::Full;
+use http_body_util::{BodyExt, Full};
 use hyper::{body::Incoming as IncomingBody, Request};
 use hyper::{service::Service, Response};
 
@@ -34,24 +36,21 @@ pub struct Monolith {
     state: Arc<Mutex<MonolithState>>,
 }
 
+/// The internal state of the emulated monolith, safe to share between tasks and threads.
+///
+/// This is necessary because the monolith is split into two tasks: one for the websocket
+/// connection and one for the HTTP mock server.
+#[derive(Debug, Default)]
 pub(crate) struct MonolithState {
     connected: bool,
     received_raw: Vec<Message>,
+    received_http: Vec<MockRequest>,
+    /// A mapping from request path to response body for mocking HTTP responses.
+    response_mocks: HashMap<String, (MockRespParts, Bytes)>,
 }
 
 impl Monolith {
-    pub async fn new<S, F>(ctx: &TestRunner, service: S) -> anyhow::Result<Self>
-    where
-        S: Service<
-                Request<IncomingBody>,
-                Response = Response<Full<Bytes>>,
-                Error = hyper::Error,
-                Future = F,
-            > + Send
-            + Clone
-            + 'static,
-        F: Future<Output = Result<S::Response, S::Error>> + Send,
-    {
+    pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
         // Binding to port 0 will let the OS allocate a random port for us.
         let listener =
             Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
@@ -64,8 +63,7 @@ impl Monolith {
         let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
 
         let state = Arc::new(Mutex::new(MonolithState {
-            connected: false,
-            received_raw: Vec::new(),
+            ..Default::default()
         }));
 
         let _listener = listener.clone();
@@ -114,6 +112,7 @@ impl Monolith {
             })?;
 
         let _http_listener = http_listener.clone();
+        let service = MockService::new(state.clone());
         let http_task = tokio::task::Builder::new()
             .name("emulated monolith (http)")
             .spawn(async move {
@@ -215,6 +214,29 @@ impl Monolith {
             })
             .collect()
     }
+
+    /// Set a mock HTTP response for the given path.
+    pub fn mock_http_raw(&mut self, path: impl Into<String>, parts: MockRespParts, body: Bytes) {
+        self.state
+            .lock()
+            .unwrap()
+            .response_mocks
+            .insert(path.into(), (parts, body));
+    }
+
+    pub fn mock_http_json(
+        &mut self,
+        path: impl Into<String>,
+        parts: MockRespParts,
+        body: impl serde::Serialize,
+    ) {
+        let body = serde_json::to_vec(&body).unwrap();
+        self.mock_http_raw(path, parts, body.into())
+    }
+
+    pub fn collect_mock_http(&self) -> Vec<MockRequest> {
+        self.state.lock().unwrap().received_http.clone()
+    }
 }
 
 impl Drop for Monolith {
@@ -231,8 +253,76 @@ impl WebsocketSender for Monolith {
     }
 }
 
-pub async fn hello(
-    _: Request<hyper::body::Incoming>,
-) -> Result<Response<Full<Bytes>>, hyper::Error> {
-    Ok(Response::new(Full::new(Bytes::from("Hello, World!"))))
+/// A mock HTTP service that can be used to mock HTTP responses for emulated monoliths.
+#[derive(Debug, Clone)]
+struct MockService {
+    state: Arc<Mutex<MonolithState>>,
+}
+
+impl MockService {
+    pub fn new(state: Arc<Mutex<MonolithState>>) -> Self {
+        Self { state }
+    }
+}
+
+impl Service<Request<IncomingBody>> for MockService {
+    type Response = Response<Full<Bytes>>;
+    type Error = hyper::Error;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+
+    fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
+        let state = self.state.clone();
+        Box::pin(async move {
+            let (parts, body) = req.into_parts();
+            let path = parts.uri.path().to_owned();
+
+            let req_body = body
+                .collect()
+                .await
+                .expect("failed to read request body")
+                .to_bytes();
+            let mut state = state.lock().unwrap();
+            state.received_http.push(MockRequest {
+                version: parts.version,
+                method: parts.method,
+                uri: parts.uri,
+                headers: parts.headers,
+                body: req_body,
+            });
+
+            let resp = state.response_mocks.get(&path).cloned();
+            match resp {
+                Some((parts, bytes)) => {
+                    let mut resp = Response::builder()
+                        .version(parts.version)
+                        .status(parts.status);
+                    let resp_headers = resp.headers_mut().unwrap();
+                    *resp_headers = parts.headers;
+                    Ok(resp
+                        .body(Full::new(bytes))
+                        .expect("failed to build mock response"))
+                }
+                None => Ok(Response::new(Full::new(Bytes::from(format!(
+                    "mock not found: {}",
+                    path
+                ))))),
+            }
+        })
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct MockRespParts {
+    pub status: hyper::StatusCode,
+    pub version: hyper::Version,
+    pub headers: hyper::HeaderMap,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct MockRequest {
+    pub version: hyper::Version,
+    pub method: hyper::Method,
+    pub uri: hyper::Uri,
+    pub headers: hyper::HeaderMap,
+    pub body: Bytes,
 }
