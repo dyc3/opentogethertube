@@ -103,7 +103,7 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
     })
     .await;
 
-    let mut client = Client::new(&ctx).unwrap();
+    let mut client = Client::new(ctx).unwrap();
     client.join("foo").await;
 
     m.wait_recv().await;
