@@ -17,6 +17,7 @@ jobs:
 
     runs-on: ubuntu-latest
     # container: rust:1-buster
+    timeout-minutes: 20
 
     steps:
     - run: rustup component add clippy rustfmt
