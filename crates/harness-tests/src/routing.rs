@@ -26,6 +26,11 @@ async fn route_http_to_correct_monolith(ctx: &mut TestRunner) {
     })
     .await;
 
+    // Without this sleep, this test can trigger a race condition where the client connects to the balancer before the monolith has the room loaded.
+    // This will cause the other monolith to get the room loaded, and the client will connect to that monolith instead.
+    // Since the purpose of this test is to test routing, we can just wait a bit for the balancer to acknowledge the room load.
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
     reqwest::get(format!("http://[::1]:{}/api/room/foo", ctx.port))
         .await
         .expect("http request failed")
