@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use harness::{Client, MockRespParts, Monolith, TestRunner};
 use ott_balancer_protocol::monolith::{MsgM2B, RoomMetadata};
 use test_context::test_context;
@@ -103,10 +105,16 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
     })
     .await;
 
+    // Without this sleep, this test can trigger a race condition where the client connects to the balancer before the monolith has the room loaded.
+    // This will cause the other monolith to get the room loaded, and the client will connect to that monolith instead.
+    // Since the purpose of this test is to test routing, we can just wait a bit for the balancer to acknowledge the room load.
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
     let mut client = Client::new(ctx).unwrap();
     client.join("foo").await;
 
     m.wait_recv().await;
+
     let recvd = m.collect_recv();
     assert_eq!(recvd.len(), 1);
 }
