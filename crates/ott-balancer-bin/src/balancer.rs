@@ -389,28 +389,27 @@ pub async fn join_client(
         .send(client_rx)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
 
-    let ctx_read = ctx.read().await;
+    // since we're always going to be doing a write, we can just lock the context for the whole function so it doesn't change out from under us
+    let mut ctx_write = ctx.write().await;
 
-    let (monolith_id, should_create_room) = match ctx_read.rooms_to_monoliths.get(&client.room) {
+    let (monolith_id, should_create_room) = match ctx_write.rooms_to_monoliths.get(&client.room) {
         Some(id) => {
             debug!("room {} already loaded on {}", client.room, id);
             (*id, false)
         }
         None => {
             // the room is not loaded, randomly select a monolith
-            let selected = ctx_read.select_monolith()?;
+            let selected = ctx_write.select_monolith()?;
             debug!("room is not loaded, selected monolith: {:?}", selected.id());
             (selected.id(), true)
         }
     };
-    drop(ctx_read);
 
-    let mut b = ctx.write().await;
     if should_create_room {
         let room = Room::new(client.room.clone());
-        b.add_room(room, monolith_id)?;
+        ctx_write.add_room(room, monolith_id)?;
     }
-    b.add_client(client, monolith_id).await?;
+    ctx_write.add_client(client, monolith_id).await?;
     Ok(())
 }
 
