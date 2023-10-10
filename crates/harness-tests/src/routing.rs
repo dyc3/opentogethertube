@@ -120,22 +120,23 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
 async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
     // smoke test for the possible race condition where a room is loaded and a client joins at the same time
 
-    for _ in 0..20 {
-        let mut dummy = Monolith::new(ctx).await.unwrap();
-        dummy.show().await;
+    let mut dummy = Monolith::new(ctx).await.unwrap();
+    dummy.show().await;
 
-        let mut m = Monolith::new(ctx).await.unwrap();
-        m.show().await;
-        tokio::time::sleep(Duration::from_millis(150)).await; // ensure that the monoliths are fully connected before sending the room load message
+    let mut m = Monolith::new(ctx).await.unwrap();
+    m.show().await;
+    tokio::time::sleep(Duration::from_millis(200)).await; // ensure that the monoliths are fully connected before sending the room load message
 
+    for i in 0..20 {
+        let room_name = format!("foo{}", i);
         m.send(MsgM2B::Loaded {
-            name: "foo".to_owned().into(),
+            name: room_name.clone().into(),
             metadata: RoomMetadata::default(),
         })
         .await;
 
         let mut client = Client::new(ctx).unwrap();
-        client.join("foo").await;
+        client.join(room_name).await;
 
         println!("waiting for monolith to receive join message");
         tokio::time::timeout(Duration::from_secs(1), m.wait_recv())
@@ -144,9 +145,8 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
 
         let recvd = m.collect_recv();
         assert_eq!(recvd.len(), 1);
-
-        dummy.hide().await;
-        m.hide().await;
+        m.clear_recv();
+        dummy.clear_recv();
 
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
