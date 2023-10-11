@@ -101,7 +101,7 @@ pub struct M2BUnloaded {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
 pub struct M2BGossip {
-    pub rooms: Vec<GossipRoom>,
+    pub rooms: Vec<RoomMetadata>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -151,10 +151,6 @@ impl From<M2BRoomMsg> for MsgM2B {
         Self::RoomMsg(val)
     }
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare]
-pub struct GossipRoom(RoomMetadata);
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[typeshare]

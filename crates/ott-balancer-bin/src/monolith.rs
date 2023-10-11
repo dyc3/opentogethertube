@@ -93,8 +93,9 @@ impl BalancerMonolith {
         Ok(())
     }
 
-    pub fn set_room_metadata(&mut self, room: &RoomName, metadata: RoomMetadata) {
-        let Some(room) = self.rooms.get_mut(room) else {
+    pub fn set_room_metadata(&mut self, metadata: RoomMetadata) {
+        let room = metadata.name.clone();
+        let Some(room) = self.rooms.get_mut(&room) else {
             error!(
                 "Error setting metadata, Monolith {} does not have room {}",
                 self.id, room
@@ -104,11 +105,11 @@ impl BalancerMonolith {
         room.set_metadata(metadata);
     }
 
-    pub fn add_or_sync_room(&mut self, name: &RoomName, metadata: RoomMetadata) {
-        if self.has_room(name) {
-            self.set_room_metadata(name, metadata);
+    pub fn add_or_sync_room(&mut self, metadata: RoomMetadata) {
+        if self.has_room(&metadata.name) {
+            self.set_room_metadata(metadata);
         } else {
-            let mut room = Room::new(name.clone());
+            let mut room = Room::new(metadata.name.clone());
             room.set_metadata(metadata);
             self.add_room(room);
         }

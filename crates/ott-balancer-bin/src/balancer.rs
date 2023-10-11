@@ -291,13 +291,13 @@ impl BalancerContext {
 
     pub fn add_or_sync_room(
         &mut self,
-        room: &RoomName,
         metadata: RoomMetadata,
         monolith_id: MonolithId,
     ) -> anyhow::Result<()> {
         let monolith = self.monoliths.get_mut(&monolith_id).unwrap();
-        self.rooms_to_monoliths.insert(room.clone(), monolith_id);
-        monolith.add_or_sync_room(room, metadata);
+        self.rooms_to_monoliths
+            .insert(metadata.name.clone(), monolith_id);
+        monolith.add_or_sync_room(metadata);
 
         Ok(())
     }
@@ -502,9 +502,9 @@ pub async fn dispatch_monolith_message(
                     );
                 }
                 MsgM2B::Loaded(msg) => {
-                    debug!("room loaded on {}: {:?}", monolith_id, msg.name);
+                    debug!("room loaded on {}: {:?}", monolith_id, msg.0.name);
                     let mut ctx_write = ctx.write().await;
-                    ctx_write.add_or_sync_room(&msg.name, msg.metadata, *monolith_id)?;
+                    ctx_write.add_or_sync_room(msg.0, *monolith_id)?;
                 }
                 MsgM2B::Unloaded(msg) => {
                     let mut ctx_write = ctx.write().await;
@@ -529,7 +529,7 @@ pub async fn dispatch_monolith_message(
                     }
                     let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
                     for gossip_room in msg.rooms {
-                        monolith.add_or_sync_room(&gossip_room.name, gossip_room.metadata);
+                        monolith.add_or_sync_room(gossip_room);
                     }
 
                     let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();

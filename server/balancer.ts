@@ -12,6 +12,7 @@ import roommanager from "./roommanager";
 import type { RoomListItem } from "./api/room";
 import _ from "lodash";
 import type { MsgB2M, MsgM2B } from "./generated";
+export type { MsgB2M, MsgM2B };
 
 const log = getLogger("balancer");
 

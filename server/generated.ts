@@ -25,8 +25,6 @@ export interface RoomMetadata {
 
 export type M2BLoaded = RoomMetadata;
 
-export type GossipRoom = RoomMetadata;
-
 export type ClientId = string;
 
 export type MonolithId = string;
@@ -62,7 +60,7 @@ export interface M2BUnloaded {
 }
 
 export interface M2BGossip {
-	rooms: GossipRoom[];
+	rooms: RoomMetadata[];
 }
 
 export interface M2BRoomMsg<T = unknown> {
