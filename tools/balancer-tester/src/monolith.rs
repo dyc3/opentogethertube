@@ -6,7 +6,7 @@ use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::protocol::Message;
 
-use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B, RoomMetadata, Visibility};
+use ott_balancer_protocol::monolith::*;
 use tracing::{info, warn};
 
 pub struct SimMonolith {
@@ -40,8 +40,8 @@ impl SimMonolith {
         (handle, inbound_tx, outbound_rx)
     }
 
-    fn build_message(&self, msg: MsgM2B) -> Message {
-        Message::text(serde_json::to_string(&msg).unwrap())
+    fn build_message(&self, msg: impl Into<MsgM2B>) -> Message {
+        Message::text(serde_json::to_string(&msg.into()).unwrap())
     }
 
     async fn handle_msg(&mut self, msg: Message, outbound_tx: &Sender<Message>) {
@@ -49,44 +49,44 @@ impl SimMonolith {
         let req: MsgB2M = serde_json::from_str(text).unwrap();
 
         match req {
-            MsgB2M::Load { room } => {
-                self.load_room(room.clone());
-                let msg = MsgM2B::Loaded {
-                    name: room,
+            MsgB2M::Load(msg) => {
+                self.load_room(msg.room.clone());
+                let msg = M2BLoaded {
+                    name: msg.room,
                     metadata: generate_random_metadata(),
                 };
                 outbound_tx.send(self.build_message(msg)).await.unwrap();
             }
-            MsgB2M::Join { room, client, .. } => {
-                let room = match self.rooms.get_mut(&room) {
+            MsgB2M::Join(msg) => {
+                let room = match self.rooms.get_mut(&msg.room) {
                     Some(room) => room,
                     None => {
-                        warn!("room {} not found, loading", room);
-                        self.load_room(room.clone());
-                        self.rooms.get_mut(&room).unwrap()
+                        warn!("room {} not found, loading", msg.room);
+                        self.load_room(msg.room.clone());
+                        self.rooms.get_mut(&msg.room).unwrap()
                     }
                 };
-                room.add_client(client);
+                room.add_client(msg.client);
             }
-            MsgB2M::Leave { client } => {
-                let room = self.find_client_room(client).unwrap();
+            MsgB2M::Leave(msg) => {
+                let room = self.find_client_room(msg.client).unwrap();
                 let room = self.rooms.get_mut(&room).unwrap();
-                room.remove_client(client);
+                room.remove_client(msg.client);
             }
-            MsgB2M::ClientMsg { client_id, payload } => {
+            MsgB2M::ClientMsg(msg) => {
                 let room = self
-                    .find_client_room(client_id)
+                    .find_client_room(msg.client_id)
                     .expect("client not found in any rooms");
                 info!(
                     "{}: got message from client {}: {:?}",
-                    room, client_id, payload
+                    room, msg.client_id, msg.payload
                 );
 
-                if serde_json::from_str::<SimpleEcho>(payload.get()).is_ok() {
-                    let msg = MsgM2B::RoomMsg {
+                if serde_json::from_str::<SimpleEcho>(msg.payload.get()).is_ok() {
+                    let msg = M2BRoomMsg {
                         room,
-                        client_id: Some(client_id),
-                        payload,
+                        client_id: Some(msg.client_id),
+                        payload: msg.payload,
                     };
                     outbound_tx.send(self.build_message(msg)).await.unwrap();
                 }

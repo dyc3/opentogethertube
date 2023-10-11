@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use harness::{Client, MockRespParts, Monolith, TestRunner};
-
 use test_context::test_context;
 
 #[test_context(TestRunner)]

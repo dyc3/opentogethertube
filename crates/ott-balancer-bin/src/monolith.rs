@@ -85,8 +85,8 @@ impl BalancerMonolith {
         }
     }
 
-    pub async fn send(&self, msg: &MsgB2M) -> anyhow::Result<()> {
-        let text = serde_json::to_string(&msg)?;
+    pub async fn send(&self, msg: impl Into<MsgB2M>) -> anyhow::Result<()> {
+        let text = serde_json::to_string(&msg.into())?;
         let socket_msg = Message::Text(text).into();
         self.socket_tx.send(socket_msg).await?;
 
