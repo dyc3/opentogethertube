@@ -38,6 +38,18 @@ impl From<String> for RoomName {
     }
 }
 
+impl From<&str> for RoomName {
+    fn from(val: &str) -> Self {
+        Self(val.into())
+    }
+}
+
+impl Default for RoomName {
+    fn default() -> Self {
+        Self("".into())
+    }
+}
+
 impl From<MonolithId> for Uuid {
     fn from(val: MonolithId) -> Self {
         val.0

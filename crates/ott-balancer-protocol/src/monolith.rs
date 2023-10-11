@@ -8,6 +8,7 @@ use crate::{ClientId, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
+#[typeshare]
 pub enum MsgB2M {
     Load(MsgB2MLoad),
     Join(MsgB2MJoin),
@@ -70,6 +71,7 @@ impl From<MsgB2MClientMsg> for MsgB2M {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
+#[typeshare]
 pub enum MsgM2B {
     Init(M2BInit),
     Loaded(M2BLoaded),
@@ -87,11 +89,8 @@ pub struct M2BInit {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct M2BLoaded {
-    pub name: RoomName,
-    #[serde(flatten)]
-    pub metadata: RoomMetadata,
-}
+#[typeshare]
+pub struct M2BLoaded(pub RoomMetadata);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
@@ -100,6 +99,7 @@ pub struct M2BUnloaded {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
 pub struct M2BGossip {
     pub rooms: Vec<GossipRoom>,
 }
@@ -153,15 +153,14 @@ impl From<M2BRoomMsg> for MsgM2B {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GossipRoom {
-    pub name: RoomName,
-    #[serde(flatten)]
-    pub metadata: RoomMetadata,
-}
+#[typeshare]
+pub struct GossipRoom(RoomMetadata);
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[typeshare]
 /// Metadata about a room, according to the Monolith.
 pub struct RoomMetadata {
+    pub name: RoomName,
     pub title: String,
     pub description: String,
     #[serde(rename = "isTemporary")]
@@ -173,6 +172,15 @@ pub struct RoomMetadata {
     pub current_source: serde_json::Value,
     /// The number of clients in this room.
     pub users: u32,
+}
+
+impl RoomMetadata {
+    pub fn default_with_name(name: impl Into<RoomName>) -> Self {
+        Self {
+            name: name.into(),
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]

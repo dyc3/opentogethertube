@@ -51,10 +51,8 @@ impl SimMonolith {
         match req {
             MsgB2M::Load(msg) => {
                 self.load_room(msg.room.clone());
-                let msg = M2BLoaded {
-                    name: msg.room,
-                    metadata: generate_random_metadata(),
-                };
+                let metadata = generate_random_metadata(&msg.room);
+                let msg = M2BLoaded(metadata);
                 outbound_tx.send(self.build_message(msg)).await.unwrap();
             }
             MsgB2M::Join(msg) => {
@@ -124,10 +122,12 @@ pub struct SimRoom {
 
 impl SimRoom {
     pub fn new(name: impl Into<RoomName>) -> Self {
+        let name = name.into();
+        let metadata = generate_random_metadata(&name);
         Self {
-            name: name.into(),
+            name,
             clients: Vec::new(),
-            metadata: generate_random_metadata(),
+            metadata,
         }
     }
 
@@ -147,8 +147,9 @@ pub struct SimpleEcho {
     pub echo: String,
 }
 
-fn generate_random_metadata() -> RoomMetadata {
+fn generate_random_metadata(room: &RoomName) -> RoomMetadata {
     RoomMetadata {
+        name: room.clone(),
         title: "foo".to_string(),
         description: "foo".to_string(),
         is_temporary: false,
