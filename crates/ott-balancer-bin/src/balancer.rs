@@ -264,25 +264,27 @@ impl BalancerContext {
 
     pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
         self.monoliths.remove(&monolith_id);
-        
-        self.rooms_to_monoliths
-            .retain(|_, v| *v != monolith_id);
+
+        self.rooms_to_monoliths.retain(|_, v| *v != monolith_id);
 
         self.clients
             .retain(|_, v| self.rooms_to_monoliths.contains_key(&v.room));
-       
-        for client in self.clients.values(){ 
-            match client.send(SocketMessage::Message(Message::Close(Some(CloseFrame {
-                code: CloseCode::Away,
-                reason: "Monolith disconnect".into(),
-            })))).await {
-                Ok(()) => {},
+
+        for client in self.clients.values() {
+            match client
+                .send(SocketMessage::Message(Message::Close(Some(CloseFrame {
+                    code: CloseCode::Away,
+                    reason: "Monolith disconnect".into(),
+                }))))
+                .await
+            {
+                Ok(()) => {}
                 Err(err) => {
                     error!("failed to disconnect client: {:?}", err)
                 }
             };
         }
-        
+
         Ok(())
     }
 
