@@ -8,7 +8,6 @@ async-trait = "0.1.68"
 bytes = "1.4.0"
 clap = { version = "4.3.12", features = ["derive"] }
 console-subscriber = "0.1.8"
-enum_derive = "0.1.7"
 figment = { version = "0.10.10", features = ["toml", "env"] }
 futures-util = "0.3.28"
 harness = { path = "crates/harness" }
