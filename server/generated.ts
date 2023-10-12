@@ -29,21 +29,21 @@ export type ClientId = string;
 
 export type MonolithId = string;
 
-export interface MsgB2MLoad {
+export interface B2MLoad {
 	room: RoomName;
 }
 
-export interface MsgB2MJoin {
+export interface B2MJoin {
 	room: RoomName;
 	client: ClientId;
 	token: string;
 }
 
-export interface MsgB2MLeave {
+export interface B2MLeave {
 	client: ClientId;
 }
 
-export interface MsgB2MClientMsg<T = unknown> {
+export interface B2MClientMsg<T = unknown> {
 	/** The client that sent the message. */
 	client_id: ClientId;
 	/** The message that was received from the client, verbatim. */
@@ -78,10 +78,10 @@ export interface M2BKick {
 }
 
 export type MsgB2M =
-	| { type: "load"; payload: MsgB2MLoad }
-	| { type: "join"; payload: MsgB2MJoin }
-	| { type: "leave"; payload: MsgB2MLeave }
-	| { type: "client_msg"; payload: MsgB2MClientMsg };
+	| { type: "load"; payload: B2MLoad }
+	| { type: "join"; payload: B2MJoin }
+	| { type: "leave"; payload: B2MLeave }
+	| { type: "client_msg"; payload: B2MClientMsg };
 
 export type MsgM2B =
 	| { type: "init"; payload: M2BInit }

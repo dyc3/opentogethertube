@@ -1,8 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use ott_balancer_protocol::monolith::{
-    MsgB2MClientMsg, MsgB2MJoin, MsgB2MLeave, MsgM2B, RoomMetadata,
-};
+use ott_balancer_protocol::monolith::{B2MClientMsg, B2MJoin, B2MLeave, MsgM2B, RoomMetadata};
 use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
@@ -241,7 +239,7 @@ impl BalancerContext {
         };
         monolith.add_client(&client.room, client.id);
         monolith
-            .send(MsgB2MJoin {
+            .send(B2MJoin {
                 room: client.room.clone(),
                 client: client.id,
                 token: client.token.clone(),
@@ -255,7 +253,7 @@ impl BalancerContext {
     pub async fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
         let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
-        monolith.send(MsgB2MLeave { client: client_id }).await?;
+        monolith.send(B2MLeave { client: client_id }).await?;
 
         Ok(())
     }
@@ -417,7 +415,7 @@ pub async fn dispatch_client_message(
             };
 
             monolith
-                .send(MsgB2MClientMsg {
+                .send(B2MClientMsg {
                     client_id: *msg.id(),
                     payload: raw_value,
                 })

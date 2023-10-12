@@ -10,21 +10,21 @@ use crate::{ClientId, RoomName};
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
 #[typeshare]
 pub enum MsgB2M {
-    Load(MsgB2MLoad),
-    Join(MsgB2MJoin),
-    Leave(MsgB2MLeave),
-    ClientMsg(MsgB2MClientMsg),
+    Load(B2MLoad),
+    Join(B2MJoin),
+    Leave(B2MLeave),
+    ClientMsg(B2MClientMsg),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
-pub struct MsgB2MLoad {
+pub struct B2MLoad {
     pub room: RoomName,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
-pub struct MsgB2MJoin {
+pub struct B2MJoin {
     pub room: RoomName,
     pub client: ClientId,
     pub token: String,
@@ -32,39 +32,39 @@ pub struct MsgB2MJoin {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
-pub struct MsgB2MLeave {
+pub struct B2MLeave {
     pub client: ClientId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
-pub struct MsgB2MClientMsg<T = Box<RawValue>> {
+pub struct B2MClientMsg<T = Box<RawValue>> {
     /// The client that sent the message.
     pub client_id: ClientId,
     /// The message that was received from the client, verbatim.
     pub payload: T,
 }
 
-impl From<MsgB2MLoad> for MsgB2M {
-    fn from(val: MsgB2MLoad) -> Self {
+impl From<B2MLoad> for MsgB2M {
+    fn from(val: B2MLoad) -> Self {
         Self::Load(val)
     }
 }
 
-impl From<MsgB2MJoin> for MsgB2M {
-    fn from(val: MsgB2MJoin) -> Self {
+impl From<B2MJoin> for MsgB2M {
+    fn from(val: B2MJoin) -> Self {
         Self::Join(val)
     }
 }
 
-impl From<MsgB2MLeave> for MsgB2M {
-    fn from(val: MsgB2MLeave) -> Self {
+impl From<B2MLeave> for MsgB2M {
+    fn from(val: B2MLeave) -> Self {
         Self::Leave(val)
     }
 }
 
-impl From<MsgB2MClientMsg> for MsgB2M {
-    fn from(val: MsgB2MClientMsg) -> Self {
+impl From<B2MClientMsg> for MsgB2M {
+    fn from(val: B2MClientMsg) -> Self {
         Self::ClientMsg(val)
     }
 }
