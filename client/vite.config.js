@@ -9,7 +9,7 @@ export default defineConfig({
 	plugins: [
 		vue(),
 		vuetify({
-			autoImport: false,
+			autoImport: true,
 			styles: {
 				configFile: path.resolve(
 					searchForWorkspaceRoot(process.cwd()),
