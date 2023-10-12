@@ -500,9 +500,9 @@ pub async fn dispatch_monolith_message(
                     );
                 }
                 MsgM2B::Loaded(msg) => {
-                    debug!("room loaded on {}: {:?}", monolith_id, msg.0.name);
+                    debug!("room loaded on {}: {:?}", monolith_id, msg.room.name);
                     let mut ctx_write = ctx.write().await;
-                    ctx_write.add_or_sync_room(msg.0, *monolith_id)?;
+                    ctx_write.add_or_sync_room(msg.room, *monolith_id)?;
                 }
                 MsgM2B::Unloaded(msg) => {
                     let mut ctx_write = ctx.write().await;

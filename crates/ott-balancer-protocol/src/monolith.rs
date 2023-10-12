@@ -90,7 +90,9 @@ pub struct M2BInit {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
-pub struct M2BLoaded(pub RoomMetadata);
+pub struct M2BLoaded {
+    pub room: RoomMetadata,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]

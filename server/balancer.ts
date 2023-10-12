@@ -276,7 +276,9 @@ async function onRoomLoad(roomName: string) {
 
 	broadcastToBalancers({
 		type: "loaded",
-		payload: obj,
+		payload: {
+			room: obj,
+		},
 	});
 	gossipDebounced();
 }
