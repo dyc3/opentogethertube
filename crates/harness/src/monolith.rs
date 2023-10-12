@@ -11,7 +11,7 @@ use http_body_util::{BodyExt, Full};
 use hyper::{body::Incoming as IncomingBody, Request};
 use hyper::{service::Service, Response};
 
-use ott_balancer_protocol::monolith::*;
+use ott_balancer_protocol::{monolith::*, RoomName};
 use tokio::{net::TcpListener, sync::Notify};
 use tracing::warn;
 use tungstenite::Message;
@@ -47,6 +47,7 @@ pub(crate) struct MonolithState {
     received_http: Vec<MockRequest>,
     /// A mapping from request path to response body for mocking HTTP responses.
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
+    rooms: HashMap<RoomName, RoomMetadata>,
 }
 
 impl Monolith {
@@ -236,6 +237,35 @@ impl Monolith {
 
     pub fn collect_mock_http(&self) -> Vec<MockRequest> {
         self.state.lock().unwrap().received_http.clone()
+    }
+
+    pub async fn load_room(&mut self, room: impl Into<RoomName> + Clone) {
+        let room = room.into();
+        let meta = RoomMetadata::default();
+        self.state
+            .lock()
+            .unwrap()
+            .rooms
+            .insert(room.clone(), meta.clone());
+        if self.connected() {
+            self.send(MsgM2B::Loaded {
+                name: room,
+                metadata: meta,
+            })
+            .await;
+        }
+    }
+
+    pub async fn unload_room(&mut self, room: impl Into<RoomName> + Clone) {
+        let room = room.into();
+        self.state
+            .lock()
+            .unwrap()
+            .rooms
+            .remove(&room.clone().clone());
+        if self.connected() {
+            self.send(MsgM2B::Unloaded { room }).await;
+        }
     }
 }
 
