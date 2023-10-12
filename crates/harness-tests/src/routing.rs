@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use harness::{Client, MockRespParts, Monolith, TestRunner};
-use ott_balancer_protocol::monolith::{MsgM2B, RoomMetadata};
+
 use test_context::test_context;
 
 #[test_context(TestRunner)]
@@ -20,11 +20,7 @@ async fn route_http_to_correct_monolith(ctx: &mut TestRunner) {
     );
 
     m.show().await;
-    m.send(MsgM2B::Loaded {
-        name: "foo".to_owned().into(),
-        metadata: RoomMetadata::default(),
-    })
-    .await;
+    m.load_room("foo".to_string()).await;
 
     // Without this sleep, this test can trigger a race condition where the client connects to the balancer before the monolith has the room loaded.
     // This will cause the other monolith to get the room loaded, and the client will connect to that monolith instead.
@@ -104,11 +100,7 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
 
     let mut m = Monolith::new(ctx).await.unwrap();
     m.show().await;
-    m.send(MsgM2B::Loaded {
-        name: "foo".to_owned().into(),
-        metadata: RoomMetadata::default(),
-    })
-    .await;
+    m.load_room("foo".to_string()).await;
 
     // Without this sleep, this test can trigger a race condition where the client connects to the balancer before the monolith has the room loaded.
     // This will cause the other monolith to get the room loaded, and the client will connect to that monolith instead.
