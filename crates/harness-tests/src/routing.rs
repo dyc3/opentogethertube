@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use harness::{Client, MockRespParts, Monolith, TestRunner};
-use ott_balancer_protocol::monolith::{MsgM2B, RoomMetadata};
+
 use test_context::test_context;
 
 #[test_context(TestRunner)]
