@@ -270,12 +270,17 @@ impl BalancerContext {
 
         self.clients
             .retain(|_, v| self.rooms_to_monoliths.contains_key(&v.room));
-        
+       
         for client in self.clients.values(){ 
-            client.send(SocketMessage::Message(Message::Close(Some(CloseFrame {
-                code: CloseCode::Library(1006),
+            match client.send(SocketMessage::Message(Message::Close(Some(CloseFrame {
+                code: CloseCode::Away,
                 reason: "Monolith disconnect".into(),
-            })))).await?;
+            })))).await {
+                Ok(()) => {},
+                Err(err) => {
+                    error!("failed to disconnect client: {:?}", err)
+                }
+            };
         }
         
         Ok(())
