@@ -1,5 +1,6 @@
 FROM node:18-alpine3.16 as build-stage
 ARG GIT_COMMIT
+ENV GIT_COMMIT=$GIT_COMMIT
 
 WORKDIR /usr/app
 

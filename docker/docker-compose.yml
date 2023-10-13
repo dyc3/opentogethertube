@@ -5,6 +5,8 @@ services:
     build:
       context: ../
       dockerfile: docker/Dockerfile
+      args:
+        - GIT_COMMIT=${GIT_COMMIT:-$(git rev-parse HEAD)}
     container_name: opentogethertube
     environment:
       - PORT=8080
