@@ -7,7 +7,9 @@ services:
       dockerfile: docker/Dockerfile
     container_name: opentogethertube
     environment:
+      - PORT=8080
       - REDIS_HOST=redis_db
+      - REDIS_PORT=6379
       - FFPROBE_PATH=/usr/bin/ffprobe
       # postgres
       - POSTGRES_USER=opentogethertube
