@@ -177,6 +177,9 @@
 				<v-row no-gutters align="center" justify="center">
 					<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
 				</v-row>
+				<v-row no-gutters align="center" justify="center">
+					{{ gitCommit }}
+				</v-row>
 			</v-container>
 		</v-footer>
 		<v-overlay
@@ -651,6 +654,8 @@ export default defineComponent({
 			await sfx.loadSfx();
 		});
 
+		const gitCommit = __COMMIT_HASH__;
+
 		return {
 			store,
 			roomapi,
@@ -685,6 +690,7 @@ export default defineComponent({
 			production,
 			debugMode,
 			orientation: orientation.orientation,
+			gitCommit,
 
 			mediaPlaybackBlocked,
 			onClickUnblockPlayback,
