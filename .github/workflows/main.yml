@@ -42,6 +42,14 @@ jobs:
       env:
         NODE_ENV: production
 
+    - name: cargo-install
+      uses: baptiste0928/cargo-install@v1
+      with:
+        crate: typeshare-cli
+        version: "1.7.0"
+    - name: Ensure generated code is up to date
+      run: ./scripts/codegen.sh && git diff --exit-code
+
   test:
     runs-on: ubuntu-latest
     strategy:

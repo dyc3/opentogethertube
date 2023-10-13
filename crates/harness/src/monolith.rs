@@ -241,18 +241,10 @@ impl Monolith {
 
     pub async fn load_room(&mut self, room: impl Into<RoomName> + Clone) {
         let room = room.into();
-        let meta = RoomMetadata::default();
-        self.state
-            .lock()
-            .unwrap()
-            .rooms
-            .insert(room.clone(), meta.clone());
+        let meta = RoomMetadata::default_with_name(room.clone());
+        self.state.lock().unwrap().rooms.insert(room, meta.clone());
         if self.connected() {
-            self.send(MsgM2B::Loaded {
-                name: room,
-                metadata: meta,
-            })
-            .await;
+            self.send(M2BLoaded { room: meta }).await;
         }
     }
 
@@ -264,7 +256,7 @@ impl Monolith {
             .rooms
             .remove(&room.clone().clone());
         if self.connected() {
-            self.send(MsgM2B::Unloaded { room }).await;
+            self.send(M2BUnloaded { name: room }).await;
         }
     }
 }
