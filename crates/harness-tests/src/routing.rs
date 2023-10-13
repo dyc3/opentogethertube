@@ -129,11 +129,7 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
 
     for i in 0..20 {
         let room_name = format!("foo{}", i);
-        m.send(MsgM2B::Loaded {
-            name: room_name.clone().into(),
-            metadata: RoomMetadata::default(),
-        })
-        .await;
+        m.load_room(room_name.clone()).await;
 
         let mut client = Client::new(ctx).unwrap();
         client.join(room_name).await;
