@@ -169,6 +169,9 @@
 							$t("footer.attribution")
 						}}</router-link>
 					</v-row>
+					<v-row no-gutters align="center" justify="center">
+						{{ gitCommit }}
+					</v-row>
 				</v-container>
 			</v-footer>
 		</v-container>
@@ -185,6 +188,8 @@ export const HomeView = defineComponent({
 	setup() {
 		const store = useStore();
 
+		const gitCommit = __COMMIT_HASH__;
+
 		async function createTempRoom() {
 			await createRoomHelper(store);
 		}
@@ -196,6 +201,7 @@ export const HomeView = defineComponent({
 		return {
 			createTempRoom,
 			cardHeight,
+			gitCommit,
 		};
 	},
 });
