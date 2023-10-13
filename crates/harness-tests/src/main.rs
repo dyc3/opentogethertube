@@ -4,6 +4,7 @@ use harness::{Client, Monolith, TestRunner, WebsocketSender};
 use ott_balancer_protocol::client::*;
 use test_context::test_context;
 
+mod connection;
 mod routing;
 
 #[test_context(TestRunner)]

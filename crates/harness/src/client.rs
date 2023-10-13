@@ -1,6 +1,6 @@
 use std::net::{Ipv4Addr, SocketAddr};
 
-use futures_util::SinkExt;
+use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::client::*;
 use rand::{distributions::Alphanumeric, Rng};
 use tokio::net::TcpStream;
@@ -74,7 +74,27 @@ impl Client {
         assert!(self.connected(), "not connected");
 
         let mut stream = self.stream.take().unwrap();
-        stream.close(None).await.unwrap();
+        let _ = stream.close(None).await;
+    }
+
+    pub async fn recv(&mut self) -> anyhow::Result<Message> {
+        if let Some(stream) = self.stream.as_mut() {
+            match stream.next().await {
+                Some(Ok(msg)) => {
+                    if msg.is_close() {
+                        self.disconnect().await;
+                    }
+                    Ok(msg)
+                }
+                Some(Err(e)) => Err(anyhow::anyhow!(e)),
+                None => {
+                    self.disconnect().await;
+                    Err(anyhow::anyhow!("connection closed"))
+                }
+            }
+        } else {
+            Err(anyhow::anyhow!("not connected"))
+        }
     }
 }
 
