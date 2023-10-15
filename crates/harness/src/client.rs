@@ -1,4 +1,7 @@
-use std::net::{Ipv4Addr, SocketAddr};
+use std::{
+    net::{Ipv4Addr, SocketAddr},
+    time::Duration,
+};
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::client::*;
@@ -79,17 +82,21 @@ impl Client {
 
     pub async fn recv(&mut self) -> anyhow::Result<Message> {
         if let Some(stream) = self.stream.as_mut() {
-            match stream.next().await {
-                Some(Ok(msg)) => {
+            match tokio::time::timeout(Duration::from_millis(200), stream.next()).await {
+                Ok(Some(Ok(msg))) => {
                     if msg.is_close() {
                         self.disconnect().await;
                     }
                     Ok(msg)
                 }
-                Some(Err(e)) => Err(anyhow::anyhow!(e)),
-                None => {
+                Ok(Some(Err(e))) => Err(anyhow::anyhow!(e)),
+                Ok(None) => {
                     self.disconnect().await;
                     Err(anyhow::anyhow!("connection closed"))
+                }
+                Err(_) => {
+                    self.disconnect().await;
+                    Err(anyhow::anyhow!("timed out"))
                 }
             }
         } else {
