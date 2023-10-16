@@ -127,9 +127,10 @@ impl Balancer {
                     if let Some(msg) = msg {
                         let ctx = self.ctx.clone();
                         let _ = tokio::task::Builder::new().name("dispatch monolith message").spawn(async move {
+                            let id = *msg.id();
                             match dispatch_monolith_message(ctx, msg).await {
                                 Ok(_) => {},
-                                Err(err) => error!("failed to dispatch monolith message: {:?}", err)
+                                Err(err) => error!("failed to dispatch monolith message {}: {:?}", id, err)
                             }
                         });
                     } else {
@@ -291,6 +292,7 @@ impl BalancerContext {
     }
 
     pub fn add_room(&mut self, room: Room, locator: RoomLocator) -> anyhow::Result<()> {
+        debug!("add_room {} {:?}", room.name(), locator);
         let monolith = self
             .monoliths
             .get_mut(&locator.monolith_id())
@@ -305,6 +307,7 @@ impl BalancerContext {
         room: &RoomName,
         monolith_id: MonolithId,
     ) -> anyhow::Result<()> {
+        debug!("remove_room {}, {:?}", room, monolith_id);
         let monolith = self
             .monoliths
             .get_mut(&monolith_id)
@@ -332,12 +335,16 @@ impl BalancerContext {
         monolith_id: MonolithId,
         load_epoch: u32,
     ) -> anyhow::Result<()> {
+        debug!(
+            "add_or_sync_room {}, {:?} load_epoch {}",
+            metadata.name, monolith_id, load_epoch
+        );
         if let Some(locator) = self.rooms_to_monoliths.get(&metadata.name) {
-            if locator.load_epoch() > load_epoch {
-                // we already have a newer version of this room
+            if locator.load_epoch() < load_epoch {
+                // we already have an older version of this room
                 return Err(anyhow::anyhow!("room already loaded"));
-            } else if locator.monolith_id() < monolith_id {
-                // we have an older version of this room, remove it
+            } else if locator.monolith_id() > monolith_id {
+                // we have an newer version of this room, remove it
                 self.remove_room(&metadata.name, locator.monolith_id())
                     .await?;
             }
