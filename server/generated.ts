@@ -86,17 +86,16 @@ export interface M2BKick {
 	reason: number;
 }
 
-export type MsgB2M = 
-	| { type: "load", payload: B2MLoad }
-	| { type: "join", payload: B2MJoin }
-	| { type: "leave", payload: B2MLeave }
-	| { type: "client_msg", payload: B2MClientMsg };
+export type MsgB2M =
+	| { type: "load"; payload: B2MLoad }
+	| { type: "join"; payload: B2MJoin }
+	| { type: "leave"; payload: B2MLeave }
+	| { type: "client_msg"; payload: B2MClientMsg };
 
-export type MsgM2B = 
-	| { type: "init", payload: M2BInit }
-	| { type: "loaded", payload: M2BLoaded }
-	| { type: "unloaded", payload: M2BUnloaded }
-	| { type: "gossip", payload: M2BGossip }
-	| { type: "room_msg", payload: M2BRoomMsg }
-	| { type: "kick", payload: M2BKick };
-
+export type MsgM2B =
+	| { type: "init"; payload: M2BInit }
+	| { type: "loaded"; payload: M2BLoaded }
+	| { type: "unloaded"; payload: M2BUnloaded }
+	| { type: "gossip"; payload: M2BGossip }
+	| { type: "room_msg"; payload: M2BRoomMsg }
+	| { type: "kick"; payload: M2BKick };

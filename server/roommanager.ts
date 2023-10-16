@@ -18,6 +18,7 @@ import type { ClientManagerCommand } from "./clientmanager";
 
 export const log = getLogger("roommanager");
 export const rooms: Room[] = [];
+const LOAD_EPOCH_KEY = "roommanager:load_epoch";
 
 export type RoomManagerEvents = "publish" | "load" | "unload" | "command";
 export type RoomManagerEventHandlers<E> = E extends "publish"
@@ -31,8 +32,10 @@ export type RoomManagerEventHandlers<E> = E extends "publish"
 	: never;
 const bus = new EventEmitter();
 
-function addRoom(room: Room) {
+async function addRoom(room: Room) {
 	rooms.push(room);
+	const epoch = await redisClient.incr(LOAD_EPOCH_KEY);
+	room.loadEpoch = epoch;
 	bus.emit("load", room.name);
 }
 
@@ -95,7 +98,7 @@ export async function createRoom(options: Partial<RoomOptions> & { name: string 
 	}
 	await room.update();
 	await room.sync();
-	addRoom(room);
+	await addRoom(room);
 	log.info(`Room created: ${room.name}`);
 }
 
@@ -130,7 +133,7 @@ export async function getRoom(
 		const state = JSON.parse(redisState) as RoomStateFromRedis;
 		const fixedState = redisStateToState(state);
 		const room = new Room(fixedState);
-		addRoom(room);
+		await addRoom(room);
 		return ok(room);
 	}
 
@@ -140,7 +143,7 @@ export async function getRoom(
 		return err(new RoomNotFoundException(roomName));
 	}
 	const room = new Room(opts);
-	addRoom(room);
+	await addRoom(room);
 	return ok(room);
 }
 
