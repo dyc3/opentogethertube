@@ -254,14 +254,15 @@ impl Monolith {
         let connected = self.connected();
         let room = room.into();
         let meta = RoomMetadata::default_with_name(room.clone());
-        let mut state = self.state.lock().unwrap();
-        state.rooms.insert(room, meta.clone());
+        let load_epoch = {
+            let mut state = self.state.lock().unwrap();
+            state.rooms.insert(room, meta.clone());
+            state.room_load_epoch.fetch_add(1, Ordering::Relaxed)
+        };
         if connected {
-            let load_epoch = state.room_load_epoch.fetch_add(1, Ordering::Relaxed);
-            drop(state);
             self.send(M2BLoaded {
                 room: meta,
-                load_epoch: load_epoch,
+                load_epoch,
             })
             .await;
         }
