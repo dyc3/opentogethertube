@@ -166,7 +166,13 @@ impl Monolith {
     }
 
     pub fn connected(&self) -> bool {
-        self.state.lock().unwrap().connected
+        match self.state.try_lock() {
+            Ok(state) => state.connected,
+            Err(_) => {
+                println!("WARNING: monolith state is locked, blocking on lock");
+                self.state.lock().unwrap().connected
+            }
+        }
     }
 
     /// Tell the provider to add this monolith to the list of available monoliths.
