@@ -55,14 +55,21 @@ export interface RoomMetadata {
 
 export interface M2BLoaded {
 	room: RoomMetadata;
+	/** A system-global epoch that is incremented every time a room is loaded or unloaded on any monolith. Used to determine which instance of a room is the oldest. */
+	load_epoch: number;
 }
 
 export interface M2BUnloaded {
 	name: RoomName;
 }
 
+export interface GossipRoom {
+	room: RoomMetadata;
+	load_epoch: number;
+}
+
 export interface M2BGossip {
-	rooms: RoomMetadata[];
+	rooms: GossipRoom[];
 }
 
 export interface M2BRoomMsg<T = unknown> {
@@ -79,16 +86,17 @@ export interface M2BKick {
 	reason: number;
 }
 
-export type MsgB2M =
-	| { type: "load"; payload: B2MLoad }
-	| { type: "join"; payload: B2MJoin }
-	| { type: "leave"; payload: B2MLeave }
-	| { type: "client_msg"; payload: B2MClientMsg };
+export type MsgB2M = 
+	| { type: "load", payload: B2MLoad }
+	| { type: "join", payload: B2MJoin }
+	| { type: "leave", payload: B2MLeave }
+	| { type: "client_msg", payload: B2MClientMsg };
 
-export type MsgM2B =
-	| { type: "init"; payload: M2BInit }
-	| { type: "loaded"; payload: M2BLoaded }
-	| { type: "unloaded"; payload: M2BUnloaded }
-	| { type: "gossip"; payload: M2BGossip }
-	| { type: "room_msg"; payload: M2BRoomMsg }
-	| { type: "kick"; payload: M2BKick };
+export type MsgM2B = 
+	| { type: "init", payload: M2BInit }
+	| { type: "loaded", payload: M2BLoaded }
+	| { type: "unloaded", payload: M2BUnloaded }
+	| { type: "gossip", payload: M2BGossip }
+	| { type: "room_msg", payload: M2BRoomMsg }
+	| { type: "kick", payload: M2BKick };
+

@@ -52,7 +52,10 @@ impl SimMonolith {
             MsgB2M::Load(msg) => {
                 self.load_room(msg.room.clone());
                 let room = generate_random_metadata(&msg.room);
-                let msg = M2BLoaded { room };
+                let msg = M2BLoaded {
+                    room,
+                    load_epoch: 0,
+                };
                 outbound_tx.send(self.build_message(msg)).await.unwrap();
             }
             MsgB2M::Join(msg) => {

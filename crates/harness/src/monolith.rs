@@ -2,7 +2,10 @@ use std::{
     collections::HashMap,
     net::{IpAddr, Ipv6Addr, SocketAddr},
     pin::Pin,
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicU32, Ordering},
+        Arc, Mutex,
+    },
 };
 
 use bytes::Bytes;
@@ -48,6 +51,7 @@ pub(crate) struct MonolithState {
     /// A mapping from request path to response body for mocking HTTP responses.
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
     rooms: HashMap<RoomName, RoomMetadata>,
+    room_load_epoch: Arc<AtomicU32>,
 }
 
 impl Monolith {
@@ -64,6 +68,7 @@ impl Monolith {
         let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
 
         let state = Arc::new(Mutex::new(MonolithState {
+            room_load_epoch: ctx.room_load_epoch.clone(),
             ..Default::default()
         }));
 
@@ -240,11 +245,19 @@ impl Monolith {
     }
 
     pub async fn load_room(&mut self, room: impl Into<RoomName> + Clone) {
+        let connected = self.connected();
         let room = room.into();
         let meta = RoomMetadata::default_with_name(room.clone());
-        self.state.lock().unwrap().rooms.insert(room, meta.clone());
-        if self.connected() {
-            self.send(M2BLoaded { room: meta }).await;
+        let mut state = self.state.lock().unwrap();
+        state.rooms.insert(room, meta.clone());
+        if connected {
+            let load_epoch = state.room_load_epoch.fetch_add(1, Ordering::Relaxed);
+            drop(state);
+            self.send(M2BLoaded {
+                room: meta,
+                load_epoch: load_epoch,
+            })
+            .await;
         }
     }
 
