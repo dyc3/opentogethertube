@@ -13,6 +13,8 @@ const v4Client = {
 	get: promisify(client.get).bind(client),
 	set: setFixed,
 	del: promisify(client.del).bind(client),
+	incr: promisify(client.incr).bind(client),
+	incrby: promisify(client.incrby).bind(client),
 	hSet: promisify(client.hset).bind(client),
 	hGet: promisify(client.hget).bind(client),
 	hDel: promisify(client.hdel).bind(client),
