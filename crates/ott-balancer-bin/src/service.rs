@@ -116,14 +116,17 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         }
                     } else {
                         let ctx_read = ctx.read().await;
-                        let monolith = if let Some(monolith_id) =
-                            ctx_read.rooms_to_monoliths.get(&room_name)
-                        {
-                            info!("found room {} in monolith {}", room_name, monolith_id);
-                            ctx_read.monoliths.get(monolith_id)
-                        } else {
-                            ctx_read.select_monolith().ok()
-                        };
+                        let monolith =
+                            if let Some(locator) = ctx_read.rooms_to_monoliths.get(&room_name) {
+                                info!(
+                                    "found room {} in monolith {}",
+                                    room_name,
+                                    locator.monolith_id()
+                                );
+                                ctx_read.monoliths.get(&locator.monolith_id())
+                            } else {
+                                ctx_read.select_monolith().ok()
+                            };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
                             match proxy_request(req, monolith).await {

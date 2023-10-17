@@ -92,6 +92,8 @@ pub struct M2BInit {
 #[typeshare]
 pub struct M2BLoaded {
     pub room: RoomMetadata,
+    /// A system-global epoch that is incremented every time a room is loaded or unloaded on any monolith. Used to determine which instance of a room is the oldest.
+    pub load_epoch: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -103,7 +105,14 @@ pub struct M2BUnloaded {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
 pub struct M2BGossip {
-    pub rooms: Vec<RoomMetadata>,
+    pub rooms: Vec<GossipRoom>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
+pub struct GossipRoom {
+    pub room: RoomMetadata,
+    pub load_epoch: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

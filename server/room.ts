@@ -251,6 +251,7 @@ export class Room implements RoomState {
 	 */
 	wantSponsorBlock = false;
 	dontSkipSegmentsUntil: number | null = null;
+	loadEpoch: number = -1;
 
 	constructor(options: Partial<RoomOptions>) {
 		this.log = getLogger(`room/${options.name}`);

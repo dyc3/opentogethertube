@@ -63,8 +63,8 @@ impl BalancerMonolith {
         self.rooms.insert(room.name.clone(), room);
     }
 
-    pub fn remove_room(&mut self, room: &RoomName) {
-        self.rooms.remove(room);
+    pub fn remove_room(&mut self, room: &RoomName) -> Option<Room> {
+        self.rooms.remove(room)
     }
 
     pub fn has_room(&self, room: &RoomName) -> bool {

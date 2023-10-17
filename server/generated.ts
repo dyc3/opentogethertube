@@ -55,14 +55,21 @@ export interface RoomMetadata {
 
 export interface M2BLoaded {
 	room: RoomMetadata;
+	/** A system-global epoch that is incremented every time a room is loaded or unloaded on any monolith. Used to determine which instance of a room is the oldest. */
+	load_epoch: number;
 }
 
 export interface M2BUnloaded {
 	name: RoomName;
 }
 
+export interface GossipRoom {
+	room: RoomMetadata;
+	load_epoch: number;
+}
+
 export interface M2BGossip {
-	rooms: RoomMetadata[];
+	rooms: GossipRoom[];
 }
 
 export interface M2BRoomMsg<T = unknown> {

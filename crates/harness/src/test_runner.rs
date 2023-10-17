@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use tokio::process::{Child, Command};
 
@@ -14,6 +14,8 @@ pub struct TestRunner {
 
     pub(crate) monolith_add_tx: tokio::sync::mpsc::Sender<SocketAddr>,
     pub(crate) monolith_remove_tx: tokio::sync::mpsc::Sender<SocketAddr>,
+
+    pub(crate) room_load_epoch: Arc<std::sync::atomic::AtomicU32>,
 }
 
 impl TestRunner {}
@@ -79,6 +81,7 @@ impl AsyncTestContext for TestRunner {
             child,
             monolith_add_tx,
             monolith_remove_tx,
+            room_load_epoch: Arc::new(std::sync::atomic::AtomicU32::new(0)),
         }
     }
 

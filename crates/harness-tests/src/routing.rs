@@ -114,3 +114,73 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
     let recvd = m.collect_recv();
     assert_eq!(recvd.len(), 1);
 }
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
+    // smoke test for the possible race condition where a room is loaded and a client joins at the same time
+
+    let mut dummy = Monolith::new(ctx).await.unwrap();
+    dummy.show().await;
+
+    let mut m = Monolith::new(ctx).await.unwrap();
+    m.show().await;
+    tokio::time::sleep(Duration::from_millis(200)).await; // ensure that the monoliths are fully connected before sending the room load message
+
+    for i in 0..20 {
+        let room_name = format!("foo{}", i);
+        m.load_room(room_name.clone()).await;
+
+        let mut client = Client::new(ctx).unwrap();
+        client.join(room_name).await;
+
+        println!("waiting for monolith to receive join message");
+        tokio::time::timeout(Duration::from_secs(1), m.wait_recv())
+            .await
+            .expect("msg recv timeout");
+
+        let recvd = m.collect_recv();
+        assert_eq!(recvd.len(), 1);
+        m.clear_recv();
+        dummy.clear_recv();
+
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+}
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn monolith_double_load_room(ctx: &mut TestRunner) {
+    println!("port: {}", ctx.port);
+    let mut m1 = Monolith::new(ctx).await.unwrap();
+    let mut m2 = Monolith::new(ctx).await.unwrap();
+    println!("m1: http {}", m1.http_port());
+    println!("m2: http {}", m2.http_port());
+    m1.mock_http_json(
+        "/api/room/foo",
+        MockRespParts::default(),
+        serde_json::json!({
+            "name": "foo",
+        }),
+    );
+
+    m1.show().await;
+    m2.show().await;
+
+    m1.load_room("foo").await;
+    m2.load_room("foo").await;
+
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    let resp = reqwest::get(format!("http://[::1]:{}/api/room/foo", ctx.port))
+        .await
+        .expect("http request failed")
+        .error_for_status()
+        .expect("bad http status");
+
+    let reqs = m1.collect_mock_http();
+    assert_eq!(reqs.len(), 1);
+
+    let t = resp.text().await.expect("failed to read http response");
+    assert_eq!(t, "{\"name\":\"foo\"}");
+}

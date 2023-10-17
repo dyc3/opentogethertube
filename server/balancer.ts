@@ -278,6 +278,7 @@ async function onRoomLoad(roomName: string) {
 		type: "loaded",
 		payload: {
 			room: obj,
+			load_epoch: room.loadEpoch,
 		},
 	});
 	gossipDebounced();
@@ -299,14 +300,17 @@ function gossip() {
 		type: "gossip",
 		payload: {
 			rooms: roommanager.rooms.map(room => ({
-				name: room.name,
-				title: room.title,
-				description: room.description,
-				isTemporary: room.isTemporary,
-				visibility: room.visibility,
-				queueMode: room.queueMode,
-				currentSource: room.currentSource,
-				users: room.users.length,
+				room: {
+					name: room.name,
+					title: room.title,
+					description: room.description,
+					isTemporary: room.isTemporary,
+					visibility: room.visibility,
+					queueMode: room.queueMode,
+					currentSource: room.currentSource,
+					users: room.users.length,
+				},
+				load_epoch: room.loadEpoch,
 			})),
 		},
 	});

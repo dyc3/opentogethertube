@@ -22,6 +22,7 @@ mod connection;
 mod discovery;
 mod messages;
 mod monolith;
+mod room;
 mod service;
 
 #[tokio::main]
