@@ -36,7 +36,7 @@ async function addRoom(room: Room) {
 	rooms.push(room);
 	const epoch = await redisClient.incr(LOAD_EPOCH_KEY);
 	room.loadEpoch = epoch;
-	if (epoch >= 2147483647) {
+	if (epoch >= 2147483640) {
 		// ensure we don't overflow the integer
 		await redisClient.set(LOAD_EPOCH_KEY, 0);
 	}
