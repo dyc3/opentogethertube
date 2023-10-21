@@ -4,8 +4,19 @@
 			<!-- TODO: replace with v-banner when this is fixed: https://github.com/vuetifyjs/vuetify/issues/17124 -->
 			<v-sheet color="warning" density="compact" v-if="showBufferWarning">
 				<v-container fluid style="padding: 6px">
-					<v-progress-circular indeterminate size="16" width="2" />
-					{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}
+					<div style="display: flex; align-items: center">
+						<v-progress-circular indeterminate size="16" width="2" />
+						<span>{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}</span>
+						<v-spacer />
+						<v-btn
+							size="x-small"
+							variant="text"
+							icon
+							@click="showBufferWarning = false"
+						>
+							<v-icon>fa:fas fa-times</v-icon>
+						</v-btn>
+					</div>
 				</v-container>
 			</v-sheet>
 		</div>
