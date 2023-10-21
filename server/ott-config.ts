@@ -407,6 +407,16 @@ export const conf = convict({
 		nullable: true,
 	},
 	room: {
+		enable_create_temporary: {
+			doc: "Whether to allow creating temporary rooms.",
+			format: Boolean,
+			default: true,
+		},
+		enable_create_permanent: {
+			doc: "Whether to allow creating permanent rooms.",
+			format: Boolean,
+			default: true,
+		},
 		unload_after: {
 			doc: "The interval in seconds to after a room is considered inactive that the server will keep the room alive.",
 			format: Number,
