@@ -3,7 +3,7 @@ import { getLogger } from "../logger";
 import roommanager from "../roommanager";
 import { QueueMode, Visibility } from "../../common/models/types";
 import { consumeRateLimitPoints } from "../rate-limit";
-import { BadApiArgumentException } from "../exceptions";
+import { BadApiArgumentException, FeatureDisabledException } from "../exceptions";
 import { OttException } from "../../common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
@@ -29,6 +29,7 @@ import {
 import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
+import { conf } from "../ott-config";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -90,6 +91,10 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 	req,
 	res
 ) => {
+	if (!conf.get("room.enable_create_temporary")) {
+		throw new FeatureDisabledException("Temporary rooms are disabled.");
+	}
+
 	let points = 50;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
@@ -119,6 +124,13 @@ const createRoom: RequestHandler<
 	if (!isValidCreateRoom(req.body)) {
 		throw new BadApiArgumentException("name", "missing");
 	}
+
+	if (req.body.isTemporary && !conf.get("room.enable_create_temporary")) {
+		throw new FeatureDisabledException("Temporary rooms are disabled.");
+	} else if (!req.body.isTemporary && !conf.get("room.enable_create_permanent")) {
+		throw new FeatureDisabledException("Permanent rooms are disabled.");
+	}
+
 	if (!req.body.name) {
 		throw new BadApiArgumentException("name", "missing");
 	}
@@ -465,6 +477,15 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 					message: err.message,
 					arg: e.arg,
 					reason: e.reason,
+				},
+			});
+		} else if (err.name === "FeatureDisabledException") {
+			const e = err as FeatureDisabledException;
+			res.status(403).json({
+				success: false,
+				error: {
+					name: "FeatureDisabledException",
+					message: err.message,
 				},
 			});
 		} else {

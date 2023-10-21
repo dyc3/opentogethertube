@@ -7,6 +7,8 @@ import { RoomNotFoundException } from "../../../../server/exceptions";
 import { main } from "../../../app";
 import { Room as RoomModel, User as UserModel } from "../../../models";
 import usermanager from "../../../usermanager";
+import { OttApiRequestRoomCreate } from "common/models/rest-api";
+import { conf } from "../../../../server/ott-config";
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -281,5 +283,30 @@ describe("Room API", () => {
 			await roommanager.unloadRoom("testowner");
 			await RoomModel.destroy({ where: { name: "testowner" } });
 		});
+
+		const requests: [string, OttApiRequestRoomCreate | undefined][] = [
+			["/api/room/create", { name: "testtempdisabled", isTemporary: true }],
+			["/api/room/create", { name: "testpermdisabled", isTemporary: false }],
+			["/api/room/generate", undefined],
+		];
+
+		for (const [path, body] of requests) {
+			it(`should fail to create room if feature is disabled: Endpoint ${path} body ${JSON.stringify(
+				body
+			)}`, async () => {
+				conf.set("room.enable_create_temporary", false);
+				conf.set("room.enable_create_permanent", false);
+
+				const resp = await request(app)
+					.post(path)
+					.send(body)
+					.expect("Content-Type", /json/)
+					.expect(403);
+				expect(resp.body.success).toEqual(false);
+				expect(resp.body.error).toMatchObject({
+					name: "FeatureDisabledException",
+				});
+			});
+		}
 	});
 });
