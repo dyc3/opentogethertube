@@ -555,7 +555,7 @@ pub async fn dispatch_monolith_message(
             let msg: MsgM2B = msg.message().deserialize()?;
 
             debug!("got message from monolith: {:?}", msg);
-
+            
             match msg {
                 MsgM2B::Init(_) => {
                     warn!(
@@ -622,17 +622,23 @@ pub async fn dispatch_monolith_message(
                     };
 
                     // TODO: also handle the case where the client_id is Some
-
-                    // broadcast to all clients
-                    debug!("broadcasting to clients in room: {:?}", room.name());
-                    // TODO: optimize this using a broadcast channel
                     let built_msg = Message::text(msg.payload.to_string());
-                    for client in room.clients() {
-                        let Some(client) = ctx_read.clients.get(client) else {
-                            anyhow::bail!("client not found");
-                        };
-
-                        client.send(built_msg.clone()).await?;
+                    
+                    match ctx_read.clients.get(&msg.client_id) {
+                        Some(client) => {
+                            client.send(built_msg.clone()).await?;
+                        }
+                        None => {
+                            // broadcast to all clients
+                            debug!("broadcasting to clients in room: {:?}", room.name());
+                            // TODO: optimize this using a broadcast channel
+                            for client in room.clients() {
+                                let Some(client) = ctx_read.clients.get(client) else {
+                                    anyhow::bail!("client not found");
+                                };
+                                client.send(built_msg.clone()).await?;
+                            }   
+                        }
                     }
                 }
                 MsgM2B::Kick(msg) => {
