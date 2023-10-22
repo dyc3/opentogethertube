@@ -343,7 +343,7 @@ impl BalancerContext {
             if locator.load_epoch() < load_epoch {
                 // we already have an older version of this room
                 return Err(anyhow::anyhow!("room already loaded"));
-            } else if locator.monolith_id() > monolith_id {
+            } else if locator.load_epoch() > load_epoch {
                 // we have an newer version of this room, remove it
                 self.remove_room(&metadata.name, locator.monolith_id())
                     .await?;
