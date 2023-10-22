@@ -132,12 +132,23 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
         m.load_room(room_name.clone()).await;
 
         let mut client = Client::new(ctx).unwrap();
-        client.join(room_name).await;
+        client.join(room_name.clone()).await;
 
         println!("waiting for monolith to receive join message");
-        tokio::time::timeout(Duration::from_secs(1), m.wait_recv())
-            .await
-            .expect("msg recv timeout");
+        // this more accurately emulates what the client would actually do
+        loop {
+            tokio::select! {
+                result = tokio::time::timeout(Duration::from_secs(1), m.wait_recv()) => {
+                    result.expect("msg recv timeout");
+                    break;
+                },
+                _ = client.wait_for_disconnect() => {
+                    println!("client disconnected, retrying");
+                    client.join(room_name.clone()).await;
+                    continue;
+                }
+            };
+        }
 
         let recvd = m.collect_recv();
         assert_eq!(recvd.len(), 1);
