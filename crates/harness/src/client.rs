@@ -86,7 +86,7 @@ impl Client {
         }
 
         let mut stream = self.stream.take().unwrap();
-        while let Some(_) = stream.next().await {}
+        while stream.next().await.is_some() {}
     }
 
     pub async fn recv(&mut self) -> anyhow::Result<Message> {
