@@ -80,6 +80,15 @@ impl Client {
         let _ = stream.close(None).await;
     }
 
+    pub async fn wait_for_disconnect(&mut self) {
+        if !self.connected() {
+            return;
+        }
+
+        let mut stream = self.stream.take().unwrap();
+        while stream.next().await.is_some() {}
+    }
+
     pub async fn recv(&mut self) -> anyhow::Result<Message> {
         if let Some(stream) = self.stream.as_mut() {
             match tokio::time::timeout(Duration::from_millis(200), stream.next()).await {
