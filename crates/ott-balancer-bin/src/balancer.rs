@@ -621,12 +621,14 @@ pub async fn dispatch_monolith_message(
                         anyhow::bail!("room not found on monolith");
                     };
 
-                    // TODO: also handle the case where the client_id is Some
                     let built_msg = Message::text(msg.payload.to_string());
                     
-                    match ctx_read.clients.get(&msg.client_id) {
+                    match &msg.client_id {
                         Some(client) => {
-                            client.send(built_msg.clone()).await?;
+                            let Some(client) = ctx_read.clients.get(client) else {
+                                anyhow::bail!("client not found");
+                            };
+                            client.send(built_msg).await?;
                         }
                         None => {
                             // broadcast to all clients
