@@ -340,13 +340,17 @@ impl BalancerContext {
             metadata.name, monolith_id, load_epoch
         );
         if let Some(locator) = self.rooms_to_monoliths.get(&metadata.name) {
-            if locator.load_epoch() < load_epoch {
-                // we already have an older version of this room
-                return Err(anyhow::anyhow!("room already loaded"));
-            } else if locator.load_epoch() > load_epoch {
-                // we have an newer version of this room, remove it
-                self.remove_room(&metadata.name, locator.monolith_id())
-                    .await?;
+            match locator.load_epoch().cmp(&load_epoch) {
+                std::cmp::Ordering::Less => {
+                    // we already have an older version of this room
+                    return Err(anyhow::anyhow!("room already loaded"));
+                }
+                std::cmp::Ordering::Greater => {
+                    // we have an newer version of this room, remove it
+                    self.remove_room(&metadata.name, locator.monolith_id())
+                        .await?;
+                }
+                _ => {}
             }
         }
         let monolith = self.monoliths.get_mut(&monolith_id).unwrap();
