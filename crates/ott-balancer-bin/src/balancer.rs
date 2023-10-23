@@ -1,10 +1,12 @@
 use std::{collections::HashMap, sync::Arc};
 
-use ott_balancer_protocol::monolith::{B2MClientMsg, B2MJoin, B2MLeave, MsgM2B, RoomMetadata};
+use ott_balancer_protocol::monolith::{
+    B2MClientMsg, B2MJoin, B2MLeave, B2MLoad, MsgM2B, RoomMetadata,
+};
 use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
-use tokio::sync::RwLock;
+use tokio::sync::{Notify, RwLock};
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
@@ -216,6 +218,8 @@ pub struct BalancerContext {
     pub clients: HashMap<ClientId, BalancerClient>,
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
     pub rooms_to_monoliths: HashMap<RoomName, RoomLocator>,
+
+    load_notifiers: HashMap<RoomName, Arc<Notify>>,
 }
 
 impl BalancerContext {
@@ -224,6 +228,7 @@ impl BalancerContext {
             clients: HashMap::new(),
             monoliths: HashMap::new(),
             rooms_to_monoliths: HashMap::new(),
+            load_notifiers: HashMap::new(),
         }
     }
 
@@ -359,7 +364,11 @@ impl BalancerContext {
             metadata.name.clone(),
             RoomLocator::new(monolith_id, load_epoch),
         );
+        let room_name = metadata.name.clone();
         monolith.add_or_sync_room(metadata);
+        if let Some(notif) = self.load_notifiers.remove(&room_name) {
+            notif.notify_one();
+        }
 
         Ok(())
     }
@@ -414,6 +423,22 @@ impl BalancerContext {
             .ok_or(anyhow::anyhow!("no monoliths available"))?;
         Ok(selected)
     }
+
+    fn create_load_notifier(&mut self, room: &RoomName) -> Arc<Notify> {
+        let notify = Arc::new(Notify::new());
+        self.load_notifiers.insert(room.clone(), notify.clone());
+        notify
+    }
+
+    /// Selects a monolith and sends a load message to it.
+    ///
+    /// Before any balancer state is updated, the task needs to wait for the load notification to be notified.
+    pub async fn load_room(&mut self, name: &RoomName) -> anyhow::Result<Arc<Notify>> {
+        let monolith = self.select_monolith()?;
+        debug!("selected monolith {:?} to load {}", monolith.id(), name);
+        monolith.send(B2MLoad { room: name.clone() }).await?;
+        Ok(self.create_load_notifier(name))
+    }
 }
 
 pub async fn join_client(
@@ -431,31 +456,55 @@ pub async fn join_client(
         .send(client_rx)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
 
-    // since we're always going to be doing a write, we can just lock the context for the whole function so it doesn't change out from under us
-    let mut ctx_write = ctx.write().await;
+    // We grab a read lock so we can wait for the room to be loaded if it's not already without blocking other operations
+    let ctx_read = ctx.read().await;
 
-    let (monolith_id, should_create_room) = match ctx_write.rooms_to_monoliths.get(&client.room) {
+    let monolith_id = match ctx_read.rooms_to_monoliths.get(&client.room) {
         Some(locator) => {
             debug!(
                 "room {} already loaded on {}",
                 client.room,
                 locator.monolith_id()
             );
-            (locator.monolith_id(), false)
+            Some(locator.monolith_id())
         }
         None => {
-            // the room is not loaded, randomly select a monolith
-            let selected = ctx_write.select_monolith()?;
-            debug!("room is not loaded, selected monolith: {:?}", selected.id());
-            (selected.id(), true)
+            let load_notif = if let Some(load_notif) = ctx_read.load_notifiers.get(&client.room) {
+                // load notifier exists, wait for it to be notified
+                load_notif.clone()
+            } else {
+                // load notifier does not exist, we need to grab a write lock to create it
+                debug!(
+                    "room {} is not loaded or loading, attempting to load",
+                    client.room
+                );
+                let mut ctx_write = ctx.write().await;
+                let load_notif = ctx_write.load_room(&client.room).await?;
+                drop(ctx_write);
+                load_notif
+            };
+            debug!(
+                "room {} is not loaded, waiting for load notification",
+                client.room
+            );
+            load_notif.notified().await;
+
+            None
         }
     };
 
-    if should_create_room {
-        let room = Room::new(client.room.clone());
-        // we assume the load epoch is 0 since we're creating the room. this will be updated when the monolith sends us the loaded message
-        ctx_write.add_room(room, RoomLocator::new(monolith_id, 0))?;
-    }
+    drop(ctx_read);
+    let mut ctx_write = ctx.write().await;
+
+    let monolith_id = match monolith_id {
+        Some(monolith_id) => monolith_id,
+        None => ctx_write
+            .rooms_to_monoliths
+            .get(&client.room)
+            .ok_or(anyhow::anyhow!("room not found in rooms_to_monoliths"))?
+            .monolith_id(),
+    };
+
     ctx_write.add_client(client, monolith_id).await?;
     Ok(())
 }
