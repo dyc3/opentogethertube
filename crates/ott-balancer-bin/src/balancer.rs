@@ -319,6 +319,7 @@ impl BalancerContext {
             .get_mut(&monolith_id)
             .ok_or(anyhow::anyhow!("monolith not found"))?;
         self.rooms_to_monoliths.remove(room);
+        self.load_notifiers.remove(room);
         let room = monolith.remove_room(room);
         if let Some(room) = room {
             for client_id in room.clients() {
@@ -367,15 +368,9 @@ impl BalancerContext {
         );
         let room_name = metadata.name.clone();
         monolith.add_or_sync_room(metadata);
-        if let Some(notif) = self.load_notifiers.remove(&room_name) {
-            // notif.notify_one();
-            // notif.notify_waiters();
-            // HACK: maybe there's a better way to do this?
-            tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_secs(100)).await;
-                notif.notify_one();
-                notif.notify_waiters();
-            });
+        if let Some(notif) = self.load_notifiers.get(&room_name) {
+            notif.notify_one();
+            notif.notify_waiters();
         }
 
         Ok(())
@@ -479,14 +474,14 @@ pub async fn join_client(
             Some(monolith_id)
         }
         None => {
-            if let Some(load_notif) = ctx_read.load_notifiers.get(&client.room) {
+            if let Some(load_notif) = ctx_read.load_notifiers.get(&client.room).cloned() {
                 // load notifier exists, wait for it to be notified
                 debug!(
                     "room {} is not loaded, waiting for load notification",
                     client.room
                 );
-                load_notif.notified().await;
                 drop(ctx_read);
+                load_notif.notified().await;
             } else {
                 // load notifier does not exist, we need to grab a write lock to create it
                 debug!(
