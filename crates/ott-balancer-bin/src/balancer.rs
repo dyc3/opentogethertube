@@ -1,3 +1,4 @@
+use std::time::Duration;
 use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::monolith::{
@@ -367,7 +368,14 @@ impl BalancerContext {
         let room_name = metadata.name.clone();
         monolith.add_or_sync_room(metadata);
         if let Some(notif) = self.load_notifiers.remove(&room_name) {
-            notif.notify_one();
+            // notif.notify_one();
+            // notif.notify_waiters();
+            // HACK: maybe there's a better way to do this?
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(100)).await;
+                notif.notify_one();
+                notif.notify_waiters();
+            });
         }
 
         Ok(())
@@ -466,34 +474,36 @@ pub async fn join_client(
                 client.room,
                 locator.monolith_id()
             );
-            Some(locator.monolith_id())
+            let monolith_id = locator.monolith_id();
+            drop(ctx_read);
+            Some(monolith_id)
         }
         None => {
-            let load_notif = if let Some(load_notif) = ctx_read.load_notifiers.get(&client.room) {
+            if let Some(load_notif) = ctx_read.load_notifiers.get(&client.room) {
                 // load notifier exists, wait for it to be notified
-                load_notif.clone()
+                debug!(
+                    "room {} is not loaded, waiting for load notification",
+                    client.room
+                );
+                load_notif.notified().await;
+                drop(ctx_read);
             } else {
                 // load notifier does not exist, we need to grab a write lock to create it
                 debug!(
                     "room {} is not loaded or loading, attempting to load",
                     client.room
                 );
+                drop(ctx_read);
                 let mut ctx_write = ctx.write().await;
                 let load_notif = ctx_write.load_room(&client.room).await?;
                 drop(ctx_write);
-                load_notif
+                load_notif.notified().await;
             };
-            debug!(
-                "room {} is not loaded, waiting for load notification",
-                client.room
-            );
-            load_notif.notified().await;
 
             None
         }
     };
 
-    drop(ctx_read);
     let mut ctx_write = ctx.write().await;
 
     let monolith_id = match monolith_id {
