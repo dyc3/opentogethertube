@@ -127,7 +127,7 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
     m.show().await;
     tokio::time::sleep(Duration::from_millis(200)).await; // ensure that the monoliths are fully connected before sending the room load message
 
-    for i in 0..20 {
+    for i in 0..100 {
         let room_name = format!("foo{}", i);
         m.load_room(room_name.clone()).await;
 
@@ -154,8 +154,6 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
         assert_eq!(recvd.len(), 1);
         m.clear_recv();
         dummy.clear_recv();
-
-        tokio::time::sleep(Duration::from_millis(100)).await;
     }
 }
 
