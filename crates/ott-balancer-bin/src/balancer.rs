@@ -437,6 +437,10 @@ impl BalancerContext {
     ///
     /// Before any balancer state is updated, the task needs to wait for the load notification to be notified.
     pub async fn load_room(&mut self, name: &RoomName) -> anyhow::Result<Arc<Notify>> {
+        if self.rooms_to_monoliths.contains_key(name) {
+            debug!("room {} already loaded, not loading room", name);
+            anyhow::bail!("room already loaded");
+        }
         let monolith = self.select_monolith()?;
         debug!("selected monolith {:?} to load {}", monolith.id(), name);
         monolith.send(B2MLoad { room: name.clone() }).await?;
@@ -484,15 +488,23 @@ pub async fn join_client(
                 load_notif.notified().await;
             } else {
                 // load notifier does not exist, we need to grab a write lock to create it
+                drop(ctx_read);
+                // HACK: in a multi-threaded tokio runtime, this sleep needed to avoid double loading rooms
+                tokio::time::sleep(Duration::from_millis(100)).await;
+                let mut ctx_write = ctx.write().await;
                 debug!(
                     "room {} is not loaded or loading, attempting to load",
                     client.room
                 );
-                drop(ctx_read);
-                let mut ctx_write = ctx.write().await;
-                let load_notif = ctx_write.load_room(&client.room).await?;
+                match ctx_write.load_room(&client.room).await {
+                    Ok(load_notif) => {
+                        load_notif.notified().await;
+                    }
+                    Err(err) => {
+                        warn!("failed to load room: {:?}", err);
+                    }
+                }
                 drop(ctx_write);
-                load_notif.notified().await;
             };
 
             None
