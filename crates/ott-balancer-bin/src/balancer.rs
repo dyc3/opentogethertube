@@ -297,17 +297,6 @@ impl BalancerContext {
         Ok(())
     }
 
-    pub fn add_room(&mut self, room: Room, locator: RoomLocator) -> anyhow::Result<()> {
-        debug!("add_room {} {:?}", room.name(), locator);
-        let monolith = self
-            .monoliths
-            .get_mut(&locator.monolith_id())
-            .ok_or(anyhow::anyhow!("monolith not found"))?;
-        self.rooms_to_monoliths.insert(room.name().clone(), locator);
-        monolith.add_room(room);
-        Ok(())
-    }
-
     pub async fn remove_room(
         &mut self,
         room: &RoomName,
