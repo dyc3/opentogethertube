@@ -11,6 +11,7 @@ use crate::{ClientId, RoomName};
 #[typeshare]
 pub enum MsgB2M {
     Load(B2MLoad),
+    Unload(B2MUnload),
     Join(B2MJoin),
     Leave(B2MLeave),
     ClientMsg(B2MClientMsg),
@@ -19,6 +20,12 @@ pub enum MsgB2M {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
 pub struct B2MLoad {
+    pub room: RoomName,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
+pub struct B2MUnload {
     pub room: RoomName,
 }
 
