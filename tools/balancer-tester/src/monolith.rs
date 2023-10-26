@@ -58,6 +58,7 @@ impl SimMonolith {
                 };
                 outbound_tx.send(self.build_message(msg)).await.unwrap();
             }
+            MsgB2M::Unload(msg) => todo!(),
             MsgB2M::Join(msg) => {
                 let room = match self.rooms.get_mut(&msg.room) {
                     Some(room) => room,
