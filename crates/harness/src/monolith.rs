@@ -21,6 +21,10 @@ use tungstenite::Message;
 
 use crate::{TestRunner, WebsocketSender};
 
+pub mod behavior;
+
+pub use behavior::*;
+
 pub struct Monolith {
     pub(crate) listener: Arc<TcpListener>,
     pub(crate) http_listener: Arc<TcpListener>,
@@ -44,7 +48,7 @@ pub struct Monolith {
 /// This is necessary because the monolith is split into two tasks: one for the websocket
 /// connection and one for the HTTP mock server.
 #[derive(Debug, Default)]
-pub(crate) struct MonolithState {
+pub struct MonolithState {
     connected: bool,
     received_raw: Vec<Message>,
     received_http: Vec<MockRequest>,
@@ -56,6 +60,13 @@ pub(crate) struct MonolithState {
 
 impl Monolith {
     pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
+        Self::with_behavior(ctx, BehaviorManual).await
+    }
+
+    pub async fn with_behavior<B>(ctx: &TestRunner, mut behavior: B) -> anyhow::Result<Self>
+    where
+        B: Behavior + Send + 'static,
+    {
         // Binding to port 0 will let the OS allocate a random port for us.
         let listener =
             Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
@@ -100,7 +111,20 @@ impl Monolith {
                                 match msg {
                                     Ok(msg) => {
                                         println!("monolith: incoming msg: {}", msg);
-                                        state.lock().unwrap().received_raw.push(msg);
+                                        let to_send = {
+                                            let mut s = state.lock().unwrap();
+                                            let parsed = match &msg {
+                                                Message::Text(msg) => serde_json::from_str(&msg).unwrap(),
+                                                _ => panic!("unexpected message type: {:?}", msg),
+                                            };
+                                            let to_send = behavior.on_msg(&parsed, &mut s);
+                                            s.received_raw.push(msg);
+                                            to_send
+                                        };
+                                        for msg in to_send {
+                                            let m = serde_json::to_string(&msg).unwrap();
+                                            ws.send(Message::Text(m)).await.unwrap();
+                                        }
                                         _notif_recv.notify_one();
                                     },
                                     Err(e) => {
