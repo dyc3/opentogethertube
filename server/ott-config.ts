@@ -360,6 +360,12 @@ export const conf = convict({
 			default: 3002,
 			env: "BALANCING_PORT",
 		},
+		region: {
+			doc: "The region that this server is in.",
+			format: String,
+			default: "unknown",
+			env: "BALANCING_REGION",
+		},
 	},
 	mail: {
 		enabled: {
@@ -512,6 +518,11 @@ function postProcessConfig(): void {
 
 	if (conf.get("mail.enabled")) {
 		validateMail();
+	}
+
+	if (process.env.FLY_REGION) {
+		log.info("Found FLY_REGION. Using it for balancing.region.");
+		conf.set("balancing.region", process.env.FLY_REGION);
 	}
 }
 

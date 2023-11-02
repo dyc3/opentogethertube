@@ -85,7 +85,10 @@ impl Monolith {
                 loop {
                     let (stream, _) = _listener.accept().await.unwrap();
                     let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
-                    let init = M2BInit { port: http_port };
+                    let init = M2BInit {
+                        port: http_port,
+                        region: "unknown".into(),
+                    };
                     let msg = serde_json::to_string(&MsgM2B::Init(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
                     state.lock().unwrap().connected = true;
