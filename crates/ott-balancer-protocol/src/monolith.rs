@@ -93,6 +93,7 @@ pub enum MsgM2B {
 pub struct M2BInit {
     /// The port that the monolith is listening for HTTP requests on.
     pub port: u16,
+    pub region: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -36,6 +36,7 @@ export interface B2MClientMsg<T = unknown> {
 export interface M2BInit {
 	/** The port that the monolith is listening for HTTP requests on. */
 	port: number;
+	region: string;
 }
 
 export enum Visibility {
