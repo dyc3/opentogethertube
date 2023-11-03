@@ -397,10 +397,10 @@ mod tests {
     #[test_context(TestRunner)]
     #[tokio::test]
     async fn should_track_clients(ctx: &mut TestRunner) {
-        let mut m = Monolith::new(&ctx).await.unwrap();
+        let mut m = Monolith::new(ctx).await.unwrap();
         m.show().await;
 
-        let mut c1 = Client::new(&ctx).unwrap();
+        let mut c1 = Client::new(ctx).unwrap();
         c1.join("foo").await;
 
         m.wait_recv().await;
