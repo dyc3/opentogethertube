@@ -58,6 +58,12 @@ impl From<B2MLoad> for MsgB2M {
     }
 }
 
+impl From<B2MUnload> for MsgB2M {
+    fn from(val: B2MUnload) -> Self {
+        Self::Unload(val)
+    }
+}
+
 impl From<B2MJoin> for MsgB2M {
     fn from(val: B2MJoin) -> Self {
         Self::Join(val)
