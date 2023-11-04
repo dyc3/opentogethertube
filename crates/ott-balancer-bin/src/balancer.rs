@@ -13,7 +13,6 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, trace, warn};
 
-
 use crate::room::RoomLocator;
 use crate::{
     client::{BalancerClient, NewClient},
