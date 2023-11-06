@@ -6,6 +6,7 @@ use test_context::test_context;
 
 mod connection;
 mod routing;
+mod state;
 
 #[test_context(TestRunner)]
 #[tokio::test]
