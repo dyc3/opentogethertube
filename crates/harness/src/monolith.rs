@@ -21,6 +21,7 @@ use tungstenite::Message;
 
 use crate::{TestRunner, WebsocketSender};
 
+/// An emulated monolith. Create one using [`MonolithBuilder`].
 pub struct Monolith {
     pub(crate) listener: Arc<TcpListener>,
     pub(crate) http_listener: Arc<TcpListener>,
@@ -249,23 +250,8 @@ impl Monolith {
             .collect()
     }
 
-    /// Set a mock HTTP response for the given path.
-    pub fn mock_http_raw(&mut self, path: impl Into<String>, parts: MockRespParts, body: Bytes) {
-        self.state
-            .lock()
-            .unwrap()
-            .response_mocks
-            .insert(path.into(), (parts, body));
-    }
-
-    pub fn mock_http_json(
-        &mut self,
-        path: impl Into<String>,
-        parts: MockRespParts,
-        body: impl serde::Serialize,
-    ) {
-        let body = serde_json::to_vec(&body).unwrap();
-        self.mock_http_raw(path, parts, body.into())
+    pub fn set_all_mock_http(&mut self, mocks: HashMap<String, (MockRespParts, Bytes)>) {
+        self.state.lock().unwrap().response_mocks = mocks;
     }
 
     pub fn collect_mock_http(&self) -> Vec<MockRequest> {
@@ -389,6 +375,48 @@ pub struct MockRequest {
     pub uri: hyper::Uri,
     pub headers: hyper::HeaderMap,
     pub body: Bytes,
+}
+
+/// Used to build an emulated monolith.
+#[derive(Debug, Clone, Default)]
+pub struct MonolithBuilder {
+    response_mocks: HashMap<String, (MockRespParts, Bytes)>,
+}
+
+impl MonolithBuilder {
+    pub fn new() -> Self {
+        Self {
+            ..Default::default()
+        }
+    }
+
+    pub async fn build(self, ctx: &TestRunner) -> Monolith {
+        let mut monolith = Monolith::new(ctx).await.unwrap();
+        monolith.set_all_mock_http(self.response_mocks);
+        monolith
+    }
+
+    /// Set a mock HTTP response for the given path.
+    pub fn add_mock_http_raw(
+        mut self,
+        path: impl Into<String>,
+        parts: MockRespParts,
+        body: Bytes,
+    ) -> Self {
+        self.response_mocks.insert(path.into(), (parts, body));
+        self
+    }
+
+    /// Set a mock HTTP response for the given path, with the body serialized as JSON.
+    pub fn add_mock_http_json(
+        self,
+        path: impl Into<String>,
+        parts: MockRespParts,
+        body: impl serde::Serialize,
+    ) -> Self {
+        let body = serde_json::to_vec(&body).unwrap();
+        self.add_mock_http_raw(path, parts, body.into())
+    }
 }
 
 #[cfg(test)]
