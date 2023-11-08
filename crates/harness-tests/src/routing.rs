@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use harness::{Client, MockRespParts, Monolith, TestRunner};
+use harness::{Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
 use test_context::test_context;
 
 #[test_context(TestRunner)]
@@ -9,14 +9,16 @@ async fn route_http_to_correct_monolith(ctx: &mut TestRunner) {
     let mut dummy = Monolith::new(ctx).await.unwrap();
     dummy.show().await;
 
-    let mut m = Monolith::new(ctx).await.unwrap();
-    m.mock_http_json(
-        "/api/room/foo",
-        MockRespParts::default(),
-        serde_json::json!({
-            "name": "foo",
-        }),
-    );
+    let mut m = MonolithBuilder::new()
+        .add_mock_http_json(
+            "/api/room/foo",
+            MockRespParts::default(),
+            serde_json::json!({
+                "name": "foo",
+            }),
+        )
+        .build(ctx)
+        .await;
 
     m.show().await;
     m.load_room("foo").await;
@@ -39,19 +41,20 @@ async fn route_http_to_correct_monolith(ctx: &mut TestRunner) {
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn route_http_to_any_monolith_once(ctx: &mut TestRunner) {
-    let mut m1 = Monolith::new(ctx).await.unwrap();
+    let mut m1 = MonolithBuilder::new()
+        .add_mock_http_json(
+            "/api/user",
+            MockRespParts::default(),
+            serde_json::json!({
+                "name": "foo",
+                "isLoggedIn": false,
+            }),
+        )
+        .build(ctx)
+        .await;
     m1.show().await;
     let mut m2 = Monolith::new(ctx).await.unwrap();
     m2.show().await;
-
-    m1.mock_http_json(
-        "/api/user",
-        MockRespParts::default(),
-        serde_json::json!({
-            "name": "foo",
-            "isLoggedIn": false,
-        }),
-    );
 
     reqwest::get(format!("http://[::1]:{}/api/user", ctx.port))
         .await
@@ -67,16 +70,17 @@ async fn route_http_to_any_monolith_once(ctx: &mut TestRunner) {
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn route_http_room_list(ctx: &mut TestRunner) {
-    let mut m1 = Monolith::new(ctx).await.unwrap();
+    let mut m1 = MonolithBuilder::new()
+        .add_mock_http_json(
+            "/api/room/list",
+            MockRespParts::default(),
+            serde_json::json!([]),
+        )
+        .build(ctx)
+        .await;
     m1.show().await;
     let mut m2 = Monolith::new(ctx).await.unwrap();
     m2.show().await;
-
-    m1.mock_http_json(
-        "/api/room/list",
-        MockRespParts::default(),
-        serde_json::json!([]),
-    );
 
     reqwest::get(format!("http://[::1]:{}/api/room/list", ctx.port))
         .await
@@ -163,17 +167,17 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
 #[tokio::test]
 async fn monolith_double_load_room(ctx: &mut TestRunner) {
     println!("port: {}", ctx.port);
-    let mut m1 = Monolith::new(ctx).await.unwrap();
+    let mut m1 = MonolithBuilder::new()
+        .add_mock_http_json(
+            "/api/room/foo",
+            MockRespParts::default(),
+            serde_json::json!({
+                "name": "foo",
+            }),
+        )
+        .build(ctx)
+        .await;
     let mut m2 = Monolith::new(ctx).await.unwrap();
-    println!("m1: http {}", m1.http_port());
-    println!("m2: http {}", m2.http_port());
-    m1.mock_http_json(
-        "/api/room/foo",
-        MockRespParts::default(),
-        serde_json::json!({
-            "name": "foo",
-        }),
-    );
 
     m1.show().await;
     m2.show().await;
