@@ -11,6 +11,7 @@ use crate::{ClientId, RoomName};
 #[typeshare]
 pub enum MsgB2M {
     Load(B2MLoad),
+    Unload(B2MUnload),
     Join(B2MJoin),
     Leave(B2MLeave),
     ClientMsg(B2MClientMsg),
@@ -19,6 +20,12 @@ pub enum MsgB2M {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
 pub struct B2MLoad {
+    pub room: RoomName,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
+pub struct B2MUnload {
     pub room: RoomName,
 }
 
@@ -48,6 +55,12 @@ pub struct B2MClientMsg<T = Box<RawValue>> {
 impl From<B2MLoad> for MsgB2M {
     fn from(val: B2MLoad) -> Self {
         Self::Load(val)
+    }
+}
+
+impl From<B2MUnload> for MsgB2M {
+    fn from(val: B2MUnload) -> Self {
+        Self::Unload(val)
     }
 }
 
@@ -86,6 +99,7 @@ pub enum MsgM2B {
 pub struct M2BInit {
     /// The port that the monolith is listening for HTTP requests on.
     pub port: u16,
+    pub region: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

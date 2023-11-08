@@ -12,6 +12,10 @@ export interface B2MLoad {
 	room: RoomName;
 }
 
+export interface B2MUnload {
+	room: RoomName;
+}
+
 export interface B2MJoin {
 	room: RoomName;
 	client: ClientId;
@@ -32,6 +36,7 @@ export interface B2MClientMsg<T = unknown> {
 export interface M2BInit {
 	/** The port that the monolith is listening for HTTP requests on. */
 	port: number;
+	region: string;
 }
 
 export enum Visibility {
@@ -88,6 +93,7 @@ export interface M2BKick {
 
 export type MsgB2M =
 	| { type: "load"; payload: B2MLoad }
+	| { type: "unload"; payload: B2MUnload }
 	| { type: "join"; payload: B2MJoin }
 	| { type: "leave"; payload: B2MLeave }
 	| { type: "client_msg"; payload: B2MClientMsg };
