@@ -6,6 +6,26 @@ pub trait Behavior {
     fn on_msg(&mut self, msg: &MsgB2M, state: &mut MonolithState) -> Vec<MsgM2B>;
 }
 
+macro_rules! impl_behavior_tuple {
+    ($($ty:ident),*) => {
+        impl<$($ty: Behavior),*> Behavior for ($($ty,)*) {
+            fn on_msg(&mut self, msg: &MsgB2M, state: &mut MonolithState) -> Vec<MsgM2B> {
+                #[allow(non_snake_case)]
+                let ($($ty,)*) = self;
+                let mut msgs = Vec::new();
+                $(msgs.extend($ty.on_msg(msg, state));)*
+                msgs
+            }
+        }
+    };
+}
+
+impl_behavior_tuple!(A, B);
+impl_behavior_tuple!(A, B, C);
+impl_behavior_tuple!(A, B, C, D);
+impl_behavior_tuple!(A, B, C, D, E);
+impl_behavior_tuple!(A, B, C, D, E, F);
+
 /// A Monoith behavior that does nothing.
 #[derive(Debug, Clone, Copy)]
 pub struct BehaviorManual;
