@@ -31,6 +31,7 @@ impl Behavior for BehaviorAuto {
                 };
                 return vec![loaded.into()];
             }
+            MsgB2M::Unload(_) => todo!(),
             MsgB2M::Join(_) => todo!(),
             MsgB2M::Leave(_) => todo!(),
             MsgB2M::ClientMsg(_) => todo!(),
