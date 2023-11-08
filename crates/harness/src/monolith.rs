@@ -122,17 +122,6 @@ impl Monolith {
                                                 _ => panic!("unexpected message type: {:?}", msg),
                                             };
 
-                                            // TODO: put this in a Behavior
-                                            match &parsed {
-                                                MsgB2M::Join(join) => {
-                                                    state.clients.insert(join.client);
-                                                },
-                                                MsgB2M::Leave(leave) => {
-                                                    state.clients.remove(&leave.client);
-                                                },
-                                                _ => {},
-                                            }
-
                                             let to_send = behavior.on_msg(&parsed, &mut state);
                                             state.received_raw.push(msg);
                                             to_send
