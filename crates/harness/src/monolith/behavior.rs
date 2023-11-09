@@ -82,6 +82,17 @@ impl Behavior for BehaviorLoadRooms {
                 };
                 return vec![unloaded.into()];
             }
+            MsgB2M::Join(msg) => {
+                if !state.rooms.contains_key(&msg.room) {
+                    let room = RoomMetadata::default_with_name(msg.room.clone());
+                    state.rooms.insert(room.name.clone(), room.clone());
+                    let loaded = M2BLoaded {
+                        room,
+                        load_epoch: state.room_load_epoch.fetch_add(1, Ordering::Relaxed),
+                    };
+                    return vec![loaded.into()];
+                }
+            }
             _ => {}
         }
 
@@ -91,9 +102,53 @@ impl Behavior for BehaviorLoadRooms {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use test_context::test_context;
 
-    use crate::{BehaviorTrackClients, Client, MonolithBuilder, TestRunner};
+    use crate::{Client, MonolithBuilder, TestRunner};
+
+    #[test]
+    fn behavior_should_load_rooms() {
+        let b = BehaviorLoadRooms;
+        let mut state = MonolithState::default();
+
+        let msg = MsgB2M::Load(B2MLoad { room: "foo".into() });
+        let msgs = b.on_msg(&msg, &mut state);
+        assert!(matches!(msgs[0], MsgM2B::Loaded(_)));
+        assert_eq!(state.rooms.len(), 1);
+    }
+
+    #[test]
+    fn behavior_should_unload_rooms() {
+        let b = BehaviorLoadRooms;
+        let mut state = MonolithState::default();
+        state
+            .rooms
+            .insert("foo".into(), RoomMetadata::default_with_name("foo"));
+
+        let msg = MsgB2M::Unload(B2MUnload { room: "foo".into() });
+        let msgs = b.on_msg(&msg, &mut state);
+        assert!(matches!(msgs[0], MsgM2B::Unloaded(_)));
+        assert_eq!(state.rooms.len(), 0);
+    }
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn should_track_rooms(ctx: &mut TestRunner) {
+        let mut m = MonolithBuilder::new()
+            .behavior(BehaviorLoadRooms)
+            .build(ctx)
+            .await;
+        m.show().await;
+
+        let mut c = Client::new(ctx).unwrap();
+        c.join("foo").await;
+
+        m.wait_recv().await;
+
+        let s = m.state.lock().unwrap();
+        assert_eq!(s.rooms.len(), 1);
+    }
 
     #[test_context(TestRunner)]
     #[tokio::test]
