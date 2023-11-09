@@ -62,13 +62,13 @@ pub struct MonolithState {
 
 impl Monolith {
     pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
-        Self::with_behavior(ctx, BehaviorManual).await
+        Self::with_behavior(ctx, Box::new(BehaviorManual)).await
     }
 
-    pub async fn with_behavior<B>(ctx: &TestRunner, mut behavior: B) -> anyhow::Result<Self>
-    where
-        B: Behavior + Send + 'static,
-    {
+    pub async fn with_behavior(
+        ctx: &TestRunner,
+        behavior: Box<dyn Behavior + Send + 'static>,
+    ) -> anyhow::Result<Self> {
         // Binding to port 0 will let the OS allocate a random port for us.
         let listener =
             Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
@@ -389,9 +389,33 @@ pub struct MockRequest {
 }
 
 /// Used to build an emulated monolith.
-#[derive(Debug, Clone, Default)]
+///
+/// Example:
+/// ```
+/// use harness::MonolithBuilder;
+/// use harness::behavior::*;
+/// # use harness::TestRunner;
+/// # use test_context::AsyncTestContext;
+///
+/// # async fn example() {
+/// let ctx = TestRunner::setup().await;
+///
+/// let monolith = MonolithBuilder::new()
+///     .add_mock_http_json(
+///         "/api/room/foo",
+///         MockRespParts::default(),
+///         serde_json::json!({
+///             "name": "foo",
+///         }),
+///     )
+///     .behavior(BEHAVIOR_AUTO)
+///     .build(&ctx);
+/// # }
+/// ```
+#[derive(Default)]
 pub struct MonolithBuilder {
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
+    behavior: Option<Box<dyn Behavior + Send + 'static>>,
 }
 
 impl MonolithBuilder {
@@ -402,7 +426,10 @@ impl MonolithBuilder {
     }
 
     pub async fn build(self, ctx: &TestRunner) -> Monolith {
-        let mut monolith = Monolith::new(ctx).await.unwrap();
+        let mut monolith =
+            Monolith::with_behavior(ctx, self.behavior.unwrap_or(Box::new(BehaviorManual)))
+                .await
+                .unwrap();
         monolith.set_all_mock_http(self.response_mocks);
         monolith
     }
@@ -427,6 +454,11 @@ impl MonolithBuilder {
     ) -> Self {
         let body = serde_json::to_vec(&body).unwrap();
         self.add_mock_http_raw(path, parts, body.into())
+    }
+
+    pub fn behavior(mut self, behavior: impl Behavior + Send + 'static) -> Self {
+        self.behavior = Some(Box::new(behavior));
+        self
     }
 }
 
