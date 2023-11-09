@@ -88,3 +88,30 @@ impl Behavior for BehaviorLoadRooms {
         vec![]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use test_context::test_context;
+
+    use crate::{BehaviorTrackClients, Client, MonolithBuilder, TestRunner};
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn should_track_clients(ctx: &mut TestRunner) {
+        let mut m = MonolithBuilder::new()
+            .behavior(BehaviorTrackClients)
+            .build(ctx)
+            .await;
+        m.show().await;
+
+        let mut c1 = Client::new(ctx).unwrap();
+        c1.join("foo").await;
+
+        m.wait_recv().await;
+        assert_eq!(m.clients().len(), 1);
+
+        c1.disconnect().await;
+        m.wait_recv().await;
+        assert_eq!(m.clients().len(), 0);
+    }
+}

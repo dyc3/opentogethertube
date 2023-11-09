@@ -394,7 +394,7 @@ pub struct MockRequest {
 /// ```
 /// use harness::MonolithBuilder;
 /// use harness::behavior::*;
-/// # use harness::TestRunner;
+/// # use harness::{TestRunner, MockRespParts};
 /// # use test_context::AsyncTestContext;
 ///
 /// # async fn example() {
@@ -459,29 +459,5 @@ impl MonolithBuilder {
     pub fn behavior(mut self, behavior: impl Behavior + Send + 'static) -> Self {
         self.behavior = Some(Box::new(behavior));
         self
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use test_context::test_context;
-
-    use crate::{Client, Monolith, TestRunner};
-
-    #[test_context(TestRunner)]
-    #[tokio::test]
-    async fn should_track_clients(ctx: &mut TestRunner) {
-        let mut m = Monolith::new(ctx).await.unwrap();
-        m.show().await;
-
-        let mut c1 = Client::new(ctx).unwrap();
-        c1.join("foo").await;
-
-        m.wait_recv().await;
-        assert_eq!(m.clients().len(), 1);
-
-        c1.disconnect().await;
-        m.wait_recv().await;
-        assert_eq!(m.clients().len(), 0);
     }
 }
