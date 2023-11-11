@@ -1,7 +1,7 @@
 use std::pin::Pin;
 use std::sync::Arc;
 
-use bytes::{Bytes};
+use bytes::Bytes;
 use futures_util::Future;
 use http_body_util::{BodyExt, Full};
 use hyper::service::Service;
