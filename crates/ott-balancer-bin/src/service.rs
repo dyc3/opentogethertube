@@ -1,7 +1,7 @@
 use std::pin::Pin;
 use std::sync::Arc;
 
-use bytes::Bytes;
+use bytes::{Bytes, BytesMut};
 use futures_util::Future;
 use http_body_util::{BodyExt, Full};
 use hyper::service::Service;
@@ -11,11 +11,11 @@ use once_cell::sync::Lazy;
 use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
 use ott_balancer_protocol::RoomName;
 use ott_common::websocket::{is_websocket_upgrade, upgrade};
+use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, warn};
-use prometheus::{Opts, Registry, Counter, TextEncoder, Encoder};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -53,6 +53,8 @@ impl Service<Request<IncomingBody>> for BalancerService {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
+        COUNTER_HTTP_REQUESTS.inc();
+
         fn mk_response(s: String) -> anyhow::Result<Response<Full<Bytes>>, hyper::Error> {
             Ok(Response::builder().body(Full::new(Bytes::from(s))).unwrap())
         }
@@ -85,25 +87,22 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     mk_response(rendered)
                 }
                 "metrics" => {
-                    // Create a Counter.
-                    let counter_opts = Opts::new("test_counter", "test counter help");
-                    let counter = Counter::with_opts(counter_opts).unwrap();
+                    let bytes = match gather_metrics() {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            error!("error gathering metrics: {}", e);
+                            return Ok(Response::builder()
+                                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                .body(Full::new(Bytes::from(format!(
+                                    "error gathering metrics: {}",
+                                    e
+                                ))))
+                                .unwrap());
+                        }
+                    };
 
-                    // Create a Registry and register Counter.
-                    let r = Registry::new();
-                    r.register(Box::new(counter.clone())).unwrap();
-
-                    // Inc.
-                    counter.inc();
-
-                    // Gather the metrics.
-                    let mut buffer = vec![];
-                    let encoder = TextEncoder::new();
-                    let metric_families = r.gather();
-                    encoder.encode(&metric_families, &mut buffer).unwrap();
-
-                    mk_response(String::from_utf8(buffer).unwrap().to_owned())
-                },
+                    Ok(Response::builder().body(Full::new(bytes)).unwrap())
+                }
                 "room" => {
                     let Some(room_name) = route.params().find("room_name") else {
                         return Ok(not_found());
@@ -117,9 +116,11 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new().name("client connection").spawn(
                             async move {
+                                GUAGE_CLIENTS.inc();
                                 if let Err(e) = client_entry(room_name, websocket, link).await {
                                     error!("Error in websocket connection: {}", e);
                                 }
+                                GUAGE_CLIENTS.dec();
                             },
                         );
 
@@ -264,6 +265,14 @@ async fn list_rooms(ctx: Arc<RwLock<BalancerContext>>) -> anyhow::Result<Respons
     Ok(builder.body(Full::new(body.into())).unwrap())
 }
 
+fn gather_metrics() -> anyhow::Result<Bytes> {
+    let mut buffer = vec![];
+    let encoder = TextEncoder::new();
+    let metric_families = prometheus::gather();
+    encoder.encode(&metric_families, &mut buffer)?;
+    Ok(Bytes::from(buffer))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -318,3 +327,11 @@ mod test {
         }
     }
 }
+
+static GUAGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!("balancer_clients", "Number of connected websocket clients").unwrap()
+});
+
+static COUNTER_HTTP_REQUESTS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!("balancer_http_requests", "Number of HTTP requests received").unwrap()
+});
