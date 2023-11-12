@@ -73,11 +73,9 @@ impl BalancerConfig {
         
             jail.set_env("FLY_REGION", 250);
         
-            // Sources are read _eagerly_: sources are read as soon as they are
-            // merged/joined into a figment.
             let figment = figment::Figment::new()
                 .merge(figment::providers::Toml::file("Fly.toml"))
-                .merge(figment::providers::Env::prefixed("FLY_"))
+                .merge(figment::providers::Env::prefixed("FLY_REGION"))
                 .join(figment::providers::Json::file("Fly.json"));
         })
     }
