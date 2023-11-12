@@ -56,6 +56,31 @@ impl BalancerConfig {
         // SAFETY: get is never called before CONFIG is initialized.
         unsafe { CONFIG.as_ref().expect("config not initialized") }
     }
+
+    pub fn set() -> &'static Self { 
+        figment::providers::Jail::expect_with(|jail| {
+            jail.create_file("Fly.toml", r#"
+                name = "Just a TOML App!"
+                count = 100
+            "#)?;
+        
+            jail.create_file("Fly.json", r#"
+                {
+                    "name": "Just a JSON App",
+                    "authors": ["figment", "developers"]
+                }
+            "#)?;
+        
+            jail.set_env("FLY_REGION", 250);
+        
+            // Sources are read _eagerly_: sources are read as soon as they are
+            // merged/joined into a figment.
+            let figment = figment::Figment::new()
+                .merge(Toml::file("Fly.toml"))
+                .merge(Env::prefixed("FLY_"))
+                .join(Json::file("Fly.json"));
+        })
+    }
 }
 
 #[derive(Debug, Parser)]
