@@ -46,6 +46,7 @@ impl BalancerConfig {
         let config = figment::Figment::new()
             .merge(figment::providers::Toml::file(path))
             .merge(figment::providers::Env::prefixed("BALANCER_"))
+            .merge(figment::providers::Env::prefixed("FLY_REGION"))
             .extract()?;
         // SAFETY: CONFIG is only mutated once, and only from this thread. All other accesses are read-only.
         CONFIG_INIT.call_once(|| unsafe { *CONFIG.borrow_mut() = Some(config) });
@@ -55,29 +56,6 @@ impl BalancerConfig {
     pub fn get() -> &'static Self {
         // SAFETY: get is never called before CONFIG is initialized.
         unsafe { CONFIG.as_ref().expect("config not initialized") }
-    }
-
-    pub fn set() -> &'static Self { 
-        figment::providers::Jail::expect_with(|jail| {
-            jail.create_file("Fly.toml", r#"
-                name = "Just a TOML App!"
-                count = 100
-            "#)?;
-        
-            jail.create_file("Fly.json", r#"
-                {
-                    "name": "Just a JSON App",
-                    "authors": ["figment", "developers"]
-                }
-            "#)?;
-        
-            jail.set_env("FLY_REGION", 250);
-        
-            let figment = figment::Figment::new()
-                .merge(figment::providers::Toml::file("Fly.toml"))
-                .merge(figment::providers::Env::prefixed("FLY_REGION"))
-                .join(figment::providers::Json::file("Fly.json"));
-        })
     }
 }
 
