@@ -76,9 +76,9 @@ impl BalancerConfig {
             // Sources are read _eagerly_: sources are read as soon as they are
             // merged/joined into a figment.
             let figment = figment::Figment::new()
-                .merge(Toml::file("Fly.toml"))
-                .merge(Env::prefixed("FLY_"))
-                .join(Json::file("Fly.json"));
+                .merge(figment::providers::Toml::file("Fly.toml"))
+                .merge(figment::providers::Env::prefixed("FLY_"))
+                .join(figment::providers::Json::file("Fly.json"));
         })
     }
 }
