@@ -23,3 +23,7 @@ interval = "30s"
 method = "GET"
 timeout = "10s"
 path = "/api/status"
+
+[metrics]
+port = 8081
+path = "/api/status/metrics"

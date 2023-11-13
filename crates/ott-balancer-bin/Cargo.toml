@@ -1,6 +1,6 @@
 [package]
 name = "ott-balancer-bin"
-version = "0.1.0"
+version = "0.4.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -33,4 +33,5 @@ ott-balancer-protocol.workspace = true
 route-recognizer = "0.3.1"
 once_cell.workspace = true
 pin-project.workspace = true
+prometheus.workspace = true
 trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }

@@ -360,6 +360,12 @@ export const conf = convict({
 			default: 3002,
 			env: "BALANCING_PORT",
 		},
+		region: {
+			doc: "The region that this server is in.",
+			format: String,
+			default: "unknown",
+			env: "BALANCING_REGION",
+		},
 	},
 	mail: {
 		enabled: {
@@ -407,6 +413,16 @@ export const conf = convict({
 		nullable: true,
 	},
 	room: {
+		enable_create_temporary: {
+			doc: "Whether to allow creating temporary rooms.",
+			format: Boolean,
+			default: true,
+		},
+		enable_create_permanent: {
+			doc: "Whether to allow creating permanent rooms.",
+			format: Boolean,
+			default: true,
+		},
 		unload_after: {
 			doc: "The interval in seconds to after a room is considered inactive that the server will keep the room alive.",
 			format: Number,
@@ -502,6 +518,11 @@ function postProcessConfig(): void {
 
 	if (conf.get("mail.enabled")) {
 		validateMail();
+	}
+
+	if (process.env.FLY_REGION) {
+		log.info("Found FLY_REGION. Using it for balancing.region.");
+		conf.set("balancing.region", process.env.FLY_REGION);
 	}
 }
 

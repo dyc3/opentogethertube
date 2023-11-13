@@ -75,6 +75,7 @@ class BalancerManager {
 			type: "init",
 			payload: {
 				port: conf.get("port"),
+				region: conf.get("balancing.region"),
 			},
 		};
 		conn.send(init);
@@ -170,6 +171,7 @@ export class BalancerConnection {
 			type: "init",
 			payload: {
 				port: conf.get("port"),
+				region: conf.get("balancing.region"),
 			},
 		};
 		this.send(init);

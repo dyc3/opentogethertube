@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     net::{IpAddr, Ipv6Addr, SocketAddr},
     pin::Pin,
     sync::{
@@ -14,13 +14,14 @@ use http_body_util::{BodyExt, Full};
 use hyper::{body::Incoming as IncomingBody, Request};
 use hyper::{service::Service, Response};
 
-use ott_balancer_protocol::{monolith::*, RoomName};
+use ott_balancer_protocol::{monolith::*, ClientId, RoomName};
 use tokio::{net::TcpListener, sync::Notify};
 use tracing::warn;
 use tungstenite::Message;
 
 use crate::{TestRunner, WebsocketSender};
 
+/// An emulated monolith. Create one using [`MonolithBuilder`].
 pub struct Monolith {
     pub(crate) listener: Arc<TcpListener>,
     pub(crate) http_listener: Arc<TcpListener>,
@@ -52,6 +53,7 @@ pub(crate) struct MonolithState {
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
     rooms: HashMap<RoomName, RoomMetadata>,
     room_load_epoch: Arc<AtomicU32>,
+    clients: HashSet<ClientId>,
 }
 
 impl Monolith {
@@ -85,7 +87,10 @@ impl Monolith {
                 loop {
                     let (stream, _) = _listener.accept().await.unwrap();
                     let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
-                    let init = M2BInit { port: http_port };
+                    let init = M2BInit {
+                        port: http_port,
+                        region: "unknown".into(),
+                    };
                     let msg = serde_json::to_string(&MsgM2B::Init(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
                     state.lock().unwrap().connected = true;
@@ -100,7 +105,21 @@ impl Monolith {
                                 match msg {
                                     Ok(msg) => {
                                         println!("monolith: incoming msg: {}", msg);
-                                        state.lock().unwrap().received_raw.push(msg);
+                                        let mut state = state.lock().unwrap();
+                                        state.received_raw.push(msg.clone());
+                                        // TODO: there's a better way to generalize this
+                                        if let Message::Text(m) = msg {
+                                            let msg: MsgB2M = serde_json::from_str(&m).unwrap();
+                                            match msg {
+                                                MsgB2M::Join(join) => {
+                                                    state.clients.insert(join.client);
+                                                },
+                                                MsgB2M::Leave(leave) => {
+                                                    state.clients.remove(&leave.client);
+                                                },
+                                                _ => {},
+                                            }
+                                        }
                                         _notif_recv.notify_one();
                                     },
                                     Err(e) => {
@@ -175,6 +194,10 @@ impl Monolith {
         }
     }
 
+    pub fn clients(&self) -> HashSet<ClientId> {
+        self.state.lock().unwrap().clients.clone()
+    }
+
     /// Tell the provider to add this monolith to the list of available monoliths.
     pub async fn show(&mut self) {
         println!("showing monolith");
@@ -227,23 +250,8 @@ impl Monolith {
             .collect()
     }
 
-    /// Set a mock HTTP response for the given path.
-    pub fn mock_http_raw(&mut self, path: impl Into<String>, parts: MockRespParts, body: Bytes) {
-        self.state
-            .lock()
-            .unwrap()
-            .response_mocks
-            .insert(path.into(), (parts, body));
-    }
-
-    pub fn mock_http_json(
-        &mut self,
-        path: impl Into<String>,
-        parts: MockRespParts,
-        body: impl serde::Serialize,
-    ) {
-        let body = serde_json::to_vec(&body).unwrap();
-        self.mock_http_raw(path, parts, body.into())
+    pub fn set_all_mock_http(&mut self, mocks: HashMap<String, (MockRespParts, Bytes)>) {
+        self.state.lock().unwrap().response_mocks = mocks;
     }
 
     pub fn collect_mock_http(&self) -> Vec<MockRequest> {
@@ -367,4 +375,70 @@ pub struct MockRequest {
     pub uri: hyper::Uri,
     pub headers: hyper::HeaderMap,
     pub body: Bytes,
+}
+
+/// Used to build an emulated monolith.
+#[derive(Debug, Clone, Default)]
+pub struct MonolithBuilder {
+    response_mocks: HashMap<String, (MockRespParts, Bytes)>,
+}
+
+impl MonolithBuilder {
+    pub fn new() -> Self {
+        Self {
+            ..Default::default()
+        }
+    }
+
+    pub async fn build(self, ctx: &TestRunner) -> Monolith {
+        let mut monolith = Monolith::new(ctx).await.unwrap();
+        monolith.set_all_mock_http(self.response_mocks);
+        monolith
+    }
+
+    /// Set a mock HTTP response for the given path.
+    pub fn add_mock_http_raw(
+        mut self,
+        path: impl Into<String>,
+        parts: MockRespParts,
+        body: Bytes,
+    ) -> Self {
+        self.response_mocks.insert(path.into(), (parts, body));
+        self
+    }
+
+    /// Set a mock HTTP response for the given path, with the body serialized as JSON.
+    pub fn add_mock_http_json(
+        self,
+        path: impl Into<String>,
+        parts: MockRespParts,
+        body: impl serde::Serialize,
+    ) -> Self {
+        let body = serde_json::to_vec(&body).unwrap();
+        self.add_mock_http_raw(path, parts, body.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use test_context::test_context;
+
+    use crate::{Client, Monolith, TestRunner};
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn should_track_clients(ctx: &mut TestRunner) {
+        let mut m = Monolith::new(ctx).await.unwrap();
+        m.show().await;
+
+        let mut c1 = Client::new(ctx).unwrap();
+        c1.join("foo").await;
+
+        m.wait_recv().await;
+        assert_eq!(m.clients().len(), 1);
+
+        c1.disconnect().await;
+        m.wait_recv().await;
+        assert_eq!(m.clients().len(), 0);
+    }
 }
