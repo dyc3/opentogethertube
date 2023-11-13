@@ -49,8 +49,8 @@ impl BalancerConfig {
             .merge(figment::providers::Toml::file(path))
             .merge(figment::providers::Env::prefixed("BALANCER_"))
             .extract()?;
-            
-        if let Some(region) = figment::providers::Env::var("FLY_REGION"){
+
+        if let Some(region) = figment::providers::Env::var("FLY_REGION") {
             config.region = region;
         }
         // SAFETY: CONFIG is only mutated once, and only from this thread. All other accesses are read-only.
