@@ -45,7 +45,7 @@ impl Default for DiscoveryConfig {
 
 impl BalancerConfig {
     pub fn load(path: &PathBuf) -> anyhow::Result<()> {
-        let mut config = figment::Figment::new()
+        let mut config: BalancerConfig = figment::Figment::new()
             .merge(figment::providers::Toml::file(path))
             .merge(figment::providers::Env::prefixed("BALANCER_"))
             .extract()?;
