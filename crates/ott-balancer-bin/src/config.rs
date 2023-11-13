@@ -24,7 +24,7 @@ impl Default for BalancerConfig {
         Self {
             port: 8081,
             discovery: DiscoveryConfig::default(),
-            region: "".to_string(), //TODO: Fix this
+            region: "unknown".to_string(), // I wouldn't be surprised if this wasn't what you meant by unknown
         }
     }
 }
