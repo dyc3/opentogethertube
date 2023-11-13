@@ -16,6 +16,7 @@ pub struct BalancerConfig {
     /// The port to listen on for HTTP requests.
     pub port: u16,
     pub discovery: DiscoveryConfig,
+    pub region: String,
 }
 
 impl Default for BalancerConfig {
@@ -23,6 +24,7 @@ impl Default for BalancerConfig {
         Self {
             port: 8081,
             discovery: DiscoveryConfig::default(),
+            region: "".to_string(), //TODO: Fix this
         }
     }
 }
