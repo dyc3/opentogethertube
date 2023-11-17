@@ -21,6 +21,10 @@ use tungstenite::Message;
 
 use crate::{TestRunner, WebsocketSender};
 
+pub mod behavior;
+
+pub use behavior::*;
+
 /// An emulated monolith. Create one using [`MonolithBuilder`].
 pub struct Monolith {
     pub(crate) listener: Arc<TcpListener>,
@@ -45,7 +49,7 @@ pub struct Monolith {
 /// This is necessary because the monolith is split into two tasks: one for the websocket
 /// connection and one for the HTTP mock server.
 #[derive(Debug, Default)]
-pub(crate) struct MonolithState {
+pub struct MonolithState {
     connected: bool,
     received_raw: Vec<Message>,
     received_http: Vec<MockRequest>,
@@ -58,6 +62,13 @@ pub(crate) struct MonolithState {
 
 impl Monolith {
     pub async fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
+        Self::with_behavior(ctx, Box::new(BehaviorManual)).await
+    }
+
+    pub async fn with_behavior(
+        ctx: &TestRunner,
+        behavior: Box<dyn Behavior + Send + 'static>,
+    ) -> anyhow::Result<Self> {
         // Binding to port 0 will let the OS allocate a random port for us.
         let listener =
             Arc::new(TcpListener::bind(SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0)).await?);
@@ -105,20 +116,20 @@ impl Monolith {
                                 match msg {
                                     Ok(msg) => {
                                         println!("monolith: incoming msg: {}", msg);
-                                        let mut state = state.lock().unwrap();
-                                        state.received_raw.push(msg.clone());
-                                        // TODO: there's a better way to generalize this
-                                        if let Message::Text(m) = msg {
-                                            let msg: MsgB2M = serde_json::from_str(&m).unwrap();
-                                            match msg {
-                                                MsgB2M::Join(join) => {
-                                                    state.clients.insert(join.client);
-                                                },
-                                                MsgB2M::Leave(leave) => {
-                                                    state.clients.remove(&leave.client);
-                                                },
-                                                _ => {},
-                                            }
+                                        let to_send = {
+                                            let mut state = state.lock().unwrap();
+                                            let parsed = match &msg {
+                                                Message::Text(msg) => serde_json::from_str(msg).unwrap(),
+                                                _ => panic!("unexpected message type: {:?}", msg),
+                                            };
+
+                                            let to_send = behavior.on_msg(&parsed, &mut state);
+                                            state.received_raw.push(msg);
+                                            to_send
+                                        };
+                                        for msg in to_send {
+                                            let m = serde_json::to_string(&msg).unwrap();
+                                            ws.send(Message::Text(m)).await.unwrap();
                                         }
                                         _notif_recv.notify_one();
                                     },
@@ -378,9 +389,33 @@ pub struct MockRequest {
 }
 
 /// Used to build an emulated monolith.
-#[derive(Debug, Clone, Default)]
+///
+/// Example:
+/// ```
+/// use harness::MonolithBuilder;
+/// use harness::behavior::*;
+/// # use harness::{TestRunner, MockRespParts};
+/// # use test_context::AsyncTestContext;
+///
+/// # async fn example() {
+/// let ctx = TestRunner::setup().await;
+///
+/// let monolith = MonolithBuilder::new()
+///     .add_mock_http_json(
+///         "/api/room/foo",
+///         MockRespParts::default(),
+///         serde_json::json!({
+///             "name": "foo",
+///         }),
+///     )
+///     .behavior(BEHAVIOR_AUTO)
+///     .build(&ctx);
+/// # }
+/// ```
+#[derive(Default)]
 pub struct MonolithBuilder {
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
+    behavior: Option<Box<dyn Behavior + Send + 'static>>,
 }
 
 impl MonolithBuilder {
@@ -391,7 +426,10 @@ impl MonolithBuilder {
     }
 
     pub async fn build(self, ctx: &TestRunner) -> Monolith {
-        let mut monolith = Monolith::new(ctx).await.unwrap();
+        let mut monolith =
+            Monolith::with_behavior(ctx, self.behavior.unwrap_or(Box::new(BehaviorManual)))
+                .await
+                .unwrap();
         monolith.set_all_mock_http(self.response_mocks);
         monolith
     }
@@ -417,28 +455,9 @@ impl MonolithBuilder {
         let body = serde_json::to_vec(&body).unwrap();
         self.add_mock_http_raw(path, parts, body.into())
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use test_context::test_context;
-
-    use crate::{Client, Monolith, TestRunner};
-
-    #[test_context(TestRunner)]
-    #[tokio::test]
-    async fn should_track_clients(ctx: &mut TestRunner) {
-        let mut m = Monolith::new(ctx).await.unwrap();
-        m.show().await;
-
-        let mut c1 = Client::new(ctx).unwrap();
-        c1.join("foo").await;
-
-        m.wait_recv().await;
-        assert_eq!(m.clients().len(), 1);
-
-        c1.disconnect().await;
-        m.wait_recv().await;
-        assert_eq!(m.clients().len(), 0);
+    pub fn behavior(mut self, behavior: impl Behavior + Send + 'static) -> Self {
+        self.behavior = Some(Box::new(behavior));
+        self
     }
 }
