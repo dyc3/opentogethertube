@@ -16,6 +16,7 @@ pub struct BalancerConfig {
     /// The port to listen on for HTTP requests.
     pub port: u16,
     pub discovery: DiscoveryConfig,
+    pub region: String,
 }
 
 impl Default for BalancerConfig {
@@ -23,6 +24,7 @@ impl Default for BalancerConfig {
         Self {
             port: 8081,
             discovery: DiscoveryConfig::default(),
+            region: "unknown".to_owned(),
         }
     }
 }
@@ -43,10 +45,14 @@ impl Default for DiscoveryConfig {
 
 impl BalancerConfig {
     pub fn load(path: &PathBuf) -> anyhow::Result<()> {
-        let config = figment::Figment::new()
+        let mut config: BalancerConfig = figment::Figment::new()
             .merge(figment::providers::Toml::file(path))
             .merge(figment::providers::Env::prefixed("BALANCER_"))
             .extract()?;
+
+        if let Some(region) = figment::providers::Env::var("FLY_REGION") {
+            config.region = region;
+        }
         // SAFETY: CONFIG is only mutated once, and only from this thread. All other accesses are read-only.
         CONFIG_INIT.call_once(|| unsafe { *CONFIG.borrow_mut() = Some(config) });
         Ok(())

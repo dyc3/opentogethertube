@@ -1,6 +1,9 @@
-use std::net::{Ipv4Addr, SocketAddr};
+use std::{
+    net::{Ipv4Addr, SocketAddr},
+    time::Duration,
+};
 
-use futures_util::SinkExt;
+use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::client::*;
 use rand::{distributions::Alphanumeric, Rng};
 use tokio::net::TcpStream;
@@ -74,7 +77,40 @@ impl Client {
         assert!(self.connected(), "not connected");
 
         let mut stream = self.stream.take().unwrap();
-        stream.close(None).await.unwrap();
+        let _ = stream.close(None).await;
+    }
+
+    pub async fn wait_for_disconnect(&mut self) {
+        if !self.connected() {
+            return;
+        }
+
+        let mut stream = self.stream.take().unwrap();
+        while stream.next().await.is_some() {}
+    }
+
+    pub async fn recv(&mut self) -> anyhow::Result<Message> {
+        if let Some(stream) = self.stream.as_mut() {
+            match tokio::time::timeout(Duration::from_millis(200), stream.next()).await {
+                Ok(Some(Ok(msg))) => {
+                    if msg.is_close() {
+                        self.disconnect().await;
+                    }
+                    Ok(msg)
+                }
+                Ok(Some(Err(e))) => Err(anyhow::anyhow!(e)),
+                Ok(None) => {
+                    self.disconnect().await;
+                    Err(anyhow::anyhow!("connection closed"))
+                }
+                Err(_) => {
+                    self.disconnect().await;
+                    Err(anyhow::anyhow!("timed out"))
+                }
+            }
+        } else {
+            Err(anyhow::anyhow!("not connected"))
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 [package]
 name = "harness"
-version = "0.1.0"
+version = "0.4.0"
 edition = "2021"
 
 [dependencies]
@@ -13,6 +13,7 @@ figment.workspace = true
 futures-util.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true
+http-body-util.workspace = true
 ott-balancer-protocol.workspace = true
 reqwest.workspace = true
 rand.workspace = true

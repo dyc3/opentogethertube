@@ -1,4 +1,6 @@
 FROM node:18-alpine3.16 as build-stage
+ARG GIT_COMMIT
+ENV GIT_COMMIT=$GIT_COMMIT
 
 WORKDIR /usr/app
 
@@ -13,12 +15,7 @@ FROM node:18-alpine3.16 as production-stage
 
 WORKDIR /usr/app/
 
-# Environnement variable redis/postgres/webport
-ENV REDIS_PORT 6379
-# Environnement variable nodejs
 ENV NODE_ENV production
-ENV PORT 8080
-# Env variable for external ffprobe
 ENV FFPROBE_PATH /usr/bin/ffprobe
 
 RUN apk update -q && apk --no-cache add curl ffmpeg -q

@@ -4,12 +4,16 @@ use harness::{Client, Monolith, TestRunner, WebsocketSender};
 use ott_balancer_protocol::client::*;
 use test_context::test_context;
 
+mod connection;
+mod routing;
+mod state;
+
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn sample_test(ctx: &mut TestRunner) {
     let mut m = Monolith::new(ctx).await.unwrap();
-    println!("monolith port: {}", m.port());
-    assert_ne!(m.port(), 0);
+    println!("monolith port: {}", m.balancer_port());
+    assert_ne!(m.balancer_port(), 0);
     m.show().await;
 
     let mut c = Client::new(ctx).unwrap();
@@ -37,8 +41,8 @@ async fn sample_test(ctx: &mut TestRunner) {
 #[tokio::test]
 async fn discovery_add_remove(ctx: &mut TestRunner) {
     let mut m = Monolith::new(ctx).await.unwrap();
-    println!("monolith port: {}", m.port());
-    assert_ne!(m.port(), 0);
+    println!("monolith port: {}", m.balancer_port());
+    assert_ne!(m.balancer_port(), 0);
 
     for _ in 0..10 {
         m.show().await;
@@ -46,6 +50,24 @@ async fn discovery_add_remove(ctx: &mut TestRunner) {
         m.hide().await;
         assert!(!m.connected());
     }
+}
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn sample_http(ctx: &mut TestRunner) {
+    let mut m = Monolith::new(ctx).await.unwrap();
+    println!(
+        "monolith port: {} http: {}",
+        m.balancer_port(),
+        m.http_port()
+    );
+    m.show().await;
+
+    reqwest::get(format!("http://[::1]:{}/", ctx.port))
+        .await
+        .expect("http request failed")
+        .error_for_status()
+        .expect("bad http status");
 }
 
 fn main() {}

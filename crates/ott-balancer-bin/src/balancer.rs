@@ -1,6 +1,8 @@
 use std::{collections::HashMap, sync::Arc};
 
-use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B, RoomMetadata};
+use ott_balancer_protocol::monolith::{
+    B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgM2B, RoomMetadata,
+};
 use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
@@ -11,6 +13,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, trace, warn};
 
 use crate::monolith::Room;
+use crate::room::RoomLocator;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -126,9 +129,10 @@ impl Balancer {
                     if let Some(msg) = msg {
                         let ctx = self.ctx.clone();
                         let _ = tokio::task::Builder::new().name("dispatch monolith message").spawn(async move {
+                            let id = *msg.id();
                             match dispatch_monolith_message(ctx, msg).await {
                                 Ok(_) => {},
-                                Err(err) => error!("failed to dispatch monolith message: {:?}", err)
+                                Err(err) => error!("failed to dispatch monolith message {}: {:?}", id, err)
                             }
                         });
                     } else {
@@ -213,7 +217,7 @@ impl BalancerLink {
 pub struct BalancerContext {
     pub clients: HashMap<ClientId, BalancerClient>,
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
-    pub rooms_to_monoliths: HashMap<RoomName, MonolithId>,
+    pub rooms_to_monoliths: HashMap<RoomName, RoomLocator>,
 }
 
 impl BalancerContext {
@@ -239,7 +243,7 @@ impl BalancerContext {
         };
         monolith.add_client(&client.room, client.id);
         monolith
-            .send(&MsgB2M::Join {
+            .send(B2MJoin {
                 room: client.room.clone(),
                 client: client.id,
                 token: client.token.clone(),
@@ -253,7 +257,7 @@ impl BalancerContext {
     pub async fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
         let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
-        monolith.send(&MsgB2M::Leave { client: client_id }).await?;
+        monolith.send(B2MLeave { client: client_id }).await?;
 
         Ok(())
     }
@@ -262,40 +266,105 @@ impl BalancerContext {
         self.monoliths.insert(monolith.id(), monolith);
     }
 
-    pub fn remove_monolith(&mut self, monolith_id: MonolithId) {
+    pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
         self.monoliths.remove(&monolith_id);
+
+        self.rooms_to_monoliths
+            .retain(|_, v| v.monolith_id() != monolith_id);
+
+        self.clients
+            .retain(|_, v| self.rooms_to_monoliths.contains_key(&v.room));
+
+        for client in self.clients.values() {
+            match client
+                .send(SocketMessage::Message(Message::Close(Some(CloseFrame {
+                    code: CloseCode::Away,
+                    reason: "Monolith disconnect".into(),
+                }))))
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => {
+                    error!("failed to disconnect client: {:?}", err)
+                }
+            };
+        }
+
+        Ok(())
     }
 
-    pub fn add_room(&mut self, room: Room, monolith_id: MonolithId) -> anyhow::Result<()> {
+    pub fn add_room(&mut self, room: Room, locator: RoomLocator) -> anyhow::Result<()> {
+        debug!("add_room {} {:?}", room.name(), locator);
         let monolith = self
             .monoliths
-            .get_mut(&monolith_id)
+            .get_mut(&locator.monolith_id())
             .ok_or(anyhow::anyhow!("monolith not found"))?;
-        self.rooms_to_monoliths
-            .insert(room.name().clone(), monolith_id);
+        self.rooms_to_monoliths.insert(room.name().clone(), locator);
         monolith.add_room(room);
         Ok(())
     }
 
-    pub fn remove_room(&mut self, room: &RoomName, monolith_id: MonolithId) -> anyhow::Result<()> {
+    pub async fn remove_room(
+        &mut self,
+        room: &RoomName,
+        monolith_id: MonolithId,
+    ) -> anyhow::Result<()> {
+        debug!("remove_room {}, {:?}", room, monolith_id);
         let monolith = self
             .monoliths
             .get_mut(&monolith_id)
             .ok_or(anyhow::anyhow!("monolith not found"))?;
         self.rooms_to_monoliths.remove(room);
-        monolith.remove_room(room);
+        let room = monolith.remove_room(room);
+        if let Some(room) = room {
+            for client_id in room.clients() {
+                self.clients
+                    .get(client_id)
+                    .unwrap()
+                    .send(Message::Close(Some(CloseFrame {
+                        code: CloseCode::Again,
+                        reason: "Room unloaded".into(),
+                    })))
+                    .await?;
+            }
+        }
         Ok(())
     }
 
-    pub fn add_or_sync_room(
+    pub async fn add_or_sync_room(
         &mut self,
-        room: &RoomName,
         metadata: RoomMetadata,
         monolith_id: MonolithId,
+        load_epoch: u32,
     ) -> anyhow::Result<()> {
+        debug!(
+            "add_or_sync_room {}, {:?} load_epoch {}",
+            metadata.name, monolith_id, load_epoch
+        );
+        if let Some(locator) = self.rooms_to_monoliths.get(&metadata.name) {
+            match locator.load_epoch().cmp(&load_epoch) {
+                std::cmp::Ordering::Less => {
+                    // we already have an older version of this room
+                    self.unload_room(monolith_id, metadata.name.clone()).await?;
+                    return Err(anyhow::anyhow!("room already loaded"));
+                }
+                std::cmp::Ordering::Greater => {
+                    // we have an newer version of this room, remove it
+                    self.unload_room(locator.monolith_id(), metadata.name.clone())
+                        .await?;
+                    // self.remove_room(&metadata.name, locator.monolith_id())
+                    //     .await?;
+                }
+                _ => {}
+            }
+        }
         let monolith = self.monoliths.get_mut(&monolith_id).unwrap();
-        self.rooms_to_monoliths.insert(room.clone(), monolith_id);
-        monolith.add_or_sync_room(room, metadata);
+
+        self.rooms_to_monoliths.insert(
+            metadata.name.clone(),
+            RoomLocator::new(monolith_id, load_epoch),
+        );
+        monolith.add_or_sync_room(metadata);
 
         Ok(())
     }
@@ -305,11 +374,11 @@ impl BalancerContext {
             .clients
             .get(&client)
             .ok_or(anyhow::anyhow!("client not found"))?;
-        let monolith_id = self
+        let locator = self
             .rooms_to_monoliths
             .get(&client.room)
             .ok_or(anyhow::anyhow!("room not found in rooms_to_monoliths"))?;
-        Ok(*monolith_id)
+        Ok(locator.monolith_id())
     }
 
     pub fn find_monolith(&self, client: ClientId) -> anyhow::Result<&BalancerMonolith> {
@@ -350,6 +419,12 @@ impl BalancerContext {
             .ok_or(anyhow::anyhow!("no monoliths available"))?;
         Ok(selected)
     }
+
+    pub async fn unload_room(&self, monolith: MonolithId, room: RoomName) -> anyhow::Result<()> {
+        let monolith = self.monoliths.get(&monolith).unwrap();
+        monolith.send(B2MUnload { room }).await?;
+        Ok(())
+    }
 }
 
 pub async fn join_client(
@@ -367,28 +442,32 @@ pub async fn join_client(
         .send(client_rx)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
 
-    let ctx_read = ctx.read().await;
+    // since we're always going to be doing a write, we can just lock the context for the whole function so it doesn't change out from under us
+    let mut ctx_write = ctx.write().await;
 
-    let (monolith_id, should_create_room) = match ctx_read.rooms_to_monoliths.get(&client.room) {
-        Some(id) => {
-            debug!("room {} already loaded on {}", client.room, id);
-            (*id, false)
+    let (monolith_id, should_create_room) = match ctx_write.rooms_to_monoliths.get(&client.room) {
+        Some(locator) => {
+            debug!(
+                "room {} already loaded on {}",
+                client.room,
+                locator.monolith_id()
+            );
+            (locator.monolith_id(), false)
         }
         None => {
             // the room is not loaded, randomly select a monolith
-            let selected = ctx_read.select_monolith()?;
+            let selected = ctx_write.select_monolith()?;
             debug!("room is not loaded, selected monolith: {:?}", selected.id());
             (selected.id(), true)
         }
     };
-    drop(ctx_read);
 
-    let mut b = ctx.write().await;
     if should_create_room {
         let room = Room::new(client.room.clone());
-        b.add_room(room, monolith_id)?;
+        // we assume the load epoch is 0 since we're creating the room. this will be updated when the monolith sends us the loaded message
+        ctx_write.add_room(room, RoomLocator::new(monolith_id, 0))?;
     }
-    b.add_client(client, monolith_id).await?;
+    ctx_write.add_client(client, monolith_id).await?;
     Ok(())
 }
 
@@ -415,7 +494,7 @@ pub async fn dispatch_client_message(
             };
 
             monolith
-                .send(&MsgB2M::ClientMsg {
+                .send(B2MClientMsg {
                     client_id: *msg.id(),
                     payload: raw_value,
                 })
@@ -474,7 +553,7 @@ pub async fn leave_monolith(
                 .await?;
         }
     }
-    ctx_write.remove_monolith(id);
+    ctx_write.remove_monolith(id).await?;
     Ok(())
 }
 
@@ -499,19 +578,18 @@ pub async fn dispatch_monolith_message(
                         monolith_id
                     );
                 }
-                MsgM2B::Loaded {
-                    name: room,
-                    metadata,
-                } => {
-                    debug!("room loaded on {}: {:?}", monolith_id, room);
+                MsgM2B::Loaded(msg) => {
+                    debug!("room loaded on {}: {:?}", monolith_id, msg.room.name);
                     let mut ctx_write = ctx.write().await;
-                    ctx_write.add_or_sync_room(&room, metadata, *monolith_id)?;
+                    ctx_write
+                        .add_or_sync_room(msg.room, *monolith_id, msg.load_epoch)
+                        .await?;
                 }
-                MsgM2B::Unloaded { room } => {
+                MsgM2B::Unloaded(msg) => {
                     let mut ctx_write = ctx.write().await;
-                    ctx_write.remove_room(&room, *monolith_id)?;
+                    ctx_write.remove_room(&msg.name, *monolith_id).await?;
                 }
-                MsgM2B::Gossip { rooms } => {
+                MsgM2B::Gossip(msg) => {
                     let mut ctx_write = ctx.write_owned().await;
                     let to_remove = ctx_write
                         .monoliths
@@ -519,30 +597,33 @@ pub async fn dispatch_monolith_message(
                         .unwrap()
                         .rooms()
                         .keys()
-                        .filter(|room| !rooms.iter().any(|r| r.name == **room))
+                        .filter(|room| !msg.rooms.iter().any(|r| r.room.name == **room))
                         .cloned()
                         .collect::<Vec<_>>();
                     debug!("to_remove: {:?}", to_remove);
-                    for gossip_room in rooms.iter() {
-                        ctx_write
-                            .rooms_to_monoliths
-                            .insert(gossip_room.name.clone(), *monolith_id);
-                    }
-                    let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
-                    for gossip_room in rooms {
-                        monolith.add_or_sync_room(&gossip_room.name, gossip_room.metadata);
+                    for gossip_room in msg.rooms {
+                        let room_name = gossip_room.room.name.clone();
+                        match ctx_write
+                            .add_or_sync_room(
+                                gossip_room.room,
+                                *monolith_id,
+                                gossip_room.load_epoch,
+                            )
+                            .await
+                        {
+                            Ok(_) => {}
+                            Err(err) => {
+                                warn!("failed to add room: {:?}", err);
+                                let _ = ctx_write.remove_room(&room_name, *monolith_id).await;
+                            }
+                        }
                     }
 
-                    let monolith = ctx_write.monoliths.get_mut(monolith_id).unwrap();
                     for room in to_remove {
-                        monolith.remove_room(&room)
+                        let _ = ctx_write.remove_room(&room, *monolith_id).await;
                     }
                 }
-                MsgM2B::RoomMsg {
-                    room,
-                    client_id: _,
-                    payload,
-                } => {
+                MsgM2B::RoomMsg(msg) => {
                     let ctx_read = ctx.read().await;
 
                     let Some(room) = ctx_read
@@ -550,7 +631,7 @@ pub async fn dispatch_monolith_message(
                         .get(monolith_id)
                         .unwrap()
                         .rooms()
-                        .get(&room)
+                        .get(&msg.room)
                     else {
                         anyhow::bail!("room not found on monolith");
                     };
@@ -560,7 +641,7 @@ pub async fn dispatch_monolith_message(
                     // broadcast to all clients
                     debug!("broadcasting to clients in room: {:?}", room.name());
                     // TODO: optimize this using a broadcast channel
-                    let built_msg = Message::text(payload.to_string());
+                    let built_msg = Message::text(msg.payload.to_string());
                     for client in room.clients() {
                         let Some(client) = ctx_read.clients.get(client) else {
                             anyhow::bail!("client not found");
@@ -569,14 +650,14 @@ pub async fn dispatch_monolith_message(
                         client.send(built_msg.clone()).await?;
                     }
                 }
-                MsgM2B::Kick { client_id, reason } => {
+                MsgM2B::Kick(msg) => {
                     let ctx_read = ctx.read().await;
-                    let Some(client) = ctx_read.clients.get(&client_id) else {
+                    let Some(client) = ctx_read.clients.get(&msg.client_id) else {
                         anyhow::bail!("client not found");
                     };
                     client
                         .send(Message::Close(Some(CloseFrame {
-                            code: CloseCode::Library(reason),
+                            code: CloseCode::Library(msg.reason),
                             reason: "".into(),
                         })))
                         .await?;

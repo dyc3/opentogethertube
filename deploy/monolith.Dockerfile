@@ -1,4 +1,6 @@
 FROM node:18-alpine3.16 as build-stage
+ARG GIT_COMMIT
+ENV GIT_COMMIT=$GIT_COMMIT
 
 WORKDIR /usr/app
 
@@ -15,6 +17,7 @@ ARG DEPLOY_TARGET
 WORKDIR /usr/app/
 
 ENV NODE_ENV production
+ENV FFPROBE_PATH /usr/bin/ffprobe
 
 RUN apk update -q && apk --no-cache add curl ffmpeg -q
 

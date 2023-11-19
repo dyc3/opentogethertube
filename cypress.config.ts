@@ -1,5 +1,5 @@
 import { defineConfig } from "cypress";
-import viteConfig from "ott-client/vite.config";
+import viteConfig from "./client/vite.config";
 
 export default defineConfig({
 	projectId: "3utpz8",

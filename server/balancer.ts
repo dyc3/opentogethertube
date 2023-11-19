@@ -11,6 +11,8 @@ import { OttWebsocketError } from "ott-common/models/types";
 import roommanager from "./roommanager";
 import type { RoomListItem } from "./api/room";
 import _ from "lodash";
+import type { MsgB2M, MsgM2B } from "./generated";
+export type { MsgB2M, MsgM2B };
 
 const log = getLogger("balancer");
 
@@ -69,10 +71,11 @@ class BalancerManager {
 		log.info(`Connected to balancer ${conn.id}`);
 		this.emit("connect", conn);
 
-		const init: MsgM2BInit = {
+		const init: MsgM2B = {
 			type: "init",
 			payload: {
 				port: conf.get("port"),
+				region: conf.get("balancing.region"),
 			},
 		};
 		conn.send(init);
@@ -164,10 +167,11 @@ export class BalancerConnection {
 	}
 
 	private onSocketConnect(event: WebSocket.OpenEvent) {
-		const init: MsgM2BInit = {
+		const init: MsgM2B = {
 			type: "init",
 			payload: {
 				port: conf.get("port"),
+				region: conf.get("balancing.region"),
 			},
 		};
 		this.send(init);
@@ -274,7 +278,10 @@ async function onRoomLoad(roomName: string) {
 
 	broadcastToBalancers({
 		type: "loaded",
-		payload: obj,
+		payload: {
+			room: obj,
+			load_epoch: room.loadEpoch,
+		},
 	});
 	gossipDebounced();
 }
@@ -283,7 +290,7 @@ function onRoomUnload(roomName: string) {
 	broadcastToBalancers({
 		type: "unloaded",
 		payload: {
-			room: roomName,
+			name: roomName,
 		},
 	});
 	gossipDebounced();
@@ -295,14 +302,17 @@ function gossip() {
 		type: "gossip",
 		payload: {
 			rooms: roommanager.rooms.map(room => ({
-				name: room.name,
-				title: room.title,
-				description: room.description,
-				isTemporary: room.isTemporary,
-				visibility: room.visibility,
-				queueMode: room.queueMode,
-				currentSource: room.currentSource,
-				users: room.users.length,
+				room: {
+					name: room.name,
+					title: room.title,
+					description: room.description,
+					isTemporary: room.isTemporary,
+					visibility: room.visibility,
+					queueMode: room.queueMode,
+					currentSource: room.currentSource,
+					users: room.users.length,
+				},
+				load_epoch: room.loadEpoch,
 			})),
 		},
 	});
@@ -310,83 +320,5 @@ function gossip() {
 }
 
 const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait: 1000 * 20 });
-
-// TODO: use typeshare?
-export type MsgB2M = MsgB2MJoin | MsgB2MLeave | MsgB2MClientMsg<unknown>;
-
-interface MsgB2MJoin {
-	type: "join";
-	payload: {
-		room: string;
-		client: ClientId;
-		token: AuthToken;
-	};
-}
-
-interface MsgB2MLeave {
-	type: "leave";
-	payload: {
-		client: ClientId;
-	};
-}
-
-interface MsgB2MClientMsg<T> {
-	type: "client_msg";
-	payload: {
-		client_id: ClientId;
-		payload: T;
-	};
-}
-
-export type MsgM2B =
-	| MsgM2BInit
-	| MsgM2BLoaded
-	| MsgM2BUnloaded
-	| MsgM2BGossip
-	| MsgM2BRoomMsg<unknown>
-	| MsgM2BKick;
-
-interface MsgM2BInit {
-	type: "init";
-	payload: {
-		port: number;
-	};
-}
-
-interface MsgM2BLoaded {
-	type: "loaded";
-	payload: GossipRoom;
-}
-
-interface MsgM2BUnloaded {
-	type: "unloaded";
-	payload: {
-		room: string;
-	};
-}
-
-interface MsgM2BGossip {
-	type: "gossip";
-	payload: {
-		rooms: GossipRoom[];
-	};
-}
-
-interface MsgM2BRoomMsg<T> {
-	type: "room_msg";
-	payload: {
-		room: string;
-		client_id?: ClientId;
-		payload: T;
-	};
-}
-
-interface MsgM2BKick {
-	type: "kick";
-	payload: {
-		client_id: ClientId;
-		reason: OttWebsocketError;
-	};
-}
 
 interface GossipRoom extends RoomListItem {}

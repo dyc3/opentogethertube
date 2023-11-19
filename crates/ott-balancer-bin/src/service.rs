@@ -11,6 +11,7 @@ use once_cell::sync::Lazy;
 use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
 use ott_balancer_protocol::RoomName;
 use ott_common::websocket::{is_websocket_upgrade, upgrade};
+use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
@@ -52,6 +53,8 @@ impl Service<Request<IncomingBody>> for BalancerService {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
+        COUNTER_HTTP_REQUESTS.inc();
+
         fn mk_response(s: String) -> anyhow::Result<Response<Full<Bytes>>, hyper::Error> {
             Ok(Response::builder().body(Full::new(Bytes::from(s))).unwrap())
         }
@@ -83,7 +86,23 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     .join("\n");
                     mk_response(rendered)
                 }
-                "metrics" => mk_response("TODO: prometheus metrics".to_owned()),
+                "metrics" => {
+                    let bytes = match gather_metrics() {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            error!("error gathering metrics: {}", e);
+                            return Ok(Response::builder()
+                                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                .body(Full::new(Bytes::from(format!(
+                                    "error gathering metrics: {}",
+                                    e
+                                ))))
+                                .unwrap());
+                        }
+                    };
+
+                    Ok(Response::builder().body(Full::new(bytes)).unwrap())
+                }
                 "room" => {
                     let Some(room_name) = route.params().find("room_name") else {
                         return Ok(not_found());
@@ -97,9 +116,11 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new().name("client connection").spawn(
                             async move {
+                                GUAGE_CLIENTS.inc();
                                 if let Err(e) = client_entry(room_name, websocket, link).await {
                                     error!("Error in websocket connection: {}", e);
                                 }
+                                GUAGE_CLIENTS.dec();
                             },
                         );
 
@@ -116,14 +137,17 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         }
                     } else {
                         let ctx_read = ctx.read().await;
-                        let monolith = if let Some(monolith_id) =
-                            ctx_read.rooms_to_monoliths.get(&room_name)
-                        {
-                            info!("found room {} in monolith {}", room_name, monolith_id);
-                            ctx_read.monoliths.get(monolith_id)
-                        } else {
-                            ctx_read.select_monolith().ok()
-                        };
+                        let monolith =
+                            if let Some(locator) = ctx_read.rooms_to_monoliths.get(&room_name) {
+                                info!(
+                                    "found room {} in monolith {}",
+                                    room_name,
+                                    locator.monolith_id()
+                                );
+                                ctx_read.monoliths.get(&locator.monolith_id())
+                            } else {
+                                ctx_read.select_monolith().ok()
+                            };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
                             match proxy_request(req, monolith).await {
@@ -241,6 +265,14 @@ async fn list_rooms(ctx: Arc<RwLock<BalancerContext>>) -> anyhow::Result<Respons
     Ok(builder.body(Full::new(body.into())).unwrap())
 }
 
+fn gather_metrics() -> anyhow::Result<Bytes> {
+    let mut buffer = vec![];
+    let encoder = TextEncoder::new();
+    let metric_families = prometheus::gather();
+    encoder.encode(&metric_families, &mut buffer)?;
+    Ok(Bytes::from(buffer))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -295,3 +327,11 @@ mod test {
         }
     }
 }
+
+static GUAGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!("balancer_clients", "Number of connected websocket clients").unwrap()
+});
+
+static COUNTER_HTTP_REQUESTS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!("balancer_http_requests", "Number of HTTP requests received").unwrap()
+});

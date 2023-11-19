@@ -1,13 +1,17 @@
 use std::{fmt::Display, sync::Arc};
 
 use serde::{Deserialize, Serialize};
+use typeshare::typeshare;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[typeshare(serialized_as = "String")]
 pub struct ClientId(Uuid);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[typeshare(serialized_as = "String")]
 pub struct RoomName(Arc<str>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[typeshare(serialized_as = "String")]
 pub struct MonolithId(Uuid);
 
 impl From<ClientId> for Uuid {
@@ -31,6 +35,18 @@ impl From<RoomName> for String {
 impl From<String> for RoomName {
     fn from(val: String) -> Self {
         Self(val.into())
+    }
+}
+
+impl From<&str> for RoomName {
+    fn from(val: &str) -> Self {
+        Self(val.into())
+    }
+}
+
+impl Default for RoomName {
+    fn default() -> Self {
+        Self("".into())
     }
 }
 

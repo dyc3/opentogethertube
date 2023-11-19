@@ -7,3 +7,4 @@
 *.log
 *.env
 **/tests/unit/fixtures/**
+server/generated.ts
