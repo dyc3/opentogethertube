@@ -6,7 +6,7 @@ import { getLogger } from "./logger";
 const log = getLogger("storage");
 
 /** Source: https://stackoverflow.com/questions/2596670/how-do-you-find-the-row-count-for-all-your-tables-in-postgres */
-const POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS = `WITH tbl AS
+const POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_SLOW_ACCURATE = `WITH tbl AS
 (SELECT table_schema,
 		TABLE_NAME
  FROM information_schema.tables
@@ -18,12 +18,17 @@ SELECT table_schema,
 FROM tbl
 ORDER BY rows_n DESC;`;
 
+const POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_FAST_ESTIMATE = `SELECT schemaname AS table_schema, relname AS table_name, n_live_tup::text::int AS rows_n
+FROM pg_stat_user_tables
+ORDER BY n_live_tup DESC;`;
+
 export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 	const guagePostgresRowCount = new Gauge({
 		name: "postgres_db_row_count",
 		help: "Number of rows in a table in the database",
 		labelNames: ["table"],
 		async collect() {
+			const timeStart = performance.now();
 			interface ResultRow {
 				table_schema: string;
 				table_name: string;
@@ -32,7 +37,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 
 			try {
 				const result: ResultRow[] = await sequelize.query(
-					POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS,
+					POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_FAST_ESTIMATE,
 					{
 						type: QueryTypes.SELECT,
 					}
@@ -44,6 +49,8 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 			} catch (e) {
 				log.error("Failed to collect postgres db row count", e);
 			}
+			const timeEnd = performance.now();
+			log.debug(`collecting postgres db row count took ${timeEnd - timeStart}ms`);
 		},
 	});
 
@@ -52,6 +59,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 		help: "Number of table operations in the database",
 		labelNames: ["table", "operation"],
 		async collect() {
+			const timeStart = performance.now();
 			interface ResultRow {
 				relname: string;
 				seq_scan: string;
@@ -89,6 +97,8 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 			} catch (e) {
 				log.error("Failed to collect postgres table stats", e);
 			}
+			const timeEnd = performance.now();
+			log.debug(`collecting postgres table stats took ${timeEnd - timeStart}ms`);
 		},
 	});
 }
