@@ -54,6 +54,7 @@ pub(crate) struct MonolithState {
     rooms: HashMap<RoomName, RoomMetadata>,
     room_load_epoch: Arc<AtomicU32>,
     clients: HashSet<ClientId>,
+    region: String,
 }
 
 impl Monolith {
@@ -196,6 +197,10 @@ impl Monolith {
 
     pub fn clients(&self) -> HashSet<ClientId> {
         self.state.lock().unwrap().clients.clone()
+    }
+
+    pub fn region(&self) -> String {
+        self.state.lock().unwrap().region.clone()
     }
 
     /// Tell the provider to add this monolith to the list of available monoliths.
