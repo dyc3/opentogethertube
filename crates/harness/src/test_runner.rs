@@ -8,8 +8,7 @@ use tracing::warn;
 use crate::util::random_unused_port;
 
 pub struct TestRunner {
-    /// The port that the balancer is listening on for client connections.
-    pub port: u16,
+    spawn_options: BalancerSpawnOptions,
     pub(crate) child: Child,
 
     pub(crate) monolith_add_tx: tokio::sync::mpsc::Sender<SocketAddr>,
@@ -18,7 +17,64 @@ pub struct TestRunner {
     pub(crate) room_load_epoch: Arc<std::sync::atomic::AtomicU32>,
 }
 
-impl TestRunner {}
+impl TestRunner {
+    /// The port that the balancer is listening on for client connections and HTTP requests.
+    pub fn port(&self) -> u16 {
+        self.spawn_options.port
+    }
+
+    /// Kill the balancer and start a new one with the same configuration.
+    pub async fn restart_balancer(&mut self) {
+        if let Err(result) = self.child.kill().await {
+            warn!("restart_balancer: Failed to kill balancer: {:?}", result);
+        }
+
+        self.child = Self::spawn_balancer(&self.spawn_options).await;
+    }
+
+    /// Spawn a new balancer and wait for it to be ready.
+    async fn spawn_balancer(opts: &BalancerSpawnOptions) -> Child {
+        let child = Command::new("cargo")
+            .args([
+                "run",
+                "-p",
+                "ott-balancer-bin",
+                "--",
+                "--log-level",
+                "debug",
+            ])
+            .env("BALANCER_PORT", format!("{}", opts.port))
+            .env(
+                "BALANCER_DISCOVERY",
+                format!("{{method=\"harness\", port={}}}", opts.harness_port),
+            )
+            .spawn()
+            .expect("Failed to start balancer");
+
+        loop {
+            let client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_millis(100))
+                .build()
+                .expect("failed to build request client");
+            match client
+                .get(&format!("http://localhost:{}/api/status", opts.port))
+                .send()
+                .await
+            {
+                Ok(response) => {
+                    if response.status().is_success() {
+                        break;
+                    }
+                }
+                Err(_) => {
+                    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                }
+            }
+        }
+
+        child
+    }
+}
 
 #[async_trait::async_trait]
 impl AsyncTestContext for TestRunner {
@@ -35,49 +91,15 @@ impl AsyncTestContext for TestRunner {
             }
         }
 
-        let child = Command::new("cargo")
-            .args([
-                "run",
-                "-p",
-                "ott-balancer-bin",
-                "--",
-                "--log-level",
-                "debug",
-            ])
-            .env("BALANCER_PORT", format!("{}", port))
-            .env(
-                "BALANCER_DISCOVERY",
-                format!("{{method=\"harness\", port={}}}", harness_port),
-            )
-            .spawn()
-            .expect("Failed to start balancer");
+        let opts = BalancerSpawnOptions { port, harness_port };
 
-        loop {
-            let client = reqwest::Client::builder()
-                .timeout(std::time::Duration::from_millis(100))
-                .build()
-                .expect("failed to build request client");
-            match client
-                .get(&format!("http://localhost:{}/api/status", port))
-                .send()
-                .await
-            {
-                Ok(response) => {
-                    if response.status().is_success() {
-                        break;
-                    }
-                }
-                Err(_) => {
-                    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-                }
-            }
-        }
+        let child = Self::spawn_balancer(&opts).await;
 
         let (_provider_task, monolith_add_tx, monolith_remove_tx) =
             crate::provider::DiscoveryProvider::connect(harness_port).await;
 
         Self {
-            port,
+            spawn_options: opts,
             child,
             monolith_add_tx,
             monolith_remove_tx,
@@ -89,5 +111,43 @@ impl AsyncTestContext for TestRunner {
         if let Err(result) = self.child.kill().await {
             warn!("teardown: Failed to kill balancer: {:?}", result);
         }
+    }
+}
+
+struct BalancerSpawnOptions {
+    pub port: u16,
+    pub harness_port: u16,
+}
+
+#[cfg(test)]
+mod test {
+    use test_context::test_context;
+
+    use super::*;
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn test_balancer_restart(ctx: &mut TestRunner) {
+        let port = ctx.port();
+
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_millis(100))
+            .build()
+            .expect("failed to build request client");
+        let response = client
+            .get(&format!("http://localhost:{}/api/status", port))
+            .send()
+            .await
+            .expect("failed to send request");
+        assert!(response.status().is_success());
+
+        ctx.restart_balancer().await;
+
+        let response = client
+            .get(&format!("http://localhost:{}/api/status", port))
+            .send()
+            .await
+            .expect("failed to send request");
+        assert!(response.status().is_success());
     }
 }

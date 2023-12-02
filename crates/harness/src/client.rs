@@ -20,7 +20,7 @@ pub struct Client {
 impl Client {
     pub fn new(ctx: &TestRunner) -> anyhow::Result<Self> {
         Ok(Self {
-            addr: SocketAddr::new(Ipv4Addr::LOCALHOST.into(), ctx.port),
+            addr: SocketAddr::new(Ipv4Addr::LOCALHOST.into(), ctx.port()),
             stream: None,
         })
     }
