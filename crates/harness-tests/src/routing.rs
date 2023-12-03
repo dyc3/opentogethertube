@@ -226,4 +226,6 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
         payload: serde_json::json!({}),
     })
     .await;
+
+    assert_ne!(c1.recv(), c2.recv());
 }
