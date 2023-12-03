@@ -58,6 +58,7 @@ pub struct MonolithState {
     rooms: HashMap<RoomName, RoomMetadata>,
     room_load_epoch: Arc<AtomicU32>,
     clients: HashSet<ClientId>,
+    region: String,
 }
 
 impl Monolith {
@@ -100,7 +101,7 @@ impl Monolith {
                     let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
                     let init = M2BInit {
                         port: http_port,
-                        region: "unknown".into(),
+                        region: state.lock().unwrap().region.clone(),
                     };
                     let msg = serde_json::to_string(&MsgM2B::Init(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
@@ -207,6 +208,10 @@ impl Monolith {
 
     pub fn clients(&self) -> HashSet<ClientId> {
         self.state.lock().unwrap().clients.clone()
+    }
+
+    pub fn region(&self) -> String {
+        self.state.lock().unwrap().region.clone()
     }
 
     /// Tell the provider to add this monolith to the list of available monoliths.
@@ -416,6 +421,7 @@ pub struct MockRequest {
 pub struct MonolithBuilder {
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
     behavior: Option<Box<dyn Behavior + Send + 'static>>,
+    region: String,
 }
 
 impl MonolithBuilder {
@@ -458,6 +464,11 @@ impl MonolithBuilder {
 
     pub fn behavior(mut self, behavior: impl Behavior + Send + 'static) -> Self {
         self.behavior = Some(Box::new(behavior));
+        self
+    }
+
+    pub fn region(mut self, region: String) -> Self {
+        self.region = region;
         self
     }
 }
