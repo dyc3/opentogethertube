@@ -219,7 +219,7 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
 
     m.wait_recv().await;
 
-    let c_id = m.clients().iter().next();
+    let c_id = m.clients().iter().next().copied();
     m.send(M2BRoomMsg {
         room: "foo".into(),
         client_id: c_id,
