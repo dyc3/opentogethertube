@@ -78,7 +78,6 @@ impl Monolith {
         let notif_connect = Arc::new(Notify::new());
         let notif_disconnect = Arc::new(Notify::new());
         let notif_recv = Arc::new(Notify::new());
-
         let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
 
         let state = Arc::new(Mutex::new(MonolithState {
@@ -270,6 +269,10 @@ impl Monolith {
         self.state.lock().unwrap().response_mocks = mocks;
     }
 
+    pub fn set_region(&mut self, region: &str) {
+        self.state.lock().unwrap().region = region.to_string();
+    }
+
     pub fn collect_mock_http(&self) -> Vec<MockRequest> {
         self.state.lock().unwrap().received_http.clone()
     }
@@ -427,6 +430,7 @@ pub struct MonolithBuilder {
 impl MonolithBuilder {
     pub fn new() -> Self {
         Self {
+            region: "unknown".to_string(),
             ..Default::default()
         }
     }
@@ -437,6 +441,7 @@ impl MonolithBuilder {
                 .await
                 .unwrap();
         monolith.set_all_mock_http(self.response_mocks);
+        monolith.set_region("unknown");
         monolith
     }
 
@@ -467,8 +472,9 @@ impl MonolithBuilder {
         self
     }
 
-    pub fn region(mut self, region: String) -> Self {
-        self.region = region;
+    pub fn region(mut self, region: &str) -> Self {
+        let region_str = region.to_string();
+        self.region = region_str;
         self
     }
 }

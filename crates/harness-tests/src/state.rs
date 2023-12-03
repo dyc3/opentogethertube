@@ -48,3 +48,11 @@ async fn should_unload_duplicate_rooms_and_route_correctly(ctx: &TestRunner) {
         .await
         .expect("timed out waiting for client join");
 }
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn emulated_region(ctx: &TestRunner) {
+    let m = Monolith::new(ctx).await.unwrap();
+
+    assert_eq!(m.region(), "unknown");
+}
