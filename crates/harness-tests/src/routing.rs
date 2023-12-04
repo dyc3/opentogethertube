@@ -204,10 +204,6 @@ async fn monolith_double_load_room(ctx: &mut TestRunner) {
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn unicast_messaging(ctx: &mut TestRunner) {
-    //connect 2 clients
-    //send message to one client
-    //make sure other client doesn't recieve message
-    //reach into state and grab client id to send a unicast message
     let mut m = Monolith::new(ctx).await.unwrap();
 
     m.show().await;
@@ -220,6 +216,7 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     m.wait_recv().await;
 
     let c_id = m.clients().iter().next().copied();
+
     m.send(M2BRoomMsg {
         room: "foo".into(),
         client_id: c_id,
@@ -227,5 +224,5 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     })
     .await;
 
-    assert_ne!(c1.recv(), c2.recv());
+    assert_ne!(c1.recv().await.into(), c2.recv().await.into());
 }
