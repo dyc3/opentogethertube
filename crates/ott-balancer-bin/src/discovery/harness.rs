@@ -65,6 +65,7 @@ impl HarnessMonolithDiscoverer {
                             }
                             None => {
                                 warn!("harness closed connection");
+                                break;
                             }
                         }
                     }
