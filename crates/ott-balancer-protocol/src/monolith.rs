@@ -85,12 +85,12 @@ impl From<B2MClientMsg> for MsgB2M {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
 #[typeshare]
-pub enum MsgM2B {
+pub enum MsgM2B<T = Box<RawValue>> {
     Init(M2BInit),
     Loaded(M2BLoaded),
     Unloaded(M2BUnloaded),
     Gossip(M2BGossip),
-    RoomMsg(M2BRoomMsg),
+    RoomMsg(M2BRoomMsg<T>),
     Kick(M2BKick),
 }
 
@@ -129,6 +129,26 @@ pub struct GossipRoom {
     pub load_epoch: u32,
 }
 
+/// Wrapper around a message that should be sent to clients in a room. The payload is any value that can be serialized to JSON.
+///
+/// ```
+/// # use serde_json::value::RawValue;
+/// # use ott_balancer_protocol::monolith::{MsgM2B, M2BRoomMsg};
+/// let json = M2BRoomMsg {
+///   room: "foo".into(),
+///   client_id: None,
+///   payload: serde_json::json!({}),
+/// };
+///
+/// let raw = M2BRoomMsg {
+///   room: "foo".into(),
+///   client_id: None,
+///   payload: RawValue::from_string("{}".to_owned()).unwrap(),
+/// };
+///
+/// let msg = MsgM2B::from(json);
+/// let msg = MsgM2B::from(raw);
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
 pub struct M2BRoomMsg<T = Box<RawValue>> {
@@ -171,8 +191,11 @@ impl From<M2BGossip> for MsgM2B {
     }
 }
 
-impl From<M2BRoomMsg> for MsgM2B {
-    fn from(val: M2BRoomMsg) -> Self {
+impl<T> From<M2BRoomMsg<T>> for MsgM2B<T>
+where
+    T: Serialize,
+{
+    fn from(val: M2BRoomMsg<T>) -> Self {
         Self::RoomMsg(val)
     }
 }
@@ -212,4 +235,30 @@ pub enum Visibility {
     #[default]
     Unlisted,
     Private,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn m2b_room_msg_serializability() {
+        // M2BRoomMsg should be able to accept any type that can be serialized to JSON, and it should be usable in the MsgM2B enum.
+
+        let raw = M2BRoomMsg {
+            room: "foo".into(),
+            client_id: None,
+            payload: RawValue::from_string("{}".to_owned()).unwrap(),
+        };
+
+        let json = M2BRoomMsg {
+            room: "foo".into(),
+            client_id: None,
+            payload: serde_json::json!({}),
+        };
+
+        let raw_ser = serde_json::to_string(&MsgM2B::from(raw)).unwrap();
+        let json_ser = serde_json::to_string(&MsgM2B::from(json)).unwrap();
+        assert_eq!(raw_ser, json_ser);
+    }
 }
