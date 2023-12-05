@@ -220,7 +220,7 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     m.send(M2BRoomMsg {
         room: "foo".into(),
         client_id: c_id,
-        payload: serde_json::json!({}),
+        payload: RawValue::from_string("{}".to_owned()).unwrap(),,
     })
     .await;
 
