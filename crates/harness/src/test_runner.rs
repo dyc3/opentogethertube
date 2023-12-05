@@ -74,6 +74,14 @@ impl TestRunner {
 
         child
     }
+
+    /// Create a URL that points to the balancer. This creates URLs that clients should connect to when making HTTP requests.
+    pub fn url(&self, path: impl AsRef<str>) -> reqwest::Url {
+        let path = path.as_ref();
+        assert!(path.starts_with('/'), "path must start with '/'");
+        let built = format!("http://[::1]:{}{}", self.port(), path);
+        reqwest::Url::parse(&built).expect("failed to parse URL")
+    }
 }
 
 #[async_trait::async_trait]
