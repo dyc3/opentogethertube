@@ -131,7 +131,7 @@ pub struct GossipRoom {
 
 /// Wrapper around a message that should be sent to clients in a room. The payload is any value that can be serialized to JSON.
 ///
-/// ```
+/// ```rust
 /// # use serde_json::value::RawValue;
 /// # use ott_balancer_protocol::monolith::{MsgM2B, M2BRoomMsg};
 /// let json = M2BRoomMsg {
