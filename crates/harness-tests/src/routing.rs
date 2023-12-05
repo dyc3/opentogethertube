@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use harness::{Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
 use ott_balancer_protocol::monolith::M2BRoomMsg;
+use serde_json::value::RawValue;
 use test_context::test_context;
 
 #[test_context(TestRunner)]
@@ -220,7 +221,7 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     m.send(M2BRoomMsg {
         room: "foo".into(),
         client_id: c_id,
-        payload: RawValue::from_string("{}".to_owned()).unwrap(),,
+        payload: RawValue::from_string("{}".to_owned()).unwrap(),
     })
     .await;
 
