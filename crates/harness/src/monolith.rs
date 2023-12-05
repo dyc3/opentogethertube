@@ -102,7 +102,7 @@ impl Monolith {
                         port: http_port,
                         region: "unknown".into(),
                     };
-                    let msg = serde_json::to_string(&MsgM2B::Init(init)).unwrap();
+                    let msg = serde_json::to_string(&MsgM2B::from(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
                     state.lock().unwrap().connected = true;
                     _notif_connect.notify_one();
