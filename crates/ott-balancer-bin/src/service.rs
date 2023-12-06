@@ -15,7 +15,7 @@ use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, span, warn, Level};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -54,6 +54,15 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
     fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
         COUNTER_HTTP_REQUESTS.inc();
+        let request_id = COUNTER_HTTP_REQUESTS.get();
+        let request_span = span!(
+            Level::INFO,
+            "http_request",
+            request_id = request_id,
+            method = %req.method(),
+            path = %req.uri().path(),
+        )
+        .entered();
 
         fn mk_response(s: String) -> anyhow::Result<Response<Full<Bytes>>, hyper::Error> {
             Ok(Response::builder().body(Full::new(Bytes::from(s))).unwrap())
@@ -67,12 +76,17 @@ impl Service<Request<IncomingBody>> for BalancerService {
             warn!("no route found for {}", req.uri().path());
             return Box::pin(async move { Ok(not_found()) });
         };
-        info!(
-            "Inbound request: {} {} => {}",
-            req.method(),
-            req.uri().path(),
-            route.handler()
-        );
+        drop(request_span);
+        let _request_span = span!(
+            Level::INFO,
+            "http_request",
+            request_id = request_id,
+            method = %req.method(),
+            path = %req.uri().path(),
+            handler = route.handler(),
+        )
+        .entered();
+        info!("inbound request");
 
         Box::pin(async move {
             let res = match **route.handler() {
@@ -110,8 +124,14 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
                     let room_name: RoomName = room_name.to_owned().into();
                     if is_websocket_upgrade(&req) {
-                        debug!("upgrading to websocket");
-                        let (response, websocket) = upgrade(req, None).unwrap();
+                        debug!(message = "upgrading to websocket", request_id, room = %room_name);
+                        let (response, websocket) = match upgrade(req, None) {
+                            Ok((response, websocket)) => (response, websocket),
+                            Err(err) => {
+                                error!(message = "failed to upgrade websocket: {:?}", request_id, room = %room_name, error = %err);
+                                return Ok(interval_server_error());
+                            }
+                        };
 
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new().name("client connection").spawn(
@@ -166,7 +186,10 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     let ctx_read = ctx.read().await;
                     let monolith = ctx_read.random_monolith().ok();
                     if let Some(monolith) = monolith {
-                        info!("proxying request to monolith {}", monolith.id());
+                        info!(
+                            message = "proxying request to monolith",
+                            monolith = %monolith.id(),
+                        );
                         match proxy_request(req, monolith).await {
                             Ok(res) => Ok(res),
                             Err(err) => {
@@ -190,6 +213,13 @@ fn not_found() -> Response<Full<Bytes>> {
     Response::builder()
         .status(StatusCode::NOT_FOUND)
         .body(Full::new(NOTFOUND.into()))
+        .unwrap()
+}
+
+fn interval_server_error() -> Response<Full<Bytes>> {
+    Response::builder()
+        .status(StatusCode::INTERNAL_SERVER_ERROR)
+        .body(Full::new("internal server error".into()))
         .unwrap()
 }
 

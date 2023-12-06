@@ -10,7 +10,7 @@ use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::monolith::Room;
 use crate::room::RoomLocator;
@@ -309,7 +309,7 @@ impl BalancerContext {
         room: &RoomName,
         monolith_id: MonolithId,
     ) -> anyhow::Result<()> {
-        debug!("remove_room {}, {:?}", room, monolith_id);
+        debug!(func = "remove_room", %room, %monolith_id);
         let monolith = self
             .monoliths
             .get_mut(&monolith_id)
@@ -338,8 +338,7 @@ impl BalancerContext {
         load_epoch: u32,
     ) -> anyhow::Result<()> {
         debug!(
-            "add_or_sync_room {}, {:?} load_epoch {}",
-            metadata.name, monolith_id, load_epoch
+            func = "add_or_sync_room", room = %metadata.name, load_epoch, %monolith_id,
         );
         if let Some(locator) = self.rooms_to_monoliths.get(&metadata.name) {
             match locator.load_epoch().cmp(&load_epoch) {
@@ -421,6 +420,7 @@ impl BalancerContext {
     }
 
     pub async fn unload_room(&self, monolith: MonolithId, room: RoomName) -> anyhow::Result<()> {
+        debug!(func = "unload_room", %room, monolith_id = %monolith);
         let monolith = self.monoliths.get(&monolith).unwrap();
         monolith.send(B2MUnload { room }).await?;
         Ok(())
