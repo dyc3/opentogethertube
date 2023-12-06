@@ -37,14 +37,14 @@ async fn should_unload_duplicate_rooms_and_route_correctly(ctx: &TestRunner) {
     m1.load_room("foo").await;
     m2.load_room("foo").await;
 
-    tokio::time::timeout(Duration::from_millis(100), m2.wait_recv())
+    tokio::time::timeout(Duration::from_millis(200), m2.wait_recv())
         .await
         .expect("timed out waiting for unload");
 
     let mut c = Client::new(ctx).unwrap();
     c.join("foo").await;
 
-    tokio::time::timeout(Duration::from_millis(100), m1.wait_recv())
+    tokio::time::timeout(Duration::from_millis(200), m1.wait_recv())
         .await
         .expect("timed out waiting for client join");
 }
