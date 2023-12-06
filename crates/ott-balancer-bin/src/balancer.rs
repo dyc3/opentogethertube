@@ -218,6 +218,7 @@ pub struct BalancerContext {
     pub clients: HashMap<ClientId, BalancerClient>,
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
     pub rooms_to_monoliths: HashMap<RoomName, RoomLocator>,
+    pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
 }
 
 impl BalancerContext {
@@ -226,6 +227,7 @@ impl BalancerContext {
             clients: HashMap::new(),
             monoliths: HashMap::new(),
             rooms_to_monoliths: HashMap::new(),
+            monoliths_by_region: HashMap::new(),
         }
     }
 
@@ -262,11 +264,23 @@ impl BalancerContext {
     }
 
     pub fn add_monolith(&mut self, monolith: BalancerMonolith) {
-        self.monoliths.insert(monolith.id(), monolith);
+        let id = monolith.id();
+        let region = monolith.region().to_string();
+        self.monoliths.insert(id, monolith);
+        self.monoliths_by_region
+            .entry(region)
+            .or_insert_with(Vec::new)
+            .push(id);
     }
 
     pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
-        self.monoliths.remove(&monolith_id);
+        let m = self.monoliths.remove(&monolith_id);
+        if let Some(m) = m {
+            let region = m.region().to_string();
+            self.monoliths_by_region.entry(region).and_modify(|v| {
+                v.retain(|x| *x != monolith_id);
+            });
+        }
 
         self.rooms_to_monoliths
             .retain(|_, v| v.monolith_id() != monolith_id);
