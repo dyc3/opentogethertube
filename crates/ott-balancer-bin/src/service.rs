@@ -76,7 +76,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
             warn!("no route found for {}", req.uri().path());
             return Box::pin(async move { Ok(not_found()) });
         };
-        tracing::Span::current().record("handler", &route.handler());
+        tracing::Span::current().record("handler", route.handler());
         info!("inbound request");
 
         Box::pin(async move {
