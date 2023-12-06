@@ -229,7 +229,7 @@ impl BalancerContext {
         }
     }
 
-    #[instrument(skip(self, client), fields(client_id = %client.id, room = %client.room))]
+    #[instrument(skip(self, client), err, fields(client_id = %client.id, room = %client.room))]
     pub async fn add_client(
         &mut self,
         client: BalancerClient,
@@ -252,7 +252,7 @@ impl BalancerContext {
         Ok(())
     }
 
-    #[instrument(skip(self))]
+    #[instrument(skip(self), err)]
     pub async fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
         let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
@@ -292,9 +292,9 @@ impl BalancerContext {
         Ok(())
     }
 
-    #[instrument(skip(self, room), fields(room = %room.name(), load_epoch = %locator.load_epoch()))]
+    #[instrument(skip(self, room), err, fields(room = %room.name(), load_epoch = %locator.load_epoch()))]
     pub fn add_room(&mut self, room: Room, locator: RoomLocator) -> anyhow::Result<()> {
-        debug!("add_room {} {:?}", room.name(), locator);
+        debug!("add_room");
         let monolith = self
             .monoliths
             .get_mut(&locator.monolith_id())
@@ -331,7 +331,7 @@ impl BalancerContext {
         Ok(())
     }
 
-    #[instrument(skip(self, metadata), fields(room = %metadata.name))]
+    #[instrument(skip(self, metadata), err, fields(room = %metadata.name))]
     pub async fn add_or_sync_room(
         &mut self,
         metadata: RoomMetadata,
@@ -418,6 +418,7 @@ impl BalancerContext {
         Ok(selected)
     }
 
+    #[instrument(skip(self, monolith), err, fields(monolith_id = %monolith))]
     pub async fn unload_room(&self, monolith: MonolithId, room: RoomName) -> anyhow::Result<()> {
         debug!(func = "unload_room", %room, monolith_id = %monolith);
         let monolith = self.monoliths.get(&monolith).unwrap();
@@ -426,7 +427,7 @@ impl BalancerContext {
     }
 }
 
-#[instrument(skip_all, fields(client_id = %new_client.id, room = %new_client.room))]
+#[instrument(skip_all, err, fields(client_id = %new_client.id, room = %new_client.room))]
 pub async fn join_client(
     ctx: Arc<RwLock<BalancerContext>>,
     new_client: NewClient,
@@ -467,7 +468,7 @@ pub async fn join_client(
     Ok(())
 }
 
-#[instrument(skip_all, fields(client_id = %id))]
+#[instrument(skip_all, err, fields(client_id = %id))]
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
     info!("client left");
     ctx.write().await.remove_client(id).await?;
@@ -508,7 +509,7 @@ pub async fn dispatch_client_message(
     Ok(())
 }
 
-#[instrument(skip_all, fields(monolith_id = %monolith.id))]
+#[instrument(skip_all, err, fields(monolith_id = %monolith.id))]
 pub async fn join_monolith(
     ctx: Arc<RwLock<BalancerContext>>,
     monolith: NewMonolith,
@@ -525,7 +526,7 @@ pub async fn join_monolith(
     Ok(())
 }
 
-#[instrument(skip_all, fields(monolith_id = %id))]
+#[instrument(skip_all, err, fields(monolith_id = %id))]
 pub async fn leave_monolith(
     ctx: Arc<RwLock<BalancerContext>>,
     id: MonolithId,
