@@ -163,6 +163,7 @@ impl Room {
 #[derive(Debug)]
 pub struct NewMonolith {
     pub id: MonolithId,
+    pub region: String,
     pub config: MonolithConnectionConfig,
     pub proxy_port: u16,
 }
