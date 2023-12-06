@@ -15,7 +15,7 @@ use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, span, warn, Level};
+use tracing::{debug, error, field, info, span, warn, Level};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
@@ -61,6 +61,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
             request_id = request_id,
             method = %req.method(),
             path = %req.uri().path(),
+            handler = field::Empty,
         )
         .entered();
 
@@ -76,16 +77,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
             warn!("no route found for {}", req.uri().path());
             return Box::pin(async move { Ok(not_found()) });
         };
-        drop(request_span);
-        let _request_span = span!(
-            Level::INFO,
-            "http_request",
-            request_id = request_id,
-            method = %req.method(),
-            path = %req.uri().path(),
-            handler = route.handler(),
-        )
-        .entered();
+        request_span.record("handler", &route.handler());
         info!("inbound request");
 
         Box::pin(async move {

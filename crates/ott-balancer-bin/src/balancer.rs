@@ -229,15 +229,13 @@ impl BalancerContext {
         }
     }
 
+    #[instrument(skip(self, client), fields(client_id = %client.id, room = %client.room))]
     pub async fn add_client(
         &mut self,
         client: BalancerClient,
         monolith_id: MonolithId,
     ) -> anyhow::Result<()> {
-        info!(
-            "adding client {:?} to monolith {:?}",
-            client.id, monolith_id
-        );
+        info!("adding client to monolith");
         let Some(monolith) = self.monoliths.get_mut(&monolith_id) else {
             anyhow::bail!("monolith not found");
         };
@@ -254,6 +252,7 @@ impl BalancerContext {
         Ok(())
     }
 
+    #[instrument(skip(self))]
     pub async fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
         let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
@@ -293,6 +292,7 @@ impl BalancerContext {
         Ok(())
     }
 
+    #[instrument(skip(self, room), fields(room = %room.name(), load_epoch = %locator.load_epoch()))]
     pub fn add_room(&mut self, room: Room, locator: RoomLocator) -> anyhow::Result<()> {
         debug!("add_room {} {:?}", room.name(), locator);
         let monolith = self
@@ -331,15 +331,14 @@ impl BalancerContext {
         Ok(())
     }
 
+    #[instrument(skip(self, metadata), fields(room = %metadata.name))]
     pub async fn add_or_sync_room(
         &mut self,
         metadata: RoomMetadata,
         monolith_id: MonolithId,
         load_epoch: u32,
     ) -> anyhow::Result<()> {
-        debug!(
-            func = "add_or_sync_room", room = %metadata.name, load_epoch, %monolith_id,
-        );
+        debug!(func = "add_or_sync_room");
         if let Some(locator) = self.rooms_to_monoliths.get(&metadata.name) {
             match locator.load_epoch().cmp(&load_epoch) {
                 std::cmp::Ordering::Less => {
