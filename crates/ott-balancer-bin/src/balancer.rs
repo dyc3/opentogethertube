@@ -340,20 +340,23 @@ impl BalancerContext {
     ) -> anyhow::Result<()> {
         debug!(func = "add_or_sync_room");
         if let Some(locator) = self.rooms_to_monoliths.get(&metadata.name) {
-            match locator.load_epoch().cmp(&load_epoch) {
-                std::cmp::Ordering::Less => {
-                    // we already have an older version of this room
-                    self.unload_room(monolith_id, metadata.name.clone()).await?;
-                    return Err(anyhow::anyhow!("room already loaded"));
+            if locator.monolith_id() != monolith_id {
+                // this room is loaded on a different monolith than we were expecting
+                match locator.load_epoch().cmp(&load_epoch) {
+                    std::cmp::Ordering::Less => {
+                        // we already have an older version of this room
+                        self.unload_room(monolith_id, metadata.name.clone()).await?;
+                        return Err(anyhow::anyhow!("room already loaded"));
+                    }
+                    std::cmp::Ordering::Greater => {
+                        // we have an newer version of this room, remove it
+                        self.unload_room(locator.monolith_id(), metadata.name.clone())
+                            .await?;
+                        // self.remove_room(&metadata.name, locator.monolith_id())
+                        //     .await?;
+                    }
+                    _ => {}
                 }
-                std::cmp::Ordering::Greater => {
-                    // we have an newer version of this room, remove it
-                    self.unload_room(locator.monolith_id(), metadata.name.clone())
-                        .await?;
-                    // self.remove_room(&metadata.name, locator.monolith_id())
-                    //     .await?;
-                }
-                _ => {}
             }
         }
         let monolith = self.monoliths.get_mut(&monolith_id).unwrap();
@@ -461,8 +464,8 @@ pub async fn join_client(
 
     if should_create_room {
         let room = Room::new(client.room.clone());
-        // we assume the load epoch is 0 since we're creating the room. this will be updated when the monolith sends us the loaded message
-        ctx_write.add_room(room, RoomLocator::new(monolith_id, 0))?;
+        // we assume the load epoch is u32::MAX since we're creating the room. this will be updated when the monolith sends us the loaded message, or when we receive the gossip message
+        ctx_write.add_room(room, RoomLocator::new(monolith_id, u32::MAX))?;
     }
     ctx_write.add_client(client, monolith_id).await?;
     Ok(())
