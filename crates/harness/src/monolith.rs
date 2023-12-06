@@ -216,7 +216,11 @@ impl Monolith {
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
-        println!("waiting for notification");
+        self.wait_for_balancer_connect().await;
+    }
+
+    pub async fn wait_for_balancer_connect(&self) {
+        println!("waiting for balancer to connect");
         self.notif_connect.notified().await;
     }
 
@@ -227,7 +231,7 @@ impl Monolith {
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
-        println!("waiting for notification");
+        println!("waiting for balancer to disconnect");
         self.notif_disconnect.notified().await;
     }
 
