@@ -86,7 +86,9 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     let ctx_read = ctx.read().await;
                     let rendered = [
                         format!("monoliths: {}", ctx_read.monoliths.len()),
-                        format!("mappings: {:#?}", ctx_read.rooms_to_monoliths),
+                        format!("clients: {}", ctx_read.clients.len()),
+                        format!("room mappings: {:#?}", ctx_read.rooms_to_monoliths),
+                        format!("region mappings: {:#?}", ctx_read.monoliths_by_region),
                     ]
                     .join("\n");
                     mk_response(rendered)
