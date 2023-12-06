@@ -78,3 +78,23 @@ impl DiscoveryProvider {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::time::Duration;
+
+    use test_context::test_context;
+
+    use crate::{MonolithBuilder, TestRunner};
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn should_reconnect_when_balancer_restarts(ctx: &mut TestRunner) {
+        let mut m = MonolithBuilder::new().build(ctx).await;
+        m.show().await;
+        ctx.restart_balancer().await;
+        tokio::time::timeout(Duration::from_secs(2), m.wait_for_balancer_connect())
+            .await
+            .expect("timed out waiting for balancer to reconnect");
+    }
+}
