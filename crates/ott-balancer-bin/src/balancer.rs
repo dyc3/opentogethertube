@@ -426,12 +426,13 @@ impl BalancerContext {
     }
 }
 
+#[instrument(skip_all, fields(client_id = %new_client.id, room = %new_client.room))]
 pub async fn join_client(
     ctx: Arc<RwLock<BalancerContext>>,
     new_client: NewClient,
     receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
 ) -> anyhow::Result<()> {
-    info!("new client: {:?}", new_client);
+    info!("new client");
 
     // create the channel that the client socket will use to be notified of outbound messages to be sent to tbe client
     // balancer -> client websocket
@@ -446,11 +447,7 @@ pub async fn join_client(
 
     let (monolith_id, should_create_room) = match ctx_write.rooms_to_monoliths.get(&client.room) {
         Some(locator) => {
-            debug!(
-                "room {} already loaded on {}",
-                client.room,
-                locator.monolith_id()
-            );
+            debug!("room already loaded on {}", locator.monolith_id());
             (locator.monolith_id(), false)
         }
         None => {
@@ -470,8 +467,9 @@ pub async fn join_client(
     Ok(())
 }
 
+#[instrument(skip_all, fields(client_id = %id))]
 pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> anyhow::Result<()> {
-    info!("client left: {:?}", id);
+    info!("client left");
     ctx.write().await.remove_client(id).await?;
 
     Ok(())
@@ -510,12 +508,13 @@ pub async fn dispatch_client_message(
     Ok(())
 }
 
+#[instrument(skip_all, fields(monolith_id = %monolith.id))]
 pub async fn join_monolith(
     ctx: Arc<RwLock<BalancerContext>>,
     monolith: NewMonolith,
     receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
 ) -> anyhow::Result<()> {
-    info!("new monolith: {:?}", monolith);
+    info!("new monolith");
     let mut b = ctx.write().await;
     let (monolith_tx, monolith_rx) = tokio::sync::mpsc::channel(100);
     let monolith = BalancerMonolith::new(monolith, monolith_tx);
@@ -526,11 +525,12 @@ pub async fn join_monolith(
     Ok(())
 }
 
+#[instrument(skip_all, fields(monolith_id = %id))]
 pub async fn leave_monolith(
     ctx: Arc<RwLock<BalancerContext>>,
     id: MonolithId,
 ) -> anyhow::Result<()> {
-    info!("monolith left: {:?}", id);
+    info!("monolith left");
     let mut ctx_write = ctx.write().await;
     let rooms = ctx_write
         .monoliths

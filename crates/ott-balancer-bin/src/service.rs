@@ -46,7 +46,6 @@ pub struct BalancerService {
     pub(crate) addr: std::net::SocketAddr,
 }
 
-#[async_trait::async_trait]
 impl Service<Request<IncomingBody>> for BalancerService {
     type Response = Response<Full<Bytes>>;
     type Error = hyper::Error;
@@ -55,7 +54,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
     fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
         COUNTER_HTTP_REQUESTS.inc();
         let request_id = COUNTER_HTTP_REQUESTS.get();
-        let request_span = span!(
+        let _request_span = span!(
             Level::INFO,
             "http_request",
             request_id = request_id,
@@ -77,7 +76,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
             warn!("no route found for {}", req.uri().path());
             return Box::pin(async move { Ok(not_found()) });
         };
-        request_span.record("handler", &route.handler());
+        tracing::Span::current().record("handler", &route.handler());
         info!("inbound request");
 
         Box::pin(async move {
