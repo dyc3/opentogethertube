@@ -25,6 +25,7 @@ impl TestRunner {
 
     /// Kill the balancer and start a new one with the same configuration.
     pub async fn restart_balancer(&mut self) {
+        println!("restarting balancer");
         if let Err(result) = self.child.kill().await {
             warn!("restart_balancer: Failed to kill balancer: {:?}", result);
         }
