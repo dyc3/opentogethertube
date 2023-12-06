@@ -68,11 +68,15 @@ impl Behavior for BehaviorLoadRooms {
         match msg {
             MsgB2M::Load(msg) => {
                 let room = RoomMetadata::default_with_name(msg.room.clone());
-                state.rooms.insert(room.name.clone(), room.clone());
-                let loaded = M2BLoaded {
-                    room,
-                    load_epoch: state.room_load_epoch.fetch_add(1, Ordering::Relaxed),
-                };
+                let load_epoch = state.room_load_epoch.fetch_add(1, Ordering::Relaxed);
+                state.rooms.insert(
+                    room.name.clone(),
+                    GossipRoom {
+                        room: room.clone(),
+                        load_epoch,
+                    },
+                );
+                let loaded = M2BLoaded { room, load_epoch };
                 return vec![loaded.into()];
             }
             MsgB2M::Unload(msg) => {
@@ -85,11 +89,15 @@ impl Behavior for BehaviorLoadRooms {
             MsgB2M::Join(msg) => {
                 if !state.rooms.contains_key(&msg.room) {
                     let room = RoomMetadata::default_with_name(msg.room.clone());
-                    state.rooms.insert(room.name.clone(), room.clone());
-                    let loaded = M2BLoaded {
-                        room,
-                        load_epoch: state.room_load_epoch.fetch_add(1, Ordering::Relaxed),
-                    };
+                    let load_epoch = state.room_load_epoch.fetch_add(1, Ordering::Relaxed);
+                    state.rooms.insert(
+                        room.name.clone(),
+                        GossipRoom {
+                            room: room.clone(),
+                            load_epoch,
+                        },
+                    );
+                    let loaded = M2BLoaded { room, load_epoch };
                     return vec![loaded.into()];
                 }
             }
@@ -122,9 +130,13 @@ mod tests {
     fn behavior_should_unload_rooms() {
         let b = BehaviorLoadRooms;
         let mut state = MonolithState::default();
-        state
-            .rooms
-            .insert("foo".into(), RoomMetadata::default_with_name("foo"));
+        state.rooms.insert(
+            "foo".into(),
+            GossipRoom {
+                room: RoomMetadata::default_with_name("foo"),
+                load_epoch: 0,
+            },
+        );
 
         let msg = MsgB2M::Unload(B2MUnload { room: "foo".into() });
         let msgs = b.on_msg(&msg, &mut state);
