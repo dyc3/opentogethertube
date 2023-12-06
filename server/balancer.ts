@@ -245,6 +245,10 @@ function validateB2M(message: unknown): message is MsgB2M {
 			return (
 				typeof msg.payload.client_id === "string" && typeof msg.payload.payload === "object"
 			);
+		case "load":
+			return typeof msg.payload.room === "string";
+		case "unload":
+			return typeof msg.payload.room === "string";
 		default:
 			return false;
 	}
