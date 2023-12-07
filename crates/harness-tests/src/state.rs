@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use harness::{Client, Monolith, TestRunner};
+use harness::{Client, Monolith, MonolithBuilder, TestRunner};
 use ott_balancer_protocol::monolith::{B2MUnload, MsgB2M};
 use test_context::test_context;
 
@@ -52,7 +52,7 @@ async fn should_unload_duplicate_rooms_and_route_correctly(ctx: &TestRunner) {
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn emulated_region(ctx: &TestRunner) {
-    let m = Monolith::new(ctx).await.unwrap();
+    let mb: Monolith = MonolithBuilder::new().region("foo").build(ctx).await.into();
 
-    assert_eq!(m.region(), "unknown");
+    assert_eq!(mb.region(), "foo");
 }
