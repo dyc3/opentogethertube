@@ -269,7 +269,7 @@ impl BalancerContext {
         self.monoliths.insert(id, monolith);
         self.monoliths_by_region
             .entry(region)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(id);
     }
 
