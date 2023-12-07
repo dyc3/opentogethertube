@@ -12,6 +12,7 @@ use crate::messages::*;
 #[derive(Debug)]
 pub struct BalancerMonolith {
     id: MonolithId,
+    region: String,
     rooms: HashMap<RoomName, Room>,
     socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
     config: MonolithConnectionConfig,
@@ -23,6 +24,7 @@ impl BalancerMonolith {
     pub fn new(m: NewMonolith, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
         Self {
             id: m.id,
+            region: m.region,
             rooms: HashMap::new(),
             socket_tx,
             config: m.config,
@@ -36,6 +38,10 @@ impl BalancerMonolith {
 
     pub fn id(&self) -> MonolithId {
         self.id
+    }
+
+    pub fn region(&self) -> &str {
+        &self.region
     }
 
     pub fn rooms(&self) -> &HashMap<RoomName, Room> {
@@ -163,6 +169,7 @@ impl Room {
 #[derive(Debug)]
 pub struct NewMonolith {
     pub id: MonolithId,
+    pub region: String,
     pub config: MonolithConnectionConfig,
     pub proxy_port: u16,
 }
