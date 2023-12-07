@@ -267,10 +267,7 @@ impl BalancerContext {
         let id = monolith.id();
         let region = monolith.region().to_string();
         self.monoliths.insert(id, monolith);
-        self.monoliths_by_region
-            .entry(region)
-            .or_default()
-            .push(id);
+        self.monoliths_by_region.entry(region).or_default().push(id);
     }
 
     pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
