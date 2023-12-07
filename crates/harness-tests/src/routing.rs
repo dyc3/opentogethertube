@@ -103,17 +103,20 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
 
     let mut m = Monolith::new(ctx).await.unwrap();
     m.show().await;
+    tokio::time::sleep(Duration::from_millis(200)).await;
     m.load_room("foo").await;
 
     // Without this sleep, this test can trigger a race condition where the client connects to the balancer before the monolith has the room loaded.
     // This will cause the other monolith to get the room loaded, and the client will connect to that monolith instead.
     // Since the purpose of this test is to test routing, we can just wait a bit for the balancer to acknowledge the room load.
-    tokio::time::sleep(Duration::from_millis(100)).await;
+    tokio::time::sleep(Duration::from_millis(200)).await;
 
     let mut client = Client::new(ctx).unwrap();
     client.join("foo").await;
 
-    m.wait_recv().await;
+    tokio::time::timeout(Duration::from_millis(200), m.wait_recv())
+        .await
+        .expect("timed out waiting for join message");
 
     let recvd = m.collect_recv();
     assert_eq!(recvd.len(), 1);
