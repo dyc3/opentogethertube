@@ -170,7 +170,7 @@ describe("Room API", () => {
 					.post("/api/room/create")
 					.send({ name: "test1", isTemporary: true, visibility: visibility })
 					.expect("Content-Type", /json/)
-					.expect(200);
+					.expect(201);
 				expect(resp.body.success).toBe(true);
 				expect(roommanager.rooms[0]).toMatchObject({
 					name: "test1",
@@ -247,7 +247,7 @@ describe("Room API", () => {
 				.post("/api/room/create")
 				.send({ name: "testnoowner", isTemporary: false })
 				.expect("Content-Type", /json/)
-				.expect(200);
+				.expect(201);
 			expect(resp.body.success).toEqual(true);
 			expect(roommanager.rooms[0]).toMatchObject({
 				name: "testnoowner",
@@ -271,7 +271,7 @@ describe("Room API", () => {
 				.post("/api/room/create")
 				.send({ name: "testowner" })
 				.expect("Content-Type", /json/)
-				.expect(200);
+				.expect(201);
 			expect(resp.body.success).toEqual(true);
 			expect(_.pick(roommanager.rooms[0], "name", "owner.id", "owner.email")).toMatchObject({
 				name: "testowner",

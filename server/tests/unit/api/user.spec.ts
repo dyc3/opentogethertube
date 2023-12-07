@@ -304,7 +304,7 @@ describe("User API", () => {
 						username: "registered",
 						password: "test1234",
 					})
-					.expect(200)
+					.expect(201)
 					.expect("Content-Type", /json/)
 					.then(resp => {
 						expect(resp.body).toEqual({
@@ -323,7 +323,7 @@ describe("User API", () => {
 					.post("/api/user/register")
 					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "", username: "registered", password: "test1234" })
-					.expect(200)
+					.expect(201)
 					.expect("Content-Type", /json/)
 					.then(resp => {
 						expect(resp.body.success).toBe(true);
@@ -333,7 +333,7 @@ describe("User API", () => {
 					.post("/api/user/register")
 					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "", username: "registered2", password: "test1234" })
-					.expect(200)
+					.expect(201)
 					.expect("Content-Type", /json/)
 					.then(resp => {
 						expect(resp.body.success).toBe(true);
