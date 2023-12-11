@@ -58,6 +58,7 @@ pub struct MonolithState {
     rooms: HashMap<RoomName, GossipRoom>,
     room_load_epoch: Arc<AtomicU32>,
     clients: HashSet<ClientId>,
+    region: String,
 }
 
 impl Monolith {
@@ -77,7 +78,6 @@ impl Monolith {
         let notif_connect = Arc::new(Notify::new());
         let notif_disconnect = Arc::new(Notify::new());
         let notif_recv = Arc::new(Notify::new());
-
         let (outgoing_tx, mut outgoing_rx) = tokio::sync::mpsc::channel(50);
 
         let state = Arc::new(Mutex::new(MonolithState {
@@ -100,7 +100,7 @@ impl Monolith {
                     let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
                     let init = M2BInit {
                         port: http_port,
-                        region: "unknown".into(),
+                        region: state.lock().unwrap().region.clone(),
                     };
                     let msg = serde_json::to_string(&MsgM2B::from(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
@@ -209,6 +209,10 @@ impl Monolith {
         self.state.lock().unwrap().clients.clone()
     }
 
+    pub fn region(&self) -> String {
+        self.state.lock().unwrap().region.clone()
+    }
+
     /// Tell the provider to add this monolith to the list of available monoliths.
     pub async fn show(&mut self) {
         println!("showing monolith");
@@ -267,6 +271,10 @@ impl Monolith {
 
     pub fn set_all_mock_http(&mut self, mocks: HashMap<String, (MockRespParts, Bytes)>) {
         self.state.lock().unwrap().response_mocks = mocks;
+    }
+
+    pub(crate) fn set_region(&mut self, region: &str) {
+        self.state.lock().unwrap().region = region.to_string();
     }
 
     pub fn collect_mock_http(&self) -> Vec<MockRequest> {
@@ -433,11 +441,13 @@ pub struct MockRequest {
 pub struct MonolithBuilder {
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
     behavior: Option<Box<dyn Behavior + Send + 'static>>,
+    region: String,
 }
 
 impl MonolithBuilder {
     pub fn new() -> Self {
         Self {
+            region: "unknown".to_string(),
             ..Default::default()
         }
     }
@@ -448,6 +458,7 @@ impl MonolithBuilder {
                 .await
                 .unwrap();
         monolith.set_all_mock_http(self.response_mocks);
+        monolith.set_region(&self.region);
         monolith
     }
 
@@ -476,5 +487,32 @@ impl MonolithBuilder {
     pub fn behavior(mut self, behavior: impl Behavior + Send + 'static) -> Self {
         self.behavior = Some(Box::new(behavior));
         self
+    }
+
+    pub fn region(mut self, region: impl AsRef<str>) -> Self {
+        let region_str: String = region.as_ref().to_string();
+        self.region = region_str;
+        self
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::{Monolith, TestRunner};
+    use test_context::test_context;
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn default_region(ctx: &TestRunner) {
+        let mb: Monolith = MonolithBuilder::new().build(ctx).await;
+        assert_eq!(mb.region(), "unknown");
+    }
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn change_region(ctx: &TestRunner) {
+        let mb: Monolith = MonolithBuilder::new().region("foo").build(ctx).await;
+        assert_eq!(mb.region(), "foo");
     }
 }
