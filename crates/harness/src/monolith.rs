@@ -273,7 +273,7 @@ impl Monolith {
         self.state.lock().unwrap().response_mocks = mocks;
     }
 
-    pub fn set_region(&mut self, region: &str) {
+    pub(crate) fn set_region(&mut self, region: &str) {
         self.state.lock().unwrap().region = region.to_string();
     }
 
@@ -458,7 +458,7 @@ impl MonolithBuilder {
                 .await
                 .unwrap();
         monolith.set_all_mock_http(self.response_mocks);
-        monolith.set_region("unknown");
+        monolith.set_region(&self.region);
         monolith
     }
 
