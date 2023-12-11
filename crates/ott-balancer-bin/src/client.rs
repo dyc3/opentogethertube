@@ -4,7 +4,7 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, trace};
 use uuid::Uuid;
 
 use crate::balancer::BalancerLink;
@@ -60,12 +60,13 @@ impl BalancerClient {
     }
 }
 
+#[tracing::instrument(skip(balancer, ws), fields(client_id))]
 pub async fn client_entry<'r>(
     room_name: RoomName,
     ws: HyperWebsocket,
     balancer: BalancerLink,
 ) -> anyhow::Result<()> {
-    info!("client connected, room: {}", room_name);
+    trace!("websocket connection received");
     let mut stream = ws.await?;
 
     let client_id = Uuid::new_v4().into();
@@ -73,6 +74,8 @@ pub async fn client_entry<'r>(
         id: client_id,
         room: room_name,
     };
+    tracing::Span::current().record("client_id", client_id.to_string());
+    info!("client connected");
 
     let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
     let Ok(Some(Ok(message))) = result else {
@@ -94,6 +97,7 @@ pub async fn client_entry<'r>(
                     debug!("client authenticated, handing off to balancer");
                     let client = client.into_new_client(message.token);
                     let Ok(rx) = balancer.send_client(client).await else {
+                        error!("failed to send client to balancer");
                         stream
                             .close(Some(CloseFrame {
                                 code: CloseCode::Library(4000),
@@ -105,6 +109,7 @@ pub async fn client_entry<'r>(
                     outbound_rx = rx;
                 }
                 _ => {
+                    debug!("did not send auth token");
                     stream
                         .close(Some(CloseFrame {
                             code: CloseCode::Library(4004),
@@ -142,7 +147,7 @@ pub async fn client_entry<'r>(
                             break;
                         }
                 } else {
-                    info!("Client websocket stream ended: {}", client_id);
+                    info!("Client websocket stream ended");
                     // if let Err(err) = balancer
                     //     .send_client_message(client_id, SocketMessage::End)
                     //     .await {

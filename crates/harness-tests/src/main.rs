@@ -63,7 +63,7 @@ async fn sample_http(ctx: &mut TestRunner) {
     );
     m.show().await;
 
-    reqwest::get(format!("http://[::1]:{}/", ctx.port()))
+    reqwest::get(ctx.url("/"))
         .await
         .expect("http request failed")
         .error_for_status()

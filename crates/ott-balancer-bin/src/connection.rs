@@ -132,6 +132,7 @@ async fn connect_and_maintain(
                     debug!("monolith sent init, handing off to balancer");
                     let monolith = NewMonolith {
                         id: monolith_id,
+                        region: init.region,
                         config: conf.clone(),
                         proxy_port: init.port,
                     };

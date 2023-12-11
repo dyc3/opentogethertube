@@ -33,7 +33,7 @@ jobs:
       matrix:
         node-version: [18.x]
         # run copies of the current job in parallel
-        containers: [1, 2]
+        containers: [1]
         browsers: [electron]
     steps:
       - name: Checkout
@@ -55,7 +55,7 @@ jobs:
           install: false
           component: true
           record: true
-          parallel: true
+          parallel: false
           group: 'Component - ${{ matrix.browsers }}'
           browser: ${{ matrix.browsers }}
         env:

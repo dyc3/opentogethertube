@@ -55,10 +55,12 @@ export async function setup(): Promise<void> {
 	balancerManager.on("error", onBalancerError);
 	initBalancerConnections();
 
-	log.silly("creating redis subscriber");
-	const redisSubscriber = await createSubscriber();
-	log.silly("subscribing to announcement channel");
-	await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
+	if (conf.get("env") !== "test") {
+		log.silly("creating redis subscriber");
+		const redisSubscriber = await createSubscriber();
+		log.silly("subscribing to announcement channel");
+		await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
+	}
 }
 
 /**
@@ -69,6 +71,10 @@ async function onDirectConnect(socket: WebSocket, req: express.Request) {
 	const roomName = req.url.split("/").slice(-1)[0];
 	log.debug(`connection received: ${roomName}, waiting for auth token...`);
 	const client = new DirectClient(roomName, socket);
+	addClient(client);
+}
+
+export function addClient(client: Client) {
 	connections.push(client);
 	client.on("auth", onClientAuth);
 	client.on("message", onClientMessage);
@@ -427,6 +433,10 @@ function getClient(id: ClientId): Client | undefined {
 	return undefined;
 }
 
+function getClientsInRoom(roomName: string): Client[] {
+	return roomJoins.get(roomName) ?? [];
+}
+
 setInterval(() => {
 	for (const client of connections) {
 		if (client instanceof DirectClient) {
@@ -472,4 +482,7 @@ export default {
 	onUserModified,
 	getClientByToken,
 	makeRoomRequest,
+	addClient,
+	getClient,
+	getClientsInRoom,
 };

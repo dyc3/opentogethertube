@@ -55,7 +55,7 @@ pub struct MonolithState {
     received_http: Vec<MockRequest>,
     /// A mapping from request path to response body for mocking HTTP responses.
     response_mocks: HashMap<String, (MockRespParts, Bytes)>,
-    rooms: HashMap<RoomName, RoomMetadata>,
+    rooms: HashMap<RoomName, GossipRoom>,
     room_load_epoch: Arc<AtomicU32>,
     clients: HashSet<ClientId>,
     region: String,
@@ -102,7 +102,7 @@ impl Monolith {
                         port: http_port,
                         region: state.lock().unwrap().region.clone(),
                     };
-                    let msg = serde_json::to_string(&MsgM2B::Init(init)).unwrap();
+                    let msg = serde_json::to_string(&MsgM2B::from(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();
                     state.lock().unwrap().connected = true;
                     _notif_connect.notify_one();
@@ -220,7 +220,11 @@ impl Monolith {
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
-        println!("waiting for notification");
+        self.wait_for_balancer_connect().await;
+    }
+
+    pub async fn wait_for_balancer_connect(&self) {
+        println!("waiting for balancer to connect");
         self.notif_connect.notified().await;
     }
 
@@ -231,7 +235,7 @@ impl Monolith {
             .send(self.listener.local_addr().unwrap())
             .await
             .unwrap();
-        println!("waiting for notification");
+        println!("waiting for balancer to disconnect");
         self.notif_disconnect.notified().await;
     }
 
@@ -283,8 +287,15 @@ impl Monolith {
         let meta = RoomMetadata::default_with_name(room.clone());
         let load_epoch = {
             let mut state = self.state.lock().unwrap();
-            state.rooms.insert(room, meta.clone());
-            state.room_load_epoch.fetch_add(1, Ordering::Relaxed)
+            let load_epoch = state.room_load_epoch.fetch_add(1, Ordering::Relaxed);
+            state.rooms.insert(
+                room,
+                GossipRoom {
+                    room: meta.clone(),
+                    load_epoch,
+                },
+            );
+            load_epoch
         };
         if connected {
             self.send(M2BLoaded {
@@ -305,6 +316,12 @@ impl Monolith {
         if self.connected() {
             self.send(M2BUnloaded { name: room }).await;
         }
+    }
+
+    /// Send a gossip message to the balancer.
+    pub async fn gossip(&mut self) {
+        let rooms = self.state.lock().unwrap().rooms.values().cloned().collect();
+        self.send(M2BGossip { rooms }).await;
     }
 }
 

@@ -35,7 +35,7 @@ export function initBalancerConnections() {
 	});
 	wss.on("connection", ws => {
 		log.debug("New balancer connection");
-		const conn = new BalancerConnection(ws);
+		const conn = new BalancerConnectionReal(ws);
 		balancerManager.addBalancerConnection(conn);
 	});
 	wss.on("error", error => {
@@ -115,8 +115,8 @@ class BalancerManager {
 
 export const balancerManager = new BalancerManager();
 
-type BalancerManagerEvemts = BalancerConnectionEvents;
-type BalancerManagerEventHandlers<E> = E extends "connect"
+export type BalancerManagerEvemts = BalancerConnectionEvents;
+export type BalancerManagerEventHandlers<E> = E extends "connect"
 	? (conn: BalancerConnection) => void
 	: E extends "disconnect"
 	? (conn: BalancerConnection) => void
@@ -126,8 +126,8 @@ type BalancerManagerEventHandlers<E> = E extends "connect"
 	? (conn: BalancerConnection, error: WebSocket.ErrorEvent) => void
 	: never;
 
-type BalancerConnectionEvents = "connect" | "disconnect" | "message" | "error";
-type BalancerConnectionEventHandlers<E> = E extends "connect"
+export type BalancerConnectionEvents = "connect" | "disconnect" | "message" | "error";
+export type BalancerConnectionEventHandlers<E> = E extends "connect"
 	? () => void
 	: E extends "disconnect"
 	? (code: number, reason: string) => void
@@ -137,15 +137,35 @@ type BalancerConnectionEventHandlers<E> = E extends "connect"
 	? (error: WebSocket.ErrorEvent) => void
 	: never;
 
-/** Manages the websocket connection to a Balancer. */
-export class BalancerConnection {
+export abstract class BalancerConnection {
 	/** A local identifier for the balancer. Other monoliths will have different IDs for the same balancer. */
 	id: string;
+	protected bus: EventEmitter = new EventEmitter();
+
+	constructor() {
+		this.id = uuidv4();
+	}
+
+	protected emit<E extends BalancerConnectionEvents>(
+		event: E,
+		...args: Parameters<BalancerConnectionEventHandlers<E>>
+	) {
+		this.bus.emit(event, ...args);
+	}
+
+	on<E extends BalancerConnectionEvents>(event: E, handler: BalancerConnectionEventHandlers<E>) {
+		this.bus.on(event, handler);
+	}
+
+	abstract send(message: MsgM2B): Result<void, Error>;
+}
+
+/** Manages the websocket connection to a Balancer. */
+export class BalancerConnectionReal extends BalancerConnection {
 	private socket: WebSocket;
-	private bus: EventEmitter = new EventEmitter();
 
 	constructor(socket: WebSocket) {
-		this.id = uuidv4();
+		super();
 		this.socket = socket;
 
 		this.socket.on("open", this.onSocketConnect.bind(this));
@@ -201,17 +221,6 @@ export class BalancerConnection {
 		this.emit("error", event);
 	}
 
-	private emit<E extends BalancerConnectionEvents>(
-		event: E,
-		...args: Parameters<BalancerConnectionEventHandlers<E>>
-	) {
-		this.bus.emit(event, ...args);
-	}
-
-	on<E extends BalancerConnectionEvents>(event: E, handler: BalancerConnectionEventHandlers<E>) {
-		this.bus.on(event, handler);
-	}
-
 	send(message: MsgM2B): Result<void, Error> {
 		if (this.socket === null) {
 			return err(new Error("Not connected"));
@@ -245,6 +254,10 @@ function validateB2M(message: unknown): message is MsgB2M {
 			return (
 				typeof msg.payload.client_id === "string" && typeof msg.payload.payload === "object"
 			);
+		case "load":
+			return typeof msg.payload.room === "string";
+		case "unload":
+			return typeof msg.payload.room === "string";
 		default:
 			return false;
 	}

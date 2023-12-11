@@ -28,7 +28,7 @@ async fn route_http_to_correct_monolith(ctx: &mut TestRunner) {
     // Since the purpose of this test is to test routing, we can just wait a bit for the balancer to acknowledge the room load.
     tokio::time::sleep(Duration::from_millis(100)).await;
 
-    reqwest::get(format!("http://[::1]:{}/api/room/foo", ctx.port()))
+    reqwest::get(ctx.url("/api/room/foo"))
         .await
         .expect("http request failed")
         .error_for_status()
@@ -56,7 +56,7 @@ async fn route_http_to_any_monolith_once(ctx: &mut TestRunner) {
     let mut m2 = Monolith::new(ctx).await.unwrap();
     m2.show().await;
 
-    reqwest::get(format!("http://[::1]:{}/api/user", ctx.port()))
+    reqwest::get(ctx.url("/api/user"))
         .await
         .expect("http request failed")
         .error_for_status()
@@ -82,7 +82,7 @@ async fn route_http_room_list(ctx: &mut TestRunner) {
     let mut m2 = Monolith::new(ctx).await.unwrap();
     m2.show().await;
 
-    reqwest::get(format!("http://[::1]:{}/api/room/list", ctx.port()))
+    reqwest::get(ctx.url("/api/room/list"))
         .await
         .expect("http request failed")
         .error_for_status()
@@ -103,17 +103,20 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
 
     let mut m = Monolith::new(ctx).await.unwrap();
     m.show().await;
+    tokio::time::sleep(Duration::from_millis(200)).await;
     m.load_room("foo").await;
 
     // Without this sleep, this test can trigger a race condition where the client connects to the balancer before the monolith has the room loaded.
     // This will cause the other monolith to get the room loaded, and the client will connect to that monolith instead.
     // Since the purpose of this test is to test routing, we can just wait a bit for the balancer to acknowledge the room load.
-    tokio::time::sleep(Duration::from_millis(100)).await;
+    tokio::time::sleep(Duration::from_millis(200)).await;
 
     let mut client = Client::new(ctx).unwrap();
     client.join("foo").await;
 
-    m.wait_recv().await;
+    tokio::time::timeout(Duration::from_millis(200), m.wait_recv())
+        .await
+        .expect("timed out waiting for join message");
 
     let recvd = m.collect_recv();
     assert_eq!(recvd.len(), 1);
@@ -187,7 +190,7 @@ async fn monolith_double_load_room(ctx: &mut TestRunner) {
 
     tokio::time::sleep(Duration::from_millis(100)).await;
 
-    let resp = reqwest::get(format!("http://[::1]:{}/api/room/foo", ctx.port()))
+    let resp = reqwest::get(ctx.url("/api/room/foo"))
         .await
         .expect("http request failed")
         .error_for_status()

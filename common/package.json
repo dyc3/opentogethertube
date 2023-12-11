@@ -1,13 +1,13 @@
 {
-	"name": "ott-common",
-	"version": "0.4.0",
-	"license": "AGPL-3.0-or-later",
-	"module": "es2020",
-	"type": "module",
-	"scripts": {
-		"build": "tsc",
-		"lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
-		"lint-ci": "tsc --noEmit && eslint .",
-		"test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
-	}
+  "name": "ott-common",
+  "version": "0.6.0",
+  "license": "AGPL-3.0-or-later",
+  "module": "es2020",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
+    "lint-ci": "tsc --noEmit && eslint .",
+    "test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
+  }
 }

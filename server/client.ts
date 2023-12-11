@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import { getLogger } from "./logger";
 import { getSessionInfo } from "./auth/tokens";
-import { BalancerConnection } from "./balancer";
+import { BalancerConnection, BalancerConnectionReal } from "./balancer";
 import { replacer } from "../common/serialize";
 
 const log = getLogger("client");

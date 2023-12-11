@@ -329,7 +329,7 @@ router.post("/register", async (req, res) => {
 					`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
 				);
 			}
-			res.json({
+			res.status(201).json({
 				success: true,
 				user: _.pick(result, ["email", "username"]),
 			});

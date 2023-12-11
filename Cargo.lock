@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "balancer-tester"
-version = "0.4.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -810,7 +810,7 @@ dependencies = [
 
 [[package]]
 name = "harness"
-version = "0.4.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -840,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "harness-tests"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "harness",
  "ott-balancer-protocol",
@@ -1591,7 +1591,7 @@ dependencies = [
 
 [[package]]
 name = "ott-balancer-bin"
-version = "0.4.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1626,7 +1626,7 @@ dependencies = [
 
 [[package]]
 name = "ott-balancer-protocol"
-version = "0.4.0"
+version = "0.6.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1636,7 +1636,7 @@ dependencies = [
 
 [[package]]
 name = "ott-common"
-version = "0.4.0"
+version = "0.6.0"
 dependencies = [
  "async-trait",
  "futures-util",
@@ -1788,9 +1788,9 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.56"
+version = "1.0.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b63bdb0cd06f1f4dedf69b254734f9b45af66e4a031e42a7480257d9898b435"
+checksum = "39278fbbf5fb4f646ce651690877f89d1c5811a3d4acb27700c1cb3cdb78fd3b"
 dependencies = [
  "unicode-ident",
 ]
@@ -2856,11 +2856,10 @@ checksum = "b6bc1c9ce2b5135ac7f93c72918fc37feb872bdc6a5533a8b85eb4b86bfdae52"
 
 [[package]]
 name = "tracing"
-version = "0.1.37"
+version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ce8c33a8d48bd45d624a6e523445fd21ec13d3653cd51f681abf67418f54eb8"
+checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
 dependencies = [
- "cfg-if 1.0.0",
  "log 0.4.17",
  "pin-project-lite",
  "tracing-attributes",
@@ -2869,20 +2868,20 @@ dependencies = [
 
 [[package]]
 name = "tracing-attributes"
-version = "0.1.23"
+version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4017f8f45139870ca7e672686113917c71c7a6e02d4924eda67186083c03081a"
+checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.15",
 ]
 
 [[package]]
 name = "tracing-core"
-version = "0.1.30"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24eb03ba0eab1fd845050058ce5e616558e8f8d8fca633e6b163fe25c797213a"
+checksum = "c06d3da6113f116aaee68e4d601191614c9053067f9ab7f6edbcb161237daa54"
 dependencies = [
  "once_cell",
  "valuable",
@@ -3547,7 +3546,7 @@ dependencies = [
 
 [[package]]
 name = "ws-fuzz"
-version = "0.4.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "websocket",
