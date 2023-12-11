@@ -82,7 +82,7 @@ impl HarnessMonolithDiscoverer {
 }
 
 #[async_trait]
-impl MonolithDiscovery for HarnessMonolithDiscoverer {
+impl MonolithDiscoverer for HarnessMonolithDiscoverer {
     async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
         self.updated_rx.recv().await;
         Ok(self

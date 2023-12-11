@@ -28,7 +28,7 @@ impl FlyMonolithDiscoverer {
 }
 
 #[async_trait]
-impl MonolithDiscovery for FlyMonolithDiscoverer {
+impl MonolithDiscoverer for FlyMonolithDiscoverer {
     async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
         let resolver =
             TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");

@@ -71,7 +71,7 @@ impl<'de> Deserialize<'de> for HostOrIp {
 }
 
 #[async_trait]
-pub trait MonolithDiscovery {
+pub trait MonolithDiscoverer {
     /// In polling mode, this function should immediately return the current list of monoliths. In continuous mode, this function should wait until the list of monoliths changes, then return the new list.
     async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>>;
     fn mode(&self) -> DiscoveryMode;
@@ -83,7 +83,7 @@ pub enum DiscoveryMode {
 }
 
 pub struct DiscoveryTask {
-    discovery: Box<dyn MonolithDiscovery + Send + Sync>,
+    discovery: Box<dyn MonolithDiscoverer + Send + Sync>,
 
     monoliths: HashSet<MonolithConnectionConfig>,
     discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
@@ -91,7 +91,7 @@ pub struct DiscoveryTask {
 
 impl DiscoveryTask {
     pub fn new(
-        discovery: impl MonolithDiscovery + Send + Sync + 'static,
+        discovery: impl MonolithDiscoverer + Send + Sync + 'static,
         discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
     ) -> Self {
         Self {
@@ -148,7 +148,7 @@ fn build_discovery_msg(
 }
 
 pub fn start_discovery_task(
-    discovery: impl MonolithDiscovery + Send + Sync + 'static,
+    discovery: impl MonolithDiscoverer + Send + Sync + 'static,
     discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
 ) -> JoinHandle<()> {
     tokio::task::Builder::new()
