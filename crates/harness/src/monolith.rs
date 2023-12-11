@@ -505,14 +505,14 @@ mod test {
     #[test_context(TestRunner)]
     #[tokio::test]
     async fn default_region(ctx: &TestRunner) {
-        let mb: Monolith = MonolithBuilder::new().build(ctx).await.into();
+        let mb: Monolith = MonolithBuilder::new().build(ctx).await;
         assert_eq!(mb.region(), "unknown");
     }
 
     #[test_context(TestRunner)]
     #[tokio::test]
     async fn change_region(ctx: &TestRunner) {
-        let mb: Monolith = MonolithBuilder::new().region("foo").build(ctx).await.into();
+        let mb: Monolith = MonolithBuilder::new().region("foo").build(ctx).await;
         assert_eq!(mb.region(), "foo");
     }
 }
