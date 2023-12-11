@@ -23,7 +23,7 @@ impl ManualMonolithDiscoverer {
 }
 
 #[async_trait]
-impl MonolithDiscovery for ManualMonolithDiscoverer {
+impl MonolithDiscoverer for ManualMonolithDiscoverer {
     async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
         #[allow(clippy::while_immutable_condition)]
         while self.discovered {
