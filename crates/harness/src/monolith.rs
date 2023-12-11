@@ -472,9 +472,30 @@ impl MonolithBuilder {
         self
     }
 
-    pub fn region(mut self, region: &str) -> Self {
-        let region_str = region.to_string();
+    pub fn region(mut self, region: impl AsRef<str>) -> Self {
+        let region_str: String = region.as_ref().to_string();
         self.region = region_str;
         self
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::{Monolith, TestRunner};
+    use test_context::test_context;
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn default_region(ctx: &TestRunner) {
+        let mb: Monolith = MonolithBuilder::new().build(ctx).await.into();
+        assert_eq!(mb.region(), "unknown");
+    }
+
+    #[test_context(TestRunner)]
+    #[tokio::test]
+    async fn change_region(ctx: &TestRunner) {
+        let mb: Monolith = MonolithBuilder::new().region("foo").build(ctx).await.into();
+        assert_eq!(mb.region(), "foo");
     }
 }

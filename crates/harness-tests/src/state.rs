@@ -48,11 +48,3 @@ async fn should_unload_duplicate_rooms_and_route_correctly(ctx: &TestRunner) {
         .await
         .expect("timed out waiting for client join");
 }
-
-#[test_context(TestRunner)]
-#[tokio::test]
-async fn emulated_region(ctx: &TestRunner) {
-    let mb: Monolith = MonolithBuilder::new().region("foo").build(ctx).await.into();
-
-    assert_eq!(mb.region(), "foo");
-}
