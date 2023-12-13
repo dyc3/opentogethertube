@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
+use tokio::sync::broadcast::error::RecvError;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
@@ -36,20 +37,76 @@ pub struct NewClient {
 }
 
 #[derive(Debug)]
+pub struct ClientLink {
+    /// Messages to send to the Room this client is in.
+    room_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    /// Messages sent by the Balancer that need to be sent to all clients in the same room as this client.
+    room_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
+    /// Messages sent by the Balancer that need to be sent to this client.
+    unicast_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
+}
+
+impl ClientLink {
+    pub fn new(
+        room_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+        room_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
+        unicast_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
+    ) -> Self {
+        Self {
+            room_tx,
+            room_rx,
+            unicast_rx,
+        }
+    }
+
+    /// Receive the next message from the Balancer that needs to be sent to this client.
+    pub async fn outbound_recv(&mut self) -> Result<SocketMessage, RecvError> {
+        let msg = tokio::select! {
+            msg = self.unicast_rx.recv() => {
+                match msg {
+                    Some(msg) => Ok(msg),
+                    None => return Err(RecvError::Closed),
+                }
+            }
+            msg = self.room_rx.recv() => {
+                msg
+            }
+        }?;
+
+        Ok(msg)
+    }
+
+    /// Send a message to the Room this client is in via the Balancer
+    pub async fn inbound_send(&mut self, msg: SocketMessage) -> anyhow::Result<()> {
+        self.room_tx.send(msg).await?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
 pub struct BalancerClient {
     pub id: ClientId,
     pub room: RoomName,
     pub token: String,
+    /// The Sender used to send messages to this client.
     socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    /// The Receiver used to receive messages from this client.
+    socket_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
 }
 
 impl BalancerClient {
-    pub fn new(new_client: NewClient, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
+    pub fn new(
+        new_client: NewClient,
+        socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+        socket_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
+    ) -> Self {
         Self {
             id: new_client.id,
             room: new_client.room,
             token: new_client.token,
             socket_tx,
+            socket_rx,
         }
     }
 
@@ -88,7 +145,7 @@ pub async fn client_entry<'r>(
         return Ok(());
     };
 
-    let mut outbound_rx;
+    let mut client_link;
     match message {
         Message::Text(text) => {
             let message: ClientMessage = serde_json::from_str(&text).unwrap();
@@ -106,7 +163,7 @@ pub async fn client_entry<'r>(
                             .await?;
                         return Ok(());
                     };
-                    outbound_rx = rx;
+                    client_link = rx;
                 }
                 _ => {
                     debug!("did not send auth token");
@@ -127,8 +184,8 @@ pub async fn client_entry<'r>(
 
     loop {
         tokio::select! {
-            msg = outbound_rx.recv() => {
-                if let Some(SocketMessage::Message(msg)) = msg {
+            msg = client_link.outbound_recv() => {
+                if let Ok(SocketMessage::Message(msg)) = msg {
                     if let Err(err) = stream.send(msg).await {
                         error!("Error sending ws message to client: {:?}", err);
                         break;
@@ -140,12 +197,10 @@ pub async fn client_entry<'r>(
 
             msg = stream.next() => {
                 if let Some(Ok(msg)) = msg {
-                    if let Err(err) = balancer
-                        .send_client_message(client_id, SocketMessage::Message(msg))
-                        .await {
-                            error!("Error sending client message to balancer: {:?}", err);
-                            break;
-                        }
+                    if let Err(err) = client_link.inbound_send(msg.into()).await {
+                        error!("Error sending client message to balancer: {:?}", err);
+                        break;
+                    }
                 } else {
                     info!("Client websocket stream ended");
                     // if let Err(err) = balancer

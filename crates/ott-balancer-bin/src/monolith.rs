@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use anyhow::bail;
 use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
 use tokio_tungstenite::tungstenite::Message;
@@ -14,6 +15,7 @@ pub struct BalancerMonolith {
     id: MonolithId,
     region: String,
     rooms: HashMap<RoomName, Room>,
+    /// The Sender used to send messages to this Monolith.
     socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
     config: MonolithConnectionConfig,
     proxy_port: u16,
@@ -61,12 +63,14 @@ impl BalancerMonolith {
         &self.http_client
     }
 
-    pub fn add_room(&mut self, room: Room) {
-        if self.rooms.contains_key(&room.name) {
-            error!("Monolith already has room {}", room.name);
-            return;
+    pub fn add_room(&mut self, room_name: &RoomName) -> anyhow::Result<&mut Room> {
+        if self.rooms.contains_key(&room_name) {
+            error!("Monolith already has room {}", room_name);
+            bail!("Monolith already has room {}", room_name);
         }
+        let room = Room::new(room_name.clone());
         self.rooms.insert(room.name.clone(), room);
+        Ok(self.rooms.get_mut(&room_name).unwrap())
     }
 
     pub fn remove_room(&mut self, room: &RoomName) -> Option<Room> {
@@ -111,14 +115,19 @@ impl BalancerMonolith {
         room.set_metadata(metadata);
     }
 
-    pub fn add_or_sync_room(&mut self, metadata: RoomMetadata) {
+    pub fn add_or_sync_room(&mut self, metadata: RoomMetadata) -> anyhow::Result<()> {
         if self.has_room(&metadata.name) {
             self.set_room_metadata(metadata);
         } else {
-            let mut room = Room::new(metadata.name.clone());
+            let room = self.add_room(&metadata.name)?;
             room.set_metadata(metadata);
-            self.add_room(room);
         }
+
+        Ok(())
+    }
+
+    pub fn new_send_tx(&self) -> tokio::sync::mpsc::Sender<SocketMessage> {
+        self.socket_tx.clone()
     }
 }
 
@@ -130,14 +139,22 @@ pub struct Room {
     clients: Vec<ClientId>,
     /// Metadata about this room, according to the Monolith.
     metadata: Option<RoomMetadata>,
+
+    /// The Sender used to broadcast to all clients in this room.
+    broadcast_tx: tokio::sync::broadcast::Sender<SocketMessage>,
+    /// The Receiver to be used by clients to receive messages from this room.
+    broadcast_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
 }
 
 impl Room {
     pub fn new(name: RoomName) -> Self {
+        let (broadcast_tx, broadcast_rx) = tokio::sync::broadcast::channel(100);
         Self {
             name,
             clients: Vec::new(),
             metadata: None,
+            broadcast_tx,
+            broadcast_rx,
         }
     }
 
@@ -163,6 +180,16 @@ impl Room {
 
     pub fn remove_client(&mut self, client: ClientId) {
         self.clients.retain(|c| *c != client);
+    }
+
+    /// Sender for sending messages to all clients in this room.
+    pub fn broadcast_tx(&self) -> &tokio::sync::broadcast::Sender<SocketMessage> {
+        &self.broadcast_tx
+    }
+
+    /// Create a new Receiver. Used for all clients receiving messages from this room.
+    pub fn new_broadcast_rx(&self) -> tokio::sync::broadcast::Receiver<SocketMessage> {
+        self.broadcast_tx.subscribe()
     }
 }
 
