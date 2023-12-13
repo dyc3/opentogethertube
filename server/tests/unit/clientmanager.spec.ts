@@ -118,3 +118,26 @@ describe("ClientManager", () => {
 		expect(joins2).toHaveLength(0);
 	});
 });
+
+describe("BalancerManager", () => {
+	beforeEach(() => {
+		balancerManager.balancerConnections.splice(0, balancerManager.balancerConnections.length);
+	});
+
+	it("should remove the correct balancer from the list when it disconnects", () => {
+		const con1 = new BalancerConnectionMock();
+		const con2 = new BalancerConnectionMock();
+		const con3 = new BalancerConnectionMock();
+
+		balancerManager.addBalancerConnection(con1);
+		balancerManager.addBalancerConnection(con2);
+		balancerManager.addBalancerConnection(con3);
+
+		expect(balancerManager.balancerConnections).toHaveLength(3);
+
+		con2.emit("disconnect", 1000, "reason");
+
+		expect(balancerManager.balancerConnections).toHaveLength(2);
+		expect(balancerManager.balancerConnections).not.toContain(con2);
+	});
+});
