@@ -80,7 +80,7 @@ impl ClientLink {
     }
 
     /// Send a message to the Room this client is in via the Balancer
-    pub async fn inbound_send(&mut self, msg: SocketMessage) -> anyhow::Result<()> {
+    pub async fn inbound_send(&mut self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
         self.room_tx.send(Context::new(self.id, msg.into())).await?;
 
         Ok(())
@@ -193,7 +193,7 @@ pub async fn client_entry<'r>(
 
             msg = stream.next() => {
                 if let Some(Ok(msg)) = msg {
-                    if let Err(err) = client_link.inbound_send(msg.into()).await {
+                    if let Err(err) = client_link.inbound_send(msg).await {
                         error!("Error sending client message to balancer: {:?}", err);
                         break;
                     }

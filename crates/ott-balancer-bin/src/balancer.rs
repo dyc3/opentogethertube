@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use ott_balancer_protocol::client::ClientMessage;
+
 use ott_balancer_protocol::monolith::{
     B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
 };

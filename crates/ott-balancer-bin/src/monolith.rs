@@ -72,13 +72,13 @@ impl BalancerMonolith {
     }
 
     pub fn add_room(&mut self, room_name: &RoomName) -> anyhow::Result<&mut Room> {
-        if self.rooms.contains_key(&room_name) {
+        if self.rooms.contains_key(room_name) {
             error!("Monolith already has room {}", room_name);
             bail!("Monolith already has room {}", room_name);
         }
         let room = Room::new(room_name.clone());
         self.rooms.insert(room.name.clone(), room);
-        Ok(self.rooms.get_mut(&room_name).unwrap())
+        Ok(self.rooms.get_mut(room_name).unwrap())
     }
 
     pub fn remove_room(&mut self, room: &RoomName) -> Option<Room> {
