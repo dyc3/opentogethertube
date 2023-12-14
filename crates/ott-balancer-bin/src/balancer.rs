@@ -474,25 +474,25 @@ pub async fn join_monolith(
     info!("new monolith");
     let mut b = ctx.write().await;
     let (client_inbound_tx, mut client_inbound_rx) = tokio::sync::mpsc::channel(100);
-    let (monolith_tx, monolith_rx) = tokio::sync::mpsc::channel(100);
-    let monolith_tx = Arc::new(monolith_tx);
-    let monolith = BalancerMonolith::new(monolith, monolith_tx.clone(), client_inbound_tx);
+    let (monolith_outbound_tx, monolith_outbound_rx) = tokio::sync::mpsc::channel(100);
+    let monolith_outbound_tx = Arc::new(monolith_outbound_tx);
+    let monolith = BalancerMonolith::new(monolith, monolith_outbound_tx.clone(), client_inbound_tx);
     receiver_tx
-        .send(monolith_rx)
+        .send(monolith_outbound_rx)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
     let monolith_id = monolith.id();
     b.add_monolith(monolith);
     drop(b);
 
     let ctx = ctx.clone();
-    let monolith_tx = monolith_tx.clone();
+    let monolith_outbound_tx = monolith_outbound_tx.clone();
     tokio::task::Builder::new()
         .name(format!("monolith {}", monolith_id).as_ref())
         .spawn(async move {
             loop {
                 tokio::select! {
                     Some(msg) = client_inbound_rx.recv() => {
-                        if let Err(e) = handle_client_inbound(ctx.clone(), msg, monolith_tx.clone()).await {
+                        if let Err(e) = handle_client_inbound(ctx.clone(), msg, monolith_outbound_tx.clone()).await {
                             error!("failed to handle client inbound: {:?}", e);
                         }
                     }
@@ -505,7 +505,7 @@ pub async fn join_monolith(
 async fn handle_client_inbound(
     ctx: Arc<RwLock<BalancerContext>>,
     msg: Context<ClientId, SocketMessage>,
-    monolith_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
+    monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
 ) -> anyhow::Result<()> {
     match msg.message() {
         SocketMessage::Message(Message::Text(_) | Message::Binary(_)) => {
@@ -517,7 +517,7 @@ async fn handle_client_inbound(
             })
             .expect("failed to serialize message");
             let socket_msg = Message::Text(text).into();
-            monolith_tx.send(socket_msg).await?;
+            monolith_outbound_tx.send(socket_msg).await?;
         }
         #[allow(deprecated)]
         SocketMessage::Message(Message::Close(_)) | SocketMessage::End => {
