@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::client::ClientMessage;
 use ott_balancer_protocol::monolith::{
-    B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgM2B, RoomMetadata,
+    B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
 };
 use ott_balancer_protocol::*;
 use rand::seq::IteratorRandom;
@@ -511,11 +511,12 @@ async fn handle_client_inbound(
         SocketMessage::Message(Message::Text(_) | Message::Binary(_)) => {
             let raw_value: Box<RawValue> = msg.message().deserialize()?;
 
-            let text = serde_json::to_string(&B2MClientMsg {
+            let built_msg: MsgB2M = B2MClientMsg {
                 client_id: *msg.id(),
                 payload: raw_value,
-            })
-            .expect("failed to serialize message");
+            }
+            .into();
+            let text = serde_json::to_string(&built_msg).expect("failed to serialize message");
             let socket_msg = Message::Text(text).into();
             monolith_outbound_tx.send(socket_msg).await?;
         }
