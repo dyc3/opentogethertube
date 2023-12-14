@@ -150,19 +150,16 @@ pub struct Room {
 
     /// The Sender used to broadcast to all clients in this room.
     broadcast_tx: tokio::sync::broadcast::Sender<SocketMessage>,
-    /// The Receiver to be used by clients to receive messages from this room.
-    broadcast_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
 }
 
 impl Room {
     pub fn new(name: RoomName) -> Self {
-        let (broadcast_tx, broadcast_rx) = tokio::sync::broadcast::channel(100);
+        let (broadcast_tx, _broadcast_rx) = tokio::sync::broadcast::channel(100);
         Self {
             name,
             clients: Vec::new(),
             metadata: None,
             broadcast_tx,
-            broadcast_rx,
         }
     }
 
@@ -188,11 +185,6 @@ impl Room {
 
     pub fn remove_client(&mut self, client: ClientId) {
         self.clients.retain(|c| *c != client);
-    }
-
-    /// Sender for sending messages to all clients in this room.
-    pub fn broadcast_tx(&self) -> &tokio::sync::broadcast::Sender<SocketMessage> {
-        &self.broadcast_tx
     }
 
     /// Create a new Receiver. Used for all clients receiving messages from this room.

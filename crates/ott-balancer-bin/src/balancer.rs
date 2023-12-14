@@ -1,6 +1,5 @@
 use std::{collections::HashMap, sync::Arc};
 
-
 use ott_balancer_protocol::monolith::{
     B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
 };
@@ -349,15 +348,6 @@ impl BalancerContext {
             .get(&client.room)
             .ok_or(anyhow::anyhow!("room not found in rooms_to_monoliths"))?;
         Ok(locator.monolith_id())
-    }
-
-    pub fn find_monolith(&self, client: ClientId) -> anyhow::Result<&BalancerMonolith> {
-        let monolith_id = self.find_monolith_id(client)?;
-        let monolith = self
-            .monoliths
-            .get(&monolith_id)
-            .ok_or(anyhow::anyhow!("monolith not found"))?;
-        Ok(monolith)
     }
 
     pub fn find_monolith_mut(&mut self, client: ClientId) -> anyhow::Result<&mut BalancerMonolith> {
