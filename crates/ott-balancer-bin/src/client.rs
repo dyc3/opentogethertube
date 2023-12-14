@@ -38,8 +38,9 @@ pub struct NewClient {
 
 #[derive(Debug)]
 pub struct ClientLink {
+    id: ClientId,
     /// Messages to send to the Room this client is in.
-    room_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    room_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
     /// Messages sent by the Balancer that need to be sent to all clients in the same room as this client.
     room_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
     /// Messages sent by the Balancer that need to be sent to this client.
@@ -48,11 +49,13 @@ pub struct ClientLink {
 
 impl ClientLink {
     pub fn new(
-        room_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+        id: ClientId,
+        room_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
         room_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
         unicast_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
     ) -> Self {
         Self {
+            id,
             room_tx,
             room_rx,
             unicast_rx,
@@ -78,7 +81,7 @@ impl ClientLink {
 
     /// Send a message to the Room this client is in via the Balancer
     pub async fn inbound_send(&mut self, msg: SocketMessage) -> anyhow::Result<()> {
-        self.room_tx.send(msg).await?;
+        self.room_tx.send(Context::new(self.id, msg.into())).await?;
 
         Ok(())
     }
@@ -91,22 +94,15 @@ pub struct BalancerClient {
     pub token: String,
     /// The Sender used to send messages to this client.
     socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
-    /// The Receiver used to receive messages from this client.
-    socket_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
 }
 
 impl BalancerClient {
-    pub fn new(
-        new_client: NewClient,
-        socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
-        socket_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
-    ) -> Self {
+    pub fn new(new_client: NewClient, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
         Self {
             id: new_client.id,
             room: new_client.room,
             token: new_client.token,
             socket_tx,
-            socket_rx,
         }
     }
 

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use anyhow::bail;
 use ott_balancer_protocol::monolith::*;
@@ -16,19 +17,26 @@ pub struct BalancerMonolith {
     region: String,
     rooms: HashMap<RoomName, Room>,
     /// The Sender used to send messages to this Monolith.
-    socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
+    /// The Sender to be used by clients to send messages to this Monolith.
+    client_inbound_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
     config: MonolithConnectionConfig,
     proxy_port: u16,
     http_client: reqwest::Client,
 }
 
 impl BalancerMonolith {
-    pub fn new(m: NewMonolith, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
+    pub fn new(
+        m: NewMonolith,
+        monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
+        client_inbound_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
+    ) -> Self {
         Self {
             id: m.id,
             region: m.region,
             rooms: HashMap::new(),
-            socket_tx,
+            monolith_outbound_tx,
+            client_inbound_tx,
             config: m.config,
             proxy_port: m.proxy_port,
             http_client: reqwest::Client::builder()
@@ -98,7 +106,7 @@ impl BalancerMonolith {
     pub async fn send(&self, msg: impl Into<MsgB2M>) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg.into())?;
         let socket_msg = Message::Text(text).into();
-        self.socket_tx.send(socket_msg).await?;
+        self.monolith_outbound_tx.send(socket_msg).await?;
 
         Ok(())
     }
@@ -126,8 +134,8 @@ impl BalancerMonolith {
         Ok(())
     }
 
-    pub fn new_send_tx(&self) -> tokio::sync::mpsc::Sender<SocketMessage> {
-        self.socket_tx.clone()
+    pub fn new_inbound_tx(&self) -> tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>> {
+        self.client_inbound_tx.clone()
     }
 }
 
@@ -190,6 +198,12 @@ impl Room {
     /// Create a new Receiver. Used for all clients receiving messages from this room.
     pub fn new_broadcast_rx(&self) -> tokio::sync::broadcast::Receiver<SocketMessage> {
         self.broadcast_tx.subscribe()
+    }
+
+    /// Broadcast a message to all clients in this room.
+    pub fn broadcast(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
+        self.broadcast_tx.send(msg.into())?;
+        Ok(())
     }
 }
 
