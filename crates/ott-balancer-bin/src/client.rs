@@ -28,7 +28,7 @@ impl UnauthorizedClient {
     }
 }
 
-/// Represents a client websocket connection's context. Used by [`OttBalancer`] to make a [`BalancerClient`].
+/// Represents a client websocket connection's context. Used by [`crate::Balancer`] to make a [`BalancerClient`].
 #[derive(Debug, Clone)]
 pub struct NewClient {
     pub id: ClientId,
@@ -42,7 +42,7 @@ pub struct ClientLink {
     /// Messages to send to the Room this client is in.
     room_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
     /// Messages sent by the Balancer that need to be sent to all clients in the same room as this client.
-    room_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
+    broadcast_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
     /// Messages sent by the Balancer that need to be sent to this client.
     unicast_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
 }
@@ -51,13 +51,13 @@ impl ClientLink {
     pub fn new(
         id: ClientId,
         room_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
-        room_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
+        broadcast_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
         unicast_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
     ) -> Self {
         Self {
             id,
             room_tx,
-            room_rx,
+            broadcast_rx,
             unicast_rx,
         }
     }
@@ -71,7 +71,7 @@ impl ClientLink {
                     None => return Err(RecvError::Closed),
                 }
             }
-            msg = self.room_rx.recv() => {
+            msg = self.broadcast_rx.recv() => {
                 msg
             }
         }?;
@@ -92,22 +92,25 @@ pub struct BalancerClient {
     pub id: ClientId,
     pub room: RoomName,
     pub token: String,
-    /// The Sender used to send messages to this client.
-    socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    /// The Sender used to send outbound messages to this client.
+    unicast_tx: tokio::sync::mpsc::Sender<SocketMessage>,
 }
 
 impl BalancerClient {
-    pub fn new(new_client: NewClient, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
+    pub fn new(
+        new_client: NewClient,
+        unicast_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    ) -> Self {
         Self {
             id: new_client.id,
             room: new_client.room,
             token: new_client.token,
-            socket_tx,
+            unicast_tx,
         }
     }
 
     pub async fn send(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
-        self.socket_tx.send(msg.into()).await?;
+        self.unicast_tx.send(msg.into()).await?;
 
         Ok(())
     }
