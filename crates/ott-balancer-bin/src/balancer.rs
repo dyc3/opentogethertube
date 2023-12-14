@@ -260,7 +260,7 @@ impl BalancerContext {
         Ok(())
     }
 
-    // #[instrument(skip(self, room_name), err, fields(room = %room_name, load_epoch = %locator.load_epoch()))]
+    #[instrument(skip(self, room_name), fields(room = %room_name, load_epoch = %locator.load_epoch()))]
     pub fn add_room(&mut self, room_name: RoomName, locator: RoomLocator) -> anyhow::Result<&Room> {
         debug!("add_room");
         let monolith = self
