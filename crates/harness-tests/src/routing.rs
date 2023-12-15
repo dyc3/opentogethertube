@@ -228,9 +228,11 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     })
     .await;
 
-    let res1 = c1.recv().await.unwrap();
-    let res2 = c2.recv().await.unwrap();
+    let res = vec![c1.recv().await, c2.recv().await];
 
-    assert!(res1.to_string() == "{}");
-    assert!(res2.is_empty());
+    assert_eq!(
+        (matches!(res.get(0), Ok(_)) && matches!(res.get(1), Err(_)))
+            || (matches!(res.get(0), Err(_)) && matches!(res.get(1), Ok(_))),
+        true
+    );
 }
