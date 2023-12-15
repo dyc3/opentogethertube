@@ -84,12 +84,12 @@ class BalancerManager {
 	private onBalancerDisconnect(conn: BalancerConnection, code: number, reason: string) {
 		log.debug(`Disconnected from balancer ${conn.id}: ${code} ${reason}`);
 		this.emit("disconnect", conn);
-		for (const conn of this.balancerConnections) {
-			if (conn.id === conn.id) {
-				this.balancerConnections.splice(this.balancerConnections.indexOf(conn), 1);
-				break;
-			}
+		const idx = this.balancerConnections.indexOf(conn);
+		if (idx === -1) {
+			log.error(`Balancer ${conn.id} was not found in balancerConnections`);
+			return;
 		}
+		this.balancerConnections.splice(idx, 1);
 	}
 
 	private onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
