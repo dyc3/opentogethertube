@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use harness::{Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
+use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
 use ott_balancer_protocol::monolith::M2BRoomMsg;
 use serde_json::value::RawValue;
 use test_context::test_context;
@@ -205,7 +205,10 @@ async fn monolith_double_load_room(ctx: &mut TestRunner) {
 #[test_context(TestRunner)]
 #[tokio::test]
 async fn unicast_messaging(ctx: &mut TestRunner) {
-    let mut m = Monolith::new(ctx).await.unwrap();
+    let mut m = MonolithBuilder::new()
+        .behavior(BehaviorTrackClients)
+        .build(ctx)
+        .await;
 
     m.show().await;
 
@@ -225,5 +228,5 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     })
     .await;
 
-    assert_ne!(c1.recv().await.into(), c2.recv().await.into());
+    assert!(m.clients().get(c_id.as_ref().unwrap()).expect("{}"));
 }
