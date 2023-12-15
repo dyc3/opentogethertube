@@ -229,10 +229,8 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     .await;
 
     let res = vec![c1.recv().await, c2.recv().await];
+    let oks: Vec<_> = res.iter().filter(|r| r.is_ok()).collect();
 
-    assert_eq!(
-        (matches!(res.get(0), Ok(_)) && matches!(res.get(1), Err(_)))
-            || (matches!(res.get(0), Err(_)) && matches!(res.get(1), Ok(_))),
-        true
-    );
+    assert_eq!(oks.len(), 1);
+    assert_eq!(oks[0].as_ref().unwrap().to_string(), "{}");
 }
