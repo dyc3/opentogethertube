@@ -650,18 +650,26 @@ pub async fn dispatch_monolith_message(
                         anyhow::bail!("room not found on monolith");
                     };
 
-                    // TODO: also handle the case where the client_id is Some
-
-                    // broadcast to all clients
-                    debug!("broadcasting to clients in room: {:?}", room.name());
-                    // TODO: optimize this using a broadcast channel
                     let built_msg = Message::text(msg.payload.to_string());
-                    for client in room.clients() {
-                        let Some(client) = ctx_read.clients.get(client) else {
-                            anyhow::bail!("client not found");
-                        };
 
-                        client.send(built_msg.clone()).await?;
+                    match &msg.client_id {
+                        Some(client) => {
+                            let Some(client) = ctx_read.clients.get(client) else {
+                                anyhow::bail!("client not found");
+                            };
+                            client.send(built_msg).await?;
+                        }
+                        None => {
+                            // broadcast to all clients
+                            debug!("broadcasting to clients in room: {:?}", room.name());
+                            // TODO: optimize this using a broadcast channel
+                            for client in room.clients() {
+                                let Some(client) = ctx_read.clients.get(client) else {
+                                    anyhow::bail!("client not found");
+                                };
+                                client.send(built_msg.clone()).await?;
+                            }
+                        }
                     }
                 }
                 MsgM2B::Kick(msg) => {

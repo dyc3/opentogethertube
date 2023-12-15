@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use harness::{Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
+use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
+use ott_balancer_protocol::monolith::M2BRoomMsg;
+use serde_json::value::RawValue;
 use test_context::test_context;
 
 #[test_context(TestRunner)]
@@ -201,4 +203,37 @@ async fn monolith_double_load_room(ctx: &mut TestRunner) {
 
     let t = resp.text().await.expect("failed to read http response");
     assert_eq!(t, "{\"name\":\"foo\"}");
+}
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn unicast_messaging(ctx: &mut TestRunner) {
+    let mut m = MonolithBuilder::new()
+        .behavior(BehaviorTrackClients)
+        .build(ctx)
+        .await;
+
+    m.show().await;
+
+    let mut c1 = Client::new(ctx).unwrap();
+    c1.join("foo").await;
+    let mut c2 = Client::new(ctx).unwrap();
+    c2.join("foo").await;
+
+    m.wait_recv().await;
+
+    let c_id = m.clients().iter().next().copied();
+
+    m.send(M2BRoomMsg {
+        room: "foo".into(),
+        client_id: c_id,
+        payload: RawValue::from_string("{}".to_owned()).unwrap(),
+    })
+    .await;
+
+    let res = vec![c1.recv().await, c2.recv().await];
+    let oks: Vec<_> = res.iter().filter(|r| r.is_ok()).collect();
+
+    assert_eq!(oks.len(), 1);
+    assert_eq!(oks[0].as_ref().unwrap().to_string(), "{}");
 }
