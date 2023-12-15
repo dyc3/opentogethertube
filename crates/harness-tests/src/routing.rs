@@ -228,5 +228,9 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     })
     .await;
 
-    assert!(m.clients().get(c_id.as_ref().unwrap()).expect("{}"));
+    let res1 = c1.recv().await.unwrap();
+    let res2 = c2.recv().await.unwrap();
+
+    assert!(res1.to_string() == "{}");
+    assert!(res2.is_empty());
 }
