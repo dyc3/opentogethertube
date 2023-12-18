@@ -494,7 +494,11 @@ pub async fn join_client(
         None => {
             // the room is not loaded, randomly select a monolith
             let selected = ctx_write.select_monolith()?;
-            debug!("room is not loaded, selected monolith: {:?}", selected.id());
+            debug!(
+                "room is not loaded, selected monolith: {:?} (region: {:?})",
+                selected.id(),
+                selected.region()
+            );
             (selected.id(), true)
         }
     };

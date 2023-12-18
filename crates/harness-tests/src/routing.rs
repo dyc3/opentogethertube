@@ -267,6 +267,8 @@ async fn should_prioritize_same_region_http(ctx: &mut TestRunner) {
     m3.show().await;
     m4.show().await;
 
+    tokio::time::sleep(Duration::from_millis(200)).await;
+
     reqwest::get(ctx.url("/api/foo"))
         .await
         .expect("http request failed");
@@ -289,6 +291,8 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
     m2.show().await;
     m3.show().await;
     m4.show().await;
+
+    tokio::time::sleep(Duration::from_millis(200)).await;
 
     let mut c1 = Client::new(ctx).unwrap();
     c1.join("foo").await;
