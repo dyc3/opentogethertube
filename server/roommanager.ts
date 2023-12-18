@@ -43,10 +43,23 @@ async function addRoom(room: Room) {
 	bus.emit("load", room.name);
 }
 
+let updaterInterval: NodeJS.Timer | null = null;
 export async function start() {
 	log.info("Starting room manager");
 
-	setInterval(update, 1000);
+	updaterInterval = setInterval(update, 1000);
+	process.on("SIGINT", shutdown);
+	process.on("SIGTERM", shutdown);
+}
+
+async function shutdown() {
+	log.info("Shutting down room manager");
+	if (updaterInterval) {
+		clearInterval(updaterInterval);
+		updaterInterval = null;
+	}
+	await Promise.all(rooms.map(room => unloadRoom(room.name, { preserveRedis: true })));
+	process.exit(0);
 }
 
 export function redisStateToState(state: RoomStateFromRedis): RoomState {
@@ -151,23 +164,36 @@ export async function getRoom(
 	return ok(room);
 }
 
-export async function unloadRoom(roomName: string): Promise<void> {
+export async function unloadRoom(
+	room: string | Room,
+	options: Partial<{ preserveRedis: boolean }> = {}
+): Promise<void> {
+	const opts = _.defaults(options, {
+		preserveRedis: false,
+	});
+
 	let idx = -1;
-	for (let i = 0; i < rooms.length; i++) {
-		if (rooms[i].name.toLowerCase() === roomName.toLowerCase()) {
-			idx = i;
-			break;
+	if (typeof room === "string") {
+		for (let i = 0; i < rooms.length; i++) {
+			if (rooms[i].name.toLowerCase() === room.toLowerCase()) {
+				idx = i;
+				break;
+			}
 		}
+		if (idx < 0) {
+			throw new RoomNotFoundException(room);
+		}
+		room = rooms[idx];
 	}
-	if (idx >= 0) {
-		log.info(`Unloading room: ${roomName}`);
-		await rooms[idx].onBeforeUnload();
-	} else {
-		throw new RoomNotFoundException(roomName);
-	}
+	const roomName = room.name;
+	log.info(`Unloading room: ${roomName}`);
+	await room.onBeforeUnload();
+	idx = rooms[idx].name === room.name ? idx : rooms.indexOf(room); // because the index may have changed across await boundaries
 	rooms.splice(idx, 1);
-	await redisClient.del(`room:${roomName}`);
-	await redisClient.del(`room-sync:${roomName}`);
+	if (!opts.preserveRedis) {
+		await redisClient.del(`room:${roomName}`);
+		await redisClient.del(`room-sync:${roomName}`);
+	}
 	bus.emit("unload", roomName);
 }
 
@@ -184,7 +210,7 @@ export function clearRooms(): void {
 /** Unload all rooms off of this node. Intended to only be used in tests. */
 export async function unloadAllRooms(): Promise<void> {
 	const names = rooms.map(r => r.name);
-	await Promise.all(names.map(unloadRoom));
+	await Promise.all(names.map(name => unloadRoom(name)));
 }
 
 export function publish(roomName: string, msg: ServerMessage) {
