@@ -414,7 +414,7 @@ impl BalancerContext {
 
     /// When loading a room, call this to select the best monolith to load it on.
     pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
-        fn cmp<'a, 'b>(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
+        fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
             x.rooms().len().cmp(&y.rooms().len())
         }
 
@@ -426,9 +426,8 @@ impl BalancerContext {
                 .iter()
                 .flat_map(|id| self.monoliths.get(id))
                 .min_by(|x, y| cmp(x, y));
-            match selected {
-                Some(s) => return Ok(s),
-                None => {}
+            if let Some(s) = selected {
+                return Ok(s);
             }
         }
         let selected = self.monoliths.values().min_by(|x, y| cmp(x, y));
@@ -444,13 +443,10 @@ impl BalancerContext {
             .get(BalancerConfig::get().region.as_str());
         if let Some(in_region) = in_region {
             let selected = in_region.iter().choose(&mut rand::thread_rng());
-            match selected {
-                Some(s) => {
-                    if let Some(m) = self.monoliths.get(s) {
-                        return Ok(m);
-                    }
+            if let Some(s) = selected {
+                if let Some(m) = self.monoliths.get(s) {
+                    return Ok(m);
                 }
-                None => {}
             }
         }
 

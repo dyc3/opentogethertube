@@ -62,7 +62,7 @@ impl TestRunner {
             ),
         ]);
         if let Some(region) = &opts.region {
-            envs.insert("BALANCER_REGION".into(), region.clone());
+            envs.insert("BALANCER_REGION", region.clone());
         }
 
         let child = Command::new("cargo")
