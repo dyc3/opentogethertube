@@ -1,5 +1,7 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
+use anyhow::bail;
 use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
 use tokio_tungstenite::tungstenite::Message;
@@ -14,19 +16,27 @@ pub struct BalancerMonolith {
     id: MonolithId,
     region: String,
     rooms: HashMap<RoomName, Room>,
-    socket_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+    /// The Sender used to send messages to this Monolith.
+    monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
+    /// The Sender to be used by clients to send messages to this Monolith.
+    client_inbound_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
     config: MonolithConnectionConfig,
     proxy_port: u16,
     http_client: reqwest::Client,
 }
 
 impl BalancerMonolith {
-    pub fn new(m: NewMonolith, socket_tx: tokio::sync::mpsc::Sender<SocketMessage>) -> Self {
+    pub fn new(
+        m: NewMonolith,
+        monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
+        client_inbound_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
+    ) -> Self {
         Self {
             id: m.id,
             region: m.region,
             rooms: HashMap::new(),
-            socket_tx,
+            monolith_outbound_tx,
+            client_inbound_tx,
             config: m.config,
             proxy_port: m.proxy_port,
             http_client: reqwest::Client::builder()
@@ -61,12 +71,14 @@ impl BalancerMonolith {
         &self.http_client
     }
 
-    pub fn add_room(&mut self, room: Room) {
-        if self.rooms.contains_key(&room.name) {
-            error!("Monolith already has room {}", room.name);
-            return;
+    pub fn add_room(&mut self, room_name: &RoomName) -> anyhow::Result<&mut Room> {
+        if self.rooms.contains_key(room_name) {
+            error!("Monolith already has room {}", room_name);
+            bail!("Monolith already has room {}", room_name);
         }
+        let room = Room::new(room_name.clone());
         self.rooms.insert(room.name.clone(), room);
+        Ok(self.rooms.get_mut(room_name).unwrap())
     }
 
     pub fn remove_room(&mut self, room: &RoomName) -> Option<Room> {
@@ -94,7 +106,7 @@ impl BalancerMonolith {
     pub async fn send(&self, msg: impl Into<MsgB2M>) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg.into())?;
         let socket_msg = Message::Text(text).into();
-        self.socket_tx.send(socket_msg).await?;
+        self.monolith_outbound_tx.send(socket_msg).await?;
 
         Ok(())
     }
@@ -111,14 +123,19 @@ impl BalancerMonolith {
         room.set_metadata(metadata);
     }
 
-    pub fn add_or_sync_room(&mut self, metadata: RoomMetadata) {
+    pub fn add_or_sync_room(&mut self, metadata: RoomMetadata) -> anyhow::Result<()> {
         if self.has_room(&metadata.name) {
             self.set_room_metadata(metadata);
         } else {
-            let mut room = Room::new(metadata.name.clone());
+            let room = self.add_room(&metadata.name)?;
             room.set_metadata(metadata);
-            self.add_room(room);
         }
+
+        Ok(())
+    }
+
+    pub fn new_inbound_tx(&self) -> tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>> {
+        self.client_inbound_tx.clone()
     }
 }
 
@@ -130,14 +147,19 @@ pub struct Room {
     clients: Vec<ClientId>,
     /// Metadata about this room, according to the Monolith.
     metadata: Option<RoomMetadata>,
+
+    /// The Sender used to broadcast to all clients in this room.
+    broadcast_tx: tokio::sync::broadcast::Sender<SocketMessage>,
 }
 
 impl Room {
     pub fn new(name: RoomName) -> Self {
+        let (broadcast_tx, _broadcast_rx) = tokio::sync::broadcast::channel(100);
         Self {
             name,
             clients: Vec::new(),
             metadata: None,
+            broadcast_tx,
         }
     }
 
@@ -163,6 +185,17 @@ impl Room {
 
     pub fn remove_client(&mut self, client: ClientId) {
         self.clients.retain(|c| *c != client);
+    }
+
+    /// Create a new Receiver. Used for all clients receiving messages from this room.
+    pub fn new_broadcast_rx(&self) -> tokio::sync::broadcast::Receiver<SocketMessage> {
+        self.broadcast_tx.subscribe()
+    }
+
+    /// Broadcast a message to all clients in this room.
+    pub fn broadcast(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
+        self.broadcast_tx.send(msg.into())?;
+        Ok(())
     }
 }
 

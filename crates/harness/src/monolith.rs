@@ -119,7 +119,7 @@ impl Monolith {
                                         let to_send = {
                                             let mut state = state.lock().unwrap();
                                             let parsed = match &msg {
-                                                Message::Text(msg) => serde_json::from_str(msg).unwrap(),
+                                                Message::Text(msg) => serde_json::from_str(msg).expect("failed to parse B2M message"),
                                                 _ => panic!("unexpected message type: {:?}", msg),
                                             };
 
