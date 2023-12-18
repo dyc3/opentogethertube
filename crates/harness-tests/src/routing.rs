@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
-use ott_balancer_protocol::monolith::M2BRoomMsg;
+use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
 use serde_json::value::RawValue;
 use test_context::test_context;
 
@@ -136,7 +136,7 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
     m.show().await;
     tokio::time::sleep(Duration::from_millis(200)).await; // ensure that the monoliths are fully connected before sending the room load message
 
-    for i in 0..20 {
+    for i in 0..100 {
         let room_name = format!("foo{}", i);
         m.load_room(room_name.clone()).await;
 
@@ -151,6 +151,10 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
                     result.expect("msg recv timeout");
                     break;
                 },
+                result = tokio::time::timeout(Duration::from_secs(1), dummy.wait_recv()) => {
+                    result.expect("msg recv timeout");
+                    continue; // because we are waiting for the client to reconnect
+                },
                 _ = client.wait_for_disconnect() => {
                     println!("client disconnected, retrying");
                     client.join(room_name.clone()).await;
@@ -161,10 +165,9 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
 
         let recvd = m.collect_recv();
         assert_eq!(recvd.len(), 1);
+        assert!(matches!(recvd[0], MsgB2M::Join(_)));
         m.clear_recv();
         dummy.clear_recv();
-
-        tokio::time::sleep(Duration::from_millis(100)).await;
     }
 }
 
