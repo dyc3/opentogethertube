@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use tokio::process::{Child, Command};
 
@@ -23,6 +23,25 @@ impl TestRunner {
         self.spawn_options.port
     }
 
+    /// The region that the balancer is configured to use. If `None`, the balancer will use the default region.
+    pub fn region(&self) -> Option<&str> {
+        self.spawn_options.region.as_deref()
+    }
+
+    /// Set the region that the balancer should use.
+    /// **This will also restart the balancer.**
+    pub async fn set_region(&mut self, region: impl AsRef<str>) {
+        self.spawn_options.region = Some(region.as_ref().to_owned());
+        self.restart_balancer().await;
+    }
+
+    /// Clear the region that the balancer should use.
+    /// **This will also restart the balancer.**
+    pub async fn clear_region(&mut self) {
+        self.spawn_options.region = None;
+        self.restart_balancer().await;
+    }
+
     /// Kill the balancer and start a new one with the same configuration.
     pub async fn restart_balancer(&mut self) {
         println!("restarting balancer");
@@ -35,6 +54,17 @@ impl TestRunner {
 
     /// Spawn a new balancer and wait for it to be ready.
     async fn spawn_balancer(opts: &BalancerSpawnOptions) -> Child {
+        let mut envs: HashMap<_, _> = HashMap::from_iter([
+            ("BALANCER_PORT", format!("{}", opts.port)),
+            (
+                "BALANCER_DISCOVERY",
+                format!("{{method=\"harness\", port={}}}", opts.harness_port),
+            ),
+        ]);
+        if let Some(region) = &opts.region {
+            envs.insert("BALANCER_REGION", region.clone());
+        }
+
         let child = Command::new("cargo")
             .args([
                 "run",
@@ -44,11 +74,7 @@ impl TestRunner {
                 "--log-level",
                 "debug",
             ])
-            .env("BALANCER_PORT", format!("{}", opts.port))
-            .env(
-                "BALANCER_DISCOVERY",
-                format!("{{method=\"harness\", port={}}}", opts.harness_port),
-            )
+            .envs(envs)
             .spawn()
             .expect("Failed to start balancer");
 
@@ -100,7 +126,11 @@ impl AsyncTestContext for TestRunner {
             }
         }
 
-        let opts = BalancerSpawnOptions { port, harness_port };
+        let opts = BalancerSpawnOptions {
+            port,
+            harness_port,
+            region: None,
+        };
 
         let child = Self::spawn_balancer(&opts).await;
 
@@ -123,9 +153,11 @@ impl AsyncTestContext for TestRunner {
     }
 }
 
+#[derive(Debug, Clone)]
 struct BalancerSpawnOptions {
     pub port: u16,
     pub harness_port: u16,
+    pub region: Option<String>,
 }
 
 #[cfg(test)]
