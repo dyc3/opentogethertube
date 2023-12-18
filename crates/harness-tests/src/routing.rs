@@ -240,3 +240,64 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     assert_eq!(oks.len(), 1);
     assert_eq!(oks[0].as_ref().unwrap().to_string(), "{}");
 }
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn should_prioritize_same_region_http(ctx: &mut TestRunner) {
+    ctx.set_region("foo").await;
+
+    let mut m1 = MonolithBuilder::new()
+        .region("foo")
+        .add_mock_http_json(
+            "/api/foo",
+            MockRespParts::default(),
+            serde_json::json!({
+                "data": "foo",
+            }),
+        )
+        .build(ctx)
+        .await;
+
+    let mut m2 = MonolithBuilder::new().region("bar").build(ctx).await;
+    let mut m3 = MonolithBuilder::new().region("bar").build(ctx).await;
+    let mut m4 = MonolithBuilder::new().region("bar").build(ctx).await;
+
+    m1.show().await;
+    m2.show().await;
+    m3.show().await;
+    m4.show().await;
+
+    reqwest::get(ctx.url("/api/foo"))
+        .await
+        .expect("http request failed");
+
+    let reqs1 = m1.collect_mock_http();
+    assert_eq!(reqs1.len(), 1);
+}
+
+#[test_context(TestRunner)]
+#[tokio::test]
+async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
+    ctx.set_region("foo").await;
+
+    let mut m1 = MonolithBuilder::new().region("foo").build(ctx).await;
+    let mut m2 = MonolithBuilder::new().region("bar").build(ctx).await;
+    let mut m3 = MonolithBuilder::new().region("bar").build(ctx).await;
+    let mut m4 = MonolithBuilder::new().region("bar").build(ctx).await;
+
+    m1.show().await;
+    m2.show().await;
+    m3.show().await;
+    m4.show().await;
+
+    let mut c1 = Client::new(ctx).unwrap();
+    c1.join("foo").await;
+
+    tokio::time::timeout(Duration::from_millis(100), m1.wait_recv())
+        .await
+        .expect("timeout waiting for join message");
+
+    let recvd = m1.collect_recv();
+    assert_eq!(recvd.len(), 1);
+    assert!(matches!(recvd[0], MsgB2M::Join(_)));
+}

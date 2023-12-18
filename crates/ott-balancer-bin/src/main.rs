@@ -41,6 +41,7 @@ async fn main() -> anyhow::Result<()> {
         .with(filter_layer)
         .with(fmt_layer)
         .init();
+    info!("Loaded config: {:?}", config);
 
     let (discovery_tx, discovery_rx) = tokio::sync::mpsc::channel(2);
 

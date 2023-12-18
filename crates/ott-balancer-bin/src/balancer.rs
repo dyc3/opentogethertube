@@ -12,6 +12,7 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, trace, warn};
 
+use crate::config::BalancerConfig;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
 use crate::{
@@ -413,10 +414,24 @@ impl BalancerContext {
 
     /// When loading a room, call this to select the best monolith to load it on.
     pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
-        let selected = self
-            .monoliths
-            .values()
-            .min_by(|x, y| x.rooms().len().cmp(&y.rooms().len()));
+        fn cmp<'a, 'b>(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
+            x.rooms().len().cmp(&y.rooms().len())
+        }
+
+        let in_region = self
+            .monoliths_by_region
+            .get(BalancerConfig::get().region.as_str());
+        if let Some(in_region) = in_region {
+            let selected = in_region
+                .iter()
+                .flat_map(|id| self.monoliths.get(id))
+                .min_by(|x, y| cmp(x, y));
+            match selected {
+                Some(s) => return Ok(s),
+                None => {}
+            }
+        }
+        let selected = self.monoliths.values().min_by(|x, y| cmp(x, y));
         match selected {
             Some(s) => Ok(s),
             None => anyhow::bail!("no monoliths available"),
@@ -424,6 +439,21 @@ impl BalancerContext {
     }
 
     pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let in_region = self
+            .monoliths_by_region
+            .get(BalancerConfig::get().region.as_str());
+        if let Some(in_region) = in_region {
+            let selected = in_region.iter().choose(&mut rand::thread_rng());
+            match selected {
+                Some(s) => {
+                    if let Some(m) = self.monoliths.get(s) {
+                        return Ok(m);
+                    }
+                }
+                None => {}
+            }
+        }
+
         let selected = self
             .monoliths
             .values()
