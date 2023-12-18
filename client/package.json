@@ -47,7 +47,7 @@
     "eslint-plugin-vue": "9.7.0",
     "jsdom": "^21.1.0",
     "sass": "^1.41.1",
-    "vite": "^4.4.2",
+    "vite": "^4.4.12",
     "vite-plugin-vuetify": "1.0.2",
     "vitest": "^0.25.1"
   }
