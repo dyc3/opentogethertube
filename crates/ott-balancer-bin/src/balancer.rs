@@ -13,6 +13,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::client::ClientLink;
+use crate::config::BalancerConfig;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
 use crate::{
@@ -361,10 +362,23 @@ impl BalancerContext {
 
     /// When loading a room, call this to select the best monolith to load it on.
     pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
-        let selected = self
-            .monoliths
-            .values()
-            .min_by(|x, y| x.rooms().len().cmp(&y.rooms().len()));
+        fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
+            x.rooms().len().cmp(&y.rooms().len())
+        }
+
+        let in_region = self
+            .monoliths_by_region
+            .get(BalancerConfig::get().region.as_str());
+        if let Some(in_region) = in_region {
+            let selected = in_region
+                .iter()
+                .flat_map(|id| self.monoliths.get(id))
+                .min_by(|x, y| cmp(x, y));
+            if let Some(s) = selected {
+                return Ok(s);
+            }
+        }
+        let selected = self.monoliths.values().min_by(|x, y| cmp(x, y));
         match selected {
             Some(s) => Ok(s),
             None => anyhow::bail!("no monoliths available"),
@@ -372,6 +386,18 @@ impl BalancerContext {
     }
 
     pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let in_region = self
+            .monoliths_by_region
+            .get(BalancerConfig::get().region.as_str());
+        if let Some(in_region) = in_region {
+            let selected = in_region.iter().choose(&mut rand::thread_rng());
+            if let Some(s) = selected {
+                if let Some(m) = self.monoliths.get(s) {
+                    return Ok(m);
+                }
+            }
+        }
+
         let selected = self
             .monoliths
             .values()
@@ -409,7 +435,11 @@ pub async fn join_client(
         None => {
             // the room is not loaded, randomly select a monolith
             let selected = ctx_write.select_monolith()?;
-            debug!("room is not loaded, selected monolith: {:?}", selected.id());
+            debug!(
+                "room is not loaded, selected monolith: {:?} (region: {:?})",
+                selected.id(),
+                selected.region()
+            );
             (selected.id(), true)
         }
     };
