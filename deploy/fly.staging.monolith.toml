@@ -1,5 +1,6 @@
 app = "ott-staging"
 primary_region = "ewr"
+kill_timeout = 15
 
 [build]
 dockerfile = "monolith.Dockerfile"
