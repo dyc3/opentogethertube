@@ -1637,7 +1637,12 @@ dependencies = [
 
 [[package]]
 name = "ott-balancer-bin"
-version = "0.1.0"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "ott-balancer",
+ "tokio",
+]
 
 [[package]]
 name = "ott-balancer-protocol"

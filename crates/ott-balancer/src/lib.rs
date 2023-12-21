@@ -25,8 +25,7 @@ mod monolith;
 mod room;
 mod service;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+pub async fn run() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
     BalancerConfig::load(&args.config_path)?;
