@@ -216,6 +216,7 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 };
 
 const patchRoom: RequestHandler = async (req, res) => {
+	
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
@@ -235,6 +236,16 @@ const patchRoom: RequestHandler = async (req, res) => {
 	if (req.body.permissions) {
 		req.body.grants = req.body.permissions;
 		delete req.body.permissions;
+	}
+
+	if (req.body.title && req.body.title.length > 255) {
+		res.status(401).json({
+			success: false,
+			error: {
+				field: "title",
+				message: "Room title must be 255 characters or less"
+			}
+		});
 	}
 
 	req.body.grants = new Grants(req.body.grants);
