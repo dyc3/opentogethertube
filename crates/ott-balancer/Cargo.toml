@@ -1,5 +1,5 @@
 [package]
-name = "ott-balancer-bin"
+name = "ott-balancer"
 version = "0.7.0"
 edition = "2021"
 
