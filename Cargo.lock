@@ -1601,7 +1601,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ott-balancer-bin"
+name = "ott-balancer"
 version = "0.7.0"
 dependencies = [
  "anyhow",
@@ -1633,6 +1633,15 @@ dependencies = [
  "tungstenite",
  "url 2.3.1",
  "uuid",
+]
+
+[[package]]
+name = "ott-balancer-bin"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "ott-balancer",
+ "tokio",
 ]
 
 [[package]]

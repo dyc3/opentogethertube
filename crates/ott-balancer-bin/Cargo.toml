@@ -3,35 +3,7 @@ name = "ott-balancer-bin"
 version = "0.7.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 anyhow.workspace = true
-async-trait.workspace = true
-bytes.workspace = true
-clap.workspace = true
-console-subscriber.workspace = true
-figment.workspace = true
-futures-util.workspace = true
-hyper.workspace = true
-hyper-util.workspace = true
-http-body-util.workspace = true
-rand.workspace = true
-reqwest.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
+ott-balancer.workspace = true
 tokio.workspace = true
-tokio-tungstenite.workspace = true
-tokio-util.workspace = true
-tungstenite.workspace = true
-uuid.workspace = true
-url.workspace = true
-ott-common.workspace = true
-ott-balancer-protocol.workspace = true
-route-recognizer = "0.3.1"
-once_cell.workspace = true
-pin-project.workspace = true
-prometheus.workspace = true
-trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }
