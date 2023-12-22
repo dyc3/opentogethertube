@@ -94,7 +94,6 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 	if (!conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
 	}
-
 	let points = 50;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
@@ -149,6 +148,14 @@ const createRoom: RequestHandler<
 			"not allowed (too long, must be at most 32 characters)"
 		);
 	}
+
+	if (req.body.title && req.body.title.length > 255) {
+		throw new BadApiArgumentException(
+			"title",
+			"not allowed (too long, must be at most 255 characters)"
+		);
+	}
+
 	if (!ROOM_NAME_REGEX.exec(req.body.name)) {
 		throw new BadApiArgumentException("name", "not allowed (invalid characters)");
 	}
@@ -178,8 +185,7 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(req.body);
 	}
 	log.info(
-		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${
-			req.body.name
+		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${req.body.name
 		} ip=${req.ip} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
@@ -216,7 +222,6 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 };
 
 const patchRoom: RequestHandler = async (req, res) => {
-	
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
@@ -239,13 +244,10 @@ const patchRoom: RequestHandler = async (req, res) => {
 	}
 
 	if (req.body.title && req.body.title.length > 255) {
-		res.status(401).json({
-			success: false,
-			error: {
-				field: "title",
-				message: "Room title must be 255 characters or less"
-			}
-		});
+		throw new BadApiArgumentException(
+			"title",
+			"not allowed (too long, must be at most 255 characters)"
+		);
 	}
 
 	req.body.grants = new Grants(req.body.grants);
