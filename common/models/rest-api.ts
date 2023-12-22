@@ -1,4 +1,5 @@
 import { Grants } from "../permissions";
+import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 
@@ -58,6 +59,16 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 	users: RoomUserInfo[];
 }
 
+export interface OttApiRequestPatchRoom extends Partial<RoomSettings> {
+	claim?: boolean;
+	/** @deprecated Use `grants` instead */
+	permissions?: Grants;
+}
+
+export interface OttApiRequestUndo {
+	event: ServerMessageEvent;
+}
+
 export type OttApiRequestAddToQueue =
 	| {
 			videos: VideoId[];
@@ -72,6 +83,8 @@ export type OttApiRequestRemoveFromQueue = VideoId;
 export type OttApiResponseAddPreview = {
 	result: Video[];
 };
+
+export interface OttApiRequestVote extends VideoId {}
 
 export type OttApiRequestAccountRecoveryStart = {
 	email?: string;
