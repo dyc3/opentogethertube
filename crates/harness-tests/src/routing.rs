@@ -138,6 +138,7 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
 
     for i in 0..100 {
         let room_name = format!("foo{}", i);
+        println!("iteration: {}", room_name);
         m.load_room(room_name.clone()).await;
 
         let mut client = Client::new(ctx).unwrap();
@@ -153,10 +154,12 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
                 },
                 result = tokio::time::timeout(Duration::from_secs(1), dummy.wait_recv()) => {
                     result.expect("msg recv timeout");
+                    println!("dummy received message");
+                    tokio::time::timeout(Duration::from_millis(100), dummy.wait_recv()).await.expect("dummy never received unload message"); // wait for unload message
                     continue; // because we are waiting for the client to reconnect
                 },
                 _ = client.wait_for_disconnect() => {
-                    println!("client disconnected, retrying");
+                    println!("client disconnected, retrying =====================================");
                     client.join(room_name.clone()).await;
                     continue;
                 }
@@ -170,7 +173,11 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
             "expected exactly one message, got {:?}",
             recvd
         );
-        assert!(matches!(recvd[0], MsgB2M::Join(_)));
+        if let MsgB2M::Join(m) = &recvd[0] {
+            assert_eq!(m.room, room_name.into());
+        } else {
+            panic!("expected join message, got {:?}", recvd[0])
+        }
         m.clear_recv();
         dummy.clear_recv();
     }
