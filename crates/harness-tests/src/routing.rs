@@ -164,7 +164,12 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
         }
 
         let recvd = m.collect_recv();
-        assert_eq!(recvd.len(), 1);
+        assert_eq!(
+            recvd.len(),
+            1,
+            "expected exactly one message, got {:?}",
+            recvd
+        );
         assert!(matches!(recvd[0], MsgB2M::Join(_)));
         m.clear_recv();
         dummy.clear_recv();
@@ -237,7 +242,12 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     let res = vec![c1.recv().await, c2.recv().await];
     let oks: Vec<_> = res.iter().filter(|r| r.is_ok()).collect();
 
-    assert_eq!(oks.len(), 1);
+    assert_eq!(
+        oks.len(),
+        1,
+        "expected exactly one ok result, got these messages: {:?}",
+        oks
+    );
     assert_eq!(oks[0].as_ref().unwrap().to_string(), "{}");
 }
 
