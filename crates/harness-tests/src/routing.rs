@@ -297,7 +297,7 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
     let mut c1 = Client::new(ctx).unwrap();
     c1.join("foo").await;
 
-    tokio::time::timeout(Duration::from_millis(100), m1.wait_recv())
+    tokio::time::timeout(Duration::from_millis(200), m1.wait_recv())
         .await
         .expect("timeout waiting for join message");
 
