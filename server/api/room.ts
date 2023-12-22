@@ -561,7 +561,7 @@ router.delete("/:name", async (req, res, next) => {
 
 router.post("/:name/undo", async (req, res, next) => {
 	try {
-		await undoEvent(req, res);
+		await undoEvent(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -569,7 +569,7 @@ router.post("/:name/undo", async (req, res, next) => {
 
 router.post("/:name/vote", async (req, res, next) => {
 	try {
-		await addVote(req, res);
+		await addVote(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -577,7 +577,7 @@ router.post("/:name/vote", async (req, res, next) => {
 
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
-		await removeVote(req, res);
+		await removeVote(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
