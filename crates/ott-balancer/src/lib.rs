@@ -1,6 +1,7 @@
 use std::net::Ipv6Addr;
 use std::{net::SocketAddr, sync::Arc};
 
+use anyhow::Context;
 use balancer::{start_dispatcher, Balancer, BalancerContext};
 use clap::Parser;
 use hyper::server::conn::http1;
@@ -91,7 +92,9 @@ pub async fn run() -> anyhow::Result<()> {
     };
 
     // on linux, binding ipv6 will also bind ipv4
-    let listener6 = TcpListener::bind(bind_addr6).await?;
+    let listener6 = TcpListener::bind(bind_addr6)
+        .await
+        .context("binding primary inbound socket")?;
 
     info!("Serving on {}", bind_addr6);
     loop {

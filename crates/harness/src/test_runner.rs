@@ -49,11 +49,13 @@ impl TestRunner {
             warn!("restart_balancer: Failed to kill balancer: {:?}", result);
         }
 
-        self.child = Self::spawn_balancer(&self.spawn_options).await;
+        self.child = Self::spawn_balancer(&self.spawn_options)
+            .await
+            .expect("failed to respawn balancer");
     }
 
     /// Spawn a new balancer and wait for it to be ready.
-    async fn spawn_balancer(opts: &BalancerSpawnOptions) -> Child {
+    async fn spawn_balancer(opts: &BalancerSpawnOptions) -> anyhow::Result<Child> {
         let mut envs: HashMap<_, _> = HashMap::from_iter([
             ("BALANCER_PORT", format!("{}", opts.port)),
             (
@@ -65,7 +67,12 @@ impl TestRunner {
             envs.insert("BALANCER_REGION", region.clone());
         }
 
-        let child = Command::new("cargo")
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_millis(100))
+            .build()
+            .expect("failed to build request client");
+
+        let mut child = Command::new("cargo")
             .args([
                 "run",
                 "-p",
@@ -77,12 +84,8 @@ impl TestRunner {
             .envs(envs)
             .spawn()
             .expect("Failed to start balancer");
-
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_millis(100))
-            .build()
-            .expect("failed to build request client");
         loop {
+            println!("waiting for balancer to start");
             match client
                 .get(&format!("http://localhost:{}/api/status", opts.port))
                 .send()
@@ -94,12 +97,19 @@ impl TestRunner {
                     }
                 }
                 Err(_) => {
+                    match child.try_wait() {
+                        Ok(Some(status)) => {
+                            anyhow::bail!("Exited with status {}", status);
+                        }
+                        Ok(None) => {} // process is still running
+                        Err(e) => anyhow::bail!("Error waiting for balancer to start: {}", e),
+                    }
                     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
                 }
             }
         }
 
-        child
+        Ok(child)
     }
 
     /// Create a URL that points to the balancer. This creates URLs that clients should connect to when making HTTP requests.
@@ -117,22 +127,38 @@ impl AsyncTestContext for TestRunner {
     async fn setup() -> Self {
         let mut port;
         let mut harness_port;
+
+        let mut opts;
+        let child;
+        let mut attempts = 0;
         loop {
+            if attempts > 5 {
+                panic!("Failed to find an unused port after 5 attempts");
+            }
             port = random_unused_port();
             harness_port = random_unused_port();
             // Ensure that the harness port is different from the balancer port.
-            if port != harness_port {
-                break;
+            if port == harness_port {
+                continue;
             }
+            attempts += 1;
+
+            opts = BalancerSpawnOptions {
+                port,
+                harness_port,
+                region: None,
+            };
+
+            child = match Self::spawn_balancer(&opts).await {
+                Ok(child) => child,
+                Err(e) => {
+                    println!("Failed to spawn balancer: {}", e);
+                    continue;
+                }
+            };
+
+            break;
         }
-
-        let opts = BalancerSpawnOptions {
-            port,
-            harness_port,
-            region: None,
-        };
-
-        let child = Self::spawn_balancer(&opts).await;
 
         let (_provider_task, monolith_add_tx, monolith_remove_tx) =
             crate::provider::DiscoveryProvider::connect(harness_port).await;
