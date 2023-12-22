@@ -78,11 +78,11 @@ impl TestRunner {
             .spawn()
             .expect("Failed to start balancer");
 
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_millis(100))
+            .build()
+            .expect("failed to build request client");
         loop {
-            let client = reqwest::Client::builder()
-                .timeout(std::time::Duration::from_millis(100))
-                .build()
-                .expect("failed to build request client");
             match client
                 .get(&format!("http://localhost:{}/api/status", opts.port))
                 .send()
