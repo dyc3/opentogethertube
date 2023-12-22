@@ -66,7 +66,9 @@ async fn should_not_unload_rooms_when_balancer_restart(ctx: &mut TestRunner) {
 
     m.show().await;
     c1.join("foo").await;
-    m.wait_recv().await;
+    tokio::time::timeout(Duration::from_millis(200), m.wait_recv())
+        .await
+        .expect("m did not receive join message (pre restart)");
     m.clear_recv();
 
     ctx.restart_balancer().await;
@@ -74,7 +76,9 @@ async fn should_not_unload_rooms_when_balancer_restart(ctx: &mut TestRunner) {
     m.wait_for_balancer_connect().await;
     c1.disconnect().await;
     c1.join("foo").await;
-    m.wait_recv().await;
+    tokio::time::timeout(Duration::from_millis(200), m.wait_recv())
+        .await
+        .expect("m did not receive join message (post restart)");
     m.gossip().await;
     let _ = tokio::time::timeout(Duration::from_millis(200), m.wait_recv()).await;
 
