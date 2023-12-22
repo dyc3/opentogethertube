@@ -185,7 +185,8 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(req.body);
 	}
 	log.info(
-		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${req.body.name
+		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${
+			req.body.name
 		} ip=${req.ip} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
