@@ -32,13 +32,14 @@ export interface OttApiResponseRoomGenerate {
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiRequestRoomCreate {
+	title?: string;
 	name: string;
 	isTemporary?: boolean;
 	visibility?: Visibility;
 }
 
 /** Endpoint: `/api/room/create` */
-export interface OttApiResponseRoomCreate {}
+export interface OttApiResponseRoomCreate { }
 
 /** Endpoint: `GET /api/room/:name` */
 export interface OttApiResponseGetRoom extends RoomSettings {
@@ -60,12 +61,12 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 
 export type OttApiRequestAddToQueue =
 	| {
-			videos: VideoId[];
-	  }
+		videos: VideoId[];
+	}
 	| VideoId
 	| {
-			url: string;
-	  };
+		url: string;
+	};
 
 export type OttApiRequestRemoveFromQueue = VideoId;
 
