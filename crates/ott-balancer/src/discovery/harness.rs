@@ -60,7 +60,7 @@ async fn do_harness_discovery(
     updated_tx: tokio::sync::mpsc::Sender<()>,
 ) -> anyhow::Result<()> {
     info!("Binding harness discoverer to port {}", config.port);
-    let listener = tokio::net::TcpListener::bind(("::", config.port)).await?;
+    let listener = tokio::net::TcpListener::bind(("::1", config.port)).await?;
     loop {
         info!("Waiting for harness to connect");
         let Ok((stream, _)) = listener.accept().await else {
