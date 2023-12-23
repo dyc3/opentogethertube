@@ -138,6 +138,7 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
 
     for i in 0..100 {
         let room_name = format!("foo{}", i);
+        println!("iteration: {}", room_name);
         m.load_room(room_name.clone()).await;
 
         let mut client = Client::new(ctx).unwrap();
@@ -153,10 +154,12 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
                 },
                 result = tokio::time::timeout(Duration::from_secs(1), dummy.wait_recv()) => {
                     result.expect("msg recv timeout");
+                    println!("dummy received message");
+                    tokio::time::timeout(Duration::from_millis(100), dummy.wait_recv()).await.expect("dummy never received unload message"); // wait for unload message
                     continue; // because we are waiting for the client to reconnect
                 },
                 _ = client.wait_for_disconnect() => {
-                    println!("client disconnected, retrying");
+                    println!("client disconnected, retrying =====================================");
                     client.join(room_name.clone()).await;
                     continue;
                 }
@@ -164,8 +167,17 @@ async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
         }
 
         let recvd = m.collect_recv();
-        assert_eq!(recvd.len(), 1);
-        assert!(matches!(recvd[0], MsgB2M::Join(_)));
+        assert_eq!(
+            recvd.len(),
+            1,
+            "expected exactly one message, got {:?}",
+            recvd
+        );
+        if let MsgB2M::Join(m) = &recvd[0] {
+            assert_eq!(m.room, room_name.into());
+        } else {
+            panic!("expected join message, got {:?}", recvd[0])
+        }
         m.clear_recv();
         dummy.clear_recv();
     }
@@ -237,7 +249,12 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     let res = vec![c1.recv().await, c2.recv().await];
     let oks: Vec<_> = res.iter().filter(|r| r.is_ok()).collect();
 
-    assert_eq!(oks.len(), 1);
+    assert_eq!(
+        oks.len(),
+        1,
+        "expected exactly one ok result, got these messages: {:?}",
+        oks
+    );
     assert_eq!(oks[0].as_ref().unwrap().to_string(), "{}");
 }
 
@@ -297,7 +314,7 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
     let mut c1 = Client::new(ctx).unwrap();
     c1.join("foo").await;
 
-    tokio::time::timeout(Duration::from_millis(100), m1.wait_recv())
+    tokio::time::timeout(Duration::from_millis(200), m1.wait_recv())
         .await
         .expect("timeout waiting for join message");
 
