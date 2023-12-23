@@ -58,7 +58,14 @@ impl BalancerConfig {
         Ok(())
     }
 
+    /// Initialize the config with default values.
+    pub fn init_default() {
+        // SAFETY: CONFIG is only mutated once, and only from this thread. All other accesses are read-only.
+        CONFIG_INIT.call_once(|| unsafe { *CONFIG.borrow_mut() = Some(BalancerConfig::default()) });
+    }
+
     pub fn get() -> &'static Self {
+        debug_assert!(CONFIG_INIT.is_completed(), "config not initialized");
         // SAFETY: get is never called before CONFIG is initialized.
         unsafe { CONFIG.as_ref().expect("config not initialized") }
     }

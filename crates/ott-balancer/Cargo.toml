@@ -35,3 +35,10 @@ once_cell.workspace = true
 pin-project.workspace = true
 prometheus.workspace = true
 trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }
+
+[dev-dependencies]
+criterion.workspace = true
+
+[[bench]]
+name = "throughput"
+harness = false
