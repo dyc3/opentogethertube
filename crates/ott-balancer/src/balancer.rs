@@ -171,7 +171,7 @@ impl BalancerLink {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BalancerContext {
     pub clients: HashMap<ClientId, BalancerClient>,
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
@@ -181,12 +181,7 @@ pub struct BalancerContext {
 
 impl BalancerContext {
     pub fn new() -> Self {
-        Self {
-            clients: HashMap::new(),
-            monoliths: HashMap::new(),
-            rooms_to_monoliths: HashMap::new(),
-            monoliths_by_region: HashMap::new(),
-        }
+        Default::default()
     }
 
     #[instrument(skip(self, client), err, fields(client_id = %client.id, room = %client.room))]
