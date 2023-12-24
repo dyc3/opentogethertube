@@ -1,49 +1,16 @@
-use anyhow::Ok;
-use ott_balancer_protocol::{
-    monolith::{M2BRoomMsg, MsgM2B},
-    MonolithId, RoomName,
-};
+use ott_balancer_protocol::RoomName;
 use std::{net::Ipv4Addr, sync::Arc};
-use tokio::{
-    sync::{mpsc::Receiver, RwLock},
-    task::JoinHandle,
-};
+use tokio::{sync::RwLock, task::JoinHandle};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use ott_balancer::{
     balancer::{start_dispatcher, Balancer, BalancerContext, BalancerLink},
-    client::{ClientLink, NewClient},
+    client::NewClient,
     config::BalancerConfig,
     discovery::{HostOrIp, MonolithConnectionConfig},
-    messages::SocketMessage,
     monolith::NewMonolith,
 };
-
-async fn send_msg_monolith(
-    link: &BalancerLink,
-    m_id: MonolithId,
-    c_link: &mut ClientLink,
-    msg: SocketMessage,
-) -> anyhow::Result<()> {
-    link.send_monolith_message(m_id, msg).await?;
-    let msg = c_link.outbound_recv().await;
-    let _ = black_box(msg);
-    // assert!(result.is_ok());
-    Ok(())
-}
-
-async fn send_msg_client(
-    c_link: &mut ClientLink,
-    m_recv: &mut Receiver<SocketMessage>,
-    msg: SocketMessage,
-) -> anyhow::Result<()> {
-    c_link.inbound_send(msg).await?;
-    let msg = m_recv.recv().await;
-    let _ = black_box(msg);
-    // assert!(result.is_some());
-    Ok(())
-}
 
 fn set_up_balancer() -> (BalancerLink, JoinHandle<()>) {
     let ctx = Arc::new(RwLock::new(BalancerContext::new()));
@@ -188,7 +155,7 @@ fn send_messages(c: &mut Criterion) {
                     .map(|i| format!("foo{}", i))
                     .map(|s| s.into())
                     .collect();
-                let regions = vec!["foo", "bar", "baz"];
+                let regions = ["foo", "bar", "baz"];
 
                 let (link, dispatcher_handle) = set_up_balancer();
                 for i in 0..5 {
