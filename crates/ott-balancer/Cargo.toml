@@ -40,5 +40,5 @@ trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }
 criterion.workspace = true
 
 [[bench]]
-name = "throughput"
+name = "latency"
 harness = false
