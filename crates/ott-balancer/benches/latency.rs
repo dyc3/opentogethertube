@@ -4,7 +4,10 @@ use ott_balancer_protocol::{
     MonolithId, RoomName,
 };
 use std::sync::Arc;
-use tokio::sync::{mpsc::Receiver, RwLock};
+use tokio::{
+    sync::{mpsc::Receiver, RwLock},
+    task::JoinHandle,
+};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
@@ -42,6 +45,43 @@ async fn send_msg_client(
     Ok(())
 }
 
+fn set_up_balancer() -> (BalancerLink, JoinHandle<()>) {
+    let ctx = Arc::new(RwLock::new(BalancerContext::new()));
+    let balancer = Balancer::new(ctx.clone());
+    let link = balancer.new_link();
+    let handle = start_dispatcher(balancer).expect("failed to start dispatcher");
+    (link, handle)
+}
+
+async fn set_up_1m1c(
+    link: &BalancerLink,
+    m_id: MonolithId,
+    c_id: ott_balancer_protocol::ClientId,
+    room: RoomName,
+) -> (Receiver<SocketMessage>, ClientLink) {
+    let m_recv = link
+        .send_monolith(NewMonolith {
+            id: m_id,
+            region: "unknown".to_owned(),
+            config: MonolithConnectionConfig {
+                host: HostOrIp::Host("localhost".to_owned()),
+                port: 0,
+            },
+            proxy_port: 0,
+        })
+        .await
+        .expect("failed to send monolith");
+    let c_link = link
+        .send_client(NewClient {
+            id: c_id,
+            room,
+            token: "bar".to_owned(),
+        })
+        .await
+        .expect("failed to send client");
+    (m_recv, c_link)
+}
+
 fn send_messages(c: &mut Criterion) {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
@@ -62,37 +102,17 @@ fn send_messages(c: &mut Criterion) {
                 .expect("failed to serialize message"),
             ));
 
-            let ctx = Arc::new(RwLock::new(BalancerContext::new()));
-            let balancer = Balancer::new(ctx.clone());
-            let link = balancer.new_link();
-            let _ = start_dispatcher(balancer);
-            let _m_recv = link
-                .send_monolith(NewMonolith {
-                    id: m_id,
-                    region: "unknown".to_owned(),
-                    config: MonolithConnectionConfig {
-                        host: HostOrIp::Host("localhost".to_owned()),
-                        port: 0,
-                    },
-                    proxy_port: 0,
-                })
-                .await
-                .expect("failed to send monolith");
-            let mut c_link = link
-                .send_client(NewClient {
-                    id: c_id,
-                    room,
-                    token: "bar".to_owned(),
-                })
-                .await
-                .expect("failed to send client");
+            let (link, dispatcher_handle) = set_up_balancer();
+            let (_, mut c_link) = set_up_1m1c(&link, m_id, c_id, room).await;
 
             let start = std::time::Instant::now();
             for _ in 0..iters {
                 let _ =
                     black_box(send_msg_monolith(&link, m_id, &mut c_link, m2b_msg.clone()).await);
             }
-            start.elapsed()
+            let duration = start.elapsed();
+            dispatcher_handle.abort();
+            duration
         });
     });
 
@@ -111,37 +131,17 @@ fn send_messages(c: &mut Criterion) {
                 .expect("failed to serialize message"),
             ));
 
-            let ctx = Arc::new(RwLock::new(BalancerContext::new()));
-            let balancer = Balancer::new(ctx.clone());
-            let link = balancer.new_link();
-            let _ = start_dispatcher(balancer);
-            let _m_recv = link
-                .send_monolith(NewMonolith {
-                    id: m_id,
-                    region: "unknown".to_owned(),
-                    config: MonolithConnectionConfig {
-                        host: HostOrIp::Host("localhost".to_owned()),
-                        port: 0,
-                    },
-                    proxy_port: 0,
-                })
-                .await
-                .expect("failed to send monolith");
-            let mut c_link = link
-                .send_client(NewClient {
-                    id: c_id,
-                    room,
-                    token: "bar".to_owned(),
-                })
-                .await
-                .expect("failed to send client");
+            let (link, dispatcher_handle) = set_up_balancer();
+            let (_, mut c_link) = set_up_1m1c(&link, m_id, c_id, room).await;
 
             let start = std::time::Instant::now();
             for _ in 0..iters {
                 let _ =
                     black_box(send_msg_monolith(&link, m_id, &mut c_link, m2b_msg.clone()).await);
             }
-            start.elapsed()
+            let duration = start.elapsed();
+            dispatcher_handle.abort();
+            duration
         });
     });
 
@@ -155,37 +155,17 @@ fn send_messages(c: &mut Criterion) {
             let c_id = uuid::Uuid::new_v4().into();
             let room: RoomName = "foo".into();
 
-            let ctx = Arc::new(RwLock::new(BalancerContext::new()));
-            let balancer = Balancer::new(ctx.clone());
-            let link = balancer.new_link();
-            let _ = start_dispatcher(balancer);
-            let mut m_recv = link
-                .send_monolith(NewMonolith {
-                    id: m_id,
-                    region: "unknown".to_owned(),
-                    config: MonolithConnectionConfig {
-                        host: HostOrIp::Host("localhost".to_owned()),
-                        port: 0,
-                    },
-                    proxy_port: 0,
-                })
-                .await
-                .expect("failed to send monolith");
-            let mut c_link = link
-                .send_client(NewClient {
-                    id: c_id,
-                    room,
-                    token: "bar".to_owned(),
-                })
-                .await
-                .expect("failed to send client");
+            let (link, dispatcher_handle) = set_up_balancer();
+            let (mut m_recv, mut c_link) = set_up_1m1c(&link, m_id, c_id, room).await;
 
             let start = std::time::Instant::now();
             for _ in 0..iters {
                 let _ =
                     black_box(send_msg_client(&mut c_link, &mut m_recv, client_msg.clone()).await);
             }
-            start.elapsed()
+            let duration = start.elapsed();
+            dispatcher_handle.abort();
+            duration
         });
     });
 }
