@@ -1,6 +1,7 @@
 use std::net::Ipv6Addr;
 use std::{net::SocketAddr, sync::Arc};
 
+use anyhow::Context;
 use balancer::{start_dispatcher, Balancer, BalancerContext};
 use clap::Parser;
 use hyper::server::conn::http1;
@@ -15,15 +16,15 @@ use crate::config::{BalancerConfig, DiscoveryConfig};
 use crate::discovery::start_discovery_task;
 use crate::service::BalancerService;
 
-mod balancer;
-mod client;
-mod config;
-mod connection;
-mod discovery;
-mod messages;
-mod monolith;
-mod room;
-mod service;
+pub mod balancer;
+pub mod client;
+pub mod config;
+pub mod connection;
+pub mod discovery;
+pub mod messages;
+pub mod monolith;
+pub mod room;
+pub mod service;
 
 pub async fn run() -> anyhow::Result<()> {
     let args = config::Cli::parse();
@@ -91,7 +92,9 @@ pub async fn run() -> anyhow::Result<()> {
     };
 
     // on linux, binding ipv6 will also bind ipv4
-    let listener6 = TcpListener::bind(bind_addr6).await?;
+    let listener6 = TcpListener::bind(bind_addr6)
+        .await
+        .context("binding primary inbound socket")?;
 
     info!("Serving on {}", bind_addr6);
     loop {
