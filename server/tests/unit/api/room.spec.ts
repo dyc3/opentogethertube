@@ -226,6 +226,13 @@ describe("Room API", () => {
 				},
 			],
 			[
+				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
+				{
+					name: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+					isTemporary: true,
+				},
+			],
+			[
 				{ arg: "visibility", reason: "must be one of public,unlisted,private" },
 				{ name: "test1", isTemporary: true, visibility: "invalid" },
 			],
