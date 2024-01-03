@@ -9,6 +9,7 @@ import { Room as RoomModel, User as UserModel } from "../../../models";
 import usermanager from "../../../usermanager";
 import { OttApiRequestRoomCreate } from "common/models/rest-api";
 import { conf } from "../../../../server/ott-config";
+import { error } from "console";
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -350,10 +351,21 @@ describe("Room API", () => {
 				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
 				{
 					name: "foo",
-					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+					title: "ababababababababababababababababababa",
 					isTemporary: true,
 				},
 			],
-		]);
+		])("should fail to modify room for validation errors: %s", async (error, body) => {
+			let resp = await request(app)
+				.post("/api/room/:name")
+				.send(body)
+				.expect("Content-Type", /json/)
+				.expect(400);
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toMatchObject({
+				name: "BadApiArgumentException",
+				...error,
+			});
+		});
 	});
 });
