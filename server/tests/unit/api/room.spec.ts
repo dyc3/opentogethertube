@@ -1,4 +1,4 @@
-import _ from "lodash";
+import _, { before } from "lodash";
 import { QueueMode, Visibility } from "../../../../common/models/types";
 import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
@@ -228,7 +228,8 @@ describe("Room API", () => {
 			[
 				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
 				{
-					name: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+					name: "foo",
+					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
 					isTemporary: true,
 				},
 			],
@@ -315,5 +316,44 @@ describe("Room API", () => {
 				});
 			});
 		}
+	});
+
+	describe("POST /api/room/:name", () => {
+		let getSessionInfoSpy: jest.SpyInstance;
+		let validateSpy: jest.SpyInstance;
+		beforeAll(async () => {
+			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+				isLoggedIn: false,
+				username: "test",
+			});
+			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		});
+
+		afterAll(() => {
+			getSessionInfoSpy.mockRestore();
+			validateSpy.mockRestore();
+		});
+
+		afterEach(async () => {
+			try {
+				await roommanager.unloadAllRooms();
+			} catch (e) {
+				if (!(e instanceof RoomNotFoundException)) {
+					throw e;
+				}
+			}
+			await UserModel.destroy({ where: {} });
+		});
+
+		it.each([
+			[
+				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
+				{
+					name: "foo",
+					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+					isTemporary: true,
+				},
+			],
+		]);
 	});
 });
