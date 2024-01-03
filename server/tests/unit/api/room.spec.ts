@@ -351,7 +351,7 @@ describe("Room API", () => {
 				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
 				{
 					name: "foo",
-					title: "ababababababababababababababababababa",
+					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
 					isTemporary: true,
 				},
 			],
