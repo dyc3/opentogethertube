@@ -1,4 +1,4 @@
-import _, { before } from "lodash";
+import _ from "lodash";
 import { QueueMode, Visibility } from "../../../../common/models/types";
 import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
