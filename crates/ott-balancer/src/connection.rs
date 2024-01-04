@@ -83,134 +83,159 @@ async fn connect_and_maintain(
 ) {
     let mut stream: WebSocketStream<_>;
     loop {
-        tokio::select! {
-            result = connect_async(conf.uri()) => {
-                match result {
-                    Ok((s, _)) => {
-                        stream = s;
-                        break;
-                    },
-                    Err(err) => {
-                        error!("Failed to connect to monolith: {}", err);
-                        tokio::time::sleep(Duration::from_secs(5)).await;
-                        continue;
+        // start the initial connection as if this is a brand new connection
+        loop {
+            tokio::select! {
+                result = connect_async(conf.uri()) => {
+                    match result {
+                        Ok((s, _)) => {
+                            stream = s;
+                            break;
+                        },
+                        Err(err) => {
+                            error!("Failed to connect to monolith: {}", err);
+                            tokio::time::sleep(Duration::from_secs(5)).await;
+                            continue;
+                        }
                     }
                 }
-            }
 
-            _ = cancel.cancelled() => {
-                info!("Monolith connection cancelled, safely ending: {}", conf.uri());
-                return;
-            }
-        }
-    }
-
-    let monolith_id = Uuid::new_v4().into();
-
-    let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
-    let Ok(Some(Ok(message))) = result else {
-        let _ = stream
-            .close(Some(CloseFrame {
-                code: CloseCode::Library(4000),
-                reason: "did not send init".into(),
-            }))
-            .await;
-        warn!(
-            "Monolith misbehaved, did not send init, timed out: {}",
-            conf.uri()
-        );
-        return;
-    };
-
-    // Handle connection initialization
-    let mut outbound_rx;
-    match message {
-        Message::Text(text) => {
-            let message: MsgM2B = serde_json::from_str(&text).unwrap();
-            match message {
-                MsgM2B::Init(init) => {
-                    debug!("monolith sent init, handing off to balancer");
-                    let monolith = NewMonolith {
-                        id: monolith_id,
-                        region: init.region,
-                        config: conf.clone(),
-                        proxy_port: init.port,
-                    };
-                    let Ok(rx) = link.send_monolith(monolith).await else {
-                        let _ = stream
-                            .close(Some(CloseFrame {
-                                code: CloseCode::Library(4000),
-                                reason: "failed to send monolith to balancer".into(),
-                            }))
-                            .await;
-                        warn!("Could not send Monolith to balancer: {}", conf.uri());
-                        return;
-                    };
-                    info!("Monolith {id} linked to balancer", id = monolith_id);
-                    outbound_rx = rx;
-                }
-                _ => {
-                    let _ = stream
-                        .close(Some(CloseFrame {
-                            code: CloseCode::Library(4000),
-                            reason: "did not send init".into(),
-                        }))
-                        .await;
-                    warn!("Monolith misbehaved, did not send init: {}", conf.uri());
+                _ = cancel.cancelled() => {
+                    info!("Monolith connection cancelled, safely ending: {}", conf.uri());
                     return;
                 }
             }
         }
-        _ => {
-            return;
-        }
-    }
 
-    loop {
-        tokio::select! {
-            msg = outbound_rx.recv() => {
-                if let Some(SocketMessage::Message(msg)) = msg {
-                    if let Err(err) = stream.send(msg).await {
-                        error!("Error sending ws message to monolith: {:?}", err);
-                        break;
+        let monolith_id = Uuid::new_v4().into();
+
+        let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
+        let Ok(Some(Ok(message))) = result else {
+            let _ = stream
+                .close(Some(CloseFrame {
+                    code: CloseCode::Library(4000),
+                    reason: "did not send init".into(),
+                }))
+                .await;
+            warn!(
+                "Monolith misbehaved, did not send init, timed out: {}",
+                conf.uri()
+            );
+            return;
+        };
+
+        // Handle connection initialization
+        let mut outbound_rx;
+        match message {
+            Message::Text(text) => {
+                let message: MsgM2B = serde_json::from_str(&text).unwrap();
+                match message {
+                    MsgM2B::Init(init) => {
+                        debug!("monolith sent init, handing off to balancer");
+                        let monolith = NewMonolith {
+                            id: monolith_id,
+                            region: init.region,
+                            config: conf.clone(),
+                            proxy_port: init.port,
+                        };
+                        let Ok(rx) = link.send_monolith(monolith).await else {
+                            let _ = stream
+                                .close(Some(CloseFrame {
+                                    code: CloseCode::Library(4000),
+                                    reason: "failed to send monolith to balancer".into(),
+                                }))
+                                .await;
+                            warn!("Could not send Monolith to balancer: {}", conf.uri());
+                            return;
+                        };
+                        info!("Monolith {id} linked to balancer", id = monolith_id);
+                        outbound_rx = rx;
                     }
-                } else {
-                    continue;
+                    _ => {
+                        let _ = stream
+                            .close(Some(CloseFrame {
+                                code: CloseCode::Library(4000),
+                                reason: "did not send init".into(),
+                            }))
+                            .await;
+                        warn!("Monolith misbehaved, did not send init: {}", conf.uri());
+                        return;
+                    }
                 }
             }
+            _ => {
+                return;
+            }
+        }
 
-            msg = stream.next() => {
-                if let Some(Ok(msg)) = msg {
+        let mut reconnect_attempts = 0;
+
+        loop {
+            tokio::select! {
+                msg = outbound_rx.recv() => {
+                    if let Some(SocketMessage::Message(msg)) = msg {
+                        if let Err(err) = stream.send(msg).await {
+                            error!("Error sending ws message to monolith: {:?}", err);
+                            break;
+                        }
+                    } else {
+                        continue;
+                    }
+                }
+
+                msg = stream.next() => {
+                    if let Some(Ok(msg)) = msg {
+                        if let Err(err) = link
+                            .send_monolith_message(monolith_id, SocketMessage::Message(msg))
+                            .await {
+                                error!("Error sending monolith message to balancer: {:?}", err);
+                                break;
+                            }
+                    } else {
+                        // soft reconnects are here to handle minor network failures, which should be rare
+                        info!("Monolith websocket stream ended, attempting soft reconnect: {}", monolith_id);
+                        if let Ok((s, _)) = connect_async(conf.uri()).await {
+                            stream = s;
+                            reconnect_attempts = 0;
+                        } else {
+                            warn!("Failed to soft reconnect to monolith: {} monolith {}", conf.uri(), monolith_id);
+                            reconnect_attempts += 1;
+                            if reconnect_attempts > 2 {
+                                // we need to notify the balancer that this monolith is dead
+                                // because otherwise the room won't get reallocated to another monolith
+                                error!("Failed to reconnect to monolith, notifying balancer: {} monolith {}", conf.uri(), monolith_id);
+                                #[allow(deprecated)]
+                                if let Err(err) = link
+                                    .send_monolith_message(monolith_id, SocketMessage::End)
+                                    .await {
+                                        error!("Error sending monolith message to balancer: {:?}", err);
+                                    }
+                                break;
+                            }
+                            tokio::time::sleep(Duration::from_secs(1)).await;
+                        }
+                    }
+                }
+
+                _ = cancel.cancelled() => {
+                    info!("Monolith connection cancelled, safely ending: {}", monolith_id);
+                    #[allow(deprecated)]
                     if let Err(err) = link
-                        .send_monolith_message(monolith_id, SocketMessage::Message(msg))
+                        .send_monolith_message(monolith_id, SocketMessage::End)
                         .await {
                             error!("Error sending monolith message to balancer: {:?}", err);
                             break;
                         }
-                } else {
-                    info!("Monolith websocket stream ended, reconnecting: {}", monolith_id);
-                    if let Ok((s, _)) = connect_async(conf.uri()).await {
-                        stream = s;
-                    } else {
-                        warn!("Failed to reconnect to monolith: {}", conf.uri());
-                        tokio::time::sleep(Duration::from_secs(5)).await;
-                    }
+                    break;
                 }
             }
-
-            _ = cancel.cancelled() => {
-                info!("Monolith connection cancelled, safely ending: {}", monolith_id);
-                #[allow(deprecated)]
-                if let Err(err) = link
-                    .send_monolith_message(monolith_id, SocketMessage::End)
-                    .await {
-                        error!("Error sending monolith message to balancer: {:?}", err);
-                        break;
-                    }
-                break;
-            }
+        }
+        if cancel.is_cancelled() {
+            break;
         }
     }
+
+    info!("Monolith connection task ended: {}", conf.uri());
 }
 
 struct ActiveConnection {
