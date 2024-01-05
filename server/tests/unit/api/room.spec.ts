@@ -10,7 +10,6 @@ import usermanager from "../../../usermanager";
 import { OttApiRequestRoomCreate } from "common/models/rest-api";
 import { conf } from "../../../../server/ott-config";
 
-
 expect.extend({
 	toBeRoomNotFound(error) {
 		if (typeof error === "string") {
@@ -324,13 +323,11 @@ describe("Room API", () => {
 		let validateSpy: jest.SpyInstance;
 
 		beforeAll(async () => {
-
 			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
 			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
-
 
 			await roommanager.createRoom({
 				name: "foo",
@@ -349,7 +346,6 @@ describe("Room API", () => {
 					throw e;
 				}
 			}
-
 		});
 
 		it.each([
