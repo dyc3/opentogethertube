@@ -19,8 +19,10 @@ import { Video } from "../../common/models/video.js";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import {
 	OttApiRequestAddToQueue,
+	OttApiRequestPatchRoom,
 	OttApiRequestRemoveFromQueue,
 	OttApiRequestRoomCreate,
+	OttApiRequestVote,
 	OttApiResponseGetRoom,
 	OttApiResponseRoomCreate,
 	OttApiResponseRoomGenerate,
@@ -222,7 +224,10 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 	res.json(resp);
 };
 
-const patchRoom: RequestHandler = async (req, res) => {
+const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoom> = async (
+	req,
+	res
+) => {
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
@@ -312,7 +317,7 @@ const patchRoom: RequestHandler = async (req, res) => {
 	});
 };
 
-const deleteRoom: RequestHandler = async (req, res) => {
+const deleteRoom: RequestHandler<{ name: string }> = async (req, res) => {
 	const isAuthorized = req.get("apikey") === getApiKey();
 	if (!isAuthorized) {
 		res.status(400).json({
@@ -327,7 +332,7 @@ const deleteRoom: RequestHandler = async (req, res) => {
 	});
 };
 
-const undoEvent = async (req: express.Request, res) => {
+const undoEvent: RequestHandler<{ name: string }> = async (req, res) => {
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
@@ -343,7 +348,7 @@ const undoEvent = async (req: express.Request, res) => {
 	});
 };
 
-const addVote = async (req: express.Request, res) => {
+const addVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = async (req, res) => {
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
@@ -365,7 +370,10 @@ const addVote = async (req: express.Request, res) => {
 	});
 };
 
-const removeVote = async (req: express.Request, res) => {
+const removeVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = async (
+	req,
+	res
+) => {
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
@@ -567,7 +575,7 @@ router.delete("/:name", async (req, res, next) => {
 
 router.post("/:name/undo", async (req, res, next) => {
 	try {
-		await undoEvent(req, res);
+		await undoEvent(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -575,7 +583,7 @@ router.post("/:name/undo", async (req, res, next) => {
 
 router.post("/:name/vote", async (req, res, next) => {
 	try {
-		await addVote(req, res);
+		await addVote(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
@@ -583,7 +591,7 @@ router.post("/:name/vote", async (req, res, next) => {
 
 router.delete("/:name/vote", async (req, res, next) => {
 	try {
-		await removeVote(req, res);
+		await removeVote(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}
