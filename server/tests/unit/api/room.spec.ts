@@ -9,7 +9,7 @@ import { Room as RoomModel, User as UserModel } from "../../../models";
 import usermanager from "../../../usermanager";
 import { OttApiRequestRoomCreate } from "common/models/rest-api";
 import { conf } from "../../../../server/ott-config";
-import { error } from "console";
+
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -319,45 +319,51 @@ describe("Room API", () => {
 		}
 	});
 
-	describe("POST /api/room/:name", () => {
+	describe("PATCH /api/room/:name", () => {
 		let getSessionInfoSpy: jest.SpyInstance;
 		let validateSpy: jest.SpyInstance;
+
 		beforeAll(async () => {
+
 			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
 			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+
+
+			await roommanager.createRoom({
+				name: "foo",
+				isTemporary: true,
+			});
 		});
 
-		afterAll(() => {
+		afterAll(async () => {
 			getSessionInfoSpy.mockRestore();
 			validateSpy.mockRestore();
-		});
 
-		afterEach(async () => {
 			try {
-				await roommanager.unloadAllRooms();
+				await roommanager.unloadRoom("foo");
 			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
 				}
 			}
-			await UserModel.destroy({ where: {} });
+
 		});
 
 		it.each([
 			[
 				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
 				{
-					name: "foo",
 					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
 					isTemporary: true,
 				},
 			],
 		])("should fail to modify room for validation errors: %s", async (error, body) => {
 			let resp = await request(app)
-				.post("/api/room/:name")
+				.patch("/api/room/foo")
+				.set({ Authorization: "Bearer foobar" })
 				.send(body)
 				.expect("Content-Type", /json/)
 				.expect(400);
