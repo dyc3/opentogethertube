@@ -32,6 +32,7 @@ export interface OttApiResponseRoomGenerate {
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiRequestRoomCreate {
+	title?: string;
 	name: string;
 	isTemporary?: boolean;
 	visibility?: Visibility;
