@@ -11,12 +11,9 @@ RUN cargo build --release --bin ott-balancer-bin && mv ./target/release/ott-bala
 FROM debian:buster-slim as production-stage
 
 WORKDIR /usr/app/
-
-COPY --from=build-stage /usr/app/ott-balancer-bin /usr/app/
-
 RUN apt-get update && apt-get install -y openssl dnsutils && rm -rf /var/lib/apt/lists/*
-
 RUN ulimit -c unlimited
+COPY --from=build-stage /usr/app/ott-balancer-bin /usr/app/
 
 ARG DEPLOY_TARGET
 COPY deploy/$DEPLOY_TARGET.toml /usr/app/balancer.toml
