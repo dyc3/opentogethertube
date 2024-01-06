@@ -183,36 +183,38 @@ pub async fn client_entry<'r>(
 
     loop {
         tokio::select! {
-            msg = client_link.outbound_recv() => {
-                if let Ok(SocketMessage::Message(msg)) = msg {
+            Ok(msg) = client_link.outbound_recv() => {
+                if let SocketMessage::Message(msg) = msg {
                     if let Err(err) = stream.send(msg).await {
                         error!("Error sending ws message to client: {:?}", err);
                         break;
                     }
                 } else {
-                    continue;
+                    info!("Client outbound stream ended");
+                    break;
                 }
             }
 
-            msg = stream.next() => {
-                if let Some(Ok(msg)) = msg {
+            Some(msg) = stream.next() => {
+                if let Ok(msg) = msg {
                     if let Err(err) = client_link.inbound_send(msg).await {
                         error!("Error sending client message to balancer: {:?}", err);
                         break;
                     }
                 } else {
-                    info!("Client websocket stream ended");
-                    // if let Err(err) = balancer
-                    //     .send_client_message(client_id, SocketMessage::End)
-                    //     .await {
-                    //         error!("Error sending client message to balancer: {:?}", err);
-                    //         break;
-                    //     }
+                    debug!("Client inbound websocket stream ended");
                     break;
                 }
             }
+
+            else => {
+                debug!("Client websocket stream ended");
+                break;
+            }
         }
     }
+
+    info!("ending client connection");
 
     Ok(())
 }
