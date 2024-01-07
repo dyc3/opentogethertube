@@ -39,6 +39,9 @@ trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }
 [dev-dependencies]
 criterion.workspace = true
 
+[lib]
+bench = false
+
 [[bench]]
 name = "latency"
 harness = false
