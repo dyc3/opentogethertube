@@ -69,6 +69,17 @@ impl BalancerConfig {
         // SAFETY: get is never called before CONFIG is initialized.
         unsafe { CONFIG.as_ref().expect("config not initialized") }
     }
+
+    /// Get a mutable reference to the config. Should only be used for tests and benchmarks.
+    ///
+    /// # Safety
+    ///
+    /// This function makes absolutely no attempts to ensure atomicity of access to the config.
+    pub unsafe fn get_mut() -> &'static mut Self {
+        debug_assert!(CONFIG_INIT.is_completed(), "config not initialized");
+        // SAFETY: get_mut is only used for benchmarks
+        CONFIG.as_mut().expect("config not initialized")
+    }
 }
 
 #[derive(Debug, Parser)]
