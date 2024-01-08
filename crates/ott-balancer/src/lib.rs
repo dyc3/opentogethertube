@@ -32,7 +32,16 @@ pub async fn run() -> anyhow::Result<()> {
     BalancerConfig::load(&args.config_path)?;
     let config = BalancerConfig::get();
 
-    let console_layer = console_subscriber::spawn();
+    let console_layer = if args.remote_console {
+        console_subscriber::ConsoleLayer::builder()
+            .server_addr((
+                Ipv6Addr::UNSPECIFIED,
+                console_subscriber::Server::DEFAULT_PORT,
+            ))
+            .spawn()
+    } else {
+        console_subscriber::ConsoleLayer::builder().spawn()
+    };
     let fmt_layer = tracing_subscriber::fmt::layer();
     let filter = args.build_tracing_filter();
     let filter_layer = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new(filter))?;

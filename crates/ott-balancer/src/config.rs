@@ -93,6 +93,12 @@ pub struct Cli {
     /// Enable debug logging so that tokio-console works.
     #[clap(long)]
     pub debug_runtime: bool,
+
+    /// Allow remote connections via tokio-console for debugging. By default, only local connections are allowed.
+    ///
+    /// The default port for tokio-console is 6669.
+    #[clap(long)]
+    pub remote_console: bool,
 }
 
 impl Cli {
