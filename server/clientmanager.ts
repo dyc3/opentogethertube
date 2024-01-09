@@ -196,7 +196,9 @@ async function onClientDisconnect(client: Client) {
 
 	const result = await roommanager.getRoom(client.room, { mustAlreadyBeLoaded: true });
 	if (!result.ok) {
-		log.error(`Failed to get room ${client.room} when processing disconnect`);
+		log.error(
+			`Failed to get room ${client.room} when processing disconnect: ${result.value.name}: ${result.value.message}`
+		);
 		return;
 	}
 	const room = result.value;
