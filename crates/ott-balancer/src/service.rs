@@ -296,7 +296,7 @@ fn gather_metrics() -> anyhow::Result<Bytes> {
     Ok(Bytes::from(buffer))
 }
 
-static GUAGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
+static GAUGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
     register_int_gauge!("balancer_clients", "Number of connected websocket clients").unwrap()
 });
 
