@@ -129,11 +129,11 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new().name("client connection").spawn(
                             async move {
-                                GUAGE_CLIENTS.inc();
+                                GAUGE_CLIENTS.inc();
                                 if let Err(e) = client_entry(room_name, websocket, link).await {
                                     error!("Error in websocket connection: {}", e);
                                 }
-                                GUAGE_CLIENTS.dec();
+                                GAUGE_CLIENTS.dec();
                             },
                         );
 
