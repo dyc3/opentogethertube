@@ -212,6 +212,7 @@ impl BalancerContext {
         let monolith = self.find_monolith_mut(client_id)?;
         monolith.remove_client(client_id);
         monolith.send(B2MLeave { client: client_id }).await?;
+        self.clients.remove(&client_id);
 
         Ok(())
     }
