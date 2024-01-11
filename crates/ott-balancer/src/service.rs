@@ -296,6 +296,14 @@ fn gather_metrics() -> anyhow::Result<Bytes> {
     Ok(Bytes::from(buffer))
 }
 
+static GAUGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!("balancer_clients", "Number of connected websocket clients").unwrap()
+});
+
+static COUNTER_HTTP_REQUESTS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!("balancer_http_requests", "Number of HTTP requests received").unwrap()
+});
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -350,11 +358,3 @@ mod test {
         }
     }
 }
-
-static GUAGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
-    register_int_gauge!("balancer_clients", "Number of connected websocket clients").unwrap()
-});
-
-static COUNTER_HTTP_REQUESTS: Lazy<IntGauge> = Lazy::new(|| {
-    register_int_gauge!("balancer_http_requests", "Number of HTTP requests received").unwrap()
-});
