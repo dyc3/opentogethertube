@@ -149,7 +149,7 @@ pub struct Room {
     metadata: Option<RoomMetadata>,
 
     /// The Sender used to broadcast to all clients in this room.
-    broadcast_tx: tokio::sync::broadcast::Sender<SocketMessage>,
+    broadcast_tx: Arc<tokio::sync::broadcast::Sender<SocketMessage>>,
 }
 
 impl Room {
@@ -159,7 +159,7 @@ impl Room {
             name,
             clients: Vec::new(),
             metadata: None,
-            broadcast_tx,
+            broadcast_tx: Arc::new(broadcast_tx),
         }
     }
 
