@@ -696,3 +696,87 @@ pub async fn dispatch_monolith_message(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use std::net::Ipv4Addr;
+
+    use crate::discovery::{HostOrIp, MonolithConnectionConfig};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_clients_add_remove() {
+        // a bunch of setup
+        let room_name = RoomName::from("test");
+        let mut ctx = BalancerContext::new();
+        let (monolith_outbound_tx, _monolith_outbound_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx = Arc::new(monolith_outbound_tx);
+        let (client_inbound_tx, _client_inbound_rx) = tokio::sync::mpsc::channel(100);
+        let (client_unicast_tx, _client_unicast_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_id = uuid::Uuid::new_v4().into();
+        let monolith = BalancerMonolith::new(
+            NewMonolith {
+                id: monolith_id,
+                region: "unknown".into(),
+                config: MonolithConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx,
+            client_inbound_tx,
+        );
+        let client_id = uuid::Uuid::new_v4().into();
+        let client = BalancerClient::new(
+            NewClient {
+                id: client_id,
+                room: room_name.clone(),
+                token: "test".into(),
+            },
+            client_unicast_tx,
+        );
+        ctx.add_monolith(monolith);
+        ctx.add_room(room_name.clone(), RoomLocator::new(monolith_id, 0))
+            .expect("failed to add room");
+
+        // add a client
+        ctx.add_client(client, monolith_id)
+            .await
+            .expect("failed to add client");
+
+        // make sure the client is in the context
+        assert!(ctx.clients.contains_key(&client_id));
+
+        // make sure the client is in the monolith
+        assert!(ctx
+            .monoliths
+            .get(&monolith_id)
+            .unwrap()
+            .rooms()
+            .get(&room_name)
+            .unwrap()
+            .clients()
+            .contains(&client_id));
+
+        // remove the client
+        ctx.remove_client(client_id)
+            .await
+            .expect("failed to remove client");
+
+        // make sure the client is not in the context
+        assert!(!ctx.clients.contains_key(&client_id));
+
+        // make sure the client is not in the monolith
+        assert!(!ctx
+            .monoliths
+            .get(&monolith_id)
+            .unwrap()
+            .rooms()
+            .get(&room_name)
+            .unwrap()
+            .clients()
+            .contains(&client_id));
+    }
+}
