@@ -229,11 +229,16 @@ function onBalancerConnect(conn: BalancerConnection) {
 
 function onBalancerDisconnect(conn: BalancerConnection) {
 	log.info(`Disconnected from balancer ${conn.id}`);
+	// We can't immediately remove the balancer clients from the connections array because that would mess up the index of the other clients, so we have to do it later
+	const leavingClients: BalancerClient[] = [];
 	for (const client of connections) {
 		if (client instanceof BalancerClient && client.conn.id === conn.id) {
 			log.debug(`Kicking balancer client ${client.id}`);
-			client.leave();
+			leavingClients.push(client);
 		}
+	}
+	for (const client of leavingClients) {
+		client.leave();
 	}
 }
 
