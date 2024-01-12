@@ -506,12 +506,15 @@ pub async fn join_monolith(
         .name(format!("monolith {}", monolith_id).as_ref())
         .spawn(async move {
             loop {
-                tokio::select! {
-                    Some(msg) = client_inbound_rx.recv() => {
-                        if let Err(e) = handle_client_inbound(ctx.clone(), msg, monolith_outbound_tx.clone()).await {
-                            error!("failed to handle client inbound: {:?}", e);
-                        }
+                if let Some(msg) = client_inbound_rx.recv().await {
+                    if let Err(e) =
+                        handle_client_inbound(ctx.clone(), msg, monolith_outbound_tx.clone()).await
+                    {
+                        error!("failed to handle client inbound: {:?}", e);
                     }
+                } else {
+                    // at this point, the monolith has disconnected
+                    break;
                 }
             }
         })?;
