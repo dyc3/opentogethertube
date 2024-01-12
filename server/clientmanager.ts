@@ -61,12 +61,9 @@ export async function setup(): Promise<void> {
 		log.silly("subscribing to announcement channel");
 		await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
 	}
-
-	process.on("SIGINT", shutdown);
-	process.on("SIGTERM", shutdown);
 }
 
-function shutdown() {
+export function shutdown() {
 	log.info("Shutting down client manager");
 	for (const client of connections) {
 		client.kick(OttWebsocketError.AWAY);
@@ -496,6 +493,7 @@ const gaugeClients = new Gauge({
 
 export default {
 	setup,
+	shutdown,
 	onUserModified,
 	getClientByToken,
 	makeRoomRequest,
