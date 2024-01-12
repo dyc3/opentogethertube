@@ -168,8 +168,6 @@ async fn connect_and_maintain(
             }
         }
 
-        let mut reconnect_attempts = 0;
-
         loop {
             tokio::select! {
                 msg = outbound_rx.recv() => {
@@ -196,23 +194,17 @@ async fn connect_and_maintain(
                         info!("Monolith websocket stream ended, attempting soft reconnect: {}", monolith_id);
                         if let Ok((s, _)) = connect_async(conf.uri()).await {
                             stream = s;
-                            reconnect_attempts = 0;
                         } else {
-                            reconnect_attempts += 1;
-                            warn!("Failed to soft reconnect to monolith: {} monolith {} (attempt {}/3)", conf.uri(), monolith_id, reconnect_attempts);
-                            if reconnect_attempts > 2 {
-                                // we need to notify the balancer that this monolith is dead
-                                // because otherwise the room won't get reallocated to another monolith
-                                error!("Failed to reconnect to monolith, notifying balancer: {} monolith {}", conf.uri(), monolith_id);
-                                #[allow(deprecated)]
-                                if let Err(err) = link
-                                    .send_monolith_message(monolith_id, SocketMessage::End)
-                                    .await {
-                                        error!("Error sending monolith message to balancer: {:?}", err);
-                                    }
-                                break;
-                            }
-                            tokio::time::sleep(Duration::from_secs(1)).await;
+                            // we need to notify the balancer that this monolith is dead
+                            // because otherwise the room won't get reallocated to another monolith
+                            error!("Failed to soft reconnect to monolith, notifying balancer: {} monolith {}", conf.uri(), monolith_id);
+                            #[allow(deprecated)]
+                            if let Err(err) = link
+                                .send_monolith_message(monolith_id, SocketMessage::End)
+                                .await {
+                                    error!("Error sending monolith message to balancer: {:?}", err);
+                                }
+                            break;
                         }
                     }
                 }
