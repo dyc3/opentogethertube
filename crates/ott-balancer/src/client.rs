@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
@@ -42,7 +43,7 @@ pub struct ClientLink {
     /// Messages to send to the Room this client is in.
     room_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
     /// Messages sent by the Balancer that need to be sent to all clients in the same room as this client.
-    broadcast_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
+    broadcast_rx: tokio::sync::broadcast::Receiver<Arc<SocketMessage>>,
     /// Messages sent by the Balancer that need to be sent to this client.
     unicast_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
 }
@@ -51,7 +52,7 @@ impl ClientLink {
     pub fn new(
         id: ClientId,
         room_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
-        broadcast_rx: tokio::sync::broadcast::Receiver<SocketMessage>,
+        broadcast_rx: tokio::sync::broadcast::Receiver<Arc<SocketMessage>>,
         unicast_rx: tokio::sync::mpsc::Receiver<SocketMessage>,
     ) -> Self {
         Self {
@@ -63,11 +64,11 @@ impl ClientLink {
     }
 
     /// Receive the next message from the Balancer that needs to be sent to this client.
-    pub async fn outbound_recv(&mut self) -> Result<SocketMessage, RecvError> {
+    pub async fn outbound_recv(&mut self) -> Result<Arc<SocketMessage>, RecvError> {
         let msg = tokio::select! {
             msg = self.unicast_rx.recv() => {
                 match msg {
-                    Some(msg) => Ok(msg),
+                    Some(msg) => Ok(msg.into()),
                     None => return Err(RecvError::Closed),
                 }
             }

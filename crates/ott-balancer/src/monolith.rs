@@ -149,7 +149,7 @@ pub struct Room {
     metadata: Option<RoomMetadata>,
 
     /// The Sender used to broadcast to all clients in this room.
-    broadcast_tx: Arc<tokio::sync::broadcast::Sender<SocketMessage>>,
+    broadcast_tx: tokio::sync::broadcast::Sender<Arc<SocketMessage>>,
 }
 
 impl Room {
@@ -159,7 +159,7 @@ impl Room {
             name,
             clients: Vec::new(),
             metadata: None,
-            broadcast_tx: Arc::new(broadcast_tx),
+            broadcast_tx,
         }
     }
 
@@ -188,13 +188,13 @@ impl Room {
     }
 
     /// Create a new Receiver. Used for all clients receiving messages from this room.
-    pub fn new_broadcast_rx(&self) -> tokio::sync::broadcast::Receiver<SocketMessage> {
+    pub fn new_broadcast_rx(&self) -> tokio::sync::broadcast::Receiver<Arc<SocketMessage>> {
         self.broadcast_tx.subscribe()
     }
 
     /// Broadcast a message to all clients in this room.
     pub fn broadcast(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
-        self.broadcast_tx.send(msg.into())?;
+        self.broadcast_tx.send(msg.into().into())?;
         Ok(())
     }
 }
