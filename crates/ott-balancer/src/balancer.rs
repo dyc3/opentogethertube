@@ -556,26 +556,6 @@ pub async fn leave_monolith(
 ) -> anyhow::Result<()> {
     info!("monolith left");
     let mut ctx_write = ctx.write().await;
-    let rooms = ctx_write
-        .monoliths
-        .get(&id)
-        .unwrap()
-        .rooms()
-        .values()
-        .collect::<Vec<_>>();
-    for room in rooms {
-        for client in room.clients().iter() {
-            ctx_write
-                .clients
-                .get(client)
-                .unwrap()
-                .send(Message::Close(Some(CloseFrame {
-                    code: CloseCode::Library(4003),
-                    reason: "Monolith disconnect".into(),
-                })))
-                .await?;
-        }
-    }
     ctx_write.remove_monolith(id).await?;
     Ok(())
 }
