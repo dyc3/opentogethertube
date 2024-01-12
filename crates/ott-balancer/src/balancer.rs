@@ -511,6 +511,11 @@ pub async fn join_monolith(
                         handle_client_inbound(ctx.clone(), msg, monolith_outbound_tx.clone()).await
                     {
                         error!("failed to handle client inbound: {:?}", e);
+                        if monolith_outbound_tx.is_closed() {
+                            // the monolith has disconnected
+                            info!("monolith disconnected, stopping client inbound handler");
+                            break;
+                        }
                     }
                 } else {
                     // at this point, the monolith has disconnected
