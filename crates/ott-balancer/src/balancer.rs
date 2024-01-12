@@ -241,10 +241,10 @@ impl BalancerContext {
 
         for client in self.clients.values() {
             match client
-                .send(SocketMessage::Message(Message::Close(Some(CloseFrame {
+                .send(Message::Close(Some(CloseFrame {
                     code: CloseCode::Away,
                     reason: "Monolith disconnect".into(),
-                }))))
+                })))
                 .await
             {
                 Ok(()) => {}
