@@ -198,8 +198,8 @@ async fn connect_and_maintain(
                             stream = s;
                             reconnect_attempts = 0;
                         } else {
-                            warn!("Failed to soft reconnect to monolith: {} monolith {}", conf.uri(), monolith_id);
                             reconnect_attempts += 1;
+                            warn!("Failed to soft reconnect to monolith: {} monolith {} (attempt {}/3)", conf.uri(), monolith_id, reconnect_attempts);
                             if reconnect_attempts > 2 {
                                 // we need to notify the balancer that this monolith is dead
                                 // because otherwise the room won't get reallocated to another monolith
