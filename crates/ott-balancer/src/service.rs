@@ -76,11 +76,15 @@ impl Service<Request<IncomingBody>> for BalancerService {
             warn!("no route found for {}", req.uri().path());
             return Box::pin(async move { Ok(not_found()) });
         };
-        tracing::Span::current().record("handler", route.handler());
-        info!("inbound request");
+        let handler = **route.handler();
+        tracing::Span::current().record("handler", handler);
+        match handler {
+            "status" | "health" | "metrics" => debug!("inbound request"),
+            _ => info!("inbound request"),
+        }
 
         Box::pin(async move {
-            let res = match **route.handler() {
+            let res = match handler {
                 "health" => mk_response("OK".to_owned()),
                 "status" => {
                     let ctx_read = ctx.read().await;
