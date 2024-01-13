@@ -7,6 +7,7 @@ import { Request } from "express";
 import { createSubscriber, redisClient } from "./redisclient";
 import {
 	ClientMessage,
+	ClientMessageKickMe,
 	RoomRequest,
 	RoomRequestType,
 	ServerMessage,
@@ -151,6 +152,12 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			await makeRoomRequest(client, request);
 		} else if (msg.action === "req") {
 			await makeRoomRequest(client, msg.request);
+		} else if (msg.action === "notify") {
+			if (msg.message === "usernameChanged") {
+				onUserModified(client.token!);
+			} else {
+				log.warn(`Unknown notify message: ${msg.message}`);
+			}
 		} else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
