@@ -84,6 +84,10 @@ impl TestRunner {
             .envs(envs)
             .spawn()
             .expect("Failed to start balancer");
+
+        let _stdout = child.stdout.take().expect("Failed to capture stdout.");
+        let _stderror = child.stderr.take().expect("Failed to capture stderror.");
+
         loop {
             println!("waiting for balancer to start");
             match client
