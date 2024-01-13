@@ -64,6 +64,13 @@ export async function setup(): Promise<void> {
 	}
 }
 
+export function shutdown() {
+	log.info("Shutting down client manager");
+	for (const client of connections) {
+		client.kick(OttWebsocketError.AWAY);
+	}
+}
+
 /**
  * Called when a websocket connects.
  * @param socket
@@ -493,6 +500,7 @@ const gaugeClients = new Gauge({
 
 export default {
 	setup,
+	shutdown,
 	onUserModified,
 	getClientByToken,
 	makeRoomRequest,

@@ -241,10 +241,10 @@ impl BalancerContext {
 
         for client in self.clients.values() {
             match client
-                .send(SocketMessage::Message(Message::Close(Some(CloseFrame {
+                .send(Message::Close(Some(CloseFrame {
                     code: CloseCode::Away,
                     reason: "Monolith disconnect".into(),
-                }))))
+                })))
                 .await
             {
                 Ok(()) => {}
@@ -505,12 +505,15 @@ pub async fn join_monolith(
     tokio::task::Builder::new()
         .name(format!("monolith {}", monolith_id).as_ref())
         .spawn(async move {
-            loop {
-                tokio::select! {
-                    Some(msg) = client_inbound_rx.recv() => {
-                        if let Err(e) = handle_client_inbound(ctx.clone(), msg, monolith_outbound_tx.clone()).await {
-                            error!("failed to handle client inbound: {:?}", e);
-                        }
+            while let Some(msg) = client_inbound_rx.recv().await {
+                if let Err(e) =
+                    handle_client_inbound(ctx.clone(), msg, monolith_outbound_tx.clone()).await
+                {
+                    error!("failed to handle client inbound: {:?}", e);
+                    if monolith_outbound_tx.is_closed() {
+                        // the monolith has disconnected
+                        info!("monolith disconnected, stopping client inbound handler");
+                        break;
                     }
                 }
             }
@@ -553,26 +556,6 @@ pub async fn leave_monolith(
 ) -> anyhow::Result<()> {
     info!("monolith left");
     let mut ctx_write = ctx.write().await;
-    let rooms = ctx_write
-        .monoliths
-        .get(&id)
-        .unwrap()
-        .rooms()
-        .values()
-        .collect::<Vec<_>>();
-    for room in rooms {
-        for client in room.clients().iter() {
-            ctx_write
-                .clients
-                .get(client)
-                .unwrap()
-                .send(Message::Close(Some(CloseFrame {
-                    code: CloseCode::Library(4003),
-                    reason: "Monolith disconnect".into(),
-                })))
-                .await?;
-        }
-    }
     ctx_write.remove_monolith(id).await?;
     Ok(())
 }
