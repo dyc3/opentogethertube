@@ -147,6 +147,7 @@ export const UserList = defineComponent({
 				await API.post("/user", { username: inputUsername.value });
 				showEditName.value = false;
 				setUsernameFailureText.value = "";
+				roomapi.notify("usernameChanged");
 			} catch (err) {
 				setUsernameFailureText.value = err.response
 					? err.response.data.error.message
