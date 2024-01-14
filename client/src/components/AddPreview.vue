@@ -217,6 +217,11 @@ export const AddPreview = defineComponent({
 						"test hls 1",
 						"https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
 					],
+					[
+						"test dash 0",
+						"https://dash.akamaized.net/dash264/TestCases/1a/sony/SNE_DASH_SD_CASE1A_REVISED.mpd",
+					],
+					["test dash 1", "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd"],
 					["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
 			  ]
 			: [];
