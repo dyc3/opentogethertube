@@ -1,4 +1,4 @@
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, net::SocketAddr, process::Stdio, sync::Arc};
 
 use tokio::process::{Child, Command};
 
@@ -82,12 +82,10 @@ impl TestRunner {
                 "debug",
             ])
             .envs(envs)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .spawn()
             .expect("Failed to start balancer");
-
-        let _stdout = child.stdout.take().expect("Failed to capture stdout.");
-        let _stderror = child.stderr.take().expect("Failed to capture stderror.");
-
         loop {
             println!("waiting for balancer to start");
             match client
@@ -112,6 +110,9 @@ impl TestRunner {
                 }
             }
         }
+
+        let _stdout = child.stdout.take().unwrap();
+        let _stderr = child.stderr.take().unwrap();
 
         Ok(child)
     }
