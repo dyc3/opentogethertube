@@ -78,7 +78,7 @@ export default class DashVideoAdapter extends ServiceAdapter {
 		const title = this.extractTitle(manifest);
 
 		return {
-			service: "dash",
+			service: this.serviceId,
 			id: url.href,
 			title: title ?? url.pathname?.split("/").slice(-1)[0] ?? url.href,
 			description: `Full Link: ${url.href}`,
