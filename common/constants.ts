@@ -7,6 +7,7 @@ export const ALL_VIDEO_SERVICES = [
 	"dailymotion",
 	"direct",
 	"hls",
+	"dash",
 	"tubi",
 	"reddit",
 	"googledrive",
