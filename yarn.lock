@@ -1066,6 +1066,13 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
+"@liveinstantly/dash-mpd-parser@0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@liveinstantly/dash-mpd-parser/-/dash-mpd-parser-0.5.0.tgz#d9e126f590f22300942a83a9faf6ee9e5e69516b"
+  integrity sha512-ritwVw23l0lh4jeXLOtRitusbbAfg99Ztdz4rBg0HyGTZKwYC46FO8zotQFnZd9Vd+k8u9s90kwhf6PK91msKw==
+  dependencies:
+    xmldom "^0.6.0"
+
 "@mapbox/node-pre-gyp@^1.0.0":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.10.tgz#8e6735ccebbb1581e5a7e652244cadc8a844d03c"
@@ -6188,7 +6195,7 @@ ospath@^1.2.2:
   integrity sha512-o6E5qJV5zkAbIDNhGSIlyOhScKXgQrSRMilfph0clDfM0nEnBOlKlH4sWDmG95BW/CvwNz0vmm7dJVtU2KlMiA==
 
 ott-common@./common:
-  version "0.6.0"
+  version "0.8.0"
 
 p-limit@^2.2.0:
   version "2.3.0"
@@ -8360,6 +8367,11 @@ xmlchars@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/xmlchars/-/xmlchars-2.2.0.tgz#060fe1bcb7f9c76fe2a17db86a9bc3ab894210cb"
   integrity sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==
+
+xmldom@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/xmldom/-/xmldom-0.6.0.tgz#43a96ecb8beece991cef382c08397d82d4d0c46f"
+  integrity sha512-iAcin401y58LckRZ0TkI4k0VSM1Qg0KGSc3i8rU+xrxe19A/BN1zHyVSJY7uoutVlaTSzYyk/v5AmkewAP7jtg==
 
 xtend@^4.0.0:
   version "4.0.2"
