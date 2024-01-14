@@ -1,6 +1,9 @@
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, net::SocketAddr, process::Stdio, sync::Arc};
 
-use tokio::process::{Child, Command};
+use tokio::{
+    io::{AsyncBufReadExt, BufReader},
+    process::{Child, Command},
+};
 
 use test_context::AsyncTestContext;
 use tracing::warn;
@@ -82,10 +85,12 @@ impl TestRunner {
                 "debug",
             ])
             .envs(envs)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .spawn()
             .expect("Failed to start balancer");
+        println!("waiting for balancer to start");
         loop {
-            println!("waiting for balancer to start");
             match client
                 .get(&format!("http://localhost:{}/api/status", opts.port))
                 .send()
@@ -108,6 +113,36 @@ impl TestRunner {
                 }
             }
         }
+
+        let child_stdout = BufReader::new(child.stdout.take().expect("failed to get child stdout"));
+        let child_stderr = BufReader::new(child.stderr.take().expect("failed to get child stderr"));
+
+        async fn relog_lines(
+            mut reader: BufReader<impl tokio::io::AsyncRead + Unpin>,
+            prefix: &str,
+        ) {
+            let mut line = String::new();
+            loop {
+                line.clear();
+                match reader.read_line(&mut line).await {
+                    Ok(0) => break,
+                    Ok(_) => {
+                        println!("{}: {}", prefix, line);
+                    }
+                    Err(e) => {
+                        println!("{} error: {}", prefix, e);
+                        break;
+                    }
+                }
+            }
+        }
+
+        tokio::spawn(async move {
+            relog_lines(child_stdout, "balancer stdout").await;
+        });
+        tokio::spawn(async move {
+            relog_lines(child_stderr, "balancer stderr").await;
+        });
 
         Ok(child)
     }
