@@ -26,6 +26,7 @@ import { Counter } from "prom-client";
 import { conf } from "./ott-config";
 import PeertubeAdapter from "./services/peertube";
 import PlutoAdapter from "./services/pluto";
+import DashVideoAdapter from "./services/dash";
 
 const log = getLogger("infoextract");
 
@@ -81,6 +82,9 @@ export async function initExtractor() {
 	}
 	if (enabled.includes("hls")) {
 		adapters.push(new HlsVideoAdapter());
+	}
+	if (enabled.includes("dash")) {
+		adapters.push(new DashVideoAdapter());
 	}
 	if (enabled.includes("pluto")) {
 		adapters.push(new PlutoAdapter());

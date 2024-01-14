@@ -74,7 +74,7 @@
 			<PlyrPlayer
 				v-else-if="
 					!!source &&
-					['direct', 'hls', 'reddit', 'tubi', 'pluto'].includes(source.service)
+					['direct', 'hls', 'dash', 'reddit', 'tubi', 'pluto'].includes(source.service)
 				"
 				ref="player"
 				:service="source.service"
