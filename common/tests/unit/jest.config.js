@@ -6,6 +6,7 @@ export default {
 	},
 	rootDir: "../..",
 	testMatch: ["**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)"],
+	testPathIgnorePatterns: ["/node_modules/", "/dist/", "/coverage/", "/ts-out/"],
 	watchPlugins: ["jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
 	collectCoverage: true,
 	coverageReporters: ["text-summary", "text", "json", "html"],
