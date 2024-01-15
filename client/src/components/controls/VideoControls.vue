@@ -24,6 +24,11 @@
 				:current-rate="store.state.room.playbackSpeed"
 				:available-rates="player?.getAvailablePlaybackRates() ?? [1]"
 			/>
+			<QualitySelector
+				:current-quality="player?.getQuality() ?? 'Auto'"
+				:available-qualities="['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']"
+				@set-quality="value => player.setQuality(value)"
+			/>
 			<LayoutSwitcher />
 		</v-row>
 	</v-col>
@@ -39,6 +44,7 @@ import TimestampDisplay from "./TimestampDisplay.vue";
 import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
+import QualitySelector from "./QualitySelector.vue";
 
 import type OmniPlayer from "../players/OmniPlayer.vue";
 import type { MediaPlayer, MediaPlayerWithCaptions } from "../players/OmniPlayer.vue";
@@ -54,6 +60,7 @@ export default defineComponent({
 		VideoProgressSlider,
 		VolumeControl,
 		PlaybackRateSwitcher,
+		QualitySelector,
 	},
 	props: {
 		sliderPosition: {

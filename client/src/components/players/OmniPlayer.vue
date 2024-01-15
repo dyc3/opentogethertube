@@ -154,6 +154,7 @@ export interface MediaPlayer {
 
 	isCaptionsSupported(): boolean;
 	getAvailablePlaybackRates(): number[];
+	getAvailableQualities(): string[];
 }
 
 export interface MediaPlayerWithCaptions extends MediaPlayer {
@@ -166,6 +167,11 @@ export interface MediaPlayerWithCaptions extends MediaPlayer {
 export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 	getPlaybackRate(): Promise<number>;
 	setPlaybackRate(rate: number): Promise<void>;
+}
+
+export interface MediaPlayerWithQuality extends MediaPlayer {
+	getQuality(): Promise<string>;
+	setQuality(quality: string): Promise<void>;
 }
 
 export default defineComponent({
@@ -215,6 +221,10 @@ export default defineComponent({
 
 		function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
 			return !!p && p.getAvailablePlaybackRates().length > 0;
+		}
+
+		function implementsQuality(p: MediaPlayer | null): p is MediaPlayerWithQuality {
+			return !!p && "getAvailableQualities" in p && p.getAvailableQualities().length > 0;
 		}
 
 		const isPlayerPresent = computed(() => !!player.value);
@@ -325,6 +335,29 @@ export default defineComponent({
 				return;
 			}
 			player.value.setPlaybackRate(rate);
+		}
+		function getAvailableQualities(): string[] {
+			if (!checkForPlayer(player.value)) {
+				return [];
+			}
+			if (!implementsQuality(player.value)) {
+				return [];
+			}
+			return player.value.getAvailableQualities();
+		}
+		const currentQuality = ref("auto");
+		function getQuality(): Ref<string> {
+			return currentQuality;
+		}
+		function setQuality(quality: string) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			if (!implementsQuality(player.value)) {
+				return;
+			}
+			console.debug("Setting quality to", quality);
+			player.value.setQuality(quality);
 		}
 		watch(
 			() => store.state.room.playbackSpeed,
@@ -438,6 +471,9 @@ export default defineComponent({
 			getAvailablePlaybackRates,
 			getPlaybackRate,
 			setPlaybackRate,
+			getAvailableQualities,
+			getQuality,
+			setQuality,
 		};
 	},
 });

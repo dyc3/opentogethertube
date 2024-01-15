@@ -1,0 +1,53 @@
+<template>
+	<v-btn variant="text" class="media-control" aria-label="Video Quality" :disabled="!supported">
+		{{ currentQuality }}
+
+		<v-menu location="top" activator="parent">
+			<v-list>
+				<v-list-item
+					v-for="(quality, index) in availableQualities"
+					:key="index"
+					:value="index"
+					@click="setQuality(quality)"
+				>
+					<v-list-item-title>{{ quality }}</v-list-item-title>
+				</v-list-item>
+			</v-list>
+		</v-menu>
+	</v-btn>
+</template>
+
+<script lang="ts">
+import { defineComponent, PropType, computed } from "vue";
+
+const QualitySelector = defineComponent({
+	name: "QualitySelector",
+	props: {
+		currentQuality: {
+			type: String,
+			required: true,
+		},
+		availableQualities: {
+			type: Array as PropType<string[]>,
+			required: true,
+		},
+	},
+	emits: ["set-quality"],
+	setup(props, { emit }) {
+		const supported = computed(() => {
+			return props.availableQualities.length > 0;
+		});
+
+		function setQuality(quality: string) {
+			emit("set-quality", quality);
+		}
+
+		return {
+			supported,
+			setQuality,
+		};
+	},
+});
+
+export default QualitySelector;
+</script>
