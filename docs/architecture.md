@@ -2,14 +2,20 @@
 
 This document is a work in progress.
 
+## Overview
+
+There are 3 major components to the application:
+- The Monolith (the server, written in Typescript, Node.js)
+- The Client (the web client, written in Typescript, Vue 3)
+- The Balancer (the load balancer, written in Rust, not currently deployed in production)
+
 ## Rooms
 
-In order to accomodate horizontal scaling, there is a `clientmanager` and a `roommanager`. The `clientmanager` manages all websocket connections, and relays all messages for rooms via redis pubsub. The `roommanger` manages rooms, and takes care to ensure that it does not load a room that could be loaded on another node (not yet implemented). Rooms manage their own state.
+In order to accomodate horizontal scaling, there is a `clientmanager` and a `roommanager`. The `clientmanager` manages all websocket connections, and relays all messages for rooms to the `roommanager`. The `roommanger` manages rooms, and relies on the Balancer to ensure that the same room doesn't get loaded twice on different Monoliths. Rooms manage their own state.
 
 ```mermaid
 graph LR
-  clientmanager -.-> Redis
-  Redis -.-> roommanager
+  clientmanager ---> roommanager
   roommanager --> roomA
   roommanager --> roomB
   roommanager --> roomC
