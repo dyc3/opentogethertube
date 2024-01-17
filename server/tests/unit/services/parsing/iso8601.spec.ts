@@ -3,6 +3,8 @@ import { parseIso8601Duration } from "../../../../services/parsing/iso8601";
 describe("parse iso8601 duration", () => {
 	it.each([
 		["PT10S", 10],
+		["PT10.0S", 10],
+		["PT10.000S", 10],
 		["PT5M", 5 * 60],
 		["PT40M25S", 40 * 60 + 25],
 		["PT1H", 1 * 60 * 60],
