@@ -11,6 +11,7 @@ import Hls from "hls.js";
 import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import { useStore } from "@/store";
+import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "./OmniPlayer.vue";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -40,90 +41,102 @@ export default defineComponent({
 		let dash: dashjs.MediaPlayerClass | undefined = undefined;
 		const store = useStore();
 
-		function play() {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			return player.value.play();
-		}
-
-		function pause() {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			return player.value.pause();
-		}
-
-		function setVolume(volume: number) {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			player.value.volume = volume / 100;
-		}
-
-		function getPosition() {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			return player.value.currentTime;
-		}
-
-		function setPosition(position: number) {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			player.value.currentTime = position;
-		}
-
-		function isCaptionsSupported(): boolean {
-			return ["direct", "hls"].includes(props.service);
-		}
-
-		function setCaptionsEnabled(enabled: boolean): void {
-			if (hls) {
-				hls.subtitleDisplay = enabled;
-			} else {
-				player.value?.toggleCaptions(enabled);
-			}
-		}
-
-		function isCaptionsEnabled(): boolean {
-			if (hls) {
-				return hls.subtitleDisplay;
-			} else {
-				return player.value?.currentTrack !== -1;
-			}
-		}
-
-		function getCaptionsTracks(): string[] {
-			const tracks: string[] = [];
-			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-				const track = videoElem.value?.textTracks[i];
-				if (!track || track.kind !== "captions") {
-					continue;
+		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
+			play() {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
 				}
-				tracks.push(track.language);
-			}
-			return tracks;
-		}
+				return player.value.play();
+			},
+			pause() {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				return player.value.pause();
+			},
+			setVolume(volume: number) {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				player.value.volume = volume / 100;
+			},
+			getPosition() {
+				if (!player.value) {
+					console.error("player not ready");
+					return 0;
+				}
+				return player.value.currentTime;
+			},
+			setPosition(position: number) {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				player.value.currentTime = position;
+			},
 
-		function setCaptionsTrack(track: string): void {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			console.log("PlyrPlayer: setCaptionsTrack:", track);
-			if (hls) {
-				hls.subtitleTrack = findTrackIdx(track);
-			} else {
-				player.value.currentTrack = findTrackIdx(track);
-			}
-		}
+			isCaptionsSupported(): boolean {
+				return ["direct", "hls"].includes(props.service);
+			},
+			setCaptionsEnabled(enabled: boolean): void {
+				if (hls) {
+					hls.subtitleDisplay = enabled;
+				} else {
+					player.value?.toggleCaptions(enabled);
+				}
+			},
+			isCaptionsEnabled(): boolean {
+				if (hls) {
+					return hls.subtitleDisplay;
+				} else {
+					return player.value?.currentTrack !== -1;
+				}
+			},
+			getCaptionsTracks(): string[] {
+				const tracks: string[] = [];
+				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
+					const track = videoElem.value?.textTracks[i];
+					if (!track || track.kind !== "captions") {
+						continue;
+					}
+					tracks.push(track.language);
+				}
+				return tracks;
+			},
+			setCaptionsTrack(track: string): void {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				console.log("PlyrPlayer: setCaptionsTrack:", track);
+				if (hls) {
+					hls.subtitleTrack = findTrackIdx(track);
+				} else {
+					player.value.currentTrack = findTrackIdx(track);
+				}
+			},
+
+			getAvailablePlaybackRates(): number[] {
+				return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+			},
+			async getPlaybackRate(): Promise<number> {
+				if (!player.value) {
+					console.error("player not ready");
+					return 1;
+				}
+				return player.value.speed;
+			},
+			async setPlaybackRate(rate: number): Promise<void> {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				player.value.speed = rate;
+			},
+		};
 
 		function findTrackIdx(language: string): number {
 			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
@@ -136,26 +149,6 @@ export default defineComponent({
 				}
 			}
 			return 0;
-		}
-
-		function getAvailablePlaybackRates() {
-			return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
-		}
-
-		async function getPlaybackRate(): Promise<number> {
-			if (!player.value) {
-				console.error("player not ready");
-				return 1;
-			}
-			return player.value.speed;
-		}
-
-		async function setPlaybackRate(rate: number): Promise<void> {
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			player.value.speed = rate;
 		}
 
 		onMounted(() => {
@@ -184,7 +177,7 @@ export default defineComponent({
 			player.value.on("canplay", () => {
 				emit("ready");
 				store.commit("captions/SET_AVAILABLE_TRACKS", {
-					tracks: getCaptionsTracks(),
+					tracks: playerImpl.getCaptionsTracks(),
 				});
 			});
 			player.value.on("progress", () => {
@@ -269,7 +262,7 @@ export default defineComponent({
 					console.info("PlyrPlayer: dash.js manifest loaded");
 					emit("ready");
 					store.commit("captions/SET_AVAILABLE_TRACKS", {
-						tracks: getCaptionsTracks(),
+						tracks: playerImpl.getCaptionsTracks(),
 					});
 				});
 				dash.on("error", (event: unknown) => {
@@ -348,19 +341,7 @@ export default defineComponent({
 
 		return {
 			player,
-			play,
-			pause,
-			setVolume,
-			getPosition,
-			setPosition,
-			isCaptionsSupported,
-			setCaptionsEnabled,
-			isCaptionsEnabled,
-			getCaptionsTracks,
-			setCaptionsTrack,
-			getAvailablePlaybackRates,
-			getPlaybackRate,
-			setPlaybackRate,
+			...playerImpl,
 		};
 	},
 });

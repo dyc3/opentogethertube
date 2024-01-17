@@ -136,8 +136,18 @@ const services = [
 ];
 
 export interface MediaPlayer {
-	play(): Promise<void>;
-	pause(): Promise<void>;
+	/**
+	 * Play the video.
+	 *
+	 * Some browsers emit promises for this, and some don't.
+	 */
+	play(): void | Promise<void>;
+	/**
+	 * Pause the video.
+	 *
+	 * Some browsers emit promises for this, and some don't.
+	 */
+	pause(): void | Promise<void>;
 	setVolume(volume: number): void | Promise<void>;
 	getPosition(): number | Promise<number>;
 	setPosition(position: number): void | Promise<void>;
@@ -209,13 +219,13 @@ export default defineComponent({
 
 		const isPlayerPresent = computed(() => !!player.value);
 
-		function play(): Promise<void> {
+		function play(): void | Promise<void> {
 			if (!checkForPlayer(player.value)) {
 				return Promise.reject("Player not available yet");
 			}
 			return player.value.play();
 		}
-		function pause(): Promise<void> {
+		function pause(): void | Promise<void> {
 			if (!checkForPlayer(player.value)) {
 				return Promise.reject("Player not available yet");
 			}
