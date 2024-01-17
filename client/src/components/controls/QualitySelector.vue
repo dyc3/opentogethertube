@@ -1,6 +1,6 @@
 <template>
 	<v-btn variant="text" class="media-control" aria-label="Video Quality" :disabled="!supported">
-		{{ currentQuality }}
+		{{ currentQuality.label }}
 
 		<v-menu location="top" activator="parent">
 			<v-list density="compact">
@@ -9,7 +9,7 @@
 					:key="index"
 					@click="setQuality(quality)"
 				>
-					<v-list-item-title>{{ quality }}</v-list-item-title>
+					<v-list-item-title>{{ quality.label }}</v-list-item-title>
 				</v-list-item>
 			</v-list>
 		</v-menu>
