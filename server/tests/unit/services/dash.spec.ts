@@ -27,8 +27,8 @@ describe("DashVideoAdapter", () => {
 
 	describe("handleMpd", () => {
 		it("should fetch and parse MPD data", async () => {
-			const mockMPDData = "<MPD></MPD>";
-			const mockManifest = { MPD: {} };
+			const mockMPDData = `<MPD mediaPresentationDuration="PT10S"></MPD>`;
+			const mockManifest = { MPD: { "@mediaPresentationDuration": "PT10S" } };
 			mockAxiosGet.mockResolvedValue({ data: mockMPDData });
 			const mockParse = jest.fn();
 			mockDashMPD.mockImplementation(() => ({
