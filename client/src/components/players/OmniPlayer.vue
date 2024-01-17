@@ -234,7 +234,7 @@ export default defineComponent({
 		}
 
 		function implementsQuality(p: MediaPlayer | null): p is MediaPlayerWithQuality {
-			return !!p && "getAvailableQualities" in p && p.getAvailableQualities().length > 0;
+			return !!p && p.isQualitySupported();
 		}
 
 		const isPlayerPresent = computed(() => !!player.value);
