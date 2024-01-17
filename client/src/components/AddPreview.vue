@@ -212,6 +212,10 @@ export const AddPreview = defineComponent({
 						"https://dash.akamaized.net/dash264/TestCases/1a/sony/SNE_DASH_SD_CASE1A_REVISED.mpd",
 					],
 					["test dash 1", "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd"],
+					[
+						"test dash 2",
+						"https://cdn.bitmovin.com/content/assets/art-of-motion-dash-hls-progressive/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd",
+					],
 					["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
 			  ]
 			: [];
