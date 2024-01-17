@@ -153,22 +153,27 @@ export default defineComponent({
 					console.error("player not ready");
 					return [];
 				}
+				if (!hls && !dash) {
+					return [];
+				}
+				let levels: QualityLevel[] = [];
 				if (hls) {
-					return hls.levels.map((level, i) => {
+					levels = hls.levels.map((level, i) => {
 						return {
 							label: level.name ?? level.height + "p",
 							value: i,
 						};
 					});
 				} else if (dash) {
-					return dash.getBitrateInfoListFor("video").map(bitrate => {
+					levels = dash.getBitrateInfoListFor("video").map(bitrate => {
 						return {
 							label: bitrate.height + "p",
 							value: bitrate.qualityIndex,
 						};
 					});
 				}
-				return [];
+				levels.push(QUALITY_AUTO);
+				return levels;
 			},
 
 			getQuality(): QualityLevel {
