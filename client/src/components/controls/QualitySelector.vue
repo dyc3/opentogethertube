@@ -3,7 +3,7 @@
 		{{ currentQuality }}
 
 		<v-menu location="top" activator="parent">
-			<v-list>
+			<v-list density="compact">
 				<v-list-item
 					v-for="(quality, index) in availableQualities"
 					:key="index"
