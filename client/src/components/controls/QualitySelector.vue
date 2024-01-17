@@ -18,7 +18,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, computed } from "vue";
-import type { QualityLevel } from "../players/OmniPlayer.vue";
+import { QUALITY_AUTO, QualityLevel } from "../players/OmniPlayer.vue";
 
 const QualitySelector = defineComponent({
 	name: "QualitySelector",
@@ -26,6 +26,7 @@ const QualitySelector = defineComponent({
 		currentQuality: {
 			type: Object as PropType<QualityLevel>,
 			required: true,
+			default: QUALITY_AUTO,
 		},
 		availableQualities: {
 			type: Array as PropType<QualityLevel[]>,

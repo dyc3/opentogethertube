@@ -171,7 +171,7 @@ export default defineComponent({
 				return [];
 			},
 
-			async getQuality(): Promise<QualityLevel> {
+			getQuality(): QualityLevel {
 				if (!player.value) {
 					console.error("player not ready");
 					return QUALITY_AUTO;

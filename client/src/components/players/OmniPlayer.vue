@@ -171,7 +171,7 @@ export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 
 export interface MediaPlayerWithQuality extends MediaPlayer {
 	getAvailableQualities(): QualityLevel[];
-	getQuality(): Promise<QualityLevel>;
+	getQuality(): QualityLevel;
 	setQuality(quality: QualityLevel): Promise<void>;
 }
 
@@ -346,7 +346,17 @@ export default defineComponent({
 			}
 			player.value.setPlaybackRate(rate);
 		}
-		function getAvailableQualities(): string[] {
+
+		function isQualitySupported(): boolean {
+			if (!checkForPlayer(player.value)) {
+				return false;
+			}
+			if (!implementsQuality(player.value)) {
+				return false;
+			}
+			return player.value.isQualitySupported();
+		}
+		function getAvailableQualities(): QualityLevel[] {
 			if (!checkForPlayer(player.value)) {
 				return [];
 			}
@@ -355,11 +365,16 @@ export default defineComponent({
 			}
 			return player.value.getAvailableQualities();
 		}
-		const currentQuality = ref("auto");
-		function getQuality(): Ref<string> {
-			return currentQuality;
+		function getQuality(): QualityLevel {
+			if (!checkForPlayer(player.value)) {
+				return QUALITY_AUTO;
+			}
+			if (!implementsQuality(player.value)) {
+				return QUALITY_AUTO;
+			}
+			return player.value.getQuality();
 		}
-		function setQuality(quality: string) {
+		async function setQuality(quality: QualityLevel) {
 			if (!checkForPlayer(player.value)) {
 				return;
 			}
@@ -367,7 +382,7 @@ export default defineComponent({
 				return;
 			}
 			console.debug("Setting quality to", quality);
-			player.value.setQuality(quality);
+			await player.value.setQuality(quality);
 		}
 		watch(
 			() => store.state.room.playbackSpeed,
@@ -481,6 +496,7 @@ export default defineComponent({
 			getAvailablePlaybackRates,
 			getPlaybackRate,
 			setPlaybackRate,
+			isQualitySupported,
 			getAvailableQualities,
 			getQuality,
 			setQuality,

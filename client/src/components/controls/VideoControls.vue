@@ -25,7 +25,7 @@
 				:available-rates="player?.getAvailablePlaybackRates() ?? [1]"
 			/>
 			<QualitySelector
-				:current-quality="player?.getQuality() ?? 'Auto'"
+				:current-quality="player?.getQuality() ?? QUALITY_AUTO"
 				:available-qualities="player?.getAvailableQualities() ?? []"
 				@set-quality="value => player?.setQuality(value)"
 			/>
@@ -47,7 +47,7 @@ import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 import QualitySelector from "./QualitySelector.vue";
 
 import type OmniPlayer from "../players/OmniPlayer.vue";
-import type { MediaPlayer, MediaPlayerWithCaptions } from "../players/OmniPlayer.vue";
+import { MediaPlayer, MediaPlayerWithCaptions, QUALITY_AUTO } from "../players/OmniPlayer.vue";
 import { useStore } from "@/store";
 
 export default defineComponent({
@@ -116,6 +116,7 @@ export default defineComponent({
 			store,
 
 			getCaptionsTracks,
+			QUALITY_AUTO,
 		};
 	},
 });
