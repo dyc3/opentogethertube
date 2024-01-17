@@ -65,14 +65,10 @@ export default class DashVideoAdapter extends ServiceAdapter {
 
 		log.debug(JSON.stringify(manifest));
 
-		const profiles: string = manifest["MPD"]["@profiles"] ?? "";
-		if (profiles.includes("isoff-live")) {
-			// live streams are not supported right now
-			// technically, there are VOD streams that use this profile, but im feeling lazy rn
+		const durationRaw: string = manifest["MPD"]["@mediaPresentationDuration"];
+		if (!durationRaw) {
 			throw new UnsupportedVideoType("livestream");
 		}
-
-		const durationRaw: string = manifest["MPD"]["@mediaPresentationDuration"];
 		const duration = parseIso8601Duration(durationRaw);
 
 		const title = this.extractTitle(manifest);
