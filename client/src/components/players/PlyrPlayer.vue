@@ -11,7 +11,13 @@ import Hls from "hls.js";
 import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import { useStore } from "@/store";
-import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "./OmniPlayer.vue";
+import {
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
+	QUALITY_AUTO,
+	QualityLevel,
+} from "./OmniPlayer.vue";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -41,7 +47,9 @@ export default defineComponent({
 		let dash: dashjs.MediaPlayerClass | undefined = undefined;
 		const store = useStore();
 
-		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
+		const playerImpl: MediaPlayerWithCaptions &
+			MediaPlayerWithPlaybackRate &
+			MediaPlayerWithQuality = {
 			play() {
 				if (!player.value) {
 					console.error("player not ready");
@@ -135,6 +143,65 @@ export default defineComponent({
 					return;
 				}
 				player.value.speed = rate;
+			},
+
+			isQualitySupported(): boolean {
+				return ["hls", "dash"].includes(props.service);
+			},
+			getAvailableQualities(): QualityLevel[] {
+				if (!player.value) {
+					console.error("player not ready");
+					return [];
+				}
+				if (hls) {
+					return hls.levels.map((level, i) => {
+						return {
+							label: level.name ?? level.height + "p",
+							value: i,
+						};
+					});
+				} else if (dash) {
+					return dash.getBitrateInfoListFor("video").map(bitrate => {
+						return {
+							label: bitrate.height + "p",
+							value: bitrate.qualityIndex,
+						};
+					});
+				}
+				return [];
+			},
+
+			async getQuality(): Promise<QualityLevel> {
+				if (!player.value) {
+					console.error("player not ready");
+					return QUALITY_AUTO;
+				}
+				if (hls) {
+					return {
+						label: hls.levels[hls.currentLevel].height + "p",
+						value: hls.currentLevel,
+					};
+				} else if (dash) {
+					const q = dash.getQualityFor("video");
+					const info = dash.getBitrateInfoListFor("video")[q];
+					return {
+						label: info.height + "p",
+						value: info.qualityIndex,
+					};
+				}
+				return QUALITY_AUTO;
+			},
+
+			async setQuality(quality: QualityLevel): Promise<void> {
+				if (!player.value) {
+					console.error("player not ready");
+					return;
+				}
+				if (hls) {
+					hls.nextLevel = quality.value;
+				} else if (dash) {
+					dash.setQualityFor("video", quality.value);
+				}
 			},
 		};
 
@@ -231,7 +298,7 @@ export default defineComponent({
 					console.info("PlyrPlayer: hls.js manifest parsed");
 					emit("ready");
 					store.commit("captions/SET_AVAILABLE_TRACKS", {
-						tracks: getCaptionsTracks(),
+						tracks: playerImpl.getCaptionsTracks(),
 					});
 				});
 				hls.on(Hls.Events.ERROR, (event, data) => {

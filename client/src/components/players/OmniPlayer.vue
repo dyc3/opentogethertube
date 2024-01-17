@@ -154,7 +154,7 @@ export interface MediaPlayer {
 
 	isCaptionsSupported(): boolean;
 	getAvailablePlaybackRates(): number[];
-	getAvailableQualities(): string[];
+	isQualitySupported(): boolean;
 }
 
 export interface MediaPlayerWithCaptions extends MediaPlayer {
@@ -170,9 +170,19 @@ export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 }
 
 export interface MediaPlayerWithQuality extends MediaPlayer {
-	getQuality(): Promise<string>;
-	setQuality(quality: string): Promise<void>;
+	getAvailableQualities(): QualityLevel[];
+	getQuality(): Promise<QualityLevel>;
+	setQuality(quality: QualityLevel): Promise<void>;
 }
+
+export interface QualityLevel {
+	/** The string to display in the UI. */
+	label: string;
+	/** The value that the player should use internally to set the video quality. */
+	value: number;
+}
+
+export const QUALITY_AUTO: QualityLevel = { label: "Auto", value: -1 };
 
 export default defineComponent({
 	name: "OmniPlayer",

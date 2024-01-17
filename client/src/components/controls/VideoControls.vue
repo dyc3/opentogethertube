@@ -17,8 +17,8 @@
 			<ClosedCaptionsSwitcher
 				:supported="isCaptionsSupported"
 				:tracks="store.state.captions.availableTracks"
-				@enable-cc="value => player.setCaptionsEnabled(value)"
-				@cc-track="value => player.setCaptionsTrack(value)"
+				@enable-cc="value => player?.setCaptionsEnabled(value)"
+				@cc-track="value => player?.setCaptionsTrack(value)"
 			/>
 			<PlaybackRateSwitcher
 				:current-rate="store.state.room.playbackSpeed"
@@ -26,8 +26,8 @@
 			/>
 			<QualitySelector
 				:current-quality="player?.getQuality() ?? 'Auto'"
-				:available-qualities="['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']"
-				@set-quality="value => player.setQuality(value)"
+				:available-qualities="player?.getAvailableQualities() ?? []"
+				@set-quality="value => player?.setQuality(value)"
 			/>
 			<LayoutSwitcher />
 		</v-row>
@@ -100,7 +100,7 @@ export default defineComponent({
 		function isCaptionsSupported(
 			p: Ref<MediaPlayer | MediaPlayerWithCaptions>
 		): p is Ref<MediaPlayerWithCaptions> {
-			return (player.value as MediaPlayerWithCaptions)?.isCaptionsSupported() ?? false;
+			return (player as unknown as MediaPlayerWithCaptions)?.isCaptionsSupported() ?? false;
 		}
 		function getCaptionsTracks(): string[] {
 			if (!isPlayerPresent(player)) {

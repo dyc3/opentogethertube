@@ -7,7 +7,6 @@
 				<v-list-item
 					v-for="(quality, index) in availableQualities"
 					:key="index"
-					:value="index"
 					@click="setQuality(quality)"
 				>
 					<v-list-item-title>{{ quality }}</v-list-item-title>
@@ -19,16 +18,17 @@
 
 <script lang="ts">
 import { defineComponent, PropType, computed } from "vue";
+import type { QualityLevel } from "../players/OmniPlayer.vue";
 
 const QualitySelector = defineComponent({
 	name: "QualitySelector",
 	props: {
 		currentQuality: {
-			type: String,
+			type: Object as PropType<QualityLevel>,
 			required: true,
 		},
 		availableQualities: {
-			type: Array as PropType<string[]>,
+			type: Array as PropType<QualityLevel[]>,
 			required: true,
 		},
 	},
@@ -38,7 +38,7 @@ const QualitySelector = defineComponent({
 			return props.availableQualities.length > 0;
 		});
 
-		function setQuality(quality: string) {
+		function setQuality(quality: QualityLevel) {
 			emit("set-quality", quality);
 		}
 
