@@ -75,6 +75,9 @@ export default {
 		getAvailablePlaybackRates() {
 			return [1];
 		},
+		isQualitySupported() {
+			return false;
+		},
 		loadVideoSource() {
 			this.player.src({
 				src: this.videoSource,

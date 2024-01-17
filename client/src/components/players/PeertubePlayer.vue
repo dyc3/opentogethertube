@@ -92,6 +92,10 @@ const PeertubePlayer = defineComponent({
 			await player.setPlaybackRate(rate);
 		}
 
+		function isQualitySupported(): boolean {
+			return false;
+		}
+
 		return {
 			peertubeUrl,
 
