@@ -178,8 +178,8 @@ export default defineComponent({
 				}
 				if (hls) {
 					return {
-						label: hls.levels[hls.currentLevel].height + "p",
-						value: hls.currentLevel,
+						label: hls.levels[hls.nextLevel].height + "p",
+						value: hls.nextLevel,
 					};
 				} else if (dash) {
 					const q = dash.getQualityFor("video");
