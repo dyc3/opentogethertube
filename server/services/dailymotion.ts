@@ -38,7 +38,7 @@ export default class DailyMotionAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(videoId: string): Promise<Video> {
-		if (!/^[A-za-z0-9]+$/.exec(videoId)) {
+		if (!/^[A-Za-z0-9]+$/.exec(videoId)) {
 			throw new InvalidVideoIdException(this.serviceId, videoId);
 		}
 
