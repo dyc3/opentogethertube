@@ -38,6 +38,9 @@ RUN apt-get -y update --no-install-recommends \
 	libasound2 \
 	libsodium-dev \
 	libtool-bin \
+	libtool \
+	pkg-config \
+	autoconf \
 	&& apt-get autoremove -y \
 	&& apt-get clean -y
 
