@@ -196,6 +196,7 @@ export default defineComponent({
 		onBeforeUnmount(() => {
 			player.value?.destroy();
 			hls?.destroy();
+			dash?.reset();
 		});
 
 		function loadVideoSource() {
@@ -204,6 +205,11 @@ export default defineComponent({
 				console.error("player not ready");
 				return;
 			}
+
+			hls?.destroy();
+			hls = undefined;
+			dash?.reset();
+			dash = undefined;
 
 			if (videoMime.value === "application/x-mpegURL") {
 				if (!videoElem.value) {
@@ -285,8 +291,6 @@ export default defineComponent({
 					emit("ready");
 				});
 			} else {
-				hls?.destroy();
-				hls = undefined;
 				player.value.source = {
 					sources: [
 						{
