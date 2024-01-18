@@ -438,7 +438,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 
 		for (const id of ids) {
-			if (!/^[A-za-z0-9_-]+$/.exec(id)) {
+			if (!/^[A-Za-z0-9_-]+$/.exec(id)) {
 				throw new InvalidVideoIdException(this.serviceId, id);
 			}
 		}
