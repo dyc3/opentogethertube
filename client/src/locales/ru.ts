@@ -33,7 +33,7 @@ export default {
 		},
 		features: {
 			"title": "Основные функции",
-			"syncronized-playback": {
+			"synchronized-playback": {
 				title: "Синхронное воспроизведение",
 				text: "Нажмите одну кнопку, и видео воспроизведётся для всех\nв комнате. Проще простого.",
 			},

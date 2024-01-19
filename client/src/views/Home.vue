@@ -51,10 +51,10 @@
 						<v-col cols="12" sm="6" md="4">
 							<v-card hover :height="cardHeight">
 								<v-card-title>{{
-									$t("landing.features.syncronized-playback.title")
+									$t("landing.features.synchronized-playback.title")
 								}}</v-card-title>
 								<v-card-text>
-									{{ $t("landing.features.syncronized-playback.text") }}
+									{{ $t("landing.features.synchronized-playback.text") }}
 								</v-card-text>
 							</v-card>
 						</v-col>
