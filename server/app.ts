@@ -201,7 +201,12 @@ export async function main() {
 	if (fs.existsSync("../client/dist")) {
 		app.get("*", serveBuiltFiles);
 	} else {
-		log.warn("no dist folder found");
+		log.warn("no dist folder found, run `yarn build` to build the client");
+		app.get("*", (req, res) => {
+			res.status(404).send(
+				"File not found - Client files not found. Run `yarn build` to build the client."
+			);
+		});
 	}
 
 	initExtractor();
