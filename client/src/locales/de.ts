@@ -34,7 +34,7 @@ export default {
 		},
 		features: {
 			"title": "Kernfunktionen",
-			"syncronized-playback": {
+			"synchronized-playback": {
 				title: "Synchrone Wiedergabe",
 				text: 'Sie drücken auf "Wiedergabe", und das Video wird für alle im Raum abgespielt. So einfach ist das.',
 			},

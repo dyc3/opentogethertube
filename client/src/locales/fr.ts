@@ -35,7 +35,7 @@ export default {
 		},
 		features: {
 			"title": "Fonctionnalités Principales",
-			"syncronized-playback": {
+			"synchronized-playback": {
 				title: "Vidéo synchronisée",
 				text: "Appuies sur le bouton play et la vidéo se lance pour tout le monde dans la salle. Aussi simple que ça.",
 			},
