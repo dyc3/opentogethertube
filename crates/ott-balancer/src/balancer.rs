@@ -179,6 +179,65 @@ pub struct BalancerContext {
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
 }
 
+pub struct MonolithRegistry {
+    pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
+    pub monoliths: HashMap<MonolithId, BalancerMonolith>,
+}
+
+pub trait MonolithSelection {
+    
+    fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith>;
+
+    fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith>;
+}
+
+impl MonolithSelection for MonolithRegistry {
+    fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
+            x.rooms().len().cmp(&y.rooms().len())
+        }
+
+        let in_region = self
+            .monoliths_by_region
+            .get(BalancerConfig::get().region.as_str());
+        if let Some(in_region) = in_region {
+            let selected = in_region
+                .iter()
+                .flat_map(|id| self.monoliths.get(id))
+                .min_by(|x, y| cmp(x, y));
+            if let Some(s) = selected {
+                return Ok(s);
+            }
+        }
+        let selected = self.monoliths.values().min_by(|x, y| cmp(x, y));
+        match selected {
+            Some(s) => Ok(s),
+            None => anyhow::bail!("no monoliths available"),
+        }
+    }
+
+    fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let in_region = self
+            .monoliths_by_region
+            .get(BalancerConfig::get().region.as_str());
+        if let Some(in_region) = in_region {
+            let selected = in_region.iter().choose(&mut rand::thread_rng());
+            if let Some(s) = selected {
+                if let Some(m) = self.monoliths.get(s) {
+                    return Ok(m);
+                }
+            }
+        }
+
+        let selected = self
+            .monoliths
+            .values()
+            .choose(&mut rand::thread_rng())
+            .ok_or(anyhow::anyhow!("no monoliths available"))?;
+        Ok(selected)
+    }
+}
+
 impl BalancerContext {
     pub fn new() -> Self {
         Default::default()
