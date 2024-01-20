@@ -179,20 +179,25 @@ pub struct BalancerContext {
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
 }
 
-pub struct MonolithRegistry {
-    pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
-    pub monoliths: HashMap<MonolithId, BalancerMonolith>,
-}
+pub struct MonolithRegistry;
 
 pub trait MonolithSelection {
-    
-    fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith>;
+    fn select_monolith(
+        &self,
+        monolith: Vec<&BalancerMonolith>,
+    ) -> anyhow::Result<&BalancerMonolith>;
 
-    fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith>;
+    fn random_monolith(
+        &self,
+        monolith: Vec<&BalancerMonolith>,
+    ) -> anyhow::Result<&BalancerMonolith>;
 }
 
 impl MonolithSelection for MonolithRegistry {
-    fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+    fn select_monolith(
+        &self,
+        monolith: Vec<&BalancerMonolith>,
+    ) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
             x.rooms().len().cmp(&y.rooms().len())
         }
@@ -216,7 +221,10 @@ impl MonolithSelection for MonolithRegistry {
         }
     }
 
-    fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+    fn random_monolith(
+        &self,
+        monolith: Vec<&BalancerMonolith>,
+    ) -> anyhow::Result<&BalancerMonolith> {
         let in_region = self
             .monoliths_by_region
             .get(BalancerConfig::get().region.as_str());
@@ -414,7 +422,6 @@ impl BalancerContext {
             .ok_or(anyhow::anyhow!("monolith not found"))?;
         Ok(monolith)
     }
-
     /// When loading a room, call this to select the best monolith to load it on.
     pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
