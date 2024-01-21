@@ -185,11 +185,13 @@ pub trait MonolithSelection {
     fn select_monolith(
         &self,
         monolith: Vec<&BalancerMonolith>,
+        ctx: &BalancerContext,
     ) -> anyhow::Result<&BalancerMonolith>;
 
     fn random_monolith(
         &self,
         monolith: Vec<&BalancerMonolith>,
+        ctx: &BalancerContext,
     ) -> anyhow::Result<&BalancerMonolith>;
 }
 
@@ -197,24 +199,25 @@ impl MonolithSelection for MonolithRegistry {
     fn select_monolith(
         &self,
         monolith: Vec<&BalancerMonolith>,
+        ctx: &BalancerContext,
     ) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
             x.rooms().len().cmp(&y.rooms().len())
         }
 
-        let in_region = self
+        let in_region = ctx
             .monoliths_by_region
             .get(BalancerConfig::get().region.as_str());
         if let Some(in_region) = in_region {
             let selected = in_region
                 .iter()
-                .flat_map(|id| self.monoliths.get(id))
+                .flat_map(|id| ctx.monoliths.get(id))
                 .min_by(|x, y| cmp(x, y));
             if let Some(s) = selected {
                 return Ok(s);
             }
         }
-        let selected = self.monoliths.values().min_by(|x, y| cmp(x, y));
+        let selected = ctx.monoliths.values().min_by(|x, y| cmp(x, y));
         match selected {
             Some(s) => Ok(s),
             None => anyhow::bail!("no monoliths available"),
@@ -224,20 +227,21 @@ impl MonolithSelection for MonolithRegistry {
     fn random_monolith(
         &self,
         monolith: Vec<&BalancerMonolith>,
+        ctx: &BalancerContext,
     ) -> anyhow::Result<&BalancerMonolith> {
-        let in_region = self
+        let in_region = ctx
             .monoliths_by_region
             .get(BalancerConfig::get().region.as_str());
         if let Some(in_region) = in_region {
             let selected = in_region.iter().choose(&mut rand::thread_rng());
             if let Some(s) = selected {
-                if let Some(m) = self.monoliths.get(s) {
+                if let Some(m) = ctx.monoliths.get(s) {
                     return Ok(m);
                 }
             }
         }
 
-        let selected = self
+        let selected = ctx
             .monoliths
             .values()
             .choose(&mut rand::thread_rng())
