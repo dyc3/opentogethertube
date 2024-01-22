@@ -350,6 +350,12 @@ router.post("/register", async (req, res) => {
 					},
 				});
 				return;
+			} else if (err.name === "FeatureDisabledException") {
+				res.status(403).json({
+					success: false,
+					error: err,
+				});
+				return;
 			} else if (err.name === "UsernameTakenError") {
 				res.status(400).json({
 					success: false,
