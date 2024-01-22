@@ -91,7 +91,7 @@ jobs:
     - run: yarn workspace ott-server run sequelize db:migrate
       env:
         NODE_ENV: test
-    - run: yarn workspace ott-client build
+    - run: yarn run build
     - run: yarn run test
       env:
         REDIS_HOST: localhost
@@ -104,6 +104,22 @@ jobs:
       uses: codecov/codecov-action@v2
       with:
         files: ${{ steps.collect-coverage.outputs.files }}
+  grafana-compatibilitycheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Build plugin
+        run: yarn workspace ott-vis build
+      - name: Compatibility check
+        run: npx @grafana/levitate@latest is-compatible --path packages/ott-vis/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
+
   deploy-docker:
     runs-on: ubuntu-latest
     name: Deploy docker image

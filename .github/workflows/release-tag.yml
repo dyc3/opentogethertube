@@ -21,3 +21,10 @@ jobs:
           docker tag opentogethertube dyc3/opentogethertube:${{ github.ref_name }}
       - name: Push to Dockerhub
         run: docker push dyc3/opentogethertube:${{ github.ref_name }}
+  release-grafana:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: grafana/plugin-actions/build-plugin@release
+        with:
+          policy_token: ${{ secrets.GRAFANA_API_KEY }}
