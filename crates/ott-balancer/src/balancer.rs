@@ -182,68 +182,39 @@ pub struct BalancerContext {
 #[derive(Debug, Default)]
 pub struct MonolithRegistry;
 pub trait MonolithSelection: std::fmt::Debug {
-    fn select_monolith(
-        &self,
-        monolith: Vec<&BalancerMonolith>,
-        ctx: &BalancerContext,
+    fn select_monolith<'a>(
+        &'a self,
+        monolith: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith>;
 
-    fn random_monolith(
-        &self,
-        monolith: Vec<&BalancerMonolith>,
-        ctx: &BalancerContext,
+    fn random_monolith<'a>(
+        &'a self,
+        monolith: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith>;
-}
+} 
 
 impl MonolithSelection for MonolithRegistry {
-    fn select_monolith(
-        &self,
-        _monolith: Vec<&BalancerMonolith>,
-        ctx: &BalancerContext,
+    fn select_monolith<'a>(
+        &'a self,
+        monolith: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
             x.rooms().len().cmp(&y.rooms().len())
         }
 
-        let in_region = ctx
-            .monoliths_by_region
-            .get(BalancerConfig::get().region.as_str());
-        if let Some(in_region) = in_region {
-            let selected = in_region
-                .iter()
-                .flat_map(|id| ctx.monoliths.get(id))
-                .min_by(|x, y| cmp(x, y));
-            if let Some(s) = selected {
-                return Ok(s);
-            }
-        }
-        let selected = ctx.monoliths.values().min_by(|x, y| cmp(x, y));
+        let selected = monolith.iter().min_by(|x, y| cmp(x, y));
         match selected {
             Some(s) => Ok(s),
             None => anyhow::bail!("no monoliths available"),
         }
     }
 
-    fn random_monolith(
-        &self,
-        _monolith: Vec<&BalancerMonolith>,
-        ctx: &BalancerContext,
+    fn random_monolith<'a>(
+        &'a self,
+        monolith: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith> {
-        let in_region = ctx
-            .monoliths_by_region
-            .get(BalancerConfig::get().region.as_str());
-        if let Some(in_region) = in_region {
-            let selected = in_region.iter().choose(&mut rand::thread_rng());
-            if let Some(s) = selected {
-                if let Some(m) = ctx.monoliths.get(s) {
-                    return Ok(m);
-                }
-            }
-        }
-
-        let selected = ctx
-            .monoliths
-            .values()
+        let selected = monolith
+            .iter()
             .choose(&mut rand::thread_rng())
             .ok_or(anyhow::anyhow!("no monoliths available"))?;
         Ok(selected)
