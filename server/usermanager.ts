@@ -350,6 +350,12 @@ router.post("/register", async (req, res) => {
 					},
 				});
 				return;
+			} else if (err.name === "FeatureDisabledException") {
+				res.status(403).json({
+					success: false,
+					error: err,
+				});
+				return;
 			} else if (err.name === "UsernameTakenError") {
 				res.status(400).json({
 					success: false,
@@ -584,6 +590,9 @@ function passportErrorHandler(err, req: express.Request, res: express.Response, 
 }
 
 async function registerUser({ email, username, password }): Promise<User> {
+	if (!conf.get("users.enable_registration")) {
+		throw new FeatureDisabledException("Disabled by administrator.");
+	}
 	if (!isPasswordValid(password)) {
 		throw new BadPasswordError();
 	}
@@ -624,6 +633,9 @@ async function registerUser({ email, username, password }): Promise<User> {
 }
 
 async function registerUserSocial({ username, discordId }): Promise<User> {
+	if (!conf.get("users.enable_registration")) {
+		throw new FeatureDisabledException("Disabled by administrator.");
+	}
 	return await UserModel.create({
 		discordId,
 		username,

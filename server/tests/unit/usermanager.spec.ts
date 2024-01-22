@@ -1,6 +1,12 @@
 import usermanager from "../../usermanager";
+import { conf } from "../../../server/ott-config";
+import { FeatureDisabledException } from "../../exceptions";
 
 describe("Usermanager spec", () => {
+	beforeEach(() => {
+		conf.set("users.enable_registration", true);
+	});
+
 	it("should check passwords correctly", () => {
 		expect(usermanager.isPasswordValid("aaaa1234")).toBe(true);
 		expect(usermanager.isPasswordValid("AAAA1111")).toBe(true);
@@ -15,5 +21,16 @@ describe("Usermanager spec", () => {
 		expect(usermanager.isPasswordValid("AAAAAAAAAAAAAA")).toBe(false);
 		expect(usermanager.isPasswordValid("$$$$$$$$$$$$$$")).toBe(false);
 		expect(usermanager.isPasswordValid("11111111111111")).toBe(false);
+	});
+
+	it("should not register social user when registration is disabled", () => {
+		conf.set("users.enable_registration", false);
+
+		expect(
+			usermanager.registerUserSocial({
+				username: "foo",
+				discordId: "123456789",
+			})
+		).rejects.toThrow(FeatureDisabledException);
 	});
 });

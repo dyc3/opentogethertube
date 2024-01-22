@@ -434,6 +434,13 @@ export const conf = convict({
 			default: 2 * 3600, // 2 hours
 		},
 	},
+	users: {
+		enable_registration: {
+			doc: "Whether to allow user account registration.",
+			format: Boolean,
+			default: true,
+		},
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {
