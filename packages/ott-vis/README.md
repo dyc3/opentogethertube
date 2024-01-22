@@ -15,55 +15,48 @@ Use panel plugins when you want to do things like visualize data returned by dat
 1. Install dependencies
 
    ```bash
-   npm install
+   yarn workspace ott-vis install
    ```
 
 2. Build plugin in development mode and run in watch mode
 
    ```bash
-   npm run dev
+   yarn workspace ott-vis run dev
    ```
 
 3. Build plugin in production mode
 
    ```bash
-   npm run build
+   yarn workspace ott-vis run build
    ```
 
 4. Run the tests (using Jest)
 
    ```bash
-   # Runs the tests and watches for changes, requires git init first
-   npm run test
-
    # Exits after running all the tests
-   npm run test:ci
+   yarn workspace ott-vis run test
    ```
 
 5. Spin up a Grafana instance and run the plugin inside it (using Docker)
 
    ```bash
-   npm run server
+   yarn workspace ott-vis run server
    ```
 
 6. Run the E2E tests (using Cypress)
 
    ```bash
    # Spins up a Grafana instance first that we tests against
-   npm run server
+   yarn workspace ott-vis run server
 
    # Starts the tests
-   npm run e2e
+   yarn workspace ott-vis run e2e
    ```
 
 7. Run the linter
 
    ```bash
-   npm run lint
-
-   # or
-
-   npm run lint:fix
+   yarn workspace ott-vis run lint
    ```
 
 # Distributing your plugin
