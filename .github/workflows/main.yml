@@ -95,10 +95,14 @@ jobs:
       env:
         REDIS_HOST: localhost
         REDIS_PORT: 6379
+    - name: Collect coverage reports
+      id: collect-coverage
+      run: |
+        echo "files=$(find . -name coverage-final.json | sed 's/\.\///g' | tr '\n' ',')" >> "$GITHUB_OUTPUT"
     - name: Upload coverage report
       uses: codecov/codecov-action@v2
       with:
-        files: ./common/coverage/coverage-final.json,./client/coverage/coverage-final.json,./server/coverage/coverage-final.json
+        files: ${{ steps.collect-coverage.outputs.files }}
   deploy-docker:
     runs-on: ubuntu-latest
     name: Deploy docker image
