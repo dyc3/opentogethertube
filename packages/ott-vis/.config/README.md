@@ -19,10 +19,10 @@ Edit the `.eslintrc` file in the project root in order to extend the ESLint conf
 
 ```json
 {
-  "extends": "./.config/.eslintrc",
-  "rules": {
-    "react/prop-types": "off"
-  }
+	"extends": "./.config/.eslintrc",
+	"rules": {
+		"react/prop-types": "off"
+	}
 }
 ```
 
@@ -36,10 +36,10 @@ Edit the `.prettierrc.js` file in the project root in order to extend the Pretti
 
 ```javascript
 module.exports = {
-  // Prettier configuration provided by Grafana scaffolding
-  ...require('./.config/.prettierrc.js'),
+	// Prettier configuration provided by Grafana scaffolding
+	...require("./.config/.prettierrc.js"),
 
-  semi: false,
+	semi: false,
 };
 ```
 
@@ -59,14 +59,14 @@ set up the Jest DOM for the testing library and to apply some polyfills. ([link 
 A common issue with the current jest config involves importing an npm package that only offers an ESM build. These packages cause jest to error with `SyntaxError: Cannot use import statement outside a module`. To work around this, we provide a list of known packages to pass to the `[transformIgnorePatterns](https://jestjs.io/docs/configuration#transformignorepatterns-arraystring)` jest configuration property. If need be, this can be extended in the following way:
 
 ```javascript
-process.env.TZ = 'UTC';
-const { grafanaESModules, nodeModulesToTransform } = require('./config/jest/utils');
+process.env.TZ = "UTC";
+const { grafanaESModules, nodeModulesToTransform } = require("./config/jest/utils");
 
 module.exports = {
-  // Jest configuration provided by Grafana
-  ...require('./.config/jest.config'),
-  // Inform jest to only transform specific node_module packages.
-  transformIgnorePatterns: [nodeModulesToTransform([...grafanaESModules, 'packageName'])],
+	// Jest configuration provided by Grafana
+	...require("./.config/jest.config"),
+	// Inform jest to only transform specific node_module packages.
+	transformIgnorePatterns: [nodeModulesToTransform([...grafanaESModules, "packageName"])],
 };
 ```
 
@@ -80,10 +80,10 @@ Edit the `tsconfig.json` file in the project root in order to extend the TypeScr
 
 ```json
 {
-  "extends": "./.config/tsconfig.json",
-  "compilerOptions": {
-    "preserveConstEnums": true
-  }
+	"extends": "./.config/tsconfig.json",
+	"compilerOptions": {
+		"preserveConstEnums": true
+	}
 }
 ```
 
@@ -104,19 +104,19 @@ We are going to use [`webpack-merge`](https://github.com/survivejs/webpack-merge
 
 ```typescript
 // webpack.config.ts
-import type { Configuration } from 'webpack';
-import { merge } from 'webpack-merge';
-import grafanaConfig from './.config/webpack/webpack.config';
+import type { Configuration } from "webpack";
+import { merge } from "webpack-merge";
+import grafanaConfig from "./.config/webpack/webpack.config";
 
 const config = async (env): Promise<Configuration> => {
-  const baseConfig = await grafanaConfig(env);
+	const baseConfig = await grafanaConfig(env);
 
-  return merge(baseConfig, {
-    // Add custom config here...
-    output: {
-      asyncChunks: true,
-    },
-  });
+	return merge(baseConfig, {
+		// Add custom config here...
+		output: {
+			asyncChunks: true,
+		},
+	});
 };
 
 export default config;
@@ -147,16 +147,16 @@ By default, `grafana-enterprise` will be used as the docker image for all docker
 **Example:**
 
 ```yaml
-version: '3.7'
+version: "3.7"
 
 services:
-  grafana:
-    container_name: 'myorg-basic-app'
-    build:
-      context: ./.config
-      args:
-        grafana_version: ${GRAFANA_VERSION:-9.1.2}
-        grafana_image: ${GRAFANA_IMAGE:-grafana}
+    grafana:
+        container_name: "myorg-basic-app"
+        build:
+            context: ./.config
+            args:
+                grafana_version: ${GRAFANA_VERSION:-9.1.2}
+                grafana_image: ${GRAFANA_IMAGE:-grafana}
 ```
 
 In this example, we assign the environment variable `GRAFANA_IMAGE` to the build arg `grafana_image` with a default value of `grafana`. This will allow you to set the value while running the docker-compose commands, which might be convenient in some scenarios.

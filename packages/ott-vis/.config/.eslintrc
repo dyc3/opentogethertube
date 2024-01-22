@@ -5,21 +5,21 @@
  * https://grafana.com/developers/plugin-tools/create-a-plugin/extend-a-plugin/extend-configurations#extend-the-eslint-config
  */
 {
-  "extends": ["@grafana/eslint-config"],
-  "root": true,
-  "rules": {
-    "react/prop-types": "off"
-  },
-  "overrides": [
-    {
-      "plugins": ["deprecation"],
-      "files": ["src/**/*.{ts,tsx}"],
-      "rules": {
-        "deprecation/deprecation": "warn"
-      },
-      "parserOptions": {
-        "project": "./tsconfig.json"
-      }
-    }
-  ]
+	"extends": ["@grafana/eslint-config"],
+	"root": true,
+	"rules": {
+		"react/prop-types": "off"
+	},
+	"overrides": [
+		{
+			"plugins": ["deprecation"],
+			"files": ["src/**/*.{ts,tsx}"],
+			"rules": {
+				"deprecation/deprecation": "warn"
+			},
+			"parserOptions": {
+				"project": "./tsconfig.json"
+			}
+		}
+	]
 }

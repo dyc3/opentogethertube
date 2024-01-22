@@ -14,50 +14,50 @@ Use panel plugins when you want to do things like visualize data returned by dat
 
 1. Install dependencies
 
-   ```bash
-   yarn workspace ott-vis install
-   ```
+    ```bash
+    yarn workspace ott-vis install
+    ```
 
 2. Build plugin in development mode and run in watch mode
 
-   ```bash
-   yarn workspace ott-vis run dev
-   ```
+    ```bash
+    yarn workspace ott-vis run dev
+    ```
 
 3. Build plugin in production mode
 
-   ```bash
-   yarn workspace ott-vis run build
-   ```
+    ```bash
+    yarn workspace ott-vis run build
+    ```
 
 4. Run the tests (using Jest)
 
-   ```bash
-   # Exits after running all the tests
-   yarn workspace ott-vis run test
-   ```
+    ```bash
+    # Exits after running all the tests
+    yarn workspace ott-vis run test
+    ```
 
 5. Spin up a Grafana instance and run the plugin inside it (using Docker)
 
-   ```bash
-   yarn workspace ott-vis run server
-   ```
+    ```bash
+    yarn workspace ott-vis run server
+    ```
 
 6. Run the E2E tests (using Cypress)
 
-   ```bash
-   # Spins up a Grafana instance first that we tests against
-   yarn workspace ott-vis run server
+    ```bash
+    # Spins up a Grafana instance first that we tests against
+    yarn workspace ott-vis run server
 
-   # Starts the tests
-   yarn workspace ott-vis run e2e
-   ```
+    # Starts the tests
+    yarn workspace ott-vis run e2e
+    ```
 
 7. Run the linter
 
-   ```bash
-   yarn workspace ott-vis run lint
-   ```
+    ```bash
+    yarn workspace ott-vis run lint
+    ```
 
 # Distributing your plugin
 
@@ -75,7 +75,7 @@ Before signing a plugin for the first time please consult the Grafana [plugin si
 
 1. Create a [Grafana Cloud account](https://grafana.com/signup).
 2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
-   - _You can find the plugin ID in the `plugin.json` file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
+    - _You can find the plugin ID in the `plugin.json` file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
 3. Create a Grafana Cloud API key with the `PluginPublisher` role.
 4. Keep a record of this API key as it will be required for signing a plugin
 
@@ -102,6 +102,6 @@ To trigger the workflow we need to push a version tag to github. This can be ach
 
 Below you can find source code for existing app plugins and other related documentation.
 
-- [Basic panel plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/panel-basic#readme)
-- [`plugin.json` documentation](https://grafana.com/developers/plugin-tools/reference-plugin-json)
-- [How to sign a plugin?](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin)
+-   [Basic panel plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/panel-basic#readme)
+-   [`plugin.json` documentation](https://grafana.com/developers/plugin-tools/reference-plugin-json)
+-   [How to sign a plugin?](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin)
