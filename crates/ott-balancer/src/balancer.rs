@@ -177,12 +177,12 @@ pub struct BalancerContext {
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
     pub rooms_to_monoliths: HashMap<RoomName, RoomLocator>,
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
-    pub monolith_selector: Box<dyn MonolithSelectors>,
+    pub monolith_selection: Box<dyn MonolithSelection + Send + Sync + 'static>,
 }
-
+// #[derive(Debug, Default)]
 pub struct MonolithRegistry;
 
-pub trait MonolithSelectors {
+pub trait MonolithSelection {
     fn select_monolith(
         &self,
         monolith: Vec<&BalancerMonolith>,
@@ -196,7 +196,7 @@ pub trait MonolithSelectors {
     ) -> anyhow::Result<&BalancerMonolith>;
 }
 
-impl MonolithSelectors for MonolithRegistry {
+impl MonolithSelection for MonolithRegistry {
     fn select_monolith(
         &self,
         monolith: Vec<&BalancerMonolith>,
