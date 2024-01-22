@@ -55,6 +55,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
+      fail-fast: true
     continue-on-error: true
     services:
       redis:
