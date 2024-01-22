@@ -189,7 +189,7 @@ jobs:
 
       - name: Run e2e tests
         if: steps.check-for-e2e.outputs.has-e2e == 'true'
-        run: yarn workspace ott-vis run e2e
+        run: yarn workspace ${{ matrix.package }} run e2e
 
       - name: Stop grafana docker
         if: steps.check-for-e2e.outputs.has-e2e == 'true'
