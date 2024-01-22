@@ -342,87 +342,53 @@ describe("User API", () => {
 					});
 			});
 
-			it("should not register user if email is already in use", async () => {
-				await request(app)
-					.post("/api/user/register")
-					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "test@localhost", username: "registered", password: "test1234" })
-					.expect(400)
-					.expect("Content-Type", /json/)
-					.then(resp => {
-						expect(resp.body.success).toBe(false);
-						expect(resp.body.error).toBeDefined();
-						expect(resp.body.error.name).toEqual("AlreadyInUse");
-						expect(onUserLogInSpy).not.toBeCalled();
-					});
-			});
-
-			it("should not register user if username is already in use", async () => {
-				await request(app)
-					.post("/api/user/register")
-					.set("Authorization", `Bearer ${token}`)
-					.send({
+			const denyCases: [string, any, number, any][] = [
+				[
+					"should not register user if email is already in use",
+					{ email: "test@localhost", username: "registered", password: "test1234" },
+					400,
+					{ name: "AlreadyInUse", fields: ["email"] },
+				],
+				[
+					"should not register user if username is already in use",
+					{
 						email: "register@localhost",
 						username: "test user",
 						password: "test1234",
-					})
-					.expect(400)
-					.expect("Content-Type", /json/)
-					.then(resp => {
-						expect(resp.body.success).toBe(false);
-						expect(resp.body.error).toBeDefined();
-						expect(resp.body.error.name).toEqual("AlreadyInUse");
-						expect(onUserLogInSpy).not.toBeCalled();
-					});
-			});
+					},
+					400,
+					{ name: "AlreadyInUse" },
+				],
+				[
+					"should not register user if email is invalid",
+					{ email: "bad", username: "bad email user", password: "test1234" },
+					400,
+					{ name: "ValidationError" },
+				],
+				[
+					"should not register user if username is invalid",
+					{ email: "badusername@localhost", username: "", password: "test1234" },
+					400,
+					{ name: "ValidationError" },
+				],
+				[
+					"should not register user if password is not good enough",
+					{ email: "badpassword@localhost", username: "bad password", password: "a" },
+					400,
+					{ name: "ValidationError" },
+				],
+			];
 
-			it("should not register user if email is invalid", async () => {
-				await request(app)
+			it.each(denyCases)("%s", async (_name, body, respCode, error) => {
+				const resp = await request(app)
 					.post("/api/user/register")
 					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "bad", username: "bad email user", password: "test1234" })
-					.expect(400)
-					.expect("Content-Type", /json/)
-					.then(resp => {
-						expect(resp.body.success).toBe(false);
-						expect(resp.body.error).toBeDefined();
-						expect(resp.body.error.name).toEqual("ValidationError");
-						expect(onUserLogInSpy).not.toBeCalled();
-					});
-			});
-
-			it("should not register user if username is invalid", async () => {
-				await request(app)
-					.post("/api/user/register")
-					.set("Authorization", `Bearer ${token}`)
-					.send({ email: "badusername@localhost", username: "", password: "test1234" })
-					.expect(400)
-					.expect("Content-Type", /json/)
-					.then(resp => {
-						expect(resp.body.success).toBe(false);
-						expect(resp.body.error).toBeDefined();
-						expect(resp.body.error.name).toEqual("ValidationError");
-						expect(onUserLogInSpy).not.toBeCalled();
-					});
-			});
-
-			it("should not register user if password is not good enough", async () => {
-				await request(app)
-					.post("/api/user/register")
-					.set("Authorization", `Bearer ${token}`)
-					.send({
-						email: "badpassword@localhost",
-						username: "bad password",
-						password: "a",
-					})
-					.expect(400)
-					.expect("Content-Type", /json/)
-					.then(resp => {
-						expect(resp.body.success).toBe(false);
-						expect(resp.body.error).toBeDefined();
-						expect(resp.body.error.name).toEqual("ValidationError");
-						expect(onUserLogInSpy).not.toBeCalled();
-					});
+					.send(body)
+					.expect(respCode)
+					.expect("Content-Type", /json/);
+				expect(resp.body.success).toBe(false);
+				expect(resp.body.error).toMatchObject(error);
+				expect(onUserLogInSpy).not.toBeCalled();
 			});
 
 			it("should not register user if registration is disabled", async () => {
