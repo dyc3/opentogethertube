@@ -1,5 +1,5 @@
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { QueueMode, Visibility, Role, BehaviorOption } from "../../common/models/types";
+import { QueueMode, Visibility, Role, BehaviorOption, SegmentCategories } from "../../common/models/types";
 import { User } from "./user";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import type { OldRoleGrants, GrantMask } from "../../common/permissions";
@@ -18,6 +18,7 @@ export interface RoomAttributes {
 	"role-mod": Array<number>;
 	"role-trusted": Array<number>;
 	"autoSkipSegments": boolean;
+	"autoSkipSegmentCategories": SegmentCategories;
 	"prevQueue": Array<QueueItem> | null;
 	"restoreQueueBehavior": BehaviorOption;
 	"enableVoteSkip": boolean;
@@ -41,6 +42,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "role-mod": Array<number>;
 	declare "role-trusted": Array<number>;
 	declare "autoSkipSegments": boolean;
+	declare "autoSkipSegmentCategories": SegmentCategories;
 	declare "prevQueue": Array<QueueItem> | null;
 	declare "restoreQueueBehavior": BehaviorOption;
 	declare "enableVoteSkip": boolean;
@@ -101,6 +103,19 @@ export const createModel = (sequelize: Sequelize) => {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,
 				defaultValue: true,
+			},
+			"autoSkipSegmentCategories": {
+				type: DataTypes.JSONB,
+				allowNull: false,
+				defaultValue: {
+					'sponsor': true,
+					'intro': true,
+					'outro': true,
+					'interaction': true,
+					'selfpromo': true,
+					'music_offtopic': true,
+					'preview': true
+				},
 			},
 			"prevQueue": {
 				type: DataTypes.JSONB,

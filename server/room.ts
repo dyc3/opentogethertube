@@ -45,6 +45,7 @@ import {
 	RoomSettings,
 	AuthToken,
 	BehaviorOption,
+	SegmentCategories,
 } from "../common/models/types";
 import { User } from "./models/user";
 import type { QueueItem, Video, VideoId } from "../common/models/video";
@@ -168,6 +169,7 @@ const syncableProps: (keyof RoomStateSyncable)[] = [
 	"voteCounts",
 	"videoSegments",
 	"autoSkipSegments",
+	"autoSkipSegmentCategories",
 	"prevQueue",
 	"restoreQueueBehavior",
 	"enableVoteSkip",
@@ -192,6 +194,7 @@ const storableProps: (keyof RoomStateStorable)[] = [
 	"_playbackStart",
 	"videoSegments",
 	"autoSkipSegments",
+	"autoSkipSegmentCategories",
 	"prevQueue",
 	"restoreQueueBehavior",
 	"enableVoteSkip",
@@ -225,6 +228,15 @@ export class Room implements RoomState {
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>;
 	_autoSkipSegments = true;
+	_autoSkipSegmentCategories: SegmentCategories = {
+        'sponsor': true,
+        'intro': true,
+        'outro': true,
+        'interaction': true,
+        'selfpromo': true,
+        'music_offtopic': true,
+        'preview': true
+	};
 	restoreQueueBehavior: BehaviorOption = BehaviorOption.Prompt;
 	_enableVoteSkip: boolean = false;
 
@@ -281,6 +293,7 @@ export class Room implements RoomState {
 				"isPlaying",
 				"playbackSpeed",
 				"autoSkipSegments",
+				"autoSkipSegmentCategories",
 				"prevQueue",
 				"restoreQueueBehavior",
 				"enableVoteSkip",
@@ -393,10 +406,19 @@ export class Room implements RoomState {
 	public get autoSkipSegments(): boolean {
 		return this._autoSkipSegments;
 	}
-
+	
 	public set autoSkipSegments(value: boolean) {
 		this._autoSkipSegments = value;
 		this.markDirty("autoSkipSegments");
+	}
+
+	public get autoSkipSegmentCategories(): SegmentCategories {
+		return this._autoSkipSegmentCategories;
+	}
+	
+	public set autoSkipSegmentCategories(value: SegmentCategories) {
+		this._autoSkipSegmentCategories = value;
+		this.markDirty("autoSkipSegmentCategories");
 	}
 
 	public get currentSource(): QueueItem | null {
@@ -865,6 +887,7 @@ export class Room implements RoomState {
 			"visibility",
 			"queueMode",
 			"autoSkipSegments",
+			"autoSkipSegmentCategories",
 			"grants",
 			"userRoles",
 			"owner",
@@ -1502,6 +1525,7 @@ export class Room implements RoomState {
 			visibility: "configure-room.set-visibility",
 			queueMode: "configure-room.set-queue-mode",
 			autoSkipSegments: "configure-room.other",
+			autoSkipSegmentCategories: "configure-room.other",
 			restoreQueueBehavior: "configure-room.other",
 			enableVoteSkip: "configure-room.other",
 		};

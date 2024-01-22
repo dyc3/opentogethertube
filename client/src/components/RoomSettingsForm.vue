@@ -71,6 +71,48 @@
 				:disabled="!granted('configure-room.other')"
 				data-cy="input-auto-skip"
 			/>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegmentCategories.sponsor"
+				:label="$t('room-settings.auto-skip-text-sponsor')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-auto-skip-sponsor"
+			/>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegmentCategories.intro"
+				:label="$t('room-settings.auto-skip-text-intro')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-auto-skip-intro"
+			/>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegmentCategories.outro"
+				:label="$t('room-settings.auto-skip-text-outro')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-auto-skip-outro"
+			/>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegmentCategories.interaction"
+				:label="$t('room-settings.auto-skip-text-interaction')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-auto-skip-interaction"
+			/>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegmentCategories.selfpromo"
+				:label="$t('room-settings.auto-skip-text-selfpromo')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-auto-skip-selfpromo"
+			/>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegmentCategories.music_offtopic"
+				:label="$t('room-settings.auto-skip-text-music_offtopic')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-auto-skip-music_offtopic"
+			/>
+			<v-checkbox
+				v-model="inputRoomSettings.autoSkipSegmentCategories.preview"
+				:label="$t('room-settings.auto-skip-text-preview')"
+				:disabled="!granted('configure-room.other')"
+				data-cy="input-auto-skip-preview"
+			/>
 			<v-select
 				density="compact"
 				:label="$t('room-settings.restore-queue')"
@@ -176,6 +218,15 @@ const RoomSettingsForm = defineComponent({
 			queueMode: QueueMode.Manual,
 			grants: new Grants(),
 			autoSkipSegments: true,
+			autoSkipSegmentCategories: {
+				sponsor: true,
+				intro: true,
+				outro: true,
+				interaction: true,
+				selfpromo: true,
+				music_offtopic: true,
+				preview: true
+			},
 			restoreQueueBehavior: BehaviorOption.Prompt,
 			enableVoteSkip: false,
 		});
@@ -199,6 +250,7 @@ const RoomSettingsForm = defineComponent({
 					"queueMode",
 					"grants",
 					"autoSkipSegments",
+					"autoSkipSegmentCategories",
 					"restoreQueueBehavior",
 					"enableVoteSkip"
 				);
@@ -219,6 +271,7 @@ const RoomSettingsForm = defineComponent({
 				visibility: "set-visibility",
 				queueMode: "set-queue-mode",
 				autoSkipSegments: "other",
+				autoSkipSegmentCategories: "other",
 				restoreQueueBehavior: "other",
 				enableVoteSkip: "other",
 			};
