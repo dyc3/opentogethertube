@@ -171,7 +171,7 @@ impl BalancerLink {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct BalancerContext {
     pub clients: HashMap<ClientId, BalancerClient>,
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
@@ -179,10 +179,9 @@ pub struct BalancerContext {
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
     pub monolith_selection: Box<dyn MonolithSelection + Send + Sync + 'static>,
 }
-// #[derive(Debug, Default)]
+#[derive(Debug, Default)]
 pub struct MonolithRegistry;
-
-pub trait MonolithSelection {
+pub trait MonolithSelection: std::fmt::Debug {
     fn select_monolith(
         &self,
         monolith: Vec<&BalancerMonolith>,
@@ -199,7 +198,7 @@ pub trait MonolithSelection {
 impl MonolithSelection for MonolithRegistry {
     fn select_monolith(
         &self,
-        monolith: Vec<&BalancerMonolith>,
+        _monolith: Vec<&BalancerMonolith>,
         ctx: &BalancerContext,
     ) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
@@ -227,7 +226,7 @@ impl MonolithSelection for MonolithRegistry {
 
     fn random_monolith(
         &self,
-        monolith: Vec<&BalancerMonolith>,
+        _monolith: Vec<&BalancerMonolith>,
         ctx: &BalancerContext,
     ) -> anyhow::Result<&BalancerMonolith> {
         let in_region = ctx
@@ -248,6 +247,18 @@ impl MonolithSelection for MonolithRegistry {
             .choose(&mut rand::thread_rng())
             .ok_or(anyhow::anyhow!("no monoliths available"))?;
         Ok(selected)
+    }
+}
+
+impl Default for BalancerContext {
+    fn default() -> Self {
+        BalancerContext {
+            clients: HashMap::default(),
+            monoliths: HashMap::default(),
+            rooms_to_monoliths: HashMap::default(),
+            monoliths_by_region: HashMap::default(),
+            monolith_selection: Box::new(MonolithRegistry::default()),
+        }
     }
 }
 
