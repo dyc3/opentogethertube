@@ -71,48 +71,50 @@
 				:disabled="!granted('configure-room.other')"
 				data-cy="input-auto-skip"
 			/>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegmentCategories.sponsor"
-				:label="$t('room-settings.auto-skip-text-sponsor')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip-sponsor"
-			/>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegmentCategories.intro"
-				:label="$t('room-settings.auto-skip-text-intro')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip-intro"
-			/>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegmentCategories.outro"
-				:label="$t('room-settings.auto-skip-text-outro')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip-outro"
-			/>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegmentCategories.interaction"
-				:label="$t('room-settings.auto-skip-text-interaction')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip-interaction"
-			/>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegmentCategories.selfpromo"
-				:label="$t('room-settings.auto-skip-text-selfpromo')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip-selfpromo"
-			/>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegmentCategories.music_offtopic"
-				:label="$t('room-settings.auto-skip-text-music_offtopic')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip-music_offtopic"
-			/>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegmentCategories.preview"
-				:label="$t('room-settings.auto-skip-text-preview')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip-preview"
-			/>
+			<div v-if="inputRoomSettings.autoSkipSegments" class="auto-skip-categories">
+				<v-checkbox
+					v-model="inputRoomSettings.autoSkipSegmentCategories.sponsor"
+					:label="$t('room-settings.auto-skip-text-sponsor')"
+					:disabled="!granted('configure-room.other')"
+					data-cy="input-auto-skip-sponsor"
+				/>
+				<v-checkbox
+					v-model="inputRoomSettings.autoSkipSegmentCategories.intro"
+					:label="$t('room-settings.auto-skip-text-intro')"
+					:disabled="!granted('configure-room.other')"
+					data-cy="input-auto-skip-intro"
+				/>
+				<v-checkbox
+					v-model="inputRoomSettings.autoSkipSegmentCategories.outro"
+					:label="$t('room-settings.auto-skip-text-outro')"
+					:disabled="!granted('configure-room.other')"
+					data-cy="input-auto-skip-outro"
+				/>
+				<v-checkbox
+					v-model="inputRoomSettings.autoSkipSegmentCategories.interaction"
+					:label="$t('room-settings.auto-skip-text-interaction')"
+					:disabled="!granted('configure-room.other')"
+					data-cy="input-auto-skip-interaction"
+				/>
+				<v-checkbox
+					v-model="inputRoomSettings.autoSkipSegmentCategories.selfpromo"
+					:label="$t('room-settings.auto-skip-text-selfpromo')"
+					:disabled="!granted('configure-room.other')"
+					data-cy="input-auto-skip-selfpromo"
+				/>
+				<v-checkbox
+					v-model="inputRoomSettings.autoSkipSegmentCategories.music_offtopic"
+					:label="$t('room-settings.auto-skip-text-music_offtopic')"
+					:disabled="!granted('configure-room.other')"
+					data-cy="input-auto-skip-music_offtopic"
+				/>
+				<v-checkbox
+					v-model="inputRoomSettings.autoSkipSegmentCategories.preview"
+					:label="$t('room-settings.auto-skip-text-preview')"
+					:disabled="!granted('configure-room.other')"
+					data-cy="input-auto-skip-preview"
+				/>
+			</div>
 			<v-select
 				density="compact"
 				:label="$t('room-settings.restore-queue')"
@@ -360,5 +362,10 @@ export default RoomSettingsForm;
 	.v-btn {
 		margin: 10px 0;
 	}
+}
+
+.auto-skip-categories  {
+	display: flex;
+	flex-direction: row;
 }
 </style>

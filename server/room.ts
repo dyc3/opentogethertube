@@ -818,7 +818,7 @@ export class Room implements RoomState {
 				this.dontSkipSegmentsUntil === null
 			) {
 				const segment = this.getSegmentForTime(this.realPlaybackPosition);
-				if (segment) {
+				if (segment && this.autoSkipSegmentCategories[segment.category]) {
 					this.log.silly(`Segment ${segment.category} is now playing, skipping`);
 					this.seekRaw(segment.endTime);
 					await this.publish({
