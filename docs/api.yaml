@@ -107,9 +107,20 @@ paths:
                       autoSkipSegments:
                         type: boolean
                       autoSkipSegmentCategories:
-                        type: array
-                        items: 
-                          type: string
+                        sponsor: 
+                          type: boolean
+                        intro: 
+                          type: boolean
+                        outro: 
+                          type: boolean
+                        interaction: 
+                          type: boolean
+                        selfpromo: 
+                          type: boolean
+                        music_offtopic: 
+                          type: boolean
+                        preview: 
+                          type: boolean
                       users:
                         type: array
                         items:
@@ -208,9 +219,20 @@ paths:
                     autoSkipSegments:
                       type: boolean
                     autoSkipSegmentCategories: 
-                      type: array
-                      items:
-                        type: string
+                      sponsor: 
+                        type: boolean
+                      intro: 
+                        type: boolean
+                      outro: 
+                        type: boolean
+                      interaction: 
+                        type: boolean
+                      selfpromo: 
+                        type: boolean
+                      music_offtopic: 
+                        type: boolean
+                      preview: 
+                        type: boolean
                     grants:
                       description: Map of role numbers to the bitmask of permissions that role has
                         been granted
