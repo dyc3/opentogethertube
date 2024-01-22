@@ -91,7 +91,7 @@ jobs:
     - run: yarn workspace ott-server run sequelize db:migrate
       env:
         NODE_ENV: test
-    - run: yarn workspace ott-client build
+    - run: yarn run build
     - run: yarn run test
       env:
         REDIS_HOST: localhost
