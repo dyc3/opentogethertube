@@ -1,0 +1,75 @@
+version: "3.7"
+services:
+  opentogethertube:
+    image: opentogethertube
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+      args:
+        - GIT_COMMIT=${GIT_COMMIT:-$(git rev-parse HEAD)}
+    environment:
+      - PORT=8080
+      - REDIS_HOST=redis_db
+      - REDIS_PORT=6379
+      - FFPROBE_PATH=/usr/bin/ffprobe
+      # postgres
+      - POSTGRES_USER=opentogethertube
+      - POSTGRES_DB=opentogethertube
+      - POSTGRES_HOST=postgres_db
+      - POSTGRES_PASSWORD=postgres
+      - DOCKER=1
+      - BALANCING_ENABLED=1
+    links:
+      - redis_db
+      - postgres_db
+    depends_on:
+      - redis_db
+      - postgres_db
+    volumes:
+      - "../env:/usr/app/env"
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+
+  balancer:
+    image: ott-balancer
+    build:
+      context: ../
+      dockerfile: deploy/balancer.Dockerfile
+      args:
+        - DEPLOY_TARGET=ott-balancer-docker
+    ports:
+      - 8080:8081
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+
+  redis_db:
+    container_name: opentogethertube_redis
+    image: redis
+    healthcheck:
+      test: "redis-cli ping"
+    expose:
+      - 6379
+    volumes:
+      - db-data-redis:/data
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+
+  postgres_db:
+    container_name: opentogethertube_postgres
+    image: postgres:15-bullseye
+    environment:
+      - POSTGRES_DB=opentogethertube
+      - POSTGRES_USER=opentogethertube
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/tmp
+    healthcheck:
+      test: "pg_isready -U opentogethertube"
+    expose:
+      - 5432
+    volumes:
+      - db-data-postgres:/var/lib/postgresql/data
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+
+# shared volume
+volumes:
+  db-data-redis:
+    driver: local
+  db-data-postgres:
+    driver: local

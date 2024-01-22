@@ -34,7 +34,7 @@ export default {
 		hero: {
 			title: "Enjoy Together.",
 			description:
-				"Real-time syncronized playback. Optional voting system.\nDark theme. No sign up required. All Open Source.\nIt's never been easier to watch videos together.",
+				"Real-time synchronized playback. Optional voting system.\nDark theme. No sign up required. All Open Source.\nIt's never been easier to watch videos together.",
 			btns: {
 				create: "@:nav.create.title",
 				browse: "Browse Rooms",
@@ -44,15 +44,15 @@ export default {
 		intro: {
 			title: "Remote Watch Parties Just Got a Lot Easier",
 			name: "OpenTogetherTube",
-			text1: "is a real-time video syncronization platform.\nIt's easy to use and has no sign up required. Just create a room, add videos and\ninvite your friends. BOOM! You're ready to binge videos with your friends until 3AM.",
+			text1: "is a real-time video synchronization platform.\nIt's easy to use and has no sign up required. Just create a room, add videos and\ninvite your friends. BOOM! You're ready to binge videos with your friends until 3AM.",
 			text2: "The original TogetherTube was loved for it's simple interface,\nand how easy it was to start watching videos right away.\nOpenTogetherTube aims to be just as easy, and then improve on\ntop of that to make it even better.",
 			text3: "Currently, you can watch online videos with your friends from Youtube, Vimeo, Dailymotion, direct links to .mp4 videos, and",
 			link: "more are on the way",
 		},
 		features: {
 			"title": "Core Features",
-			"syncronized-playback": {
-				title: "Syncronized Playback",
+			"synchronized-playback": {
+				title: "Synchronized Playback",
 				text: "You hit play, and the video plays for everybody\nin the room. Simple as that.",
 			},
 			"permanent-rooms": {

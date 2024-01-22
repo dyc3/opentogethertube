@@ -1,0 +1,4 @@
+[discovery]
+method = "docker"
+monolith_port = 3002
+monolith_container_name = "opentogethertube"

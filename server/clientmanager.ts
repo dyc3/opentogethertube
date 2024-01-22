@@ -7,6 +7,7 @@ import { Request } from "express";
 import { createSubscriber, redisClient } from "./redisclient";
 import {
 	ClientMessage,
+	ClientMessageKickMe,
 	RoomRequest,
 	RoomRequestType,
 	ServerMessage,
@@ -60,6 +61,13 @@ export async function setup(): Promise<void> {
 		const redisSubscriber = await createSubscriber();
 		log.silly("subscribing to announcement channel");
 		await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
+	}
+}
+
+export function shutdown() {
+	log.info("Shutting down client manager");
+	for (const client of connections) {
+		client.kick(OttWebsocketError.AWAY);
 	}
 }
 
@@ -151,6 +159,12 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			await makeRoomRequest(client, request);
 		} else if (msg.action === "req") {
 			await makeRoomRequest(client, msg.request);
+		} else if (msg.action === "notify") {
+			if (msg.message === "usernameChanged") {
+				onUserModified(client.token!);
+			} else {
+				log.warn(`Unknown notify message: ${msg.message}`);
+			}
 		} else {
 			log.warn(`Unknown client message: ${(msg as { action: string }).action}`);
 			return;
@@ -229,11 +243,16 @@ function onBalancerConnect(conn: BalancerConnection) {
 
 function onBalancerDisconnect(conn: BalancerConnection) {
 	log.info(`Disconnected from balancer ${conn.id}`);
+	// We can't immediately remove the balancer clients from the connections array because that would mess up the index of the other clients, so we have to do it later
+	const leavingClients: BalancerClient[] = [];
 	for (const client of connections) {
 		if (client instanceof BalancerClient && client.conn.id === conn.id) {
 			log.debug(`Kicking balancer client ${client.id}`);
-			client.leave();
+			leavingClients.push(client);
 		}
+	}
+	for (const client of leavingClients) {
+		client.leave();
 	}
 }
 
@@ -481,6 +500,7 @@ const gaugeClients = new Gauge({
 
 export default {
 	setup,
+	shutdown,
 	onUserModified,
 	getClientByToken,
 	makeRoomRequest,

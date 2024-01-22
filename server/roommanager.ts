@@ -48,11 +48,9 @@ export async function start() {
 	log.info("Starting room manager");
 
 	updaterInterval = setInterval(update, 1000);
-	process.on("SIGINT", shutdown);
-	process.on("SIGTERM", shutdown);
 }
 
-async function shutdown() {
+export async function shutdown() {
 	log.info("Shutting down room manager");
 	if (updaterInterval) {
 		clearInterval(updaterInterval);
@@ -270,6 +268,7 @@ const roommanager = {
 	rooms,
 	log,
 	start,
+	shutdown,
 
 	createRoom,
 	getRoom,

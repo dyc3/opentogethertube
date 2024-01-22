@@ -1,0 +1,30 @@
+name: Release Tag
+
+on:
+  push:
+    tags:
+      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+
+jobs:
+  release-ott-dockerhub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Log in to Dockerhub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dyc3" --password-stdin
+      - name: Build image for ${{ github.ref_name }}
+        run: |
+          docker-compose -f docker/docker-compose.yml up -d --build
+          docker commit opentogethertube opentogethertube
+          docker-compose -f docker/docker-compose.yml down
+          docker tag opentogethertube dyc3/opentogethertube:${{ github.ref_name }}
+      - name: Push to Dockerhub
+        run: docker push dyc3/opentogethertube:${{ github.ref_name }}
+  release-grafana:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: grafana/plugin-actions/build-plugin@release
+        with:
+          policy_token: ${{ secrets.GRAFANA_API_KEY }}

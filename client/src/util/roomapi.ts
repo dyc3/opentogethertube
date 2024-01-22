@@ -1,5 +1,5 @@
 import { OttRoomConnection } from "@/plugins/connection";
-import { RoomRequestType } from "ott-common/models/messages";
+import { ClientMessageNotify, RoomRequestType } from "ott-common/models/messages";
 import { ClientId, Role } from "ott-common/models/types";
 import { VideoId } from "ott-common/models/video";
 
@@ -149,6 +149,13 @@ class RoomApi {
 				type: RoomRequestType.KickRequest,
 				clientId: clientId,
 			},
+		});
+	}
+
+	notify(message: ClientMessageNotify["message"]) {
+		this.connection.send({
+			action: "notify",
+			message,
 		});
 	}
 }

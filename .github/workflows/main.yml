@@ -55,6 +55,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
+      fail-fast: true
     continue-on-error: true
     services:
       redis:
@@ -72,13 +73,13 @@ jobs:
     - name: Get npm cache directory
       id: npm-cache
       run: |
-        echo "::set-output name=dir::$(npm config get cache)"
+        echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
     - uses: actions/cache@v1
       with:
         path: ${{ steps.npm-cache.outputs.dir }}
         key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-node-
+          ${{ runner.os }}-node-${{ matrix.node-version }}-
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -90,15 +91,35 @@ jobs:
     - run: yarn workspace ott-server run sequelize db:migrate
       env:
         NODE_ENV: test
-    - run: yarn workspace ott-client build
+    - run: yarn run build
     - run: yarn run test
       env:
         REDIS_HOST: localhost
         REDIS_PORT: 6379
+    - name: Collect coverage reports
+      id: collect-coverage
+      run: |
+        echo "files=$(find . -name coverage-final.json | sed 's/\.\///g' | tr '\n' ',')" >> "$GITHUB_OUTPUT"
     - name: Upload coverage report
       uses: codecov/codecov-action@v2
       with:
-        files: ./common/coverage/coverage-final.json,./client/coverage/coverage-final.json,./server/coverage/coverage-final.json
+        files: ${{ steps.collect-coverage.outputs.files }}
+  grafana-compatibilitycheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Build plugin
+        run: yarn workspace ott-vis build
+      - name: Compatibility check
+        run: npx @grafana/levitate@latest is-compatible --path packages/ott-vis/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
+
   deploy-docker:
     runs-on: ubuntu-latest
     name: Deploy docker image
@@ -121,7 +142,7 @@ jobs:
 
   deploy-fly-staging-monolith:
     runs-on: ubuntu-latest
-    name: Deploy on fly.io
+    name: Deploy Monolith on fly.io (staging)
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:
@@ -132,9 +153,9 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   deploy-fly-staging-balancer:
     runs-on: ubuntu-latest
-    name: Deploy on fly.io
+    name: Deploy Balancer on fly.io (staging)
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [test, lint]
+    needs: [test, lint, deploy-fly-staging-monolith]
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
@@ -144,7 +165,7 @@ jobs:
 
   deploy-fly-prod:
     runs-on: ubuntu-latest
-    name: Deploy on fly.io
+    name: Deploy Monolith on fly.io (prod)
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:

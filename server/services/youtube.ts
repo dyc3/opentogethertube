@@ -15,6 +15,7 @@ import { Video, VideoId, VideoMetadata } from "../../common/models/video";
 import storage from "../storage";
 import { OttException } from "../../common/exceptions";
 import { conf } from "../ott-config";
+import { parseIso8601Duration } from "./parsing/iso8601";
 
 const log = getLogger("youtube");
 
@@ -437,7 +438,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 
 		for (const id of ids) {
-			if (!/^[A-za-z0-9_-]+$/.exec(id)) {
+			if (!/^[A-Za-z0-9_-]+$/.exec(id)) {
 				throw new InvalidVideoIdException(this.serviceId, id);
 			}
 		}
@@ -543,7 +544,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 		if (item.contentDetails) {
 			try {
-				video.length = this.parseVideoLength(item.contentDetails.duration);
+				video.length = parseIso8601Duration(item.contentDetails.duration);
 			} catch (e) {
 				log.error(
 					`Failed to parse video length for ${item.id}. input: "${
@@ -697,31 +698,5 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 		const extracted = matches[0].split(":")[1].substring(1);
 		return extracted;
-	}
-
-	/**
-	 * Parse youtube's unconventional video duration format into seconds.
-	 * Examples: PT40M25S
-	 */
-	parseVideoLength(duration: string): number {
-		let match = /P(\d+D)?(?:T(\d+H)?(\d+M)?(\d+S)?)?/
-			.exec(duration)
-			?.slice(1)
-			.map(x => {
-				if (x !== null && x !== undefined) {
-					return x.replace(/\D/, "");
-				}
-			});
-
-		if (match === undefined) {
-			throw new Error(`Failed to parse duration: ${duration}`);
-		}
-
-		const days = parseInt(match[0] ?? "0", 10) || 0;
-		const hours = parseInt(match[1] ?? "0", 10) || 0;
-		const minutes = parseInt(match[2] ?? "0", 10) || 0;
-		const seconds = parseInt(match[3] ?? "0", 10) || 0;
-
-		return days * (24 * 3600) + hours * 3600 + minutes * 60 + seconds;
 	}
 }

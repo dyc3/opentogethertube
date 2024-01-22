@@ -120,6 +120,7 @@ export type ClientMessage =
 	| ClientMessageKickMe
 	| ClientMessagePlayerStatus
 	| ClientMessageAuthenticate
+	| ClientMessageNotify
 	| ClientMessageRoomRequest;
 
 interface ClientMessageBase {
@@ -142,6 +143,16 @@ export interface ClientMessagePlayerStatus extends ClientMessageBase {
 export interface ClientMessageAuthenticate extends ClientMessageBase {
 	action: "auth";
 	token: AuthToken;
+}
+
+/**
+ * Used to notify the monolith of events that occur on the client that imply a change in state that needs to be propagated to other clients.
+ *
+ * Currently only used to notify the monolith of a username change.
+ */
+export interface ClientMessageNotify extends ClientMessageBase {
+	action: "notify";
+	message: "usernameChanged";
 }
 
 export interface ClientMessageRoomRequest extends ClientMessageBase {

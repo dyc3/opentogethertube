@@ -23,6 +23,7 @@ export enum BehaviorOption {
 }
 
 export enum OttWebsocketError {
+	AWAY = 1001,
 	UNKNOWN = 4000,
 	INVALID_CONNECTION_URL = 4001,
 	ROOM_NOT_FOUND = 4002,

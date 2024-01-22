@@ -10,7 +10,8 @@
   "workspaces": [
     "common",
     "server",
-    "client"
+    "client",
+    "packages/ott-vis"
   ],
   "type": "module",
   "scripts": {

@@ -62,6 +62,9 @@ export async function main() {
 		setupPostgresMetricsCollection(sequelize);
 	}
 
+	process.on("SIGINT", shutdown);
+	process.on("SIGTERM", shutdown);
+
 	app.use(metricsMiddleware);
 	const server = http.createServer(app);
 	async function checkRedis() {
@@ -198,7 +201,12 @@ export async function main() {
 	if (fs.existsSync("../client/dist")) {
 		app.get("*", serveBuiltFiles);
 	} else {
-		log.warn("no dist folder found");
+		log.warn("no dist folder found, run `yarn build` to build the client");
+		app.get("*", (req, res) => {
+			res.status(404).send(
+				"File not found - Client files not found. Run `yarn build` to build the client."
+			);
+		});
 	}
 
 	initExtractor();
@@ -222,6 +230,13 @@ export async function main() {
 	return {
 		app,
 	};
+}
+
+function shutdown() {
+	// The order here is important. We want to get all the clients disconnected first, so they don't get the room unloaded message when all the rooms get unloaded.
+	clientmanager.shutdown();
+	roommanager.shutdown();
+	process.exit(0);
 }
 
 main();

@@ -117,6 +117,37 @@ describe("ClientManager", () => {
 		const joins2 = clientmanager.getClientsInRoom("foo");
 		expect(joins2).toHaveLength(0);
 	});
+
+	it("should disconnect only clients that were from the balancer when a balancer disconnects", async () => {
+		const mockBalancerCon = new BalancerConnectionMock();
+		const mockBalancerCon2 = new BalancerConnectionMock();
+		balancerManager.addBalancerConnection(mockBalancerCon);
+		balancerManager.addBalancerConnection(mockBalancerCon2);
+		const client1 = new BalancerClient("foo", "foo1", mockBalancerCon);
+		const client2 = new BalancerClient("foo", "foo2", mockBalancerCon);
+		const client3 = new TestClient("foo");
+		const client4 = new BalancerClient("foo", "bar", mockBalancerCon2);
+		const client5 = new BalancerClient("foo", "foo2", mockBalancerCon);
+		const clients = [client1, client2, client3, client4, client5];
+		for (let [i, client] of clients.entries()) {
+			clientmanager.addClient(client);
+			client.emit("auth", client, "token" + i, { isLoggedIn: false, username: "foo" + i });
+		}
+		await new Promise(resolve => setTimeout(resolve, 100));
+		const joins = clientmanager.getClientsInRoom("foo");
+		expect(joins).toHaveLength(5);
+
+		mockBalancerCon.emit("disconnect", 1000, "reason");
+
+		expect(clientmanager.getClient(client1.id)).toBeUndefined();
+		expect(clientmanager.getClient(client2.id)).toBeUndefined();
+		expect(clientmanager.getClient(client3.id)).toBeDefined();
+		expect(clientmanager.getClient(client4.id)).toBeDefined();
+		expect(clientmanager.getClient(client5.id)).toBeUndefined();
+
+		const joins2 = clientmanager.getClientsInRoom("foo");
+		expect(joins2).toHaveLength(2);
+	});
 });
 
 describe("BalancerManager", () => {

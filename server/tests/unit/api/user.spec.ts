@@ -2,6 +2,7 @@ import request from "supertest";
 import { main } from "../../../app";
 import usermanager from "../../../usermanager";
 import { User as UserModel } from "../../../models";
+import { conf } from "../../../ott-config";
 
 describe("User API", () => {
 	let token;
@@ -288,6 +289,7 @@ describe("User API", () => {
 
 			beforeEach(async () => {
 				onUserLogInSpy.mockClear();
+				conf.set("users.enable_registration", true);
 			});
 
 			afterAll(() => {
@@ -419,6 +421,28 @@ describe("User API", () => {
 						expect(resp.body.success).toBe(false);
 						expect(resp.body.error).toBeDefined();
 						expect(resp.body.error.name).toEqual("ValidationError");
+						expect(onUserLogInSpy).not.toBeCalled();
+					});
+			});
+
+			it("should not register user if registration is disabled", async () => {
+				conf.set("users.enable_registration", false);
+
+				await request(app)
+					.post("/api/user/register")
+					.set("Authorization", `Bearer ${token}`)
+					.send({
+						email: "register@localhost",
+						username: "registered",
+						password: "test1234",
+					})
+					.expect(403)
+					.expect("Content-Type", /json/)
+					.then(resp => {
+						expect(resp.body.success).toBe(false);
+						expect(resp.body.error).toMatchObject({
+							name: "FeatureDisabledException",
+						});
 						expect(onUserLogInSpy).not.toBeCalled();
 					});
 			});

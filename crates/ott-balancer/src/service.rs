@@ -76,11 +76,15 @@ impl Service<Request<IncomingBody>> for BalancerService {
             warn!("no route found for {}", req.uri().path());
             return Box::pin(async move { Ok(not_found()) });
         };
-        tracing::Span::current().record("handler", route.handler());
-        info!("inbound request");
+        let handler = **route.handler();
+        tracing::Span::current().record("handler", handler);
+        match handler {
+            "status" | "health" | "metrics" => debug!("inbound request"),
+            _ => info!("inbound request"),
+        }
 
         Box::pin(async move {
-            let res = match **route.handler() {
+            let res = match handler {
                 "health" => mk_response("OK".to_owned()),
                 "status" => {
                     let ctx_read = ctx.read().await;
@@ -129,11 +133,11 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         // Spawn a task to handle the websocket connection.
                         let _ = tokio::task::Builder::new().name("client connection").spawn(
                             async move {
-                                GUAGE_CLIENTS.inc();
+                                GAUGE_CLIENTS.inc();
                                 if let Err(e) = client_entry(room_name, websocket, link).await {
                                     error!("Error in websocket connection: {}", e);
                                 }
-                                GUAGE_CLIENTS.dec();
+                                GAUGE_CLIENTS.dec();
                             },
                         );
 
