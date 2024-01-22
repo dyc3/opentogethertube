@@ -10,6 +10,14 @@ This project targets node 18 and up. I recommend using [nvm](https://github.com/
 
 I also recommend using the github cli (note this is different from git) to make PRs.
 
+### Linux/WSL Dependencies
+
+#### Ubuntu
+
+```bash
+sudo apt-get install --no-install-recommends build-essential ca-certificates apt-utils libsqlite3-dev libpq-dev libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libatspi2.0-0 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 libxcb1 libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 libsodium-dev libtool-bin libtool pkg-config autoconf
+```
+
 ### Setting up the Monolith on your local machine or WSL
 
 The Monolith refers to the node.js server that serves the client and handles all the business logic. It is located in the `server` folder. The client is located in the `client` folder, which should also work after you set up the Monolith.
@@ -46,6 +54,7 @@ You can use docker and the provided devcontainer config `.devcontainer/devcontai
 2. Install the devcontainer extension: `ms-vscode-remote.remote-containers`
 3. Open the project in VSCode
 4. Open the command palette <kbd>Ctrl+Shift+P</kbd> and run `Dev Containers: Reopen in Container`
+5. Follow the steps from the previous section from step 3
 
 ## Testing
 
