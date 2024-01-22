@@ -49,7 +49,7 @@
         }
       ],
       "title": "Panel Title",
-      "type": "ott-visualizationprototype-panel"
+      "type": "ott-vis-panel"
     }
   ],
   "refresh": "",

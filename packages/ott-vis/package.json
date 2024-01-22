@@ -16,7 +16,7 @@
     "sign": "npx --yes @grafana/sign-plugin@latest"
   },
   "author": "Ott",
-  "license": "Apache-2.0",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@babel/core": "^7.21.4",
     "@grafana/e2e": "10.0.3",
@@ -55,7 +55,7 @@
     "webpack-livereload-plugin": "^3.0.2"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   },
   "dependencies": {
     "@emotion/css": "11.10.6",

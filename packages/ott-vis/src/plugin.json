@@ -1,10 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
-  "name": "Visualization-Prototype",
-  "id": "ott-visualizationprototype-panel",
+  "name": "OTT Visualizer",
+  "id": "ott-vis-panel",
   "info": {
-    "keywords": ["panel"],
+    "keywords": [
+      "panel"
+    ],
     "description": "",
     "author": {
       "name": "Ott"

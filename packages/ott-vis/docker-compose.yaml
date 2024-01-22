@@ -2,7 +2,7 @@ version: '3.0'
 
 services:
   grafana:
-    container_name: 'ott-visualizationprototype-panel'
+    container_name: 'ott-vis'
     platform: 'linux/amd64'
     build:
       context: ./.config
@@ -12,5 +12,5 @@ services:
     ports:
       - 3000:3000/tcp
     volumes:
-      - ./dist:/var/lib/grafana/plugins/ott-visualizationprototype-panel
+      - ./dist:/var/lib/grafana/plugins/ott-vis
       - ./provisioning:/etc/grafana/provisioning
