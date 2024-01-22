@@ -584,6 +584,9 @@ function passportErrorHandler(err, req: express.Request, res: express.Response, 
 }
 
 async function registerUser({ email, username, password }): Promise<User> {
+	if (!conf.get("users.enable_registration")) {
+		throw new FeatureDisabledException("Disabled by administrator.");
+	}
 	if (!isPasswordValid(password)) {
 		throw new BadPasswordError();
 	}
@@ -624,6 +627,9 @@ async function registerUser({ email, username, password }): Promise<User> {
 }
 
 async function registerUserSocial({ username, discordId }): Promise<User> {
+	if (!conf.get("users.enable_registration")) {
+		throw new FeatureDisabledException("Disabled by administrator.");
+	}
 	return await UserModel.create({
 		discordId,
 		username,
