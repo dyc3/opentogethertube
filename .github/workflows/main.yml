@@ -55,6 +55,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
+      fail-fast: true
     continue-on-error: true
     services:
       redis:
@@ -72,13 +73,13 @@ jobs:
     - name: Get npm cache directory
       id: npm-cache
       run: |
-        echo "::set-output name=dir::$(npm config get cache)"
+        echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
     - uses: actions/cache@v1
       with:
         path: ${{ steps.npm-cache.outputs.dir }}
         key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-node-
+          ${{ runner.os }}-node-${{ matrix.node-version }}-
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
