@@ -31,7 +31,7 @@ const locales = [
 		value: "ru",
 	},
 	{
-		text: "🇨🇴",
+		text: "🇪🇸",
 		value: "sp",
 	},
 ];
