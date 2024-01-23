@@ -32,7 +32,7 @@ const locales = [
 	},
 	{
 		text: "🇪🇸",
-		value: "sp",
+		value: "es",
 	},
 ];
 
