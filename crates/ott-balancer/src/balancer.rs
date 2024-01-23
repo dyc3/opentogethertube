@@ -16,6 +16,8 @@ use crate::client::ClientLink;
 use crate::config::BalancerConfig;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
+use crate::selection::MonolithRegistry;
+use crate::selection::MonolithSelection;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -179,19 +181,6 @@ pub struct BalancerContext {
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
     pub monolith_selection: Box<dyn MonolithSelection + Send + Sync + 'static>,
 }
-#[derive(Debug, Default)]
-pub struct MonolithRegistry;
-pub trait MonolithSelection: std::fmt::Debug {
-    fn select_monolith<'a>(
-        &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith>;
-
-    fn random_monolith<'a>(
-        &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith>;
-} 
 
 impl MonolithSelection for MonolithRegistry {
     fn select_monolith<'a>(
