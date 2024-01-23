@@ -373,8 +373,7 @@ export default {
 	"errors": {
 		BadPasswordError:
 			"La contraseña no cumple con los requisitos mínimos. Debe tener al menos 8 caracteres y contener 2 de las siguientes categorías de caracteres: letras minúsculas, letras mayúsculas, números, caracteres especiales.",
-		BadApiArgumentException:
-			"Mal argumento de API. Probablemente es un error, Reportalo",
+		BadApiArgumentException: "Mal argumento de API. Probablemente es un error, Reportalo",
 	},
 	"player": {
 		"buffer-warn": {
