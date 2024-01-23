@@ -52,7 +52,7 @@ export default {
 			},
 			"permanent-rooms": {
 				title: "Salas Permanentes",
-				text: "You and the squad come here often? Avoid the hastle\nof sending out a new link every time. Permanent\nrooms get a custom url that doesn't change.",
+				text: "¿Tú y el equipo vienen aquí bastante? Evite la molestia\nde enviar un enlace nuevo cada vez.  Las salas\npermanentes obtienen una URL personalizada que no cambia.",
 			},
 			"dark-theme": {
 				title: "Modo Oscuro",
@@ -164,12 +164,12 @@ export default {
 		copied: "Copiado!",
 	},
 	"video": {
-		"add-explanation": "Add to the queue.",
-		"playnow": "Play Now",
+		"add-explanation": "Agregar a la cola.",
+		"playnow": "Reproducir ahora",
 		"playnow-explanation":
-			"Play this video now, pushing the current video to the top of the queue.",
-		"no-video": "No video is playing.",
-		"no-video-text": 'Click "Add" below to add a video.',
+			"Reproduce este video ahora, empujando el video actual al principio de la cola.",
+		"no-video": "No se está reproduciendo ningún video.",
+		"no-video-text": 'Haz clic en "Agregar" para añadir un video.',
 	},
 	"add-preview": {
 		"add-all": "Agregar a la cola",
@@ -246,7 +246,7 @@ export default {
 		"permissions-not-available": "Los permisos no están disponibles en salas temporarias",
 		"room-needs-owner":
 			"Esta sala necesita un propietario antes de poder modificar los permisos.",
-		"login-to-claim": "Inicie sesión para reclamar esta habitación.",
+		"login-to-claim": "Inicie sesión para reclamar esta sala.",
 		"arent-able-to-modify-permissions": "No puedes modificar los permisos en esta sala.",
 		"settings-applied": "Configuración aplicada",
 		"now-own-the-room": "Ahora eres dueño de la sala {room}.",
@@ -255,8 +255,8 @@ export default {
 		"enable-vote-skip": "Habilitar la omisión de votos",
 	},
 	"create-room-form": {
-		"card-title": "Create una Sala Permanente.",
-		"create-room": "Create Sala",
+		"card-title": "Crear una Sala Permanente.",
+		"create-room": "Crear Sala",
 		"name": "Nombre",
 		"name-hint": "Utilizado en la URL de la sala. No se puede cambiar más tarde.",
 		"title": "Título",
@@ -264,7 +264,7 @@ export default {
 		"description": "Descripción",
 		"description-hint": "@:create-room-form.title-hint",
 		"visibility": "Visibilidad",
-		"visibility-hint": "Controla si la habitación aparece o no en la lista de salas.",
+		"visibility-hint": "Controla si la sala aparece o no en la lista de salas.",
 		"queue-mode": "Modo de Cola",
 		"manual": "Manual",
 		"vote": "Votar",
@@ -287,7 +287,7 @@ export default {
 	"login-form": {
 		"login": "@:nav.login",
 		"register": "Registrar",
-		"login-discord": "iniciar sesión con Discord.",
+		"login-discord": "Iniciar sesión con Discord.",
 		"email": "Correo Electrónico",
 		"email-or-username": "Correo Electrónico o Nombre de Usuario",
 		"username": "Nombre de Usuario",
@@ -352,10 +352,10 @@ export default {
 		"dc-reasons": {
 			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
 			[OttWebsocketError.ROOM_NOT_FOUND]: "Sala no encontrada.",
-			[OttWebsocketError.ROOM_UNLOADED]: "La sala fue descargada.",
+			[OttWebsocketError.ROOM_UNLOADED]: "La sala se ha cerrado.",
 			[OttWebsocketError.MISSING_TOKEN]:
-				"No se proporcionó ninguna ficha. Actualiza la página y vuelve a intentarlo. Si continúa, abra un problema en GitHub.",
-			[OttWebsocketError.KICKED]: "Fuiste expulsado de la habitación por un usuario.",
+				"No se proporcionó ninguna token. Actualiza la página y vuelve a intentarlo. Si continúa, abra un problema en GitHub.",
+			[OttWebsocketError.KICKED]: "Fuiste expulsado de la sala por un usuario.",
 			unknown: "Algo pasó, pero no sabemos qué. Por favor, reporte esto como un error.",
 		},
 	},
@@ -374,7 +374,7 @@ export default {
 		BadPasswordError:
 			"La contraseña no cumple con los requisitos mínimos. Debe tener al menos 8 caracteres y contener 2 de las siguientes categorías de caracteres: letras minúsculas, letras mayúsculas, números, caracteres especiales.",
 		BadApiArgumentException:
-			"Mal argumento de API. Probablemente se trate de un error, Reportalo",
+			"Mal argumento de API. Probablemente es un error, Reportalo",
 	},
 	"player": {
 		"buffer-warn": {
