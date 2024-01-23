@@ -16,8 +16,7 @@ use crate::client::ClientLink;
 use crate::config::BalancerConfig;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
-use crate::selection::MonolithRegistry;
-use crate::selection::MonolithSelection;
+use crate::selection::{MinRoomsSelector, MonolithSelection};
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -182,34 +181,6 @@ pub struct BalancerContext {
     pub monolith_selection: Box<dyn MonolithSelection + Send + Sync + 'static>,
 }
 
-impl MonolithSelection for MonolithRegistry {
-    fn select_monolith<'a>(
-        &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith> {
-        fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
-            x.rooms().len().cmp(&y.rooms().len())
-        }
-
-        let selected = monolith.iter().min_by(|x, y| cmp(x, y));
-        match selected {
-            Some(s) => Ok(s),
-            None => anyhow::bail!("no monoliths available"),
-        }
-    }
-
-    fn random_monolith<'a>(
-        &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith> {
-        let selected = monolith
-            .iter()
-            .choose(&mut rand::thread_rng())
-            .ok_or(anyhow::anyhow!("no monoliths available"))?;
-        Ok(selected)
-    }
-}
-
 impl Default for BalancerContext {
     fn default() -> Self {
         BalancerContext {
@@ -217,7 +188,7 @@ impl Default for BalancerContext {
             monoliths: HashMap::default(),
             rooms_to_monoliths: HashMap::default(),
             monoliths_by_region: HashMap::default(),
-            monolith_selection: Box::new(MonolithRegistry::default()),
+            monolith_selection: Box::new(MinRoomsSelector::default()),
         }
     }
 }
