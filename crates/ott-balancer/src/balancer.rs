@@ -187,7 +187,7 @@ impl Default for BalancerContext {
             monoliths: HashMap::default(),
             rooms_to_monoliths: HashMap::default(),
             monoliths_by_region: HashMap::default(),
-            monolith_selection: Box::new(MinRoomsSelector::default()),
+            monolith_selection: Box::<MinRoomsSelector>::default(),
         }
     }
 }
@@ -412,7 +412,11 @@ pub async fn join_client(
         }
         None => {
             // the room is not loaded, randomly select a monolith
-            let selected = ctx_write.select_monolith()?;
+            let filtered = ctx_write.filter_monoliths();
+            let selected = ctx_write
+                .monolith_selection
+                .select_monolith(filtered)
+                .unwrap();
             debug!(
                 "room is not loaded, selected monolith: {:?} (region: {:?})",
                 selected.id(),

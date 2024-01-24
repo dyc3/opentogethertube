@@ -163,7 +163,10 @@ impl Service<Request<IncomingBody>> for BalancerService {
                                 );
                                 ctx_read.monoliths.get(&locator.monolith_id())
                             } else {
-                                ctx_read.select_monolith().ok()
+                                let filtered = ctx_read.filter_monoliths();
+                                let selected =
+                                    ctx_read.monolith_selection.select_monolith(filtered).ok();
+                                selected
                             };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
@@ -181,7 +184,8 @@ impl Service<Request<IncomingBody>> for BalancerService {
                 }
                 "other" => {
                     let ctx_read = ctx.read().await;
-                    let monolith = ctx_read.random_monolith().ok();
+                    let filtered = ctx_read.filter_monoliths();
+                    let monolith = ctx_read.monolith_selection.random_monolith(filtered).ok();
                     if let Some(monolith) = monolith {
                         info!(
                             message = "proxying request to monolith",
