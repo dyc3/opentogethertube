@@ -4,7 +4,6 @@ use ott_balancer_protocol::monolith::{
     B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
 };
 use ott_balancer_protocol::*;
-use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -370,57 +369,19 @@ impl BalancerContext {
         Ok(monolith)
     }
 
-    /// When loading a room, call this to select the best monolith to load it on.
-    pub fn filter_monoliths(&self) -> anyhow::Result<&BalancerMonolith> {
-        fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
-            x.rooms().len().cmp(&y.rooms().len())
-        }
-
-        // Retrieves a reference to a collection of MonolithIds specific to a region.
+    /// Prioritizes monoliths in the same region
+    pub fn filter_monoliths(&self) -> Vec<&BalancerMonolith> {
         let in_region = self
             .monoliths_by_region
             .get(BalancerConfig::get().region.as_str());
-        // Checks if Monoliths available for specified region?
         if let Some(in_region) = in_region {
-            let selected = in_region
+            return in_region
                 .iter()
                 .flat_map(|id| self.monoliths.get(id))
-                .collect::<Vec<_>>(); // Turn iterators into vectors
-
-            // Don't need this anymore because no longer returning an option
-            // if let Some(s) = selected {
-            //     return Ok(s);
-            // }
+                .collect();
         }
 
-        // let selected = self.monolith_selection.select_monolith(monolith: Vec<&BalancerMonolith>);
-
-        // Don't need the pattern matching here as that's taken care of by select_monolith
-        // match selected {
-        //     Some(s) => Ok(s),
-        //     None => anyhow::bail!("no monoliths available"),
-        // }
-    }
-
-    pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
-        let in_region = self
-            .monoliths_by_region
-            .get(BalancerConfig::get().region.as_str());
-        if let Some(in_region) = in_region {
-            let selected = in_region.iter().choose(&mut rand::thread_rng());
-            if let Some(s) = selected {
-                if let Some(m) = self.monoliths.get(s) {
-                    return Ok(m);
-                }
-            }
-        }
-
-        let selected = self 
-            .monoliths
-            .values()
-            .choose(&mut rand::thread_rng())
-            .ok_or(anyhow::anyhow!("no monoliths available"))?;
-        Ok(selected)
+        self.monoliths.values().collect()
     }
 
     #[instrument(skip(self, monolith), err, fields(monolith_id = %monolith))]
