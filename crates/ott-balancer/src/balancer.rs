@@ -369,29 +369,37 @@ impl BalancerContext {
             .ok_or(anyhow::anyhow!("monolith not found"))?;
         Ok(monolith)
     }
+
     /// When loading a room, call this to select the best monolith to load it on.
-    pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+    pub fn filter_monoliths(&self) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
             x.rooms().len().cmp(&y.rooms().len())
         }
 
+        // Retrieves a reference to a collection of MonolithIds specific to a region.
         let in_region = self
             .monoliths_by_region
             .get(BalancerConfig::get().region.as_str());
+        // Checks if Monoliths available for specified region?
         if let Some(in_region) = in_region {
             let selected = in_region
                 .iter()
                 .flat_map(|id| self.monoliths.get(id))
-                .min_by(|x, y| cmp(x, y));
-            if let Some(s) = selected {
-                return Ok(s);
-            }
+                .collect::<Vec<_>>(); // Turn iterators into vectors
+
+            // Don't need this anymore because no longer returning an option
+            // if let Some(s) = selected {
+            //     return Ok(s);
+            // }
         }
-        let selected = self.monoliths.values().min_by(|x, y| cmp(x, y));
-        match selected {
-            Some(s) => Ok(s),
-            None => anyhow::bail!("no monoliths available"),
-        }
+
+        // let selected = self.monolith_selection.select_monolith(monolith: Vec<&BalancerMonolith>);
+
+        // Don't need the pattern matching here as that's taken care of by select_monolith
+        // match selected {
+        //     Some(s) => Ok(s),
+        //     None => anyhow::bail!("no monoliths available"),
+        // }
     }
 
     pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
@@ -407,7 +415,7 @@ impl BalancerContext {
             }
         }
 
-        let selected = self
+        let selected = self 
             .monoliths
             .values()
             .choose(&mut rand::thread_rng())
