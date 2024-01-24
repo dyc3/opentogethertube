@@ -40,6 +40,19 @@ describe("Room", () => {
 		await room.pause();
 	});
 
+	it("should always return the correct playback position when syncing to clients", async () => {
+		const room = new Room({ name: "test" });
+		room.currentSource = { service: "youtube", id: "video1", length: 100 };
+		room.isPlaying = true;
+		room._playbackStart = dayjs().subtract(10, "second");
+		room.playbackPosition = 20; // The playback position at the start of playback
+
+		const expectedPlaybackPosition = room.realPlaybackPosition;
+		const syncState = room.syncableState();
+
+		expect(syncState.playbackPosition).toBeCloseTo(expectedPlaybackPosition);
+	});
+
 	describe("Room Requests", () => {
 		let room: Room;
 		let user: RoomUser;
