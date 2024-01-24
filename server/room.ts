@@ -820,7 +820,9 @@ export class Room implements RoomState {
 	}
 
 	public syncableState(): RoomStateSyncable {
-		return _.pick(this, syncableProps);
+		const sync = _.pick(this, syncableProps);
+		sync.playbackPosition = this.realPlaybackPosition;
+		return sync;
 	}
 
 	public serializeSyncableState(): string {
