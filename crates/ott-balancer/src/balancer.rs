@@ -384,6 +384,16 @@ impl BalancerContext {
         self.monoliths.values().collect()
     }
 
+    pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let filtered = self.filter_monoliths();
+        return self.monolith_selection.select_monolith(filtered);
+    }
+
+    pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let filtered = self.filter_monoliths();
+        return self.monolith_selection.random_monolith(filtered);
+    }
+
     #[instrument(skip(self, monolith), err, fields(monolith_id = %monolith))]
     pub async fn unload_room(&self, monolith: MonolithId, room: RoomName) -> anyhow::Result<()> {
         debug!(func = "unload_room", %room, monolith_id = %monolith);
@@ -412,11 +422,7 @@ pub async fn join_client(
         }
         None => {
             // the room is not loaded, randomly select a monolith
-            let filtered = ctx_write.filter_monoliths();
-            let selected = ctx_write
-                .monolith_selection
-                .select_monolith(filtered)
-                .unwrap();
+            let selected = ctx_write.select_monolith()?;
             debug!(
                 "room is not loaded, selected monolith: {:?} (region: {:?})",
                 selected.id(),

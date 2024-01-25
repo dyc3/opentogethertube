@@ -39,7 +39,7 @@ impl MonolithSelection for MinRoomsSelector {
         let selected = monolith
             .iter()
             .choose(&mut rand::thread_rng())
-            .ok_or(anyhow::anyhow!("no monoliths available"))?;
+            .ok_or_else(|| anyhow::anyhow!("no monoliths available"))?;
         Ok(selected)
     }
 }
