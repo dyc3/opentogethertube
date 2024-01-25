@@ -130,16 +130,7 @@
 									@link-click="setAddPreviewText"
 								/>
 							</li>
-							<li>
-								<ProcessedText
-									:text="
-										$t('add-preview.platforms.subreddits', {
-											url: 'https://reddit.com/r/youtubehaiku/',
-										})
-									"
 									@link-click="setAddPreviewText"
-								/>
-							</li>
 						</ul>
 						<span>{{ $t("add-preview.text") }}</span>
 					</div>
