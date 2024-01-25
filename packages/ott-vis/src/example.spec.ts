@@ -1,4 +1,4 @@
-import {plugin} from "./module";
+import { plugin } from "./module";
 
 describe("Example", () => {
 	it("should be true", () => {
