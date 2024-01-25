@@ -1,7 +1,8 @@
 //name can be changed later. This code doesn't work locally yet
 //https://observablehq.com/d/3a44f11e0413a4d4
+//commenting out the code for now
 
-chart = {
+/*chart = {
     // Specify the dimensions of the chart.
     const width = 928;
     const height = 680;
@@ -99,4 +100,4 @@ chart = {
     invalidation.then(() => simulation.stop());
   
     return svg.node();
-  }
+  }*/
