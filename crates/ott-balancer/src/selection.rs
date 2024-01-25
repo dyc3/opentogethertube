@@ -43,3 +43,40 @@ impl MonolithSelection for MinRoomsSelector {
         Ok(selected)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::net::Ipv4Addr;
+    use std::sync::Arc;
+
+    use crate::discovery::{HostOrIp, MonolithConnectionConfig};
+    use crate::monolith::{BalancerMonolith, NewMonolith};
+    use ott_balancer_protocol::*;
+
+    // Want to test min by with compare, basically check that the monolith with the min number of rooms is selected.
+    // For this I think we need two monoliths, or maybe three, to test against. Each with a varying number of rooms
+    #[tokio::test]
+    async fn test_min_by() {
+        let _room_name_one = RoomName::from("room one");
+        let _room_name_two = RoomName::from("room two");
+        let _room_name_three = RoomName::from("room three");
+        let (monolith_outbound_tx, _monolith_outbound_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx = Arc::new(monolith_outbound_tx);
+        let (client_inbound_tx, _client_inbound_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_id = uuid::Uuid::new_v4().into();
+
+        let _monolith_one = BalancerMonolith::new(
+            NewMonolith {
+                id: monolith_id,
+                region: "unknown".into(),
+                config: MonolithConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx,
+            client_inbound_tx,
+        );
+    }
+}
