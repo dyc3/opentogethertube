@@ -19,6 +19,23 @@
 					</div>
 				</v-container>
 			</v-sheet>
+			<v-sheet color="error" v-if="playbackError !== undefined">
+				<v-container fluid style="padding: 6px">
+					<div style="display: flex; align-items: center">
+						<v-icon>mdi:alert-circle</v-icon>
+						<span>{{ playbackError.message }}</span>
+						<v-spacer />
+						<v-btn
+							size="x-small"
+							variant="text"
+							icon
+							@click="playbackError = undefined"
+						>
+							<v-icon>fa:fas fa-times</v-icon>
+						</v-btn>
+					</div>
+				</v-container>
+			</v-sheet>
 		</div>
 
 		<Suspense>
@@ -355,6 +372,7 @@ export default defineComponent({
 		function onPlaying() {
 			hackReadyEdgeCase();
 			emit("playing");
+			playbackError.value = undefined;
 		}
 
 		function onPaused() {
@@ -367,9 +385,12 @@ export default defineComponent({
 			emit("buffering");
 		}
 
-		function onError() {
+		const playbackError: Ref<MediaError | undefined> = ref(undefined);
+
+		function onError(event: any) {
 			store.commit("PLAYBACK_STATUS", PlayerStatus.error);
 			emit("error");
+			playbackError.value = event.explicitOriginalTarget?.error as MediaError;
 		}
 
 		function onBufferProgress(percent: number) {
@@ -424,6 +445,7 @@ export default defineComponent({
 			isPlayerPresent,
 			showBufferWarning,
 			renderedSpans,
+			playbackError,
 			play,
 			pause,
 			setVolume,
