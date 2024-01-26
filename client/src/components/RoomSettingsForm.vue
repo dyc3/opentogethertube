@@ -65,55 +65,14 @@
 					</v-list-item>
 				</template>
 			</v-select>
-			<div v-if="granted('configure-room.other')">
-				<v-card-text>
-					{{$t('room-settings.auto-skip-text')}}
-				</v-card-text>
-				<div class="auto-skip-categories">
-					<v-checkbox
-						v-model="autoSkipSegmentCategoriesObject.sponsor"
-						:label="$t('room-settings.auto-skip-text-sponsor')"
-						:disabled="!granted('configure-room.other')"
-						data-cy="input-auto-skip-sponsor"
-					/>
-					<v-checkbox
-						v-model="autoSkipSegmentCategoriesObject.intro"
-						:label="$t('room-settings.auto-skip-text-intro')"
-						:disabled="!granted('configure-room.other')"
-						data-cy="input-auto-skip-intro"
-					/>
-					<v-checkbox
-						v-model="autoSkipSegmentCategoriesObject.outro"
-						:label="$t('room-settings.auto-skip-text-outro')"
-						:disabled="!granted('configure-room.other')"
-						data-cy="input-auto-skip-outro"
-					/>
-					<v-checkbox
-						v-model="autoSkipSegmentCategoriesObject.interaction"
-						:label="$t('room-settings.auto-skip-text-interaction')"
-						:disabled="!granted('configure-room.other')"
-						data-cy="input-auto-skip-interaction"
-					/>
-					<v-checkbox
-						v-model="autoSkipSegmentCategoriesObject.selfpromo"
-						:label="$t('room-settings.auto-skip-text-selfpromo')"
-						:disabled="!granted('configure-room.other')"
-						data-cy="input-auto-skip-selfpromo"
-					/>
-					<v-checkbox
-						v-model="autoSkipSegmentCategoriesObject.music_offtopic"
-						:label="$t('room-settings.auto-skip-text-music_offtopic')"
-						:disabled="!granted('configure-room.other')"
-						data-cy="input-auto-skip-music_offtopic"
-					/>
-					<v-checkbox
-						v-model="autoSkipSegmentCategoriesObject.preview"
-						:label="$t('room-settings.auto-skip-text-preview')"
-						:disabled="!granted('configure-room.other')"
-						data-cy="input-auto-skip-preview"
-					/>
-				</div>
-			</div>
+			<v-select
+				v-model="inputRoomSettings.autoSkipSegmentCategories"
+				:items="ALL_SKIP_CATEGORIES"
+				:disabled="!granted('configure-room.other')"
+				:label="$t('room-settings.auto-skip-text')"
+				chips
+				multiple
+			></v-select>
 			<v-select
 				density="compact"
 				:label="$t('room-settings.restore-queue')"
@@ -209,19 +168,11 @@ const RoomSettingsForm = defineComponent({
 		PermissionsEditor,
 	},
 	setup() {
+		const ALL_SKIP_CATEGORIES: Category[] = ['sponsor', 'intro', 'outro', 'interaction', 'selfpromo', 'music_offtopic', 'preview']
 		const store = useStore();
 		const { t } = useI18n();
 
 		const isLoadingRoomSettings = ref(false);
-		const autoSkipSegmentCategoriesObject: Ref<{[K in Category]: boolean}> = ref({
-			sponsor: true,
-			intro: true,
-			outro: true,
-			interaction: true,
-			selfpromo: true,
-			music_offtopic: true,
-			preview: true
-		});
 		const inputRoomSettings: Ref<RoomSettings> = ref<RoomSettings>({
 			title: "",
 			description: "",
@@ -254,21 +205,7 @@ const RoomSettingsForm = defineComponent({
 					"autoSkipSegmentCategories",
 					"restoreQueueBehavior",
 					"enableVoteSkip"
-					);
-				
-				const resAutoSkipSegmentCategoriesObject = {
-					sponsor: false,
-					intro: false,
-					outro: false,
-					interaction: false,
-					selfpromo: false,
-					music_offtopic: false,
-					preview: false
-				}
-				for (let category of inputRoomSettings.value.autoSkipSegmentCategories) {
-					resAutoSkipSegmentCategoriesObject[category] = true;
-				}
-				autoSkipSegmentCategoriesObject.value = resAutoSkipSegmentCategoriesObject
+				);
 			} catch (err) {
 				toast.add({
 					content: t("room-settings.load-failed"),
@@ -295,8 +232,6 @@ const RoomSettingsForm = defineComponent({
 					blocked.push(prop as keyof typeof propsToGrants);
 				}
 			}
-			inputRoomSettings.value.autoSkipSegmentCategories = Object.keys(autoSkipSegmentCategoriesObject.value)
-					.filter(category => autoSkipSegmentCategoriesObject.value[category as Category])
 			return _.omit(inputRoomSettings.value, blocked);
 		}
 
@@ -348,7 +283,7 @@ const RoomSettingsForm = defineComponent({
 		return {
 			isLoadingRoomSettings,
 			inputRoomSettings,
-			autoSkipSegmentCategoriesObject,
+			ALL_SKIP_CATEGORIES,
 			loadRoomSettings,
 			getRoomSettingsSubmit,
 			submitRoomSettings,
