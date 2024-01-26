@@ -5,8 +5,7 @@ use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
 use serde_json::value::RawValue;
 use test_context::test_context;
 use websocket::dataframe::DataFrame;
-use websocket::client::ClientBuilder;
-use websocket::client::sync;
+use tokio_tungstenite;
 
 #[test_context(TestRunner)]
 #[tokio::test]
@@ -326,13 +325,11 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
     assert!(matches!(recvd[0], MsgB2M::Join(_)));
 }
 
-[test_context(TestRunner)]
+#[test_context(TestRunner)]
 #[tokio::test]
 #[allow(dead_code)]
 async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
-    ctx.url("/api/room/test");
-
-    let mut client = ClientBuilder::new("ws://localhost:3000/api/room/test"); // Wondering if it might be better to add some kind of send function to test_runner instead of doing this
+    let client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect");
 
     let dataframe = DataFrame {
         finished: true,

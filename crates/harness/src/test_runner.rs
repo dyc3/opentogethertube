@@ -7,8 +7,6 @@ use tokio::{
 
 use test_context::AsyncTestContext;
 use tracing::warn;
-use websocket::dataframe::DataFrame;
-use websocket::client::sync;
 
 use crate::util::random_unused_port;
 
