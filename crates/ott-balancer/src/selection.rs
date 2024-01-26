@@ -49,15 +49,14 @@ mod test {
     use std::net::Ipv4Addr;
     use std::sync::Arc;
 
-    use crate::balancer::BalancerContext;
     use crate::discovery::{HostOrIp, MonolithConnectionConfig};
     use crate::monolith::{BalancerMonolith, NewMonolith};
-    use crate::room::RoomLocator;
     use ott_balancer_protocol::*;
+
+    use super::{MinRoomsSelector, MonolithSelection};
 
     #[tokio::test]
     async fn test_min_by() {
-        let mut ctx = BalancerContext::new();
         let room_one = RoomName::from("room one");
         let room_two = RoomName::from("room two");
         let room_three = RoomName::from("room three");
@@ -66,7 +65,7 @@ mod test {
         let (client_inbound_tx_one, _client_inbound_rx) = tokio::sync::mpsc::channel(100);
         let monolith_id_one = uuid::Uuid::new_v4().into();
 
-        let monolith_one = BalancerMonolith::new(
+        let mut monolith_one = BalancerMonolith::new(
             NewMonolith {
                 id: monolith_id_one,
                 region: "unknown".into(),
@@ -80,12 +79,19 @@ mod test {
             client_inbound_tx_one,
         );
 
+        monolith_one
+            .add_room(&room_one)
+            .expect("failed to add room");
+        monolith_one
+            .add_room(&room_two)
+            .expect("failed to add room");
+
         let (monolith_outbound_tx, _monolith_outbound_rx) = tokio::sync::mpsc::channel(100);
         let monolith_outbound_tx_two = Arc::new(monolith_outbound_tx);
         let (client_inbound_tx_two, _client_inbound_rx) = tokio::sync::mpsc::channel(100);
         let monolith_id_two = uuid::Uuid::new_v4().into();
 
-        let monolith_two = BalancerMonolith::new(
+        let mut monolith_two = BalancerMonolith::new(
             NewMonolith {
                 id: monolith_id_two,
                 region: "unknown".into(),
@@ -99,22 +105,16 @@ mod test {
             client_inbound_tx_two,
         );
 
-        ctx.add_monolith(monolith_one);
-        ctx.add_room(room_one.clone(), RoomLocator::new(monolith_id_one, 0))
-            .expect("failed to add room");
-        ctx.add_room(room_two.clone(), RoomLocator::new(monolith_id_one, 0))
+        monolith_two
+            .add_room(&room_three)
             .expect("failed to add room");
 
-        ctx.add_monolith(monolith_two);
-        ctx.add_room(room_three.clone(), RoomLocator::new(monolith_id_two, 0))
-            .expect("failed to add room");
+        let monoliths: Vec<&BalancerMonolith> = vec![&monolith_one, &monolith_two];
 
-        let filtered = ctx.filter_monoliths();
-        let _selected = ctx
-            .monolith_selection
-            .select_monolith(filtered)
+        let selected = MinRoomsSelector
+            .select_monolith(monoliths)
             .expect("failed to select monolith");
 
-        // assert_eq!(selected.id(), monolith_two.id())
+        assert_eq!(selected.id(), monolith_two.id())
     }
 }
