@@ -7,8 +7,11 @@ use tokio::{
 
 use test_context::AsyncTestContext;
 use tracing::warn;
+use websocket::dataframe::DataFrame;
+use websocket::client::sync;
 
 use crate::util::random_unused_port;
+
 
 pub struct TestRunner {
     spawn_options: BalancerSpawnOptions,
@@ -55,6 +58,11 @@ impl TestRunner {
         self.child = Self::spawn_balancer(&self.spawn_options)
             .await
             .expect("failed to respawn balancer");
+    }
+
+    pub async fn is_alive(&mut self) {
+        let ecode = self.child.wait().await.expect("Error: Balancer is not alive");
+        assert_eq!(ecode.success(), true);
     }
 
     /// Spawn a new balancer and wait for it to be ready.

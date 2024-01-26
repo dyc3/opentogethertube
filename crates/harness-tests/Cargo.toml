@@ -4,6 +4,7 @@ version = "0.9.0"
 edition = "2021"
 
 [dependencies]
+anyhow.workspace = true
 harness.workspace = true
 ott-balancer-protocol.workspace = true
 reqwest.workspace = true
@@ -11,3 +12,4 @@ serde.workspace = true
 serde_json.workspace = true
 test-context.workspace = true
 tokio.workspace = true
+websocket = "0.26.5"

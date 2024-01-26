@@ -4,6 +4,9 @@ use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBui
 use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
 use serde_json::value::RawValue;
 use test_context::test_context;
+use websocket::dataframe::DataFrame;
+use websocket::client::ClientBuilder;
+use websocket::client::sync;
 
 #[test_context(TestRunner)]
 #[tokio::test]
@@ -322,3 +325,25 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
     assert_eq!(recvd.len(), 1);
     assert!(matches!(recvd[0], MsgB2M::Join(_)));
 }
+
+[test_context(TestRunner)]
+#[tokio::test]
+#[allow(dead_code)]
+async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
+    ctx.url("/api/room/test");
+
+    let mut client = ClientBuilder::new("ws://localhost:3000/api/room/test"); // Wondering if it might be better to add some kind of send function to test_runner instead of doing this
+
+    let dataframe = DataFrame {
+        finished: true,
+        reserved: [false, true, true],
+        opcode: websocket::dataframe::Opcode::Text,
+        data: "{\"action\":\"auth\", \"token\":\"foo\"}"
+        .to_string()
+        .into_bytes(),
+    };
+    
+    client.send_dataframe(&dataframe); // so this line could be replaced with something like: ctx.send_packet()
+
+    ctx.is_alive().await;
+} 
