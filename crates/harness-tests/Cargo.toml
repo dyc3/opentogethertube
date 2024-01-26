@@ -13,4 +13,5 @@ serde_json.workspace = true
 test-context.workspace = true
 tokio.workspace = true
 websocket = "0.26.5"
-tokio-tungstenite = "0.21.0"
+tokio-tungstenite.workspace = true
+tungstenite.workspace = true

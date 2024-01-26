@@ -958,6 +958,7 @@ dependencies = [
  "test-context",
  "tokio",
  "tokio-tungstenite",
+ "tungstenite",
  "websocket",
 ]
 
