@@ -65,55 +65,54 @@
 					</v-list-item>
 				</template>
 			</v-select>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegments"
-				:label="$t('room-settings.auto-skip-text')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-auto-skip"
-			/>
-			<div v-if="inputRoomSettings.autoSkipSegments" class="auto-skip-categories">
-				<v-checkbox
-					v-model="inputRoomSettings.autoSkipSegmentCategories.sponsor"
-					:label="$t('room-settings.auto-skip-text-sponsor')"
-					:disabled="!granted('configure-room.other')"
-					data-cy="input-auto-skip-sponsor"
-				/>
-				<v-checkbox
-					v-model="inputRoomSettings.autoSkipSegmentCategories.intro"
-					:label="$t('room-settings.auto-skip-text-intro')"
-					:disabled="!granted('configure-room.other')"
-					data-cy="input-auto-skip-intro"
-				/>
-				<v-checkbox
-					v-model="inputRoomSettings.autoSkipSegmentCategories.outro"
-					:label="$t('room-settings.auto-skip-text-outro')"
-					:disabled="!granted('configure-room.other')"
-					data-cy="input-auto-skip-outro"
-				/>
-				<v-checkbox
-					v-model="inputRoomSettings.autoSkipSegmentCategories.interaction"
-					:label="$t('room-settings.auto-skip-text-interaction')"
-					:disabled="!granted('configure-room.other')"
-					data-cy="input-auto-skip-interaction"
-				/>
-				<v-checkbox
-					v-model="inputRoomSettings.autoSkipSegmentCategories.selfpromo"
-					:label="$t('room-settings.auto-skip-text-selfpromo')"
-					:disabled="!granted('configure-room.other')"
-					data-cy="input-auto-skip-selfpromo"
-				/>
-				<v-checkbox
-					v-model="inputRoomSettings.autoSkipSegmentCategories.music_offtopic"
-					:label="$t('room-settings.auto-skip-text-music_offtopic')"
-					:disabled="!granted('configure-room.other')"
-					data-cy="input-auto-skip-music_offtopic"
-				/>
-				<v-checkbox
-					v-model="inputRoomSettings.autoSkipSegmentCategories.preview"
-					:label="$t('room-settings.auto-skip-text-preview')"
-					:disabled="!granted('configure-room.other')"
-					data-cy="input-auto-skip-preview"
-				/>
+			<div v-if="granted('configure-room.other')">
+				<v-card-text>
+					{{$t('room-settings.auto-skip-text')}}
+				</v-card-text>
+				<div class="auto-skip-categories">
+					<v-checkbox
+						v-model="autoSkipSegmentCategoriesObject.sponsor"
+						:label="$t('room-settings.auto-skip-text-sponsor')"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-auto-skip-sponsor"
+					/>
+					<v-checkbox
+						v-model="autoSkipSegmentCategoriesObject.intro"
+						:label="$t('room-settings.auto-skip-text-intro')"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-auto-skip-intro"
+					/>
+					<v-checkbox
+						v-model="autoSkipSegmentCategoriesObject.outro"
+						:label="$t('room-settings.auto-skip-text-outro')"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-auto-skip-outro"
+					/>
+					<v-checkbox
+						v-model="autoSkipSegmentCategoriesObject.interaction"
+						:label="$t('room-settings.auto-skip-text-interaction')"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-auto-skip-interaction"
+					/>
+					<v-checkbox
+						v-model="autoSkipSegmentCategoriesObject.selfpromo"
+						:label="$t('room-settings.auto-skip-text-selfpromo')"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-auto-skip-selfpromo"
+					/>
+					<v-checkbox
+						v-model="autoSkipSegmentCategoriesObject.music_offtopic"
+						:label="$t('room-settings.auto-skip-text-music_offtopic')"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-auto-skip-music_offtopic"
+					/>
+					<v-checkbox
+						v-model="autoSkipSegmentCategoriesObject.preview"
+						:label="$t('room-settings.auto-skip-text-preview')"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-auto-skip-preview"
+					/>
+				</div>
 			</div>
 			<v-select
 				density="compact"
@@ -202,6 +201,7 @@ import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
+import { Category } from "sponsorblock-api";
 
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
@@ -213,22 +213,22 @@ const RoomSettingsForm = defineComponent({
 		const { t } = useI18n();
 
 		const isLoadingRoomSettings = ref(false);
-		const inputRoomSettings: Ref<RoomSettings> = ref({
+		const autoSkipSegmentCategoriesObject: Ref<{[K in Category]: boolean}> = ref({
+			sponsor: true,
+			intro: true,
+			outro: true,
+			interaction: true,
+			selfpromo: true,
+			music_offtopic: true,
+			preview: true
+		});
+		const inputRoomSettings: Ref<RoomSettings> = ref<RoomSettings>({
 			title: "",
 			description: "",
 			visibility: Visibility.Public,
 			queueMode: QueueMode.Manual,
 			grants: new Grants(),
-			autoSkipSegments: true,
-			autoSkipSegmentCategories: {
-				sponsor: true,
-				intro: true,
-				outro: true,
-				interaction: true,
-				selfpromo: true,
-				music_offtopic: true,
-				preview: true
-			},
+			autoSkipSegmentCategories: Array.from([]),
 			restoreQueueBehavior: BehaviorOption.Prompt,
 			enableVoteSkip: false,
 		});
@@ -240,7 +240,7 @@ const RoomSettingsForm = defineComponent({
 		async function loadRoomSettings() {
 			// we have to make an API request becuase visibility is not sent in sync messages.
 			isLoadingRoomSettings.value = true;
-			try {
+			try {	
 				const res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);
 				const settings = res.data;
 				settings.grants = new Grants(res.data.grants);
@@ -251,11 +251,24 @@ const RoomSettingsForm = defineComponent({
 					"visibility",
 					"queueMode",
 					"grants",
-					"autoSkipSegments",
 					"autoSkipSegmentCategories",
 					"restoreQueueBehavior",
 					"enableVoteSkip"
-				);
+					);
+				
+				const resAutoSkipSegmentCategoriesObject = {
+					sponsor: false,
+					intro: false,
+					outro: false,
+					interaction: false,
+					selfpromo: false,
+					music_offtopic: false,
+					preview: false
+				}
+				for (let category of inputRoomSettings.value.autoSkipSegmentCategories) {
+					resAutoSkipSegmentCategoriesObject[category] = true;
+				}
+				autoSkipSegmentCategoriesObject.value = resAutoSkipSegmentCategoriesObject
 			} catch (err) {
 				toast.add({
 					content: t("room-settings.load-failed"),
@@ -272,7 +285,6 @@ const RoomSettingsForm = defineComponent({
 				description: "set-description",
 				visibility: "set-visibility",
 				queueMode: "set-queue-mode",
-				autoSkipSegments: "other",
 				autoSkipSegmentCategories: "other",
 				restoreQueueBehavior: "other",
 				enableVoteSkip: "other",
@@ -283,6 +295,8 @@ const RoomSettingsForm = defineComponent({
 					blocked.push(prop as keyof typeof propsToGrants);
 				}
 			}
+			inputRoomSettings.value.autoSkipSegmentCategories = Object.keys(autoSkipSegmentCategoriesObject.value)
+					.filter(category => autoSkipSegmentCategoriesObject.value[category as Category])
 			return _.omit(inputRoomSettings.value, blocked);
 		}
 
@@ -334,7 +348,7 @@ const RoomSettingsForm = defineComponent({
 		return {
 			isLoadingRoomSettings,
 			inputRoomSettings,
-
+			autoSkipSegmentCategoriesObject,
 			loadRoomSettings,
 			getRoomSettingsSubmit,
 			submitRoomSettings,

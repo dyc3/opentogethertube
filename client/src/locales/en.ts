@@ -243,8 +243,7 @@ export default {
 		"dj": "DJ",
 		"dj-hint":
 			"When the video ends, start the same video from the beginning. Good for looping background music.",
-		"auto-skip-text":
-			"Auto-skip SponsorBlock data.",
+		"auto-skip-text": "Auto-skip undesirable video segments using SponsorBlock data.",
 		"auto-skip-text-sponsor": "sponsor",
 		"auto-skip-text-intro": "intro",
 		"auto-skip-text-outro": "outro",

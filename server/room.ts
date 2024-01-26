@@ -45,7 +45,6 @@ import {
 	RoomSettings,
 	AuthToken,
 	BehaviorOption,
-	SegmentCategories,
 } from "../common/models/types";
 import { User } from "./models/user";
 import type { QueueItem, Video, VideoId } from "../common/models/video";
@@ -62,7 +61,7 @@ import storage from "./storage";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
-import { ResponseError as SponsorblockResponseError, Segment } from "sponsorblock-api";
+import { ResponseError as SponsorblockResponseError, Segment, Category } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
 import roommanager from "./roommanager";
@@ -168,7 +167,6 @@ const syncableProps: (keyof RoomStateSyncable)[] = [
 	"hasOwner",
 	"voteCounts",
 	"videoSegments",
-	"autoSkipSegments",
 	"autoSkipSegmentCategories",
 	"prevQueue",
 	"restoreQueueBehavior",
@@ -193,7 +191,6 @@ const storableProps: (keyof RoomStateStorable)[] = [
 	"owner",
 	"_playbackStart",
 	"videoSegments",
-	"autoSkipSegments",
 	"autoSkipSegmentCategories",
 	"prevQueue",
 	"restoreQueueBehavior",
@@ -227,16 +224,9 @@ export class Room implements RoomState {
 	_owner: User | null = null;
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>;
-	_autoSkipSegments = true;
-	_autoSkipSegmentCategories: SegmentCategories = {
-        'sponsor': true,
-        'intro': true,
-        'outro': true,
-        'interaction': true,
-        'selfpromo': true,
-        'music_offtopic': true,
-        'preview': true
-	};
+	_autoSkipSegmentCategories: Array<Category> = Array.from([
+		'sponsor', 'intro', 'outro', 'interaction', 'selfpromo', 'music_offtopic', 'preview'
+	]);
 	restoreQueueBehavior: BehaviorOption = BehaviorOption.Prompt;
 	_enableVoteSkip: boolean = false;
 
@@ -292,7 +282,6 @@ export class Room implements RoomState {
 				"playbackPosition",
 				"isPlaying",
 				"playbackSpeed",
-				"autoSkipSegments",
 				"autoSkipSegmentCategories",
 				"prevQueue",
 				"restoreQueueBehavior",
@@ -403,20 +392,11 @@ export class Room implements RoomState {
 		this.markDirty("queueMode");
 	}
 
-	public get autoSkipSegments(): boolean {
-		return this._autoSkipSegments;
-	}
-	
-	public set autoSkipSegments(value: boolean) {
-		this._autoSkipSegments = value;
-		this.markDirty("autoSkipSegments");
-	}
-
-	public get autoSkipSegmentCategories(): SegmentCategories {
+	public get autoSkipSegmentCategories(): Array<Category> {
 		return this._autoSkipSegmentCategories;
 	}
 	
-	public set autoSkipSegmentCategories(value: SegmentCategories) {
+	public set autoSkipSegmentCategories(value: Array<Category>) {
 		this._autoSkipSegmentCategories = value;
 		this.markDirty("autoSkipSegmentCategories");
 	}
@@ -561,7 +541,7 @@ export class Room implements RoomState {
 			this.currentSource = null;
 		}
 
-		if (this.autoSkipSegments && this.currentSource) {
+		if (this.autoSkipSegmentCategories.length > 0 && this.currentSource) {
 			this.wantSponsorBlock = true;
 		}
 		if (!this.currentSource && this.videoSegments.length > 0) {
@@ -783,7 +763,7 @@ export class Room implements RoomState {
 			);
 		}
 
-		if (this.autoSkipSegments) {
+		if (this.autoSkipSegmentCategories.length > 0) {
 			if (this.wantSponsorBlock) {
 				this.wantSponsorBlock = false; // Disable this before the request to avoid spamming the sponsorblock if the request takes too long.
 				try {
@@ -818,7 +798,7 @@ export class Room implements RoomState {
 				this.dontSkipSegmentsUntil === null
 			) {
 				const segment = this.getSegmentForTime(this.realPlaybackPosition);
-				if (segment && this.autoSkipSegmentCategories[segment.category]) {
+				if (segment && this.autoSkipSegmentCategories.includes(segment.category)) {
 					this.log.silly(`Segment ${segment.category} is now playing, skipping`);
 					this.seekRaw(segment.endTime);
 					await this.publish({
@@ -886,7 +866,6 @@ export class Room implements RoomState {
 			"description",
 			"visibility",
 			"queueMode",
-			"autoSkipSegments",
 			"autoSkipSegmentCategories",
 			"grants",
 			"userRoles",
@@ -1524,7 +1503,6 @@ export class Room implements RoomState {
 			description: "configure-room.set-description",
 			visibility: "configure-room.set-visibility",
 			queueMode: "configure-room.set-queue-mode",
-			autoSkipSegments: "configure-room.other",
 			autoSkipSegmentCategories: "configure-room.other",
 			restoreQueueBehavior: "configure-room.other",
 			enableVoteSkip: "configure-room.other",
@@ -1602,9 +1580,9 @@ export class Room implements RoomState {
 				}
 			}
 		}
-
+		// TODO: validate 
 		// go grab segments if being enabled while a video is playing
-		if (this.autoSkipSegments && this.videoSegments.length === 0 && this.currentSource) {
+		if (this.autoSkipSegmentCategories.length > 0 && this.videoSegments.length === 0 && this.currentSource) {
 			this.wantSponsorBlock = true;
 		}
 	}
@@ -1646,7 +1624,7 @@ export class Room implements RoomState {
 		this.playbackPosition = 0;
 		this._playbackStart = dayjs();
 		this.videoSegments = [];
-		if (this.autoSkipSegments) {
+		if (this.autoSkipSegmentCategories.length > 0) {
 			this.wantSponsorBlock = true;
 		}
 	}

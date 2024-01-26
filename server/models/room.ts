@@ -1,9 +1,10 @@
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { QueueMode, Visibility, Role, BehaviorOption, SegmentCategories } from "../../common/models/types";
+import { QueueMode, Visibility, Role, BehaviorOption } from "../../common/models/types";
 import { User } from "./user";
 import { ROOM_NAME_REGEX } from "../../common/constants";
 import type { OldRoleGrants, GrantMask } from "../../common/permissions";
 import { QueueItem } from "../../common/models/video";
+import { Category } from "sponsorblock-api";
 
 export interface RoomAttributes {
 	"id": number;
@@ -17,8 +18,7 @@ export interface RoomAttributes {
 	"role-admin": Array<number>;
 	"role-mod": Array<number>;
 	"role-trusted": Array<number>;
-	"autoSkipSegments": boolean;
-	"autoSkipSegmentCategories": SegmentCategories;
+	"autoSkipSegmentCategories": Array<Category>;
 	"prevQueue": Array<QueueItem> | null;
 	"restoreQueueBehavior": BehaviorOption;
 	"enableVoteSkip": boolean;
@@ -41,8 +41,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "role-admin": Array<number>;
 	declare "role-mod": Array<number>;
 	declare "role-trusted": Array<number>;
-	declare "autoSkipSegments": boolean;
-	declare "autoSkipSegmentCategories": SegmentCategories;
+	declare "autoSkipSegmentCategories": Array<Category>;
 	declare "prevQueue": Array<QueueItem> | null;
 	declare "restoreQueueBehavior": BehaviorOption;
 	declare "enableVoteSkip": boolean;
@@ -99,23 +98,12 @@ export const createModel = (sequelize: Sequelize) => {
 			"role-trusted": {
 				type: DataTypes.JSONB,
 			},
-			"autoSkipSegments": {
-				type: DataTypes.BOOLEAN,
-				allowNull: false,
-				defaultValue: true,
-			},
 			"autoSkipSegmentCategories": {
 				type: DataTypes.JSONB,
 				allowNull: false,
-				defaultValue: {
-					'sponsor': true,
-					'intro': true,
-					'outro': true,
-					'interaction': true,
-					'selfpromo': true,
-					'music_offtopic': true,
-					'preview': true
-				},
+				defaultValue: [
+					'sponsor', 'intro', 'outro', 'interaction', 'selfpromo', 'music_offtopic', 'preview'
+				],
 			},
 			"prevQueue": {
 				type: DataTypes.JSONB,

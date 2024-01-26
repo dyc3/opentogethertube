@@ -54,10 +54,6 @@ export type ClientInfo = {
 	status?: PlayerStatus;
 };
 
-export type SegmentCategories = {
-	[K in Category]: boolean;
-}
-
 /**
  * Settings that can be set through the "settings" UI.
  */
@@ -67,8 +63,7 @@ export interface RoomSettings {
 	visibility: Visibility;
 	queueMode: QueueMode;
 	grants: Grants;
-	autoSkipSegments: boolean;
-	autoSkipSegmentCategories: SegmentCategories;
+	autoSkipSegmentCategories: Array<Category>;
 	restoreQueueBehavior: BehaviorOption;
 	enableVoteSkip: boolean;
 }

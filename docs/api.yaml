@@ -104,23 +104,8 @@ paths:
                           type: array
                           items:
                             type: number
-                      autoSkipSegments:
-                        type: boolean
                       autoSkipSegmentCategories:
-                        sponsor: 
-                          type: boolean
-                        intro: 
-                          type: boolean
-                        outro: 
-                          type: boolean
-                        interaction: 
-                          type: boolean
-                        selfpromo: 
-                          type: boolean
-                        music_offtopic: 
-                          type: boolean
-                        preview: 
-                          type: boolean
+                        $ref: "#/components/schemas/autoSkipSegmentCategories"
                       users:
                         type: array
                         items:
@@ -180,7 +165,6 @@ paths:
                             - isLoggedIn
                     required:
                       - grants
-                      - autoSkipSegments
                       - autoSkipSegmentCategories
                       - users
                       - visibility
@@ -216,23 +200,8 @@ paths:
                       $ref: "#/components/schemas/visibility"
                     queueMode:
                       $ref: "#/components/schemas/queuemode"
-                    autoSkipSegments:
-                      type: boolean
                     autoSkipSegmentCategories: 
-                      sponsor: 
-                        type: boolean
-                      intro: 
-                        type: boolean
-                      outro: 
-                        type: boolean
-                      interaction: 
-                        type: boolean
-                      selfpromo: 
-                        type: boolean
-                      music_offtopic: 
-                        type: boolean
-                      preview: 
-                        type: boolean
+                      $ref: "#/components/schemas/autoSkipSegmentCategories"
                     grants:
                       description: Map of role numbers to the bitmask of permissions that role has
                         been granted
@@ -702,6 +671,10 @@ components:
       required:
         - service
         - id
+    autoSkipSegmentCategories:
+      type: array
+      items:
+        type: string
   responses:
     Success:
       description: The operation was successful.
