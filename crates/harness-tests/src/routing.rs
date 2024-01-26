@@ -3,8 +3,8 @@ use std::time::Duration;
 use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
 use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
 use serde_json::value::RawValue;
-use test_context::test_context;
-use websocket::dataframe::DataFrame;
+use test_context::{futures::SinkExt, test_context};
+use websocket::{dataframe::DataFrame};
 use tokio_tungstenite;
 
 #[test_context(TestRunner)]
@@ -330,7 +330,7 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
 #[allow(dead_code)]
 async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
     let client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect");
-
+    
     let dataframe = DataFrame {
         finished: true,
         reserved: [false, true, true],
@@ -340,7 +340,7 @@ async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
         .into_bytes(),
     };
     
-    client.send_dataframe(&dataframe); // so this line could be replaced with something like: ctx.send_packet()
+    client.0.start_send_unpin(&dataframe);
 
     ctx.is_alive().await;
 } 
