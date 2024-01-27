@@ -1,14 +1,20 @@
 'use strict';
 
-import { ALL_SKIP_CATEGORIES } from "common/constants";
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
     await queryInterface.removeColumn("Rooms", "autoSkipSegments");
 		await queryInterface.addColumn("Rooms", "autoSkipSegmentCategories", {
 			type: Sequelize.JSONB,
-			defaultValue: ALL_SKIP_CATEGORIES,
+			defaultValue: [
+				'sponsor', 
+				'intro', 
+				'outro', 
+				'interaction', 
+				'selfpromo', 
+				'music_offtopic', 
+				'preview'
+			],
 			allowNull: false,
 		});
   },
