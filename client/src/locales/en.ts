@@ -192,7 +192,6 @@ export default {
 			"any-mp4-videos": "Any public .mp4 videos: {url}",
 			"youtube-playlists": "Youtube playlists: {url}",
 			"youtube-channels": "Youtube channels: {url}",
-			"subreddits": "Subreddits: {url}",
 		},
 		"messages": {
 			"unknown-status": "Unknown status for add preview response: {status}.",

@@ -189,7 +189,6 @@ export default {
 			"any-mp4-videos": "Общедоступные .mp4 видео: {url}",
 			"youtube-playlists": "YouTube плейлисты: {url}",
 			"youtube-channels": "YouTube каналы: {url}",
-			"subreddits": "Сабреддиты: {url}",
 		},
 		"messages": {
 			"unknown-status": "Неизвестный статус добавления превью: {status}.",
