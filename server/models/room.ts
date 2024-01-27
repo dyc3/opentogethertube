@@ -1,7 +1,7 @@
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 import { QueueMode, Visibility, Role, BehaviorOption } from "../../common/models/types";
 import { User } from "./user";
-import { ROOM_NAME_REGEX } from "../../common/constants";
+import { ALL_SKIP_CATEGORIES, ROOM_NAME_REGEX } from "../../common/constants";
 import type { OldRoleGrants, GrantMask } from "../../common/permissions";
 import { QueueItem } from "../../common/models/video";
 import { Category } from "sponsorblock-api";
@@ -101,9 +101,7 @@ export const createModel = (sequelize: Sequelize) => {
 			"autoSkipSegmentCategories": {
 				type: DataTypes.JSONB,
 				allowNull: false,
-				defaultValue: [
-					'sponsor', 'intro', 'outro', 'interaction', 'selfpromo', 'music_offtopic', 'preview'
-				],
+				defaultValue: ALL_SKIP_CATEGORIES,
 			},
 			"prevQueue": {
 				type: DataTypes.JSONB,

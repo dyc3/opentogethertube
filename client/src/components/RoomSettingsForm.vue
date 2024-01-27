@@ -160,7 +160,7 @@ import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
-import { Category } from "sponsorblock-api";
+import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
 
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
@@ -168,7 +168,6 @@ const RoomSettingsForm = defineComponent({
 		PermissionsEditor,
 	},
 	setup() {
-		const ALL_SKIP_CATEGORIES: Category[] = ['sponsor', 'intro', 'outro', 'interaction', 'selfpromo', 'music_offtopic', 'preview']
 		const store = useStore();
 		const { t } = useI18n();
 

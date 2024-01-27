@@ -54,7 +54,7 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 	queue: QueueItem[];
 	hasOwner: boolean;
 	grants: Grants;
-	autoSkipSegmentCategories: Array<Category>;
+	autoSkipSegmentCategories: Category[];
 	/** @deprecated */
 	permissions: Grants;
 	restoreQueueBehavior: BehaviorOption;

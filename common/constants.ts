@@ -14,3 +14,12 @@ export const ALL_VIDEO_SERVICES = [
 	"peertube",
 	"pluto",
 ] as const;
+export const ALL_SKIP_CATEGORIES = [
+	'sponsor', 
+	'intro', 
+	'outro', 
+	'interaction', 
+	'selfpromo', 
+	'music_offtopic', 
+	'preview'
+] as const

@@ -71,6 +71,7 @@ import { voteSkipThreshold } from "../common";
 import type { ClientManagerCommand } from "./clientmanager";
 import { canKickUser } from "../common/userutils";
 import { conf } from "./ott-config";
+import { ALL_SKIP_CATEGORIES } from "../common/constants";
 
 /**
  * Represents a User from the Room's perspective.
@@ -224,9 +225,7 @@ export class Room implements RoomState {
 	_owner: User | null = null;
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>;
-	_autoSkipSegmentCategories: Array<Category> = Array.from([
-		'sponsor', 'intro', 'outro', 'interaction', 'selfpromo', 'music_offtopic', 'preview'
-	]);
+	_autoSkipSegmentCategories: Array<Category> = Array.from([]);
 	restoreQueueBehavior: BehaviorOption = BehaviorOption.Prompt;
 	_enableVoteSkip: boolean = false;
 
@@ -392,11 +391,11 @@ export class Room implements RoomState {
 		this.markDirty("queueMode");
 	}
 
-	public get autoSkipSegmentCategories(): Array<Category> {
+	public get autoSkipSegmentCategories(): Category[] {
 		return this._autoSkipSegmentCategories;
 	}
 	
-	public set autoSkipSegmentCategories(value: Array<Category>) {
+	public set autoSkipSegmentCategories(value: Category[]) {
 		this._autoSkipSegmentCategories = value;
 		this.markDirty("autoSkipSegmentCategories");
 	}
@@ -1561,6 +1560,13 @@ export class Room implements RoomState {
 				}
 			}
 		}
+		
+		if (request.settings.autoSkipSegmentCategories){
+			const autoSkipSegmentCategoriesSet = new Set(request.settings.autoSkipSegmentCategories)
+			request.settings.autoSkipSegmentCategories = ALL_SKIP_CATEGORIES.filter(
+				category => autoSkipSegmentCategoriesSet.has(category)
+			)
+		}
 
 		// Now that we've checked permissions, it's now safe to apply the settings.
 
@@ -1580,7 +1586,7 @@ export class Room implements RoomState {
 				}
 			}
 		}
-		// TODO: validate 
+
 		// go grab segments if being enabled while a video is playing
 		if (this.autoSkipSegmentCategories.length > 0 && this.videoSegments.length === 0 && this.currentSource) {
 			this.wantSponsorBlock = true;
