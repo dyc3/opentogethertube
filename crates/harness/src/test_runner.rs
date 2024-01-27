@@ -147,12 +147,40 @@ impl TestRunner {
         Ok(child)
     }
 
-    /// Create a URL that points to the balancer. This creates URLs that clients should connect to when making HTTP requests.
-    pub fn url(&self, path: impl AsRef<str>) -> reqwest::Url {
+    /// Create a URL that points to the balancer. This creates URLs that clients should use when connecting to the balancer or making HTTP requests.
+    ///
+    /// ```no_run
+    /// # use test_context::test_context;
+    /// # use harness::TestRunner;
+    ///
+    /// # #[test_context(TestRunner)]
+    /// # #[tokio::test]
+    /// # async fn sample_test(ctx: &mut TestRunner) {
+    /// let client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect");
+    /// # }
+    /// ````
+    #[must_use]
+    pub fn url(&self, scheme: impl AsRef<str>, path: impl AsRef<str>) -> reqwest::Url {
         let path = path.as_ref();
         assert!(path.starts_with('/'), "path must start with '/'");
-        let built = format!("http://[::1]:{}{}", self.port(), path);
+        let built = format!("{}://[::1]:{}{}", scheme.as_ref(), self.port(), path);
         reqwest::Url::parse(&built).expect("failed to parse URL")
+    }
+
+    /// Create a URL that points to the balancer. This creates URLs that clients should connect to when making HTTP requests.
+    ///
+    /// ```no_run
+    /// # use test_context::test_context;
+    /// # use harness::TestRunner;
+    /// # #[test_context(TestRunner)]
+    /// # #[tokio::test]
+    /// # async fn sample_test(ctx: &mut TestRunner) {
+    /// reqwest::get(ctx.http_url("/api/status")).await.expect("http request failed");
+    /// }
+    /// ````
+    #[must_use]
+    pub fn http_url(&self, path: impl AsRef<str>) -> reqwest::Url {
+        self.url("http", path)
     }
 }
 
