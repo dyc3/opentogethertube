@@ -3,7 +3,6 @@ version: "3.0"
 services:
   grafana:
     container_name: "ott-vis"
-    platform: "linux/amd64"
     build:
       context: ./.config
       args:
