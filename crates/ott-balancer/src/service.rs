@@ -132,7 +132,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     }
 
                     let ctx_read = ctx.read().await;
-                    if ctx_read.monoliths.len() == 0 {
+                    if ctx_read.monoliths.is_empty() {
                         debug!(message = "no monoliths", request_id, room = %room_name);
                         return Ok(no_monoliths());
                     }
