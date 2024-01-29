@@ -394,7 +394,7 @@ export class Room implements RoomState {
 	public get autoSkipSegmentCategories(): Category[] {
 		return this._autoSkipSegmentCategories;
 	}
-	
+
 	public set autoSkipSegmentCategories(value: Category[]) {
 		this._autoSkipSegmentCategories = value;
 		this.markDirty("autoSkipSegmentCategories");
@@ -1560,12 +1560,20 @@ export class Room implements RoomState {
 				}
 			}
 		}
-		
-		if (request.settings.autoSkipSegmentCategories){
-			const autoSkipSegmentCategoriesSet = new Set(request.settings.autoSkipSegmentCategories)
-			request.settings.autoSkipSegmentCategories = ALL_SKIP_CATEGORIES.filter(
-				category => autoSkipSegmentCategoriesSet.has(category)
-			)
+
+		let autoSkipSegmentCategoriesChanged = false;
+		if (request.settings.autoSkipSegmentCategories) {
+			const autoSkipSegmentCategoriesSet = new Set(
+				request.settings.autoSkipSegmentCategories
+			);
+			if (
+				!_.isEqual(autoSkipSegmentCategoriesSet, new Set(this._autoSkipSegmentCategories))
+			) {
+				request.settings.autoSkipSegmentCategories = ALL_SKIP_CATEGORIES.filter(category =>
+					autoSkipSegmentCategoriesSet.has(category)
+				);
+				autoSkipSegmentCategoriesChanged = true;
+			}
 		}
 
 		// Now that we've checked permissions, it's now safe to apply the settings.
@@ -1588,7 +1596,12 @@ export class Room implements RoomState {
 		}
 
 		// go grab segments if being enabled while a video is playing
-		if (this.autoSkipSegmentCategories.length > 0 && this.videoSegments.length === 0 && this.currentSource) {
+		if (
+			autoSkipSegmentCategoriesChanged &&
+			this.autoSkipSegmentCategories.length > 0 &&
+			this.videoSegments.length === 0 &&
+			this.currentSource
+		) {
 			this.wantSponsorBlock = true;
 		}
 	}
