@@ -370,4 +370,79 @@ describe("Room API", () => {
 			});
 		});
 	});
+
+	describe("PATCH /api/room/:name validate autoSkipSegmentCategories", () => {
+		let getSessionInfoSpy: jest.SpyInstance;
+		let validateSpy: jest.SpyInstance;
+		const roomName = "testUpdateAutoSkipSegmentCategories";
+		const oldEnableCreatePermanent = conf.get("room.enable_create_permanent");
+		const userEmail = "forced2@localhost";
+
+		beforeAll(async () => {
+			const user = await usermanager.registerUser({
+				email: userEmail,
+				username: "owner2",
+				password: "password1234",
+			});
+			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+				isLoggedIn: true,
+				user_id: user.id,
+			});
+			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			conf.set("room.enable_create_permanent", true);
+			await roommanager.createRoom({
+				name: roomName,
+				isTemporary: false,
+				owner: user
+			});
+		});
+
+		afterAll(async () => {
+			getSessionInfoSpy.mockRestore();
+			validateSpy.mockRestore();
+			try {
+				await roommanager.unloadRoom(roomName);
+			} catch (e) {
+				if (!(e instanceof RoomNotFoundException)) {
+					throw e;
+				}
+			}
+			await UserModel.destroy({where: {email: userEmail}})
+			conf.set("room.enable_create_permanent", oldEnableCreatePermanent);
+		});
+
+		it.each([
+			[
+				Array(100).fill("sponsor"), 
+				["sponsor"]
+			],
+			[
+				["invalidCategory1", "invalidCategory2", "intro", "intro", "outro"],
+				["intro", "outro"]
+			],
+			[
+				["sponsor","intro","outro","interaction","selfpromo","music_offtopic","preview"],
+				["sponsor","intro","outro","interaction","selfpromo","music_offtopic","preview"]
+			],
+			[
+				[],
+				[]
+			]
+		])("should update autoSkipSegmentCategories with only unique valid auto-skip segment cateogories", async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
+			let resp = await request(app)
+				.patch(`/api/room/${roomName}`)
+				.set({ Authorization: "Bearer foobar" })
+				.send({
+					autoSkipSegmentCategories: requestAutoSkipSegmentCategories
+				})
+				.expect("Content-Type", /json/)
+				.expect(200);
+			expect(resp.body.success).toEqual(true);
+			const roomResult = await roommanager.getRoom(roomName);
+			expect(roomResult.ok).toBeTruthy();
+			expect(_.pick(roomResult.value, "autoSkipSegmentCategories")).toMatchObject({
+				autoSkipSegmentCategories: savedAutoSkipSegmentCategories
+			})
+		});
+	});
 });

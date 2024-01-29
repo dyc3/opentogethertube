@@ -72,6 +72,7 @@
 				:label="$t('room-settings.auto-skip-text')"
 				chips
 				multiple
+				data-cy="input-auto-skip"
 			></v-select>
 			<v-select
 				density="compact"
