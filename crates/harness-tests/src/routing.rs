@@ -2,12 +2,10 @@ use std::time::Duration;
 
 use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
 use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
-use reqwest::header;
 use serde_json::value::RawValue;
 use test_context::{futures::SinkExt, test_context};
-use websocket::{dataframe::DataFrame};
 use tokio_tungstenite;
-use tungstenite::protocol::frame::{Frame, FrameHeader, coding::OpCode};
+use tungstenite::protocol::frame::{Frame, FrameHeader, coding::OpCode, coding::Data};
 
 #[test_context(TestRunner)]
 #[tokio::test]
@@ -331,16 +329,16 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
 #[tokio::test]
 #[allow(dead_code)]
 async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
-    let client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect");
-
+    let client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect"); 
+    
     let dataframe = Frame {
         header: FrameHeader {    
             is_final: true,
             rsv1: false,
             rsv2: true,
             rsv3: true,
-            opcode: OpCode::Data(()),
-            mask: Option<[u8; 4]>(),
+            opcode: OpCode::Data(Data::Text),
+            mask: Some([0,0,0,0]),
         },
         payload: "{\"action\":\"auth\", \"token\":\"foo\"}"
         .to_string()

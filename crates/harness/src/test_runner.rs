@@ -59,7 +59,7 @@ impl TestRunner {
     }
 
     pub async fn is_alive(&mut self) {
-        let ecode = self.child.wait().await.expect("Error: Balancer is not alive");
+        let ecode = self.child.try_wait().expect("Error: Balancer is not alive").unwrap();
         assert_eq!(ecode.success(), true);
     }
 
