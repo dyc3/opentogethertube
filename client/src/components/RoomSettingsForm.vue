@@ -73,7 +73,7 @@
 				chips
 				multiple
 				data-cy="input-auto-skip"
-			></v-select>
+			/>
 			<v-select
 				density="compact"
 				:label="$t('room-settings.restore-queue')"
@@ -191,7 +191,7 @@ const RoomSettingsForm = defineComponent({
 		async function loadRoomSettings() {
 			// we have to make an API request becuase visibility is not sent in sync messages.
 			isLoadingRoomSettings.value = true;
-			try {	
+			try {
 				const res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);
 				const settings = res.data;
 				settings.grants = new Grants(res.data.grants);
@@ -311,10 +311,5 @@ export default RoomSettingsForm;
 	.v-btn {
 		margin: 10px 0;
 	}
-}
-
-.auto-skip-categories  {
-	display: flex;
-	flex-direction: row;
 }
 </style>

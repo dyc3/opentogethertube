@@ -393,7 +393,7 @@ describe("Room API", () => {
 			await roommanager.createRoom({
 				name: roomName,
 				isTemporary: false,
-				owner: user
+				owner: user,
 			});
 		});
 
@@ -407,42 +407,55 @@ describe("Room API", () => {
 					throw e;
 				}
 			}
-			await UserModel.destroy({where: {email: userEmail}})
+			await UserModel.destroy({ where: { email: userEmail } });
 			conf.set("room.enable_create_permanent", oldEnableCreatePermanent);
 		});
 
 		it.each([
-			[
-				Array(100).fill("sponsor"), 
-				["sponsor"]
-			],
+			[Array(100).fill("sponsor"), ["sponsor"]],
 			[
 				["invalidCategory1", "invalidCategory2", "intro", "intro", "outro"],
-				["intro", "outro"]
+				["intro", "outro"],
 			],
 			[
-				["sponsor","intro","outro","interaction","selfpromo","music_offtopic","preview"],
-				["sponsor","intro","outro","interaction","selfpromo","music_offtopic","preview"]
+				[
+					"sponsor",
+					"intro",
+					"outro",
+					"interaction",
+					"selfpromo",
+					"music_offtopic",
+					"preview",
+				],
+				[
+					"sponsor",
+					"intro",
+					"outro",
+					"interaction",
+					"selfpromo",
+					"music_offtopic",
+					"preview",
+				],
 			],
-			[
-				[],
-				[]
-			]
-		])("should update autoSkipSegmentCategories with only unique valid auto-skip segment cateogories", async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
-			let resp = await request(app)
-				.patch(`/api/room/${roomName}`)
-				.set({ Authorization: "Bearer foobar" })
-				.send({
-					autoSkipSegmentCategories: requestAutoSkipSegmentCategories
-				})
-				.expect("Content-Type", /json/)
-				.expect(200);
-			expect(resp.body.success).toEqual(true);
-			const roomResult = await roommanager.getRoom(roomName);
-			expect(roomResult.ok).toBeTruthy();
-			expect(_.pick(roomResult.value, "autoSkipSegmentCategories")).toMatchObject({
-				autoSkipSegmentCategories: savedAutoSkipSegmentCategories
-			})
-		});
+			[[], []],
+		])(
+			"should update autoSkipSegmentCategories with only unique valid auto-skip segment cateogories",
+			async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
+				let resp = await request(app)
+					.patch(`/api/room/${roomName}`)
+					.set({ Authorization: "Bearer foobar" })
+					.send({
+						autoSkipSegmentCategories: requestAutoSkipSegmentCategories,
+					})
+					.expect("Content-Type", /json/)
+					.expect(200);
+				expect(resp.body.success).toEqual(true);
+				const roomResult = await roommanager.getRoom(roomName);
+				expect(roomResult.ok).toBeTruthy();
+				expect(_.pick(roomResult.value, "autoSkipSegmentCategories")).toMatchObject({
+					autoSkipSegmentCategories: savedAutoSkipSegmentCategories,
+				});
+			}
+		);
 	});
 });
