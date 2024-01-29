@@ -91,7 +91,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 		this.roomName.value = roomName;
 		this.active.value = true;
 		this.kickReason.value = null;
-		this.doConnect();
+		this.doConnect(this.connectionUrl);
 	}
 
 	reconnect() {
@@ -101,11 +101,10 @@ class OttRoomConnectionReal implements OttRoomConnection {
 		}
 		console.log("reconnecting...");
 		this.reconnectAttempts.value += 1;
-		this.doConnect();
+		this.doConnect(`${this.connectionUrl}?reconnect=true`);
 	}
 
-	private doConnect() {
-		let url = this.connectionUrl;
+	private doConnect(url: string) {
 		this.socket = new WebSocket(url);
 		console.debug(`connecting to ${url}`);
 		this.socket.addEventListener("open", () => this.onOpen());
