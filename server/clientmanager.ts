@@ -76,10 +76,16 @@ export function shutdown() {
  * @param socket
  */
 async function onDirectConnect(socket: WebSocket, req: express.Request) {
-	const roomName = req.url.split("/").slice(-1)[0];
-	log.debug(`connection received: ${roomName}, waiting for auth token...`);
-	const client = new DirectClient(roomName, socket);
-	addClient(client);
+	try {
+		const connectUrl = new URL(`ws://${req.headers.host}${req.url}`);
+		const roomName = connectUrl.pathname.split("/").slice(-1)[0];
+		log.debug(`connection received: ${roomName}, waiting for auth token...`);
+		const client = new DirectClient(roomName, socket);
+		addClient(client);
+	} catch (e) {
+		log.error(`Failed to process new client : ${e}`);
+		socket.close(OttWebsocketError.UNKNOWN);
+	}
 }
 
 export function addClient(client: Client) {
