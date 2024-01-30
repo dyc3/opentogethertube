@@ -1,0 +1,62 @@
+$unicode-latin: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+$unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+
+/* Roboto Font - Latin alphabet */
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-weight: 400;
+  src: url(/src/assets/fonts/roboto-italic.woff2) format('woff2');
+  unicode-range: $unicode-latin;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: url(/src/assets/fonts/roboto-regular.woff2) format('woff2');
+  unicode-range: $unicode-latin;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  src: url(/src/assets/fonts/roboto-medium-regular.woff2) format('woff2');
+  unicode-range: $unicode-latin;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: url(/src/assets/fonts/roboto-bold.woff2) format('woff2');
+  unicode-range: $unicode-latin;
+}
+
+/* Roboto Font - Cyrillic alphabet */
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-weight: 400;
+  src: url(/src/assets/fonts/roboto-italic-cyrillic.woff2) format('woff2');
+  unicode-range: $unicode-cyrillic;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: url(/src/assets/fonts/roboto-regular-cyrillic.woff2) format('woff2');
+  unicode-range: $unicode-cyrillic;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  src: url(/src/assets/fonts/roboto-medium-regular-cyrillic.woff2) format('woff2');
+  unicode-range: $unicode-cyrillic;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: url(/src/assets/fonts/roboto-bold-cyrillic.woff2) format('woff2');
+  unicode-range: $unicode-cyrillic;
+}
