@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import uuid, { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import WebSocket from "ws";
 
@@ -17,6 +17,7 @@ export type { MsgB2M, MsgM2B };
 const log = getLogger("balancer");
 
 export let wss: WebSocket.Server | null = null;
+let monolith_id = uuidv4();
 
 export function initBalancerConnections() {
 	const enabled = conf.get("balancing.enabled");
@@ -76,7 +77,7 @@ class BalancerManager {
 			payload: {
 				port: conf.get("port"),
 				region: conf.get("balancing.region"),
-				id: uuidv4(),
+				id: monolith_id,
 			},
 		};
 		conn.send(init);
@@ -193,7 +194,7 @@ export class BalancerConnectionReal extends BalancerConnection {
 			payload: {
 				port: conf.get("port"),
 				region: conf.get("balancing.region"),
-				id: uuidv4(),
+				id: monolith_id,
 			},
 		};
 		this.send(init);
@@ -336,4 +337,4 @@ function gossip() {
 
 const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait: 1000 * 20 });
 
-interface GossipRoom extends RoomListItem { }
+interface GossipRoom extends RoomListItem {}
