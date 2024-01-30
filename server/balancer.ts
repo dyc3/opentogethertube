@@ -76,6 +76,7 @@ class BalancerManager {
 			payload: {
 				port: conf.get("port"),
 				region: conf.get("balancing.region"),
+				id: uuidv4(),
 			},
 		};
 		conn.send(init);
@@ -192,6 +193,7 @@ export class BalancerConnectionReal extends BalancerConnection {
 			payload: {
 				port: conf.get("port"),
 				region: conf.get("balancing.region"),
+				id: uuidv4(),
 			},
 		};
 		this.send(init);
@@ -334,4 +336,4 @@ function gossip() {
 
 const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait: 1000 * 20 });
 
-interface GossipRoom extends RoomListItem {}
+interface GossipRoom extends RoomListItem { }
