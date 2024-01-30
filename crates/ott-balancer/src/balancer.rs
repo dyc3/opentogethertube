@@ -4,7 +4,6 @@ use ott_balancer_protocol::monolith::{
     B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
 };
 use ott_balancer_protocol::*;
-use rand::seq::IteratorRandom;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -16,6 +15,7 @@ use crate::client::ClientLink;
 use crate::config::BalancerConfig;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
+use crate::selection::{MinRoomsSelector, MonolithSelection};
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -171,12 +171,25 @@ impl BalancerLink {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct BalancerContext {
     pub clients: HashMap<ClientId, BalancerClient>,
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
     pub rooms_to_monoliths: HashMap<RoomName, RoomLocator>,
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
+    pub monolith_selection: Box<dyn MonolithSelection + Send + Sync + 'static>,
+}
+
+impl Default for BalancerContext {
+    fn default() -> Self {
+        BalancerContext {
+            clients: HashMap::default(),
+            monoliths: HashMap::default(),
+            rooms_to_monoliths: HashMap::default(),
+            monoliths_by_region: HashMap::default(),
+            monolith_selection: Box::<MinRoomsSelector>::default(),
+        }
+    }
 }
 
 impl BalancerContext {
@@ -356,50 +369,29 @@ impl BalancerContext {
         Ok(monolith)
     }
 
-    /// When loading a room, call this to select the best monolith to load it on.
-    pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
-        fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
-            x.rooms().len().cmp(&y.rooms().len())
-        }
-
+    /// Prioritizes monoliths in the same region
+    pub fn filter_monoliths(&self) -> Vec<&BalancerMonolith> {
         let in_region = self
             .monoliths_by_region
             .get(BalancerConfig::get().region.as_str());
         if let Some(in_region) = in_region {
-            let selected = in_region
+            return in_region
                 .iter()
                 .flat_map(|id| self.monoliths.get(id))
-                .min_by(|x, y| cmp(x, y));
-            if let Some(s) = selected {
-                return Ok(s);
-            }
+                .collect();
         }
-        let selected = self.monoliths.values().min_by(|x, y| cmp(x, y));
-        match selected {
-            Some(s) => Ok(s),
-            None => anyhow::bail!("no monoliths available"),
-        }
+
+        self.monoliths.values().collect()
+    }
+
+    pub fn select_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
+        let filtered = self.filter_monoliths();
+        return self.monolith_selection.select_monolith(filtered);
     }
 
     pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
-        let in_region = self
-            .monoliths_by_region
-            .get(BalancerConfig::get().region.as_str());
-        if let Some(in_region) = in_region {
-            let selected = in_region.iter().choose(&mut rand::thread_rng());
-            if let Some(s) = selected {
-                if let Some(m) = self.monoliths.get(s) {
-                    return Ok(m);
-                }
-            }
-        }
-
-        let selected = self
-            .monoliths
-            .values()
-            .choose(&mut rand::thread_rng())
-            .ok_or(anyhow::anyhow!("no monoliths available"))?;
-        Ok(selected)
+        let filtered = self.filter_monoliths();
+        return self.monolith_selection.random_monolith(filtered);
     }
 
     #[instrument(skip(self, monolith), err, fields(monolith_id = %monolith))]

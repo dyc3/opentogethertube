@@ -30,6 +30,10 @@ const locales = [
 		text: "🇷🇺",
 		value: "ru",
 	},
+	{
+		text: "🇪🇸",
+		value: "es",
+	},
 ];
 
 export const LocaleSelector = defineComponent({

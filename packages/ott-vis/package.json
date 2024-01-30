@@ -1,11 +1,11 @@
 {
 	"name": "ott-vis",
-	"version": "1.0.0",
+	"version": "0.9.0",
 	"description": "",
 	"scripts": {
 		"build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
 		"dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
-		"test": "jest --passWithNoTests --maxWorkers 4",
+		"test": "jest --passWithNoTests --maxWorkers 4 --coverage",
 		"typecheck": "tsc --noEmit",
 		"lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
 		"lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",

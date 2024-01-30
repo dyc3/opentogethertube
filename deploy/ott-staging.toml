@@ -5,5 +5,11 @@ cors_proxy = "cors.opentogethertube.com"
 [log]
 level = "silly"
 
+[db]
+metrics = false
+
+[redis]
+metrics = false
+
 [balancing]
 enabled = true

@@ -24,6 +24,7 @@ pub mod discovery;
 pub mod messages;
 pub mod monolith;
 pub mod room;
+pub mod selection;
 pub mod service;
 
 pub async fn run() -> anyhow::Result<()> {
