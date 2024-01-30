@@ -6,6 +6,7 @@ use serde_json::value::RawValue;
 use test_context::{futures::SinkExt, test_context};
 use tokio_tungstenite;
 use tungstenite::protocol::frame::{Frame, FrameHeader, coding::OpCode, coding::Data};
+use websocket::Message;
 
 #[test_context(TestRunner)]
 #[tokio::test]
@@ -331,21 +332,20 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
 async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
     let client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect"); 
     
-    let dataframe = Frame {
-        header: FrameHeader {    
-            is_final: true,
-            rsv1: false,
-            rsv2: true,
-            rsv3: true,
-            opcode: OpCode::Data(Data::Text),
-            mask: Some([0,0,0,0]),
-        },
-        payload: "{\"action\":\"auth\", \"token\":\"foo\"}"
-        .to_string()
-        .into_bytes(),
+    let header = FrameHeader {    
+        is_final: true,
+        rsv1: false,
+        rsv2: true,
+        rsv3: true,
+        opcode: OpCode::Data(Data::Text),
+        mask: Some([0,0,0,0]),
     };
+
+    let payload = "{\"action\":\"auth\", \"token\":\"foo\"}".to_string().into_bytes();
     
-    client.0.start_send_unpin(&dataframe);
+    let dataframe = Frame::from_payload(header, payload);
+
+    client.0.send(&dataframe);
 
     ctx.is_alive().await;
 } 
