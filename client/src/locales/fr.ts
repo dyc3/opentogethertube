@@ -176,7 +176,6 @@ export default {
 			"any-mp4-videos": "Toutes les vidéos .mp4 publiques: {url}",
 			"youtube-playlists": "Les playlists Youtube: {url}",
 			"youtube-channels": "Les chaînes Youtube: {url}",
-
 		},
 		"messages": {
 			"unknown-status": "Statut inconnu, impossible de donner un aperçu pour : {status}.",
