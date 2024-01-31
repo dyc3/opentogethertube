@@ -14,6 +14,7 @@ import { Result, ok } from "../../../common/result";
 import roommanager from "../../roommanager";
 import { loadModels } from "../../models";
 import type { Request } from "express";
+import { loadConfigFile, conf } from "../../ott-config";
 
 class TestClient extends Client {
 	sendRawMock = jest.fn();
@@ -51,6 +52,7 @@ class BalancerConnectionMock extends BalancerConnection {
 
 describe("ClientManager", () => {
 	beforeAll(async () => {
+		loadConfigFile();
 		loadModels();
 		await buildClients();
 		await clientmanager.setup();
@@ -69,10 +71,28 @@ describe("ClientManager", () => {
 
 	it.each([
 		["/api/room/foo", "foo"],
+		["/api/room/foo/", "foo"],
+		["/api/room/foo/bar", "foo"],
 		["/api/room/foo?reconnect=true", "foo"],
 	])(`should parse room name from %s`, (path, roomName) => {
-		const got = parseWebsocketConnectionUrl({ url: path } as Request);
+		const got = parseWebsocketConnectionUrl({ url: path, headers: {} } as Request);
 		expect(got).toEqual(roomName);
+	});
+
+	it.each([
+		["/base", "/api/room/foo", "foo"],
+		["/base", "/api/room/foo/", "foo"],
+		["/base", "/api/room/foo/bar", "foo"],
+		["/base", "/api/room/foo?reconnect=true", "foo"],
+		["/base/base2", "/api/room/foo", "foo"],
+		["/base/base2", "/api/room/foo/", "foo"],
+		["/base/base2", "/api/room/foo/bar", "foo"],
+		["/base/base2", "/api/room/foo?reconnect=true", "foo"],
+	])(`should parse room name when base url is %s from %s`, (baseurl, path, roomName) => {
+		conf.set("base_url", baseurl);
+		const got = parseWebsocketConnectionUrl({ url: baseurl + path, headers: {} } as Request);
+		expect(got).toEqual(roomName);
+		conf.set("base_url", "/");
 	});
 
 	it("should add clients", () => {

@@ -18,7 +18,7 @@ import {
 import { ClientNotFoundInRoomException, MissingToken } from "./exceptions";
 import { MySession, OttWebsocketError, AuthToken, ClientId } from "../common/models/types";
 import roommanager from "./roommanager";
-import { ANNOUNCEMENT_CHANNEL } from "../common/constants";
+import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "../common/constants";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
@@ -78,6 +78,11 @@ export function shutdown() {
 async function onDirectConnect(socket: WebSocket, req: express.Request) {
 	try {
 		const roomName = parseWebsocketConnectionUrl(req);
+		if (!ROOM_NAME_REGEX.test(roomName)) {
+			log.warn("Rejecting connection because the room name was invalid");
+			socket.close(OttWebsocketError.INVALID_CONNECTION_URL, "Invalid room name");
+			return;
+		}
 		log.debug(`connection received: ${roomName}, waiting for auth token...`);
 		const client = new DirectClient(roomName, socket);
 		addClient(client);
@@ -93,7 +98,9 @@ async function onDirectConnect(socket: WebSocket, req: express.Request) {
  */
 export function parseWebsocketConnectionUrl(req: express.Request): string {
 	const connectUrl = new URL(req.url, `ws://${req.headers.host ?? "localhost"}`);
-	const roomName = connectUrl.pathname.split("/").slice(-1)[0];
+	const base_url = conf.get("base_url");
+	const adjustedPath = base_url ? connectUrl.pathname.replace(base_url, "") : connectUrl.pathname;
+	const roomName = adjustedPath.split("/").slice(3)[0];
 	return roomName;
 }
 
