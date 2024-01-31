@@ -1,4 +1,4 @@
-import clientmanager from "../../clientmanager";
+import clientmanager, { parseWebsocketConnectionUrl } from "../../clientmanager";
 import {
 	BalancerConnection,
 	BalancerConnectionEventHandlers,
@@ -13,6 +13,7 @@ import { buildClients } from "../../redisclient";
 import { Result, ok } from "../../../common/result";
 import roommanager from "../../roommanager";
 import { loadModels } from "../../models";
+import type { Request } from "express";
 
 class TestClient extends Client {
 	sendRawMock = jest.fn();
@@ -64,6 +65,14 @@ describe("ClientManager", () => {
 
 	afterEach(async () => {
 		await roommanager.unloadRoom("foo");
+	});
+
+	it.each([
+		["/api/room/foo", "foo"],
+		["/api/room/foo?reconnect=true", "foo"],
+	])(`should parse room name from %s`, (path, roomName) => {
+		const got = parseWebsocketConnectionUrl({ url: path } as Request);
+		expect(got).toEqual(roomName);
 	});
 
 	it("should add clients", () => {

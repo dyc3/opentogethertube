@@ -77,8 +77,7 @@ export function shutdown() {
  */
 async function onDirectConnect(socket: WebSocket, req: express.Request) {
 	try {
-		const connectUrl = new URL(`ws://${req.headers.host}${req.url}`);
-		const roomName = connectUrl.pathname.split("/").slice(-1)[0];
+		const roomName = parseWebsocketConnectionUrl(req);
 		log.debug(`connection received: ${roomName}, waiting for auth token...`);
 		const client = new DirectClient(roomName, socket);
 		addClient(client);
@@ -86,6 +85,16 @@ async function onDirectConnect(socket: WebSocket, req: express.Request) {
 		log.error(`Failed to process new client : ${e}`);
 		socket.close(OttWebsocketError.UNKNOWN);
 	}
+}
+
+/**
+ * Extract the room name from the websocket connection url.
+ * @returns Room name
+ */
+export function parseWebsocketConnectionUrl(req: express.Request): string {
+	const connectUrl = new URL(req.url, `ws://${req.headers.host ?? "localhost"}`);
+	const roomName = connectUrl.pathname.split("/").slice(-1)[0];
+	return roomName;
 }
 
 export function addClient(client: Client) {
