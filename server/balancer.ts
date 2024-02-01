@@ -1,4 +1,4 @@
-import uuid, { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import WebSocket from "ws";
 
@@ -337,4 +337,4 @@ function gossip() {
 
 const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait: 1000 * 20 });
 
-interface GossipRoom extends RoomListItem {}
+interface GossipRoom extends RoomListItem { }
