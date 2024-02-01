@@ -11,7 +11,6 @@ use tracing::{debug, error, info, warn};
 use tungstenite::protocol::frame::coding::CloseCode;
 use tungstenite::protocol::CloseFrame;
 use tungstenite::Message;
-use uuid::Uuid;
 
 use crate::balancer::BalancerLink;
 use crate::discovery::{MonolithConnectionConfig, MonolithDiscoveryMsg};
@@ -107,8 +106,6 @@ async fn connect_and_maintain(
             }
         }
 
-        let monolith_id = Uuid::new_v4().into();
-
         let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
         let Ok(Some(Ok(message))) = result else {
             let _ = stream
@@ -126,18 +123,21 @@ async fn connect_and_maintain(
 
         // Handle connection initialization
         let mut outbound_rx;
+        let id_clone;
         match message {
             Message::Text(text) => {
                 let message: MsgM2B = serde_json::from_str(&text).unwrap();
                 match message {
                     MsgM2B::Init(init) => {
+                        id_clone = init.id;
                         debug!("monolith sent init, handing off to balancer");
                         let monolith = NewMonolith {
-                            id: monolith_id,
+                            id: id_clone,
                             region: init.region,
                             config: conf.clone(),
                             proxy_port: init.port,
                         };
+
                         let Ok(rx) = link.send_monolith(monolith).await else {
                             let _ = stream
                                 .close(Some(CloseFrame {
@@ -148,7 +148,7 @@ async fn connect_and_maintain(
                             warn!("Could not send Monolith to balancer: {}", conf.uri());
                             return;
                         };
-                        info!("Monolith {id} linked to balancer", id = monolith_id);
+                        info!("Monolith {id} linked to balancer", id = id_clone);
                         outbound_rx = rx;
                     }
                     _ => {
@@ -184,23 +184,23 @@ async fn connect_and_maintain(
                 msg = stream.next() => {
                     if let Some(Ok(msg)) = msg {
                         if let Err(err) = link
-                            .send_monolith_message(monolith_id, SocketMessage::Message(msg))
+                            .send_monolith_message(id_clone, SocketMessage::Message(msg))
                             .await {
                                 error!("Error sending monolith message to balancer: {:?}", err);
                                 break;
                             }
                     } else {
                         // soft reconnects are here to handle minor network failures, which should be rare
-                        info!("Monolith websocket stream ended, attempting soft reconnect: {}", monolith_id);
+                        info!("Monolith websocket stream ended, attempting soft reconnect: {}", id_clone);
                         if let Ok((s, _)) = connect_async(conf.uri()).await {
                             stream = s;
                         } else {
                             // we need to notify the balancer that this monolith is dead
                             // because otherwise the room won't get reallocated to another monolith
-                            error!("Failed to soft reconnect to monolith, notifying balancer: {} monolith {}", conf.uri(), monolith_id);
+                            error!("Failed to soft reconnect to monolith, notifying balancer: {} monolith {}", conf.uri(), id_clone);
                             #[allow(deprecated)]
                             if let Err(err) = link
-                                .send_monolith_message(monolith_id, SocketMessage::End)
+                                .send_monolith_message(id_clone, SocketMessage::End)
                                 .await {
                                     error!("Error sending monolith message to balancer: {:?}", err);
                                 }
@@ -210,10 +210,10 @@ async fn connect_and_maintain(
                 }
 
                 _ = cancel.cancelled() => {
-                    info!("Monolith connection cancelled, safely ending: {}", monolith_id);
+                    info!("Monolith connection cancelled, safely ending: {}", id_clone);
                     #[allow(deprecated)]
                     if let Err(err) = link
-                        .send_monolith_message(monolith_id, SocketMessage::End)
+                        .send_monolith_message(id_clone, SocketMessage::End)
                         .await {
                             error!("Error sending monolith message to balancer: {:?}", err);
                             break;
