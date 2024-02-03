@@ -285,6 +285,36 @@
 			},
 			"title": "Traffic",
 			"type": "timeseries"
+		},
+		{
+			"datasource": {
+				"type": "grafana",
+				"uid": "grafana"
+			},
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 24
+			},
+			"id": 1,
+			"options": {
+				"seriesCountSize": "sm",
+				"showSeriesCount": false,
+				"text": "Default value of text input option"
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "datasource",
+						"uid": "grafana"
+					},
+					"queryType": "randomWalk",
+					"refId": "A"
+				}
+			],
+			"title": "Panel Title",
+			"type": "ott-vis-panel"
 		}
 	],
 	"refresh": "",
@@ -302,6 +332,6 @@
 	"timezone": "",
 	"title": "Provisioned visualization-prototype dashboard",
 	"uid": "c5ea3bcd-f966-47d8-8456-4536ddc45ff0",
-	"version": 3,
+	"version": 2,
 	"weekStart": ""
 }
