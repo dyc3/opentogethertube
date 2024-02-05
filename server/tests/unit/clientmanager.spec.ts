@@ -176,11 +176,21 @@ describe("BalancerManager", () => {
 describe("MonolithId", () => {
 	it("should have unique IDS for each instance of a monolith", () => {
 		const mock1 = new BalancerConnectionMock();
-
 		const mock2 = new BalancerConnectionMock();
 
-		expect(mock1.id).toBeDefined();
-		expect(mock2.id).toBeDefined();
-		expect(mock1.id).not.toEqual(mock2.id);
+		balancerManager.addBalancerConnection(mock1);
+		balancerManager.addBalancerConnection(mock2);
+
+		const message: MsgM2B = {
+			type: "init",
+			payload: {
+				port: 3000,
+				region: "us-west",
+				id: "1234",
+			},
+		};
+
+		balancerManager.getConnection(mock1.id)?.send(message);
+		balancerManager.getConnection(mock2.id)?.send(message);
 	});
 });
