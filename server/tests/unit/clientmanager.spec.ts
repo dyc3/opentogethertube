@@ -172,3 +172,15 @@ describe("BalancerManager", () => {
 		expect(balancerManager.balancerConnections).not.toContain(con2);
 	});
 });
+
+describe("MonolithId", () => {
+	it("should have unique IDS for each instance of a monolith", () => {
+		const mock1 = new BalancerConnectionMock();
+
+		const mock2 = new BalancerConnectionMock();
+
+		expect(mock1.id).toBeDefined();
+		expect(mock2.id).toBeDefined();
+		expect(mock1.id).not.toEqual(mock2.id);
+	});
+});
