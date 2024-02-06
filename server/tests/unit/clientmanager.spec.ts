@@ -31,7 +31,7 @@ class TestClient extends Client {
 }
 
 class BalancerConnectionMock extends BalancerConnection {
-	sendMock = jest.fn();
+	sendMock = jest.fn<void, [MsgM2B], BalancerConnection>();
 
 	constructor() {
 		super();

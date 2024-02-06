@@ -130,7 +130,6 @@
 									@link-click="setAddPreviewText"
 								/>
 							</li>
-							@link-click="setAddPreviewText"
 						</ul>
 						<span>{{ $t("add-preview.text") }}</span>
 					</div>
