@@ -214,6 +214,8 @@ describe("MonolithId", () => {
 		const id1 = (mock1.sendMock.mock.calls[0][0].payload as M2BInit).id;
 		const id2 = (mock2.sendMock.mock.calls[0][0].payload as M2BInit).id;
 
+		expect(id1).toBeDefined();
+		expect(id2).toBeDefined();
 		expect(id1).toEqual(id2);
 	});
 });
