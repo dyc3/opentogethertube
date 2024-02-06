@@ -178,7 +178,8 @@ describe("MonolithId", () => {
 		const mock1 = new BalancerConnectionMock();
 		const mock2 = new BalancerConnectionMock();
 
-
+		balancerManager.addBalancerConnection(mock1);
+		balancerManager.addBalancerConnection(mock2);
 
 		const message: MsgM2B = {
 			type: "init",
@@ -196,6 +197,5 @@ describe("MonolithId", () => {
 		const id2 = mock2.sendMock.mock.calls[0][0].payload.id;
 
 		expect(id1).toEqual(id2);
-
 	});
 });
