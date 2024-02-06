@@ -3,7 +3,7 @@ import { PanelProps } from "@grafana/data";
 import { SimpleOptions } from "types";
 import { css, cx } from "@emotion/css";
 import { useStyles2 } from "@grafana/ui";
-import ForceGraph from "components/ForceGraph";
+import ForceGraph, { Link, Node } from "components/ForceGraph";
 
 interface Props extends PanelProps<SimpleOptions> {}
 
@@ -129,84 +129,84 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
 				"color": "Blue",
 				"radius": 4
 			}
-		],
+		] as Node[],
 		links: [
 			{
 				"source": "B1",
 				"target": "M1",
-				"value": "10"
+				"value": 10
 			},
 			{
 				"source": "B1",
 				"target": "M2",
-				"value": "10"
+				"value": 10
 			},
 			{
 				"source": "M1",
 				"target": "R1",
-				"value": "5"
+				"value": 5
 			},
 			{
 				"source": "M1",
 				"target": "R2",
-				"value": "5"
+				"value": 5
 			},
 			{
 				"source": "M2",
 				"target": "R3",
-				"value": "5"
+				"value": 5
 			},
 			{
 				"source": "M2",
 				"target": "R4",
-				"value": "5"
+				"value": 5
 			},
 			{
 				"source": "R1",
 				"target": "C1",
-				"value": "5"
+				"value": 5
 			},
 			{
 				"source": "R1",
 				"target": "C2",
-				"value": "3"
+				"value": 3
 			},
 			{
 				"source": "R2",
 				"target": "C3",
-				"value": "3"
+				"value": 3
 			},
 			{
 				"source": "R2",
 				"target": "C4",
-				"value": "3"
+				"value": 3
 			},
 			{
 				"source": "R3",
 				"target": "C5",
-				"value": "3"
+				"value": 3
 			},
 			{
 				"source": "R3",
 				"target": "C6",
-				"value": "3"
+				"value": 3
 			},
 			{
 				"source": "R4",
 				"target": "C7",
-				"value": "3"
+				"value": 3
 			},
 			{
 				"source": "R4",
 				"target": "C8",
-				"value": "3"
+				"value": 3
 			},
 			{
 				"source": "R4",
 				"target": "C9",
-				"value": "3"
+				"value": 3
 			}
-		]
+		] as Link[]
 	};
 	
 	return (
@@ -219,14 +219,12 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
 				`
 			)}
 		>
-			<g>
-				<ForceGraph
-					height={height}
-					width={width}
-					data={
-						json_data
-					} />
-			</g>
+			<ForceGraph
+				height={height}
+				width={width}
+				data={
+					json_data
+				} />
 
 			<div className={styles.textBox}>
 				{options.showSeriesCount && <div>Number of series: {data.series.length}</div>}
