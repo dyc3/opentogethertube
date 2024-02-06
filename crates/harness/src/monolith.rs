@@ -13,6 +13,7 @@ use futures_util::{Future, SinkExt, StreamExt};
 use http_body_util::{BodyExt, Full};
 use hyper::{body::Incoming as IncomingBody, Request};
 use hyper::{service::Service, Response};
+use uuid::Uuid;
 
 use ott_balancer_protocol::{monolith::*, ClientId, RoomName};
 use tokio::{net::TcpListener, sync::Notify};
@@ -91,6 +92,7 @@ impl Monolith {
         let _notif_recv = notif_recv.clone();
         let _state = state.clone();
         let http_port = http_listener.local_addr().unwrap().port();
+        let monolith_id = Uuid::new_v4().into();
         let task = tokio::task::Builder::new()
             .name("emulated monolith (websocket)")
             .spawn(async move {
@@ -101,6 +103,7 @@ impl Monolith {
                     let init = M2BInit {
                         port: http_port,
                         region: state.lock().unwrap().region.clone(),
+                        id: monolith_id,
                     };
                     let msg = serde_json::to_string(&MsgM2B::from(init)).unwrap();
                     ws.send(Message::Text(msg)).await.unwrap();

@@ -15,6 +15,7 @@ import roommanager from "../../roommanager";
 import { loadModels } from "../../models";
 import type { Request } from "express";
 import { loadConfigFile, conf } from "../../ott-config";
+import { M2BInit } from "server/generated";
 
 class TestClient extends Client {
 	sendRawMock = jest.fn();
@@ -199,5 +200,22 @@ describe("BalancerManager", () => {
 
 		expect(balancerManager.balancerConnections).toHaveLength(2);
 		expect(balancerManager.balancerConnections).not.toContain(con2);
+	});
+});
+
+describe("MonolithId", () => {
+	it("should send the same ID to each connection", () => {
+		const mock1 = new BalancerConnectionMock();
+		const mock2 = new BalancerConnectionMock();
+
+		balancerManager.addBalancerConnection(mock1);
+		balancerManager.addBalancerConnection(mock2);
+
+		const id1 = (mock1.sendMock.mock.calls[0][0].payload as M2BInit).id;
+		const id2 = (mock2.sendMock.mock.calls[0][0].payload as M2BInit).id;
+
+		expect(id1).toBeDefined();
+		expect(id2).toBeDefined();
+		expect(id1).toEqual(id2);
 	});
 });

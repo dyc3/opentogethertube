@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 use typeshare::typeshare;
 
-use crate::{ClientId, RoomName};
+use crate::{ClientId, MonolithId, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
@@ -100,6 +100,7 @@ pub struct M2BInit {
     /// The port that the monolith is listening for HTTP requests on.
     pub port: u16,
     pub region: String,
+    pub id: MonolithId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
