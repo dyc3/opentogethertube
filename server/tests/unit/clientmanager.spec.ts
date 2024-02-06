@@ -181,21 +181,10 @@ describe("MonolithId", () => {
 		balancerManager.addBalancerConnection(mock1);
 		balancerManager.addBalancerConnection(mock2);
 
-		const message: MsgM2B = {
-			type: "init",
-			payload: {
-				port: 3000,
-				region: "us-west",
-				id: "1234",
-			},
-		};
-
-		mock1.send(message);
-		mock2.send(message);
-
 		const id1 = mock1.sendMock.mock.calls[0][0].payload.id;
 		const id2 = mock2.sendMock.mock.calls[0][0].payload.id;
 
 		expect(id1).toEqual(id2);
+
 	});
 });
