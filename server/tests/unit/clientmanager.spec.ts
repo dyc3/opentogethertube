@@ -210,10 +210,8 @@ describe("MonolithId", () => {
 		balancerManager.addBalancerConnection(mock1);
 		balancerManager.addBalancerConnection(mock2);
 
-		const id1 = mock1.sendMock.mock.calls[0][0].filter((msg: MsgM2B) => msg.type == "init")[0]
-			.payload.id;
-		const id2 = mock2.sendMock.mock.calls[0][0].filter((msg: MsgM2B) => msg.type == "init")[0]
-			.payload.id;
+		const id1 = mock1.sendMock.mock.calls[0][0].payload.id;
+		const id2 = mock2.sendMock.mock.calls[0][0].payload.id;
 
 		expect(id1).toEqual(id2);
 	});
