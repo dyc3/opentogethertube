@@ -1,0 +1,10 @@
+apiVersion: 1
+
+datasources:
+  - name: 'vis-datasource'
+    type: 'ott-vis-datasource'
+    access: proxy
+    isDefault: false
+    orgId: 1
+    version: 1
+    editable: true
