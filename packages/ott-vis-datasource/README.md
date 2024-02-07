@@ -12,50 +12,50 @@ Grafana supports a wide range of data sources, including Prometheus, MySQL, and 
 
 1. Install dependencies
 
-   ```bash
-   yarn
-   ```
+    ```bash
+    yarn
+    ```
 
 2. Build plugin in development mode and run in watch mode
 
-   ```bash
-   yarn workspace ott-vis-datasource dev
-   ```
+    ```bash
+    yarn workspace ott-vis-datasource dev
+    ```
 
 3. Build plugin in production mode
 
-   ```bash
-   yarn workspace ott-vis-datasource build
-   ```
+    ```bash
+    yarn workspace ott-vis-datasource build
+    ```
 
 4. Run the tests (using Jest)
 
-   ```bash
-   # Runs the tests and watches for changes, requires git init first
-   yarn workspace ott-vis-datasource test
-   ```
+    ```bash
+    # Runs the tests and watches for changes, requires git init first
+    yarn workspace ott-vis-datasource test
+    ```
 
 5. Spin up a Grafana instance and run the plugin inside it (using Docker)
 
-   ```bash
-   yarn workspace ott-vis-datasource server
-   ```
+    ```bash
+    yarn workspace ott-vis-datasource server
+    ```
 
 6. Run the E2E tests (using Cypress)
 
-   ```bash
-   # Spins up a Grafana instance first that we tests against
-   yarn workspace ott-vis-datasource server
+    ```bash
+    # Spins up a Grafana instance first that we tests against
+    yarn workspace ott-vis-datasource server
 
-   # Starts the tests
-   yarn workspace ott-vis-datasource e2e
-   ```
+    # Starts the tests
+    yarn workspace ott-vis-datasource e2e
+    ```
 
 7. Run the linter
 
-   ```bash
-   yarn workspace ott-vis-datasource lint
-   ```
+    ```bash
+    yarn workspace ott-vis-datasource lint
+    ```
 
 # Distributing your plugin
 
@@ -73,7 +73,7 @@ Before signing a plugin for the first time please consult the Grafana [plugin si
 
 1. Create a [Grafana Cloud account](https://grafana.com/signup).
 2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
-   - _You can find the plugin ID in the `plugin.json` file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
+    - _You can find the plugin ID in the `plugin.json` file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
 3. Create a Grafana Cloud API key with the `PluginPublisher` role.
 4. Keep a record of this API key as it will be required for signing a plugin
 
@@ -100,6 +100,6 @@ To trigger the workflow we need to push a version tag to github. This can be ach
 
 Below you can find source code for existing app plugins and other related documentation.
 
-- [Basic data source plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/datasource-basic#readme)
-- [`plugin.json` documentation](https://grafana.com/developers/plugin-tools/reference-plugin-json)
-- [How to sign a plugin?](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin)
+-   [Basic data source plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/datasource-basic#readme)
+-   [`plugin.json` documentation](https://grafana.com/developers/plugin-tools/reference-plugin-json)
+-   [How to sign a plugin?](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin)

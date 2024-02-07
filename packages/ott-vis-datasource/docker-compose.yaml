@@ -1,9 +1,9 @@
-version: '3.0'
+version: "3.0"
 
 services:
   grafana:
-    container_name: 'ott-vis-datasource'
-    platform: 'linux/amd64'
+    container_name: "ott-vis-datasource"
+    platform: "linux/amd64"
     build:
       context: ./.config
       args:
