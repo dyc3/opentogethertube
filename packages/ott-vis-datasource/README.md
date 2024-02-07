@@ -13,55 +13,48 @@ Grafana supports a wide range of data sources, including Prometheus, MySQL, and 
 1. Install dependencies
 
    ```bash
-   npm install
+   yarn
    ```
 
 2. Build plugin in development mode and run in watch mode
 
    ```bash
-   npm run dev
+   yarn workspace ott-vis-datasource dev
    ```
 
 3. Build plugin in production mode
 
    ```bash
-   npm run build
+   yarn workspace ott-vis-datasource build
    ```
 
 4. Run the tests (using Jest)
 
    ```bash
    # Runs the tests and watches for changes, requires git init first
-   npm run test
-
-   # Exits after running all the tests
-   npm run test:ci
+   yarn workspace ott-vis-datasource test
    ```
 
 5. Spin up a Grafana instance and run the plugin inside it (using Docker)
 
    ```bash
-   npm run server
+   yarn workspace ott-vis-datasource server
    ```
 
 6. Run the E2E tests (using Cypress)
 
    ```bash
    # Spins up a Grafana instance first that we tests against
-   npm run server
+   yarn workspace ott-vis-datasource server
 
    # Starts the tests
-   npm run e2e
+   yarn workspace ott-vis-datasource e2e
    ```
 
 7. Run the linter
 
    ```bash
-   npm run lint
-
-   # or
-
-   npm run lint:fix
+   yarn workspace ott-vis-datasource lint
    ```
 
 # Distributing your plugin

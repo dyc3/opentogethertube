@@ -1,15 +1,15 @@
 {
-  "name": "vis-datasource",
+  "name": "ott-vis-datasource",
   "version": "1.0.0",
   "description": "Collects ott system state",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
-    "test": "jest --watch --onlyChanged",
+    "test": "jest --passWithNoTests --maxWorkers 4 --coverage",
     "test:ci": "jest --passWithNoTests --maxWorkers 4",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
-    "lint:fix": "npm run lint -- --fix",
+    "lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
+    "lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
     "e2e": "npm exec cypress install && npm exec grafana-e2e run",
     "e2e:update": "npm exec cypress install && npm exec grafana-e2e run --update-screenshots",
     "server": "docker-compose up --build",
@@ -56,7 +56,7 @@
     "webpack-livereload-plugin": "^3.0.2"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   },
   "dependencies": {
     "@emotion/css": "11.10.6",
