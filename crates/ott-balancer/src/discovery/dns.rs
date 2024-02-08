@@ -8,7 +8,7 @@ use super::*;
 pub struct DockerDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub monolith_port: u16,
-    pub : Option<String>,
+    pub dns_server: Option<String>,
 }
 
 pub struct DockerMonolithDiscoverer {
