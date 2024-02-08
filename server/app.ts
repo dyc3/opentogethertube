@@ -54,6 +54,16 @@ export async function main() {
 	await buildClients();
 	buildRateLimiter();
 
+	if (process.argv.includes("--validate")) {
+		try {
+			loadConfigFile();
+		} catch (e) {
+			log.error(e);
+			process.exit(1);
+		}
+		process.exit(0);
+	}
+
 	if (
 		conf.get("env") === "production" &&
 		conf.get("db.mode") !== "sqlite" &&
