@@ -6,9 +6,9 @@ export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel).setPanelOption
 	return builder
 		.addTextInput({
 			path: "text",
-			name: "Simple text option",
-			description: "Description of panel option",
-			defaultValue: "Default value of text input option",
+			name: "Allowed Entities",
+			description: "Number of entities allowed to be displayed in the panel at one time",
+			defaultValue: "25",
 		})
 		.addBooleanSwitch({
 			path: "showSeriesCount",
