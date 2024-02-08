@@ -5,35 +5,35 @@ use trust_dns_resolver::TokioAsyncResolver;
 use super::*;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct DockerDiscoveryConfig {
+pub struct DnsDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub monolith_port: u16,
     pub dns_server: Option<String>,
+    pub query: String
 }
 
-pub struct DockerMonolithDiscoverer {
-    config: DockerDiscoveryConfig,
-    query: Option<String>,
+pub struct DnsMonolithDiscoverer {
+    config: DnsDiscoveryConfig,
 }
 
-impl DockerMonolithDiscoverer {
-    pub fn new(config: DockerDiscoveryConfig) -> Self {
+impl DnsMonolithDiscoverer {
+    pub fn new(config: DnsDiscoveryConfig) -> Self {
         info!(
             "Creating DockerMonolithDiscoverer, Docker DNS server: {}",
-            &config.docker_dns_server
+            dns_server
         );
         let query = format!("{}", &config.dns_server);
-        Self { config, query }
+        Self { config }
     }
 }
 
 #[async_trait]
-impl MonolithDiscoverer for DockerMonolithDiscoverer {
+impl MonolithDiscoverer for DnsMonolithDiscoverer {
     async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
         let resolver =
             TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
 
-        let lookup = resolver.ipv4_lookup(&self.query).await?;
+        let lookup = resolver.ipv4_lookup(&self).await?;
         let monoliths = lookup
             .iter()
             .map(|ip| MonolithConnectionConfig {

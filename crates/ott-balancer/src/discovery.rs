@@ -7,6 +7,7 @@ use std::{collections::HashSet, net::SocketAddr};
 mod fly;
 mod harness;
 mod manual;
+mod dns;
 
 pub use fly::*;
 pub use harness::*;
