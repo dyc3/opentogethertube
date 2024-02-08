@@ -188,7 +188,6 @@ export default {
 			"any-mp4-videos": "Cualquier video público .mp4: {url}",
 			"youtube-playlists": "Listas de reproducción de youtube: {url}",
 			"youtube-channels": "Canales de Youtube: {url}",
-			"subreddits": "Subreddits: {url}",
 		},
 		"messages": {
 			"unknown-status":

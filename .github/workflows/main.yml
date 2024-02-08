@@ -106,6 +106,9 @@ jobs:
         files: ${{ steps.collect-coverage.outputs.files }}
   grafana-compatibilitycheck:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [ott-vis, ott-vis-datasource]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Node.js environment
@@ -116,9 +119,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build plugin
-        run: yarn workspace ott-vis build
+        run: yarn workspace ${{ matrix.package }} build
       - name: Compatibility check
-        run: npx @grafana/levitate@latest is-compatible --path packages/ott-vis/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
+        run: npx @grafana/levitate@latest is-compatible --path packages/${{ matrix.package }}/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
 
   deploy-docker:
     runs-on: ubuntu-latest

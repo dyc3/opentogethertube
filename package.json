@@ -11,7 +11,8 @@
     "common",
     "server",
     "client",
-    "packages/ott-vis"
+    "packages/ott-vis",
+    "packages/ott-vis-datasource"
   ],
   "type": "module",
   "scripts": {
