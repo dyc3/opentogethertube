@@ -225,7 +225,7 @@ export class Room implements RoomState {
 	_owner: User | null = null;
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>;
-	_autoSkipSegmentCategories: Array<Category> = Array.from([]);
+	_autoSkipSegmentCategories: Array<Category> = Array.from(ALL_SKIP_CATEGORIES);
 	restoreQueueBehavior: BehaviorOption = BehaviorOption.Prompt;
 	_enableVoteSkip: boolean = false;
 
