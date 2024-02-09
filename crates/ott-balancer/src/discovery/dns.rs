@@ -9,7 +9,7 @@ pub struct DnsDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub monolith_port: u16,
     pub dns_server: Option<String>,
-    pub query: String
+    pub query: String,
 }
 
 pub struct DnsMonolithDiscoverer {
@@ -22,7 +22,7 @@ impl DnsMonolithDiscoverer {
             "Creating DockerMonolithDiscoverer, Docker DNS server: {:?}",
             config.dns_server
         );
-        let query = format!("{}", config.dns_server.clone().unwrap_or_default());
+        let _query = format!("{}", config.dns_server.clone().unwrap_or_default());
         Self { config }
     }
 }
