@@ -19,10 +19,10 @@ pub struct DnsMonolithDiscoverer {
 impl DnsMonolithDiscoverer {
     pub fn new(config: DnsDiscoveryConfig) -> Self {
         info!(
-            "Creating DockerMonolithDiscoverer, Docker DNS server: {}",
-            dns_server
+            "Creating DockerMonolithDiscoverer, Docker DNS server: {:?}",
+            config.dns_server
         );
-        let query = format!("{}", &config.dns_server);
+        let query = format!("{}", config.dns_server.clone().unwrap_or_default());
         Self { config }
     }
 }
@@ -33,7 +33,7 @@ impl MonolithDiscoverer for DnsMonolithDiscoverer {
         let resolver =
             TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
 
-        let lookup = resolver.ipv4_lookup(&self).await?;
+        let lookup = resolver.ipv4_lookup(&self.config.query).await?;
         let monoliths = lookup
             .iter()
             .map(|ip| MonolithConnectionConfig {
