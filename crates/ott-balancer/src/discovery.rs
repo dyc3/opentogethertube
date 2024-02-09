@@ -9,6 +9,7 @@ mod fly;
 mod harness;
 mod manual;
 
+pub use dns::*;
 pub use fly::*;
 pub use harness::*;
 pub use manual::*;

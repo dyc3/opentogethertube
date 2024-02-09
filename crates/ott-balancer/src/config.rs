@@ -4,7 +4,9 @@ use clap::{Parser, ValueEnum};
 use figment::providers::Format;
 use serde::Deserialize;
 
-use crate::discovery::{FlyDiscoveryConfig, HarnessDiscoveryConfig, ManualDiscoveryConfig};
+use crate::discovery::{
+    DnsDiscoveryConfig, FlyDiscoveryConfig, HarnessDiscoveryConfig, ManualDiscoveryConfig,
+};
 
 static mut CONFIG: Option<BalancerConfig> = None;
 
