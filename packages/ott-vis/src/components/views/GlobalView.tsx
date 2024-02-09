@@ -14,7 +14,7 @@ export const GlobalView: React.FC<Props> = ({ width, height }) => {
 			<ForceGraph height={height} width={width} data={sample_data} />
 		</div>
 	);
-}
+};
 
 const sample_data = {
 	nodes: [

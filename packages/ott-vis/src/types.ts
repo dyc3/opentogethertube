@@ -10,7 +10,7 @@ export interface CoreOptions {
 /**
  * Describes the state of OTT
  */
-export type SystemState = Balancer[]
+export type SystemState = Balancer[];
 
 export interface Balancer {
 	id: string;

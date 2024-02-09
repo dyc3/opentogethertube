@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const RegionView: React.FC<Props> = ({ width, height }) => {
-	return <div>Region view</div>
+	return <div>Region view</div>;
 };
 
 export default RegionView;
