@@ -8,7 +8,9 @@ use super::*;
 pub struct DnsDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub monolith_port: u16,
+    /// The DNS server to query. Optional. If not provided, the system configuration will be used instead.
     pub dns_server: Option<String>,
+    /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
 }
 
@@ -19,10 +21,9 @@ pub struct DnsMonolithDiscoverer {
 impl DnsMonolithDiscoverer {
     pub fn new(config: DnsDiscoveryConfig) -> Self {
         info!(
-            "Creating DockerMonolithDiscoverer, Docker DNS server: {:?}",
+            "Creating DockerMonolithDiscoverer, DNS server: {:?}",
             config.dns_server
         );
-        let _query = format!("{}", config.dns_server.clone().unwrap_or_default());
         Self { config }
     }
 }

@@ -32,6 +32,7 @@ impl Default for BalancerConfig {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "method", rename_all = "lowercase")]
 pub enum DiscoveryConfig {
+    Dns(DnsDiscoveryConfig),
     Fly(FlyDiscoveryConfig),
     Manual(ManualDiscoveryConfig),
     Harness(HarnessDiscoveryConfig),
