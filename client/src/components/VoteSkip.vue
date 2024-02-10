@@ -15,8 +15,10 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-// import { voteSkipThreshold } from "ott-common";
 import { useStore } from "@/store";
+// import { voteSkipThreshold, countEligibleVoters } from "ott-common/voteskip";
+import type { RoomUserInfo } from "ott-common/models/types";
+import { Grants } from "ott-common/permissions";
 
 const store = useStore();
 
@@ -24,9 +26,20 @@ const store = useStore();
 function voteSkipThreshold(users: number): number {
 	return Math.ceil(users * 0.5);
 }
+function countEligibleVoters(users: RoomUserInfo[], grants: Grants): number {
+	let count = 0;
+	for (const user of users) {
+		if (grants.granted(user.role, "playback.skip")) {
+			count++;
+		}
+	}
+	return count;
+}
 
 const votesRemaining = computed(() => {
-	return voteSkipThreshold(store.state.users.users.size) - store.state.room.votesToSkip.size;
+	const users = Array.from(store.state.users.users.values());
+	const eligibleVoters = countEligibleVoters(users, store.state.room.grants);
+	return voteSkipThreshold(eligibleVoters) - store.state.room.votesToSkip.size;
 });
 
 const currentVotes = computed(() => {

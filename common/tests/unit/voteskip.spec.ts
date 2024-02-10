@@ -1,4 +1,6 @@
-import { voteSkipThreshold } from "../../voteskip";
+import { Grants, parseIntoGrantMask } from "../../permissions";
+import { PlayerStatus, Role, RoomUserInfo } from "../../models/types";
+import { voteSkipThreshold, countEligibleVoters } from "../../voteskip";
 
 describe("voteskip", () => {
 	it.each([
@@ -24,4 +26,53 @@ describe("voteskip", () => {
 			expect(voteSkipThreshold(users)).toBe(expectedThresh);
 		}
 	);
+
+	it("should count eligible voters", () => {
+		const users: RoomUserInfo[] = [
+			{
+				id: "foo1",
+				name: "foo1",
+				isLoggedIn: false,
+				status: PlayerStatus.none,
+				role: Role.UnregisteredUser,
+			},
+			{
+				id: "foo2",
+				name: "foo2",
+				isLoggedIn: true,
+				status: PlayerStatus.none,
+				role: Role.RegisteredUser,
+			},
+			{
+				id: "foo3",
+				name: "foo3",
+				isLoggedIn: true,
+				status: PlayerStatus.none,
+				role: Role.Moderator,
+			},
+			{
+				id: "foo4",
+				name: "foo4",
+				isLoggedIn: true,
+				status: PlayerStatus.none,
+				role: Role.Administrator,
+			},
+			{
+				id: "foo5",
+				name: "foo5",
+				isLoggedIn: true,
+				status: PlayerStatus.none,
+				role: Role.Owner,
+			},
+		];
+		const grants = new Grants();
+		let mask = grants.getMask(Role.UnregisteredUser);
+		mask &= ~parseIntoGrantMask(["playback"]);
+		grants.setRoleGrants(Role.UnregisteredUser, mask);
+		mask = grants.getMask(Role.RegisteredUser);
+		mask &= ~parseIntoGrantMask(["playback.skip"]);
+		grants.setRoleGrants(Role.RegisteredUser, mask);
+
+		expect(countEligibleVoters(users, grants)).toBe(3);
+	});
 });
