@@ -484,7 +484,7 @@ export function loadConfigFile() {
 
 	postProcessConfig();
 
-	conf.validate({ allowed: "warn" });
+	conf.validate({ allowed: "strict" });
 }
 
 function postProcessConfig(): void {
