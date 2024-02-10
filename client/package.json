@@ -23,7 +23,7 @@
     "hls.js": "1.4.8",
     "load-script": "^1.0.0",
     "material-design-icons-iconfont": "^5.0.1",
-    "ott-common": "./common",
+    "ott-common": "*",
     "plyr": "3.7.8",
     "sortablejs": "^1.15.0",
     "sortablejs-vue3": "^1.2.3",
@@ -49,7 +49,7 @@
     "jsdom": "^21.1.0",
     "sass": "^1.41.1",
     "vite": "^5.0.12",
-    "vite-plugin-vuetify": "1.0.2",
+    "vite-plugin-vuetify": "2.0.1",
     "vitest": "^0.25.1"
   }
 }
