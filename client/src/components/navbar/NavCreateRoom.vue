@@ -19,11 +19,6 @@
 	</v-list-item>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
-export default defineComponent({
-	name: "NavCreateRoom",
-	emits: ["createtemp", "createperm"],
-});
+<script lang="ts" setup>
+defineEmits(["createtemp", "createperm"]);
 </script>
