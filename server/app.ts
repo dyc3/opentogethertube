@@ -55,8 +55,9 @@ export async function main() {
 	buildRateLimiter();
 
 	if (process.argv.includes("--validate")) {
+		loadConfigFile();
 		try {
-			loadConfigFile();
+			conf.validate({ allowed: "strict" });
 		} catch (e) {
 			log.error(e);
 			process.exit(1);
