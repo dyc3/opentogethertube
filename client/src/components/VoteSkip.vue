@@ -16,25 +16,9 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import { useStore } from "@/store";
-// import { voteSkipThreshold, countEligibleVoters } from "ott-common/voteskip";
-import type { RoomUserInfo } from "ott-common/models/types";
-import { Grants } from "ott-common/permissions";
+import { voteSkipThreshold, countEligibleVoters } from "ott-common/voteskip";
 
 const store = useStore();
-
-// FIXME: fix the import
-function voteSkipThreshold(users: number): number {
-	return Math.ceil(users * 0.5);
-}
-function countEligibleVoters(users: RoomUserInfo[], grants: Grants): number {
-	let count = 0;
-	for (const user of users) {
-		if (grants.granted(user.role, "playback.skip")) {
-			count++;
-		}
-	}
-	return count;
-}
 
 const votesRemaining = computed(() => {
 	const users = Array.from(store.state.users.users.values());
