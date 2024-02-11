@@ -7,7 +7,7 @@ WORKDIR /usr/app
 RUN apk update -q && apk --no-cache add libc6-compat python3 make g++ autoconf automake libtool -q
 COPY . .
 RUN yarn
-RUN yarn run build
+RUN yarn workspace ott-client run build
 
 RUN rm -rf node_modules && yarn install --production=true
 
