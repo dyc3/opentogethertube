@@ -6,7 +6,7 @@ use serde_json::value::RawValue;
 use test_context::{futures::SinkExt, test_context};
 use tokio_tungstenite;
 use tungstenite::protocol::frame::{Frame, FrameHeader, coding::OpCode, coding::Data};
-use websocket::Message;
+use tungstenite::protocol::Message;
 
 #[test_context(TestRunner)]
 #[tokio::test]
@@ -330,7 +330,7 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
 #[tokio::test]
 #[allow(dead_code)]
 async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
-    let client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect"); 
+    let mut client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect"); 
     
     let header = FrameHeader {    
         is_final: true,
@@ -342,10 +342,11 @@ async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
     };
 
     let payload = "{\"action\":\"auth\", \"token\":\"foo\"}".to_string().into_bytes();
-    
-    let dataframe = Frame::from_payload(header, payload);
 
-    client.0.send(&dataframe);
+    let dataframe = Frame::from_payload(header, payload);
+    let msg = Message::Frame(dataframe);
+
+    client.0.send(msg).await.expect("failed to send message to balancer");
 
     ctx.is_alive().await;
 } 
