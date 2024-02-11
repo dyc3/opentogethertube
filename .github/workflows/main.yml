@@ -29,7 +29,7 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -69,7 +69,7 @@ jobs:
             - 6379:6379
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Get npm cache directory
       id: npm-cache
       run: |
@@ -110,7 +110,7 @@ jobs:
       matrix:
         package: [ott-vis, ott-vis-datasource]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
@@ -129,7 +129,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Log in to Dockerhub
       run: |
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dyc3" --password-stdin
@@ -149,7 +149,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config deploy/fly.staging.monolith.toml --remote-only
         env:
@@ -160,7 +160,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint, deploy-fly-staging-monolith]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config deploy/fly.staging.balancer.toml --remote-only
         env:
@@ -172,7 +172,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config deploy/fly.prod.monolith.toml --remote-only
         env:
