@@ -3,7 +3,7 @@ use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::Context;
 use balancer::{start_dispatcher, Balancer, BalancerContext};
-use clap::Parser;
+use clap::{Arg, Parser};
 use hyper::server::conn::http1;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
@@ -32,6 +32,23 @@ pub async fn run() -> anyhow::Result<()> {
 
     BalancerConfig::load(&args.config_path)?;
     let config = BalancerConfig::get();
+
+    let _validate = Arg::new("validate")
+        .short('c')
+        .long("validate")
+        .help("Validate the configuration and exit");
+
+    if std::env::args().any(|arg| arg == "--validate") {
+        match BalancerConfig::load(&args.config_path) {
+            Ok(()) => {
+                std::process::exit(0);
+            }
+            Err(err) => {
+                error!("Error loading configuration: {:?}", err);
+                std::process::exit(1);
+            }
+        }
+    }
 
     let console_layer = if args.remote_console {
         console_subscriber::ConsoleLayer::builder()
