@@ -280,7 +280,7 @@ export class Grants {
 	/**
 	 * @returns Grant bitmask
 	 */
-	_normalizePermissionsInput(permissions: PermissionName[] | GrantMask): GrantMask {
+	private _normalizePermissionsInput(permissions: PermissionName[] | GrantMask): GrantMask {
 		if (permissions instanceof Array) {
 			permissions = parseIntoGrantMask(permissions);
 		}
@@ -301,7 +301,7 @@ export class Grants {
 		this._processInheiritance();
 	}
 
-	_processInheiritance(): void {
+	private _processInheiritance(): void {
 		let fullmask: GrantMask = 0;
 		for (let i = Role.UnregisteredUser; i <= Role.Administrator; i++) {
 			fullmask |= this.getMask(i);

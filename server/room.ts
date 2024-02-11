@@ -67,7 +67,7 @@ import { Counter } from "prom-client";
 import roommanager from "./roommanager";
 import { calculateCurrentPosition } from "../common/timestamp";
 import { RestoreQueueRequest } from "../common/models/messages";
-import { voteSkipThreshold } from "../common";
+import { countEligibleVoters, voteSkipThreshold } from "../common";
 import type { ClientManagerCommand } from "./clientmanager";
 import { canKickUser } from "../common/userutils";
 import { conf } from "./ott-config";
@@ -1146,7 +1146,11 @@ export class Room implements RoomState {
 				this.markDirty("votesToSkip");
 			}
 
-			if (this.votesToSkip.size >= voteSkipThreshold(this.realusers.length)) {
+			const eligibleUsers = countEligibleVoters(
+				this.realusers.map(u => this.getUserInfo(u.id)),
+				this.grants
+			);
+			if (this.votesToSkip.size >= voteSkipThreshold(eligibleUsers)) {
 				this.log.debug("vote threshold met, skipping video");
 				shouldSkip = true;
 			}
