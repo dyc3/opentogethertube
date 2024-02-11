@@ -1,4 +1,6 @@
 server/tests/unit/fixtures/** linguist-vendored
+/.yarn/releases/** binary
+/.yarn/plugins/** binary
 docs/* linguist-documentation
 
 *.sh text eol=lf

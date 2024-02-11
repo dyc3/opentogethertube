@@ -25,7 +25,8 @@ The Monolith refers to the node.js server that serves the client and handles all
 1. Clone this repo.
 2. In a terminal, navigate to the `opentogethertube` folder and run
 ```
-npm install -g yarn
+corepack enable
+yarn set version stable
 yarn
 ```
 3. Next you need to set up your configuration. Start by copying the example

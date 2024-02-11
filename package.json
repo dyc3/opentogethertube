@@ -5,7 +5,7 @@
   "license": "AGPL-3.0-or-later",
   "engines": {
     "node": ">=18 <=20",
-    "yarn": "1"
+    "yarn": "4"
   },
   "workspaces": [
     "common",
@@ -18,10 +18,10 @@
     "postinstall": "patch-package",
     "start": "yarn workspace ott-server start",
     "serve": "yarn workspace ott-client serve",
-    "build": "yarn workspaces run build",
-    "lint": "yarn workspaces run lint",
-    "lint-ci": "yarn workspaces run lint-ci",
-    "test": "yarn workspaces run test",
+    "build": "yarn workspaces foreach --all run build",
+    "lint": "yarn workspaces foreach --all run lint",
+    "lint-ci": "yarn workspaces foreach --all run lint-ci",
+    "test": "yarn workspaces foreach --all run test",
     "cy:run": "cypress run --headless",
     "cy:open": "cypress open",
     "api-server": "yarn workspace ott-server debug",
@@ -62,5 +62,6 @@
     "prettier": "^2.5.1",
     "supertest": "6.3.3",
     "ts-node": "^10.9.1"
-  }
+  },
+  "packageManager": "yarn@4.1.0"
 }

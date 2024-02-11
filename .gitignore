@@ -5,8 +5,14 @@ node_modules
 /logs
 /ts-out
 /target
-/.yarn
 .eslintcache
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 # local env files
 .env.local

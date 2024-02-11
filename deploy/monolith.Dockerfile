@@ -16,6 +16,7 @@ ENV GIT_COMMIT=$GIT_COMMIT
 
 WORKDIR /app
 RUN apk update -q && apk --no-cache add libc6-compat python3 make g++ autoconf automake libtool -q
+RUN corepack enable
 COPY tsconfig.json ./
 COPY common common
 COPY client client
