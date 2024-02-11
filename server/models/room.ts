@@ -1,9 +1,10 @@
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 import { QueueMode, Visibility, Role, BehaviorOption } from "../../common/models/types";
 import { User } from "./user";
-import { ROOM_NAME_REGEX } from "../../common/constants";
+import { ALL_SKIP_CATEGORIES, ROOM_NAME_REGEX } from "../../common/constants";
 import type { OldRoleGrants, GrantMask } from "../../common/permissions";
 import { QueueItem } from "../../common/models/video";
+import { Category } from "sponsorblock-api";
 
 export interface RoomAttributes {
 	"id": number;
@@ -17,7 +18,7 @@ export interface RoomAttributes {
 	"role-admin": Array<number>;
 	"role-mod": Array<number>;
 	"role-trusted": Array<number>;
-	"autoSkipSegments": boolean;
+	"autoSkipSegmentCategories": Array<Category>;
 	"prevQueue": Array<QueueItem> | null;
 	"restoreQueueBehavior": BehaviorOption;
 	"enableVoteSkip": boolean;
@@ -40,7 +41,7 @@ export class Room extends Model<RoomAttributes, RoomCreationAttributes> implemen
 	declare "role-admin": Array<number>;
 	declare "role-mod": Array<number>;
 	declare "role-trusted": Array<number>;
-	declare "autoSkipSegments": boolean;
+	declare "autoSkipSegmentCategories": Array<Category>;
 	declare "prevQueue": Array<QueueItem> | null;
 	declare "restoreQueueBehavior": BehaviorOption;
 	declare "enableVoteSkip": boolean;
@@ -97,10 +98,10 @@ export const createModel = (sequelize: Sequelize) => {
 			"role-trusted": {
 				type: DataTypes.JSONB,
 			},
-			"autoSkipSegments": {
-				type: DataTypes.BOOLEAN,
+			"autoSkipSegmentCategories": {
+				type: DataTypes.JSONB,
 				allowNull: false,
-				defaultValue: true,
+				defaultValue: ALL_SKIP_CATEGORIES,
 			},
 			"prevQueue": {
 				type: DataTypes.JSONB,

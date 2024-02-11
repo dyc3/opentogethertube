@@ -242,8 +242,14 @@ export default {
 		"dj": "DJ",
 		"dj-hint":
 			"When the video ends, start the same video from the beginning. Good for looping background music.",
-		"auto-skip-text":
-			"Auto-skip sponsored segments, intros, self-promos, etc. using SponsorBlock data.",
+		"auto-skip-text": "Auto-skip undesirable video segments using SponsorBlock data.",
+		"auto-skip-text-sponsor": "sponsor",
+		"auto-skip-text-intro": "intro",
+		"auto-skip-text-outro": "outro",
+		"auto-skip-text-interaction": "interaction",
+		"auto-skip-text-selfpromo": "selfpromo",
+		"auto-skip-text-music_offtopic": "music_offtopic",
+		"auto-skip-text-preview": "preview",
 		"permissions-not-available": "Permissions are not available in temporary rooms.",
 		"room-needs-owner": "This room needs an owner before permissions can be modified.",
 		"login-to-claim": "Log in to claim this room.",

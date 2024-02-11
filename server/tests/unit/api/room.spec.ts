@@ -369,5 +369,51 @@ describe("Room API", () => {
 				...error,
 			});
 		});
+
+		it.each([
+			[Array(100).fill("sponsor"), ["sponsor"]],
+			[
+				["invalidCategory1", "invalidCategory2", "intro", "intro", "outro"],
+				["intro", "outro"],
+			],
+			[
+				[
+					"sponsor",
+					"intro",
+					"outro",
+					"interaction",
+					"selfpromo",
+					"music_offtopic",
+					"preview",
+				],
+				[
+					"sponsor",
+					"intro",
+					"outro",
+					"interaction",
+					"selfpromo",
+					"music_offtopic",
+					"preview",
+				],
+			],
+			[[], []],
+		])(
+			"should update autoSkipSegmentCategories with only unique valid auto-skip segment cateogories",
+			async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
+				let resp = await request(app)
+					.patch("/api/room/foo")
+					.set({ Authorization: "Bearer foobar" })
+					.send({
+						autoSkipSegmentCategories: requestAutoSkipSegmentCategories,
+					})
+					.expect("Content-Type", /json/)
+					.expect(200);
+				expect(resp.body.success).toEqual(true);
+				const roomResult = await roommanager.getRoom("foo");
+				expect(_.pick(roomResult.value, "autoSkipSegmentCategories")).toMatchObject({
+					autoSkipSegmentCategories: savedAutoSkipSegmentCategories,
+				});
+			}
+		);
 	});
 });
