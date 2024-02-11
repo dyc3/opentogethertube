@@ -34,7 +34,7 @@ pub async fn run() -> anyhow::Result<()> {
     let config = BalancerConfig::get();
 
     let _validate = Arg::new("validate")
-        .short('c')
+        .short('v')
         .long("validate")
         .help("Validate the configuration and exit");
 
