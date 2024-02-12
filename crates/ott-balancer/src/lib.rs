@@ -3,7 +3,7 @@ use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::Context;
 use balancer::{start_dispatcher, Balancer, BalancerContext};
-use clap::{Arg, Parser};
+use clap::Parser;
 use hyper::server::conn::http1;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
@@ -30,16 +30,11 @@ pub mod service;
 pub async fn run() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
-    BalancerConfig::load(&args.config_path)?;
+    let loaded_config = BalancerConfig::load(&args.config_path);
     let config = BalancerConfig::get();
 
-    let _validate = Arg::new("validate")
-        .short('v')
-        .long("validate")
-        .help("Validate the configuration and exit");
-
-    if std::env::args().any(|arg| arg == "--validate") {
-        match BalancerConfig::load(&args.config_path) {
+    if args.validate {
+        match loaded_config {
             Ok(()) => {
                 std::process::exit(0);
             }
