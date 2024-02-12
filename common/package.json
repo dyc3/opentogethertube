@@ -8,6 +8,13 @@
     "build": "tsc",
     "lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
     "lint-ci": "tsc --noEmit && eslint .",
-    "test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "dayjs": "^1.10.4"
+  },
+  "devDependencies": {
+    "eslint-plugin-vitest": "0.3.22",
+    "vitest": "^1.2.2"
   }
 }

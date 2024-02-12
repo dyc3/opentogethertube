@@ -1,7 +1,7 @@
+import { describe, it, expect } from "vitest";
 import dayjs from "dayjs";
 import { calculateCurrentPosition } from "../../timestamp";
 
-// TODO: move this to ott-common
 describe("calculateCurrentPosition", () => {
 	it("should calculate the correct playback position", () => {
 		expect(calculateCurrentPosition(dayjs(), dayjs(), 0)).toBeCloseTo(0);

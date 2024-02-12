@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { Result, ok, err, intoResult, intoResultAsync } from "../../result";
 
 describe("Result", () => {
