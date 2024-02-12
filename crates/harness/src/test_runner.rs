@@ -58,9 +58,13 @@ impl TestRunner {
             .expect("failed to respawn balancer");
     }
 
-    pub async fn is_alive(&mut self) {
-        let ecode = self.child.try_wait().expect("Error: Balancer is not alive").unwrap();
-        assert_eq!(ecode.success(), true);
+    pub async fn is_alive(&mut self) -> bool {
+        let ecode = self.child.try_wait().expect("Error: Balancer is not alive");
+
+        match ecode {
+            None => return false,
+            _ => return ecode.unwrap().success() == true,
+        }
     }
 
     /// Spawn a new balancer and wait for it to be ready.

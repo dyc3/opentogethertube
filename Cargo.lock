@@ -959,7 +959,6 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "tungstenite",
- "websocket",
 ]
 
 [[package]]
