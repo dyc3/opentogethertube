@@ -33,7 +33,7 @@ wait_for_db() {
     result=$?
     if [ $result -eq 0 ] ; then
       if [ $# -gt 0 ] ; then
-        if ! yarn workspace ott-server sequelize-cli db:migrate; then
+        if ! yarn run db:migrate; then
           echo "$0: Failed to run database migrations" >&2
           exit 2
         fi

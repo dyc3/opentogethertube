@@ -10,7 +10,7 @@
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
     "lint-ci": "tsc --noEmit && eslint .",
     "test": "vitest run --coverage",
-    "cy:open": "cypress open",
+    "cy:open": "cypress open --component",
     "cy:run": "cypress run --component"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "plyr": "3.7.8",
     "sortablejs": "^1.15.0",
     "sortablejs-vue3": "^1.2.3",
+    "typescript": "5.3.3",
     "validator": "^13.7.0",
     "video.js": "^7.15.4",
     "vue": "^3.4.21",
@@ -49,7 +50,10 @@
     "@vitest/coverage-v8": "^1.2.2",
     "@vue/eslint-config-typescript": "^11.0.3",
     "@vue/test-utils": "2.2.1",
+    "cypress": "12.14.0",
+    "cypress-real-events": "^1.7.4",
     "eslint": "^8.57.0",
+    "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-vitest": "0.3.22",
     "eslint-plugin-vue": "9.7.0",
     "jsdom": "^21.1.0",

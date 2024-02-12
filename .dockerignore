@@ -20,3 +20,4 @@ benchmarks/
 target/
 .slugignore
 ts-out
+!.yarnrc.yml
