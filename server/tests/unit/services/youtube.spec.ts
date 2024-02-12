@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
 import YouTubeAdapter, {
 	YoutubeErrorResponse,
 	YoutubeApiVideoListResponse,
@@ -153,11 +154,11 @@ describe("Youtube", () => {
 	});
 
 	describe("fetchVideoInfo", () => {
-		let apiGet: jest.SpyInstance;
+		let apiGet: MockInstance;
 		const videoId = "BTZ5KVRUy1Q";
 
 		beforeAll(() => {
-			apiGet = jest.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
+			apiGet = vi.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
 		});
 
 		beforeEach(() => {
@@ -179,10 +180,10 @@ describe("Youtube", () => {
 	});
 
 	describe("fetchManyVideoInfo", () => {
-		let apiGet: jest.SpyInstance;
+		let apiGet: MockInstance;
 
 		beforeAll(() => {
-			apiGet = jest.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
+			apiGet = vi.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
 		});
 
 		beforeEach(() => {
@@ -225,10 +226,10 @@ describe("Youtube", () => {
 	});
 
 	describe("resolveURL", () => {
-		let apiGet: jest.SpyInstance;
+		let apiGet: MockInstance;
 
 		beforeAll(() => {
-			apiGet = jest.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
+			apiGet = vi.spyOn(adapter.api, "get").mockImplementation(mockYoutubeApi);
 		});
 
 		beforeEach(() => {
@@ -260,9 +261,9 @@ describe("Youtube", () => {
 				x.replace("%s", "zgxj_0xPleg").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
 			)
 		)("Resolves single video URL with playlist, with video in the playlist: %s", async link => {
-			const fetchSpy = jest.spyOn(adapter, "fetchVideoWithPlaylist");
-			const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
-			const fetchPlaylist = jest.spyOn(adapter, "fetchPlaylistVideos");
+			const fetchSpy = vi.spyOn(adapter, "fetchVideoWithPlaylist");
+			const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
+			const fetchPlaylist = vi.spyOn(adapter, "fetchPlaylistVideos");
 
 			const videos = await adapter.resolveURL(link);
 			expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -301,9 +302,9 @@ describe("Youtube", () => {
 		)(
 			"Resolves single video URL with playlist, with video NOT in the playlist: %s",
 			async link => {
-				const fetchSpy = jest.spyOn(adapter, "fetchVideoWithPlaylist");
-				const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
-				const fetchPlaylist = jest.spyOn(adapter, "fetchPlaylistVideos");
+				const fetchSpy = vi.spyOn(adapter, "fetchVideoWithPlaylist");
+				const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
+				const fetchPlaylist = vi.spyOn(adapter, "fetchPlaylistVideos");
 
 				const videos = await adapter.resolveURL(link);
 				expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -361,8 +362,8 @@ describe("Youtube", () => {
 		it.each(["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`))(
 			"Ignores the WL and LL private playlists",
 			async link => {
-				const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
-				const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
+				const fetchVideoWithPlaylist = vi.spyOn(adapter, "fetchVideoWithPlaylist");
+				const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
 				const videos: Video[] = await adapter.resolveURL(link);
 				expect(videos).toHaveLength(1);
 				expect(videos[0]).toEqual({
@@ -382,9 +383,9 @@ describe("Youtube", () => {
 		);
 
 		it("Resolves playlist", async () => {
-			const fetchVideoWithPlaylist = jest.spyOn(adapter, "fetchVideoWithPlaylist");
-			const fetchVideo = jest.spyOn(adapter, "fetchVideoInfo");
-			const fetchPlaylist = jest.spyOn(adapter, "fetchPlaylistVideos");
+			const fetchVideoWithPlaylist = vi.spyOn(adapter, "fetchVideoWithPlaylist");
+			const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
+			const fetchPlaylist = vi.spyOn(adapter, "fetchPlaylistVideos");
 
 			const videos = await adapter.resolveURL(
 				"https://youtube.com/playlist?list=PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm"
@@ -452,7 +453,7 @@ describe("Youtube", () => {
 
 	describe("searchVideos", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
-		const apiGet = jest.spyOn(adapter.api, "get");
+		const apiGet = vi.spyOn(adapter.api, "get");
 
 		beforeEach(() => {
 			apiGet.mockClear();
@@ -488,7 +489,7 @@ describe("Youtube", () => {
 
 	describe("videoApiRequest", () => {
 		const adapter = new YouTubeAdapter("", redisClient);
-		const apiGet = jest.spyOn(adapter.api, "get");
+		const apiGet = vi.spyOn(adapter.api, "get");
 		const outOfQuotaResponse = {
 			isAxiosError: true,
 			response: {
@@ -503,7 +504,7 @@ describe("Youtube", () => {
 
 		it("should use the fallback when out of quota, and onlyProperties contains length", async () => {
 			apiGet.mockRejectedValue(outOfQuotaResponse);
-			const fallbackSpy = jest.spyOn(adapter, "getVideoLengthFallback").mockResolvedValue(10);
+			const fallbackSpy = vi.spyOn(adapter, "getVideoLengthFallback").mockResolvedValue(10);
 			const videos = await adapter.videoApiRequest("BTZ5KVRUy1Q", ["length"]);
 			expect(videos[0]).toEqual({
 				service: "youtube",
@@ -517,7 +518,7 @@ describe("Youtube", () => {
 
 		it("should not use the fallback when out of quota, and onlyProperties does NOT contain length", async () => {
 			apiGet.mockRejectedValue(outOfQuotaResponse);
-			const fallbackSpy = jest.spyOn(adapter, "getVideoLengthFallback").mockResolvedValue(10);
+			const fallbackSpy = vi.spyOn(adapter, "getVideoLengthFallback").mockResolvedValue(10);
 			expect(adapter.videoApiRequest("BTZ5KVRUy1Q", ["title"])).rejects.toThrow(
 				new OutOfQuotaException("youtube")
 			);

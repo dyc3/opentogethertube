@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import clientmanager, { parseWebsocketConnectionUrl } from "../../clientmanager";
 import {
 	BalancerConnection,
@@ -18,8 +19,8 @@ import { loadConfigFile, conf } from "../../ott-config";
 import { M2BInit } from "server/generated";
 
 class TestClient extends Client {
-	sendRawMock = jest.fn();
-	kickMock = jest.fn();
+	sendRawMock = vi.fn();
+	kickMock = vi.fn();
 
 	sendRaw(msg: string): void {
 		this.sendRawMock(msg);
@@ -32,7 +33,7 @@ class TestClient extends Client {
 }
 
 class BalancerConnectionMock extends BalancerConnection {
-	sendMock = jest.fn<void, [MsgM2B], BalancerConnection>();
+	sendMock = vi.fn<[MsgM2B], void>();
 
 	constructor() {
 		super();

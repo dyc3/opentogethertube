@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import roommanager, { redisStateToState } from "../../roommanager";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -31,7 +32,7 @@ describe("Room manager", () => {
 			const room = await DbRoom.findOne({ where: { name: "test" } });
 			expect(room).not.toBeNull();
 			expect(room?.permissions).not.toBeNull();
-			// eslint-disable-next-line jest/no-if
+			// eslint-disable-next-line vitest/no-if
 			if (Array.isArray(room?.permissions)) {
 				let roles = room?.permissions.map(p => p[0]);
 				expect(roles).not.toContain(Role.Administrator);
@@ -104,7 +105,7 @@ describe("Room manager", () => {
 	});
 
 	it("should not load the room if it is not already loaded in memory", async () => {
-		const getRoomByNameSpy = jest
+		const getRoomByNameSpy = vitest
 			.spyOn(storage, "getRoomByName")
 			.mockImplementation()
 			.mockResolvedValue(null);

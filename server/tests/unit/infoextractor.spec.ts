@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
 import InfoExtractor, { initExtractor } from "../../infoextractor";
 import storage from "../../storage";
 import { getMimeType } from "../../mime";
@@ -78,13 +79,13 @@ describe("InfoExtractor", () => {
 		it("should use cached search results", async () => {
 			await redisClient.set("search:fakeservice:asdf", JSON.stringify([vid]));
 			let adapter = new TestAdapter();
-			let getAdapterSpy = jest
+			let getAdapterSpy = vi
 				.spyOn(InfoExtractor, "getServiceAdapter")
 				.mockReturnValue(adapter);
-			let getCacheSpy = jest
+			let getCacheSpy = vi
 				.spyOn(InfoExtractor, "getCachedSearchResults")
 				.mockResolvedValue([vid]);
-			let getManyVideoInfoSpy = jest
+			let getManyVideoInfoSpy = vi
 				.spyOn(InfoExtractor, "getManyVideoInfo")
 				.mockResolvedValue([vid]);
 			let results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
@@ -102,19 +103,19 @@ describe("InfoExtractor", () => {
 
 		it("should cache fresh search results", async () => {
 			let adapter = new TestAdapter();
-			let getAdapterSpy = jest
+			let getAdapterSpy = vi
 				.spyOn(InfoExtractor, "getServiceAdapter")
 				.mockReturnValue(adapter);
-			let getCacheSpy = jest
+			let getCacheSpy = vi
 				.spyOn(InfoExtractor, "getCachedSearchResults")
 				.mockResolvedValue([]);
-			let searchSpy = jest.spyOn(adapter, "searchVideos").mockResolvedValue([
+			let searchSpy = vi.spyOn(adapter, "searchVideos").mockResolvedValue([
 				{
 					service: "direct",
 					id: "asdf1234",
 				},
 			]);
-			let getManyVideoInfoSpy = jest
+			let getManyVideoInfoSpy = vi
 				.spyOn(InfoExtractor, "getManyVideoInfo")
 				.mockResolvedValue([vid]);
 
@@ -144,10 +145,10 @@ describe("InfoExtractor", () => {
 		let adapterFetchVideoInfo;
 		beforeAll(() => {
 			let adapter = new TestAdapter();
-			getAdapter = jest.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
-			getCachedVideo = jest.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
-			updateCache = jest.spyOn(InfoExtractor, "updateCache").mockImplementation();
-			adapterFetchVideoInfo = jest.spyOn(adapter, "fetchVideoInfo");
+			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
+			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
+			updateCache = vi.spyOn(InfoExtractor, "updateCache").mockImplementation();
+			adapterFetchVideoInfo = vi.spyOn(adapter, "fetchVideoInfo");
 		});
 		afterEach(() => {
 			updateCache.mockClear();
@@ -255,11 +256,11 @@ describe("InfoExtractor", () => {
 		let storageGetManyVideoInfo;
 		beforeAll(() => {
 			let adapter = new TestAdapter();
-			getAdapter = jest.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
-			getCachedVideo = jest.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
-			updateCache = jest.spyOn(InfoExtractor, "updateCache").mockImplementation();
-			adapterFetchManyVideoInfo = jest.spyOn(adapter, "fetchManyVideoInfo");
-			storageGetManyVideoInfo = jest.spyOn(storage, "getManyVideoInfo").mockImplementation();
+			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
+			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
+			updateCache = vi.spyOn(InfoExtractor, "updateCache").mockResolvedValue();
+			adapterFetchManyVideoInfo = vi.spyOn(adapter, "fetchManyVideoInfo");
+			storageGetManyVideoInfo = vi.spyOn(storage, "getManyVideoInfo").mockImplementation();
 		});
 		afterEach(() => {
 			updateCache.mockClear();
@@ -332,7 +333,7 @@ describe("InfoExtractor", () => {
 describe("InfoExtractor: Cache", () => {
 	describe("getCachedVideo", () => {
 		it("should get video from cache", async () => {
-			let getVideoInfoSpy = jest.spyOn(storage, "getVideoInfo").mockResolvedValue({
+			let getVideoInfoSpy = vi.spyOn(storage, "getVideoInfo").mockResolvedValue({
 				service: "youtube",
 				id: "94L1GMA2wjk4",
 				title: "example",
@@ -348,7 +349,7 @@ describe("InfoExtractor: Cache", () => {
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			getVideoInfoSpy.mockReset();
 
-			getVideoInfoSpy = jest.spyOn(storage, "getVideoInfo").mockResolvedValue({
+			getVideoInfoSpy = vi.spyOn(storage, "getVideoInfo").mockResolvedValue({
 				service: "direct",
 				id: "https://example.com/asdf.mp4",
 				title: "asdf.mp4",
@@ -366,7 +367,7 @@ describe("InfoExtractor: Cache", () => {
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			getVideoInfoSpy.mockReset();
 
-			jest.spyOn(storage, "getVideoInfo").mockResolvedValue({
+			vi.spyOn(storage, "getVideoInfo").mockResolvedValue({
 				service: "direct",
 				id: "https://example.com/asdf.mp4",
 				title: "asdf.mp4",
@@ -386,7 +387,7 @@ describe("InfoExtractor: Cache", () => {
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			getVideoInfoSpy.mockReset();
 
-			jest.spyOn(storage, "getVideoInfo").mockResolvedValue({
+			vi.spyOn(storage, "getVideoInfo").mockResolvedValue({
 				service: "direct",
 				id: "https://example.com/asdf",
 				title: "asdf",
@@ -404,10 +405,10 @@ describe("InfoExtractor: Cache", () => {
 		let updateVideoInfoSpy;
 		let updateManyVideoInfoSpy;
 		beforeEach(() => {
-			updateVideoInfoSpy = jest.spyOn(storage, "updateVideoInfo").mockImplementation();
-			updateManyVideoInfoSpy = jest
+			updateVideoInfoSpy = vi.spyOn(storage, "updateVideoInfo").mockResolvedValue(true);
+			updateManyVideoInfoSpy = vi
 				.spyOn(storage, "updateManyVideoInfo")
-				.mockImplementation();
+				.mockResolvedValue(true);
 		});
 
 		afterAll(() => {

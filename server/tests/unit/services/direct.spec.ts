@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import DirectVideoAdapter from "../../../services/direct";
 import { FfprobeStrategy } from "../../../ffprobe";
 import fs from "fs";

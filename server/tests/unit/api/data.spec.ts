@@ -9,11 +9,11 @@ describe("Data API", () => {
 	let validateSpy;
 
 	beforeAll(async () => {
-		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			isLoggedIn: false,
 			username: "test",
 		});
-		validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 		app = (await main()).app;
 	});
 
@@ -23,7 +23,7 @@ describe("Data API", () => {
 	});
 
 	it("GET /data/previewAdd", async () => {
-		let resolveQuerySpy = jest
+		let resolveQuerySpy = vitest
 			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockReturnValue(Promise.resolve(new AddPreview([], 0)));
 
@@ -40,7 +40,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest
+		resolveQuerySpy = vitest
 			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockImplementation(
 				() =>
@@ -62,7 +62,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(
+		resolveQuerySpy = vi.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(
 			() =>
 				new Promise((resolve, reject) =>
 					reject({
@@ -85,7 +85,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest
+		resolveQuerySpy = vitest
 			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockImplementation(
 				() =>

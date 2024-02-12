@@ -74,14 +74,14 @@ describe("Room API", () => {
 	});
 
 	describe("GET /room/:name", () => {
-		let getSessionInfoSpy: jest.SpyInstance;
-		let validateSpy: jest.SpyInstance;
+		let getSessionInfoSpy: MockInstance;
+		let validateSpy: MockInstance;
 		beforeAll(async () => {
-			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
-			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
@@ -137,14 +137,14 @@ describe("Room API", () => {
 	});
 
 	describe("POST /room/create", () => {
-		let getSessionInfoSpy: jest.SpyInstance;
-		let validateSpy: jest.SpyInstance;
+		let getSessionInfoSpy: MockInstance;
+		let validateSpy: MockInstance;
 		beforeAll(async () => {
-			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
-			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
@@ -271,7 +271,7 @@ describe("Room API", () => {
 				username: "owner",
 				password: "password1234",
 			});
-			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: true,
 				user_id: user.id,
 			});
@@ -319,15 +319,15 @@ describe("Room API", () => {
 	});
 
 	describe("PATCH /api/room/:name", () => {
-		let getSessionInfoSpy: jest.SpyInstance;
-		let validateSpy: jest.SpyInstance;
+		let getSessionInfoSpy: MockInstance;
+		let validateSpy: MockInstance;
 
 		beforeAll(async () => {
-			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
-			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 
 			await roommanager.createRoom({
 				name: "foo",

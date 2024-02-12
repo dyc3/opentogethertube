@@ -80,7 +80,7 @@ describe("User API", () => {
 		let onUserModifiedSpy;
 
 		beforeAll(() => {
-			onUserModifiedSpy = jest.fn();
+			onUserModifiedSpy = vi.fn();
 			usermanager.on("userModified", onUserModifiedSpy);
 		});
 
@@ -173,7 +173,7 @@ describe("User API", () => {
 			let onUserLogInSpy;
 
 			beforeAll(() => {
-				onUserLogInSpy = jest.fn();
+				onUserLogInSpy = vi.fn();
 				usermanager.on("login", onUserLogInSpy);
 			});
 
@@ -238,7 +238,7 @@ describe("User API", () => {
 			let onUserLogOutSpy;
 
 			beforeAll(() => {
-				onUserLogOutSpy = jest.fn();
+				onUserLogOutSpy = vi.fn();
 				usermanager.on("logout", onUserLogOutSpy);
 			});
 
@@ -283,7 +283,7 @@ describe("User API", () => {
 			let onUserLogInSpy;
 
 			beforeAll(() => {
-				onUserLogInSpy = jest.fn();
+				onUserLogInSpy = vi.fn();
 				usermanager.on("login", onUserLogInSpy);
 			});
 

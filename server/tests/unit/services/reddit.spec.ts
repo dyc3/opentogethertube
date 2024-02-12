@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import RedditAdapter, {
 	RedditListableThing,
 	RedditListing,
@@ -1380,7 +1381,7 @@ describe("Reddit", () => {
 		const adapter = new RedditAdapter();
 
 		it("should get video urls", async () => {
-			jest.spyOn(adapter.api, "get").mockResolvedValue({ data: subredditListResponse });
+			vi.spyOn(adapter.api, "get").mockResolvedValue({ data: subredditListResponse });
 
 			const videos = await adapter.resolveURL("https://reddit.com/r/youtubehaiku");
 

@@ -1,13 +1,13 @@
 export default {
-	preset: "ts-jest",
+	preset: "ts-vitest",
 	testEnvironment: "node",
 	transform: {
-		"^.+\\.jsx?$": "babel-jest",
+		"^.+\\.jsx?$": "babel-vitest",
 	},
 	rootDir: "../..",
 	testMatch: ["**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)"],
 	testPathIgnorePatterns: ["/node_modules/", "/dist/", "/coverage/", "/ts-out/"],
-	watchPlugins: ["jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
+	watchPlugins: ["vitest-watch-typeahead/filename", "vitest-watch-typeahead/testname"],
 	// collectCoverage: true,
 	coverageReporters: ["text-summary", "text", "json", "html"],
 	collectCoverageFrom: [
@@ -25,5 +25,5 @@ export default {
 		"!**/src/**",
 		"!app.js",
 	],
-	setupFilesAfterEnv: ["./tests/unit/jest.setup.redis-mock.js"],
+	setupFilesAfterEnv: ["./tests/unit/vitest.setup.redis-mock.js"],
 };

@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import GoogleDriveAdapter from "../../../../server/services/googledrive";
 
 describe("Google Drive", () => {
@@ -41,9 +42,9 @@ describe("Google Drive", () => {
 
 	describe("fetchVideoInfo", () => {
 		const adapter = new GoogleDriveAdapter("");
-		jest.spyOn(adapter.api, "get");
+		vi.spyOn(adapter.api, "get");
 		const videoId = "08ahsdlk0218";
-		const apiGet = jest.fn().mockResolvedValue({
+		const apiGet = vi.fn().mockResolvedValue({
 			data: {
 				id: videoId,
 				name: "Test video",
@@ -79,13 +80,13 @@ describe("Google Drive", () => {
 
 	describe("resolveURL", () => {
 		const adapter = new GoogleDriveAdapter("");
-		jest.spyOn(adapter.api, "get");
+		vi.spyOn(adapter.api, "get");
 
 		it("Resolves URLs to single videos", async () => {
 			const url = "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
 
 			const videoId = "0ashda098sd892oihas";
-			const apiGet = jest.fn().mockResolvedValue({
+			const apiGet = vi.fn().mockResolvedValue({
 				data: {
 					id: videoId,
 					name: "Test video",
@@ -113,7 +114,7 @@ describe("Google Drive", () => {
 		it("Resolves a folder URL to a list of videos", async () => {
 			const folderId = "bnas098dh9asund982hlkahsd9";
 			const url = `https://drive.google.com/drive/folders/${folderId}?usp=sharing`;
-			const apiGet = jest.fn().mockResolvedValue({
+			const apiGet = vi.fn().mockResolvedValue({
 				data: {
 					files: [
 						{

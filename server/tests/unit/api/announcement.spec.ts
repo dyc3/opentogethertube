@@ -15,17 +15,17 @@ describe("Announcements API", () => {
 
 	beforeAll(async () => {
 		setApiKey(TEST_API_KEY);
-		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			isLoggedIn: false,
 			username: "test",
 		});
-		validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 
 		app = (await main()).app;
 	});
 
 	beforeEach(() => {
-		publishSpy = jest.spyOn(redisClient, "publish").mockResolvedValue(1);
+		publishSpy = vi.spyOn(redisClient, "publish").mockResolvedValue(1);
 	});
 
 	afterEach(() => {

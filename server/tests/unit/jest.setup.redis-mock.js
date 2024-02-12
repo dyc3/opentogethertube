@@ -1,2 +1,2 @@
 import mockredis from "./redisV4Mock";
-jest.mock("redis", () => mockredis);
+vitest.mock("redis", () => mockredis);
