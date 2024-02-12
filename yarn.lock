@@ -15723,10 +15723,10 @@ vue@^3.2.37:
     "@vue/server-renderer" "3.2.45"
     "@vue/shared" "3.2.45"
 
-vuetify@3.3.3:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.3.3.tgz#82904abbed936abaf775b8394b0d094d4b56cbc7"
-  integrity sha512-oLpm6L6Zvf4b7Ua8V3INnUkGoxbi04O68ymEbBDLrPFzmIkzAcwd9L/2Ega582PRJnjTBBZapa6KdmosvhVvgA==
+vuetify@3.5.3:
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-3.5.3.tgz#bfb807027854db17950195659139c9abc76bf497"
+  integrity sha512-z2H1HYEfFeqHTp47VbFOLAv6Nard/eP4+qIXY9c6Z/uUflLhq5K8cyXL6MKhfIzyUsto+KszjVTyX+bu7zT2QA==
 
 vuex@4.1.0:
   version "4.1.0"
