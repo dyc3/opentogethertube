@@ -5,7 +5,7 @@ import { getAuthToken, randomRoomNames, createRoom, HOSTNAME } from "./utils.js"
 
 export const options = {
 	// A number specifying the number of VUs to run concurrently.
-	vus: 2,
+	vus: 20,
 	// A string specifying the total duration of the test run.
 	// duration: "10s",
 

@@ -49,18 +49,31 @@ export function createRoom(name, token, roomOptions = {}, options = { doCheck: t
 	const body = Object.assign(
 		{
 			name: name,
-			visibility: "public",
-			isTemporary: false,
 		},
 		roomOptions
 	);
 	const url = `http://${HOSTNAME}/api/room/create`;
-	let resp = http.post(url, JSON.stringify(body), {
+	let resp = http.post(url, body, {
 		headers: {
 			Authorization: `Bearer ${token}`,
 		},
 	});
 	if (options.doCheck) {
-		check(resp, { "room created": r => r && r.status === 201 });
+		check(resp, {
+			"room created": r => {
+				if (r.status === 201) {
+					return true;
+				}
+				let body = JSON.parse(r.body);
+				if (body.error && body.error.name === "RoomNameTakenException") {
+					return true;
+				}
+				return false;
+			},
+		});
+	}
+
+	if (resp.status !== 201) {
+		console.log(`Failed to create room ${name}: ${resp.body}`);
 	}
 }
