@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { exportQueue } from "../../queueexport";
 import type { QueueItem } from "../../models/video";
 

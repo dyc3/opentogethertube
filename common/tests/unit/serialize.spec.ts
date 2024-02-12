@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { deserializeMap, deserializeSet, replacer } from "../../serialize";
 
 describe("Serialize helpers", () => {

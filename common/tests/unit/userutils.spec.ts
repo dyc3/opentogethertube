@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { canKickUser } from "../../userutils";
 import { Role } from "../../models/types";
 
