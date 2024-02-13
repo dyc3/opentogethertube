@@ -1,3 +1,14 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import _ from "lodash";
 import { QueueMode, Visibility } from "../../../../common/models/types";
 import request from "supertest";
@@ -74,14 +85,14 @@ describe("Room API", () => {
 	});
 
 	describe("GET /room/:name", () => {
-		let getSessionInfoSpy: jest.SpyInstance;
-		let validateSpy: jest.SpyInstance;
+		let getSessionInfoSpy: MockInstance;
+		let validateSpy: MockInstance;
 		beforeAll(async () => {
-			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
-			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
@@ -137,14 +148,15 @@ describe("Room API", () => {
 	});
 
 	describe("POST /room/create", () => {
-		let getSessionInfoSpy: jest.SpyInstance;
-		let validateSpy: jest.SpyInstance;
+		let getSessionInfoSpy: MockInstance;
+		let validateSpy: MockInstance;
+
 		beforeAll(async () => {
-			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
-			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
 		afterAll(() => {
@@ -160,7 +172,6 @@ describe("Room API", () => {
 					throw e;
 				}
 			}
-			await UserModel.destroy({ where: {} });
 		});
 
 		it.each([Visibility.Public, Visibility.Unlisted])(
@@ -267,11 +278,11 @@ describe("Room API", () => {
 
 		it("should create permanent room with owner", async () => {
 			const user = await usermanager.registerUser({
-				email: "forced@localhost",
+				email: "owner@localhost",
 				username: "owner",
 				password: "password1234",
 			});
-			jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: true,
 				user_id: user.id,
 			});
@@ -290,6 +301,7 @@ describe("Room API", () => {
 			});
 			await roommanager.unloadRoom("testowner");
 			await RoomModel.destroy({ where: { name: "testowner" } });
+			await user.destroy();
 		});
 
 		const requests: [string, OttApiRequestRoomCreate | undefined][] = [
@@ -319,15 +331,15 @@ describe("Room API", () => {
 	});
 
 	describe("PATCH /api/room/:name", () => {
-		let getSessionInfoSpy: jest.SpyInstance;
-		let validateSpy: jest.SpyInstance;
+		let getSessionInfoSpy: MockInstance;
+		let validateSpy: MockInstance;
 
 		beforeAll(async () => {
-			getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+			getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: false,
 				username: "test",
 			});
-			validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+			validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 
 			await roommanager.createRoom({
 				name: "foo",

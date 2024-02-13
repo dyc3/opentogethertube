@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import _ from "lodash";
 import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models";
 import storage from "../../storage";
@@ -14,8 +15,11 @@ describe("Storage: Room Spec", () => {
 		await buildClients();
 	});
 
-	beforeEach(async () => {
-		await DbRoom.destroy({ where: {} });
+	afterEach(async () => {
+		await DbRoom.destroy({ where: { name: "example" } });
+		await DbRoom.destroy({ where: { name: "Example" } });
+		await DbRoom.destroy({ where: { name: "capitalizedexampleroom" } });
+		await DbRoom.destroy({ where: { name: "CapitalizedExampleRoom" } });
 	});
 
 	it("roomToDb and roomToDbPartial should return the same object", () => {
@@ -229,6 +233,7 @@ describe("Storage: Room Spec", () => {
 
 describe("Storage: CachedVideos Spec", () => {
 	afterEach(async () => {
+		// This is isolation safe because this is the only file to use the CachedVideo table
 		await CachedVideo.destroy({ where: {} });
 	});
 
@@ -397,10 +402,12 @@ describe("Storage: CachedVideos Spec", () => {
 
 describe("Storage: CachedVideos: bulk inserts/updates", () => {
 	beforeEach(async () => {
+		// This is isolation safe because this is the only file to use the CachedVideo table
 		await CachedVideo.destroy({ where: {} });
 	});
 
 	afterEach(async () => {
+		// This is isolation safe because this is the only file to use the CachedVideo table
 		await CachedVideo.destroy({ where: {} });
 	});
 

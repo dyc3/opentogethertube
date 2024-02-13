@@ -11,7 +11,7 @@
     "build": "tsc",
     "lint": "tsc --noEmit && eslint --fix .",
     "lint-ci": "tsc --noEmit && eslint .",
-    "test": "jest --config ./tests/unit/jest.config.js -experimental-vm-modules --runInBand --detectOpenHandles --forceExit --coverage"
+    "test": "vitest run --coverage"
   },
   "dependencies": {
     "@divine/synchronization": "^1.2.1",
@@ -48,8 +48,6 @@
     "ws": "^7.4.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.2",
-    "@babel/plugin-transform-modules-commonjs": "^7.19.6",
     "@types/convict": "^6.1.1",
     "@types/express": "^4.17.11",
     "@types/express-session": "^1.17.3",
@@ -60,10 +58,10 @@
     "@types/sequelize": "^4.28.9",
     "@types/supertest": "^2.0.11",
     "@types/ws": "^7.4.4",
-    "babel-jest": "29.5.0",
-    "jest-watch-typeahead": "^2.2.1",
+    "eslint-plugin-vitest": "0.3.22",
     "nodemon": "^2.0.4",
     "redis-mock": "^0.56.3",
-    "sqlite3": "5.1.5"
+    "sqlite3": "5.1.5",
+    "vitest": "^1.2.2"
   }
 }

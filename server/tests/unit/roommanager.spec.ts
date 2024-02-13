@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
 import roommanager, { redisStateToState } from "../../roommanager";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -17,8 +18,7 @@ describe("Room manager", () => {
 		await buildClients();
 	});
 
-	beforeEach(async () => {
-		await DbRoom.destroy({ where: {} });
+	afterEach(async () => {
 		for (const room of roommanager.rooms) {
 			await roommanager.unloadRoom(room.name);
 		}
@@ -27,41 +27,44 @@ describe("Room manager", () => {
 
 	describe("creating a room", () => {
 		it("should never save null to permissions or user role columns", async () => {
-			await roommanager.createRoom({ name: "test", isTemporary: false, title: "asdf1234" });
-			const room = await DbRoom.findOne({ where: { name: "test" } });
+			const roomName = "foo-76kdf943";
+			await roommanager.createRoom({ name: roomName, isTemporary: false, title: "asdf1234" });
+			const room = await DbRoom.findOne({ where: { name: roomName } });
 			expect(room).not.toBeNull();
 			expect(room?.permissions).not.toBeNull();
-			// eslint-disable-next-line jest/no-if
+			expect(room?.permissions).toBeInstanceOf(Array);
+			// eslint-disable-next-line vitest/no-conditional-in-test
 			if (Array.isArray(room?.permissions)) {
 				let roles = room?.permissions.map(p => p[0]);
 				expect(roles).not.toContain(Role.Administrator);
 				expect(roles).not.toContain(Role.Owner);
-			} else {
-				throw new Error("permissions should be an array on a newly created room");
 			}
 			expect(room?.["role-admin"]).toBeInstanceOf(Array);
 			expect(room?.["role-mod"]).toBeInstanceOf(Array);
 			expect(room?.["role-trusted"]).toBeInstanceOf(Array);
+			await room?.destroy();
 		});
 
 		it("should be able to load saved settings from database", async () => {
+			const roomName = "foo-a3b5e323";
 			await roommanager.createRoom({
-				name: "test",
+				name: roomName,
 				isTemporary: false,
 				title: "asdf1234",
 				description: "0987asdf",
 				visibility: Visibility.Unlisted,
 				queueMode: QueueMode.Vote,
 			});
-			const room = await DbRoom.findOne({ where: { name: "test" } });
+			const room = await DbRoom.findOne({ where: { name: roomName } });
 			expect(room).not.toBeNull();
 			expect(room).toMatchObject({
-				name: "test",
+				name: roomName,
 				title: "asdf1234",
 				description: "0987asdf",
 				visibility: Visibility.Unlisted,
 				queueMode: QueueMode.Vote,
 			});
+			await room?.destroy();
 		});
 	});
 
@@ -104,10 +107,7 @@ describe("Room manager", () => {
 	});
 
 	it("should not load the room if it is not already loaded in memory", async () => {
-		const getRoomByNameSpy = jest
-			.spyOn(storage, "getRoomByName")
-			.mockImplementation()
-			.mockResolvedValue(null);
+		const getRoomByNameSpy = vi.spyOn(storage, "getRoomByName").mockResolvedValue(null);
 		let result = await roommanager.getRoom("test", {
 			mustAlreadyBeLoaded: true,
 		});

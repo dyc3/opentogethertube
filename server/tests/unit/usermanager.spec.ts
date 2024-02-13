@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import usermanager from "../../usermanager";
 import { conf } from "../../../server/ott-config";
 import { FeatureDisabledException } from "../../exceptions";
