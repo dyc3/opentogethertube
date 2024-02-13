@@ -5,7 +5,7 @@ import convict from "convict";
 import toml from "toml";
 import type winston from "winston";
 import { ALL_VIDEO_SERVICES } from "../common/constants";
-import { Result, err, ok, } from "../common/result";
+import { Result, err, ok } from "../common/result";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
@@ -559,7 +559,9 @@ function validateMail(): Result<void, Error> {
 
 	if (!conf.get("mail.mailjet_api_key") || !conf.get("mail.mailjet_api_secret")) {
 		conf.set("mail.enabled", false);
-		return err(new Error("Mailjet API key and secret are required to send mail, disabling mail."));
+		return err(
+			new Error("Mailjet API key and secret are required to send mail, disabling mail.")
+		);
 	}
 
 	if (conf.get("env") === "test") {
