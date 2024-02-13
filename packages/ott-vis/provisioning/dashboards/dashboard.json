@@ -18,7 +18,6 @@
 	"editable": true,
 	"fiscalYearStartMonth": 0,
 	"graphTooltip": 0,
-	"id": 1,
 	"links": [],
 	"liveNow": false,
 	"panels": [
@@ -37,7 +36,8 @@
 			"options": {
 				"seriesCountSize": "sm",
 				"showSeriesCount": false,
-				"text": "Default value of text input option"
+				"text": "Default value of text input option",
+				"view": "global"
 			},
 			"targets": [
 				{
@@ -49,65 +49,13 @@
 					"refId": "A"
 				}
 			],
-			"title": "Panel Title",
+			"title": "Global",
 			"type": "ott-vis-panel"
 		},
 		{
 			"datasource": {
-				"type": "datasource",
+				"type": "grafana",
 				"uid": "grafana"
-			},
-			"fieldConfig": {
-				"defaults": {
-					"color": {
-						"mode": "palette-classic"
-					},
-					"custom": {
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 0,
-						"gradientMode": "none",
-						"hideFrom": {
-							"legend": false,
-							"tooltip": false,
-							"viz": false
-						},
-						"lineInterpolation": "linear",
-						"lineWidth": 1,
-						"pointSize": 5,
-						"scaleDistribution": {
-							"type": "linear"
-						},
-						"showPoints": "auto",
-						"spanNulls": false,
-						"stacking": {
-							"group": "A",
-							"mode": "none"
-						},
-						"thresholdsStyle": {
-							"mode": "off"
-						}
-					},
-					"mappings": [],
-					"thresholds": {
-						"mode": "absolute",
-						"steps": [
-							{
-								"color": "green",
-								"value": null
-							},
-							{
-								"color": "red",
-								"value": 80
-							}
-						]
-					}
-				},
-				"overrides": []
 			},
 			"gridPos": {
 				"h": 8,
@@ -115,21 +63,25 @@
 				"x": 12,
 				"y": 0
 			},
-			"id": 3,
+			"id": 5,
 			"options": {
-				"legend": {
-					"calcs": [],
-					"displayMode": "list",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": {
-					"mode": "single",
-					"sort": "none"
-				}
+				"seriesCountSize": "sm",
+				"showSeriesCount": false,
+				"text": "Default value of text input option",
+				"view": "region"
 			},
-			"title": "Latency",
-			"type": "timeseries"
+			"targets": [
+				{
+					"datasource": {
+						"type": "datasource",
+						"uid": "grafana"
+					},
+					"queryType": "randomWalk",
+					"refId": "A"
+				}
+			],
+			"title": "Region",
+			"type": "ott-vis-panel"
 		},
 		{
 			"datasource": {
@@ -167,7 +119,7 @@
 			},
 			"gridPos": {
 				"h": 8,
-				"w": 12,
+				"w": 9,
 				"x": 0,
 				"y": 8
 			},
@@ -296,8 +248,8 @@
 			},
 			"gridPos": {
 				"h": 8,
-				"w": 12,
-				"x": 12,
+				"w": 7,
+				"x": 9,
 				"y": 8
 			},
 			"id": 2,
@@ -315,6 +267,85 @@
 			},
 			"title": "Traffic",
 			"type": "timeseries"
+		},
+		{
+			"datasource": {
+				"type": "datasource",
+				"uid": "grafana"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"custom": {
+						"axisCenteredZero": false,
+						"axisColorMode": "text",
+						"axisLabel": "",
+						"axisPlacement": "auto",
+						"barAlignment": 0,
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"gradientMode": "none",
+						"hideFrom": {
+							"legend": false,
+							"tooltip": false,
+							"viz": false
+						},
+						"lineInterpolation": "linear",
+						"lineWidth": 1,
+						"pointSize": 5,
+						"scaleDistribution": {
+							"type": "linear"
+						},
+						"showPoints": "auto",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						},
+						"thresholdsStyle": {
+							"mode": "off"
+						}
+					},
+					"mappings": [],
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "green",
+								"value": null
+							},
+							{
+								"color": "red",
+								"value": 80
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"gridPos": {
+				"h": 8,
+				"w": 8,
+				"x": 16,
+				"y": 8
+			},
+			"id": 3,
+			"options": {
+				"legend": {
+					"calcs": [],
+					"displayMode": "list",
+					"placement": "bottom",
+					"showLegend": true
+				},
+				"tooltip": {
+					"mode": "single",
+					"sort": "none"
+				}
+			},
+			"title": "Latency",
+			"type": "timeseries"
 		}
 	],
 	"refresh": "",
@@ -330,8 +361,8 @@
 	},
 	"timepicker": {},
 	"timezone": "",
-	"title": "Provisioned visualization-prototype dashboard",
+	"title": "Provisioned ott-vis dashboard",
 	"uid": "c5ea3bcd-f966-47d8-8456-4536ddc45ff0",
-	"version": 6,
+	"version": 1,
 	"weekStart": ""
 }
