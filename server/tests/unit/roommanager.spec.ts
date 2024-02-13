@@ -105,9 +105,8 @@ describe("Room manager", () => {
 	});
 
 	it("should not load the room if it is not already loaded in memory", async () => {
-		const getRoomByNameSpy = vitest
+		const getRoomByNameSpy = vi
 			.spyOn(storage, "getRoomByName")
-			.mockImplementation()
 			.mockResolvedValue(null);
 		let result = await roommanager.getRoom("test", {
 			mustAlreadyBeLoaded: true,
