@@ -1,7 +1,7 @@
 /**
  * Unit tests for DashVideoAdapter's MPD parsing methods
  */
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance, Mocked, Mock } from "vitest";
 import DashVideoAdapter from "../../../services/dash";
 import { UnsupportedVideoType } from "../../../exceptions";
 import { parseIso8601Duration } from "../../../services/parsing/iso8601";
@@ -15,15 +15,15 @@ vi.mock("@liveinstantly/dash-mpd-parser");
 
 describe("DashVideoAdapter", () => {
 	let adapter: DashVideoAdapter;
-	let mockAxiosGet: MockInstance;
-	let mockParseIso8601Duration: MockInstance<[string], number>;
-	let mockDashMPD: MockInstance;
+	let mockAxiosGet;
+	let mockParseIso8601Duration;
+	let mockDashMPD;
 
 	beforeEach(() => {
 		adapter = new DashVideoAdapter();
-		mockAxiosGet = axios.get as MockInstance;
-		mockParseIso8601Duration = parseIso8601Duration as MockInstance<[string], number>;
-		mockDashMPD = DashMPD as MockInstance;
+		mockAxiosGet = axios.get;
+		mockParseIso8601Duration = parseIso8601Duration;
+		mockDashMPD = DashMPD;
 	});
 
 	describe("handleMpd", () => {
