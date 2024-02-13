@@ -5,6 +5,7 @@ import convict from "convict";
 import toml from "toml";
 import type winston from "winston";
 import { ALL_VIDEO_SERVICES } from "../common/constants";
+import { Result, err, ok, } from "../common/result";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
@@ -535,7 +536,11 @@ function postProcessConfig(): void {
 	}
 
 	if (conf.get("mail.enabled")) {
-		validateMail();
+		try {
+			validateMail();
+		} catch (e) {
+			log.error(e);
+		}
 	}
 
 	if (process.env.FLY_REGION) {
@@ -544,24 +549,25 @@ function postProcessConfig(): void {
 	}
 }
 
-function validateMail() {
+function validateMail(): Result<void, Error> {
 	const sender = conf.get("mail.sender_email");
+
 	if (sender && !validator.isEmail(sender)) {
-		log.error(`Invalid email address ${sender} found in config, disabling mail.`);
 		conf.set("mail.enabled", false);
-		return;
+		return err(new Error(`Invalid email address ${sender} found in config, disabling mail.`));
 	}
 
 	if (!conf.get("mail.mailjet_api_key") || !conf.get("mail.mailjet_api_secret")) {
-		log.error("Mailjet API key and secret are required to send mail, disabling mail.");
 		conf.set("mail.enabled", false);
-		return;
+		return err(new Error("Mailjet API key and secret are required to send mail, disabling mail."));
 	}
 
 	if (conf.get("env") === "test") {
-		log.warn("Mail is enabled in test mode. Forcing sandbox mode.");
 		conf.set("mail.mailjet_sandbox", true);
+		return err(new Error("Mail is enabled in test mode. Forcing sandbox mode."));
 	}
+
+	return ok(undefined);
 }
 
 let log: winston.Logger | Console = console;
