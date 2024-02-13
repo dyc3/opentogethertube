@@ -34,3 +34,19 @@ export function aggMonolithRooms(state: SystemState): Record<string, string[]> {
 	}
 	return Object.fromEntries(Object.entries(roomClients).map(([k, v]) => [k, Array.from(v)]));
 }
+
+export function groupMonolithsByRegion(state: SystemState): Record<string, string[]> {
+	const regionMonoliths: Record<string, Set<string>> = {};
+	for (const balancer of state) {
+		for (const monolith of balancer.monoliths) {
+			const s = regionMonoliths[monolith.region] ?? new Set();
+			s.add(monolith.id);
+			regionMonoliths[monolith.region] = s;
+		}
+	}
+	return Object.fromEntries(Object.entries(regionMonoliths).map(([k, v]) => [k, Array.from(v)]));
+}
+
+export function sumObj(obj: Record<any, number>): number {
+	return Object.values(obj).reduce((a, b) => a + b, 0);
+}
