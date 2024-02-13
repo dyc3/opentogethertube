@@ -4,15 +4,16 @@ import { main } from "../../../app";
 import { setApiKey } from "../../../admin";
 import { ANNOUNCEMENT_CHANNEL } from "../../../../common/constants";
 import { redisClient } from "../../../redisclient";
-import tokens from "../../../auth/tokens";
+import tokens, { type SessionInfo } from "../../../auth/tokens";
+import type { AuthToken } from "../../../../common/models/types";
 
 const TEST_API_KEY = "TESTAPIKEY";
 
 describe("Announcements API", () => {
 	let app;
-	let publishSpy;
-	let getSessionInfoSpy;
-	let validateSpy;
+	let publishSpy: MockInstance<any, Promise<number>>;
+	let getSessionInfoSpy: MockInstance<[AuthToken], Promise<SessionInfo>>;
+	let validateSpy: MockInstance<[AuthToken], Promise<boolean>>;
 
 	beforeAll(async () => {
 		setApiKey(TEST_API_KEY);
