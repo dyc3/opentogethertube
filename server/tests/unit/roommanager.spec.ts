@@ -18,8 +18,7 @@ describe("Room manager", () => {
 		await buildClients();
 	});
 
-	beforeEach(async () => {
-		await DbRoom.destroy({ where: {} });
+	afterEach(async () => {
 		for (const room of roommanager.rooms) {
 			await roommanager.unloadRoom(room.name);
 		}
@@ -32,17 +31,17 @@ describe("Room manager", () => {
 			const room = await DbRoom.findOne({ where: { name: "test" } });
 			expect(room).not.toBeNull();
 			expect(room?.permissions).not.toBeNull();
+			expect(room?.permissions).toBeInstanceOf(Array);
 			// eslint-disable-next-line vitest/no-if
 			if (Array.isArray(room?.permissions)) {
 				let roles = room?.permissions.map(p => p[0]);
 				expect(roles).not.toContain(Role.Administrator);
 				expect(roles).not.toContain(Role.Owner);
-			} else {
-				throw new Error("permissions should be an array on a newly created room");
 			}
 			expect(room?.["role-admin"]).toBeInstanceOf(Array);
 			expect(room?.["role-mod"]).toBeInstanceOf(Array);
 			expect(room?.["role-trusted"]).toBeInstanceOf(Array);
+			await room?.destroy();
 		});
 
 		it("should be able to load saved settings from database", async () => {
@@ -63,6 +62,7 @@ describe("Room manager", () => {
 				visibility: Visibility.Unlisted,
 				queueMode: QueueMode.Vote,
 			});
+			await room?.destroy();
 		});
 	});
 
