@@ -16,12 +16,13 @@ import websockets from "./websockets";
 import clientmanager from "./clientmanager";
 import roommanager from "./roommanager";
 import bodyParser from "body-parser";
-import { loadConfigFile, conf, setLogger } from "./ott-config";
+import { loadConfigFile, conf, setLogger, validateConfig } from "./ott-config";
 import { buildRateLimiter } from "./rate-limit";
 import { initExtractor } from "./infoextractor";
 import session, { SessionOptions } from "express-session";
 import RedisStore from "connect-redis";
 import { setupPostgresMetricsCollection } from "./storage.metrics";
+import { stderr } from "process";
 
 const app = express();
 
@@ -55,13 +56,7 @@ export async function main() {
 	buildRateLimiter();
 
 	if (process.argv.includes("--validate")) {
-		try {
-			conf.validate({ allowed: "strict" });
-		} catch (e) {
-			log.error(e);
-			process.exit(1);
-		}
-		process.exit(0);
+		validateConfig();
 	}
 
 	if (

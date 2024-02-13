@@ -487,6 +487,17 @@ export function loadConfigFile() {
 	conf.validate({ allowed: "warn" });
 }
 
+export function validateConfig() {
+	try {
+		conf.validate({ allowed: "strict" });
+		validateMail();
+	} catch (e) {
+		log.error(e);
+		process.exit(1);
+	}
+	process.exit(0);
+}
+
 function postProcessConfig(): void {
 	if (process.env.REDIS_TLS_URL) {
 		log.info("Found REDIS_TLS_URL. Using it for redis.url.");
