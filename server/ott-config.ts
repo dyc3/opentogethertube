@@ -489,14 +489,20 @@ export function loadConfigFile() {
 }
 
 export function validateConfig() {
-	try {
-		conf.validate({ allowed: "strict" });
-		validateMail();
-	} catch (e) {
-		log.error(e);
+	const result = validateMail();
+	if (!result.ok) {
+		log.error(result.value.message);
 		process.exit(1);
+	} else {
+		try {
+			conf.validate({ allowed: "strict" });
+		} catch (e) {
+			log.error(e);
+			process.exit(1);
+		}
+
+		process.exit(0);
 	}
-	process.exit(0);
 }
 
 function postProcessConfig(): void {
@@ -536,10 +542,9 @@ function postProcessConfig(): void {
 	}
 
 	if (conf.get("mail.enabled")) {
-		try {
-			validateMail();
-		} catch (e) {
-			log.error(e);
+		const result = validateMail();
+		if (!result.ok) {
+			log.error(result.value.message);
 		}
 	}
 
