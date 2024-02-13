@@ -22,7 +22,7 @@ import { initExtractor } from "./infoextractor";
 import session, { SessionOptions } from "express-session";
 import RedisStore from "connect-redis";
 import { setupPostgresMetricsCollection } from "./storage.metrics";
-import { stderr } from "process";
+
 
 const app = express();
 
