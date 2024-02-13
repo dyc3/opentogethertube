@@ -23,7 +23,6 @@ import session, { SessionOptions } from "express-session";
 import RedisStore from "connect-redis";
 import { setupPostgresMetricsCollection } from "./storage.metrics";
 
-
 const app = express();
 
 export async function main() {
