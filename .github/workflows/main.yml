@@ -31,7 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: true
@@ -43,7 +43,7 @@ jobs:
         NODE_ENV: production
 
     - name: cargo-install
-      uses: baptiste0928/cargo-install@v1
+      uses: baptiste0928/cargo-install@v3
       with:
         crate: typeshare-cli
         version: "1.7.0"
@@ -74,14 +74,14 @@ jobs:
       id: npm-cache
       run: |
         echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
-    - uses: actions/cache@v1
+    - uses: actions/cache@v4
       with:
         path: ${{ steps.npm-cache.outputs.dir }}
         key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-node-${{ matrix.node-version }}-
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: true
@@ -101,7 +101,7 @@ jobs:
       run: |
         echo "files=$(find . -name coverage-final.json | sed 's/\.\///g' | tr '\n' ',')" >> "$GITHUB_OUTPUT"
     - name: Upload coverage report
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
       with:
         files: ${{ steps.collect-coverage.outputs.files }}
   grafana-compatibilitycheck:
@@ -112,7 +112,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'yarn'
