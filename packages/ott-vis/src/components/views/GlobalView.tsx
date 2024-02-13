@@ -50,7 +50,7 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 				radius: 7,
 				x: 0,
 				y: 0,
-				group: "Room",
+				group: "room",
 				color: "Blue", // TODO: use color from grafana theme/panel options
 			};
 			nodes.push(roomNode);
@@ -69,7 +69,7 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 						radius: 4,
 						x: 0,
 						y: 0,
-						group: "Client",
+						group: "client",
 						color: "Blue", // TODO: use color from grafana theme/panel options
 					};
 					nodes.push(clientNode);
