@@ -46,7 +46,3 @@ export function groupMonolithsByRegion(state: SystemState): Record<string, strin
 	}
 	return Object.fromEntries(Object.entries(regionMonoliths).map(([k, v]) => [k, Array.from(v)]));
 }
-
-export function sumObj(obj: Record<any, number>): number {
-	return Object.values(obj).reduce((a, b) => a + b, 0);
-}

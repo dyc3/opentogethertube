@@ -1,5 +1,5 @@
 import { SystemState } from "types";
-import { aggMonolithRooms, countRoomClients } from "./aggregate";
+import { aggMonolithRooms, countRoomClients, groupMonolithsByRegion } from "./aggregate";
 
 const sampleSystemState: SystemState = [
 	{
@@ -91,6 +91,16 @@ describe("aggregation helpers", () => {
 			"2bd5e4a7-14f6-4da4-bedd-72946864a7bf": ["foo", "bar"],
 			"419580cb-f576-4314-8162-45340c94bae1": ["baz"],
 			"0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac": ["qux"],
+		});
+	});
+
+	it("groups monoliths by region", () => {
+		expect(groupMonolithsByRegion(sampleSystemState)).toEqual({
+			ewr: [
+				"2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
+				"419580cb-f576-4314-8162-45340c94bae1",
+			],
+			cdg: ["0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac"],
 		});
 	});
 });
