@@ -52,14 +52,16 @@ describe("Storage: Room Spec", () => {
 		expect(room).toBeDefined();
 		expect(typeof room).toEqual("object");
 		expect(room).not.toBeInstanceOf(DbRoom);
-		expect(room).toMatchObject({
-			name: "example",
-			title: "Example Room",
-			description: "This is an example room.",
-			visibility: Visibility.Public,
-			queueMode: QueueMode.Vote,
-			owner: null,
-		});
+		expect(room).toEqual(
+			expect.objectContaining({
+				name: "example",
+				title: "Example Room",
+				description: "This is an example room.",
+				visibility: Visibility.Public,
+				queueMode: QueueMode.Vote,
+				owner: null,
+			})
+		);
 	});
 
 	it("should return room object from room name, case insensitive", async () => {
