@@ -1,32 +1,5 @@
-import React from "react";
-import { PanelProps } from "@grafana/data";
-import type { CoreOptions, SystemState } from "types";
-import { css, cx } from "@emotion/css";
-import { useStyles2 } from "@grafana/ui";
-import GlobalView from "./views/GlobalView";
-import RegionView from "./views/RegionView";
-
-interface Props extends PanelProps<CoreOptions> {}
-
-const getStyles = () => {
-	return {
-		wrapper: css`
-			font-family: Open Sans;
-			position: relative;
-		`,
-		svg: css`
-			position: absolute;
-			top: 0;
-			left: 0;
-		`,
-		textBox: css`
-			position: absolute;
-			bottom: 0;
-			left: 0;
-			padding: 10px;
-		`,
-	};
-};
+import { SystemState } from "types";
+import { aggMonolithRooms, countRoomClients } from "./aggregate";
 
 const sampleSystemState: SystemState = [
 	{
@@ -103,29 +76,21 @@ const sampleSystemState: SystemState = [
 	},
 ];
 
-export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
-	const styles = useStyles2(getStyles);
+describe("aggregation helpers", () => {
+	it("counts room clients", () => {
+		expect(countRoomClients(sampleSystemState)).toEqual({
+			foo: 3,
+			bar: 2,
+			baz: 3,
+			qux: 4,
+		});
+	});
 
-	let view;
-	if (options.view === "global") {
-		view = <GlobalView height={height} width={width} systemState={sampleSystemState} />;
-	} else if (options.view === "region") {
-		view = <RegionView height={height} width={width} systemState={sampleSystemState} />;
-	} else {
-		view = <div>Invalid view</div>;
-	}
-
-	return (
-		<div
-			className={cx(
-				styles.wrapper,
-				css`
-					width: ${width}px;
-					height: ${height}px;
-				`
-			)}
-		>
-			{view}
-		</div>
-	);
-};
+	it("aggregates monolith rooms", () => {
+		expect(aggMonolithRooms(sampleSystemState)).toEqual({
+			"2bd5e4a7-14f6-4da4-bedd-72946864a7bf": ["foo", "bar"],
+			"419580cb-f576-4314-8162-45340c94bae1": ["baz"],
+			"0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac": ["qux"],
+		});
+	});
+});

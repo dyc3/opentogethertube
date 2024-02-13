@@ -1,6 +1,7 @@
 import React from "react";
 import ForceGraph, { Link, Node } from "components/ForceGraph";
 import type { SystemState } from "types";
+import { aggMonolithRooms, countRoomClients } from "aggregate";
 
 interface Props {
 	systemState: SystemState;
@@ -8,190 +9,92 @@ interface Props {
 	height: number;
 }
 
-export const GlobalView: React.FC<Props> = ({ width, height }) => {
+function buildGraph(state: SystemState): [Node[], Link[]] {
+	const nodes: Node[] = [];
+	const links: Link[] = [];
+	const core: Node = {
+		id: "core",
+		radius: 15,
+		x: 0,
+		y: 0,
+		group: "core",
+		color: "Purple", // TODO: use color from grafana theme/panel options
+	};
+	nodes.push(core);
+
+	const roomCounts = countRoomClients(state);
+	const monolithRooms = aggMonolithRooms(state);
+
+	const monoliths: Node[] = [];
+	for (const [monolith, rooms] of Object.entries(monolithRooms)) {
+		const monolithNode: Node = {
+			id: monolith,
+			radius: 10,
+			x: 0,
+			y: 0,
+			group: "monolith",
+			color: "Red", // TODO: use color from grafana theme/panel options
+		};
+		nodes.push(monolithNode);
+		monoliths.push(monolithNode);
+
+		links.push({
+			source: core.id,
+			target: monolith,
+			value: 10,
+		});
+
+		for (const room of rooms) {
+			const roomNode: Node = {
+				id: room,
+				radius: 7,
+				x: 0,
+				y: 0,
+				group: "Room",
+				color: "Blue", // TODO: use color from grafana theme/panel options
+			};
+			nodes.push(roomNode);
+
+			links.push({
+				source: monolith,
+				target: room,
+				value: 5,
+			});
+
+			const clients = roomCounts[room];
+			if (clients) {
+				for (let i = 0; i < clients; i++) {
+					const clientNode: Node = {
+						id: `${room}-client-${i}`,
+						radius: 4,
+						x: 0,
+						y: 0,
+						group: "Client",
+						color: "Blue", // TODO: use color from grafana theme/panel options
+					};
+					nodes.push(clientNode);
+
+					links.push({
+						source: room,
+						target: clientNode.id,
+						value: 3,
+					});
+				}
+			}
+		}
+	}
+
+	return [nodes, links];
+}
+
+export const GlobalView: React.FC<Props> = ({ systemState, width, height }) => {
+	const [nodes, links] = buildGraph(systemState);
+	const data = { nodes, links };
 	return (
 		<div>
-			<ForceGraph height={height} width={width} data={sample_data} />
+			<ForceGraph height={height} width={width} data={data} />
 		</div>
 	);
-};
-
-const sample_data = {
-	nodes: [
-		{
-			id: "B1",
-			group: "Balancer",
-			color: "Purple",
-			radius: 15,
-		},
-		{
-			id: "M1",
-			group: "Monolith",
-			color: "Red",
-			radius: 10,
-		},
-		{
-			id: "M2",
-			group: "Monolith",
-			color: "Red",
-			radius: 10,
-		},
-		{
-			id: "R1",
-			group: "Room",
-			color: "Blue",
-			radius: 7,
-		},
-		{
-			id: "R2",
-			group: "Room",
-			color: "Blue",
-			radius: 7,
-		},
-		{
-			id: "R3",
-			group: "Room",
-			color: "Blue",
-			radius: 7,
-		},
-		{
-			id: "R4",
-			group: "Room",
-			color: "Blue",
-			radius: 7,
-		},
-		{
-			id: "C1",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C2",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C3",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C4",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C5",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C6",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C7",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C8",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-		{
-			id: "C9",
-			group: "Client",
-			color: "Blue",
-			radius: 4,
-		},
-	] as Node[],
-	links: [
-		{
-			source: "B1",
-			target: "M1",
-			value: 10,
-		},
-		{
-			source: "B1",
-			target: "M2",
-			value: 10,
-		},
-		{
-			source: "M1",
-			target: "R1",
-			value: 5,
-		},
-		{
-			source: "M1",
-			target: "R2",
-			value: 5,
-		},
-		{
-			source: "M2",
-			target: "R3",
-			value: 5,
-		},
-		{
-			source: "M2",
-			target: "R4",
-			value: 5,
-		},
-		{
-			source: "R1",
-			target: "C1",
-			value: 5,
-		},
-		{
-			source: "R1",
-			target: "C2",
-			value: 3,
-		},
-		{
-			source: "R2",
-			target: "C3",
-			value: 3,
-		},
-		{
-			source: "R2",
-			target: "C4",
-			value: 3,
-		},
-		{
-			source: "R3",
-			target: "C5",
-			value: 3,
-		},
-		{
-			source: "R3",
-			target: "C6",
-			value: 3,
-		},
-		{
-			source: "R4",
-			target: "C7",
-			value: 3,
-		},
-		{
-			source: "R4",
-			target: "C8",
-			value: 3,
-		},
-		{
-			source: "R4",
-			target: "C9",
-			value: 3,
-		},
-	] as Link[],
 };
 
 export default GlobalView;
