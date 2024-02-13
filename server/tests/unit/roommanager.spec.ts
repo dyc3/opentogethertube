@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
 import roommanager, { redisStateToState } from "../../roommanager";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -33,7 +33,7 @@ describe("Room manager", () => {
 			expect(room).not.toBeNull();
 			expect(room?.permissions).not.toBeNull();
 			expect(room?.permissions).toBeInstanceOf(Array);
-			// eslint-disable-next-line vitest/no-if
+			// eslint-disable-next-line vitest/no-conditional-in-test
 			if (Array.isArray(room?.permissions)) {
 				let roles = room?.permissions.map(p => p[0]);
 				expect(roles).not.toContain(Role.Administrator);
@@ -107,9 +107,7 @@ describe("Room manager", () => {
 	});
 
 	it("should not load the room if it is not already loaded in memory", async () => {
-		const getRoomByNameSpy = vi
-			.spyOn(storage, "getRoomByName")
-			.mockResolvedValue(null);
+		const getRoomByNameSpy = vi.spyOn(storage, "getRoomByName").mockResolvedValue(null);
 		let result = await roommanager.getRoom("test", {
 			mustAlreadyBeLoaded: true,
 		});

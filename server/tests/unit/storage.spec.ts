@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import _ from "lodash";
 import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models";
 import storage from "../../storage";

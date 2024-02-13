@@ -1,4 +1,14 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import InfoExtractor, { initExtractor } from "../../infoextractor";
 import storage from "../../storage";
 import { getMimeType } from "../../mime";
@@ -140,18 +150,26 @@ describe("InfoExtractor", () => {
 
 	describe("getVideoInfo", () => {
 		let getAdapter: MockInstance<[string], ServiceAdapter>;
-		let getCachedVideo: MockInstance<[VideoService, string], Promise<[Video, (keyof VideoMetadata)[]]>>;
+		let getCachedVideo: MockInstance<
+			[VideoService, string],
+			Promise<[Video, (keyof VideoMetadata)[]]>
+		>;
 		let updateCache: MockInstance<[Video[] | Video], Promise<void>>;
 		let adapterFetchVideoInfo: MockInstance;
 		beforeAll(() => {
 			let adapter = new TestAdapter();
 			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
-			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation((service, id) => {
-				return Promise.resolve([{
-					service,
-					id,
-				}, ["title", "description", "length", "thumbnail"]]);
-			});
+			getCachedVideo = vi
+				.spyOn(InfoExtractor, "getCachedVideo")
+				.mockImplementation((service, id) => {
+					return Promise.resolve([
+						{
+							service,
+							id,
+						},
+						["title", "description", "length", "thumbnail"],
+					]);
+				});
 			updateCache = vi.spyOn(InfoExtractor, "updateCache").mockResolvedValue();
 			adapterFetchVideoInfo = vi.spyOn(adapter, "fetchVideoInfo");
 		});
@@ -255,19 +273,27 @@ describe("InfoExtractor", () => {
 
 	describe("getManyVideoInfo", () => {
 		let getAdapter: MockInstance<[string], ServiceAdapter>;
-		let getCachedVideo: MockInstance<[VideoService, string], Promise<[Video, (keyof VideoMetadata)[]]>>;
+		let getCachedVideo: MockInstance<
+			[VideoService, string],
+			Promise<[Video, (keyof VideoMetadata)[]]>
+		>;
 		let updateCache: MockInstance<[Video[] | Video], Promise<void>>;
 		let adapterFetchManyVideoInfo: MockInstance;
 		let storageGetManyVideoInfo: MockInstance;
 		beforeAll(() => {
 			let adapter = new TestAdapter();
 			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
-			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation((service, id) => {
-				return Promise.resolve([{
-					service,
-					id,
-				}, ["title", "description", "length", "thumbnail"]]);
-			});
+			getCachedVideo = vi
+				.spyOn(InfoExtractor, "getCachedVideo")
+				.mockImplementation((service, id) => {
+					return Promise.resolve([
+						{
+							service,
+							id,
+						},
+						["title", "description", "length", "thumbnail"],
+					]);
+				});
 			updateCache = vi.spyOn(InfoExtractor, "updateCache").mockResolvedValue();
 			adapterFetchManyVideoInfo = vi.spyOn(adapter, "fetchManyVideoInfo");
 			storageGetManyVideoInfo = vi.spyOn(storage, "getManyVideoInfo");

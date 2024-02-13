@@ -10,10 +10,10 @@
 
 		"vitest/consistent-test-it": ["error", { "fn": "it" }],
 		"vitest/expect-expect": "warn",
+		"vitest/no-conditional-in-test": "error",
 		"vitest/no-duplicate-hooks": "error",
 		"vitest/no-focused-tests": "error",
 		"vitest/no-identical-title": "error",
-		"vitest/no-export": "error",
 		"vitest/no-standalone-expect": "error",
 		"vitest/prefer-spy-on": "error",
 		"vitest/require-top-level-describe": "warn"

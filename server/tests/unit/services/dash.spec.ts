@@ -1,7 +1,7 @@
 /**
  * Unit tests for DashVideoAdapter's MPD parsing methods
  */
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance, Mocked, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import DashVideoAdapter from "../../../services/dash";
 import { UnsupportedVideoType } from "../../../exceptions";
 import { parseIso8601Duration } from "../../../services/parsing/iso8601";

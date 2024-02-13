@@ -1,4 +1,3 @@
-
 /// <reference types="vitest" />
 import { defineConfig, configDefaults } from "vitest/config";
 
@@ -8,7 +7,7 @@ export default defineConfig({
 		pool: "forks",
 		setupFiles: ["./tests/unit/jest.setup.redis-mock.js"],
 		coverage: {
-			exclude: [...(configDefaults.coverage.exclude ?? []), "config/**", "migrations/**"]
-		}
+			exclude: [...(configDefaults.coverage.exclude ?? []), "config/**", "migrations/**"],
+		},
 	},
 });

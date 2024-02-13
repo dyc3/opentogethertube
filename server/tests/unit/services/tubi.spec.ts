@@ -1,4 +1,14 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import TubiAdapter from "../../../services/tubi";
 import fs from "fs";
 import { AxiosRequestHeaders, AxiosResponse } from "axios";

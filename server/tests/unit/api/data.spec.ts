@@ -1,4 +1,14 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import request from "supertest";
 import { main } from "../../../app";
 import InfoExtract, { AddPreview } from "../../../infoextractor";
@@ -43,7 +53,7 @@ describe("Data API", () => {
 		resolveQuerySpy.mockRestore();
 		resolveQuerySpy = vi
 			.spyOn(InfoExtract, "resolveVideoQuery")
-			.mockRejectedValue({ name: "UnsupportedServiceException", message: "error message" })
+			.mockRejectedValue({ name: "UnsupportedServiceException", message: "error message" });
 
 		await request(app)
 			.get("/api/data/previewAdd")

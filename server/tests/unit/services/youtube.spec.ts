@@ -1,4 +1,14 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import YouTubeAdapter, {
 	YoutubeErrorResponse,
 	YoutubeApiVideoListResponse,

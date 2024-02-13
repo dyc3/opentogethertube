@@ -1,4 +1,15 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance, Mock } from "vitest";
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+	Mock,
+} from "vitest";
 import request from "supertest";
 import { main } from "../../../app";
 import usermanager from "../../../usermanager";
@@ -305,7 +316,7 @@ describe("User API", () => {
 				for (const user of registeredUsers.splice(0)) {
 					await user.destroy();
 				}
-			})
+			});
 
 			afterAll(() => {
 				onUserLogInSpy.mockRestore();
