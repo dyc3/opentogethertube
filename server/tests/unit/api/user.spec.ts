@@ -1,34 +1,37 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi, MockInstance, Mock } from "vitest";
 import request from "supertest";
 import { main } from "../../../app";
 import usermanager from "../../../usermanager";
 import { User as UserModel } from "../../../models";
 import { conf } from "../../../ott-config";
+import { User } from "../../../models/user";
+import { AuthToken } from "common/models/types";
 
 describe("User API", () => {
 	let token;
 	let app;
+	let forcedUser: User;
+	let testUser: User;
+	let socialUser: User;
 
 	beforeAll(async () => {
 		app = (await main()).app;
 	});
 
 	beforeEach(async () => {
-		await UserModel.destroy({ where: {} });
-
-		await usermanager.registerUser({
+		forcedUser = await usermanager.registerUser({
 			email: "forced@localhost",
 			username: "forced test user",
 			password: "test1234",
 		});
 
-		await usermanager.registerUser({
+		testUser = await usermanager.registerUser({
 			email: "test@localhost",
 			username: "test user",
 			password: "test1234",
 		});
 
-		await usermanager.registerUserSocial({
+		socialUser = await usermanager.registerUserSocial({
 			username: "social user",
 			discordId: 1234567890,
 		});
@@ -37,8 +40,10 @@ describe("User API", () => {
 		token = resp.body.token;
 	});
 
-	afterAll(async () => {
-		await UserModel.destroy({ where: {} });
+	afterEach(async () => {
+		await forcedUser.destroy();
+		await testUser.destroy();
+		await socialUser.destroy();
 	});
 
 	describe("GET /user", () => {
@@ -281,10 +286,13 @@ describe("User API", () => {
 		});
 
 		describe("POST /user/register", () => {
-			let onUserLogInSpy;
+			let onUserLogInSpy: Mock<[User, AuthToken]>;
+			let registeredUsers: User[] = [];
 
 			beforeAll(() => {
-				onUserLogInSpy = vi.fn();
+				onUserLogInSpy = vi.fn().mockImplementation((user, token) => {
+					registeredUsers.push(user);
+				});
 				usermanager.on("login", onUserLogInSpy);
 			});
 
@@ -292,6 +300,12 @@ describe("User API", () => {
 				onUserLogInSpy.mockClear();
 				conf.set("users.enable_registration", true);
 			});
+
+			afterEach(async () => {
+				for (const user of registeredUsers.splice(0)) {
+					await user.destroy();
+				}
+			})
 
 			afterAll(() => {
 				onUserLogInSpy.mockRestore();
