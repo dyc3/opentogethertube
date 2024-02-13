@@ -9,7 +9,7 @@ import { buildClients, redisClient } from "../../redisclient";
 import _ from "lodash";
 import { loadModels } from "../../models";
 import { loadConfigFile, conf } from "../../ott-config";
-import { Video, VideoService } from "../../../common/models/video";
+import { Video, VideoMetadata, VideoService } from "../../../common/models/video";
 
 class TestAdapter extends ServiceAdapter {
 	get serviceId(): VideoService {
@@ -139,15 +139,20 @@ describe("InfoExtractor", () => {
 	});
 
 	describe("getVideoInfo", () => {
-		let getAdapter;
-		let getCachedVideo;
-		let updateCache;
-		let adapterFetchVideoInfo;
+		let getAdapter: MockInstance<[string], ServiceAdapter>;
+		let getCachedVideo: MockInstance<[VideoService, string], Promise<[Video, (keyof VideoMetadata)[]]>>;
+		let updateCache: MockInstance<[Video[] | Video], Promise<void>>;
+		let adapterFetchVideoInfo: MockInstance;
 		beforeAll(() => {
 			let adapter = new TestAdapter();
 			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
-			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
-			updateCache = vi.spyOn(InfoExtractor, "updateCache").mockImplementation();
+			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation((service, id) => {
+				return Promise.resolve([{
+					service,
+					id,
+				}, ["title", "description", "length", "thumbnail"]]);
+			});
+			updateCache = vi.spyOn(InfoExtractor, "updateCache").mockResolvedValue();
 			adapterFetchVideoInfo = vi.spyOn(adapter, "fetchVideoInfo");
 		});
 		afterEach(() => {
@@ -257,10 +262,15 @@ describe("InfoExtractor", () => {
 		beforeAll(() => {
 			let adapter = new TestAdapter();
 			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
-			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation();
+			getCachedVideo = vi.spyOn(InfoExtractor, "getCachedVideo").mockImplementation((service, id) => {
+				return Promise.resolve([{
+					service,
+					id,
+				}, ["title", "description", "length", "thumbnail"]]);
+			});
 			updateCache = vi.spyOn(InfoExtractor, "updateCache").mockResolvedValue();
 			adapterFetchManyVideoInfo = vi.spyOn(adapter, "fetchManyVideoInfo");
-			storageGetManyVideoInfo = vi.spyOn(storage, "getManyVideoInfo").mockImplementation();
+			storageGetManyVideoInfo = vi.spyOn(storage, "getManyVideoInfo");
 		});
 		afterEach(() => {
 			updateCache.mockClear();
