@@ -53,8 +53,12 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			d3.forceLink<Node, Link>(links).id(d => d.id)
 		)
 		.force("charge", d3.forceManyBody())
-		.force("x", d3.forceX())
-		.force("y", d3.forceY());
+		.force("center", d3.forceCenter())
+		.force("radial", d3.forceRadial(100))
+		.force(
+			"collide",
+			d3.forceCollide(d => d.radius)
+		);
 
 	useEffect(() => {
 		const svg = d3
