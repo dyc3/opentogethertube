@@ -7,5 +7,8 @@ export default defineConfig({
 		exclude: [...configDefaults.exclude, "ts-out"],
 		pool: "forks",
 		setupFiles: ["./tests/unit/jest.setup.redis-mock.js"],
+		coverage: {
+			exclude: [...(configDefaults.coverage.exclude ?? []), "config/**", "migrations/**"]
+		}
 	},
 });
