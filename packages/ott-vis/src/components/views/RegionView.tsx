@@ -91,7 +91,6 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 		}
 	}
 
-
 	return [nodes, links];
 }
 
