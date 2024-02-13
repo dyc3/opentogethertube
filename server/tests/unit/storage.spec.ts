@@ -17,7 +17,9 @@ describe("Storage: Room Spec", () => {
 
 	afterEach(async () => {
 		await DbRoom.destroy({ where: { name: "example" } });
+		await DbRoom.destroy({ where: { name: "Example" } });
 		await DbRoom.destroy({ where: { name: "capitalizedexampleroom" } });
+		await DbRoom.destroy({ where: { name: "CapitalizedExampleRoom" } });
 	});
 
 	it("roomToDb and roomToDbPartial should return the same object", () => {
