@@ -15,7 +15,7 @@ describe("Storage: Room Spec", () => {
 		await buildClients();
 	});
 
-	beforeEach(async () => {
+	afterEach(async () => {
 		await DbRoom.destroy({ where: {} });
 	});
 
