@@ -1,2 +1,7 @@
+import { vi } from "vitest";
 import mockredis from "./redisV4Mock";
-vitest.mock("redis", () => mockredis);
+vi.mock("redis", () => {
+	return {
+		default: mockredis,
+	};
+});
