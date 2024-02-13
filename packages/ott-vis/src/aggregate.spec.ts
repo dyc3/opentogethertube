@@ -10,24 +10,20 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{name: "foo", clients: 2},
-					{name: "bar", clients: 0},
+					{ name: "foo", clients: 2 },
+					{ name: "bar", clients: 0 },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [
-					{name: "baz", clients: 3},
-				]
+				rooms: [{ name: "baz", clients: 3 }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [
-					{name: "qux", clients: 0},
-				]
-			}
+				rooms: [{ name: "qux", clients: 0 }],
+			},
 		],
 	},
 	{
@@ -38,24 +34,20 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{name: "foo", clients: 1},
-					{name: "bar", clients: 2},
+					{ name: "foo", clients: 1 },
+					{ name: "bar", clients: 2 },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [
-					{name: "baz", clients: 0},
-				]
+				rooms: [{ name: "baz", clients: 0 }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [
-					{name: "qux", clients: 0},
-				]
-			}
+				rooms: [{ name: "qux", clients: 0 }],
+			},
 		],
 	},
 	{
@@ -66,27 +58,23 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{name: "foo", clients: 0},
-					{name: "bar", clients: 0},
+					{ name: "foo", clients: 0 },
+					{ name: "bar", clients: 0 },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [
-					{name: "baz", clients: 0},
-				]
+				rooms: [{ name: "baz", clients: 0 }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [
-					{name: "qux", clients: 4},
-				]
-			}
+				rooms: [{ name: "qux", clients: 4 }],
+			},
 		],
 	},
-]
+];
 
 describe("aggregation helpers", () => {
 	it("counts room clients", () => {
@@ -106,4 +94,3 @@ describe("aggregation helpers", () => {
 		});
 	});
 });
-
