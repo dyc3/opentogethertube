@@ -16,7 +16,8 @@ describe("Storage: Room Spec", () => {
 	});
 
 	afterEach(async () => {
-		await DbRoom.destroy({ where: {} });
+		await DbRoom.destroy({ where: { name: "example" } });
+		await DbRoom.destroy({ where: { name: "capitalizedexampleroom" } });
 	});
 
 	it("roomToDb and roomToDbPartial should return the same object", () => {
@@ -230,6 +231,7 @@ describe("Storage: Room Spec", () => {
 
 describe("Storage: CachedVideos Spec", () => {
 	afterEach(async () => {
+		// This is isolation safe because this is the only file to use the CachedVideo table
 		await CachedVideo.destroy({ where: {} });
 	});
 
@@ -398,10 +400,12 @@ describe("Storage: CachedVideos Spec", () => {
 
 describe("Storage: CachedVideos: bulk inserts/updates", () => {
 	beforeEach(async () => {
+		// This is isolation safe because this is the only file to use the CachedVideo table
 		await CachedVideo.destroy({ where: {} });
 	});
 
 	afterEach(async () => {
+		// This is isolation safe because this is the only file to use the CachedVideo table
 		await CachedVideo.destroy({ where: {} });
 	});
 

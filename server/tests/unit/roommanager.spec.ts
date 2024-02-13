@@ -27,8 +27,9 @@ describe("Room manager", () => {
 
 	describe("creating a room", () => {
 		it("should never save null to permissions or user role columns", async () => {
-			await roommanager.createRoom({ name: "test", isTemporary: false, title: "asdf1234" });
-			const room = await DbRoom.findOne({ where: { name: "test" } });
+			const roomName = "foo-76kdf943";
+			await roommanager.createRoom({ name: roomName, isTemporary: false, title: "asdf1234" });
+			const room = await DbRoom.findOne({ where: { name: roomName } });
 			expect(room).not.toBeNull();
 			expect(room?.permissions).not.toBeNull();
 			expect(room?.permissions).toBeInstanceOf(Array);
@@ -45,18 +46,19 @@ describe("Room manager", () => {
 		});
 
 		it("should be able to load saved settings from database", async () => {
+			const roomName = "foo-a3b5e323";
 			await roommanager.createRoom({
-				name: "test",
+				name: roomName,
 				isTemporary: false,
 				title: "asdf1234",
 				description: "0987asdf",
 				visibility: Visibility.Unlisted,
 				queueMode: QueueMode.Vote,
 			});
-			const room = await DbRoom.findOne({ where: { name: "test" } });
+			const room = await DbRoom.findOne({ where: { name: roomName } });
 			expect(room).not.toBeNull();
 			expect(room).toMatchObject({
-				name: "test",
+				name: roomName,
 				title: "asdf1234",
 				description: "0987asdf",
 				visibility: Visibility.Unlisted,
