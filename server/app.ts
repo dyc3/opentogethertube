@@ -54,7 +54,7 @@ export async function main() {
 	await buildClients();
 	buildRateLimiter();
 
-	if (process.argv.includes("--validate")) {
+	if (process.argv.includes("--validate") || process.argv.includes("-v")) {
 		validateConfig();
 	}
 

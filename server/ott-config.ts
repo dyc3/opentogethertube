@@ -488,6 +488,27 @@ export function loadConfigFile() {
 	conf.validate({ allowed: "warn" });
 }
 
+export function validateConfig() {
+	const mailEnabled = conf.get("mail.enabled");
+	const mailResult = validateMail();
+	const confResult = validateConf();
+
+	if ((!mailResult.ok && mailEnabled) || !confResult.ok) {
+		if (!mailResult.ok) {
+			conf.set("mail.enabled", false);
+			log.error(mailResult.value.message);
+		}
+
+		if (!confResult.ok) {
+			log.error(confResult.value.message);
+		}
+
+		process.exit(1);
+	}
+
+	process.exit(0);
+}
+
 function postProcessConfig(): void {
 	if (process.env.REDIS_TLS_URL) {
 		log.info("Found REDIS_TLS_URL. Using it for redis.url.");
@@ -521,6 +542,14 @@ function postProcessConfig(): void {
 	for (const service of conf.get("info_extractor.services")) {
 		if (!ALL_VIDEO_SERVICES.includes(service)) {
 			log.warn(`Unknown video service ${service} found in config. Ignoring.`);
+		}
+	}
+
+	if (conf.get("mail.enabled")) {
+		const result = validateMail();
+		if (!result.ok) {
+			conf.set("mail.enabled", false);
+			log.error(result.value.message);
 		}
 	}
 
