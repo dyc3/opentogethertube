@@ -488,23 +488,6 @@ export function loadConfigFile() {
 	conf.validate({ allowed: "warn" });
 }
 
-export function validateConfig() {
-	const result = validateMail();
-	if (!result.ok) {
-		log.error(result.value.message);
-		process.exit(1);
-	} else {
-		try {
-			conf.validate({ allowed: "strict" });
-		} catch (e) {
-			log.error(e);
-			process.exit(1);
-		}
-
-		process.exit(0);
-	}
-}
-
 function postProcessConfig(): void {
 	if (process.env.REDIS_TLS_URL) {
 		log.info("Found REDIS_TLS_URL. Using it for redis.url.");
@@ -541,13 +524,6 @@ function postProcessConfig(): void {
 		}
 	}
 
-	if (conf.get("mail.enabled")) {
-		const result = validateMail();
-		if (!result.ok) {
-			log.error(result.value.message);
-		}
-	}
-
 	if (process.env.FLY_REGION) {
 		log.info("Found FLY_REGION. Using it for balancing.region.");
 		conf.set("balancing.region", process.env.FLY_REGION);
@@ -558,19 +534,16 @@ function validateMail(): Result<void, Error> {
 	const sender = conf.get("mail.sender_email");
 
 	if (sender && !validator.isEmail(sender)) {
-		conf.set("mail.enabled", false);
 		return err(new Error(`Invalid email address ${sender} found in config, disabling mail.`));
 	}
 
 	if (!conf.get("mail.mailjet_api_key") || !conf.get("mail.mailjet_api_secret")) {
-		conf.set("mail.enabled", false);
 		return err(
 			new Error("Mailjet API key and secret are required to send mail, disabling mail.")
 		);
 	}
 
 	if (conf.get("env") === "test") {
-		conf.set("mail.mailjet_sandbox", true);
 		return err(new Error("Mail is enabled in test mode. Forcing sandbox mode."));
 	}
 
