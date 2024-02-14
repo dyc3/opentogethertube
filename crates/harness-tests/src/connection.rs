@@ -60,6 +60,6 @@ async fn should_send_pongs_to_monolith(ctx: &mut TestRunner) {
     let recv = m.collect_recv_raw();
     let pongs = recv.iter().filter(|msg| msg.is_pong()).count();
     assert_eq!(pongs, 1);
-    let pong = recv.iter().filter(|msg| msg.is_pong()).next();
+    let pong = recv.iter().find(|msg| msg.is_pong());
     assert_eq!(pong, Some(&Message::Pong("foo".into())));
 }
