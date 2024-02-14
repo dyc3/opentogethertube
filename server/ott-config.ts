@@ -558,15 +558,6 @@ function postProcessConfig(): void {
 	}
 }
 
-function validateConf(): Result<void, Error> {
-	try {
-		conf.validate({ allowed: "strict" });
-		return ok(undefined);
-	} catch (e) {
-		return err(e);
-	}
-}
-
 function validateMail(): Result<void, Error> {
 	const sender = conf.get("mail.sender_email");
 
