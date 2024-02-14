@@ -11,3 +11,4 @@ serde.workspace = true
 serde_json.workspace = true
 test-context.workspace = true
 tokio.workspace = true
+tungstenite.workspace = true

@@ -89,6 +89,10 @@ impl Client {
         while stream.next().await.is_some() {}
     }
 
+    /// Receive a message from the balancer. This will block until a message is received, or 200ms has passed.
+    ///
+    /// If it times out, the client will *not* be disconnected, and it will return `Err`. If the connection is closed,
+    /// it will return `Err`. If the message is a close message, the client will be disconnected, and it will return `Ok`.
     pub async fn recv(&mut self) -> anyhow::Result<Message> {
         if let Some(stream) = self.stream.as_mut() {
             match tokio::time::timeout(Duration::from_millis(200), stream.next()).await {
