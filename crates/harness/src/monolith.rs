@@ -122,11 +122,17 @@ impl Monolith {
                                         let to_send = {
                                             let mut state = state.lock().unwrap();
                                             let parsed = match &msg {
-                                                Message::Text(msg) => serde_json::from_str(msg).expect("failed to parse B2M message"),
+                                                Message::Text(msg) => Some(serde_json::from_str(msg).expect("failed to parse B2M message")),
+                                                Message::Ping(_) => None,
+                                                Message::Pong(_) => None,
                                                 _ => panic!("unexpected message type: {:?}", msg),
                                             };
 
-                                            let to_send = behavior.on_msg(&parsed, &mut state);
+                                            let to_send = if let Some(parsed) = parsed {
+                                                behavior.on_msg(&parsed, &mut state)
+                                            } else {
+                                                vec![]
+                                            };
                                             state.received_raw.push(msg);
                                             to_send
                                         };
@@ -270,6 +276,10 @@ impl Monolith {
                 _ => None,
             })
             .collect()
+    }
+
+    pub fn collect_recv_raw(&self) -> Vec<Message> {
+        self.state.lock().unwrap().received_raw.clone()
     }
 
     pub fn set_all_mock_http(&mut self, mocks: HashMap<String, (MockRespParts, Bytes)>) {

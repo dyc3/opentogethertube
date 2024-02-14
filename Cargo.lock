@@ -956,6 +956,7 @@ dependencies = [
  "serde_json",
  "test-context",
  "tokio",
+ "tungstenite",
 ]
 
 [[package]]

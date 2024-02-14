@@ -183,6 +183,14 @@ async fn connect_and_maintain(
 
                 msg = stream.next() => {
                     if let Some(Ok(msg)) = msg {
+                        if let Message::Ping(ping) = msg {
+                            if let Err(err) = stream.send(Message::Pong(ping)).await {
+                                error!("Error sending pong to monolith: {:?}", err);
+                                break;
+                            }
+                            continue;
+                        }
+
                         if let Err(err) = link
                             .send_monolith_message(monolith_id, SocketMessage::Message(msg))
                             .await {
