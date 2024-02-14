@@ -5,7 +5,7 @@ import convict from "convict";
 import toml from "toml";
 import type winston from "winston";
 import { ALL_VIDEO_SERVICES } from "../common/constants";
-import { Result, err, ok } from "../common/result";
+import { Result, err, ok, intoResult } from "../common/result";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
@@ -491,11 +491,10 @@ export function loadConfigFile() {
 export function validateConfig() {
 	const mailEnabled = conf.get("mail.enabled");
 	const mailResult = validateMail();
-	const confResult = validateConf();
+	const confResult = intoResult(() => conf.validate({ allowed: "strict" }));
 
 	if ((!mailResult.ok && mailEnabled) || !confResult.ok) {
 		if (!mailResult.ok) {
-			conf.set("mail.enabled", false);
 			log.error(mailResult.value.message);
 		}
 
