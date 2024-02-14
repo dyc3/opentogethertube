@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "balancer-tester"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -917,7 +917,7 @@ checksum = "eabb4a44450da02c90444cf74558da904edde8fb4e9035a9a6a4e15445af0bd7"
 
 [[package]]
 name = "harness"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -947,7 +947,7 @@ dependencies = [
 
 [[package]]
 name = "harness-tests"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "harness",
  "ott-balancer-protocol",
@@ -1725,7 +1725,7 @@ dependencies = [
 
 [[package]]
 name = "ott-balancer"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1761,7 +1761,7 @@ dependencies = [
 
 [[package]]
 name = "ott-balancer-bin"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "ott-balancer",
@@ -1770,7 +1770,7 @@ dependencies = [
 
 [[package]]
 name = "ott-balancer-protocol"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1780,7 +1780,7 @@ dependencies = [
 
 [[package]]
 name = "ott-common"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "async-trait",
  "futures-util",
@@ -3776,7 +3776,7 @@ dependencies = [
 
 [[package]]
 name = "ws-fuzz"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "websocket",
