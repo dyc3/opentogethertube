@@ -21,7 +21,7 @@ pub struct DnsMonolithDiscoverer {
 impl DnsMonolithDiscoverer {
     pub fn new(config: DnsDiscoveryConfig) -> Self {
         info!(
-            "Creating DockerMonolithDiscoverer, DNS server: {:?}",
+            "Creating DnsMonolithDiscoverer, DNS server: {:?}",
             config.dns_server
         );
         Self { config }
