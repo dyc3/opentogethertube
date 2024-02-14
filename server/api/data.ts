@@ -16,6 +16,10 @@ const addPreview: RequestHandler<
 	any,
 	{ input: string }
 > = async (req, res, next) => {
+	if (!req.query.input) {
+		throw new BadApiArgumentException("input", "missing");
+	}
+
 	let points = 5;
 	if (!InfoExtract.isURL(req.query.input)) {
 		points *= 15;
