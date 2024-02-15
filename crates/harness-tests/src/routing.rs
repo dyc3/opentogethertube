@@ -4,7 +4,6 @@ use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBui
 use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
 use serde_json::value::RawValue;
 use test_context::{futures::SinkExt, test_context};
-use tokio_tungstenite;
 use tungstenite::protocol::frame::{coding::Data, coding::OpCode, Frame, FrameHeader};
 use tungstenite::protocol::Message;
 
@@ -356,5 +355,5 @@ async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
         .await
         .expect("failed to send message to balancer");
 
-    assert_eq!(ctx.is_alive(), true);
+    assert!(ctx.is_alive());
 }
