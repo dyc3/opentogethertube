@@ -62,9 +62,8 @@ impl TestRunner {
         let ecode = self.child.try_wait().expect("Error: Balancer is not alive");
 
         match ecode {
-            Some(exit_status) => return exit_status.success() == true,
-            None => return false,
-            //_ => return false, <- unreachable
+            Some(exit_status) => exit_status.success(),
+            None => false,
         }
     }
 
