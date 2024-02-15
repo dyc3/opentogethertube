@@ -1,7 +1,19 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import request from "supertest";
 import { main } from "../../../app";
 import usermanager from "../../../usermanager";
 import { User as UserModel } from "../../../models";
+import { User } from "../../../models/user";
 import { MockMailer } from "server/mailer";
 import { conf } from "../../../ott-config";
 import { redisClient } from "../../../redisclient";
@@ -10,17 +22,19 @@ import { OttApiRequestAccountRecoveryVerify } from "common/models/rest-api";
 describe("Account Recovery", () => {
 	let token;
 	let app;
+	let emailUser: User;
+	let noEmailUser: User;
 
 	beforeAll(async () => {
 		app = (await main()).app;
 
-		await usermanager.registerUser({
+		emailUser = await usermanager.registerUser({
 			email: "email@localhost",
 			username: "email user",
 			password: "test1234",
 		});
 
-		await usermanager.registerUser({
+		noEmailUser = await usermanager.registerUser({
 			email: null,
 			username: "no email user",
 			password: "test1234",
@@ -40,7 +54,9 @@ describe("Account Recovery", () => {
 	});
 
 	afterAll(async () => {
-		await UserModel.destroy({ where: {} });
+		await emailUser.destroy();
+		await noEmailUser.destroy();
+		conf.set("mail.enabled", false);
 	});
 
 	it.each([

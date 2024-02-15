@@ -9,7 +9,7 @@ jobs:
   release-ott-dockerhub:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Log in to Dockerhub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dyc3" --password-stdin
@@ -21,10 +21,12 @@ jobs:
           docker tag opentogethertube dyc3/opentogethertube:${{ github.ref_name }}
       - name: Push to Dockerhub
         run: docker push dyc3/opentogethertube:${{ github.ref_name }}
-  release-grafana:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: grafana/plugin-actions/build-plugin@release
-        with:
-          policy_token: ${{ secrets.GRAFANA_API_KEY }}
+  # this job doesn't work because we have multiple plugins, and the release
+  # action only supports one plugin that in the root of the repo (not in a workspace)
+  # release-grafana:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: grafana/plugin-actions/build-plugin@release
+  #       with:
+  #         policy_token: ${{ secrets.GRAFANA_API_KEY }}

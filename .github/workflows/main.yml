@@ -29,9 +29,9 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: true
@@ -43,7 +43,7 @@ jobs:
         NODE_ENV: production
 
     - name: cargo-install
-      uses: baptiste0928/cargo-install@v1
+      uses: baptiste0928/cargo-install@v3
       with:
         crate: typeshare-cli
         version: "1.7.0"
@@ -69,19 +69,19 @@ jobs:
             - 6379:6379
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Get npm cache directory
       id: npm-cache
       run: |
         echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
-    - uses: actions/cache@v1
+    - uses: actions/cache@v4
       with:
         path: ${{ steps.npm-cache.outputs.dir }}
         key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-node-${{ matrix.node-version }}-
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: true
@@ -101,24 +101,29 @@ jobs:
       run: |
         echo "files=$(find . -name coverage-final.json | sed 's/\.\///g' | tr '\n' ',')" >> "$GITHUB_OUTPUT"
     - name: Upload coverage report
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
       with:
         files: ${{ steps.collect-coverage.outputs.files }}
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
   grafana-compatibilitycheck:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [ott-vis, ott-vis-datasource]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'yarn'
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build plugin
-        run: yarn workspace ott-vis build
+        run: yarn workspace ${{ matrix.package }} build
       - name: Compatibility check
-        run: npx @grafana/levitate@latest is-compatible --path packages/ott-vis/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
+        run: npx @grafana/levitate@latest is-compatible --path packages/${{ matrix.package }}/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
 
   deploy-docker:
     runs-on: ubuntu-latest
@@ -126,7 +131,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Log in to Dockerhub
       run: |
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dyc3" --password-stdin
@@ -146,7 +151,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config deploy/fly.staging.monolith.toml --remote-only
         env:
@@ -157,7 +162,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint, deploy-fly-staging-monolith]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config deploy/fly.staging.balancer.toml --remote-only
         env:
@@ -169,7 +174,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [test, lint]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config deploy/fly.prod.monolith.toml --remote-only
         env:

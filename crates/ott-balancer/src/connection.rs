@@ -11,7 +11,6 @@ use tracing::{debug, error, info, warn};
 use tungstenite::protocol::frame::coding::CloseCode;
 use tungstenite::protocol::CloseFrame;
 use tungstenite::Message;
-use uuid::Uuid;
 
 use crate::balancer::BalancerLink;
 use crate::discovery::{MonolithConnectionConfig, MonolithDiscoveryMsg};
@@ -107,8 +106,6 @@ async fn connect_and_maintain(
             }
         }
 
-        let monolith_id = Uuid::new_v4().into();
-
         let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
         let Ok(Some(Ok(message))) = result else {
             let _ = stream
@@ -126,11 +123,13 @@ async fn connect_and_maintain(
 
         // Handle connection initialization
         let mut outbound_rx;
+        let monolith_id;
         match message {
             Message::Text(text) => {
                 let message: MsgM2B = serde_json::from_str(&text).unwrap();
                 match message {
                     MsgM2B::Init(init) => {
+                        monolith_id = init.id;
                         debug!("monolith sent init, handing off to balancer");
                         let monolith = NewMonolith {
                             id: monolith_id,
@@ -138,6 +137,7 @@ async fn connect_and_maintain(
                             config: conf.clone(),
                             proxy_port: init.port,
                         };
+
                         let Ok(rx) = link.send_monolith(monolith).await else {
                             let _ = stream
                                 .close(Some(CloseFrame {
@@ -183,6 +183,14 @@ async fn connect_and_maintain(
 
                 msg = stream.next() => {
                     if let Some(Ok(msg)) = msg {
+                        if let Message::Ping(ping) = msg {
+                            if let Err(err) = stream.send(Message::Pong(ping)).await {
+                                error!("Error sending pong to monolith: {:?}", err);
+                                break;
+                            }
+                            continue;
+                        }
+
                         if let Err(err) = link
                             .send_monolith_message(monolith_id, SocketMessage::Message(msg))
                             .await {

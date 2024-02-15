@@ -20,9 +20,9 @@ jobs:
 
     steps:
     - run: rustup component add clippy rustfmt
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Rust Cache
-      uses: Swatinem/rust-cache@v2.2.1
+      uses: Swatinem/rust-cache@v2.7.3
     - name: Check format
       run: cargo fmt --all -- --check
     - name: Check

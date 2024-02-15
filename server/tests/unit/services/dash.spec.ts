@@ -1,6 +1,7 @@
 /**
  * Unit tests for DashVideoAdapter's MPD parsing methods
  */
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import DashVideoAdapter from "../../../services/dash";
 import { UnsupportedVideoType } from "../../../exceptions";
 import { parseIso8601Duration } from "../../../services/parsing/iso8601";
@@ -8,21 +9,21 @@ import axios from "axios";
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import URL from "url";
 
-jest.mock("axios");
-jest.mock("../../../services/parsing/iso8601");
-jest.mock("@liveinstantly/dash-mpd-parser");
+vi.mock("axios");
+vi.mock("../../../services/parsing/iso8601");
+vi.mock("@liveinstantly/dash-mpd-parser");
 
 describe("DashVideoAdapter", () => {
 	let adapter: DashVideoAdapter;
-	let mockAxiosGet: jest.Mock;
-	let mockParseIso8601Duration: jest.Mock;
-	let mockDashMPD: jest.Mock;
+	let mockAxiosGet;
+	let mockParseIso8601Duration;
+	let mockDashMPD;
 
 	beforeEach(() => {
 		adapter = new DashVideoAdapter();
-		mockAxiosGet = axios.get as jest.Mock;
-		mockParseIso8601Duration = parseIso8601Duration as jest.Mock;
-		mockDashMPD = DashMPD as jest.Mock;
+		mockAxiosGet = axios.get;
+		mockParseIso8601Duration = parseIso8601Duration;
+		mockDashMPD = DashMPD;
 	});
 
 	describe("handleMpd", () => {
@@ -30,7 +31,7 @@ describe("DashVideoAdapter", () => {
 			const mockMPDData = `<MPD mediaPresentationDuration="PT10S"></MPD>`;
 			const mockManifest = { MPD: { "@mediaPresentationDuration": "PT10S" } };
 			mockAxiosGet.mockResolvedValue({ data: mockMPDData });
-			const mockParse = jest.fn();
+			const mockParse = vi.fn();
 			mockDashMPD.mockImplementation(() => ({
 				parse: mockParse,
 				getJSON: () => mockManifest,

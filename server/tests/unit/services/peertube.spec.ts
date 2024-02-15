@@ -1,3 +1,14 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import PeertubeAdapter from "../../../services/peertube";
 import fs from "fs";
 import { InvalidVideoIdException } from "../../../exceptions";
@@ -15,7 +26,7 @@ const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/peertube";
 describe("Peertube", () => {
 	const adapter = new PeertubeAdapter();
 	const FIXTURES: Map<string, string> = new Map();
-	let apiGetMock: jest.SpyInstance;
+	let apiGetMock: MockInstance;
 
 	beforeAll(async () => {
 		await adapter.initialize();
@@ -27,7 +38,7 @@ describe("Peertube", () => {
 			);
 		}
 
-		apiGetMock = jest.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
+		apiGetMock = vi.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
 			const videoid = adapter.getVideoId(url);
 			const [host, id] = videoid.split(":");
 			let fixtureText = FIXTURES.get(id);

@@ -212,7 +212,7 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 				"queueMode",
 				"users",
 				"grants",
-				"autoSkipSegments",
+				"autoSkipSegmentCategories",
 				"restoreQueueBehavior",
 				"enableVoteSkip",
 			])

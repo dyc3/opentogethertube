@@ -65,10 +65,13 @@
 					</v-list-item>
 				</template>
 			</v-select>
-			<v-checkbox
-				v-model="inputRoomSettings.autoSkipSegments"
-				:label="$t('room-settings.auto-skip-text')"
+			<v-select
+				v-model="inputRoomSettings.autoSkipSegmentCategories"
+				:items="ALL_SKIP_CATEGORIES"
 				:disabled="!granted('configure-room.other')"
+				:label="$t('room-settings.auto-skip-text')"
+				chips
+				multiple
 				data-cy="input-auto-skip"
 			/>
 			<v-select
@@ -158,6 +161,7 @@ import { defineComponent, onMounted, Ref, ref } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
+import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
 
 const RoomSettingsForm = defineComponent({
 	name: "RoomSettingsForm",
@@ -169,13 +173,13 @@ const RoomSettingsForm = defineComponent({
 		const { t } = useI18n();
 
 		const isLoadingRoomSettings = ref(false);
-		const inputRoomSettings: Ref<RoomSettings> = ref({
+		const inputRoomSettings: Ref<RoomSettings> = ref<RoomSettings>({
 			title: "",
 			description: "",
 			visibility: Visibility.Public,
 			queueMode: QueueMode.Manual,
 			grants: new Grants(),
-			autoSkipSegments: true,
+			autoSkipSegmentCategories: Array.from([]),
 			restoreQueueBehavior: BehaviorOption.Prompt,
 			enableVoteSkip: false,
 		});
@@ -198,7 +202,7 @@ const RoomSettingsForm = defineComponent({
 					"visibility",
 					"queueMode",
 					"grants",
-					"autoSkipSegments",
+					"autoSkipSegmentCategories",
 					"restoreQueueBehavior",
 					"enableVoteSkip"
 				);
@@ -218,7 +222,7 @@ const RoomSettingsForm = defineComponent({
 				description: "set-description",
 				visibility: "set-visibility",
 				queueMode: "set-queue-mode",
-				autoSkipSegments: "other",
+				autoSkipSegmentCategories: "other",
 				restoreQueueBehavior: "other",
 				enableVoteSkip: "other",
 			};
@@ -279,7 +283,7 @@ const RoomSettingsForm = defineComponent({
 		return {
 			isLoadingRoomSettings,
 			inputRoomSettings,
-
+			ALL_SKIP_CATEGORIES,
 			loadRoomSettings,
 			getRoomSettingsSubmit,
 			submitRoomSettings,

@@ -17,6 +17,7 @@ export type { MsgB2M, MsgM2B };
 const log = getLogger("balancer");
 
 export let wss: WebSocket.Server | null = null;
+let monolith_id = uuidv4();
 
 export function initBalancerConnections() {
 	const enabled = conf.get("balancing.enabled");
@@ -76,6 +77,7 @@ class BalancerManager {
 			payload: {
 				port: conf.get("port"),
 				region: conf.get("balancing.region"),
+				id: monolith_id,
 			},
 		};
 		conn.send(init);
@@ -192,6 +194,7 @@ export class BalancerConnectionReal extends BalancerConnection {
 			payload: {
 				port: conf.get("port"),
 				region: conf.get("balancing.region"),
+				id: monolith_id,
 			},
 		};
 		this.send(init);

@@ -1,3 +1,14 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto";
 import { AxiosResponse } from "axios";
 import fs from "fs";
@@ -96,10 +107,10 @@ describe("Pluto TV", () => {
 
 	describe("resolveUrl", () => {
 		const adapter = new PlutoAdapter();
-		let apiGetSpy: jest.SpyInstance;
+		let apiGetSpy: MockInstance;
 
 		beforeAll(() => {
-			apiGetSpy = jest.spyOn(adapter.api, "get").mockImplementation(mockPlutoBoot);
+			apiGetSpy = vi.spyOn(adapter.api, "get").mockImplementation(mockPlutoBoot);
 		});
 
 		afterEach(() => {
@@ -146,10 +157,10 @@ describe("Pluto TV", () => {
 
 	describe("fetchManyVideoInfo", () => {
 		const adapter = new PlutoAdapter();
-		let apiGetSpy: jest.SpyInstance;
+		let apiGetSpy: MockInstance;
 
 		beforeAll(() => {
-			apiGetSpy = jest.spyOn(adapter.api, "get").mockImplementation(mockPlutoBoot);
+			apiGetSpy = vi.spyOn(adapter.api, "get").mockImplementation(mockPlutoBoot);
 		});
 
 		afterEach(() => {

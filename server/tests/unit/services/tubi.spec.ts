@@ -1,3 +1,14 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import TubiAdapter from "../../../services/tubi";
 import fs from "fs";
 import { AxiosRequestHeaders, AxiosResponse } from "axios";
@@ -30,7 +41,7 @@ const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/tubi";
 describe("Tubi TV", () => {
 	const adapter = new TubiAdapter();
 	const FIXTURES: Map<string, string> = new Map();
-	let apiGetMock: jest.SpyInstance;
+	let apiGetMock: MockInstance;
 
 	beforeAll(() => {
 		for (let file of fs.readdirSync(FIXTURE_DIRECTORY)) {
@@ -40,7 +51,7 @@ describe("Tubi TV", () => {
 			);
 		}
 
-		apiGetMock = jest.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
+		apiGetMock = vi.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
 			const id = adapter.isCollectionURL(url)
 				? new URL(url).pathname.split("/")[2]
 				: adapter.getVideoId(url);

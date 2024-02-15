@@ -120,6 +120,23 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     };
 
                     let room_name: RoomName = room_name.to_owned().into();
+                    if room_name.to_string() == "list" {
+                        // special case for listing rooms -- "list" is never a valid room name
+                        return match list_rooms(ctx.clone()).await {
+                            Ok(res) => Ok(res),
+                            Err(e) => {
+                                error!("error listing rooms: {}", e);
+                                mk_response("error listing rooms".to_owned())
+                            }
+                        };
+                    }
+
+                    let ctx_read = ctx.read().await;
+                    if ctx_read.monoliths.is_empty() {
+                        debug!(message = "no monoliths", request_id, room = %room_name);
+                        return Ok(no_monoliths());
+                    }
+
                     if is_websocket_upgrade(&req) {
                         debug!(message = "upgrading to websocket", request_id, room = %room_name);
                         let (response, websocket) = match upgrade(req, None) {
@@ -143,17 +160,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
                         // Return the response so the spawned future can continue.
                         Ok(response)
-                    } else if room_name.to_string() == "list" {
-                        // special case for listing rooms
-                        match list_rooms(ctx.clone()).await {
-                            Ok(res) => Ok(res),
-                            Err(e) => {
-                                error!("error listing rooms: {}", e);
-                                mk_response("error listing rooms".to_owned())
-                            }
-                        }
                     } else {
-                        let ctx_read = ctx.read().await;
                         let monolith =
                             if let Some(locator) = ctx_read.rooms_to_monoliths.get(&room_name) {
                                 info!(
@@ -175,7 +182,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                                 }
                             }
                         } else {
-                            mk_response("no monoliths available".to_owned())
+                            Ok(no_monoliths())
                         }
                     }
                 }
@@ -195,7 +202,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                             }
                         }
                     } else {
-                        mk_response("no monoliths available".to_owned())
+                        Ok(no_monoliths())
                     }
                 }
                 _ => Ok(not_found()),
@@ -218,6 +225,15 @@ fn interval_server_error() -> Response<Full<Bytes>> {
         .status(StatusCode::INTERNAL_SERVER_ERROR)
         .body(Full::new("internal server error".into()))
         .unwrap()
+}
+
+fn no_monoliths() -> Response<Full<Bytes>> {
+    Response::builder()
+        .status(StatusCode::SERVICE_UNAVAILABLE)
+        .body(Full::new(
+            "No monoliths available to handle request.".into(),
+        ))
+        .expect("failed to build NO_MONOLITHS")
 }
 
 async fn proxy_request(

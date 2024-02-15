@@ -1,3 +1,14 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import request from "supertest";
 import { main } from "../../../app";
 import InfoExtract, { AddPreview } from "../../../infoextractor";
@@ -9,11 +20,11 @@ describe("Data API", () => {
 	let validateSpy;
 
 	beforeAll(async () => {
-		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			isLoggedIn: false,
 			username: "test",
 		});
-		validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 		app = (await main()).app;
 	});
 
@@ -23,9 +34,9 @@ describe("Data API", () => {
 	});
 
 	it("GET /data/previewAdd", async () => {
-		let resolveQuerySpy = jest
+		let resolveQuerySpy = vi
 			.spyOn(InfoExtract, "resolveVideoQuery")
-			.mockReturnValue(Promise.resolve(new AddPreview([], 0)));
+			.mockResolvedValue(new AddPreview([], 0));
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -40,14 +51,9 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest
+		resolveQuerySpy = vi
 			.spyOn(InfoExtract, "resolveVideoQuery")
-			.mockImplementation(
-				() =>
-					new Promise((resolve, reject) =>
-						reject({ name: "UnsupportedServiceException", message: "error message" })
-					)
-			);
+			.mockRejectedValue({ name: "UnsupportedServiceException", message: "error message" });
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -62,7 +68,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(
+		resolveQuerySpy = vi.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(
 			() =>
 				new Promise((resolve, reject) =>
 					reject({
@@ -85,7 +91,7 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = jest
+		resolveQuerySpy = vi
 			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockImplementation(
 				() =>

@@ -197,6 +197,14 @@ pub async fn client_entry<'r>(
 
             Some(msg) = stream.next() => {
                 if let Ok(msg) = msg {
+                    if let Message::Ping(ping) = msg {
+                        if let Err(err) = stream.send(Message::Pong(ping)).await {
+                            error!("Error sending pong to client: {:?}", err);
+                            break;
+                        }
+                        continue;
+                    }
+
                     if let Err(err) = client_link.inbound_send(msg).await {
                         error!("Error sending client message to balancer: {:?}", err);
                         break;
