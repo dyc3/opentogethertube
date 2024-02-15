@@ -545,7 +545,6 @@ function postProcessConfig(): void {
 	}
 
 	if (conf.get("mail.enabled")) {
-
 		if (conf.get("env") === "test") {
 			log.warn("Mail is enabled in test mode. Forcing sandbox mode.");
 			conf.set("mail.mailjet_sandbox", true);
@@ -573,9 +572,7 @@ function validateMail(): Result<void, Error> {
 	}
 
 	if (!conf.get("mail.mailjet_api_key") || !conf.get("mail.mailjet_api_secret")) {
-		return err(
-			new Error("Mailjet API key and secret are required to send mail.")
-		);
+		return err(new Error("Mailjet API key and secret are required to send mail."));
 	}
 
 	if (conf.get("env") === "test") {
