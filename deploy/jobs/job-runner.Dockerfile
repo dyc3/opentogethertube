@@ -14,7 +14,6 @@ RUN curl -fsSLO "$SUPERCRONIC_URL" \
 	&& mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
 	&& ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 
-COPY deploy/jobs/backup_pg.sh .
-COPY deploy/jobs/crontab crontab
+COPY deploy/jobs/* .
 
 ENTRYPOINT ["supercronic", "-prometheus-listen-address", "0.0.0.0", "/app/crontab"]

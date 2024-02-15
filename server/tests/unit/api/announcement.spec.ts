@@ -1,31 +1,43 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import request from "supertest";
 import { main } from "../../../app";
 import { setApiKey } from "../../../admin";
 import { ANNOUNCEMENT_CHANNEL } from "../../../../common/constants";
 import { redisClient } from "../../../redisclient";
-import tokens from "../../../auth/tokens";
+import tokens, { type SessionInfo } from "../../../auth/tokens";
+import type { AuthToken } from "../../../../common/models/types";
 
 const TEST_API_KEY = "TESTAPIKEY";
 
 describe("Announcements API", () => {
 	let app;
-	let publishSpy;
-	let getSessionInfoSpy;
-	let validateSpy;
+	let publishSpy: MockInstance<any, Promise<number>>;
+	let getSessionInfoSpy: MockInstance<[AuthToken], Promise<SessionInfo>>;
+	let validateSpy: MockInstance<[AuthToken], Promise<boolean>>;
 
 	beforeAll(async () => {
 		setApiKey(TEST_API_KEY);
-		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			isLoggedIn: false,
 			username: "test",
 		});
-		validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 
 		app = (await main()).app;
 	});
 
 	beforeEach(() => {
-		publishSpy = jest.spyOn(redisClient, "publish").mockResolvedValue(1);
+		publishSpy = vi.spyOn(redisClient, "publish").mockResolvedValue(1);
 	});
 
 	afterEach(() => {

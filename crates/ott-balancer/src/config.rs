@@ -4,7 +4,9 @@ use clap::{Parser, ValueEnum};
 use figment::providers::Format;
 use serde::Deserialize;
 
-use crate::discovery::{FlyDiscoveryConfig, HarnessDiscoveryConfig, ManualDiscoveryConfig};
+use crate::discovery::{
+    DnsDiscoveryConfig, FlyDiscoveryConfig, HarnessDiscoveryConfig, ManualDiscoveryConfig,
+};
 
 static mut CONFIG: Option<BalancerConfig> = None;
 
@@ -32,6 +34,7 @@ impl Default for BalancerConfig {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "method", rename_all = "lowercase")]
 pub enum DiscoveryConfig {
+    Dns(DnsDiscoveryConfig),
     Fly(FlyDiscoveryConfig),
     Manual(ManualDiscoveryConfig),
     Harness(HarnessDiscoveryConfig),

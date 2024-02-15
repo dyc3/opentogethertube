@@ -1,4 +1,4 @@
-FROM node:18-alpine3.16 as build-stage
+FROM node:18-alpine3.19 as build-stage
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
@@ -7,11 +7,11 @@ WORKDIR /usr/app
 RUN apk update -q && apk --no-cache add libc6-compat python3 make g++ autoconf automake libtool -q
 COPY . .
 RUN yarn
-RUN yarn run build
+RUN yarn workspace ott-client run build
 
 RUN rm -rf node_modules && yarn install --production=true
 
-FROM node:18-alpine3.16 as production-stage
+FROM node:18-alpine3.19 as production-stage
 
 WORKDIR /usr/app/
 

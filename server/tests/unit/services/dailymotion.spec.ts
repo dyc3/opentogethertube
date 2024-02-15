@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import DailyMotionAdapter from "../../../../server/services/dailymotion";
 import { InvalidVideoIdException } from "../../../../server/exceptions";
 
@@ -49,7 +50,7 @@ describe("Dailymotion", () => {
 
 	describe("fetchVideoInfo", () => {
 		const adapter = new DailyMotionAdapter();
-		const apiGet = jest.fn();
+		const apiGet = vi.fn();
 		apiGet.mockReturnValue({ data: {} });
 		adapter.api.get = apiGet;
 		const videoId = "jriwl35";

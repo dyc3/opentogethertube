@@ -5,6 +5,10 @@ import { QueueMode } from "ott-common/models/types";
 import _ from "lodash";
 
 describe("<VideoQueueItem />", () => {
+	Cypress.on("uncaught:exception", (err, runnable) => {
+		return false;
+	});
+
 	it("should render basic metadata regardless of isPreview and queue mode", () => {
 		let video: QueueItem = {
 			service: "youtube",

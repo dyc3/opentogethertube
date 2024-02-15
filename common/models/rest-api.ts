@@ -2,6 +2,7 @@ import { Grants } from "../permissions";
 import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
+import { Category } from "sponsorblock-api";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
@@ -53,9 +54,9 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 	queue: QueueItem[];
 	hasOwner: boolean;
 	grants: Grants;
+	autoSkipSegmentCategories: Category[];
 	/** @deprecated */
 	permissions: Grants;
-	autoSkipSegments: boolean;
 	restoreQueueBehavior: BehaviorOption;
 	users: RoomUserInfo[];
 }

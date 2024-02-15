@@ -1,7 +1,18 @@
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	beforeEach,
+	afterAll,
+	afterEach,
+	vi,
+	MockInstance,
+} from "vitest";
 import dayjs from "dayjs";
-import tokens from "../../auth/tokens";
+import tokens, { SessionInfo } from "../../auth/tokens";
 import { RoomRequestType } from "../../../common/models/messages";
-import { BehaviorOption, QueueMode, Role } from "../../../common/models/types";
+import { AuthToken, BehaviorOption, QueueMode, Role } from "../../../common/models/types";
 import { Room, RoomUser } from "../../room";
 import infoextractor from "../../infoextractor";
 import { Video, VideoId } from "../../../common/models/video";
@@ -12,17 +23,17 @@ import { loadModels } from "../../models";
 import { buildClients } from "../../redisclient";
 
 describe("Room", () => {
-	let getSessionInfoSpy: jest.SpyInstance;
-	let validateSpy: jest.SpyInstance;
+	let getSessionInfoSpy: MockInstance<[AuthToken], Promise<SessionInfo>>;
+	let validateSpy: MockInstance<[AuthToken], Promise<boolean>>;
 	beforeAll(async () => {
 		loadModels();
 		await buildClients();
 
-		getSessionInfoSpy = jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		getSessionInfoSpy = vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 			isLoggedIn: false,
 		});
-		validateSpy = jest.spyOn(tokens, "validate").mockResolvedValue(true);
+		validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 	});
 
 	afterAll(() => {
@@ -177,7 +188,7 @@ describe("Room", () => {
 			};
 
 			it("should place the requested video in currentSource", async () => {
-				jest.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 				await room.processUnauthorizedRequest(
 					{
 						type: RoomRequestType.PlayNowRequest,
@@ -189,7 +200,7 @@ describe("Room", () => {
 			});
 
 			it("should remove the video from the queue", async () => {
-				jest.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 				room.currentSource = {
 					service: "direct",
 					id: "asdf123",
@@ -209,7 +220,7 @@ describe("Room", () => {
 			});
 
 			it("should push the currently playing video into the queue", async () => {
-				jest.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 				room.currentSource = {
 					service: "direct",
 					id: "asdf123",
@@ -233,7 +244,7 @@ describe("Room", () => {
 			});
 
 			it("should reset playback position to 0", async () => {
-				jest.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 				room.currentSource = {
 					service: "direct",
 					id: "asdf123",
@@ -277,7 +288,7 @@ describe("Room", () => {
 					{ service: "direct", id: "video4" },
 					{ service: "direct", id: "video5" },
 				]);
-				shuffleSpy = jest.spyOn(_, "shuffle");
+				shuffleSpy = vi.spyOn(_, "shuffle");
 			});
 
 			afterEach(() => {
@@ -437,7 +448,7 @@ describe("Room", () => {
 	});
 
 	it("should be able to get role in unowned room", async () => {
-		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			username: "test",
 			isLoggedIn: false,
 		});
@@ -445,7 +456,7 @@ describe("Room", () => {
 		const room = new Room({ name: "test" });
 		expect(await room.getRoleFromToken("fake")).toEqual(Role.UnregisteredUser);
 
-		jest.spyOn(tokens, "getSessionInfo").mockResolvedValue({
+		vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 			user_id: -1,
 			isLoggedIn: true,
 		});

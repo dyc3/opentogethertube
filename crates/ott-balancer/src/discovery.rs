@@ -4,10 +4,12 @@ use std::net::IpAddr;
 use std::time::Duration;
 use std::{collections::HashSet, net::SocketAddr};
 
+mod dns;
 mod fly;
 mod harness;
 mod manual;
 
+pub use dns::*;
 pub use fly::*;
 pub use harness::*;
 pub use manual::*;

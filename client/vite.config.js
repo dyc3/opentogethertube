@@ -58,14 +58,14 @@ export default defineConfig({
 			"tests/e2e/support/component.ts",
 			"client/tests/e2e/support/component.ts",
 			"**/*.{js,ts,vue}",
-			"vuetify/lib/components/**/*",
 		],
-		include: ["vuetify"],
 	},
 	test: {
 		environment: "jsdom",
-		deps: {
-			inline: ["vuetify"],
+		server: {
+			deps: {
+				inline: ["vuetify"],
+			},
 		},
 	},
 });

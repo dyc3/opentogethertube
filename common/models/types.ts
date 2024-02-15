@@ -1,6 +1,7 @@
 import type { Session } from "express-session";
 import { QueueItem, Video } from "./video";
 import { Grants } from "../permissions";
+import { Category } from "sponsorblock-api";
 
 export enum Visibility {
 	Public = "public",
@@ -62,7 +63,7 @@ export interface RoomSettings {
 	visibility: Visibility;
 	queueMode: QueueMode;
 	grants: Grants;
-	autoSkipSegments: boolean;
+	autoSkipSegmentCategories: Array<Category>;
 	restoreQueueBehavior: BehaviorOption;
 	enableVoteSkip: boolean;
 }

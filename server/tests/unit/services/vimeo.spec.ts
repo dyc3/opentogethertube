@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import VimeoAdapter from "../../../services/vimeo";
 import { InvalidVideoIdException } from "../../../exceptions";
 
@@ -36,7 +37,7 @@ describe("Vimeo", () => {
 
 	describe("fetchVideoInfo", () => {
 		const adapter = new VimeoAdapter();
-		const apiGet = jest.fn();
+		const apiGet = vi.fn();
 		apiGet.mockReturnValue({ data: {} });
 		adapter.api.get = apiGet;
 		const videoId = "283918572";

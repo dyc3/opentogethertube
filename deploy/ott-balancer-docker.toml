@@ -1,4 +1,4 @@
 [discovery]
-method = "docker"
+method = "dns"
 monolith_port = 3002
-monolith_container_name = "opentogethertube"
+query = "opentogethertube"
