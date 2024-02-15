@@ -10,7 +10,6 @@ use tracing::warn;
 
 use crate::util::random_unused_port;
 
-
 pub struct TestRunner {
     spawn_options: BalancerSpawnOptions,
     pub(crate) child: Child,
@@ -58,12 +57,14 @@ impl TestRunner {
             .expect("failed to respawn balancer");
     }
 
-    pub async fn is_alive(&mut self) -> bool {
+    /// Assert whether the balancer is alive
+    pub fn is_alive(&mut self) -> bool {
         let ecode = self.child.try_wait().expect("Error: Balancer is not alive");
 
         match ecode {
+            Some(exit_status) => return exit_status.success() == true,
             None => return false,
-            _ => return ecode.unwrap().success() == true,
+            //_ => return false, <- unreachable
         }
     }
 

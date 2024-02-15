@@ -5,7 +5,7 @@ use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
 use serde_json::value::RawValue;
 use test_context::{futures::SinkExt, test_context};
 use tokio_tungstenite;
-use tungstenite::protocol::frame::{Frame, FrameHeader, coding::OpCode, coding::Data};
+use tungstenite::protocol::frame::{coding::Data, coding::OpCode, Frame, FrameHeader};
 use tungstenite::protocol::Message;
 
 #[test_context(TestRunner)]
@@ -330,23 +330,31 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
 #[tokio::test]
 #[allow(dead_code)]
 async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
-    let mut client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test")).await.expect("failed to connect"); 
-    
-    let header = FrameHeader {    
+    let mut client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test"))
+        .await
+        .expect("failed to connect");
+
+    let header = FrameHeader {
         is_final: true,
         rsv1: false,
         rsv2: true,
         rsv3: true,
         opcode: OpCode::Data(Data::Text),
-        mask: Some([0,0,0,0]),
+        mask: Some([0, 0, 0, 0]),
     };
 
-    let payload = "{\"action\":\"auth\", \"token\":\"foo\"}".to_string().into_bytes();
+    let payload = "{\"action\":\"auth\", \"token\":\"foo\"}"
+        .to_string()
+        .into_bytes();
 
     let dataframe = Frame::from_payload(header, payload);
     let msg = Message::Frame(dataframe);
 
-    client.0.send(msg).await.expect("failed to send message to balancer");
+    client
+        .0
+        .send(msg)
+        .await
+        .expect("failed to send message to balancer");
 
-    ctx.is_alive().await;
-} 
+    assert_eq!(ctx.is_alive(), true);
+}
