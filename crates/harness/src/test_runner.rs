@@ -59,11 +59,11 @@ impl TestRunner {
 
     /// Assert whether the balancer is alive
     pub fn is_alive(&mut self) -> bool {
-        let ecode = self.child.try_wait().expect("Error: Balancer is not alive");
+        let ecode = self.child.try_wait().expect("Error: Failed to query child process");
 
         match ecode {
-            Some(exit_status) => exit_status.success(),
-            None => false,
+            Some(_exit_status) => false,
+            None => true,
         }
     }
 
