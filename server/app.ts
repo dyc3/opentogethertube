@@ -31,6 +31,9 @@ export async function main() {
 	setLogger(getLogger("config"));
 	loadConfigFile();
 	setLogLevel(conf.get("log.level"));
+	if (process.argv.includes("--validate")) {
+		validateConfig();
+	}
 
 	const env = conf.get("env");
 	const heroku = conf.get("heroku");
@@ -53,10 +56,6 @@ export async function main() {
 	loadModels();
 	await buildClients();
 	buildRateLimiter();
-
-	if (process.argv.includes("--validate")) {
-		validateConfig();
-	}
 
 	if (
 		conf.get("env") === "production" &&
