@@ -488,7 +488,7 @@ export function loadConfigFile() {
 	conf.validate({ allowed: "warn" });
 }
 
-export function validateConfig(): boolean {
+export function validateConfig(): Result<void, Error> {
 	const mailEnabled = conf.get("mail.enabled");
 	const mailResult = validateMail();
 	const confResult = intoResult(() => conf.validate({ allowed: "strict" }));
@@ -502,10 +502,10 @@ export function validateConfig(): boolean {
 			log.error(confResult.value.message);
 		}
 
-		return false;
+		return err(new Error("Invalid configuration."));
 	}
 
-	return true;
+	return ok(undefined);
 }
 
 function postProcessConfig(): void {

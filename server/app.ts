@@ -32,7 +32,9 @@ export async function main() {
 	loadConfigFile();
 	setLogLevel(conf.get("log.level"));
 	if (process.argv.includes("--validate")) {
-		if (!validateConfig()) {
+		let result = validateConfig();
+		if (!result.ok) {
+			log.error(result.value.message);
 			process.exit(1);
 		} else {
 			process.exit(0);
