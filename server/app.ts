@@ -32,7 +32,11 @@ export async function main() {
 	loadConfigFile();
 	setLogLevel(conf.get("log.level"));
 	if (process.argv.includes("--validate")) {
-		validateConfig();
+		if (!validateConfig()) {
+			process.exit(1);
+		} else {
+			process.exit(0);
+		}
 	}
 
 	const env = conf.get("env");
