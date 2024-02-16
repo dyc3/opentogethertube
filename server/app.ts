@@ -34,9 +34,11 @@ export async function main() {
 	if (process.argv.includes("--validate")) {
 		let result = validateConfig();
 		if (!result.ok) {
+			log.error("Config validation failed:");
 			log.error(result.value.message);
 			process.exit(1);
 		} else {
+			log.info("Config validation passed");
 			process.exit(0);
 		}
 	}
