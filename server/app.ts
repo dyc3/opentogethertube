@@ -16,7 +16,7 @@ import websockets from "./websockets";
 import clientmanager from "./clientmanager";
 import roommanager from "./roommanager";
 import bodyParser from "body-parser";
-import { loadConfigFile, conf, setLogger } from "./ott-config";
+import { loadConfigFile, conf, setLogger, validateConfig } from "./ott-config";
 import { buildRateLimiter } from "./rate-limit";
 import { initExtractor } from "./infoextractor";
 import session, { SessionOptions } from "express-session";
@@ -31,6 +31,17 @@ export async function main() {
 	setLogger(getLogger("config"));
 	loadConfigFile();
 	setLogLevel(conf.get("log.level"));
+	if (process.argv.includes("--validate")) {
+		let result = validateConfig();
+		if (!result.ok) {
+			log.error("Config validation failed:");
+			log.error(result.value.message);
+			process.exit(1);
+		} else {
+			log.info("Config validation passed");
+			process.exit(0);
+		}
+	}
 
 	const env = conf.get("env");
 	const heroku = conf.get("heroku");
