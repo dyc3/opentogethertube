@@ -540,7 +540,11 @@ export class Room implements RoomState {
 			this.currentSource = null;
 		}
 
-		if (this.autoSkipSegmentCategories.length > 0 && this.currentSource) {
+		if (
+			conf.get("video.enable_sponsorblock") &&
+			this.autoSkipSegmentCategories.length > 0 &&
+			this.currentSource
+		) {
 			this.wantSponsorBlock = true;
 		}
 		if (!this.currentSource && this.videoSegments.length > 0) {
@@ -762,7 +766,7 @@ export class Room implements RoomState {
 			);
 		}
 
-		if (this.autoSkipSegmentCategories.length > 0) {
+		if (conf.get("video.enable_sponsorblock") && this.autoSkipSegmentCategories.length > 0) {
 			if (this.wantSponsorBlock) {
 				this.wantSponsorBlock = false; // Disable this before the request to avoid spamming the sponsorblock if the request takes too long.
 				try {
