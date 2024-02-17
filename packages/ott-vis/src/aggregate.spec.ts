@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { SystemState } from "types";
 import { aggMonolithRooms, countRoomClients, groupMonolithsByRegion } from "./aggregate";
 

@@ -2,10 +2,11 @@
 	"name": "ott-vis",
 	"version": "0.10.0",
 	"description": "",
+	"type": "module",
 	"scripts": {
 		"build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
 		"dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
-		"test": "jest --passWithNoTests --maxWorkers 4 --coverage",
+		"test": "vitest run --coverage",
 		"typecheck": "tsc --noEmit",
 		"lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
 		"lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
@@ -32,6 +33,7 @@
 		"@types/node": "^20.8.7",
 		"@types/testing-library__jest-dom": "5.14.8",
 		"@types/d3": "7.4.3",
+		"@vitejs/plugin-react-swc": "3.6.0",
 		"copy-webpack-plugin": "^11.0.0",
 		"css-loader": "^6.7.3",
 		"d3": "7.8.5",
@@ -56,7 +58,9 @@
 		"typescript": "4.8.4",
 		"webpack": "^5.86.0",
 		"webpack-cli": "^5.1.4",
-		"webpack-livereload-plugin": "^3.0.2"
+		"webpack-livereload-plugin": "^3.0.2",
+		"vite": "^5.0.12",
+		"vitest": "^1.2.2"
 	},
 	"engines": {
 		"node": ">=18"
