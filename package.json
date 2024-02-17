@@ -11,8 +11,7 @@
     "common",
     "server",
     "client",
-    "packages/ott-vis",
-    "packages/ott-vis-datasource"
+    "packages/*"
   ],
   "type": "module",
   "scripts": {
@@ -59,7 +58,6 @@
     "eslint-plugin-prettier": "^4.0.0",
     "faker": "^5.5.3",
     "prettier": "^2.5.1",
-    "start-server-and-test": "^1.12.3",
     "supertest": "6.3.3",
     "ts-node": "^10.9.1"
   }

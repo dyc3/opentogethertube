@@ -64,6 +64,7 @@
 		"@grafana/runtime": "10.0.3",
 		"@grafana/ui": "10.0.3",
 		"@grafana/schema": "10.0.3",
+		"ott-vis-common": "*",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"tslib": "2.5.3"
