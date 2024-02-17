@@ -126,7 +126,21 @@ async fn connect_and_maintain(
         let monolith_id;
         match message {
             Message::Text(text) => {
-                let message: MsgM2B = serde_json::from_str(&text).unwrap();
+                let jd = &mut serde_json::Deserializer::from_str(&text);
+                let message: MsgM2B = match serde_path_to_error::deserialize(jd) {
+                    Ok(msg) => msg,
+                    Err(err) => {
+                        warn!("failed to deserialize monolith message: {:?}", err);
+                        let _ = stream
+                            .close(Some(CloseFrame {
+                                code: CloseCode::Protocol,
+                                reason: "failed to deserialize message".into(),
+                            }))
+                            .await;
+                        return;
+                    }
+                };
+
                 match message {
                     MsgM2B::Init(init) => {
                         monolith_id = init.id;
@@ -154,7 +168,7 @@ async fn connect_and_maintain(
                     _ => {
                         let _ = stream
                             .close(Some(CloseFrame {
-                                code: CloseCode::Library(4000),
+                                code: CloseCode::Protocol,
                                 reason: "did not send init".into(),
                             }))
                             .await;

@@ -13,7 +13,8 @@ impl<'de> SocketMessage {
         match self {
             SocketMessage::Message(msg) => {
                 let text = msg.to_text()?;
-                let obj = serde_json::from_str(text)?;
+                let jd = &mut serde_json::Deserializer::from_str(text);
+                let obj = serde_path_to_error::deserialize(jd)?;
                 Ok(obj)
             }
             #[allow(deprecated)]
