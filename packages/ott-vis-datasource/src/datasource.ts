@@ -24,9 +24,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 		const data = options.targets.map(target => {
 			return new MutableDataFrame({
 				refId: target.refId,
-				fields: [
-					{ name: "Balancers", values: [sampleSystemState], type: FieldType.other },
-				],
+				fields: [{ name: "Balancers", values: [sampleSystemState], type: FieldType.other }],
 			});
 		});
 

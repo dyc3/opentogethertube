@@ -1,4 +1,4 @@
-import { SystemState } from "types";
+import type { SystemState } from "ott-vis-common";
 import { aggMonolithRooms, countRoomClients, groupMonolithsByRegion } from "./aggregate";
 
 const sampleSystemState: SystemState = [
