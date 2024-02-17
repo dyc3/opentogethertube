@@ -5,7 +5,7 @@ use tokio::sync::broadcast::error::RecvError;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 use uuid::Uuid;
 
 use crate::balancer::BalancerLink;
@@ -147,7 +147,21 @@ pub async fn client_entry<'r>(
     let mut client_link;
     match message {
         Message::Text(text) => {
-            let message: ClientMessage = serde_json::from_str(&text).unwrap();
+            let jd = &mut serde_json::Deserializer::from_str(&text);
+            let message: ClientMessage = match serde_path_to_error::deserialize(jd) {
+                Ok(msg) => msg,
+                Err(err) => {
+                    warn!("failed to deserialize client message: {:?}", err);
+                    stream
+                        .close(Some(CloseFrame {
+                            code: CloseCode::Protocol,
+                            reason: "failed to deserialize message".into(),
+                        }))
+                        .await?;
+                    return Ok(());
+                }
+            };
+
             match message {
                 ClientMessage::Auth(message) => {
                     debug!("client authenticated, handing off to balancer");

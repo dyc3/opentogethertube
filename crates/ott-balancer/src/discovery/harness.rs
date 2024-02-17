@@ -80,9 +80,13 @@ async fn do_harness_discovery(
                         error!("expected text message from harness, got something else");
                         continue;
                     };
-                    let Ok(msg) = serde_json::from_str(text.as_str()) else {
-                        error!("failed to deserialize message from harness");
-                        continue;
+                    let jd = &mut serde_json::Deserializer::from_str(&text);
+                    let msg = match serde_path_to_error::deserialize(jd) {
+                        Ok(msg) => msg,
+                        Err(err) => {
+                            error!("failed to deserialize message from harness: {:?}", err);
+                            continue;
+                        }
                     };
                     let mut monoliths = monoliths.lock().await;
                     *monoliths = msg;

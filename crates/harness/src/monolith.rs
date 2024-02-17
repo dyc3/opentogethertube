@@ -270,7 +270,8 @@ impl Monolith {
             .iter()
             .filter_map(|msg| match msg {
                 Message::Text(msg) => {
-                    let msg: MsgB2M = serde_json::from_str(msg).unwrap();
+                    let jd = &mut serde_json::Deserializer::from_str(msg);
+                    let msg: MsgB2M = serde_path_to_error::deserialize(jd).unwrap();
                     Some(msg)
                 }
                 _ => None,
