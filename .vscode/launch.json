@@ -26,16 +26,14 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Jest Server Unit Tests",
-			"program": "${workspaceFolder}/node_modules/.bin/jest",
-			"args": [
-				"--runInBand",
-				"--config",
-				"./tests/unit/jest.config.js",
-			],
-			"cwd": "${workspaceFolder}/server",
-			"console": "integratedTerminal",
-			"internalConsoleOptions": "neverOpen",
+			"name": "Debug Current Test File (ott-server)",
+			"autoAttachChildProcesses": true,
+			"skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+			"program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+			"args": ["run", "../${relativeFile}"],
+			"cwd": "${workspaceRoot}/server",
+			"smartStep": true,
+			"console": "integratedTerminal"
 		},
 		{
 			"name": "Attach",
