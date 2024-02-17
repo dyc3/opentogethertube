@@ -442,6 +442,13 @@ export const conf = convict({
 			default: true,
 		},
 	},
+	video: {
+		enable_sponsorblock: {
+			doc: "Whether to enable fetching skipable segments from sponsorblock.",
+			format: Boolean,
+			default: true,
+		},
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {
