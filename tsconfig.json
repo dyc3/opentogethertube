@@ -15,9 +15,6 @@
 		"sourceMap": true,
 		"baseUrl": ".",
 		"noImplicitThis": true,
-		"types": [
-			"jest"
-		],
 		"outDir": "ts-out",
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,

@@ -142,7 +142,6 @@ describe("Room API", () => {
 				.expect("Content-Type", /json/)
 				.expect(404);
 			expect(resp.body.success).toEqual(false);
-			// @ts-expect-error I can't get typescript to acknowledge the custom matchers.
 			expect(resp.body.error).toBeRoomNotFound();
 		});
 	});
