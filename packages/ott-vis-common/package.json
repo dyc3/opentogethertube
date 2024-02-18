@@ -5,6 +5,7 @@
 	"license": "AGPL-3.0-or-later",
 	"type": "module",
 	"scripts": {
+		"build": "tsc",
 		"test": "vitest run --coverage",
 		"lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
 		"lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx ."
