@@ -2,19 +2,13 @@
 	<v-container>
 		<h1>{{ $t("privacy.title") }}</h1>
 		<!-- I18n: don't localize this file.  -->
-		<p>
-			This site uses cookies. It also uses Google Analytics, but only the smallest subset of
-			information is tracked. The only demographic information that is collected is country,
-			and whether you are on desktop or mobile. The collected data is never associated with
-			your OTT account or session. If you do not want this information collected, use an ad
-			blocker.
-		</p>
+		<p>This site uses cookies. They are required strictly for functionality only.</p>
 
 		<p>
 			Your IP is logged in OpenTogetherTube\'s logs when you create a room to help combat
 			abuse. It is also recorded for a short period of time for rate limiting. Chats are not
-			recorded. What you search for in the "add video" search box is logged, but never
-			associated with your OTT account or session.
+			recorded or logged at all. What you search for in the "add video" search box is logged,
+			but never associated with your OTT account or session.
 		</p>
 
 		<p>
