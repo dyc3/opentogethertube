@@ -1,0 +1,46 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.7.3/schema.json",
+	"files": {
+		"ignore": [
+			"**/node_modules/**",
+			"**/dist/**",
+			"**/coverage/**",
+			"**/ts-out/**",
+			"**/target/**",
+			"**/.optic/**",
+			"**/.vscode/**",
+			"**/.devcontainer/**"
+		]
+	},
+	"organizeImports": {
+		"enabled": false
+	},
+	"formatter": {
+		"lineWidth": 100,
+		"indentWidth": 4
+	},
+	"linter": {
+		"enabled": false,
+		"rules": {
+			"recommended": true
+		}
+	},
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true,
+		"defaultBranch": "master"
+	},
+	"overrides": [
+		{
+			"include": [
+				"*.yaml",
+				"*.yml"
+			],
+			"formatter": {
+				"indentStyle": "space",
+				"indentWidth": 2
+			}
+		}
+	]
+}
