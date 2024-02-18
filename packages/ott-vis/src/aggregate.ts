@@ -1,4 +1,4 @@
-import { SystemState } from "types";
+import type { SystemState } from "ott-vis-common";
 
 /**
  * Builds a map of room names to the number of clients in each room from the room state.
