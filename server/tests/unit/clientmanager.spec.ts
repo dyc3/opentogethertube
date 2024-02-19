@@ -9,9 +9,9 @@ import {
 	balancerManager,
 } from "../../balancer";
 import { BalancerClient, Client } from "../../client";
-import { OttWebsocketError } from "common/models/types";
+import { OttWebsocketError } from "ott-common/models/types";
 import { buildClients } from "../../redisclient";
-import { Result, ok } from "../../../common/result";
+import { Result, ok } from "ott-common/result";
 import roommanager from "../../roommanager";
 import { loadModels } from "../../models";
 import type { Request } from "express";

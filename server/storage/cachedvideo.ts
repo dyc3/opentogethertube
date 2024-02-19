@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { CachedVideo as DbCachedVideo } from "../models";
 import Sequelize from "sequelize";
-import type { Video, VideoMetadata, VideoService } from "../../common/models/video";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video";
 import { getLogger } from "../logger";
 import _ from "lodash";
 import { CachedVideoCreationAttributes, CachedVideo } from "../models/cachedvideo";

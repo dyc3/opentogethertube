@@ -12,7 +12,7 @@ import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
-import { USERNAME_LENGTH_MAX } from "../common/constants";
+import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import {
 	BadApiArgumentException,
 	FeatureDisabledException,
@@ -26,14 +26,14 @@ import { AuthToken } from "ott-common/models/types";
 import { EventEmitter } from "events";
 import { Sequelize, UniqueConstraintError } from "sequelize";
 import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer";
-import { Result, err } from "../common/result";
+import { Result, err } from "ott-common/result";
 import type {
 	OttApiRequestAccountRecoveryStart,
 	OttApiRequestAccountRecoveryVerify,
 	OttResponseBody,
-} from "../common/models/rest-api";
+} from "ott-common/models/rest-api";
 import { counterHttpErrors } from "./metrics";
-import { OttException } from "../common/exceptions";
+import { OttException } from "ott-common/exceptions";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");

@@ -1,4 +1,4 @@
-import { OttException } from "../common/exceptions";
+import { OttException } from "ott-common/exceptions";
 import { conf } from "./ott-config";
 
 /**

@@ -1,10 +1,10 @@
 import _ from "lodash";
 import { getLogger } from "../logger";
 import roommanager from "../roommanager";
-import { QueueMode, Visibility } from "../../common/models/types";
+import { QueueMode, Visibility } from "ott-common/models/types";
 import { consumeRateLimitPoints } from "../rate-limit";
 import { BadApiArgumentException, FeatureDisabledException } from "../exceptions";
-import { OttException } from "../../common/exceptions";
+import { OttException } from "ott-common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
 import {
@@ -12,11 +12,11 @@ import {
 	RoomRequestType,
 	UndoRequest,
 	AddRequest,
-} from "../../common/models/messages";
+} from "ott-common/models/messages";
 import storage from "../storage";
-import { Grants } from "../../common/permissions";
-import { Video } from "../../common/models/video.js";
-import { ROOM_NAME_REGEX } from "../../common/constants";
+import { Grants } from "ott-common/permissions";
+import { Video } from "ott-common/models/video.js";
+import { ROOM_NAME_REGEX } from "ott-common/constants";
 import {
 	OttApiRequestAddToQueue,
 	OttApiRequestPatchRoom,
@@ -27,7 +27,7 @@ import {
 	OttApiResponseRoomCreate,
 	OttApiResponseRoomGenerate,
 	OttResponseBody,
-} from "../../common/models/rest-api";
+} from "ott-common/models/rest-api";
 import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";

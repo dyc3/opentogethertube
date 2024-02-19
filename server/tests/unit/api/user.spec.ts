@@ -16,7 +16,7 @@ import usermanager from "../../../usermanager";
 import { User as UserModel } from "../../../models";
 import { conf } from "../../../ott-config";
 import { User } from "../../../models/user";
-import { AuthToken } from "common/models/types";
+import { AuthToken } from "ott-common/models/types";
 
 describe("User API", () => {
 	let token;

@@ -10,7 +10,7 @@ import {
 	MockInstance,
 } from "vitest";
 import _ from "lodash";
-import { QueueMode, Visibility } from "../../../../common/models/types";
+import { QueueMode, Visibility } from "ott-common/models/types";
 import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
 import roommanager from "../../../../server/roommanager";
@@ -18,7 +18,7 @@ import { RoomNotFoundException } from "../../../../server/exceptions";
 import { main } from "../../../app";
 import { Room as RoomModel, User as UserModel } from "../../../models";
 import usermanager from "../../../usermanager";
-import { OttApiRequestRoomCreate } from "common/models/rest-api";
+import { OttApiRequestRoomCreate } from "ott-common/models/rest-api";
 import { conf } from "../../../../server/ott-config";
 import { User } from "../../../models/user";
 

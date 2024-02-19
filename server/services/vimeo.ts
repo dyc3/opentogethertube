@@ -2,7 +2,7 @@ import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { InvalidVideoIdException } from "../exceptions";
-import { Video } from "../../common/models/video";
+import { Video } from "ott-common/models/video";
 import { getLogger } from "../logger";
 
 const log = getLogger("vimeo");
