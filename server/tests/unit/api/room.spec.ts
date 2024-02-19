@@ -20,6 +20,7 @@ import { Room as RoomModel, User as UserModel } from "../../../models";
 import usermanager from "../../../usermanager";
 import { OttApiRequestRoomCreate } from "common/models/rest-api";
 import { conf } from "../../../../server/ott-config";
+import { User } from "../../../models/user";
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -79,9 +80,20 @@ expect.extend({
 
 describe("Room API", () => {
 	let app;
+	let owner: User;
 
 	beforeAll(async () => {
 		app = (await main()).app;
+
+		owner = await usermanager.registerUser({
+			email: "owner@localhost",
+			username: "owner",
+			password: "password1234",
+		});
+	});
+
+	afterAll(async () => {
+		owner?.destroy();
 	});
 
 	describe("GET /room/:name", () => {
@@ -158,9 +170,13 @@ describe("Room API", () => {
 			validateSpy = vi.spyOn(tokens, "validate").mockResolvedValue(true);
 		});
 
-		afterAll(() => {
+		afterAll(async () => {
 			getSessionInfoSpy.mockRestore();
 			validateSpy.mockRestore();
+
+			await RoomModel.destroy({ where: { name: "testnoowner" } });
+			await RoomModel.destroy({ where: { name: "testowner" } });
+			await RoomModel.destroy({ where: { name: "testpermdisabled" } });
 		});
 
 		afterEach(async () => {
@@ -276,14 +292,9 @@ describe("Room API", () => {
 		});
 
 		it("should create permanent room with owner", async () => {
-			const user = await usermanager.registerUser({
-				email: "owner@localhost",
-				username: "owner",
-				password: "password1234",
-			});
 			vi.spyOn(tokens, "getSessionInfo").mockResolvedValue({
 				isLoggedIn: true,
-				user_id: user.id,
+				user_id: owner.id,
 			});
 			let resp = await request(app)
 				.post("/api/room/create")
@@ -294,13 +305,12 @@ describe("Room API", () => {
 			expect(_.pick(roommanager.rooms[0], "name", "owner.id", "owner.email")).toMatchObject({
 				name: "testowner",
 				owner: {
-					id: user.id,
-					email: user.email,
+					id: owner.id,
+					email: owner.email,
 				},
 			});
 			await roommanager.unloadRoom("testowner");
 			await RoomModel.destroy({ where: { name: "testowner" } });
-			await user.destroy();
 		});
 
 		const requests: [string, OttApiRequestRoomCreate | undefined][] = [
