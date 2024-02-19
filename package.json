@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "ansi-colors": "^4.1.1",
-    "axios": "1.4.0",
+    "axios": "1.6.0",
     "dayjs": "^1.10.4",
     "lodash": "^4.17.21",
     "patch-package": "^7.0.1",
