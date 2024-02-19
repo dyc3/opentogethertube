@@ -118,6 +118,17 @@ router.get("/", nocache(), (req, res) => {
 });
 
 router.post("/", nocache(), async (req, res) => {
+	if (!req.token) {
+		// should already be handled by auth middleware
+		res.status(400).json({
+			success: false,
+			error: {
+				name: "MissingToken",
+				message: "Missing auth token. Get a token from /api/auth/grant first.",
+			},
+		});
+		return;
+	}
 	if (!req.body.username) {
 		res.status(400).json({
 			success: false,
@@ -263,9 +274,9 @@ router.post("/login", async (req, res, next) => {
 					return;
 				}
 				req.ottsession = { isLoggedIn: true, user_id: user.id };
-				await tokens.setSessionInfo(req.token, req.ottsession);
+				await tokens.setSessionInfo(req.token!, req.ottsession);
 				try {
-					onUserLogIn(user, req.token);
+					onUserLogIn(user, req.token!);
 				} catch (err) {
 					log.error(
 						`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
@@ -296,8 +307,8 @@ router.post("/logout", async (req, res) => {
 				return;
 			}
 			req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
-			await tokens.setSessionInfo(req.token, req.ottsession);
-			onUserLogOut(user, req.token);
+			await tokens.setSessionInfo(req.token!, req.ottsession);
+			onUserLogOut(user, req.token!);
 			res.json({
 				success: true,
 			});
@@ -321,9 +332,9 @@ router.post("/register", async (req, res) => {
 		log.info(`User registered: ${result.id}`);
 		req.login(result, async () => {
 			req.ottsession = { isLoggedIn: true, user_id: result.id };
-			await tokens.setSessionInfo(req.token, req.ottsession);
+			await tokens.setSessionInfo(req.token!, req.ottsession);
 			try {
-				onUserLogIn(result, req.token);
+				onUserLogIn(result, req.token!);
 			} catch (err) {
 				log.error(
 					`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
@@ -921,7 +932,7 @@ if (conf.get("env") === "test") {
 		const user = await getUser({ user: "forced@localhost" });
 		req.login(user, async err => {
 			req.ottsession = { isLoggedIn: true, user_id: user.id };
-			await tokens.setSessionInfo(req.token, req.ottsession);
+			await tokens.setSessionInfo(req.token!, req.ottsession);
 			res.json({
 				success: !!err,
 			});

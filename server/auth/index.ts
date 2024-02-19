@@ -55,7 +55,7 @@ export async function authTokenMiddleware(
 		req.token = token;
 	}
 
-	if (!(await tokens.validate(req.token))) {
+	if (!req.token || !(await tokens.validate(req.token))) {
 		res.status(400).json({
 			success: false,
 			error: {
