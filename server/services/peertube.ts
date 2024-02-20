@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { conf } from "../ott-config";
-import { Video, VideoMetadata, VideoService } from "../../common/models/video";
+import { Video, VideoMetadata, VideoService } from "ott-common/models/video";
 import { InvalidVideoIdException } from "../exceptions";
 
 interface PeertubeApiVideo {

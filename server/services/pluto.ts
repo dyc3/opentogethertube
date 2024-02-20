@@ -2,7 +2,7 @@ import { URL } from "url";
 import axios from "axios";
 import { getLogger } from "../logger";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import type { Video, VideoMetadata, VideoService } from "../../common/models/video";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video";
 import { conf } from "../ott-config";
 import { v1 as uuidv1 } from "uuid";
 import { InvalidVideoIdException } from "../exceptions";

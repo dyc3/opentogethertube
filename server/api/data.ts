@@ -1,8 +1,8 @@
 import { getLogger } from "../logger";
 import { conf } from "../ott-config";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
-import { OttApiResponseAddPreview, OttResponseBody } from "../../common/models/rest-api";
-import { OttException } from "../../common/exceptions";
+import { OttApiResponseAddPreview, OttResponseBody } from "ott-common/models/rest-api";
+import { OttException } from "ott-common/exceptions";
 import { BadApiArgumentException } from "../exceptions";
 import InfoExtract from "../infoextractor";
 import { consumeRateLimitPoints } from "../rate-limit";

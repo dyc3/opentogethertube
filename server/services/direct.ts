@@ -9,7 +9,7 @@ import {
 import { getMimeType, isSupportedMimeType } from "../mime";
 import { FfprobeStrategy, OnDiskPreviewFfprobe, RunFfprobe, StreamFfprobe } from "../ffprobe";
 import { getLogger } from "../logger";
-import { Video } from "../../common/models/video";
+import { Video } from "ott-common/models/video";
 import { conf } from "../ott-config";
 
 const log = getLogger("direct");
