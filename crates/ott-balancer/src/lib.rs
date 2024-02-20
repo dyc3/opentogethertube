@@ -31,7 +31,6 @@ pub async fn run() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
     let loaded_config = BalancerConfig::load(&args.config_path);
-    let config = BalancerConfig::get();
 
     if args.validate {
         match loaded_config {
@@ -39,11 +38,13 @@ pub async fn run() -> anyhow::Result<()> {
                 std::process::exit(0);
             }
             Err(err) => {
-                error!("Error loading configuration: {:?}", err);
+                eprintln!("Error loading configuration: {:?}", err);
                 std::process::exit(1);
             }
         }
     }
+
+    let config = BalancerConfig::get();
 
     let console_layer = if args.remote_console {
         console_subscriber::ConsoleLayer::builder()
