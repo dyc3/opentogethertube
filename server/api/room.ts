@@ -3,7 +3,7 @@ import { getLogger } from "../logger";
 import roommanager from "../roommanager";
 import { QueueMode, Visibility } from "ott-common/models/types";
 import { consumeRateLimitPoints } from "../rate-limit";
-import { BadApiArgumentException, FeatureDisabledException, MissingToken } from "../exceptions";
+import { BadApiArgumentException, FeatureDisabledException } from "../exceptions";
 import { OttException } from "ott-common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
@@ -400,10 +400,6 @@ const addToQueue: RequestHandler<
 	OttResponseBody<unknown>,
 	OttApiRequestAddToQueue
 > = async (req, res) => {
-	if (!req.token) {
-		// Already checked in auth middleware
-		throw new MissingToken();
-	}
 	let points = 5;
 	if ("videos" in req.body) {
 		points = 3 * req.body.videos.length;
@@ -446,10 +442,6 @@ const removeFromQueue: RequestHandler<
 	OttResponseBody<unknown>,
 	OttApiRequestRemoveFromQueue
 > = async (req, res) => {
-	if (!req.token) {
-		// Already checked in auth middleware
-		throw new MissingToken();
-	}
 	let points = 5;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
