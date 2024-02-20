@@ -30,7 +30,22 @@ pub mod service;
 pub async fn run() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
-    BalancerConfig::load(&args.config_path)?;
+    let loaded_config = BalancerConfig::load(&args.config_path);
+
+    if args.validate {
+        match loaded_config {
+            Ok(()) => {
+                eprintln!("Configuration is valid");
+                std::process::exit(0);
+            }
+            Err(err) => {
+                eprintln!("Configuration is invalid");
+                eprintln!("Error loading configuration: {:?}", err);
+                std::process::exit(1);
+            }
+        }
+    }
+
     let config = BalancerConfig::get();
 
     let console_layer = if args.remote_console {
