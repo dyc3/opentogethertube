@@ -1784,18 +1784,25 @@ dependencies = [
 name = "ott-common"
 version = "0.10.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "futures-util",
  "http-body-util",
  "hyper 1.0.0-rc.4",
  "hyper-util",
+ "ott-balancer-protocol",
  "pin-project",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
  "tokio",
  "tokio-tungstenite",
  "tokio-util",
  "tracing",
  "tracing-subscriber",
+ "trust-dns-resolver",
  "tungstenite",
+ "url 2.3.1",
 ]
 
 [[package]]
