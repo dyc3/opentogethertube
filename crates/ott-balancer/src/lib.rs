@@ -35,9 +35,11 @@ pub async fn run() -> anyhow::Result<()> {
     if args.validate {
         match loaded_config {
             Ok(()) => {
+                println!("Configuration is valid");
                 std::process::exit(0);
             }
             Err(err) => {
+                println!("Configuration is invalid");
                 eprintln!("Error loading configuration: {:?}", err);
                 std::process::exit(1);
             }
