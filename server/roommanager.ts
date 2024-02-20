@@ -1,5 +1,5 @@
 import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room";
-import { AuthToken, Role, RoomOptions, Visibility } from "../common/models/types";
+import { AuthToken, Role, RoomOptions, Visibility } from "ott-common/models/types";
 import _ from "lodash";
 import { getLogger } from "./logger";
 import { redisClient } from "./redisclient";
@@ -9,11 +9,11 @@ import {
 	RoomNameTakenException,
 	RoomNotFoundException,
 } from "./exceptions";
-import { RoomRequest, RoomRequestContext, ServerMessage } from "../common/models/messages";
+import { RoomRequest, RoomRequestContext, ServerMessage } from "ott-common/models/messages";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
-import { Result, ok, err } from "../common/result";
-import { Grants } from "../common/permissions";
+import { Result, ok, err } from "ott-common/result";
+import { Grants } from "ott-common/permissions";
 import type { ClientManagerCommand } from "./clientmanager";
 
 export const log = getLogger("roommanager");

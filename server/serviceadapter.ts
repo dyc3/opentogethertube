@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
-import { Video, VideoId, VideoMetadata, VideoService } from "../common/models/video";
+import { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video";
 import { IncompleteServiceAdapterException } from "./exceptions";
 import { getLogger } from "./logger";
 

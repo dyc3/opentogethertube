@@ -1,5 +1,5 @@
-import { ALL_VIDEO_SERVICES } from "../../common/constants";
-import { VideoService } from "../../common/models/video";
+import { ALL_VIDEO_SERVICES } from "ott-common/constants";
+import { VideoService } from "ott-common/models/video";
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 
 interface CachedVideoAttributes {

@@ -2,7 +2,7 @@ import { URL } from "url";
 import axios from "axios";
 import { getLogger } from "../logger";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import { Video, VideoMetadata, VideoService } from "../../common/models/video";
+import { Video, VideoMetadata, VideoService } from "ott-common/models/video";
 import { conf } from "../ott-config";
 
 const log = getLogger("tubi");
