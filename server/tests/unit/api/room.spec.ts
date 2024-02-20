@@ -98,7 +98,7 @@ describe("Room API", () => {
 	});
 
 	afterAll(async () => {
-		owner?.destroy();
+		await owner?.destroy();
 	});
 
 	describe("GET /room/:name", () => {
