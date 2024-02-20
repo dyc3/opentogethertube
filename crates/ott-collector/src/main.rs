@@ -3,8 +3,8 @@ extern crate rocket;
 
 /// Serve the current system state
 #[get("/state")]
-fn serve_state() -> () {
-    ()
+fn serve_state() {
+    todo!("Serve the current system state")
 }
 
 #[launch]
