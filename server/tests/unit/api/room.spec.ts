@@ -86,8 +86,7 @@ describe("Room API", () => {
 	beforeAll(async () => {
 		app = (await main()).app;
 
-		const auth = await request(app)
-			.get("/api/auth/grant")
+		const auth = await request(app).get("/api/auth/grant");
 		token = auth.body.token;
 
 		owner = await usermanager.registerUser({

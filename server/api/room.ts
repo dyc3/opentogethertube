@@ -431,7 +431,7 @@ const addToQueue: RequestHandler<
 	} else {
 		throw new BadApiArgumentException("service,id", "missing");
 	}
-	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
+	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
 	res.json({
 		success: true,
 	});
@@ -454,7 +454,7 @@ const removeFromQueue: RequestHandler<
 				type: RoomRequestType.RemoveRequest,
 				video: { service: req.body.service, id: req.body.id },
 			},
-			{ token: req.token }
+			{ token: req.token! }
 		);
 		res.json({
 			success: true,
