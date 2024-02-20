@@ -10,7 +10,7 @@ import {
 	MockInstance,
 } from "vitest";
 import _ from "lodash";
-import { QueueMode, Visibility } from "ott-common/models/types";
+import { AuthToken, QueueMode, Visibility } from "ott-common/models/types";
 import request from "supertest";
 import tokens from "../../../../server/auth/tokens";
 import roommanager from "../../../../server/roommanager";
@@ -81,9 +81,14 @@ expect.extend({
 describe("Room API", () => {
 	let app;
 	let owner: User;
+	let token: AuthToken;
 
 	beforeAll(async () => {
 		app = (await main()).app;
+
+		const auth = await request(app)
+			.get("/api/auth/grant")
+		token = auth.body.token;
 
 		owner = await usermanager.registerUser({
 			email: "owner@localhost",
@@ -133,6 +138,7 @@ describe("Room API", () => {
 
 				let resp = await request(app)
 					.get("/api/room/test1")
+					.auth(token, { type: "bearer" })
 					.set({ Authorization: "Bearer foobar" })
 					.expect("Content-Type", /json/)
 					.expect(200);
@@ -151,6 +157,7 @@ describe("Room API", () => {
 		it("should fail if the room does not exist", async () => {
 			let resp = await request(app)
 				.get("/api/room/test1")
+				.auth(token, { type: "bearer" })
 				.expect("Content-Type", /json/)
 				.expect(404);
 			expect(resp.body.success).toEqual(false);
@@ -194,6 +201,7 @@ describe("Room API", () => {
 			async (visibility: Visibility) => {
 				let resp = await request(app)
 					.post("/api/room/create")
+					.auth(token, { type: "bearer" })
 					.send({ name: "test1", isTemporary: true, visibility: visibility })
 					.expect("Content-Type", /json/)
 					.expect(201);
@@ -266,6 +274,7 @@ describe("Room API", () => {
 		])("should fail to create room for validation errors: %s", async (error, body) => {
 			let resp = await request(app)
 				.post("/api/room/create")
+				.auth(token, { type: "bearer" })
 				.send(body)
 				.expect("Content-Type", /json/)
 				.expect(400);
@@ -279,6 +288,7 @@ describe("Room API", () => {
 		it("should create permanent room without owner", async () => {
 			let resp = await request(app)
 				.post("/api/room/create")
+				.auth(token, { type: "bearer" })
 				.send({ name: "testnoowner", isTemporary: false })
 				.expect("Content-Type", /json/)
 				.expect(201);
@@ -298,6 +308,7 @@ describe("Room API", () => {
 			});
 			let resp = await request(app)
 				.post("/api/room/create")
+				.auth(token, { type: "bearer" })
 				.send({ name: "testowner" })
 				.expect("Content-Type", /json/)
 				.expect(201);
@@ -328,6 +339,7 @@ describe("Room API", () => {
 
 				const resp = await request(app)
 					.post(path)
+					.auth(token, { type: "bearer" })
 					.send(body)
 					.expect("Content-Type", /json/)
 					.expect(403);
@@ -380,7 +392,7 @@ describe("Room API", () => {
 		])("should fail to modify room for validation errors: %s", async (error, body) => {
 			let resp = await request(app)
 				.patch("/api/room/foo")
-				.set({ Authorization: "Bearer foobar" })
+				.auth(token, { type: "bearer" })
 				.send(body)
 				.expect("Content-Type", /json/)
 				.expect(400);
@@ -423,7 +435,7 @@ describe("Room API", () => {
 			async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
 				let resp = await request(app)
 					.patch("/api/room/foo")
-					.set({ Authorization: "Bearer foobar" })
+					.auth(token, { type: "bearer" })
 					.send({
 						autoSkipSegmentCategories: requestAutoSkipSegmentCategories,
 					})
