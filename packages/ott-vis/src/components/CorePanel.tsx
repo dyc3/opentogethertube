@@ -37,7 +37,9 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		return <div>Loading...</div>;
 	}
 
-	const systemState: SystemState = options.useSampleData ? sampleSystemState : data.series[0].fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+	const systemState: SystemState = options.useSampleData
+		? sampleSystemState
+		: data.series[0].fields.find(f => f.name === "Balancers")?.values[0] ?? [];
 
 	let view;
 	if (options.view === "global") {
