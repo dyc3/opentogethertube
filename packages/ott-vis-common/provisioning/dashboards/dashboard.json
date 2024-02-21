@@ -1,0 +1,366 @@
+{
+	"annotations": {
+		"list": [
+			{
+				"builtIn": 1,
+				"datasource": {
+					"type": "grafana",
+					"uid": "-- Grafana --"
+				},
+				"enable": true,
+				"hide": true,
+				"iconColor": "rgba(0, 211, 255, 1)",
+				"name": "Annotations & Alerts",
+				"type": "dashboard"
+			}
+		]
+	},
+	"editable": true,
+	"fiscalYearStartMonth": 0,
+	"graphTooltip": 0,
+	"links": [],
+	"liveNow": false,
+	"panels": [
+		{
+			"datasource": {
+				"type": "ott-vis-datasource",
+				"uid": "P8AFEECD30EDC727B"
+			},
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 0
+			},
+			"id": 1,
+			"options": {
+				"seriesCountSize": "sm",
+				"showSeriesCount": false,
+				"text": "Default value of text input option",
+				"view": "global"
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"refId": "A"
+				}
+			],
+			"title": "Global",
+			"type": "ott-vis-panel"
+		},
+		{
+			"datasource": {
+				"type": "ott-vis-datasource",
+				"uid": "P8AFEECD30EDC727B"
+			},
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 0
+			},
+			"id": 5,
+			"options": {
+				"seriesCountSize": "sm",
+				"showSeriesCount": false,
+				"text": "Default value of text input option",
+				"view": "region"
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"refId": "A"
+				}
+			],
+			"title": "Region",
+			"type": "ott-vis-panel"
+		},
+		{
+			"datasource": {
+				"type": "datasource",
+				"uid": "grafana"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "thresholds"
+					},
+					"custom": {
+						"hideFrom": {
+							"legend": false,
+							"tooltip": false,
+							"viz": false
+						}
+					},
+					"mappings": [],
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "green",
+								"value": null
+							},
+							{
+								"color": "red",
+								"value": 80
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"gridPos": {
+				"h": 8,
+				"w": 9,
+				"x": 0,
+				"y": 8
+			},
+			"id": 4,
+			"options": {
+				"controls": {
+					"mouseWheelZoom": true,
+					"showAttribution": true,
+					"showDebug": false,
+					"showMeasure": false,
+					"showScale": false,
+					"showZoom": true
+				},
+				"layers": [
+					{
+						"config": {
+							"showLegend": true,
+							"style": {
+								"color": {
+									"fixed": "dark-green"
+								},
+								"opacity": 0.4,
+								"rotation": {
+									"fixed": 0,
+									"max": 360,
+									"min": -360,
+									"mode": "mod"
+								},
+								"size": {
+									"fixed": 5,
+									"max": 15,
+									"min": 2
+								},
+								"symbol": {
+									"fixed": "img/icons/marker/circle.svg",
+									"mode": "fixed"
+								},
+								"textConfig": {
+									"fontSize": 12,
+									"offsetX": 0,
+									"offsetY": 0,
+									"textAlign": "center",
+									"textBaseline": "middle"
+								}
+							}
+						},
+						"location": {
+							"mode": "auto"
+						},
+						"name": "Layer 1",
+						"tooltip": true,
+						"type": "markers"
+					}
+				],
+				"tooltip": {
+					"mode": "details"
+				},
+				"view": {
+					"allLayers": true,
+					"id": "zero",
+					"lat": 0,
+					"lon": 0,
+					"zoom": 1
+				}
+			},
+			"pluginVersion": "10.0.3",
+			"title": "Traffic Heat Map",
+			"type": "geomap"
+		},
+		{
+			"datasource": {
+				"type": "datasource",
+				"uid": "grafana"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"custom": {
+						"axisCenteredZero": false,
+						"axisColorMode": "text",
+						"axisLabel": "",
+						"axisPlacement": "auto",
+						"barAlignment": 0,
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"gradientMode": "none",
+						"hideFrom": {
+							"legend": false,
+							"tooltip": false,
+							"viz": false
+						},
+						"lineInterpolation": "linear",
+						"lineWidth": 1,
+						"pointSize": 5,
+						"scaleDistribution": {
+							"type": "linear"
+						},
+						"showPoints": "auto",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						},
+						"thresholdsStyle": {
+							"mode": "off"
+						}
+					},
+					"mappings": [],
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "green",
+								"value": null
+							},
+							{
+								"color": "red",
+								"value": 80
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"gridPos": {
+				"h": 8,
+				"w": 7,
+				"x": 9,
+				"y": 8
+			},
+			"id": 2,
+			"options": {
+				"legend": {
+					"calcs": [],
+					"displayMode": "list",
+					"placement": "bottom",
+					"showLegend": true
+				},
+				"tooltip": {
+					"mode": "single",
+					"sort": "none"
+				}
+			},
+			"title": "Traffic",
+			"type": "timeseries"
+		},
+		{
+			"datasource": {
+				"type": "datasource",
+				"uid": "grafana"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"custom": {
+						"axisCenteredZero": false,
+						"axisColorMode": "text",
+						"axisLabel": "",
+						"axisPlacement": "auto",
+						"barAlignment": 0,
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"gradientMode": "none",
+						"hideFrom": {
+							"legend": false,
+							"tooltip": false,
+							"viz": false
+						},
+						"lineInterpolation": "linear",
+						"lineWidth": 1,
+						"pointSize": 5,
+						"scaleDistribution": {
+							"type": "linear"
+						},
+						"showPoints": "auto",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						},
+						"thresholdsStyle": {
+							"mode": "off"
+						}
+					},
+					"mappings": [],
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "green",
+								"value": null
+							},
+							{
+								"color": "red",
+								"value": 80
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"gridPos": {
+				"h": 8,
+				"w": 8,
+				"x": 16,
+				"y": 8
+			},
+			"id": 3,
+			"options": {
+				"legend": {
+					"calcs": [],
+					"displayMode": "list",
+					"placement": "bottom",
+					"showLegend": true
+				},
+				"tooltip": {
+					"mode": "single",
+					"sort": "none"
+				}
+			},
+			"title": "Latency",
+			"type": "timeseries"
+		}
+	],
+	"refresh": "",
+	"schemaVersion": 38,
+	"style": "dark",
+	"tags": [],
+	"templating": {
+		"list": []
+	},
+	"time": {
+		"from": "now-5m",
+		"to": "now"
+	},
+	"timepicker": {},
+	"timezone": "",
+	"title": "Provisioned ott-vis dashboard",
+	"uid": "c5ea3bcd-f966-47d8-8456-4536ddc45ff0",
+	"version": 1,
+	"weekStart": ""
+}
