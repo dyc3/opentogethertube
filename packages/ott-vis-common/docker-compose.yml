@@ -1,0 +1,17 @@
+version: "3.0"
+
+services:
+  grafana:
+    container_name: "ott-vis-combo"
+    platform: "linux/amd64"
+    build:
+      context: .
+      args:
+        grafana_image: ${GRAFANA_IMAGE:-grafana-enterprise}
+        grafana_version: ${GRAFANA_VERSION:-10.0.3}
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - ../ott-vis-datasource/dist:/var/lib/grafana/plugins/ott-vis-datasource
+      - ../ott-vis/dist:/var/lib/grafana/plugins/ott-vis
+      - ./provisioning:/etc/grafana/provisioning
