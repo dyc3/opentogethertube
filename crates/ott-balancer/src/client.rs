@@ -195,6 +195,8 @@ pub async fn client_entry<'r>(
         }
     }
 
+    let mut keep_alive = tokio::time::interval(Duration::from_secs(30));
+    let mut last_ping_recv = tokio::time::Instant::now();
     loop {
         tokio::select! {
             Ok(msg) = client_link.outbound_recv() => {
@@ -212,10 +214,15 @@ pub async fn client_entry<'r>(
             Some(msg) = stream.next() => {
                 if let Ok(msg) = msg {
                     if let Message::Ping(ping) = msg {
+                        last_ping_recv = tokio::time::Instant::now();
                         if let Err(err) = stream.send(Message::Pong(ping)).await {
                             error!("Error sending pong to client: {:?}", err);
                             break;
                         }
+                        continue;
+                    }
+                    if let Message::Pong(_) = msg {
+                        last_ping_recv = tokio::time::Instant::now();
                         continue;
                     }
 
@@ -229,14 +236,31 @@ pub async fn client_entry<'r>(
                 }
             }
 
-            else => {
-                debug!("Client websocket stream ended");
-                break;
+            _ = keep_alive.tick() => {
+                if last_ping_recv.elapsed() > Duration::from_secs(60) {
+                    debug!("Client timed out");
+                    break;
+                }
+
+                if let Err(err) = stream.send(Message::Ping("ping".into())).await {
+                    error!("Error sending ping to client: {:?}", err);
+                    break;
+                }
             }
         }
     }
 
     info!("ending client connection");
+    client_link
+        .room_tx
+        .send(Context::new(
+            client_id,
+            SocketMessage::Message(Message::Close(Some(CloseFrame {
+                code: CloseCode::Normal,
+                reason: "client connection ended".into(),
+            }))),
+        ))
+        .await?;
 
     Ok(())
 }
