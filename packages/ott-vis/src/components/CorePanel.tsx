@@ -6,6 +6,7 @@ import { css, cx } from "@emotion/css";
 import { useStyles2 } from "@grafana/ui";
 import GlobalView from "./views/GlobalView";
 import RegionView from "./views/RegionView";
+import { LoadingState } from "@grafana/schema";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -27,6 +28,39 @@ const getStyles = () => {
 			padding: 10px;
 		`,
 	};
+};
+
+export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
+	const styles = useStyles2(getStyles);
+
+	if (data.state === LoadingState.Loading) {
+		return <div>Loading...</div>;
+	}
+
+	const systemState: SystemState = options.useSampleData ? sampleSystemState : data.series[0].fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+
+	let view;
+	if (options.view === "global") {
+		view = <GlobalView height={height} width={width} systemState={systemState} />;
+	} else if (options.view === "region") {
+		view = <RegionView height={height} width={width} systemState={systemState} />;
+	} else {
+		view = <div>Invalid view</div>;
+	}
+
+	return (
+		<div
+			className={cx(
+				styles.wrapper,
+				css`
+					width: ${width}px;
+					height: ${height}px;
+				`
+			)}
+		>
+			{view}
+		</div>
+	);
 };
 
 const sampleSystemState: SystemState = [
@@ -103,30 +137,3 @@ const sampleSystemState: SystemState = [
 		],
 	},
 ];
-
-export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
-	const styles = useStyles2(getStyles);
-
-	let view;
-	if (options.view === "global") {
-		view = <GlobalView height={height} width={width} systemState={sampleSystemState} />;
-	} else if (options.view === "region") {
-		view = <RegionView height={height} width={width} systemState={sampleSystemState} />;
-	} else {
-		view = <div>Invalid view</div>;
-	}
-
-	return (
-		<div
-			className={cx(
-				styles.wrapper,
-				css`
-					width: ${width}px;
-					height: ${height}px;
-				`
-			)}
-		>
-			{view}
-		</div>
-	);
-};
