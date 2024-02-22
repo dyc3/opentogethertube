@@ -48,6 +48,7 @@ jobs:
 
       - run: yarn --frozen-lockfile
       - run: yarn run cypress install
+      - run: yarn workspace ott-common build
 
       - name: 'Component Tests'
         uses: cypress-io/github-action@v6.6.1
