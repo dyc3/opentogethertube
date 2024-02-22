@@ -329,15 +329,16 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
 #[tokio::test]
 #[allow(dead_code)]
 async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
+    let mut m = MonolithBuilder::new().region("foo").build(ctx).await;
+
+    m.show().await;
+    m.load_room("bar").await;
+
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
     let mut client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test"))
         .await
         .expect("failed to connect");
-    let mut m = MonolithBuilder::new().region("foo").build(ctx).await;
-    
-    m.show().await;
-    m.load_room("bar").await;
-    
-    tokio::time::sleep(Duration::from_millis(100)).await;
 
     let header = FrameHeader {
         is_final: true,
