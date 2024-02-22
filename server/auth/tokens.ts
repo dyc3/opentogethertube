@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { redisClient } from "../redisclient";
-import { AuthToken } from "ott-common/models/types";
+import { AuthToken } from "../../common/models/types";
 
 const PREFIX = "auth";
 const EXPIRATION_TIME = 14 * 24 * 60 * 60; // 14 days in seconds

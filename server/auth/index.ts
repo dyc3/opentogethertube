@@ -3,10 +3,10 @@ import express from "express";
 import tokens, { SessionInfo } from "./tokens";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import passport from "passport";
-import { AuthToken, MySession } from "ott-common/models/types";
+import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
 import usermanager from "../usermanager";
-import { OttException } from "ott-common/exceptions";
+import { OttException } from "../../common/exceptions";
 import { requireApiKey } from "../admin";
 
 const router = express.Router();
@@ -55,7 +55,7 @@ export async function authTokenMiddleware(
 		req.token = token;
 	}
 
-	if (!req.token || !(await tokens.validate(req.token))) {
+	if (!(await tokens.validate(req.token))) {
 		res.status(400).json({
 			success: false,
 			error: {

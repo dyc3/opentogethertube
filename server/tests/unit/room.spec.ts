@@ -11,12 +11,12 @@ import {
 } from "vitest";
 import dayjs from "dayjs";
 import tokens, { SessionInfo } from "../../auth/tokens";
-import { RoomRequestType } from "ott-common/models/messages";
-import { AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types";
+import { RoomRequestType } from "../../../common/models/messages";
+import { AuthToken, BehaviorOption, QueueMode, Role } from "../../../common/models/types";
 import { Room, RoomUser } from "../../room";
 import infoextractor from "../../infoextractor";
-import { Video, VideoId } from "ott-common/models/video";
-import permissions from "ott-common/permissions";
+import { Video, VideoId } from "../../../common/models/video";
+import permissions from "../../../common/permissions";
 import _ from "lodash";
 import { VideoQueue } from "../../videoqueue";
 import { loadModels } from "../../models";

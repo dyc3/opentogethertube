@@ -19,7 +19,7 @@ import { buildClients, redisClient } from "../../redisclient";
 import _ from "lodash";
 import { loadModels } from "../../models";
 import { loadConfigFile, conf } from "../../ott-config";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video";
+import { Video, VideoMetadata, VideoService } from "../../../common/models/video";
 
 class TestAdapter extends ServiceAdapter {
 	get serviceId(): VideoService {

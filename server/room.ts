@@ -1,4 +1,4 @@
-import permissions, { GrantMask, Grants } from "ott-common/permissions";
+import permissions, { GrantMask, Grants } from "../common/permissions";
 import { redisClient } from "./redisclient";
 import { getLogger } from "./logger";
 import winston from "winston";
@@ -28,7 +28,7 @@ import {
 	ShuffleRequest,
 	PlaybackSpeedRequest,
 	KickRequest,
-} from "ott-common/models/messages";
+} from "../common/models/messages";
 import _ from "lodash";
 import InfoExtract from "./infoextractor";
 import usermanager from "./usermanager";
@@ -45,12 +45,12 @@ import {
 	RoomSettings,
 	AuthToken,
 	BehaviorOption,
-} from "ott-common/models/types";
+} from "../common/models/types";
 import { User } from "./models/user";
-import type { QueueItem, Video, VideoId } from "ott-common/models/video";
+import type { QueueItem, Video, VideoId } from "../common/models/video";
 import dayjs, { Dayjs } from "dayjs";
-import type { PickFunctions } from "ott-common/typeutils";
-import { replacer } from "ott-common/serialize";
+import type { PickFunctions } from "../common/typeutils";
+import { replacer } from "../common/serialize";
 import {
 	ClientNotFoundInRoomException,
 	ImpossiblePromotionException,
@@ -59,19 +59,19 @@ import {
 } from "./exceptions";
 import storage from "./storage";
 import tokens, { SessionInfo } from "./auth/tokens";
-import { OttException } from "ott-common/exceptions";
+import { OttException } from "../common/exceptions";
 import { getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment, Category } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
 import roommanager from "./roommanager";
-import { calculateCurrentPosition } from "ott-common/timestamp";
-import { RestoreQueueRequest } from "ott-common/models/messages";
-import { countEligibleVoters, voteSkipThreshold } from "ott-common";
+import { calculateCurrentPosition } from "../common/timestamp";
+import { RestoreQueueRequest } from "../common/models/messages";
+import { countEligibleVoters, voteSkipThreshold } from "../common";
 import type { ClientManagerCommand } from "./clientmanager";
-import { canKickUser } from "ott-common/userutils";
+import { canKickUser } from "../common/userutils";
 import { conf } from "./ott-config";
-import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
+import { ALL_SKIP_CATEGORIES } from "../common/constants";
 
 /**
  * Represents a User from the Room's perspective.

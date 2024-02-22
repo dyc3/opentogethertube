@@ -12,7 +12,7 @@ import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-
 import tokens from "./auth/tokens";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
-import { USERNAME_LENGTH_MAX } from "ott-common/constants";
+import { USERNAME_LENGTH_MAX } from "../common/constants";
 import {
 	BadApiArgumentException,
 	FeatureDisabledException,
@@ -26,14 +26,14 @@ import { AuthToken } from "ott-common/models/types";
 import { EventEmitter } from "events";
 import { Sequelize, UniqueConstraintError } from "sequelize";
 import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer";
-import { Result, err } from "ott-common/result";
+import { Result, err } from "../common/result";
 import type {
 	OttApiRequestAccountRecoveryStart,
 	OttApiRequestAccountRecoveryVerify,
 	OttResponseBody,
-} from "ott-common/models/rest-api";
+} from "../common/models/rest-api";
 import { counterHttpErrors } from "./metrics";
-import { OttException } from "ott-common/exceptions";
+import { OttException } from "../common/exceptions";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -194,13 +194,13 @@ router.post("/", nocache(), async (req, res) => {
 		}
 		oldUsername = req.ottsession.username;
 		req.ottsession.username = req.body.username;
-		await tokens.setSessionInfo(req.token!, req.ottsession);
+		await tokens.setSessionInfo(req.token, req.ottsession);
 		res.json({
 			success: true,
 		});
 	}
 	log.info(`${oldUsername} changed username to ${req.body.username}`);
-	onUserModified(req.token!);
+	onUserModified(req.token);
 });
 
 router.post("/login", async (req, res, next) => {
@@ -263,9 +263,9 @@ router.post("/login", async (req, res, next) => {
 					return;
 				}
 				req.ottsession = { isLoggedIn: true, user_id: user.id };
-				await tokens.setSessionInfo(req.token!, req.ottsession);
+				await tokens.setSessionInfo(req.token, req.ottsession);
 				try {
-					onUserLogIn(user, req.token!);
+					onUserLogIn(user, req.token);
 				} catch (err) {
 					log.error(
 						`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
@@ -296,8 +296,8 @@ router.post("/logout", async (req, res) => {
 				return;
 			}
 			req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
-			await tokens.setSessionInfo(req.token!, req.ottsession);
-			onUserLogOut(user, req.token!);
+			await tokens.setSessionInfo(req.token, req.ottsession);
+			onUserLogOut(user, req.token);
 			res.json({
 				success: true,
 			});
@@ -321,9 +321,9 @@ router.post("/register", async (req, res) => {
 		log.info(`User registered: ${result.id}`);
 		req.login(result, async () => {
 			req.ottsession = { isLoggedIn: true, user_id: result.id };
-			await tokens.setSessionInfo(req.token!, req.ottsession);
+			await tokens.setSessionInfo(req.token, req.ottsession);
 			try {
-				onUserLogIn(result, req.token!);
+				onUserLogIn(result, req.token);
 			} catch (err) {
 				log.error(
 					`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
@@ -921,7 +921,7 @@ if (conf.get("env") === "test") {
 		const user = await getUser({ user: "forced@localhost" });
 		req.login(user, async err => {
 			req.ottsession = { isLoggedIn: true, user_id: user.id };
-			await tokens.setSessionInfo(req.token!, req.ottsession);
+			await tokens.setSessionInfo(req.token, req.ottsession);
 			res.json({
 				success: !!err,
 			});

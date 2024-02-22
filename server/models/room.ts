@@ -1,9 +1,9 @@
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { QueueMode, Visibility, Role, BehaviorOption } from "ott-common/models/types";
+import { QueueMode, Visibility, Role, BehaviorOption } from "../../common/models/types";
 import { User } from "./user";
-import { ALL_SKIP_CATEGORIES, ROOM_NAME_REGEX } from "ott-common/constants";
-import type { OldRoleGrants, GrantMask } from "ott-common/permissions";
-import { QueueItem } from "ott-common/models/video";
+import { ALL_SKIP_CATEGORIES, ROOM_NAME_REGEX } from "../../common/constants";
+import type { OldRoleGrants, GrantMask } from "../../common/permissions";
+import { QueueItem } from "../../common/models/video";
 import { Category } from "sponsorblock-api";
 
 export interface RoomAttributes {

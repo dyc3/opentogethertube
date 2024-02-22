@@ -2,28 +2,8 @@
   "name": "ott-common",
   "version": "0.10.0",
   "license": "AGPL-3.0-or-later",
+  "module": "es2020",
   "type": "module",
-  "main": "ts-out/index.js",
-  "module": "ts-out/index.js",
-  "files": [
-    "ts-out/"
-  ],
-  "exports": {
-    ".": "./ts-out/index.js",
-    "./constants": "./ts-out/constants.js",
-    "./exceptions": "./ts-out/exceptions.js",
-    "./models/messages": "./ts-out/models/messages.js",
-    "./models/rest-api": "./ts-out/models/rest-api.js",
-    "./models/types": "./ts-out/models/types.js",
-    "./models/video": "./ts-out/models/video.js",
-    "./permissions": "./ts-out/permissions.js",
-    "./queueexport": "./ts-out/queueexport.js",
-    "./result": "./ts-out/result.js",
-    "./serialize": "./ts-out/serialize.js",
-    "./timestamp": "./ts-out/timestamp.js",
-    "./userutils": "./ts-out/userutils.js",
-    "./voteskip": "./ts-out/voteskip.js"
-  },
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
