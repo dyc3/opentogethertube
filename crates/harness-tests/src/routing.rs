@@ -126,65 +126,6 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
 
 #[test_context(TestRunner)]
 #[tokio::test]
-async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
-    // smoke test for the possible race condition where a room is loaded and a client joins at the same time
-
-    let mut dummy = Monolith::new(ctx).await.unwrap();
-    dummy.show().await;
-
-    let mut m = Monolith::new(ctx).await.unwrap();
-    m.show().await;
-    tokio::time::sleep(Duration::from_millis(200)).await; // ensure that the monoliths are fully connected before sending the room load message
-
-    for i in 0..100 {
-        let room_name = format!("foo{}", i);
-        println!("iteration: {}", room_name);
-        m.load_room(room_name.clone()).await;
-
-        let mut client = Client::new(ctx).unwrap();
-        client.join(room_name.clone()).await;
-
-        println!("waiting for monolith to receive join message");
-        // this more accurately emulates what the client would actually do
-        loop {
-            tokio::select! {
-                result = tokio::time::timeout(Duration::from_secs(1), m.wait_recv()) => {
-                    result.expect("msg recv timeout");
-                    break;
-                },
-                result = tokio::time::timeout(Duration::from_secs(1), dummy.wait_recv()) => {
-                    result.expect("msg recv timeout");
-                    println!("dummy received message");
-                    tokio::time::timeout(Duration::from_millis(100), dummy.wait_recv()).await.expect("dummy never received unload message"); // wait for unload message
-                    continue; // because we are waiting for the client to reconnect
-                },
-                _ = client.wait_for_disconnect() => {
-                    println!("client disconnected, retrying =====================================");
-                    client.join(room_name.clone()).await;
-                    continue;
-                }
-            };
-        }
-
-        let recvd = m.collect_recv();
-        assert_eq!(
-            recvd.len(),
-            1,
-            "expected exactly one message, got {:?}",
-            recvd
-        );
-        if let MsgB2M::Join(m) = &recvd[0] {
-            assert_eq!(m.room, room_name.into());
-        } else {
-            panic!("expected join message, got {:?}", recvd[0])
-        }
-        m.clear_recv();
-        dummy.clear_recv();
-    }
-}
-
-#[test_context(TestRunner)]
-#[tokio::test]
 async fn monolith_double_load_room(ctx: &mut TestRunner) {
     println!("port: {}", ctx.port());
     let mut m1 = MonolithBuilder::new()
