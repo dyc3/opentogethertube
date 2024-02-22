@@ -4,11 +4,11 @@ import roommanager, { redisStateToState } from "../../roommanager";
 // @ts-ignore
 import { Room as DbRoom, loadModels } from "../../models";
 import { Room, RoomStateFromRedis } from "../../room";
-import { AuthToken, QueueMode, Role, Visibility } from "ott-common/models/types";
+import { AuthToken, QueueMode, Role, Visibility } from "../../../common/models/types";
 import dayjs from "dayjs";
 import { RoomNotFoundException } from "../../exceptions";
 import storage from "../../storage";
-import { RoomRequest, RoomRequestType } from "ott-common/models/messages";
+import { RoomRequest, RoomRequestType } from "../../../common/models/messages";
 import { VideoQueue } from "../../../server/videoqueue";
 import { buildClients } from "../../redisclient";
 

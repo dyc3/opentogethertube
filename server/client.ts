@@ -1,5 +1,5 @@
-import { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "ott-common/models/types";
-import type { ClientMessage, ServerMessage } from "ott-common/models/messages";
+import { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "../common/models/types";
+import type { ClientMessage, ServerMessage } from "../common/models/messages";
 import WebSocket from "ws";
 import { SessionInfo, setSessionInfo } from "./auth/tokens";
 import { v4 as uuidv4 } from "uuid";
@@ -7,7 +7,7 @@ import EventEmitter from "events";
 import { getLogger } from "./logger";
 import { getSessionInfo } from "./auth/tokens";
 import { BalancerConnection, BalancerConnectionReal } from "./balancer";
-import { replacer } from "ott-common/serialize";
+import { replacer } from "../common/serialize";
 
 const log = getLogger("client");
 

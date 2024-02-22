@@ -1,10 +1,10 @@
 import _ from "lodash";
 import { getLogger } from "../logger";
 import roommanager from "../roommanager";
-import { QueueMode, Visibility } from "ott-common/models/types";
+import { QueueMode, Visibility } from "../../common/models/types";
 import { consumeRateLimitPoints } from "../rate-limit";
 import { BadApiArgumentException, FeatureDisabledException } from "../exceptions";
-import { OttException } from "ott-common/exceptions";
+import { OttException } from "../../common/exceptions";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
 import {
@@ -12,11 +12,11 @@ import {
 	RoomRequestType,
 	UndoRequest,
 	AddRequest,
-} from "ott-common/models/messages";
+} from "../../common/models/messages";
 import storage from "../storage";
-import { Grants } from "ott-common/permissions";
-import { Video } from "ott-common/models/video";
-import { ROOM_NAME_REGEX } from "ott-common/constants";
+import { Grants } from "../../common/permissions";
+import { Video } from "../../common/models/video.js";
+import { ROOM_NAME_REGEX } from "../../common/constants";
 import {
 	OttApiRequestAddToQueue,
 	OttApiRequestPatchRoom,
@@ -27,7 +27,7 @@ import {
 	OttApiResponseRoomCreate,
 	OttApiResponseRoomGenerate,
 	OttResponseBody,
-} from "ott-common/models/rest-api";
+} from "../../common/models/rest-api";
 import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
@@ -431,7 +431,7 @@ const addToQueue: RequestHandler<
 	} else {
 		throw new BadApiArgumentException("service,id", "missing");
 	}
-	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
+	await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 	res.json({
 		success: true,
 	});
@@ -454,7 +454,7 @@ const removeFromQueue: RequestHandler<
 				type: RoomRequestType.RemoveRequest,
 				video: { service: req.body.service, id: req.body.id },
 			},
-			{ token: req.token! }
+			{ token: req.token }
 		);
 		res.json({
 			success: true,

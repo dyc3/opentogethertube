@@ -2,7 +2,7 @@ import { URL } from "url";
 import axios from "axios";
 import { ServiceAdapter } from "../serviceadapter";
 import { InvalidVideoIdException } from "../exceptions";
-import { Video } from "ott-common/models/video";
+import { Video } from "../../common/models/video";
 
 export default class DailyMotionAdapter extends ServiceAdapter {
 	api = axios.create({

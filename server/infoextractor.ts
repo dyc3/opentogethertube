@@ -18,9 +18,9 @@ import {
 import { getLogger } from "./logger";
 import { redisClient } from "./redisclient";
 import { isSupportedMimeType } from "./mime";
-import { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video";
+import { Video, VideoId, VideoMetadata, VideoService } from "../common/models/video";
 import { ServiceAdapter } from "./serviceadapter";
-import { OttException } from "ott-common/exceptions";
+import { OttException } from "../common/exceptions";
 import TubiAdapter from "./services/tubi";
 import { Counter } from "prom-client";
 import { conf } from "./ott-config";

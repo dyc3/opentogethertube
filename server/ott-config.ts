@@ -4,8 +4,8 @@ import validator from "validator";
 import convict from "convict";
 import toml from "toml";
 import type winston from "winston";
-import { ALL_VIDEO_SERVICES } from "ott-common/constants";
-import { Result, err, ok, intoResult } from "ott-common/result";
+import { ALL_VIDEO_SERVICES } from "../common/constants";
+import { Result, err, ok, intoResult } from "../common/result";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 

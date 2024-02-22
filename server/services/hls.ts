@@ -4,10 +4,10 @@ import { ServiceAdapter } from "../serviceadapter";
 import { LocalFileException, UnsupportedMimeTypeException } from "../exceptions";
 import { getMimeType, isSupportedMimeType } from "../mime";
 import { getLogger } from "../logger";
-import { Video } from "ott-common/models/video";
+import { Video } from "../../common/models/video";
 import { Parser as M3u8Parser } from "m3u8-parser";
 import axios from "axios";
-import { OttException } from "ott-common/exceptions";
+import { OttException } from "../../common/exceptions";
 
 const log = getLogger("hls");
 

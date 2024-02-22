@@ -2,7 +2,7 @@ import { getLogger } from "../logger";
 import express from "express";
 import { rateLimiter } from "../rate-limit";
 import roommanager from "../roommanager";
-import { RoomRequestType } from "ott-common/models/messages";
+import { RoomRequestType } from "../../common/models/messages";
 import usermanager from "../usermanager";
 import faker from "faker";
 import tokens from "../auth/tokens";
