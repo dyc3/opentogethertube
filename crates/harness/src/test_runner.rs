@@ -57,6 +57,19 @@ impl TestRunner {
             .expect("failed to respawn balancer");
     }
 
+    /// Assert whether the balancer is alive
+    pub fn is_alive(&mut self) -> bool {
+        let ecode = self
+            .child
+            .try_wait()
+            .expect("Error: Failed to query child process");
+
+        match ecode {
+            Some(_exit_status) => false,
+            None => true,
+        }
+    }
+
     /// Spawn a new balancer and wait for it to be ready.
     async fn spawn_balancer(opts: &BalancerSpawnOptions) -> anyhow::Result<Child> {
         let mut envs: HashMap<_, _> = HashMap::from_iter([

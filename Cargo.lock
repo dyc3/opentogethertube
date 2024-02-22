@@ -1034,6 +1034,7 @@ dependencies = [
 name = "harness-tests"
 version = "0.10.0"
 dependencies = [
+ "anyhow",
  "harness",
  "ott-balancer-protocol",
  "reqwest",
@@ -1041,6 +1042,7 @@ dependencies = [
  "serde_json",
  "test-context",
  "tokio",
+ "tokio-tungstenite",
  "tungstenite",
 ]
 
