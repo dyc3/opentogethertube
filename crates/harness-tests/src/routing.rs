@@ -355,7 +355,7 @@ async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
 
     let dataframe = Frame::from_payload(header, payload);
     let msg = Message::Frame(dataframe);
-    
+
     client
         .0
         .send(msg)
