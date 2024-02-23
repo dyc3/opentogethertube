@@ -1,4 +1,4 @@
-import { Result, ok, err } from "../common/result";
+import { Result, ok, err } from "ott-common/result";
 import Mailjet, { Client as MailjetClient } from "node-mailjet";
 import { conf } from "./ott-config";
 import { getLogger } from "./logger";

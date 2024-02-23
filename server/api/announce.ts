@@ -2,9 +2,9 @@ import { getLogger } from "../logger";
 import { conf } from "../ott-config";
 import express, { RequestHandler } from "express";
 import { redisClient } from "../redisclient";
-import { ANNOUNCEMENT_CHANNEL } from "../../common/constants";
-import { OttResponseBody } from "../../common/models/rest-api";
-import { OttException } from "../../common/exceptions";
+import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants";
+import { OttResponseBody } from "ott-common/models/rest-api";
+import { OttException } from "ott-common/exceptions";
 import { BadApiArgumentException } from "../exceptions";
 
 const router = express.Router();

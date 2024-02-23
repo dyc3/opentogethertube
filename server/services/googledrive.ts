@@ -6,7 +6,7 @@ import {
 	InvalidVideoIdException,
 	OutOfQuotaException,
 } from "../exceptions";
-import { Video, VideoService } from "../../common/models/video";
+import { Video, VideoService } from "ott-common/models/video";
 import { getLogger } from "../logger";
 
 const log = getLogger("googledrive");

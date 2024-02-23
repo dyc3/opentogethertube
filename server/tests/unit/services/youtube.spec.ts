@@ -14,7 +14,7 @@ import YouTubeAdapter, {
 	YoutubeApiVideoListResponse,
 	YoutubeApiVideo,
 } from "../../../services/youtube";
-import { Video } from "../../../../common/models/video";
+import { Video } from "ott-common/models/video";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
 import { buildClients, redisClient } from "../../../redisclient";
 import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
