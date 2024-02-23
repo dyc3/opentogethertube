@@ -4,7 +4,8 @@ services:
     image: opentogethertube
     build:
       context: ../
-      dockerfile: docker/Dockerfile
+      dockerfile: deploy/monolith.Dockerfile
+      target: docker-stage
       args:
         - GIT_COMMIT=${GIT_COMMIT:-$(git rev-parse HEAD)}
     environment:
@@ -26,7 +27,7 @@ services:
       - redis_db
       - postgres_db
     volumes:
-      - "../env:/usr/app/env"
+      - "../env:/app/env"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
   balancer:
