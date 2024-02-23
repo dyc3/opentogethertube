@@ -18,7 +18,7 @@
     "@ffprobe-installer/ffprobe": "2.1.1",
     "@liveinstantly/dash-mpd-parser": "0.5.0",
     "ansi-colors": "^4.1.1",
-    "axios": "1.4.0",
+    "axios": "1.6.0",
     "connect-redis": "7.1.0",
     "convict": "^6.2.4",
     "dayjs": "^1.10.4",
