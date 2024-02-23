@@ -4,6 +4,7 @@ kill_timeout = 15
 
 [build]
 dockerfile = "monolith.Dockerfile"
+build-target = "deploy-stage"
 
 [build.args]
 DEPLOY_TARGET = "ott-staging"

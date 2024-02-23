@@ -11,6 +11,8 @@ dist/
 client/dist/
 client/coverage/
 server/coverage/
+common/ts-out/
+server/ts-out/
 .git/
 .optic/
 node_modules/
