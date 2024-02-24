@@ -32,6 +32,7 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
+import { z } from "zod";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -113,6 +114,14 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 		room: roomName,
 	});
 };
+
+const createRoomSchema = z.object({
+	name: z.string().min(3).max(32),
+	title: z.string().max(255).optional(),
+	description: z.string().optional(),
+	isTemporary: z.boolean().optional(),
+	visibility: z.enum([Visibility.Public, Visibility.Unlisted, Visibility.Private]).optional(),
+});
 
 const createRoom: RequestHandler<
 	unknown,
@@ -543,6 +552,7 @@ router.post("/generate", async (req, res, next) => {
 
 router.post("/create", async (req, res, next) => {
 	try {
+		const _validatedBody = createRoomSchema.parse(req.body);
 		await createRoom(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
