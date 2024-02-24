@@ -204,27 +204,31 @@ describe("Storage: Room Spec", () => {
 		expect(room?.grants).toEqual(new permissions.Grants());
 	});
 
-	it("should save and load userRoles correctly", async () => {
-		let userRoles = new Map([
-			[2, new Set([1, 2, 3])],
-			[3, new Set([4])],
-			[4, new Set([8, 9])],
-		]);
-		await storage.saveRoom(new Room({ name: "example", userRoles }));
+	it(
+		"should save and load userRoles correctly",
+		async () => {
+			let userRoles = new Map([
+				[2, new Set([1, 2, 3])],
+				[3, new Set([4])],
+				[4, new Set([8, 9])],
+			]);
+			await storage.saveRoom(new Room({ name: "example", userRoles }));
 
-		let room = await storage.getRoomByName("example");
-		expect(room?.userRoles).toEqual(userRoles);
+			let room = await storage.getRoomByName("example");
+			expect(room?.userRoles).toEqual(userRoles);
 
-		userRoles = new Map([
-			[2, new Set([1, 3])],
-			[3, new Set([4, 7])],
-			[4, new Set([8])],
-		]);
-		await storage.updateRoom({ name: "example", userRoles });
+			userRoles = new Map([
+				[2, new Set([1, 3])],
+				[3, new Set([4, 7])],
+				[4, new Set([8])],
+			]);
+			await storage.updateRoom({ name: "example", userRoles });
 
-		room = await storage.getRoomByName("example");
-		expect(room?.userRoles).toEqual(userRoles);
-	}, { retry: 2 });
+			room = await storage.getRoomByName("example");
+			expect(room?.userRoles).toEqual(userRoles);
+		},
+		{ retry: 2 }
+	);
 });
 
 describe("Storage: CachedVideos Spec", () => {
