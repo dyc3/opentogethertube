@@ -33,7 +33,7 @@ route-recognizer = "0.3.1"
 once_cell.workspace = true
 pin-project.workspace = true
 prometheus.workspace = true
-trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }
+trust-dns-resolver.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

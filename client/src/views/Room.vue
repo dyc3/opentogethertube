@@ -214,7 +214,7 @@ import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
 import VideoQueue from "@/components/VideoQueue.vue";
-// import { goTo } from "vuetify/lib/services/goto/index.mjs";
+import { useGoTo } from "vuetify";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import { granted } from "@/util/grants";
@@ -544,22 +544,24 @@ export default defineComponent({
 		const queueTab = ref(0);
 		const roomSettingsForm = ref<typeof RoomSettingsForm | null>(null);
 
+		const goTo = useGoTo();
 		onMounted(() => {
 			if (!orientation.isSupported.value) {
 				return;
 			}
 
-			watch(orientation.orientation, newOrientation => {
+			watch(orientation.orientation, async newOrientation => {
 				if (!newOrientation) {
 					return;
 				}
 				if (isMobile.value) {
 					if (newOrientation.startsWith("landscape")) {
-						document.documentElement.requestFullscreen();
-						// goTo(0, {
-						// 	duration: 250,
-						// 	easing: "easeInOutCubic",
-						// });
+						// this promise is rejected if the fullscreen request is denied
+						await document.documentElement.requestFullscreen();
+						goTo(0, {
+							duration: 250,
+							easing: "easeInOutCubic",
+						});
 					} else {
 						document.exitFullscreen();
 					}

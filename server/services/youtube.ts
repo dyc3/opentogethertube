@@ -11,9 +11,9 @@ import {
 	VideoNotFoundException,
 } from "../exceptions";
 import { getLogger } from "../logger";
-import { Video, VideoId, VideoMetadata } from "../../common/models/video";
+import { Video, VideoId, VideoMetadata } from "ott-common/models/video";
 import storage from "../storage";
-import { OttException } from "../../common/exceptions";
+import { OttException } from "ott-common/exceptions";
 import { conf } from "../ott-config";
 import { parseIso8601Duration } from "./parsing/iso8601";
 

@@ -17,7 +17,7 @@ import { User } from "../../../models/user";
 import { MockMailer } from "server/mailer";
 import { conf } from "../../../ott-config";
 import { redisClient } from "../../../redisclient";
-import { OttApiRequestAccountRecoveryVerify } from "common/models/rest-api";
+import { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api";
 
 describe("Account Recovery", () => {
 	let token;

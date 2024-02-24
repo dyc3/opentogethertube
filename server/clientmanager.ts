@@ -14,19 +14,19 @@ import {
 	ServerMessageSync,
 	ServerMessageUser,
 	ServerMessageYou,
-} from "../common/models/messages";
+} from "ott-common/models/messages";
 import { ClientNotFoundInRoomException, MissingToken } from "./exceptions";
-import { MySession, OttWebsocketError, AuthToken, ClientId } from "../common/models/types";
+import { MySession, OttWebsocketError, AuthToken, ClientId } from "ott-common/models/types";
 import roommanager from "./roommanager";
-import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "../common/constants";
+import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
-import { replacer } from "../common/serialize";
+import { replacer } from "ott-common/serialize";
 import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
 import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
 import usermanager from "./usermanager";
-import { OttException } from "../common/exceptions";
+import { OttException } from "ott-common/exceptions";
 import { conf } from "./ott-config";
 
 const log = getLogger("clientmanager");

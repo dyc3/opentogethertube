@@ -237,6 +237,16 @@ pub async fn client_entry<'r>(
     }
 
     info!("ending client connection");
+    client_link
+        .room_tx
+        .send(Context::new(
+            client_id,
+            SocketMessage::Message(Message::Close(Some(CloseFrame {
+                code: CloseCode::Normal,
+                reason: "client connection ended".into(),
+            }))),
+        ))
+        .await?;
 
     Ok(())
 }

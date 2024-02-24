@@ -68,15 +68,10 @@ describe("Data API", () => {
 			});
 
 		resolveQuerySpy.mockRestore();
-		resolveQuerySpy = vi.spyOn(InfoExtract, "resolveVideoQuery").mockImplementation(
-			() =>
-				new Promise((resolve, reject) =>
-					reject({
-						name: "InvalidAddPreviewInputException",
-						message: "error message",
-					})
-				)
-		);
+		resolveQuerySpy = vi.spyOn(InfoExtract, "resolveVideoQuery").mockRejectedValue({
+			name: "InvalidAddPreviewInputException",
+			message: "error message",
+		});
 
 		await request(app)
 			.get("/api/data/previewAdd")
@@ -93,12 +88,7 @@ describe("Data API", () => {
 		resolveQuerySpy.mockRestore();
 		resolveQuerySpy = vi
 			.spyOn(InfoExtract, "resolveVideoQuery")
-			.mockImplementation(
-				() =>
-					new Promise((resolve, reject) =>
-						reject({ name: "OutOfQuotaException", message: "error message" })
-					)
-			);
+			.mockRejectedValue({ name: "OutOfQuotaException", message: "error message" });
 
 		await request(app)
 			.get("/api/data/previewAdd")

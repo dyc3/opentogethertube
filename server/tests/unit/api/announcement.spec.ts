@@ -12,10 +12,10 @@ import {
 import request from "supertest";
 import { main } from "../../../app";
 import { setApiKey } from "../../../admin";
-import { ANNOUNCEMENT_CHANNEL } from "../../../../common/constants";
+import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants";
 import { redisClient } from "../../../redisclient";
 import tokens, { type SessionInfo } from "../../../auth/tokens";
-import type { AuthToken } from "../../../../common/models/types";
+import type { AuthToken } from "ott-common/models/types";
 
 const TEST_API_KEY = "TESTAPIKEY";
 

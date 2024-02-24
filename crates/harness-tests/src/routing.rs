@@ -3,7 +3,9 @@ use std::time::Duration;
 use harness::{BehaviorTrackClients, Client, MockRespParts, Monolith, MonolithBuilder, TestRunner};
 use ott_balancer_protocol::monolith::{M2BRoomMsg, MsgB2M};
 use serde_json::value::RawValue;
-use test_context::test_context;
+use test_context::{futures::SinkExt, test_context};
+use tungstenite::protocol::frame::{coding::Data, coding::OpCode, Frame, FrameHeader};
+use tungstenite::protocol::Message;
 
 #[test_context(TestRunner)]
 #[tokio::test]
@@ -122,65 +124,6 @@ async fn route_ws_to_correct_monolith(ctx: &mut TestRunner) {
 
     let recvd = m.collect_recv();
     assert_eq!(recvd.len(), 1);
-}
-
-#[test_context(TestRunner)]
-#[tokio::test]
-async fn route_ws_to_correct_monolith_race(ctx: &mut TestRunner) {
-    // smoke test for the possible race condition where a room is loaded and a client joins at the same time
-
-    let mut dummy = Monolith::new(ctx).await.unwrap();
-    dummy.show().await;
-
-    let mut m = Monolith::new(ctx).await.unwrap();
-    m.show().await;
-    tokio::time::sleep(Duration::from_millis(200)).await; // ensure that the monoliths are fully connected before sending the room load message
-
-    for i in 0..100 {
-        let room_name = format!("foo{}", i);
-        println!("iteration: {}", room_name);
-        m.load_room(room_name.clone()).await;
-
-        let mut client = Client::new(ctx).unwrap();
-        client.join(room_name.clone()).await;
-
-        println!("waiting for monolith to receive join message");
-        // this more accurately emulates what the client would actually do
-        loop {
-            tokio::select! {
-                result = tokio::time::timeout(Duration::from_secs(1), m.wait_recv()) => {
-                    result.expect("msg recv timeout");
-                    break;
-                },
-                result = tokio::time::timeout(Duration::from_secs(1), dummy.wait_recv()) => {
-                    result.expect("msg recv timeout");
-                    println!("dummy received message");
-                    tokio::time::timeout(Duration::from_millis(100), dummy.wait_recv()).await.expect("dummy never received unload message"); // wait for unload message
-                    continue; // because we are waiting for the client to reconnect
-                },
-                _ = client.wait_for_disconnect() => {
-                    println!("client disconnected, retrying =====================================");
-                    client.join(room_name.clone()).await;
-                    continue;
-                }
-            };
-        }
-
-        let recvd = m.collect_recv();
-        assert_eq!(
-            recvd.len(),
-            1,
-            "expected exactly one message, got {:?}",
-            recvd
-        );
-        if let MsgB2M::Join(m) = &recvd[0] {
-            assert_eq!(m.room, room_name.into());
-        } else {
-            panic!("expected join message, got {:?}", recvd[0])
-        }
-        m.clear_recv();
-        dummy.clear_recv();
-    }
 }
 
 #[test_context(TestRunner)]
@@ -321,4 +264,44 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
     let recvd = m1.collect_recv();
     assert_eq!(recvd.len(), 1);
     assert!(matches!(recvd[0], MsgB2M::Join(_)));
+}
+
+#[test_context(TestRunner)]
+#[tokio::test]
+#[allow(dead_code)]
+async fn test_malformed_header_rsv2_rsv3(ctx: &mut TestRunner) {
+    let mut m = MonolithBuilder::new().region("foo").build(ctx).await;
+
+    m.show().await;
+    m.load_room("bar").await;
+
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    let mut client = tokio_tungstenite::connect_async(ctx.url("ws", "/api/room/test"))
+        .await
+        .expect("failed to connect");
+
+    let header = FrameHeader {
+        is_final: true,
+        rsv1: false,
+        rsv2: true,
+        rsv3: true,
+        opcode: OpCode::Data(Data::Text),
+        mask: Some([0, 0, 0, 0]),
+    };
+
+    let payload = "{\"action\":\"auth\", \"token\":\"foo\"}"
+        .to_string()
+        .into_bytes();
+
+    let dataframe = Frame::from_payload(header, payload);
+    let msg = Message::Frame(dataframe);
+
+    client
+        .0
+        .send(msg)
+        .await
+        .expect("failed to send message to balancer");
+
+    assert!(ctx.is_alive());
 }

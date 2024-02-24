@@ -2,8 +2,21 @@
   "name": "ott-common",
   "version": "0.10.0",
   "license": "AGPL-3.0-or-later",
-  "module": "es2020",
   "type": "module",
+  "module": "index.ts",
+  "files": [
+    "*"
+  ],
+  "exports": {
+    ".": {
+      "lean": "./ts-out/index.js",
+      "default": "./index.ts"
+    },
+    "./*": {
+      "lean": "./ts-out/*",
+      "default": "./*"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
@@ -11,9 +24,16 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "dayjs": "^1.10.4"
+    "dayjs": "^1.10.4",
+    "express-session": "^1.17.0",
+    "lodash": "^4.17.21",
+    "sponsorblock-api": "^0.2.2",
+    "ts-essentials": "^9.3.0",
+    "typescript": "5.3.3"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.170",
+    "@types/node": "^18.13.0",
     "eslint-plugin-vitest": "0.3.22",
     "vitest": "^1.2.2"
   }

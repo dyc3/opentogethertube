@@ -8,7 +8,9 @@
 		"build": "tsc",
 		"test": "vitest run --coverage",
 		"lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
-		"lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx ."
+		"lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
+		"dev": "concurrently 'yarn workspace ott-vis run dev' 'yarn workspace ott-vis-datasource run dev'",
+		"server": "docker-compose up --build"
 	},
 	"dependencies": {},
 	"devDependencies": {

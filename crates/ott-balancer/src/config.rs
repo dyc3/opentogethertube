@@ -47,7 +47,7 @@ impl Default for DiscoveryConfig {
 }
 
 impl BalancerConfig {
-    pub fn load(path: &PathBuf) -> anyhow::Result<()> {
+    pub fn load(path: &PathBuf) -> Result<(), anyhow::Error> {
         let mut config: BalancerConfig = figment::Figment::new()
             .merge(figment::providers::Toml::file(path))
             .merge(figment::providers::Env::prefixed("BALANCER_"))
@@ -102,6 +102,10 @@ pub struct Cli {
     /// The default port for tokio-console is 6669.
     #[clap(long)]
     pub remote_console: bool,
+
+    /// Validate the configuration file.
+    #[clap(long, short)]
+    pub validate: bool,
 }
 
 impl Cli {

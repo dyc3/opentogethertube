@@ -53,9 +53,10 @@ export function createRoom(name, token, roomOptions = {}, options = { doCheck: t
 		roomOptions
 	);
 	const url = `http://${HOSTNAME}/api/room/create`;
-	let resp = http.post(url, body, {
+	let resp = http.post(url, JSON.stringify(body), {
 		headers: {
-			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${token}`,
 		},
 	});
 	if (options.doCheck) {
@@ -98,9 +99,10 @@ export function reqVideo(room, token, videoId, options = { action: "add", target
 	} else {
 		throw new Error(`Invalid action: ${options.action}`);
 	}
-	const resp = fn(url, body, {
+	const resp = fn(url, JSON.stringify(body), {
 		headers: {
-			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${token}`,
 		},
 	});
 	return resp;

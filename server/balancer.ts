@@ -4,9 +4,9 @@ import WebSocket from "ws";
 
 import { getLogger } from "./logger";
 import { conf } from "./ott-config";
-import { Result, err, ok, intoResult } from "../common/result";
-import { AuthToken, ClientId } from "../common/models/types";
-import { replacer } from "../common/serialize";
+import { Result, err, ok, intoResult } from "ott-common/result";
+import { AuthToken, ClientId } from "ott-common/models/types";
+import { replacer } from "ott-common/serialize";
 import { OttWebsocketError } from "ott-common/models/types";
 import roommanager from "./roommanager";
 import type { RoomListItem } from "./api/room";
