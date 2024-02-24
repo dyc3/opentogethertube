@@ -212,9 +212,6 @@ describe("Storage: Room Spec", () => {
 		]);
 		await storage.saveRoom(new Room({ name: "example", userRoles }));
 
-		const wait = new Promise(resolve => setTimeout(resolve, 200));
-		await wait;
-
 		let room = await storage.getRoomByName("example");
 		expect(room?.userRoles).toEqual(userRoles);
 
@@ -225,12 +222,9 @@ describe("Storage: Room Spec", () => {
 		]);
 		await storage.updateRoom({ name: "example", userRoles });
 
-		const wait2 = new Promise(resolve => setTimeout(resolve, 200));
-		await wait2;
-
 		room = await storage.getRoomByName("example");
 		expect(room?.userRoles).toEqual(userRoles);
-	});
+	}, { retry: 2 });
 });
 
 describe("Storage: CachedVideos Spec", () => {

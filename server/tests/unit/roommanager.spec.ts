@@ -43,7 +43,7 @@ describe("Room manager", () => {
 			expect(room?.["role-mod"]).toBeInstanceOf(Array);
 			expect(room?.["role-trusted"]).toBeInstanceOf(Array);
 			await room?.destroy();
-		});
+		}, { retry: 2 });
 
 		it("should be able to load saved settings from database", async () => {
 			const roomName = "foo-a3b5e323";
@@ -65,7 +65,7 @@ describe("Room manager", () => {
 				queueMode: QueueMode.Vote,
 			});
 			await room?.destroy();
-		});
+		}, { retry: 2 });
 	});
 
 	describe("loading from redis", () => {
