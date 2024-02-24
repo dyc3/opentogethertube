@@ -16,12 +16,12 @@
   "dependencies": {
     "@divine/synchronization": "^1.2.1",
     "@ffprobe-installer/ffprobe": "2.1.1",
+    "@liveinstantly/dash-mpd-parser": "0.5.0",
     "connect-redis": "7.1.0",
     "convict": "^6.2.4",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "m3u8-parser": "^6.2.0",
-    "@liveinstantly/dash-mpd-parser": "0.5.0",
     "nocache": "^3.0.0",
     "node-abort-controller": "3.0.1",
     "node-mailjet": "^6.0.3",
@@ -45,7 +45,8 @@
     "tslib": "^2.4.1",
     "unique-names-generator": "^3.1.1",
     "uuid": "^9.0.0",
-    "ws": "^7.4.6"
+    "ws": "^7.4.6",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/convict": "^6.1.1",
