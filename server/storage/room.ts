@@ -76,17 +76,12 @@ export async function updateRoom(room: Partial<RoomStatePersistable>): Promise<b
 		throw new Error(`Cannot update room with no name`);
 	}
 	try {
-		// TODO: optimize this to just do an update query, instead of a find and then update
-		const dbroom = await DbRoomModel.findOne({
-			where: buildFindRoomWhere(room.name),
-		});
-		if (!dbroom) {
-			return false;
-		}
 		const options = roomToDbPartial(room);
 		log.debug(`updating room ${room.name} in database ${JSON.stringify(options)}`);
-		await dbroom.update(options);
-		return true;
+		const result = await DbRoomModel.update(options, {
+			where: buildFindRoomWhere(room.name),
+		});
+		return result[0] > 0;
 	} catch (error) {
 		log.error(`Failed to update room ${room.name} in storage: ${error}`);
 		return false;
