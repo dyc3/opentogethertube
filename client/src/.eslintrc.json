@@ -22,10 +22,7 @@
 			"parserOptions": {
 				"parser": "@typescript-eslint/parser",
 				"ecmaVersion": 2020,
-				"sourceType": "module",
-				"ecmaFeatures": {
-					"legacyDecorators": true
-				}
+				"sourceType": "module"
 			},
 			"plugins": ["vue"],
 			"extends": ["plugin:vue/vue3-essential"], // "plugin:vue/vue3-strongly-recommended"
@@ -60,10 +57,7 @@
 			"files": ["*.ts", "*.tsx"],
 			"parser": "@typescript-eslint/parser",
 			"parserOptions": {
-				"project": ["./tsconfig.json"],
-				"ecmaFeatures": {
-					"legacyDecorators": true
-				}
+				"project": ["./tsconfig.json"]
 			},
 			"rules": {
 				"@typescript-eslint/restrict-template-expressions": [
