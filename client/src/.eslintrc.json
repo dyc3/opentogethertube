@@ -1,8 +1,4 @@
 {
-	"env": {
-		"es6": true,
-		"browser": true
-	},
 	"rules": {
 		"no-console": "off",
 
@@ -28,7 +24,7 @@
 				}
 			},
 			"plugins": ["vue"],
-			"extends": ["plugin:vue/vue3-essential"], // "plugin:vue/vue3-strongly-recommended"
+			"extends": ["plugin:vue/vue3-essential"],
 			"rules": {
 				"vue/attribute-hyphenation": ["error", "always"],
 				"vue/html-self-closing": [
@@ -53,7 +49,8 @@
 				"vue/v-bind-style": ["error", "shorthand"],
 				"vue/v-on-style": ["error", "shorthand"],
 				"vue/multi-word-component-names": "off",
-				"vue/no-multiple-template-root": "off"
+				"vue/no-multiple-template-root": "off",
+				"vue/require-explicit-emits": "error"
 			}
 		},
 		{
