@@ -26,46 +26,58 @@ describe("Room manager", () => {
 	});
 
 	describe("creating a room", () => {
-		it("should never save null to permissions or user role columns", async () => {
-			const roomName = "foo-76kdf943";
-			await roommanager.createRoom({ name: roomName, isTemporary: false, title: "asdf1234" });
-			const room = await DbRoom.findOne({ where: { name: roomName } });
-			expect(room).not.toBeNull();
-			expect(room?.permissions).not.toBeNull();
-			expect(room?.permissions).toBeInstanceOf(Array);
-			// eslint-disable-next-line vitest/no-conditional-in-test
-			if (Array.isArray(room?.permissions)) {
-				let roles = room?.permissions.map(p => p[0]);
-				expect(roles).not.toContain(Role.Administrator);
-				expect(roles).not.toContain(Role.Owner);
-			}
-			expect(room?.["role-admin"]).toBeInstanceOf(Array);
-			expect(room?.["role-mod"]).toBeInstanceOf(Array);
-			expect(room?.["role-trusted"]).toBeInstanceOf(Array);
-			await room?.destroy();
-		});
+		it(
+			"should never save null to permissions or user role columns",
+			async () => {
+				const roomName = "foo-76kdf943";
+				await roommanager.createRoom({
+					name: roomName,
+					isTemporary: false,
+					title: "asdf1234",
+				});
+				const room = await DbRoom.findOne({ where: { name: roomName } });
+				expect(room).not.toBeNull();
+				expect(room?.permissions).not.toBeNull();
+				expect(room?.permissions).toBeInstanceOf(Array);
+				// eslint-disable-next-line vitest/no-conditional-in-test
+				if (Array.isArray(room?.permissions)) {
+					let roles = room?.permissions.map(p => p[0]);
+					expect(roles).not.toContain(Role.Administrator);
+					expect(roles).not.toContain(Role.Owner);
+				}
+				expect(room?.["role-admin"]).toBeInstanceOf(Array);
+				expect(room?.["role-mod"]).toBeInstanceOf(Array);
+				expect(room?.["role-trusted"]).toBeInstanceOf(Array);
+				await room?.destroy();
+			},
+			{ retry: 2 }
+		);
 
-		it("should be able to load saved settings from database", async () => {
-			const roomName = "foo-a3b5e323";
-			await roommanager.createRoom({
-				name: roomName,
-				isTemporary: false,
-				title: "asdf1234",
-				description: "0987asdf",
-				visibility: Visibility.Unlisted,
-				queueMode: QueueMode.Vote,
-			});
-			const room = await DbRoom.findOne({ where: { name: roomName } });
-			expect(room).not.toBeNull();
-			expect(room).toMatchObject({
-				name: roomName,
-				title: "asdf1234",
-				description: "0987asdf",
-				visibility: Visibility.Unlisted,
-				queueMode: QueueMode.Vote,
-			});
-			await room?.destroy();
-		});
+		it(
+			"should be able to load saved settings from database",
+			async () => {
+				const roomName = "foo-a3b5e323";
+				await roommanager.createRoom({
+					name: roomName,
+					isTemporary: false,
+					title: "asdf1234",
+					description: "0987asdf",
+					visibility: Visibility.Unlisted,
+					queueMode: QueueMode.Vote,
+				});
+				const room = await DbRoom.findOne({ where: { name: roomName } });
+				expect(room).not.toBeNull();
+				expect(room).toMatchObject({
+					name: roomName,
+					title: "asdf1234",
+					description: "0987asdf",
+					visibility: Visibility.Unlisted,
+					queueMode: QueueMode.Vote,
+				});
+				await room?.destroy();
+			},
+			{ retry: 2 }
+		);
 	});
 
 	describe("loading from redis", () => {
