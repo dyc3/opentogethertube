@@ -41,6 +41,8 @@
 					:items="[
 						{ title: $t('create-room-form.manual'), value: 'manual' },
 						{ title: $t('create-room-form.vote'), value: 'vote' },
+						{ title: $t('create-room-form.loop'), value: 'loop' },
+						{ title: $t('create-room-form.dj'), value: 'dj' },
 					]"
 					v-model="options.queueMode"
 					:rules="rules.queueMode"
