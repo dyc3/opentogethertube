@@ -79,6 +79,7 @@ const VideoQueue = defineComponent({
 		VideoQueueItem,
 		Sortable,
 	},
+	emits: ["switchtab"],
 	setup() {
 		const store = useStore();
 		const roomapi = useRoomApi(useConnection());

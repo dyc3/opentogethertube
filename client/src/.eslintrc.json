@@ -1,8 +1,4 @@
 {
-	"env": {
-		"es6": true,
-		"browser": true
-	},
 	"rules": {
 		"no-console": "off",
 
@@ -25,7 +21,7 @@
 				"sourceType": "module"
 			},
 			"plugins": ["vue"],
-			"extends": ["plugin:vue/vue3-essential"], // "plugin:vue/vue3-strongly-recommended"
+			"extends": ["plugin:vue/vue3-essential"],
 			"rules": {
 				"vue/attribute-hyphenation": ["error", "always"],
 				"vue/html-self-closing": [
@@ -50,7 +46,13 @@
 				"vue/v-bind-style": ["error", "shorthand"],
 				"vue/v-on-style": ["error", "shorthand"],
 				"vue/multi-word-component-names": "off",
-				"vue/no-multiple-template-root": "off"
+				"vue/no-multiple-template-root": "off",
+				"vue/require-explicit-emits": "error",
+				"vue/no-spaces-around-equal-signs-in-attribute": "error",
+				"vue/first-attribute-linebreak": "error",
+				"vue/html-quotes": ["error", "double"],
+				"vue/no-template-shadow": "error",
+				"vue/require-prop-types": "error"
 			}
 		},
 		{
