@@ -53,7 +53,8 @@
 				"vue/require-explicit-emits": "error",
 				"vue/no-spaces-around-equal-signs-in-attribute": "error",
 				"vue/first-attribute-linebreak": "error",
-				"vue/html-quotes": ["error", "double"]
+				"vue/html-quotes": ["error", "double"],
+				"vue/no-template-shadow": "error"
 			}
 		},
 		{
