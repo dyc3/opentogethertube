@@ -276,6 +276,8 @@ export default {
 		"queue-mode": "Queue Mode",
 		"manual": "Manual",
 		"vote": "@:common.vote",
+		"loop": "@:room-settings.loop",
+		"dj": "@:room-settings.dj",
 		"public": "Public",
 		"unlisted": "Unlisted",
 		"rules": {
