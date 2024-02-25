@@ -51,7 +51,8 @@
 				"vue/multi-word-component-names": "off",
 				"vue/no-multiple-template-root": "off",
 				"vue/require-explicit-emits": "error",
-				"vue/no-spaces-around-equal-signs-in-attribute": "error"
+				"vue/no-spaces-around-equal-signs-in-attribute": "error",
+				"vue/first-attribute-linebreak": "error"
 			}
 		},
 		{
