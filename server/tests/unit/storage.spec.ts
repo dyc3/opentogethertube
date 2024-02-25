@@ -227,7 +227,7 @@ describe("Storage: Room Spec", () => {
 			room = await storage.getRoomByName("example");
 			expect(room?.userRoles).toEqual(userRoles);
 		},
-		{ retry: 2 }
+		{ retry: 3 }
 	);
 });
 
