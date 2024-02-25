@@ -142,30 +142,8 @@ const createRoom: RequestHandler<
 		throw new FeatureDisabledException("Permanent rooms are disabled.");
 	}
 
-	if (!validatedBody.name) {
-		throw new BadApiArgumentException("name", "missing");
-	}
 	if (RESERVED_ROOM_NAMES.includes(validatedBody.name)) {
 		throw new BadApiArgumentException("name", "not allowed (reserved)");
-	}
-	if (validatedBody.name.length < 3) {
-		throw new BadApiArgumentException(
-			"name",
-			"not allowed (too short, must be at least 3 characters)"
-		);
-	}
-	if (validatedBody.name.length > 32) {
-		throw new BadApiArgumentException(
-			"name",
-			"not allowed (too long, must be at most 32 characters)"
-		);
-	}
-
-	if (validatedBody.title && validatedBody.title.length > 255) {
-		throw new BadApiArgumentException(
-			"title",
-			"not allowed (too long, must be at most 255 characters)"
-		);
 	}
 
 	if (!ROOM_NAME_REGEX.exec(validatedBody.name)) {
