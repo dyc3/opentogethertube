@@ -46,7 +46,7 @@ export interface OttApiRequestRoomCreate {
 }
 
 /** Endpoint: `/api/room/create` */
-export interface OttApiResponseRoomCreate { }
+export interface OttApiResponseRoomCreate {}
 
 /** Endpoint: `GET /api/room/:name` */
 export interface OttApiResponseGetRoom extends RoomSettings {
@@ -78,12 +78,12 @@ export interface OttApiRequestUndo {
 
 export type OttApiRequestAddToQueue =
 	| {
-		videos: VideoId[];
-	}
+			videos: VideoId[];
+	  }
 	| VideoId
 	| {
-		url: string;
-	};
+			url: string;
+	  };
 
 export type OttApiRequestRemoveFromQueue = VideoId;
 
@@ -91,7 +91,7 @@ export type OttApiResponseAddPreview = {
 	result: Video[];
 };
 
-export interface OttApiRequestVote extends VideoId { }
+export interface OttApiRequestVote extends VideoId {}
 
 export type OttApiRequestAccountRecoveryStart = {
 	email?: string;
