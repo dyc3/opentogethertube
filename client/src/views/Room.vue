@@ -54,7 +54,7 @@
 									color="warning"
 									@click="onClickUnblockPlayback"
 								>
-									Play
+									{{ $t("common.play") }}
 								</v-btn>
 							</div>
 						</div>
@@ -824,6 +824,7 @@ $in-video-chat-width-small: 250px;
 	z-index: 200;
 	display: flex;
 	justify-content: center;
+	align-items: center;
 }
 
 .flip-list-move {
