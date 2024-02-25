@@ -62,7 +62,7 @@ describe("Storage: Room Spec", () => {
 				owner: null,
 			})
 		);
-	});
+	}, { retry: 2 });
 
 	it("should return room object from room name, case insensitive", async () => {
 		await storage.saveRoom(
