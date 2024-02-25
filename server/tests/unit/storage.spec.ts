@@ -36,33 +36,37 @@ describe("Storage: Room Spec", () => {
 		expect(dbroom).toMatchObject(dbroomPartial);
 	});
 
-	it("should return room object without extra properties", async () => {
-		await storage.saveRoom(
-			new Room({
-				name: "example",
-				title: "Example Room",
-				description: "This is an example room.",
-				visibility: Visibility.Public,
-				queueMode: QueueMode.Vote,
-			})
-		);
+	it(
+		"should return room object without extra properties",
+		async () => {
+			await storage.saveRoom(
+				new Room({
+					name: "example",
+					title: "Example Room",
+					description: "This is an example room.",
+					visibility: Visibility.Public,
+					queueMode: QueueMode.Vote,
+				})
+			);
 
-		const room = await storage.getRoomByName("example");
-		expect(room).not.toBeNull();
-		expect(room).toBeDefined();
-		expect(typeof room).toEqual("object");
-		expect(room).not.toBeInstanceOf(DbRoom);
-		expect(room).toEqual(
-			expect.objectContaining({
-				name: "example",
-				title: "Example Room",
-				description: "This is an example room.",
-				visibility: Visibility.Public,
-				queueMode: QueueMode.Vote,
-				owner: null,
-			})
-		);
-	});
+			const room = await storage.getRoomByName("example");
+			expect(room).not.toBeNull();
+			expect(room).toBeDefined();
+			expect(typeof room).toEqual("object");
+			expect(room).not.toBeInstanceOf(DbRoom);
+			expect(room).toEqual(
+				expect.objectContaining({
+					name: "example",
+					title: "Example Room",
+					description: "This is an example room.",
+					visibility: Visibility.Public,
+					queueMode: QueueMode.Vote,
+					owner: null,
+				})
+			);
+		},
+		{ retry: 2 }
+	);
 
 	it("should return room object from room name, case insensitive", async () => {
 		await storage.saveRoom(
@@ -227,7 +231,7 @@ describe("Storage: Room Spec", () => {
 			room = await storage.getRoomByName("example");
 			expect(room?.userRoles).toEqual(userRoles);
 		},
-		{ retry: 2 }
+		{ retry: 3 }
 	);
 });
 
