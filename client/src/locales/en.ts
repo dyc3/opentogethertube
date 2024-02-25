@@ -24,6 +24,8 @@ export default {
 		"view": "View",
 		"restore": "Restore",
 		"success": "Success",
+		"vote": "Vote",
+		"unvote": "Unvote",
 	},
 	"behavior": {
 		[BehaviorOption.Always]: "Always",
@@ -235,7 +237,7 @@ export default {
 		"manual": "@:create-room-form.manual",
 		"manual-hint":
 			"Default normal behavior, works how you would expect it to. You can manually reorder items in the queue.",
-		"vote": "@:create-room-form.vote",
+		"vote": "@:common.vote",
 		"vote-hint": "The highest voted video gets played next.",
 		"loop": "Loop",
 		"loop-hint": "When the video ends, put it at the end of the queue.",
@@ -273,7 +275,7 @@ export default {
 		"visibility-hint": "Controls whether or not the room shows up in the room list.",
 		"queue-mode": "Queue Mode",
 		"manual": "Manual",
-		"vote": "Vote",
+		"vote": "@:common.vote",
 		"public": "Public",
 		"unlisted": "Unlisted",
 		"rules": {
@@ -300,7 +302,7 @@ export default {
 		"password": "Password",
 		"retype-password": "Retype Password",
 		"email-optional":
-			"Providing an email is optional, but makes it impossible to recover your account if you forget your password.",
+			"Optional. Providing an email makes it possible to recover your account if you forget your password.",
 		"rules": {
 			"email-required": "Email is required",
 			"valid-email": "Must be a valid email",

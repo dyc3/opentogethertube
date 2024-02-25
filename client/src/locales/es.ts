@@ -24,6 +24,7 @@ export default {
 		"view": "Mirar",
 		"restore": "Restaurar",
 		"success": "Éxito",
+		"vote": "Votar",
 	},
 	"landing": {
 		hero: {
@@ -266,7 +267,6 @@ export default {
 		"visibility-hint": "Controla si la sala aparece o no en la lista de salas.",
 		"queue-mode": "Modo de Cola",
 		"manual": "Manual",
-		"vote": "Votar",
 		"public": "Público",
 		"unlisted": "No incluido en listado",
 		"rules": {
