@@ -9,6 +9,7 @@ import {
 
 import { MyQuery, MyDataSourceOptions } from "./types";
 import type { SystemState } from "ott-vis-common";
+import axios from "axios";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
@@ -19,12 +20,30 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 		// const { range } = options;
 		// const from = range!.from.valueOf();
 		// const to = range!.to.valueOf();
+		let system_state: SystemState = [
+			{
+				id: "ERR",
+				region: "ERR",
+				monoliths: []
+			}
+		];
+
+		axios.get('localhost:8000/state')
+  			.then(function (response) {
+  			  system_state = response.data;
+  			  console.log(response);
+  			})
+  			.catch(function (error) {
+  			  // handle error
+  			  console.log(error);
+  			});
+
 
 		// Return a constant for each query.
 		const data = options.targets.map(target => {
 			return new MutableDataFrame({
 				refId: target.refId,
-				fields: [{ name: "Balancers", values: [sampleSystemState], type: FieldType.other }],
+				fields: [{ name: "Balancers", values: [system_state], type: FieldType.other }],
 			});
 		});
 

@@ -150,7 +150,7 @@ fn return_sample_state() -> SystemState {
 /// Serve the current system state
 #[get("/state")]
 fn serve_state() -> Json<SystemState> {
-    return Json(return_sample_state());
+    Json(return_sample_state())
 }
 
 #[launch]
@@ -165,4 +165,9 @@ fn rocket() -> _ {
 #[get("/status")]
 fn status() -> &'static str {
     "OK"
+}
+
+#[cfg(test)]
+mod test {
+    
 }
