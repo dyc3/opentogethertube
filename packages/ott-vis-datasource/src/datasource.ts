@@ -37,7 +37,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	}
 
 	async testDatasource() {
-		const obs = await getBackendSrv().fetch({
+		const obs = getBackendSrv().fetch({
 			url: `${this.baseUrl}/status`,
 		});
 		const resp = await lastValueFrom(obs);
