@@ -8,3 +8,5 @@ datasources:
     orgId: 1
     version: 1
     editable: true
+    jsonData:
+      baseUrl: "http://localhost:8000"
