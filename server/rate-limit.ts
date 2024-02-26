@@ -131,23 +131,17 @@ export class RateLimiterRedisv4 extends RateLimiterRedis {
 		return multi.incrBy(key, points).pTTL(key).exec(true);
 	}
 
-	_get(key: string) {
-		return this.client
-			.multi()
-			.get(key)
-			.pTTL(key)
-			.exec(true)
-			.then(result => {
-				const [points] = result;
-				if (points === null) {
-					return null;
-				}
-				return result;
-			});
+	async _get(key: string) {
+		const result = await this.client.multi().get(key).pTTL(key).exec(true);
+		const [points] = result;
+		if (points === null) {
+			return null;
+		}
+		return result;
 	}
 
-	_delete(key: string) {
-		return this.client.del(key).then(result => result > 0);
+	async _delete(key: string) {
+		return (await this.client.del(key)) > 0;
 	}
 }
 

@@ -4,8 +4,8 @@
 		"node": true,
 		"es6": true
 	},
-	"plugins": ["prettier"],
-	"extends": ["eslint:recommended", "plugin:prettier/recommended"],
+	"plugins": ["prettier", "promise"],
+	"extends": ["eslint:recommended", "plugin:prettier/recommended", "plugin:promise/recommended"],
 	"rules": {
 		// for prettier compat
 		"implicit-arrow-linebreak": "off",
@@ -23,7 +23,9 @@
 		"eqeqeq": ["error", "always"],
 		"no-unused-vars": "error",
 
-		"@typescript-eslint/no-var-requires": "warn"
+		"@typescript-eslint/no-var-requires": "warn",
+
+		"promise/prefer-await-to-then": "error"
 	},
 	"parserOptions": {
 		"ecmaVersion": 2020,

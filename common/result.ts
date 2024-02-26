@@ -47,5 +47,6 @@ export function intoResult<T>(func: () => T): Result<T, Error> {
 }
 
 export function intoResultAsync<T>(func: () => Promise<T>): Promise<Result<T, Error>> {
+	// eslint-disable-next-line promise/prefer-await-to-then
 	return func().then(ok, err);
 }
