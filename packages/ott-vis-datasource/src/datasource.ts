@@ -7,20 +7,28 @@ import {
 	FieldType,
 } from "@grafana/data";
 
-import { MyQuery, MyDataSourceOptions } from "./types";
+import { MyQuery, MyDataSourceOptions, DataSourceResponse } from "./types";
+import { getBackendSrv } from "@grafana/runtime";
 import type { SystemState } from "ott-vis-common";
-import axios from "axios";
+import { lastValueFrom } from 'rxjs';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
 		super(instanceSettings);
 	}
 
+	async request(url: string, params?: string) {
+		const response = getBackendSrv().fetch<DataSourceResponse>({
+		  url: `${url}${params?.length ? `?${params}` : ''}`,
+		});
+		return lastValueFrom(response);
+	  }
+
 	async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
 		// const { range } = options;
 		// const from = range!.from.valueOf();
 		// const to = range!.to.valueOf();
-		let system_state: SystemState = [
+		let systemState: SystemState = [
 			{
 				id: "ERR",
 				region: "ERR",
@@ -28,22 +36,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 			}
 		];
 
-		axios.get('localhost:8000/state')
-  			.then(function (response) {
-  			  system_state = response.data;
-  			  console.log(response);
-  			})
-  			.catch(function (error) {
-  			  // handle error
-  			  console.log(error);
-  			});
-
+		systemState = (await this.request("http://localhost:8000/state")).data.datapoints;
 
 		// Return a constant for each query.
 		const data = options.targets.map(target => {
 			return new MutableDataFrame({
 				refId: target.refId,
-				fields: [{ name: "Balancers", values: [system_state], type: FieldType.other }],
+				fields: [{ name: "Balancers", values: [systemState], type: FieldType.other }],
 			});
 		});
 

@@ -1,32 +1,29 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::serde::{json::Json, Serialize};
+use rocket::serde::json::Json;
+use serde::Serialize;
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct SystemState {
-    balancers: Vec<Balancer>,
+    balancers: Box<[Balancer]>,
 }
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct Balancer {
     id: String,
     region: String,
-    monoliths: Vec<Monolith>,
+    monoliths: Box<[Monolith]>,
 }
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct Monolith {
     id: String,
     region: String,
-    rooms: Vec<Room>,
+    rooms: Box<[Room]>,
 }
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct Room {
     name: String,
     clients: i32,
@@ -34,15 +31,15 @@ struct Room {
 
 fn return_sample_state() -> SystemState {
     return SystemState {
-        balancers: vec![
+        balancers: Box::new([
             Balancer {
                 id: "154d9d41-128c-45ab-83d8-28661882c9e3".to_string(),
                 region: "ewr".to_string(),
-                monoliths: vec![
+                monoliths: Box::new([
                     Monolith {
                         id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf".to_string(),
                         region: "ewr".to_string(),
-                        rooms: vec![
+                        rooms: Box::new([
                             Room {
                                 name: "foo".to_string(),
                                 clients: 2,
@@ -51,34 +48,34 @@ fn return_sample_state() -> SystemState {
                                 name: "bar".to_string(),
                                 clients: 0,
                             },
-                        ],
+                        ]),
                     },
                     Monolith {
                         id: "419580cb-f576-4314-8162-45340c94bae1".to_string(),
                         region: "ewr".to_string(),
-                        rooms: vec![Room {
+                        rooms: Box::new([Room {
                             name: "baz".to_string(),
                             clients: 3,
-                        }],
+                        }]),
                     },
                     Monolith {
                         id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac".to_string(),
                         region: "cdg".to_string(),
-                        rooms: vec![Room {
+                        rooms: Box::new([Room {
                             name: "qux".to_string(),
                             clients: 0,
-                        }],
+                        }]),
                     },
-                ],
+                ]),
             },
             Balancer {
                 id: "c91d183c-980e-4160-b196-43658148f469".to_string(),
                 region: "ewr".to_string(),
-                monoliths: vec![
+                monoliths: Box::new([
                     Monolith {
                         id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf".to_string(),
                         region: "ewr".to_string(),
-                        rooms: vec![
+                        rooms: Box::new([
                             Room {
                                 name: "foo".to_string(),
                                 clients: 1,
@@ -87,34 +84,34 @@ fn return_sample_state() -> SystemState {
                                 name: "bar".to_string(),
                                 clients: 2,
                             },
-                        ],
+                        ]),
                     },
                     Monolith {
                         id: "419580cb-f576-4314-8162-45340c94bae1".to_string(),
                         region: "ewr".to_string(),
-                        rooms: vec![Room {
+                        rooms: Box::new([Room {
                             name: "baz".to_string(),
                             clients: 0,
-                        }],
+                        }]),
                     },
                     Monolith {
                         id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac".to_string(),
                         region: "cdg".to_string(),
-                        rooms: vec![Room {
+                        rooms: Box::new([Room {
                             name: "qux".to_string(),
                             clients: 0,
-                        }],
+                        }]),
                     },
-                ],
+                ]),
             },
             Balancer {
                 id: "5a2e3b2d-f27b-4e3d-9b59-c921442f7ff0".to_string(),
                 region: "cdg".to_string(),
-                monoliths: vec![
+                monoliths: Box::new([
                     Monolith {
                         id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf".to_string(),
                         region: "ewr".to_string(),
-                        rooms: vec![
+                        rooms: Box::new([
                             Room {
                                 name: "foo".to_string(),
                                 clients: 0,
@@ -123,27 +120,27 @@ fn return_sample_state() -> SystemState {
                                 name: "bar".to_string(),
                                 clients: 0,
                             },
-                        ],
+                        ]),
                     },
                     Monolith {
                         id: "419580cb-f576-4314-8162-45340c94bae1".to_string(),
                         region: "ewr".to_string(),
-                        rooms: vec![Room {
+                        rooms: Box::new([Room {
                             name: "baz".to_string(),
                             clients: 0,
-                        }],
+                        }]),
                     },
                     Monolith {
                         id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac".to_string(),
                         region: "cdg".to_string(),
-                        rooms: vec![Room {
+                        rooms: Box::new([Room {
                             name: "qux".to_string(),
                             clients: 4,
-                        }],
+                        }]),
                     },
-                ],
+                ]),
             },
-        ],
+        ]),
     };
 }
 
@@ -168,6 +165,4 @@ fn status() -> &'static str {
 }
 
 #[cfg(test)]
-mod test {
-    
-}
+mod test {}
