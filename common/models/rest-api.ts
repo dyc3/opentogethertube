@@ -3,9 +3,8 @@ import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 import { Category } from "sponsorblock-api";
-// Adding anything to this file causes lint errors?
-// import { createRoomSchema } from "../../server/api/room";
-// import { z } from "zod";
+import { createRoomSchema } from "../../server/api/room";
+import { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
@@ -35,18 +34,11 @@ export interface OttApiResponseRoomGenerate {
 	room: string;
 }
 
-// export type OttApiRequestRoomCreate = z.infer<typeof createRoomSchema>;
+/** Endpoint: `/api/room/create` */
+export type OttApiRequestRoomCreate = z.infer<typeof createRoomSchema>;
 
 /** Endpoint: `/api/room/create` */
-export interface OttApiRequestRoomCreate {
-	title?: string;
-	name: string;
-	isTemporary?: boolean;
-	visibility?: Visibility;
-}
-
-/** Endpoint: `/api/room/create` */
-export interface OttApiResponseRoomCreate {}
+export interface OttApiResponseRoomCreate { }
 
 /** Endpoint: `GET /api/room/:name` */
 export interface OttApiResponseGetRoom extends RoomSettings {
@@ -78,12 +70,12 @@ export interface OttApiRequestUndo {
 
 export type OttApiRequestAddToQueue =
 	| {
-			videos: VideoId[];
-	  }
+		videos: VideoId[];
+	}
 	| VideoId
 	| {
-			url: string;
-	  };
+		url: string;
+	};
 
 export type OttApiRequestRemoveFromQueue = VideoId;
 
@@ -91,7 +83,7 @@ export type OttApiResponseAddPreview = {
 	result: Video[];
 };
 
-export interface OttApiRequestVote extends VideoId {}
+export interface OttApiRequestVote extends VideoId { }
 
 export type OttApiRequestAccountRecoveryStart = {
 	email?: string;

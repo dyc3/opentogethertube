@@ -118,7 +118,6 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 export const createRoomSchema = z.object({
 	name: z.string().min(3).max(32),
 	title: z.string().max(255).optional(),
-	description: z.string().optional(),
 	isTemporary: z.boolean().optional(),
 	visibility: z.enum([Visibility.Public, Visibility.Unlisted, Visibility.Private]).optional(),
 });
@@ -175,8 +174,7 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(req.body);
 	}
 	log.info(
-		`${validatedBody.isTemporary ? "Temporary" : "Permanent"} room created: name=${
-			req.body.name
+		`${validatedBody.isTemporary ? "Temporary" : "Permanent"} room created: name=${req.body.name
 		} ip=${req.ip} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
