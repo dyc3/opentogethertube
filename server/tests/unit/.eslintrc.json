@@ -16,6 +16,8 @@
 		"vitest/no-identical-title": "error",
 		"vitest/no-standalone-expect": "error",
 		"vitest/prefer-spy-on": "error",
-		"vitest/require-top-level-describe": "warn"
+		"vitest/require-top-level-describe": "warn",
+
+		"promise/always-return": "off"
 	}
 }
