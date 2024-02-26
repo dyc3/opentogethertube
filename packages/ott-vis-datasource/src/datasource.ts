@@ -9,10 +9,15 @@ import {
 
 import { MyQuery, MyDataSourceOptions } from "./types";
 import type { SystemState } from "ott-vis-common";
+import { getBackendSrv } from "@grafana/runtime";
+import { lastValueFrom } from "rxjs";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
+	baseUrl: string;
+
 	constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
 		super(instanceSettings);
+		this.baseUrl = instanceSettings.jsonData.baseUrl;
 	}
 
 	async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
@@ -32,7 +37,18 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	}
 
 	async testDatasource() {
-		// Implement a health check for your data source.
+		const obs = await getBackendSrv().fetch({
+			url: `${this.baseUrl}/status`,
+		});
+		const resp = await lastValueFrom(obs);
+
+		if (resp.status !== 200) {
+			return {
+				status: "error",
+				message: `Got HTTP status ${resp.status} from server: ${resp.statusText}`,
+			};
+		}
+
 		return {
 			status: "success",
 			message: "Success",
