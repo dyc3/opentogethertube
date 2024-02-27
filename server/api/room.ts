@@ -32,7 +32,7 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
-import { createRoomSchema } from "common/models/zod-schemas";
+import { createRoomSchema } from "ott-common/models/zod-schemas";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -121,6 +121,7 @@ const createRoom: RequestHandler<
 	OttApiRequestRoomCreate
 > = async (req, res) => {
 	const validatedBody = createRoomSchema.parse(req.body);
+
 	function isValidCreateRoom(body: any): body is OttApiRequestRoomCreate {
 		return !!body.name;
 	}
@@ -128,38 +129,38 @@ const createRoom: RequestHandler<
 		throw new BadApiArgumentException("name", "missing");
 	}
 
-	if (validatedBody.isTemporary && !conf.get("room.enable_create_temporary")) {
+	if (req.body.isTemporary && !conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
-	} else if (!validatedBody.isTemporary && !conf.get("room.enable_create_permanent")) {
+	} else if (!req.body.isTemporary && !conf.get("room.enable_create_permanent")) {
 		throw new FeatureDisabledException("Permanent rooms are disabled.");
 	}
 
-	if (RESERVED_ROOM_NAMES.includes(validatedBody.name)) {
+	if (RESERVED_ROOM_NAMES.includes(req.body.name)) {
 		throw new BadApiArgumentException("name", "not allowed (reserved)");
 	}
 
-	if (!ROOM_NAME_REGEX.exec(validatedBody.name)) {
+	if (!ROOM_NAME_REGEX.exec(req.body.name)) {
 		throw new BadApiArgumentException("name", "not allowed (invalid characters)");
 	}
-	if (validatedBody.visibility && !VALID_ROOM_VISIBILITY.includes(validatedBody.visibility)) {
+	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
 		throw new BadApiArgumentException(
 			"visibility",
 			`must be one of ${VALID_ROOM_VISIBILITY.toString()}`
 		);
 	}
 	let points = 50;
-	if (validatedBody.isTemporary === undefined) {
-		validatedBody.isTemporary = true;
+	if (req.body.isTemporary === undefined) {
+		req.body.isTemporary = true;
 	}
-	if (!validatedBody.isTemporary) {
+	if (!req.body.isTemporary) {
 		points *= 4;
 	}
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
 
-	if (!validatedBody.visibility) {
-		validatedBody.visibility = Visibility.Public;
+	if (!req.body.visibility) {
+		req.body.visibility = Visibility.Public;
 	}
 	if (req.user) {
 		await roommanager.createRoom({ ...req.body, owner: req.user });
@@ -167,7 +168,7 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(req.body);
 	}
 	log.info(
-		`${validatedBody.isTemporary ? "Temporary" : "Permanent"} room created: name=${
+		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${
 			req.body.name
 		} ip=${req.ip} user-agent=${req.headers["user-agent"]}`
 	);
