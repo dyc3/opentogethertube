@@ -139,7 +139,7 @@ fn return_sample_state() -> SystemState {
                 ]),
             },
         ]
-    });
+    })
 }
 
 mod cors;
