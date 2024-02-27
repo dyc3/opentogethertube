@@ -298,7 +298,7 @@ export default defineComponent({
 		// actively calculate the current position of the video
 		const truePosition = ref(0);
 		const sliderPosition = ref(0);
-		const i_timestampUpdater: Ref<ReturnType<typeof setInterval> | null> = ref(null);
+		const iTimestampUpdater: Ref<ReturnType<typeof setInterval> | null> = ref(null);
 
 		function timestampUpdate() {
 			if (!store.state.room.currentSource) {
@@ -322,12 +322,12 @@ export default defineComponent({
 		}
 
 		onMounted(() => {
-			i_timestampUpdater.value = setInterval(timestampUpdate, 250);
+			iTimestampUpdater.value = setInterval(timestampUpdate, 250);
 		});
 
 		onUnmounted(() => {
-			if (i_timestampUpdater.value) {
-				clearInterval(i_timestampUpdater.value);
+			if (iTimestampUpdater.value) {
+				clearInterval(iTimestampUpdater.value);
 			}
 		});
 
@@ -516,10 +516,10 @@ export default defineComponent({
 		}
 		function onPlayerReady() {
 			if (currentSource.value?.service === "vimeo") {
-				onPlayerReady_Vimeo();
+				onPlayerReadyVimeo();
 			}
 		}
-		async function onPlayerReady_Vimeo() {
+		async function onPlayerReadyVimeo() {
 			await applyIsPlaying(store.state.room.isPlaying);
 		}
 

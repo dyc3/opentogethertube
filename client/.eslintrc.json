@@ -11,6 +11,7 @@
 		"no-console": "error",
 		"no-debugger": "error",
 		"curly": ["error", "all"],
+		"camelcase": "error",
 		"no-eval": ["error", {}],
 		"no-multiple-empty-lines": ["error", { "max": 1, "maxBOF": 0 }],
 		"no-var": "error",

@@ -11,17 +11,6 @@ export function secondsToTimestamp(seconds: number): string {
 	return seconds < 0 ? "-" + subTimeString : subTimeString;
 }
 
-/** Calculate where the playback head should be, given a start time since playback started.
- * @deprecated Use the version from `ott-common/timestamp` instead
- */
-export function calculateCurrentPosition(
-	start_time: dayjs.ConfigType,
-	now_time: dayjs.ConfigType,
-	offset: number
-): number {
-	return _calculateCurrentPosition(start_time, now_time, offset);
-}
-
 export function timestampToSeconds(timestamp: string): number {
 	if (!timestamp) {
 		throw new Error("Invalid timestamp");

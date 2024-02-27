@@ -2,14 +2,14 @@ import { defineConfig, searchForWorkspaceRoot } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vuetify from "vite-plugin-vuetify";
 import path from "path";
-import child_process from "child_process";
+import childProcess from "child_process";
 
 function gitCommit() {
 	if (process.env.GIT_COMMIT) {
 		return process.env.GIT_COMMIT.trim();
 	}
 	try {
-		return child_process.execSync("git rev-parse --short HEAD").toString().trim();
+		return childProcess.execSync("git rev-parse --short HEAD").toString().trim();
 	} catch (e) {
 		// eslint-disable-next-line no-console
 		console.warn("Failed to get git commit hash");
