@@ -28,7 +28,7 @@ struct Room {
 }
 
 fn return_sample_state() -> SystemState {
-    return SystemState({
+    SystemState({
         vec![
             Balancer {
                 id: "154d9d41-128c-45ab-83d8-28661882c9e3".to_string(),
