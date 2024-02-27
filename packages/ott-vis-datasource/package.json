@@ -38,6 +38,7 @@
 		"@types/testing-library__jest-dom": "5.14.8",
 		"copy-webpack-plugin": "^11.0.0",
 		"css-loader": "^6.7.3",
+		"eslint": "^8.57.0",
 		"eslint-plugin-deprecation": "^2.0.0",
 		"eslint-webpack-plugin": "^4.0.1",
 		"fork-ts-checker-webpack-plugin": "^8.0.0",
