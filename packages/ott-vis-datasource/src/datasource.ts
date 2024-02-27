@@ -7,7 +7,7 @@ import {
 	FieldType,
 } from "@grafana/data";
 
-import { MyQuery, MyDataSourceOptions, DataSourceResponse } from "./types";
+import { MyQuery, MyDataSourceOptions } from "./types";
 import { getBackendSrv } from "@grafana/runtime";
 import type { SystemState } from "ott-vis-common";
 import { lastValueFrom } from 'rxjs';
@@ -21,7 +21,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	}
 
 	async request(url: string, params?: string) {
-		const response = getBackendSrv().fetch<DataSourceResponse>({
+		const response = getBackendSrv().fetch<SystemState>({
 		  url: `${this.baseUrl}${url}${params?.length ? `?${params}` : ''}`,
 		});
 		return lastValueFrom(response);
@@ -39,7 +39,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 			}
 		];
 
-		systemState = (await this.request("/state")).data.datapoints;
+		systemState = (await this.request("/state")).data;
 
 		// Return a constant for each query.
 		const data = options.targets.map(target => {
@@ -72,7 +72,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	}
 }
 
-const sampleSystemState: SystemState = [
+/*const sampleSystemState: SystemState = [
 	{
 		id: "154d9d41-128c-45ab-83d8-28661882c9e3",
 		region: "ewr",
@@ -145,4 +145,4 @@ const sampleSystemState: SystemState = [
 			},
 		],
 	},
-];
+];*/
