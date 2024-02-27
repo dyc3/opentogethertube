@@ -41,6 +41,19 @@ services:
       - 8080:8081
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
+  collector:
+    image: ott-collector
+    build:
+      context: ../
+      dockerfile: deploy/collector.Dockerfile
+      args:
+        - DEPLOY_TARGET=ott-collector-docker
+    links:
+      - balancer
+    ports:
+      - 8000:8000
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+
   redis_db:
     container_name: opentogethertube_redis
     image: redis
