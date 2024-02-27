@@ -33,6 +33,7 @@ import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
 import { createRoomSchema } from "ott-common/models/zod-schemas";
+import { ZodError } from "zod";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -489,6 +490,15 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 				error: {
 					name: "FeatureDisabledException",
 					message: err.message,
+				},
+			});
+		} else if (err instanceof ZodError) {
+			res.status(400).json({
+				success: false,
+				error: {
+					name: "ZodError",
+					message: err.message,
+					issues: err.issues,
 				},
 			});
 		} else {
