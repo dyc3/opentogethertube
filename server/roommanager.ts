@@ -226,7 +226,7 @@ export function on<E extends RoomManagerEvents>(event: E, listener: RoomManagerE
 const gaugeRoomCount = new Gauge({
 	name: "ott_room_count",
 	help: "The number of loaded rooms.",
-	labelNames: ["room_type", "visibility"],
+	labelNames: ["roomType", "visibility"],
 	collect() {
 		let counts: Record<"temporary" | "permanent", Record<Visibility, number>> = {
 			temporary: {
@@ -243,10 +243,10 @@ const gaugeRoomCount = new Gauge({
 		for (const room of rooms) {
 			counts[room.isTemporary ? "temporary" : "permanent"][room.visibility] += 1;
 		}
-		for (let room_type of Object.keys(counts)) {
-			for (let visibility of Object.keys(counts[room_type])) {
-				let value = counts[room_type][visibility];
-				this.set({ room_type, visibility }, value);
+		for (let roomType of Object.keys(counts)) {
+			for (let visibility of Object.keys(counts[roomType])) {
+				let value = counts[roomType][visibility];
+				this.set({ roomType, visibility }, value);
 			}
 		}
 	},

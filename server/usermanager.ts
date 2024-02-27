@@ -442,10 +442,10 @@ export function isPasswordValid(password: string): boolean {
 /**
  * Callback used by passport LocalStrategy to authenticate Users.
  */
-async function authCallback(email_or_user: string, password: string, done) {
+async function authCallback(emailOrUser: string, password: string, done) {
 	let user: User;
 	try {
-		user = await getUser({ user: email_or_user });
+		user = await getUser({ user: emailOrUser });
 	} catch (err) {
 		if (err.message === "User not found") {
 			done(new Error("Email or password is incorrect."));

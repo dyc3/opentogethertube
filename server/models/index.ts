@@ -2,9 +2,9 @@ import Sequelize from "sequelize";
 import type { Model, Options } from "sequelize";
 import { getLogger } from "../logger";
 import { conf } from "../ott-config";
-import { createModel as createModel_Room } from "./room";
-import { createModel as createModel_User } from "./user";
-import { createModel as createModel_CachedVideo } from "./cachedvideo";
+import { createModel as createModelRoom } from "./room";
+import { createModel as createModelUser } from "./user";
+import { createModel as createModelCachedVideo } from "./cachedvideo";
 
 const log = getLogger("db");
 
@@ -93,13 +93,13 @@ function buildConnection(config: Sequelize.Options): Sequelize.Sequelize {
 	}
 }
 
-export let Room: ReturnType<typeof createModel_Room>;
-export let User: ReturnType<typeof createModel_User>;
-export let CachedVideo: ReturnType<typeof createModel_CachedVideo>;
+export let Room: ReturnType<typeof createModelRoom>;
+export let User: ReturnType<typeof createModelUser>;
+export let CachedVideo: ReturnType<typeof createModelCachedVideo>;
 function buildModels(sequelize: Sequelize.Sequelize) {
-	Room = createModel_Room(sequelize);
-	User = createModel_User(sequelize);
-	CachedVideo = createModel_CachedVideo(sequelize);
+	Room = createModelRoom(sequelize);
+	User = createModelUser(sequelize);
+	CachedVideo = createModelCachedVideo(sequelize);
 
 	Room.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
 }

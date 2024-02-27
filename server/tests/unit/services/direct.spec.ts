@@ -13,6 +13,7 @@ class FfprobeFixtures extends FfprobeStrategy {
 			"/test.mp4": {
 				streams: [
 					{
+						// eslint-disable-next-line camelcase
 						codec_type: "video",
 						duration: 100,
 					},
