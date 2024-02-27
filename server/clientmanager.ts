@@ -98,8 +98,8 @@ async function onDirectConnect(socket: WebSocket, req: express.Request) {
  */
 export function parseWebsocketConnectionUrl(req: express.Request): string {
 	const connectUrl = new URL(req.url, `ws://${req.headers.host ?? "localhost"}`);
-	const base_url = conf.get("base_url");
-	const adjustedPath = base_url ? connectUrl.pathname.replace(base_url, "") : connectUrl.pathname;
+	const baseUrl = conf.get("base_url");
+	const adjustedPath = baseUrl ? connectUrl.pathname.replace(baseUrl, "") : connectUrl.pathname;
 	const roomName = adjustedPath.split("/").slice(3)[0];
 	return roomName;
 }

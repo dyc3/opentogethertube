@@ -163,9 +163,9 @@ export class DirectClient extends Client {
 export class BalancerClient extends Client {
 	conn: BalancerConnection;
 
-	constructor(room: string, client_id: ClientId, conn: BalancerConnection) {
+	constructor(room: string, clientId: ClientId, conn: BalancerConnection) {
 		super(room);
-		this.id = client_id;
+		this.id = clientId;
 		this.conn = conn;
 	}
 

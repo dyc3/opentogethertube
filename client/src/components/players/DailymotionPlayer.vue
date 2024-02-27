@@ -39,10 +39,12 @@ const DailymotionPlayer = defineComponent({
 				},
 				events: {
 					apiready: () => emit("apiready"),
+					// eslint-disable-next-line camelcase
 					video_end: () => emit("end"),
 					playing: () => emit("playing"),
 					pause: () => emit("paused"),
 					waiting: () => emit("buffering"),
+					// eslint-disable-next-line camelcase
 					playback_ready: () => emit("ready"),
 					error: () => emit("error"),
 				},

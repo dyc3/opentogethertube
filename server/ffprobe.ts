@@ -1,7 +1,7 @@
 import util from "util";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { getLogger } from "./logger";
-import child_process from "child_process";
+import childProcess from "child_process";
 import axios from "axios";
 import { Stream } from "stream";
 import fs from "fs/promises";
@@ -14,7 +14,7 @@ import { Counter } from "prom-client";
 import { conf } from "./ott-config";
 
 const log = getLogger("infoextract/ffprobe");
-const exec = util.promisify(child_process.exec);
+const exec = util.promisify(childProcess.exec);
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -22,9 +22,9 @@ function streamDataIntoFfprobe(
 	controller: AbortController
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
-		let stream_ended = true;
+		let streamEnded = true;
 
-		let child = child_process.spawn(
+		let child = childProcess.spawn(
 			`${ffprobePath}`,
 			["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"],
 			{
@@ -33,7 +33,7 @@ function streamDataIntoFfprobe(
 			}
 		);
 		log.debug(`ffprobe child spawned: ${child.pid}`);
-		let result_json = "";
+		let resultJson = "";
 		function finalize() {
 			stream.removeAllListeners();
 			stream.emit("end");
@@ -44,7 +44,7 @@ function streamDataIntoFfprobe(
 					log.error(`Failed to abort request: ${e}`);
 				}
 			}
-			resolve(result_json);
+			resolve(resultJson);
 		}
 
 		stream.on("data", data => {
@@ -63,7 +63,7 @@ function streamDataIntoFfprobe(
 		});
 		stream.on("end", () => {
 			log.debug("http stream ended");
-			stream_ended = true;
+			streamEnded = true;
 			if (child.stdin.destroyed) {
 				return;
 			}
@@ -75,7 +75,7 @@ function streamDataIntoFfprobe(
 		});
 		child.stdout.on("data", data => {
 			log.debug(`ffprobe output: ${data}`);
-			result_json += data;
+			resultJson += data;
 		});
 		child.stderr.on("data", data => {
 			log.silly(`${data}`);
@@ -135,7 +135,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 			httpsAgent,
 		});
 
-		const byte_limit = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
+		const byteLimit = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
 
 		try {
 			let counter = 0;
@@ -144,7 +144,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 
 				counter += data.length;
 				counterBytesDownloaded.inc(data.length);
-				if (counter > byte_limit) {
+				if (counter > byteLimit) {
 					log.debug(`read ${counter} bytes, stopping`);
 					controller.abort();
 				}

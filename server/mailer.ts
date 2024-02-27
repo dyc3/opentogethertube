@@ -19,9 +19,9 @@ export interface Email {
 export class MailjetMailer extends Mailer {
 	client: MailjetClient;
 
-	constructor(api_key: string, api_secret: string) {
+	constructor(apiKey: string, apiSecret: string) {
 		super();
-		this.client = Mailjet.apiConnect(api_key, api_secret);
+		this.client = Mailjet.apiConnect(apiKey, apiSecret);
 	}
 
 	async send(email: Email): Promise<Result<void, MailerError>> {

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import fs from "fs";
 import path from "path";
 import validator from "validator";
