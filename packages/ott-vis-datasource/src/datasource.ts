@@ -22,7 +22,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 	async request(url: string, params?: string) {
 		const response = getBackendSrv().fetch<DataSourceResponse>({
-		  url: `${url}${params?.length ? `?${params}` : ''}`,
+		  url: `${this.baseUrl}${url}${params?.length ? `?${params}` : ''}`,
 		});
 		return lastValueFrom(response);
 	  }
@@ -39,7 +39,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 			}
 		];
 
-		systemState = (await this.request("http://localhost:8000/state")).data.datapoints;
+		systemState = (await this.request("/state")).data.datapoints;
 
 		// Return a constant for each query.
 		const data = options.targets.map(target => {

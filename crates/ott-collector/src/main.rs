@@ -5,9 +5,7 @@ use rocket::serde::json::Json;
 use serde::Serialize;
 
 #[derive(Serialize)]
-struct SystemState {
-    balancers: Box<[Balancer]>,
-}
+struct SystemState(Vec<Balancer>);
 
 #[derive(Serialize)]
 struct Balancer {
@@ -31,7 +29,7 @@ struct Room {
 
 fn return_sample_state() -> SystemState {
     return SystemState {
-        balancers: Box::new([
+        0: vec![
             Balancer {
                 id: "154d9d41-128c-45ab-83d8-28661882c9e3".to_string(),
                 region: "ewr".to_string(),
@@ -140,12 +138,11 @@ fn return_sample_state() -> SystemState {
                     },
                 ]),
             },
-        ]),
+        ],
     };
 }
 
 mod cors;
-
 
 /// Serve the current system state
 #[get("/state")]
