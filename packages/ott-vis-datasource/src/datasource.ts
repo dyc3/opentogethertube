@@ -39,7 +39,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 			},
 		];
 
-		systemState = (await this.request("/state")).data;
+		const systemState = (await this.request("/state")).data;
 
 		// Return a constant for each query.
 		const data = options.targets.map(target => {
