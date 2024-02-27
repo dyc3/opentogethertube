@@ -484,6 +484,6 @@ export default defineComponent({
 	top: 0;
 	left: 0;
 	font-size: 12px;
-	z-index: 2000;
+	z-index: 500;
 }
 </style>
