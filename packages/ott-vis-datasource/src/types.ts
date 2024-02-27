@@ -1,6 +1,5 @@
 import { DataSourceJsonData } from "@grafana/data";
 import { DataQuery } from "@grafana/schema";
-import { SystemState } from "ott-vis-common";
 
 export interface MyQuery extends DataQuery {
 	queryText?: string;
@@ -23,8 +22,4 @@ export interface MyDataSourceOptions extends DataSourceJsonData {
  */
 export interface MySecureJsonData {
 	apiKey?: string;
-}
-
-export interface DataSourceResponse {
-	datapoints: SystemState;
 }
