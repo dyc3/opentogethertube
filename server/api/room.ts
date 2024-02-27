@@ -32,7 +32,7 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
-import { z } from "zod";
+import { createRoomSchema } from "common/models/zod-schemas";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -115,13 +115,6 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 	});
 };
 
-export const createRoomSchema = z.object({
-	name: z.string().min(3).max(32),
-	title: z.string().max(255).optional(),
-	isTemporary: z.boolean().optional(),
-	visibility: z.enum([Visibility.Public, Visibility.Unlisted, Visibility.Private]).optional(),
-});
-
 const createRoom: RequestHandler<
 	unknown,
 	OttResponseBody<OttApiResponseRoomCreate>,
@@ -174,7 +167,8 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(req.body);
 	}
 	log.info(
-		`${validatedBody.isTemporary ? "Temporary" : "Permanent"} room created: name=${req.body.name
+		`${validatedBody.isTemporary ? "Temporary" : "Permanent"} room created: name=${
+			req.body.name
 		} ip=${req.ip} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({

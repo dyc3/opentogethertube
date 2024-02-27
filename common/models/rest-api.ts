@@ -3,7 +3,7 @@ import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 import { Category } from "sponsorblock-api";
-import { createRoomSchema } from "../../server/api/room";
+import { createRoomSchema } from "./zod-schemas";
 import { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
@@ -38,7 +38,7 @@ export interface OttApiResponseRoomGenerate {
 export type OttApiRequestRoomCreate = z.infer<typeof createRoomSchema>;
 
 /** Endpoint: `/api/room/create` */
-export interface OttApiResponseRoomCreate { }
+export interface OttApiResponseRoomCreate {}
 
 /** Endpoint: `GET /api/room/:name` */
 export interface OttApiResponseGetRoom extends RoomSettings {
@@ -70,12 +70,12 @@ export interface OttApiRequestUndo {
 
 export type OttApiRequestAddToQueue =
 	| {
-		videos: VideoId[];
-	}
+			videos: VideoId[];
+	  }
 	| VideoId
 	| {
-		url: string;
-	};
+			url: string;
+	  };
 
 export type OttApiRequestRemoveFromQueue = VideoId;
 
@@ -83,7 +83,7 @@ export type OttApiResponseAddPreview = {
 	result: Video[];
 };
 
-export interface OttApiRequestVote extends VideoId { }
+export interface OttApiRequestVote extends VideoId {}
 
 export type OttApiRequestAccountRecoveryStart = {
 	email?: string;
