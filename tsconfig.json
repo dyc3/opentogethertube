@@ -7,8 +7,6 @@
 		"preserveConstEnums": true,
 		"allowJs": true,
 		"target": "esnext",
-		"experimentalDecorators": true,
-		"emitDecoratorMetadata": true,
 		"importHelpers": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,

@@ -12,6 +12,7 @@ export default {
 	props: {
 		videoId: { type: String, required: true },
 	},
+	emits: ["ready", "end", "playing", "paused", "waiting", "buffering", "error"],
 	data() {
 		return {
 			player: null,

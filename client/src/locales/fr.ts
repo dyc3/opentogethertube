@@ -13,6 +13,7 @@ export default {
 		"save": "Enregistrer",
 		"search": "Rechercher",
 		"undo": "Retour",
+		"vote": "Vote",
 	},
 	"landing": {
 		hero: {

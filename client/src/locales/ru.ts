@@ -11,6 +11,7 @@ export default {
 		"save": "Сохранить",
 		"search": "Поиск",
 		"undo": "Отменить действие",
+		"vote": "Голосование",
 	},
 	"landing": {
 		hero: {
@@ -256,7 +257,6 @@ export default {
 		"visibility-hint": "Определяет, отображается ли комната в списке комнат или нет.",
 		"queue-mode": "Режим очереди",
 		"manual": "Вручную",
-		"vote": "Голосование",
 		"public": "Публичная",
 		"unlisted": "Скрытая",
 		"rules": {

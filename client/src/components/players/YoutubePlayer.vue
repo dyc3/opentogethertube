@@ -41,6 +41,16 @@ export default {
 		// eslint-disable-next-line vue/no-unused-components
 		DebugPlayerWatcher,
 	},
+	emits: [
+		"apiready",
+		"ended",
+		"playing",
+		"paused",
+		"buffering",
+		"ready",
+		"error",
+		"buffer-progress",
+	],
 	data() {
 		return {
 			YT: null,

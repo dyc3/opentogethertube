@@ -8,6 +8,7 @@
 	"extends": ["@grafana/eslint-config"],
 	"root": true,
 	"rules": {
+		"camelcase": "error",
 		"react/prop-types": "off"
 	},
 	"overrides": [

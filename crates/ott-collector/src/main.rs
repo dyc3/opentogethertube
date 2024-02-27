@@ -144,6 +144,9 @@ fn return_sample_state() -> SystemState {
     };
 }
 
+mod cors;
+
+
 /// Serve the current system state
 #[get("/state")]
 fn serve_state() -> Json<SystemState> {
@@ -155,8 +158,8 @@ fn rocket() -> _ {
     // TODO: spawn discovery tokio task here
 
     rocket::build()
-        .mount("/", routes![status])
-        .mount("/", routes![serve_state])
+        .attach(cors::Cors)
+        .mount("/", routes![status, cors::handle_preflight, serve_state])
 }
 
 #[get("/status")]

@@ -12,6 +12,7 @@ export default {
 		"save": "Speichern",
 		"search": "Suche",
 		"undo": "Rückgängig",
+		"vote": "Abstimmen",
 	},
 	"landing": {
 		hero: {
@@ -225,7 +226,6 @@ export default {
 		"visibility-hint": "Steuert, ob der Raum in der Raumliste angezeigt wird oder nicht.",
 		"queue-mode": "Warteschlangen-Modus",
 		"manual": "Manuell",
-		"vote": "Abstimmen",
 		"public": "Öffentlich",
 		"unlisted": "Ungelistet",
 		"rules": {

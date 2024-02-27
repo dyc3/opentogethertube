@@ -52,9 +52,9 @@ describe("User API", () => {
 	});
 
 	afterEach(async () => {
-		await forcedUser.destroy();
-		await testUser.destroy();
-		await socialUser.destroy();
+		await forcedUser?.destroy();
+		await testUser?.destroy();
+		await socialUser?.destroy();
 	});
 
 	describe("GET /user", () => {

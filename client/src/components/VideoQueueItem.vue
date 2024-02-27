@@ -40,7 +40,9 @@
 				>
 					<span>{{ votes }}</span>
 					<v-icon>fa:fas fa-thumbs-up</v-icon>
-					<span class="vote-text">{{ item.voted ? "Unvote" : "Vote" }}</span>
+					<span class="vote-text">
+						{{ voted ? $t("common.unvote") : $t("common.vote") }}
+					</span>
 				</v-btn>
 				<v-btn
 					icon

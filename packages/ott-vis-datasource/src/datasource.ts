@@ -13,8 +13,11 @@ import type { SystemState } from "ott-vis-common";
 import { lastValueFrom } from 'rxjs';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
+	baseUrl: string;
+
 	constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
 		super(instanceSettings);
+		this.baseUrl = instanceSettings.jsonData.baseUrl;
 	}
 
 	async request(url: string, params?: string) {
@@ -50,7 +53,18 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	}
 
 	async testDatasource() {
-		// Implement a health check for your data source.
+		const obs = getBackendSrv().fetch({
+			url: `${this.baseUrl}/status`,
+		});
+		const resp = await lastValueFrom(obs);
+
+		if (resp.status !== 200) {
+			return {
+				status: "error",
+				message: `Got HTTP status ${resp.status} from server: ${resp.statusText}`,
+			};
+		}
+
 		return {
 			status: "success",
 			message: "Success",

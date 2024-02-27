@@ -56,6 +56,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-promise": "^6.1.1",
     "faker": "^5.5.3",
     "prettier": "^2.5.1",
     "supertest": "6.3.3",

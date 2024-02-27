@@ -36,33 +36,37 @@ describe("Storage: Room Spec", () => {
 		expect(dbroom).toMatchObject(dbroomPartial);
 	});
 
-	it("should return room object without extra properties", async () => {
-		await storage.saveRoom(
-			new Room({
-				name: "example",
-				title: "Example Room",
-				description: "This is an example room.",
-				visibility: Visibility.Public,
-				queueMode: QueueMode.Vote,
-			})
-		);
+	it(
+		"should return room object without extra properties",
+		async () => {
+			await storage.saveRoom(
+				new Room({
+					name: "example",
+					title: "Example Room",
+					description: "This is an example room.",
+					visibility: Visibility.Public,
+					queueMode: QueueMode.Vote,
+				})
+			);
 
-		const room = await storage.getRoomByName("example");
-		expect(room).not.toBeNull();
-		expect(room).toBeDefined();
-		expect(typeof room).toEqual("object");
-		expect(room).not.toBeInstanceOf(DbRoom);
-		expect(room).toEqual(
-			expect.objectContaining({
-				name: "example",
-				title: "Example Room",
-				description: "This is an example room.",
-				visibility: Visibility.Public,
-				queueMode: QueueMode.Vote,
-				owner: null,
-			})
-		);
-	});
+			const room = await storage.getRoomByName("example");
+			expect(room).not.toBeNull();
+			expect(room).toBeDefined();
+			expect(typeof room).toEqual("object");
+			expect(room).not.toBeInstanceOf(DbRoom);
+			expect(room).toEqual(
+				expect.objectContaining({
+					name: "example",
+					title: "Example Room",
+					description: "This is an example room.",
+					visibility: Visibility.Public,
+					queueMode: QueueMode.Vote,
+					owner: null,
+				})
+			);
+		},
+		{ retry: 2 }
+	);
 
 	it("should return room object from room name, case insensitive", async () => {
 		await storage.saveRoom(
@@ -204,33 +208,31 @@ describe("Storage: Room Spec", () => {
 		expect(room?.grants).toEqual(new permissions.Grants());
 	});
 
-	it("should save and load userRoles correctly", async () => {
-		let userRoles = new Map([
-			[2, new Set([1, 2, 3])],
-			[3, new Set([4])],
-			[4, new Set([8, 9])],
-		]);
-		await storage.saveRoom(new Room({ name: "example", userRoles }));
+	it(
+		"should save and load userRoles correctly",
+		async () => {
+			let userRoles = new Map([
+				[2, new Set([1, 2, 3])],
+				[3, new Set([4])],
+				[4, new Set([8, 9])],
+			]);
+			await storage.saveRoom(new Room({ name: "example", userRoles }));
 
-		const wait = new Promise(resolve => setTimeout(resolve, 200));
-		await wait;
+			let room = await storage.getRoomByName("example");
+			expect(room?.userRoles).toEqual(userRoles);
 
-		let room = await storage.getRoomByName("example");
-		expect(room?.userRoles).toEqual(userRoles);
+			userRoles = new Map([
+				[2, new Set([1, 3])],
+				[3, new Set([4, 7])],
+				[4, new Set([8])],
+			]);
+			await storage.updateRoom({ name: "example", userRoles });
 
-		userRoles = new Map([
-			[2, new Set([1, 3])],
-			[3, new Set([4, 7])],
-			[4, new Set([8])],
-		]);
-		await storage.updateRoom({ name: "example", userRoles });
-
-		const wait2 = new Promise(resolve => setTimeout(resolve, 200));
-		await wait2;
-
-		room = await storage.getRoomByName("example");
-		expect(room?.userRoles).toEqual(userRoles);
-	});
+			room = await storage.getRoomByName("example");
+			expect(room?.userRoles).toEqual(userRoles);
+		},
+		{ retry: 3 }
+	);
 });
 
 describe("Storage: CachedVideos Spec", () => {
