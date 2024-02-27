@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 use typeshare::typeshare;
 
-use crate::{ClientId, MonolithId, RoomName};
+use crate::{BalancerId, ClientId, MonolithId, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
@@ -21,6 +21,7 @@ pub enum MsgB2M {
 #[typeshare]
 pub struct B2MLoad {
     pub room: RoomName,
+    pub id: BalancerId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

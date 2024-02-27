@@ -12,6 +12,7 @@ export type BalancerId = string;
 
 export interface B2MLoad {
 	room: RoomName;
+	id: BalancerId;
 }
 
 export interface B2MUnload {
