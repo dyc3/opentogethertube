@@ -22,7 +22,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 	async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
 		const response = getBackendSrv().fetch<SystemState>({
-			url: `${this.baseUrl}${"/state"}`,
+			url: `${this.baseUrl}/state`,
 		});
 		const systemState = (await lastValueFrom(response)).data;
 
