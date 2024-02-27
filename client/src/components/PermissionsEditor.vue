@@ -21,17 +21,12 @@
 				<tr v-for="item in permissions" :key="item.name">
 					<th scope="row">{{ item.name }}</th>
 					<td v-for="r in 5" :key="r">
-						<v-checkbox
-							v-if="
-								r - 1 >= item.minRole &&
-								(currentRole > r - 1 || currentRole < 0) &&
-								r - 1 < 4 &&
-								granted(rolePerms[r - 1])
-							"
-							v-model="item[r - 1]"
-							:disabled="getLowestGranted(item) < r - 1"
-							color="primary"
-						/>
+						<v-checkbox v-if="r - 1 >= item.minRole &&
+							(currentRole > r - 1 || currentRole < 0) &&
+							r - 1 < 4 &&
+							granted(rolePerms[r - 1])
+							" v-model="item[r - 1]" :disabled="getLowestGranted(item) < r - 1" color="primary"
+							@update:model-value="onCheckboxModified" />
 						<v-checkbox v-else v-model="item[r - 1]" :disabled="true" />
 					</td>
 				</tr>
@@ -62,10 +57,7 @@ export const PermissionsEditor = defineComponent({
 	emits: ["update:modelValue"],
 	setup(props, { emit }) {
 		const permissions: Ref<Permission[]> = ref([]);
-		const dirty = ref(false);
-		const shouldAcceptExternalUpdate = ref(true);
 		const isLoading = ref(false);
-		const updateEpoch = ref(0);
 
 		const rolePerms = {
 			[Role.Moderator]: "configure-room.set-permissions.for-moderator",
@@ -131,47 +123,22 @@ export const PermissionsEditor = defineComponent({
 			return new Grants(grants);
 		}
 
-		watch(props, () => {
-			if (shouldAcceptExternalUpdate.value) {
-				dirty.value = false;
-				updateEpoch.value++;
-				permissions.value = extractFromGrants(props.modelValue);
-			} else {
-				shouldAcceptExternalUpdate.value = true;
-			}
-		});
-
-		watch(
-			permissions,
-			() => {
-				if (!dirty.value) {
-					dirty.value = true;
-					shouldAcceptExternalUpdate.value = false;
-					permissions.value = extractFromGrants(rebuildMasks());
-				}
-			},
-			{ deep: true }
-		);
-
-		watch(dirty, val => {
-			if (val) {
-				emit("update:modelValue", rebuildMasks());
-				dirty.value = false;
-			}
-		});
+		function onCheckboxModified() {
+			const masks = rebuildMasks();
+			permissions.value = extractFromGrants(masks);
+			emit("update:modelValue", masks);
+		}
 
 		return {
 			permissions,
-			dirty,
-			shouldAcceptExternalUpdate,
 			isLoading,
-			updateEpoch,
 			granted,
 			ROLE_NAMES,
 			getLowestGranted,
 			getHighestDenied,
 			rolePerms,
 			Role,
+			onCheckboxModified,
 		};
 	},
 });
