@@ -21,12 +21,18 @@
 				<tr v-for="item in permissions" :key="item.name">
 					<th scope="row">{{ item.name }}</th>
 					<td v-for="r in 5" :key="r">
-						<v-checkbox v-if="r - 1 >= item.minRole &&
-							(currentRole > r - 1 || currentRole < 0) &&
-							r - 1 < 4 &&
-							granted(rolePerms[r - 1])
-							" v-model="item[r - 1]" :disabled="getLowestGranted(item) < r - 1" color="primary"
-							@update:model-value="onCheckboxModified" />
+						<v-checkbox
+							v-if="
+								r - 1 >= item.minRole &&
+								(currentRole > r - 1 || currentRole < 0) &&
+								r - 1 < 4 &&
+								granted(rolePerms[r - 1])
+							"
+							v-model="item[r - 1]"
+							:disabled="getLowestGranted(item) < r - 1"
+							color="primary"
+							@update:model-value="onCheckboxModified"
+						/>
 						<v-checkbox v-else v-model="item[r - 1]" :disabled="true" />
 					</td>
 				</tr>
@@ -36,7 +42,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, watch, PropType } from "vue";
+import { defineComponent, ref, Ref, PropType } from "vue";
 import _ from "lodash";
 import { granted } from "@/util/grants";
 import { PERMISSIONS, ROLE_NAMES, Permission, Grants } from "ott-common/permissions";
