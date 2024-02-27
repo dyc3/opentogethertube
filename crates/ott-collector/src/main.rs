@@ -28,8 +28,8 @@ struct Room {
 }
 
 fn return_sample_state() -> SystemState {
-    return SystemState {
-        0: vec![
+    return SystemState({
+        vec![
             Balancer {
                 id: "154d9d41-128c-45ab-83d8-28661882c9e3".to_string(),
                 region: "ewr".to_string(),
@@ -138,8 +138,8 @@ fn return_sample_state() -> SystemState {
                     },
                 ]),
             },
-        ],
-    };
+        ]
+    });
 }
 
 mod cors;
