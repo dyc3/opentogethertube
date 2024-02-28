@@ -4,8 +4,9 @@ import { calculateCurrentPosition } from "../../timestamp";
 
 describe("calculateCurrentPosition", () => {
 	it("should calculate the correct playback position", () => {
-		expect(calculateCurrentPosition(dayjs(), dayjs(), 0)).toBeCloseTo(0);
-		expect(calculateCurrentPosition(dayjs(), dayjs(), 1)).toBeCloseTo(1);
+		const now = dayjs();
+		expect(calculateCurrentPosition(now, now, 0)).toBeCloseTo(0);
+		expect(calculateCurrentPosition(now, now, 1)).toBeCloseTo(1);
 		expect(
 			calculateCurrentPosition(
 				dayjs("8 Mar 2020 05:00:00 GMT"),
