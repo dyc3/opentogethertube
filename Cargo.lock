@@ -1913,6 +1913,8 @@ name = "ott-collector"
 version = "0.10.0"
 dependencies = [
  "anyhow",
+ "once_cell",
+ "ott-balancer-protocol",
  "ott-common",
  "reqwest",
  "rocket",
@@ -1921,6 +1923,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
