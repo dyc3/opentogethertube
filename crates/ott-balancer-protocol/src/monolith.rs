@@ -89,6 +89,12 @@ impl From<B2MClientMsg> for MsgB2M {
     }
 }
 
+impl From<B2MInit> for MsgB2M {
+    fn from(val: B2MInit) -> Self {
+        Self::Init(val)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
 #[typeshare]
