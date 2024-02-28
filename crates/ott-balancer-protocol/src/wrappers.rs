@@ -13,6 +13,9 @@ pub struct RoomName(Arc<str>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[typeshare(serialized_as = "String")]
 pub struct MonolithId(Uuid);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[typeshare(serialized_as = "String")]
+pub struct BalancerId(Uuid);
 
 impl From<ClientId> for Uuid {
     fn from(val: ClientId) -> Self {
@@ -62,6 +65,18 @@ impl From<Uuid> for MonolithId {
     }
 }
 
+impl From<BalancerId> for Uuid {
+    fn from(val: BalancerId) -> Self {
+        val.0
+    }
+}
+
+impl From<Uuid> for BalancerId {
+    fn from(val: Uuid) -> Self {
+        Self(val)
+    }
+}
+
 impl Display for ClientId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -75,6 +90,12 @@ impl Display for RoomName {
 }
 
 impl Display for MonolithId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl Display for BalancerId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
