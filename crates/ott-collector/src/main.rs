@@ -1,27 +1,29 @@
-#[macro_use]
-extern crate rocket;
-
 use rocket::serde::json::Json;
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[macro_use]
+extern crate rocket;
+
+mod cors;
+
+#[derive(Debug, Clone, Serialize)]
 struct SystemState(Vec<Balancer>);
 
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize)]
 struct Balancer {
     id: String,
     region: String,
     monoliths: Vec<Monolith>,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize)]
 struct Monolith {
     id: String,
     region: String,
     rooms: Vec<Room>,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize)]
 struct Room {
     name: String,
     clients: i32,
@@ -141,8 +143,6 @@ fn return_sample_state() -> SystemState {
         ]
     })
 }
-
-mod cors;
 
 /// Serve the current system state
 #[get("/state")]
