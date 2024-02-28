@@ -15,13 +15,13 @@ pub enum MsgB2M {
     Join(B2MJoin),
     Leave(B2MLeave),
     ClientMsg(B2MClientMsg),
+    Init(B2MInit),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
 pub struct B2MLoad {
     pub room: RoomName,
-    pub id: BalancerId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,6 +51,12 @@ pub struct B2MClientMsg<T = Box<RawValue>> {
     pub client_id: ClientId,
     /// The message that was received from the client, verbatim.
     pub payload: T,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
+pub struct B2MInit {
+    pub id: BalancerId,
 }
 
 impl From<B2MLoad> for MsgB2M {

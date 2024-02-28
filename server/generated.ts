@@ -12,7 +12,6 @@ export type BalancerId = string;
 
 export interface B2MLoad {
 	room: RoomName;
-	id: BalancerId;
 }
 
 export interface B2MUnload {
@@ -34,6 +33,10 @@ export interface B2MClientMsg<T = unknown> {
 	client_id: ClientId;
 	/** The message that was received from the client, verbatim. */
 	payload: T;
+}
+
+export interface B2MInit {
+	id: BalancerId;
 }
 
 export interface M2BInit {
@@ -83,7 +86,7 @@ export interface M2BGossip {
 
 /**
  * Wrapper around a message that should be sent to clients in a room. The payload is any value that can be serialized to JSON.
- *
+ * 
  * ```rust
  * # use serde_json::value::RawValue;
  * # use ott_balancer_protocol::monolith::{MsgM2B, M2BRoomMsg};
@@ -92,13 +95,13 @@ export interface M2BGossip {
  * client_id: None,
  * payload: serde_json::json!({}),
  * };
- *
+ * 
  * let raw = M2BRoomMsg {
  * room: "foo".into(),
  * client_id: None,
  * payload: RawValue::from_string("{}".to_owned()).unwrap(),
  * };
- *
+ * 
  * let msg = MsgM2B::from(json);
  * let msg = MsgM2B::from(raw);
  * ```
@@ -117,17 +120,19 @@ export interface M2BKick {
 	reason: number;
 }
 
-export type MsgB2M =
-	| { type: "load"; payload: B2MLoad }
-	| { type: "unload"; payload: B2MUnload }
-	| { type: "join"; payload: B2MJoin }
-	| { type: "leave"; payload: B2MLeave }
-	| { type: "client_msg"; payload: B2MClientMsg };
+export type MsgB2M = 
+	| { type: "load", payload: B2MLoad }
+	| { type: "unload", payload: B2MUnload }
+	| { type: "join", payload: B2MJoin }
+	| { type: "leave", payload: B2MLeave }
+	| { type: "client_msg", payload: B2MClientMsg }
+	| { type: "init", payload: B2MInit };
 
-export type MsgM2B<T = unknown> =
-	| { type: "init"; payload: M2BInit }
-	| { type: "loaded"; payload: M2BLoaded }
-	| { type: "unloaded"; payload: M2BUnloaded }
-	| { type: "gossip"; payload: M2BGossip }
-	| { type: "room_msg"; payload: M2BRoomMsg<T> }
-	| { type: "kick"; payload: M2BKick };
+export type MsgM2B<T = unknown> = 
+	| { type: "init", payload: M2BInit }
+	| { type: "loaded", payload: M2BLoaded }
+	| { type: "unloaded", payload: M2BUnloaded }
+	| { type: "gossip", payload: M2BGossip }
+	| { type: "room_msg", payload: M2BRoomMsg<T> }
+	| { type: "kick", payload: M2BKick };
+
