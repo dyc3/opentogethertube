@@ -22,7 +22,6 @@ pub enum MsgB2M {
 #[typeshare]
 pub struct B2MLoad {
     pub room: RoomName,
-    pub id: BalancerId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
