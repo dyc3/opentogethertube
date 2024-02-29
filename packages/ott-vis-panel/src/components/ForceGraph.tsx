@@ -50,15 +50,32 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		.forceSimulation(nodes)
 		.force(
 			"link",
-			d3.forceLink<Node, Link>(links).id(d => d.id)
+			d3.forceLink<Node, Link>(links).id(d => d.id).distance(d => {
+				if (typeof d.source === "object") {
+					if (d.source.group === "monolith") {
+						return 100;
+					} else if (d.source.group === "room") {
+						return 50;
+					} else if (d.source.group === "client") {
+						return 10;
+					}
+				}
+				return 100;
+			})
 		)
 		.force("charge", d3.forceManyBody())
 		.force("center", d3.forceCenter())
-		.force("radial", d3.forceRadial(100))
-		.force(
-			"collide",
-			d3.forceCollide(d => d.radius)
-		);
+		.force("radial", d3.forceRadial(d => {
+			if (d.group === "monolith") {
+				return 100;
+			} else if (d.group === "room") {
+				return 150;
+			}else if (d.group === "client") {
+				return 200;
+			}else {
+				return 0;
+			}
+		}))
 
 	useEffect(() => {
 		const svg = d3
