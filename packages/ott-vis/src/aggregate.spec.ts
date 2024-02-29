@@ -24,6 +24,11 @@ const sampleSystemState: SystemState = [
 				region: "cdg",
 				rooms: [{ name: "qux", clients: 0 }],
 			},
+			{
+				id: "f21df607-b572-4bdd-aa2f-3fead21bba86",
+				region: "cdg",
+				rooms: [],
+			},
 		],
 	},
 	{
@@ -47,6 +52,11 @@ const sampleSystemState: SystemState = [
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
 				rooms: [{ name: "qux", clients: 0 }],
+			},
+			{
+				id: "f21df607-b572-4bdd-aa2f-3fead21bba86",
+				region: "cdg",
+				rooms: [],
 			},
 		],
 	},
@@ -72,6 +82,11 @@ const sampleSystemState: SystemState = [
 				region: "cdg",
 				rooms: [{ name: "qux", clients: 4 }],
 			},
+			{
+				id: "f21df607-b572-4bdd-aa2f-3fead21bba86",
+				region: "cdg",
+				rooms: [],
+			},
 		],
 	},
 ];
@@ -91,13 +106,14 @@ describe("aggregation helpers", () => {
 			"2bd5e4a7-14f6-4da4-bedd-72946864a7bf": ["foo", "bar"],
 			"419580cb-f576-4314-8162-45340c94bae1": ["baz"],
 			"0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac": ["qux"],
+			"f21df607-b572-4bdd-aa2f-3fead21bba86": [],
 		});
 	});
 
 	it("groups monoliths by region", () => {
 		expect(groupMonolithsByRegion(sampleSystemState)).toEqual({
 			ewr: ["2bd5e4a7-14f6-4da4-bedd-72946864a7bf", "419580cb-f576-4314-8162-45340c94bae1"],
-			cdg: ["0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac"],
+			cdg: ["0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac", "f21df607-b572-4bdd-aa2f-3fead21bba86"],
 		});
 	});
 });

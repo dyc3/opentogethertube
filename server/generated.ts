@@ -8,6 +8,8 @@ export type RoomName = string;
 
 export type MonolithId = string;
 
+export type BalancerId = string;
+
 export interface B2MLoad {
 	room: RoomName;
 }

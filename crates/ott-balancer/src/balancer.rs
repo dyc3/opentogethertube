@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
+use ott_balancer_protocol::collector::{BalancerState, MonolithState, RoomState};
 use ott_balancer_protocol::monolith::{
     B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
 };
@@ -10,6 +11,7 @@ use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, trace, warn};
+use uuid::Uuid;
 
 use crate::client::ClientLink;
 use crate::config::BalancerConfig;
@@ -400,6 +402,31 @@ impl BalancerContext {
         let monolith = self.monoliths.get(&monolith).unwrap();
         monolith.send(B2MUnload { room }).await?;
         Ok(())
+    }
+
+    pub fn current_state(&self) -> BalancerState {
+        let monoliths = self
+            .monoliths
+            .values()
+            .map(|m| MonolithState {
+                id: m.id(),
+                region: m.region().to_string(),
+                rooms: m
+                    .rooms()
+                    .iter()
+                    .map(|(name, room)| RoomState {
+                        name: name.clone(),
+                        clients: room.clients().len(),
+                    })
+                    .collect(),
+            })
+            .collect();
+
+        BalancerState {
+            id: Uuid::new_v4().into(), // TODO: replace with actual constant balancer id
+            region: BalancerConfig::get().region.clone(),
+            monoliths,
+        }
     }
 }
 

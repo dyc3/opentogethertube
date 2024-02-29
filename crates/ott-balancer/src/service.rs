@@ -27,6 +27,7 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     let mut router = Router::new();
     router.add("/api/status", "health");
     router.add("/api/balancing", "status");
+    router.add("/api/state", "state");
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/api/room/:room_name/", "room");
@@ -96,6 +97,19 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     ]
                     .join("\n");
                     mk_response(rendered)
+                }
+                "state" => {
+                    let ctx_read = ctx.read().await;
+                    let state = ctx_read.current_state();
+                    let Ok(body) = serde_json::to_vec(&state) else {
+                        error!("error serializing state");
+                        return Ok(interval_server_error());
+                    };
+                    Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .header("Content-Type", "application/json")
+                        .body(Full::new(body.into()))
+                        .unwrap())
                 }
                 "metrics" => {
                     let bytes = match gather_metrics() {

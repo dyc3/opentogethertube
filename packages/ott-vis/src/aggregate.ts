@@ -25,10 +25,10 @@ export function aggMonolithRooms(state: SystemState): Record<string, string[]> {
 	const roomClients: Record<string, Set<string>> = {};
 	for (const balancer of state) {
 		for (const monolith of balancer.monoliths) {
+			const s = roomClients[monolith.id] ?? new Set();
+			roomClients[monolith.id] = s;
 			for (const room of monolith.rooms) {
-				const s = roomClients[monolith.id] ?? new Set();
 				s.add(room.name);
-				roomClients[monolith.id] = s;
 			}
 		}
 	}
