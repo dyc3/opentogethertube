@@ -14,7 +14,7 @@ pub struct HarnessDiscoveryConfig {
     pub port: u16,
 }
 
-pub struct HarnessMonolithDiscoverer {
+pub struct HarnessServiceDiscoverer {
     config: HarnessDiscoveryConfig,
     monoliths: Arc<Mutex<HarnessMonoliths>>,
     updated_rx: tokio::sync::mpsc::Receiver<()>,
@@ -22,7 +22,7 @@ pub struct HarnessMonolithDiscoverer {
     task: JoinHandle<anyhow::Result<()>>,
 }
 
-impl HarnessMonolithDiscoverer {
+impl HarnessServiceDiscoverer {
     pub fn new(config: HarnessDiscoveryConfig) -> Self {
         let monoliths = Arc::new(Mutex::new(HarnessMonoliths::default()));
 
@@ -111,8 +111,8 @@ async fn do_harness_discovery(
 }
 
 #[async_trait]
-impl MonolithDiscoverer for HarnessMonolithDiscoverer {
-    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+impl ServiceDiscoverer for HarnessServiceDiscoverer {
+    async fn discover(&mut self) -> anyhow::Result<Vec<ConnectionConfig>> {
         let result = self
             .updated_rx
             .recv()
@@ -128,7 +128,7 @@ impl MonolithDiscoverer for HarnessMonolithDiscoverer {
 
             info!("restarting harness discoverer task");
             let (updated_rx, task) =
-                HarnessMonolithDiscoverer::start(&self.monoliths, self.config.clone());
+                HarnessServiceDiscoverer::start(&self.monoliths, self.config.clone());
             self.updated_rx = updated_rx;
             let prevtask = std::mem::replace(&mut self.task, task);
             error!("previous task exited with: {:?}", prevtask.await?);
@@ -148,7 +148,7 @@ impl MonolithDiscoverer for HarnessMonolithDiscoverer {
     }
 }
 
-impl Drop for HarnessMonolithDiscoverer {
+impl Drop for HarnessServiceDiscoverer {
     fn drop(&mut self) {
         self.task.abort();
     }

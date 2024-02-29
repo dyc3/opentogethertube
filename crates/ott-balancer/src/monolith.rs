@@ -4,7 +4,7 @@ use std::sync::Arc;
 use anyhow::bail;
 use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
-use ott_common::discovery::MonolithConnectionConfig;
+use ott_common::discovery::ConnectionConfig;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::error;
 
@@ -20,7 +20,7 @@ pub struct BalancerMonolith {
     monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
     /// The Sender to be used by clients to send messages to this Monolith.
     client_inbound_tx: tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>>,
-    config: MonolithConnectionConfig,
+    config: ConnectionConfig,
     proxy_port: u16,
     http_client: reqwest::Client,
 }
@@ -58,7 +58,7 @@ impl BalancerMonolith {
         &self.rooms
     }
 
-    pub fn config(&self) -> &MonolithConnectionConfig {
+    pub fn config(&self) -> &ConnectionConfig {
         &self.config
     }
 
@@ -203,6 +203,6 @@ impl Room {
 pub struct NewMonolith {
     pub id: MonolithId,
     pub region: String,
-    pub config: MonolithConnectionConfig,
+    pub config: ConnectionConfig,
     pub proxy_port: u16,
 }

@@ -51,7 +51,7 @@ mod test {
 
     use crate::monolith::{BalancerMonolith, NewMonolith};
     use ott_balancer_protocol::*;
-    use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
+    use ott_common::discovery::{ConnectionConfig, HostOrIp};
 
     use super::{MinRoomsSelector, MonolithSelection};
 
@@ -69,7 +69,7 @@ mod test {
             NewMonolith {
                 id: monolith_id_one,
                 region: "unknown".into(),
-                config: MonolithConnectionConfig {
+                config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
                 },
@@ -95,7 +95,7 @@ mod test {
             NewMonolith {
                 id: monolith_id_two,
                 region: "unknown".into(),
-                config: MonolithConnectionConfig {
+                config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
                 },

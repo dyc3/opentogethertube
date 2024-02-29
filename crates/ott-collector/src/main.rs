@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use collector::{Collector, CURRENT_STATE};
 use ott_balancer_protocol::collector::BalancerState;
-use ott_common::discovery::{start_discovery_task, DnsDiscoveryConfig, DnsMonolithDiscoverer};
+use ott_common::discovery::{start_discovery_task, DnsDiscoveryConfig, DnsServiceDiscoverer};
 use rocket::{serde::json::Json, State};
 use serde::Serialize;
 use tokio::sync::Mutex;
@@ -26,8 +26,8 @@ async fn serve_state(state: &State<Arc<Mutex<SystemState>>>) -> Json<SystemState
 #[rocket::main]
 async fn main() -> anyhow::Result<()> {
     let (discovery_tx, discovery_rx) = tokio::sync::mpsc::channel(2);
-    let discovery = DnsMonolithDiscoverer::new(DnsDiscoveryConfig {
-        monolith_port: 8081,
+    let discovery = DnsServiceDiscoverer::new(DnsDiscoveryConfig {
+        service_port: 8081,
         dns_server: None,
         query: "balancer".to_string(),
     });

@@ -701,7 +701,7 @@ pub async fn dispatch_monolith_message(
 
 #[cfg(test)]
 mod test {
-    use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
+    use ott_common::discovery::{ConnectionConfig, HostOrIp};
     use std::net::Ipv4Addr;
 
     use super::*;
@@ -720,7 +720,7 @@ mod test {
             NewMonolith {
                 id: monolith_id,
                 region: "unknown".into(),
-                config: MonolithConnectionConfig {
+                config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
                 },

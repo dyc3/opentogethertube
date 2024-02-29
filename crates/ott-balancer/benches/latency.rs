@@ -18,7 +18,7 @@ use ott_balancer::{
     messages::SocketMessage,
     monolith::NewMonolith,
 };
-use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
+use ott_common::discovery::{ConnectionConfig, HostOrIp};
 
 async fn send_msg_monolith(
     link: &BalancerLink,
@@ -63,7 +63,7 @@ async fn set_up_1m1c(
         .send_monolith(NewMonolith {
             id: m_id,
             region: "unknown".to_owned(),
-            config: MonolithConnectionConfig {
+            config: ConnectionConfig {
                 host: HostOrIp::Host("localhost".to_owned()),
                 port: 0,
             },
