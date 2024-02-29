@@ -15,10 +15,10 @@ use ott_balancer::{
     balancer::{start_dispatcher, Balancer, BalancerContext, BalancerLink},
     client::{ClientLink, NewClient},
     config::BalancerConfig,
-    discovery::{HostOrIp, MonolithConnectionConfig},
     messages::SocketMessage,
     monolith::NewMonolith,
 };
+use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
 
 async fn send_msg_monolith(
     link: &BalancerLink,
