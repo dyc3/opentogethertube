@@ -39,9 +39,6 @@ import { fromZodError } from "zod-validation-error";
 const router = express.Router();
 const log = getLogger("api/room");
 
-// These strings are not allowed to be used as room names.
-const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
-
 const VALID_ROOM_VISIBILITY = [Visibility.Public, Visibility.Unlisted, Visibility.Private];
 
 const VALID_ROOM_QUEUE_MODE = [QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj];
@@ -124,32 +121,12 @@ const createRoom: RequestHandler<
 > = async (req, res) => {
 	const body = createRoomSchema.parse(req.body);
 
-	function isValidCreateRoom(body: any): body is OttApiRequestRoomCreate {
-		return !!body.name;
-	}
-	if (!isValidCreateRoom(body)) {
-		throw new BadApiArgumentException("name", "missing");
-	}
-
 	if (body.isTemporary && !conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
 	} else if (!body.isTemporary && !conf.get("room.enable_create_permanent")) {
 		throw new FeatureDisabledException("Permanent rooms are disabled.");
 	}
 
-	if (RESERVED_ROOM_NAMES.includes(body.name)) {
-		throw new BadApiArgumentException("name", "not allowed (reserved)");
-	}
-
-	if (!ROOM_NAME_REGEX.exec(body.name)) {
-		throw new BadApiArgumentException("name", "not allowed (invalid characters)");
-	}
-	if (body.visibility && !VALID_ROOM_VISIBILITY.includes(body.visibility)) {
-		throw new BadApiArgumentException(
-			"visibility",
-			`must be one of ${VALID_ROOM_VISIBILITY.toString()}`
-		);
-	}
 	let points = 50;
 	if (body.isTemporary === undefined) {
 		body.isTemporary = true;
@@ -493,15 +470,6 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 					message: err.message,
 				},
 			});
-		} else if (err instanceof ZodError) {
-			const e = err;
-			res.status(400).json({
-				success: false,
-				error: {
-					name: "ZodError",
-					message: e.issues,
-				},
-			});
 		} else {
 			res.status(400).json({
 				success: false,
@@ -517,7 +485,6 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 			success: false,
 			error: {
 				name: err.name,
-				message: err.message,
 			},
 		});
 	} else {
