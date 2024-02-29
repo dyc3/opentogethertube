@@ -1,6 +1,6 @@
 import React from "react";
 import ForceGraph, { Link, Node } from "components/ForceGraph";
-import type { SystemState } from "ott-vis-common";
+import type { SystemState } from "ott-vis";
 import { aggMonolithRooms, countRoomClients, groupMonolithsByRegion } from "aggregate";
 import _ from "lodash";
 

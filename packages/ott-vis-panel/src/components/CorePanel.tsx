@@ -1,7 +1,7 @@
 import React from "react";
 import { PanelProps } from "@grafana/data";
 import type { CoreOptions } from "types";
-import type { SystemState } from "ott-vis-common";
+import type { SystemState } from "ott-vis";
 import { css, cx } from "@emotion/css";
 import { useStyles2 } from "@grafana/ui";
 import GlobalView from "./views/GlobalView";

@@ -1,7 +1,7 @@
 {
-	"name": "ott-vis-datasource",
+	"name": "ott-vis-panel",
 	"version": "0.10.0",
-	"description": "Collects ott system state",
+	"description": "",
 	"author": "Ott",
 	"license": "AGPL-3.0-or-later",
 	"engines": {
@@ -11,7 +11,6 @@
 		"build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
 		"dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
 		"test": "jest --passWithNoTests --maxWorkers 4 --coverage",
-		"test:ci": "jest --passWithNoTests --maxWorkers 4",
 		"typecheck": "tsc --noEmit",
 		"lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
 		"lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
@@ -34,12 +33,16 @@
 		"@types/jest": "^29.5.0",
 		"@types/lodash": "^4.14.194",
 		"@types/node": "^20.8.7",
-		"@types/react-router-dom": "^5.2.0",
 		"@types/testing-library__jest-dom": "5.14.8",
+		"@types/d3": "7.4.3",
 		"copy-webpack-plugin": "^11.0.0",
 		"css-loader": "^6.7.3",
+		"d3": "7.8.5",
 		"eslint": "^8.57.0",
 		"eslint-plugin-deprecation": "^2.0.0",
+		"eslint-plugin-jsdoc": "^48.0.2",
+		"eslint-plugin-react": "^7.33.2",
+		"eslint-plugin-react-hooks": "^4.6.0",
 		"eslint-webpack-plugin": "^4.0.1",
 		"fork-ts-checker-webpack-plugin": "^8.0.0",
 		"glob": "^10.2.7",
@@ -68,7 +71,6 @@
 		"ott-vis": "*",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"rxjs": "7.8.0",
 		"tslib": "2.5.3"
 	}
 }

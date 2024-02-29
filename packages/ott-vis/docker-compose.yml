@@ -13,5 +13,5 @@ services:
       - 3500:3000/tcp
     volumes:
       - ../ott-vis-datasource/dist:/var/lib/grafana/plugins/ott-vis-datasource
-      - ../ott-vis/dist:/var/lib/grafana/plugins/ott-vis
+      - ../ott-vis-panel/dist:/var/lib/grafana/plugins/ott-vis-panel
       - ./provisioning:/etc/grafana/provisioning

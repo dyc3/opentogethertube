@@ -109,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: [ott-vis, ott-vis-datasource]
+        package: [ott-vis-panel, ott-vis-datasource]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js environment
