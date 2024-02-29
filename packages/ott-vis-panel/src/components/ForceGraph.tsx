@@ -40,10 +40,8 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 	// Specify the color scale.
 	const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-	// The force simulation mutates links and nodes, so create a copy
-	// so that re-evaluating this cell produces the same result.
-	const links: Link[] = data.links.map((d: Link) => ({ ...d }));
-	const nodes: Node[] = data.nodes.map((d: Node) => ({ ...d }));
+	const links: Link[] = data.links;
+	const nodes: Node[] = data.nodes;
 
 	// Create a simulation with several forces.
 	const simulation = d3
@@ -84,35 +82,14 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		);
 
 	useEffect(() => {
-		const svg = d3
-			.select(svgRef.current)
-			.attr("width", width)
-			.attr("height", height)
-			.attr("viewBox", [-width / 2, -height / 2, width, height])
-			.attr("style", "max-width: 100%; height: auto;");
-		svg.selectAll("*").remove();
+		const svg = d3.select(svgRef.current).attr("style", "max-width: 100%; height: auto;");
 
 		// Add a line for each link, and a circle for each node.
-		const link = svg
-			.append("g")
-			.attr("stroke", "#999")
-			.attr("stroke-opacity", 0.6)
-			.selectAll("line")
-			.data(links)
-			.join("line")
-			.attr("stroke-width", d => Math.sqrt(d.value));
+		const link = svg.select("g.links").selectAll("line").data(links);
 
-		const node = svg
-			.append("g")
-			.attr("stroke", "#fff")
-			.attr("stroke-width", 1.5)
-			.selectAll("circle")
-			.data(nodes)
-			.join("circle")
-			.attr("r", d => radius(d.radius))
-			.attr("fill", d => color(d.group));
+		const node = svg.select("g.nodes").selectAll("circle").data(nodes);
 
-		node.append("title").text(d => d.id);
+		// node.append("title").text(d => d.id);
 
 		// Add a drag behavior.
 		node.call(
@@ -154,13 +131,32 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			event.subject.fx = null;
 			event.subject.fy = null;
 		}
-
-		function radius(num: number) {
-			return num * 2;
-		}
 	});
 
-	return <svg ref={svgRef} />;
+	function radius(num: number) {
+		return num * 2;
+	}
+
+	return (
+		<svg
+			ref={svgRef}
+			width={width}
+			height={height}
+			viewBox={`${-width / 2} ${-height / 2} ${width}, ${height}`}
+			style={{ height: "auto" }}
+		>
+			<g className="links" stroke="#999" strokeOpacity={0.6}>
+				{links.map((link, i) => (
+					<line key={i} strokeWidth={Math.sqrt(link.value)} />
+				))}
+			</g>
+			<g className="nodes" stroke="#fff" strokeWidth={1.5}>
+				{nodes.map((node, i) => (
+					<circle key={i} r={radius(node.radius)} fill={color(node.group)} />
+				))}
+			</g>
+		</svg>
+	);
 };
 
 export default ForceGraph;
