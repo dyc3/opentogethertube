@@ -10,7 +10,7 @@ use ott_balancer::{
     config::BalancerConfig,
     monolith::NewMonolith,
 };
-use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
+use ott_common::discovery::{ConnectionConfig, HostOrIp};
 
 fn set_up_balancer() -> (BalancerLink, JoinHandle<()>) {
     let ctx = Arc::new(RwLock::new(BalancerContext::new()));
@@ -34,7 +34,7 @@ fn send_messages(c: &mut Criterion) {
             link.send_monolith(NewMonolith {
                 id: m_id,
                 region: "unknown".into(),
-                config: MonolithConnectionConfig {
+                config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 0,
                 },
@@ -74,7 +74,7 @@ fn send_messages(c: &mut Criterion) {
             link.send_monolith(NewMonolith {
                 id: m_id,
                 region: "unknown".into(),
-                config: MonolithConnectionConfig {
+                config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 0,
                 },
@@ -114,7 +114,7 @@ fn send_messages(c: &mut Criterion) {
                 link.send_monolith(NewMonolith {
                     id: uuid::Uuid::new_v4().into(),
                     region: "unknown".into(),
-                    config: MonolithConnectionConfig {
+                    config: ConnectionConfig {
                         host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                         port: 0,
                     },
@@ -162,7 +162,7 @@ fn send_messages(c: &mut Criterion) {
                     link.send_monolith(NewMonolith {
                         id: uuid::Uuid::new_v4().into(),
                         region: regions[i as usize % regions.len()].to_owned(),
-                        config: MonolithConnectionConfig {
+                        config: ConnectionConfig {
                             host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                             port: 0,
                         },

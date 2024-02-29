@@ -1,4 +1,4 @@
-//! Handles discovery of Monoliths.
+//! Handles discovery of Services.
 
 use std::collections::HashSet;
 use std::net::IpAddr;
@@ -22,12 +22,12 @@ use tokio::task::JoinHandle;
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
-pub struct MonolithConnectionConfig {
+pub struct ConnectionConfig {
     pub host: HostOrIp,
     pub port: u16,
 }
 
-impl MonolithConnectionConfig {
+impl ConnectionConfig {
     pub fn uri(&self) -> Url {
         let mut url = Url::parse("ws://localhost").unwrap();
         match self.host {
@@ -44,7 +44,7 @@ impl MonolithConnectionConfig {
     }
 }
 
-impl From<SocketAddr> for MonolithConnectionConfig {
+impl From<SocketAddr> for ConnectionConfig {
     fn from(addr: SocketAddr) -> Self {
         Self {
             host: HostOrIp::Ip(addr.ip()),
@@ -74,9 +74,9 @@ impl<'de> Deserialize<'de> for HostOrIp {
 }
 
 #[async_trait]
-pub trait MonolithDiscoverer {
-    /// In polling mode, this function should immediately return the current list of monoliths. In continuous mode, this function should wait until the list of monoliths changes, then return the new list.
-    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>>;
+pub trait ServiceDiscoverer {
+    /// In polling mode, this function should immediately return the current list of instances. In continuous mode, this function should wait until the list of instances changes, then return the new list.
+    async fn discover(&mut self) -> anyhow::Result<Vec<ConnectionConfig>>;
     fn mode(&self) -> DiscoveryMode;
 }
 
@@ -85,16 +85,16 @@ pub enum DiscoveryMode {
     Continuous,
 }
 pub struct DiscoveryTask {
-    discovery: Box<dyn MonolithDiscoverer + Send + Sync>,
+    discovery: Box<dyn ServiceDiscoverer + Send + Sync>,
 
-    monoliths: HashSet<MonolithConnectionConfig>,
-    discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
+    monoliths: HashSet<ConnectionConfig>,
+    discovery_tx: tokio::sync::mpsc::Sender<ServiceDiscoveryMsg>,
 }
 
 impl DiscoveryTask {
     pub fn new(
-        discovery: impl MonolithDiscoverer + Send + Sync + 'static,
-        discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
+        discovery: impl ServiceDiscoverer + Send + Sync + 'static,
+        discovery_tx: tokio::sync::mpsc::Sender<ServiceDiscoveryMsg>,
     ) -> Self {
         Self {
             discovery: Box::new(discovery),
@@ -138,20 +138,20 @@ impl DiscoveryTask {
 }
 
 fn build_discovery_msg(
-    current: &HashSet<MonolithConnectionConfig>,
-    new: &HashSet<MonolithConnectionConfig>,
-) -> MonolithDiscoveryMsg {
-    let monoliths_added = new.difference(current).cloned().collect::<Vec<_>>();
-    let monoliths_removed = current.difference(new).cloned().collect::<Vec<_>>();
-    MonolithDiscoveryMsg {
-        added: monoliths_added,
-        removed: monoliths_removed,
+    current: &HashSet<ConnectionConfig>,
+    new: &HashSet<ConnectionConfig>,
+) -> ServiceDiscoveryMsg {
+    let instances_added = new.difference(current).cloned().collect::<Vec<_>>();
+    let instances_removed = current.difference(new).cloned().collect::<Vec<_>>();
+    ServiceDiscoveryMsg {
+        added: instances_added,
+        removed: instances_removed,
     }
 }
 
 pub fn start_discovery_task(
-    discovery: impl MonolithDiscoverer + Send + Sync + 'static,
-    discovery_tx: tokio::sync::mpsc::Sender<MonolithDiscoveryMsg>,
+    discovery: impl ServiceDiscoverer + Send + Sync + 'static,
+    discovery_tx: tokio::sync::mpsc::Sender<ServiceDiscoveryMsg>,
 ) -> JoinHandle<()> {
     tokio::task::Builder::new()
         .name("discovery")
@@ -163,7 +163,7 @@ pub fn start_discovery_task(
 }
 
 #[derive(Debug, Clone)]
-pub struct MonolithDiscoveryMsg {
-    pub added: Vec<MonolithConnectionConfig>,
-    pub removed: Vec<MonolithConnectionConfig>,
+pub struct ServiceDiscoveryMsg {
+    pub added: Vec<ConnectionConfig>,
+    pub removed: Vec<ConnectionConfig>,
 }

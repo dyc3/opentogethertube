@@ -7,19 +7,19 @@ use super::*;
 #[derive(Debug, Clone, Deserialize)]
 pub struct FlyDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
-    pub monolith_port: u16,
+    pub service_port: u16,
     pub fly_app: String,
 }
 
-pub struct FlyMonolithDiscoverer {
+pub struct FlyServiceDiscoverer {
     config: FlyDiscoveryConfig,
     query: String,
 }
 
-impl FlyMonolithDiscoverer {
+impl FlyServiceDiscoverer {
     pub fn new(config: FlyDiscoveryConfig) -> Self {
         info!(
-            "Creating FlyMonolithDiscoverer, fly app: {}",
+            "Creating FlyServiceDiscoverer, fly app: {}",
             &config.fly_app
         );
         let query = format!("global.{}.internal", &config.fly_app);
@@ -28,17 +28,17 @@ impl FlyMonolithDiscoverer {
 }
 
 #[async_trait]
-impl MonolithDiscoverer for FlyMonolithDiscoverer {
-    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+impl ServiceDiscoverer for FlyServiceDiscoverer {
+    async fn discover(&mut self) -> anyhow::Result<Vec<ConnectionConfig>> {
         let resolver =
             TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
 
         let lookup = resolver.ipv6_lookup(&self.query).await?;
         let monoliths = lookup
             .iter()
-            .map(|ip| MonolithConnectionConfig {
+            .map(|ip| ConnectionConfig {
                 host: HostOrIp::Ip(IpAddr::V6(*ip)),
-                port: self.config.monolith_port,
+                port: self.config.service_port,
             })
             .collect::<Vec<_>>();
 

@@ -4,17 +4,17 @@ use super::*;
 
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct ManualDiscoveryConfig {
-    pub monoliths: Vec<MonolithConnectionConfig>,
+    pub monoliths: Vec<ConnectionConfig>,
 }
 
-pub struct ManualMonolithDiscoverer {
+pub struct ManualServiceDiscoverer {
     config: ManualDiscoveryConfig,
     discovered: bool,
 }
 
-impl ManualMonolithDiscoverer {
+impl ManualServiceDiscoverer {
     pub fn new(config: ManualDiscoveryConfig) -> Self {
-        info!("Creating ManualMonolithDiscoverer");
+        info!("Creating ManualServiceDiscoverer");
         Self {
             config,
             discovered: false,
@@ -23,8 +23,8 @@ impl ManualMonolithDiscoverer {
 }
 
 #[async_trait]
-impl MonolithDiscoverer for ManualMonolithDiscoverer {
-    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+impl ServiceDiscoverer for ManualServiceDiscoverer {
+    async fn discover(&mut self) -> anyhow::Result<Vec<ConnectionConfig>> {
         #[allow(clippy::while_immutable_condition)]
         while self.discovered {
             // we only ever need to discover once because the monoliths are static

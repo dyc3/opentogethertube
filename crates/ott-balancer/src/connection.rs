@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::monolith::MsgM2B;
-use ott_common::discovery::{MonolithConnectionConfig, MonolithDiscoveryMsg};
+use ott_common::discovery::{ConnectionConfig, ServiceDiscoveryMsg};
 use tokio_tungstenite::{connect_async, WebSocketStream};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, warn};
@@ -18,16 +18,16 @@ use crate::messages::SocketMessage;
 use crate::monolith::NewMonolith;
 
 pub struct MonolithConnectionManager {
-    discovery_rx: tokio::sync::mpsc::Receiver<MonolithDiscoveryMsg>,
+    discovery_rx: tokio::sync::mpsc::Receiver<ServiceDiscoveryMsg>,
     link: BalancerLink,
 
-    monoliths: HashSet<MonolithConnectionConfig>,
-    connection_tasks: HashMap<MonolithConnectionConfig, ActiveConnection>,
+    monoliths: HashSet<ConnectionConfig>,
+    connection_tasks: HashMap<ConnectionConfig, ActiveConnection>,
 }
 
 impl MonolithConnectionManager {
     pub fn new(
-        discovery_rx: tokio::sync::mpsc::Receiver<MonolithDiscoveryMsg>,
+        discovery_rx: tokio::sync::mpsc::Receiver<ServiceDiscoveryMsg>,
         link: BalancerLink,
     ) -> Self {
         Self {
@@ -76,7 +76,7 @@ impl MonolithConnectionManager {
 }
 
 async fn connect_and_maintain(
-    conf: MonolithConnectionConfig,
+    conf: ConnectionConfig,
     link: BalancerLink,
     cancel: CancellationToken,
 ) {

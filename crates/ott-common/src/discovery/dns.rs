@@ -7,21 +7,21 @@ use super::*;
 #[derive(Debug, Clone, Deserialize)]
 pub struct DnsDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
-    pub monolith_port: u16,
+    pub service_port: u16,
     /// The DNS server to query. Optional. If not provided, the system configuration will be used instead.
     pub dns_server: Option<String>,
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
 }
 
-pub struct DnsMonolithDiscoverer {
+pub struct DnsServiceDiscoverer {
     config: DnsDiscoveryConfig,
 }
 
-impl DnsMonolithDiscoverer {
+impl DnsServiceDiscoverer {
     pub fn new(config: DnsDiscoveryConfig) -> Self {
         info!(
-            "Creating DnsMonolithDiscoverer, DNS server: {:?}",
+            "Creating DnsServiceDiscoverer, DNS server: {:?}",
             config.dns_server
         );
         Self { config }
@@ -29,17 +29,17 @@ impl DnsMonolithDiscoverer {
 }
 
 #[async_trait]
-impl MonolithDiscoverer for DnsMonolithDiscoverer {
-    async fn discover(&mut self) -> anyhow::Result<Vec<MonolithConnectionConfig>> {
+impl ServiceDiscoverer for DnsServiceDiscoverer {
+    async fn discover(&mut self) -> anyhow::Result<Vec<ConnectionConfig>> {
         let resolver =
             TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
 
         let lookup = resolver.ipv4_lookup(&self.config.query).await?;
         let monoliths = lookup
             .iter()
-            .map(|ip| MonolithConnectionConfig {
+            .map(|ip| ConnectionConfig {
                 host: HostOrIp::Ip(IpAddr::V4(*ip)),
-                port: self.config.monolith_port,
+                port: self.config.service_port,
             })
             .collect::<Vec<_>>();
 
