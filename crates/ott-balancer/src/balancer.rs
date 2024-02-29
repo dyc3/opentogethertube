@@ -701,9 +701,8 @@ pub async fn dispatch_monolith_message(
 
 #[cfg(test)]
 mod test {
+    use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
     use std::net::Ipv4Addr;
-
-    use crate::discovery::{HostOrIp, MonolithConnectionConfig};
 
     use super::*;
 

@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use ott_balancer_protocol::monolith::MsgM2B;
+use ott_common::discovery::{MonolithConnectionConfig, MonolithDiscoveryMsg};
 use tokio_tungstenite::{connect_async, WebSocketStream};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, warn};
@@ -13,7 +14,6 @@ use tungstenite::protocol::CloseFrame;
 use tungstenite::Message;
 
 use crate::balancer::BalancerLink;
-use crate::discovery::{MonolithConnectionConfig, MonolithDiscoveryMsg};
 use crate::messages::SocketMessage;
 use crate::monolith::NewMonolith;
 

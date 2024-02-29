@@ -49,9 +49,9 @@ mod test {
     use std::net::Ipv4Addr;
     use std::sync::Arc;
 
-    use crate::discovery::{HostOrIp, MonolithConnectionConfig};
     use crate::monolith::{BalancerMonolith, NewMonolith};
     use ott_balancer_protocol::*;
+    use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
 
     use super::{MinRoomsSelector, MonolithSelection};
 

@@ -4,7 +4,7 @@ use clap::{Parser, ValueEnum};
 use figment::providers::Format;
 use serde::Deserialize;
 
-use crate::discovery::{
+use ott_common::discovery::{
     DnsDiscoveryConfig, FlyDiscoveryConfig, HarnessDiscoveryConfig, ManualDiscoveryConfig,
 };
 

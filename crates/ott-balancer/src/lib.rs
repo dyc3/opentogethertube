@@ -13,14 +13,15 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
 use crate::config::{BalancerConfig, DiscoveryConfig};
-use crate::discovery::start_discovery_task;
 use crate::service::BalancerService;
-
+use ott_common::discovery::{
+    start_discovery_task, DnsMonolithDiscoverer, FlyMonolithDiscoverer, HarnessMonolithDiscoverer,
+    ManualMonolithDiscoverer,
+};
 pub mod balancer;
 pub mod client;
 pub mod config;
 pub mod connection;
-pub mod discovery;
 pub mod messages;
 pub mod monolith;
 pub mod room;
@@ -81,19 +82,19 @@ pub async fn run() -> anyhow::Result<()> {
     info!("Starting monolith discovery");
     let _discovery_handle = match &config.discovery {
         DiscoveryConfig::Dns(config) => {
-            let discovery = discovery::DnsMonolithDiscoverer::new(config.clone());
+            let discovery = DnsMonolithDiscoverer::new(config.clone());
             start_discovery_task(discovery, discovery_tx)
         }
         DiscoveryConfig::Fly(config) => {
-            let discovery = discovery::FlyMonolithDiscoverer::new(config.clone());
+            let discovery = FlyMonolithDiscoverer::new(config.clone());
             start_discovery_task(discovery, discovery_tx)
         }
         DiscoveryConfig::Manual(config) => {
-            let discovery = discovery::ManualMonolithDiscoverer::new(config.clone());
+            let discovery = ManualMonolithDiscoverer::new(config.clone());
             start_discovery_task(discovery, discovery_tx)
         }
         DiscoveryConfig::Harness(config) => {
-            let discovery = discovery::HarnessMonolithDiscoverer::new(config.clone());
+            let discovery = HarnessMonolithDiscoverer::new(config.clone());
             start_discovery_task(discovery, discovery_tx)
         }
     };

@@ -4,10 +4,10 @@ use std::sync::Arc;
 use anyhow::bail;
 use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
+use ott_common::discovery::MonolithConnectionConfig;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::error;
 
-use crate::discovery::MonolithConnectionConfig;
 use crate::messages::*;
 
 /// A Monolith refers to the NodeJS server that manages rooms and performs all business logic.

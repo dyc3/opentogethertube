@@ -8,9 +8,9 @@ use ott_balancer::{
     balancer::{start_dispatcher, Balancer, BalancerContext, BalancerLink},
     client::NewClient,
     config::BalancerConfig,
-    discovery::{HostOrIp, MonolithConnectionConfig},
     monolith::NewMonolith,
 };
+use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
 
 fn set_up_balancer() -> (BalancerLink, JoinHandle<()>) {
     let ctx = Arc::new(RwLock::new(BalancerContext::new()));
