@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use once_cell::sync::Lazy;
 use ott_balancer_protocol::collector::BalancerState;
-use ott_common::discovery::{HostOrIp, MonolithConnectionConfig};
+use ott_common::discovery::{MonolithConnectionConfig, MonolithDiscoveryMsg};
 use tokio::sync::Mutex;
 use tracing::{error, warn};
 
@@ -12,14 +12,14 @@ pub static CURRENT_STATE: Lazy<Arc<Mutex<SystemState>>> =
     Lazy::new(|| Arc::new(Mutex::new(SystemState(vec![]))));
 
 pub struct Collector {
-    discovery_rx: tokio::sync::mpsc::Receiver<()>,
+    discovery_rx: tokio::sync::mpsc::Receiver<MonolithDiscoveryMsg>,
     interval: tokio::time::Duration,
     balancers: Vec<MonolithConnectionConfig>,
 }
 
 impl Collector {
     pub fn new(
-        discovery_rx: tokio::sync::mpsc::Receiver<()>,
+        discovery_rx: tokio::sync::mpsc::Receiver<MonolithDiscoveryMsg>,
         interval: tokio::time::Duration,
     ) -> Self {
         Self {
@@ -61,11 +61,9 @@ impl Collector {
         }
     }
 
-    pub fn handle_discovery(&mut self, msg: ()) {
-        self.balancers = vec![MonolithConnectionConfig {
-            host: HostOrIp::Host("localhost".to_owned()),
-            port: 8080,
-        }];
+    pub fn handle_discovery(&mut self, msg: MonolithDiscoveryMsg) {
+        self.balancers.retain(|conf| !msg.removed.contains(conf));
+        self.balancers.extend(msg.added);
     }
 
     pub async fn collect(&self) -> anyhow::Result<SystemState> {

@@ -15,7 +15,7 @@ mod collector;
 mod cors;
 
 #[derive(Debug, Clone, Serialize)]
-struct SystemState(Vec<BalancerState>);
+pub struct SystemState(Vec<BalancerState>);
 
 fn return_sample_state() -> SystemState {
     SystemState({
