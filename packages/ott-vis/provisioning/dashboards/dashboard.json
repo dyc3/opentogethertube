@@ -23,8 +23,8 @@
 	"panels": [
 		{
 			"datasource": {
-				"type": "grafana",
-				"uid": "grafana"
+				"type": "ott-vis-datasource",
+				"uid": "P8AFEECD30EDC727B"
 			},
 			"gridPos": {
 				"h": 8,
@@ -42,10 +42,9 @@
 			"targets": [
 				{
 					"datasource": {
-						"type": "datasource",
-						"uid": "grafana"
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
 					},
-					"queryType": "randomWalk",
 					"refId": "A"
 				}
 			],
@@ -54,8 +53,8 @@
 		},
 		{
 			"datasource": {
-				"type": "grafana",
-				"uid": "grafana"
+				"type": "ott-vis-datasource",
+				"uid": "P8AFEECD30EDC727B"
 			},
 			"gridPos": {
 				"h": 8,
@@ -73,10 +72,9 @@
 			"targets": [
 				{
 					"datasource": {
-						"type": "datasource",
-						"uid": "grafana"
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
 					},
-					"queryType": "randomWalk",
 					"refId": "A"
 				}
 			],
@@ -356,7 +354,7 @@
 		"list": []
 	},
 	"time": {
-		"from": "now-6h",
+		"from": "now-5m",
 		"to": "now"
 	},
 	"timepicker": {},

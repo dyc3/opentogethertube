@@ -1,5 +1,5 @@
 {
-	"extends": "../../.eslintrc.json",
+	"extends": "./.config/.eslintrc",
 	"rules": {
 		"camelcase": ["error", { "properties": "never" }]
 	}

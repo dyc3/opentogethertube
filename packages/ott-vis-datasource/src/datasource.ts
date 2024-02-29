@@ -9,7 +9,7 @@ import {
 
 import { MyQuery, MyDataSourceOptions } from "./types";
 import { getBackendSrv } from "@grafana/runtime";
-import type { SystemState } from "ott-vis-common";
+import type { SystemState } from "ott-vis";
 import { lastValueFrom } from "rxjs";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {

@@ -1,0 +1,9 @@
+{
+	"extends": "./.config/tsconfig.json",
+	"compilerOptions": {
+		"strict": true,
+		"typeRoots": ["../../node_modules/@types"],
+		"esModuleInterop": true,
+		"jsx": "react"
+	}
+}
