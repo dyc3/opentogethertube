@@ -6,6 +6,9 @@ edition = "2021"
 
 [dependencies]
 anyhow.workspace = true
+clap.workspace = true
+figment.workspace = true
+humantime-serde.workspace = true
 ott-common.workspace = true
 ott-balancer-protocol.workspace = true
 once_cell.workspace = true

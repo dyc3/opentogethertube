@@ -1,8 +1,6 @@
-base.toml
-development.toml
-test.toml
-production.toml
-staging.toml
-balancer.toml
+*.toml
+!example.toml
+!docker.base.toml
+!heroku.base.toml
 
 *.env

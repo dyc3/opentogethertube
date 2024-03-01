@@ -1,4 +1,4 @@
 [discovery]
 method = "dns"
-monolith_port = 3002
+service_port = 3002
 query = "opentogethertube"

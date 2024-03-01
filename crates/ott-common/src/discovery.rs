@@ -21,6 +21,21 @@ use serde::Deserialize;
 use tokio::task::JoinHandle;
 use url::Url;
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "method", rename_all = "lowercase")]
+pub enum DiscoveryConfig {
+    Dns(DnsDiscoveryConfig),
+    Fly(FlyDiscoveryConfig),
+    Manual(ManualDiscoveryConfig),
+    Harness(HarnessDiscoveryConfig),
+}
+
+impl Default for DiscoveryConfig {
+    fn default() -> Self {
+        Self::Manual(ManualDiscoveryConfig::default())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
 pub struct ConnectionConfig {
     pub host: HostOrIp,

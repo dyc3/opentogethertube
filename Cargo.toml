@@ -13,6 +13,7 @@ figment = { version = "0.10.10", features = ["toml", "env"] }
 futures-util = "0.3.28"
 harness = { path = "crates/harness" }
 harness_macros = { path = "crates/harness_macros" }
+humantime-serde = "1.1"
 hyper = { version = "1.0.0-rc.4", features = ["full"] }
 hyper-util = { git = "https://github.com/hyperium/hyper-util.git", rev = "f898015" }
 http-body-util = "0.1.0-rc.2"
@@ -24,7 +25,7 @@ pin-project = "1.0.12"
 prometheus = { version = "0.13.3", features = ["process"] }
 rand = "0.8.5"
 reqwest = { version = "0.11.17", features = ["json", "stream", "rustls-tls"] }
-rocket = {version = "0.5.0", features = ["json"]}
+rocket = { version = "0.5.0", features = ["json"] }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = { version = "1", features = ["raw_value"] }
 serde_path_to_error = "0.1.15"

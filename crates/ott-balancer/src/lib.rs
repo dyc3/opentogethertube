@@ -12,11 +12,11 @@ use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
-use crate::config::{BalancerConfig, DiscoveryConfig};
+use crate::config::BalancerConfig;
 use crate::service::BalancerService;
 use ott_common::discovery::{
-    start_discovery_task, DnsServiceDiscoverer, FlyServiceDiscoverer, HarnessServiceDiscoverer,
-    ManualServiceDiscoverer,
+    start_discovery_task, DiscoveryConfig, DnsServiceDiscoverer, FlyServiceDiscoverer,
+    HarnessServiceDiscoverer, ManualServiceDiscoverer,
 };
 pub mod balancer;
 pub mod client;
