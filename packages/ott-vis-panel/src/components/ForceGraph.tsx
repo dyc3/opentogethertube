@@ -21,6 +21,7 @@ export interface Node extends d3.SimulationNodeDatum {
 	group: string;
 	color: string;
 	radius: number;
+	text?: string;
 }
 
 export interface Link extends d3.SimulationLinkDatum<Node> {
@@ -82,12 +83,13 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		);
 
 	useEffect(() => {
-		const svg = d3.select(svgRef.current).attr("style", "max-width: 100%; height: auto;");
+		const svg = d3.select(svgRef.current);
 
 		// Add a line for each link, and a circle for each node.
 		const link = svg.select("g.links").selectAll("line").data(links);
 
 		const node = svg.select("g.nodes").selectAll("circle").data(nodes);
+		const nodeText = svg.select("g.nodes").selectAll("text").data(nodes);
 
 		// node.append("title").text(d => d.id);
 
@@ -105,6 +107,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 				.attr("y2", d => (d.target as Node).y ?? 0);
 
 			node.attr("cx", d => d.x).attr("cy", d => d.y);
+			nodeText.attr("x", d => d.x).attr("y", d => d.y + 4);
 		});
 
 		// Reheat the simulation when drag starts, and fix the subject position.
@@ -143,7 +146,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			width={width}
 			height={height}
 			viewBox={`${-width / 2} ${-height / 2} ${width}, ${height}`}
-			style={{ height: "auto" }}
+			style={{ height: "auto", maxWidth: "100%" }}
 		>
 			<g className="links" stroke="#999" strokeOpacity={0.6}>
 				{links.map((link, i) => (
@@ -152,7 +155,20 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			</g>
 			<g className="nodes" stroke="#fff" strokeWidth={1.5}>
 				{nodes.map((node, i) => (
-					<circle key={i} r={radius(node.radius)} fill={color(node.group)} />
+					<>
+						<circle key={i} r={radius(node.radius)} fill={color(node.group)} />
+						<text
+							textAnchor="middle"
+							alignmentBaseline="middle"
+							style={{ userSelect: "none", cursor: "default", pointerEvents: "none" }}
+							fontFamily="Inter, Helvetica, Arial, sans-serif"
+							fontSize={10}
+							strokeWidth={0}
+							fill="#fff"
+						>
+							{node.text}
+						</text>
+					</>
 				))}
 			</g>
 		</svg>
