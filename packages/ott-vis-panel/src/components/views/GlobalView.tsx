@@ -19,6 +19,7 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 		y: 0,
 		group: "core",
 		color: "Purple", // TODO: use color from grafana theme/panel options
+		text: "OTT",
 	};
 	nodes.push(core);
 
@@ -34,6 +35,7 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 			y: 0,
 			group: "monolith",
 			color: "Red", // TODO: use color from grafana theme/panel options
+			text: monolith.substring(0, 6),
 		};
 		nodes.push(monolithNode);
 		monoliths.push(monolithNode);

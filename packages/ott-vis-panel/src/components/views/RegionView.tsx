@@ -34,6 +34,7 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 			y: 0,
 			group: "core",
 			color: regionColors[region],
+			text: region,
 		};
 		nodes.push(core);
 
@@ -45,6 +46,7 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 				y: 0,
 				group: "monolith",
 				color: regionColors[region],
+				text: monolith.substring(0, 6),
 			};
 			nodes.push(monolithNode);
 
@@ -72,6 +74,9 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 				});
 
 				const clients = roomCounts[room];
+				if (clients === 0) {
+					continue;
+				}
 				const clientsNode: Node = {
 					id: `${room}-clients`,
 					radius: clients,
@@ -79,6 +84,7 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 					y: 0,
 					group: "client",
 					color: regionColors[region],
+					text: `${clients}`,
 				};
 				nodes.push(clientsNode);
 
