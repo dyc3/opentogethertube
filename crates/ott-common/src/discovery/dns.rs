@@ -20,10 +20,13 @@ pub struct DnsServiceDiscoverer {
 
 impl DnsServiceDiscoverer {
     pub fn new(config: DnsDiscoveryConfig) -> Self {
-        info!(
-            "Creating DnsServiceDiscoverer, DNS server: {:?}",
-            config.dns_server
-        );
+        match config.dns_server {
+            None => info!(
+                "Creating DnsServiceDiscoverer, DNS server: {:?}",
+                config.dns_server
+            ),
+            Some(server) => (),
+        }
         Self { config }
     }
 }
