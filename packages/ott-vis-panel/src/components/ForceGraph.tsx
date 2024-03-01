@@ -26,6 +26,7 @@ export interface Node extends d3.SimulationNodeDatum {
 
 export interface Link extends d3.SimulationLinkDatum<Node> {
 	value: number;
+	color?: string;
 }
 
 const ForceGraph: React.FC<ForceGraphProps> = ({
@@ -150,7 +151,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		>
 			<g className="links" stroke="#999" strokeOpacity={0.6}>
 				{links.map((link, i) => (
-					<line key={i} strokeWidth={Math.sqrt(link.value)} />
+					<line key={i} strokeWidth={Math.sqrt(link.value)} stroke={link.color} />
 				))}
 			</g>
 			<g className="nodes" stroke="#fff" strokeWidth={1.5}>

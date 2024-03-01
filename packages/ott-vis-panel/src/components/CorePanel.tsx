@@ -6,6 +6,7 @@ import { css, cx } from "@emotion/css";
 import { useStyles2 } from "@grafana/ui";
 import GlobalView from "./views/GlobalView";
 import RegionView from "./views/RegionView";
+import NodeView from "./views/NodeView";
 import { LoadingState } from "@grafana/schema";
 
 interface Props extends PanelProps<CoreOptions> {}
@@ -46,6 +47,8 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		view = <GlobalView height={height} width={width} systemState={systemState} />;
 	} else if (options.view === "region") {
 		view = <RegionView height={height} width={width} systemState={systemState} />;
+	} else if (options.view === "node") {
+		view = <NodeView height={height} width={width} systemState={systemState} />;
 	} else {
 		view = <div>Invalid view</div>;
 	}
