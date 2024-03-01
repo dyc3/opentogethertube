@@ -25,6 +25,26 @@ class TestDataSourceInstanceSettings implements DataSourceInstanceSettings<MyDat
     }
 };
 
+class TestDataQueryRequest implements DataQueryRequest<MyQuery> {
+    requestId: string;
+    interval: string;
+    intervalMs: number;
+    range: null;
+    scopedVars: ScopedVars;
+    targets: MyQuery[];
+    timezone: string;
+    timeInfo?: string | undefined;
+    app: string;
+    startTime: number;
+
+    constructor(){
+        this.requestId = "";
+        this.interval = "";
+        this.intervalMs = 1;
+        this.range = null;
+    }
+};
+
 describe('sum module', () => {
   test('query returns object of type SystemState', () => {
     let instanceSettings = new TestDataSourceInstanceSettings();
