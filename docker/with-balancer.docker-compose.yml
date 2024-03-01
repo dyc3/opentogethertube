@@ -46,6 +46,7 @@ services:
       dockerfile: deploy/collector.Dockerfile
       args:
         - DEPLOY_TARGET=ott-collector-docker
+      target: deploy-stage
     ports:
       - 8000:8000
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"

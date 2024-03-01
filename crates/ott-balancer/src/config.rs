@@ -4,9 +4,7 @@ use clap::{Parser, ValueEnum};
 use figment::providers::Format;
 use serde::Deserialize;
 
-use ott_common::discovery::{
-    DnsDiscoveryConfig, FlyDiscoveryConfig, HarnessDiscoveryConfig, ManualDiscoveryConfig,
-};
+use ott_common::discovery::DiscoveryConfig;
 
 static mut CONFIG: Option<BalancerConfig> = None;
 
@@ -28,21 +26,6 @@ impl Default for BalancerConfig {
             discovery: DiscoveryConfig::default(),
             region: "unknown".to_owned(),
         }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(tag = "method", rename_all = "lowercase")]
-pub enum DiscoveryConfig {
-    Dns(DnsDiscoveryConfig),
-    Fly(FlyDiscoveryConfig),
-    Manual(ManualDiscoveryConfig),
-    Harness(HarnessDiscoveryConfig),
-}
-
-impl Default for DiscoveryConfig {
-    fn default() -> Self {
-        Self::Manual(ManualDiscoveryConfig::default())
     }
 }
 

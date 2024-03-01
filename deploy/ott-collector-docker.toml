@@ -1,0 +1,4 @@
+[discovery]
+method = "dns"
+query = "balancer"
+service_port = 8081
