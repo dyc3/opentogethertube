@@ -65,11 +65,16 @@ export function createRoom(name, token, roomOptions = {}, options = { doCheck: t
 				if (r.status === 201) {
 					return true;
 				}
-				let body = JSON.parse(r.body);
-				if (body.error && body.error.name === "RoomNameTakenException") {
-					return true;
+				try {
+					let body = JSON.parse(r.body);
+					if (body.error && body.error.name === "RoomNameTakenException") {
+						return true;
+					}
+					return false;
+				} catch (e) {
+					console.log(`Failed to parse response body as json: ${r.body}`);
+					return false;
 				}
-				return false;
 			},
 		});
 	}
