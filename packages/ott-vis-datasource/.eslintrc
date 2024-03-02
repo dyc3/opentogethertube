@@ -2,5 +2,36 @@
 	"extends": "./.config/.eslintrc",
 	"rules": {
 		"camelcase": ["error", { "properties": "never" }]
-	}
+	},
+	"overrides": [
+		{
+			"files": ["./**/*.spec.ts"],
+			"plugins": ["jest"],
+			"extends": ["plugin:jest/recommended"],
+			"rules": {
+				"jest/no-disabled-tests": "warn",
+				"jest/no-focused-tests": "error",
+				"jest/no-identical-title": "error",
+				"jest/no-conditional-in-test": "error",
+				"jest/valid-expect": "error",
+				"jest/consistent-test-it": ["error", { "fn": "it" }],
+				"jest/require-top-level-describe": "error",
+				"jest/prefer-equality-matcher": "error",
+				"jest/prefer-spy-on": "error",
+				"jest/prefer-todo": "error",
+				"jest/prefer-to-contain": "error",
+				"jest/prefer-to-have-length": "error",
+				"jest/prefer-lowercase-title": ["error", { "ignore": ["describe"] }],
+				"jest/prefer-hooks-on-top": "error",
+				"jest/prefer-hooks-in-order": "error",
+				"jest/prefer-expect-resolves": "error",
+				"jest/prefer-expect-assertions": [
+					"warn",
+					{ "onlyFunctionsWithExpectInLoop": true }
+				],
+				"jest/prefer-mock-promise-shorthand": "error",
+				"jest/prefer-each": "error"
+			}
+		}
+	]
 }
