@@ -1,22 +1,17 @@
 import { createStore, Store, useStore as baseUseStore } from "vuex";
-import dayjs, { Dayjs } from "dayjs";
 import { toastModule, ToastState } from "@/stores/toast";
 import { usersModule, UsersState } from "@/stores/users";
 import { settingsModule, SettingsState } from "@/stores/settings";
 import { ToastStyle } from "./models/toast";
 import { eventsModule } from "@/stores/events";
-import { QueueMode, RoomUserInfo } from "ott-common/models/types";
-import { deserializeMap, deserializeSet } from "ott-common/serialize";
 import { miscModule, MiscState } from "@/stores/misc";
 import { captionsModule, CaptionsState } from "@/stores/captions";
-import { QueueItem } from "ott-common/models/video";
 import { InjectionKey } from "vue";
-import { Grants } from "ott-common/permissions";
-import { ServerMessageSync } from "ott-common/models/messages";
 import _ from "lodash";
-import { calculateCurrentPosition } from "ott-common/timestamp";
+import { RoomState, roomModule } from "./stores/room";
 
 export type FullOTTStoreState = BaseStoreState & {
+	room: RoomState;
 	toast: ToastState;
 	users: UsersState;
 	settings: SettingsState;
@@ -25,32 +20,6 @@ export type FullOTTStoreState = BaseStoreState & {
 };
 
 interface BaseStoreState {
-	room: {
-		name: string;
-		title: string;
-		description: string;
-		isTemporary: boolean;
-		queueMode: QueueMode;
-		currentSource: QueueItem | null;
-		queue: QueueItem[];
-		isPlaying: boolean;
-		playbackPosition: number;
-		playbackSpeed: number;
-		hasOwner: boolean;
-		voteCounts?: Map<string, number>;
-		playbackStartTime: Dayjs | undefined;
-		videoSegments?: {
-			startTime: number;
-			endTime: number;
-			videoDuration: number;
-			category: string;
-		}[];
-		grants: Grants;
-		prevQueue: QueueItem[] | null;
-		enableVoteSkip: boolean;
-		votesToSkip: Set<string>;
-	};
-
 	keepAliveInterval: number | null;
 
 	playerBufferPercent: number | null;
@@ -83,26 +52,6 @@ export function buildNewStore() {
 				username: null,
 				/** Registered user */
 				user: null,
-				room: {
-					name: "",
-					title: "",
-					description: "",
-					isTemporary: false,
-					queueMode: QueueMode.Manual,
-					currentSource: {} as QueueItem,
-					queue: [],
-					isPlaying: false,
-					playbackPosition: 0,
-					playbackSpeed: 1,
-					hasOwner: false,
-					voteCounts: undefined,
-					playbackStartTime: undefined,
-					grants: new Grants(),
-					prevQueue: null,
-					enableVoteSkip: false,
-					votesToSkip: new Set(),
-					videoSegments: [],
-				},
 
 				keepAliveInterval: null,
 
@@ -136,40 +85,6 @@ export function buildNewStore() {
 			},
 		},
 		actions: {
-			sync(context, message: ServerMessageSync) {
-				console.debug("SYNC", message);
-				const stateupdate: Partial<BaseStoreState["room"]> = {
-					..._.omit(message, ["action", "grants", "voteCounts", "votesToSkip"]),
-				} as any;
-				if (
-					message.isPlaying !== undefined &&
-					this.state.room.isPlaying !== message.isPlaying
-				) {
-					if (message.isPlaying) {
-						this.state.room.playbackStartTime = dayjs();
-					}
-				}
-				if (
-					(message.currentSource || message.playbackPosition !== undefined) &&
-					this.state.room.isPlaying
-				) {
-					this.state.room.playbackStartTime = dayjs();
-				}
-				if ("currentSource" in message) {
-					this.commit("PLAYBACK_BUFFER_RESET");
-				}
-				if (message.voteCounts) {
-					stateupdate.voteCounts = deserializeMap(message.voteCounts);
-				}
-				if (message.grants) {
-					stateupdate.grants = new Grants(message.grants);
-				}
-				if (message.votesToSkip) {
-					stateupdate.votesToSkip = deserializeSet(message.votesToSkip);
-				}
-				// HACK: this lets vue detect the changes and react to them
-				Object.assign(this.state.room, stateupdate);
-			},
 			chat() {},
 			announcement(context, message) {
 				this.commit("toast/ADD_TOAST", {
@@ -188,6 +103,7 @@ export function buildNewStore() {
 			},
 		},
 		modules: {
+			room: roomModule,
 			toast: toastModule,
 			events: eventsModule,
 			users: usersModule,
