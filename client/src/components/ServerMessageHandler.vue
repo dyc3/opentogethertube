@@ -14,7 +14,7 @@ const ServerMessageHandler = defineComponent({
 		const connection = useConnection();
 
 		connection.addMessageHandler("sync", msg => {
-			store.dispatch("sync", msg);
+			store.dispatch("room/sync", msg);
 		});
 		connection.addMessageHandler("chat", msg => {
 			store.dispatch("chat", msg);

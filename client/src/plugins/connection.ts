@@ -170,12 +170,10 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	}
 
 	private onMessage(e: { data: string | unknown }) {
-		console.debug("socket message", e);
 		if (typeof e.data === "string") {
 			try {
 				let msg = JSON.parse(e.data) as ServerMessage;
 				this.handleMessage(msg);
-				// this.store.dispatch(msg.action, msg);
 			} catch (e) {
 				console.error("unable to process message: ", e.data, e);
 			}
