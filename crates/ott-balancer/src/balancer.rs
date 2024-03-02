@@ -232,15 +232,21 @@ impl BalancerContext {
         Ok(())
     }
 
-    pub fn add_monolith(&mut self, monolith: BalancerMonolith, balancer_id: BalancerId) {
+    pub async fn add_monolith(
+        &mut self,
+        monolith: BalancerMonolith,
+        balancer_id: BalancerId,
+    ) -> anyhow::Result<()> {
         let monolith_id = monolith.id();
         let region = monolith.region().to_string();
-        monolith.send(B2MInit { id: balancer_id });
+        monolith.send(B2MInit { id: balancer_id }).await?;
         self.monoliths.insert(monolith_id, monolith);
         self.monoliths_by_region
             .entry(region)
             .or_default()
             .push(monolith_id);
+
+        Ok(())
     }
 
     pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
@@ -521,7 +527,7 @@ pub async fn join_monolith(
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
     let monolith_id = monolith.id();
     let balancer_id: BalancerId = uuid::Uuid::new_v4().into();
-    b.add_monolith(monolith, balancer_id);
+    b.add_monolith(monolith, balancer_id).await?;
     drop(b);
 
     let ctx = ctx.clone();

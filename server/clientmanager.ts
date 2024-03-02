@@ -335,7 +335,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 		},
 		init: async message => {
 			const msg = message.payload;
-		}
+		},
 	};
 
 	const handler = handlers[message.type];
