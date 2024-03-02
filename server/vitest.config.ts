@@ -15,5 +15,9 @@ export default defineConfig({
 				"**/common/**",
 			],
 		},
+		typecheck: {
+			enabled: true,
+			include: ["**/*.spec-d.ts"],
+		},
 	},
 });
