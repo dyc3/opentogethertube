@@ -23,6 +23,9 @@ use crate::{
     messages::*,
     monolith::{BalancerMonolith, NewMonolith},
 };
+use once_cell::sync::Lazy;
+
+pub static BALANCER_ID: Lazy<BalancerId> = Lazy::new(|| Uuid::new_v4().into());
 
 pub struct Balancer {
     pub(crate) ctx: Arc<RwLock<BalancerContext>>,
@@ -526,7 +529,7 @@ pub async fn join_monolith(
         .send(monolith_outbound_rx)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
     let monolith_id = monolith.id();
-    let balancer_id: BalancerId = uuid::Uuid::new_v4().into();
+    let balancer_id = *BALANCER_ID;
     b.add_monolith(monolith, balancer_id).await?;
     drop(b);
 
@@ -741,7 +744,7 @@ mod test {
             client_inbound_tx,
         );
         let client_id = uuid::Uuid::new_v4().into();
-        let balancer_id = uuid::Uuid::new_v4().into();
+        let balancer_id = *BALANCER_ID;
         let client = BalancerClient::new(
             NewClient {
                 id: client_id,
