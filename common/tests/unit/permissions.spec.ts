@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PermissionDeniedException } from "../../exceptions";
-import { Role } from "../../models/types";
+import { Role } from "../..";
 import permissions, { Grants, GrantMask } from "../../permissions";
 
 describe("Permission System", () => {

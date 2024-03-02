@@ -1,3 +1,4 @@
+import type { Category, Segment } from "sponsorblock-api";
 import {
 	ClientId,
 	ClientInfo,
@@ -9,6 +10,7 @@ import {
 	RoomEventContext,
 	RoomSettings,
 	AuthToken,
+	BehaviorOption,
 } from "./types";
 import { QueueItem, VideoId } from "./video";
 
@@ -38,14 +40,18 @@ export interface ServerMessageSync extends ServerMessageBase {
 	queueMode?: QueueMode;
 	isPlaying?: boolean;
 	playbackPosition?: number;
-	currentSource?: QueueItem;
+	currentSource?: QueueItem | null;
+	queue?: QueueItem[];
+	prevQueue?: QueueItem[] | null;
 	grants?: [Role, number][];
 	playbackSpeed?: number;
 	voteCounts?: [string, number][];
 	hasOwner?: boolean;
 	enableVoteSkip?: boolean;
 	votesToSkip?: string[];
-	videoSegments?: unknown[];
+	autoSkipSegmentCategories?: Category[];
+	videoSegments?: Segment[];
+	restoreQueueBehavior?: BehaviorOption;
 }
 
 /**

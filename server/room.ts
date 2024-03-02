@@ -122,7 +122,7 @@ export class RoomUser {
  * This rule does not necessarily apply to inherited fields.
  */
 export interface RoomState extends RoomOptions, RoomStateComputed {
-	currentSource: Video | null;
+	currentSource: QueueItem | null;
 	queue: VideoQueue;
 	isPlaying: boolean;
 	playbackPosition: number;

@@ -13,7 +13,12 @@ export default defineConfig({
 				"migrations/**",
 				"**/tests/**",
 				"**/common/**",
+				"**/*.spec-d.ts",
 			],
+		},
+		typecheck: {
+			enabled: true,
+			include: ["**/*.spec-d.ts"],
 		},
 	},
 });

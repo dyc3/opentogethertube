@@ -52,3 +52,13 @@ export type PickFunctions<T, Arg1, Arg2> = Omit<
 	Pick<T, NeverIfArg2NotMatch<T, Arg1, Arg2>[keyof T]>,
 	keyof NonNever<HasNoArgs<T>>
 >;
+
+// expands object types one level deep - useful for debugging types
+export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+
+// expands object types recursively - useful for debugging types
+export type ExpandRecursively<T> = T extends object
+	? T extends infer O
+		? { [K in keyof O]: ExpandRecursively<O[K]> }
+		: never
+	: T;
