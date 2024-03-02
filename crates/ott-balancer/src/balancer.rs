@@ -750,7 +750,9 @@ mod test {
             },
             client_unicast_tx,
         );
-        ctx.add_monolith(monolith, balancer_id);
+        ctx.add_monolith(monolith, balancer_id)
+            .await
+            .expect("failed to add monolith");
         ctx.add_room(room_name.clone(), RoomLocator::new(monolith_id, 0))
             .expect("failed to add room");
 
