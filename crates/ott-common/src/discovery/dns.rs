@@ -65,6 +65,9 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
 }
 
 mod test {
+    use crate::discovery::DnsDiscoveryConfig;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
     #[tokio::test]
     async fn server_deserializes_correctly() {
         let dns_discovery_config = DnsDiscoveryConfig {
