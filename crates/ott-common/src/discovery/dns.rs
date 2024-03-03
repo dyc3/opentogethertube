@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use tracing::info;
-use trust_dns_resolver::TokioAsyncResolver;
+use trust_dns_resolver::{config::{ResolverConfig, ResolverOpts}, Resolver, TokioAsyncResolver};
 
 use super::*;
 
@@ -20,13 +20,10 @@ pub struct DnsServiceDiscoverer {
 
 impl DnsServiceDiscoverer {
     pub fn new(config: DnsDiscoveryConfig) -> Self {
-        match config.dns_server {
-            None => info!(
+            info!(
                 "Creating DnsServiceDiscoverer, DNS server: {:?}",
                 config.dns_server
-            ),
-            Some(server) => (),
-        }
+            );
         Self { config }
     }
 }
@@ -35,7 +32,10 @@ impl DnsServiceDiscoverer {
 impl ServiceDiscoverer for DnsServiceDiscoverer {
     async fn discover(&mut self) -> anyhow::Result<Vec<ConnectionConfig>> {
         let resolver =
-            TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
+            match self.config.dns_server {
+                None => TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver"),
+                Some(server) => TokioAsyncResolver::tokio(ResolverConfig::new().set_domain(server), ResolverOpts::default()).expect("failed to create resolver"),
+            };
 
         let lookup = resolver.ipv4_lookup(&self.config.query).await?;
         let monoliths = lookup
