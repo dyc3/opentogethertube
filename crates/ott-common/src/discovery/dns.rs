@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use tracing::info;
 use trust_dns_resolver::{
     config::{NameServerConfig, Protocol, ResolverConfig, ResolverOpts},
-    Resolver, TokioAsyncResolver,
+    TokioAsyncResolver,
 };
 
 use super::*;
