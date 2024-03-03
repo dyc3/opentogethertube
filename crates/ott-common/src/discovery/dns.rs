@@ -65,6 +65,7 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
 }
 
 mod test {
+    #[allow(unused_imports)]
     use crate::discovery::DnsDiscoveryConfig;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
