@@ -8,3 +8,12 @@ e2e.scenario({
 		e2e().contains("Welcome to Grafana").should("be.visible");
 	},
 });
+
+e2e.scenario({
+	describeName: "Smoke: Datasource makes outbound request",
+	itName: "Smoke: Outbound Request",
+	scenario: () => {
+		e2e.components.DataSource.DataSourceHttpSettings.urlInput("http://localhost:8081");
+		e2e().check();
+	}
+});
