@@ -73,7 +73,7 @@ mod test {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     #[tokio::test]
-    fn server_deserializes_correctly() {
+    async fn server_deserializes_correctly() {
         let json = json!({
             "service_port": 8080,
             "dns_server": "127.0.0.1:8080",
