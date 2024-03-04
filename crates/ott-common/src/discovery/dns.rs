@@ -67,23 +67,23 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
 mod test {
     #[allow(unused_imports)]
     use crate::discovery::DnsDiscoveryConfig;
+    use serde::Deserializer;
+    #[allow(unused_imports)]
+    use serde_json::json;
     #[allow(unused_imports)]
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     #[tokio::test]
-    async fn server_deserializes_correctly() {
-        let dns_discovery_config = DnsDiscoveryConfig {
-            service_port: 8080,
-            dns_server: Option::Some(SocketAddr::new(
-                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-                8080,
-            )),
-            query: "".to_string(),
-        };
+    fn server_deserializes_correctly() {
+        let json = json!({
+            "service_port": 8080,
+            "dns_server": "127.0.0.1:8080",
+            "query": "".to_string(),
+        });
 
         assert_eq!(
-            dns_discovery_config.dns_server.unwrap().to_string(),
-            "127.0.0.1:8080"
-        )
+            serde_json::deserialize_struct("DnsDiscoveryConfig", fields, visitor),
+            Some(DnsDiscoveryConfig)
+        );
     }
 }
