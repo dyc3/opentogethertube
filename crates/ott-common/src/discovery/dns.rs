@@ -63,7 +63,7 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
         DiscoveryMode::Polling(Duration::from_secs(10))
     }
 }
-
+#[cfg(test)]
 mod test {
     use super::*;
 
