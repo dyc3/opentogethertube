@@ -67,7 +67,6 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
 mod test {
     #[allow(unused_imports)]
     use crate::discovery::DnsDiscoveryConfig;
-    use serde::Deserializer;
     #[allow(unused_imports)]
     use serde_json::json;
     #[allow(unused_imports)]
@@ -81,9 +80,9 @@ mod test {
             "query": "".to_string(),
         });
 
-        assert_eq!(
-            serde_json::deserialize_struct("DnsDiscoveryConfig", fields, visitor),
-            Some(DnsDiscoveryConfig)
-        );
+        let config: DnsDiscoveryConfig =
+            serde_json::from_value(json).expect("Failed to deserialize json");
+
+        assert_eq!(config.query, "".to_string())
     }
 }
