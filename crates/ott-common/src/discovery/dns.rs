@@ -69,7 +69,7 @@ mod test {
     use serde_json::json;
     use std::net::Ipv4Addr;
 
-    #[tokio::test]
+    #[test]
     fn server_deserializes_correctly() {
         let json = json!({
             "service_port": 53,
