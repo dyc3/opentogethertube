@@ -335,6 +335,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 		},
 		init: async message => {
 			const msg = message.payload;
+			log.info(`Received init message: ${JSON.stringify(msg)}`);
 		},
 	};
 
