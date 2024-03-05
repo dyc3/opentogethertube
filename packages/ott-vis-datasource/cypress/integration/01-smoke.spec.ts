@@ -14,6 +14,7 @@ e2e.scenario({
 	itName: "Smoke: Outbound Request",
 	scenario: () => {
 		e2e.components.DataSource.DataSourceHttpSettings.urlInput("http://localhost:8081");
+		e2e.
 		e2e().check();
 	}
 });
