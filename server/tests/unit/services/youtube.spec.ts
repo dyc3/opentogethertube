@@ -51,6 +51,7 @@ const validCollectionLinks = [
 	"https://www.youtube.com/watch?v=0hasodi12&list=9asdouihlj1293gashd",
 	"https://youtu.be/3kw2_89ym31W?list=PL4d83g68ij3l45kj6345hFaEHvzLovtb",
 	"https://youtube.com/@handle",
+	"https://youtube.com/@handle.foo",
 ];
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/youtube";
@@ -547,7 +548,11 @@ describe("Youtube", () => {
 	describe("getChannelId", () => {
 		it.each([
 			["https://youtube.com/@rollthedyc3", { handle: "@rollthedyc3" }],
+			["https://youtube.com/@rollthedyc3/videos", { handle: "@rollthedyc3" }],
+			["https://youtube.com/@rollthedyc3.123", { handle: "@rollthedyc3.123" }],
+			["https://youtube.com/@rollthedyc3.123/videos", { handle: "@rollthedyc3.123" }],
 			["https://youtube.com/user/vinesauce", { user: "vinesauce" }],
+			["https://youtube.com/user/vinesauce/videos", { user: "vinesauce" }],
 			[
 				"https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA",
 				{ channel: "UCI1XS_GkLGDOgf8YLaaXNRA" },
