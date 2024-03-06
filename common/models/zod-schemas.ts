@@ -1,5 +1,5 @@
 import { ROOM_NAME_REGEX } from "ott-common/constants";
-import { Visibility } from "ott-common/models/types";
+import { Visibility, QueueMode } from "ott-common/models/types";
 import { z } from "zod";
 
 // These strings are not allowed to be used as room names.
@@ -13,6 +13,8 @@ export const createRoomSchema = z.object({
 		.regex(ROOM_NAME_REGEX)
 		.refine(name => !RESERVED_ROOM_NAMES.includes(name), { message: "not allowed (reserved)" }),
 	title: z.string().max(255, "too long, must be at most 255 characters").optional(),
-	isTemporary: z.boolean().optional(),
-	visibility: z.enum([Visibility.Public, Visibility.Unlisted, Visibility.Private]).optional(),
+	description: z.string().optional(),
+	isTemporary: z.boolean().optional().default(true),
+	visibility: z.nativeEnum(Visibility).default(Visibility.Public).optional(),
+	queueMode: z.nativeEnum(QueueMode).optional(),
 });
