@@ -154,12 +154,12 @@ pub struct SimpleEcho {
 fn generate_random_metadata(room: &RoomName) -> RoomMetadata {
     RoomMetadata {
         name: room.clone(),
-        title: "foo".to_string(),
-        description: "foo".to_string(),
-        is_temporary: false,
+        title: serde_json::Value::String("foo".to_string()),
+        description: serde_json::Value::String("foo".to_string()),
+        is_temporary: serde_json::Value::Bool(false),
         visibility: Visibility::Public,
-        queue_mode: "manual".to_string(),
+        queue_mode: serde_json::Value::String("manual".to_string()),
         current_source: serde_json::Value::Null,
-        users: 2,
+        users: serde_json::Value::Number(2.into()),
     }
 }
