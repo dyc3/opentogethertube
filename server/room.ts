@@ -67,7 +67,7 @@ import { Counter } from "prom-client";
 import roommanager from "./roommanager";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { RestoreQueueRequest } from "ott-common/models/messages";
-import { countEligibleVoters, voteSkipThreshold } from "ott-common";
+import { Result, countEligibleVoters, err, ok, voteSkipThreshold } from "ott-common";
 import type { ClientManagerCommand } from "./clientmanager";
 import { canKickUser } from "ott-common/userutils";
 import { conf } from "./ott-config";
@@ -688,13 +688,13 @@ export class Room implements RoomState {
 		}
 	}
 
-	getClientId(token: AuthToken): ClientId {
+	getClientIdFromToken(token: AuthToken): Result<ClientId, ClientNotFoundInRoomException> {
 		for (const user of this.realusers) {
 			if (user.token === token) {
-				return user.id;
+				return ok(user.id);
 			}
 		}
-		throw new Error("Client not found");
+		return err(new ClientNotFoundInRoomException(this.name));
 	}
 
 	/** Get how much time (in seconds) has elapsed, in terms of where the playback head should be, since playback started. Returns 0 if the media is not playing. */
@@ -1016,6 +1016,12 @@ export class Room implements RoomState {
 		request: RoomRequest,
 		authorization: RoomRequestAuthorization
 	): Promise<void> {
+		if (!authorization.clientId) {
+			const id = this.getClientIdFromToken(authorization.token);
+			if (id.ok) {
+				authorization.clientId = id.value;
+			}
+		}
 		await this.processRequest(request, await this.deriveRequestContext(authorization));
 	}
 
