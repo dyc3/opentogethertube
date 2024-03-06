@@ -214,63 +214,31 @@ describe("Room API", () => {
 		);
 
 		it.each([
-			[{ arg: "name", reason: "missing" }, { isTemporary: true }],
+			[{ isTemporary: true }],
+			[{ name: "list", isTemporary: true }],
+			[{ name: "create", isTemporary: true }],
+			[{ name: "generate", isTemporary: true }],
+			[{ name: "abc<", isTemporary: true }],
+			[{ name: "abc[", isTemporary: true }],
+			[{ name: "abc]", isTemporary: true }],
+			[{ name: "abc!", isTemporary: true }],
+			[{ name: "abc!", isTemporary: true }],
+			[{ name: "ab", isTemporary: true }],
 			[
-				{ arg: "name", reason: "not allowed (reserved)" },
-				{ name: "list", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (reserved)" },
-				{ name: "create", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (reserved)" },
-				{ name: "generate", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (invalid characters)" },
-				{ name: "abc<", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (invalid characters)" },
-				{ name: "abc[", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (invalid characters)" },
-				{ name: "abc]", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (invalid characters)" },
-				{ name: "abc!", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (invalid characters)" },
-				{ name: "abc!", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (too short, must be at least 3 characters)" },
-				{ name: "ab", isTemporary: true },
-			],
-			[
-				{ arg: "name", reason: "not allowed (too long, must be at most 32 characters)" },
 				{
 					name: "abababababababababababababababababababababababababababababababababab",
 					isTemporary: true,
 				},
 			],
 			[
-				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
 				{
 					name: "foo",
 					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
 					isTemporary: true,
 				},
 			],
-			[
-				{ arg: "visibility", reason: "must be one of public,unlisted,private" },
-				{ name: "test1", isTemporary: true, visibility: "invalid" },
-			],
-		])("should fail to create room for validation errors: %s", async (error, body) => {
+			[{ name: "test1", isTemporary: true, visibility: "invalid" }],
+		])("should fail to create room for validation errors: %s", async body => {
 			let resp = await request(app)
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
@@ -279,8 +247,7 @@ describe("Room API", () => {
 				.expect(400);
 			expect(resp.body.success).toEqual(false);
 			expect(resp.body.error).toMatchObject({
-				name: "BadApiArgumentException",
-				...error,
+				name: "ZodValidationError",
 			});
 		});
 

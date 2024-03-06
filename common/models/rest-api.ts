@@ -3,6 +3,8 @@ import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 import { Category } from "sponsorblock-api";
+import { createRoomSchema } from "./zod-schemas";
+import { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
@@ -33,12 +35,7 @@ export interface OttApiResponseRoomGenerate {
 }
 
 /** Endpoint: `/api/room/create` */
-export interface OttApiRequestRoomCreate {
-	title?: string;
-	name: string;
-	isTemporary?: boolean;
-	visibility?: Visibility;
-}
+export type OttApiRequestRoomCreate = z.infer<typeof createRoomSchema>;
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiResponseRoomCreate {}

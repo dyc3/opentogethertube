@@ -32,12 +32,12 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
+import { createRoomSchema } from "ott-common/models/zod-schemas";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
 
 const router = express.Router();
 const log = getLogger("api/room");
-
-// These strings are not allowed to be used as room names.
-const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
 
 const VALID_ROOM_VISIBILITY = [Visibility.Public, Visibility.Unlisted, Visibility.Private];
 
@@ -119,77 +119,32 @@ const createRoom: RequestHandler<
 	OttResponseBody<OttApiResponseRoomCreate>,
 	OttApiRequestRoomCreate
 > = async (req, res) => {
-	function isValidCreateRoom(body: any): body is OttApiRequestRoomCreate {
-		return !!body.name;
-	}
-	if (!isValidCreateRoom(req.body)) {
-		throw new BadApiArgumentException("name", "missing");
-	}
+	const body = createRoomSchema.parse(req.body);
 
-	if (req.body.isTemporary && !conf.get("room.enable_create_temporary")) {
+	if (body.isTemporary && !conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
-	} else if (!req.body.isTemporary && !conf.get("room.enable_create_permanent")) {
+	} else if (!body.isTemporary && !conf.get("room.enable_create_permanent")) {
 		throw new FeatureDisabledException("Permanent rooms are disabled.");
 	}
 
-	if (!req.body.name) {
-		throw new BadApiArgumentException("name", "missing");
-	}
-	if (RESERVED_ROOM_NAMES.includes(req.body.name)) {
-		throw new BadApiArgumentException("name", "not allowed (reserved)");
-	}
-	if (req.body.name.length < 3) {
-		throw new BadApiArgumentException(
-			"name",
-			"not allowed (too short, must be at least 3 characters)"
-		);
-	}
-	if (req.body.name.length > 32) {
-		throw new BadApiArgumentException(
-			"name",
-			"not allowed (too long, must be at most 32 characters)"
-		);
-	}
-
-	if (req.body.title && req.body.title.length > 255) {
-		throw new BadApiArgumentException(
-			"title",
-			"not allowed (too long, must be at most 255 characters)"
-		);
-	}
-
-	if (!ROOM_NAME_REGEX.exec(req.body.name)) {
-		throw new BadApiArgumentException("name", "not allowed (invalid characters)");
-	}
-	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		throw new BadApiArgumentException(
-			"visibility",
-			`must be one of ${VALID_ROOM_VISIBILITY.toString()}`
-		);
-	}
 	let points = 50;
-	if (req.body.isTemporary === undefined) {
-		req.body.isTemporary = true;
-	}
-	if (!req.body.isTemporary) {
+
+	if (!body.isTemporary) {
 		points *= 4;
 	}
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
 
-	if (!req.body.visibility) {
-		req.body.visibility = Visibility.Public;
-	}
 	if (req.user) {
-		await roommanager.createRoom({ ...req.body, owner: req.user });
+		await roommanager.createRoom({ ...body, owner: req.user });
 	} else {
-		await roommanager.createRoom(req.body);
+		await roommanager.createRoom(body);
 	}
 	log.info(
-		`${req.body.isTemporary ? "Temporary" : "Permanent"} room created: name=${
-			req.body.name
-		} ip=${req.ip} user-agent=${req.headers["user-agent"]}`
+		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${
+			req.ip
+		} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
 		success: true,
@@ -519,6 +474,14 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 				},
 			});
 		}
+	} else if (err instanceof ZodError) {
+		err = fromZodError(err);
+		res.status(400).json({
+			success: false,
+			error: {
+				name: err.name,
+			},
+		});
 	} else {
 		log.error(`Unhandled exception: path=${req.path} ${err.name} ${err.message} ${err.stack}`);
 		res.status(500).json({
