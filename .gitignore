@@ -6,6 +6,7 @@ node_modules
 /ts-out
 /target
 /.yarn
+.eslintcache
 
 # local env files
 .env.local
