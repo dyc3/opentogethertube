@@ -295,7 +295,12 @@ async function onRoomLoad(roomName: string) {
 	broadcastToBalancers({
 		type: "loaded",
 		payload: {
-			room: obj,
+			room: {
+				...obj,
+				is_temporary: room.isTemporary,
+				queue_mode: room.queueMode,
+				current_source: room.currentSource,
+			},
 			load_epoch: room.loadEpoch,
 		},
 	});
@@ -322,10 +327,10 @@ function gossip() {
 					name: room.name,
 					title: room.title,
 					description: room.description,
-					isTemporary: room.isTemporary,
+					is_temporary: room.isTemporary,
 					visibility: room.visibility,
-					queueMode: room.queueMode,
-					currentSource: room.currentSource,
+					queue_mode: room.queueMode,
+					current_source: room.currentSource,
 					users: room.users.length,
 				},
 				load_epoch: room.loadEpoch,
