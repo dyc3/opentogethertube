@@ -206,17 +206,17 @@ where
 /// Metadata about a room, according to the Monolith.
 pub struct RoomMetadata {
     pub name: RoomName,
-    pub title: String,
-    pub description: String,
+    pub title: serde_json::Value,
+    pub description: serde_json::Value,
     #[serde(rename = "isTemporary")]
-    pub is_temporary: bool,
+    pub is_temporary: serde_json::Value,
     pub visibility: Visibility,
     #[serde(rename = "queueMode")]
-    pub queue_mode: String,
+    pub queue_mode: serde_json::Value,
     #[serde(rename = "currentSource")]
     pub current_source: serde_json::Value,
     /// The number of clients in this room.
-    pub users: u32,
+    pub users: serde_json::Value,
 }
 
 impl RoomMetadata {
