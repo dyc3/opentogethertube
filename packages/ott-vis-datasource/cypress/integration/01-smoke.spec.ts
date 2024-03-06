@@ -13,8 +13,6 @@ e2e.scenario({
 	describeName: "Smoke: Datasource makes outbound request",
 	itName: "Smoke: Outbound Request",
 	scenario: () => {
-		e2e.components.DataSource.DataSourceHttpSettings.urlInput("http://localhost:8081");
-		e2e.
-		e2e().check();
+		e2e.pages.Explore.General.
 	}
 });
