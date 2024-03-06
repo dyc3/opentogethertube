@@ -67,21 +67,18 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
 mod test {
     use super::*;
     use serde_json::json;
-    use std::net::Ipv4Addr;
 
     #[test]
     fn server_deserializes_correctly() {
         let json = json!({
-            "service_port": 53,
-            "dns_server": "127.0.0.1:8080",
+            "service_port": 8080,
+            "dns_server": "127.0.0.1:100",
             "query": "".to_string(),
         });
 
         let config: DnsDiscoveryConfig =
             serde_json::from_value(json).expect("Failed to deserialize json");
 
-        const SOCKET: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-
-        assert_eq!(config.dns_server.unwrap(), SOCKET)
+        assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 100).into()));
     }
 }
