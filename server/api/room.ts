@@ -128,9 +128,7 @@ const createRoom: RequestHandler<
 	}
 
 	let points = 50;
-	if (body.isTemporary === undefined) {
-		body.isTemporary = true;
-	}
+
 	if (!body.isTemporary) {
 		points *= 4;
 	}
@@ -138,9 +136,6 @@ const createRoom: RequestHandler<
 		return;
 	}
 
-	if (!body.visibility) {
-		body.visibility = Visibility.Public;
-	}
 	if (req.user) {
 		await roommanager.createRoom({ ...body, owner: req.user });
 	} else {
