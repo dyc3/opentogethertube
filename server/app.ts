@@ -22,6 +22,8 @@ import { initExtractor } from "./infoextractor";
 import session, { SessionOptions } from "express-session";
 import RedisStore from "connect-redis";
 import { setupPostgresMetricsCollection } from "./storage.metrics";
+import cookieparser from "cookie-parser";
+import lusca from "lusca";
 
 const app = express();
 
@@ -77,6 +79,8 @@ export async function main() {
 	process.on("SIGTERM", shutdown);
 
 	app.use(metricsMiddleware);
+	app.use(cookieparser(conf.get("session_secret")));
+
 	const server = http.createServer(app);
 	async function checkRedis() {
 		if (performance) {
@@ -172,6 +176,7 @@ export async function main() {
 	passport.serializeUser(usermanager.serializeUser);
 	passport.deserializeUser(usermanager.deserializeUser);
 	app.use(passport.initialize());
+	app.use(lusca.csrf());
 	app.use(usermanager.passportErrorHandler);
 	usermanager.setup();
 	websockets.setup(server);

@@ -43,7 +43,6 @@ export type AuthToken = string;
 export type MySession = Session & {
 	username?: string;
 	passport?: { user?: number };
-	token?: AuthToken;
 	postLoginRedirect?: string;
 };
 
