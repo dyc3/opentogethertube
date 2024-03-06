@@ -206,17 +206,23 @@ where
 /// Metadata about a room, according to the Monolith.
 pub struct RoomMetadata {
     pub name: RoomName,
-    pub title: String,
-    pub description: String,
+    #[typeshare(serialized_as = "unknown")]
+    pub title: serde_json::Value,
+    #[typeshare(serialized_as = "unknown")]
+    pub description: serde_json::Value,
     #[serde(rename = "isTemporary")]
-    pub is_temporary: bool,
+    #[typeshare(serialized_as = "unknown")]
+    pub is_temporary: serde_json::Value,
     pub visibility: Visibility,
     #[serde(rename = "queueMode")]
-    pub queue_mode: String,
+    #[typeshare(serialized_as = "unknown")]
+    pub queue_mode: serde_json::Value,
     #[serde(rename = "currentSource")]
+    #[typeshare(serialized_as = "unknown")]
     pub current_source: serde_json::Value,
     /// The number of clients in this room.
-    pub users: u32,
+    #[typeshare(serialized_as = "unknown")]
+    pub users: serde_json::Value,
 }
 
 impl RoomMetadata {

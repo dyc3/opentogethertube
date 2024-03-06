@@ -51,14 +51,14 @@ export enum Visibility {
 /** Metadata about a room, according to the Monolith. */
 export interface RoomMetadata {
 	name: RoomName;
-	title: string;
-	description: string;
-	isTemporary: boolean;
+	title: unknown;
+	description: unknown;
+	isTemporary: unknown;
 	visibility: Visibility;
-	queueMode: string;
+	queueMode: unknown;
 	currentSource: unknown;
 	/** The number of clients in this room. */
-	users: number;
+	users: unknown;
 }
 
 export interface M2BLoaded {
