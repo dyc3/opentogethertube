@@ -53,10 +53,10 @@ export interface RoomMetadata {
 	name: RoomName;
 	title: unknown;
 	description: unknown;
-	is_temporary: unknown;
+	isTemporary: unknown;
 	visibility: Visibility;
-	queue_mode: unknown;
-	current_source: unknown;
+	queueMode: unknown;
+	currentSource: unknown;
 	/** The number of clients in this room. */
 	users: unknown;
 }

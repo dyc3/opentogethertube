@@ -210,11 +210,14 @@ pub struct RoomMetadata {
     pub title: serde_json::Value,
     #[typeshare(serialized_as = "unknown")]
     pub description: serde_json::Value,
+    #[serde(rename = "isTemporary")]
     #[typeshare(serialized_as = "unknown")]
     pub is_temporary: serde_json::Value,
     pub visibility: Visibility,
+    #[serde(rename = "queueMode")]
     #[typeshare(serialized_as = "unknown")]
     pub queue_mode: serde_json::Value,
+    #[serde(rename = "currentSource")]
     #[typeshare(serialized_as = "unknown")]
     pub current_source: serde_json::Value,
     /// The number of clients in this room.
