@@ -9,12 +9,13 @@ import usermanager from "../usermanager";
 import { OttException } from "ott-common/exceptions";
 import { requireApiKey } from "../admin";
 import { conf } from "../ott-config";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 router.use(nocache());
 const log = getLogger("api/auth");
 
-function createSession(): SessionInfo {
+export function createSession(): SessionInfo {
 	return {
 		isLoggedIn: false,
 		username: uniqueNamesGenerator(),
@@ -79,6 +80,16 @@ export async function authTokenMiddleware(
 		}
 	}
 	next();
+
+	// TODO: set cookie with updated token if it has changed
+
+	// FIXME: can't set cookie here because it's too late in the request lifecycle
+	// const token = jwt.sign(req.ottsession, conf.get("session_secret")); // FIXME: no expiration
+	// res.cookie("token", token, {
+	// 	httpOnly: true,
+	// });
+
+	// TODO: also apply session info update to any connected clients associated with this token
 }
 
 router.get("/grant", async (req, res) => {

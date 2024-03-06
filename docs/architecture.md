@@ -58,3 +58,27 @@ The pipeline caches metadata in two places: Redis and the database. Redis is use
 Video metadata is cached in the `CachedVideos` table. Search results are cached in Redis. The cache keys are the same as the query.
 
 Cached videos are kept for 30 days. Search results are kept for 24 hours. After these periods, the cache is considered stale, and the pipeline will attempt to refresh the cache when the video is next requested. Direct videos are not cached.
+
+
+
+# Authentication
+
+Upon page load, the client will immediately send a request to `/api/auth/grant` to obtain a JWT regardless of whether or not the client has one already. This is to ensure that the client has a valid JWT, and to refresh the JWT if it has expired.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Server
+  participant R as Room
+  C->>+S: GET /api/auth/grant
+  S->>-C: 200 OK
+  C->>+S: Connect to websocket with JWT in cookie
+  S->>S: Verify JWT
+  alt JWT is valid
+    S->>S: Set client ID for room on session
+    S->>-C: 101 Switching Protocols
+    S->>R: Join Room
+  else JWT is invalid
+    S-xC: 403 Forbidden
+  end
+```
