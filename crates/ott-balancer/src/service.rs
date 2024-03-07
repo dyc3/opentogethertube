@@ -28,6 +28,7 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     router.add("/api/status", "health");
     router.add("/api/balancing", "status");
     router.add("/api/state", "state");
+    router.add("/api/state/stream", "state_stream");
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/api/room/:room_name/", "room");
@@ -110,6 +111,32 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         .header("Content-Type", "application/json")
                         .body(Full::new(body.into()))
                         .unwrap())
+                }
+                "state_stream" => {
+                    if is_websocket_upgrade(&req) {
+                        let (response, websocket) = match upgrade(req, None) {
+                            Ok((response, websocket)) => (response, websocket),
+                            Err(err) => {
+                                error!(message = "failed to upgrade websocket: {:?}", request_id, error = %err);
+                                return Ok(interval_server_error());
+                            }
+                        };
+
+                        tokio::spawn(async move {
+                            if let Err(err) =
+                                crate::state_stream::handle_stream_websocket(websocket).await
+                            {
+                                error!("error handling event stream websocket: {}", err);
+                            }
+                        });
+
+                        Ok(response)
+                    } else {
+                        Ok(Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body(Full::new("expected websocket connection".into()))
+                            .unwrap())
+                    }
                 }
                 "metrics" => {
                     let bytes = match gather_metrics() {

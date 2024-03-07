@@ -14,6 +14,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 
 use crate::config::BalancerConfig;
 use crate::service::BalancerService;
+use crate::state_stream::{EventSink, EVENT_STREAMER};
 use ott_common::discovery::{
     start_discovery_task, DiscoveryConfig, DnsServiceDiscoverer, FlyServiceDiscoverer,
     HarnessServiceDiscoverer, ManualServiceDiscoverer,
@@ -27,6 +28,7 @@ pub mod monolith;
 pub mod room;
 pub mod selection;
 pub mod service;
+pub mod state_stream;
 
 pub async fn run() -> anyhow::Result<()> {
     let args = config::Cli::parse();
@@ -63,8 +65,18 @@ pub async fn run() -> anyhow::Result<()> {
     let filter = args.build_tracing_filter();
     let filter_layer = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new(filter))?;
     let fmt_layer = tracing_subscriber::fmt::layer().with_filter(filter_layer);
+    let event_tx = { EVENT_STREAMER.lock().unwrap().event_tx() };
+    let streamer_layer = tracing_subscriber::fmt::layer()
+        .json()
+        .flatten_event(true)
+        .with_filter(EnvFilter::new("debug"))
+        .with_current_span(false)
+        .with_writer(move || EventSink {
+            event_tx: event_tx.clone(),
+        });
     tracing_subscriber::registry()
         .with(console_layer)
+        .with(streamer_layer)
         .with(fmt_layer)
         .init();
     info!("Loaded config: {:?}", config);
