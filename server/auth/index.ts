@@ -8,6 +8,7 @@ import nocache from "nocache";
 import usermanager from "../usermanager";
 import { OttException } from "ott-common/exceptions";
 import { requireApiKey } from "../admin";
+import { conf } from "../ott-config";
 
 const router = express.Router();
 router.use(nocache());
@@ -89,6 +90,8 @@ router.get("/grant", async (req, res) => {
 				log.debug("token is already valid");
 				res.cookie("token", token, {
 					httpOnly: true,
+					sameSite: "lax",
+					secure: !conf.get("force_insecure_cookies"),
 				}).json({
 					token,
 				});
@@ -105,6 +108,8 @@ router.get("/grant", async (req, res) => {
 	await tokens.setSessionInfo(token, createSession());
 	res.cookie("token", token, {
 		httpOnly: true,
+		sameSite: "lax",
+		secure: !conf.get("force_insecure_cookies"),
 	}).json({
 		token,
 	});
