@@ -4,6 +4,7 @@
 	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
+
 		{
 			"name": "Launch with Optic via NPM",
 			"request": "launch",
@@ -15,7 +16,7 @@
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"type": "pwa-node"
+			"type": "node"
 		},
 		{
 			"type": "node",
@@ -42,7 +43,13 @@
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"type": "pwa-node"
-		}
+			"type": "node"
+		},
+		{
+			"type": "lldb",
+			"request": "attach",
+			"name": "Attach to ott-collector",
+			"program": "${workspaceFolder}/ott-collector"
+		},
 	]
 }

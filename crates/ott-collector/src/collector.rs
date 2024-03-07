@@ -1,8 +1,9 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use once_cell::sync::Lazy;
 use ott_balancer_protocol::collector::BalancerState;
 use ott_common::discovery::{ConnectionConfig, ServiceDiscoveryMsg};
+use rocket::futures::StreamExt;
 use tokio::sync::Mutex;
 use tracing::{error, warn};
 
@@ -13,19 +14,24 @@ pub static CURRENT_STATE: Lazy<Arc<Mutex<SystemState>>> =
 
 pub struct Collector {
     discovery_rx: tokio::sync::mpsc::Receiver<ServiceDiscoveryMsg>,
+    events_tx: tokio::sync::mpsc::Sender<String>,
     interval: tokio::time::Duration,
     balancers: Vec<ConnectionConfig>,
+    stream_tasks: HashMap<ConnectionConfig, tokio::task::JoinHandle<anyhow::Result<()>>>,
 }
 
 impl Collector {
     pub fn new(
         discovery_rx: tokio::sync::mpsc::Receiver<ServiceDiscoveryMsg>,
+        events_tx: tokio::sync::mpsc::Sender<String>,
         interval: tokio::time::Duration,
     ) -> Self {
         Self {
             discovery_rx,
+            events_tx,
             interval,
             balancers: Default::default(),
+            stream_tasks: Default::default(),
         }
     }
 
@@ -66,7 +72,7 @@ impl Collector {
         self.balancers.extend(msg.added);
     }
 
-    pub async fn collect(&self) -> anyhow::Result<SystemState> {
+    pub async fn collect(&mut self) -> anyhow::Result<SystemState> {
         let client = reqwest::Client::new();
         let mut states = vec![];
         for conf in &self.balancers {
@@ -84,6 +90,50 @@ impl Collector {
         }
         info!("Collected state from {} balancers", states.len());
 
+        // start stream tasks for new balancers
+        for conf in &self.balancers {
+            if self.stream_tasks.contains_key(conf) {
+                continue;
+            }
+            let _conf = conf.clone();
+            let events_tx = self.events_tx.clone();
+            let task = tokio::spawn(async move {
+                Self::start_stream_events_from_balancer(_conf, events_tx).await
+            });
+            self.stream_tasks.insert(conf.clone(), task);
+        }
+
         Ok(SystemState(states))
+    }
+
+    async fn start_stream_events_from_balancer(
+        balancer: ConnectionConfig,
+        events_tx: tokio::sync::mpsc::Sender<String>,
+    ) -> anyhow::Result<()> {
+        info!("starting stream from balancer: {:?}", &balancer);
+        let mut url = balancer.uri();
+        url.set_path("/api/state/stream");
+        let (mut ws, _) = tokio_tungstenite::connect_async(url).await?;
+
+        loop {
+            tokio::select! {
+                msg = ws.next() => {
+                    if let Some(Ok(msg)) = msg {
+                        if msg.is_close() {
+                            break;
+                        }
+                        let msg = msg.to_string();
+                        if let Err(_) = events_tx.send(msg).await {
+                            break;
+                        }
+                    }
+                }
+                else => {
+                    break;
+                }
+            }
+        }
+
+        Ok(())
     }
 }
