@@ -21,6 +21,7 @@
     "axios": "1.6.7",
     "connect-redis": "7.1.0",
     "convict": "^6.2.4",
+    "cookie-parser": "^1.4.6",
     "dayjs": "^1.10.4",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
@@ -58,6 +59,7 @@
   },
   "devDependencies": {
     "@types/convict": "^6.1.1",
+    "@types/cookie-parser": "^1.4.7",
     "@types/express": "^4.17.11",
     "@types/express-session": "^1.17.3",
     "@types/lodash": "^4.14.170",

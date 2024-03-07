@@ -8,6 +8,7 @@ import nocache from "nocache";
 import usermanager from "../usermanager";
 import { OttException } from "ott-common/exceptions";
 import { requireApiKey } from "../admin";
+import { conf } from "../ott-config";
 
 const router = express.Router();
 router.use(nocache());
@@ -53,6 +54,8 @@ export async function authTokenMiddleware(
 	if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
 		const token: AuthToken = req.headers.authorization.split(" ")[1];
 		req.token = token;
+	} else if (req.cookies?.token) {
+		req.token = req.cookies.token;
 	}
 
 	if (!req.token || !(await tokens.validate(req.token))) {
@@ -66,8 +69,6 @@ export async function authTokenMiddleware(
 		return;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-	(req.session as MySession).token = req.token;
 	req.ottsession = await tokens.getSessionInfo(req.token);
 	if (req.ottsession && req.ottsession.isLoggedIn) {
 		try {
@@ -87,7 +88,11 @@ router.get("/grant", async (req, res) => {
 			const token: AuthToken = req.headers.authorization.split(" ")[1];
 			if (await tokens.validate(token)) {
 				log.debug("token is already valid");
-				res.json({
+				res.cookie("token", token, {
+					httpOnly: true,
+					sameSite: "lax",
+					secure: !conf.get("force_insecure_cookies"),
+				}).json({
 					token,
 				});
 				return;
@@ -101,7 +106,11 @@ router.get("/grant", async (req, res) => {
 	log.debug("minting new auth token...");
 	const token: AuthToken = await tokens.mint();
 	await tokens.setSessionInfo(token, createSession());
-	res.json({
+	res.cookie("token", token, {
+		httpOnly: true,
+		sameSite: "lax",
+		secure: !conf.get("force_insecure_cookies"),
+	}).json({
 		token,
 	});
 });
@@ -132,8 +141,7 @@ router.get(
 			});
 			return;
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-		const token = (req.session as MySession).token;
+		const token = req.cookies?.token;
 		if (!token) {
 			res.status(400).json({
 				success: false,

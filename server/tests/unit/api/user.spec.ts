@@ -274,14 +274,13 @@ describe("User API", () => {
 					.set("Authorization", `Bearer ${token}`)
 					.expect(200);
 
-				await request(app)
+				const resp = await request(app)
 					.post("/api/user/logout")
 					.set("Authorization", `Bearer ${token}`)
 					.expect("Content-Type", /json/)
-					.expect(200)
-					.then(resp => {
-						expect(resp.body.success).toBe(true);
-					});
+					.expect(200);
+
+				expect(resp.body.success).toBe(true);
 			});
 
 			it("should fail if the user is not logged in", async () => {
