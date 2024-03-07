@@ -2,7 +2,7 @@ import { Grants } from "../permissions";
 import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
-import { Category } from "sponsorblock-api";
+import type { Category } from "sponsorblock-api";
 import { createRoomSchema } from "./zod-schemas";
 import { z } from "zod";
 

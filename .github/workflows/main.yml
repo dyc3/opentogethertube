@@ -36,8 +36,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
         check-latest: true
         cache: "yarn"
-    - run: npm install -g yarn
-    - run: yarn install --frozen-lockfile
+    - run: corepack enable
+    - run: yarn install --immutable
     - run: yarn run lint-ci
       env:
         NODE_ENV: production
@@ -86,8 +86,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
         check-latest: true
         cache: "yarn"
-    - run: npm install -g yarn
-    - run: yarn install --frozen-lockfile
+    - run: corepack enable
+    - run: yarn install --immutable
     - run: yarn workspace ott-server run sequelize db:migrate
       env:
         NODE_ENV: test
@@ -117,8 +117,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
+      - run: corepack enable
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Build plugin
         run: yarn workspace ${{ matrix.package }} build
       - name: Compatibility check

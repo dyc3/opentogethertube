@@ -30,7 +30,7 @@
     "nocache": "^3.0.0",
     "node-abort-controller": "3.0.1",
     "node-mailjet": "^6.0.3",
-    "ott-common": "*",
+    "ott-common": "workspace:*",
     "passport": "0.6.0",
     "passport-discord": "^0.1.4",
     "passport-http-bearer": "^1.0.1",

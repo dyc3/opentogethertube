@@ -40,7 +40,8 @@ cp env/example.toml env/production.toml
 
 After you have set those up, you need to run the database migrations, and build the client. You have to do this every time you update OTT.
 ```bash
-npm install -g yarn
+corepack enable
+yarn set version stable
 yarn install
 NODE_ENV=production yarn workspace ott-server run sequelize-cli db:migrate
 yarn run build

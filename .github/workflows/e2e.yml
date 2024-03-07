@@ -46,13 +46,15 @@ jobs:
             node_modules
           key: cache-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
-      - run: yarn --frozen-lockfile
+      - run: corepack enable
+      - run: yarn --immutable
       - run: yarn run cypress install
       - run: yarn workspace ott-common build
 
       - name: "Component Tests"
         uses: cypress-io/github-action@v6.6.1
         with:
+          working-directory: client
           install: false
           component: true
           record: true
@@ -101,7 +103,8 @@ jobs:
           check-latest: true
           cache: "yarn"
 
-      - run: yarn install --frozen-lockfile
+      - run: corepack enable
+      - run: yarn install --immutable
 
       - name: Build client
         run: yarn run build
@@ -147,7 +150,7 @@ jobs:
           cache: "yarn"
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Check for backend
         id: check-for-backend
