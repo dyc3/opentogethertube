@@ -15,6 +15,8 @@ pub struct DnsDiscoveryConfig {
     pub dns_server: Option<SocketAddr>,
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
+    /// The configurable polling discovery interval, in seconds.
+    pub polling_duration: Option<Duration>,
 }
 
 pub struct DnsServiceDiscoverer {
@@ -60,7 +62,10 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
     }
 
     fn mode(&self) -> DiscoveryMode {
-        DiscoveryMode::Polling(Duration::from_secs(10))
+        match self.config.polling_duration {
+            Some(polling_duration) => DiscoveryMode::Polling(polling_duration),
+            None => DiscoveryMode::Polling(Duration::from_secs(10)),
+        }
     }
 }
 #[cfg(test)]

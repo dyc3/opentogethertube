@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use serde::Deserialize;
 use tracing::info;
 use trust_dns_resolver::TokioAsyncResolver;
 
@@ -9,6 +10,8 @@ pub struct FlyDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub service_port: u16,
     pub fly_app: String,
+    /// The configurable polling discovery interval, in seconds.
+    pub polling_duration: Option<Duration>,
 }
 
 pub struct FlyServiceDiscoverer {
@@ -46,6 +49,9 @@ impl ServiceDiscoverer for FlyServiceDiscoverer {
     }
 
     fn mode(&self) -> DiscoveryMode {
-        DiscoveryMode::Polling(Duration::from_secs(10))
+        match self.config.polling_duration {
+            Some(polling_duration) => DiscoveryMode::Polling(polling_duration),
+            None => DiscoveryMode::Polling(Duration::from_secs(10)),
+        }
     }
 }
