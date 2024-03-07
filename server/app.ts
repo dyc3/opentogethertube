@@ -132,7 +132,7 @@ export async function main() {
 		app.use(
 			conf.get("base_url"),
 			express.static("../client/dist", {
-				maxAge: "2 days",
+				maxAge: "1 year",
 				redirect: false,
 				index: false,
 			})
