@@ -22,6 +22,7 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.21.4",
+		"@biomejs/biome": "1.5.3",
 		"@grafana/e2e": "10.0.3",
 		"@grafana/e2e-selectors": "10.0.3",
 		"@grafana/eslint-config": "^6.0.0",
@@ -64,8 +65,8 @@
 		"@emotion/css": "11.10.6",
 		"@grafana/data": "10.0.3",
 		"@grafana/runtime": "10.0.3",
-		"@grafana/ui": "10.0.3",
 		"@grafana/schema": "10.0.3",
+		"@grafana/ui": "10.0.3",
 		"ott-vis": "*",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
