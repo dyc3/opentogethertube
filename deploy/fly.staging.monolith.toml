@@ -36,5 +36,5 @@ NODE_ENV = "production"
 OTT_SHORT_URL_HOSTNAME = "s.ottr.cc"
 
 [[statics]]
-guest_path = "/usr/app/client/dist/assets"
+guest_path = "/app/client/dist/assets"
 url_prefix = "/assets"
