@@ -8,6 +8,7 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 400;
   src: url(/src/assets/fonts/roboto-italic.woff2) format('woff2');
   unicode-range: $unicode-latin;
+  font-display: swap;
 }
 @font-face {
   font-family: 'Roboto';
@@ -15,6 +16,7 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 400;
   src: url(/src/assets/fonts/roboto-regular.woff2) format('woff2');
   unicode-range: $unicode-latin;
+  font-display: swap;
 }
 @font-face {
   font-family: 'Roboto';
@@ -22,6 +24,7 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 500;
   src: url(/src/assets/fonts/roboto-medium-regular.woff2) format('woff2');
   unicode-range: $unicode-latin;
+  font-display: swap;
 }
 @font-face {
   font-family: 'Roboto';
@@ -29,6 +32,7 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 700;
   src: url(/src/assets/fonts/roboto-bold.woff2) format('woff2');
   unicode-range: $unicode-latin;
+  font-display: swap;
 }
 
 /* Roboto Font - Cyrillic alphabet */
@@ -38,6 +42,7 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 400;
   src: url(/src/assets/fonts/roboto-italic-cyrillic.woff2) format('woff2');
   unicode-range: $unicode-cyrillic;
+  font-display: swap;
 }
 @font-face {
   font-family: 'Roboto';
@@ -45,6 +50,7 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 400;
   src: url(/src/assets/fonts/roboto-regular-cyrillic.woff2) format('woff2');
   unicode-range: $unicode-cyrillic;
+  font-display: swap;
 }
 @font-face {
   font-family: 'Roboto';
@@ -52,6 +58,7 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 500;
   src: url(/src/assets/fonts/roboto-medium-regular-cyrillic.woff2) format('woff2');
   unicode-range: $unicode-cyrillic;
+  font-display: swap;
 }
 @font-face {
   font-family: 'Roboto';
@@ -59,4 +66,5 @@ $unicode-cyrillic: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
   font-weight: 700;
   src: url(/src/assets/fonts/roboto-bold-cyrillic.woff2) format('woff2');
   unicode-range: $unicode-cyrillic;
+  font-display: swap;
 }
