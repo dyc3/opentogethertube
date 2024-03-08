@@ -34,12 +34,13 @@ const getStyles = () => {
 export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
 	const styles = useStyles2(getStyles);
 
+	const stateSeries = data.series[0];
 	const eventBusSeries = data.series[1];
 	const eventBus = useEventBus();
 
 	const systemState: SystemState = options.useSampleData
 		? sampleSystemState
-		: data.series[0].fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+		: stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? [];
 
 	let view = useMemo(() => {
 		if (options.view === "global") {
@@ -57,7 +58,7 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		if (!eventBusSeries) {
 			return;
 		}
-		for (let i = readEvents; i < eventBusSeries.length; i++) {
+		if (eventBusSeries.length === readEvents && readEvents > 0) {
 			const event: BusEvent = {
 				timestamp: "",
 				event: "",
@@ -66,11 +67,25 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 			};
 
 			eventBusSeries.fields.forEach(field => {
-				event[field.name as keyof BusEvent] = field.values[i];
+				event[field.name as keyof BusEvent] = field.values[field.values.length - 1];
 			});
 			eventBus.next(event);
+		} else {
+			for (let i = readEvents; i < eventBusSeries.length; i++) {
+				const event: BusEvent = {
+					timestamp: "",
+					event: "",
+					node_id: "",
+					direction: "tx",
+				};
+
+				eventBusSeries.fields.forEach(field => {
+					event[field.name as keyof BusEvent] = field.values[i];
+				});
+				eventBus.next(event);
+			}
+			setReadEvents(eventBusSeries.length);
 		}
-		setReadEvents(eventBusSeries.length);
 	}, [eventBusSeries, readEvents, setReadEvents, eventBus]);
 
 	if (data.state === LoadingState.Loading) {
@@ -87,6 +102,9 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 				`
 			)}
 		>
+			{/* <div>
+				{eventBusSeries?.length > 0 ? eventBusSeries.fields[0].values[eventBusSeries.length - 1] : "No events"}
+			</div> */}
 			{view}
 		</div>
 	);
