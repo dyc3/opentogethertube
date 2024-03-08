@@ -5,6 +5,7 @@ import {
 	DataSourceInstanceSettings,
 	MutableDataFrame,
 	FieldType,
+	CircularDataFrame,
 	LoadingState,
 } from "@grafana/data";
 
@@ -23,6 +24,43 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 	query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
 		const observables = options.targets.map(target => {
+			if (target.stream) {
+				return new Observable<DataQueryResponse>(subscriber => {
+					const frame = new CircularDataFrame({
+						append: 'tail',
+						capacity: 1000,
+					});
+
+					frame.refId = target.refId;
+					frame.addField({ name: 'timestamp', type: FieldType.time });
+					frame.addField({ name: "client_id", type: FieldType.string });
+					frame.addField({ name: "direction", type: FieldType.string });
+
+					const base = this.baseUrl.replace(/^http/, "ws");
+					const ws = new WebSocket(`${base}/state/stream`);
+
+					ws.addEventListener("message", msg => {
+						const event = JSON.parse(msg.data);
+						frame.add(event);
+
+						subscriber.next({
+							data: [frame],
+							key: frame.refId,
+							state: LoadingState.Streaming,
+						});
+					});
+
+					ws.addEventListener("error", err => {
+						console.error("WebSocket error", err);
+						subscriber.error(err);
+					});
+
+					ws.addEventListener("close", () => {
+						subscriber.complete();
+					});
+				});
+			}
+
 			return new Observable<DataQueryResponse>(subscriber => {
 				subscriber.next({
 					data: [],
