@@ -4,8 +4,10 @@ use once_cell::sync::Lazy;
 use ott_balancer_protocol::collector::BalancerState;
 use ott_common::discovery::{ConnectionConfig, ServiceDiscoveryMsg};
 use rocket::futures::StreamExt;
+use serde::Deserialize;
 use tokio::sync::Mutex;
 use tracing::{error, warn};
+use uuid::Uuid;
 
 use crate::SystemState;
 
@@ -123,6 +125,9 @@ impl Collector {
                             break;
                         }
                         let msg = msg.to_string();
+                        if !should_send(&msg) {
+                            continue;
+                        }
                         if let Err(_) = events_tx.send(msg).await {
                             break;
                         }
@@ -135,5 +140,56 @@ impl Collector {
         }
 
         Ok(())
+    }
+}
+
+fn should_send(event: &str) -> bool {
+    match serde_json::from_str::<Event>(event) {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "event", rename_all = "lowercase")]
+#[non_exhaustive]
+enum Event {
+    Ws(EventWebsocketMessage),
+}
+
+/// Indicates that a message was sent or received on a websocket connection to a balancer.
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct EventWebsocketMessage {
+    node_id: Uuid,
+    direction: MsgDirection,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum MsgDirection {
+    Tx,
+    Rx,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use uuid::uuid;
+
+    #[test]
+    fn test_deserialize_event() {
+        let event =
+            r#"{"event":"ws","node_id":"f47ac10b-58cc-4372-a567-0e02b2c3d479", "direction": "tx"}"#;
+        let event: Event = serde_json::from_str(event).unwrap();
+        #[allow(unreachable_patterns)]
+        match event {
+            Event::Ws(EventWebsocketMessage { node_id, .. }) => {
+                assert_eq!(node_id, uuid!("f47ac10b-58cc-4372-a567-0e02b2c3d479"));
+            }
+            _ => {
+                panic!("unexpected event type: {:?}", event);
+            }
+        }
     }
 }
