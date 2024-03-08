@@ -47,6 +47,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 						subscriber.complete();
 					});
 			});
+
 		});
 
 		return merge(...observables);
