@@ -128,7 +128,8 @@ impl Collector {
                         if !should_send(&msg) {
                             continue;
                         }
-                        if let Err(_) = events_tx.send(msg).await {
+                        if let Err(err) = events_tx.send(msg).await {
+                            error!("Failed to send event to bus: {}", err);
                             break;
                         }
                     }
@@ -138,6 +139,7 @@ impl Collector {
                 }
             }
         }
+        warn!("stream from balancer {:?} ended", &balancer);
 
         Ok(())
     }

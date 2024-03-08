@@ -1,21 +1,19 @@
-use rocket::{futures::SinkExt, State};
+use rocket::{
+    futures::{SinkExt, StreamExt},
+    State,
+};
 
 /// Handles all the raw events being streamed from balancers and parses and filters them into only the events we care about.
 pub struct EventBus {
     events_rx: tokio::sync::mpsc::Receiver<String>,
 
     bus_tx: tokio::sync::broadcast::Sender<EventBusEvent>,
-    bus_rx: tokio::sync::broadcast::Receiver<EventBusEvent>,
 }
 
 impl EventBus {
     pub fn new(events_rx: tokio::sync::mpsc::Receiver<String>) -> Self {
-        let (bus_tx, bus_rx) = tokio::sync::broadcast::channel(100);
-        Self {
-            events_rx,
-            bus_tx,
-            bus_rx,
-        }
+        let (bus_tx, _) = tokio::sync::broadcast::channel(100);
+        Self { events_rx, bus_tx }
     }
 
     #[must_use]
@@ -76,9 +74,24 @@ pub fn event_stream(
     let mut rx = event_bus.subscribe();
     ws.channel(move |mut stream| {
         Box::pin(async move {
-            while let Ok(event) = rx.recv().await {
-                if let Err(_) = stream.send(rocket_ws::Message::text(event)).await {
-                    break;
+            loop {
+                tokio::select! {
+                    Ok(event) = rx.recv() => {
+                        if let Err(_) = stream.send(rocket_ws::Message::text(event)).await {
+                            break;
+                        }
+                    }
+                    Some(msg) = stream.next() => {
+                        match msg {
+                            Ok(rocket_ws::Message::Close(_)) => {
+                                break;
+                            }
+                            _ => {}
+                        }
+                    }
+                    else => {
+                        break;
+                    }
                 }
             }
             Ok(())
