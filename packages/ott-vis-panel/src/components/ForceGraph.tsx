@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import * as d3 from "d3";
+import { useEventBus } from "eventbus";
 
 interface ForceGraphProps {
 	data: {
@@ -143,6 +144,11 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 	const nodeClick: React.MouseEventHandler<SVGCircleElement> = e => {
 		d3.select(e.currentTarget).transition().attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
 	}
+
+	const eventBus = useEventBus();
+	eventBus.subscribe(event => {
+		console.log("Event received", event);
+	});
 
 	return (
 		<svg
