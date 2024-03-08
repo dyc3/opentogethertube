@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { PanelProps } from "@grafana/data";
 import type { CoreOptions } from "types";
 import type { SystemState } from "ott-vis";
@@ -41,14 +41,15 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		? sampleSystemState
 		: data.series[0].fields.find(f => f.name === "Balancers")?.values[0] ?? [];
 
-	let view;
-	if (options.view === "global") {
-		view = <GlobalView height={height} width={width} systemState={systemState} />;
-	} else if (options.view === "region") {
-		view = <RegionView height={height} width={width} systemState={systemState} />;
-	} else {
-		view = <div>Invalid view</div>;
-	}
+	let view = useMemo(() => {
+		if (options.view === "global") {
+			return <GlobalView height={height} width={width} systemState={systemState} />;
+		} else if (options.view === "region") {
+			return <RegionView height={height} width={width} systemState={systemState} />;
+		} else {
+			return <div>Invalid view</div>;
+		}
+	}, [options.view, height, width, systemState]);
 
 	const [readEvents, setReadEvents] = useState(0);
 
