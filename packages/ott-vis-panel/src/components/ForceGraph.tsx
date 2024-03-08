@@ -142,19 +142,24 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 	}
 
 	const nodeClick: React.MouseEventHandler<SVGCircleElement> = e => {
-		d3.select(e.currentTarget).transition().attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
-	}
+		d3.select(e.currentTarget)
+			.transition()
+			.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"));
+	};
 
+	const eventBus = useEventBus();
 	useEffect(() => {
-		const eventBus = useEventBus();
 		const sub = eventBus.subscribe(event => {
-			d3.select(`[data-nodeid="${event.node_id}"]`).transition().duration(1000).attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
+			d3.select(`[data-nodeid="${event.node_id}"]`)
+				.transition()
+				.duration(1000)
+				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"));
 		});
 
 		return () => {
 			sub.unsubscribe();
 		};
-	}, [])
+	}, [eventBus]);
 
 	return (
 		<svg
@@ -172,7 +177,13 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			<g className="nodes" stroke="#fff" strokeWidth={1.5}>
 				{nodes.map((node, i) => (
 					<>
-						<circle key={i} r={radius(node.radius)} fill={color(node.group)} onClick={nodeClick} data-nodeid={node.id} />
+						<circle
+							key={i}
+							r={radius(node.radius)}
+							fill={color(node.group)}
+							onClick={nodeClick}
+							data-nodeid={node.id}
+						/>
 						<text
 							textAnchor="middle"
 							alignmentBaseline="middle"

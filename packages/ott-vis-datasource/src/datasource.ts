@@ -27,12 +27,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 			if (target.stream) {
 				return new Observable<DataQueryResponse>(subscriber => {
 					const frame = new CircularDataFrame({
-						append: 'tail',
+						append: "tail",
 						capacity: 1000,
 					});
 
 					frame.refId = target.refId;
-					frame.addField({ name: 'timestamp', type: FieldType.time });
+					frame.addField({ name: "timestamp", type: FieldType.time });
 					frame.addField({ name: "event", type: FieldType.string });
 					frame.addField({ name: "node_id", type: FieldType.string });
 					frame.addField({ name: "direction", type: FieldType.string });
@@ -86,7 +86,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 						subscriber.complete();
 					});
 			});
-
 		});
 
 		return merge(...observables);

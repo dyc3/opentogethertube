@@ -1,9 +1,9 @@
-import { Subject } from 'rxjs';
+import { Subject } from "rxjs";
 
 const eventBus = new Subject<BusEvent>();
 
 export function useEventBus() {
-  return eventBus;
+	return eventBus;
 }
 
 export type BusEvent = {
@@ -11,4 +11,4 @@ export type BusEvent = {
 	event: string;
 	node_id: string;
 	direction: "tx" | "rx";
-}
+};
