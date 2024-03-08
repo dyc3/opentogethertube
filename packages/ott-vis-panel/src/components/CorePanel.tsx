@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { PanelProps } from "@grafana/data";
 import type { CoreOptions } from "types";
 import type { SystemState } from "ott-vis";
@@ -7,6 +7,7 @@ import { useStyles2 } from "@grafana/ui";
 import GlobalView from "./views/GlobalView";
 import RegionView from "./views/RegionView";
 import { LoadingState } from "@grafana/schema";
+import { useEventBus, type BusEvent } from "eventbus";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -33,9 +34,8 @@ const getStyles = () => {
 export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
 	const styles = useStyles2(getStyles);
 
-	if (data.state === LoadingState.Loading) {
-		return <div>Loading...</div>;
-	}
+	const eventBusSeries = data.series[1];
+	const eventBus = useEventBus();
 
 	const systemState: SystemState = options.useSampleData
 		? sampleSystemState
@@ -48,6 +48,32 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		view = <RegionView height={height} width={width} systemState={systemState} />;
 	} else {
 		view = <div>Invalid view</div>;
+	}
+
+	const [readEvents, setReadEvents] = useState(0);
+
+	useEffect(() => {
+		if (!eventBusSeries) {
+			return;
+		}
+		for (let i = readEvents; i < eventBusSeries.length; i++) {
+			const event: BusEvent = {
+				timestamp: "",
+				event: "",
+				node_id: "",
+				direction: "tx",
+			};
+
+			eventBusSeries.fields.forEach(field => {
+				event[field.name as keyof BusEvent] = field.values[i];
+			});
+			eventBus.next(event);
+		}
+		setReadEvents(eventBusSeries.length);
+	}, [eventBusSeries, readEvents, setReadEvents, eventBus]);
+
+	if (data.state === LoadingState.Loading) {
+		return <div>Loading...</div>;
 	}
 
 	return (
