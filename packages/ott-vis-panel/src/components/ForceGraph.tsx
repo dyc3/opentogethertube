@@ -140,6 +140,10 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		return num * 2;
 	}
 
+	const nodeClick: React.MouseEventHandler<SVGCircleElement> = e => {
+		d3.select(e.currentTarget).transition().attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
+	}
+
 	return (
 		<svg
 			ref={svgRef}
@@ -156,7 +160,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			<g className="nodes" stroke="#fff" strokeWidth={1.5}>
 				{nodes.map((node, i) => (
 					<>
-						<circle key={i} r={radius(node.radius)} fill={color(node.group)} />
+						<circle key={i} r={radius(node.radius)} fill={color(node.group)} onClick={nodeClick} />
 						<text
 							textAnchor="middle"
 							alignmentBaseline="middle"
