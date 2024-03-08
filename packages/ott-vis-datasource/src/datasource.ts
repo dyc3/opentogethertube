@@ -33,7 +33,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 					frame.refId = target.refId;
 					frame.addField({ name: 'timestamp', type: FieldType.time });
-					frame.addField({ name: "client_id", type: FieldType.string });
+					frame.addField({ name: "event", type: FieldType.string });
+					frame.addField({ name: "node_id", type: FieldType.string });
 					frame.addField({ name: "direction", type: FieldType.string });
 
 					const base = this.baseUrl.replace(/^http/, "ws");
