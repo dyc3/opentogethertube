@@ -273,10 +273,7 @@ export default {
 			if (!this.player) {
 				return;
 			}
-			const iframe = this.player.getIframe();
-			const width = iframe.parentElement.offsetWidth;
-			const height = iframe.parentElement.offsetHeight;
-			this.player.setSize(width, height);
+			this.player.setSize(this.$el.offsetWidth, this.$el.offsetHeight);
 		},
 	},
 	watch: {
