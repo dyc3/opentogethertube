@@ -13,6 +13,7 @@ figment = { version = "0.10.10", features = ["toml", "env"] }
 futures-util = "0.3.28"
 harness = { path = "crates/harness" }
 harness_macros = { path = "crates/harness_macros" }
+hickory-resolver = { version = "0.24.0", features = ["system-config"] }
 humantime-serde = "1.1"
 hyper = { version = "1.0.0-rc.4", features = ["full"] }
 hyper-util = { git = "https://github.com/hyperium/hyper-util.git", rev = "f898015" }
@@ -35,7 +36,6 @@ tokio-tungstenite = "0.21.0"
 tokio-util = "0.7.8"
 tracing = "0.1.40"
 tracing-subscriber = "0.3.17"
-trust-dns-resolver = { version = "0.22.0", features = ["system-config"] }
 tungstenite = "0.21.0"
 typeshare = "1.0.0"
 url = "2.3.1"
