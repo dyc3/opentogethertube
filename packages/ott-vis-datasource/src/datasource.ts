@@ -5,12 +5,13 @@ import {
 	DataSourceInstanceSettings,
 	MutableDataFrame,
 	FieldType,
+	LoadingState,
 } from "@grafana/data";
 
 import { MyQuery, MyDataSourceOptions } from "./types";
 import { getBackendSrv } from "@grafana/runtime";
 import type { SystemState } from "ott-vis";
-import { lastValueFrom } from "rxjs";
+import { Observable, lastValueFrom, merge } from "rxjs";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	baseUrl: string;
@@ -20,21 +21,35 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 		this.baseUrl = instanceSettings.jsonData.baseUrl;
 	}
 
-	async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-		const response = getBackendSrv().fetch<SystemState>({
-			url: `${this.baseUrl}/state`,
-		});
-		const systemState = (await lastValueFrom(response)).data;
-
-		// Return a constant for each query.
-		const data = options.targets.map(target => {
-			return new MutableDataFrame({
-				refId: target.refId,
-				fields: [{ name: "Balancers", values: [systemState], type: FieldType.other }],
+	query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
+		const observables = options.targets.map(target => {
+			return new Observable<DataQueryResponse>(subscriber => {
+				subscriber.next({
+					data: [],
+					state: LoadingState.Loading,
+				});
+				getBackendSrv()
+					.fetch<SystemState>({
+						url: `${this.baseUrl}/state`,
+					})
+					.subscribe(resp => {
+						const systemState: SystemState = resp.data;
+						const frame = new MutableDataFrame({
+							refId: target.refId,
+							fields: [
+								{ name: "Balancers", values: [systemState], type: FieldType.other },
+							],
+						});
+						subscriber.next({
+							data: [frame],
+							state: LoadingState.Done,
+						});
+						subscriber.complete();
+					});
 			});
 		});
 
-		return { data };
+		return merge(...observables);
 	}
 
 	async testDatasource() {
