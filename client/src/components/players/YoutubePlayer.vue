@@ -66,6 +66,7 @@ export default {
 
 			captionsEnabled: false,
 			isCaptionsLoaded: false,
+			resizeRunawayDetected: false,
 		};
 	},
 	computed: {
@@ -273,7 +274,27 @@ export default {
 			if (!this.player) {
 				return;
 			}
+			if (this.resizeRunawayDetected) {
+				this.resizeRunawayDetected = false;
+				return;
+			}
+			const before = {
+				width: this.$el.offsetWidth,
+				height: this.$el.offsetHeight,
+			};
+			console.log("yt resize (before)", this.$el.offsetWidth, this.$el.offsetHeight);
 			this.player.setSize(this.$el.offsetWidth, this.$el.offsetHeight);
+			console.log("yt resize (after)", this.$el.offsetWidth, this.$el.offsetHeight);
+			if (before.width !== this.$el.offsetWidth || before.height !== this.$el.offsetHeight) {
+				console.log(
+					"yt resize (detected runaway)",
+					before,
+					this.$el.offsetWidth,
+					this.$el.offsetHeight
+				);
+				this.resizeRunawayDetected = true;
+				this.player.setSize(before.width, before.height);
+			}
 		},
 	},
 	watch: {
