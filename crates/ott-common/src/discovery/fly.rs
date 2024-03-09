@@ -1,6 +1,6 @@
 use async_trait::async_trait;
+use hickory_resolver::TokioAsyncResolver;
 use tracing::info;
-use trust_dns_resolver::TokioAsyncResolver;
 
 use super::*;
 
@@ -34,15 +34,15 @@ impl ServiceDiscoverer for FlyServiceDiscoverer {
             TokioAsyncResolver::tokio_from_system_conf().expect("failed to create resolver");
 
         let lookup = resolver.ipv6_lookup(&self.query).await?;
-        let monoliths = lookup
+        let instances = lookup
             .iter()
             .map(|ip| ConnectionConfig {
-                host: HostOrIp::Ip(IpAddr::V6(*ip)),
+                host: HostOrIp::Ip(ip.0.into()),
                 port: self.config.service_port,
             })
             .collect::<Vec<_>>();
 
-        Ok(monoliths)
+        Ok(instances)
     }
 
     fn mode(&self) -> DiscoveryMode {

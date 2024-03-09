@@ -156,7 +156,7 @@ dependencies = [
  "matchit",
  "memchr",
  "mime 0.3.17",
- "percent-encoding 2.2.0",
+ "percent-encoding 2.3.1",
  "pin-project-lite",
  "rustversion",
  "serde",
@@ -197,7 +197,7 @@ dependencies = [
  "tokio-tungstenite",
  "tracing",
  "tracing-subscriber",
- "url 2.3.1",
+ "url 2.5.0",
  "uuid",
 ]
 
@@ -477,7 +477,7 @@ version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3cd91cf61412820176e137621345ee43b3f4423e589e7ae4e50d601d93e35ef8"
 dependencies = [
- "percent-encoding 2.2.0",
+ "percent-encoding 2.3.1",
  "time 0.3.34",
  "version_check 0.9.4",
 ]
@@ -702,14 +702,14 @@ dependencies = [
 
 [[package]]
 name = "enum-as-inner"
-version = "0.5.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9720bba047d567ffc8a3cba48bf19126600e249ab7f128e9233e6376976a116"
+checksum = "5ffccbb6966c05b32ef8fbac435df276c4ae4d3dc55a8cd0eb9745e6c12f546a"
 dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -801,11 +801,11 @@ checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
 name = "form_urlencoded"
-version = "1.1.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9c384f161156f5260c24a097c56119f9be8c798586aecc13afbcbe7b7e26bf8"
+checksum = "e13624c2627564efccf4934284bdd98cbaa14e79b0b5a141218e507b3a823456"
 dependencies = [
- "percent-encoding 2.2.0",
+ "percent-encoding 2.3.1",
 ]
 
 [[package]]
@@ -1026,7 +1026,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tungstenite",
- "url 2.3.1",
+ "url 2.5.0",
  "uuid",
 ]
 
@@ -1097,6 +1097,51 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "hickory-proto"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "091a6fbccf4860009355e3efc52ff4acf37a63489aad7435372d44ceeb6fbbcf"
+dependencies = [
+ "async-trait",
+ "cfg-if 1.0.0",
+ "data-encoding",
+ "enum-as-inner",
+ "futures-channel",
+ "futures-io",
+ "futures-util",
+ "idna 0.4.0",
+ "ipnet",
+ "once_cell",
+ "rand 0.8.5",
+ "thiserror",
+ "tinyvec",
+ "tokio",
+ "tracing",
+ "url 2.5.0",
+]
+
+[[package]]
+name = "hickory-resolver"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35b8f021164e6a984c9030023544c57789c51760065cd510572fedcfb04164e8"
+dependencies = [
+ "cfg-if 1.0.0",
+ "futures-util",
+ "hickory-proto",
+ "ipconfig",
+ "lru-cache",
+ "once_cell",
+ "parking_lot 0.12.1",
+ "rand 0.8.5",
+ "resolv-conf",
+ "smallvec 1.10.0",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "hostname"
@@ -1349,20 +1394,19 @@ dependencies = [
 
 [[package]]
 name = "idna"
-version = "0.2.3"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "418a0a6fab821475f634efe3ccc45c013f742efe03d853e8d3355d5cb850ecf8"
+checksum = "7d20d6b07bfbc108882d88ed8e37d39636dcc260e15e30c45e6ba089610b917c"
 dependencies = [
- "matches",
  "unicode-bidi",
  "unicode-normalization",
 ]
 
 [[package]]
 name = "idna"
-version = "0.3.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e14ddfc70884202db2244c223200c204c2bda1bc6e0998d11b5e024d657209e6"
+checksum = "634d9b1461af396cad843f47fdba5597a4f9e6ddd4bfb6ff5d85028c25cb12f6"
 dependencies = [
  "unicode-bidi",
  "unicode-normalization",
@@ -1802,9 +1846,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.17.1"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
+checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "oorandom"
@@ -1893,9 +1937,8 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
- "trust-dns-resolver",
  "tungstenite",
- "url 2.3.1",
+ "url 2.5.0",
  "uuid",
 ]
 
@@ -1946,6 +1989,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "futures-util",
+ "hickory-resolver",
  "http-body-util",
  "hyper 1.0.0-rc.4",
  "hyper-util",
@@ -1959,9 +2003,8 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
- "trust-dns-resolver",
  "tungstenite",
- "url 2.3.1",
+ "url 2.5.0",
 ]
 
 [[package]]
@@ -2050,9 +2093,9 @@ checksum = "31010dd2e1ac33d5b46a5b413495239882813e0369f8ed8a5e266f173602f831"
 
 [[package]]
 name = "percent-encoding"
-version = "2.2.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "478c572c3d73181ff3c2539045f6eb99e5491218eae919370993b890cdbdd98e"
+checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "pin-project"
@@ -2499,7 +2542,7 @@ dependencies = [
  "mime 0.3.17",
  "native-tls",
  "once_cell",
- "percent-encoding 2.2.0",
+ "percent-encoding 2.3.1",
  "pin-project-lite",
  "rustls",
  "rustls-pemfile",
@@ -2511,7 +2554,7 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "tower-service",
- "url 2.3.1",
+ "url 2.5.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-streams",
@@ -2615,7 +2658,7 @@ dependencies = [
  "log 0.4.17",
  "memchr",
  "pear",
- "percent-encoding 2.2.0",
+ "percent-encoding 2.3.1",
  "pin-project-lite",
  "ref-cast",
  "serde",
@@ -3365,7 +3408,7 @@ dependencies = [
  "http-body 0.4.5",
  "hyper 0.14.26",
  "hyper-timeout",
- "percent-encoding 2.2.0",
+ "percent-encoding 2.3.1",
  "pin-project",
  "prost",
  "tokio",
@@ -3477,51 +3520,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "efd1f82c56340fdf16f2a953d7bda4f8fdffba13d93b00844c25572110b26079"
 
 [[package]]
-name = "trust-dns-proto"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f7f83d1e4a0e4358ac54c5c3681e5d7da5efc5a7a632c90bb6d6669ddd9bc26"
-dependencies = [
- "async-trait",
- "cfg-if 1.0.0",
- "data-encoding",
- "enum-as-inner",
- "futures-channel",
- "futures-io",
- "futures-util",
- "idna 0.2.3",
- "ipnet",
- "lazy_static",
- "rand 0.8.5",
- "smallvec 1.10.0",
- "thiserror",
- "tinyvec",
- "tokio",
- "tracing",
- "url 2.3.1",
-]
-
-[[package]]
-name = "trust-dns-resolver"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aff21aa4dcefb0a1afbfac26deb0adc93888c7d295fb63ab273ef276ba2b7cfe"
-dependencies = [
- "cfg-if 1.0.0",
- "futures-util",
- "ipconfig",
- "lazy_static",
- "lru-cache",
- "parking_lot 0.12.1",
- "resolv-conf",
- "smallvec 1.10.0",
- "thiserror",
- "tokio",
- "tracing",
- "trust-dns-proto",
-]
-
-[[package]]
 name = "try-lock"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3542,7 +3540,7 @@ dependencies = [
  "rand 0.8.5",
  "sha1",
  "thiserror",
- "url 2.3.1",
+ "url 2.5.0",
  "utf-8",
 ]
 
@@ -3654,13 +3652,13 @@ dependencies = [
 
 [[package]]
 name = "url"
-version = "2.3.1"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d68c799ae75762b8c3fe375feb6600ef5602c883c5d21eb51c09f22b83c4643"
+checksum = "31e6302e3bb753d46e83516cae55ae196fc0c309407cf11ab35cc51a4c2a4633"
 dependencies = [
  "form_urlencoded",
- "idna 0.3.0",
- "percent-encoding 2.2.0",
+ "idna 0.5.0",
+ "percent-encoding 2.3.1",
 ]
 
 [[package]]
