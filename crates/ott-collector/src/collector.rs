@@ -128,9 +128,16 @@ impl Collector {
                         if !should_send(&msg) {
                             continue;
                         }
-                        if let Err(err) = events_tx.send(msg).await {
-                            error!("Failed to send event to bus: {}", err);
-                            break;
+                        if let Err(err) = events_tx.try_send(msg) {
+                            match err {
+                                tokio::sync::mpsc::error::TrySendError::Full(_) => {
+                                    warn!("Event bus is full, dropping event");
+                                }
+                                tokio::sync::mpsc::error::TrySendError::Closed(_) => {
+                                    warn!("Event bus is closed, stopping stream");
+                                    break;
+                                }
+                            }
                         }
                     }
                 }

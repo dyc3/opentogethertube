@@ -2,6 +2,7 @@ use rocket::{
     futures::{SinkExt, StreamExt},
     State,
 };
+use tokio::sync::broadcast::error::RecvError;
 
 /// Handles all the raw events being streamed from balancers and parses and filters them into only the events we care about.
 pub struct EventBus {
@@ -39,8 +40,13 @@ impl EventBus {
 
     fn handle_event(&self, event: String) {
         info!("Received event: {}", event);
-        if let Ok(_) = self.bus_tx.send(event) {
-            info!("Event sent to subscribers");
+        match self.bus_tx.send(event) {
+            Ok(count) => {
+                info!("Event sent to {count} subscribers");
+            }
+            Err(err) => {
+                error!("Error sending event to subscribers: {}", err);
+            }
         }
     }
 
@@ -71,25 +77,41 @@ pub fn event_stream(
     ws: rocket_ws::WebSocket,
     event_bus: &State<EventBusSubscriber>,
 ) -> rocket_ws::Channel<'static> {
-    let mut rx = event_bus.subscribe();
+    let mut bus_rx = event_bus.subscribe();
     ws.channel(move |mut stream| {
         Box::pin(async move {
             loop {
                 tokio::select! {
-                    Ok(event) = rx.recv() => {
-                        if let Err(_) = stream.send(rocket_ws::Message::text(event)).await {
+                    result = bus_rx.recv() => {
+                        let event = match result {
+                            Ok(event) => event,
+                            Err(RecvError::Lagged(_)) => {
+                                warn!("Event bus lagging");
+                                continue;
+                            }
+                            Err(RecvError::Closed) => {
+                                info!("Event bus closed");
+                                break;
+                            }
+                        };
+                        if let Err(err) = stream.send(rocket_ws::Message::text(event)).await {
+                            error!("Error sending event to Event bus WebSocket: {}", err);
                             break;
                         }
                     }
                     Some(msg) = stream.next() => {
                         match msg {
                             Ok(rocket_ws::Message::Close(_)) => {
+                                info!("Event bus WebSocket closed");
                                 break;
                             }
-                            _ => {}
+                            _ => {
+                                warn!("Unexpected message from Event bus WebSocket");
+                            }
                         }
                     }
                     else => {
+                        warn!("Event bus WebSocket stream ending");
                         break;
                     }
                 }
