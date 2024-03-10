@@ -4,6 +4,9 @@ use once_cell::sync::Lazy;
 use ott_common::websocket::HyperWebsocket;
 use std::sync::Arc;
 use std::sync::Mutex;
+use tokio::sync::broadcast::error::RecvError;
+use tracing::error;
+use tracing::info;
 use tungstenite::Message;
 
 pub static EVENT_STREAMER: Lazy<Arc<Mutex<EventStreamer>>> =
@@ -38,11 +41,21 @@ impl EventStreamer {
 
                 loop {
                     tokio::select! {
-                        Ok(event) = recv.recv() => {
-                            let msg = Message::Text(event);
-                            if let Err(err) = ws.send(msg).await {
-                                tracing::error!("Error sending event to WebSocket: {}", err);
-                                break;
+                        result = recv.recv() => {
+                            match result {
+                                Ok(event) => {
+                                    let msg = Message::Text(event);
+                                    if let Err(err) = ws.send(msg).await {
+                                        tracing::error!("Error sending event to WebSocket: {}", err);
+                                        break;
+                                    }
+                                }
+                                Err(RecvError::Lagged(_)) => {
+                                    continue;
+                                }
+                                Err(_) => {
+                                    break;
+                                }
                             }
                         }
                         msg = ws.next() => match msg {
@@ -60,6 +73,8 @@ impl EventStreamer {
                         else => break,
                     }
                 }
+                let _ = ws.close(None).await;
+                let _ = ws.flush().await;
             })?;
         Ok(())
     }

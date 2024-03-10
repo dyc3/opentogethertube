@@ -48,6 +48,12 @@
 		{
 			"type": "lldb",
 			"request": "attach",
+			"name": "Attach to ott-balancer",
+			"program": "${workspaceFolder}/ott-balancer-bin"
+		},
+		{
+			"type": "lldb",
+			"request": "attach",
 			"name": "Attach to ott-collector",
 			"program": "${workspaceFolder}/ott-collector"
 		},
