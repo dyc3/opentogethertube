@@ -10,7 +10,7 @@ interface Props {
 }
 
 function buildGraph(state: SystemState): [Node[], Link[]] {
-	const nodes: Node[] = [];
+	let nodes: Node[] = [];
 	const links: Link[] = [];
 	const core: Node = {
 		id: "core",
@@ -47,15 +47,32 @@ function buildGraph(state: SystemState): [Node[], Link[]] {
 		});
 
 		for (const room of rooms) {
-			const roomNode: Node = {
-				id: room,
-				radius: 7,
-				x: 0,
-				y: 0,
-				group: "room",
-				color: "Blue", // TODO: use color from grafana theme/panel options
-			};
-			nodes.push(roomNode);
+			let roomNode: Node;
+			let numRooms = nodes.filter(node => node.group === "room").length;
+
+			if (numRooms > 50) {
+				nodes = nodes
+					.filter((node, index): node is Node => node !== undefined && index % 2 === 0)
+					.map(node => {
+						if (node.group === "room") {
+							return {
+								...node,
+								radius: node.radius * 2,
+							};
+						}
+						return node;
+					});
+			} else {
+				roomNode = {
+					id: room,
+					radius: 7,
+					x: 0,
+					y: 0,
+					group: "room",
+					color: "Blue", // TODO: use color from grafana theme/panel options
+				};
+				nodes.push(roomNode);
+			}
 
 			links.push({
 				source: monolith,

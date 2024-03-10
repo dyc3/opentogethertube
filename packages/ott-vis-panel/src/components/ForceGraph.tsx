@@ -140,29 +140,6 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		return num * 2;
 	}
 
-	let numRooms = nodes.filter(node => node.group === "room").length;
-
-	if (numRooms > 50) {
-		let consolidatedNodes = [];
-		let roomNodes = nodes.filter(node => node.group === "room");
-		let otherNodes = nodes.filter(node => node.group !== "room");
-
-		for (let i = 0; i < roomNodes.length; i += 2) {
-			if (roomNodes[i + 1]) {
-				consolidatedNodes.push({
-					...roomNodes[i],
-					radius: roomNodes[i].radius * 2,
-					text: roomNodes[i].text + ", " + roomNodes[i + 1].text,
-				});
-			} else {
-				consolidatedNodes.push(roomNodes[i]);
-			}
-		}
-
-		nodes = [...consolidatedNodes, ...otherNodes];
-		numRooms = nodes.filter(node => node.group === "room").length;
-	}
-
 	return (
 		<svg
 			ref={svgRef}
