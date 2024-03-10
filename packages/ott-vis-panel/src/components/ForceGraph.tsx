@@ -153,7 +153,8 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			d3.select(`[data-nodeid="${event.node_id}"]`)
 				.transition()
 				.duration(100)
-				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"));
+				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
+				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
 		});
 
 		return () => {
