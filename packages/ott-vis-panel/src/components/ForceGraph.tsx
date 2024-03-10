@@ -152,7 +152,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		const sub = eventBus.subscribe(event => {
 			d3.select(`[data-nodeid="${event.node_id}"]`)
 				.transition()
-				.duration(1000)
+				.duration(100)
 				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"));
 		});
 
