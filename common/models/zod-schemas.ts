@@ -6,7 +6,7 @@ import { string, z } from "zod";
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
 
-export const createRoomSchema = z.object({
+export const OttApiRequestRoomCreateSchema = z.object({
 	name: z
 		.string()
 		.min(3, "too short, must be atleast 3 characters")
@@ -25,6 +25,6 @@ const VideoIdSchema = z.object({
 	id: z.string(),
 });
 
-export const voteSchema = z.object({
+export const OttApiRequestVoteSchema = z.object({
 	...VideoIdSchema.shape,
 });

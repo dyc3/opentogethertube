@@ -32,7 +32,7 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
-import { createRoomSchema, voteSchema } from "ott-common/models/zod-schemas";
+import { OttApiRequestRoomCreateSchema, OttApiRequestVoteSchema } from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -119,7 +119,7 @@ const createRoom: RequestHandler<
 	OttResponseBody<OttApiResponseRoomCreate>,
 	OttApiRequestRoomCreate
 > = async (req, res) => {
-	const body = createRoomSchema.parse(req.body);
+	const body = OttApiRequestRoomCreateSchema.parse(req.body);
 
 	if (body.isTemporary && !conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
@@ -304,7 +304,7 @@ const undoEvent: RequestHandler<{ name: string }> = async (req, res) => {
 };
 
 const addVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = async (req, res) => {
-	const body = voteSchema.parse(req.body);
+	const body = OttApiRequestVoteSchema.parse(req.body);
 
 	if (!req.token) {
 		throw new OttException("Missing token");
@@ -325,7 +325,7 @@ const removeVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> =
 	req,
 	res
 ) => {
-	const body = voteSchema.parse(req.body);
+	const body = OttApiRequestVoteSchema.parse(req.body);
 
 	if (!req.token) {
 		throw new OttException("Missing token");
