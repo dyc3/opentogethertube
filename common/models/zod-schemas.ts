@@ -1,6 +1,7 @@
-import { ROOM_NAME_REGEX } from "ott-common/constants";
+import { ALL_VIDEO_SERVICES, ROOM_NAME_REGEX } from "ott-common/constants";
 import { Visibility, QueueMode } from "ott-common/models/types";
-import { z } from "zod";
+import { VideoService } from "./video";
+import { string, z } from "zod";
 
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
@@ -17,4 +18,10 @@ export const createRoomSchema = z.object({
 	isTemporary: z.boolean().optional().default(true),
 	visibility: z.nativeEnum(Visibility).default(Visibility.Public).optional(),
 	queueMode: z.nativeEnum(QueueMode).optional(),
+});
+
+export const voteSchema = z.object({
+	service: z.enum(ALL_VIDEO_SERVICES),
+	id: z.string(),
+	token: z.string(),
 });
