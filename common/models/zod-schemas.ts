@@ -28,3 +28,13 @@ const VideoIdSchema = z.object({
 export const OttApiRequestVoteSchema = z.object({
 	...VideoIdSchema.shape,
 });
+
+export const OttApiRequestAddToQueueSchema = z.union([
+	z.object({
+		videos: z.array(VideoIdSchema),
+	}),
+	VideoIdSchema,
+	z.object({
+		url: z.string(),
+	}),
+]);
