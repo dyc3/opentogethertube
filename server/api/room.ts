@@ -321,17 +321,8 @@ const removeVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> =
 	req,
 	res
 ) => {
-	if (!req.token) {
-		throw new OttException("Missing token");
-	}
-	if (!req.body.service) {
-		throw new BadApiArgumentException("service", "missing");
-	}
-	if (!req.body.id) {
-		throw new BadApiArgumentException("id", "missing");
-	}
-
-	const client = clientmanager.getClientByToken(req.token, req.params.name);
+	const body = voteSchema.parse(req.body);
+	const client = clientmanager.getClientByToken(body.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
