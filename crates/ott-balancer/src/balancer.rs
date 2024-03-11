@@ -23,9 +23,6 @@ use crate::{
     messages::*,
     monolith::{BalancerMonolith, NewMonolith},
 };
-use once_cell::sync::Lazy;
-
-pub static BALANCER_ID: Lazy<BalancerId> = Lazy::new(|| Uuid::new_v4().into());
 
 pub struct Balancer {
     pub(crate) ctx: Arc<RwLock<BalancerContext>>,
@@ -235,16 +232,11 @@ impl BalancerContext {
         Ok(())
     }
 
-    pub async fn add_monolith(&mut self, monolith: BalancerMonolith) -> anyhow::Result<()> {
-        let monolith_id = monolith.id();
+    pub fn add_monolith(&mut self, monolith: BalancerMonolith) {
+        let id = monolith.id();
         let region = monolith.region().to_string();
-        self.monoliths.insert(monolith_id, monolith);
-        self.monoliths_by_region
-            .entry(region)
-            .or_default()
-            .push(monolith_id);
-
-        Ok(())
+        self.monoliths.insert(id, monolith);
+        self.monoliths_by_region.entry(region).or_default().push(id);
     }
 
     pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
@@ -524,7 +516,7 @@ pub async fn join_monolith(
         .send(monolith_outbound_rx)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
     let monolith_id = monolith.id();
-    b.add_monolith(monolith).await?;
+    b.add_monolith(monolith);
     drop(b);
 
     let ctx = ctx.clone();
@@ -746,9 +738,7 @@ mod test {
             },
             client_unicast_tx,
         );
-        ctx.add_monolith(monolith)
-            .await
-            .expect("failed to add monolith");
+        ctx.add_monolith(monolith);
         ctx.add_room(room_name.clone(), RoomLocator::new(monolith_id, 0))
             .expect("failed to add room");
 
