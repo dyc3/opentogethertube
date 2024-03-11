@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use ott_balancer_protocol::collector::{BalancerState, MonolithState, RoomState};
 use ott_balancer_protocol::monolith::{
-    B2MClientMsg, B2MInit, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
+    B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
 };
 use ott_balancer_protocol::*;
 use serde_json::value::RawValue;
@@ -235,14 +235,9 @@ impl BalancerContext {
         Ok(())
     }
 
-    pub async fn add_monolith(
-        &mut self,
-        monolith: BalancerMonolith,
-        balancer_id: BalancerId,
-    ) -> anyhow::Result<()> {
+    pub async fn add_monolith(&mut self, monolith: BalancerMonolith) -> anyhow::Result<()> {
         let monolith_id = monolith.id();
         let region = monolith.region().to_string();
-        monolith.send(B2MInit { id: balancer_id }).await?;
         self.monoliths.insert(monolith_id, monolith);
         self.monoliths_by_region
             .entry(region)
@@ -529,8 +524,7 @@ pub async fn join_monolith(
         .send(monolith_outbound_rx)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
     let monolith_id = monolith.id();
-    let balancer_id = *BALANCER_ID;
-    b.add_monolith(monolith, balancer_id).await?;
+    b.add_monolith(monolith).await?;
     drop(b);
 
     let ctx = ctx.clone();
@@ -744,7 +738,6 @@ mod test {
             client_inbound_tx,
         );
         let client_id = uuid::Uuid::new_v4().into();
-        let balancer_id = *BALANCER_ID;
         let client = BalancerClient::new(
             NewClient {
                 id: client_id,
@@ -753,7 +746,7 @@ mod test {
             },
             client_unicast_tx,
         );
-        ctx.add_monolith(monolith, balancer_id)
+        ctx.add_monolith(monolith)
             .await
             .expect("failed to add monolith");
         ctx.add_room(room_name.clone(), RoomLocator::new(monolith_id, 0))
