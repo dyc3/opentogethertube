@@ -113,6 +113,16 @@ async fn connect_and_maintain(
             }
         }
 
+        let init = B2MInit { id: *BALANCER_ID };
+        stream
+            .send(Message::Text(
+                serde_json::to_string(&MsgB2M::Init(init)).unwrap(),
+            ))
+            .await
+            .unwrap_or_else(|err| {
+                error!("Failed to send init message to monolith: {}", err);
+            });
+
         let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
         let Ok(Some(Ok(message))) = result else {
             let _ = stream
@@ -188,16 +198,6 @@ async fn connect_and_maintain(
                 return;
             }
         }
-
-        let init = B2MInit { id: *BALANCER_ID };
-        stream
-            .send(Message::Text(
-                serde_json::to_string(&MsgB2M::Init(init)).unwrap(),
-            ))
-            .await
-            .unwrap_or_else(|err| {
-                error!("Failed to send init message to monolith: {}", err);
-            });
 
         loop {
             tokio::select! {
