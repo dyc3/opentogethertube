@@ -20,8 +20,11 @@ export const createRoomSchema = z.object({
 	queueMode: z.nativeEnum(QueueMode).optional(),
 });
 
-export const voteSchema = z.object({
+const VideoIdSchema = z.object({
 	service: z.enum(ALL_VIDEO_SERVICES),
 	id: z.string(),
-	token: z.string(),
+});
+
+export const voteSchema = z.object({
+	...VideoIdSchema.shape,
 });

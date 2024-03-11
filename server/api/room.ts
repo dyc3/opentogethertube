@@ -306,7 +306,11 @@ const undoEvent: RequestHandler<{ name: string }> = async (req, res) => {
 const addVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = async (req, res) => {
 	const body = voteSchema.parse(req.body);
 
-	const client = clientmanager.getClientByToken(body.token, req.params.name);
+	if (!req.token) {
+		throw new OttException("Missing token");
+	}
+
+	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
@@ -322,7 +326,12 @@ const removeVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> =
 	res
 ) => {
 	const body = voteSchema.parse(req.body);
-	const client = clientmanager.getClientByToken(body.token, req.params.name);
+
+	if (!req.token) {
+		throw new OttException("Missing token");
+	}
+
+	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
