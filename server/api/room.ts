@@ -35,6 +35,8 @@ import { conf } from "../ott-config";
 import {
 	OttApiRequestRoomCreateSchema,
 	OttApiRequestVoteSchema,
+	OttApiRequestAddToQueueSchema,
+	OttApiRequestRemoveFromQueueSchema,
 } from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -350,9 +352,10 @@ const addToQueue: RequestHandler<
 	OttResponseBody<unknown>,
 	OttApiRequestAddToQueue
 > = async (req, res) => {
+	const body = OttApiRequestAddToQueueSchema.parse(req.body);
 	let points = 5;
-	if ("videos" in req.body) {
-		points = 3 * req.body.videos.length;
+	if ("videos" in body) {
+		points = 3 * body.videos.length;
 	}
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
@@ -360,22 +363,22 @@ const addToQueue: RequestHandler<
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
 	let roomRequest: AddRequest;
-	if ("videos" in req.body) {
+	if ("videos" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
-			videos: req.body.videos,
+			videos: body.videos,
 		};
-	} else if ("url" in req.body) {
+	} else if ("url" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
-			url: req.body.url,
+			url: body.url,
 		};
-	} else if ("service" in req.body && "id" in req.body) {
+	} else if ("service" in body && "id" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
 			video: {
-				service: req.body.service,
-				id: req.body.id,
+				service: body.service,
+				id: body.id,
 			},
 		};
 	} else {
@@ -392,17 +395,18 @@ const removeFromQueue: RequestHandler<
 	OttResponseBody<unknown>,
 	OttApiRequestRemoveFromQueue
 > = async (req, res) => {
+	const body = OttApiRequestRemoveFromQueueSchema.parse(req.body);
 	let points = 5;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
-	if (req.body.service && req.body.id) {
+	if (body.service && body.id) {
 		await room.processUnauthorizedRequest(
 			{
 				type: RoomRequestType.RemoveRequest,
-				video: { service: req.body.service, id: req.body.id },
+				video: { service: body.service, id: body.id },
 			},
 			{ token: req.token! }
 		);

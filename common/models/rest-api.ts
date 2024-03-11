@@ -7,6 +7,7 @@ import {
 	OttApiRequestRoomCreateSchema,
 	OttApiRequestVoteSchema,
 	OttApiRequestAddToQueueSchema,
+	OttApiRequestRemoveFromQueueSchema,
 } from "./zod-schemas";
 import { z } from "zod";
 
@@ -74,7 +75,7 @@ export interface OttApiRequestUndo {
 
 export type OttApiRequestAddToQueue = z.infer<typeof OttApiRequestAddToQueueSchema>;
 
-export type OttApiRequestRemoveFromQueue = VideoId;
+export type OttApiRequestRemoveFromQueue = z.infer<typeof OttApiRequestRemoveFromQueueSchema>;
 
 export type OttApiResponseAddPreview = {
 	result: Video[];
