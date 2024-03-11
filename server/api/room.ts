@@ -32,7 +32,7 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
-import { createRoomSchema } from "ott-common/models/zod-schemas";
+import { createRoomSchema, voteSchema } from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -304,17 +304,9 @@ const undoEvent: RequestHandler<{ name: string }> = async (req, res) => {
 };
 
 const addVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = async (req, res) => {
-	if (!req.token) {
-		throw new OttException("Missing token");
-	}
-	if (!req.body.service) {
-		throw new BadApiArgumentException("service", "missing");
-	}
-	if (!req.body.id) {
-		throw new BadApiArgumentException("id", "missing");
-	}
+	const body = voteSchema.parse(req.body);
 
-	const client = clientmanager.getClientByToken(req.token, req.params.name);
+	const client = clientmanager.getClientByToken(body.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
 		video: { service: req.body.service, id: req.body.id },
