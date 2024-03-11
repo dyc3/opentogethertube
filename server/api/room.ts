@@ -32,7 +32,10 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
-import { OttApiRequestRoomCreateSchema, OttApiRequestVoteSchema } from "ott-common/models/zod-schemas";
+import {
+	OttApiRequestRoomCreateSchema,
+	OttApiRequestVoteSchema,
+} from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
