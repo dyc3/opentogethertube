@@ -1,0 +1,32 @@
+name: pull request comment
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  rerun-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull Request Comment Trigger
+        uses: Khan/pull-request-comment-trigger@v1.1.0
+        id: check
+        with:
+          trigger: "/rerun"
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_WORKFLOW_RERUN }}
+      - name: Rerun workflows
+        if: steps.check.outputs.triggered == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_WORKFLOW_RERUN }}
+        run: |
+          # get the branch name for the pull request
+          branch=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" | jq -r '.head.ref')
+
+          # Get the workflow runs
+          workflow_runs=$(gh api "repos/${{ github.repository }}/actions/runs")
+          workflow_runs_failed=$(echo $workflow_runs | jq -r --arg branch "$branch" '.workflow_runs[] | select(.conclusion == "failure" and .head_branch == $branch) | .id')
+          # Rerun the workflows
+          for workflow_run_id in $workflow_runs_failed; do
+            gh api "repos/${{ github.repository }}/actions/runs/${workflow_run_id}/rerun-failed-jobs"
+          done
