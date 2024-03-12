@@ -32,7 +32,10 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
-import { createRoomSchema } from "ott-common/models/zod-schemas";
+import {
+	OttApiRequestRoomCreateSchema,
+	OttApiRequestVoteSchema,
+} from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -119,7 +122,7 @@ const createRoom: RequestHandler<
 	OttResponseBody<OttApiResponseRoomCreate>,
 	OttApiRequestRoomCreate
 > = async (req, res) => {
-	const body = createRoomSchema.parse(req.body);
+	const body = OttApiRequestRoomCreateSchema.parse(req.body);
 
 	if (body.isTemporary && !conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
@@ -304,20 +307,16 @@ const undoEvent: RequestHandler<{ name: string }> = async (req, res) => {
 };
 
 const addVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = async (req, res) => {
+	const body = OttApiRequestVoteSchema.parse(req.body);
+
 	if (!req.token) {
 		throw new OttException("Missing token");
-	}
-	if (!req.body.service) {
-		throw new BadApiArgumentException("service", "missing");
-	}
-	if (!req.body.id) {
-		throw new BadApiArgumentException("id", "missing");
 	}
 
 	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
-		video: { service: req.body.service, id: req.body.id },
+		video: { service: body.service, id: body.id },
 		add: true,
 	});
 	res.json({
@@ -329,20 +328,16 @@ const removeVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> =
 	req,
 	res
 ) => {
+	const body = OttApiRequestVoteSchema.parse(req.body);
+
 	if (!req.token) {
 		throw new OttException("Missing token");
-	}
-	if (!req.body.service) {
-		throw new BadApiArgumentException("service", "missing");
-	}
-	if (!req.body.id) {
-		throw new BadApiArgumentException("id", "missing");
 	}
 
 	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
-		video: { service: req.body.service, id: req.body.id },
+		video: { service: body.service, id: body.id },
 		add: false,
 	});
 	res.json({

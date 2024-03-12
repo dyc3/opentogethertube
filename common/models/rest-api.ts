@@ -3,7 +3,7 @@ import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 import type { Category } from "sponsorblock-api";
-import { createRoomSchema } from "./zod-schemas";
+import { OttApiRequestRoomCreateSchema, OttApiRequestVoteSchema } from "./zod-schemas";
 import { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
@@ -35,7 +35,7 @@ export interface OttApiResponseRoomGenerate {
 }
 
 /** Endpoint: `/api/room/create` */
-export type OttApiRequestRoomCreate = z.infer<typeof createRoomSchema>;
+export type OttApiRequestRoomCreate = z.infer<typeof OttApiRequestRoomCreateSchema>;
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiResponseRoomCreate {}
@@ -83,7 +83,7 @@ export type OttApiResponseAddPreview = {
 	result: Video[];
 };
 
-export interface OttApiRequestVote extends VideoId {}
+export type OttApiRequestVote = z.infer<typeof OttApiRequestVoteSchema>;
 
 export type OttApiRequestAccountRecoveryStart = {
 	email?: string;
