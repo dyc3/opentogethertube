@@ -141,12 +141,6 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		return num * 2;
 	}
 
-	const nodeClick: React.MouseEventHandler<SVGCircleElement> = e => {
-		d3.select(e.currentTarget)
-			.transition()
-			.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"));
-	};
-
 	const eventBus = useEventBus();
 	useEffect(() => {
 		const sub = eventBus.subscribe(event => {
@@ -182,7 +176,6 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 							key={i}
 							r={radius(node.radius)}
 							fill={color(node.group)}
-							onClick={nodeClick}
 							data-nodeid={node.id}
 						/>
 						<text
