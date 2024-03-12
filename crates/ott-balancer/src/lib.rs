@@ -69,11 +69,11 @@ pub async fn run() -> anyhow::Result<()> {
     let streamer_layer = tracing_subscriber::fmt::layer()
         .json()
         .flatten_event(true)
-        .with_filter(EnvFilter::new("debug"))
         .with_current_span(false)
         .with_writer(move || EventSink {
             event_tx: event_tx.clone(),
-        });
+        })
+        .with_filter(EnvFilter::new("debug"));
     tracing_subscriber::registry()
         .with(console_layer)
         .with(streamer_layer)
