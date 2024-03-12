@@ -10,7 +10,7 @@ use tokio::sync::RwLock;
 use tracing::{error, info};
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{EnvFilter, Layer};
 
 use crate::config::BalancerConfig;
 use crate::service::BalancerService;
@@ -59,12 +59,12 @@ pub async fn run() -> anyhow::Result<()> {
     } else {
         console_subscriber::ConsoleLayer::builder().spawn()
     };
-    let fmt_layer = tracing_subscriber::fmt::layer();
+    let console_layer = console_layer.with_filter(EnvFilter::try_new("tokio=trace,runtime=trace")?);
     let filter = args.build_tracing_filter();
     let filter_layer = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new(filter))?;
+    let fmt_layer = tracing_subscriber::fmt::layer().with_filter(filter_layer);
     tracing_subscriber::registry()
         .with(console_layer)
-        .with(filter_layer)
         .with(fmt_layer)
         .init();
     info!("Loaded config: {:?}", config);

@@ -76,10 +76,6 @@ pub struct Cli {
     #[clap(short, long, default_value_t = LogLevel::Info, value_enum)]
     pub log_level: LogLevel,
 
-    /// Enable debug logging so that tokio-console works.
-    #[clap(long)]
-    pub debug_runtime: bool,
-
     /// Allow remote connections via tokio-console for debugging. By default, only local connections are allowed.
     ///
     /// The default port for tokio-console is 6669.
@@ -93,11 +89,7 @@ pub struct Cli {
 
 impl Cli {
     pub fn build_tracing_filter(&self) -> String {
-        let mut filter: String = self.log_level.into();
-        if self.debug_runtime {
-            filter.push_str(",tokio=trace,runtime=trace");
-        }
-        filter
+        self.log_level.into()
     }
 }
 
