@@ -261,6 +261,8 @@ function validateB2M(message: unknown): message is MsgB2M {
 			return typeof msg.payload.room === "string";
 		case "unload":
 			return typeof msg.payload.room === "string";
+		case "init":
+			return typeof msg.payload.id === "string";
 		default:
 			return false;
 	}
@@ -337,4 +339,4 @@ function gossip() {
 
 const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait: 1000 * 20 });
 
-interface GossipRoom extends RoomListItem {}
+interface GossipRoom extends RoomListItem { }
