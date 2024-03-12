@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use harness::{Client, Monolith, MonolithBuilder, TestRunner, WebsocketSender};
+use ott_balancer_protocol::monolith::MsgB2M;
 use test_context::test_context;
 use tungstenite::Message;
 
@@ -13,10 +14,10 @@ async fn should_kick_clients_when_monolith_lost(ctx: &mut TestRunner) {
 
     let mut c1 = Client::new(ctx).unwrap();
     c1.join("foo").await;
+    m_wait_until_msg_matching!(m, MsgB2M::Join(_));
     let mut c2 = Client::new(ctx).unwrap();
     c2.join("bar").await;
-
-    m.wait_recv().await;
+    m_wait_until_msg_matching!(m, MsgB2M::Join(_));
 
     m.hide().await;
 
