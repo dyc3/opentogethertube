@@ -145,8 +145,7 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(body);
 	}
 	log.info(
-		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${
-			req.ip
+		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${req.ip
 		} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
@@ -316,7 +315,7 @@ const addVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = as
 	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
-		video: { service: req.body.service, id: req.body.id },
+		video: { service: body.service, id: body.id },
 		add: true,
 	});
 	res.json({
@@ -337,7 +336,7 @@ const removeVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> =
 	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
-		video: { service: req.body.service, id: req.body.id },
+		video: { service: body.service, id: body.id },
 		add: false,
 	});
 	res.json({
