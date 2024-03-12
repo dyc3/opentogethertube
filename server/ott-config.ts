@@ -444,10 +444,17 @@ export const conf = convict({
 		},
 	},
 	video: {
-		enable_sponsorblock: {
-			doc: "Whether to enable fetching skipable segments from sponsorblock.",
-			format: Boolean,
-			default: true,
+		sponsorblock: {
+			enabled: {
+				doc: "Whether to enable fetching skipable segments from sponsorblock.",
+				format: Boolean,
+				default: true,
+			},
+			cache_ttl: {
+				doc: "The duration in seconds to cache sponsorblock segments for.",
+				format: "nat",
+				default: 60 * 60 * 24 * 7, // 1 week
+			},
 		},
 	},
 });

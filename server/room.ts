@@ -60,7 +60,7 @@ import {
 import storage from "./storage";
 import tokens, { SessionInfo } from "./auth/tokens";
 import { OttException } from "ott-common/exceptions";
-import { getSponsorBlock } from "./sponsorblock";
+import { fetchSegments, getSponsorBlock } from "./sponsorblock";
 import { ResponseError as SponsorblockResponseError, Segment, Category } from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue";
 import { Counter } from "prom-client";
@@ -225,7 +225,7 @@ export class Room implements RoomState {
 	_owner: User | null = null;
 	grants: Grants = new Grants();
 	userRoles: Map<Role, Set<number>>;
-	_autoSkipSegmentCategories: Array<Category> = Array.from(ALL_SKIP_CATEGORIES);
+	_autoSkipSegmentCategories = Array.from(ALL_SKIP_CATEGORIES);
 	restoreQueueBehavior: BehaviorOption = BehaviorOption.Prompt;
 	_enableVoteSkip: boolean = false;
 
@@ -541,7 +541,7 @@ export class Room implements RoomState {
 		}
 
 		if (
-			conf.get("video.enable_sponsorblock") &&
+			conf.get("video.sponsorblock.enabled") &&
 			this.autoSkipSegmentCategories.length > 0 &&
 			this.currentSource
 		) {
@@ -766,7 +766,7 @@ export class Room implements RoomState {
 			);
 		}
 
-		if (conf.get("video.enable_sponsorblock") && this.autoSkipSegmentCategories.length > 0) {
+		if (conf.get("video.sponsorblock.enabled") && this.autoSkipSegmentCategories.length > 0) {
 			if (this.wantSponsorBlock) {
 				this.wantSponsorBlock = false; // Disable this before the request to avoid spamming the sponsorblock if the request takes too long.
 				try {
@@ -946,15 +946,7 @@ export class Room implements RoomState {
 		this.log.info(
 			`fetching sponsorblock segments for ${this.currentSource.service}:${this.currentSource.id}`
 		);
-		const sponsorBlock = await getSponsorBlock();
-		this.videoSegments = await sponsorBlock.getSegments(this.currentSource.id, [
-			"sponsor",
-			"intro",
-			"outro",
-			"interaction",
-			"selfpromo",
-			"preview",
-		]);
+		this.videoSegments = await fetchSegments(this.currentSource.id);
 	}
 
 	/** Updates playbackPosition according to the computed value, and resets _playbackStart */
