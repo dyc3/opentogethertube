@@ -55,7 +55,7 @@ async fn should_send_pongs_to_monolith(ctx: &mut TestRunner) {
     m.show().await;
 
     m.send_raw(Message::Ping("foo".into())).await;
-    m.wait_recv().await;
+    m_wait_until_msg_matching_raw!(m, Message::Pong(_));
 
     let recv = m.collect_recv_raw();
     let pongs = recv.iter().filter(|msg| msg.is_pong()).count();

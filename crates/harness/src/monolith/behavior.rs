@@ -113,7 +113,7 @@ mod tests {
     use super::*;
     use test_context::test_context;
 
-    use crate::{Client, MonolithBuilder, TestRunner};
+    use crate::{m_wait_until_msg_matching, Client, MonolithBuilder, TestRunner};
 
     #[test]
     fn behavior_should_load_rooms() {
@@ -156,7 +156,7 @@ mod tests {
         let mut c = Client::new(ctx).unwrap();
         c.join("foo").await;
 
-        m.wait_recv().await;
+        m_wait_until_msg_matching!(m, MsgB2M::Join(_));
 
         let s = m.state.lock().unwrap();
         assert_eq!(s.rooms.len(), 1);
@@ -174,7 +174,7 @@ mod tests {
         let mut c1 = Client::new(ctx).unwrap();
         c1.join("foo").await;
 
-        m.wait_recv().await;
+        m_wait_until_msg_matching!(m, MsgB2M::Join(_));
         assert_eq!(m.clients().len(), 1);
 
         c1.disconnect().await;
