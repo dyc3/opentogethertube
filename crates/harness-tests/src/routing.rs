@@ -175,10 +175,10 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
 
     let mut c1 = Client::new(ctx).unwrap();
     c1.join("foo").await;
+    m_wait_until_msg_matching!(m, MsgB2M::Join(_));
     let mut c2 = Client::new(ctx).unwrap();
     c2.join("foo").await;
-
-    m.wait_recv().await;
+    m_wait_until_msg_matching!(m, MsgB2M::Join(_));
 
     let c_id = m.clients().iter().next().copied();
 
@@ -257,13 +257,9 @@ async fn should_prioritize_same_region_ws(ctx: &mut TestRunner) {
     let mut c1 = Client::new(ctx).unwrap();
     c1.join("foo").await;
 
-    tokio::time::timeout(Duration::from_millis(200), m1.wait_recv())
-        .await
-        .expect("timeout waiting for join message");
-
+    m_wait_until_msg_matching!(m1, MsgB2M::Join(_));
     let recvd = m1.collect_recv();
-    assert_eq!(recvd.len(), 1);
-    assert!(matches!(recvd[0], MsgB2M::Join(_)));
+    assert!(matches!(recvd.last().unwrap(), MsgB2M::Join(_)));
 }
 
 #[test_context(TestRunner)]

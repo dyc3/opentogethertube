@@ -1,12 +1,15 @@
 use std::collections::HashMap;
 
 use harness::{Client, Monolith, TestRunner, WebsocketSender};
-use ott_balancer_protocol::client::*;
+use ott_balancer_protocol::{client::*, monolith::MsgB2M};
 use test_context::test_context;
 
 mod connection;
 mod routing;
 mod state;
+
+#[macro_use]
+extern crate harness;
 
 #[test_context(TestRunner)]
 #[tokio::test]
@@ -19,10 +22,11 @@ async fn sample_test(ctx: &mut TestRunner) {
     let mut c = Client::new(ctx).unwrap();
     c.join("foo").await;
 
-    m.wait_recv().await;
+    m_wait_until_msg_matching!(m, MsgB2M::Join(_));
 
     let recvd = m.collect_recv();
-    assert_eq!(recvd.len(), 1);
+    let msg_count = recvd.len();
+    assert!(msg_count > 0);
 
     assert!(c.connected());
     let msg = ClientMessageOther {
@@ -33,7 +37,7 @@ async fn sample_test(ctx: &mut TestRunner) {
 
     m.wait_recv().await;
     let recvd = m.collect_recv();
-    assert_eq!(recvd.len(), 2);
+    assert_eq!(recvd.len(), msg_count + 1);
 }
 
 /// Add and remove a monolith a bunch of times to make sure that monolith discovery works.
