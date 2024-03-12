@@ -5,8 +5,7 @@ use ott_common::websocket::HyperWebsocket;
 use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::sync::broadcast::error::RecvError;
-use tracing::error;
-use tracing::info;
+
 use tungstenite::Message;
 
 pub static EVENT_STREAMER: Lazy<Arc<Mutex<EventStreamer>>> =
@@ -22,6 +21,12 @@ pub async fn handle_stream_websocket(ws: HyperWebsocket) -> anyhow::Result<()> {
 
 pub struct EventStreamer {
     event_tx: tokio::sync::broadcast::Sender<String>,
+}
+
+impl Default for EventStreamer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EventStreamer {

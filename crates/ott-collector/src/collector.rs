@@ -153,10 +153,7 @@ impl Collector {
 }
 
 fn should_send(event: &str) -> bool {
-    match serde_json::from_str::<Event>(event) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    serde_json::from_str::<Event>(event).is_ok()
 }
 
 #[derive(Debug, Deserialize)]
