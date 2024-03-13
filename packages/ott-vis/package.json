@@ -1,24 +1,24 @@
 {
-  "name": "ott-vis",
-  "version": "0.12.0",
-  "description": "",
-  "license": "AGPL-3.0-or-later",
-  "type": "module",
-  "scripts": {
-    "build": "tsc",
-    "test": "vitest run --coverage",
-    "lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
-    "lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
-    "dev": "concurrently 'yarn workspace ott-vis-panel run dev' 'yarn workspace ott-vis-datasource run dev'",
-    "server": "docker-compose up --build"
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "6.14.0",
-    "@typescript-eslint/parser": "6.14.0",
-    "concurrently": "7.6.0",
-    "eslint": "^8.57.0",
-    "prettier": "^2.5.1",
-    "typescript": "5.3.3",
-    "vitest": "^1.2.2"
-  }
+	"name": "ott-vis",
+	"version": "0.12.0",
+	"description": "",
+	"license": "AGPL-3.0-or-later",
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"test": "vitest run --coverage",
+		"lint": "prettier --write --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx . --fix",
+		"lint-ci": "prettier --check --config ../../.prettierrc . && tsc --noEmit && eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
+		"dev": "concurrently 'yarn workspace ott-vis-panel run dev' 'yarn workspace ott-vis-datasource run dev'",
+		"server": "docker-compose up --build"
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "6.14.0",
+		"@typescript-eslint/parser": "6.14.0",
+		"concurrently": "7.6.0",
+		"eslint": "^8.57.0",
+		"prettier": "^2.5.1",
+		"typescript": "5.3.3",
+		"vitest": "^1.2.2"
+	}
 }
