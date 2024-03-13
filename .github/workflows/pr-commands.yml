@@ -35,5 +35,5 @@ jobs:
           # Rerun the workflows
           for workflow_run_id in $workflow_runs_failed; do
             echo "Rerunning failed workflow runs $workflow_run_id"
-            gh api "repos/${{ github.repository }}/actions/runs/$workflow_run_id/rerun-failed-jobs"
+            gh api --method POST "repos/${{ github.repository }}/actions/runs/$workflow_run_id/rerun-failed-jobs"
           done
