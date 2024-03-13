@@ -17,6 +17,7 @@ extern crate rocket;
 mod collector;
 mod config;
 mod cors;
+mod event_bus;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SystemState(Vec<BalancerState>);
@@ -55,12 +56,27 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    let _collector_handle = Collector::new(discovery_rx, config.collect_interval).spawn();
+    let (events_tx, events_rx) = tokio::sync::mpsc::channel(100);
+    let _collector_handle =
+        Collector::new(discovery_rx, events_tx, config.collect_interval).spawn();
+
+    let event_bus = event_bus::EventBus::new(events_rx);
+    let event_subscriber = event_bus.subscriber();
+    let _event_bus_task = event_bus.spawn();
 
     rocket::build()
         .attach(cors::Cors)
-        .mount("/", routes![status, cors::handle_preflight, serve_state])
+        .mount(
+            "/",
+            routes![
+                status,
+                cors::handle_preflight,
+                serve_state,
+                event_bus::event_stream
+            ],
+        )
         .manage(CURRENT_STATE.clone())
+        .manage(event_subscriber)
         .launch()
         .await?;
 

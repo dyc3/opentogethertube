@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import * as d3 from "d3";
+import { useEventBus } from "eventbus";
 
 interface ForceGraphProps {
 	data: {
@@ -140,6 +141,21 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 		return num * 2;
 	}
 
+	const eventBus = useEventBus();
+	useEffect(() => {
+		const sub = eventBus.subscribe(event => {
+			d3.select(`[data-nodeid="${event.node_id}"]`)
+				.transition()
+				.duration(100)
+				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
+				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
+		});
+
+		return () => {
+			sub.unsubscribe();
+		};
+	}, [eventBus]);
+
 	return (
 		<svg
 			ref={svgRef}
@@ -156,7 +172,12 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			<g className="nodes" stroke="#fff" strokeWidth={1.5}>
 				{nodes.map((node, i) => (
 					<>
-						<circle key={i} r={radius(node.radius)} fill={color(node.group)} />
+						<circle
+							key={i}
+							r={radius(node.radius)}
+							fill={color(node.group)}
+							data-nodeid={node.id}
+						/>
 						<text
 							textAnchor="middle"
 							alignmentBaseline="middle"

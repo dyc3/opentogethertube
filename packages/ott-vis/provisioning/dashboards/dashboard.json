@@ -46,6 +46,15 @@
 						"uid": "P8AFEECD30EDC727B"
 					},
 					"refId": "A"
+				},
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"hide": false,
+					"refId": "B",
+					"stream": true
 				}
 			],
 			"title": "Global",
@@ -361,6 +370,6 @@
 	"timezone": "",
 	"title": "Provisioned ott-vis dashboard",
 	"uid": "c5ea3bcd-f966-47d8-8456-4536ddc45ff0",
-	"version": 3,
+	"version": 4,
 	"weekStart": ""
 }
