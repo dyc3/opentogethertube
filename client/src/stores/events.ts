@@ -26,12 +26,12 @@ export const eventsModule: Module<unknown, unknown> = {
 				message.additional.video
 			) {
 				text = `${message.user.name} skipped ${message.additional.video.title}`;
-				duration = 7000;
+				duration = 20000;
 			} else if (message.request.type === RoomRequestType.SeekRequest) {
 				text = `${message.user.name} seeked to ${secondsToTimestamp(
 					message.request.value
 				)}`;
-				duration = 7000;
+				duration = 20000;
 			} else if (message.request.type === RoomRequestType.JoinRequest) {
 				text = `${message.user.name} joined the room`;
 			} else if (
@@ -47,14 +47,14 @@ export const eventsModule: Module<unknown, unknown> = {
 				} else {
 					text = `${message.user.name} added a video`;
 				}
-				duration = 7000;
+				duration = 20000;
 			} else if (message.request.type === RoomRequestType.RemoveRequest) {
 				if (message.additional.video) {
 					text = `${message.user.name} removed ${message.additional.video.title}`;
 				} else {
 					text = `${message.user.name} removed a video`;
 				}
-				duration = 7000;
+				duration = 20000;
 			} else {
 				text = `${message.user.name} triggered event ${message.request.type}`;
 			}
