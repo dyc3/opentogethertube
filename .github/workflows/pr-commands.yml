@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull Request Comment Trigger
-        uses: Khan/pull-request-comment-trigger@v1.1.0
+        uses: shanegenschaw/pull-request-comment-trigger@v2.1.0
         id: check
         with:
           trigger: "/rerun"
