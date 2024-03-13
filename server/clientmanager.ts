@@ -333,6 +333,11 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 				);
 			}
 		},
+		init: async message => {
+			const msg = message.payload;
+			conn.id = msg.id;
+			log.info(`Received init message: ${JSON.stringify(msg.id)}`);
+		},
 	};
 
 	const handler = handlers[message.type];

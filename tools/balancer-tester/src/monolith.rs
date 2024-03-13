@@ -93,6 +93,11 @@ impl SimMonolith {
                     outbound_tx.send(self.build_message(msg)).await.unwrap();
                 }
             }
+            MsgB2M::Init(_msg) => {
+                let _msg = B2MInit {
+                    id: uuid::Uuid::new_v4().into(),
+                };
+            }
         }
     }
 

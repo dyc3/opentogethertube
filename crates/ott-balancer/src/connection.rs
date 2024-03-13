@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
-use ott_balancer_protocol::monolith::MsgM2B;
+use ott_balancer_protocol::monolith::{MsgB2M, MsgM2B};
 use ott_common::discovery::{ConnectionConfig, ServiceDiscoveryMsg};
 use tokio_tungstenite::{connect_async, WebSocketStream};
 use tokio_util::sync::CancellationToken;
@@ -16,6 +16,13 @@ use tungstenite::Message;
 use crate::balancer::BalancerLink;
 use crate::messages::SocketMessage;
 use crate::monolith::NewMonolith;
+use ott_balancer_protocol::monolith::B2MInit;
+use ott_balancer_protocol::*;
+use uuid::Uuid;
+
+use once_cell::sync::Lazy;
+
+pub static BALANCER_ID: Lazy<BalancerId> = Lazy::new(|| Uuid::new_v4().into());
 
 pub struct MonolithConnectionManager {
     discovery_rx: tokio::sync::mpsc::Receiver<ServiceDiscoveryMsg>,
@@ -105,6 +112,16 @@ async fn connect_and_maintain(
                 }
             }
         }
+
+        let init = B2MInit { id: *BALANCER_ID };
+        stream
+            .send(Message::Text(
+                serde_json::to_string(&MsgB2M::Init(init)).unwrap(),
+            ))
+            .await
+            .unwrap_or_else(|err| {
+                error!("Failed to send init message to monolith: {}", err);
+            });
 
         let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
         let Ok(Some(Ok(message))) = result else {

@@ -35,6 +35,10 @@ export interface B2MClientMsg<T = unknown> {
 	payload: T;
 }
 
+export interface B2MInit {
+	id: BalancerId;
+}
+
 export interface M2BInit {
 	/** The port that the monolith is listening for HTTP requests on. */
 	port: number;
@@ -121,7 +125,8 @@ export type MsgB2M =
 	| { type: "unload"; payload: B2MUnload }
 	| { type: "join"; payload: B2MJoin }
 	| { type: "leave"; payload: B2MLeave }
-	| { type: "client_msg"; payload: B2MClientMsg };
+	| { type: "client_msg"; payload: B2MClientMsg }
+	| { type: "init"; payload: B2MInit };
 
 export type MsgM2B<T = unknown> =
 	| { type: "init"; payload: M2BInit }

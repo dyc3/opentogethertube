@@ -261,6 +261,8 @@ function validateB2M(message: unknown): message is MsgB2M {
 			return typeof msg.payload.room === "string";
 		case "unload":
 			return typeof msg.payload.room === "string";
+		case "init":
+			return typeof msg.payload.id === "string";
 		default:
 			return false;
 	}
