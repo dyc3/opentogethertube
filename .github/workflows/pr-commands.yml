@@ -1,4 +1,4 @@
-name: pull request comment
+name: PR commands
 on:
   issue_comment:
     types: [created]
@@ -21,11 +21,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN_WORKFLOW_RERUN }}
         run: |
           # get the branch name for the pull request
+          echo "Getting the branch name for pull request ${{ github.event.issue.number }}"
           branch=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" | jq -r '.head.ref')
+          echo "Branch name is $branch"
 
           # Get the workflow runs
-          workflow_runs=$(gh api "repos/${{ github.repository }}/actions/runs")
-          workflow_runs_failed=$(echo $workflow_runs | jq -r --arg branch "$branch" '.workflow_runs[] | select(.conclusion == "failure" and .head_branch == $branch) | .id')
+          workflow_runs_failed=$(gh api "repos/${{ github.repository }}/actions/runs" | jq -r --arg branch "$branch" '.workflow_runs[] | select(.conclusion == "failure" and .head_branch == $branch) | .id')
           # Rerun the workflows
           for workflow_run_id in $workflow_runs_failed; do
             gh api "repos/${{ github.repository }}/actions/runs/${workflow_run_id}/rerun-failed-jobs"
