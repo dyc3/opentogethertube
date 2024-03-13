@@ -38,9 +38,11 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 	const eventBusSeries = data.series[1];
 	const eventBus = useEventBus();
 
-	const systemState: SystemState = options.useSampleData
-		? sampleSystemState
-		: stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+	const systemState: SystemState = useMemo(() => {
+		return options.useSampleData
+			? sampleSystemState
+			: stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+	}, [options.useSampleData, stateSeries]);
 
 	let view = useMemo(() => {
 		if (options.view === "global") {
