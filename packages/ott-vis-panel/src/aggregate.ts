@@ -57,6 +57,7 @@ function reduceRoom(rA: Room, rB: Room): Room {
 	if (rA.name !== rB.name) {
 		throw new Error("Cannot reduce rooms with different names");
 	}
+	// FIXME: (perf) This is a potentially hot path, and we should avoid creating a new object here.
 	return {
 		name: rA.name,
 		clients: rA.clients + rB.clients,
@@ -67,6 +68,7 @@ function reduceMonolith(mA: Monolith, mB: Monolith): Monolith {
 	if (mA.id !== mB.id) {
 		throw new Error("Cannot reduce monoliths with different ids");
 	}
+	// FIXME: (perf) This is a potentially hot path, and we should avoid creating a new object here.
 	return {
 		id: mA.id,
 		region: mA.region,
