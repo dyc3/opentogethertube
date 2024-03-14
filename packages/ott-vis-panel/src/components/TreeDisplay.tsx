@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import * as d3 from 'd3';
-import type { SystemState } from 'ott-vis/types';
+import React, { useEffect, useMemo, useRef } from "react";
+import * as d3 from "d3";
+import type { SystemState } from "ott-vis/types";
 
 interface TreeDisplayProps {
 	systemState: SystemState;
@@ -82,51 +82,52 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 			// Select the SVG element and bind the hierarchy data to it
 			const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
-			const g = svg.select('g.chart');
-			const nodes = g.selectAll('.node').data(root.descendants());
-			const links = g.selectAll('.link').data(root.links());
+			const g = svg.select("g.chart");
+			const nodes = g.selectAll(".node").data(root.descendants());
+			const links = g.selectAll(".link").data(root.links());
 
 			links
 				.enter()
-				.append('path')
-				.attr('class', 'link')
-				.attr('d', diagonal)
-				.attr('fill', 'none')
+				.append("path")
+				.attr("class", "link")
+				.attr("d", diagonal)
+				.attr("fill", "none")
 				.attr("stroke", "white")
-				.attr('stroke-width', 1.5);
+				.attr("stroke-width", 1.5);
 
 			nodes
 				.enter()
-				.append('circle')
-				.attr('class', 'node')
-				.attr('cy', (d: any) => d.x)
-				.attr('cx', (d: any) => d.y)
-				.attr('r', 20)
+				.append("circle")
+				.attr("class", "node")
+				.attr("cy", (d: any) => d.x)
+				.attr("cx", (d: any) => d.y)
+				.attr("r", 20)
 				.attr("stroke", "white")
-				.attr('stroke-width', 2)
-				.attr('fill', d => color(d.data.group))
+				.attr("stroke-width", 2)
+				.attr("fill", d => color(d.data.group))
 				.attr("data-nodeid", d => d.data.id);
 
 			// Update existing nodes and links
-			nodes.attr('cx', (d: any) => d.y).attr('cy', (d: any) => d.x);
-			links.attr('d', diagonal);
+			nodes.attr("cx", (d: any) => d.y).attr("cy", (d: any) => d.x);
+			links.attr("d", diagonal);
 
 			// Remove any nodes or links that are no longer needed
 			nodes.exit().remove();
 			links.exit().remove();
 
-			let zoom = d3.zoom<SVGSVGElement, TreeNode>().on('zoom', handleZoom);
+			let zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
 			function handleZoom(e: any) {
-				d3.select('g.chart')
-					.attr('transform', e.transform);
+				d3.select("g.chart").attr("transform", e.transform);
 			}
 			svg.call(zoom);
 		}
 	}, [systemTree, width, height]);
 
-	return <svg ref={svgRef} width={width} height={height}>
-		<g className='chart' />
-	</svg>;
+	return (
+		<svg ref={svgRef} width={width} height={height}>
+			<g className="chart" />
+		</svg>
+	);
 };
 
 export default TreeDisplay;
