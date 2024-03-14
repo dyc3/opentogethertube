@@ -137,10 +137,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// because d3-hierarchy doesn't support trees with multiple parents, we need to do manual layouts for balancers and monoliths, but we can use the built-in tree layout for monolith down to clients
 
 			const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
-			const wholeGraph = svg.select("g.chart").attr(
-				"transform",
-				chartTransform,
-			);
+			const wholeGraph = svg.select("g.chart").attr("transform", chartTransform);
 			const gb2mLinks = wholeGraph.selectAll("g.b2m-links");
 
 			// build all the sub-trees first
@@ -219,7 +216,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10));
 			balancerTexts.exit().remove();
 
-
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
 			const monolithGroups = monolithGroup.selectAll(".monolith").data(monolithNodes);
@@ -263,7 +259,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.attr("cy", (d: any) => d.x)
 						.attr("data-nodeid", d => d.data.id);
 					monolithCircles.exit().remove();
-					const monolithTexts = monolith.selectAll(".monolith-text").data(d.tree.descendants());
+					const monolithTexts = monolith
+						.selectAll(".monolith-text")
+						.data(d.tree.descendants());
 					monolithTexts
 						.enter()
 						// intentionally not showing room and client names -- user generated content can contain offensive material
