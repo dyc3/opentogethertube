@@ -14,7 +14,7 @@
 							icon
 							@click="showBufferWarning = false"
 						>
-							<v-icon>fa:fas fa-times</v-icon>
+							<v-icon>mdi-close</v-icon>
 						</v-btn>
 					</div>
 				</v-container>

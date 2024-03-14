@@ -7,10 +7,12 @@
 		class="media-control"
 		aria-label="Switch Layout"
 	>
-		<v-icon v-if="store.state.settings.roomLayout === 'theater'" style="transform: scaleX(180%)"
-			>fa:far fa-square
+		<v-icon v-if="store.state.settings.roomLayout === 'theater'" style="transform: scaleX(180%)">
+			mdi-square-outline
 		</v-icon>
-		<v-icon v-else style="transform: scaleX(130%)">fa:far fa-square</v-icon>
+		<v-icon v-else style="transform: scaleX(130%)">
+			mdi-square-outline
+		</v-icon>
 	</v-btn>
 	<v-btn
 		variant="text"
@@ -19,7 +21,7 @@
 		class="media-control"
 		:aria-label="$t('room.toggle-fullscreen')"
 	>
-		<v-icon>fa:fas fa-compress</v-icon>
+		<v-icon>mdi-fullscreen-exit</v-icon>
 		<v-tooltip activator="parent" location="bottom">
 			<span>{{ $t("room.toggle-fullscreen") }}</span>
 		</v-tooltip>

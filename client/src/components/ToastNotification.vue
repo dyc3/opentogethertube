@@ -1,10 +1,10 @@
 <template>
 	<v-sheet :color="color" class="toast" elevation="12" aria-live="polite">
 		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">
-			fa:fas fa-check
+			mdi-check-bold
 		</v-icon>
 		<v-icon class="toast-icon" v-else-if="toast.style === ToastStyle.Error">
-			fa:fas fa-exclamation-circle
+			mdi-alert-circle
 		</v-icon>
 		<span class="toast-content">
 			<ProcessedText :text="toast.content" :show-add-queue-tooltip="false" />
@@ -15,7 +15,7 @@
 				{{ $t("common.undo") }}
 			</v-btn>
 			<v-btn variant="text" @click="close" size="x-small" icon aria-label="close">
-				<v-icon>fa:fas fa-times</v-icon>
+				<v-icon>mdi-close</v-icon>
 			</v-btn>
 		</div>
 	</v-sheet>

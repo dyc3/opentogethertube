@@ -49,7 +49,7 @@
 							</div>
 							<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
 								<v-btn
-									prepend-icon="fa:fas fa-play"
+									prepend-icon="mdi-play"
 									size="x-large"
 									color="warning"
 									@click="onClickUnblockPlayback"
@@ -77,7 +77,7 @@
 					<v-col cols="12" md="8" sm="12">
 						<v-tabs fixed-tabs v-model="queueTab" color="primary">
 							<v-tab>
-								<v-icon>fa:fas fa-list</v-icon>
+								<v-icon>mdi-format-list-bulleted</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
 								<v-chip size="x-small">
 									{{
@@ -88,11 +88,11 @@
 								</v-chip>
 							</v-tab>
 							<v-tab>
-								<v-icon>fa:fas fa-plus</v-icon>
+								<v-icon>mdi-plus</v-icon>
 								<span class="tab-text">{{ $t("common.add") }}</span>
 							</v-tab>
 							<v-tab>
-								<v-icon>fa:fas fa-cog</v-icon>
+								<v-icon>mdi-wrench</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
 							</v-tab>
 						</v-tabs>
