@@ -7,12 +7,13 @@
 		class="media-control"
 		aria-label="Switch Layout"
 	>
-		<v-icon v-if="store.state.settings.roomLayout === 'theater'" style="transform: scaleX(180%)">
+		<v-icon
+			v-if="store.state.settings.roomLayout === 'theater'"
+			style="transform: scaleX(180%)"
+		>
 			mdi-square-outline
 		</v-icon>
-		<v-icon v-else style="transform: scaleX(130%)">
-			mdi-square-outline
-		</v-icon>
+		<v-icon v-else style="transform: scaleX(130%)"> mdi-square-outline </v-icon>
 	</v-btn>
 	<v-btn
 		variant="text"
