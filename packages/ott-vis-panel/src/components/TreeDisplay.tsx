@@ -190,7 +190,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.enter()
 				.append("circle")
 				.attr("class", "balancer")
-				.attr("r", NODE_RADIUS)
+				.attr("r", NODE_RADIUS + 10)
 				.attr("fill", d => color(d.group))
 				.attr("stroke", "white")
 				.attr("stroke-width", 2)
@@ -198,6 +198,22 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("cy", d => d.y)
 				.attr("data-nodeid", d => d.id);
 			balancerCircles.exit().remove();
+			const balancerTexts = balancerGroup.selectAll(".balancer-text").data(balancerNodes);
+			balancerTexts
+				.enter()
+				.append("text")
+				.attr("class", "balancer-text")
+				.attr("text-anchor", "middle")
+				.attr("alignment-baseline", "middle")
+				.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+				.attr("font-size", 10)
+				.attr("stroke-width", 0)
+				.attr("fill", "white")
+				.attr("x", d => d.x)
+				.attr("y", d => d.y + 4)
+				.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10));
+			balancerTexts.exit().remove();
+
 
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
@@ -242,6 +258,23 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.attr("cy", (d: any) => d.x)
 						.attr("data-nodeid", d => d.data.id);
 					monolithCircles.exit().remove();
+					const monolithTexts = monolith.selectAll(".monolith-text").data(d.tree.descendants());
+					monolithTexts
+						.enter()
+						// intentionally not showing room and client names -- user generated content can contain offensive material
+						.filter(d => d.data.group === "monolith")
+						.append("text")
+						.attr("class", "monolith-text")
+						.attr("text-anchor", "middle")
+						.attr("alignment-baseline", "middle")
+						.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+						.attr("font-size", 10)
+						.attr("stroke-width", 0)
+						.attr("fill", "white")
+						.attr("x", (d: any) => d.y)
+						.attr("y", (d: any) => d.x + 4)
+						.text(d => `${d.data.id}`.substring(0, 6));
+					monolithTexts.exit().remove();
 				});
 
 			// create the links between balancers and monoliths
