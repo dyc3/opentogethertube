@@ -18,6 +18,7 @@ interface TreeNode {
 	children: TreeNode[];
 }
 
+// @ts-expect-error currently unused and i don't want to remove it yet
 function buildFullTree(systemState: SystemState): TreeNode {
 	const tree: TreeNode = {
 		id: "root",
@@ -74,58 +75,185 @@ function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
 	});
 }
 
+/**
+ * Gets the physical size of a tree after it's been laid out. Does not account for the size of the actual nodes, just the space they take up.
+ * @returns [width, height]
+ */
+export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, number] {
+	let minX = Infinity;
+	let minY = Infinity;
+	let maxX = -Infinity;
+	let maxY = -Infinity;
+	tree.each(node => {
+		// @ts-expect-error d3 adds x and y to the node
+		minX = Math.min(minX, node.x);
+		// @ts-expect-error d3 adds x and y to the node
+		minY = Math.min(minY, node.y);
+		// @ts-expect-error d3 adds x and y to the node
+		maxX = Math.max(maxX, node.x);
+		// @ts-expect-error d3 adds x and y to the node
+		maxY = Math.max(maxY, node.y);
+	});
+	return [maxX - minX, maxY - minY];
+}
+
+interface Node {
+	id: string;
+	x: number;
+	y: number;
+}
+
+interface BalancerNode extends Node {
+	region: string;
+	group: string;
+}
+
+interface MonolithNode extends Node {
+	tree: d3.HierarchyNode<TreeNode>;
+}
+
+const NODE_RADIUS = 20;
+
 const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
-	const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
+	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
+	const monolithTrees = useMemo(
+		() => buildMonolithTrees(systemState.flatMap(b => b.monoliths)),
+		[systemState]
+	);
 
 	useEffect(() => {
-		if (systemTree && svgRef.current) {
-			const treeLayout = d3.tree<TreeNode>().nodeSize([60, 120]);
+		if (svgRef.current) {
+			// because d3-hierarchy doesn't support trees with multiple parents, we need to do manual layouts for balancers and monoliths, but we can use the built-in tree layout for monolith down to clients
 
-			const root = d3.hierarchy(systemTree);
-
-			treeLayout(root);
-
-			// Create a new D3 diagonal generator
-			const diagonal = d3
-				.linkHorizontal<any, TreeNode>()
-				.x((d: any) => d.y)
-				.y((d: any) => d.x);
-
-			// Select the SVG element and bind the hierarchy data to it
 			const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
-			const g = svg.select("g.chart");
-			const nodes = g.selectAll(".node").data(root.descendants());
-			const links = g.selectAll(".link").data(root.links());
+			const wholeGraph = svg.select("g.chart");
+			const gb2mLinks = wholeGraph.selectAll("g.b2m-links");
 
-			links
+			// build all the sub-trees first
+			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
+			for (const monolithTree of monolithTrees) {
+				const treeLayout = d3.tree<TreeNode>().nodeSize([60, 120]);
+				const root = d3.hierarchy(monolithTree);
+				treeLayout(root);
+				builtMonolithTrees.push(root);
+			}
+
+			// create nodes for all the balancers
+			const balancerNodes = systemState.map((balancer, i) => {
+				const node: BalancerNode = {
+					id: balancer.id,
+					region: balancer.region,
+					group: "balancer",
+					x: 0,
+					y: i * (NODE_RADIUS * 2 + 20),
+				};
+				return node;
+			});
+
+			const balancerGroup = wholeGraph.select("g.balancers");
+			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
+			balancerCircles
+				.enter()
+				.append("circle")
+				.attr("class", "balancer")
+				.attr("r", NODE_RADIUS)
+				.attr("fill", d => color(d.group))
+				.attr("stroke", "white")
+				.attr("stroke-width", 2)
+				.attr("cx", d => d.x)
+				.attr("cy", d => d.y);
+			balancerCircles.exit().remove();
+
+			// compute positions of monolith trees
+			const monolithTreeHeights = builtMonolithTrees.map(tree => sizeOfTree(tree)[1]);
+			const monolithTreeYs = monolithTreeHeights.reduce(
+				(acc, height, i) => {
+					acc.push(acc[i] + height + 60);
+					return acc;
+				},
+				[0]
+			);
+			const monolithNodes = monolithTrees.map((monolith, i) => {
+				const node: MonolithNode = {
+					tree: builtMonolithTrees[i],
+					id: monolith.id,
+					x: 100,
+					y: monolithTreeYs[i],
+				};
+				return node;
+			});
+
+			// create groups for all the monoliths
+			const monolithGroup = wholeGraph.select("g.monoliths");
+			const monolithGroups = monolithGroup.selectAll(".monolith").data(monolithNodes);
+			monolithGroups
+				.enter()
+				.append("g")
+				.attr("class", "monolith")
+				.attr("transform", (d, i) => `translate(${d.x}, ${d.y})`)
+				.each(function (d) {
+					const diagonal = d3
+						.linkHorizontal<any, TreeNode>()
+						.x((d: any) => d.y)
+						.y((d: any) => d.x);
+
+					const monolith = d3.select(this);
+					const monolithLinks = monolith.selectAll(".treelink").data(d.tree.links());
+					monolithLinks
+						.enter()
+						.append("path")
+						.attr("class", "treelink")
+						.attr("d", diagonal)
+						.attr("fill", "none")
+						.attr("stroke", "white")
+						.attr("stroke-width", 1.5);
+					monolithLinks.exit().remove();
+
+					const monolithCircles = monolith
+						.selectAll(".monolith")
+						.data(d.tree.descendants());
+					monolithCircles
+						.enter()
+						.append("circle")
+						.attr("class", "monolith")
+						.attr("r", NODE_RADIUS)
+						.attr("fill", d => color(d.data.group))
+						.attr("stroke", "white")
+						.attr("stroke-width", 2)
+						.attr("cx", (d: any) => d.y)
+						.attr("cy", (d: any) => d.x);
+					monolithCircles.exit().remove();
+				});
+
+			// create the links between balancers and monoliths
+			interface B2MLink {
+				source: BalancerNode;
+				target: MonolithNode;
+			}
+			const diagonal = d3
+				.linkHorizontal<B2MLink, BalancerNode | MonolithNode>()
+				.x(d => d.x)
+				.y(d => d.y);
+
+			const b2mLinkData = balancerNodes.flatMap(balancer => {
+				return monolithNodes.map(monolith => {
+					return {
+						source: balancer,
+						target: monolith,
+					};
+				});
+			});
+			const balancerMonolithLinks = gb2mLinks.selectAll(".b2m-link").data(b2mLinkData);
+			balancerMonolithLinks
 				.enter()
 				.append("path")
-				.attr("class", "link")
+				.attr("class", "b2m-link")
 				.attr("d", diagonal)
 				.attr("fill", "none")
 				.attr("stroke", "white")
 				.attr("stroke-width", 1.5);
-
-			nodes
-				.enter()
-				.append("circle")
-				.attr("class", "node")
-				.attr("cy", (d: any) => d.x)
-				.attr("cx", (d: any) => d.y)
-				.attr("r", 20)
-				.attr("stroke", "white")
-				.attr("stroke-width", 2)
-				.attr("fill", d => color(d.data.group))
-				.attr("data-nodeid", d => d.data.id);
-
-			// Update existing nodes and links
-			nodes.attr("cx", (d: any) => d.y).attr("cy", (d: any) => d.x);
-			links.attr("d", diagonal);
-
-			// Remove any nodes or links that are no longer needed
-			nodes.exit().remove();
-			links.exit().remove();
+			balancerMonolithLinks.exit().remove();
 
 			let zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
 			function handleZoom(e: any) {
@@ -133,11 +261,20 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			}
 			svg.call(zoom);
 		}
-	}, [systemTree, width, height]);
+	}, [systemState, monolithTrees, width, height]);
 
 	return (
-		<svg ref={svgRef} width={width} height={height}>
-			<g className="chart" />
+		<svg
+			ref={svgRef}
+			width={width}
+			height={height}
+			viewBox={`${-width / 2} ${-height / 2} ${width}, ${height}`}
+		>
+			<g className="chart">
+				<g className="b2m-links" />
+				<g className="balancers" />
+				<g className="monoliths" />
+			</g>
 		</svg>
 	);
 };
