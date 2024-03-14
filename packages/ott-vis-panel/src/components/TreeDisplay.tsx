@@ -275,9 +275,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("data-nodeid-target", d => d.target.id);
 			balancerMonolithLinks.exit().remove();
 
-			let zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
+			const zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
 			function handleZoom(e: any) {
-				d3.select("g.chart").attr("transform", e.transform);
+				svg.select("g.chart").attr("transform", e.transform);
 			}
 			svg.call(zoom);
 		}
