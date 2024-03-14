@@ -1,5 +1,11 @@
 import type { SystemState } from "ott-vis";
-import { aggMonolithRooms, countRoomClients, groupMonolithsByRegion } from "./aggregate";
+import {
+	aggMonolithRooms,
+	countRoomClients,
+	dedupeMonoliths,
+	dedupeRooms,
+	groupMonolithsByRegion,
+} from "./aggregate";
 
 const sampleSystemState: SystemState = [
 	{
@@ -115,5 +121,39 @@ describe("aggregation helpers", () => {
 			ewr: ["2bd5e4a7-14f6-4da4-bedd-72946864a7bf", "419580cb-f576-4314-8162-45340c94bae1"],
 			cdg: ["0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac", "f21df607-b572-4bdd-aa2f-3fead21bba86"],
 		});
+	});
+
+	it("dedupes rooms", () => {
+		const rooms = [
+			{ name: "foo", clients: 1 },
+			{ name: "bar", clients: 2 },
+			{ name: "foo", clients: 1 },
+		];
+		expect(dedupeRooms(rooms)).toEqual([
+			{ name: "foo", clients: 2 },
+			{ name: "bar", clients: 2 },
+		]);
+	});
+
+	it("dedupes rooms using sample data", () => {
+		const rooms = sampleSystemState.flatMap(b => b.monoliths.flatMap(m => m.rooms));
+		expect(dedupeRooms(rooms)).toEqual([
+			{ name: "foo", clients: 3 },
+			{ name: "bar", clients: 2 },
+			{ name: "baz", clients: 3 },
+			{ name: "qux", clients: 4 },
+		]);
+	});
+
+	it("dedupes monoliths", () => {
+		const monoliths = [
+			{ id: "a", region: "x", rooms: [{ name: "foo", clients: 2 }] },
+			{ id: "b", region: "x", rooms: [] },
+			{ id: "a", region: "x", rooms: [{ name: "foo", clients: 1 }] },
+		];
+		expect(dedupeMonoliths(monoliths)).toEqual([
+			{ id: "a", region: "x", rooms: [{ name: "foo", clients: 3 }] },
+			{ id: "b", region: "x", rooms: [] },
+		]);
 	});
 });
