@@ -151,7 +151,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			const monolithTreeHeights = builtMonolithTrees.map(tree => sizeOfTree(tree)[0]);
 			const monolithTreeYs = monolithTreeHeights.reduce(
 				(acc, height, i) => {
-					acc.push(acc[i] + height + 20);
+					acc.push(acc[i] + Math.max(height, (NODE_RADIUS * 2 + 10)));
 					return acc;
 				},
 				[0]
