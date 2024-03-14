@@ -8,7 +8,7 @@
 			class="media-control"
 			:aria-label="$t('room.rewind')"
 		>
-			<v-icon>fa:fas fa-angle-left</v-icon>
+			<v-icon>mdi-chevron-left</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.rewind") }}</span>
 			</v-tooltip>
@@ -21,7 +21,7 @@
 			class="media-control"
 			:aria-label="$t('room.play-pause')"
 		>
-			<v-icon :icon="store.state.room.isPlaying ? 'fa:fas fa-pause' : 'fa:fas fa-play'" />
+			<v-icon :icon="store.state.room.isPlaying ? 'mdi-pause' : 'mdi-play'" />
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.play-pause") }}</span>
 			</v-tooltip>
@@ -34,7 +34,7 @@
 			class="media-control"
 			:aria-label="$t('room.skip')"
 		>
-			<v-icon>fa:fas fa-angle-right</v-icon>
+			<v-icon>mdi-chevron-right</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.skip") }}</span>
 			</v-tooltip>
@@ -49,7 +49,7 @@
 				store.state.room.enableVoteSkip ? $t('room.next-video-vote') : $t('room.next-video')
 			"
 		>
-			<v-icon>fa:fas fa-fast-forward</v-icon>
+			<v-icon>mdi-skip-forward</v-icon>
 			<v-tooltip activator="parent" location="bottom">
 				<span>
 					{{

@@ -3,7 +3,7 @@
 		<v-card-title>
 			{{ $t("room.users.title") }}
 			<v-btn icon size="x-small" @click="openEditName" aria-label="toggle edit name">
-				<v-icon>fa:fas fa-cog</v-icon>
+				<v-icon>mdi-wrench</v-icon>
 			</v-btn>
 		</v-card-title>
 		<v-list-item v-if="showEditName">
@@ -64,8 +64,8 @@
 
 				<div v-if="user.id !== store.state.users.you.id">
 					<v-btn class="user-actions" variant="flat" depressed tile>
-						<v-icon size="small">fa:fas fa-cog</v-icon>
-						<v-icon size="small" style="margin-left: 5px">fa:fas fa-caret-down</v-icon>
+						<v-icon size="small">mdi-wrench</v-icon>
+						<v-icon size="small" style="margin-left: 5px">mdi-chevron-down</v-icon>
 						<v-menu right offset-y activator="parent">
 							<v-list>
 								<div class="user-promotion">
@@ -203,18 +203,18 @@ export const UserList = defineComponent({
 
 		function getRoleIcon(role: Role) {
 			return {
-				[Role.Owner]: "fa:fas fa-star",
-				[Role.Administrator]: "fa:fas fa-star",
-				[Role.Moderator]: "fa:fas fa-chevron-up",
-				[Role.TrustedUser]: "fa:fas fa-thumbs-up",
+				[Role.Owner]: "mdi-star",
+				[Role.Administrator]: "mdi-star",
+				[Role.Moderator]: "mdi-chevron-up",
+				[Role.TrustedUser]: "mdi-thumbs-up",
 			}[role];
 		}
 
 		function getPlayerStatusIcon(status: PlayerStatus) {
 			return {
-				[PlayerStatus.buffering]: "fa:fas fa-spinner",
-				[PlayerStatus.ready]: "fa:fas fa-check",
-				[PlayerStatus.error]: "fa:fas fa-exclamation",
+				[PlayerStatus.buffering]: "mdi-progress-download",
+				[PlayerStatus.ready]: "mdi-check-bold",
+				[PlayerStatus.error]: "mdi-exclamation",
 			}[status];
 		}
 
