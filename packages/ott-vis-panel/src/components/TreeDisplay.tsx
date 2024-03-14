@@ -114,6 +114,13 @@ interface MonolithNode extends Node {
 
 const NODE_RADIUS = 20;
 
+function radius(node: TreeNode) {
+	if (node.group === "client") {
+		return 8;
+	}
+	return NODE_RADIUS;
+}
+
 const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
@@ -133,7 +140,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// build all the sub-trees first
 			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
 			for (const monolithTree of monolithTrees) {
-				const treeLayout = d3.tree<TreeNode>().nodeSize([60, 120]);
+				const treeLayout = d3.tree<TreeNode>().nodeSize([NODE_RADIUS * 2, 120]);
 				const root = d3.hierarchy(monolithTree);
 				treeLayout(root);
 				builtMonolithTrees.push(root);
@@ -223,7 +230,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.enter()
 						.append("circle")
 						.attr("class", "monolith")
-						.attr("r", NODE_RADIUS)
+						.attr("r", d => radius(d.data))
 						.attr("fill", d => color(d.data.group))
 						.attr("stroke", "white")
 						.attr("stroke-width", 2)
