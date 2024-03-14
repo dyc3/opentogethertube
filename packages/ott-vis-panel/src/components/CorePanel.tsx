@@ -90,10 +90,6 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		}
 	}, [eventBusSeries, readEvents, setReadEvents, eventBus]);
 
-	if (data.state === LoadingState.Loading) {
-		return <div>Loading...</div>;
-	}
-
 	return (
 		<div
 			className={cx(
@@ -104,9 +100,7 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 				`
 			)}
 		>
-			{/* <div>
-				{eventBusSeries?.length > 0 ? eventBusSeries.fields[0].values[eventBusSeries.length - 1] : "No events"}
-			</div> */}
+			{data.state === LoadingState.Loading ? <div>Loading...</div> : null}
 			{view}
 		</div>
 	);
