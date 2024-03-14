@@ -139,32 +139,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				builtMonolithTrees.push(root);
 			}
 
-			// create nodes for all the balancers
-			const balancerNodes = systemState.map((balancer, i) => {
-				const node: BalancerNode = {
-					id: balancer.id,
-					region: balancer.region,
-					group: "balancer",
-					x: 0,
-					y: i * (NODE_RADIUS * 2 + 20),
-				};
-				return node;
-			});
-
-			const balancerGroup = wholeGraph.select("g.balancers");
-			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
-			balancerCircles
-				.enter()
-				.append("circle")
-				.attr("class", "balancer")
-				.attr("r", NODE_RADIUS)
-				.attr("fill", d => color(d.group))
-				.attr("stroke", "white")
-				.attr("stroke-width", 2)
-				.attr("cx", d => d.x)
-				.attr("cy", d => d.y);
-			balancerCircles.exit().remove();
-
 			// compute positions of monolith trees
 			const monolithTreeHeights = builtMonolithTrees.map(tree => sizeOfTree(tree)[1]);
 			const monolithTreeYs = monolithTreeHeights.reduce(
@@ -183,6 +157,37 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				};
 				return node;
 			});
+
+			// create nodes for all the balancers evenly spaced along the full height of the monolith trees
+			// but also guarenteeing that they don't overlap with each other or the monoliths with some padding
+			const fullHeight = monolithTreeYs[monolithTreeYs.length - 1];
+			const lerp = d3.interpolateNumber(0, fullHeight);
+			const lerpincr = 1 / systemState.length;
+			const yincr = Math.max(lerp(lerpincr), NODE_RADIUS * 2 + 20);
+			const balancerNodes = systemState.map((balancer, i) => {
+				const node: BalancerNode = {
+					id: balancer.id,
+					region: balancer.region,
+					group: "balancer",
+					x: 0,
+					y: i * yincr,
+				};
+				return node;
+			});
+
+			const balancerGroup = wholeGraph.select("g.balancers");
+			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
+			balancerCircles
+				.enter()
+				.append("circle")
+				.attr("class", "balancer")
+				.attr("r", NODE_RADIUS)
+				.attr("fill", d => color(d.group))
+				.attr("stroke", "white")
+				.attr("stroke-width", 2)
+				.attr("cx", d => d.x)
+				.attr("cy", d => d.y);
+			balancerCircles.exit().remove();
 
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
