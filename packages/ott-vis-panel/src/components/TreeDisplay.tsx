@@ -140,10 +140,11 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			}
 
 			// compute positions of monolith trees
-			const monolithTreeHeights = builtMonolithTrees.map(tree => sizeOfTree(tree)[1]);
+			// note: we are actually using the width here because the trees are being rotated 90 deg
+			const monolithTreeHeights = builtMonolithTrees.map(tree => sizeOfTree(tree)[0]);
 			const monolithTreeYs = monolithTreeHeights.reduce(
 				(acc, height, i) => {
-					acc.push(acc[i] + height + 60);
+					acc.push(acc[i] + height + 20);
 					return acc;
 				},
 				[0]
