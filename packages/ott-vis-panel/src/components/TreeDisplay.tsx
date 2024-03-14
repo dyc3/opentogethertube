@@ -222,7 +222,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.attr("d", diagonal)
 						.attr("fill", "none")
 						.attr("stroke", "white")
-						.attr("stroke-width", 1.5);
+						.attr("stroke-width", 1.5)
+						.attr("data-nodeid-source", d => d.source.data.id)
+						.attr("data-nodeid-target", d => d.target.data.id);
 					monolithLinks.exit().remove();
 
 					const monolithCircles = monolith
@@ -268,7 +270,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("d", diagonal)
 				.attr("fill", "none")
 				.attr("stroke", "white")
-				.attr("stroke-width", 1.5);
+				.attr("stroke-width", 1.5)
+				.attr("data-nodeid-source", d => d.source.id)
+				.attr("data-nodeid-target", d => d.target.id);
 			balancerMonolithLinks.exit().remove();
 
 			let zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
