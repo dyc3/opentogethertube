@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import * as d3 from "d3";
-import type { SystemState } from "ott-vis/types";
+import type { Monolith, SystemState } from "ott-vis/types";
+import { dedupeMonoliths } from "aggregate";
 
 interface TreeDisplayProps {
 	systemState: SystemState;
@@ -17,13 +18,20 @@ interface TreeNode {
 	children: TreeNode[];
 }
 
-function buildTree(systemState: SystemState): TreeNode {
+function buildFullTree(systemState: SystemState): TreeNode {
 	const tree: TreeNode = {
 		id: "root",
 		region: "global",
 		group: "root",
 		children: [],
 	};
+	const monoliths = systemState.flatMap(balancer => balancer.monoliths);
+	const monolithNodes: Map<string, TreeNode> = new Map(
+		buildMonolithTrees(monoliths).map(monolith => {
+			return [monolith.id, monolith];
+		})
+	);
+
 	for (const balancer of systemState) {
 		const balancerNode: TreeNode = {
 			id: balancer.id,
@@ -33,37 +41,42 @@ function buildTree(systemState: SystemState): TreeNode {
 		};
 		tree.children.push(balancerNode);
 		for (const monolith of balancer.monoliths) {
-			const monolithNode: TreeNode = {
-				id: monolith.id,
-				region: monolith.region,
-				group: "monolith",
-				children: [],
-			};
-			balancerNode.children.push(monolithNode);
-			for (const room of monolith.rooms) {
-				const roomNode: TreeNode = {
-					id: room.name,
-					region: monolith.region,
-					group: "room",
-					children: Array.from({ length: room.clients }, (_, index) => {
-						return {
-							id: `${room.name}-${index}`,
-							region: monolith.region,
-							group: "client",
-							children: [],
-						};
-					}),
-				};
-				monolithNode.children.push(roomNode);
-			}
+			balancerNode.children.push(monolithNodes.get(monolith.id) as TreeNode);
 		}
 	}
 	return tree;
 }
 
+function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
+	return dedupeMonoliths(monoliths).map(monolith => {
+		const roomNodes: TreeNode[] = monolith.rooms.map(room => {
+			return {
+				id: room.name,
+				region: monolith.region,
+				group: "room",
+				children: Array.from({ length: room.clients }, (_, index) => {
+					return {
+						id: `${room.name}-${index}`,
+						region: monolith.region,
+						group: "client",
+						children: [],
+					};
+				}),
+			};
+		});
+		const monolithNode: TreeNode = {
+			id: monolith.id,
+			region: monolith.region,
+			group: "monolith",
+			children: roomNodes,
+		};
+		return monolithNode;
+	});
+}
+
 const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
-	const systemTree = useMemo(() => buildTree(systemState), [systemState]);
+	const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
 
 	useEffect(() => {
 		if (systemTree && svgRef.current) {
