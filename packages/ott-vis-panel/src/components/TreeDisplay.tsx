@@ -80,11 +80,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 	useEffect(() => {
 		if (systemTree && svgRef.current) {
-			const treeLayout = d3.tree().size([width, height]).nodeSize([60, 120]);
+			const treeLayout = d3.tree<TreeNode>().nodeSize([60, 120]);
 
 			const root = d3.hierarchy(systemTree);
 
-			// @ts-expect-error asdf
 			treeLayout(root);
 
 			// Create a new D3 diagonal generator
