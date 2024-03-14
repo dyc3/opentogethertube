@@ -19,6 +19,10 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 						value: "region",
 						label: "Region",
 					},
+					{
+						value: "tree",
+						label: "Tree",
+					}
 				],
 			},
 		})

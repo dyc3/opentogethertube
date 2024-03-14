@@ -8,6 +8,7 @@ import GlobalView from "./views/GlobalView";
 import RegionView from "./views/RegionView";
 import { LoadingState } from "@grafana/schema";
 import { useEventBus, type BusEvent } from "eventbus";
+import TreeDisplay from "./TreeDisplay";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -49,6 +50,8 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 			return <GlobalView height={height} width={width} systemState={systemState} />;
 		} else if (options.view === "region") {
 			return <RegionView height={height} width={width} systemState={systemState} />;
+		} else if (options.view === "tree") {
+			return <TreeDisplay height={height} width={width} systemState={systemState} />;
 		} else {
 			return <div>Invalid view</div>;
 		}
