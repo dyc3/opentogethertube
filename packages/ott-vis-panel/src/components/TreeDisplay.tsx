@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import * as d3 from "d3";
 import type { Monolith, SystemState } from "ott-vis/types";
 import { dedupeMonoliths } from "aggregate";
+import { useEventBus } from "eventbus";
 
 interface TreeDisplayProps {
 	systemState: SystemState;
@@ -194,7 +195,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("stroke", "white")
 				.attr("stroke-width", 2)
 				.attr("cx", d => d.x)
-				.attr("cy", d => d.y);
+				.attr("cy", d => d.y)
+				.attr("data-nodeid", d => d.id);
 			balancerCircles.exit().remove();
 
 			// create groups for all the monoliths
@@ -235,7 +237,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.attr("stroke", "white")
 						.attr("stroke-width", 2)
 						.attr("cx", (d: any) => d.y)
-						.attr("cy", (d: any) => d.x);
+						.attr("cy", (d: any) => d.x)
+						.attr("data-nodeid", d => d.data.id);
 					monolithCircles.exit().remove();
 				});
 
@@ -275,6 +278,21 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			svg.call(zoom);
 		}
 	}, [systemState, monolithTrees, width, height]);
+
+	const eventBus = useEventBus();
+	useEffect(() => {
+		const sub = eventBus.subscribe(event => {
+			d3.select(`[data-nodeid="${event.node_id}"]`)
+				.transition()
+				.duration(100)
+				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
+				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
+		});
+
+		return () => {
+			sub.unsubscribe();
+		};
+	}, [eventBus]);
 
 	return (
 		<svg
