@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import type { Monolith, SystemState } from "ott-vis/types";
 import { dedupeMonoliths } from "aggregate";
@@ -130,12 +130,17 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 		[systemState]
 	);
 
+	const [chartTransform, setChartTransform] = useState("translate(0, 0)");
+
 	useEffect(() => {
 		if (svgRef.current) {
 			// because d3-hierarchy doesn't support trees with multiple parents, we need to do manual layouts for balancers and monoliths, but we can use the built-in tree layout for monolith down to clients
 
 			const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
-			const wholeGraph = svg.select("g.chart");
+			const wholeGraph = svg.select("g.chart").attr(
+				"transform",
+				chartTransform,
+			);
 			const gb2mLinks = wholeGraph.selectAll("g.b2m-links");
 
 			// build all the sub-trees first
@@ -311,10 +316,11 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			const zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
 			function handleZoom(e: any) {
 				svg.select("g.chart").attr("transform", e.transform);
+				setChartTransform(e.transform);
 			}
 			svg.call(zoom);
 		}
-	}, [systemState, monolithTrees, width, height]);
+	}, [systemState, monolithTrees, width, height, chartTransform]);
 
 	const eventBus = useEventBus();
 	useEffect(() => {
