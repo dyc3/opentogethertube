@@ -204,31 +204,51 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				return node;
 			});
 
+			const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
+
 			const balancerGroup = wholeGraph.select("g.balancers");
 			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
 			balancerCircles
-				.join("circle")
-				.attr("class", "balancer")
-				.attr("r", NODE_RADIUS + 10)
+				.join(
+					create =>
+						create
+							.append("circle")
+							.attr("cx", d => d.x)
+							.attr("cy", d => d.y)
+							.attr("class", "balancer")
+							.attr("stroke", "white")
+							.attr("stroke-width", 2),
+					update => update,
+					exit => exit.transition(tr).attr("r", 0).remove()
+				)
 				.attr("fill", d => color(d.group))
-				.attr("stroke", "white")
-				.attr("stroke-width", 2)
+				.attr("data-nodeid", d => d.id)
+				.transition(tr)
 				.attr("cx", d => d.x)
 				.attr("cy", d => d.y)
-				.attr("data-nodeid", d => d.id);
+				.attr("r", NODE_RADIUS + 10);
 			const balancerTexts = balancerGroup.selectAll(".balancer-text").data(balancerNodes);
 			balancerTexts
-				.join("text")
-				.attr("class", "balancer-text")
-				.attr("text-anchor", "middle")
-				.attr("alignment-baseline", "middle")
-				.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+				.join(
+					create =>
+						create
+							.append("text")
+							.attr("x", d => d.x)
+							.attr("y", d => d.y + 4)
+							.attr("class", "balancer-text")
+							.attr("text-anchor", "middle")
+							.attr("alignment-baseline", "middle")
+							.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+							.attr("stroke-width", 0)
+							.attr("fill", "white"),
+					update => update,
+					exit => exit.transition(tr).attr("font-size", 0).remove()
+				)
+				.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10))
+				.transition(tr)
 				.attr("font-size", 10)
-				.attr("stroke-width", 0)
-				.attr("fill", "white")
 				.attr("x", d => d.x)
-				.attr("y", d => d.y + 4)
-				.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10));
+				.attr("y", d => d.y + 4);
 
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
@@ -256,44 +276,65 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 					const monolith = d3.select(this);
 					const monolithLinks = monolith.selectAll(".treelink").data(d.tree.links());
 					monolithLinks
-						.join("path")
-						.attr("class", "treelink")
-						.attr("d", diagonal)
+						.join(
+							create => create.append("path").attr("class", "treelink"),
+							update => update,
+							exit => exit.transition(tr).attr("stroke-width", 0).remove()
+						)
 						.attr("fill", "none")
 						.attr("stroke", "white")
-						.attr("stroke-width", 1.5)
 						.attr("data-nodeid-source", d => d.source.data.id)
-						.attr("data-nodeid-target", d => d.target.data.id);
+						.attr("data-nodeid-target", d => d.target.data.id)
+						.transition(tr)
+						.attr("d", diagonal)
+						.attr("stroke-width", 1.5);
 
 					const monolithCircles = monolith
 						.selectAll(".monolith")
 						.data(d.tree.descendants());
 					monolithCircles
-						.join("circle")
-						.attr("class", "monolith")
-						.attr("r", d => radius(d.data))
+						.join(
+							create =>
+								create
+									.append("circle")
+									.attr("class", "monolith")
+									.attr("stroke", "white")
+									.attr("stroke-width", 2)
+									.attr("cx", (d: any) => d.y)
+									.attr("cy", (d: any) => d.x),
+							update => update,
+							exit => exit.transition(tr).attr("r", 0).remove()
+						)
+						.attr("data-nodeid", d => d.data.id)
 						.attr("fill", d => color(d.data.group))
-						.attr("stroke", "white")
-						.attr("stroke-width", 2)
+						.transition(tr)
 						.attr("cx", (d: any) => d.y)
 						.attr("cy", (d: any) => d.x)
-						.attr("data-nodeid", d => d.data.id);
+						.attr("r", d => radius(d.data));
+
 					const monolithTexts = monolith
 						.selectAll(".monolith-text")
 						.data(d.tree.descendants());
 					monolithTexts
-						.join("text")
-						.filter(d => d.data.group === "monolith")
-						.attr("class", "monolith-text")
-						.attr("text-anchor", "middle")
-						.attr("alignment-baseline", "middle")
-						.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+						.join(
+							create =>
+								create
+									.append("text")
+									.filter(d => d.data.group === "monolith")
+									.attr("class", "monolith-text")
+									.attr("text-anchor", "middle")
+									.attr("alignment-baseline", "middle")
+									.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+									.attr("stroke-width", 0)
+									.attr("fill", "white"),
+							update => update,
+							exit => exit.transition(tr).attr("font-size", 0).remove()
+						)
+						.text(d => `${d.data.id}`.substring(0, 6))
+						.transition(tr)
 						.attr("font-size", 10)
-						.attr("stroke-width", 0)
-						.attr("fill", "white")
 						.attr("x", (d: any) => d.y)
-						.attr("y", (d: any) => d.x + 4)
-						.text(d => `${d.data.id}`.substring(0, 6));
+						.attr("y", (d: any) => d.x + 4);
 				});
 
 			// create the links between balancers and monoliths
@@ -316,14 +357,21 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			});
 			const balancerMonolithLinks = gb2mLinks.selectAll(".b2m-link").data(b2mLinkData);
 			balancerMonolithLinks
-				.join("path")
-				.attr("class", "b2m-link")
-				.attr("d", diagonal)
-				.attr("fill", "none")
-				.attr("stroke", "white")
-				.attr("stroke-width", 1.5)
+				.join(
+					create =>
+						create
+							.append("path")
+							.attr("class", "b2m-link")
+							.attr("fill", "none")
+							.attr("stroke", "white"),
+					update => update,
+					exit => exit.transition(tr).attr("stroke-width", 0).remove()
+				)
 				.attr("data-nodeid-source", d => d.source.id)
-				.attr("data-nodeid-target", d => d.target.id);
+				.attr("data-nodeid-target", d => d.target.id)
+				.transition(tr)
+				.attr("d", diagonal)
+				.attr("stroke-width", 1.5);
 
 			const zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
 			function handleZoom(e: any) {
