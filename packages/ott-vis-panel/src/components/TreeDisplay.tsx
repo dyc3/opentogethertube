@@ -77,25 +77,37 @@ function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
 }
 
 /**
+ * Gets the physical bounding box of the tree after it's been laid out relative to the root node. Does not account for the size of the actual nodes, just the space they take up.
+ * @param tree
+ * @returns [left, top, right, bottom]
+ */
+export function treeBoundingBox<Datum>(
+	tree: d3.HierarchyNode<Datum>
+): [number, number, number, number] {
+	let left = Infinity;
+	let top = Infinity;
+	let right = -Infinity;
+	let bottom = -Infinity;
+	tree.each(node => {
+		// @ts-expect-error d3 adds x and y to the node
+		left = Math.min(left, node.x);
+		// @ts-expect-error d3 adds x and y to the node
+		top = Math.min(top, node.y);
+		// @ts-expect-error d3 adds x and y to the node
+		right = Math.max(right, node.x);
+		// @ts-expect-error d3 adds x and y to the node
+		bottom = Math.max(bottom, node.y);
+	});
+	return [left, top, right, bottom];
+}
+
+/**
  * Gets the physical size of a tree after it's been laid out. Does not account for the size of the actual nodes, just the space they take up.
  * @returns [width, height]
  */
 export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, number] {
-	let minX = Infinity;
-	let minY = Infinity;
-	let maxX = -Infinity;
-	let maxY = -Infinity;
-	tree.each(node => {
-		// @ts-expect-error d3 adds x and y to the node
-		minX = Math.min(minX, node.x);
-		// @ts-expect-error d3 adds x and y to the node
-		minY = Math.min(minY, node.y);
-		// @ts-expect-error d3 adds x and y to the node
-		maxX = Math.max(maxX, node.x);
-		// @ts-expect-error d3 adds x and y to the node
-		maxY = Math.max(maxY, node.y);
-	});
-	return [maxX - minX, maxY - minY];
+	const [left, top, right, bottom] = treeBoundingBox(tree);
+	return [right - left, bottom - top];
 }
 
 interface Node {
@@ -111,6 +123,7 @@ interface BalancerNode extends Node {
 
 interface MonolithNode extends Node {
 	tree: d3.HierarchyNode<TreeNode>;
+	boundingBox: [number, number, number, number];
 }
 
 const NODE_RADIUS = 20;
@@ -147,19 +160,19 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			}
 
 			// compute positions of monolith trees
-			// note: we are actually using the width here because the trees are being rotated 90 deg
-			const monolithTreeHeights = builtMonolithTrees.map(tree => sizeOfTree(tree)[0]);
+			const monolithTreeBoxes = builtMonolithTrees.map(tree => treeBoundingBox(tree));
 			const monolithTreeYs: number[] = [];
-			for (let i = 0; i < monolithTreeHeights.length; i++) {
+			for (let i = 0; i < monolithTreeBoxes.length; i++) {
 				if (i === 0) {
 					monolithTreeYs.push(0);
 				} else {
-					const diff =
-						monolithTreeHeights[i - 1] / 2 +
-						monolithTreeHeights[i] / 2 +
-						NODE_RADIUS * 2;
+					// note: we are actually using the width here because the trees are being rotated 90 deg
+					const [_pleft, _ptop, pright, _pbottom] = monolithTreeBoxes[i - 1];
+					const [left, _top, _right, _bottom] = monolithTreeBoxes[i];
+					const spacing = -left + pright + NODE_RADIUS * 2 + 10;
+					// console.log("prev y", monolithTreeYs[i - 1], "right", right, "pleft", pleft, "spacing", spacing);
 					monolithTreeYs.push(
-						monolithTreeYs[i - 1] + Math.max(diff, NODE_RADIUS * 2 + 10)
+						monolithTreeYs[i - 1] + Math.max(spacing, NODE_RADIUS * 2 + 10)
 					);
 				}
 			}
@@ -169,6 +182,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 					id: monolith.id,
 					x: 100,
 					y: monolithTreeYs[i],
+					boundingBox: monolithTreeBoxes[i],
 				};
 				return node;
 			});
@@ -219,6 +233,16 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
 			const monolithGroups = monolithGroup.selectAll("g.monolith").data(monolithNodes);
+			// for debugging, draw the bounding boxes of the monolith trees
+			// monolithGroups
+			// 	.join("rect")
+			// 	.attr("x", d => d.x + d.boundingBox[1])
+			// 	.attr("y", d => d.y + d.boundingBox[0])
+			// 	.attr("width", d => d.boundingBox[3] - d.boundingBox[1])
+			// 	.attr("height", d => d.boundingBox[2] - d.boundingBox[0])
+			// 	.attr("fill", "rgba(255, 255, 255, 0.1)")
+			// 	.attr("stroke", "white")
+			// 	.attr("stroke-width", 1);
 			monolithGroups
 				.join("g")
 				.attr("class", "monolith")
