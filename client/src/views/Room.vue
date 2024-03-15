@@ -26,7 +26,7 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
-				<div no-gutters class="video-container">
+				<div class="video-container">
 					<div
 						class="video-subcontainer"
 						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
@@ -173,11 +173,11 @@
 			</v-col>
 		</v-container>
 		<v-footer>
-			<v-container pa-0>
-				<v-row no-gutters align="center" justify="center">
+			<v-container>
+				<v-row justify="center">
 					<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
 				</v-row>
-				<v-row no-gutters align="center" justify="center">
+				<v-row justify="center">
 					{{ gitCommit }}
 				</v-row>
 			</v-container>
@@ -715,7 +715,6 @@ $in-video-chat-width-small: 250px;
 	align-items: center;
 	justify-content: center;
 	margin: auto;
-	margin-bottom: 10px;
 	flex-direction: column;
 	aspect-ratio: 16 / 9;
 
@@ -787,7 +786,6 @@ $in-video-chat-width-small: 250px;
 }
 
 .queue-tab-content {
-	background: transparent !important;
 	// HACK: the save button in room settings is not sticky if overflow is not "visible"
 	overflow: visible;
 }

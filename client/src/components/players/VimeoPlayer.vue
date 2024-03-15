@@ -140,9 +140,3 @@ const VimeoPlayer = defineComponent({
 
 export default VimeoPlayer;
 </script>
-
-<style lang="scss" scoped>
-.vimeo {
-	color: #696969;
-}
-</style>
