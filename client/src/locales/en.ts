@@ -179,6 +179,7 @@ export default {
 		"no-video-text": 'Click "Add" below to add a video.',
 	},
 	"add-preview": {
+		"label": "Link or Search",
 		"add-all": "Add All",
 		"placeholder": "Type to search YouTube or enter a Video URL to add to the queue",
 		"title": "What can I add?",

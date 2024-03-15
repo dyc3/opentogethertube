@@ -1,18 +1,25 @@
 <template>
 	<div class="video-add">
 		<v-row>
-			<v-textarea
-				clearable
-				auto-grow
-				variant="underlined"
-				rows="1"
-				:placeholder="$t('add-preview.placeholder')"
-				v-model="inputAddPreview"
-				@keydown="onInputAddPreviewKeyDown"
-				@focus="onFocusHighlightText"
-				:loading="isLoadingAddPreview"
-				data-cy="add-preview-input"
-			/>
+			<v-sheet rounded width="100%" elevation="10" style="margin: 8px 0; padding: 5px 20px">
+				<v-textarea
+					clearable
+					auto-grow
+					variant="underlined"
+					rows="1"
+					:label="$t('add-preview.label')"
+					:placeholder="$t('add-preview.placeholder')"
+					v-model="inputAddPreview"
+					@keydown="onInputAddPreviewKeyDown"
+					@focus="onFocusHighlightText"
+					:loading="isLoadingAddPreview"
+					prepend-inner-icon="mdi-magnify"
+					base-color="primary"
+					color="primary"
+					persistent-clear
+					data-cy="add-preview-input"
+				/>
+			</v-sheet>
 		</v-row>
 		<v-row>
 			<div v-if="!production">
@@ -30,8 +37,10 @@
 				@click="addAllToQueue()"
 				:loading="isLoadingAddAll"
 				:disabled="isLoadingAddAll"
-				>{{ $t("add-preview.add-all") }}</v-btn
+				prepend-icon="mdi-plus"
 			>
+				{{ $t("add-preview.add-all") }}
+			</v-btn>
 		</v-row>
 		<v-row class="mt-6" v-if="isLoadingAddPreview" justify="center">
 			<v-progress-circular indeterminate />
@@ -390,7 +399,7 @@ export default AddPreview;
 @import "../variables.scss";
 
 .video-add {
-	margin: 0 20px;
+	margin: 20px 30px;
 	min-height: 500px;
 }
 
