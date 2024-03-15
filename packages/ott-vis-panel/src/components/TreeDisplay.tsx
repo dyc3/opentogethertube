@@ -193,8 +193,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			const balancerGroup = wholeGraph.select("g.balancers");
 			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
 			balancerCircles
-				.enter()
-				.append("circle")
+				.join("circle")
 				.attr("class", "balancer")
 				.attr("r", NODE_RADIUS + 10)
 				.attr("fill", d => color(d.group))
@@ -203,11 +202,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("cx", d => d.x)
 				.attr("cy", d => d.y)
 				.attr("data-nodeid", d => d.id);
-			balancerCircles.exit().remove();
 			const balancerTexts = balancerGroup.selectAll(".balancer-text").data(balancerNodes);
 			balancerTexts
-				.enter()
-				.append("text")
+				.join("text")
 				.attr("class", "balancer-text")
 				.attr("text-anchor", "middle")
 				.attr("alignment-baseline", "middle")
@@ -218,14 +215,12 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("x", d => d.x)
 				.attr("y", d => d.y + 4)
 				.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10));
-			balancerTexts.exit().remove();
 
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
-			const monolithGroups = monolithGroup.selectAll(".monolith").data(monolithNodes);
+			const monolithGroups = monolithGroup.selectAll("g.monolith").data(monolithNodes);
 			monolithGroups
-				.enter()
-				.append("g")
+				.join("g")
 				.attr("class", "monolith")
 				.attr("transform", (d, i) => `translate(${d.x}, ${d.y})`)
 				.each(function (d) {
@@ -237,8 +232,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 					const monolith = d3.select(this);
 					const monolithLinks = monolith.selectAll(".treelink").data(d.tree.links());
 					monolithLinks
-						.enter()
-						.append("path")
+						.join("path")
 						.attr("class", "treelink")
 						.attr("d", diagonal)
 						.attr("fill", "none")
@@ -246,14 +240,12 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.attr("stroke-width", 1.5)
 						.attr("data-nodeid-source", d => d.source.data.id)
 						.attr("data-nodeid-target", d => d.target.data.id);
-					monolithLinks.exit().remove();
 
 					const monolithCircles = monolith
 						.selectAll(".monolith")
 						.data(d.tree.descendants());
 					monolithCircles
-						.enter()
-						.append("circle")
+						.join("circle")
 						.attr("class", "monolith")
 						.attr("r", d => radius(d.data))
 						.attr("fill", d => color(d.data.group))
@@ -262,15 +254,12 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.attr("cx", (d: any) => d.y)
 						.attr("cy", (d: any) => d.x)
 						.attr("data-nodeid", d => d.data.id);
-					monolithCircles.exit().remove();
 					const monolithTexts = monolith
 						.selectAll(".monolith-text")
 						.data(d.tree.descendants());
 					monolithTexts
-						.enter()
-						// intentionally not showing room and client names -- user generated content can contain offensive material
+						.join("text")
 						.filter(d => d.data.group === "monolith")
-						.append("text")
 						.attr("class", "monolith-text")
 						.attr("text-anchor", "middle")
 						.attr("alignment-baseline", "middle")
@@ -281,7 +270,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.attr("x", (d: any) => d.y)
 						.attr("y", (d: any) => d.x + 4)
 						.text(d => `${d.data.id}`.substring(0, 6));
-					monolithTexts.exit().remove();
 				});
 
 			// create the links between balancers and monoliths
@@ -304,8 +292,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			});
 			const balancerMonolithLinks = gb2mLinks.selectAll(".b2m-link").data(b2mLinkData);
 			balancerMonolithLinks
-				.enter()
-				.append("path")
+				.join("path")
 				.attr("class", "b2m-link")
 				.attr("d", diagonal)
 				.attr("fill", "none")
@@ -313,7 +300,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("stroke-width", 1.5)
 				.attr("data-nodeid-source", d => d.source.id)
 				.attr("data-nodeid-target", d => d.target.id);
-			balancerMonolithLinks.exit().remove();
 
 			const zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
 			function handleZoom(e: any) {
