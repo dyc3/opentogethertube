@@ -40,6 +40,9 @@ impl EventBus {
 
     fn handle_event(&self, event: String) {
         info!("Received event: {}", event);
+        if self.bus_tx.receiver_count() == 0 {
+            return;
+        }
         match self.bus_tx.send(event) {
             Ok(count) => {
                 info!("Event sent to {count} subscribers");
