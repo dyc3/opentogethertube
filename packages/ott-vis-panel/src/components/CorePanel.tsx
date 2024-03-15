@@ -103,11 +103,15 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 				`
 			)}
 		>
-			{data.state === LoadingState.Loading ? <div>Loading...</div> : null}
+			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
 		</div>
 	);
 };
+
+const Loading: React.FC = () => {
+	return <div style={{position: "absolute", top: 0, left: 0}}>Loading...</div>;
+}
 
 const sampleSystemState: SystemState = [
 	{
