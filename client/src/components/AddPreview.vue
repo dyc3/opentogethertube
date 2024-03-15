@@ -50,7 +50,6 @@
 				{{ videosLoadFailureText }}
 			</div>
 			<v-container
-				fill-height
 				v-if="
 					videos.length == 0 &&
 					inputAddPreview.length > 0 &&
@@ -58,8 +57,8 @@
 					!isAddPreviewInputUrl
 				"
 			>
-				<v-row justify="center">
-					<v-col cols="12">
+				<v-row>
+					<v-col>
 						{{ $t("add-preview.search-for", { search: inputAddPreview }) }}<br />
 						<v-btn
 							@click="requestAddPreviewExplicit"
