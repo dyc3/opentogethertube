@@ -81,7 +81,9 @@ function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
  * @param tree
  * @returns [left, top, right, bottom]
  */
-export function treeBoundingBox<Datum>(tree: d3.HierarchyNode<Datum>): [number, number, number, number] {
+export function treeBoundingBox<Datum>(
+	tree: d3.HierarchyNode<Datum>
+): [number, number, number, number] {
 	let left = Infinity;
 	let top = Infinity;
 	let right = -Infinity;

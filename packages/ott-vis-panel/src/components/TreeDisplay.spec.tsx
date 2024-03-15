@@ -60,6 +60,6 @@ describe("TreeDisplay", () => {
 		const root = d3.hierarchy(tree);
 		treeLayout(root);
 		const box = treeBoundingBox(root);
-		expect(box).toEqual([-5, 0, 5, 20])
+		expect(box).toEqual([-5, 0, 5, 20]);
 	});
 });
