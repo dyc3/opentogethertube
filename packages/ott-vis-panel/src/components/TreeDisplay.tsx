@@ -154,8 +154,13 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				if (i === 0) {
 					monolithTreeYs.push(0);
 				} else {
-					const diff = monolithTreeHeights[i-1] / 2 + monolithTreeHeights[i] / 2 + NODE_RADIUS * 2;
-					monolithTreeYs.push(monolithTreeYs[i - 1] + Math.max(diff, NODE_RADIUS * 2 + 10));
+					const diff =
+						monolithTreeHeights[i - 1] / 2 +
+						monolithTreeHeights[i] / 2 +
+						NODE_RADIUS * 2;
+					monolithTreeYs.push(
+						monolithTreeYs[i - 1] + Math.max(diff, NODE_RADIUS * 2 + 10)
+					);
 				}
 			}
 			const monolithNodes = monolithTrees.map((monolith, i) => {
