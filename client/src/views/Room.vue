@@ -787,7 +787,6 @@ $in-video-chat-width-small: 250px;
 }
 
 .queue-tab-content {
-	background: transparent !important;
 	// HACK: the save button in room settings is not sticky if overflow is not "visible"
 	overflow: visible;
 }
