@@ -110,8 +110,8 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 };
 
 const Loading: React.FC = () => {
-	return <div style={{position: "absolute", top: 0, left: 0}}>Loading...</div>;
-}
+	return <div style={{ position: "absolute", top: 0, left: 0 }}>Loading...</div>;
+};
 
 const sampleSystemState: SystemState = [
 	{
