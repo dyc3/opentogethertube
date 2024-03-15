@@ -325,7 +325,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 		}
 		const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
 		svg.select("g.chart").attr("transform", chartTransform);
-	}, [chartTransform])
+	}, [chartTransform]);
 
 	const eventBus = useEventBus();
 	useEffect(() => {
