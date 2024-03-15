@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import type { Monolith, SystemState } from "ott-vis/types";
 import { dedupeMonoliths } from "aggregate";
@@ -125,10 +125,7 @@ function radius(node: TreeNode) {
 const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
-	const monolithTrees = useMemo(
-		() => buildMonolithTrees(systemState.flatMap(b => b.monoliths)),
-		[systemState]
-	);
+	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths));
 
 	const [chartTransform, setChartTransform] = useState("translate(0, 0)");
 
@@ -152,13 +149,20 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// compute positions of monolith trees
 			// note: we are actually using the width here because the trees are being rotated 90 deg
 			const monolithTreeHeights = builtMonolithTrees.map(tree => sizeOfTree(tree)[0]);
-			const monolithTreeYs = monolithTreeHeights.reduce(
-				(acc, height, i) => {
-					acc.push(acc[i] + Math.max(height, NODE_RADIUS * 2 + 10));
-					return acc;
-				},
-				[0]
-			);
+			const monolithTreeYs: number[] = [];
+			for (let i = 0; i < monolithTreeHeights.length; i++) {
+				if (i === 0) {
+					monolithTreeYs.push(0);
+				} else {
+					const diff =
+						monolithTreeHeights[i - 1] / 2 +
+						monolithTreeHeights[i] / 2 +
+						NODE_RADIUS * 2;
+					monolithTreeYs.push(
+						monolithTreeYs[i - 1] + Math.max(diff, NODE_RADIUS * 2 + 10)
+					);
+				}
+			}
 			const monolithNodes = monolithTrees.map((monolith, i) => {
 				const node: MonolithNode = {
 					tree: builtMonolithTrees[i],
