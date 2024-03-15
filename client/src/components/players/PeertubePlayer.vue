@@ -110,9 +110,3 @@ const PeertubePlayer = defineComponent({
 
 export default PeertubePlayer;
 </script>
-
-<style lang="scss" scoped>
-.vimeo {
-	color: #696969;
-}
-</style>
