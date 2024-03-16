@@ -6,9 +6,9 @@
   "scripts": {
     "serve": "vite serve",
     "build": "vite build",
-    "lint": "tsc --noEmit && eslint --ext .js,.ts,.vue --fix .",
+    "lint": "tsc --noEmit && eslint --cache --ext .js,.ts,.vue --fix .",
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
-    "lint-ci": "tsc --noEmit && eslint .",
+    "lint-ci": "tsc --noEmit && eslint --cache .",
     "test": "vitest run --coverage",
     "cy:open": "cypress open --component",
     "cy:run": "cypress run --component"
