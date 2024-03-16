@@ -76,7 +76,7 @@ jobs:
       matrix:
         node-version: [18.x]
         # run copies of the current job in parallel
-        containers: [1, 2]
+        # containers: [1, 2]
         browsers: [electron]
     env:
       # this is safe because it's only used for testing
@@ -121,7 +121,7 @@ jobs:
           wait-on-timeout: 120
           browser: ${{ matrix.browsers }}
           record: true
-          parallel: true
+          # parallel: true
           group: "E2E - ${{ matrix.browsers }}"
         env:
           PORT: 8080
