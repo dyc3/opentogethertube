@@ -110,6 +110,22 @@ export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, numbe
 	return [right - left, bottom - top];
 }
 
+function calcGoodTreeRadius(tree: TreeNode): number {
+	// absolute minimum radius should probably be 100
+	// minimum radius to fit all the nodes on the second level
+
+	// https://stackoverflow.com/a/56008236/3315164
+
+	let children = tree.children.length;
+	if (children <= 1) {
+		return 100;
+	}
+	const padding = 5;
+	const radius = (NODE_RADIUS + padding) / Math.sin(Math.PI / children);
+	// multiply to account for the depth of the tree
+	return radius * 4;
+}
+
 interface Node {
 	id: string;
 	x: number;
@@ -135,6 +151,8 @@ function radius(node: TreeNode) {
 	return NODE_RADIUS;
 }
 
+const DEBUG_BOUNDING_BOXES = false;
+
 const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
@@ -153,9 +171,23 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// build all the sub-trees first
 			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
 			for (const monolithTree of monolithTrees) {
-				const treeLayout = d3.tree<TreeNode>().nodeSize([NODE_RADIUS * 2, 120]);
+				const radius = calcGoodTreeRadius(monolithTree);
+				const treeLayout = d3
+					.tree<TreeNode>()
+					.size([Math.PI, radius])
+					.separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
 				const root = d3.hierarchy(monolithTree);
 				treeLayout(root);
+				// precompute radial coordinates
+				root.each(node => {
+					// @ts-expect-error d3 adds x and y to the node
+					const [x, y] = d3.pointRadial(node.x, node.y);
+					// @ts-expect-error d3 adds x and y to the node
+					node.x = x;
+					// @ts-expect-error d3 adds x and y to the node
+					node.y = y;
+				});
+
 				builtMonolithTrees.push(root);
 			}
 
@@ -166,11 +198,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				if (i === 0) {
 					monolithTreeYs.push(0);
 				} else {
-					// note: we are actually using the width here because the trees are being rotated 90 deg
-					const [_pleft, _ptop, pright, _pbottom] = monolithTreeBoxes[i - 1];
-					const [left, _top, _right, _bottom] = monolithTreeBoxes[i];
-					const spacing = -left + pright + NODE_RADIUS * 2 + 10;
-					// console.log("prev y", monolithTreeYs[i - 1], "right", right, "pleft", pleft, "spacing", spacing);
+					const [_pleft, _ptop, _pright, pbottom] = monolithTreeBoxes[i - 1];
+					const [_left, top, _right, _bottom] = monolithTreeBoxes[i];
+					const spacing = -top + pbottom + NODE_RADIUS * 2 + 10;
 					monolithTreeYs.push(
 						monolithTreeYs[i - 1] + Math.max(spacing, NODE_RADIUS * 2 + 10)
 					);
@@ -180,7 +210,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				const node: MonolithNode = {
 					tree: builtMonolithTrees[i],
 					id: monolith.id,
-					x: 100,
+					x: 300,
 					y: monolithTreeYs[i],
 					boundingBox: monolithTreeBoxes[i],
 				};
@@ -254,15 +284,17 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			const monolithGroup = wholeGraph.select("g.monoliths");
 			const monolithGroups = monolithGroup.selectAll("g.monolith").data(monolithNodes);
 			// for debugging, draw the bounding boxes of the monolith trees
-			// monolithGroups
-			// 	.join("rect")
-			// 	.attr("x", d => d.x + d.boundingBox[1])
-			// 	.attr("y", d => d.y + d.boundingBox[0])
-			// 	.attr("width", d => d.boundingBox[3] - d.boundingBox[1])
-			// 	.attr("height", d => d.boundingBox[2] - d.boundingBox[0])
-			// 	.attr("fill", "rgba(255, 255, 255, 0.1)")
-			// 	.attr("stroke", "white")
-			// 	.attr("stroke-width", 1);
+			if (DEBUG_BOUNDING_BOXES) {
+				monolithGroups
+					.join("rect")
+					.attr("x", d => d.x + d.boundingBox[0])
+					.attr("y", d => d.y + d.boundingBox[1])
+					.attr("width", d => d.boundingBox[2] - d.boundingBox[0])
+					.attr("height", d => d.boundingBox[3] - d.boundingBox[1])
+					.attr("fill", "rgba(255, 255, 255, 0.1)")
+					.attr("stroke", "white")
+					.attr("stroke-width", 1);
+			}
 			monolithGroups
 				.join("g")
 				.attr("class", "monolith")
@@ -270,8 +302,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.each(function (d) {
 					const diagonal = d3
 						.linkHorizontal<any, TreeNode>()
-						.x((d: any) => d.y)
-						.y((d: any) => d.x);
+						.x((d: any) => d.x)
+						.y((d: any) => d.y);
 
 					const monolith = d3.select(this);
 					const monolithLinks = monolith.selectAll(".treelink").data(d.tree.links());
@@ -300,16 +332,16 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 									.attr("class", "monolith")
 									.attr("stroke", "white")
 									.attr("stroke-width", 2)
-									.attr("cx", (d: any) => d.y)
-									.attr("cy", (d: any) => d.x),
+									.attr("cx", (d: any) => d.x)
+									.attr("cy", (d: any) => d.y),
 							update => update,
 							exit => exit.transition(tr).attr("r", 0).remove()
 						)
 						.attr("data-nodeid", d => d.data.id)
 						.attr("fill", d => color(d.data.group))
 						.transition(tr)
-						.attr("cx", (d: any) => d.y)
-						.attr("cy", (d: any) => d.x)
+						.attr("cx", (d: any) => d.x)
+						.attr("cy", (d: any) => d.y)
 						.attr("r", d => radius(d.data));
 
 					const monolithTexts = monolith
@@ -333,8 +365,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.text(d => `${d.data.id}`.substring(0, 6))
 						.transition(tr)
 						.attr("font-size", 10)
-						.attr("x", (d: any) => d.y)
-						.attr("y", (d: any) => d.x + 4);
+						.attr("x", (d: any) => d.x)
+						.attr("y", (d: any) => d.y + 4);
 				});
 
 			// create the links between balancers and monoliths
@@ -393,7 +425,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 	useEffect(() => {
 		const sub = eventBus.subscribe(event => {
 			d3.select(`[data-nodeid="${event.node_id}"]`)
-				.transition()
+				.transition("highlight")
 				.duration(100)
 				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
 				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
