@@ -110,20 +110,21 @@ export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, numbe
 	return [right - left, bottom - top];
 }
 
-function calcGoodTreeRadius(tree: TreeNode): number {
+function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>): number {
 	// absolute minimum radius should probably be 100
 	// minimum radius to fit all the nodes on the second level
 
 	// https://stackoverflow.com/a/56008236/3315164
 
-	let children = tree.children.length;
+	let children = tree.links().length;
 	if (children <= 1) {
 		return 100;
 	}
 	const padding = 5;
 	const radius = (NODE_RADIUS + padding) / Math.sin(Math.PI / children);
 	// multiply to account for the depth of the tree
-	return radius * 4;
+	const hasClients = tree.leaves().some(node => node.data.group === "client");
+	return radius * (hasClients ? 4 : 2);
 }
 
 interface Node {
@@ -171,12 +172,12 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// build all the sub-trees first
 			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
 			for (const monolithTree of monolithTrees) {
-				const radius = calcGoodTreeRadius(monolithTree);
+				const root = d3.hierarchy(monolithTree);
+				const radius = calcGoodTreeRadius(root);
 				const treeLayout = d3
 					.tree<TreeNode>()
 					.size([Math.PI, radius])
 					.separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
-				const root = d3.hierarchy(monolithTree);
 				treeLayout(root);
 				// precompute radial coordinates
 				root.each(node => {
@@ -311,9 +312,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("transform", (d, i) => `translate(${d.x}, ${d.y})`)
 				.each(function (d) {
 					const diagonal = d3
-						.linkHorizontal<any, TreeNode>()
-						.x((d: any) => d.x)
-						.y((d: any) => d.y);
+						.linkRadial<any, TreeNode>()
+						.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
+						.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
 
 					const monolith = d3.select(this);
 					const monolithLinks = monolith
