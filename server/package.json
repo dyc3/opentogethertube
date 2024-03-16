@@ -9,8 +9,8 @@
     "start-lean": "node --experimental-specifier-resolution=node --optimize-for-size --max-old-space-size=200 --conditions=lean ts-out/app.js",
     "debug": "nodemon --exec node --experimental-specifier-resolution=node --loader ts-node/esm --ignore 'tests/*' --inspect -e ts,js app.ts",
     "build": "tsc",
-    "lint": "tsc --noEmit --noErrorTruncation && eslint --fix .",
-    "lint-ci": "tsc --noEmit && eslint .",
+    "lint": "tsc --noEmit --noErrorTruncation && eslint --cache --fix .",
+    "lint-ci": "tsc --noEmit && eslint --cache .",
     "test": "vitest run --coverage"
   },
   "dependencies": {
