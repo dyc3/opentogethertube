@@ -147,8 +147,7 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(body);
 	}
 	log.info(
-		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${
-			req.ip
+		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${req.ip
 		} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
@@ -362,7 +361,7 @@ const addToQueue: RequestHandler<
 	}
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
-	let roomRequest: AddRequest;
+	let roomRequest: AddRequest | undefined;
 	if ("videos" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
@@ -381,13 +380,14 @@ const addToQueue: RequestHandler<
 				id: body.id,
 			},
 		};
-	} else {
-		throw new BadApiArgumentException("service,id", "missing");
 	}
-	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
-	res.json({
-		success: true,
-	});
+
+	if (roomRequest !== undefined) {
+		await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
+		res.json({
+			success: true,
+		});
+	}
 };
 
 const removeFromQueue: RequestHandler<
@@ -413,8 +413,6 @@ const removeFromQueue: RequestHandler<
 		res.json({
 			success: true,
 		});
-	} else {
-		throw new BadApiArgumentException("service,id", "missing");
 	}
 };
 
