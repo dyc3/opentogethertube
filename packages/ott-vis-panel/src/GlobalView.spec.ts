@@ -1,5 +1,5 @@
 import type { SystemState } from "ott-vis";
-const { buildGraph } = require("./GlobalView");
+import { buildGraph } from "./components/views/GlobalView";
 
 const sampleSystemState: SystemState = [
 	{

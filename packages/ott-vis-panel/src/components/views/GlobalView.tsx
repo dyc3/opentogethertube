@@ -9,7 +9,7 @@ interface Props {
 	height: number;
 }
 
-function buildGraph(state: SystemState): [Node[], Link[]] {
+export function buildGraph(state: SystemState): [Node[], Link[]] {
 	let nodes: Node[] = [];
 	const links: Link[] = [];
 	const core: Node = {
