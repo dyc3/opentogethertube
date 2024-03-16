@@ -182,7 +182,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				root.each(node => {
 					if (node.data.group === "client") {
 						// @ts-expect-error d3 adds x and y to the node
-						node.y *= 0.6;
+						node.y = radius / 2 + 60;
 					}
 					// @ts-expect-error d3 adds x and y to the node
 					const [x, y] = d3.pointRadial(node.x, node.y);
