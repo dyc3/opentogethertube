@@ -8,16 +8,10 @@ import { randomItem } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
 import { getAuthToken, createRoom, HOSTNAME, RoomState, reqVideo } from "./utils.js";
 
 export const options = {
-	// A number specifying the number of VUs to run concurrently.
-	vus: 500,
-	// A string specifying the total duration of the test run.
+	executor: "constant-vus",
+	vus: 100,
 	duration: "1h",
 };
-
-const rooms = [];
-for (let i = 0; i < 100; i++) {
-	rooms.push(`load-test-${i}`);
-}
 
 const VIDEOS = [
 	{ service: "youtube", id: "dQw4w9WgXcQ" },
@@ -26,21 +20,29 @@ const VIDEOS = [
 ];
 
 export function setup() {
+	const rooms = [];
+	for (let i = 0; i < 50; i++) {
+		rooms.push(`load-test-${i}`);
+	}
+
 	const token = getAuthToken();
 	for (let room of rooms) {
 		// TODO: some of the rooms should be permanent
 		createRoom(room, token, { visibility: "public", isTemporary: true });
 	}
 	sleep(1);
+
+	return { rooms };
 }
 
-export default function () {
+export default function (data) {
+	const { rooms } = data;
 	sleep(5 * Math.random());
 	const token = getAuthToken();
 	const room = randomItem(rooms);
 	console.log(`User is joining room ${room}`);
 	const url = `ws://${HOSTNAME}/api/room/${room}`;
-	const res = ws.connect(url, null, function (socket) {
+	const res = ws.connect(url, null, socket => {
 		const state = new RoomState();
 		const user = new UserEmulator(room, token, socket);
 
@@ -59,7 +61,7 @@ export default function () {
 			}
 			check(code, { "ws close status is 1000": c => c === 1000 });
 		});
-		socket.setTimeout(function () {
+		socket.setTimeout(() => {
 			socket.close(1000);
 		}, 30000 * Math.random() + 50000);
 
