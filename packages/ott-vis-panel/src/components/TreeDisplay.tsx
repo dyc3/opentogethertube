@@ -344,10 +344,16 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 									.attr("class", "monolith")
 									.attr("stroke", "white")
 									.attr("stroke-width", 2)
-									.attr("cx", (d: any) => d.x)
-									.attr("cy", (d: any) => d.y),
+									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
-							exit => exit.transition(tr).attr("r", 0).remove()
+							exit =>
+								exit
+									.transition(tr)
+									.attr("r", 0)
+									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y))
+									.remove()
 						)
 						.attr("data-nodeid", d => d.data.id)
 						.attr("fill", d => color(d.data.group))
@@ -370,9 +376,17 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 									.attr("alignment-baseline", "middle")
 									.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
 									.attr("stroke-width", 0)
-									.attr("fill", "white"),
+									.attr("fill", "white")
+									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
-							exit => exit.transition(tr).attr("font-size", 0).remove()
+							exit =>
+								exit
+									.transition(tr)
+									.attr("font-size", 0)
+									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y))
+									.remove()
 						)
 						.text(d => `${d.data.id}`.substring(0, 6))
 						.transition(tr)
