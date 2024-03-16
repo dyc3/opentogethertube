@@ -147,7 +147,8 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(body);
 	}
 	log.info(
-		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${req.ip
+		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${
+			req.ip
 		} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
@@ -372,7 +373,7 @@ const addToQueue: RequestHandler<
 			type: RoomRequestType.AddRequest,
 			url: body.url,
 		};
-	} else if ("service" in body && "id" in body) {
+	} else {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
 			video: {
@@ -382,12 +383,10 @@ const addToQueue: RequestHandler<
 		};
 	}
 
-	if (roomRequest !== undefined) {
-		await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
-		res.json({
-			success: true,
-		});
-	}
+	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
+	res.json({
+		success: true,
+	});
 };
 
 const removeFromQueue: RequestHandler<
