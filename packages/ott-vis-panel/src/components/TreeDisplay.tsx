@@ -241,6 +241,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
 
 			const balancerGroup = wholeGraph.select("g.balancers");
+			// TODO: add key function to data join when balancer ids are stable
 			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
 			balancerCircles
 				.join(
@@ -261,7 +262,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				.attr("cx", d => d.x)
 				.attr("cy", d => d.y)
 				.attr("r", NODE_RADIUS + 10);
-			const balancerTexts = balancerGroup.selectAll(".balancer-text").data(balancerNodes);
+			const balancerTexts = balancerGroup
+				.selectAll(".balancer-text")
+				// TODO: add key function to data join when balancer ids are stable
+				.data(balancerNodes);
 			balancerTexts
 				.join(
 					create =>
@@ -286,7 +290,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
-			const monolithGroups = monolithGroup.selectAll("g.monolith").data(monolithNodes);
+			const monolithGroups = monolithGroup
+				.selectAll("g.monolith")
+				.data(monolithNodes, (d: any) => d.id);
 			// for debugging, draw the bounding boxes of the monolith trees
 			if (DEBUG_BOUNDING_BOXES) {
 				monolithGroups
@@ -310,7 +316,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 						.y((d: any) => d.y);
 
 					const monolith = d3.select(this);
-					const monolithLinks = monolith.selectAll(".treelink").data(d.tree.links());
+					const monolithLinks = monolith
+						.selectAll(".treelink")
+						.data(d.tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id);
 					monolithLinks
 						.join(
 							create => create.append("path").attr("class", "treelink"),
@@ -327,7 +335,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 					const monolithCircles = monolith
 						.selectAll(".monolith")
-						.data(d.tree.descendants());
+						.data(d.tree.descendants(), (d: any) => d.data?.id);
 					monolithCircles
 						.join(
 							create =>
@@ -350,7 +358,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 					const monolithTexts = monolith
 						.selectAll(".monolith-text")
-						.data(d.tree.descendants());
+						.data(d.tree.descendants(), (d: any) => d.data?.id);
 					monolithTexts
 						.join(
 							create =>
@@ -391,7 +399,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 					};
 				});
 			});
-			const balancerMonolithLinks = gb2mLinks.selectAll(".b2m-link").data(b2mLinkData);
+			const balancerMonolithLinks = gb2mLinks
+				.selectAll(".b2m-link")
+				.data(b2mLinkData, (d: any) => d.source?.data?.id + d.target?.data?.id);
 			balancerMonolithLinks
 				.join(
 					create =>
