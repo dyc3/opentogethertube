@@ -191,7 +191,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				const node: MonolithNode = {
 					tree: builtMonolithTrees[i],
 					id: monolith.id,
-					x: 100,
+					x: 300,
 					y: monolithTreeYs[i],
 					boundingBox: monolithTreeBoxes[i],
 				};
