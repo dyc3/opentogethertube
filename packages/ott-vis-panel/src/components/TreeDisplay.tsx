@@ -116,7 +116,7 @@ function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>): number {
 
 	// https://stackoverflow.com/a/56008236/3315164
 
-	let children = tree.links().length;
+	let children = tree.children?.length ?? 0;
 	if (children <= 1) {
 		return 100;
 	}
