@@ -425,7 +425,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 	useEffect(() => {
 		const sub = eventBus.subscribe(event => {
 			d3.select(`[data-nodeid="${event.node_id}"]`)
-				.transition()
+				.transition("highlight")
 				.duration(100)
 				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
 				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
