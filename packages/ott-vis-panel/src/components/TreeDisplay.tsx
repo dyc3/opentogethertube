@@ -180,6 +180,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				treeLayout(root);
 				// precompute radial coordinates
 				root.each(node => {
+					if (node.data.group === "client") {
+						// @ts-expect-error d3 adds x and y to the node
+						node.y *= 0.6;
+					}
 					// @ts-expect-error d3 adds x and y to the node
 					const [x, y] = d3.pointRadial(node.x, node.y);
 					// @ts-expect-error d3 adds x and y to the node
