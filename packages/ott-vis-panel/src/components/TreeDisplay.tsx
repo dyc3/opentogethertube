@@ -110,6 +110,22 @@ export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, numbe
 	return [right - left, bottom - top];
 }
 
+function calcGoodTreeRadius(tree: TreeNode): number {
+	// absolute minimum radius should probably be 100
+	// minimum radius to fit all the nodes on the second level
+
+	// https://stackoverflow.com/a/56008236/3315164
+
+	let children = tree.children.length;
+	if (children <= 1) {
+		return 100;
+	}
+	const padding = 5;
+	const radius = (NODE_RADIUS + padding) / Math.sin(Math.PI / children);
+	// multiply to account for the depth of the tree
+	return radius * 4;
+}
+
 interface Node {
 	id: string;
 	x: number;
@@ -155,8 +171,11 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// build all the sub-trees first
 			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
 			for (const monolithTree of monolithTrees) {
-				// const treeLayout = d3.tree<TreeNode>().nodeSize([NODE_RADIUS * 2, 120]);
-				const treeLayout = d3.tree<TreeNode>().size([Math.PI, 160]);
+				const radius = calcGoodTreeRadius(monolithTree);
+				const treeLayout = d3
+					.tree<TreeNode>()
+					.size([Math.PI, radius])
+					.separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
 				const root = d3.hierarchy(monolithTree);
 				treeLayout(root);
 				// precompute radial coordinates
