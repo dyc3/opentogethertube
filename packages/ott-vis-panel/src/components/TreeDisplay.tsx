@@ -191,7 +191,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// but also guarenteeing that they don't overlap with each other or the monoliths with some padding
 			const fullHeight = monolithTreeYs[monolithTreeYs.length - 1];
 			const lerp = d3.interpolateNumber(0, fullHeight);
-			const lerpincr = 1 / systemState.length;
+			const lerpincr = 1 / (systemState.length - 1);
 			const yincr = Math.max(lerp(lerpincr), NODE_RADIUS * 2 + 20);
 			const balancerNodes = systemState.map((balancer, i) => {
 				const node: BalancerNode = {
