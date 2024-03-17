@@ -39,12 +39,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          check-latest: true
+          cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/Cypress
-            node_modules
-          key: cache-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
       - run: corepack enable
       - run: yarn --immutable
@@ -102,6 +109,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
           check-latest: true
           cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
       - run: corepack enable
       - run: yarn install --immutable
