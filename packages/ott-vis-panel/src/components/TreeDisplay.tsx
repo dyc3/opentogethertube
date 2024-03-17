@@ -467,7 +467,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			});
 			const balancerMonolithLinks = gb2mLinks
 				.selectAll(".b2m-link")
-				.data(b2mLinkData, (d: any) => d.source?.data?.id + d.target?.data?.id);
+				// TODO: add key function to data join when balancer ids are stable
+				// .data(b2mLinkData, (d: any) => d.source?.data?.id + d.target?.data?.id);
+				.data(b2mLinkData);
 			balancerMonolithLinks
 				.join(
 					create =>
@@ -487,19 +489,22 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 			const zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
 			function handleZoom(e: any) {
+				svg.select("g.chart").attr("transform", e.transform);
 				setChartTransform(e.transform);
 			}
 			svg.call(zoom);
 		}
-	}, [systemState, monolithTrees, width, height]);
+	}, [systemState, monolithTrees]);
 
+	// run this only once after the first render
 	useEffect(() => {
 		if (!svgRef.current) {
 			return;
 		}
 		const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
 		svg.select("g.chart").attr("transform", chartTransform);
-	}, [chartTransform]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const eventBus = useEventBus();
 	useEffect(() => {
