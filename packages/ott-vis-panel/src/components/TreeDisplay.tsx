@@ -247,6 +247,19 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			monolithTreeBoxes.push(...boxesLeft);
 			const monolithTreeYsRight: number[] = stackBoxes(boxesRight);
 			const monolithTreeYsLeft: number[] = stackBoxes(boxesLeft);
+			// add an offset to the smaller column to center it
+			const largestRight = monolithTreeYsRight[monolithTreeYsRight.length - 1] ?? 0;
+			const largestLeft = monolithTreeYsLeft[monolithTreeYsLeft.length - 1] ?? 0;
+			const offsetY = Math.abs(largestRight - largestLeft) / 2;
+			if (largestRight > largestLeft) {
+				monolithTreeYsLeft.forEach((y, i) => {
+					monolithTreeYsLeft[i] = y + offsetY;
+				});
+			} else if (largestLeft > largestRight) {
+				monolithTreeYsRight.forEach((y, i) => {
+					monolithTreeYsRight[i] = y + offsetY;
+				});
+			}
 			const monolithTreeYs = monolithTreeYsRight.concat(monolithTreeYsLeft);
 			const monolithNodes = monolithTrees.map((monolith, i) => {
 				const isRight = i < boxesRight.length;
