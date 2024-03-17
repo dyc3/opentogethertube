@@ -64,12 +64,24 @@ describe("TreeDisplay", () => {
 	});
 
 	const flipBoundingBoxHTestCases: [BoundingBox, BoundingBox][] = [
-		[[0, 0, 0, 0], [-0, 0, -0, 0]],
-		[[0, 0, 10, 10], [-10, 0, -0, 10]],
-		[[5, 0, 10, 10], [-10, 0, -5, 10]],
+		[
+			[0, 0, 0, 0],
+			[-0, 0, -0, 0],
+		],
+		[
+			[0, 0, 10, 10],
+			[-10, 0, -0, 10],
+		],
+		[
+			[5, 0, 10, 10],
+			[-10, 0, -5, 10],
+		],
 	];
-	it.each(flipBoundingBoxHTestCases)("should flip bounding box", (input: BoundingBox, expected: BoundingBox) => {
-		const got = flipBoundingBoxH(input);
-		expect(got).toEqual(expected);
-	});
+	it.each(flipBoundingBoxHTestCases)(
+		"should flip bounding box",
+		(input: BoundingBox, expected: BoundingBox) => {
+			const got = flipBoundingBoxH(input);
+			expect(got).toEqual(expected);
+		}
+	);
 });

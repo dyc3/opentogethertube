@@ -145,9 +145,7 @@ export function stackBoxes(boxes: BoundingBox[]): number[] {
 			const [_pleft, _ptop, _pright, pbottom] = boxes[i - 1];
 			const [_left, top, _right, _bottom] = boxes[i];
 			const spacing = -top + pbottom + NODE_RADIUS * 2 + 10;
-			boxYs.push(
-				boxYs[i - 1] + Math.max(spacing, NODE_RADIUS * 2 + 10)
-			);
+			boxYs.push(boxYs[i - 1] + Math.max(spacing, NODE_RADIUS * 2 + 10));
 		}
 	}
 
@@ -243,7 +241,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			// compute positions of monolith trees
 			const monolithTreeBoxes = builtMonolithTrees.map(tree => treeBoundingBox(tree));
 			const boxesRight = monolithTreeBoxes.slice(0, Math.floor(monolithTreeBoxes.length / 2));
-			const boxesLeft = monolithTreeBoxes.splice(Math.floor(monolithTreeBoxes.length / 2)).map(flipBoundingBoxH);
+			const boxesLeft = monolithTreeBoxes
+				.splice(Math.floor(monolithTreeBoxes.length / 2))
+				.map(flipBoundingBoxH);
 			monolithTreeBoxes.push(...boxesLeft);
 			const monolithTreeYsRight: number[] = stackBoxes(boxesRight);
 			const monolithTreeYsLeft: number[] = stackBoxes(boxesLeft);
