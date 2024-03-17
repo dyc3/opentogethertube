@@ -127,6 +127,50 @@ function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>): number {
 	return radius * (hasClients ? 4 : 2);
 }
 
+/**
+ * A bounding box represented in absolute coordinates as [left, top, right, bottom]
+ */
+export type BoundingBox = [number, number, number, number];
+
+/**
+ * Computes the y positions of boxes in a vertically stacked layout
+ * @param boxes The bounding boxes of the boxes to stack
+ */
+export function stackBoxes(boxes: BoundingBox[]): number[] {
+	const boxYs: number[] = [];
+	for (let i = 0; i < boxes.length; i++) {
+		if (i === 0) {
+			boxYs.push(0);
+		} else {
+			const [_pleft, _ptop, _pright, pbottom] = boxes[i - 1];
+			const [_left, top, _right, _bottom] = boxes[i];
+			const spacing = -top + pbottom + NODE_RADIUS * 2 + 10;
+			boxYs.push(
+				boxYs[i - 1] + Math.max(spacing, NODE_RADIUS * 2 + 10)
+			);
+		}
+	}
+
+	return boxYs;
+}
+
+/**
+ * Flips a bounding box horizontally, effectively mirroring it across the y-axis at x = 0
+ * @param box
+ */
+export function flipBoundingBoxH(box: BoundingBox): BoundingBox {
+	return [-box[2], box[1], -box[0], box[3]];
+}
+
+function mirrorTree(tree: d3.HierarchyNode<TreeNode>): d3.HierarchyNode<TreeNode> {
+	const mirrored = tree;
+	mirrored.each(node => {
+		// @ts-expect-error d3 adds x and y to the node
+		node.x = -node.x;
+	});
+	return mirrored;
+}
+
 interface Node {
 	id: string;
 	x: number;
@@ -198,24 +242,18 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 			// compute positions of monolith trees
 			const monolithTreeBoxes = builtMonolithTrees.map(tree => treeBoundingBox(tree));
-			const monolithTreeYs: number[] = [];
-			for (let i = 0; i < monolithTreeBoxes.length; i++) {
-				if (i === 0) {
-					monolithTreeYs.push(0);
-				} else {
-					const [_pleft, _ptop, _pright, pbottom] = monolithTreeBoxes[i - 1];
-					const [_left, top, _right, _bottom] = monolithTreeBoxes[i];
-					const spacing = -top + pbottom + NODE_RADIUS * 2 + 10;
-					monolithTreeYs.push(
-						monolithTreeYs[i - 1] + Math.max(spacing, NODE_RADIUS * 2 + 10)
-					);
-				}
-			}
+			const boxesRight = monolithTreeBoxes.slice(0, Math.floor(monolithTreeBoxes.length / 2));
+			const boxesLeft = monolithTreeBoxes.splice(Math.floor(monolithTreeBoxes.length / 2)).map(flipBoundingBoxH);
+			monolithTreeBoxes.push(...boxesLeft);
+			const monolithTreeYsRight: number[] = stackBoxes(boxesRight);
+			const monolithTreeYsLeft: number[] = stackBoxes(boxesLeft);
+			const monolithTreeYs = monolithTreeYsRight.concat(monolithTreeYsLeft);
 			const monolithNodes = monolithTrees.map((monolith, i) => {
+				const isRight = i < boxesRight.length;
 				const node: MonolithNode = {
-					tree: builtMonolithTrees[i],
+					tree: isRight ? builtMonolithTrees[i] : mirrorTree(builtMonolithTrees[i]),
 					id: monolith.id,
-					x: 300,
+					x: isRight ? 300 : -300,
 					y: monolithTreeYs[i],
 					boundingBox: monolithTreeBoxes[i],
 				};
@@ -224,7 +262,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 
 			// create nodes for all the balancers evenly spaced along the full height of the monolith trees
 			// but also guarenteeing that they don't overlap with each other or the monoliths with some padding
-			const fullHeight = monolithTreeYs[monolithTreeYs.length - 1];
+			const fullHeight = Math.max(...monolithTreeYs);
 			const lerp = d3.interpolateNumber(0, fullHeight);
 			const lerpincr = 1 / (systemState.length - 1);
 			const yincr = Math.max(lerp(lerpincr), NODE_RADIUS * 2 + 20);
