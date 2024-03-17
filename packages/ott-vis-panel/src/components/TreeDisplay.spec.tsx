@@ -63,7 +63,7 @@ describe("TreeDisplay", () => {
 		expect(box).toEqual([-5, 0, 5, 20]);
 	});
 
-	const flipBoundingBoxHTestCases: Array<[BoundingBox, BoundingBox]> = [
+	const flipBoundingBoxHTestCases: [BoundingBox, BoundingBox][] = [
 		[
 			[0, 0, 0, 0],
 			[-0, 0, -0, 0],
