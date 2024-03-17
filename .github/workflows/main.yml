@@ -37,6 +37,12 @@ jobs:
           check-latest: true
           cache: "yarn"
           cache-dependency-path: "./yarn.lock"
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
       - run: corepack enable
       - run: yarn install --immutable
       - run: yarn run lint-ci
@@ -71,12 +77,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      # - uses: actions/cache@v4
-      #   with:
-      #     path: ${{ steps.npm-cache.outputs.dir }}
-      #     key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-node-${{ matrix.node-version }}-
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -84,6 +84,12 @@ jobs:
           check-latest: true
           cache: "yarn"
           cache-dependency-path: "./yarn.lock"
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
       - run: corepack enable
       - run: yarn install --immutable
       - run: yarn workspace ott-server run sequelize db:migrate
@@ -115,6 +121,7 @@ jobs:
         with:
           node-version: "20"
           cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
       - run: corepack enable
       - name: Install dependencies
         run: yarn install --immutable
