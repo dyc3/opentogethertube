@@ -39,12 +39,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          check-latest: true
+          cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/Cypress
-            node_modules
-          key: cache-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
       - run: corepack enable
       - run: yarn --immutable
@@ -102,6 +115,19 @@ jobs:
           node-version: ${{ matrix.node-version }}
           check-latest: true
           cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
       - run: corepack enable
       - run: yarn install --immutable
@@ -148,6 +174,14 @@ jobs:
         with:
           node-version: "20"
           cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
 
       - name: Install dependencies
         run: yarn install --immutable
