@@ -8,9 +8,9 @@ export class UnsupportedServiceException extends OttException {
 		let msg = "";
 		let parsed = new URL(url);
 		if (parsed.pathname && /\/*\.([a-z0-9])$/i.exec(parsed.pathname.split("?")[0])) {
-			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, "${url}" is not a valid URL for any suppported service.`;
+			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, "${url}" is not a valid URL for any supported service.`;
 		} else {
-			msg = `"${url}" is not a valid URL for any suppported service.`;
+			msg = `"${url}" is not a valid URL for any supported service.`;
 		}
 		super(msg);
 		this.name = "UnsupportedServiceException";

@@ -167,7 +167,7 @@ export default {
 	getServiceAdapter(service: string): ServiceAdapter {
 		const adapter = adapters.find(adapter => adapter.serviceId === service);
 		if (!adapter) {
-			throw new OttException(`Unkonwn service: ${service}`);
+			throw new OttException(`Unknown service: ${service}`);
 		}
 		return adapter;
 	},

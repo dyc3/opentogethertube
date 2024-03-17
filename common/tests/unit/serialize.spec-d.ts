@@ -10,14 +10,14 @@ describe("serialize helper types", () => {
 		expectTypeOf<ConvertToJsonSafe<bigint>>().toEqualTypeOf<string>();
 	});
 
-	it("should not convert other primative types", () => {
+	it("should not convert other primitive types", () => {
 		expectTypeOf<ConvertToJsonSafe<number>>().toEqualTypeOf<number>();
 		expectTypeOf<ConvertToJsonSafe<string>>().toEqualTypeOf<string>();
 		expectTypeOf<ConvertToJsonSafe<boolean>>().toEqualTypeOf<boolean>();
 		expectTypeOf<ConvertToJsonSafe<null>>().toEqualTypeOf<null>();
 	});
 
-	it("should not convert arrays of primatives", () => {
+	it("should not convert arrays of primitives", () => {
 		expectTypeOf<ConvertToJsonSafe<number[]>>().toEqualTypeOf<number[]>();
 	});
 

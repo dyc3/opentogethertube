@@ -230,7 +230,7 @@ export class Grants {
 	masks: RoleGrants = new Map();
 
 	/**
-	 * @param {Object|undefined} grants Opional object that maps roles to grant masks.
+	 * @param {Object|undefined} grants Optional object that maps roles to grant masks.
 	 */
 	constructor(
 		grants: Grants | RoleGrants | OldRoleGrants | [Role, GrantMask][] | undefined = undefined
@@ -250,7 +250,7 @@ export class Grants {
 
 	/**
 	 * Clears all grant masks and replaces them with `grants`.
-	 * @param grants Opional object that maps roles to grant masks.
+	 * @param grants Optional object that maps roles to grant masks.
 	 */
 	setAllGrants(grants: RoleGrants | Grants | OldRoleGrants | [Role, GrantMask][]): void {
 		this.masks = new Map();

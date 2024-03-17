@@ -237,7 +237,7 @@ async function collectRedisMetrics() {
 	log.silly(`Collected ${countMetricsCollected} redis metrics, skipped ${countMetricsSkipped}`);
 }
 
-const guageRedisDbsize = new Gauge({
+const gaugeRedisDbsize = new Gauge({
 	name: "redis_keys_count",
 	help: "The number of keys in the database",
 	async collect() {

@@ -447,7 +447,7 @@ export default defineComponent({
 		}
 
 		// Indicates that starting playback is blocked by the browser. This usually means that the user needs
-		// to interact with the page before playback can start. This is because browers block autoplaying videos.
+		// to interact with the page before playback can start. This is because browsers block autoplaying videos.
 		const mediaPlaybackBlocked = ref(false);
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
