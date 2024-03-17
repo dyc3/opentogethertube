@@ -139,7 +139,7 @@ jobs:
     strategy:
       matrix:
         package:
-          - ott-vis
+          - ott-vis-panel
           - ott-vis-datasource
     steps:
       - uses: actions/checkout@v4
