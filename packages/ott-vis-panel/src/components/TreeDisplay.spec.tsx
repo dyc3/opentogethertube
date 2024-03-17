@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { sizeOfTree, treeBoundingBox } from "./TreeDisplay";
+import { sizeOfTree, treeBoundingBox, type BoundingBox, flipBoundingBoxH } from "./TreeDisplay";
 
 describe("TreeDisplay", () => {
 	it("should find the size of any d3 tree", () => {
@@ -62,4 +62,26 @@ describe("TreeDisplay", () => {
 		const box = treeBoundingBox(root);
 		expect(box).toEqual([-5, 0, 5, 20]);
 	});
+
+	const flipBoundingBoxHTestCases: [BoundingBox, BoundingBox][] = [
+		[
+			[0, 0, 0, 0],
+			[-0, 0, -0, 0],
+		],
+		[
+			[0, 0, 10, 10],
+			[-10, 0, -0, 10],
+		],
+		[
+			[5, 0, 10, 10],
+			[-10, 0, -5, 10],
+		],
+	];
+	it.each(flipBoundingBoxHTestCases)(
+		"should flip bounding box",
+		(input: BoundingBox, expected: BoundingBox) => {
+			const got = flipBoundingBoxH(input);
+			expect(got).toEqual(expected);
+		}
+	);
 });
