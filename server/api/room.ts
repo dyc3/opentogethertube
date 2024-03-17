@@ -483,7 +483,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 			success: false,
 			error: {
 				name: "Unknown",
-				message: "An unknown error occured. Try again later.",
+				message: "An unknown error occurred. Try again later.",
 			},
 		});
 	}

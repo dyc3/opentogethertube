@@ -274,7 +274,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			});
 
 			// create nodes for all the balancers evenly spaced along the full height of the monolith trees
-			// but also guarenteeing that they don't overlap with each other or the monoliths with some padding
+			// but also guaranteeing that they don't overlap with each other or the monoliths with some padding
 			const fullHeight = Math.max(...monolithTreeYs);
 			const lerp = d3.interpolateNumber(0, fullHeight);
 			const lerpincr = 1 / (systemState.length - 1);

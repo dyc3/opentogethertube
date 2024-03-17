@@ -126,7 +126,7 @@ describe("Announcements API", () => {
 		expect(publishSpy).not.toHaveBeenCalled();
 	});
 
-	it("should fail if an unknown error occurrs", async () => {
+	it("should fail if an unknown error occurs", async () => {
 		publishSpy = publishSpy.mockImplementation(() => {
 			throw new Error("fake error");
 		});

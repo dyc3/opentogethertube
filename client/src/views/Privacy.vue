@@ -13,7 +13,7 @@
 
 		<p>
 			General site usage, like creating a room, adding videos, etc., are logged to monitor and
-			debug performace. Logs are not kept for more than a week. Logged events are not
+			debug performance. Logs are not kept for more than a week. Logged events are not
 			associated with your account or session.
 		</p>
 

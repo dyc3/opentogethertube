@@ -143,7 +143,7 @@ router.post("/", nocache(), async (req, res) => {
 		oldUsername = req.user.username;
 		req.user.username = req.body.username;
 		try {
-			// HACK: the unique constrait on the model is fucking broken
+			// HACK: the unique constraint on the model is fucking broken
 			if (await isUsernameTaken(req.body.username)) {
 				throw new UsernameTakenError();
 			}
@@ -607,7 +607,7 @@ async function registerUser({ email, username, password }): Promise<User> {
 	// eslint-disable-next-line array-bracket-newline
 	const hash = await pwd.hash(Buffer.concat([salt, Buffer.from(password)]));
 
-	// HACK: the unique constrait on the model is fucking broken
+	// HACK: the unique constraint on the model is fucking broken
 	if (await isUsernameTaken(username)) {
 		throw new UsernameTakenError();
 	}
@@ -899,7 +899,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 			success: false,
 			error: {
 				name: "Unknown",
-				message: "An unknown error occured. Try again later.",
+				message: "An unknown error occurred. Try again later.",
 			},
 		});
 	}

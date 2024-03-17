@@ -79,7 +79,7 @@ describe("Permission System", () => {
 		);
 	});
 
-	it("should guarentee that using numbers for roles works for Grants", () => {
+	it("should guarantee that using numbers for roles works for Grants", () => {
 		const grants = new Grants({ "0": 4095 });
 		expect(grants.getMask(0)).toEqual(4095);
 	});
