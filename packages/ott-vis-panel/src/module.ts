@@ -49,5 +49,33 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 				],
 			},
 			showIf: config => config.view === "tree",
+		})
+		.addNumberInput({
+			path: "tree.b2mSpacing",
+			name: "Tree B2M Spacing",
+			description: "Set the spacing between Balancer and Monolith nodes in the tree view",
+			defaultValue: 300,
+			showIf: config => config.view === "tree",
+		})
+		.addNumberInput({
+			path: "tree.baseNodeRadius",
+			name: "Tree Base Node Radius",
+			description: "Set the radius of the nodes in the tree view",
+			defaultValue: 20,
+			showIf: config => config.view === "tree",
+		})
+		.addNumberInput({
+			path: "tree.balancerNodeRadius",
+			name: "Tree Balancer Node Radius",
+			description: "Set the radius of the balancer nodes in the tree view",
+			defaultValue: 30,
+			showIf: config => config.view === "tree",
+		})
+		.addNumberInput({
+			path: "tree.clientNodeRadius",
+			name: "Tree Client Node Radius",
+			description: "Set the radius of the client nodes in the tree view",
+			defaultValue: 8,
+			showIf: config => config.view === "tree",
 		});
 });
