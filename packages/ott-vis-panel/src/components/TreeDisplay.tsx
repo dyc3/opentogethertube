@@ -12,6 +12,10 @@ interface TreeDisplayProps extends TreeDisplayStyleProps {
 
 export interface TreeDisplayStyleProps {
 	b2mLinkStyle?: "smooth" | "step";
+	b2mSpacing?: number;
+	baseNodeRadius?: number;
+	balancerNodeRadius?: number;
+	clientNodeRadius?: number;
 }
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -114,7 +118,7 @@ export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, numbe
 	return [right - left, bottom - top];
 }
 
-function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>): number {
+function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>, nodeRadius: number): number {
 	// absolute minimum radius should probably be 100
 	// minimum radius to fit all the nodes on the second level
 
@@ -125,7 +129,7 @@ function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>): number {
 		return 100;
 	}
 	const padding = 5;
-	const radius = (NODE_RADIUS + padding) / Math.sin(Math.PI / children);
+	const radius = (nodeRadius + padding) / Math.sin(Math.PI / children);
 	// multiply to account for the depth of the tree
 	const hasClients = tree.leaves().some(node => node.data.group === "client");
 	return radius * (hasClients ? 4 : 2);
@@ -140,7 +144,7 @@ export type BoundingBox = [number, number, number, number];
  * Computes the y positions of boxes in a vertically stacked layout
  * @param boxes The bounding boxes of the boxes to stack
  */
-export function stackBoxes(boxes: BoundingBox[]): number[] {
+export function stackBoxes(boxes: BoundingBox[], nodeRadius: number): number[] {
 	const boxYs: number[] = [];
 	for (let i = 0; i < boxes.length; i++) {
 		if (i === 0) {
@@ -148,8 +152,8 @@ export function stackBoxes(boxes: BoundingBox[]): number[] {
 		} else {
 			const [_pleft, _ptop, _pright, pbottom] = boxes[i - 1];
 			const [_left, top, _right, _bottom] = boxes[i];
-			const spacing = -top + pbottom + NODE_RADIUS * 2 + 10;
-			boxYs.push(boxYs[i - 1] + Math.max(spacing, NODE_RADIUS * 2 + 10));
+			const spacing = -top + pbottom + nodeRadius * 2 + 10;
+			boxYs.push(boxYs[i - 1] + Math.max(spacing, nodeRadius * 2 + 10));
 		}
 	}
 
@@ -189,15 +193,6 @@ interface MonolithNode extends Node {
 	boundingBox: [number, number, number, number];
 }
 
-const NODE_RADIUS = 20;
-
-function radius(node: TreeNode) {
-	if (node.group === "client") {
-		return 8;
-	}
-	return NODE_RADIUS;
-}
-
 const DEBUG_BOUNDING_BOXES = false;
 
 const TreeDisplay: React.FC<TreeDisplayProps> = ({
@@ -205,6 +200,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	width,
 	height,
 	b2mLinkStyle = "smooth",
+	b2mSpacing = 300,
+	baseNodeRadius = 20,
+	balancerNodeRadius = 30,
+	clientNodeRadius = 8,
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
@@ -224,7 +223,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
 			for (const monolithTree of monolithTrees) {
 				const root = d3.hierarchy(monolithTree);
-				const radius = calcGoodTreeRadius(root);
+				const radius = calcGoodTreeRadius(root, baseNodeRadius);
 				const treeLayout = d3
 					.tree<TreeNode>()
 					.size([Math.PI, radius])
@@ -254,8 +253,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				.splice(Math.floor(monolithTreeBoxes.length / 2))
 				.map(flipBoundingBoxH);
 			monolithTreeBoxes.push(...boxesLeft);
-			const monolithTreeYsRight: number[] = stackBoxes(boxesRight);
-			const monolithTreeYsLeft: number[] = stackBoxes(boxesLeft);
+			const monolithTreeYsRight: number[] = stackBoxes(boxesRight, baseNodeRadius);
+			const monolithTreeYsLeft: number[] = stackBoxes(boxesLeft, baseNodeRadius);
 			// add an offset to the smaller column to center it
 			const largestRight = monolithTreeYsRight[monolithTreeYsRight.length - 1] ?? 0;
 			const largestLeft = monolithTreeYsLeft[monolithTreeYsLeft.length - 1] ?? 0;
@@ -275,7 +274,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				const node: MonolithNode = {
 					tree: isRight ? builtMonolithTrees[i] : mirrorTree(builtMonolithTrees[i]),
 					id: monolith.id,
-					x: isRight ? 300 : -300,
+					x: isRight ? b2mSpacing : -b2mSpacing,
 					y: monolithTreeYs[i],
 					boundingBox: monolithTreeBoxes[i],
 				};
@@ -287,7 +286,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const fullHeight = Math.max(...monolithTreeYs);
 			const lerp = d3.interpolateNumber(0, fullHeight);
 			const lerpincr = 1 / (systemState.length - 1);
-			const yincr = Math.max(lerp(lerpincr), NODE_RADIUS * 2 + 20);
+			const yincr = Math.max(lerp(lerpincr), balancerNodeRadius * 2 + 20);
 			const balancerNodes = systemState.map((balancer, i) => {
 				const node: BalancerNode = {
 					id: balancer.id,
@@ -322,7 +321,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				.transition(tr)
 				.attr("cx", d => d.x)
 				.attr("cy", d => d.y)
-				.attr("r", NODE_RADIUS + 10);
+				.attr("r", balancerNodeRadius);
 			const balancerTexts = balancerGroup
 				.selectAll(".balancer-text")
 				// TODO: add key function to data join when balancer ids are stable
@@ -367,9 +366,18 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("stroke-width", 1);
 			}
 			monolithGroups
-				.join("g")
+				.join(
+					create =>
+						create
+							.append("g")
+							.attr("class", "monolith")
+							.attr("transform", d => `translate(${d.x}, ${d.y})`),
+					update => update,
+					exit => exit.remove()
+				)
 				.attr("class", "monolith")
-				.attr("transform", (d, i) => `translate(${d.x}, ${d.y})`)
+				.transition(tr)
+				.attr("transform", d => `translate(${d.x}, ${d.y})`)
 				.each(function (d) {
 					const diagonal = d3
 						.linkRadial<any, TreeNode>()
@@ -421,7 +429,13 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						.transition(tr)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
-						.attr("r", d => radius(d.data));
+						.attr("r", d => {
+							if (d.data.group === "client") {
+								return clientNodeRadius;
+							} else {
+								return baseNodeRadius;
+							}
+						});
 
 					const monolithTexts = monolith
 						.selectAll(".monolith-text")
@@ -505,7 +519,15 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			}
 			svg.call(zoom);
 		}
-	}, [systemState, monolithTrees, b2mLinkStyle]);
+	}, [
+		systemState,
+		monolithTrees,
+		b2mLinkStyle,
+		b2mSpacing,
+		baseNodeRadius,
+		balancerNodeRadius,
+		clientNodeRadius,
+	]);
 
 	// run this only once after the first render
 	useEffect(() => {
