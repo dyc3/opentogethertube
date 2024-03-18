@@ -5,6 +5,9 @@ use ott_common::websocket::HyperWebsocket;
 use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::sync::broadcast::error::RecvError;
+use tracing::Metadata;
+use tracing_subscriber::layer::Context;
+use tracing_subscriber::layer::Filter;
 
 use tungstenite::Message;
 
@@ -105,5 +108,13 @@ impl std::io::Write for EventSink {
 
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
+    }
+}
+
+pub struct EventFilter;
+
+impl<S> Filter<S> for EventFilter {
+    fn enabled(&self, meta: &Metadata<'_>, _cx: &Context<'_, S>) -> bool {
+        meta.fields().field("event").is_some()
     }
 }

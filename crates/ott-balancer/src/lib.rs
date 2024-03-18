@@ -14,7 +14,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 
 use crate::config::BalancerConfig;
 use crate::service::BalancerService;
-use crate::state_stream::{EventSink, EVENT_STREAMER};
+use crate::state_stream::{EventFilter, EventSink, EVENT_STREAMER};
 use ott_common::discovery::{
     start_discovery_task, DiscoveryConfig, DnsServiceDiscoverer, FlyServiceDiscoverer,
     HarnessServiceDiscoverer, ManualServiceDiscoverer,
@@ -73,7 +73,8 @@ pub async fn run() -> anyhow::Result<()> {
         .with_writer(move || EventSink {
             event_tx: event_tx.clone(),
         })
-        .with_filter(EnvFilter::new("debug"));
+        .with_filter(EnvFilter::new("debug"))
+        .with_filter(EventFilter);
     tracing_subscriber::registry()
         .with(console_layer)
         .with(streamer_layer)
