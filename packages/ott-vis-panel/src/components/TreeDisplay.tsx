@@ -16,6 +16,7 @@ export interface TreeDisplayStyleProps {
 	baseNodeRadius?: number;
 	balancerNodeRadius?: number;
 	clientNodeRadius?: number;
+	balancerGroupStyle?: "stacked" | "region-packed";
 }
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -82,6 +83,38 @@ function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
 		};
 		return monolithNode;
 	});
+}
+
+function buildBalancerRegionTree(systemState: SystemState): TreeNode {
+	const tree: TreeNode = {
+		id: "root",
+		region: "global",
+		group: "root",
+		children: [],
+	};
+
+	const byRegion = d3.group(systemState, d => d.region);
+
+	for (const [region, balancers] of byRegion) {
+		const regionNode: TreeNode = {
+			id: region,
+			region: region,
+			group: "region",
+			children: [],
+		};
+		tree.children.push(regionNode);
+		for (const balancer of balancers) {
+			const balancerNode: TreeNode = {
+				id: balancer.id,
+				region: balancer.region,
+				group: "balancer",
+				children: [],
+			};
+			regionNode.children.push(balancerNode);
+		}
+	}
+
+	return tree;
 }
 
 /**
@@ -204,6 +237,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	baseNodeRadius = 20,
 	balancerNodeRadius = 30,
 	clientNodeRadius = 8,
+	balancerGroupStyle = "stacked",
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
@@ -301,52 +335,85 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
 
 			const balancerGroup = wholeGraph.select("g.balancers");
-			// TODO: add key function to data join when balancer ids are stable
-			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
-			balancerCircles
-				.join(
-					create =>
-						create
-							.append("circle")
-							.attr("cx", d => d.x)
-							.attr("cy", d => d.y)
-							.attr("class", "balancer")
-							.attr("stroke", "white")
-							.attr("stroke-width", 2),
-					update => update,
-					exit => exit.transition(tr).attr("r", 0).remove()
-				)
-				.attr("fill", d => color(d.group))
-				.attr("data-nodeid", d => d.id)
-				.transition(tr)
-				.attr("cx", d => d.x)
-				.attr("cy", d => d.y)
-				.attr("r", balancerNodeRadius);
-			const balancerTexts = balancerGroup
-				.selectAll(".balancer-text")
+			if (balancerGroupStyle === "stacked") {
 				// TODO: add key function to data join when balancer ids are stable
-				.data(balancerNodes);
-			balancerTexts
-				.join(
-					create =>
-						create
-							.append("text")
-							.attr("x", d => d.x)
-							.attr("y", d => d.y + 4)
-							.attr("class", "balancer-text")
-							.attr("text-anchor", "middle")
-							.attr("alignment-baseline", "middle")
-							.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
-							.attr("stroke-width", 0)
-							.attr("fill", "white"),
-					update => update,
-					exit => exit.transition(tr).attr("font-size", 0).remove()
-				)
-				.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10))
-				.transition(tr)
-				.attr("font-size", 10)
-				.attr("x", d => d.x)
-				.attr("y", d => d.y + 4);
+				const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
+				balancerCircles
+					.join(
+						create =>
+							create
+								.append("circle")
+								.attr("cx", d => d.x)
+								.attr("cy", d => d.y)
+								.attr("class", "balancer")
+								.attr("stroke", "white")
+								.attr("stroke-width", 2),
+						update => update,
+						exit => exit.transition(tr).attr("r", 0).remove()
+					)
+					.attr("fill", d => color(d.group))
+					.attr("data-nodeid", d => d.id)
+					.transition(tr)
+					.attr("cx", d => d.x)
+					.attr("cy", d => d.y)
+					.attr("r", balancerNodeRadius);
+				const balancerTexts = balancerGroup
+					.selectAll(".balancer-text")
+					// TODO: add key function to data join when balancer ids are stable
+					.data(balancerNodes);
+				balancerTexts
+					.join(
+						create =>
+							create
+								.append("text")
+								.attr("x", d => d.x)
+								.attr("y", d => d.y + 4)
+								.attr("class", "balancer-text")
+								.attr("text-anchor", "middle")
+								.attr("alignment-baseline", "middle")
+								.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+								.attr("stroke-width", 0)
+								.attr("fill", "white"),
+						update => update,
+						exit => exit.transition(tr).attr("font-size", 0).remove()
+					)
+					.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10))
+					.transition(tr)
+					.attr("font-size", 10)
+					.attr("x", d => d.x)
+					.attr("y", d => d.y + 4);
+			} else if (balancerGroupStyle === "region-packed") {
+				const balancerTree = buildBalancerRegionTree(systemState);
+				const root = d3.hierarchy(balancerTree);
+				root.sum(d => 1).sort((a, b) => d3.ascending(a.data.region, b.data.region));
+				const pack = d3
+					.pack<TreeNode>()
+					.size([width, height])
+					.padding(3)
+					.radius(d => balancerNodeRadius);
+				pack(root);
+				balancerGroup
+					.selectAll(".balancer")
+					.data(root.descendants(), (d: any) => d.data.id)
+					.join(
+						create =>
+							create
+								.append("circle")
+								.attr("cx", (d: any) => d.x)
+								.attr("cy", (d: any) => d.y)
+								.attr("class", "balancer")
+								.attr("stroke", "white")
+								.attr("stroke-width", 2),
+						update => update,
+						exit => exit.transition(tr).attr("r", 0).remove()
+					)
+					.attr("fill", d => color(d.data.group))
+					.attr("data-nodeid", d => d.data.id)
+					.transition(tr)
+					.attr("cx", (d: any) => d.x)
+					.attr("cy", (d: any) => d.y)
+					.attr("r", (d: any) => d.r);
+			}
 
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
