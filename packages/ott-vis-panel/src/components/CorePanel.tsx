@@ -51,11 +51,18 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		} else if (options.view === "region") {
 			return <RegionView height={height} width={width} systemState={systemState} />;
 		} else if (options.view === "tree") {
-			return <TreeDisplay height={height} width={width} systemState={systemState} />;
+			return (
+				<TreeDisplay
+					height={height}
+					width={width}
+					systemState={systemState}
+					{...options.tree}
+				/>
+			);
 		} else {
 			return <div>Invalid view</div>;
 		}
-	}, [options.view, height, width, systemState]);
+	}, [options.view, options.tree, height, width, systemState]);
 
 	const [readEvents, setReadEvents] = useState(0);
 
