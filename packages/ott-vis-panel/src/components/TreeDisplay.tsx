@@ -4,10 +4,14 @@ import type { Monolith, SystemState } from "ott-vis/types";
 import { dedupeMonoliths } from "aggregate";
 import { useEventBus } from "eventbus";
 
-interface TreeDisplayProps {
+interface TreeDisplayProps extends TreeDisplayStyleProps {
 	systemState: SystemState;
 	width: number;
 	height: number;
+}
+
+export interface TreeDisplayStyleProps {
+	b2mLinkStyle?: "smooth" | "step";
 }
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -196,7 +200,12 @@ function radius(node: TreeNode) {
 
 const DEBUG_BOUNDING_BOXES = false;
 
-const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height }) => {
+const TreeDisplay: React.FC<TreeDisplayProps> = ({
+	systemState,
+	width,
+	height,
+	b2mLinkStyle = "smooth",
+}) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
 	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths));
@@ -453,7 +462,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 				target: MonolithNode;
 			}
 			const diagonal = d3
-				.linkHorizontal<B2MLink, BalancerNode | MonolithNode>()
+				.link<B2MLink, BalancerNode | MonolithNode>(
+					b2mLinkStyle === "step" ? d3.curveStep : d3.curveBumpX
+				)
 				.x(d => d.x)
 				.y(d => d.y);
 
@@ -494,7 +505,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({ systemState, width, height })
 			}
 			svg.call(zoom);
 		}
-	}, [systemState, monolithTrees]);
+	}, [systemState, monolithTrees, b2mLinkStyle]);
 
 	// run this only once after the first render
 	useEffect(() => {
