@@ -1,6 +1,6 @@
 FROM rust:1-slim-buster as build-stage
 
-WORKDIR /usr/app/
+WORKDIR /app/
 
 COPY . .
 
@@ -10,12 +10,21 @@ RUN cargo build --release --bin ott-balancer-bin && mv ./target/release/ott-bala
 
 FROM debian:buster-slim as production-stage
 
-WORKDIR /usr/app/
+WORKDIR /app/
 RUN apt-get update && apt-get install -y openssl dnsutils && rm -rf /var/lib/apt/lists/*
 RUN ulimit -c unlimited
-COPY --from=build-stage /usr/app/ott-balancer-bin /usr/app/
+COPY --from=build-stage /app/ott-balancer-bin /app/
+
+CMD ["./ott-balancer-bin", "--config-path", "/app/env/balancer.toml"]
+
+FROM debian:buster-slim as deploy-stage
+
+WORKDIR /app/
+RUN apt-get update && apt-get install -y openssl dnsutils && rm -rf /var/lib/apt/lists/*
+RUN ulimit -c unlimited
+COPY --from=build-stage /app/ott-balancer-bin /app/
 
 ARG DEPLOY_TARGET
-COPY deploy/$DEPLOY_TARGET.toml /usr/app/balancer.toml
+COPY deploy/$DEPLOY_TARGET.toml /app/balancer.toml
 
 CMD ["./ott-balancer-bin"]

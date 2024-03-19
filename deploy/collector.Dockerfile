@@ -14,7 +14,7 @@ RUN ulimit -c unlimited
 COPY --from=build-stage /app/ott-collector /app/
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 CMD ( curl -f http://localhost:8000/status || exit 1 )
-CMD ["./ott-collector"]
+CMD ["./ott-collector", "--config-path", "/app/env/collector.toml"]
 
 FROM debian:buster-slim as deploy-stage
 
