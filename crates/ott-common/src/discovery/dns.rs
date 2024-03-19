@@ -7,7 +7,7 @@ use tracing::info;
 
 use super::*;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 pub struct DnsDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub service_port: u16,
