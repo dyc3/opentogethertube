@@ -643,6 +643,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		baseNodeRadius,
 		balancerNodeRadius,
 		clientNodeRadius,
+		balancerGroupStyle,
 	]);
 
 	// run this only once after the first render
