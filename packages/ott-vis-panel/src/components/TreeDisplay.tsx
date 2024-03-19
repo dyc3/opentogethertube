@@ -337,7 +337,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const balancerGroup = wholeGraph.select("g.balancers");
 			if (balancerGroupStyle === "stacked") {
 				// TODO: add key function to data join when balancer ids are stable
-				const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
+				const balancerCircles = balancerGroup.select("g.balancer").selectAll(".balancer").data(balancerNodes);
 				balancerCircles
 					.join(
 						create =>
@@ -358,6 +358,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("cy", d => d.y)
 					.attr("r", balancerNodeRadius);
 				const balancerTexts = balancerGroup
+					.select("g.balancer-text")
 					.selectAll(".balancer-text")
 					// TODO: add key function to data join when balancer ids are stable
 					.data(balancerNodes);
@@ -393,6 +394,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.radius(d => balancerNodeRadius);
 				pack(root);
 				balancerGroup
+					.select("g.balancer")
 					.selectAll(".balancer")
 					.data(root.descendants(), (d: any) => d.data.id)
 					.join(
@@ -415,6 +417,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("r", (d: any) => d.r);
 
 					const balancerTexts = balancerGroup
+						.select("g.balancer-text")
 						.selectAll(".balancer-text")
 						// TODO: add key function to data join when balancer ids are stable
 						.data(root.leaves());
@@ -434,7 +437,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 							update => update,
 							exit => exit.transition(tr).attr("font-size", 0).remove()
 						)
-						.text(d => `${d.data.id}`.substring(0, 10))
+						.text(d => `${d.data.id}`.substring(0, 8))
 						.transition(tr)
 						.attr("font-size", 10)
 						.attr("x", (d: any) => d.x)
@@ -656,7 +659,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		>
 			<g className="chart">
 				<g className="b2m-links" />
-				<g className="balancers" />
+				<g className="balancers">
+					<g className="balancer" />
+					<g className="balancer-text" />
+				</g>
 				<g className="monoliths" />
 			</g>
 		</svg>
