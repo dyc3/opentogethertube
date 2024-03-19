@@ -336,6 +336,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 
 			const balancerGroup = wholeGraph.select("g.balancers");
 			if (balancerGroupStyle === "stacked") {
+				balancerGroup.transition(tr).attr("transform", `translate(0, 0)`);
+
 				// TODO: add key function to data join when balancer ids are stable
 				const balancerCircles = balancerGroup
 					.select("g.balancer")
@@ -399,8 +401,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				pack(root);
 
 				// HACK: for some reason the pack layout is not centered at 0, 0
-				// @ts-expect-error d3 adds x and y to the node
-				balancerGroup.transition(tr).attr("transform", `translate(${-root.x}, ${-root.y + fullHeight / 2})`);
+				balancerGroup
+					.transition(tr)
+					// @ts-expect-error d3 adds x and y to the node
+					.attr("transform", `translate(${-root.x}, ${-root.y + fullHeight / 2})`);
 
 				const balColor = d3
 					.scaleOrdinal()
@@ -602,7 +606,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const b2mLinkData = balancerNodes.flatMap(balancer => {
 				return monolithNodes.map(monolith => {
 					return {
-						source: balancerGroupStyle === "stacked" ? balancer : { ...balancer, x: 0, y: fullHeight / 2 },
+						source:
+							balancerGroupStyle === "stacked"
+								? balancer
+								: { ...balancer, x: 0, y: fullHeight / 2 },
 						target: monolith,
 					};
 				});
