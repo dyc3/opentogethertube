@@ -18,7 +18,7 @@ const sampleSystemState: SystemState = [
 describe("buildGraph function with a SystemState that has more than the max limit of room nodes", () => {
 	it("should filter out every other room node and double the radius of a room node", () => {
 		const [nodes] = buildGraph(sampleSystemState);
-		const roomNodes = nodes.filter((node: any) => node.group === "room");
+		const roomNodes = nodes.filter(nodes => nodes.group === "room");
 		expect(roomNodes).toHaveLength(25);
 		roomNodes.forEach((node: any) => {
 			expect(node.radius).toBe(14);

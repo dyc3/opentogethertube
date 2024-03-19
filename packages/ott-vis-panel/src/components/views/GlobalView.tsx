@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function buildGraph(state: SystemState): [Node[], Link[]] {
-	let nodes: Node[] = [];
+	const nodes: Node[] = [];
 	const links: Link[] = [];
 	const core: Node = {
 		id: "core",
@@ -46,39 +46,23 @@ export function buildGraph(state: SystemState): [Node[], Link[]] {
 			value: 10,
 		});
 
+		let roomNodes: Node[] = [];
 		for (const room of rooms) {
-			let roomNode: Node;
-			let numRooms = nodes.filter(node => node.group === "room").length;
+			const roomNode: Node = {
+				id: room,
+				radius: 7,
+				x: 0,
+				y: 0,
+				group: "room",
+				color: "Blue", // TODO: use color from grafana theme/panel options
+			};
+			roomNodes.push(roomNode);
 
-			if (numRooms > 50) {
-				nodes = nodes
-					.filter((node, index): node is Node => node !== undefined && index % 2 === 0)
-					.map(node => {
-						if (node.group === "room") {
-							return {
-								...node,
-								radius: node.radius * 2,
-							};
-						}
-						return node;
-					});
-			} else {
-				roomNode = {
-					id: room,
-					radius: 7,
-					x: 0,
-					y: 0,
-					group: "room",
-					color: "Blue", // TODO: use color from grafana theme/panel options
-				};
-				nodes.push(roomNode);
-			}
-
-			links.push({
-				source: monolith,
-				target: room,
-				value: 5,
-			});
+			// links.push({
+			// 	source: monolith,
+			// 	target: room,
+			// 	value: 5,
+			// });
 
 			const clients = roomCounts[room];
 			if (clients) {
@@ -100,6 +84,21 @@ export function buildGraph(state: SystemState): [Node[], Link[]] {
 					});
 				}
 			}
+		}
+		if (roomNodes.length > 50) {
+			roomNodes = roomNodes.filter((_, i) => i % 2 === 0);
+			roomNodes.forEach(node => {
+				node.radius *= 2;
+			});
+		}
+
+		for (let index = 0; index < roomNodes.length; index++) {
+			nodes.push(roomNodes[index]);
+			links.push({
+				source: monolith,
+				target: roomNodes[index].id,
+				value: 5,
+			});
 		}
 	}
 
