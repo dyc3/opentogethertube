@@ -35,8 +35,9 @@ services:
     build:
       context: ../
       dockerfile: deploy/balancer.Dockerfile
-      args:
-        - DEPLOY_TARGET=ott-balancer-docker
+      target: production-stage
+    volumes:
+      - "../env:/app/env"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
   collector:
@@ -44,11 +45,11 @@ services:
     build:
       context: ../
       dockerfile: deploy/collector.Dockerfile
-      args:
-        - DEPLOY_TARGET=ott-collector-docker
-      target: deploy-stage
+      target: production-stage
     ports:
       - 8000:8000
+    volumes:
+      - "../env:/app/env"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
 
   redis_db:
