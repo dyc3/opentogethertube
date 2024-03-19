@@ -77,5 +77,24 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 			description: "Set the radius of the client nodes in the tree view",
 			defaultValue: 8,
 			showIf: config => config.view === "tree",
+		})
+		.addSelect({
+			path: "tree.balancerGroupStyle",
+			name: "Tree Balancer Group Style",
+			description: "Select the style of the balancer groups in the tree view",
+			defaultValue: "stacked",
+			settings: {
+				options: [
+					{
+						value: "stacked",
+						label: "Stacked",
+					},
+					{
+						value: "region-packed",
+						label: "Packed Circles by Region",
+					},
+				],
+			},
+			showIf: config => config.view === "tree",
 		});
 });

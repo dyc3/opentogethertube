@@ -16,6 +16,7 @@ export interface TreeDisplayStyleProps {
 	baseNodeRadius?: number;
 	balancerNodeRadius?: number;
 	clientNodeRadius?: number;
+	balancerGroupStyle?: "stacked" | "region-packed";
 }
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -82,6 +83,38 @@ function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
 		};
 		return monolithNode;
 	});
+}
+
+function buildBalancerRegionTree(systemState: SystemState): TreeNode {
+	const tree: TreeNode = {
+		id: "root",
+		region: "global",
+		group: "root",
+		children: [],
+	};
+
+	const byRegion = d3.group(systemState, d => d.region);
+
+	for (const [region, balancers] of byRegion) {
+		const regionNode: TreeNode = {
+			id: region,
+			region: region,
+			group: "region",
+			children: [],
+		};
+		tree.children.push(regionNode);
+		for (const balancer of balancers) {
+			const balancerNode: TreeNode = {
+				id: balancer.id,
+				region: balancer.region,
+				group: "balancer",
+				children: [],
+			};
+			regionNode.children.push(balancerNode);
+		}
+	}
+
+	return tree;
 }
 
 /**
@@ -204,6 +237,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	baseNodeRadius = 20,
 	balancerNodeRadius = 30,
 	clientNodeRadius = 8,
+	balancerGroupStyle = "stacked",
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
@@ -301,52 +335,139 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
 
 			const balancerGroup = wholeGraph.select("g.balancers");
-			// TODO: add key function to data join when balancer ids are stable
-			const balancerCircles = balancerGroup.selectAll(".balancer").data(balancerNodes);
-			balancerCircles
-				.join(
-					create =>
-						create
-							.append("circle")
-							.attr("cx", d => d.x)
-							.attr("cy", d => d.y)
-							.attr("class", "balancer")
-							.attr("stroke", "white")
-							.attr("stroke-width", 2),
-					update => update,
-					exit => exit.transition(tr).attr("r", 0).remove()
-				)
-				.attr("fill", d => color(d.group))
-				.attr("data-nodeid", d => d.id)
-				.transition(tr)
-				.attr("cx", d => d.x)
-				.attr("cy", d => d.y)
-				.attr("r", balancerNodeRadius);
-			const balancerTexts = balancerGroup
-				.selectAll(".balancer-text")
+			if (balancerGroupStyle === "stacked") {
+				balancerGroup.transition(tr).attr("transform", `translate(0, 0)`);
+
 				// TODO: add key function to data join when balancer ids are stable
-				.data(balancerNodes);
-			balancerTexts
-				.join(
-					create =>
-						create
-							.append("text")
-							.attr("x", d => d.x)
-							.attr("y", d => d.y + 4)
-							.attr("class", "balancer-text")
-							.attr("text-anchor", "middle")
-							.attr("alignment-baseline", "middle")
-							.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
-							.attr("stroke-width", 0)
-							.attr("fill", "white"),
-					update => update,
-					exit => exit.transition(tr).attr("font-size", 0).remove()
-				)
-				.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10))
-				.transition(tr)
-				.attr("font-size", 10)
-				.attr("x", d => d.x)
-				.attr("y", d => d.y + 4);
+				const balancerCircles = balancerGroup
+					.select("g.balancer")
+					.selectAll(".balancer")
+					.data(balancerNodes);
+				balancerCircles
+					.join(
+						create =>
+							create
+								.append("circle")
+								.attr("cx", d => d.x)
+								.attr("cy", d => d.y)
+								.attr("class", "balancer")
+								.attr("stroke", "white")
+								.attr("stroke-width", 2),
+						update => update,
+						exit => exit.transition(tr).attr("r", 0).remove()
+					)
+					.attr("fill", d => color(d.group))
+					.attr("data-nodeid", d => d.id)
+					.transition(tr)
+					.attr("cx", d => d.x)
+					.attr("cy", d => d.y)
+					.attr("r", balancerNodeRadius);
+				const balancerTexts = balancerGroup
+					.select("g.balancer-text")
+					.selectAll(".balancer-text")
+					// TODO: add key function to data join when balancer ids are stable
+					.data(balancerNodes);
+				balancerTexts
+					.join(
+						create =>
+							create
+								.append("text")
+								.attr("x", d => d.x)
+								.attr("y", d => d.y + 4)
+								.attr("class", "balancer-text")
+								.attr("text-anchor", "middle")
+								.attr("alignment-baseline", "middle")
+								.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+								.attr("stroke-width", 0)
+								.attr("fill", "white"),
+						update => update,
+						exit => exit.transition(tr).attr("font-size", 0).remove()
+					)
+					.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10))
+					.transition(tr)
+					.attr("font-size", 10)
+					.attr("x", d => d.x)
+					.attr("y", d => d.y + 4);
+			} else if (balancerGroupStyle === "region-packed") {
+				const balancerTree = buildBalancerRegionTree(systemState);
+				const root = d3
+					.hierarchy(balancerTree)
+					.sum(d => 1)
+					.sort((a, b) => d3.ascending(a.data.region, b.data.region));
+				const pack = d3
+					.pack<TreeNode>()
+					.padding(3)
+					.radius(d => balancerNodeRadius);
+				pack(root);
+
+				// HACK: for some reason the pack layout is not centered at 0, 0
+				balancerGroup
+					.transition(tr)
+					// @ts-expect-error d3 adds x and y to the node
+					.attr("transform", `translate(${-root.x}, ${-root.y + fullHeight / 2})`);
+
+				const balColor = d3
+					.scaleOrdinal()
+					.range([
+						d3.color(color("balancer"))?.darker(2),
+						d3.color(color("balancer"))?.darker(1),
+					]);
+
+				balancerGroup
+					.select("g.balancer")
+					.selectAll(".balancer")
+					// TODO: add key function to data join when balancer ids are stable
+					// .data(root.descendants(), (d: any) => d.data.id)
+					.data(root.descendants())
+					.join(
+						create =>
+							create
+								.append("circle")
+								.attr("cx", (d: any) => d.x)
+								.attr("cy", (d: any) => d.y)
+								.attr("class", "balancer")
+								.attr("stroke", "white")
+								.attr("stroke-width", 2),
+						update => update,
+						exit => exit.transition(tr).attr("r", 0).remove()
+					)
+					// @ts-expect-error this is valid and it works
+					.attr("fill", d =>
+						d.data.group === "balancer" ? color(d.data.group) : balColor(d.data.group)
+					)
+					.attr("data-nodeid", d => d.data.id)
+					.transition(tr)
+					.attr("cx", (d: any) => d.x)
+					.attr("cy", (d: any) => d.y)
+					.attr("r", (d: any) => d.r);
+
+				const balancerTexts = balancerGroup
+					.select("g.balancer-text")
+					.selectAll(".balancer-text")
+					// TODO: add key function to data join when balancer ids are stable
+					.data(root.leaves());
+				balancerTexts
+					.join(
+						create =>
+							create
+								.append("text")
+								.attr("x", (d: any) => d.x)
+								.attr("y", (d: any) => d.y + 4)
+								.attr("class", "balancer-text")
+								.attr("text-anchor", "middle")
+								.attr("alignment-baseline", "middle")
+								.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+								.attr("stroke-width", 0)
+								.attr("fill", "white"),
+						update => update,
+						exit => exit.transition(tr).attr("font-size", 0).remove()
+					)
+					.text(d => `${d.data.id}`.substring(0, 8))
+					.transition(tr)
+					.attr("font-size", 10)
+					.attr("x", (d: any) => d.x)
+					.attr("y", (d: any) => d.y + 4);
+			}
 
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
@@ -485,7 +606,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const b2mLinkData = balancerNodes.flatMap(balancer => {
 				return monolithNodes.map(monolith => {
 					return {
-						source: balancer,
+						source:
+							balancerGroupStyle === "stacked"
+								? balancer
+								: { ...balancer, x: 0, y: fullHeight / 2 },
 						target: monolith,
 					};
 				});
@@ -527,6 +651,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		baseNodeRadius,
 		balancerNodeRadius,
 		clientNodeRadius,
+		balancerGroupStyle,
 	]);
 
 	// run this only once after the first render
@@ -563,7 +688,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		>
 			<g className="chart">
 				<g className="b2m-links" />
-				<g className="balancers" />
+				<g className="balancers">
+					<g className="balancer" />
+					<g className="balancer-text" />
+				</g>
 				<g className="monoliths" />
 			</g>
 		</svg>
