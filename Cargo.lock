@@ -1875,6 +1875,7 @@ dependencies = [
  "figment",
  "futures-util",
  "http-body-util",
+ "humantime-serde",
  "hyper 1.0.0-rc.4",
  "hyper-util",
  "once_cell",

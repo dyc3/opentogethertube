@@ -10,8 +10,9 @@ pub struct FlyDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub service_port: u16,
     pub fly_app: String,
-    /// The configurable polling discovery interval, in seconds.
-    pub polling_duration: Option<Duration>,
+    /// The configurable polling mode discovery interval, in seconds.
+    #[serde(with = "humantime_serde")]
+    pub polling_interval: Option<Duration>,
 }
 
 pub struct FlyServiceDiscoverer {
@@ -49,9 +50,10 @@ impl ServiceDiscoverer for FlyServiceDiscoverer {
     }
 
     fn mode(&self) -> DiscoveryMode {
-        match self.config.polling_duration {
-            Some(polling_duration) => DiscoveryMode::Polling(polling_duration),
-            None => DiscoveryMode::Polling(Duration::from_secs(10)),
-        }
+        DiscoveryMode::Polling(
+            self.config
+                .polling_interval
+                .unwrap_or_else(|| Duration::from_secs(10)),
+        )
     }
 }
