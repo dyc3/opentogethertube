@@ -17,6 +17,8 @@ pub struct BalancerConfig {
     pub port: u16,
     pub discovery: DiscoveryConfig,
     pub region: String,
+    /// The API key that clients can use to access restricted endpoints.
+    pub api_key: Option<String>,
 }
 
 impl Default for BalancerConfig {
@@ -25,6 +27,7 @@ impl Default for BalancerConfig {
             port: 8081,
             discovery: DiscoveryConfig::default(),
             region: "unknown".to_owned(),
+            api_key: None,
         }
     }
 }

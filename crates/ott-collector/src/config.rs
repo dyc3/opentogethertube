@@ -12,6 +12,7 @@ pub struct CollectorConfig {
     #[serde(default)]
     #[serde(with = "humantime_serde")]
     pub collect_interval: Duration,
+    pub balancer_api_key: String,
 }
 
 impl Default for CollectorConfig {
@@ -19,6 +20,7 @@ impl Default for CollectorConfig {
         CollectorConfig {
             discovery: Default::default(),
             collect_interval: Duration::from_secs(5),
+            balancer_api_key: "".to_owned(),
         }
     }
 }

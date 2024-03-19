@@ -7,6 +7,7 @@ use rocket::futures::StreamExt;
 use serde::Deserialize;
 use tokio::sync::Mutex;
 use tracing::{error, warn};
+use tungstenite::handshake::client::{generate_key, Request};
 use uuid::Uuid;
 
 use crate::SystemState;
@@ -20,6 +21,7 @@ pub struct Collector {
     interval: tokio::time::Duration,
     balancers: Vec<ConnectionConfig>,
     stream_tasks: HashMap<ConnectionConfig, tokio::task::JoinHandle<anyhow::Result<()>>>,
+    balancer_api_key: String,
 }
 
 impl Collector {
@@ -27,6 +29,7 @@ impl Collector {
         discovery_rx: tokio::sync::mpsc::Receiver<ServiceDiscoveryMsg>,
         events_tx: tokio::sync::mpsc::Sender<String>,
         interval: tokio::time::Duration,
+        balancer_api_key: impl ToOwned<Owned = String>,
     ) -> Self {
         Self {
             discovery_rx,
@@ -34,6 +37,7 @@ impl Collector {
             interval,
             balancers: Default::default(),
             stream_tasks: Default::default(),
+            balancer_api_key: balancer_api_key.to_owned(),
         }
     }
 
@@ -82,7 +86,11 @@ impl Collector {
             url.set_path("/api/state");
             url.set_scheme("http").expect("scheme should be valid");
 
-            let resp = client.get(url).send().await?;
+            let resp = client
+                .get(url)
+                .header("Authorization", format!("Bearer {}", self.balancer_api_key))
+                .send()
+                .await?;
             if !resp.status().is_success() {
                 error!("Failed to fetch state from {:?}", &conf);
                 continue;
@@ -99,8 +107,16 @@ impl Collector {
             }
             let _conf = conf.clone();
             let events_tx = self.events_tx.clone();
+            let _balancer_api_key = self.balancer_api_key.clone();
             let task = tokio::spawn(async move {
-                Self::start_stream_events_from_balancer(_conf, events_tx).await
+                let result =
+                    Self::start_stream_events_from_balancer(_conf, events_tx, _balancer_api_key)
+                        .await;
+                if let Err(err) = result {
+                    error!("Event stream failed: {}", err);
+                    return Err(err);
+                }
+                Ok(())
             });
             self.stream_tasks.insert(conf.clone(), task);
         }
@@ -111,11 +127,24 @@ impl Collector {
     async fn start_stream_events_from_balancer(
         balancer: ConnectionConfig,
         events_tx: tokio::sync::mpsc::Sender<String>,
+        balancer_api_key: impl ToOwned<Owned = String>,
     ) -> anyhow::Result<()> {
         info!("starting stream from balancer: {:?}", &balancer);
         let mut url = balancer.uri();
         url.set_path("/api/state/stream");
-        let (mut ws, _) = tokio_tungstenite::connect_async(url).await?;
+        let req = Request::builder()
+            .uri(url.to_string())
+            .header("Host", url.host().expect("no host").to_string())
+            .header("Connection", "Upgrade")
+            .header("Upgrade", "websocket")
+            .header("Sec-WebSocket-Version", "13")
+            .header("Sec-WebSocket-Key", generate_key())
+            .header(
+                "Authorization",
+                format!("Bearer {}", balancer_api_key.to_owned()),
+            )
+            .body(())?;
+        let (mut ws, _) = tokio_tungstenite::connect_async(req).await?;
 
         loop {
             tokio::select! {

@@ -57,8 +57,13 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let (events_tx, events_rx) = tokio::sync::mpsc::channel(100);
-    let _collector_handle =
-        Collector::new(discovery_rx, events_tx, config.collect_interval).spawn();
+    let _collector_handle = Collector::new(
+        discovery_rx,
+        events_tx,
+        config.collect_interval,
+        config.balancer_api_key,
+    )
+    .spawn();
 
     let event_bus = event_bus::EventBus::new(events_rx);
     let event_subscriber = event_bus.subscriber();
