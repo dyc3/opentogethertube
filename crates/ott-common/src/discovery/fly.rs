@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use serde::Deserialize;
 use hickory_resolver::TokioAsyncResolver;
+use serde::Deserialize;
 use tracing::info;
 
 use super::*;
