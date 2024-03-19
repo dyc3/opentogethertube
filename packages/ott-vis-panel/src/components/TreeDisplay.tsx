@@ -412,7 +412,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				balancerGroup
 					.select("g.balancer")
 					.selectAll(".balancer")
-					.data(root.descendants(), (d: any) => d.data.id)
+					// TODO: add key function to data join when balancer ids are stable
+					// .data(root.descendants(), (d: any) => d.data.id)
+					.data(root.descendants())
 					.join(
 						create =>
 							create
