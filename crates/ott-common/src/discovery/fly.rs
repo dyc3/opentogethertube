@@ -5,12 +5,14 @@ use tracing::info;
 
 use super::*;
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct FlyDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub service_port: u16,
     pub fly_app: String,
     /// The polling mode discovery interval.
+    ///
+    #[serde(default)]
     #[serde(with = "humantime_serde")]
     pub polling_interval: Option<Duration>,
 }

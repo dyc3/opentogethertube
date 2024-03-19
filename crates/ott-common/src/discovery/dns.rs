@@ -7,7 +7,7 @@ use tracing::info;
 
 use super::*;
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DnsDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub service_port: u16,
@@ -16,6 +16,7 @@ pub struct DnsDiscoveryConfig {
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
     /// The polling mode discovery interval.
+    #[serde(default)]
     #[serde(with = "humantime_serde")]
     pub polling_interval: Option<Duration>,
 }
