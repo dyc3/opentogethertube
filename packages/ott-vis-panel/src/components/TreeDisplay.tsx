@@ -335,15 +335,14 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
 
 			const balancerGroup = wholeGraph.select("g.balancers");
+			const balancerCircles = balancerGroup.select("g.b-circles").selectAll(".balancer");
+			const balancerTexts = balancerGroup.select("g.b-texts").selectAll(".balancer-text");
 			if (balancerGroupStyle === "stacked") {
 				balancerGroup.transition(tr).attr("transform", `translate(0, 0)`);
 
-				// TODO: add key function to data join when balancer ids are stable
-				const balancerCircles = balancerGroup
-					.select("g.balancer")
-					.selectAll(".balancer")
-					.data(balancerNodes);
 				balancerCircles
+					// TODO: add key function to data join when balancer ids are stable
+					.data(balancerNodes)
 					.join(
 						create =>
 							create
@@ -362,12 +361,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("cx", d => d.x)
 					.attr("cy", d => d.y)
 					.attr("r", balancerNodeRadius);
-				const balancerTexts = balancerGroup
-					.select("g.balancer-text")
-					.selectAll(".balancer-text")
-					// TODO: add key function to data join when balancer ids are stable
-					.data(balancerNodes);
 				balancerTexts
+					// TODO: add key function to data join when balancer ids are stable
+					.data(balancerNodes)
 					.join(
 						create =>
 							create
@@ -376,8 +372,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 								.attr("y", d => d.y + 4)
 								.attr("class", "balancer-text")
 								.attr("text-anchor", "middle")
-								.attr("alignment-baseline", "middle")
-								.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
 								.attr("stroke-width", 0)
 								.attr("fill", "white"),
 						update => update,
@@ -413,9 +407,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						d3.color(color("balancer"))?.darker(1),
 					]);
 
-				balancerGroup
-					.select("g.balancer")
-					.selectAll(".balancer")
+				balancerCircles
 					// TODO: add key function to data join when balancer ids are stable
 					// .data(root.descendants(), (d: any) => d.data.id)
 					.data(root.descendants())
@@ -441,12 +433,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("cy", (d: any) => d.y)
 					.attr("r", (d: any) => d.r);
 
-				const balancerTexts = balancerGroup
-					.select("g.balancer-text")
-					.selectAll(".balancer-text")
-					// TODO: add key function to data join when balancer ids are stable
-					.data(root.leaves());
 				balancerTexts
+					// TODO: add key function to data join when balancer ids are stable
+					.data(root.leaves())
 					.join(
 						create =>
 							create
@@ -496,7 +485,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					update => update,
 					exit => exit.remove()
 				)
-				.attr("class", "monolith")
 				.transition(tr)
 				.attr("transform", d => `translate(${d.x}, ${d.y})`)
 				.each(function (d) {
@@ -506,10 +494,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
 
 					const monolith = d3.select(this);
-					const monolithLinks = monolith
+					monolith
 						.selectAll(".treelink")
-						.data(d.tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id);
-					monolithLinks
+						.data(d.tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
 						.join(
 							create => create.append("path").attr("class", "treelink"),
 							update => update,
@@ -523,10 +510,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						.attr("d", diagonal)
 						.attr("stroke-width", 1.5);
 
-					const monolithCircles = monolith
+					monolith
 						.selectAll(".monolith")
-						.data(d.tree.descendants(), (d: any) => d.data?.id);
-					monolithCircles
+						.data(d.tree.descendants(), (d: any) => d.data?.id)
 						.join(
 							create =>
 								create
@@ -569,8 +555,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 									.filter(d => d.data.group === "monolith")
 									.attr("class", "monolith-text")
 									.attr("text-anchor", "middle")
-									.attr("alignment-baseline", "middle")
-									.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
 									.attr("stroke-width", 0)
 									.attr("fill", "white")
 									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
@@ -614,12 +598,11 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					};
 				});
 			});
-			const balancerMonolithLinks = gb2mLinks
+			gb2mLinks
 				.selectAll(".b2m-link")
 				// TODO: add key function to data join when balancer ids are stable
 				// .data(b2mLinkData, (d: any) => d.source?.data?.id + d.target?.data?.id);
-				.data(b2mLinkData);
-			balancerMonolithLinks
+				.data(b2mLinkData)
 				.join(
 					create =>
 						create
@@ -685,12 +668,16 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			width={width}
 			height={height}
 			viewBox={`${-width / 2} ${-height / 2} ${width}, ${height}`}
+			style={{
+				fontFamily: "Inter, Helvetica, Arial, sans-serif",
+				alignmentBaseline: "middle",
+			}}
 		>
 			<g className="chart">
 				<g className="b2m-links" />
 				<g className="balancers">
-					<g className="balancer" />
-					<g className="balancer-text" />
+					<g className="b-circles" />
+					<g className="b-texts" />
 				</g>
 				<g className="monoliths" />
 			</g>
