@@ -337,7 +337,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const balancerGroup = wholeGraph.select("g.balancers");
 			if (balancerGroupStyle === "stacked") {
 				// TODO: add key function to data join when balancer ids are stable
-				const balancerCircles = balancerGroup.select("g.balancer").selectAll(".balancer").data(balancerNodes);
+				const balancerCircles = balancerGroup
+					.select("g.balancer")
+					.selectAll(".balancer")
+					.data(balancerNodes);
 				balancerCircles
 					.join(
 						create =>
@@ -385,14 +388,28 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("y", d => d.y + 4);
 			} else if (balancerGroupStyle === "region-packed") {
 				const balancerTree = buildBalancerRegionTree(systemState);
-				const root = d3.hierarchy(balancerTree);
-				root.sum(d => 1).sort((a, b) => d3.ascending(a.data.region, b.data.region));
+				const root = d3
+					.hierarchy(balancerTree)
+					.sum(d => 1)
+					.sort((a, b) => d3.ascending(a.data.region, b.data.region));
 				const pack = d3
 					.pack<TreeNode>()
 					.size([width, height])
 					.padding(3)
 					.radius(d => balancerNodeRadius);
 				pack(root);
+
+				// HACK: for some reason the pack layout is not centered at 0, 0
+				// @ts-expect-error d3 adds x and y to the node
+				balancerGroup.attr("transform", `translate(${-root.x}, ${-root.y})`);
+
+				const balColor = d3
+					.scaleOrdinal()
+					.range([
+						d3.color(color("balancer"))?.darker(2),
+						d3.color(color("balancer"))?.darker(1),
+					]);
+
 				balancerGroup
 					.select("g.balancer")
 					.selectAll(".balancer")
@@ -409,39 +426,42 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						update => update,
 						exit => exit.transition(tr).attr("r", 0).remove()
 					)
-					.attr("fill", d => color(d.data.group))
+					// @ts-expect-error this is valid and it works
+					.attr("fill", d =>
+						d.data.group === "balancer" ? color(d.data.group) : balColor(d.data.group)
+					)
 					.attr("data-nodeid", d => d.data.id)
 					.transition(tr)
 					.attr("cx", (d: any) => d.x)
 					.attr("cy", (d: any) => d.y)
 					.attr("r", (d: any) => d.r);
 
-					const balancerTexts = balancerGroup
-						.select("g.balancer-text")
-						.selectAll(".balancer-text")
-						// TODO: add key function to data join when balancer ids are stable
-						.data(root.leaves());
-					balancerTexts
-						.join(
-							create =>
-								create
-									.append("text")
-									.attr("x", (d: any) => d.x)
-									.attr("y", (d: any) => d.y + 4)
-									.attr("class", "balancer-text")
-									.attr("text-anchor", "middle")
-									.attr("alignment-baseline", "middle")
-									.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
-									.attr("stroke-width", 0)
-									.attr("fill", "white"),
-							update => update,
-							exit => exit.transition(tr).attr("font-size", 0).remove()
-						)
-						.text(d => `${d.data.id}`.substring(0, 8))
-						.transition(tr)
-						.attr("font-size", 10)
-						.attr("x", (d: any) => d.x)
-						.attr("y", (d: any) => d.y + 4);
+				const balancerTexts = balancerGroup
+					.select("g.balancer-text")
+					.selectAll(".balancer-text")
+					// TODO: add key function to data join when balancer ids are stable
+					.data(root.leaves());
+				balancerTexts
+					.join(
+						create =>
+							create
+								.append("text")
+								.attr("x", (d: any) => d.x)
+								.attr("y", (d: any) => d.y + 4)
+								.attr("class", "balancer-text")
+								.attr("text-anchor", "middle")
+								.attr("alignment-baseline", "middle")
+								.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+								.attr("stroke-width", 0)
+								.attr("fill", "white"),
+						update => update,
+						exit => exit.transition(tr).attr("font-size", 0).remove()
+					)
+					.text(d => `${d.data.id}`.substring(0, 8))
+					.transition(tr)
+					.attr("font-size", 10)
+					.attr("x", (d: any) => d.x)
+					.attr("y", (d: any) => d.y + 4);
 			}
 
 			// create groups for all the monoliths
