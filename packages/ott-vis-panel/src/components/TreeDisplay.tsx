@@ -413,6 +413,32 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("cx", (d: any) => d.x)
 					.attr("cy", (d: any) => d.y)
 					.attr("r", (d: any) => d.r);
+
+					const balancerTexts = balancerGroup
+						.selectAll(".balancer-text")
+						// TODO: add key function to data join when balancer ids are stable
+						.data(root.leaves());
+					balancerTexts
+						.join(
+							create =>
+								create
+									.append("text")
+									.attr("x", (d: any) => d.x)
+									.attr("y", (d: any) => d.y + 4)
+									.attr("class", "balancer-text")
+									.attr("text-anchor", "middle")
+									.attr("alignment-baseline", "middle")
+									.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
+									.attr("stroke-width", 0)
+									.attr("fill", "white"),
+							update => update,
+							exit => exit.transition(tr).attr("font-size", 0).remove()
+						)
+						.text(d => `${d.data.id}`.substring(0, 10))
+						.transition(tr)
+						.attr("font-size", 10)
+						.attr("x", (d: any) => d.x)
+						.attr("y", (d: any) => d.y + 4);
 			}
 
 			// create groups for all the monoliths
