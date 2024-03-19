@@ -394,7 +394,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.sort((a, b) => d3.ascending(a.data.region, b.data.region));
 				const pack = d3
 					.pack<TreeNode>()
-					.size([width, height])
 					.padding(3)
 					.radius(d => balancerNodeRadius);
 				pack(root);
