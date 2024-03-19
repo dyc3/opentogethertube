@@ -2044,6 +2044,7 @@ dependencies = [
  "futures-util",
  "hickory-resolver",
  "http-body-util",
+ "humantime-serde",
  "hyper 1.2.0",
  "hyper-util",
  "ott-balancer-protocol",
