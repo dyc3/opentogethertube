@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use once_cell::sync::Lazy;
 use ott_balancer_protocol::collector::BalancerState;
@@ -74,11 +74,17 @@ impl Collector {
     }
 
     pub fn handle_discovery(&mut self, msg: ServiceDiscoveryMsg) {
+        debug!(
+            "Balancer discovery: {} added, {} removed",
+            msg.added.len(),
+            msg.removed.len()
+        );
         self.balancers.retain(|conf| !msg.removed.contains(conf));
         self.balancers.extend(msg.added);
     }
 
     pub async fn collect(&mut self) -> anyhow::Result<SystemState> {
+        info!("Collecting system state");
         let client = reqwest::Client::new();
         let mut states = vec![];
         for conf in &self.balancers {
@@ -89,6 +95,7 @@ impl Collector {
             let resp = client
                 .get(url)
                 .header("Authorization", format!("Bearer {}", self.balancer_api_key))
+                .timeout(Duration::from_secs(3))
                 .send()
                 .await?;
             if !resp.status().is_success() {
@@ -105,6 +112,7 @@ impl Collector {
             if self.stream_tasks.contains_key(conf) {
                 continue;
             }
+            debug!("Starting stream from balancer: {:?}", &conf);
             let _conf = conf.clone();
             let events_tx = self.events_tx.clone();
             let _balancer_api_key = self.balancer_api_key.clone();
@@ -120,6 +128,9 @@ impl Collector {
             });
             self.stream_tasks.insert(conf.clone(), task);
         }
+
+        // cleanup stream tasks that have finished
+        self.stream_tasks.retain(|_conf, task| !task.is_finished());
 
         Ok(SystemState(states))
     }
@@ -149,25 +160,28 @@ impl Collector {
         loop {
             tokio::select! {
                 msg = ws.next() => {
-                    if let Some(Ok(msg)) = msg {
-                        if msg.is_close() {
-                            break;
-                        }
-                        let msg = msg.to_string();
-                        if !should_send(&msg) {
-                            continue;
-                        }
-                        if let Err(err) = events_tx.try_send(msg) {
-                            match err {
-                                tokio::sync::mpsc::error::TrySendError::Full(_) => {
-                                    warn!("Event bus is full, dropping event");
-                                }
-                                tokio::sync::mpsc::error::TrySendError::Closed(_) => {
-                                    warn!("Event bus is closed, stopping stream");
-                                    break;
+                    match msg {
+                        Some(Ok(msg)) => {
+                            if msg.is_close() {
+                                break;
+                            }
+                            let msg = msg.to_string();
+                            if !should_send(&msg) {
+                                continue;
+                            }
+                            if let Err(err) = events_tx.try_send(msg) {
+                                match err {
+                                    tokio::sync::mpsc::error::TrySendError::Full(_) => {
+                                        warn!("Event bus is full, dropping event");
+                                    }
+                                    tokio::sync::mpsc::error::TrySendError::Closed(_) => {
+                                        warn!("Event bus is closed, stopping stream");
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        _ => break,
                     }
                 }
                 else => {
