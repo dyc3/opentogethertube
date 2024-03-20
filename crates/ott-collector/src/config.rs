@@ -47,7 +47,8 @@ mod tests {
     #[test]
     fn test_config_collect_interval_1() {
         let json = serde_json::json!({
-            "collect_interval": "10s"
+            "collect_interval": "10s",
+            "balancer_api_key": "test"
         });
         let conf = serde_json::from_value::<CollectorConfig>(json).expect("failed to parse json");
         assert_eq!(conf.collect_interval, Duration::from_secs(10));
