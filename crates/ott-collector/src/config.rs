@@ -12,6 +12,7 @@ pub struct CollectorConfig {
     #[serde(default)]
     #[serde(with = "humantime_serde")]
     pub collect_interval: Duration,
+    pub balancer_api_key: String,
 }
 
 impl Default for CollectorConfig {
@@ -19,6 +20,7 @@ impl Default for CollectorConfig {
         CollectorConfig {
             discovery: Default::default(),
             collect_interval: Duration::from_secs(5),
+            balancer_api_key: "".to_owned(),
         }
     }
 }
@@ -45,7 +47,8 @@ mod tests {
     #[test]
     fn test_config_collect_interval_1() {
         let json = serde_json::json!({
-            "collect_interval": "10s"
+            "collect_interval": "10s",
+            "balancer_api_key": "test"
         });
         let conf = serde_json::from_value::<CollectorConfig>(json).expect("failed to parse json");
         assert_eq!(conf.collect_interval, Duration::from_secs(10));

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Context;
 use clap::Parser;
 use collector::{Collector, CURRENT_STATE};
 use ott_balancer_protocol::collector::BalancerState;
@@ -33,7 +34,7 @@ async fn serve_state(state: &State<Arc<Mutex<SystemState>>>) -> Json<SystemState
 async fn main() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
-    let config = config::CollectorConfig::load(&args.config_path)?;
+    let config = config::CollectorConfig::load(&args.config_path).context("loading config")?;
 
     let (discovery_tx, discovery_rx) = tokio::sync::mpsc::channel(2);
 
@@ -57,8 +58,13 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let (events_tx, events_rx) = tokio::sync::mpsc::channel(100);
-    let _collector_handle =
-        Collector::new(discovery_rx, events_tx, config.collect_interval).spawn();
+    let _collector_handle = Collector::new(
+        discovery_rx,
+        events_tx,
+        config.collect_interval,
+        config.balancer_api_key,
+    )
+    .spawn();
 
     let event_bus = event_bus::EventBus::new(events_rx);
     let event_subscriber = event_bus.subscriber();
