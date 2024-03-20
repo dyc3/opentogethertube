@@ -362,7 +362,7 @@ const addToQueue: RequestHandler<
 	}
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
-	let roomRequest: AddRequest | undefined;
+	let roomRequest: AddRequest;
 	if ("videos" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
@@ -401,18 +401,16 @@ const removeFromQueue: RequestHandler<
 	}
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
-	if (body.service && body.id) {
-		await room.processUnauthorizedRequest(
-			{
-				type: RoomRequestType.RemoveRequest,
-				video: { service: body.service, id: body.id },
-			},
-			{ token: req.token! }
-		);
-		res.json({
-			success: true,
-		});
-	}
+	await room.processUnauthorizedRequest(
+		{
+			type: RoomRequestType.RemoveRequest,
+			video: { service: body.service, id: body.id },
+		},
+		{ token: req.token! }
+	);
+	res.json({
+		success: true,
+	});
 };
 
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
