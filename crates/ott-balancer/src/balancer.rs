@@ -79,26 +79,20 @@ impl Balancer {
             tokio::select! {
                 new_client = self.new_client_rx.recv() => {
                     if let Some((new_client, client_link_tx)) = new_client {
-                        let ctx = self.ctx.clone();
-                        let _ = tokio::task::Builder::new().name("join client").spawn(async move {
-                            match join_client(ctx, new_client, client_link_tx).await {
-                                Ok(_) => {},
-                                Err(err) => error!("failed to join client: {:?}", err)
-                            };
-                        });
+                        match join_client(&self.ctx, new_client, client_link_tx).await {
+                            Ok(_) => {},
+                            Err(err) => error!("failed to join client: {:?}", err)
+                        };
                     } else {
                         warn!("new client channel closed")
                     }
                 }
                 new_monolith = self.new_monolith_rx.recv() => {
                     if let Some((new_monolith, receiver_tx)) = new_monolith {
-                        let ctx = self.ctx.clone();
-                        let _ = tokio::task::Builder::new().name("join monolith").spawn(async move {
-                            match join_monolith(ctx, new_monolith, receiver_tx).await {
-                                Ok(_) => {},
-                                Err(err) => error!("failed to join monolith: {:?}", err)
-                            }
-                        });
+                        match join_monolith(&self.ctx, new_monolith, receiver_tx).await {
+                            Ok(_) => {},
+                            Err(err) => error!("failed to join monolith: {:?}", err)
+                        }
                     } else {
                         warn!("new monolith channel closed")
                     }
@@ -432,7 +426,7 @@ impl BalancerContext {
 
 #[instrument(skip_all, err, fields(client_id = %new_client.id, room = %new_client.room))]
 pub async fn join_client(
-    ctx: Arc<RwLock<BalancerContext>>,
+    ctx: &Arc<RwLock<BalancerContext>>,
     new_client: NewClient,
     client_link_tx: tokio::sync::oneshot::Sender<ClientLink>,
 ) -> anyhow::Result<()> {
@@ -502,7 +496,7 @@ pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> an
 
 #[instrument(skip_all, err, fields(monolith_id = %monolith.id))]
 pub async fn join_monolith(
-    ctx: Arc<RwLock<BalancerContext>>,
+    ctx: &Arc<RwLock<BalancerContext>>,
     monolith: NewMonolith,
     receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
 ) -> anyhow::Result<()> {
