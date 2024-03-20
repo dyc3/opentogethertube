@@ -1,7 +1,6 @@
 import { ALL_VIDEO_SERVICES, ROOM_NAME_REGEX } from "ott-common/constants";
 import { Visibility, QueueMode } from "ott-common/models/types";
-import { VideoService } from "./video";
-import { string, z } from "zod";
+import { z } from "zod";
 
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
@@ -26,5 +25,19 @@ const VideoIdSchema = z.object({
 });
 
 export const OttApiRequestVoteSchema = z.object({
+	...VideoIdSchema.shape,
+});
+
+export const OttApiRequestAddToQueueSchema = z.union([
+	z.object({
+		videos: z.array(VideoIdSchema),
+	}),
+	VideoIdSchema,
+	z.object({
+		url: z.string(),
+	}),
+]);
+
+export const OttApiRequestRemoveFromQueueSchema = z.object({
 	...VideoIdSchema.shape,
 });

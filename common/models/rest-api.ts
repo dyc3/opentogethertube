@@ -3,7 +3,12 @@ import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 import type { Category } from "sponsorblock-api";
-import { OttApiRequestRoomCreateSchema, OttApiRequestVoteSchema } from "./zod-schemas";
+import {
+	OttApiRequestRoomCreateSchema,
+	OttApiRequestVoteSchema,
+	OttApiRequestAddToQueueSchema,
+	OttApiRequestRemoveFromQueueSchema,
+} from "./zod-schemas";
 import { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
@@ -68,16 +73,9 @@ export interface OttApiRequestUndo {
 	event: ServerMessageEvent;
 }
 
-export type OttApiRequestAddToQueue =
-	| {
-			videos: VideoId[];
-	  }
-	| VideoId
-	| {
-			url: string;
-	  };
+export type OttApiRequestAddToQueue = z.infer<typeof OttApiRequestAddToQueueSchema>;
 
-export type OttApiRequestRemoveFromQueue = VideoId;
+export type OttApiRequestRemoveFromQueue = z.infer<typeof OttApiRequestRemoveFromQueueSchema>;
 
 export type OttApiResponseAddPreview = {
 	result: Video[];
