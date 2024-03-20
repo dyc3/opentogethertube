@@ -4,8 +4,16 @@ primary_region = "ewr"
 [build]
 dockerfile = "nginx.Dockerfile"
 
+[deploy]
+strategy = "canary"
+
 [http_service]
 internal_port = 80
 force_https = true
 auto_stop_machines = true
 auto_start_machines = true
+
+[http_service.concurrency]
+type = "connections"
+soft_limit = 150
+hard_limit = 600
