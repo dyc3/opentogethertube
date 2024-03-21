@@ -134,7 +134,6 @@ pub async fn run() -> anyhow::Result<()> {
     let service = BalancerService {
         ctx,
         link: service_link,
-        addr: bind_addr6,
     };
 
     // on linux, binding ipv6 will also bind ipv4
@@ -144,15 +143,14 @@ pub async fn run() -> anyhow::Result<()> {
 
     info!("Serving on {}", bind_addr6);
     loop {
-        let (stream, addr) = tokio::select! {
+        let (stream, _addr) = tokio::select! {
             stream = listener6.accept() => {
                 let (stream, addr) = stream?;
                 (stream, addr)
             }
         };
 
-        let mut service = service.clone();
-        service.addr = addr;
+        let service = service.clone();
 
         let io = hyper_util::rt::TokioIo::new(stream);
 

@@ -46,7 +46,6 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
 pub struct BalancerService {
     pub(crate) ctx: Arc<RwLock<BalancerContext>>,
     pub(crate) link: BalancerLink,
-    pub(crate) addr: std::net::SocketAddr,
 }
 
 impl Service<Request<IncomingBody>> for BalancerService {
@@ -73,7 +72,6 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
         let link = self.link.clone();
-        let _addr = self.addr;
 
         let Ok(route) = ROUTER.recognize(req.uri().path()) else {
             warn!("no route found for {}", req.uri().path());
