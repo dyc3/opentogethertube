@@ -162,8 +162,8 @@ pub async fn run() -> anyhow::Result<()> {
             }
 
             // process completed tasks
-            result = tasks.next() => {
-                if let Some(Err(err)) = result {
+            Some(result) = tasks.next() => {
+                if let Err(err) = result {
                     error!("Error in http serving task: {:?}", err);
                 }
                 continue;
