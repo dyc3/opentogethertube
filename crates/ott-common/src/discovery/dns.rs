@@ -15,7 +15,7 @@ pub struct DnsDiscoveryConfig {
     pub dns_server: Option<SocketAddr>,
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
-    /// The configurable polling mode discovery interval, in seconds.
+    /// The polling mode discovery interval.
     #[serde(with = "humantime_serde")]
     pub polling_interval: Option<Duration>,
 }
