@@ -4,6 +4,8 @@ use std::{net::SocketAddr, sync::Arc};
 use anyhow::Context;
 use balancer::{start_dispatcher, Balancer, BalancerContext};
 use clap::Parser;
+use futures_util::stream::FuturesUnordered;
+use futures_util::{FutureExt, StreamExt};
 use hyper::server::conn::http1;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
@@ -142,20 +144,32 @@ pub async fn run() -> anyhow::Result<()> {
         .context("binding primary inbound socket")?;
 
     info!("Serving on {}", bind_addr6);
+    let mut tasks = FuturesUnordered::new();
     loop {
+        let accept_fut = Box::pin(listener6.accept());
+
         let (stream, _addr) = tokio::select! {
-            stream = listener6.accept() => {
+            stream = accept_fut.fuse() => {
                 let (stream, addr) = stream?;
                 (stream, addr)
+            }
+
+            // process completed tasks
+            result = tasks.next() => {
+                if let Some(result) = result {
+                    if let Err(err) = result {
+                        error!("Error in http serving task: {:?}", err);
+                    }
+                }
+                continue;
             }
         };
 
         let service = service.clone();
-
         let io = hyper_util::rt::TokioIo::new(stream);
 
         // Spawn a tokio task to serve multiple connections concurrently
-        let result = tokio::task::Builder::new()
+        let task = tokio::task::Builder::new()
             .name("serve http")
             .spawn(async move {
                 let conn = http1::Builder::new()
@@ -165,8 +179,10 @@ pub async fn run() -> anyhow::Result<()> {
                     error!("Error serving connection: {:?}", err);
                 }
             });
-        if let Err(err) = result {
-            error!("Error spawning task to serve http: {:?}", err);
+
+        match task {
+            Ok(task) => tasks.push(task),
+            Err(err) => error!("Error spawning task to serve http: {:?}", err),
         }
     }
 }
