@@ -133,9 +133,11 @@ pub async fn run() -> anyhow::Result<()> {
     let bind_addr6: SocketAddr =
         SocketAddr::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0).into(), config.port);
 
+    let (task_handle_tx, mut task_handle_rx) = tokio::sync::mpsc::channel(10);
     let service = BalancerService {
         ctx,
         link: service_link,
+        task_handle_tx,
     };
 
     // on linux, binding ipv6 will also bind ipv4
@@ -160,6 +162,14 @@ pub async fn run() -> anyhow::Result<()> {
                     if let Err(err) = result {
                         error!("Error in http serving task: {:?}", err);
                     }
+                }
+                continue;
+            }
+
+            task_handle_rx = task_handle_rx.recv() => {
+                if let Some(task_handle) = task_handle_rx {
+                    info!("Received task handle");
+                    tasks.push(task_handle);
                 }
                 continue;
             }

@@ -15,6 +15,7 @@ use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
+use tokio::task::JoinHandle;
 use tracing::{debug, error, field, info, span, warn, Level};
 
 use crate::balancer::{BalancerContext, BalancerLink};
@@ -46,6 +47,7 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
 pub struct BalancerService {
     pub(crate) ctx: Arc<RwLock<BalancerContext>>,
     pub(crate) link: BalancerLink,
+    pub(crate) task_handle_tx: tokio::sync::mpsc::Sender<JoinHandle<()>>,
 }
 
 impl Service<Request<IncomingBody>> for BalancerService {
@@ -72,6 +74,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
         let link = self.link.clone();
+        let task_handle_tx = self.task_handle_tx.clone();
 
         let Ok(route) = ROUTER.recognize(req.uri().path()) else {
             warn!("no route found for {}", req.uri().path());
@@ -139,13 +142,14 @@ impl Service<Request<IncomingBody>> for BalancerService {
                             }
                         };
 
-                        tokio::spawn(async move {
+                        let handle = tokio::spawn(async move {
                             if let Err(err) =
                                 crate::state_stream::handle_stream_websocket(websocket).await
                             {
                                 error!("error handling event stream websocket: {}", err);
                             }
                         });
+                        let _ = task_handle_tx.send(handle).await;
 
                         Ok(response)
                     } else {
@@ -206,7 +210,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         };
 
                         // Spawn a task to handle the websocket connection.
-                        let _ = tokio::task::Builder::new().name("client connection").spawn(
+                        let handle = tokio::task::Builder::new().name("client connection").spawn(
                             async move {
                                 GAUGE_CLIENTS.inc();
                                 if let Err(e) = client_entry(room_name, websocket, link).await {
@@ -215,6 +219,15 @@ impl Service<Request<IncomingBody>> for BalancerService {
                                 GAUGE_CLIENTS.dec();
                             },
                         );
+                        match handle {
+                            Ok(handle) => {
+                                let _ = task_handle_tx.send(handle).await;
+                            }
+                            Err(err) => {
+                                error!("Error spawning task to handle websocket: {}", err);
+                                return Ok(interval_server_error());
+                            }
+                        }
 
                         // Return the response so the spawned future can continue.
                         Ok(response)
