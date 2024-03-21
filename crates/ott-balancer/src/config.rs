@@ -79,10 +79,14 @@ pub struct Cli {
     #[clap(short, long, default_value_t = LogLevel::Info, value_enum)]
     pub log_level: LogLevel,
 
+    /// Enable the console-subscriber for debugging via tokio-console.
+    #[clap(long)]
+    pub console: bool,
+
     /// Allow remote connections via tokio-console for debugging. By default, only local connections are allowed.
     ///
     /// The default port for tokio-console is 6669.
-    #[clap(long)]
+    #[clap(long, requires("console"))]
     pub remote_console: bool,
 
     /// Validate the configuration file.

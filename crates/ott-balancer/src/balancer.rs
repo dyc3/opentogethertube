@@ -1,5 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
+use futures_util::stream::FuturesUnordered;
+use futures_util::StreamExt;
 use ott_balancer_protocol::collector::{BalancerState, MonolithState, RoomState};
 use ott_balancer_protocol::monolith::{
     B2MClientMsg, B2MJoin, B2MLeave, B2MUnload, MsgB2M, MsgM2B, RoomMetadata,
@@ -7,6 +9,7 @@ use ott_balancer_protocol::monolith::{
 use ott_balancer_protocol::*;
 use serde_json::value::RawValue;
 use tokio::sync::RwLock;
+use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
@@ -75,30 +78,25 @@ impl Balancer {
     }
 
     pub async fn dispatch_loop(&mut self) {
+        let mut tasks = FuturesUnordered::new();
         loop {
             tokio::select! {
                 new_client = self.new_client_rx.recv() => {
                     if let Some((new_client, client_link_tx)) = new_client {
-                        let ctx = self.ctx.clone();
-                        let _ = tokio::task::Builder::new().name("join client").spawn(async move {
-                            match join_client(ctx, new_client, client_link_tx).await {
-                                Ok(_) => {},
-                                Err(err) => error!("failed to join client: {:?}", err)
-                            };
-                        });
+                        match join_client(&self.ctx, new_client, client_link_tx).await {
+                            Ok(_) => {},
+                            Err(err) => error!("failed to join client: {:?}", err)
+                        };
                     } else {
                         warn!("new client channel closed")
                     }
                 }
                 new_monolith = self.new_monolith_rx.recv() => {
                     if let Some((new_monolith, receiver_tx)) = new_monolith {
-                        let ctx = self.ctx.clone();
-                        let _ = tokio::task::Builder::new().name("join monolith").spawn(async move {
-                            match join_monolith(ctx, new_monolith, receiver_tx).await {
-                                Ok(_) => {},
-                                Err(err) => error!("failed to join monolith: {:?}", err)
-                            }
-                        });
+                        match join_monolith(&self.ctx, new_monolith, receiver_tx).await {
+                            Ok(handle) => tasks.push(handle),
+                            Err(err) => error!("failed to join monolith: {:?}", err)
+                        }
                     } else {
                         warn!("new monolith channel closed")
                     }
@@ -106,15 +104,29 @@ impl Balancer {
                 msg = self.monolith_msg_rx.recv() => {
                     if let Some(msg) = msg {
                         let ctx = self.ctx.clone();
-                        let _ = tokio::task::Builder::new().name("dispatch monolith message").spawn(async move {
+                        let handle = tokio::task::Builder::new().name("dispatch monolith message").spawn(async move {
                             let id = *msg.id();
                             match dispatch_monolith_message(ctx, msg).await {
                                 Ok(_) => {},
                                 Err(err) => error!("failed to dispatch monolith message {}: {:?}", id, err)
                             }
                         });
+                        match handle {
+                            Ok(handle) => {
+                                tasks.push(handle);
+                            }
+                            Err(err) => {
+                                error!("failed to spawn dispatch monolith message task: {:?}", err);
+                            }
+                        }
                     } else {
                         warn!("monolith message channel closed")
+                    }
+                }
+                // process completed tasks
+                task_result = tasks.next() => {
+                    if let Some(Err(err)) = task_result {
+                        error!("error in task: {:?}", err);
                     }
                 }
             }
@@ -432,7 +444,7 @@ impl BalancerContext {
 
 #[instrument(skip_all, err, fields(client_id = %new_client.id, room = %new_client.room))]
 pub async fn join_client(
-    ctx: Arc<RwLock<BalancerContext>>,
+    ctx: &Arc<RwLock<BalancerContext>>,
     new_client: NewClient,
     client_link_tx: tokio::sync::oneshot::Sender<ClientLink>,
 ) -> anyhow::Result<()> {
@@ -502,10 +514,10 @@ pub async fn leave_client(ctx: Arc<RwLock<BalancerContext>>, id: ClientId) -> an
 
 #[instrument(skip_all, err, fields(monolith_id = %monolith.id))]
 pub async fn join_monolith(
-    ctx: Arc<RwLock<BalancerContext>>,
+    ctx: &Arc<RwLock<BalancerContext>>,
     monolith: NewMonolith,
     receiver_tx: tokio::sync::oneshot::Sender<tokio::sync::mpsc::Receiver<SocketMessage>>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<JoinHandle<()>> {
     info!("new monolith");
     let mut b = ctx.write().await;
     let (client_inbound_tx, mut client_inbound_rx) = tokio::sync::mpsc::channel(100);
@@ -521,7 +533,7 @@ pub async fn join_monolith(
 
     let ctx = ctx.clone();
     let monolith_outbound_tx = monolith_outbound_tx.clone();
-    tokio::task::Builder::new()
+    let handle = tokio::task::Builder::new()
         .name(format!("monolith {}", monolith_id).as_ref())
         .spawn(async move {
             while let Some(msg) = client_inbound_rx.recv().await {
@@ -537,7 +549,7 @@ pub async fn join_monolith(
                 }
             }
         })?;
-    Ok(())
+    Ok(handle)
 }
 
 async fn handle_client_inbound(
