@@ -23,7 +23,7 @@ FROM pg_stat_user_tables
 ORDER BY n_live_tup DESC;`;
 
 export function setupPostgresMetricsCollection(sequelize: Sequelize) {
-	const guagePostgresRowCount = new Gauge({
+	const gaugePostgresRowCount = new Gauge({
 		name: "postgres_db_row_count",
 		help: "Number of rows in a table in the database",
 		labelNames: ["table"],
@@ -54,7 +54,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 		},
 	});
 
-	const guagePostgresTableOps = new Gauge({
+	const gaugePostgresTableOps = new Gauge({
 		name: "postgres_table_ops",
 		help: "Number of table operations in the database",
 		labelNames: ["table", "operation"],

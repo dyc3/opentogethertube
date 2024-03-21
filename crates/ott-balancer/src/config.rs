@@ -17,6 +17,8 @@ pub struct BalancerConfig {
     pub port: u16,
     pub discovery: DiscoveryConfig,
     pub region: String,
+    /// The API key that clients can use to access restricted endpoints.
+    pub api_key: Option<String>,
 }
 
 impl Default for BalancerConfig {
@@ -25,6 +27,7 @@ impl Default for BalancerConfig {
             port: 8081,
             discovery: DiscoveryConfig::default(),
             region: "unknown".to_owned(),
+            api_key: None,
         }
     }
 }
@@ -76,14 +79,14 @@ pub struct Cli {
     #[clap(short, long, default_value_t = LogLevel::Info, value_enum)]
     pub log_level: LogLevel,
 
-    /// Enable debug logging so that tokio-console works.
+    /// Enable the console-subscriber for debugging via tokio-console.
     #[clap(long)]
-    pub debug_runtime: bool,
+    pub console: bool,
 
     /// Allow remote connections via tokio-console for debugging. By default, only local connections are allowed.
     ///
     /// The default port for tokio-console is 6669.
-    #[clap(long)]
+    #[clap(long, requires("console"))]
     pub remote_console: bool,
 
     /// Validate the configuration file.
@@ -93,11 +96,7 @@ pub struct Cli {
 
 impl Cli {
     pub fn build_tracing_filter(&self) -> String {
-        let mut filter: String = self.log_level.into();
-        if self.debug_runtime {
-            filter.push_str(",tokio=trace,runtime=trace");
-        }
-        filter
+        self.log_level.into()
     }
 }
 

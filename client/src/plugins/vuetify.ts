@@ -1,6 +1,5 @@
 import "vuetify/styles";
 import "@mdi/font/css/materialdesignicons.css";
-import "@fortawesome/fontawesome-free/css/all.css";
 import { createVuetify, ThemeDefinition } from "vuetify/lib/framework.mjs";
 import { fa } from "vuetify/iconsets/fa";
 import { mdi } from "vuetify/iconsets/mdi";
@@ -92,7 +91,6 @@ const vuetify = createVuetify({
 	icons: {
 		defaultSet: "mdi",
 		sets: {
-			fa,
 			mdi,
 		},
 	},

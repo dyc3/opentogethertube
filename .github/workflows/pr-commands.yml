@@ -1,0 +1,39 @@
+name: PR commands
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  rerun-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull Request Comment Trigger
+        uses: shanegenschaw/pull-request-comment-trigger@v2.1.0
+        id: check
+        with:
+          trigger: "/rerun"
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_WORKFLOW_RERUN }}
+      - name: Rerun workflows
+        if: steps.check.outputs.triggered == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_WORKFLOW_RERUN }}
+        run: |
+          # Note to self: it could be possible to use the `pull_requests` field on the runs API to filter the runs instead of doing it by branch
+
+          # get the branch name for the pull request
+          echo "Getting the branch name for ${{ github.repository }}#${{ github.event.issue.number }}"
+          branch=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" | jq -r '.head.ref')
+          echo "Branch name is $branch"
+
+          # Get the workflow runs
+          runs_failed=$(gh api --method GET "repos/${{ github.repository }}/actions/runs" -f per_page=100 | jq -r --arg branch "$branch" '.workflow_runs[] | select(.conclusion == "failure" and .head_branch == $branch) | .id')
+          # Convert the runs to an array
+          readarray -t workflow_runs_failed <<< "$runs_failed"
+          echo "Workflow runs failed: $workflow_runs_failed"
+          # Rerun the workflows
+          for workflow_run_id in $workflow_runs_failed; do
+            echo "Rerunning failed workflow runs $workflow_run_id"
+            gh api --method POST "repos/${{ github.repository }}/actions/runs/$workflow_run_id/rerun-failed-jobs"
+          done

@@ -112,9 +112,3 @@ const DailymotionPlayer = defineComponent({
 
 export default DailymotionPlayer;
 </script>
-
-<style lang="scss" scoped>
-.dailymotion {
-	color: #696969;
-}
-</style>

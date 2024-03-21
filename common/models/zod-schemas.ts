@@ -1,11 +1,11 @@
-import { ROOM_NAME_REGEX } from "ott-common/constants";
+import { ALL_VIDEO_SERVICES, ROOM_NAME_REGEX } from "ott-common/constants";
 import { Visibility, QueueMode } from "ott-common/models/types";
 import { z } from "zod";
 
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
 
-export const createRoomSchema = z.object({
+export const OttApiRequestRoomCreateSchema = z.object({
 	name: z
 		.string()
 		.min(3, "too short, must be atleast 3 characters")
@@ -17,4 +17,27 @@ export const createRoomSchema = z.object({
 	isTemporary: z.boolean().optional().default(true),
 	visibility: z.nativeEnum(Visibility).default(Visibility.Public).optional(),
 	queueMode: z.nativeEnum(QueueMode).optional(),
+});
+
+const VideoIdSchema = z.object({
+	service: z.enum(ALL_VIDEO_SERVICES),
+	id: z.string(),
+});
+
+export const OttApiRequestVoteSchema = z.object({
+	...VideoIdSchema.shape,
+});
+
+export const OttApiRequestAddToQueueSchema = z.union([
+	z.object({
+		videos: z.array(VideoIdSchema),
+	}),
+	VideoIdSchema,
+	z.object({
+		url: z.string(),
+	}),
+]);
+
+export const OttApiRequestRemoveFromQueueSchema = z.object({
+	...VideoIdSchema.shape,
 });

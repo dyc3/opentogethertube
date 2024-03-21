@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BalancerId, MonolithId, RoomName};
+use crate::{BalancerId, ClientId, MonolithId, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BalancerState {
@@ -20,4 +20,18 @@ pub struct MonolithState {
 pub struct RoomState {
     pub name: RoomName,
     pub clients: usize,
+}
+
+pub enum Event {
+    ClientMsg(EClientMsg),
+}
+
+pub enum Direction {
+    Tx,
+    Rx,
+}
+
+pub struct EClientMsg {
+    pub client_id: ClientId,
+    pub direction: Direction,
 }

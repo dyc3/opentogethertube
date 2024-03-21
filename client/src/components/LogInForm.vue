@@ -304,7 +304,7 @@ const LogInForm = defineComponent({
 					password: password.value,
 				});
 				if (resp.data.success) {
-					console.log("Registeration success");
+					console.log("Registration success");
 					store.commit("LOGIN", resp.data.user);
 					emit("shouldClose");
 					email.value = "";
@@ -312,7 +312,7 @@ const LogInForm = defineComponent({
 					password.value = "";
 					password2.value = "";
 				} else {
-					console.log("Registeration failed");
+					console.log("Registration failed");
 					registerFailureMessage.value = t(
 						"login-form.errors.something-weird-happened"
 					) as string;

@@ -1,0 +1,19 @@
+[default]
+locale = "en-us"
+
+[default.extend-words]
+guage = "gauge"
+AVOD = "AVOD"
+ser = "ser"
+seeked = "seeked"
+# google drive misspelled this in their API
+aknowledge = "aknowledge"
+
+[files]
+extend-exclude = [
+	"server/tests/unit/fixtures",
+	"server/tests/unit/services/youtube.spec.ts",
+	"server/tests/unit/services/dailymotion.spec.ts",
+	"client/src/locales",
+	"!client/src/locales/en.ts",
+]

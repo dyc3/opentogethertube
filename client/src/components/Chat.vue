@@ -13,7 +13,7 @@
 				data-cy="chat-deactivate"
 				aria-label="close chat"
 			>
-				<v-icon>fa:fas fa-chevron-down</v-icon>
+				<v-icon>mdi-chevron-down</v-icon>
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
 		</div>
@@ -39,7 +39,7 @@
 		</div>
 		<div v-if="!stickToBottom" class="to-bottom">
 			<v-btn size="x-small" icon @click="forceToBottom">
-				<v-icon>fa:fas fa-angle-double-down</v-icon>
+				<v-icon>mdi-chevron-double-down</v-icon>
 			</v-btn>
 		</div>
 		<Transition name="input" @after-enter="enforceStickToBottom">
@@ -68,7 +68,7 @@
 				data-cy="chat-activate"
 				aria-label="open chat"
 			>
-				<v-icon>fa:far fa-comment-alt</v-icon>
+				<v-icon>mdi-comment-outline</v-icon>
 			</v-btn>
 		</div>
 	</div>

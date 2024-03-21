@@ -1,6 +1,6 @@
 {
   "name": "ott-common",
-  "version": "0.11.1",
+  "version": "0.12.0",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "module": "index.ts",
@@ -19,8 +19,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "lint": "tsc --noEmit && eslint --ext .js,.ts --fix .",
-    "lint-ci": "tsc --noEmit && eslint .",
+    "lint": "tsc --noEmit && eslint --cache --ext .js,.ts --fix .",
+    "lint-ci": "tsc --noEmit && eslint --cache .",
     "test": "vitest run --coverage"
   },
   "dependencies": {

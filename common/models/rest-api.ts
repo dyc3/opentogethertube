@@ -3,7 +3,12 @@ import { ServerMessageEvent } from "./messages";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types";
 import { QueueItem, Video, VideoId } from "./video";
 import type { Category } from "sponsorblock-api";
-import { createRoomSchema } from "./zod-schemas";
+import {
+	OttApiRequestRoomCreateSchema,
+	OttApiRequestVoteSchema,
+	OttApiRequestAddToQueueSchema,
+	OttApiRequestRemoveFromQueueSchema,
+} from "./zod-schemas";
 import { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
@@ -35,7 +40,7 @@ export interface OttApiResponseRoomGenerate {
 }
 
 /** Endpoint: `/api/room/create` */
-export type OttApiRequestRoomCreate = z.infer<typeof createRoomSchema>;
+export type OttApiRequestRoomCreate = z.infer<typeof OttApiRequestRoomCreateSchema>;
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiResponseRoomCreate {}
@@ -68,22 +73,15 @@ export interface OttApiRequestUndo {
 	event: ServerMessageEvent;
 }
 
-export type OttApiRequestAddToQueue =
-	| {
-			videos: VideoId[];
-	  }
-	| VideoId
-	| {
-			url: string;
-	  };
+export type OttApiRequestAddToQueue = z.infer<typeof OttApiRequestAddToQueueSchema>;
 
-export type OttApiRequestRemoveFromQueue = VideoId;
+export type OttApiRequestRemoveFromQueue = z.infer<typeof OttApiRequestRemoveFromQueueSchema>;
 
 export type OttApiResponseAddPreview = {
 	result: Video[];
 };
 
-export interface OttApiRequestVote extends VideoId {}
+export type OttApiRequestVote = z.infer<typeof OttApiRequestVoteSchema>;
 
 export type OttApiRequestAccountRecoveryStart = {
 	email?: string;

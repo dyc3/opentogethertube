@@ -11,7 +11,7 @@ There are 3 major components to the application:
 
 ## Rooms
 
-In order to accomodate horizontal scaling, there is a `clientmanager` and a `roommanager`. The `clientmanager` manages all websocket connections, and relays all messages for rooms to the `roommanager`. The `roommanger` manages rooms, and relies on the Balancer to ensure that the same room doesn't get loaded twice on different Monoliths. Rooms manage their own state.
+In order to accommodate horizontal scaling, there is a `clientmanager` and a `roommanager`. The `clientmanager` manages all websocket connections, and relays all messages for rooms to the `roommanager`. The `roommanger` manages rooms, and relies on the Balancer to ensure that the same room doesn't get loaded twice on different Monoliths. Rooms manage their own state.
 
 ```mermaid
 graph LR

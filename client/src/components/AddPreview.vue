@@ -1,18 +1,25 @@
 <template>
 	<div class="video-add">
 		<v-row>
-			<v-textarea
-				clearable
-				auto-grow
-				variant="underlined"
-				rows="1"
-				:placeholder="$t('add-preview.placeholder')"
-				v-model="inputAddPreview"
-				@keydown="onInputAddPreviewKeyDown"
-				@focus="onFocusHighlightText"
-				:loading="isLoadingAddPreview"
-				data-cy="add-preview-input"
-			/>
+			<v-sheet rounded width="100%" elevation="10" style="margin: 8px 0; padding: 5px 20px">
+				<v-textarea
+					clearable
+					auto-grow
+					variant="underlined"
+					rows="1"
+					:label="$t('add-preview.label')"
+					:placeholder="$t('add-preview.placeholder')"
+					v-model="inputAddPreview"
+					@keydown="onInputAddPreviewKeyDown"
+					@focus="onFocusHighlightText"
+					:loading="isLoadingAddPreview"
+					prepend-inner-icon="mdi-magnify"
+					base-color="primary"
+					color="primary"
+					persistent-clear
+					data-cy="add-preview-input"
+				/>
+			</v-sheet>
 		</v-row>
 		<v-row>
 			<div v-if="!production">
@@ -30,8 +37,10 @@
 				@click="addAllToQueue()"
 				:loading="isLoadingAddAll"
 				:disabled="isLoadingAddAll"
-				>{{ $t("add-preview.add-all") }}</v-btn
+				prepend-icon="mdi-plus"
 			>
+				{{ $t("add-preview.add-all") }}
+			</v-btn>
 		</v-row>
 		<v-row class="mt-6" v-if="isLoadingAddPreview" justify="center">
 			<v-progress-circular indeterminate />
@@ -41,7 +50,6 @@
 				{{ videosLoadFailureText }}
 			</div>
 			<v-container
-				fill-height
 				v-if="
 					videos.length == 0 &&
 					inputAddPreview.length > 0 &&
@@ -49,8 +57,8 @@
 					!isAddPreviewInputUrl
 				"
 			>
-				<v-row justify="center" align="center">
-					<v-col cols="12">
+				<v-row>
+					<v-col>
 						{{ $t("add-preview.search-for", { search: inputAddPreview }) }}<br />
 						<v-btn
 							@click="requestAddPreviewExplicit"
@@ -62,77 +70,8 @@
 				</v-row>
 			</v-container>
 			<v-container v-else-if="inputAddPreview.length === 0">
-				<v-row justify="center" align="center">
-					<div class="add-video-helper">
-						<h1>{{ $t("add-preview.title") }}</h1>
-						<h3>{{ $t("add-preview.single-videos") }}</h3>
-						<ul>
-							<li>
-								<ProcessedText
-									:text="
-										$t('add-preview.platforms.youtube-videos', {
-											url: 'https://youtube.com/watch?v=LP8GRjv6AIo',
-										})
-									"
-									@link-click="setAddPreviewText"
-								/>
-							</li>
-							<li>
-								<ProcessedText
-									:text="
-										$t('add-preview.platforms.vimeo-videos', {
-											url: 'https://vimeo.com/94338566',
-										})
-									"
-									@link-click="setAddPreviewText"
-								/>
-							</li>
-							<li>
-								<ProcessedText
-									:text="
-										$t('add-preview.platforms.dailymotion-videos', {
-											url: 'https://dailymotion.com/video/x31i1so',
-										})
-									"
-									@link-click="setAddPreviewText"
-								/>
-							</li>
-							<li>
-								<ProcessedText
-									:text="
-										$t('add-preview.platforms.any-mp4-videos', {
-											url: 'https://vjs.zencdn.net/v/oceans.mp4',
-										})
-									"
-									@link-click="setAddPreviewText"
-								/>
-							</li>
-						</ul>
-						<h3>{{ $t("add-preview.playlists") }}</h3>
-						<ul>
-							<li>
-								<ProcessedText
-									:text="
-										$t('add-preview.platforms.youtube-playlists', {
-											url: 'https://youtube.com/playlist?list=PLv-kM7bcufALqOQvMsrVCQCEL1pIWScoQ',
-										})
-									"
-									@link-click="setAddPreviewText"
-								/>
-							</li>
-							<li>
-								<ProcessedText
-									:text="
-										$t('add-preview.platforms.youtube-channels', {
-											url: 'https://youtube.com/channel/UCI1XS_GkLGDOgf8YLaaXNRA',
-										})
-									"
-									@link-click="setAddPreviewText"
-								/>
-							</li>
-						</ul>
-						<span>{{ $t("add-preview.text") }}</span>
-					</div>
+				<v-row justify="center">
+					<AddPreviewHelper @link-click="setAddPreviewText" />
 				</v-row>
 			</v-container>
 		</v-row>
@@ -161,18 +100,18 @@ import { useI18n } from "vue-i18n";
 import { API } from "@/common-http";
 import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import ProcessedText from "@/components/ProcessedText.vue";
 import { ToastStyle } from "@/models/toast";
 import toast from "@/util/toast";
 import { Video } from "ott-common/models/video";
 import { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
 import axios from "axios";
+import AddPreviewHelper from "./AddPreviewHelper.vue";
 
 export const AddPreview = defineComponent({
 	name: "AddPreview",
 	components: {
 		VideoQueueItem,
-		ProcessedText,
+		AddPreviewHelper,
 	},
 	setup() {
 		const store = useStore();
@@ -387,29 +326,8 @@ export default AddPreview;
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
-
 .video-add {
-	margin: 0 20px;
+	margin: 20px 30px;
 	min-height: 500px;
-}
-
-.add-video-helper {
-	width: 400px;
-	@media (max-width: $sm-max) {
-		width: 80%;
-	}
-
-	h1 {
-		width: 100%;
-		text-align: center;
-	}
-
-	li {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		-webkit-line-clamp: 1;
-	}
 }
 </style>

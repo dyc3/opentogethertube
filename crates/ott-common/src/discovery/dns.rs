@@ -1,9 +1,9 @@
 use async_trait::async_trait;
-use tracing::info;
-use trust_dns_resolver::{
+use hickory_resolver::{
     config::{NameServerConfig, Protocol, ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
 };
+use tracing::info;
 
 use super::*;
 
@@ -46,20 +46,19 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
                 resolver_config.add_name_server(NameServerConfig::new(server, Protocol::Udp));
 
                 TokioAsyncResolver::tokio(resolver_config, ResolverOpts::default())
-                    .expect("failed to create resolver")
             }
         };
 
         let lookup = resolver.ipv4_lookup(&self.config.query).await?;
-        let monoliths = lookup
+        let instances = lookup
             .iter()
             .map(|ip| ConnectionConfig {
-                host: HostOrIp::Ip(IpAddr::V4(*ip)),
+                host: HostOrIp::Ip(ip.0.into()),
                 port: self.config.service_port,
             })
             .collect::<Vec<_>>();
 
-        Ok(monoliths)
+        Ok(instances)
     }
 
     fn mode(&self) -> DiscoveryMode {

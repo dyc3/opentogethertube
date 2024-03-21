@@ -1,6 +1,6 @@
 [package]
 name = "ott-balancer"
-version = "0.11.1"
+version = "0.12.0"
 edition = "2021"
 
 [dependencies]
@@ -15,6 +15,7 @@ hyper.workspace = true
 hyper-util.workspace = true
 http-body-util.workspace = true
 humantime-serde.workspace = true
+jemallocator.workspace = true
 rand.workspace = true
 reqwest.workspace = true
 serde.workspace = true
@@ -34,7 +35,6 @@ route-recognizer = "0.3.1"
 once_cell.workspace = true
 pin-project.workspace = true
 prometheus.workspace = true
-trust-dns-resolver.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

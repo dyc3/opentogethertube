@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 use typeshare::typeshare;
 
-use crate::{ClientId, MonolithId, RoomName};
+use crate::{BalancerId, ClientId, MonolithId, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
@@ -15,6 +15,7 @@ pub enum MsgB2M {
     Join(B2MJoin),
     Leave(B2MLeave),
     ClientMsg(B2MClientMsg),
+    Init(B2MInit),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,6 +53,12 @@ pub struct B2MClientMsg<T = Box<RawValue>> {
     pub payload: T,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
+pub struct B2MInit {
+    pub id: BalancerId,
+}
+
 impl From<B2MLoad> for MsgB2M {
     fn from(val: B2MLoad) -> Self {
         Self::Load(val)
@@ -79,6 +86,12 @@ impl From<B2MLeave> for MsgB2M {
 impl From<B2MClientMsg> for MsgB2M {
     fn from(val: B2MClientMsg) -> Self {
         Self::ClientMsg(val)
+    }
+}
+
+impl From<B2MInit> for MsgB2M {
+    fn from(val: B2MInit) -> Self {
+        Self::Init(val)
     }
 }
 

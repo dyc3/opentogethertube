@@ -4,6 +4,7 @@
 1. change the version
 ```bash
 ./scripts/set-version.sh a.b.c
+cargo check # update cargo.lock
 ```
 2. commit the change
 3. tag the commit

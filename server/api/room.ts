@@ -32,7 +32,12 @@ import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
 import { counterHttpErrors } from "../metrics";
 import { conf } from "../ott-config";
-import { createRoomSchema } from "ott-common/models/zod-schemas";
+import {
+	OttApiRequestRoomCreateSchema,
+	OttApiRequestVoteSchema,
+	OttApiRequestAddToQueueSchema,
+	OttApiRequestRemoveFromQueueSchema,
+} from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -119,7 +124,7 @@ const createRoom: RequestHandler<
 	OttResponseBody<OttApiResponseRoomCreate>,
 	OttApiRequestRoomCreate
 > = async (req, res) => {
-	const body = createRoomSchema.parse(req.body);
+	const body = OttApiRequestRoomCreateSchema.parse(req.body);
 
 	if (body.isTemporary && !conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
@@ -304,20 +309,16 @@ const undoEvent: RequestHandler<{ name: string }> = async (req, res) => {
 };
 
 const addVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> = async (req, res) => {
+	const body = OttApiRequestVoteSchema.parse(req.body);
+
 	if (!req.token) {
 		throw new OttException("Missing token");
-	}
-	if (!req.body.service) {
-		throw new BadApiArgumentException("service", "missing");
-	}
-	if (!req.body.id) {
-		throw new BadApiArgumentException("id", "missing");
 	}
 
 	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
-		video: { service: req.body.service, id: req.body.id },
+		video: { service: body.service, id: body.id },
 		add: true,
 	});
 	res.json({
@@ -329,20 +330,16 @@ const removeVote: RequestHandler<{ name: string }, unknown, OttApiRequestVote> =
 	req,
 	res
 ) => {
+	const body = OttApiRequestVoteSchema.parse(req.body);
+
 	if (!req.token) {
 		throw new OttException("Missing token");
-	}
-	if (!req.body.service) {
-		throw new BadApiArgumentException("service", "missing");
-	}
-	if (!req.body.id) {
-		throw new BadApiArgumentException("id", "missing");
 	}
 
 	const client = clientmanager.getClientByToken(req.token, req.params.name);
 	await clientmanager.makeRoomRequest(client, {
 		type: RoomRequestType.VoteRequest,
-		video: { service: req.body.service, id: req.body.id },
+		video: { service: body.service, id: body.id },
 		add: false,
 	});
 	res.json({
@@ -355,9 +352,10 @@ const addToQueue: RequestHandler<
 	OttResponseBody<unknown>,
 	OttApiRequestAddToQueue
 > = async (req, res) => {
+	const body = OttApiRequestAddToQueueSchema.parse(req.body);
 	let points = 5;
-	if ("videos" in req.body) {
-		points = 3 * req.body.videos.length;
+	if ("videos" in body) {
+		points = 3 * body.videos.length;
 	}
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
@@ -365,27 +363,26 @@ const addToQueue: RequestHandler<
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
 	let roomRequest: AddRequest;
-	if ("videos" in req.body) {
+	if ("videos" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
-			videos: req.body.videos,
+			videos: body.videos,
 		};
-	} else if ("url" in req.body) {
+	} else if ("url" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
-			url: req.body.url,
+			url: body.url,
 		};
-	} else if ("service" in req.body && "id" in req.body) {
+	} else {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
 			video: {
-				service: req.body.service,
-				id: req.body.id,
+				service: body.service,
+				id: body.id,
 			},
 		};
-	} else {
-		throw new BadApiArgumentException("service,id", "missing");
 	}
+
 	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
 	res.json({
 		success: true,
@@ -397,26 +394,23 @@ const removeFromQueue: RequestHandler<
 	OttResponseBody<unknown>,
 	OttApiRequestRemoveFromQueue
 > = async (req, res) => {
+	const body = OttApiRequestRemoveFromQueueSchema.parse(req.body);
 	let points = 5;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
-	if (req.body.service && req.body.id) {
-		await room.processUnauthorizedRequest(
-			{
-				type: RoomRequestType.RemoveRequest,
-				video: { service: req.body.service, id: req.body.id },
-			},
-			{ token: req.token! }
-		);
-		res.json({
-			success: true,
-		});
-	} else {
-		throw new BadApiArgumentException("service,id", "missing");
-	}
+	await room.processUnauthorizedRequest(
+		{
+			type: RoomRequestType.RemoveRequest,
+			video: { service: body.service, id: body.id },
+		},
+		{ token: req.token! }
+	);
+	res.json({
+		success: true,
+	});
 };
 
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
@@ -488,7 +482,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 			success: false,
 			error: {
 				name: "Unknown",
-				message: "An unknown error occured. Try again later.",
+				message: "An unknown error occurred. Try again later.",
 			},
 		});
 	}

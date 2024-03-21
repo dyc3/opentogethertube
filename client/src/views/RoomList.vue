@@ -30,9 +30,9 @@
 						aspect-ratio="1.8"
 						v-if="$vuetify.display.smAndUp"
 					>
-						<span class="subtitle-2 users"
-							>{{ room.users }} <v-icon small>fa:fas fa-user-friends</v-icon></span
-						>
+						<span class="subtitle-2 users">
+							{{ room.users }} <v-icon small>mdi-account-multiple</v-icon>
+						</span>
 					</v-img>
 					<v-card-title>
 						{{ room.isTemporary ? $t("room.title-temp") : room.name }}

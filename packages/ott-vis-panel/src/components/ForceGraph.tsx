@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import * as d3 from "d3";
+import { useEventBus } from "eventbus";
 
 interface ForceGraphProps {
 	data: {
@@ -134,11 +135,33 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			event.subject.fx = null;
 			event.subject.fy = null;
 		}
+
+		const zoom = d3.zoom().on("zoom", handleZoom);
+		function handleZoom(e: any) {
+			svg.select("g.chart").attr("transform", e.transform);
+		}
+		// @ts-expect-error this works fine
+		svg.call(zoom);
 	});
 
 	function radius(num: number) {
 		return num * 2;
 	}
+
+	const eventBus = useEventBus();
+	useEffect(() => {
+		const sub = eventBus.subscribe(event => {
+			d3.select(`[data-nodeid="${event.node_id}"]`)
+				.transition()
+				.duration(100)
+				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
+				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
+		});
+
+		return () => {
+			sub.unsubscribe();
+		};
+	}, [eventBus]);
 
 	return (
 		<svg
@@ -148,28 +171,39 @@ const ForceGraph: React.FC<ForceGraphProps> = ({
 			viewBox={`${-width / 2} ${-height / 2} ${width}, ${height}`}
 			style={{ height: "auto", maxWidth: "100%" }}
 		>
-			<g className="links" stroke="#999" strokeOpacity={0.6}>
-				{links.map((link, i) => (
-					<line key={i} strokeWidth={Math.sqrt(link.value)} />
-				))}
-			</g>
-			<g className="nodes" stroke="#fff" strokeWidth={1.5}>
-				{nodes.map((node, i) => (
-					<>
-						<circle key={i} r={radius(node.radius)} fill={color(node.group)} />
-						<text
-							textAnchor="middle"
-							alignmentBaseline="middle"
-							style={{ userSelect: "none", cursor: "default", pointerEvents: "none" }}
-							fontFamily="Inter, Helvetica, Arial, sans-serif"
-							fontSize={10}
-							strokeWidth={0}
-							fill="#fff"
-						>
-							{node.text}
-						</text>
-					</>
-				))}
+			<g className="chart">
+				<g className="links" stroke="#999" strokeOpacity={0.6}>
+					{links.map((link, i) => (
+						<line key={i} strokeWidth={Math.sqrt(link.value)} />
+					))}
+				</g>
+				<g className="nodes" stroke="#fff" strokeWidth={1.5}>
+					{nodes.map((node, i) => (
+						<>
+							<circle
+								key={i}
+								r={radius(node.radius)}
+								fill={color(node.group)}
+								data-nodeid={node.id}
+							/>
+							<text
+								textAnchor="middle"
+								alignmentBaseline="middle"
+								style={{
+									userSelect: "none",
+									cursor: "default",
+									pointerEvents: "none",
+								}}
+								fontFamily="Inter, Helvetica, Arial, sans-serif"
+								fontSize={10}
+								strokeWidth={0}
+								fill="#fff"
+							>
+								{node.text}
+							</text>
+						</>
+					))}
+				</g>
 			</g>
 		</svg>
 	);

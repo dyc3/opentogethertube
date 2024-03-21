@@ -66,6 +66,7 @@ export default {
 
 			captionsEnabled: false,
 			isCaptionsLoaded: false,
+			resizeRunawayDetected: false,
 		};
 	},
 	computed: {
@@ -273,10 +274,25 @@ export default {
 			if (!this.player) {
 				return;
 			}
-			const iframe = this.player.getIframe();
-			const width = iframe.parentElement.offsetWidth;
-			const height = iframe.parentElement.offsetHeight;
-			this.player.setSize(width, height);
+			if (this.resizeRunawayDetected) {
+				this.resizeRunawayDetected = false;
+				return;
+			}
+			const before = {
+				width: this.$el.offsetWidth,
+				height: this.$el.offsetHeight,
+			};
+			this.player.setSize(this.$el.offsetWidth, this.$el.offsetHeight);
+			if (before.width !== this.$el.offsetWidth || before.height !== this.$el.offsetHeight) {
+				console.log(
+					"yt resize (detected runaway)",
+					before,
+					this.$el.offsetWidth,
+					this.$el.offsetHeight
+				);
+				this.resizeRunawayDetected = true;
+				this.player.setSize(before.width, before.height);
+			}
 		},
 	},
 	watch: {

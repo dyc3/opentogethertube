@@ -189,7 +189,7 @@ const RoomSettingsForm = defineComponent({
 		});
 
 		async function loadRoomSettings() {
-			// we have to make an API request becuase visibility is not sent in sync messages.
+			// we have to make an API request because visibility is not sent in sync messages.
 			isLoadingRoomSettings.value = true;
 			try {
 				const res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);

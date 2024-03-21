@@ -29,7 +29,30 @@ impl Client {
     pub async fn connect(&mut self, room: impl AsRef<str>) {
         assert!(!self.connected(), "already connected");
 
-        let stream = tokio::net::TcpStream::connect(self.addr).await.unwrap();
+        let mut attempts = 0;
+        loop {
+            match self.try_connect(room.as_ref()).await {
+                Ok(stream) => {
+                    self.stream = Some(stream);
+                    break;
+                }
+                Err(e) => {
+                    attempts += 1;
+                    eprintln!("failed to connect, retrying [{}]: {}", attempts, e);
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                    if attempts > 10 {
+                        panic!("client failed to connect after 10 attempts");
+                    }
+                }
+            }
+        }
+    }
+
+    async fn try_connect(
+        &mut self,
+        room: impl AsRef<str>,
+    ) -> anyhow::Result<WebSocketStream<TcpStream>> {
+        let stream = tokio::net::TcpStream::connect(self.addr).await?;
         let (stream, _) = tokio_tungstenite::client_async(
             format!(
                 "ws://localhost:{}/api/room/{}",
@@ -38,10 +61,9 @@ impl Client {
             ),
             stream,
         )
-        .await
-        .unwrap();
+        .await?;
 
-        self.stream = Some(stream);
+        Ok(stream)
     }
 
     /// Send the auth message to the balancer.

@@ -6,7 +6,7 @@
 		class="media-control"
 		aria-label="Closed Captions"
 	>
-		<v-icon>fa:fas fa-closed-captioning</v-icon>
+		<v-icon>mdi-closed-caption</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
 				<v-list-item link @click="setCaptionsEnabled(true)" v-if="tracks.length === 0">

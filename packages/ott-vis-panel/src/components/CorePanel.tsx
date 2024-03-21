@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { PanelProps } from "@grafana/data";
 import type { CoreOptions } from "types";
 import type { SystemState } from "ott-vis";
@@ -7,6 +7,8 @@ import { useStyles2 } from "@grafana/ui";
 import GlobalView from "./views/GlobalView";
 import RegionView from "./views/RegionView";
 import { LoadingState } from "@grafana/schema";
+import { useEventBus, type BusEvent } from "eventbus";
+import TreeDisplay from "./TreeDisplay";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -33,22 +35,70 @@ const getStyles = () => {
 export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
 	const styles = useStyles2(getStyles);
 
-	if (data.state === LoadingState.Loading) {
-		return <div>Loading...</div>;
-	}
+	const stateSeries = data.series[0];
+	const eventBusSeries = data.series[1];
+	const eventBus = useEventBus();
 
-	const systemState: SystemState = options.useSampleData
-		? sampleSystemState
-		: data.series[0].fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+	const systemState: SystemState = useMemo(() => {
+		return options.useSampleData
+			? sampleSystemState
+			: stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+	}, [options.useSampleData, stateSeries]);
 
-	let view;
-	if (options.view === "global") {
-		view = <GlobalView height={height} width={width} systemState={systemState} />;
-	} else if (options.view === "region") {
-		view = <RegionView height={height} width={width} systemState={systemState} />;
-	} else {
-		view = <div>Invalid view</div>;
-	}
+	let view = useMemo(() => {
+		if (options.view === "global") {
+			return <GlobalView height={height} width={width} systemState={systemState} />;
+		} else if (options.view === "region") {
+			return <RegionView height={height} width={width} systemState={systemState} />;
+		} else if (options.view === "tree") {
+			return (
+				<TreeDisplay
+					height={height}
+					width={width}
+					systemState={systemState}
+					{...options.tree}
+				/>
+			);
+		} else {
+			return <div>Invalid view</div>;
+		}
+	}, [options.view, options.tree, height, width, systemState]);
+
+	const [readEvents, setReadEvents] = useState(0);
+
+	useEffect(() => {
+		if (!eventBusSeries) {
+			return;
+		}
+		if (eventBusSeries.length === readEvents && readEvents > 0) {
+			const event: BusEvent = {
+				timestamp: "",
+				event: "",
+				node_id: "",
+				direction: "tx",
+			};
+
+			eventBusSeries.fields.forEach(field => {
+				event[field.name as keyof BusEvent] = field.values[field.values.length - 1];
+			});
+			eventBus.next(event);
+		} else {
+			for (let i = readEvents; i < eventBusSeries.length; i++) {
+				const event: BusEvent = {
+					timestamp: "",
+					event: "",
+					node_id: "",
+					direction: "tx",
+				};
+
+				eventBusSeries.fields.forEach(field => {
+					event[field.name as keyof BusEvent] = field.values[i];
+				});
+				eventBus.next(event);
+			}
+			setReadEvents(eventBusSeries.length);
+		}
+	}, [eventBusSeries, readEvents, setReadEvents, eventBus]);
 
 	return (
 		<div
@@ -60,9 +110,14 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 				`
 			)}
 		>
+			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
 		</div>
 	);
+};
+
+const Loading: React.FC = () => {
+	return <div style={{ position: "absolute", top: 0, left: 0 }}>Loading...</div>;
 };
 
 const sampleSystemState: SystemState = [

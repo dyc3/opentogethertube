@@ -17,7 +17,11 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
 		onRunQuery();
 	};
 
-	const { queryText, constant } = query;
+	const onQueryStreamChange = (event: ChangeEvent<HTMLInputElement>) => {
+		onChange({ ...query, stream: event.target.checked });
+	};
+
+	const { queryText, constant, stream } = query;
 
 	return (
 		<div className="gf-form">
@@ -32,6 +36,9 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
 			</InlineField>
 			<InlineField label="Query Text" labelWidth={16} tooltip="Not used yet">
 				<Input onChange={onQueryTextChange} value={queryText || ""} />
+			</InlineField>
+			<InlineField label="Stream">
+				<Input type="checkbox" onChange={onQueryStreamChange} checked={stream} />
 			</InlineField>
 		</div>
 	);

@@ -1,6 +1,6 @@
 {
 	"name": "ott-vis-datasource",
-	"version": "0.11.1",
+	"version": "0.12.0",
 	"description": "Collects ott system state",
 	"author": "Ott",
 	"license": "AGPL-3.0-or-later",

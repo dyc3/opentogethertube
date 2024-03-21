@@ -6,9 +6,3 @@
 		</p>
 	</v-container>
 </template>
-
-<script>
-export default {
-	name: "Attribution",
-};
-</script>

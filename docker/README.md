@@ -38,7 +38,7 @@ cp env/example.toml env/production.toml
 1. Open `env/production.toml` and put your youtube API key in.
 
 2. To build the image locally using the prod image make sure you are in the project root `/opentogethertube`
-   before runing the command below.
+   before running the command below.
 
 ```bash
 docker-compose -f docker/docker-compose.yml up -d

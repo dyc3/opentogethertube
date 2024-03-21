@@ -26,7 +26,7 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
-				<div no-gutters class="video-container">
+				<div class="video-container">
 					<div
 						class="video-subcontainer"
 						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
@@ -49,7 +49,7 @@
 							</div>
 							<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
 								<v-btn
-									prepend-icon="fa:fas fa-play"
+									prepend-icon="mdi-play"
 									size="x-large"
 									color="warning"
 									@click="onClickUnblockPlayback"
@@ -77,7 +77,7 @@
 					<v-col cols="12" md="8" sm="12">
 						<v-tabs fixed-tabs v-model="queueTab" color="primary">
 							<v-tab>
-								<v-icon>fa:fas fa-list</v-icon>
+								<v-icon>mdi-format-list-bulleted</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
 								<v-chip size="x-small">
 									{{
@@ -88,11 +88,11 @@
 								</v-chip>
 							</v-tab>
 							<v-tab>
-								<v-icon>fa:fas fa-plus</v-icon>
+								<v-icon>mdi-plus</v-icon>
 								<span class="tab-text">{{ $t("common.add") }}</span>
 							</v-tab>
 							<v-tab>
-								<v-icon>fa:fas fa-cog</v-icon>
+								<v-icon>mdi-wrench</v-icon>
 								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
 							</v-tab>
 						</v-tabs>
@@ -173,11 +173,11 @@
 			</v-col>
 		</v-container>
 		<v-footer>
-			<v-container pa-0>
-				<v-row no-gutters align="center" justify="center">
+			<v-container>
+				<v-row justify="center">
 					<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
 				</v-row>
-				<v-row no-gutters align="center" justify="center">
+				<v-row justify="center">
 					{{ gitCommit }}
 				</v-row>
 			</v-container>
@@ -447,7 +447,7 @@ export default defineComponent({
 		}
 
 		// Indicates that starting playback is blocked by the browser. This usually means that the user needs
-		// to interact with the page before playback can start. This is because browers block autoplaying videos.
+		// to interact with the page before playback can start. This is because browsers block autoplaying videos.
 		const mediaPlaybackBlocked = ref(false);
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
@@ -715,7 +715,6 @@ $in-video-chat-width-small: 250px;
 	align-items: center;
 	justify-content: center;
 	margin: auto;
-	margin-bottom: 10px;
 	flex-direction: column;
 	aspect-ratio: 16 / 9;
 
@@ -787,7 +786,6 @@ $in-video-chat-width-small: 250px;
 }
 
 .queue-tab-content {
-	background: transparent !important;
 	// HACK: the save button in room settings is not sticky if overflow is not "visible"
 	overflow: visible;
 }
@@ -839,7 +837,6 @@ $in-video-chat-width-small: 250px;
 	top: 0;
 	left: 0;
 	width: 100%;
-	height: 100%;
 }
 
 .fullscreen {

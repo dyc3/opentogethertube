@@ -46,6 +46,15 @@
 						"uid": "P8AFEECD30EDC727B"
 					},
 					"refId": "A"
+				},
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"hide": false,
+					"refId": "B",
+					"stream": true
 				}
 			],
 			"title": "Global",
@@ -79,6 +88,42 @@
 				}
 			],
 			"title": "Region",
+			"type": "ott-vis-panel"
+		},
+		{
+			"datasource": {
+				"type": "ott-vis-datasource",
+				"uid": "P8AFEECD30EDC727B"
+			},
+			"gridPos": {
+				"h": 14,
+				"w": 24,
+				"x": 0,
+				"y": 19
+			},
+			"id": 6,
+			"options": {
+				"view": "tree"
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"refId": "A"
+				},
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"hide": false,
+					"refId": "B",
+					"stream": true
+				}
+			],
+			"title": "Tree",
 			"type": "ott-vis-panel"
 		},
 		{
@@ -119,7 +164,7 @@
 				"h": 8,
 				"w": 9,
 				"x": 0,
-				"y": 19
+				"y": 33
 			},
 			"id": 4,
 			"options": {
@@ -248,7 +293,7 @@
 				"h": 8,
 				"w": 7,
 				"x": 9,
-				"y": 19
+				"y": 33
 			},
 			"id": 2,
 			"options": {
@@ -327,7 +372,7 @@
 				"h": 8,
 				"w": 8,
 				"x": 16,
-				"y": 19
+				"y": 33
 			},
 			"id": 3,
 			"options": {
@@ -361,6 +406,6 @@
 	"timezone": "",
 	"title": "Provisioned ott-vis dashboard",
 	"uid": "c5ea3bcd-f966-47d8-8456-4536ddc45ff0",
-	"version": 3,
+	"version": 28,
 	"weekStart": ""
 }

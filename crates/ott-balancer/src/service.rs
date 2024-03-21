@@ -15,10 +15,12 @@ use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
+use tokio::task::JoinHandle;
 use tracing::{debug, error, field, info, span, warn, Level};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
+use crate::config::BalancerConfig;
 use crate::monolith::BalancerMonolith;
 
 static NOTFOUND: &[u8] = b"Not Found";
@@ -28,6 +30,7 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
     router.add("/api/status", "health");
     router.add("/api/balancing", "status");
     router.add("/api/state", "state");
+    router.add("/api/state/stream", "state_stream");
     router.add("/api/status/metrics", "metrics");
     router.add("/api/room/:room_name", "room");
     router.add("/api/room/:room_name/", "room");
@@ -44,7 +47,7 @@ static ROUTER: Lazy<Router<&'static str>> = Lazy::new(|| {
 pub struct BalancerService {
     pub(crate) ctx: Arc<RwLock<BalancerContext>>,
     pub(crate) link: BalancerLink,
-    pub(crate) addr: std::net::SocketAddr,
+    pub(crate) task_handle_tx: tokio::sync::mpsc::Sender<JoinHandle<()>>,
 }
 
 impl Service<Request<IncomingBody>> for BalancerService {
@@ -71,7 +74,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
         let ctx: Arc<RwLock<BalancerContext>> = self.ctx.clone();
         let link = self.link.clone();
-        let _addr = self.addr;
+        let task_handle_tx = self.task_handle_tx.clone();
 
         let Ok(route) = ROUTER.recognize(req.uri().path()) else {
             warn!("no route found for {}", req.uri().path());
@@ -88,6 +91,12 @@ impl Service<Request<IncomingBody>> for BalancerService {
             let res = match handler {
                 "health" => mk_response("OK".to_owned()),
                 "status" => {
+                    if !is_authorized(&req) {
+                        return Ok(Response::builder()
+                            .status(StatusCode::UNAUTHORIZED)
+                            .body(Full::new("unauthorized".into()))
+                            .unwrap());
+                    }
                     let ctx_read = ctx.read().await;
                     let rendered = [
                         format!("monoliths: {}", ctx_read.monoliths.len()),
@@ -99,6 +108,12 @@ impl Service<Request<IncomingBody>> for BalancerService {
                     mk_response(rendered)
                 }
                 "state" => {
+                    if !is_authorized(&req) {
+                        return Ok(Response::builder()
+                            .status(StatusCode::UNAUTHORIZED)
+                            .body(Full::new("unauthorized".into()))
+                            .unwrap());
+                    }
                     let ctx_read = ctx.read().await;
                     let state = ctx_read.current_state();
                     let Ok(body) = serde_json::to_vec(&state) else {
@@ -110,6 +125,39 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         .header("Content-Type", "application/json")
                         .body(Full::new(body.into()))
                         .unwrap())
+                }
+                "state_stream" => {
+                    if !is_authorized(&req) {
+                        return Ok(Response::builder()
+                            .status(StatusCode::UNAUTHORIZED)
+                            .body(Full::new("unauthorized".into()))
+                            .unwrap());
+                    }
+                    if is_websocket_upgrade(&req) {
+                        let (response, websocket) = match upgrade(req, None) {
+                            Ok((response, websocket)) => (response, websocket),
+                            Err(err) => {
+                                error!(message = "failed to upgrade websocket: {:?}", request_id, error = %err);
+                                return Ok(interval_server_error());
+                            }
+                        };
+
+                        let handle = tokio::spawn(async move {
+                            if let Err(err) =
+                                crate::state_stream::handle_stream_websocket(websocket).await
+                            {
+                                error!("error handling event stream websocket: {}", err);
+                            }
+                        });
+                        let _ = task_handle_tx.send(handle).await;
+
+                        Ok(response)
+                    } else {
+                        Ok(Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body(Full::new("expected websocket connection".into()))
+                            .unwrap())
+                    }
                 }
                 "metrics" => {
                     let bytes = match gather_metrics() {
@@ -162,7 +210,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         };
 
                         // Spawn a task to handle the websocket connection.
-                        let _ = tokio::task::Builder::new().name("client connection").spawn(
+                        let handle = tokio::task::Builder::new().name("client connection").spawn(
                             async move {
                                 GAUGE_CLIENTS.inc();
                                 if let Err(e) = client_entry(room_name, websocket, link).await {
@@ -171,6 +219,15 @@ impl Service<Request<IncomingBody>> for BalancerService {
                                 GAUGE_CLIENTS.dec();
                             },
                         );
+                        match handle {
+                            Ok(handle) => {
+                                let _ = task_handle_tx.send(handle).await;
+                            }
+                            Err(err) => {
+                                error!("Error spawning task to handle websocket: {}", err);
+                                return Ok(interval_server_error());
+                            }
+                        }
 
                         // Return the response so the spawned future can continue.
                         Ok(response)
@@ -330,6 +387,21 @@ fn gather_metrics() -> anyhow::Result<Bytes> {
     Ok(Bytes::from(buffer))
 }
 
+fn is_authorized<B>(req: &Request<B>) -> bool {
+    if let Some(api_key) = BalancerConfig::get().api_key.as_ref() {
+        let headers = req.headers();
+        let auth = headers.get("Authorization");
+        if let Some(auth) = auth {
+            if auth.as_bytes().starts_with(b"Bearer ")
+                && &auth.as_bytes()[7..] == api_key.as_bytes()
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 static GAUGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
     register_int_gauge!("balancer_clients", "Number of connected websocket clients").unwrap()
 });
@@ -390,5 +462,72 @@ mod test {
             println!("case: {}", case);
             assert_eq!(ROUTER.recognize(case).unwrap().handler(), &&"other");
         }
+    }
+
+    #[test]
+    fn test_is_authorized_with_valid_api_key() {
+        BalancerConfig::init_default();
+        unsafe {
+            BalancerConfig::get_mut().api_key = Some("YOUR_API_KEY".to_owned());
+        }
+        let req = Request::builder()
+            .header("Authorization", "Bearer YOUR_API_KEY")
+            .body(Full::new(Bytes::new()))
+            .unwrap();
+
+        assert!(is_authorized(&req));
+    }
+
+    #[test]
+    fn test_is_authorized_with_invalid_api_key() {
+        BalancerConfig::init_default();
+        unsafe {
+            BalancerConfig::get_mut().api_key = Some("YOUR_API_KEY".to_owned());
+        }
+        let req = Request::builder()
+            .header("Authorization", "Bearer INVALID_API_KEY")
+            .body(Full::new(Bytes::new()))
+            .unwrap();
+
+        assert!(!is_authorized(&req));
+    }
+
+    #[test]
+    fn test_is_authorized_without_authorization_header() {
+        BalancerConfig::init_default();
+        unsafe {
+            BalancerConfig::get_mut().api_key = Some("YOUR_API_KEY".to_owned());
+        }
+        let req = Request::builder().body(Full::new(Bytes::new())).unwrap();
+
+        assert!(!is_authorized(&req));
+    }
+
+    #[test]
+    fn test_is_authorized_with_different_authorization_scheme() {
+        BalancerConfig::init_default();
+        unsafe {
+            BalancerConfig::get_mut().api_key = Some("YOUR_API_KEY".to_owned());
+        }
+        let req = Request::builder()
+            .header("Authorization", "Basic YOUR_API_KEY")
+            .body(Full::new(Bytes::new()))
+            .unwrap();
+
+        assert!(!is_authorized(&req));
+    }
+
+    #[test]
+    fn test_is_authorized_without_api_key_set() {
+        BalancerConfig::init_default();
+        unsafe {
+            BalancerConfig::get_mut().api_key = None;
+        }
+        let req = Request::builder()
+            .header("Authorization", "Basic YOUR_API_KEY")
+            .body(Full::new(Bytes::new()))
+            .unwrap();
+
+        assert!(!is_authorized(&req));
     }
 }

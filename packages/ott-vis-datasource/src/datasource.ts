@@ -5,12 +5,14 @@ import {
 	DataSourceInstanceSettings,
 	MutableDataFrame,
 	FieldType,
+	CircularDataFrame,
+	LoadingState,
 } from "@grafana/data";
 
 import { MyQuery, MyDataSourceOptions } from "./types";
 import { getBackendSrv } from "@grafana/runtime";
 import type { SystemState } from "ott-vis";
-import { lastValueFrom } from "rxjs";
+import { Observable, lastValueFrom, merge } from "rxjs";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	baseUrl: string;
@@ -20,21 +22,73 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 		this.baseUrl = instanceSettings.jsonData.baseUrl;
 	}
 
-	async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-		const response = getBackendSrv().fetch<SystemState>({
-			url: `${this.baseUrl}/state`,
-		});
-		const systemState = (await lastValueFrom(response)).data;
+	query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
+		const observables = options.targets.map(target => {
+			if (target.stream) {
+				return new Observable<DataQueryResponse>(subscriber => {
+					const frame = new CircularDataFrame({
+						append: "tail",
+						capacity: 1000,
+					});
 
-		// Return a constant for each query.
-		const data = options.targets.map(target => {
-			return new MutableDataFrame({
-				refId: target.refId,
-				fields: [{ name: "Balancers", values: [systemState], type: FieldType.other }],
+					frame.refId = target.refId;
+					frame.addField({ name: "timestamp", type: FieldType.time });
+					frame.addField({ name: "event", type: FieldType.string });
+					frame.addField({ name: "node_id", type: FieldType.string });
+					frame.addField({ name: "direction", type: FieldType.string });
+
+					const base = this.baseUrl.replace(/^http/, "ws");
+					const ws = new WebSocket(`${base}/state/stream`);
+
+					ws.addEventListener("message", msg => {
+						const event = JSON.parse(msg.data);
+						frame.add(event);
+
+						subscriber.next({
+							data: [frame],
+							key: frame.refId,
+							state: LoadingState.Streaming,
+						});
+					});
+
+					ws.addEventListener("error", err => {
+						console.error("WebSocket error", err);
+						subscriber.error(err);
+					});
+
+					ws.addEventListener("close", () => {
+						subscriber.complete();
+					});
+				});
+			}
+
+			return new Observable<DataQueryResponse>(subscriber => {
+				subscriber.next({
+					data: [],
+					state: LoadingState.Loading,
+				});
+				getBackendSrv()
+					.fetch<SystemState>({
+						url: `${this.baseUrl}/state`,
+					})
+					.subscribe(resp => {
+						const systemState: SystemState = resp.data;
+						const frame = new MutableDataFrame({
+							refId: target.refId,
+							fields: [
+								{ name: "Balancers", values: [systemState], type: FieldType.other },
+							],
+						});
+						subscriber.next({
+							data: [frame],
+							state: LoadingState.Done,
+						});
+						subscriber.complete();
+					});
 			});
 		});
 
-		return { data };
+		return merge(...observables);
 	}
 
 	async testDatasource() {

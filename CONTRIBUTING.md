@@ -103,7 +103,7 @@ yarn run dev
 yarn run dev-windows
 ```
 
-Sometimes, you may want to run them seperately so you can use breakpoints to
+Sometimes, you may want to run them separately so you can use breakpoints to
 debug. Using VSCode, this is trivial.
 
 To start the server: `Debug > Select "Launch Program" > Start`

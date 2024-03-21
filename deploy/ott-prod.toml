@@ -7,3 +7,6 @@ level = "info"
 
 [mail]
 enabled = true
+
+[balancing]
+enabled = true

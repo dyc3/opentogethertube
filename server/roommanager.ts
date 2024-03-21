@@ -252,7 +252,7 @@ const gaugeRoomCount = new Gauge({
 	},
 });
 
-const guageUsersInRooms = new Gauge({
+const gaugeUsersInRooms = new Gauge({
 	name: "ott_users_in_rooms",
 	help: "The number of users that the room manager thinks are in rooms.",
 	collect() {

@@ -12,7 +12,7 @@
 					:class="copySuccess ? 'text-success' : ''"
 					ref="inviteLinkText"
 					:value="inviteLink"
-					append-icon="fa:fas fa-clipboard"
+					append-icon="mdi-clipboard-outline"
 					:messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
 					@click:append="copyInviteLink"
