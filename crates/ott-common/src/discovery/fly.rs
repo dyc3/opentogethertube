@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use hickory_resolver::TokioAsyncResolver;
+use serde::Deserialize;
 use tracing::info;
 
 use super::*;
@@ -9,6 +10,11 @@ pub struct FlyDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub service_port: u16,
     pub fly_app: String,
+    /// The polling mode discovery interval.
+    ///
+    #[serde(default)]
+    #[serde(with = "humantime_serde")]
+    pub polling_interval: Option<Duration>,
 }
 
 pub struct FlyServiceDiscoverer {
@@ -46,6 +52,10 @@ impl ServiceDiscoverer for FlyServiceDiscoverer {
     }
 
     fn mode(&self) -> DiscoveryMode {
-        DiscoveryMode::Polling(Duration::from_secs(10))
+        DiscoveryMode::Polling(
+            self.config
+                .polling_interval
+                .unwrap_or_else(|| Duration::from_secs(10)),
+        )
     }
 }

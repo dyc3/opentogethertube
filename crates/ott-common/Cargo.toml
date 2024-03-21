@@ -11,6 +11,7 @@ hickory-resolver.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true
 http-body-util.workspace = true
+humantime-serde.workspace = true
 ott-balancer-protocol.workspace = true
 pin-project.workspace = true
 serde.workspace = true
