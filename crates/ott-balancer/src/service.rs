@@ -62,6 +62,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
             Level::INFO,
             "http_request",
             request_id = request_id,
+            version = ?req.version(),
             method = %req.method(),
             path = %req.uri().path(),
             handler = field::Empty,
