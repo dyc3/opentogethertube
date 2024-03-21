@@ -125,10 +125,8 @@ impl Balancer {
                 }
                 // process completed tasks
                 task_result = tasks.next() => {
-                    if let Some(task_result) = task_result {
-                        if let Err(err) = task_result {
-                            error!("error in task: {:?}", err);
-                        }
+                    if let Some(Err(err)) = task_result {
+                        error!("error in task: {:?}", err);
                     }
                 }
             }
