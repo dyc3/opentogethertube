@@ -6,7 +6,8 @@ use balancer::{start_dispatcher, Balancer, BalancerContext};
 use clap::Parser;
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
-use hyper::server::conn::http1;
+use hyper_util::rt::TokioExecutor;
+use hyper_util::server::conn::auto;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 use tracing::{error, info};
@@ -185,9 +186,8 @@ pub async fn run() -> anyhow::Result<()> {
         let task = tokio::task::Builder::new()
             .name("serve http")
             .spawn(async move {
-                let conn = http1::Builder::new()
-                    .serve_connection(io, service)
-                    .with_upgrades();
+                let serve = auto::Builder::new(TokioExecutor::new());
+                let conn = serve.serve_connection_with_upgrades(io, service);
                 if let Err(err) = conn.await {
                     error!("Error serving connection: {:?}", err);
                 }
