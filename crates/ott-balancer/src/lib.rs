@@ -56,17 +56,22 @@ pub async fn run() -> anyhow::Result<()> {
 
     let config = BalancerConfig::get();
 
-    let console_layer = if args.remote_console {
-        console_subscriber::ConsoleLayer::builder()
-            .server_addr((
-                Ipv6Addr::UNSPECIFIED,
-                console_subscriber::Server::DEFAULT_PORT,
-            ))
-            .spawn()
+    let console_layer = if args.console {
+        let console_layer = if args.remote_console {
+            console_subscriber::ConsoleLayer::builder()
+                .server_addr((
+                    Ipv6Addr::UNSPECIFIED,
+                    console_subscriber::Server::DEFAULT_PORT,
+                ))
+                .spawn()
+        } else {
+            console_subscriber::ConsoleLayer::builder().spawn()
+        }
+        .with_filter(EnvFilter::try_new("tokio=trace,runtime=trace")?);
+        Some(console_layer)
     } else {
-        console_subscriber::ConsoleLayer::builder().spawn()
+        None
     };
-    let console_layer = console_layer.with_filter(EnvFilter::try_new("tokio=trace,runtime=trace")?);
     let filter = args.build_tracing_filter();
     let filter_layer = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new(filter))?;
     let fmt_layer = tracing_subscriber::fmt::layer().with_filter(filter_layer);
