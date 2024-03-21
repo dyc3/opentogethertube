@@ -30,6 +30,9 @@ pub mod selection;
 pub mod service;
 pub mod state_stream;
 
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 pub async fn run() -> anyhow::Result<()> {
     let args = config::Cli::parse();
 
