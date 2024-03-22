@@ -95,7 +95,7 @@
 				<LocaleSelector />
 			</v-list>
 			<template v-slot:append>
-				<div class="pa-2">
+				<div style="padding: 8px">
 					<NavUser @login="showLogin = true" @logout="logout" />
 				</div>
 			</template>
@@ -244,6 +244,7 @@ export default App;
 <style lang="scss">
 @import "variables.scss";
 @import "fonts.scss";
+@import "common.scss";
 
 .link {
 	text-decoration: underline;

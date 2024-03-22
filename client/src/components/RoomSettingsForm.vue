@@ -124,7 +124,7 @@
 				<v-btn
 					size="large"
 					block
-					color="blue"
+					color="#2196f3"
 					v-if="!store.state.room.hasOwner"
 					:disabled="!store.state.user"
 					role="submit"

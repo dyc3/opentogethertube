@@ -1,3 +1,5 @@
 @use 'vuetify/settings' with (
 	$overlay-scrim-background: #000000,
+	$utilities: false,
+	$color-pack: false,
 );

@@ -1,5 +1,5 @@
 <template>
-	<v-sheet class="mt-2 video" hover>
+	<v-sheet class="video" hover>
 		<div class="img-container">
 			<v-img
 				:src="thumbnailSource"
@@ -28,7 +28,7 @@
 				</span>
 			</div>
 		</div>
-		<div class="d-flex" style="justify-content: center; flex-direction: column">
+		<div style="display: flex; justify-content: center; flex-direction: column">
 			<div class="button-container" v-if="!hideAllButtons">
 				<v-btn
 					class="button-with-icon"
@@ -373,6 +373,7 @@ export default VideoQueueItem;
 	justify-content: space-between;
 	width: 100%;
 	max-height: 111px;
+	margin-top: 8px;
 
 	> * {
 		display: flex;

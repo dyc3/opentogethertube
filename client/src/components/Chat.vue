@@ -5,7 +5,7 @@
 			activated: activated,
 		}"
 	>
-		<div class="chat-header d-flex flex-row" v-if="activated">
+		<div class="chat-header" v-if="activated">
 			<v-btn
 				icon
 				size="x-small"
@@ -17,8 +17,8 @@
 			</v-btn>
 			<h4>{{ $t("chat.title") }}</h4>
 		</div>
-		<div ref="messages" @scroll="onScroll" class="messages d-flex flex-column flex-grow-1 mt-2">
-			<div class="d-flex flex-grow-1"><!-- Spacer --></div>
+		<div ref="messages" @scroll="onScroll" class="messages grow">
+			<div class="grow"><!-- Spacer --></div>
 			<transition-group name="message">
 				<div class="message" v-for="(msg, index) in chatMessagePast" :key="index">
 					<div class="from">{{ msg.from.name }}</div>
@@ -270,6 +270,8 @@ $chat-message-bg: $background-color;
 }
 
 .chat-header {
+	display: flex;
+	flex-direction: row;
 	border-bottom: 1px solid #666;
 }
 
@@ -280,11 +282,21 @@ $chat-message-bg: $background-color;
 	height: 40px;
 }
 
+.grow {
+	display: flex;
+	flex-grow: 1;
+}
+
 .messages {
+	display: flex;
+	flex-direction: column;
+	flex-basis: 0;
+
+	margin-top: 8px;
+
 	overflow: hidden;
 	pointer-events: none;
 
-	flex-basis: 0;
 	align-items: baseline;
 }
 
