@@ -34,6 +34,10 @@ import type {
 } from "ott-common/models/rest-api";
 import { counterHttpErrors } from "./metrics";
 import { OttException } from "ott-common/exceptions";
+import {
+	OttApiRequestAccountRecoveryStartSchema,
+	OttApiRequestAccountRecoveryVerifySchema,
+} from "ott-common/models/zod-schemas";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -744,27 +748,19 @@ const accountRecoveryStart: RequestHandler<
 	OttResponseBody<{}>,
 	OttApiRequestAccountRecoveryStart
 > = async (req, res) => {
+	const body = OttApiRequestAccountRecoveryStartSchema.parse(req.body);
 	if (conf.get("rate_limit.enabled")) {
 		await consumeRateLimitPoints(res, req.ip, 100);
 	}
 
-	if (!("email" in req.body) && !("username" in req.body)) {
-		throw new BadApiArgumentException(
-			"email,username",
-			"Either email or username is required."
-		);
-	}
-
 	const query = {
-		user: req.body.email ?? req.body.username,
+		user: body.email ?? body.username,
 	};
 	const user = await getUser(query);
 
-	if (!user.email) {
-		throw new NoEmail();
+	if (user.email) {
+		(await sendPasswordResetEmail(user.email)).unwrap();
 	}
-
-	(await sendPasswordResetEmail(user.email)).unwrap();
 
 	res.json({
 		success: true,
@@ -776,22 +772,17 @@ const accountRecoveryVerify: RequestHandler<
 	OttResponseBody<{}>,
 	OttApiRequestAccountRecoveryVerify
 > = async (req, res) => {
-	if (!("verifyKey" in req.body)) {
-		throw new BadApiArgumentException("verifyKey", "missing");
-	}
-	if (!("newPassword" in req.body)) {
-		throw new BadApiArgumentException("newPassword", "missing");
-	}
+	const body = OttApiRequestAccountRecoveryVerifySchema.parse(req.body);
 
 	if (conf.get("rate_limit.enabled")) {
 		await consumeRateLimitPoints(res, req.ip, 10);
 	}
 
-	if (!isPasswordValid(req.body.newPassword)) {
+	if (!isPasswordValid(body.newPassword)) {
 		throw new BadPasswordError();
 	}
 
-	const accountEmail = await redisClient.get(`accountrecovery:${req.body.verifyKey}`);
+	const accountEmail = await redisClient.get(`accountrecovery:${body.verifyKey}`);
 	if (!accountEmail) {
 		throw new InvalidVerifyKey();
 	}
@@ -801,12 +792,12 @@ const accountRecoveryVerify: RequestHandler<
 		throw new UserNotFound();
 	}
 
-	await changeUserPassword(user, req.body.newPassword, {
+	await changeUserPassword(user, body.newPassword, {
 		// we already validated the password above
 		validatePassword: false,
 	});
 
-	await redisClient.del(`accountrecovery:${req.body.verifyKey}`);
+	await redisClient.del(`accountrecovery:${body.verifyKey}`);
 
 	if (req.token) {
 		await tokens.setSessionInfo(req.token, { isLoggedIn: true, user_id: user.id });
