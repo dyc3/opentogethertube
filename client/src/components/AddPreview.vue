@@ -42,10 +42,10 @@
 				{{ $t("add-preview.add-all") }}
 			</v-btn>
 		</v-row>
-		<v-row class="mt-6" v-if="isLoadingAddPreview" justify="center">
+		<v-row class="video-list" v-if="isLoadingAddPreview">
 			<v-progress-circular indeterminate />
 		</v-row>
-		<v-row class="mt-6" justify="center" v-if="!isLoadingAddPreview">
+		<v-row class="video-list" v-if="!isLoadingAddPreview">
 			<div v-if="hasAddPreviewFailed">
 				{{ videosLoadFailureText }}
 			</div>
@@ -329,5 +329,10 @@ export default AddPreview;
 .video-add {
 	margin: 20px 30px;
 	min-height: 500px;
+}
+
+.video-list {
+	margin-top: 24px;
+	justify-content: center;
 }
 </style>

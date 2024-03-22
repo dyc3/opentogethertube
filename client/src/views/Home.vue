@@ -137,7 +137,7 @@
 								size="x-large"
 								block
 								color="blue"
-								class="mt-2"
+								style="margin-top: 8px"
 								href="https://github.com/dyc3/opentogethertube"
 								target="_blank"
 							>
@@ -154,7 +154,7 @@
 				</v-col>
 			</v-row>
 			<v-footer>
-				<v-container pa-0>
+				<v-container>
 					<v-row no-gutters align="center" justify="center">
 						{{ new Date().getFullYear() }} -
 						<a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> -
