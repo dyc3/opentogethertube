@@ -30,9 +30,6 @@ export default {
 				/^(?!(|.*?:)cursor-move).+-move$/,
 				/^router-link(|-exact)-active$/,
 				/data-v-.*/,
-				/^(align|justify)-center/,
-				/^bg-.*/,
-				/^fa[sr]$/,
 				"mdi",
 				// HACK: these classes are used by vuetify, but not detected by purgecss
 				"mdi-chevron-up",
