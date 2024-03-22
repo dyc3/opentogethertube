@@ -126,7 +126,7 @@
 							<v-btn
 								size="x-large"
 								block
-								color="red"
+								color="#f44336"
 								href="https://github.com/sponsors/dyc3"
 								target="_blank"
 							>
@@ -136,7 +136,7 @@
 							<v-btn
 								size="x-large"
 								block
-								color="blue"
+								color="#2196f3"
 								style="margin-top: 8px"
 								href="https://github.com/dyc3/opentogethertube"
 								target="_blank"
