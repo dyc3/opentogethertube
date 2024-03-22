@@ -15866,6 +15866,7 @@ __metadata:
     material-design-icons-iconfont: "npm:^5.0.1"
     ott-common: "workspace:*"
     plyr: "npm:3.7.8"
+    postcss: "npm:^8.4.38"
     sass: "npm:^1.41.1"
     sortablejs: "npm:^1.15.0"
     sortablejs-vue3: "npm:^1.2.3"
