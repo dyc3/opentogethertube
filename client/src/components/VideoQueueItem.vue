@@ -19,7 +19,7 @@
 		<div class="meta-container">
 			<div>
 				<div class="video-title" no-gutters>{{ item.title }}</div>
-				<div class="description text-truncate" no-gutters>{{ item.description }}</div>
+				<div class="description" no-gutters>{{ item.description }}</div>
 				<div v-if="item.service === 'googledrive'" class="experimental">
 					{{ $t("video-queue-item.experimental") }}
 				</div>
@@ -404,6 +404,7 @@ export default VideoQueueItem;
 		.description {
 			flex-grow: 1;
 			font-size: 0.9rem;
+			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
 
