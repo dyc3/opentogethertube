@@ -8,7 +8,7 @@
 		}"
 	>
 		<VideoProgressSlider :current-position="sliderPosition" />
-		<v-row no-gutters>
+		<v-row no-gutters class="controls-row2">
 			<BasicControls :current-position="truePosition" />
 			<!-- eslint-disable-next-line vue/no-v-model-argument -->
 			<VolumeControl />
@@ -123,7 +123,8 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 }
 
 .video-controls {
-	height: $video-controls-height;
+	flex-basis: auto;
+	min-height: $video-controls-height;
 	transition: all 0.2s;
 	z-index: 100;
 
@@ -156,6 +157,10 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 			transition: all 0.5s;
 			height: 0;
 		}
+	}
+
+	.controls-row2 {
+		align-items: center;
 	}
 }
 </style>
