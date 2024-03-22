@@ -8,6 +8,8 @@ import {
 	OttApiRequestVoteSchema,
 	OttApiRequestAddToQueueSchema,
 	OttApiRequestRemoveFromQueueSchema,
+	OttApiRequestAccountRecoveryStartSchema,
+	OttApiRequestAccountRecoveryVerifySchema
 } from "./zod-schemas";
 import { z } from "zod";
 
@@ -43,7 +45,7 @@ export interface OttApiResponseRoomGenerate {
 export type OttApiRequestRoomCreate = z.infer<typeof OttApiRequestRoomCreateSchema>;
 
 /** Endpoint: `/api/room/create` */
-export interface OttApiResponseRoomCreate {}
+export interface OttApiResponseRoomCreate { }
 
 /** Endpoint: `GET /api/room/:name` */
 export interface OttApiResponseGetRoom extends RoomSettings {
@@ -83,12 +85,7 @@ export type OttApiResponseAddPreview = {
 
 export type OttApiRequestVote = z.infer<typeof OttApiRequestVoteSchema>;
 
-export type OttApiRequestAccountRecoveryStart = {
-	email?: string;
-	username?: string;
-};
+export type OttApiRequestAccountRecoveryStart = z.infer<typeof OttApiRequestAccountRecoveryStartSchema>;
 
-export type OttApiRequestAccountRecoveryVerify = {
-	verifyKey: string;
-	newPassword: string;
-};
+export type OttApiRequestAccountRecoveryVerify = z.infer<typeof OttApiRequestAccountRecoveryVerifySchema>;
+

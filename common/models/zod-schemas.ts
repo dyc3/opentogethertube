@@ -41,3 +41,14 @@ export const OttApiRequestAddToQueueSchema = z.union([
 export const OttApiRequestRemoveFromQueueSchema = z.object({
 	...VideoIdSchema.shape,
 });
+
+
+export const OttApiRequestAccountRecoveryStartSchema = z.object({
+	email: z.string().email().optional(),
+	username: z.string().optional(),
+});
+
+export const OttApiRequestAccountRecoveryVerifySchema = z.object({
+	verifyKey: z.string(),
+	newPassword: z.string(),
+});
