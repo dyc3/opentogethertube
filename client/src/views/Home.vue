@@ -1,7 +1,7 @@
 <template>
 	<div class="home">
-		<v-container class="hero" fluid fill-height grid-list-md text-xs-center>
-			<v-row align="center" justify="center" no-gutters>
+		<v-container class="hero" fluid>
+			<v-row class="center-shit" no-gutters>
 				<div class="hero-text" cols="12" sm="10" md="8" lg="6">
 					<h1>{{ $t("landing.hero.title") }}</h1>
 					<span>
@@ -155,13 +155,13 @@
 			</v-row>
 			<v-footer>
 				<v-container>
-					<v-row no-gutters align="center" justify="center">
+					<v-row no-gutters class="center-shit">
 						{{ new Date().getFullYear() }} -
 						<a class="side-pad" href="https://carsonmcmanus.com/">Carson McManus</a> -
 						{{ $t("footer.made-in") }} - {{ $t("footer.thanks-to") }}
 						<a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
 					</v-row>
-					<v-row no-gutters align="center" justify="center">
+					<v-row no-gutters class="center-shit">
 						<router-link class="side-pad" to="/privacypolicy">{{
 							$t("footer.privacy-policy")
 						}}</router-link
@@ -169,7 +169,7 @@
 							$t("footer.attribution")
 						}}</router-link>
 					</v-row>
-					<v-row no-gutters align="center" justify="center">
+					<v-row no-gutters class="center-shit">
 						{{ gitCommit }}
 					</v-row>
 				</v-container>

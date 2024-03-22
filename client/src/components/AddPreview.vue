@@ -70,7 +70,7 @@
 				</v-row>
 			</v-container>
 			<v-container v-else-if="inputAddPreview.length === 0">
-				<v-row justify="center">
+				<v-row style="justify-content: center">
 					<AddPreviewHelper @link-click="setAddPreviewText" />
 				</v-row>
 			</v-container>

@@ -1,6 +1,6 @@
 <template>
 	<v-container>
-		<v-row justify="center" align-content="center">
+		<v-row class="center-shit">
 			<div>
 				<h1>{{ $t("not-found.title") }}</h1>
 				<v-btn block class="not-found-btn" elevation="12" size="x-large" to="/">

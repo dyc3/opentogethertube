@@ -1,6 +1,9 @@
 @use 'vuetify/settings' with (
 	$overlay-scrim-background: #000000,
 	$utilities: (
+		"align-content": false,
+		"align-items": false,
+		"align-self": false,
 		"border": false,
 		"border-bottom": false,
 		"border-end": false,
@@ -9,6 +12,11 @@
 		"border-style": false,
 		"border-top": false,
 		"display": false,
+		"flex-direction": false,
+		"flex-grow": false,
+		"flex-shrink": false,
+		"flex-wrap": false,
+		"flex": false,
 		"float-ltr": false,
 		"float-rtl": false,
 		"float": false,

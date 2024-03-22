@@ -22,7 +22,7 @@
 					}}
 				</h1>
 				<ClientSettingsDialog />
-				<div class="flex-grow-1"><!-- Spacer --></div>
+				<div class="grow"><!-- Spacer --></div>
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
@@ -174,10 +174,10 @@
 		</v-container>
 		<v-footer>
 			<v-container>
-				<v-row justify="center">
+				<v-row class="center-shit">
 					<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
 				</v-row>
-				<v-row justify="center">
+				<v-row class="center-shit">
 					{{ gitCommit }}
 				</v-row>
 			</v-container>
@@ -898,5 +898,9 @@ $in-video-chat-width-small: 250px;
 
 .banners {
 	margin: 10px 0;
+}
+
+.grow {
+	flex-grow: 1;
 }
 </style>

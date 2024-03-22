@@ -8,12 +8,12 @@
 		}"
 	>
 		<VideoProgressSlider :current-position="sliderPosition" />
-		<v-row no-gutters align="center">
+		<v-row no-gutters>
 			<BasicControls :current-position="truePosition" />
 			<!-- eslint-disable-next-line vue/no-v-model-argument -->
 			<VolumeControl />
 			<TimestampDisplay :current-position="truePosition" />
-			<div class="flex-grow-1"><!-- Spacer --></div>
+			<div class="grow"><!-- Spacer --></div>
 			<ClosedCaptionsSwitcher
 				:supported="isCaptionsSupported"
 				:tracks="store.state.captions.availableTracks"
@@ -117,6 +117,10 @@ export default defineComponent({
 <style lang="scss">
 $video-controls-height: 80px;
 $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
+
+.grow {
+	flex-grow: 1;
+}
 
 .video-controls {
 	height: $video-controls-height;

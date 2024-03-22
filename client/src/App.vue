@@ -244,6 +244,7 @@ export default App;
 <style lang="scss">
 @import "variables.scss";
 @import "fonts.scss";
+@import "common.scss";
 
 .link {
 	text-decoration: underline;
