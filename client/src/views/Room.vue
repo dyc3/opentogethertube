@@ -66,7 +66,7 @@
 						:key="currentSource?.id"
 						:player="player"
 						:is-captions-supported="isCaptionsSupported()"
-						:mode="currentSource?.service === 'youtube' ? 'outside-video' : 'in-video'"
+						:mode="controlsMode"
 					/>
 				</div>
 				<div class="banners">
@@ -283,17 +283,24 @@ export default defineComponent({
 		 */
 		function activateVideoControls() {
 			setVideoControlsVisibility(true);
-			videoControlsHideTimeout.value = setTimeout(() => {
-				setVideoControlsVisibility(false);
-			}, VIDEO_CONTROLS_HIDE_TIMEOUT);
+			if (controlsMode.value !== "outside-video") {
+				videoControlsHideTimeout.value = setTimeout(() => {
+					setVideoControlsVisibility(false);
+				}, VIDEO_CONTROLS_HIDE_TIMEOUT);
+			}
 		}
 
 		watch([mouse.x, mouse.y], () => {
 			if (!store.state.room.isPlaying) {
+				setVideoControlsVisibility(true);
 				return;
 			}
 			activateVideoControls();
 		});
+
+		const controlsMode = computed(() =>
+			currentSource.value?.service === "youtube" ? "outside-video" : "in-video"
+		);
 
 		// actively calculate the current position of the video
 		const truePosition = ref(0);
@@ -665,6 +672,7 @@ export default defineComponent({
 
 			controlsVisible,
 			videoControlsHideTimeout,
+			controlsMode,
 
 			truePosition,
 			sliderPosition,
