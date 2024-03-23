@@ -13,9 +13,6 @@ force_https = true
 auto_stop_machines = true
 auto_start_machines = true
 
-[http_service.http_options]
-h2_backend = true
-
 [http_service.concurrency]
 type = "connections"
 soft_limit = 300
