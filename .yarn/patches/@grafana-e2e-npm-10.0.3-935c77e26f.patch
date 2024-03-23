@@ -1,0 +1,62 @@
+diff --git a/cypress.config.ts b/cypress.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..842bf6b897604fdf644afbaa511cad722a5ed82a
+--- /dev/null
++++ b/cypress.config.ts
+@@ -0,0 +1,8 @@
++import { defineConfig } from 'cypress'
++
++export default defineConfig({
++  projectId: 'zb7k1c',
++  videoCompression: 20,
++  viewportWidth: 1920,
++  viewportHeight: 1080,
++})
+diff --git a/cypress.json b/cypress.json
+deleted file mode 100644
+index 7eafaf4bf2bb640ae57961fa51c506ca64d5a894..0000000000000000000000000000000000000000
+--- a/cypress.json
++++ /dev/null
+@@ -1,7 +0,0 @@
+-{
+-  "projectId": "zb7k1c",
+-  "supportFile": "cypress/support/index.ts",
+-  "videoCompression": 20,
+-  "viewportWidth": 1920,
+-  "viewportHeight": 1080
+-}
+diff --git a/dist/index.js b/dist/index.js
+index d9d52b0601945493686aa9b5677028f668723153..f695486a1aca63b4514c25ddb0098608b4dda1ea 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -837,8 +837,6 @@ const e2eScenario = ({
+       afterEach(() => e2e.flows.revertAllChanges());
+       after(() => e2e().clearCookies());
+       it(itName, () => scenario());
+-      it("temporary", () => {
+-      });
+     }
+   });
+ };
+diff --git a/package.json b/package.json
+index 1ec28c6c56c2428245fd9d2d38a50970247ffb98..d1a042b77ec5137cefb9b898be05b6bbc84b882b 100644
+--- a/package.json
++++ b/package.json
+@@ -29,7 +29,7 @@
+     "cypress",
+     "dist",
+     "cli.js",
+-    "cypress.json",
++    "cypress.config.ts",
+     "./README.md",
+     "./CHANGELOG.md",
+     "LICENSE_APACHE2"
+@@ -70,7 +70,7 @@
+     "blink-diff": "1.0.13",
+     "chrome-remote-interface": "0.32.1",
+     "commander": "8.3.0",
+-    "cypress": "9.5.1",
++    "cypress": "13.7.1",
+     "cypress-file-upload": "5.0.8",
+     "devtools-protocol": "0.0.1113774",
+     "execa": "5.1.1",
