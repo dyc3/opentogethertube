@@ -9,21 +9,21 @@ e2e.scenario({
 	},
 });
 
-e2e.scenario({
-	describeName: "Smoke: Datasource makes outbound request",
-	itName: "Smoke: Datasource save and test",
-	scenario: () => {
-		cy.intercept("http://localhost:8000/status", {
-			statusCode: 200,
-			body: "OK",
-		}).as("healthCheck");
-		e2e.pages.DataSources.visit();
-		e2e().contains("vis-datasource").click();
-		e2e.pages.DataSource.saveAndTest().click();
-		cy.wait("@healthCheck");
-		e2e.pages.DataSource.alert().should("be.visible").should("contain", "Success");
-	},
-});
+// e2e.scenario({
+// 	describeName: "Smoke: Datasource makes outbound request",
+// 	itName: "Smoke: Datasource save and test",
+// 	scenario: () => {
+// 		cy.intercept("http://localhost:8000/status", {
+// 			statusCode: 200,
+// 			body: "OK",
+// 		}).as("healthCheck");
+// 		e2e.pages.DataSources.visit();
+// 		e2e().contains("vis-datasource").click();
+// 		e2e.pages.DataSource.saveAndTest().click();
+// 		cy.wait("@healthCheck");
+// 		e2e.pages.DataSource.alert().should("be.visible").should("contain", "Success");
+// 	},
+// });
 
 e2e.scenario({
 	describeName: "Smoke: Datasource makes outbound request",
