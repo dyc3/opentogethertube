@@ -16,7 +16,8 @@ import roommanager from "../../roommanager";
 import { loadModels } from "../../models";
 import type { Request } from "express";
 import { loadConfigFile, conf } from "../../ott-config";
-import { M2BInit } from "server/generated";
+import { M2BInit, type MsgB2M } from "server/generated";
+import { v4 as uuidv4 } from "uuid";
 
 class TestClient extends Client {
 	sendRawMock = vi.fn();
@@ -34,6 +35,7 @@ class TestClient extends Client {
 
 class BalancerConnectionMock extends BalancerConnection {
 	sendMock = vi.fn<[MsgM2B], void>();
+	disconnectMock = vi.fn<[], void>();
 
 	constructor() {
 		super();
@@ -42,6 +44,21 @@ class BalancerConnectionMock extends BalancerConnection {
 	send(msg: MsgM2B): Result<void, Error> {
 		this.sendMock(msg);
 		return ok(undefined);
+	}
+
+	disconnect(): Result<void, Error> {
+		this.disconnectMock();
+		return ok(undefined);
+	}
+
+	async emitInit() {
+		const init: MsgB2M = {
+			type: "init",
+			payload: {
+				id: this.id,
+			},
+		};
+		this.emit("message", init);
 	}
 
 	public emit<E extends BalancerConnectionEvents>(
@@ -135,6 +152,7 @@ describe("ClientManager", () => {
 	it("should disconnect all clients when a balancer disconnects", async () => {
 		const mockBalancerCon = new BalancerConnectionMock();
 		balancerManager.addBalancerConnection(mockBalancerCon);
+		await mockBalancerCon.emitInit();
 		const client = new BalancerClient("foo", "foo", mockBalancerCon);
 		clientmanager.addClient(client);
 		client.emit("auth", client, "token", { isLoggedIn: false, username: "foo" });
@@ -153,7 +171,9 @@ describe("ClientManager", () => {
 		const mockBalancerCon = new BalancerConnectionMock();
 		const mockBalancerCon2 = new BalancerConnectionMock();
 		balancerManager.addBalancerConnection(mockBalancerCon);
+		await mockBalancerCon.emitInit();
 		balancerManager.addBalancerConnection(mockBalancerCon2);
+		await mockBalancerCon2.emitInit();
 		const client1 = new BalancerClient("foo", "foo1", mockBalancerCon);
 		const client2 = new BalancerClient("foo", "foo2", mockBalancerCon);
 		const client3 = new TestClient("foo");
@@ -186,14 +206,17 @@ describe("BalancerManager", () => {
 		balancerManager.balancerConnections.splice(0, balancerManager.balancerConnections.length);
 	});
 
-	it("should remove the correct balancer from the list when it disconnects", () => {
+	it("should remove the correct balancer from the list when it disconnects", async () => {
 		const con1 = new BalancerConnectionMock();
 		const con2 = new BalancerConnectionMock();
 		const con3 = new BalancerConnectionMock();
 
 		balancerManager.addBalancerConnection(con1);
+		await con1.emitInit();
 		balancerManager.addBalancerConnection(con2);
+		await con2.emitInit();
 		balancerManager.addBalancerConnection(con3);
+		await con3.emitInit();
 
 		expect(balancerManager.balancerConnections).toHaveLength(3);
 
@@ -201,6 +224,15 @@ describe("BalancerManager", () => {
 
 		expect(balancerManager.balancerConnections).toHaveLength(2);
 		expect(balancerManager.balancerConnections).not.toContain(con2);
+	});
+
+	it("should not add balancers before they send the init message", async () => {
+		const con1 = new BalancerConnectionMock();
+
+		balancerManager.addBalancerConnection(con1);
+		expect(balancerManager.balancerConnections).toHaveLength(0);
+		await con1.emitInit();
+		expect(balancerManager.balancerConnections).toHaveLength(1);
 	});
 });
 

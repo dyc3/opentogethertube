@@ -55,23 +55,52 @@ class BalancerManager {
 	balancerConnections: BalancerConnection[] = [];
 	bus = new EventEmitter();
 
-	addBalancerConnection(conn: BalancerConnection) {
-		this.balancerConnections.push(conn);
-		this.onBalancerConnect(conn);
+	async addBalancerConnection(conn: BalancerConnection) {
+		this.onBalancerPreconnect(conn);
 		conn.on("connect", () => this.onBalancerConnect(conn));
 		conn.on("disconnect", (code, reason) => this.onBalancerDisconnect(conn, code, reason));
-		conn.on("message", msg => this.onBalancerMessage(conn, msg));
 		conn.on("error", error => this.onBalancerError(conn, error));
+
+		const waitForInit = new Promise<void>((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				conn.disconnect();
+				reject(new Error("Balancer did not send init message"));
+			}, 1000 * 10);
+			const handler = (msg: MsgB2M) => {
+				if (msg.type === "init") {
+					conn.id = msg.payload.id;
+					conn.off("message", handler);
+					conn.off("disconnect", disconnectHandler);
+					clearTimeout(timeout);
+					resolve();
+				}
+			};
+			const disconnectHandler = () => {
+				clearTimeout(timeout);
+				reject(new Error("Balancer disconnected before sending init message"));
+			};
+			conn.on("message", handler);
+			conn.on("disconnect", disconnectHandler);
+		});
+
+		try {
+			log.debug("Waiting for balancer init message");
+			await waitForInit;
+		} catch (e) {
+			log.error(`Balancer did not send init message in time: ${e}`);
+			return;
+		}
+
+		conn.on("message", msg => this.onBalancerMessage(conn, msg));
+		this.onBalancerConnect(conn);
+		this.balancerConnections.push(conn);
 	}
 
 	getConnection(id: string): BalancerConnection | undefined {
 		return this.balancerConnections.find(conn => conn.id === id);
 	}
 
-	private onBalancerConnect(conn: BalancerConnection) {
-		log.info(`Connected to balancer ${conn.id}`);
-		this.emit("connect", conn);
-
+	private onBalancerPreconnect(conn: BalancerConnection) {
 		const init: MsgM2B = {
 			type: "init",
 			payload: {
@@ -81,6 +110,11 @@ class BalancerManager {
 			},
 		};
 		conn.send(init);
+	}
+
+	private onBalancerConnect(conn: BalancerConnection) {
+		log.info(`Connected to balancer ${conn.id}`);
+		this.emit("connect", conn);
 	}
 
 	private onBalancerDisconnect(conn: BalancerConnection, code: number, reason: string) {
@@ -159,7 +193,13 @@ export abstract class BalancerConnection {
 		this.bus.on(event, handler);
 	}
 
+	off<E extends BalancerConnectionEvents>(event: E, handler: BalancerConnectionEventHandlers<E>) {
+		this.bus.off(event, handler);
+	}
+
 	abstract send(message: MsgM2B): Result<void, Error>;
+
+	abstract disconnect(): Result<void, Error>;
 }
 
 /** Manages the websocket connection to a Balancer. */
