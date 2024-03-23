@@ -38,6 +38,8 @@ import {
 	OttApiRequestAccountRecoveryStartSchema,
 	OttApiRequestAccountRecoveryVerifySchema,
 } from "ott-common/models/zod-schemas";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -754,7 +756,7 @@ const accountRecoveryStart: RequestHandler<
 	}
 
 	const query = {
-		user: body.email ?? body.username,
+		user: (body as { email?: string }).email ?? (body as { username?: string })?.username,
 	};
 	const user = await getUser(query);
 
@@ -883,6 +885,14 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 		res.status(400).json({
 			success: false,
 			error: err,
+		});
+	} else if (err instanceof ZodError) {
+		err = fromZodError(err);
+		res.status(400).json({
+			success: false,
+			error: {
+				name: err.name,
+			},
 		});
 	} else {
 		log.error(`Unhandled exception: path=${req.path} ${err.name} ${err.message} ${err.stack}`);
