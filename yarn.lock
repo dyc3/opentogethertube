@@ -1673,32 +1673,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cypress/request@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "@cypress/request@npm:3.0.1"
-  dependencies:
-    aws-sign2: "npm:~0.7.0"
-    aws4: "npm:^1.8.0"
-    caseless: "npm:~0.12.0"
-    combined-stream: "npm:~1.0.6"
-    extend: "npm:~3.0.2"
-    forever-agent: "npm:~0.6.1"
-    form-data: "npm:~2.3.2"
-    http-signature: "npm:~1.3.6"
-    is-typedarray: "npm:~1.0.0"
-    isstream: "npm:~0.1.2"
-    json-stringify-safe: "npm:~5.0.1"
-    mime-types: "npm:~2.1.19"
-    performance-now: "npm:^2.1.0"
-    qs: "npm:6.10.4"
-    safe-buffer: "npm:^5.1.2"
-    tough-cookie: "npm:^4.1.3"
-    tunnel-agent: "npm:^0.6.0"
-    uuid: "npm:^8.3.2"
-  checksum: 10c0/8eb92a665e6549e2533f5169431addcaad0307f51a8c7f3b6b169eb79b4d673373784a527590a47b0a2905ad5f601b24ab2d1b31d184243235aba470ffc9c1f7
-  languageName: node
-  linkType: hard
-
 "@cypress/vue@npm:^5.0.3":
   version: 5.0.4
   resolution: "@cypress/vue@npm:5.0.4"
@@ -2405,40 +2379,6 @@ __metadata:
   bin:
     grafana-e2e: bin/grafana-e2e.js
   checksum: 10c0/81e5f717e38d51edfe42aae5ccd962759fb80071de247e6991ec0786b9c0f9f4d53bc100461e412b415acc812df647e20803d24e5709fc46a54d2407628e18b3
-  languageName: node
-  linkType: hard
-
-"@grafana/e2e@patch:@grafana/e2e@npm%3A10.0.3#~/.yarn/patches/@grafana-e2e-npm-10.0.3-935c77e26f.patch":
-  version: 10.0.3
-  resolution: "@grafana/e2e@patch:@grafana/e2e@npm%3A10.0.3#~/.yarn/patches/@grafana-e2e-npm-10.0.3-935c77e26f.patch::version=10.0.3&hash=207455"
-  dependencies:
-    "@babel/core": "npm:7.20.5"
-    "@babel/preset-env": "npm:7.20.2"
-    "@cypress/webpack-preprocessor": "npm:5.17.0"
-    "@grafana/e2e-selectors": "npm:10.0.3"
-    "@grafana/tsconfig": "npm:^1.2.0-rc1"
-    "@mochajs/json-file-reporter": "npm:^1.2.0"
-    babel-loader: "npm:9.1.2"
-    blink-diff: "npm:1.0.13"
-    chrome-remote-interface: "npm:0.32.1"
-    commander: "npm:8.3.0"
-    cypress: "npm:9.5.1"
-    cypress-file-upload: "npm:5.0.8"
-    devtools-protocol: "npm:0.0.1113774"
-    execa: "npm:5.1.1"
-    lodash: "npm:4.17.21"
-    mocha: "npm:10.2.0"
-    resolve-bin: "npm:1.0.1"
-    rimraf: "npm:4.4.0"
-    tracelib: "npm:1.0.1"
-    ts-loader: "npm:8.4.0"
-    tslib: "npm:2.5.0"
-    typescript: "npm:4.8.4"
-    uuid: "npm:9.0.0"
-    yaml: "npm:^2.0.0"
-  bin:
-    grafana-e2e: bin/grafana-e2e.js
-  checksum: 10c0/a6d4f622485a887e88ad97f11f8d6f5ff606385fbede8c7c29f321674810f3919ffe1d7b477fbfd2c5d1a4a56658fdd35efc13d19e43665be14c8dde6b8f556e
   languageName: node
   linkType: hard
 
@@ -7652,7 +7592,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"buffer@npm:^5.6.0, buffer@npm:^5.7.1":
+"buffer@npm:^5.6.0":
   version: 5.7.1
   resolution: "buffer@npm:5.7.1"
   dependencies:
@@ -8753,58 +8693,6 @@ __metadata:
   bin:
     cypress: bin/cypress
   checksum: 10c0/d19a52f111c68c57e49689388f506af789aeaf669c51f4bfe4c6dd45b6cc9d632c9efd5508860a4238154d323685e6c710649755af099823fc255bd455dffb69
-  languageName: node
-  linkType: hard
-
-"cypress@npm:13.7.1":
-  version: 13.7.1
-  resolution: "cypress@npm:13.7.1"
-  dependencies:
-    "@cypress/request": "npm:^3.0.0"
-    "@cypress/xvfb": "npm:^1.2.4"
-    "@types/sinonjs__fake-timers": "npm:8.1.1"
-    "@types/sizzle": "npm:^2.3.2"
-    arch: "npm:^2.2.0"
-    blob-util: "npm:^2.0.2"
-    bluebird: "npm:^3.7.2"
-    buffer: "npm:^5.7.1"
-    cachedir: "npm:^2.3.0"
-    chalk: "npm:^4.1.0"
-    check-more-types: "npm:^2.24.0"
-    cli-cursor: "npm:^3.1.0"
-    cli-table3: "npm:~0.6.1"
-    commander: "npm:^6.2.1"
-    common-tags: "npm:^1.8.0"
-    dayjs: "npm:^1.10.4"
-    debug: "npm:^4.3.4"
-    enquirer: "npm:^2.3.6"
-    eventemitter2: "npm:6.4.7"
-    execa: "npm:4.1.0"
-    executable: "npm:^4.1.1"
-    extract-zip: "npm:2.0.1"
-    figures: "npm:^3.2.0"
-    fs-extra: "npm:^9.1.0"
-    getos: "npm:^3.2.1"
-    is-ci: "npm:^3.0.1"
-    is-installed-globally: "npm:~0.4.0"
-    lazy-ass: "npm:^1.6.0"
-    listr2: "npm:^3.8.3"
-    lodash: "npm:^4.17.21"
-    log-symbols: "npm:^4.0.0"
-    minimist: "npm:^1.2.8"
-    ospath: "npm:^1.2.2"
-    pretty-bytes: "npm:^5.6.0"
-    process: "npm:^0.11.10"
-    proxy-from-env: "npm:1.0.0"
-    request-progress: "npm:^3.0.0"
-    semver: "npm:^7.5.3"
-    supports-color: "npm:^8.1.1"
-    tmp: "npm:~0.2.1"
-    untildify: "npm:^4.0.0"
-    yauzl: "npm:^2.10.0"
-  bin:
-    cypress: bin/cypress
-  checksum: 10c0/d6e35e4aa083afd9e78611bbd6fffd71371e024229f758cd834fcaa7ce7a6ce47a1ac3f43c7659c71df02aa146cc9d228ac3aa1073c1c5893b8759b687b8e61c
   languageName: node
   linkType: hard
 
@@ -12506,7 +12394,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-ci@npm:^3.0.0, is-ci@npm:^3.0.1":
+"is-ci@npm:^3.0.0":
   version: 3.0.1
   resolution: "is-ci@npm:3.0.1"
   dependencies:
@@ -15693,7 +15581,7 @@ __metadata:
     "@babel/core": "npm:^7.21.4"
     "@emotion/css": "npm:11.10.6"
     "@grafana/data": "npm:10.0.3"
-    "@grafana/e2e": "patch:@grafana/e2e@npm%3A10.0.3#~/.yarn/patches/@grafana-e2e-npm-10.0.3-935c77e26f.patch"
+    "@grafana/e2e": "npm:10.0.3"
     "@grafana/e2e-selectors": "npm:10.0.3"
     "@grafana/eslint-config": "npm:^6.0.0"
     "@grafana/runtime": "npm:10.0.3"
@@ -15712,7 +15600,7 @@ __metadata:
     "@types/testing-library__jest-dom": "npm:5.14.8"
     copy-webpack-plugin: "npm:^11.0.0"
     css-loader: "npm:^6.7.3"
-    cypress: "npm:13.7.1"
+    cypress: "npm:9.5.1"
     eslint: "npm:^8.57.0"
     eslint-plugin-deprecation: "npm:^2.0.0"
     eslint-plugin-jest: "npm:^27.9.0"
@@ -15749,7 +15637,7 @@ __metadata:
     "@babel/core": "npm:^7.21.4"
     "@emotion/css": "npm:11.10.6"
     "@grafana/data": "npm:10.0.3"
-    "@grafana/e2e": "patch:@grafana/e2e@npm%3A10.0.3#~/.yarn/patches/@grafana-e2e-npm-10.0.3-935c77e26f.patch"
+    "@grafana/e2e": "npm:10.0.3"
     "@grafana/e2e-selectors": "npm:10.0.3"
     "@grafana/eslint-config": "npm:^6.0.0"
     "@grafana/runtime": "npm:10.0.3"
@@ -16758,15 +16646,6 @@ __metadata:
   version: 6.0.2
   resolution: "pure-rand@npm:6.0.2"
   checksum: 10c0/0556bee2e16a8d081a2b7630d9cb4e5dafd4e6bd6e4c61de1cf1ef5974f127847523e3d0e62884f6f5d64b66a5e93b05bd8f37ed009f3a4fe5089899e05914aa
-  languageName: node
-  linkType: hard
-
-"qs@npm:6.10.4":
-  version: 6.10.4
-  resolution: "qs@npm:6.10.4"
-  dependencies:
-    side-channel: "npm:^1.0.4"
-  checksum: 10c0/7a8c9d77968aeccb769aedd7e047c0e0109dad0cfa57cab1ad906f4069fd58f361b80abd2de5854ba9a09b4c5d06d6a2c82108766f1f1527572fe6130deaa471
   languageName: node
   linkType: hard
 
@@ -19838,18 +19717,6 @@ __metadata:
     universalify: "npm:^0.2.0"
     url-parse: "npm:^1.5.3"
   checksum: 10c0/1f9d97bc9ff22b41e107eca4a146064f916e567b5557795dbfe742f098557ba1101b8f7c4e02ac785236663f7f086c37dc595a5b9813ef8fb27f8d800dc9eb9b
-  languageName: node
-  linkType: hard
-
-"tough-cookie@npm:^4.1.3":
-  version: 4.1.3
-  resolution: "tough-cookie@npm:4.1.3"
-  dependencies:
-    psl: "npm:^1.1.33"
-    punycode: "npm:^2.1.1"
-    universalify: "npm:^0.2.0"
-    url-parse: "npm:^1.5.3"
-  checksum: 10c0/4fc0433a0cba370d57c4b240f30440c848906dee3180bb6e85033143c2726d322e7e4614abb51d42d111ebec119c4876ed8d7247d4113563033eebbc1739c831
   languageName: node
   linkType: hard
 
