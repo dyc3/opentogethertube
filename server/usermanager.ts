@@ -745,6 +745,11 @@ async function isEmailTaken(email: string): Promise<boolean> {
 		.then(room => (room ? true : false))
 		.catch(() => false);
 }
+
+function isEmailRequest(request: OttApiRequestAccountRecoveryStart): request is { email: string } {
+	return "email" in request;
+}
+
 const accountRecoveryStart: RequestHandler<
 	unknown,
 	OttResponseBody<{}>,
@@ -756,13 +761,16 @@ const accountRecoveryStart: RequestHandler<
 	}
 
 	const query = {
-		user: (body as { email?: string }).email ?? (body as { username?: string })?.username,
+		user: isEmailRequest(body) ? body.email : body.username,
 	};
+
 	const user = await getUser(query);
 
-	if (user.email) {
-		(await sendPasswordResetEmail(user.email)).unwrap();
+	if (!user.email) {
+		throw new NoEmail();
 	}
+
+	(await sendPasswordResetEmail(user.email)).unwrap();
 
 	res.json({
 		success: true,
