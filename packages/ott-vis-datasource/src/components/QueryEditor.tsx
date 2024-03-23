@@ -34,11 +34,21 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
 					step="0.1"
 				/>
 			</InlineField>
-			<InlineField label="Query Text" labelWidth={16} tooltip="Not used yet" data-testid="vis-query-text">
+			<InlineField
+				label="Query Text"
+				labelWidth={16}
+				tooltip="Not used yet"
+				data-testid="vis-query-text"
+			>
 				<Input onChange={onQueryTextChange} value={queryText || ""} />
 			</InlineField>
 			<InlineField label="Stream">
-				<Input type="checkbox" onChange={onQueryStreamChange} checked={stream} data-testid="vis-stream" />
+				<Input
+					type="checkbox"
+					onChange={onQueryStreamChange}
+					checked={stream}
+					data-testid="vis-stream"
+				/>
 			</InlineField>
 		</div>
 	);

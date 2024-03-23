@@ -40,5 +40,5 @@ e2e.scenario({
 		e2e.components.RefreshPicker.runButtonV2().click();
 		cy.wait("@getState");
 		e2e.pages.Explore.General.table().should("be.visible");
-	}
+	},
 });
