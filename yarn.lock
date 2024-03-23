@@ -15600,6 +15600,7 @@ __metadata:
     "@types/testing-library__jest-dom": "npm:5.14.8"
     copy-webpack-plugin: "npm:^11.0.0"
     css-loader: "npm:^6.7.3"
+    cypress: "npm:9.5.1"
     eslint: "npm:^8.57.0"
     eslint-plugin-deprecation: "npm:^2.0.0"
     eslint-plugin-jest: "npm:^27.9.0"

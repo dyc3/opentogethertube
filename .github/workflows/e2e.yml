@@ -186,6 +186,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - run: yarn workspace ${{ matrix.package }} build
+
       - name: Check for backend
         id: check-for-backend
         working-directory: packages/${{ matrix.package }}
