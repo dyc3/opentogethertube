@@ -26,6 +26,9 @@ export default {
 		"success": "Success",
 		"vote": "Vote",
 		"unvote": "Unvote",
+		"errors": {
+			"rate-limit": "Rate limit exceeded. Please try again in {duration} seconds.",
+		},
 	},
 	"behavior": {
 		[BehaviorOption.Always]: "Always",

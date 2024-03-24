@@ -200,6 +200,7 @@ export const AddPreview = defineComponent({
 				hasAddPreviewFailed.value = true;
 				videosLoadFailureText.value = t("add-preview.messages.unknown-error");
 				console.error("Failed to get add preview", err);
+				let unknownFail = true;
 				if (axios.isAxiosError(err) && err.response) {
 					console.error(
 						`add preview response: ${err.response.status}`,
@@ -207,6 +208,7 @@ export const AddPreview = defineComponent({
 					);
 
 					if (err.response.status === 400) {
+						unknownFail = false;
 						videosLoadFailureText.value = err.response.data.error.message;
 						if (
 							err.response.data.error.name === "FeatureDisabledException" &&
@@ -219,14 +221,21 @@ export const AddPreview = defineComponent({
 								"_blank"
 							);
 						}
+					} else if (err.response.status === 429) {
+						unknownFail = false;
+						videosLoadFailureText.value = t("common.errors.rate-limited", {
+							duration: err.response.headers["Retry-After"],
+						});
 					}
 				}
 
-				toast.add({
-					style: ToastStyle.Error,
-					content: t("add-preview.messages.failed-to-get-add-preview"),
-					duration: 6000,
-				});
+				if (unknownFail) {
+					toast.add({
+						style: ToastStyle.Error,
+						content: t("add-preview.messages.failed-to-get-add-preview"),
+						duration: 6000,
+					});
+				}
 			} finally {
 				isLoadingAddPreview.value = false;
 			}
