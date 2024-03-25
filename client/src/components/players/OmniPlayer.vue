@@ -123,7 +123,7 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
-import { useVolume } from "../composables";
+import { MediaPlayerV2, useMediaControls, useVolume } from "../composables";
 
 const services = [
 	"youtube",
@@ -150,8 +150,8 @@ export interface MediaPlayer {
 	 */
 	pause(): void | Promise<void>;
 	setVolume(volume: number): void | Promise<void>;
-	getPosition(): number | Promise<number>;
-	setPosition(position: number): void | Promise<void>;
+	getPosition(): number;
+	setPosition(position: number): void;
 
 	isCaptionsSupported(): boolean;
 	getAvailablePlaybackRates(): number[];
@@ -193,6 +193,41 @@ export default defineComponent({
 
 		const player: Ref<MediaPlayer | null> = ref(null);
 
+		class OmniMediaPlayer extends MediaPlayerV2 {
+			constructor() {
+				super();
+			}
+
+			async play(): Promise<void> {
+				if (!checkForPlayer(player.value)) {
+					return Promise.reject("Player not available yet");
+				}
+				return player.value.play();
+			}
+			async pause(): Promise<void> {
+				if (!checkForPlayer(player.value)) {
+					return Promise.reject("Player not available yet");
+				}
+				return player.value.pause();
+			}
+			getPosition(): number {
+				if (!checkForPlayer(player.value)) {
+					return 0;
+				}
+				return player.value.getPosition();
+			}
+			setPosition(position: number): void {
+				if (!checkForPlayer(player.value)) {
+					return;
+				}
+				return player.value.setPosition(position);
+			}
+		}
+
+		const player2: MediaPlayerV2 = new OmniMediaPlayer();
+		const controls = ref(useMediaControls());
+		controls.value.setPlayer(player2);
+
 		function checkForPlayer(p: MediaPlayer | null): p is MediaPlayer {
 			if (!p) {
 				console.warn(
@@ -214,35 +249,11 @@ export default defineComponent({
 
 		const isPlayerPresent = computed(() => !!player.value);
 
-		function play(): void | Promise<void> {
-			if (!checkForPlayer(player.value)) {
-				return Promise.reject("Player not available yet");
-			}
-			return player.value.play();
-		}
-		function pause(): void | Promise<void> {
-			if (!checkForPlayer(player.value)) {
-				return Promise.reject("Player not available yet");
-			}
-			return player.value.pause();
-		}
 		function setVolume(volume: number) {
 			if (!checkForPlayer(player.value)) {
 				return Promise.reject("Player not available yet");
 			}
 			return player.value.setVolume(volume);
-		}
-		function getPosition() {
-			if (!checkForPlayer(player.value)) {
-				return 0;
-			}
-			return player.value.getPosition();
-		}
-		function setPosition(position: number) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			return player.value.setPosition(position);
 		}
 		function isCaptionsSupported() {
 			if (!checkForPlayer(player.value)) {
@@ -363,11 +374,13 @@ export default defineComponent({
 
 		function onPlaying() {
 			hackReadyEdgeCase();
+			player2.playing.value = true;
 			emit("playing");
 		}
 
 		function onPaused() {
 			hackReadyEdgeCase();
+			player2.playing.value = false;
 			emit("paused");
 		}
 
@@ -433,11 +446,8 @@ export default defineComponent({
 			isPlayerPresent,
 			showBufferWarning,
 			renderedSpans,
-			play,
-			pause,
+			controls,
 			setVolume,
-			getPosition,
-			setPosition,
 			isCaptionsSupported,
 			isCaptionsEnabled,
 			setCaptionsEnabled,

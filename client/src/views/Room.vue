@@ -236,7 +236,7 @@ import VoteSkip from "@/components/VoteSkip.vue";
 import { waitForToken } from "@/util/token";
 import { useSfx } from "@/plugins/sfx";
 import { secondsToTimestamp } from "@/util/timestamp";
-import { useVolume } from "@/components/composables";
+import { useMediaControls, useVolume } from "@/components/composables";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -342,10 +342,10 @@ export default defineComponent({
 			if (!isPlayerPresent(player)) {
 				return;
 			}
-			const currentTime = await player.value.getPosition();
+			const currentTime = mediaControls.getPosition();
 
 			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
-				player.value.setPosition(newPosition);
+				mediaControls.setPosition(newPosition);
 			}
 		});
 
@@ -455,6 +455,7 @@ export default defineComponent({
 		// Indicates that starting playback is blocked by the browser. This usually means that the user needs
 		// to interact with the page before playback can start. This is because browsers block autoplaying videos.
 		const mediaPlaybackBlocked = ref(false);
+		const mediaControls = useMediaControls();
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
 			await waitForPlayer();
@@ -463,9 +464,9 @@ export default defineComponent({
 			}
 			try {
 				if (playing) {
-					await player.value.play();
+					await mediaControls.play();
 				} else {
-					await player.value.pause();
+					await mediaControls.pause();
 				}
 				mediaPlaybackBlocked.value = false;
 				return;
@@ -479,7 +480,7 @@ export default defineComponent({
 		}
 
 		function onClickUnblockPlayback(): void {
-			player.value?.setPosition(truePosition.value);
+			mediaControls.setPosition(truePosition.value);
 			applyIsPlaying(store.state.room.isPlaying);
 		}
 
