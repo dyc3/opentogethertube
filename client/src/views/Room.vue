@@ -231,12 +231,12 @@ import { ServerMessageSync } from "ott-common/models/messages";
 import { useScreenOrientation, useMouse } from "@vueuse/core";
 import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
 import VideoControls from "@/components/controls/VideoControls.vue";
-import { VOLUME_KEY } from "@/components/controls/controlkeys";
 import RestoreQueue from "@/components/RestoreQueue.vue";
 import VoteSkip from "@/components/VoteSkip.vue";
 import { waitForToken } from "@/util/token";
 import { useSfx } from "@/plugins/sfx";
 import { secondsToTimestamp } from "@/util/timestamp";
+import { useVolume } from "@/components/composables";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -432,8 +432,7 @@ export default defineComponent({
 
 		// player management
 		const player = ref<typeof OmniPlayer | null>(null);
-		const volume = ref(100);
-		provide(VOLUME_KEY, [volume, updateVolume]);
+		const volume = useVolume();
 
 		function isPlayerPresent(p: Ref<typeof OmniPlayer | null>): p is Ref<typeof OmniPlayer> {
 			return !!p.value;
@@ -484,25 +483,6 @@ export default defineComponent({
 			applyIsPlaying(store.state.room.isPlaying);
 		}
 
-		function updateVolume(value: number | undefined = undefined) {
-			if (value !== undefined) {
-				volume.value = value;
-			}
-			if (!isPlayerPresent(player)) {
-				return;
-			}
-			player.value.setVolume(volume.value);
-		}
-
-		onMounted(() => {
-			volume.value = store.state.settings.volume;
-		});
-
-		watch(volume, () => {
-			updateVolume();
-			store.commit("settings/UPDATE", { volume: volume.value });
-		});
-
 		function onPlayerApiReady() {
 			console.debug("internal player API is now ready");
 		}
@@ -514,7 +494,6 @@ export default defineComponent({
 			} else {
 				activateVideoControls();
 			}
-			updateVolume();
 			if (changeTo === store.state.room.isPlaying) {
 				return;
 			}

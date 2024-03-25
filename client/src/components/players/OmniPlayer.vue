@@ -123,6 +123,7 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
+import { useVolume } from "../composables";
 
 const services = [
 	"youtube",
@@ -191,12 +192,6 @@ export default defineComponent({
 		const store = useStore();
 
 		const player: Ref<MediaPlayer | null> = ref(null);
-		watch(player, () => {
-			console.debug("Player changed", player.value);
-			if (player.value) {
-				player.value.setVolume(store.state.settings.volume);
-			}
-		});
 
 		function checkForPlayer(p: MediaPlayer | null): p is MediaPlayer {
 			if (!p) {
@@ -333,8 +328,22 @@ export default defineComponent({
 			}
 		);
 
+		const volume = useVolume();
+		watch(volume, v => {
+			if (player.value) {
+				player.value.setVolume(v);
+			}
+		});
+		watch(player, () => {
+			console.debug("Player changed", player.value);
+			if (player.value) {
+				player.value.setVolume(volume.value);
+			}
+		});
+
 		// player events re-emitted or data stored
 		function onApiReady() {
+			setVolume(volume.value);
 			emit("apiready");
 		}
 
