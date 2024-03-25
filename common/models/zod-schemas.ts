@@ -44,7 +44,7 @@ export const OttApiRequestRemoveFromQueueSchema = z.object({
 
 export const OttApiRequestAccountRecoveryStartSchema = z.union([
 	z.object({
-		email: z.string().email(),
+		email: z.string().email().min(3),
 	}),
 	z.object({
 		username: z.string(),
