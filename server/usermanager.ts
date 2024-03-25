@@ -34,6 +34,12 @@ import type {
 } from "ott-common/models/rest-api";
 import { counterHttpErrors } from "./metrics";
 import { OttException } from "ott-common/exceptions";
+import {
+	OttApiRequestAccountRecoveryStartSchema,
+	OttApiRequestAccountRecoveryVerifySchema,
+} from "ott-common/models/zod-schemas";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -739,25 +745,25 @@ async function isEmailTaken(email: string): Promise<boolean> {
 		.then(room => (room ? true : false))
 		.catch(() => false);
 }
+
+function isEmailRequest(request: OttApiRequestAccountRecoveryStart): request is { email: string } {
+	return "email" in request;
+}
+
 const accountRecoveryStart: RequestHandler<
 	unknown,
 	OttResponseBody<{}>,
 	OttApiRequestAccountRecoveryStart
 > = async (req, res) => {
+	const body = OttApiRequestAccountRecoveryStartSchema.parse(req.body);
 	if (conf.get("rate_limit.enabled")) {
 		await consumeRateLimitPoints(res, req.ip, 100);
 	}
 
-	if (!("email" in req.body) && !("username" in req.body)) {
-		throw new BadApiArgumentException(
-			"email,username",
-			"Either email or username is required."
-		);
-	}
-
 	const query = {
-		user: req.body.email ?? req.body.username,
+		user: isEmailRequest(body) ? body.email : body.username,
 	};
+
 	const user = await getUser(query);
 
 	if (!user.email) {
@@ -776,22 +782,17 @@ const accountRecoveryVerify: RequestHandler<
 	OttResponseBody<{}>,
 	OttApiRequestAccountRecoveryVerify
 > = async (req, res) => {
-	if (!("verifyKey" in req.body)) {
-		throw new BadApiArgumentException("verifyKey", "missing");
-	}
-	if (!("newPassword" in req.body)) {
-		throw new BadApiArgumentException("newPassword", "missing");
-	}
+	const body = OttApiRequestAccountRecoveryVerifySchema.parse(req.body);
 
 	if (conf.get("rate_limit.enabled")) {
 		await consumeRateLimitPoints(res, req.ip, 10);
 	}
 
-	if (!isPasswordValid(req.body.newPassword)) {
+	if (!isPasswordValid(body.newPassword)) {
 		throw new BadPasswordError();
 	}
 
-	const accountEmail = await redisClient.get(`accountrecovery:${req.body.verifyKey}`);
+	const accountEmail = await redisClient.get(`accountrecovery:${body.verifyKey}`);
 	if (!accountEmail) {
 		throw new InvalidVerifyKey();
 	}
@@ -801,12 +802,12 @@ const accountRecoveryVerify: RequestHandler<
 		throw new UserNotFound();
 	}
 
-	await changeUserPassword(user, req.body.newPassword, {
+	await changeUserPassword(user, body.newPassword, {
 		// we already validated the password above
 		validatePassword: false,
 	});
 
-	await redisClient.del(`accountrecovery:${req.body.verifyKey}`);
+	await redisClient.del(`accountrecovery:${body.verifyKey}`);
 
 	if (req.token) {
 		await tokens.setSessionInfo(req.token, { isLoggedIn: true, user_id: user.id });
@@ -892,6 +893,14 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 		res.status(400).json({
 			success: false,
 			error: err,
+		});
+	} else if (err instanceof ZodError) {
+		err = fromZodError(err);
+		res.status(400).json({
+			success: false,
+			error: {
+				name: err.name,
+			},
 		});
 	} else {
 		log.error(`Unhandled exception: path=${req.path} ${err.name} ${err.message} ${err.stack}`);

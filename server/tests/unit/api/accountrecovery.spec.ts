@@ -29,7 +29,7 @@ describe("Account Recovery", () => {
 		app = (await main()).app;
 
 		emailUser = await usermanager.registerUser({
-			email: "email@localhost",
+			email: "email@localhost.com",
 			username: "email user",
 			password: "test1234",
 		});
@@ -60,7 +60,7 @@ describe("Account Recovery", () => {
 	});
 
 	it.each([
-		["email", "email@localhost"],
+		["email", "email@localhost.com"],
 		["username", "email user"],
 	])(
 		"should send a recovery email when using %s field in request",
@@ -77,7 +77,7 @@ describe("Account Recovery", () => {
 			const mailer: MockMailer = usermanager.mailer as MockMailer;
 			expect(mailer.sentEmails).toHaveLength(1);
 			expect(mailer.sentEmails[0]).toMatchObject({
-				to: "email@localhost",
+				to: "email@localhost.com",
 			});
 		}
 	);
@@ -115,7 +115,7 @@ describe("Account Recovery", () => {
 	);
 
 	it("should change the password when the verify key is valid", async () => {
-		await redisClient.set("accountrecovery:foo", "email@localhost");
+		await redisClient.set("accountrecovery:foo", "email@localhost.com");
 
 		const body: OttApiRequestAccountRecoveryVerify = {
 			verifyKey: "foo",
@@ -139,7 +139,7 @@ describe("Account Recovery", () => {
 		{ verifyKey: "foo", newPassword: "asdf" },
 		{ verifyKey: "bar", newPassword: "asdf1234" },
 	])("should not change the password when the request is bad: %s", async (body: any) => {
-		await redisClient.set("accountrecovery:foo", "email@localhost");
+		await redisClient.set("accountrecovery:foo", "email@localhost.com");
 
 		const resp = await request(app)
 			.post("/api/user/recover/verify")
