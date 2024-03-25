@@ -123,7 +123,7 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
-import { MediaPlayerV2, useMediaControls, useVolume } from "../composables";
+import { MediaPlayerV2, useCaptions, useMediaPlayer, useVolume } from "../composables";
 
 const services = [
 	"youtube",
@@ -225,8 +225,8 @@ export default defineComponent({
 		}
 
 		const player2: MediaPlayerV2 = new OmniMediaPlayer();
-		const controls = ref(useMediaControls());
-		controls.value.setPlayer(player2);
+		const controls = useMediaPlayer();
+		controls.value = player2;
 
 		function checkForPlayer(p: MediaPlayer | null): p is MediaPlayer {
 			if (!p) {
@@ -340,6 +340,7 @@ export default defineComponent({
 		);
 
 		const volume = useVolume();
+		const captions = useCaptions();
 		watch(volume, v => {
 			if (player.value) {
 				player.value.setVolume(v);
@@ -349,6 +350,22 @@ export default defineComponent({
 			console.debug("Player changed", player.value);
 			if (player.value) {
 				player.value.setVolume(volume.value);
+			}
+			captions.isCaptionsSupported.value = isCaptionsSupported();
+			if (implementsCaptions(player.value)) {
+				captions.captionsTracks.value = player.value.getCaptionsTracks();
+			}
+		});
+		watch(captions.isCaptionsEnabled, v => {
+			if (player.value && implementsCaptions(player.value)) {
+				console.debug("Setting captions enabled", v);
+				player.value.setCaptionsEnabled(v);
+				captions.captionsTracks.value = player.value.getCaptionsTracks();
+			}
+		});
+		watch(captions.currentTrack, v => {
+			if (player.value && implementsCaptions(player.value) && v) {
+				player.value.setCaptionsTrack(v);
 			}
 		});
 

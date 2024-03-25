@@ -33,7 +33,6 @@
 					>
 						<div class="player-container">
 							<OmniPlayer
-								ref="player"
 								:source="store.state.room.currentSource"
 								@apiready="onPlayerApiReady"
 								@playing="onPlaybackChange(true)"
@@ -64,8 +63,6 @@
 						:true-position="truePosition"
 						:controls-visible="controlsVisible"
 						:key="currentSource?.id"
-						:player="player"
-						:is-captions-supported="isCaptionsSupported()"
 						:mode="controlsMode"
 					/>
 				</div>
@@ -236,7 +233,7 @@ import VoteSkip from "@/components/VoteSkip.vue";
 import { waitForToken } from "@/util/token";
 import { useSfx } from "@/plugins/sfx";
 import { secondsToTimestamp } from "@/util/timestamp";
-import { useMediaControls, useVolume } from "@/components/composables";
+import { isPlayerPresent, useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -342,10 +339,10 @@ export default defineComponent({
 			if (!isPlayerPresent(player)) {
 				return;
 			}
-			const currentTime = mediaControls.getPosition();
+			const currentTime = player.value.getPosition();
 
 			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
-				mediaControls.setPosition(newPosition);
+				player.value.setPosition(newPosition);
 			}
 		});
 
@@ -374,12 +371,12 @@ export default defineComponent({
 		}
 
 		async function waitForPlayer() {
-			if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+			if (isPlayerPresent(player)) {
 				return;
 			}
 			await new Promise(resolve => {
 				const interval = setInterval(() => {
-					if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+					if (isPlayerPresent(player)) {
 						clearInterval(interval);
 						resolve(true);
 					}
@@ -431,12 +428,8 @@ export default defineComponent({
 		});
 
 		// player management
-		const player = ref<typeof OmniPlayer | null>(null);
+		const player = useMediaPlayer();
 		const volume = useVolume();
-
-		function isPlayerPresent(p: Ref<typeof OmniPlayer | null>): p is Ref<typeof OmniPlayer> {
-			return !!p.value;
-		}
 
 		function togglePlayback() {
 			if (store.state.room.isPlaying) {
@@ -455,7 +448,6 @@ export default defineComponent({
 		// Indicates that starting playback is blocked by the browser. This usually means that the user needs
 		// to interact with the page before playback can start. This is because browsers block autoplaying videos.
 		const mediaPlaybackBlocked = ref(false);
-		const mediaControls = useMediaControls();
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
 			await waitForPlayer();
@@ -464,9 +456,9 @@ export default defineComponent({
 			}
 			try {
 				if (playing) {
-					await mediaControls.play();
+					await player.value.play();
 				} else {
-					await mediaControls.pause();
+					await player.value.pause();
 				}
 				mediaPlaybackBlocked.value = false;
 				return;
@@ -480,7 +472,7 @@ export default defineComponent({
 		}
 
 		function onClickUnblockPlayback(): void {
-			mediaControls.setPosition(truePosition.value);
+			player.value?.setPosition(truePosition.value);
 			applyIsPlaying(store.state.room.isPlaying);
 		}
 
@@ -510,17 +502,12 @@ export default defineComponent({
 			await applyIsPlaying(store.state.room.isPlaying);
 		}
 
+		const captions = useCaptions();
 		function isCaptionsSupported() {
-			if (!isPlayerPresent(player)) {
-				return;
-			}
-			return player.value.isCaptionsSupported() ?? false;
+			return captions.isCaptionsSupported.value;
 		}
 		function getCaptionsTracks() {
-			if (!isPlayerPresent(player)) {
-				return;
-			}
-			return player.value.getCaptionsTracks() ?? [];
+			return captions.captionsTracks.value;
 		}
 
 		// misc UI stuff
