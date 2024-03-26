@@ -24,10 +24,7 @@
 				"
 				@cc-track="value => (captions.currentTrack.value = value)"
 			/>
-			<PlaybackRateSwitcher
-				:current-rate="playbackRate.playbackRate.value"
-				:available-rates="playbackRate.availablePlaybackRates.value"
-			/>
+			<PlaybackRateSwitcher />
 			<LayoutSwitcher />
 		</v-row>
 	</v-col>
@@ -45,7 +42,7 @@ import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 
 import { useStore } from "@/store";
-import { useCaptions, useMediaPlayer, usePlaybackRate } from "../composables";
+import { useCaptions, useMediaPlayer } from "../composables";
 
 export default defineComponent({
 	name: "VideoControls",
@@ -81,13 +78,11 @@ export default defineComponent({
 		const store = useStore();
 		const player = useMediaPlayer();
 		const captions = useCaptions();
-		const playbackRate = usePlaybackRate();
 
 		return {
 			store,
 			player,
 			captions,
-			playbackRate,
 		};
 	},
 });
