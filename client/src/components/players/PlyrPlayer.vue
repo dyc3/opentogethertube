@@ -12,6 +12,7 @@ import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import { useStore } from "@/store";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "./OmniPlayer.vue";
+import { useCaptions } from "../composables";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -39,7 +40,6 @@ export default defineComponent({
 		const player = ref<Plyr | undefined>();
 		let hls: Hls | undefined = undefined;
 		let dash: dashjs.MediaPlayerClass | undefined = undefined;
-		const store = useStore();
 
 		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
 			play() {
@@ -122,7 +122,7 @@ export default defineComponent({
 			getAvailablePlaybackRates(): number[] {
 				return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 			},
-			async getPlaybackRate(): Promise<number> {
+			getPlaybackRate(): number {
 				if (!player.value) {
 					console.error("player not ready");
 					return 1;
@@ -151,6 +151,7 @@ export default defineComponent({
 			return 0;
 		}
 
+		const captions = useCaptions();
 		onMounted(() => {
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
 			player.value = new Plyr(videoElem.value, {
@@ -176,9 +177,7 @@ export default defineComponent({
 			player.value.on("loadstart", () => emit("buffering"));
 			player.value.on("canplay", () => {
 				emit("ready");
-				store.commit("captions/SET_AVAILABLE_TRACKS", {
-					tracks: playerImpl.getCaptionsTracks(),
-				});
+				captions.captionsTracks.value = playerImpl.getCaptionsTracks();
 			});
 			player.value.on("progress", () => {
 				if (!player.value) {
@@ -230,9 +229,7 @@ export default defineComponent({
 				hls.on(Hls.Events.MANIFEST_PARSED, () => {
 					console.info("PlyrPlayer: hls.js manifest parsed");
 					emit("ready");
-					store.commit("captions/SET_AVAILABLE_TRACKS", {
-						tracks: playerImpl.getCaptionsTracks(),
-					});
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
 				});
 				hls.on(Hls.Events.ERROR, (event, data) => {
 					console.error("PlyrPlayer: hls.js error:", event, data);
@@ -267,9 +264,7 @@ export default defineComponent({
 				dash.on("manifestLoaded", () => {
 					console.info("PlyrPlayer: dash.js manifest loaded");
 					emit("ready");
-					store.commit("captions/SET_AVAILABLE_TRACKS", {
-						tracks: playerImpl.getCaptionsTracks(),
-					});
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
 				});
 				dash.on("error", (event: unknown) => {
 					console.error("PlyrPlayer: dash.js error:", event);
