@@ -18,6 +18,7 @@ export function useVolume() {
 }
 
 export abstract class MediaPlayerV2 {
+	apiReady = ref(false);
 	playing = ref(false);
 	isCaptionsSupported = ref(false);
 

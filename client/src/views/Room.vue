@@ -371,16 +371,28 @@ export default defineComponent({
 		}
 
 		async function waitForPlayer() {
-			if (isPlayerPresent(player)) {
+			if (isPlayerPresent(player) && player.value.apiReady.value) {
 				return;
 			}
 			await new Promise(resolve => {
-				const interval = setInterval(() => {
-					if (isPlayerPresent(player)) {
-						clearInterval(interval);
+				const stop = watch(player, async newPlayer => {
+					if (newPlayer) {
+						stop();
 						resolve(true);
 					}
-				}, 100);
+				});
+			});
+			if (!isPlayerPresent(player)) {
+				return Promise.reject("Can't wait for player api ready: player not present");
+			}
+			console.log("detected player, waiting for api ready");
+			await new Promise(resolve => {
+				const stop = watch(player.value.apiReady, async newReady => {
+					if (newReady) {
+						stop();
+						resolve(true);
+					}
+				});
 			});
 		}
 

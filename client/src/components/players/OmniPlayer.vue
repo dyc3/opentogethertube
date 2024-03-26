@@ -252,7 +252,7 @@ export default defineComponent({
 					} Is there a player implemented for ${props.source?.service}?`
 				);
 			}
-			return !!p;
+			return controls.value?.apiReady.value ?? false;
 		}
 
 		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
@@ -282,6 +282,7 @@ export default defineComponent({
 		watch(player, () => {
 			console.debug("Player changed", player.value);
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
+			player2.apiReady.value = false;
 			captions.isCaptionsSupported.value = isCaptionsSupported();
 			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 		});
@@ -323,6 +324,7 @@ export default defineComponent({
 
 		// player events re-emitted or data stored
 		function onApiReady() {
+			player2.apiReady.value = true;
 			if (player.value) {
 				player.value.setVolume(volume.value);
 			}
