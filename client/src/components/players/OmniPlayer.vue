@@ -123,7 +123,14 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
-import { MediaPlayerV2, useCaptions, useMediaPlayer, useVolume } from "../composables";
+import {
+	MediaPlayerV2,
+	useCaptions,
+	useMediaPlayer,
+	usePlaybackRate,
+	useVolume,
+} from "../composables";
+import { watchEffect } from "vue";
 
 const services = [
 	"youtube",
@@ -165,8 +172,8 @@ export interface MediaPlayerWithCaptions extends MediaPlayer {
 }
 
 export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
-	getPlaybackRate(): Promise<number>;
-	setPlaybackRate(rate: number): Promise<void>;
+	getPlaybackRate(): number;
+	setPlaybackRate(rate: number): void;
 }
 
 export default defineComponent({
@@ -244,7 +251,7 @@ export default defineComponent({
 		}
 
 		function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
-			return !!p && p.getAvailablePlaybackRates().length > 0;
+			return !!p && p.getAvailablePlaybackRates().length > 1;
 		}
 
 		const isPlayerPresent = computed(() => !!player.value);
@@ -314,12 +321,12 @@ export default defineComponent({
 			}
 			return player.value.getAvailablePlaybackRates();
 		}
-		function getPlaybackRate(): Promise<number> {
+		function getPlaybackRate(): number {
 			if (!checkForPlayer(player.value)) {
-				return Promise.resolve(1);
+				return 1;
 			}
 			if (!implementsPlaybackRate(player.value)) {
-				return Promise.resolve(1);
+				return 1;
 			}
 			return player.value.getPlaybackRate();
 		}
@@ -352,6 +359,7 @@ export default defineComponent({
 				player.value.setVolume(volume.value);
 			}
 			captions.isCaptionsSupported.value = isCaptionsSupported();
+			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 			if (implementsCaptions(player.value)) {
 				captions.captionsTracks.value = player.value.getCaptionsTracks();
 			}
@@ -368,10 +376,30 @@ export default defineComponent({
 				player.value.setCaptionsTrack(v);
 			}
 		});
+		const playbackRate = usePlaybackRate();
+		watch(playbackRate.isPlaybackRateSupported, v => {
+			console.debug("Playback rate supported", v);
+			if (!v || !player.value) {
+				playbackRate.availablePlaybackRates.value = [1];
+				playbackRate.playbackRate.value = 1;
+			}
+		});
+		watch(playbackRate.playbackRate, v => {
+			if (player.value && implementsPlaybackRate(player.value)) {
+				player.value.setPlaybackRate(v);
+			}
+		});
+		watchEffect(() => {
+			playbackRate.playbackRate.value = store.state.room.playbackSpeed;
+		});
 
 		// player events re-emitted or data stored
 		function onApiReady() {
 			setVolume(volume.value);
+			if (implementsPlaybackRate(player.value)) {
+				playbackRate.availablePlaybackRates.value =
+					player.value.getAvailablePlaybackRates();
+			}
 			emit("apiready");
 		}
 
@@ -464,6 +492,7 @@ export default defineComponent({
 			showBufferWarning,
 			renderedSpans,
 			controls,
+			playbackRate,
 			setVolume,
 			isCaptionsSupported,
 			isCaptionsEnabled,

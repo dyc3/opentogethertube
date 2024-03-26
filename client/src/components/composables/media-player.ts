@@ -1,5 +1,5 @@
 import { useStore } from "@/store";
-import { computed, onMounted, ref, watch, type Ref } from "vue";
+import { onMounted, ref, watch, type Ref } from "vue";
 
 const volume = ref(100);
 
@@ -17,37 +17,6 @@ export function useVolume() {
 	return volume;
 }
 
-// export class MediaController {
-// 	player: MediaPlayerV2  | null = null;
-// 	isCaptionsSupported = computed(() => this.player?.isCaptionsSupported.value ?? false);
-
-// 	setPlayer(player: MediaPlayerV2) {
-// 		this.player = player;
-// 	}
-
-// 	async play() {
-// 		if (this.player) {
-// 			await this.player.play();
-// 		}
-// 	}
-
-// 	async pause() {
-// 		if (this.player) {
-// 			await this.player.pause();
-// 		}
-// 	}
-
-// 	getPosition() {
-// 		return this.player ? this.player.getPosition() : 0;
-// 	}
-
-// 	setPosition(position: number) {
-// 		if (this.player) {
-// 			this.player.setPosition(position);
-// 		}
-// 	}
-// }
-
 export abstract class MediaPlayerV2 {
 	playing = ref(false);
 	isCaptionsSupported = ref(false);
@@ -57,10 +26,6 @@ export abstract class MediaPlayerV2 {
 
 	abstract getPosition(): number;
 	abstract setPosition(position: number): void;
-
-	getAvailablePlaybackRates(): number[] {
-		return [1];
-	}
 }
 
 const player: Ref<MediaPlayerV2 | undefined> = ref(undefined);
@@ -84,5 +49,17 @@ export function useCaptions() {
 		isCaptionsEnabled,
 		captionsTracks,
 		currentTrack,
+	};
+}
+
+const isPlaybackRateSupported: Ref<boolean> = ref(false);
+const playbackRate: Ref<number> = ref(1);
+const availablePlaybackRates: Ref<number[]> = ref([1]);
+
+export function usePlaybackRate() {
+	return {
+		isPlaybackRateSupported,
+		playbackRate,
+		availablePlaybackRates,
 	};
 }

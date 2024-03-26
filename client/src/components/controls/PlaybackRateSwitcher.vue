@@ -51,6 +51,7 @@ const PlaybackRateSwitcher = defineComponent({
 		}
 
 		function setRate(rate: number) {
+			console.debug("Setting playback rate to", rate);
 			roomApi.setPlaybackRate(rate);
 		}
 
