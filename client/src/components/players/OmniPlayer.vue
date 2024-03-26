@@ -224,7 +224,6 @@ export default defineComponent({
 			console.debug("Player changed", v);
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
 			controls.setPlayer(v);
-			controls.apiReady.value = false;
 		});
 		watch(captions.isCaptionsEnabled, v => {
 			if (player.value && implementsCaptions(player.value)) {
@@ -255,8 +254,8 @@ export default defineComponent({
 			playbackRate.playbackRate.value = store.state.room.playbackSpeed;
 		});
 		// player events re-emitted or data stored
-		function onApiReady() {
-			controls.apiReady.value = true;
+		async function onApiReady() {
+			controls.markApiReady();
 			captions.isCaptionsSupported.value = isCaptionsSupported();
 			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 			if (player.value) {
@@ -275,7 +274,6 @@ export default defineComponent({
 
 		function onReady() {
 			store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
-			controls.apiReady.value = true;
 			emit("ready");
 		}
 

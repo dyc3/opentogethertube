@@ -25,6 +25,7 @@ export class MediaPlayerV2 {
 	isCaptionsSupported = ref(false);
 
 	setPlayer(player: MediaPlayer | null) {
+		this.apiReady.value = false;
 		this.player.value = player;
 	}
 
@@ -37,6 +38,23 @@ export class MediaPlayerV2 {
 
 	isPlayerPresent(): boolean {
 		return !!this.player.value;
+	}
+
+	markApiReady() {
+		if (!this.player.value) {
+			new Promise(resolve => {
+				const stop = watch(this.player, newPlayer => {
+					if (newPlayer) {
+						stop();
+						resolve(true);
+					}
+				});
+			}).then(() => {
+				this.apiReady.value = true;
+			});
+		} else {
+			this.apiReady.value = true;
+		}
 	}
 
 	async play(): Promise<void> {

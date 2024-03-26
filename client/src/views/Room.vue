@@ -396,12 +396,18 @@ export default defineComponent({
 			}
 			console.debug("detected player, waiting for api ready");
 			await new Promise(resolve => {
-				const stop = watch(player.apiReady, async newReady => {
-					if (newReady) {
-						stop();
+				// const stop = watch(player.apiReady, async newReady => {
+				// 	if (newReady) {
+				// 		stop();
+				// 		resolve(true);
+				// 	}
+				// });
+				const interval = setInterval(() => {
+					if (player.apiReady.value) {
+						clearInterval(interval);
 						resolve(true);
 					}
-				});
+				}, 100);
 			});
 		}
 
