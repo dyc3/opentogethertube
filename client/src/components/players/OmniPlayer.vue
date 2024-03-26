@@ -195,9 +195,6 @@ export default defineComponent({
 		const player: Ref<MediaPlayer | null> = ref(null);
 
 		const controls = useMediaPlayer();
-		watch(player, v => {
-			controls.setPlayer(v);
-		});
 
 		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
 			return !!p && p.isCaptionsSupported();
@@ -223,9 +220,10 @@ export default defineComponent({
 				player.value.setVolume(v);
 			}
 		});
-		watch(player, () => {
-			console.debug("Player changed", player.value);
+		watch(player, v => {
+			console.debug("Player changed", v);
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
+			controls.setPlayer(v);
 			controls.apiReady.value = false;
 		});
 		watch(captions.isCaptionsEnabled, v => {
@@ -277,6 +275,7 @@ export default defineComponent({
 
 		function onReady() {
 			store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
+			controls.apiReady.value = true;
 			emit("ready");
 		}
 

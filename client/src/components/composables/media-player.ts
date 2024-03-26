@@ -36,7 +36,7 @@ export class MediaPlayerV2 {
 	}
 
 	isPlayerPresent(): boolean {
-		return this.checkForPlayer(this.player.value);
+		return !!this.player.value;
 	}
 
 	async play(): Promise<void> {

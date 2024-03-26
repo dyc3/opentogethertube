@@ -380,6 +380,12 @@ export default defineComponent({
 							resolve(true);
 						}
 					});
+					// const interval = setInterval(() => {
+					// 	if (player.isPlayerPresent()) {
+					// 		clearInterval(interval);
+					// 		resolve(true);
+					// 	}
+					// }, 100);
 				});
 			}
 			if (!player.isPlayerPresent()) {
@@ -388,7 +394,7 @@ export default defineComponent({
 			if (player.apiReady.value) {
 				return;
 			}
-			console.debug("detected player, waiting for api ready", player.apiReady.value);
+			console.debug("detected player, waiting for api ready");
 			await new Promise(resolve => {
 				const stop = watch(player.apiReady, async newReady => {
 					if (newReady) {

@@ -166,7 +166,6 @@ export default defineComponent({
 					enabled: false,
 				},
 			});
-			emit("apiready");
 
 			player.value.on("ready", () => emit("ready"));
 			player.value.on("ended", () => emit("end"));
@@ -329,6 +328,8 @@ export default defineComponent({
 			} else {
 				console.error("video element not present");
 			}
+
+			emit("apiready");
 		}
 
 		watch(videoUrl, () => {
