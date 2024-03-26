@@ -122,7 +122,16 @@ import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
-import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
+import {
+	defineComponent,
+	defineAsyncComponent,
+	PropType,
+	ref,
+	Ref,
+	computed,
+	watch,
+	toRef,
+} from "vue";
 import {
 	MediaPlayerV2,
 	useCaptions,
@@ -256,95 +265,12 @@ export default defineComponent({
 
 		const isPlayerPresent = computed(() => !!player.value);
 
-		function setVolume(volume: number) {
-			if (!checkForPlayer(player.value)) {
-				return Promise.reject("Player not available yet");
-			}
-			return player.value.setVolume(volume);
-		}
 		function isCaptionsSupported() {
 			if (!checkForPlayer(player.value)) {
 				return false;
 			}
-			if (!implementsCaptions(player.value)) {
-				return false;
-			}
-			return player.value.isCaptionsSupported() ?? false;
+			return implementsCaptions(player.value);
 		}
-		function isCaptionsEnabled() {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsCaptions(player.value)) {
-				return false;
-			}
-			return player.value.isCaptionsEnabled();
-		}
-		function setCaptionsEnabled(enabled: boolean) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsCaptions(player.value)) {
-				return false;
-			}
-			player.value.setCaptionsEnabled(enabled);
-		}
-		function toggleCaptions() {
-			setCaptionsEnabled(!isCaptionsEnabled());
-		}
-		function getCaptionsTracks(): string[] {
-			if (!checkForPlayer(player.value)) {
-				return [];
-			}
-			if (!implementsCaptions(player.value)) {
-				return [];
-			}
-			return player.value.getCaptionsTracks();
-		}
-		function setCaptionsTrack(track: string) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsCaptions(player.value)) {
-				return;
-			}
-
-			if (!isCaptionsEnabled()) {
-				setCaptionsEnabled(true);
-			}
-			player.value.setCaptionsTrack(track);
-		}
-
-		function getAvailablePlaybackRates(): number[] {
-			if (!checkForPlayer(player.value)) {
-				return [1];
-			}
-			return player.value.getAvailablePlaybackRates();
-		}
-		function getPlaybackRate(): number {
-			if (!checkForPlayer(player.value)) {
-				return 1;
-			}
-			if (!implementsPlaybackRate(player.value)) {
-				return 1;
-			}
-			return player.value.getPlaybackRate();
-		}
-		function setPlaybackRate(rate: number) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsPlaybackRate(player.value)) {
-				return;
-			}
-			player.value.setPlaybackRate(rate);
-		}
-		watch(
-			() => store.state.room.playbackSpeed,
-			(speed: number) => {
-				setPlaybackRate(speed);
-			}
-		);
 
 		const volume = useVolume();
 		const captions = useCaptions();
@@ -355,14 +281,9 @@ export default defineComponent({
 		});
 		watch(player, () => {
 			console.debug("Player changed", player.value);
-			if (player.value) {
-				player.value.setVolume(volume.value);
-			}
+			// note that we have to wait for the player's api to be ready before we can call any methods on it
 			captions.isCaptionsSupported.value = isCaptionsSupported();
 			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
-			if (implementsCaptions(player.value)) {
-				captions.captionsTracks.value = player.value.getCaptionsTracks();
-			}
 		});
 		watch(captions.isCaptionsEnabled, v => {
 			if (player.value && implementsCaptions(player.value)) {
@@ -374,6 +295,13 @@ export default defineComponent({
 		watch(captions.currentTrack, v => {
 			if (player.value && implementsCaptions(player.value) && v) {
 				player.value.setCaptionsTrack(v);
+			}
+		});
+		const source = toRef(() => props.source);
+		watch(source, () => {
+			captions.isCaptionsSupported.value = isCaptionsSupported();
+			if (implementsCaptions(player.value)) {
+				captions.captionsTracks.value = player.value.getCaptionsTracks();
 			}
 		});
 		const playbackRate = usePlaybackRate();
@@ -395,7 +323,12 @@ export default defineComponent({
 
 		// player events re-emitted or data stored
 		function onApiReady() {
-			setVolume(volume.value);
+			if (player.value) {
+				player.value.setVolume(volume.value);
+			}
+			if (implementsCaptions(player.value)) {
+				captions.captionsTracks.value = player.value.getCaptionsTracks();
+			}
 			if (implementsPlaybackRate(player.value)) {
 				playbackRate.availablePlaybackRates.value =
 					player.value.getAvailablePlaybackRates();
@@ -493,16 +426,6 @@ export default defineComponent({
 			renderedSpans,
 			controls,
 			playbackRate,
-			setVolume,
-			isCaptionsSupported,
-			isCaptionsEnabled,
-			setCaptionsEnabled,
-			toggleCaptions,
-			getCaptionsTracks,
-			setCaptionsTrack,
-			getAvailablePlaybackRates,
-			getPlaybackRate,
-			setPlaybackRate,
 		};
 	},
 });
