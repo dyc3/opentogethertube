@@ -332,6 +332,7 @@ export default defineComponent({
 			if (implementsPlaybackRate(player.value)) {
 				playbackRate.availablePlaybackRates.value =
 					player.value.getAvailablePlaybackRates();
+				player.value.setPlaybackRate(playbackRate.playbackRate.value);
 			}
 			emit("apiready");
 		}
