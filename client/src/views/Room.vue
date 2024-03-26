@@ -371,24 +371,25 @@ export default defineComponent({
 		}
 
 		async function waitForPlayer() {
-			if (isPlayerPresent(player) && player.value.apiReady.value) {
-				return;
-			}
-			await new Promise(resolve => {
-				const stop = watch(player, async newPlayer => {
-					if (newPlayer) {
-						stop();
-						resolve(true);
-					}
+			if (!isPlayerPresent(player)) {
+				console.debug("waiting for player");
+				await new Promise(resolve => {
+					const stop = watch(player, async newPlayer => {
+						if (newPlayer) {
+							stop();
+							resolve(true);
+						}
+					});
 				});
-			});
+			}
 			if (!isPlayerPresent(player)) {
 				return Promise.reject("Can't wait for player api ready: player not present");
 			}
 			if (player.value.apiReady.value) {
+				console.debug("player api is already ready");
 				return;
 			}
-			console.log("detected player, waiting for api ready");
+			console.debug("detected player, waiting for api ready");
 			await new Promise(resolve => {
 				const stop = watch(player.value.apiReady, async newReady => {
 					if (newReady) {

@@ -1,5 +1,5 @@
 import { useStore } from "@/store";
-import { onMounted, ref, watch, type Ref } from "vue";
+import { onMounted, ref, watch, type Ref, shallowRef } from "vue";
 
 const volume = ref(100);
 
@@ -29,7 +29,7 @@ export abstract class MediaPlayerV2 {
 	abstract setPosition(position: number): void;
 }
 
-const player: Ref<MediaPlayerV2 | undefined> = ref(undefined);
+const player: Ref<MediaPlayerV2 | undefined> = shallowRef(undefined);
 
 export function useMediaPlayer() {
 	return player;
