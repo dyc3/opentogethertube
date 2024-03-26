@@ -1,5 +1,6 @@
 import { useStore } from "@/store";
-import { onMounted, ref, watch, type Ref, shallowRef } from "vue";
+import { onMounted, ref, watch, type Ref, shallowRef, provide, inject } from "vue";
+import type { MediaPlayer } from "../players/OmniPlayer.vue";
 
 const volume = ref(100);
 
@@ -17,27 +18,63 @@ export function useVolume() {
 	return volume;
 }
 
-export abstract class MediaPlayerV2 {
+export class MediaPlayerV2 {
+	player: Ref<MediaPlayer | null> = shallowRef(null);
 	apiReady = ref(false);
 	playing = ref(false);
 	isCaptionsSupported = ref(false);
 
-	abstract play(): Promise<void>;
-	abstract pause(): Promise<void>;
+	setPlayer(player: MediaPlayer | null) {
+		this.player.value = player;
+	}
 
-	abstract getPosition(): number;
-	abstract setPosition(position: number): void;
+	checkForPlayer(p: MediaPlayer | null): p is MediaPlayer {
+		if (!p) {
+			return false;
+		}
+		return this.apiReady.value ?? false;
+	}
+
+	isPlayerPresent(): boolean {
+		return this.checkForPlayer(this.player.value);
+	}
+
+	async play(): Promise<void> {
+		if (!this.checkForPlayer(this.player.value)) {
+			return Promise.reject("Player not available yet");
+		}
+		return this.player.value.play();
+	}
+	async pause(): Promise<void> {
+		if (!this.checkForPlayer(this.player.value)) {
+			return Promise.reject("Player not available yet");
+		}
+		return this.player.value.pause();
+	}
+	getPosition(): number {
+		if (!this.checkForPlayer(this.player.value)) {
+			return 0;
+		}
+		return this.player.value.getPosition();
+	}
+	setPosition(position: number): void {
+		if (!this.checkForPlayer(this.player.value)) {
+			return;
+		}
+		return this.player.value.setPosition(position);
+	}
 }
 
-const player: Ref<MediaPlayerV2 | undefined> = shallowRef(undefined);
+const PLAYER_KEY = Symbol("player");
+const player = new MediaPlayerV2();
 
 export function useMediaPlayer() {
-	return player;
+	return inject(PLAYER_KEY, player);
 }
 
-export function isPlayerPresent(p: typeof player): p is Ref<MediaPlayerV2> {
-	return !!p.value;
-}
+// export function isPlayerPresent(p: typeof player): p is Ref<MediaPlayerV2> {
+// 	return !!p.value;
+// }
 
 const isCaptionsSupported: Ref<boolean> = ref(false);
 const isCaptionsEnabled: Ref<boolean> = ref(false);

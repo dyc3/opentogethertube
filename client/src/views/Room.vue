@@ -233,7 +233,7 @@ import VoteSkip from "@/components/VoteSkip.vue";
 import { waitForToken } from "@/util/token";
 import { useSfx } from "@/plugins/sfx";
 import { secondsToTimestamp } from "@/util/timestamp";
-import { isPlayerPresent, useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
+import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -336,13 +336,13 @@ export default defineComponent({
 		});
 
 		watch(truePosition, async newPosition => {
-			if (!isPlayerPresent(player)) {
+			if (!player.isPlayerPresent()) {
 				return;
 			}
-			const currentTime = player.value.getPosition();
+			const currentTime = player.getPosition();
 
 			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
-				player.value.setPosition(newPosition);
+				player.setPosition(newPosition);
 			}
 		});
 
@@ -371,10 +371,10 @@ export default defineComponent({
 		}
 
 		async function waitForPlayer() {
-			if (!isPlayerPresent(player)) {
-				console.debug("waiting for player");
+			if (!player.isPlayerPresent()) {
+				console.debug("waiting for player", player);
 				await new Promise(resolve => {
-					const stop = watch(player, async newPlayer => {
+					const stop = watch(player.player, async newPlayer => {
 						if (newPlayer) {
 							stop();
 							resolve(true);
@@ -382,16 +382,15 @@ export default defineComponent({
 					});
 				});
 			}
-			if (!isPlayerPresent(player)) {
+			if (!player.isPlayerPresent()) {
 				return Promise.reject("Can't wait for player api ready: player not present");
 			}
-			if (player.value.apiReady.value) {
-				console.debug("player api is already ready");
+			if (player.apiReady.value) {
 				return;
 			}
-			console.debug("detected player, waiting for api ready");
+			console.debug("detected player, waiting for api ready", player.apiReady.value);
 			await new Promise(resolve => {
-				const stop = watch(player.value.apiReady, async newReady => {
+				const stop = watch(player.apiReady, async newReady => {
 					if (newReady) {
 						stop();
 						resolve(true);
@@ -467,14 +466,14 @@ export default defineComponent({
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
 			await waitForPlayer();
-			if (!isPlayerPresent(player)) {
+			if (!player.isPlayerPresent()) {
 				return Promise.reject("Can't apply IsPlaying: player not present");
 			}
 			try {
 				if (playing) {
-					await player.value.play();
+					await player.play();
 				} else {
-					await player.value.pause();
+					await player.pause();
 				}
 				mediaPlaybackBlocked.value = false;
 				return;
@@ -488,7 +487,7 @@ export default defineComponent({
 		}
 
 		function onClickUnblockPlayback(): void {
-			player.value?.setPosition(truePosition.value);
+			player?.setPosition(truePosition.value);
 			applyIsPlaying(store.state.room.isPlaying);
 		}
 

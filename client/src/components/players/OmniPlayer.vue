@@ -122,23 +122,8 @@ import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
-import {
-	defineComponent,
-	defineAsyncComponent,
-	PropType,
-	ref,
-	Ref,
-	computed,
-	watch,
-	toRef,
-} from "vue";
-import {
-	MediaPlayerV2,
-	useCaptions,
-	useMediaPlayer,
-	usePlaybackRate,
-	useVolume,
-} from "../composables";
+import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
+import { useCaptions, useMediaPlayer, usePlaybackRate, useVolume } from "../composables";
 import { watchEffect } from "vue";
 
 const services = [
@@ -209,51 +194,10 @@ export default defineComponent({
 
 		const player: Ref<MediaPlayer | null> = ref(null);
 
-		class OmniMediaPlayer extends MediaPlayerV2 {
-			constructor() {
-				super();
-			}
-
-			async play(): Promise<void> {
-				if (!checkForPlayer(player.value)) {
-					return Promise.reject("Player not available yet");
-				}
-				return player.value.play();
-			}
-			async pause(): Promise<void> {
-				if (!checkForPlayer(player.value)) {
-					return Promise.reject("Player not available yet");
-				}
-				return player.value.pause();
-			}
-			getPosition(): number {
-				if (!checkForPlayer(player.value)) {
-					return 0;
-				}
-				return player.value.getPosition();
-			}
-			setPosition(position: number): void {
-				if (!checkForPlayer(player.value)) {
-					return;
-				}
-				return player.value.setPosition(position);
-			}
-		}
-
-		const player2: MediaPlayerV2 = new OmniMediaPlayer();
 		const controls = useMediaPlayer();
-		controls.value = player2;
-
-		function checkForPlayer(p: MediaPlayer | null): p is MediaPlayer {
-			if (!p) {
-				console.warn(
-					`There is no player available. Is the source set? ${
-						props.source !== null
-					} Is there a player implemented for ${props.source?.service}?`
-				);
-			}
-			return player2.apiReady.value ?? false;
-		}
+		watch(player, v => {
+			controls.setPlayer(v);
+		});
 
 		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
 			return !!p && p.isCaptionsSupported();
@@ -266,7 +210,7 @@ export default defineComponent({
 		const isPlayerPresent = computed(() => !!player.value);
 
 		function isCaptionsSupported() {
-			if (!checkForPlayer(player.value)) {
+			if (!controls.checkForPlayer(player.value)) {
 				return false;
 			}
 			return implementsCaptions(player.value);
@@ -282,7 +226,7 @@ export default defineComponent({
 		watch(player, () => {
 			console.debug("Player changed", player.value);
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
-			player2.apiReady.value = false;
+			controls.apiReady.value = false;
 		});
 		watch(captions.isCaptionsEnabled, v => {
 			if (player.value && implementsCaptions(player.value)) {
@@ -312,10 +256,9 @@ export default defineComponent({
 		watchEffect(() => {
 			playbackRate.playbackRate.value = store.state.room.playbackSpeed;
 		});
-
 		// player events re-emitted or data stored
 		function onApiReady() {
-			player2.apiReady.value = true;
+			controls.apiReady.value = true;
 			captions.isCaptionsSupported.value = isCaptionsSupported();
 			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 			if (player.value) {
@@ -348,13 +291,13 @@ export default defineComponent({
 
 		function onPlaying() {
 			hackReadyEdgeCase();
-			player2.playing.value = true;
+			controls.playing.value = true;
 			emit("playing");
 		}
 
 		function onPaused() {
 			hackReadyEdgeCase();
-			player2.playing.value = false;
+			controls.playing.value = false;
 			emit("paused");
 		}
 
