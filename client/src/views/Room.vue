@@ -385,6 +385,9 @@ export default defineComponent({
 			if (!isPlayerPresent(player)) {
 				return Promise.reject("Can't wait for player api ready: player not present");
 			}
+			if (player.value.apiReady.value) {
+				return;
+			}
 			console.log("detected player, waiting for api ready");
 			await new Promise(resolve => {
 				const stop = watch(player.value.apiReady, async newReady => {

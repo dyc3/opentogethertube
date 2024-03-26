@@ -230,6 +230,7 @@ export default defineComponent({
 					console.info("PlyrPlayer: hls.js manifest parsed");
 					emit("ready");
 					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
 				});
 				hls.on(Hls.Events.ERROR, (event, data) => {
 					console.error("PlyrPlayer: hls.js error:", event, data);
@@ -265,6 +266,7 @@ export default defineComponent({
 					console.info("PlyrPlayer: dash.js manifest loaded");
 					emit("ready");
 					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
 				});
 				dash.on("error", (event: unknown) => {
 					console.error("PlyrPlayer: dash.js error:", event);

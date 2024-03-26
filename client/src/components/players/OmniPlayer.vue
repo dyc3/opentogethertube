@@ -252,7 +252,7 @@ export default defineComponent({
 					} Is there a player implemented for ${props.source?.service}?`
 				);
 			}
-			return controls.value?.apiReady.value ?? false;
+			return player2.apiReady.value ?? false;
 		}
 
 		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
@@ -283,8 +283,6 @@ export default defineComponent({
 			console.debug("Player changed", player.value);
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
 			player2.apiReady.value = false;
-			captions.isCaptionsSupported.value = isCaptionsSupported();
-			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 		});
 		watch(captions.isCaptionsEnabled, v => {
 			if (player.value && implementsCaptions(player.value)) {
@@ -296,13 +294,6 @@ export default defineComponent({
 		watch(captions.currentTrack, v => {
 			if (player.value && implementsCaptions(player.value) && v) {
 				player.value.setCaptionsTrack(v);
-			}
-		});
-		const source = toRef(() => props.source);
-		watch(source, () => {
-			captions.isCaptionsSupported.value = isCaptionsSupported();
-			if (implementsCaptions(player.value)) {
-				captions.captionsTracks.value = player.value.getCaptionsTracks();
 			}
 		});
 		const playbackRate = usePlaybackRate();
@@ -325,6 +316,8 @@ export default defineComponent({
 		// player events re-emitted or data stored
 		function onApiReady() {
 			player2.apiReady.value = true;
+			captions.isCaptionsSupported.value = isCaptionsSupported();
+			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 			if (player.value) {
 				player.value.setVolume(volume.value);
 			}
