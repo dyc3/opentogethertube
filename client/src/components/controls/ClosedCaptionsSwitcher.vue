@@ -2,20 +2,29 @@
 	<v-btn
 		variant="text"
 		icon
-		:disabled="!supported"
+		:disabled="!captions.isCaptionsSupported.value"
 		class="media-control"
 		aria-label="Closed Captions"
 	>
 		<v-icon>mdi-closed-caption</v-icon>
-		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
+		<v-menu
+			location="top"
+			offset-y
+			activator="parent"
+			:disabled="!captions.isCaptionsSupported.value"
+		>
 			<v-list>
-				<v-list-item link @click="setCaptionsEnabled(true)" v-if="tracks.length === 0">
+				<v-list-item
+					link
+					@click="setCaptionsEnabled(true)"
+					v-if="captions.captionsTracks.value.length === 0"
+				>
 					On
 				</v-list-item>
 				<v-list-item
 					link
 					@click="setCaptionsTrack(track)"
-					v-for="(track, idx) in tracks"
+					v-for="(track, idx) in captions.captionsTracks.value"
 					:key="idx"
 				>
 					{{ track }}
@@ -26,33 +35,21 @@
 	</v-btn>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from "vue";
+<script lang="ts" setup>
+import { useCaptions } from "../composables";
 
-const ClosedCaptionsSwitcher = defineComponent({
-	name: "ClosedCaptionsSwitcher",
-	emits: ["enable-cc", "cc-track"],
-	props: {
-		supported: { type: Boolean, default: true },
-		tracks: { type: Array as PropType<string[]>, default: () => [] },
-	},
-	setup(props, { emit }) {
-		function setCaptionsEnabled(value: boolean) {
-			emit("enable-cc", value);
-		}
+const captions = useCaptions();
 
-		function setCaptionsTrack(value: string) {
-			emit("cc-track", value);
-		}
+function setCaptionsEnabled(value: boolean) {
+	captions.isCaptionsEnabled.value = value;
+}
 
-		return {
-			setCaptionsEnabled,
-			setCaptionsTrack,
-		};
-	},
-});
-
-export default ClosedCaptionsSwitcher;
+function setCaptionsTrack(value: string) {
+	if (!captions.isCaptionsEnabled.value) {
+		captions.isCaptionsEnabled.value = true;
+	}
+	captions.currentTrack.value = value;
+}
 </script>
 
 <style lang="scss">

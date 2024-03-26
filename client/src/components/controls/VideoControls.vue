@@ -14,16 +14,7 @@
 			<VolumeControl />
 			<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 			<div class="grow"><!-- Spacer --></div>
-			<ClosedCaptionsSwitcher
-				:supported="captions.isCaptionsSupported.value"
-				:tracks="captions.captionsTracks.value"
-				@enable-cc="
-					value => {
-						captions.isCaptionsEnabled.value = value;
-					}
-				"
-				@cc-track="value => (captions.currentTrack.value = value)"
-			/>
+			<ClosedCaptionsSwitcher />
 			<PlaybackRateSwitcher />
 			<LayoutSwitcher />
 		</v-row>
@@ -42,7 +33,7 @@ import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 
 import { useStore } from "@/store";
-import { useCaptions, useMediaPlayer } from "../composables";
+import { useMediaPlayer } from "../composables";
 
 export default defineComponent({
 	name: "VideoControls",
@@ -77,12 +68,10 @@ export default defineComponent({
 	setup() {
 		const store = useStore();
 		const player = useMediaPlayer();
-		const captions = useCaptions();
 
 		return {
 			store,
 			player,
-			captions,
 		};
 	},
 });
