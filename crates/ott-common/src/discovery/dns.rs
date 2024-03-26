@@ -1,8 +1,11 @@
+use std::{str::FromStr};
+
 use async_trait::async_trait;
 use hickory_resolver::{
     config::{NameServerConfig, Protocol, ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
 };
+use serde::Deserializer;
 use tracing::info;
 
 use super::*;
@@ -12,6 +15,7 @@ pub struct DnsDiscoveryConfig {
     /// The port that monoliths should be listening on for load balancer connections.
     pub service_port: u16,
     /// The DNS server to query. Optional. If not provided, the system configuration will be used instead.
+    #[serde(deserialize_with = "deserialize_dns_server")]
     pub dns_server: Option<SocketAddr>,
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
@@ -19,6 +23,22 @@ pub struct DnsDiscoveryConfig {
     #[serde(default)]
     #[serde(with = "humantime_serde")]
     pub polling_interval: Option<Duration>,
+}
+
+fn deserialize_dns_server<'de, D>(deserializer: D) -> Result<Option<SocketAddr>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let mut buf = String::deserialize(deserializer)?;
+
+    match buf.find(':') {
+        None => buf.push_str(":53"),
+        _ => (),
+    }
+
+    return Ok(Some(
+        SocketAddr::from_str(&buf).expect("Error: Could not unwrap"),
+    ));
 }
 
 pub struct DnsServiceDiscoverer {
@@ -79,13 +99,13 @@ mod test {
     fn server_deserializes_correctly() {
         let json = json!({
             "service_port": 8080,
-            "dns_server": "127.0.0.1:100",
+            "dns_server": "127.0.0.1",
             "query": "".to_string(),
         });
 
         let config: DnsDiscoveryConfig =
             serde_json::from_value(json).expect("Failed to deserialize json");
 
-        assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 100).into()));
+        assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 53).into()));
     }
 }
