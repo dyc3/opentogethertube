@@ -1,8 +1,9 @@
 use rand::seq::IteratorRandom;
+use serde::Deserialize;
 
 use crate::monolith::BalancerMonolith;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Deserialize)]
 pub struct MinRoomsSelector;
 pub trait MonolithSelection: std::fmt::Debug {
     fn select_monolith<'a>(
