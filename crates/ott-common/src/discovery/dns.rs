@@ -1,4 +1,4 @@
-use std::{str::FromStr};
+use std::str::FromStr;
 
 use async_trait::async_trait;
 use hickory_resolver::{
