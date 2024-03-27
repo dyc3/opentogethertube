@@ -29,15 +29,17 @@ fn deserialize_dns_server<'de, D>(deserializer: D) -> Result<Option<SocketAddr>,
 where
     D: Deserializer<'de>,
 {
-    let mut buf = String::deserialize(deserializer)?;
+    let buf = String::deserialize(deserializer)?;
 
-    if Option::is_none(&buf.find(':')) {
-        buf.push_str(":53");
+    if buf.is_empty() {
+        return Ok(None);
     }
 
-    Ok(Some(
-        SocketAddr::from_str(&buf).expect("Error: Could not unwrap"),
-    ))
+    if IpAddr::from_str(&buf).is_ok() {
+        Ok(Some(SocketAddr::new(IpAddr::from_str(&buf).unwrap(), 53)))
+    } else {
+        Ok(Some(SocketAddr::from_str(&buf).unwrap()))
+    }
 }
 
 pub struct DnsServiceDiscoverer {
@@ -95,7 +97,21 @@ mod test {
     use serde_json::json;
 
     #[test]
-    fn server_deserializes_correctly() {
+    fn dns_server_deserializes_correctly() {
+        let json = json!({
+            "service_port": 8080,
+            "dns_server": "127.0.0.1:100",
+            "query": "".to_string(),
+        });
+
+        let config: DnsDiscoveryConfig =
+            serde_json::from_value(json).expect("Failed to deserialize json");
+
+        assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 100).into()));
+    }
+
+    #[test]
+    fn dns_server_deserialization_defaults_to_port_53() {
         let json = json!({
             "service_port": 8080,
             "dns_server": "127.0.0.1",
@@ -106,5 +122,19 @@ mod test {
             serde_json::from_value(json).expect("Failed to deserialize json");
 
         assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 53).into()));
+    }
+
+    #[test]
+    fn dns_server_is_optional() {
+        let json = json!({
+            "service_port": 8080,
+            "dns_server": "",
+            "query": "".to_string(),
+        });
+
+        let config: DnsDiscoveryConfig =
+            serde_json::from_value(json).expect("Failed to deserialize json");
+
+        assert_eq!(config.dns_server, None);
     }
 }
