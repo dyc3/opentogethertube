@@ -5,7 +5,7 @@ use hickory_resolver::{
     config::{NameServerConfig, Protocol, ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
 };
-use serde::Deserializer;
+use serde::{Deserializer, Serialize};
 use tracing::info;
 
 use super::*;
@@ -25,6 +25,25 @@ pub struct DnsDiscoveryConfig {
     pub polling_interval: Option<Duration>,
 }
 
+trait FromValue {
+    fn from_value(value: serde_json::Value) -> Result<DnsDiscoveryConfig, serde_json::Error>;
+}
+
+impl FromValue for DnsDiscoveryConfig {
+    fn from_value(mut value: serde_json::Value) -> Result<DnsDiscoveryConfig, serde_json::Error> {
+        if value.get("dns_server").is_none() {
+            let mut kv = serde_json::Map::new();
+            kv.insert(
+                "dns_server".to_string(),
+                serde_json::Value::from_str("").unwrap(),
+            );
+            let value = value.as_object_mut().insert(&mut kv);
+        }
+
+        return serde_json::from_value(value);
+    }
+}
+
 fn deserialize_dns_server<'de, D>(deserializer: D) -> Result<Option<SocketAddr>, D::Error>
 where
     D: Deserializer<'de>,
@@ -35,10 +54,12 @@ where
         return Ok(None);
     }
 
-    if IpAddr::from_str(&buf).is_ok() {
-        Ok(Some(SocketAddr::new(IpAddr::from_str(&buf).unwrap(), 53)))
-    } else {
-        Ok(Some(SocketAddr::from_str(&buf).unwrap()))
+    match IpAddr::from_str(&buf) {
+        Ok(ip) => Ok(Some(SocketAddr::new(ip, 53))),
+        Err(_) => match SocketAddr::from_str(&buf) {
+            Ok(socket) => Ok(Some(socket)),
+            Err(_) => Ok(None),
+        },
     }
 }
 
@@ -105,7 +126,7 @@ mod test {
         });
 
         let config: DnsDiscoveryConfig =
-            serde_json::from_value(json).expect("Failed to deserialize json");
+            DnsDiscoveryConfig::from_value(json).expect("Failed to deserialize json");
 
         assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 100).into()));
     }
@@ -119,7 +140,7 @@ mod test {
         });
 
         let config: DnsDiscoveryConfig =
-            serde_json::from_value(json).expect("Failed to deserialize json");
+            DnsDiscoveryConfig::from_value(json).expect("Failed to deserialize json");
 
         assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 53).into()));
     }
@@ -132,8 +153,8 @@ mod test {
         });
 
         let config: DnsDiscoveryConfig =
-            serde_json::from_value(json).expect("Failed to deserialize json");
+            DnsDiscoveryConfig::from_value(json).expect("Failed to deserialize json");
 
-        assert_eq!(config.dns_server, None);
+        assert_eq!(config.dns_server.is_some(), true);
     }
 }
