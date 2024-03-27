@@ -200,7 +200,7 @@ mod test {
 
     #[test]
     fn room_name_ord() {
-        // this is to verify we don't break the properies of Ord
+        // this is to verify we don't break the properties of Ord
         // probably would be better to have a property based test
         let a = RoomName::from("a");
         let b = RoomName::from("b");
