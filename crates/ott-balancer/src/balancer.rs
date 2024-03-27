@@ -837,5 +837,17 @@ mod test {
 
         // make sure the client is in the context
         assert!(ctx.clients.contains_key(&client_id));
+
+        // make sure there is only one room in the monolith, with the client in it
+        assert!(ctx
+            .monoliths
+            .get(&monolith_id)
+            .unwrap()
+            .rooms()
+            .get(&room_name)
+            .unwrap()
+            .clients()
+            .contains(&client_id));
+        assert_eq!(ctx.monoliths.get(&monolith_id).unwrap().rooms().len(), 1);
     }
 }
