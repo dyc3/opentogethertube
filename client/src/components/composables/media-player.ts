@@ -1,6 +1,5 @@
 import { useStore } from "@/store";
 import { onMounted, ref, watch, type Ref, shallowRef, provide, inject } from "vue";
-import type { MediaPlayer } from "../players/OmniPlayer.vue";
 
 const volume = ref(100);
 
@@ -16,6 +15,39 @@ export function useVolume() {
 	});
 
 	return volume;
+}
+
+export interface MediaPlayer {
+	/**
+	 * Play the video.
+	 *
+	 * Some browsers emit promises for this, and some don't.
+	 */
+	play(): void | Promise<void>;
+	/**
+	 * Pause the video.
+	 *
+	 * Some browsers emit promises for this, and some don't.
+	 */
+	pause(): void | Promise<void>;
+	setVolume(volume: number): void | Promise<void>;
+	getPosition(): number;
+	setPosition(position: number): void;
+
+	isCaptionsSupported(): boolean;
+	getAvailablePlaybackRates(): number[];
+}
+
+export interface MediaPlayerWithCaptions extends MediaPlayer {
+	isCaptionsEnabled(): boolean;
+	setCaptionsEnabled(enabled: boolean): void;
+	getCaptionsTracks(): string[];
+	setCaptionsTrack(track: string): void;
+}
+
+export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
+	getPlaybackRate(): number;
+	setPlaybackRate(rate: number): void;
 }
 
 export class MediaPlayerV2 {

@@ -123,7 +123,15 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
-import { useCaptions, useMediaPlayer, usePlaybackRate, useVolume } from "../composables";
+import {
+	MediaPlayer,
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+	useCaptions,
+	useMediaPlayer,
+	usePlaybackRate,
+	useVolume,
+} from "../composables";
 import { watchEffect } from "vue";
 
 const services = [
@@ -136,39 +144,6 @@ const services = [
 	"tubi",
 	"peertube",
 ];
-
-export interface MediaPlayer {
-	/**
-	 * Play the video.
-	 *
-	 * Some browsers emit promises for this, and some don't.
-	 */
-	play(): void | Promise<void>;
-	/**
-	 * Pause the video.
-	 *
-	 * Some browsers emit promises for this, and some don't.
-	 */
-	pause(): void | Promise<void>;
-	setVolume(volume: number): void | Promise<void>;
-	getPosition(): number;
-	setPosition(position: number): void;
-
-	isCaptionsSupported(): boolean;
-	getAvailablePlaybackRates(): number[];
-}
-
-export interface MediaPlayerWithCaptions extends MediaPlayer {
-	isCaptionsEnabled(): boolean;
-	setCaptionsEnabled(enabled: boolean): void;
-	getCaptionsTracks(): string[];
-	setCaptionsTrack(track: string): void;
-}
-
-export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
-	getPlaybackRate(): number;
-	setPlaybackRate(rate: number): void;
-}
 
 export default defineComponent({
 	name: "OmniPlayer",

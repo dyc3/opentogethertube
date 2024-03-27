@@ -10,8 +10,7 @@ import Plyr from "plyr";
 import Hls from "hls.js";
 import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
-import { useStore } from "@/store";
-import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "./OmniPlayer.vue";
+import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
 import { useCaptions } from "../composables";
 
 export default defineComponent({
