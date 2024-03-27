@@ -31,7 +31,7 @@ where
 {
     let mut buf = String::deserialize(deserializer)?;
 
-    if Option::is_none(buf.find(':')) {
+    if Option::is_none(&buf.find(':')) {
         buf.push_str(":53");
     }
 
