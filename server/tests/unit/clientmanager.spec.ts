@@ -23,6 +23,10 @@ class TestClient extends Client {
 	sendRawMock = vi.fn();
 	kickMock = vi.fn();
 
+	get clientType() {
+		return "test";
+	}
+
 	sendRaw(msg: string): void {
 		this.sendRawMock(msg);
 	}
