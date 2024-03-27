@@ -105,6 +105,7 @@ export function parseWebsocketConnectionUrl(req: express.Request): string {
 }
 
 export function addClient(client: Client) {
+	log.info(`New ${client.clientType} client (${client.id}) joining room ${client.room}`);
 	connections.push(client);
 	client.on("auth", onClientAuth);
 	client.on("message", onClientMessage);
