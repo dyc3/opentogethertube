@@ -15,6 +15,7 @@
 			]
 		"
 		:drag-on-click="true"
+		data-cy="volume-slider"
 	/>
 </template>
 

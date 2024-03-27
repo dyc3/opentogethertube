@@ -12,7 +12,7 @@
 			<BasicControls :current-position="truePosition" />
 			<!-- eslint-disable-next-line vue/no-v-model-argument -->
 			<VolumeControl />
-			<TimestampDisplay :current-position="truePosition" />
+			<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 			<div class="grow"><!-- Spacer --></div>
 			<ClosedCaptionsSwitcher
 				:supported="isCaptionsSupported"

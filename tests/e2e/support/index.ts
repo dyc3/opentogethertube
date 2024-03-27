@@ -28,6 +28,12 @@ declare global {
 			ottResetRateLimit(): Chainable<Element>;
 			ottCreateUser(userCreds: any): Chainable<Element>;
 			ottLogin(userCreds: any): Chainable<Element>;
+			/**
+			 * Helper function for moving a vue-slider component to a desired percentage.
+			 * @param percent number between 0 and 1
+			 */
+			ottSliderMove(percent: number): Chainable<JQuery<HTMLElement>>;
+			ottCloseToasts(): Chainable<Element>;
 		}
 	}
 }
