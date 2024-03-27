@@ -5,7 +5,7 @@ use hickory_resolver::{
     config::{NameServerConfig, Protocol, ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
 };
-use serde::{Deserializer, Serialize};
+use serde::Deserializer;
 use tracing::info;
 
 use super::*;
@@ -37,10 +37,10 @@ impl FromValue for DnsDiscoveryConfig {
                 "dns_server".to_string(),
                 serde_json::Value::from_str("").unwrap(),
             );
-            let value = value.as_object_mut().insert(&mut kv);
+            let _value = value.as_object_mut().insert(&mut kv);
         }
 
-        return serde_json::from_value(value);
+        serde_json::from_value(value)
     }
 }
 
@@ -155,6 +155,6 @@ mod test {
         let config: DnsDiscoveryConfig =
             DnsDiscoveryConfig::from_value(json).expect("Failed to deserialize json");
 
-        assert_eq!(config.dns_server.is_some(), true);
+        assert_eq!(config.dns_server.is_some());
     }
 }
