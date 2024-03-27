@@ -201,6 +201,7 @@ fn should_send(event: &str) -> bool {
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "event", rename_all = "lowercase")]
+#[allow(dead_code)]
 #[non_exhaustive]
 enum Event {
     Ws(EventWebsocketMessage),
