@@ -200,4 +200,11 @@ mod test {
         let b = RoomName::from("b");
         assert_eq!(a.partial_cmp(&b), Some(a.cmp(&b)));
     }
+
+    #[test]
+    fn room_name_preserve_casing_internally() {
+        let room = RoomName::from("Foo");
+        assert_eq!(room.0.as_ref(), "Foo");
+        assert_ne!(room.0.as_ref(), "foo");
+    }
 }
