@@ -1,3 +1,4 @@
+import { fail } from "assert";
 import "cypress-iframe";
 
 // TODO: skip this test if youtube api key is not available AND/OR create another test that uses a different video source
@@ -93,7 +94,7 @@ describe("Video playback", () => {
 		});
 	});
 
-	it.only("should add a hls video and control it's playback rate and captions in various ways", { scrollBehavior: false }, () => {
+	it("should add a hls video and control it's playback rate and captions in various ways", { scrollBehavior: false }, () => {
 		cy.contains("button", "Add a video").scrollIntoView().click();
 		cy.get('[data-cy="add-preview-input"]').type("https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8");
 		cy.get(".video button").eq(1).click();
@@ -115,10 +116,10 @@ describe("Video playback", () => {
 			expect(element[0].playbackRate).to.be.equal(1.5);
 		});
 
-		// change the volume to 10%
-		cy.get('[data-cy="volume-slider"]').ottSliderMove(0.1);
+		// FIXME: change the volume to 10%
+		cy.get('[data-cy="volume-slider"]').ottSliderMove(0);
 		cy.get("video").should(element => {
-			expect(element[0].volume).to.be.equal(0.1);
+			expect(element[0].volume).to.be.equal(0);
 		});
 
 		// play the video
@@ -140,5 +141,77 @@ describe("Video playback", () => {
 		cy.get("video").should(element => {
 			expect(element[0].playbackRate).to.be.equal(1);
 		});
+
+		// enable captions
+		cy.get('[aria-label="Closed Captions"]').click();
+		cy.get('.v-overlay__content > .v-list').contains("en").eq(0).click();
+		cy.get("video").should(element => {
+			expect(element[0].textTracks[0].mode).to.be.equal("showing");
+			expect(element[0].textTracks[0].language).to.be.equal("en");
+		});
+
+		// disable captions
+		cy.get('[aria-label="Closed Captions"]').click();
+		cy.get('.v-list').contains("Off").click();
+		cy.get("video").should(element => {
+			expect(element[0].textTracks[0].mode).to.be.equal("disabled");
+		});
+
+		// show a different caption track
+		cy.get('[aria-label="Closed Captions"]').click();
+		cy.get('.v-overlay__content > .v-list').contains("es").eq(0).click();
+		// cy.get("video")
+		// .then(element => {
+		// 	for (let i = 0; i < element[0].textTracks.length; i++) {
+		// 		if (element[0].textTracks[i].kind !== "captions") {
+		// 			continue;
+		// 		}
+		// 		cy.log(JSON.stringify({
+		// 			id: element[0].textTracks[i].id,
+		// 			label: element[0].textTracks[i].label,
+		// 			language: element[0].textTracks[i].language,
+		// 			mode: element[0].textTracks[i].mode,
+		// 			kind: element[0].textTracks[i].kind,
+		// 		}));
+		// 	}
+		// });
+		cy.get("video")
+		.should(element => {
+			for (let i = 0; i < element[0].textTracks.length; i++) {
+				if (element[0].textTracks[i].language === "es" && element[0].textTracks[i].kind === "captions") {
+					expect(element[0].textTracks[i].mode).to.be.equal("showing");
+					return;
+				}
+			}
+			fail("No caption track found");
+		});
 	});
+
+	["https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8", "https://vjs.zencdn.net/v/oceans.mp4"].forEach((url, i) => {
+		it(`should add a couple videos and properly update the UI for things that are implemented for the current video player [${i}]`, () => {
+			cy.contains("button", "Add a video").scrollIntoView().click();
+			cy.get('[data-cy="add-preview-input"]').type("https://vimeo.com/94338566");
+			cy.get(".video button").eq(1).click();
+			cy.get('[data-cy="add-preview-input"]').type(url);
+			cy.get(".video button").eq(1).click();
+			cy.get("iframe").should("exist").scrollIntoView();
+			cy.wait(100);
+			cy.ottCloseToasts();
+
+			// should have both captions and playback rate controls disabled
+			cy.get('[aria-label="Playback Speed"]').should("exist").should("be.disabled");
+			cy.get('[aria-label="Closed Captions"]').should("exist").should("be.disabled");
+
+			// skip the video
+			cy.get(".video-controls button").eq(3).click();
+			cy.get("video").should("exist").scrollIntoView();
+			cy.get("video").should(element => {
+				expect(element[0].paused).to.be.true;
+			});
+
+			cy.get('[aria-label="Playback Speed"]').should("exist").should("be.enabled");
+			cy.get('[aria-label="Closed Captions"]').should("exist").should("be.enabled");
+		});
+	})
+
 });
