@@ -36,9 +36,9 @@ where
         _ => (),
     }
 
-    return Ok(Some(
+    Ok(Some(
         SocketAddr::from_str(&buf).expect("Error: Could not unwrap"),
-    ));
+    ))
 }
 
 pub struct DnsServiceDiscoverer {
