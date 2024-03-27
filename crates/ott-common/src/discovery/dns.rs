@@ -128,7 +128,6 @@ mod test {
     fn dns_server_is_optional() {
         let json = json!({
             "service_port": 8080,
-            "dns_server": "",
             "query": "".to_string(),
         });
 
