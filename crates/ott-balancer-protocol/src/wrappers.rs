@@ -7,7 +7,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[typeshare(serialized_as = "String")]
 pub struct ClientId(Uuid);
-#[derive(Debug, Clone, Eq, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 #[typeshare(serialized_as = "String")]
 pub struct RoomName(Arc<str>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -135,9 +135,15 @@ impl PartialEq for RoomName {
 
 impl PartialOrd for RoomName {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for RoomName {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.0
             .to_ascii_lowercase()
-            .partial_cmp(&other.0.to_ascii_lowercase())
+            .cmp(&other.0.to_ascii_lowercase())
     }
 }
 
