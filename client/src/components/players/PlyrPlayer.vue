@@ -231,7 +231,7 @@ export default defineComponent({
 					console.info("PlyrPlayer: hls.js manifest parsed");
 					emit("ready");
 					store.commit("captions/SET_AVAILABLE_TRACKS", {
-						tracks: getCaptionsTracks(),
+						tracks: playerImpl.getCaptionsTracks(),
 					});
 				});
 				hls.on(Hls.Events.ERROR, (event, data) => {
