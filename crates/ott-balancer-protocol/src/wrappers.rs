@@ -126,3 +126,24 @@ where
         &self.message
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn room_name_case_insensitive() {
+        let room1 = RoomName::from("foo");
+        let room2 = RoomName::from("FOO");
+        assert_eq!(room1, room2);
+    }
+
+    #[test]
+    fn room_name_case_insensitive_hash() {
+        let room1 = RoomName::from("foo");
+        let room2 = RoomName::from("FOO");
+        let mut map = std::collections::HashMap::new();
+        map.insert(room1, 1);
+        assert_eq!(map.get(&room2), Some(&1));
+    }
+}
