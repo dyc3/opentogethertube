@@ -74,6 +74,7 @@ export class MediaPlayerV2 {
 
 	markApiReady() {
 		if (!this.player.value) {
+			// FIXME: im not sure if this branch gets taken anymore
 			new Promise(resolve => {
 				const stop = watch(this.player, newPlayer => {
 					if (newPlayer) {
