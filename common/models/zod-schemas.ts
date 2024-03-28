@@ -1,4 +1,5 @@
 import { ALL_VIDEO_SERVICES, ROOM_NAME_REGEX } from "ott-common/constants";
+import { BehaviorOption, Role } from "ott-common/models/types";
 import { Visibility, QueueMode } from "ott-common/models/types";
 import { z } from "zod";
 
@@ -55,3 +56,44 @@ export const OttApiRequestAccountRecoveryVerifySchema = z.object({
 	verifyKey: z.string(),
 	newPassword: z.string(),
 });
+
+const CategorySchema = z.enum([
+	"sponsor",
+	"intro",
+	"outro",
+	"interaction",
+	"selfpromo",
+	"music_offtopic",
+	"preview",
+]);
+
+const RoomSettingsSchema = z.object({
+	name: z.string().optional(),
+	title: z.string().optional(),
+	description: z.string().optional(),
+	visibility: z.nativeEnum(Visibility),
+	queueMode: z.nativeEnum(QueueMode),
+	autoSkipSegmentCategories: z.array(CategorySchema),
+	restoreQueueBehavior: z.nativeEnum(BehaviorOption),
+	enableVoteSkip: z.boolean().optional(),
+});
+
+export const OttApiRequestPatchRoomSchema = z.union([
+	z.object({
+		grants: z.array(
+			z.tuple([
+				z.object({
+					role: z.nativeEnum(Role),
+				}),
+				z.object({
+					grantMask: z.number(),
+				}),
+			])
+		),
+		...RoomSettingsSchema.shape,
+	}),
+	z.object({
+		claim: z.boolean().optional(),
+		...RoomSettingsSchema.shape,
+	}),
+]);

@@ -67,8 +67,6 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 
 export interface OttApiRequestPatchRoom extends Partial<RoomSettings> {
 	claim?: boolean;
-	/** @deprecated Use `grants` instead */
-	permissions?: Grants;
 }
 
 export interface OttApiRequestUndo {
