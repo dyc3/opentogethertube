@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{net::Ipv4Addr, str::FromStr};
 
 use async_trait::async_trait;
 use hickory_resolver::{
@@ -16,6 +16,7 @@ pub struct DnsDiscoveryConfig {
     pub service_port: u16,
     /// The DNS server to query. Optional. If not provided, the system configuration will be used instead.
     #[serde(deserialize_with = "deserialize_dns_server")]
+    #[serde(default = "default_dns_server")]
     pub dns_server: Option<SocketAddr>,
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
@@ -23,25 +24,6 @@ pub struct DnsDiscoveryConfig {
     #[serde(default)]
     #[serde(with = "humantime_serde")]
     pub polling_interval: Option<Duration>,
-}
-
-trait FromValue {
-    fn from_value(value: serde_json::Value) -> Result<DnsDiscoveryConfig, serde_json::Error>;
-}
-
-impl FromValue for DnsDiscoveryConfig {
-    fn from_value(mut value: serde_json::Value) -> Result<DnsDiscoveryConfig, serde_json::Error> {
-        if value.get("dns_server").is_none() {
-            let mut kv = serde_json::Map::new();
-            kv.insert(
-                "dns_server".to_string(),
-                serde_json::Value::from_str("").unwrap(),
-            );
-            let _value = value.as_object_mut().insert(&mut kv);
-        }
-
-        serde_json::from_value(value)
-    }
 }
 
 fn deserialize_dns_server<'de, D>(deserializer: D) -> Result<Option<SocketAddr>, D::Error>
@@ -58,9 +40,13 @@ where
         Ok(ip) => Ok(Some(SocketAddr::new(ip, 53))),
         Err(_) => match SocketAddr::from_str(&buf) {
             Ok(socket) => Ok(Some(socket)),
-            Err(_) => Ok(None),
+            Err(_e) => Ok(None),
         },
     }
+}
+
+fn default_dns_server() -> Option<SocketAddr> {
+    Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 53))
 }
 
 pub struct DnsServiceDiscoverer {
@@ -126,7 +112,7 @@ mod test {
         });
 
         let config: DnsDiscoveryConfig =
-            DnsDiscoveryConfig::from_value(json).expect("Failed to deserialize json");
+            serde_json::from_value(json).expect("Failed to deserialize json");
 
         assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 100).into()));
     }
@@ -140,7 +126,7 @@ mod test {
         });
 
         let config: DnsDiscoveryConfig =
-            DnsDiscoveryConfig::from_value(json).expect("Failed to deserialize json");
+            serde_json::from_value(json).expect("Failed to deserialize json");
 
         assert_eq!(config.dns_server, Some(([127, 0, 0, 1], 53).into()));
     }
@@ -153,8 +139,11 @@ mod test {
         });
 
         let config: DnsDiscoveryConfig =
-            DnsDiscoveryConfig::from_value(json).expect("Failed to deserialize json");
+            serde_json::from_value(json).expect("Failed to deserialize json");
 
-        assert_eq!(config.dns_server.is_some());
+        assert_eq!(
+            config.dns_server,
+            Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 53))
+        );
     }
 }
