@@ -209,8 +209,17 @@ describe("Video playback", () => {
 				expect(element[0].paused).to.be.true;
 			});
 
+			// should have both captions and playback rate controls enabled
 			cy.get('[aria-label="Playback Speed"]').should("exist").should("be.enabled");
 			cy.get('[aria-label="Closed Captions"]').should("exist").should("be.enabled");
+
+			// skip the video
+			cy.get(".video-controls button").eq(3).click();
+			cy.get("video").should("not.exist");
+
+			// should have both captions and playback rate controls disabled when the video goes away
+			cy.get('[aria-label="Playback Speed"]').should("exist").should("be.disabled");
+			cy.get('[aria-label="Closed Captions"]').should("exist").should("be.disabled");
 		});
 	})
 
