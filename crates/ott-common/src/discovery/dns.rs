@@ -32,10 +32,6 @@ where
 {
     let buf = String::deserialize(deserializer)?;
 
-    if buf.is_empty() {
-        return Ok(None);
-    }
-
     match IpAddr::from_str(&buf) {
         Ok(ip) => Ok(Some(SocketAddr::new(ip, 53))),
         Err(_) => match SocketAddr::from_str(&buf) {
