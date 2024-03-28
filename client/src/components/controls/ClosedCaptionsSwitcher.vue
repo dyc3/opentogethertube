@@ -2,7 +2,7 @@
 	<v-btn
 		variant="text"
 		icon
-		:disabled="!captions.isCaptionsSupported.value"
+		:disabled="!captions.isCaptionsSupported"
 		class="media-control"
 		aria-label="Closed Captions"
 	>
@@ -11,7 +11,7 @@
 			location="top"
 			offset-y
 			activator="parent"
-			:disabled="!captions.isCaptionsSupported.value"
+			:disabled="!captions.isCaptionsSupported"
 		>
 			<v-list>
 				<v-list-item
@@ -50,6 +50,7 @@ function setCaptionsTrack(value: string) {
 	}
 	captions.currentTrack.value = value;
 }
+
 </script>
 
 <style lang="scss">
