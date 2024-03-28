@@ -6,9 +6,16 @@ use serde::Deserialize;
 
 use ott_common::discovery::DiscoveryConfig;
 
+use crate::selection::MinRoomsSelector;
+
 static mut CONFIG: Option<BalancerConfig> = None;
 
 static CONFIG_INIT: Once = Once::new();
+
+#[derive(Debug, Deserialize)]
+pub enum MonolithSelectionStrategy {
+    MinRooms(MinRoomsSelector),
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
@@ -19,6 +26,7 @@ pub struct BalancerConfig {
     pub region: String,
     /// The API key that clients can use to access restricted endpoints.
     pub api_key: Option<String>,
+    pub selection_strategy: MonolithSelectionStrategy,
 }
 
 impl Default for BalancerConfig {
@@ -28,6 +36,7 @@ impl Default for BalancerConfig {
             discovery: DiscoveryConfig::default(),
             region: "unknown".to_owned(),
             api_key: None,
+            selection_strategy: MonolithSelectionStrategy::MinRooms(MinRoomsSelector),
         }
     }
 }
