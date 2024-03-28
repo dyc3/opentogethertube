@@ -1,4 +1,4 @@
-use std::{net::Ipv4Addr, str::FromStr};
+use std::str::FromStr;
 
 use async_trait::async_trait;
 use hickory_resolver::{
@@ -16,7 +16,7 @@ pub struct DnsDiscoveryConfig {
     pub service_port: u16,
     /// The DNS server to query. Optional. If not provided, the system configuration will be used instead.
     #[serde(deserialize_with = "deserialize_dns_server")]
-    #[serde(default = "default_dns_server")]
+    #[serde(default)]
     pub dns_server: Option<SocketAddr>,
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
@@ -43,10 +43,6 @@ where
             Err(e) => Err(serde::de::Error::custom(e)),
         },
     }
-}
-
-fn default_dns_server() -> Option<SocketAddr> {
-    Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 53))
 }
 
 pub struct DnsServiceDiscoverer {
@@ -141,10 +137,7 @@ mod test {
         let config: DnsDiscoveryConfig =
             serde_json::from_value(json).expect("Failed to deserialize json");
 
-        assert_eq!(
-            config.dns_server,
-            Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 53))
-        );
+        assert!(config.dns_server.is_none())
     }
 
     #[test]
