@@ -168,6 +168,7 @@ export default defineComponent({
 		const store = useStore();
 
 		const player: Ref<MediaPlayer | null> = ref(null);
+		const hasPlayerChangedYet = ref(false);
 
 		const controls = useMediaPlayer();
 
@@ -199,6 +200,8 @@ export default defineComponent({
 			console.debug("Player changed", v);
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
 			controls.setPlayer(v);
+			hasPlayerChangedYet.value = true;
+			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 		});
 		watch(captions.isCaptionsEnabled, v => {
 			if (player.value && implementsCaptions(player.value)) {
@@ -230,6 +233,18 @@ export default defineComponent({
 		});
 		// player events re-emitted or data stored
 		async function onApiReady() {
+			if (!hasPlayerChangedYet.value) {
+				await new Promise(resolve => {
+					const stop = watch(hasPlayerChangedYet, v => {
+						if (v) {
+							stop();
+							resolve(true);
+						}
+					});
+				});
+			}
+
+			hasPlayerChangedYet.value = false;
 			controls.markApiReady();
 			captions.isCaptionsSupported.value = isCaptionsSupported();
 			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
