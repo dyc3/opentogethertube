@@ -2,17 +2,12 @@
 	<v-btn
 		variant="text"
 		icon
-		:disabled="!captions.isCaptionsSupported"
+		:disabled="!supported"
 		class="media-control"
 		aria-label="Closed Captions"
 	>
 		<v-icon>mdi-closed-caption</v-icon>
-		<v-menu
-			location="top"
-			offset-y
-			activator="parent"
-			:disabled="!captions.isCaptionsSupported"
-		>
+		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
 				<v-list-item
 					link
@@ -51,6 +46,7 @@ function setCaptionsTrack(value: string) {
 	captions.currentTrack.value = value;
 }
 
+const supported = captions.isCaptionsSupported;
 </script>
 
 <style lang="scss">
