@@ -200,7 +200,9 @@ export default defineComponent({
 			console.debug("Player changed", v);
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
 			controls.setPlayer(v);
-			hasPlayerChangedYet.value = true;
+			if (v) {
+				hasPlayerChangedYet.value = true;
+			}
 		});
 		watch(captions.isCaptionsEnabled, v => {
 			if (player.value && implementsCaptions(player.value)) {
@@ -234,9 +236,10 @@ export default defineComponent({
 		// player events re-emitted or data stored
 		async function onApiReady() {
 			if (!hasPlayerChangedYet.value) {
+				console.debug("waiting for player to change before emitting apiready");
 				await new Promise(resolve => {
 					const stop = watch(hasPlayerChangedYet, v => {
-						if (v) {
+						if (v && player.value) {
 							stop();
 							resolve(true);
 						}
