@@ -5,7 +5,6 @@ import { settingsModule, SettingsState } from "@/stores/settings";
 import { ToastStyle } from "./models/toast";
 import { eventsModule } from "@/stores/events";
 import { miscModule, MiscState } from "@/stores/misc";
-import { captionsModule, CaptionsState } from "@/stores/captions";
 import { InjectionKey } from "vue";
 import _ from "lodash";
 import { RoomState, roomModule } from "./stores/room";
@@ -16,7 +15,6 @@ export type FullOTTStoreState = BaseStoreState & {
 	users: UsersState;
 	settings: SettingsState;
 	misc: MiscState;
-	captions: CaptionsState;
 };
 
 interface BaseStoreState {
@@ -109,7 +107,6 @@ export function buildNewStore() {
 			users: usersModule,
 			settings: settingsModule,
 			misc: miscModule,
-			captions: captionsModule,
 		},
 	}) as Store<FullOTTStoreState>;
 }
