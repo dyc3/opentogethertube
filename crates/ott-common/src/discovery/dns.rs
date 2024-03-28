@@ -40,7 +40,7 @@ where
         Ok(ip) => Ok(Some(SocketAddr::new(ip, 53))),
         Err(_) => match SocketAddr::from_str(&buf) {
             Ok(socket) => Ok(Some(socket)),
-            Err(_e) => Ok(None),
+            Err(e) => Err(serde::de::Error::custom(e)),
         },
     }
 }
@@ -145,5 +145,17 @@ mod test {
             config.dns_server,
             Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 53))
         );
+    }
+
+    #[test]
+    fn dns_server_failed_deserialization_throws_error() {
+        let json = json!({
+            "not": "valid",
+            "DnsDiscoveryConfig": true,
+        });
+
+        let config: Result<DnsDiscoveryConfig, serde_json::Error> = serde_json::from_value(json);
+
+        assert!(config.is_err())
     }
 }
