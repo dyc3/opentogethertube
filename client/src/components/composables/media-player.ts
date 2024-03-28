@@ -143,7 +143,7 @@ export function useCaptions() {
 
 const playbackRate: Ref<number> = ref(1);
 const availablePlaybackRates: Ref<number[]> = ref([1]);
-const isPlaybackRateSupported: Ref<boolean> = computed(() => {
+const isPlaybackRateSupported = computed(() => {
 	return availablePlaybackRates.value.length > 1;
 });
 

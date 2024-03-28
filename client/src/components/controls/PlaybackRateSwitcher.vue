@@ -21,7 +21,6 @@
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { usePlaybackRate } from "../composables";
-import { computed } from "vue";
 
 const connection = useConnection();
 const roomApi = useRoomApi(connection);
@@ -39,9 +38,7 @@ function setRate(rate: number) {
 	roomApi.setPlaybackRate(rate);
 }
 
-const supported = computed(() => {
-	return playbackRate.availablePlaybackRates.value.length > 1;
-});
+const supported = playbackRate.isPlaybackRateSupported;
 </script>
 
 <style lang="scss">
