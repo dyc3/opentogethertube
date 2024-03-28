@@ -155,6 +155,7 @@ export interface MediaPlayer {
 
 	isCaptionsSupported(): boolean;
 	getAvailablePlaybackRates(): number[];
+	isQualitySupported(): boolean;
 }
 
 export interface MediaPlayerWithCaptions extends MediaPlayer {
@@ -168,6 +169,21 @@ export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 	getPlaybackRate(): Promise<number>;
 	setPlaybackRate(rate: number): Promise<void>;
 }
+
+export interface MediaPlayerWithQuality extends MediaPlayer {
+	getAvailableQualities(): QualityLevel[];
+	getQuality(): QualityLevel;
+	setQuality(quality: QualityLevel): Promise<void>;
+}
+
+export interface QualityLevel {
+	/** The string to display in the UI. */
+	label: string;
+	/** The value that the player should use internally to set the video quality. */
+	value: number;
+}
+
+export const QUALITY_AUTO: QualityLevel = { label: "Auto", value: -1 };
 
 export default defineComponent({
 	name: "OmniPlayer",
@@ -210,6 +226,10 @@ export default defineComponent({
 
 		function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
 			return !!p && p.getAvailablePlaybackRates().length > 0;
+		}
+
+		function implementsQuality(p: MediaPlayer | null): p is MediaPlayerWithQuality {
+			return !!p && p.isQualitySupported();
 		}
 
 		const isPlayerPresent = computed(() => !!player.value);
@@ -320,6 +340,44 @@ export default defineComponent({
 				return;
 			}
 			player.value.setPlaybackRate(rate);
+		}
+
+		function isQualitySupported(): boolean {
+			if (!checkForPlayer(player.value)) {
+				return false;
+			}
+			if (!implementsQuality(player.value)) {
+				return false;
+			}
+			return player.value.isQualitySupported();
+		}
+		function getAvailableQualities(): QualityLevel[] {
+			if (!checkForPlayer(player.value)) {
+				return [];
+			}
+			if (!implementsQuality(player.value)) {
+				return [];
+			}
+			return player.value.getAvailableQualities();
+		}
+		function getQuality(): QualityLevel {
+			if (!checkForPlayer(player.value)) {
+				return QUALITY_AUTO;
+			}
+			if (!implementsQuality(player.value)) {
+				return QUALITY_AUTO;
+			}
+			return player.value.getQuality();
+		}
+		async function setQuality(quality: QualityLevel) {
+			if (!checkForPlayer(player.value)) {
+				return;
+			}
+			if (!implementsQuality(player.value)) {
+				return;
+			}
+			console.debug("Setting quality to", quality);
+			await player.value.setQuality(quality);
 		}
 		watch(
 			() => store.state.room.playbackSpeed,
@@ -447,6 +505,10 @@ export default defineComponent({
 			getAvailablePlaybackRates,
 			getPlaybackRate,
 			setPlaybackRate,
+			isQualitySupported,
+			getAvailableQualities,
+			getQuality,
+			setQuality,
 		};
 	},
 });

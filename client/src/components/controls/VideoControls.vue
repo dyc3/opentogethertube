@@ -17,12 +17,17 @@
 			<ClosedCaptionsSwitcher
 				:supported="isCaptionsSupported"
 				:tracks="store.state.captions.availableTracks"
-				@enable-cc="value => player.setCaptionsEnabled(value)"
-				@cc-track="value => player.setCaptionsTrack(value)"
+				@enable-cc="value => player?.setCaptionsEnabled(value)"
+				@cc-track="value => player?.setCaptionsTrack(value)"
 			/>
 			<PlaybackRateSwitcher
 				:current-rate="store.state.room.playbackSpeed"
 				:available-rates="player?.getAvailablePlaybackRates() ?? [1]"
+			/>
+			<QualitySelector
+				:current-quality="player?.getQuality() ?? QUALITY_AUTO"
+				:available-qualities="player?.getAvailableQualities() ?? []"
+				@set-quality="value => player?.setQuality(value)"
 			/>
 			<LayoutSwitcher />
 		</v-row>
@@ -39,9 +44,10 @@ import TimestampDisplay from "./TimestampDisplay.vue";
 import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
+import QualitySelector from "./QualitySelector.vue";
 
 import type OmniPlayer from "../players/OmniPlayer.vue";
-import type { MediaPlayer, MediaPlayerWithCaptions } from "../players/OmniPlayer.vue";
+import { MediaPlayer, MediaPlayerWithCaptions, QUALITY_AUTO } from "../players/OmniPlayer.vue";
 import { useStore } from "@/store";
 
 export default defineComponent({
@@ -54,6 +60,7 @@ export default defineComponent({
 		VideoProgressSlider,
 		VolumeControl,
 		PlaybackRateSwitcher,
+		QualitySelector,
 	},
 	props: {
 		sliderPosition: {
@@ -93,7 +100,7 @@ export default defineComponent({
 		function isCaptionsSupported(
 			p: Ref<MediaPlayer | MediaPlayerWithCaptions>
 		): p is Ref<MediaPlayerWithCaptions> {
-			return (player.value as MediaPlayerWithCaptions)?.isCaptionsSupported() ?? false;
+			return (player as unknown as MediaPlayerWithCaptions)?.isCaptionsSupported() ?? false;
 		}
 		function getCaptionsTracks(): string[] {
 			if (!isPlayerPresent(player)) {
@@ -109,6 +116,7 @@ export default defineComponent({
 			store,
 
 			getCaptionsTracks,
+			QUALITY_AUTO,
 		};
 	},
 });

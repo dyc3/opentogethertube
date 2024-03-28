@@ -124,6 +124,10 @@ const VimeoPlayer = defineComponent({
 			return [1];
 		}
 
+		function isQualitySupported(): boolean {
+			return false;
+		}
+
 		return {
 			isBuffering,
 
@@ -134,6 +138,7 @@ const VimeoPlayer = defineComponent({
 			setVolume,
 			isCaptionsSupported,
 			getAvailablePlaybackRates,
+			isQualitySupported,
 		};
 	},
 });
