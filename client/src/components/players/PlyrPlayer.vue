@@ -187,7 +187,7 @@ export default defineComponent({
 				emit("buffer-progress", player.value.buffered);
 			});
 			player.value.on("error", err => {
-				emit("error");
+				emit("error", err);
 				console.error("PlyrPlayer: error:", err);
 			});
 
