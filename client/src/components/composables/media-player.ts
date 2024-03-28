@@ -1,5 +1,5 @@
 import { useStore } from "@/store";
-import { onMounted, ref, watch, type Ref, shallowRef, provide, inject } from "vue";
+import { onMounted, ref, watch, type Ref, shallowRef, provide, inject, computed } from "vue";
 
 const volume = ref(100);
 
@@ -140,9 +140,11 @@ export function useCaptions() {
 	};
 }
 
-const isPlaybackRateSupported: Ref<boolean> = ref(false);
 const playbackRate: Ref<number> = ref(1);
 const availablePlaybackRates: Ref<number[]> = ref([1]);
+const isPlaybackRateSupported: Ref<boolean> = computed(() => {
+	return availablePlaybackRates.value.length > 1;
+});
 
 export function usePlaybackRate() {
 	return {

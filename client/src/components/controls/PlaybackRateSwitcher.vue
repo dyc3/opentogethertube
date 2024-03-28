@@ -1,10 +1,5 @@
 <template>
-	<v-btn
-		variant="text"
-		class="media-control"
-		aria-label="Playback Speed"
-		:disabled="!playbackRate.isPlaybackRateSupported"
-	>
+	<v-btn variant="text" class="media-control" aria-label="Playback Speed" :disabled="!supported">
 		{{ formatRate(playbackRate.playbackRate.value) }}
 
 		<v-menu location="top" activator="parent">
@@ -26,6 +21,7 @@
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { usePlaybackRate } from "../composables";
+import { computed } from "vue";
 
 const connection = useConnection();
 const roomApi = useRoomApi(connection);
@@ -42,6 +38,10 @@ function formatRate(rate: number) {
 function setRate(rate: number) {
 	roomApi.setPlaybackRate(rate);
 }
+
+const supported = computed(() => {
+	return playbackRate.availablePlaybackRates.value.length > 1;
+});
 </script>
 
 <style lang="scss">

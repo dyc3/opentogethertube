@@ -201,7 +201,6 @@ export default defineComponent({
 			// note that we have to wait for the player's api to be ready before we can call any methods on it
 			controls.setPlayer(v);
 			hasPlayerChangedYet.value = true;
-			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 		});
 		watch(captions.isCaptionsEnabled, v => {
 			if (player.value && implementsCaptions(player.value)) {
@@ -247,7 +246,6 @@ export default defineComponent({
 			hasPlayerChangedYet.value = false;
 			controls.markApiReady();
 			captions.isCaptionsSupported.value = isCaptionsSupported();
-			playbackRate.isPlaybackRateSupported.value = implementsPlaybackRate(player.value);
 			if (player.value) {
 				player.value.setVolume(volume.value);
 			}
