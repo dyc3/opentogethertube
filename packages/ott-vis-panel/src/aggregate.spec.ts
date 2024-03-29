@@ -191,17 +191,51 @@ describe("aggregation helpers", () => {
 					{ id: "f7d5d57f-d15f-48b0-b30c-9bb378ce4943" },
 				],
 			},
-			{ name: "bar", clients: 2 },
+			{
+				name: "bar",
+				clients: [
+					{ id: "e36d4eb5-f526-4566-b94f-8cfc6dbf8548" },
+					{ id: "e842eeef-ef6c-4095-acc7-6342fb8c8b8c" },
+				],
+			},
 		]);
 	});
 
 	it("dedupes rooms using sample data", () => {
 		const rooms = sampleSystemState.flatMap(b => b.monoliths.flatMap(m => m.rooms));
 		expect(dedupeRooms(rooms)).toEqual([
-			{ name: "foo", clients: 3 },
-			{ name: "bar", clients: 2 },
-			{ name: "baz", clients: 3 },
-			{ name: "qux", clients: 4 },
+			{
+				name: "foo",
+				clients: [
+					{ id: "e7229053-89df-428d-a37c-4b669fd57788" },
+					{ id: "3fc0f726-2ad7-438b-8b2c-bae675dc1178" },
+					{ id: "e7229053-89df-428d-a37c-4b669fd57788" },
+				],
+			},
+			{
+				name: "bar",
+				clients: [
+					{ id: "4a6fe051-3247-4cad-860a-cb455ee65923" },
+					{ id: "33bbcd19-2af5-4244-9d71-cb647acc1b06" },
+				],
+			},
+			{
+				name: "baz",
+				clients: [
+					{ id: "a90a98eb-5c82-44b3-90e0-1d117a9444c4" },
+					{ id: "a7a40762-0308-408a-b954-d3f7dc2e5732" },
+					{ id: "0ef93318-4b39-4b56-9180-637a9abeae9e" },
+				],
+			},
+			{
+				name: "qux",
+				clients: [
+					{ id: "d3be3464-efd5-41a1-b145-7d54378b02e3" },
+					{ id: "acc449cc-4748-435d-96b8-63530beac3d8" },
+					{ id: "9d2ff554-8388-4021-8467-5dfb208bd66e" },
+					{ id: "ff68188f-f739-46df-9bd7-dd25c1026651" },
+				],
+			},
 		]);
 	});
 
