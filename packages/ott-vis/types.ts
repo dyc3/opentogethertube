@@ -17,5 +17,9 @@ export interface Monolith {
 
 export interface Room {
 	name: string;
-	clients: number;
+	clients: Client[];
+}
+
+export interface Client {
+	id: string;
 }
