@@ -10,6 +10,7 @@ import {
 	OttApiRequestRemoveFromQueueSchema,
 	OttApiRequestAccountRecoveryStartSchema,
 	OttApiRequestAccountRecoveryVerifySchema,
+	OttApiRequestPatchRoomSchema,
 } from "./zod-schemas";
 import { z } from "zod";
 
@@ -65,9 +66,7 @@ export interface OttApiResponseGetRoom extends RoomSettings {
 	users: RoomUserInfo[];
 }
 
-export interface OttApiRequestPatchRoom extends Partial<RoomSettings> {
-	claim?: boolean;
-}
+export type OttApiRequestPatchRoom = z.infer<typeof OttApiRequestPatchRoomSchema>;
 
 export interface OttApiRequestUndo {
 	event: ServerMessageEvent;

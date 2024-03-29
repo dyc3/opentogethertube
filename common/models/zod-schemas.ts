@@ -67,33 +67,29 @@ const CategorySchema = z.enum([
 	"preview",
 ]);
 
+const GrantSchema = z.tuple([
+	z.object({
+		role: z.nativeEnum(Role),
+	}),
+	z.object({
+		grantMask: z.number(),
+	}),
+]);
+
 const RoomSettingsSchema = z.object({
-	name: z.string().optional(),
-	title: z.string().optional(),
+	title: z.string().max(255).optional(),
 	description: z.string().optional(),
-	visibility: z.nativeEnum(Visibility),
-	queueMode: z.nativeEnum(QueueMode),
-	autoSkipSegmentCategories: z.array(CategorySchema),
-	restoreQueueBehavior: z.nativeEnum(BehaviorOption),
+	visibility: z.nativeEnum(Visibility).optional(),
+	queueMode: z.nativeEnum(QueueMode).optional(),
+	grants: z.array(GrantSchema).optional(),
+	autoSkipSegmentCategories: z.array(CategorySchema).optional(),
+	restoreQueueBehavior: z.nativeEnum(BehaviorOption).optional(),
 	enableVoteSkip: z.boolean().optional(),
 });
 
-export const OttApiRequestPatchRoomSchema = z.union([
-	z.object({
-		grants: z.array(
-			z.tuple([
-				z.object({
-					role: z.nativeEnum(Role),
-				}),
-				z.object({
-					grantMask: z.number(),
-				}),
-			])
-		),
-		...RoomSettingsSchema.shape,
-	}),
-	z.object({
-		claim: z.boolean().optional(),
-		...RoomSettingsSchema.shape,
-	}),
-]);
+const ClaimSchema = z.object({
+	claim: z.boolean().optional(),
+	...RoomSettingsSchema.shape,
+});
+
+export const OttApiRequestPatchRoomSchema = z.union([RoomSettingsSchema, ClaimSchema]);
