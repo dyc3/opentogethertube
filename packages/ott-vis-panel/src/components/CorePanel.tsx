@@ -160,19 +160,34 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 2 },
-					{ name: "bar", clients: 0 },
+					{
+						name: "foo",
+						clients: [
+							{ id: "caa15370-8861-459e-997d-3e97f08f37d0" },
+							{ id: "12726a0c-02de-49f0-ab59-d87baf9c289f" },
+						],
+					},
+					{ name: "bar", clients: [] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 3 }],
+				rooms: [
+					{
+						name: "baz",
+						clients: [
+							{ id: "f3207419-b1d6-4c55-bc9d-799b4d1a70d7" },
+							{ id: "0ecd5456-ba1f-4585-b64e-e76d2c515c17" },
+							{ id: "6ed66113-cbd4-46ec-8b56-dae6e80d4f31" },
+						],
+					},
+				],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 0 }],
+				rooms: [{ name: "qux", clients: [] }],
 			},
 		],
 	},
@@ -184,19 +199,19 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 1 },
-					{ name: "bar", clients: 2 },
+					{ name: "foo", clients: [{ id: "4ac25d42-b0d3-49ff-9c43-cf98e1fde1d8" }] },
+					{ name: "bar", clients: [{ id: "f2e74aa2-8dbe-44bc-a2ef-75d201bb7387" }] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 0 }],
+				rooms: [{ name: "baz", clients: [] }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 0 }],
+				rooms: [{ name: "qux", clients: [] }],
 			},
 		],
 	},
@@ -208,19 +223,29 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 0 },
-					{ name: "bar", clients: 0 },
+					{ name: "foo", clients: [] },
+					{ name: "bar", clients: [] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 0 }],
+				rooms: [{ name: "baz", clients: [] }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 4 }],
+				rooms: [
+					{
+						name: "qux",
+						clients: [
+							{ id: "fe768adf-730a-4cc5-a7e3-2c3438a538c6" },
+							{ id: "c4a6362a-61c8-45dd-9913-49f1bbccaeb9" },
+							{ id: "3e3389ff-d3c2-4814-8089-44cc7ec01eb4" },
+							{ id: "ddf9309a-8ace-4c53-9dd8-f742e9f282c3" },
+						],
+					},
+				],
 			},
 		],
 	},
