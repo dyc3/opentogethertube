@@ -68,12 +68,8 @@ const CategorySchema = z.enum([
 ]);
 
 const GrantSchema = z.tuple([
-	z.object({
-		role: z.nativeEnum(Role),
-	}),
-	z.object({
-		grantMask: z.number(),
-	}),
+	z.nativeEnum(Role),
+	z.number(),
 ]);
 
 const RoomSettingsSchema = z.object({
@@ -89,7 +85,6 @@ const RoomSettingsSchema = z.object({
 
 const ClaimSchema = z.object({
 	claim: z.boolean().optional(),
-	...RoomSettingsSchema.shape,
 });
 
 export const OttApiRequestPatchRoomSchema = z.union([RoomSettingsSchema, ClaimSchema]);
