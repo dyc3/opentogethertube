@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import type { Monolith, SystemState } from "ott-vis/types";
 import { dedupeMonoliths } from "aggregate";
@@ -244,6 +244,19 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths));
 
 	const [chartTransform, setChartTransform] = useState("translate(0, 0)");
+
+	const getRadius = useCallback(
+		(group: string): number => {
+			if (group === "client") {
+				return clientNodeRadius;
+			} else if (group === "balancer") {
+				return balancerNodeRadius;
+			} else {
+				return baseNodeRadius;
+			}
+		},
+		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
+	);
 
 	useEffect(() => {
 		if (svgRef.current) {
@@ -536,13 +549,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						.transition(tr)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
-						.attr("r", d => {
-							if (d.data.group === "client") {
-								return clientNodeRadius;
-							} else {
-								return baseNodeRadius;
-							}
-						});
+						.attr("r", d => getRadius(d.data.group));
 
 					const monolithTexts = monolith
 						.selectAll(".monolith-text")
@@ -635,6 +642,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		balancerNodeRadius,
 		clientNodeRadius,
 		balancerGroupStyle,
+		getRadius,
 	]);
 
 	// run this only once after the first render
@@ -650,17 +658,29 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	const eventBus = useEventBus();
 	useEffect(() => {
 		const sub = eventBus.subscribe(event => {
-			d3.select(`[data-nodeid="${event.node_id}"]`)
-				.transition("highlight")
-				.duration(100)
-				.attrTween("stroke", () => d3.interpolateRgb("#f00", "#fff"))
-				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
+			const node = d3.select(`[data-nodeid="${event.node_id}"]`);
+			if (node.empty()) {
+				return;
+			}
+			const data = node.data()[0] as d3.HierarchyNode<TreeNode>;
+			const endRadius = data ? getRadius(data.data.group) : 20;
+			const radiusCurrent = parseFloat(node.attr("r"));
+			const newRadius = Math.max(Math.min(radiusCurrent + 5, 40), endRadius);
+			node.transition("highlight")
+				.duration(333)
+				.ease(d3.easeCubicOut)
+				.attrTween("stroke", () => d3.interpolateRgb("#0f0", "#fff"))
+				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString())
+				.attrTween(
+					"r",
+					() => t => d3.interpolateNumber(newRadius, endRadius)(t).toString()
+				);
 		});
 
 		return () => {
 			sub.unsubscribe();
 		};
-	}, [eventBus]);
+	}, [eventBus, getRadius]);
 
 	return (
 		<svg
