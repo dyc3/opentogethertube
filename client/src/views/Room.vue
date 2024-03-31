@@ -191,6 +191,7 @@
 		</v-overlay>
 		<ServerMessageHandler />
 		<WorkaroundPlaybackStatusUpdater />
+		<WorkaroundUserStateNotifier />
 	</div>
 </template>
 
@@ -224,6 +225,7 @@ import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
 import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
+import WorkaroundUserStateNotifier from "@/components/WorkaroundUserStateNotifier.vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
@@ -255,6 +257,7 @@ export default defineComponent({
 		RoomDisconnected,
 		ServerMessageHandler,
 		WorkaroundPlaybackStatusUpdater,
+		WorkaroundUserStateNotifier,
 		RestoreQueue,
 		VoteSkip,
 	},
