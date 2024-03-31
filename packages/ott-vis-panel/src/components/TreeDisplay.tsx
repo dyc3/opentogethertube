@@ -490,11 +490,16 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			}
 			monolithGroups
 				.join(
-					create =>
-						create
+					create => {
+						const group = create
 							.append("g")
 							.attr("class", "monolith")
-							.attr("transform", d => `translate(${d.x}, ${d.y})`),
+							.attr("transform", d => `translate(${d.x}, ${d.y})`);
+						group.append("g").attr("class", "links");
+						group.append("g").attr("class", "circles");
+						group.append("g").attr("class", "texts");
+						return group;
+					},
 					update => update,
 					exit => exit.remove()
 				)
@@ -508,6 +513,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 
 					const monolith = d3.select(this);
 					monolith
+						.select(".links")
 						.selectAll(".treelink")
 						.data(d.tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
 						.join(
@@ -524,6 +530,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						.attr("stroke-width", 1.5);
 
 					monolith
+						.select(".circles")
 						.selectAll(".monolith")
 						.data(d.tree.descendants(), (d: any) => d.data?.id)
 						.join(
@@ -552,6 +559,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						.attr("r", d => getRadius(d.data.group));
 
 					const monolithTexts = monolith
+						.select(".texts")
 						.selectAll(".monolith-text")
 						.data(d.tree.descendants(), (d: any) => d.data?.id);
 					monolithTexts
