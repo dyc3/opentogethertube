@@ -245,15 +245,18 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 
 	const [chartTransform, setChartTransform] = useState("translate(0, 0)");
 
-	const getRadius = useCallback((group: string): number => {
-		if (group === "client") {
-			return clientNodeRadius;
-		} else if (group === "balancer") {
-			return balancerNodeRadius;
-		} else {
-			return baseNodeRadius;
-		}
-	}, [baseNodeRadius, balancerNodeRadius, clientNodeRadius]);
+	const getRadius = useCallback(
+		(group: string): number => {
+			if (group === "client") {
+				return clientNodeRadius;
+			} else if (group === "balancer") {
+				return balancerNodeRadius;
+			} else {
+				return baseNodeRadius;
+			}
+		},
+		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
+	);
 
 	useEffect(() => {
 		if (svgRef.current) {
@@ -668,7 +671,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				.ease(d3.easeCubicOut)
 				.attrTween("stroke", () => d3.interpolateRgb("#0f0", "#fff"))
 				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString())
-				.attrTween("r", () => t => d3.interpolateNumber(newRadius, endRadius)(t).toString());
+				.attrTween(
+					"r",
+					() => t => d3.interpolateNumber(newRadius, endRadius)(t).toString()
+				);
 		});
 
 		return () => {
