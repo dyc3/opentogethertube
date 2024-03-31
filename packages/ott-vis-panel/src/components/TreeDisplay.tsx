@@ -354,8 +354,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				balancerGroup.transition(tr).attr("transform", `translate(0, 0)`);
 
 				balancerCircles
-					// TODO: add key function to data join when balancer ids are stable
-					.data(balancerNodes)
+					.data(balancerNodes, (d: any) => d.id)
 					.join(
 						create =>
 							create
@@ -375,8 +374,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("cy", d => d.y)
 					.attr("r", balancerNodeRadius);
 				balancerTexts
-					// TODO: add key function to data join when balancer ids are stable
-					.data(balancerNodes)
+					.data(balancerNodes, (d: any) => d.id)
 					.join(
 						create =>
 							create
@@ -421,9 +419,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					]);
 
 				balancerCircles
-					// TODO: add key function to data join when balancer ids are stable
-					// .data(root.descendants(), (d: any) => d.data.id)
-					.data(root.descendants())
+					.data(root.descendants(), (d: any) => d.data.id)
 					.join(
 						create =>
 							create
@@ -447,8 +443,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.attr("r", (d: any) => d.r);
 
 				balancerTexts
-					// TODO: add key function to data join when balancer ids are stable
-					.data(root.leaves())
+					.data(root.leaves(), (d: any) => d.data.id)
 					.join(
 						create =>
 							create
@@ -615,9 +610,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			});
 			gb2mLinks
 				.selectAll(".b2m-link")
-				// TODO: add key function to data join when balancer ids are stable
-				// .data(b2mLinkData, (d: any) => d.source?.data?.id + d.target?.data?.id);
-				.data(b2mLinkData)
+				.data(b2mLinkData, (d: any) => d.source?.data?.id + d.target?.data?.id)
 				.join(
 					create =>
 						create

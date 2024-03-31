@@ -14,10 +14,10 @@ use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, trace, warn};
-use uuid::Uuid;
 
 use crate::client::ClientLink;
 use crate::config::BalancerConfig;
+use crate::connection::BALANCER_ID;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
 use crate::selection::{MinRoomsSelector, MonolithSelection};
@@ -435,7 +435,7 @@ impl BalancerContext {
             .collect();
 
         BalancerState {
-            id: Uuid::new_v4().into(), // TODO: replace with actual constant balancer id
+            id: *BALANCER_ID,
             region: BalancerConfig::get().region.clone(),
             monoliths,
         }
