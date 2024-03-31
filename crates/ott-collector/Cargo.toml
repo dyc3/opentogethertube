@@ -22,4 +22,5 @@ tokio-tungstenite.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 tungstenite.workspace = true
+typeshare.workspace = true
 uuid.workspace = true

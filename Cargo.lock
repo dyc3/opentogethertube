@@ -2032,6 +2032,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tungstenite 0.21.0",
+ "typeshare",
  "uuid",
 ]
 

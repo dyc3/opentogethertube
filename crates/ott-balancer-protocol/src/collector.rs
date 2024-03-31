@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
+use typeshare::typeshare;
 
 use crate::{BalancerId, ClientId, MonolithId, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
 pub struct BalancerState {
     pub id: BalancerId,
     pub region: String,
@@ -10,6 +12,7 @@ pub struct BalancerState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
 pub struct MonolithState {
     pub id: MonolithId,
     pub region: String,
@@ -17,9 +20,10 @@ pub struct MonolithState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
 pub struct RoomState {
     pub name: RoomName,
-    pub clients: usize,
+    pub clients: u32,
 }
 
 pub enum Event {
