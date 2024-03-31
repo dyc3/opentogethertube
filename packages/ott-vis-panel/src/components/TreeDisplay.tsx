@@ -23,7 +23,7 @@ export interface TreeDisplayStyleProps {
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-interface TreeNode {
+export interface TreeNode {
 	id: string;
 	region: string;
 	group: string;
@@ -60,7 +60,7 @@ function buildFullTree(systemState: SystemState): TreeNode {
 	return tree;
 }
 
-function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
+export function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
 	return dedupeMonoliths(monoliths).map(monolith => {
 		const monolithNode: TreeNode = {
 			id: monolith.id,
