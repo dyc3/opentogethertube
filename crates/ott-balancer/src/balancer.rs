@@ -428,7 +428,7 @@ impl BalancerContext {
                     .iter()
                     .map(|(name, room)| RoomState {
                         name: name.clone(),
-                        clients: room.clients().len(),
+                        clients: room.clients().len() as u32,
                     })
                     .collect(),
             })

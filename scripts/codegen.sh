@@ -9,4 +9,5 @@ sed -i 's/interface M2BRoomMsg<T>/interface M2BRoomMsg<T = unknown>/g' server/ge
 sed -i 's/interface B2MClientMsg<T>/interface B2MClientMsg<T = unknown>/g' server/generated.ts
 sed -i 's/currentSource: Value/currentSource: unknown/g' server/generated.ts
 sed -i 's/type MsgM2B<T>/type MsgM2B<T = unknown>/g' server/generated.ts
+cp server/generated.ts packages/ott-vis/generated.ts
 yarn run lint
