@@ -58,7 +58,7 @@ export async function authTokenMiddleware(
 		req.token = req.cookies.token;
 	}
 
-	if (!req.token || !(await tokens.validate(req.token))) {
+	if (!req.token) {
 		res.status(400).json({
 			success: false,
 			error: {
@@ -70,6 +70,16 @@ export async function authTokenMiddleware(
 	}
 
 	req.ottsession = await tokens.getSessionInfo(req.token);
+	if (!req.ottsession) {
+		res.status(401).json({
+			success: false,
+			error: {
+				name: "MissingToken",
+				message: "Missing valid auth token. Get a token from /api/auth/grant first.",
+			},
+		});
+		return;
+	}
 	if (req.ottsession && req.ottsession.isLoggedIn) {
 		try {
 			req.user = await usermanager.getUser({ id: req.ottsession.user_id });
