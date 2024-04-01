@@ -33,7 +33,6 @@
 					>
 						<div class="player-container">
 							<OmniPlayer
-								ref="player"
 								:source="store.state.room.currentSource"
 								@apiready="onPlayerApiReady"
 								@playing="onPlaybackChange(true)"
@@ -64,8 +63,6 @@
 						:true-position="truePosition"
 						:controls-visible="controlsVisible"
 						:key="currentSource?.id"
-						:player="player"
-						:is-captions-supported="isCaptionsSupported()"
 						:mode="controlsMode"
 					/>
 				</div>
@@ -238,7 +235,7 @@ import VoteSkip from "@/components/VoteSkip.vue";
 import { waitForToken } from "@/util/token";
 import { useSfx } from "@/plugins/sfx";
 import { secondsToTimestamp } from "@/util/timestamp";
-import { useVolume } from "@/components/composables";
+import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -342,13 +339,13 @@ export default defineComponent({
 		});
 
 		watch(truePosition, async newPosition => {
-			if (!isPlayerPresent(player)) {
+			if (!player.isPlayerPresent()) {
 				return;
 			}
-			const currentTime = await player.value.getPosition();
+			const currentTime = player.getPosition();
 
 			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
-				player.value.setPosition(newPosition);
+				player.setPosition(newPosition);
 			}
 		});
 
@@ -377,12 +374,39 @@ export default defineComponent({
 		}
 
 		async function waitForPlayer() {
-			if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+			if (!player.isPlayerPresent()) {
+				console.debug("waiting for player", player);
+				await new Promise(resolve => {
+					const stop = watch(player.player, async newPlayer => {
+						if (newPlayer) {
+							stop();
+							resolve(true);
+						}
+					});
+					// const interval = setInterval(() => {
+					// 	if (player.isPlayerPresent()) {
+					// 		clearInterval(interval);
+					// 		resolve(true);
+					// 	}
+					// }, 100);
+				});
+			}
+			if (!player.isPlayerPresent()) {
+				return Promise.reject("Can't wait for player api ready: player not present");
+			}
+			if (player.apiReady.value) {
 				return;
 			}
+			console.debug("detected player, waiting for api ready");
 			await new Promise(resolve => {
+				// const stop = watch(player.apiReady, async newReady => {
+				// 	if (newReady) {
+				// 		stop();
+				// 		resolve(true);
+				// 	}
+				// });
 				const interval = setInterval(() => {
-					if (isPlayerPresent(player) && player.value.isPlayerPresent) {
+					if (player.apiReady.value) {
 						clearInterval(interval);
 						resolve(true);
 					}
@@ -434,12 +458,8 @@ export default defineComponent({
 		});
 
 		// player management
-		const player = ref<typeof OmniPlayer | null>(null);
+		const player = useMediaPlayer();
 		const volume = useVolume();
-
-		function isPlayerPresent(p: Ref<typeof OmniPlayer | null>): p is Ref<typeof OmniPlayer> {
-			return !!p.value;
-		}
 
 		function togglePlayback() {
 			if (store.state.room.isPlaying) {
@@ -461,14 +481,14 @@ export default defineComponent({
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
 			await waitForPlayer();
-			if (!isPlayerPresent(player)) {
+			if (!player.isPlayerPresent()) {
 				return Promise.reject("Can't apply IsPlaying: player not present");
 			}
 			try {
 				if (playing) {
-					await player.value.play();
+					await player.play();
 				} else {
-					await player.value.pause();
+					await player.pause();
 				}
 				mediaPlaybackBlocked.value = false;
 				return;
@@ -482,7 +502,7 @@ export default defineComponent({
 		}
 
 		function onClickUnblockPlayback(): void {
-			player.value?.setPosition(truePosition.value);
+			player?.setPosition(truePosition.value);
 			applyIsPlaying(store.state.room.isPlaying);
 		}
 
@@ -512,17 +532,12 @@ export default defineComponent({
 			await applyIsPlaying(store.state.room.isPlaying);
 		}
 
+		const captions = useCaptions();
 		function isCaptionsSupported() {
-			if (!isPlayerPresent(player)) {
-				return;
-			}
-			return player.value.isCaptionsSupported() ?? false;
+			return captions.isCaptionsSupported.value;
 		}
 		function getCaptionsTracks() {
-			if (!isPlayerPresent(player)) {
-				return;
-			}
-			return player.value.getCaptionsTracks() ?? [];
+			return captions.captionsTracks.value;
 		}
 
 		// misc UI stuff

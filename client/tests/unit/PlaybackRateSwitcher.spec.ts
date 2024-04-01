@@ -4,6 +4,7 @@ import PlaybackRateSwitcher from "@/components/controls/PlaybackRateSwitcher.vue
 import { i18n } from "@/i18n";
 import { createVuetify } from "vuetify";
 import { MockOttRoomConnectionPlugin } from "@/plugins/connection";
+import { usePlaybackRate } from "@/components/composables";
 
 const mountOptions = {
 	global: {
@@ -25,12 +26,11 @@ describe("PlaybackRateSwitcher component", () => {
 		[2, "2x"],
 	];
 	it.each(PLAYBACK_RATES)("should format rate %s correctly", (rate, formatted) => {
+		const playbackRate = usePlaybackRate();
+		playbackRate.availablePlaybackRates.value = PLAYBACK_RATES.map(r => r[0]);
+		playbackRate.playbackRate.value = rate;
 		let wrapper = mount(PlaybackRateSwitcher, {
 			...mountOptions,
-			props: {
-				currentRate: rate,
-				availableRates: PLAYBACK_RATES.map(r => r[0]),
-			},
 			mounted: vi.fn(),
 		});
 		expect(wrapper.vm.$el.textContent.trim()).toEqual(formatted);

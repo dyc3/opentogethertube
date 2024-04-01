@@ -123,7 +123,16 @@ import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
 import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
-import { useVolume } from "../composables";
+import {
+	MediaPlayer,
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+	useCaptions,
+	useMediaPlayer,
+	usePlaybackRate,
+	useVolume,
+} from "../composables";
+import { watchEffect } from "vue";
 
 const services = [
 	"youtube",
@@ -135,39 +144,6 @@ const services = [
 	"tubi",
 	"peertube",
 ];
-
-export interface MediaPlayer {
-	/**
-	 * Play the video.
-	 *
-	 * Some browsers emit promises for this, and some don't.
-	 */
-	play(): void | Promise<void>;
-	/**
-	 * Pause the video.
-	 *
-	 * Some browsers emit promises for this, and some don't.
-	 */
-	pause(): void | Promise<void>;
-	setVolume(volume: number): void | Promise<void>;
-	getPosition(): number | Promise<number>;
-	setPosition(position: number): void | Promise<void>;
-
-	isCaptionsSupported(): boolean;
-	getAvailablePlaybackRates(): number[];
-}
-
-export interface MediaPlayerWithCaptions extends MediaPlayer {
-	isCaptionsEnabled(): boolean;
-	setCaptionsEnabled(enabled: boolean): void;
-	getCaptionsTracks(): string[];
-	setCaptionsTrack(track: string): void;
-}
-
-export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
-	getPlaybackRate(): Promise<number>;
-	setPlaybackRate(rate: number): Promise<void>;
-}
 
 export default defineComponent({
 	name: "OmniPlayer",
@@ -192,158 +168,99 @@ export default defineComponent({
 		const store = useStore();
 
 		const player: Ref<MediaPlayer | null> = ref(null);
+		const hasPlayerChangedYet = ref(false);
 
-		function checkForPlayer(p: MediaPlayer | null): p is MediaPlayer {
-			if (!p) {
-				console.warn(
-					`There is no player available. Is the source set? ${
-						props.source !== null
-					} Is there a player implemented for ${props.source?.service}?`
-				);
-			}
-			return !!p;
-		}
+		const controls = useMediaPlayer();
 
 		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
 			return !!p && p.isCaptionsSupported();
 		}
 
 		function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
-			return !!p && p.getAvailablePlaybackRates().length > 0;
+			return !!p && p.getAvailablePlaybackRates().length > 1;
 		}
 
 		const isPlayerPresent = computed(() => !!player.value);
 
-		function play(): void | Promise<void> {
-			if (!checkForPlayer(player.value)) {
-				return Promise.reject("Player not available yet");
-			}
-			return player.value.play();
-		}
-		function pause(): void | Promise<void> {
-			if (!checkForPlayer(player.value)) {
-				return Promise.reject("Player not available yet");
-			}
-			return player.value.pause();
-		}
-		function setVolume(volume: number) {
-			if (!checkForPlayer(player.value)) {
-				return Promise.reject("Player not available yet");
-			}
-			return player.value.setVolume(volume);
-		}
-		function getPosition() {
-			if (!checkForPlayer(player.value)) {
-				return 0;
-			}
-			return player.value.getPosition();
-		}
-		function setPosition(position: number) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			return player.value.setPosition(position);
-		}
 		function isCaptionsSupported() {
-			if (!checkForPlayer(player.value)) {
+			if (!controls.checkForPlayer(player.value)) {
 				return false;
 			}
-			if (!implementsCaptions(player.value)) {
-				return false;
-			}
-			return player.value.isCaptionsSupported() ?? false;
+			return implementsCaptions(player.value);
 		}
-		function isCaptionsEnabled() {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsCaptions(player.value)) {
-				return false;
-			}
-			return player.value.isCaptionsEnabled();
-		}
-		function setCaptionsEnabled(enabled: boolean) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsCaptions(player.value)) {
-				return false;
-			}
-			player.value.setCaptionsEnabled(enabled);
-		}
-		function toggleCaptions() {
-			setCaptionsEnabled(!isCaptionsEnabled());
-		}
-		function getCaptionsTracks(): string[] {
-			if (!checkForPlayer(player.value)) {
-				return [];
-			}
-			if (!implementsCaptions(player.value)) {
-				return [];
-			}
-			return player.value.getCaptionsTracks();
-		}
-		function setCaptionsTrack(track: string) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsCaptions(player.value)) {
-				return;
-			}
-
-			if (!isCaptionsEnabled()) {
-				setCaptionsEnabled(true);
-			}
-			player.value.setCaptionsTrack(track);
-		}
-
-		function getAvailablePlaybackRates(): number[] {
-			if (!checkForPlayer(player.value)) {
-				return [1];
-			}
-			return player.value.getAvailablePlaybackRates();
-		}
-		function getPlaybackRate(): Promise<number> {
-			if (!checkForPlayer(player.value)) {
-				return Promise.resolve(1);
-			}
-			if (!implementsPlaybackRate(player.value)) {
-				return Promise.resolve(1);
-			}
-			return player.value.getPlaybackRate();
-		}
-		function setPlaybackRate(rate: number) {
-			if (!checkForPlayer(player.value)) {
-				return;
-			}
-			if (!implementsPlaybackRate(player.value)) {
-				return;
-			}
-			player.value.setPlaybackRate(rate);
-		}
-		watch(
-			() => store.state.room.playbackSpeed,
-			(speed: number) => {
-				setPlaybackRate(speed);
-			}
-		);
 
 		const volume = useVolume();
+		const captions = useCaptions();
 		watch(volume, v => {
 			if (player.value) {
 				player.value.setVolume(v);
 			}
 		});
-		watch(player, () => {
-			console.debug("Player changed", player.value);
+		watch(player, v => {
+			console.debug("Player changed", v);
+			// note that we have to wait for the player's api to be ready before we can call any methods on it
+			controls.setPlayer(v);
+			if (v) {
+				hasPlayerChangedYet.value = true;
+			}
+		});
+		watch(captions.isCaptionsEnabled, v => {
+			if (player.value && implementsCaptions(player.value)) {
+				console.debug("Setting captions enabled", v);
+				player.value.setCaptionsEnabled(v);
+				captions.captionsTracks.value = player.value.getCaptionsTracks();
+			}
+		});
+		watch(captions.currentTrack, v => {
+			if (player.value && implementsCaptions(player.value) && v) {
+				player.value.setCaptionsTrack(v);
+			}
+		});
+		const playbackRate = usePlaybackRate();
+		// not sure if this is needed anymore
+		// watch(playbackRate.isPlaybackRateSupported, v => {
+		// 	console.debug("Playback rate supported", v);
+		// 	if (!v || !player.value) {
+		// 		playbackRate.availablePlaybackRates.value = [1];
+		// 		playbackRate.playbackRate.value = 1;
+		// 	}
+		// });
+		watch(playbackRate.playbackRate, v => {
+			if (player.value && implementsPlaybackRate(player.value)) {
+				player.value.setPlaybackRate(v);
+			}
+		});
+		watchEffect(() => {
+			playbackRate.playbackRate.value = store.state.room.playbackSpeed;
+		});
+		// player events re-emitted or data stored
+		async function onApiReady() {
+			if (!hasPlayerChangedYet.value) {
+				console.debug("waiting for player to change before emitting apiready");
+				await new Promise(resolve => {
+					const stop = watch(hasPlayerChangedYet, v => {
+						if (v && player.value) {
+							stop();
+							resolve(true);
+						}
+					});
+				});
+			}
+
+			hasPlayerChangedYet.value = false;
+			controls.markApiReady();
+			captions.isCaptionsSupported.value = isCaptionsSupported();
 			if (player.value) {
 				player.value.setVolume(volume.value);
 			}
-		});
-
-		// player events re-emitted or data stored
-		function onApiReady() {
-			setVolume(volume.value);
+			if (implementsCaptions(player.value)) {
+				captions.captionsTracks.value = player.value.getCaptionsTracks();
+			}
+			if (implementsPlaybackRate(player.value)) {
+				playbackRate.availablePlaybackRates.value =
+					player.value.getAvailablePlaybackRates();
+				player.value.setPlaybackRate(playbackRate.playbackRate.value);
+			}
 			emit("apiready");
 		}
 
@@ -363,11 +280,13 @@ export default defineComponent({
 
 		function onPlaying() {
 			hackReadyEdgeCase();
+			controls.playing.value = true;
 			emit("playing");
 		}
 
 		function onPaused() {
 			hackReadyEdgeCase();
+			controls.playing.value = false;
 			emit("paused");
 		}
 
@@ -433,20 +352,8 @@ export default defineComponent({
 			isPlayerPresent,
 			showBufferWarning,
 			renderedSpans,
-			play,
-			pause,
-			setVolume,
-			getPosition,
-			setPosition,
-			isCaptionsSupported,
-			isCaptionsEnabled,
-			setCaptionsEnabled,
-			toggleCaptions,
-			getCaptionsTracks,
-			setCaptionsTrack,
-			getAvailablePlaybackRates,
-			getPlaybackRate,
-			setPlaybackRate,
+			controls,
+			playbackRate,
 		};
 	},
 });
