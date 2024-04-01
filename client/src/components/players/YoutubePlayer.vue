@@ -37,10 +37,12 @@ export default {
 	props: {
 		videoId: { type: String, required: true },
 	},
-	components: {
-		// eslint-disable-next-line vue/no-unused-components
-		DebugPlayerWatcher,
-	},
+	components: import.meta.env.DEV
+		? {
+				// eslint-disable-next-line vue/no-unused-components
+				DebugPlayerWatcher,
+		  }
+		: {},
 	emits: [
 		"apiready",
 		"ended",
