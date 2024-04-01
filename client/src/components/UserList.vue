@@ -103,8 +103,8 @@
 	</v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref, inject } from "vue";
+<script lang="ts" setup>
+import { ref, inject } from "vue";
 import { API } from "@/common-http";
 import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
@@ -116,145 +116,110 @@ import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { canKickUser } from "ott-common/userutils";
 
-/** Lists users that are connected to a room. */
-export const UserList = defineComponent({
-	name: "UserList",
-	props: {
-		users: { type: Array as PropType<RoomUserInfo[]>, required: true },
-	},
-	setup() {
-		const store = useStore();
-		const roomapi = useRoomApi(useConnection());
-		const debugMode = inject("debugMode", false);
+defineProps<{
+	users: RoomUserInfo[];
+}>();
 
-		const inputUsername = ref("");
-		const showEditName = ref(false);
-		const setUsernameLoading = ref(false);
-		const setUsernameFailureText = ref("");
+const store = useStore();
+const roomapi = useRoomApi(useConnection());
+const debugMode = inject("debugMode", false);
 
-		function openEditName() {
-			if (!inputUsername.value) {
-				inputUsername.value = store.state.user
-					? store.state.user.username
-					: store.state.username ?? "";
-			}
-			showEditName.value = !showEditName.value;
-		}
+const inputUsername = ref("");
+const showEditName = ref(false);
+const setUsernameLoading = ref(false);
+const setUsernameFailureText = ref("");
 
-		async function onEditNameChange() {
-			setUsernameLoading.value = true;
-			try {
-				await API.post("/user", { username: inputUsername.value });
-				showEditName.value = false;
-				setUsernameFailureText.value = "";
-				roomapi.notify("usernameChanged");
-			} catch (err) {
-				setUsernameFailureText.value = err.response
-					? err.response.data.error.message
-					: err.message;
-			}
-			setUsernameLoading.value = false;
-		}
+function openEditName() {
+	if (!inputUsername.value) {
+		inputUsername.value = store.state.user
+			? store.state.user.username
+			: store.state.username ?? "";
+	}
+	showEditName.value = !showEditName.value;
+}
 
-		/** Gets the appropriate permission name for the role and promotion/demotion. */
-		function roleToPermission(role: Role, demote = false) {
-			const r = {
-				[Role.Administrator]: "admin",
-				[Role.Moderator]: "moderator",
-				[Role.TrustedUser]: "trusted-user",
-			}[role];
-			return `manage-users.${demote ? "de" : "pro"}mote-${r}`;
-		}
+async function onEditNameChange() {
+	setUsernameLoading.value = true;
+	try {
+		await API.post("/user", { username: inputUsername.value });
+		showEditName.value = false;
+		setUsernameFailureText.value = "";
+		roomapi.notify("usernameChanged");
+	} catch (err) {
+		setUsernameFailureText.value = err.response ? err.response.data.error.message : err.message;
+	}
+	setUsernameLoading.value = false;
+}
 
-		function getUserCssClasses(user: RoomUserInfo) {
-			const cls = ["user", `role-${ROLE_NAMES[user.role]}`];
-			if (user.isLoggedIn) {
-				cls.push("registered");
-			}
-			return cls.join(" ");
-		}
+/** Gets the appropriate permission name for the role and promotion/demotion. */
+function roleToPermission(role: Role, demote = false) {
+	const r = {
+		[Role.Administrator]: "admin",
+		[Role.Moderator]: "moderator",
+		[Role.TrustedUser]: "trusted-user",
+	}[role];
+	return `manage-users.${demote ? "de" : "pro"}mote-${r}`;
+}
 
-		function canUserBePromotedTo(user: RoomUserInfo, role: Role): boolean {
-			if (user.role === role) {
-				return false;
-			}
-			if (user.role === Role.UnregisteredUser || role === Role.UnregisteredUser) {
-				return false;
-			}
-			if (role > Role.RegisteredUser) {
-				// check for promote
-				return granted(roleToPermission(role));
-			}
-			if (user.role >= Role.RegisteredUser) {
-				// check for demote
-				return granted(roleToPermission(user.role, true));
-			}
+function getUserCssClasses(user: RoomUserInfo) {
+	const cls = ["user", `role-${ROLE_NAMES[user.role]}`];
+	if (user.isLoggedIn) {
+		cls.push("registered");
+	}
+	return cls.join(" ");
+}
 
-			return false;
-		}
+function canUserBePromotedTo(user: RoomUserInfo, role: Role): boolean {
+	if (user.role === role) {
+		return false;
+	}
+	if (user.role === Role.UnregisteredUser || role === Role.UnregisteredUser) {
+		return false;
+	}
+	if (role > Role.RegisteredUser) {
+		// check for promote
+		return granted(roleToPermission(role));
+	}
+	if (user.role >= Role.RegisteredUser) {
+		// check for demote
+		return granted(roleToPermission(user.role, true));
+	}
 
-		function canSelfKickUser(user: RoomUserInfo): boolean {
-			const you = store.state.users.users.get(store.state.users.you.id);
-			if (!you) {
-				return false;
-			}
-			return granted("manage-users.kick") && canKickUser(you.role, user.role);
-		}
+	return false;
+}
 
-		function getRoleIcon(role: Role) {
-			return {
-				[Role.Owner]: "mdi-star",
-				[Role.Administrator]: "mdi-star",
-				[Role.Moderator]: "mdi-chevron-up",
-				[Role.TrustedUser]: "mdi-thumbs-up",
-			}[role];
-		}
+function canSelfKickUser(user: RoomUserInfo): boolean {
+	const you = store.state.users.users.get(store.state.users.you.id);
+	if (!you) {
+		return false;
+	}
+	return granted("manage-users.kick") && canKickUser(you.role, user.role);
+}
 
-		function getPlayerStatusIcon(status: PlayerStatus) {
-			return {
-				[PlayerStatus.buffering]: "mdi-progress-download",
-				[PlayerStatus.ready]: "mdi-check-bold",
-				[PlayerStatus.error]: "mdi-exclamation",
-			}[status];
-		}
+function getRoleIcon(role: Role) {
+	return {
+		[Role.Owner]: "mdi-star",
+		[Role.Administrator]: "mdi-star",
+		[Role.Moderator]: "mdi-chevron-up",
+		[Role.TrustedUser]: "mdi-thumbs-up",
+	}[role];
+}
 
-		function promoteUser(clientId: ClientId, role: Role) {
-			roomapi.promoteUser(clientId, role);
-		}
+function getPlayerStatusIcon(status: PlayerStatus) {
+	return {
+		[PlayerStatus.buffering]: "mdi-progress-download",
+		[PlayerStatus.ready]: "mdi-check-bold",
+		[PlayerStatus.error]: "mdi-exclamation",
+	}[status];
+}
 
-		function kickUser(clientId: ClientId) {
-			roomapi.kickUser(clientId);
-		}
+function promoteUser(clientId: ClientId, role: Role) {
+	roomapi.promoteUser(clientId, role);
+}
 
-		return {
-			store,
-			debugMode,
-			inputUsername,
-			showEditName,
-			setUsernameLoading,
-			setUsernameFailureText,
-
-			openEditName,
-			onEditNameChange,
-			roleToPermission,
-			getUserCssClasses,
-			canUserBePromotedTo,
-			canSelfKickUser,
-			getRoleIcon,
-			getPlayerStatusIcon,
-			promoteUser,
-			kickUser,
-			granted,
-
-			ROLE_NAMES,
-			USERNAME_LENGTH_MAX,
-			PlayerStatus,
-			Role,
-		};
-	},
-});
-
-export default UserList;
+function kickUser(clientId: ClientId) {
+	roomapi.kickUser(clientId);
+}
 </script>
 
 <style lang="scss" scoped>

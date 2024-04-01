@@ -23,12 +23,12 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+<script lang="ts" setup>
+import { ref, computed } from "vue";
 import { useStore } from "@/store";
 import { useCopyFromTextbox } from "./composables";
 
-export function buildInviteLink(
+function buildInviteLink(
 	currentLocation: string,
 	roomName: string,
 	shortUrl: string | undefined
@@ -39,44 +39,20 @@ export function buildInviteLink(
 	return currentLocation.split("?")[0].toLowerCase();
 }
 
-const ShareInvite = defineComponent({
-	name: "ShareInvite",
-	setup() {
-		const store = useStore();
+const store = useStore();
 
-		const inviteLinkText = ref();
+const inviteLinkText = ref();
 
-		function getInviteLink() {
-			return buildInviteLink(
-				window.location.href,
-				store.state.room.name,
-				store.state.shortUrl
-			);
-		}
-		const inviteLink = computed(getInviteLink);
+function getInviteLink() {
+	return buildInviteLink(window.location.href, store.state.room.name, store.state.shortUrl);
+}
+const inviteLink = computed(getInviteLink);
 
-		function onFocusHighlightText(e) {
-			e.target.select();
-		}
+function onFocusHighlightText(e) {
+	e.target.select();
+}
 
-		const { copy: copyInviteLink, copySuccess } = useCopyFromTextbox(
-			inviteLink,
-			inviteLinkText
-		);
-
-		return {
-			copySuccess,
-			inviteLinkText,
-			getInviteLink,
-			inviteLink,
-
-			copyInviteLink,
-			onFocusHighlightText,
-		};
-	},
-});
-
-export default ShareInvite;
+const { copy: copyInviteLink, copySuccess } = useCopyFromTextbox(inviteLink, inviteLinkText);
 </script>
 
 <style lang="scss"></style>
