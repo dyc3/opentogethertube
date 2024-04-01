@@ -123,10 +123,6 @@ export function useMediaPlayer() {
 	return inject(PLAYER_KEY, player);
 }
 
-// export function isPlayerPresent(p: typeof player): p is Ref<MediaPlayerV2> {
-// 	return !!p.value;
-// }
-
 const isCaptionsSupported: Ref<boolean> = ref(false);
 const isCaptionsEnabled: Ref<boolean> = ref(false);
 const captionsTracks: Ref<string[]> = ref([]);
