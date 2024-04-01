@@ -21,9 +21,7 @@
 	</v-col>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from "vue";
-
+<script lang="ts" setup>
 import BasicControls from "./BasicControls.vue";
 import ClosedCaptionsSwitcher from "./ClosedCaptionsSwitcher.vue";
 import LayoutSwitcher from "./LayoutSwitcher.vue";
@@ -32,49 +30,18 @@ import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 
-import { useStore } from "@/store";
-import { useMediaPlayer } from "../composables";
-
-export default defineComponent({
-	name: "VideoControls",
-	components: {
-		BasicControls,
-		ClosedCaptionsSwitcher,
-		LayoutSwitcher,
-		TimestampDisplay,
-		VideoProgressSlider,
-		VolumeControl,
-		PlaybackRateSwitcher,
-	},
-	props: {
-		sliderPosition: {
-			type: Number,
-			required: true,
-		},
-		truePosition: {
-			type: Number,
-			required: true,
-		},
-		controlsVisible: {
-			type: Boolean,
-			default: false,
-		},
-		mode: {
-			type: String as PropType<"in-video" | "outside-video">,
-			default: "in-video",
-		},
-	},
-	emits: [],
-	setup() {
-		const store = useStore();
-		const player = useMediaPlayer();
-
-		return {
-			store,
-			player,
-		};
-	},
-});
+withDefaults(
+	defineProps<{
+		sliderPosition: number;
+		truePosition: number;
+		controlsVisible: boolean;
+		mode: "in-video" | "outside-video";
+	}>(),
+	{
+		controlsVisible: false,
+		mode: "in-video",
+	}
+);
 </script>
 
 <style lang="scss">
