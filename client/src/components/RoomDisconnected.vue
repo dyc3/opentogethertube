@@ -6,36 +6,21 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-import { useStore } from "@/store";
+<script lang="ts" setup>
 import { useI18n } from "vue-i18n";
 import { useConnection } from "@/plugins/connection";
 
-const RoomDisconnected = defineComponent({
-	name: "RoomDisconnected",
-	setup() {
-		const store = useStore();
-		const { t } = useI18n();
-		const connection = useConnection();
+const { t } = useI18n();
+const connection = useConnection();
 
-		function reasonText() {
-			if (connection.kickReason.value) {
-				const reason = connection.kickReason.value;
-				return t(`connect-overlay.dc-reasons.${reason}`);
-			} else {
-				return t("connect-overlay.dc-reasons.unknown");
-			}
-		}
-
-		return {
-			reasonText,
-			store,
-		};
-	},
-});
-
-export default RoomDisconnected;
+function reasonText() {
+	if (connection.kickReason.value) {
+		const reason = connection.kickReason.value;
+		return t(`connect-overlay.dc-reasons.${reason}`);
+	} else {
+		return t("connect-overlay.dc-reasons.unknown");
+	}
+}
 </script>
 
 <style lang="scss">

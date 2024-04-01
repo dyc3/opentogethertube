@@ -116,13 +116,13 @@
 	</div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
 import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
-import { defineComponent, defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
+import { defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
 import {
 	MediaPlayer,
 	MediaPlayerWithCaptions,
@@ -133,224 +133,186 @@ import {
 	useVolume,
 } from "../composables";
 import { watchEffect } from "vue";
+import { ALL_VIDEO_SERVICES } from "ott-common";
 
-const services = [
-	"youtube",
-	"vimeo",
-	"dailymotion",
-	"googledrive",
-	"direct",
-	"reddit",
-	"tubi",
-	"peertube",
-];
-
-export default defineComponent({
-	name: "OmniPlayer",
-	props: {
-		source: {
-			type: Object as PropType<QueueItem | null>,
-			validator: (source: QueueItem | null) => {
-				return !source || services.includes(source.service);
-			},
+const props = defineProps({
+	source: {
+		type: Object as PropType<QueueItem | null>,
+		validator: (source: QueueItem | null) => {
+			return !source || ALL_VIDEO_SERVICES.includes(source.service);
 		},
 	},
-	emits: ["apiready", "playing", "paused", "ready", "buffering", "error"],
-	components: {
-		YoutubePlayer: defineAsyncComponent(() => import("./YoutubePlayer.vue")),
-		VimeoPlayer: defineAsyncComponent(() => import("./VimeoPlayer.vue")),
-		DailymotionPlayer: defineAsyncComponent(() => import("./DailymotionPlayer.vue")),
-		GoogleDrivePlayer: defineAsyncComponent(() => import("./GoogleDrivePlayer.vue")),
-		PlyrPlayer: defineAsyncComponent(() => import("./PlyrPlayer.vue")),
-		PeertubePlayer: defineAsyncComponent(() => import("./PeertubePlayer.vue")),
-	},
-	setup(props, { emit }) {
-		const store = useStore();
+});
 
-		const player: Ref<MediaPlayer | null> = ref(null);
-		const hasPlayerChangedYet = ref(false);
+const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering", "error"]);
 
-		const controls = useMediaPlayer();
+const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
+const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
+const DailymotionPlayer = defineAsyncComponent(() => import("./DailymotionPlayer.vue"));
+const GoogleDrivePlayer = defineAsyncComponent(() => import("./GoogleDrivePlayer.vue"));
+const PlyrPlayer = defineAsyncComponent(() => import("./PlyrPlayer.vue"));
+const PeertubePlayer = defineAsyncComponent(() => import("./PeertubePlayer.vue"));
 
-		function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
-			return !!p && p.isCaptionsSupported();
-		}
+const store = useStore();
 
-		function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
-			return !!p && p.getAvailablePlaybackRates().length > 1;
-		}
+const player: Ref<MediaPlayer | null> = ref(null);
+const hasPlayerChangedYet = ref(false);
 
-		const isPlayerPresent = computed(() => !!player.value);
+const controls = useMediaPlayer();
 
-		function isCaptionsSupported() {
-			if (!controls.checkForPlayer(player.value)) {
-				return false;
-			}
-			return implementsCaptions(player.value);
-		}
+function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions {
+	return !!p && p.isCaptionsSupported();
+}
 
-		const volume = useVolume();
-		const captions = useCaptions();
-		watch(volume, v => {
-			if (player.value) {
-				player.value.setVolume(v);
-			}
-		});
-		watch(player, v => {
-			console.debug("Player changed", v);
-			// note that we have to wait for the player's api to be ready before we can call any methods on it
-			controls.setPlayer(v);
-			if (v) {
-				hasPlayerChangedYet.value = true;
-			} else {
-				captions.isCaptionsSupported.value = false;
-				playbackRate.availablePlaybackRates.value = [1];
-			}
-		});
-		watch(captions.isCaptionsEnabled, v => {
-			if (player.value && implementsCaptions(player.value)) {
-				console.debug("Setting captions enabled", v);
-				player.value.setCaptionsEnabled(v);
-				captions.captionsTracks.value = player.value.getCaptionsTracks();
-			}
-		});
-		watch(captions.currentTrack, v => {
-			if (player.value && implementsCaptions(player.value) && v) {
-				player.value.setCaptionsTrack(v);
-			}
-		});
-		const playbackRate = usePlaybackRate();
-		watch(playbackRate.playbackRate, v => {
-			if (player.value && implementsPlaybackRate(player.value)) {
-				player.value.setPlaybackRate(v);
-			}
-		});
-		watchEffect(() => {
-			playbackRate.playbackRate.value = store.state.room.playbackSpeed;
-		});
-		// player events re-emitted or data stored
-		async function onApiReady() {
-			if (!hasPlayerChangedYet.value) {
-				console.debug("waiting for player to change before emitting apiready");
-				await new Promise(resolve => {
-					const stop = watch(hasPlayerChangedYet, v => {
-						if (v && player.value) {
-							stop();
-							resolve(true);
-						}
-					});
-				});
-			}
+function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
+	return !!p && p.getAvailablePlaybackRates().length > 1;
+}
 
-			hasPlayerChangedYet.value = false;
-			controls.markApiReady();
-			captions.isCaptionsSupported.value = isCaptionsSupported();
-			if (player.value) {
-				player.value.setVolume(volume.value);
-			}
-			if (implementsCaptions(player.value)) {
-				captions.captionsTracks.value = player.value.getCaptionsTracks();
-			}
-			if (implementsPlaybackRate(player.value)) {
-				playbackRate.availablePlaybackRates.value =
-					player.value.getAvailablePlaybackRates();
-				player.value.setPlaybackRate(playbackRate.playbackRate.value);
-			}
-			emit("apiready");
-		}
+function isCaptionsSupported() {
+	if (!controls.checkForPlayer(player.value)) {
+		return false;
+	}
+	return implementsCaptions(player.value);
+}
 
-		function onReady() {
-			store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
-			emit("ready");
-		}
-
-		function hackReadyEdgeCase() {
-			if (
-				props.source &&
-				(props.source.service === "youtube" || props.source.service === "dailymotion")
-			) {
-				store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
-			}
-		}
-
-		function onPlaying() {
-			hackReadyEdgeCase();
-			controls.playing.value = true;
-			emit("playing");
-		}
-
-		function onPaused() {
-			hackReadyEdgeCase();
-			controls.playing.value = false;
-			emit("paused");
-		}
-
-		function onBuffering() {
-			store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
-			emit("buffering");
-		}
-
-		function onError() {
-			store.commit("PLAYBACK_STATUS", PlayerStatus.error);
-			emit("error");
-		}
-
-		function onBufferProgress(percent: number) {
-			store.commit("PLAYBACK_BUFFER", percent);
-		}
-
-		async function onBufferSpans(spans: TimeRanges) {
-			store.commit("PLAYBACK_BUFFER_SPANS", spans);
-
-			const position = store.state.room.isPlaying
-				? calculateCurrentPosition(
-						store.state.room.playbackStartTime,
-						new Date(),
-						store.state.room.playbackPosition,
-						store.state.room.playbackSpeed
-				  )
-				: store.state.room.playbackPosition;
-			const isInSpans = isInTimeRanges(spans, position);
-			showBufferWarning.value = !isInSpans;
-		}
-
-		const showBufferWarning = ref(false);
-		const renderedSpans = computed(() => {
-			const spans = store.state.playerBufferSpans;
-			if (!spans) {
-				return [];
-			}
-			let result: string = "";
-			for (let i = 0; i < spans.length; i++) {
-				result += `${secondsToTimestamp(spans.start(i))} - ${secondsToTimestamp(
-					spans.end(i)
-				)}`;
-				if (i < spans.length - 1) {
-					result += ", ";
+const volume = useVolume();
+const captions = useCaptions();
+watch(volume, v => {
+	if (player.value) {
+		player.value.setVolume(v);
+	}
+});
+watch(player, v => {
+	console.debug("Player changed", v);
+	// note that we have to wait for the player's api to be ready before we can call any methods on it
+	controls.setPlayer(v);
+	if (v) {
+		hasPlayerChangedYet.value = true;
+	} else {
+		captions.isCaptionsSupported.value = false;
+		playbackRate.availablePlaybackRates.value = [1];
+	}
+});
+watch(captions.isCaptionsEnabled, v => {
+	if (player.value && implementsCaptions(player.value)) {
+		console.debug("Setting captions enabled", v);
+		player.value.setCaptionsEnabled(v);
+		captions.captionsTracks.value = player.value.getCaptionsTracks();
+	}
+});
+watch(captions.currentTrack, v => {
+	if (player.value && implementsCaptions(player.value) && v) {
+		player.value.setCaptionsTrack(v);
+	}
+});
+const playbackRate = usePlaybackRate();
+watch(playbackRate.playbackRate, v => {
+	if (player.value && implementsPlaybackRate(player.value)) {
+		player.value.setPlaybackRate(v);
+	}
+});
+watchEffect(() => {
+	playbackRate.playbackRate.value = store.state.room.playbackSpeed;
+});
+// player events re-emitted or data stored
+async function onApiReady() {
+	if (!hasPlayerChangedYet.value) {
+		console.debug("waiting for player to change before emitting apiready");
+		await new Promise(resolve => {
+			const stop = watch(hasPlayerChangedYet, v => {
+				if (v && player.value) {
+					stop();
+					resolve(true);
 				}
-			}
-			return result;
+			});
 		});
+	}
 
-		return {
-			player,
+	hasPlayerChangedYet.value = false;
+	controls.markApiReady();
+	captions.isCaptionsSupported.value = isCaptionsSupported();
+	if (player.value) {
+		player.value.setVolume(volume.value);
+	}
+	if (implementsCaptions(player.value)) {
+		captions.captionsTracks.value = player.value.getCaptionsTracks();
+	}
+	if (implementsPlaybackRate(player.value)) {
+		playbackRate.availablePlaybackRates.value = player.value.getAvailablePlaybackRates();
+		player.value.setPlaybackRate(playbackRate.playbackRate.value);
+	}
+	emit("apiready");
+}
 
-			onApiReady,
-			onReady,
-			onPlaying,
-			onPaused,
-			onBuffering,
-			onError,
-			onBufferProgress,
-			onBufferSpans,
+function onReady() {
+	store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
+	emit("ready");
+}
 
-			isPlayerPresent,
-			showBufferWarning,
-			renderedSpans,
-			controls,
-			playbackRate,
-		};
-	},
+function hackReadyEdgeCase() {
+	if (
+		props.source &&
+		(props.source.service === "youtube" || props.source.service === "dailymotion")
+	) {
+		store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
+	}
+}
+
+function onPlaying() {
+	hackReadyEdgeCase();
+	controls.playing.value = true;
+	emit("playing");
+}
+
+function onPaused() {
+	hackReadyEdgeCase();
+	controls.playing.value = false;
+	emit("paused");
+}
+
+function onBuffering() {
+	store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
+	emit("buffering");
+}
+
+function onError() {
+	store.commit("PLAYBACK_STATUS", PlayerStatus.error);
+	emit("error");
+}
+
+function onBufferProgress(percent: number) {
+	store.commit("PLAYBACK_BUFFER", percent);
+}
+
+async function onBufferSpans(spans: TimeRanges) {
+	store.commit("PLAYBACK_BUFFER_SPANS", spans);
+
+	const position = store.state.room.isPlaying
+		? calculateCurrentPosition(
+				store.state.room.playbackStartTime,
+				new Date(),
+				store.state.room.playbackPosition,
+				store.state.room.playbackSpeed
+		  )
+		: store.state.room.playbackPosition;
+	const isInSpans = isInTimeRanges(spans, position);
+	showBufferWarning.value = !isInSpans;
+}
+
+const showBufferWarning = ref(false);
+const renderedSpans = computed(() => {
+	const spans = store.state.playerBufferSpans;
+	if (!spans) {
+		return [];
+	}
+	let result: string = "";
+	for (let i = 0; i < spans.length; i++) {
+		result += `${secondsToTimestamp(spans.start(i))} - ${secondsToTimestamp(spans.end(i))}`;
+		if (i < spans.length - 1) {
+			result += ", ";
+		}
+	}
+	return result;
 });
 </script>
 

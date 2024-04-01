@@ -20,21 +20,19 @@
 		<div ref="messages" @scroll="onScroll" class="messages grow">
 			<div class="grow"><!-- Spacer --></div>
 			<transition-group name="message">
-				<div class="message" v-for="(msg, index) in chatMessagePast" :key="index">
-					<div class="from">{{ msg.from.name }}</div>
-					<div class="text">
-						<ProcessedText :text="msg.text" @link-click="e => $emit('link-click', e)" />
-					</div>
-				</div>
-				<div
-					class="message recent"
+				<ChatMsg
+					:msg="msg"
+					v-for="(msg, index) in chatMessagePast"
+					:key="index"
+					@link-click="emit('link-click', $event)"
+				/>
+				<ChatMsg
+					:msg="msg"
+					recent
 					v-for="(msg, index) in chatMessageRecent"
 					:key="chatMessagePast.length + index"
-				>
-					<!-- FIXME: reduce duplicated code by moving this to another component, preferably in this same file.  -->
-					<div class="from">{{ msg.from.name }}</div>
-					<div class="text"><ProcessedText :text="msg.text" /></div>
-				</div>
+					@link-click="emit('link-click', $event)"
+				/>
 			</transition-group>
 		</div>
 		<div v-if="!stickToBottom" class="to-bottom">
@@ -74,163 +72,129 @@
 	</div>
 </template>
 
-<script lang="ts">
-import ProcessedText from "@/components/ProcessedText.vue";
-import { defineComponent, onUpdated, ref, Ref, nextTick, onMounted, onUnmounted } from "vue";
+<script lang="ts" setup>
+import { onUpdated, ref, Ref, nextTick, onMounted, onUnmounted } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { ServerMessageChat } from "ott-common/models/messages";
 import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 import { useSfx } from "@/plugins/sfx";
+import ChatMsg from "./ChatMsg.vue";
 
 const MSG_SHOW_TIMEOUT = 20000;
 
-const Chat = defineComponent({
-	name: "Chat",
-	components: {
-		ProcessedText,
-	},
-	emits: ["link-click"],
-	setup() {
-		const connection = useConnection();
-		const roomapi = useRoomApi(connection);
+const emit = defineEmits(["link-click"]);
 
-		const inputValue = ref("");
-		const stickToBottom = ref(true);
-		/**
-		 * When chat is activated, all messages are shown. and the
-		 * user can scroll through message history, type in chat, etc.
-		 * When chat is NOT activated, when messages are received,
-		 * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
-		 */
-		const activated = ref(false);
-		const deactivateOnBlur = ref(false);
-		/**
-		 * All past chat messages. They are are no longer
-		 * shown when deactivated.
-		 */
-		const chatMessagePast: Ref<ChatMessage[]> = ref([]);
-		/**
-		 * All recent chat messages that are currently shown when deactivated.
-		 * They will fade away after `MSG_SHOW_TIMEOUT` ms, and moved into `chatMessagePast`.
-		 */
-		const chatMessageRecent: Ref<ChatMessage[]> = ref([]);
-		const messages = ref();
-		const chatInput: Ref<HTMLInputElement | undefined> = ref();
+const connection = useConnection();
+const roomapi = useRoomApi(connection);
 
-		const shortcuts = useRoomKeyboardShortcuts();
-		onMounted(() => {
-			connection.addMessageHandler("chat", onChatReceived);
-			if (shortcuts) {
-				shortcuts.bind({ code: "KeyT" }, () => setActivated(true, false));
-			} else {
-				console.warn("No keyboard shortcuts available");
-			}
-		});
+const inputValue = ref("");
+const stickToBottom = ref(true);
+/**
+ * When chat is activated, all messages are shown. and the
+ * user can scroll through message history, type in chat, etc.
+ * When chat is NOT activated, when messages are received,
+ * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
+ */
+const activated = ref(false);
+const deactivateOnBlur = ref(false);
+/**
+ * All past chat messages. They are are no longer
+ * shown when deactivated.
+ */
+const chatMessagePast: Ref<ChatMessage[]> = ref([]);
+/**
+ * All recent chat messages that are currently shown when deactivated.
+ * They will fade away after `MSG_SHOW_TIMEOUT` ms, and moved into `chatMessagePast`.
+ */
+const chatMessageRecent: Ref<ChatMessage[]> = ref([]);
+const messages = ref();
+const chatInput: Ref<HTMLInputElement | undefined> = ref();
 
-		onUnmounted(() => {
-			connection.removeMessageHandler("chat", onChatReceived);
-		});
-
-		function focusChatInput() {
-			chatInput.value?.focus();
-		}
-
-		function isActivated(): boolean {
-			return activated.value;
-		}
-
-		async function setActivated(value: boolean, manual = false): Promise<void> {
-			activated.value = value;
-			if (value) {
-				if (manual) {
-					deactivateOnBlur.value = false;
-				} else {
-					deactivateOnBlur.value = true;
-				}
-				await nextTick();
-				focusChatInput();
-			} else {
-				chatInput.value?.blur();
-				forceToBottom();
-			}
-		}
-
-		const sfx = useSfx();
-		function onChatReceived(msg: ServerMessageChat): void {
-			chatMessageRecent.value.push(msg);
-			setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
-			nextTick(enforceStickToBottom);
-			sfx.play("pop");
-		}
-
-		function expireChatMessage() {
-			chatMessagePast.value.push(chatMessageRecent.value.splice(0, 1)[0]);
-		}
-
-		/**
-		 * Performs the necessary actions to enact the stickToBottom behavior.
-		 */
-		function enforceStickToBottom() {
-			const div = messages.value as HTMLDivElement;
-			if (stickToBottom.value) {
-				div.scrollTop = div.scrollHeight;
-			}
-		}
-
-		function onInputKeyDown(e: KeyboardEvent): void {
-			if (e.key === "Enter") {
-				e.preventDefault();
-				if (inputValue.value.trim() !== "") {
-					roomapi.chat(inputValue.value);
-				}
-				inputValue.value = "";
-				stickToBottom.value = true;
-				setActivated(false);
-			} else if (e.key === "Escape") {
-				e.preventDefault();
-				setActivated(false);
-			}
-		}
-
-		function onScroll() {
-			const div = messages.value as HTMLDivElement;
-			const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
-			stickToBottom.value = distToBottom === 0;
-		}
-
-		function forceToBottom() {
-			stickToBottom.value = true;
-			enforceStickToBottom();
-		}
-
-		onUpdated(enforceStickToBottom);
-
-		return {
-			inputValue,
-			stickToBottom,
-			activated,
-			chatMessagePast,
-			chatMessageRecent,
-			deactivateOnBlur,
-
-			onInputKeyDown,
-			onScroll,
-			focusChatInput,
-			isActivated,
-			setActivated,
-			onChatReceived,
-			enforceStickToBottom,
-			forceToBottom,
-
-			messages,
-			chatInput,
-		};
-	},
+const shortcuts = useRoomKeyboardShortcuts();
+onMounted(() => {
+	connection.addMessageHandler("chat", onChatReceived);
+	if (shortcuts) {
+		shortcuts.bind({ code: "KeyT" }, () => setActivated(true, false));
+	} else {
+		console.warn("No keyboard shortcuts available");
+	}
 });
 
-export default Chat;
+onUnmounted(() => {
+	connection.removeMessageHandler("chat", onChatReceived);
+});
+
+function focusChatInput() {
+	chatInput.value?.focus();
+}
+
+async function setActivated(value: boolean, manual = false): Promise<void> {
+	activated.value = value;
+	if (value) {
+		if (manual) {
+			deactivateOnBlur.value = false;
+		} else {
+			deactivateOnBlur.value = true;
+		}
+		await nextTick();
+		focusChatInput();
+	} else {
+		chatInput.value?.blur();
+		forceToBottom();
+	}
+}
+
+const sfx = useSfx();
+function onChatReceived(msg: ServerMessageChat): void {
+	chatMessageRecent.value.push(msg);
+	setTimeout(expireChatMessage, MSG_SHOW_TIMEOUT);
+	nextTick(enforceStickToBottom);
+	sfx.play("pop");
+}
+
+function expireChatMessage() {
+	chatMessagePast.value.push(chatMessageRecent.value.splice(0, 1)[0]);
+}
+
+/**
+ * Performs the necessary actions to enact the stickToBottom behavior.
+ */
+function enforceStickToBottom() {
+	const div = messages.value as HTMLDivElement;
+	if (stickToBottom.value) {
+		div.scrollTop = div.scrollHeight;
+	}
+}
+
+function onInputKeyDown(e: KeyboardEvent): void {
+	if (e.key === "Enter") {
+		e.preventDefault();
+		if (inputValue.value.trim() !== "") {
+			roomapi.chat(inputValue.value);
+		}
+		inputValue.value = "";
+		stickToBottom.value = true;
+		setActivated(false);
+	} else if (e.key === "Escape") {
+		e.preventDefault();
+		setActivated(false);
+	}
+}
+
+function onScroll() {
+	const div = messages.value as HTMLDivElement;
+	const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
+	stickToBottom.value = distToBottom === 0;
+}
+
+function forceToBottom() {
+	stickToBottom.value = true;
+	enforceStickToBottom();
+}
+
+onUpdated(enforceStickToBottom);
 </script>
 
 <style lang="scss" scoped>
@@ -298,39 +262,6 @@ $chat-message-bg: $background-color;
 	pointer-events: none;
 
 	align-items: baseline;
-}
-
-.message {
-	margin: 2px 0;
-	padding: 4px;
-	opacity: 0;
-	transition: all 1s ease;
-
-	&:first-child {
-		margin-top: auto;
-	}
-
-	&.recent {
-		opacity: 1;
-		background: rgba(var(--v-theme-background), $alpha: 0.6);
-	}
-
-	.from,
-	.text {
-		display: inline;
-		margin: 3px 5px;
-		word-wrap: break-word;
-		overflow-wrap: anywhere;
-	}
-
-	.from {
-		font-weight: bold;
-		margin-left: 0;
-	}
-
-	@media screen and (max-width: $sm-max) {
-		font-size: 0.8em;
-	}
 }
 
 .manual-activate {

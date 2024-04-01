@@ -62,8 +62,8 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+<script lang="ts" setup>
+import { ref, computed } from "vue";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import { granted } from "@/util/grants";
 import { useStore } from "@/store";
@@ -73,51 +73,28 @@ import { useRoomApi } from "@/util/roomapi";
 import { exportQueue } from "ott-common/queueexport";
 import { useCopyFromTextbox } from "./composables";
 
-const VideoQueue = defineComponent({
-	name: "VideoQueue",
-	components: {
-		VideoQueueItem,
-		Sortable,
-	},
-	emits: ["switchtab"],
-	setup() {
-		const store = useStore();
-		const roomapi = useRoomApi(useConnection());
+defineEmits(["switchtab"]);
 
-		function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
-			roomapi.queueMove(e.oldIndex, e.newIndex);
-		}
+const store = useStore();
+const roomapi = useRoomApi(useConnection());
 
-		const exportDialog = ref(false);
-		const exportedQueue = computed(() => {
-			const queue = [...store.state.room.queue];
-			if (store.state.room.currentSource) {
-				queue.unshift(store.state.room.currentSource);
-			}
-			return exportQueue(queue);
-		});
-		const exportTextBox = ref();
-		const { copy: copyExported, copySuccess: copyExportSuccess } = useCopyFromTextbox(
-			exportedQueue,
-			exportTextBox
-		);
+function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
+	roomapi.queueMove(e.oldIndex, e.newIndex);
+}
 
-		return {
-			onQueueDragDrop,
-			exportDialog,
-			exportedQueue,
-			exportTextBox,
-			copyExported,
-			copyExportSuccess,
-
-			roomapi,
-			granted,
-			store,
-		};
-	},
+const exportDialog = ref(false);
+const exportedQueue = computed(() => {
+	const queue = [...store.state.room.queue];
+	if (store.state.room.currentSource) {
+		queue.unshift(store.state.room.currentSource);
+	}
+	return exportQueue(queue);
 });
-
-export default VideoQueue;
+const exportTextBox = ref();
+const { copy: copyExported, copySuccess: copyExportSuccess } = useCopyFromTextbox(
+	exportedQueue,
+	exportTextBox
+);
 </script>
 
 <style lang="scss" scoped>
