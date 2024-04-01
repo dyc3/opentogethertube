@@ -14,7 +14,7 @@
 					@click="setCaptionsEnabled(true)"
 					v-if="captions.captionsTracks.value.length === 0"
 				>
-					On
+					{{ $t("common.on") }}
 				</v-list-item>
 				<v-list-item
 					link
@@ -24,7 +24,9 @@
 				>
 					{{ track }}
 				</v-list-item>
-				<v-list-item link @click="setCaptionsEnabled(false)"> Off </v-list-item>
+				<v-list-item link @click="setCaptionsEnabled(false)">
+					{{ $t("common.off") }}
+				</v-list-item>
 			</v-list>
 		</v-menu>
 	</v-btn>
