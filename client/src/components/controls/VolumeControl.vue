@@ -19,27 +19,17 @@
 	/>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import VueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
 import { useVolume } from "../composables";
 
-export default defineComponent({
-	name: "VolumeControl",
-	components: {
-		VueSlider,
-	},
-	emits: ["update:volume"],
-	setup(props, { emit }) {
-		const volume = useVolume();
+const emit = defineEmits(["update:volume"]);
 
-		function changed(value: number) {
-			emit("update:volume", value);
-			volume.value = value;
-		}
+const volume = useVolume();
 
-		return { volume, changed };
-	},
-});
+function changed(value: number) {
+	emit("update:volume", value);
+	volume.value = value;
+}
 </script>
