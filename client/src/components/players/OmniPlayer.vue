@@ -202,6 +202,9 @@ export default defineComponent({
 			controls.setPlayer(v);
 			if (v) {
 				hasPlayerChangedYet.value = true;
+			} else {
+				captions.isCaptionsSupported.value = false;
+				playbackRate.availablePlaybackRates.value = [1];
 			}
 		});
 		watch(captions.isCaptionsEnabled, v => {
@@ -217,14 +220,6 @@ export default defineComponent({
 			}
 		});
 		const playbackRate = usePlaybackRate();
-		// not sure if this is needed anymore
-		// watch(playbackRate.isPlaybackRateSupported, v => {
-		// 	console.debug("Playback rate supported", v);
-		// 	if (!v || !player.value) {
-		// 		playbackRate.availablePlaybackRates.value = [1];
-		// 		playbackRate.playbackRate.value = 1;
-		// 	}
-		// });
 		watch(playbackRate.playbackRate, v => {
 			if (player.value && implementsPlaybackRate(player.value)) {
 				player.value.setPlaybackRate(v);
