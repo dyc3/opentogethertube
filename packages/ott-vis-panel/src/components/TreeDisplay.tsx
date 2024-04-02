@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import type { Monolith, SystemState } from "ott-vis/types";
+import type { Monolith, Room, SystemState } from "ott-vis/types";
 import { dedupeMonoliths } from "aggregate";
 import { useEventBus } from "eventbus";
 
@@ -60,29 +60,35 @@ function buildFullTree(systemState: SystemState): TreeNode {
 
 function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
 	return dedupeMonoliths(monoliths).map(monolith => {
-		const roomNodes: TreeNode[] = monolith.rooms.map(room => {
-			return {
-				id: room.name,
-				region: monolith.region,
-				group: "room",
-				children: Array.from({ length: room.clients }, (_, index) => {
-					return {
-						id: `${room.name}-${index}`,
-						region: monolith.region,
-						group: "client",
-						children: [],
-					};
-				}),
-			};
-		});
 		const monolithNode: TreeNode = {
 			id: monolith.id,
 			region: monolith.region,
 			group: "monolith",
-			children: roomNodes,
+			children: buildRoomSubtrees(monolith),
 		};
 		return monolithNode;
 	});
+}
+
+function buildRoomSubtree(room: Room, region: string): TreeNode {
+	const roomNode: TreeNode = {
+		id: room.name,
+		region: region,
+		group: "room",
+		children: Array.from({ length: room.clients }, (_, index) => {
+			return {
+				id: `${room.name}-${index}`,
+				region: region,
+				group: "client",
+				children: [],
+			};
+		}),
+	};
+	return roomNode;
+}
+
+function buildRoomSubtrees(monolith: Monolith): TreeNode[] {
+	return monolith.rooms.map(room => buildRoomSubtree(room, monolith.region));
 }
 
 function buildBalancerRegionTree(systemState: SystemState): TreeNode {
@@ -210,6 +216,30 @@ function mirrorTree(tree: d3.HierarchyNode<TreeNode>): d3.HierarchyNode<TreeNode
 	return mirrored;
 }
 
+function constructMonolithSubtreesBasic(monolithTree: TreeNode, baseNodeRadius: number) {
+	const root = d3.hierarchy(monolithTree);
+	const radius = calcGoodTreeRadius(root, baseNodeRadius);
+	const treeLayout = d3
+		.tree<TreeNode>()
+		.size([Math.PI, radius])
+		.separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
+	treeLayout(root);
+	// precompute radial coordinates
+	root.each(node => {
+		if (node.data.group === "client") {
+			// @ts-expect-error d3 adds x and y to the node
+			node.y = radius / 2 + 60;
+		}
+		// @ts-expect-error d3 adds x and y to the node
+		const [x, y] = d3.pointRadial(node.x, node.y);
+		// @ts-expect-error d3 adds x and y to the node
+		node.x = x;
+		// @ts-expect-error d3 adds x and y to the node
+		node.y = y;
+	});
+	return root;
+}
+
 interface Node {
 	id: string;
 	x: number;
@@ -269,27 +299,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			// build all the sub-trees first
 			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
 			for (const monolithTree of monolithTrees) {
-				const root = d3.hierarchy(monolithTree);
-				const radius = calcGoodTreeRadius(root, baseNodeRadius);
-				const treeLayout = d3
-					.tree<TreeNode>()
-					.size([Math.PI, radius])
-					.separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
-				treeLayout(root);
-				// precompute radial coordinates
-				root.each(node => {
-					if (node.data.group === "client") {
-						// @ts-expect-error d3 adds x and y to the node
-						node.y = radius / 2 + 60;
-					}
-					// @ts-expect-error d3 adds x and y to the node
-					const [x, y] = d3.pointRadial(node.x, node.y);
-					// @ts-expect-error d3 adds x and y to the node
-					node.x = x;
-					// @ts-expect-error d3 adds x and y to the node
-					node.y = y;
-				});
-
+				const root = constructMonolithSubtreesBasic(monolithTree, baseNodeRadius);
 				builtMonolithTrees.push(root);
 			}
 
