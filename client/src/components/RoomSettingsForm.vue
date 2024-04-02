@@ -148,7 +148,7 @@
 	</div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import _ from "lodash";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
@@ -157,149 +157,122 @@ import { Visibility, QueueMode, RoomSettings, Role, BehaviorOption } from "ott-c
 import { Grants } from "ott-common/permissions";
 import { granted } from "@/util/grants";
 import toast from "@/util/toast";
-import { defineComponent, onMounted, Ref, ref } from "vue";
+import { onMounted, Ref, ref } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
 import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
 
-const RoomSettingsForm = defineComponent({
-	name: "RoomSettingsForm",
-	components: {
-		PermissionsEditor,
-	},
-	setup() {
-		const store = useStore();
-		const { t } = useI18n();
+const store = useStore();
+const { t } = useI18n();
 
-		const isLoadingRoomSettings = ref(false);
-		const inputRoomSettings: Ref<RoomSettings> = ref<RoomSettings>({
-			title: "",
-			description: "",
-			visibility: Visibility.Public,
-			queueMode: QueueMode.Manual,
-			grants: new Grants(),
-			autoSkipSegmentCategories: Array.from([]),
-			restoreQueueBehavior: BehaviorOption.Prompt,
-			enableVoteSkip: false,
-		});
-
-		onMounted(async () => {
-			await loadRoomSettings();
-		});
-
-		async function loadRoomSettings() {
-			// we have to make an API request because visibility is not sent in sync messages.
-			isLoadingRoomSettings.value = true;
-			try {
-				const res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);
-				const settings = res.data;
-				settings.grants = new Grants(res.data.grants);
-				inputRoomSettings.value = _.pick(
-					settings,
-					"title",
-					"description",
-					"visibility",
-					"queueMode",
-					"grants",
-					"autoSkipSegmentCategories",
-					"restoreQueueBehavior",
-					"enableVoteSkip"
-				);
-			} catch (err) {
-				toast.add({
-					content: t("room-settings.load-failed"),
-					duration: 5000,
-					style: ToastStyle.Error,
-				});
-			}
-			isLoadingRoomSettings.value = false;
-		}
-
-		function getRoomSettingsSubmit() {
-			const propsToGrants = {
-				title: "set-title",
-				description: "set-description",
-				visibility: "set-visibility",
-				queueMode: "set-queue-mode",
-				autoSkipSegmentCategories: "other",
-				restoreQueueBehavior: "other",
-				enableVoteSkip: "other",
-			};
-			const blocked: (keyof RoomSettings)[] = [];
-			for (const prop of Object.keys(propsToGrants)) {
-				if (!granted(`configure-room.${propsToGrants[prop]}`)) {
-					blocked.push(prop as keyof typeof propsToGrants);
-				}
-			}
-			return _.omit(inputRoomSettings.value, blocked);
-		}
-
-		/** Take room settings from the UI and submit them to the server. */
-		async function submitRoomSettings() {
-			isLoadingRoomSettings.value = true;
-			try {
-				await API.patch(`/room/${store.state.room.name}`, getRoomSettingsSubmit());
-				toast.add({
-					style: ToastStyle.Success,
-					content: t("room-settings.settings-applied").toString(),
-					duration: 4000,
-				});
-			} catch (e) {
-				console.log(e);
-				toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
-			}
-			isLoadingRoomSettings.value = false;
-		}
-
-		async function claimOwnership() {
-			isLoadingRoomSettings.value = true;
-			try {
-				await API.patch(`/room/${store.state.room.name}`, {
-					claim: true,
-				});
-				toast.add({
-					style: ToastStyle.Success,
-					content: t("room-settings.now-own-the-room", {
-						room: store.state.room.name,
-					}).toString(),
-					duration: 4000,
-				});
-			} catch (e) {
-				console.log(e);
-				toast.add({
-					style: ToastStyle.Error,
-					content: e.response.data.error.message,
-					duration: 6000,
-				});
-			}
-			isLoadingRoomSettings.value = false;
-		}
-
-		return {
-			isLoadingRoomSettings,
-			inputRoomSettings,
-			ALL_SKIP_CATEGORIES,
-			loadRoomSettings,
-			getRoomSettingsSubmit,
-			submitRoomSettings,
-			claimOwnership,
-
-			store,
-			granted,
-			Visibility,
-			QueueMode,
-			Role,
-			BehaviorOption,
-		};
-	},
+const isLoadingRoomSettings = ref(false);
+const inputRoomSettings: Ref<RoomSettings> = ref<RoomSettings>({
+	title: "",
+	description: "",
+	visibility: Visibility.Public,
+	queueMode: QueueMode.Manual,
+	grants: new Grants(),
+	autoSkipSegmentCategories: Array.from([]),
+	restoreQueueBehavior: BehaviorOption.Prompt,
+	enableVoteSkip: false,
 });
 
-export default RoomSettingsForm;
+onMounted(async () => {
+	await loadRoomSettings();
+});
+
+async function loadRoomSettings() {
+	// we have to make an API request because visibility is not sent in sync messages.
+	isLoadingRoomSettings.value = true;
+	try {
+		const res = await API.get<OttApiResponseGetRoom>(`/room/${store.state.room.name}`);
+		const settings = res.data;
+		settings.grants = new Grants(res.data.grants);
+		inputRoomSettings.value = _.pick(
+			settings,
+			"title",
+			"description",
+			"visibility",
+			"queueMode",
+			"grants",
+			"autoSkipSegmentCategories",
+			"restoreQueueBehavior",
+			"enableVoteSkip"
+		);
+	} catch (err) {
+		toast.add({
+			content: t("room-settings.load-failed"),
+			duration: 5000,
+			style: ToastStyle.Error,
+		});
+	}
+	isLoadingRoomSettings.value = false;
+}
+
+function getRoomSettingsSubmit() {
+	const propsToGrants = {
+		title: "set-title",
+		description: "set-description",
+		visibility: "set-visibility",
+		queueMode: "set-queue-mode",
+		autoSkipSegmentCategories: "other",
+		restoreQueueBehavior: "other",
+		enableVoteSkip: "other",
+	};
+	const blocked: (keyof RoomSettings)[] = [];
+	for (const prop of Object.keys(propsToGrants)) {
+		if (!granted(`configure-room.${propsToGrants[prop]}`)) {
+			blocked.push(prop as keyof typeof propsToGrants);
+		}
+	}
+	return _.omit(inputRoomSettings.value, blocked);
+}
+
+/** Take room settings from the UI and submit them to the server. */
+async function submitRoomSettings() {
+	isLoadingRoomSettings.value = true;
+	try {
+		await API.patch(`/room/${store.state.room.name}`, getRoomSettingsSubmit());
+		toast.add({
+			style: ToastStyle.Success,
+			content: t("room-settings.settings-applied").toString(),
+			duration: 4000,
+		});
+	} catch (e) {
+		console.log(e);
+		toast.add({
+			style: ToastStyle.Error,
+			content: e.response.data.error.message,
+			duration: 6000,
+		});
+	}
+	isLoadingRoomSettings.value = false;
+}
+
+async function claimOwnership() {
+	isLoadingRoomSettings.value = true;
+	try {
+		await API.patch(`/room/${store.state.room.name}`, {
+			claim: true,
+		});
+		toast.add({
+			style: ToastStyle.Success,
+			content: t("room-settings.now-own-the-room", {
+				room: store.state.room.name,
+			}).toString(),
+			duration: 4000,
+		});
+	} catch (e) {
+		console.log(e);
+		toast.add({
+			style: ToastStyle.Error,
+			content: e.response.data.error.message,
+			duration: 6000,
+		});
+	}
+	isLoadingRoomSettings.value = false;
+}
 </script>
 
 <style lang="scss">
