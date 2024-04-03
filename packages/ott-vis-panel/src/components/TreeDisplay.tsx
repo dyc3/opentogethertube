@@ -675,7 +675,10 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			}
 			const data = node.data()[0] as d3.HierarchyNode<TreeNode>;
 			const endRadius = data ? getRadius(data.data.group) : 20;
-			const radiusCurrent = parseFloat(node.attr("r"));
+			let radiusCurrent = parseFloat(node.attr("r"));
+			if (isNaN(radiusCurrent)) {
+				radiusCurrent = 0;
+			}
 			const newRadius = Math.max(Math.min(radiusCurrent + 5, 40), endRadius);
 			node.transition("highlight")
 				.duration(333)
