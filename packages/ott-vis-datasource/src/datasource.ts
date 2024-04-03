@@ -16,6 +16,7 @@ import { Observable, lastValueFrom, merge } from "rxjs";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	baseUrl: string;
+	socket: WebSocket | null = null;
 
 	constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
 		super(instanceSettings);
@@ -38,9 +39,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 					frame.addField({ name: "direction", type: FieldType.string });
 
 					const base = this.baseUrl.replace(/^http/, "ws");
-					const ws = new WebSocket(`${base}/state/stream`);
 
-					ws.addEventListener("message", msg => {
+					const open = (e: Event) => {
+						console.log("WebSocket opened", e);
+					};
+
+					const message = (msg: MessageEvent) => {
 						const event = JSON.parse(msg.data);
 						frame.add(event);
 
@@ -49,16 +53,57 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 							key: frame.refId,
 							state: LoadingState.Streaming,
 						});
-					});
+					};
 
-					ws.addEventListener("error", err => {
+					const error = (err: Event) => {
 						console.error("WebSocket error", err);
 						subscriber.error(err);
-					});
+					};
 
-					ws.addEventListener("close", () => {
-						subscriber.complete();
-					});
+					const close = (e: CloseEvent) => {
+						// subscriber.complete();
+						console.warn("WebSocket closed", e);
+						if (e.code === 4132) {
+							console.info("We aborted the connection.");
+							return;
+						}
+						console.log("Datasource reconnecting...");
+						setTimeout(() => {
+							this.socket = new WebSocket(`${base}/state/stream`);
+							addListeners(this.socket);
+						}, 1000);
+					};
+
+					function addListeners(ws: WebSocket) {
+						ws.addEventListener("open", open);
+						ws.addEventListener("message", message);
+						ws.addEventListener("error", error);
+						ws.addEventListener("close", close);
+					}
+					function removeListeners(ws: WebSocket) {
+						ws.removeEventListener("open", open);
+						ws.removeEventListener("message", message);
+						ws.removeEventListener("error", error);
+						ws.removeEventListener("close", close);
+					}
+
+					function teardown(this: DataSource) {
+						if (!this.socket) {
+							return;
+						}
+						this.socket.close(4132);
+						removeListeners(this.socket);
+						window.removeEventListener("beforeunload", teardown);
+					}
+					subscriber.add(teardown.bind(this));
+					window.addEventListener("beforeunload", teardown);
+
+					if (this.socket) {
+						teardown.call(this);
+					}
+
+					this.socket = new WebSocket(`${base}/state/stream`);
+					addListeners(this.socket);
 				});
 			}
 
