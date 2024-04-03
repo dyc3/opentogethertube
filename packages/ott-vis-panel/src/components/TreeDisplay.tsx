@@ -274,7 +274,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
-	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths));
+	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths)).sort(
+		(a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id)
+	);
 
 	const [chartTransform, setChartTransform] = useState("translate(0, 0)");
 
@@ -303,6 +305,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const builtMonolithTrees: d3.HierarchyNode<TreeNode>[] = [];
 			for (const monolithTree of monolithTrees) {
 				const root = constructMonolithSubtreesBasic(monolithTree, baseNodeRadius);
+				root.sort((a, b) => d3.ascending(a.data.id, b.data.id));
 				builtMonolithTrees.push(root);
 			}
 
@@ -347,16 +350,18 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			const lerp = d3.interpolateNumber(0, fullHeight);
 			const lerpincr = 1 / (systemState.length - 1);
 			const yincr = Math.max(lerp(lerpincr), balancerNodeRadius * 2 + 20);
-			const balancerNodes = systemState.map((balancer, i) => {
-				const node: BalancerNode = {
-					id: balancer.id,
-					region: balancer.region,
-					group: "balancer",
-					x: 0,
-					y: i * yincr,
-				};
-				return node;
-			});
+			const balancerNodes = systemState
+				.map((balancer, i) => {
+					const node: BalancerNode = {
+						id: balancer.id,
+						region: balancer.region,
+						group: "balancer",
+						x: 0,
+						y: i * yincr,
+					};
+					return node;
+				})
+				.sort((a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id));
 
 			const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
 
