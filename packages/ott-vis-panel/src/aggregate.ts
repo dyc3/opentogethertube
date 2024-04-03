@@ -9,7 +9,7 @@ export function countRoomClients(state: SystemState): Record<string, number> {
 	for (const balancer of state) {
 		for (const monolith of balancer.monoliths) {
 			for (const room of monolith.rooms) {
-				roomClients[room.name] = (roomClients[room.name] ?? 0) + room.clients;
+				roomClients[room.name] = (roomClients[room.name] ?? 0) + room.clients.length;
 			}
 		}
 	}
@@ -60,7 +60,7 @@ function reduceRoom(rA: Room, rB: Room): Room {
 	// FIXME: (perf) This is a potentially hot path, and we should avoid creating a new object here.
 	return {
 		name: rA.name,
-		clients: rA.clients + rB.clients,
+		clients: [...rA.clients, ...rB.clients],
 	};
 }
 

@@ -16,19 +16,44 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 2 },
-					{ name: "bar", clients: 0 },
+					{
+						name: "foo",
+						clients: [
+							{
+								id: "e7229053-89df-428d-a37c-4b669fd57788",
+							},
+							{
+								id: "3fc0f726-2ad7-438b-8b2c-bae675dc1178",
+							},
+						],
+					},
+					{ name: "bar", clients: [] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 3 }],
+				rooms: [
+					{
+						name: "baz",
+						clients: [
+							{
+								id: "a90a98eb-5c82-44b3-90e0-1d117a9444c4",
+							},
+							{
+								id: "a7a40762-0308-408a-b954-d3f7dc2e5732",
+							},
+							{
+								id: "0ef93318-4b39-4b56-9180-637a9abeae9e",
+							},
+						],
+					},
+				],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 0 }],
+				rooms: [{ name: "qux", clients: [] }],
 			},
 			{
 				id: "f21df607-b572-4bdd-aa2f-3fead21bba86",
@@ -45,19 +70,32 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 1 },
-					{ name: "bar", clients: 2 },
+					{
+						name: "foo",
+						clients: [
+							{
+								id: "e7229053-89df-428d-a37c-4b669fd57788",
+							},
+						],
+					},
+					{
+						name: "bar",
+						clients: [
+							{ id: "4a6fe051-3247-4cad-860a-cb455ee65923" },
+							{ id: "33bbcd19-2af5-4244-9d71-cb647acc1b06" },
+						],
+					},
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 0 }],
+				rooms: [{ name: "baz", clients: [] }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 0 }],
+				rooms: [{ name: "qux", clients: [] }],
 			},
 			{
 				id: "f21df607-b572-4bdd-aa2f-3fead21bba86",
@@ -74,19 +112,29 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 0 },
-					{ name: "bar", clients: 0 },
+					{ name: "foo", clients: [] },
+					{ name: "bar", clients: [] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 0 }],
+				rooms: [{ name: "baz", clients: [] }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 4 }],
+				rooms: [
+					{
+						name: "qux",
+						clients: [
+							{ id: "d3be3464-efd5-41a1-b145-7d54378b02e3" },
+							{ id: "acc449cc-4748-435d-96b8-63530beac3d8" },
+							{ id: "9d2ff554-8388-4021-8467-5dfb208bd66e" },
+							{ id: "ff68188f-f739-46df-9bd7-dd25c1026651" },
+						],
+					},
+				],
 			},
 			{
 				id: "f21df607-b572-4bdd-aa2f-3fead21bba86",
@@ -125,34 +173,109 @@ describe("aggregation helpers", () => {
 
 	it("dedupes rooms", () => {
 		const rooms = [
-			{ name: "foo", clients: 1 },
-			{ name: "bar", clients: 2 },
-			{ name: "foo", clients: 1 },
+			{ name: "foo", clients: [{ id: "ff0ac5e0-caa8-4d5f-aba1-0c4aaa2d6f9e" }] },
+			{
+				name: "bar",
+				clients: [
+					{ id: "e36d4eb5-f526-4566-b94f-8cfc6dbf8548" },
+					{ id: "e842eeef-ef6c-4095-acc7-6342fb8c8b8c" },
+				],
+			},
+			{ name: "foo", clients: [{ id: "f7d5d57f-d15f-48b0-b30c-9bb378ce4943" }] },
 		];
 		expect(dedupeRooms(rooms)).toEqual([
-			{ name: "foo", clients: 2 },
-			{ name: "bar", clients: 2 },
+			{
+				name: "foo",
+				clients: [
+					{ id: "ff0ac5e0-caa8-4d5f-aba1-0c4aaa2d6f9e" },
+					{ id: "f7d5d57f-d15f-48b0-b30c-9bb378ce4943" },
+				],
+			},
+			{
+				name: "bar",
+				clients: [
+					{ id: "e36d4eb5-f526-4566-b94f-8cfc6dbf8548" },
+					{ id: "e842eeef-ef6c-4095-acc7-6342fb8c8b8c" },
+				],
+			},
 		]);
 	});
 
 	it("dedupes rooms using sample data", () => {
 		const rooms = sampleSystemState.flatMap(b => b.monoliths.flatMap(m => m.rooms));
 		expect(dedupeRooms(rooms)).toEqual([
-			{ name: "foo", clients: 3 },
-			{ name: "bar", clients: 2 },
-			{ name: "baz", clients: 3 },
-			{ name: "qux", clients: 4 },
+			{
+				name: "foo",
+				clients: [
+					{ id: "e7229053-89df-428d-a37c-4b669fd57788" },
+					{ id: "3fc0f726-2ad7-438b-8b2c-bae675dc1178" },
+					{ id: "e7229053-89df-428d-a37c-4b669fd57788" },
+				],
+			},
+			{
+				name: "bar",
+				clients: [
+					{ id: "4a6fe051-3247-4cad-860a-cb455ee65923" },
+					{ id: "33bbcd19-2af5-4244-9d71-cb647acc1b06" },
+				],
+			},
+			{
+				name: "baz",
+				clients: [
+					{ id: "a90a98eb-5c82-44b3-90e0-1d117a9444c4" },
+					{ id: "a7a40762-0308-408a-b954-d3f7dc2e5732" },
+					{ id: "0ef93318-4b39-4b56-9180-637a9abeae9e" },
+				],
+			},
+			{
+				name: "qux",
+				clients: [
+					{ id: "d3be3464-efd5-41a1-b145-7d54378b02e3" },
+					{ id: "acc449cc-4748-435d-96b8-63530beac3d8" },
+					{ id: "9d2ff554-8388-4021-8467-5dfb208bd66e" },
+					{ id: "ff68188f-f739-46df-9bd7-dd25c1026651" },
+				],
+			},
 		]);
 	});
 
 	it("dedupes monoliths", () => {
 		const monoliths = [
-			{ id: "a", region: "x", rooms: [{ name: "foo", clients: 2 }] },
+			{
+				id: "a",
+				region: "x",
+				rooms: [
+					{
+						name: "foo",
+						clients: [
+							{ id: "b379bce7-bd7a-4d79-a6bd-010e4fba1789" },
+							{ id: "a4505c5f-4856-49af-be53-77cabcb13aad" },
+						],
+					},
+				],
+			},
 			{ id: "b", region: "x", rooms: [] },
-			{ id: "a", region: "x", rooms: [{ name: "foo", clients: 1 }] },
+			{
+				id: "a",
+				region: "x",
+				rooms: [{ name: "foo", clients: [{ id: "379fdf91-e1e5-47b3-ac0c-0380a51c3479" }] }],
+			},
 		];
 		expect(dedupeMonoliths(monoliths)).toEqual([
-			{ id: "a", region: "x", rooms: [{ name: "foo", clients: 3 }] },
+			{
+				id: "a",
+				region: "x",
+				rooms: [
+					{
+						name: "foo",
+						clients: [
+							{ id: "b379bce7-bd7a-4d79-a6bd-010e4fba1789" },
+							{ id: "a4505c5f-4856-49af-be53-77cabcb13aad" },
+							{ id: "379fdf91-e1e5-47b3-ac0c-0380a51c3479" },
+						],
+					},
+				],
+			},
 			{ id: "b", region: "x", rooms: [] },
 		]);
 	});

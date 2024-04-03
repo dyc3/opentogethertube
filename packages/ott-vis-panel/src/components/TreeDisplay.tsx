@@ -23,7 +23,7 @@ export interface TreeDisplayStyleProps {
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-interface TreeNode {
+export interface TreeNode {
 	id: string;
 	region: string;
 	group: string;
@@ -60,7 +60,7 @@ function buildFullTree(systemState: SystemState): TreeNode {
 	return tree;
 }
 
-function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
+export function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
 	return dedupeMonoliths(monoliths).map(monolith => {
 		const monolithNode: TreeNode = {
 			id: monolith.id,
@@ -77,14 +77,12 @@ function buildRoomSubtree(room: Room, region: string): TreeNode {
 		id: room.name,
 		region: region,
 		group: "room",
-		children: Array.from({ length: room.clients }, (_, index) => {
-			return {
-				id: `${room.name}-${index}`,
-				region: region,
-				group: "client",
-				children: [],
-			};
-		}),
+		children: room.clients.map(c => ({
+			id: c.id,
+			region: region,
+			group: "client",
+			children: [],
+		})),
 	};
 	return roomNode;
 }
@@ -667,6 +665,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	const eventBus = useEventBus();
 	useEffect(() => {
 		const sub = eventBus.subscribe(event => {
+			if (event.direction !== "rx") {
+				return;
+			}
 			const node = d3.select(`[data-nodeid="${event.node_id}"]`);
 			if (node.empty()) {
 				return;

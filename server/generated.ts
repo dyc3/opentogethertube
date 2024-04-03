@@ -10,9 +10,13 @@ export type MonolithId = string;
 
 export type BalancerId = string;
 
+export interface ClientState {
+	id: ClientId;
+}
+
 export interface RoomState {
 	name: RoomName;
-	clients: number;
+	clients: ClientState[];
 }
 
 export interface MonolithState {

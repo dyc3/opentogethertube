@@ -23,7 +23,13 @@ pub struct MonolithState {
 #[typeshare]
 pub struct RoomState {
     pub name: RoomName,
-    pub clients: u32,
+    pub clients: Vec<ClientState>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
+pub struct ClientState {
+    pub id: ClientId,
 }
 
 pub enum Event {
