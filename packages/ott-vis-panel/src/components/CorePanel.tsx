@@ -32,12 +32,29 @@ const getStyles = () => {
 	};
 };
 
-export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
+export const CorePanel: React.FC<Props> = props => {
+	const { data } = props;
+
+	if (data.state === LoadingState.Error) {
+		return <CoreError data={data} />;
+	}
+
+	return <CoreData {...props} />;
+};
+
+/**
+ * Shown when the data source is in a nominal state.
+ */
+const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 	const styles = useStyles2(getStyles);
 
 	const stateSeries = data.series[0];
 	const eventBusSeries = data.series[1];
 	const eventBus = useEventBus();
+
+	if (!stateSeries) {
+		console.log("No state series, data:", data);
+	}
 
 	const systemState: SystemState = useMemo(() => {
 		return options.useSampleData
@@ -112,6 +129,20 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 		>
 			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
+		</div>
+	);
+};
+
+/**
+ * Shown when the data source is in an error state.
+ */
+const CoreError: React.FC<Pick<Props, "data">> = ({ data }) => {
+	return (
+		<div>
+			Errors:
+			{data.errors?.map((e, i) => (
+				<div key={i}>{e.message}</div>
+			))}
 		</div>
 	);
 };
