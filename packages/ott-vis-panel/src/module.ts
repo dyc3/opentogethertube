@@ -31,6 +31,12 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 			name: "Use Sample Data",
 			description: "Use sample data instead of querying the datasource",
 		})
+		.addBooleanSwitch({
+			path: "tree.horizontal",
+			name: "Horizontal",
+			description: "Rotate the tree view 90 degrees so that it extends horizontally",
+			showIf: config => config.view === "tree",
+		})
 		.addSelect({
 			path: "tree.b2mLinkStyle",
 			name: "Tree B2M Link Style",

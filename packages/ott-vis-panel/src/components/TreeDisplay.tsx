@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import type { Monolith, Room, SystemState } from "ott-vis/types";
 import { dedupeMonoliths } from "aggregate";
 import { useEventBus } from "eventbus";
+import "./tree-display.css";
 
 interface TreeDisplayProps extends TreeDisplayStyleProps {
 	systemState: SystemState;
@@ -11,6 +12,7 @@ interface TreeDisplayProps extends TreeDisplayStyleProps {
 }
 
 export interface TreeDisplayStyleProps {
+	horizontal?: boolean;
 	b2mLinkStyle?: "smooth" | "step";
 	b2mSpacing?: number;
 	baseNodeRadius?: number;
@@ -262,6 +264,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	systemState,
 	width,
 	height,
+	horizontal = false,
 	b2mLinkStyle = "smooth",
 	b2mSpacing = 300,
 	baseNodeRadius = 20,
@@ -390,11 +393,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 							create
 								.append("text")
 								.attr("x", d => d.x)
-								.attr("y", d => d.y + 4)
-								.attr("class", "balancer-text")
-								.attr("text-anchor", "middle")
-								.attr("stroke-width", 0)
-								.attr("fill", "white"),
+								.attr("y", d => d.y)
+								.attr("class", "balancer-text"),
 						update => update,
 						exit => exit.transition(tr).attr("font-size", 0).remove()
 					)
@@ -402,7 +402,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.transition(tr)
 					.attr("font-size", 10)
 					.attr("x", d => d.x)
-					.attr("y", d => d.y + 4);
+					.attr("y", d => d.y);
 			} else if (balancerGroupStyle === "region-packed") {
 				const balancerTree = buildBalancerRegionTree(systemState);
 				const root = d3
@@ -459,13 +459,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 							create
 								.append("text")
 								.attr("x", (d: any) => d.x)
-								.attr("y", (d: any) => d.y + 4)
-								.attr("class", "balancer-text")
-								.attr("text-anchor", "middle")
-								.attr("alignment-baseline", "middle")
-								.attr("font-family", "Inter, Helvetica, Arial, sans-serif")
-								.attr("stroke-width", 0)
-								.attr("fill", "white"),
+								.attr("y", (d: any) => d.y)
+								.attr("class", "balancer-text"),
 						update => update,
 						exit => exit.transition(tr).attr("font-size", 0).remove()
 					)
@@ -473,7 +468,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					.transition(tr)
 					.attr("font-size", 10)
 					.attr("x", (d: any) => d.x)
-					.attr("y", (d: any) => d.y + 4);
+					.attr("y", (d: any) => d.y);
 			}
 
 			// create groups for all the monoliths
@@ -502,7 +497,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 							.attr("transform", d => `translate(${d.x}, ${d.y})`);
 						group.append("g").attr("class", "links");
 						group.append("g").attr("class", "circles");
-						group.append("g").attr("class", "texts");
+						group.append("g").attr("class", "texts g-text");
 						return group;
 					},
 					update => update,
@@ -571,28 +566,25 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						.join(
 							create =>
 								create
-									.append("text")
 									.filter(d => d.data.group === "monolith")
+									.append("text")
 									.attr("class", "monolith-text")
-									.attr("text-anchor", "middle")
-									.attr("stroke-width", 0)
-									.attr("fill", "white")
-									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
-									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y)),
+									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
 							exit =>
 								exit
 									.transition(tr)
 									.attr("font-size", 0)
-									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
-									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y))
+									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
 						.text(d => `${d.data.id}`.substring(0, 6))
 						.transition(tr)
 						.attr("font-size", 10)
 						.attr("x", (d: any) => d.x)
-						.attr("y", (d: any) => d.y + 4);
+						.attr("y", (d: any) => d.y);
 				});
 
 			// create the links between balancers and monoliths
@@ -654,6 +646,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		clientNodeRadius,
 		balancerGroupStyle,
 		getRadius,
+		horizontal,
 	]);
 
 	// run this only once after the first render
@@ -701,19 +694,20 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			ref={svgRef}
 			width={width}
 			height={height}
-			viewBox={`${-width / 2} ${-height / 2} ${width}, ${height}`}
+			viewBox={`${-width / 2} ${-height / 4} ${width} ${height}`}
 			style={{
-				fontFamily: "Inter, Helvetica, Arial, sans-serif",
 				alignmentBaseline: "middle",
 			}}
 		>
 			<g className="chart">
-				<g className="b2m-links" />
-				<g className="balancers">
-					<g className="b-circles" />
-					<g className="b-texts" />
+				<g className={`${horizontal ? "horizontal" : ""}`}>
+					<g className="b2m-links" />
+					<g className="balancers">
+						<g className="b-circles" />
+						<g className="b-texts g-text" />
+					</g>
+					<g className="monoliths" />
 				</g>
-				<g className="monoliths" />
 			</g>
 		</svg>
 	);
