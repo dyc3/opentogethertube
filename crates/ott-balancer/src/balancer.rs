@@ -15,6 +15,7 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, trace, warn};
 
+use crate::balancer::collector::ClientState;
 use crate::client::ClientLink;
 use crate::config::BalancerConfig;
 use crate::connection::BALANCER_ID;
@@ -428,7 +429,11 @@ impl BalancerContext {
                     .iter()
                     .map(|(name, room)| RoomState {
                         name: name.clone(),
-                        clients: room.clients().len() as u32,
+                        clients: room
+                            .clients()
+                            .iter()
+                            .map(|c| ClientState { id: *c })
+                            .collect(),
                     })
                     .collect(),
             })
