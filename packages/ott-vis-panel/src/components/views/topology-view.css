@@ -1,0 +1,10 @@
+.links {
+	stroke: white;
+	stroke-width: 1.5;
+}
+
+.node {
+	stroke: white;
+	stroke-width: 1.5;
+	fill: forestgreen;
+}

@@ -9,6 +9,7 @@ import RegionView from "./views/RegionView";
 import { LoadingState } from "@grafana/schema";
 import { useEventBus, type BusEvent } from "eventbus";
 import TreeDisplay from "./TreeDisplay";
+import { TopologyView } from "./views/TopologyView";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -76,10 +77,19 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 					{...options.tree}
 				/>
 			);
+		} else if (options.view === "topology") {
+			return (
+				<TopologyView
+					height={height}
+					width={width}
+					systemState={systemState}
+					{...options.topology}
+				/>
+			);
 		} else {
 			return <div>Invalid view</div>;
 		}
-	}, [options.view, options.tree, height, width, systemState]);
+	}, [options.view, options.tree, options.topology, height, width, systemState]);
 
 	const [readEvents, setReadEvents] = useState(0);
 
