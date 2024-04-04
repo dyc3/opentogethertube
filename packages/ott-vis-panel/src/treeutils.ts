@@ -108,7 +108,11 @@ export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, numbe
 	return [right - left, bottom - top];
 }
 
-export function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>, nodeRadius: number): number {
+export function calcGoodTreeRadius(
+	tree: d3.HierarchyNode<TreeNode>,
+	nodeRadius: number,
+	padding = 5
+): number {
 	// absolute minimum radius should probably be 100
 	// minimum radius to fit all the nodes on the second level
 
@@ -118,7 +122,6 @@ export function calcGoodTreeRadius(tree: d3.HierarchyNode<TreeNode>, nodeRadius:
 	if (children <= 1) {
 		return 100;
 	}
-	const padding = 5;
 	const radius = (nodeRadius + padding) / Math.sin(Math.PI / children);
 	// multiply to account for the depth of the tree
 	const hasClients = tree.leaves().some(node => node.data.group === "client");
