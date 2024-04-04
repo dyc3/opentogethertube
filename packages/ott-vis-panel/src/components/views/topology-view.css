@@ -8,3 +8,9 @@
 	stroke: white;
 	stroke-width: 1.5;
 }
+
+.region {
+	fill: rgba(255, 255, 255, 0.1);
+	stroke: white;
+	stroke-width: 2;
+}

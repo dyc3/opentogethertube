@@ -7,6 +7,9 @@ import {
 	flipBoundingBoxH,
 	buildMonolithTrees,
 	filterTreeGroups,
+	expandBBox,
+	offsetBBox,
+	superBoundingBox,
 } from "treeutils";
 import * as d3 from "d3";
 import type { Monolith } from "ott-vis/types";
@@ -460,5 +463,44 @@ describe("treeutils", () => {
 				expect(child.parent?.data.group).toEqual("bar");
 			}
 		}
+	});
+
+	it("should calculate the super bounding box", () => {
+		const boxes: BoundingBox[] = [
+			[0, 0, 10, 10],
+			[-5, -5, 5, 5],
+			[5, 5, 15, 15],
+		];
+		const result = superBoundingBox(boxes);
+		expect(result).toEqual([-5, -5, 15, 15]);
+	});
+
+	it("should offset the bounding box", () => {
+		const box: BoundingBox = [0, 0, 10, 10];
+		const x = 5;
+		const y = -3;
+		const offsetBox = offsetBBox(box, x, y);
+		expect(offsetBox).toEqual([5, -3, 15, 7]);
+	});
+
+	it("should expand the bounding box with padding", () => {
+		const box: BoundingBox = [0, 0, 10, 10];
+		const padding = 5;
+		const expandedBox = expandBBox(box, padding);
+		expect(expandedBox).toEqual([-5, -5, 15, 15]);
+	});
+
+	it("should handle negative padding", () => {
+		const box: BoundingBox = [0, 0, 10, 10];
+		const padding = -2;
+		const expandedBox = expandBBox(box, padding);
+		expect(expandedBox).toEqual([2, 2, 8, 8]);
+	});
+
+	it("should handle zero padding", () => {
+		const box: BoundingBox = [0, 0, 10, 10];
+		const padding = 0;
+		const expandedBox = expandBBox(box, padding);
+		expect(expandedBox).toEqual([0, 0, 10, 10]);
 	});
 });

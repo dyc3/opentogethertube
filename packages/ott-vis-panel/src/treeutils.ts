@@ -136,6 +136,27 @@ export function flipBoundingBoxH(box: BoundingBox): BoundingBox {
 	return [-box[2], box[1], -box[0], box[3]];
 }
 
+/**
+ * Creates a bounding box that contains all the input bounding boxes.
+ * @param boxes
+ * @returns
+ */
+export function superBoundingBox(boxes: BoundingBox[]): BoundingBox {
+	return boxes.reduce(combineBBoxes);
+}
+
+function combineBBoxes(a: BoundingBox, b: BoundingBox): BoundingBox {
+	return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])];
+}
+
+export function offsetBBox(box: BoundingBox, x: number, y: number): BoundingBox {
+	return [box[0] + x, box[1] + y, box[2] + x, box[3] + y];
+}
+
+export function expandBBox(box: BoundingBox, padding: number): BoundingBox {
+	return [box[0] - padding, box[1] - padding, box[2] + padding, box[3] + padding];
+}
+
 function traverseGroups(tree: d3.HierarchyNode<TreeNode>): string[] {
 	// def not the most efficient way to do this
 	return tree

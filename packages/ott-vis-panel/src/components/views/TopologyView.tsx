@@ -9,6 +9,9 @@ import {
 	type TreeNode,
 	treeBoundingBox,
 	calcGoodTreeRadius,
+	superBoundingBox,
+	offsetBBox,
+	expandBBox,
 } from "treeutils";
 import "./topology-view.css";
 import { useColorProvider } from "colors";
@@ -41,10 +44,17 @@ interface Subtree {
 	y: number;
 }
 
-interface Region {
+interface PrebuiltRegion {
 	name: string;
 	balancerTrees: d3.HierarchyNode<TreeNode>[];
 	monolithTrees: d3.HierarchyNode<TreeNode>[];
+}
+
+interface Region {
+	name: string;
+	balancerSubtrees: Subtree[];
+	monolithSubtrees: Subtree[];
+	bbox: BoundingBox;
 }
 
 const DEBUG_BOUNDING_BOXES = false;
@@ -81,7 +91,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		const svg = d3.select(svgRef.current);
 
-		const monolithRegions: Map<string, Region> = new Map();
+		const monolithRegions: Map<string, PrebuiltRegion> = new Map();
 		for (const tree of monolithTrees) {
 			const region = tree.data.region;
 			if (!monolithRegions.has(region)) {
@@ -153,7 +163,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				});
 		}
 
-		function renderRegion(region: Region) {
+		function buildRegion(region: PrebuiltRegion): Region {
 			const monolithSubtrees: Subtree[] = [];
 			const balancerSubtrees: Subtree[] = [];
 
@@ -208,6 +218,25 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				monolithYs += height + subtreePadding;
 			}
 
+			const built: Region = {
+				name: region.name,
+				balancerSubtrees,
+				monolithSubtrees,
+				bbox: expandBBox(
+					superBoundingBox([
+						...balancerSubtrees.map(t => offsetBBox(t.bbox, t.x, t.y)),
+						...monolithSubtrees.map(t => offsetBBox(t.bbox, t.x, t.y)),
+					]),
+					200
+				),
+			};
+			return built;
+		}
+
+		function renderRegion(region: Region) {
+			const monolithSubtrees = region.monolithSubtrees;
+			const balancerSubtrees = region.balancerSubtrees;
+
 			if (DEBUG_BOUNDING_BOXES) {
 				svg.select(".monolith-trees")
 					.selectAll("rect")
@@ -226,9 +255,22 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			renderTrees(monolithSubtrees, ".monolith-trees");
 		}
 
-		for (const region of monolithRegions.values()) {
-			renderRegion(region);
+		const monolithBuiltRegions = new Map<string, Region>();
+		for (const [name, region] of monolithRegions.entries()) {
+			monolithBuiltRegions.set(name, buildRegion(region));
+			renderRegion(monolithBuiltRegions.get(name)!);
 		}
+
+		svg.select(".regions")
+			.selectAll(".region")
+			.data(monolithBuiltRegions.values())
+			.join("rect")
+			.attr("class", "region")
+			.attr("data-nodeid", d => d.name)
+			.attr("x", d => d.bbox[0])
+			.attr("y", d => d.bbox[1])
+			.attr("width", d => d.bbox[2] - d.bbox[0])
+			.attr("height", d => d.bbox[3] - d.bbox[1]);
 	}, [
 		svgRef,
 		monolithTrees,
