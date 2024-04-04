@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
 import {
@@ -28,7 +28,11 @@ interface TopologyViewProps extends TopologyViewStyleProps {
 	height: number;
 }
 
-export interface TopologyViewStyleProps {}
+export interface TopologyViewStyleProps {
+	baseNodeRadius: number;
+	clientNodeRadius: number;
+	subtreePadding: number;
+}
 
 interface Subtree {
 	tree: d3.HierarchyNode<TreeNode>;
@@ -39,14 +43,30 @@ interface Subtree {
 
 const DEBUG_BOUNDING_BOXES = false;
 
-export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, height }) => {
+export const TopologyView: React.FC<TopologyViewProps> = ({
+	systemState,
+	width,
+	height,
+	baseNodeRadius = 20,
+	clientNodeRadius = 8,
+	subtreePadding = 60,
+}) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const fullTree = d3.hierarchy(buildFullTree(systemState));
 	const monolithTrees = pruneTrees(fullTree, "monolith", "room");
 	const balancerTrees = filterTreeGroups(fullTree, ["balancer", "client"]);
-	const nodeRadius = 20;
-	const subtreePadding = nodeRadius * 4;
 	const colors = useColorProvider();
+
+	const getRadius = useCallback(
+		(group: string): number => {
+			if (group === "client") {
+				return clientNodeRadius;
+			} else {
+				return baseNodeRadius;
+			}
+		},
+		[baseNodeRadius, clientNodeRadius]
+	);
 
 	useEffect(() => {
 		if (!svgRef.current) {
@@ -58,7 +78,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 
 		let balancerYs = 0;
 		for (const tree of balancerTrees) {
-			const radius = calcGoodTreeRadius(tree, nodeRadius);
+			const radius = calcGoodTreeRadius(tree, clientNodeRadius);
 			const layout = d3.tree<TreeNode>().size([-Math.PI, radius]);
 			layout(tree);
 			// precompute radial coordinates
@@ -83,7 +103,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 		}
 		let monolithYs = 0;
 		for (const tree of monolithTrees) {
-			const radius = calcGoodTreeRadius(tree, nodeRadius);
+			const radius = calcGoodTreeRadius(tree, baseNodeRadius);
 			const layout = d3.tree<TreeNode>().size([Math.PI, radius]);
 			layout(tree);
 			// precompute radial coordinates
@@ -166,14 +186,23 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 						.attr("data-nodeid", d => d.data.id)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
-						.attr("r", nodeRadius)
+						.attr("r", d => getRadius(d.data.group))
 						.attr("fill", d => colors.assign(d.data.group));
 				});
 		}
 
 		renderTrees(balancerSubtrees, ".balancer-trees");
 		renderTrees(monolithSubtrees, ".monolith-trees");
-	}, [svgRef, monolithTrees, balancerTrees, subtreePadding, nodeRadius, colors]);
+	}, [
+		svgRef,
+		monolithTrees,
+		balancerTrees,
+		subtreePadding,
+		colors,
+		baseNodeRadius,
+		clientNodeRadius,
+		getRadius,
+	]);
 
 	useD3Zoom(svgRef);
 
