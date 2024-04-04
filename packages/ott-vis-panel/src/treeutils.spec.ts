@@ -1,15 +1,17 @@
-import * as d3 from "d3";
 import {
+	pruneTrees,
 	sizeOfTree,
 	treeBoundingBox,
 	type BoundingBox,
+	type TreeNode,
 	flipBoundingBoxH,
 	buildMonolithTrees,
-	TreeNode,
-} from "./TreeDisplay";
+	filterTreeGroups,
+} from "treeutils";
+import * as d3 from "d3";
 import type { Monolith } from "ott-vis/types";
 
-describe("TreeDisplay", () => {
+describe("treeutils", () => {
 	it("should find the size of any d3 tree", () => {
 		interface FooTree {
 			name: string;
@@ -232,5 +234,231 @@ describe("TreeDisplay", () => {
 
 		const result = buildMonolithTrees(monoliths);
 		expect(result).toEqual(expectedTrees);
+	});
+
+	it("should prune tree", () => {
+		const bigtree: TreeNode = {
+			id: "root",
+			region: "bruh",
+			group: "foo",
+			children: [
+				{
+					id: "child1",
+					region: "bruh",
+					group: "bar",
+					children: [
+						{
+							id: "child1.1",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child1.1.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child1.1.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+						{
+							id: "child1.2",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child1.2.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child1.2.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+				{
+					id: "child2",
+					region: "bruh",
+					group: "bar",
+					children: [
+						{
+							id: "child2.1",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child2.1.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child2.1.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+						{
+							id: "child2.2",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child2.2.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child2.2.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+			],
+		};
+
+		const root = d3.hierarchy(bigtree);
+		const pruned = pruneTrees(root, "bar", "baz");
+		expect(pruned).toHaveLength(2);
+		expect(pruned[0].data.id).toEqual("child1");
+		expect(pruned[1].data.id).toEqual("child2");
+		expect(pruned[0].height).toEqual(2);
+		expect(pruned[1].height).toEqual(2);
+		expect(pruned[0].children?.[0].data.group).toEqual("baz");
+		expect(pruned[0].children?.[0].children).toBeUndefined();
+	});
+
+	it("should filter groups in the tree", () => {
+		expect.hasAssertions();
+		const bigtree: TreeNode = {
+			id: "root",
+			region: "bruh",
+			group: "foo",
+			children: [
+				{
+					id: "child1",
+					region: "bruh",
+					group: "bar",
+					children: [
+						{
+							id: "child1.1",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child1.1.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child1.1.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+						{
+							id: "child1.2",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child1.2.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child1.2.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+				{
+					id: "child2",
+					region: "bruh",
+					group: "bar",
+					children: [
+						{
+							id: "child2.1",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child2.1.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child2.1.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+						{
+							id: "child2.2",
+							region: "bruh",
+							group: "baz",
+							children: [
+								{
+									id: "child2.2.1",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+								{
+									id: "child2.2.2",
+									region: "bruh",
+									group: "qux",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+			],
+		};
+
+		const root = d3.hierarchy(bigtree);
+		const trees = filterTreeGroups(root, ["bar", "qux"]);
+		expect.assertions((4 + 4 * 2) * trees.length + 1);
+		expect(trees).toHaveLength(2);
+		for (const tree of trees) {
+			expect(tree.data.group).toEqual("bar");
+			expect(tree.height).toEqual(2);
+			expect(tree.parent).toBeNull();
+			expect(tree.children).toHaveLength(4);
+			for (const child of tree.leaves()) {
+				expect(child.data.group).toEqual("qux");
+				expect(child.parent?.data.group).toEqual("bar");
+			}
+		}
 	});
 });
