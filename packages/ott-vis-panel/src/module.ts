@@ -69,10 +69,17 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 		})
 		.addNumberInput({
 			path: "tree.baseNodeRadius",
-			name: "Tree Base Node Radius",
+			name: "Base Node Radius",
 			description: "Set the radius of the nodes in the tree view",
 			defaultValue: 20,
 			showIf: config => config.view === "tree",
+		})
+		.addNumberInput({
+			path: "topology.baseNodeRadius",
+			name: "Base Node Radius",
+			description: "Set the radius of the nodes in the topology view",
+			defaultValue: 20,
+			showIf: config => config.view === "topology",
 		})
 		.addNumberInput({
 			path: "tree.balancerNodeRadius",
@@ -83,10 +90,17 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 		})
 		.addNumberInput({
 			path: "tree.clientNodeRadius",
-			name: "Tree Client Node Radius",
+			name: "Client Node Radius",
 			description: "Set the radius of the client nodes in the tree view",
 			defaultValue: 8,
 			showIf: config => config.view === "tree",
+		})
+		.addNumberInput({
+			path: "topology.clientNodeRadius",
+			name: "Client Node Radius",
+			description: "Set the radius of the client nodes in the topology view",
+			defaultValue: 8,
+			showIf: config => config.view === "topology",
 		})
 		.addSelect({
 			path: "tree.balancerGroupStyle",
