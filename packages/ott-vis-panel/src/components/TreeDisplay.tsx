@@ -14,6 +14,7 @@ import {
 import { useD3Zoom } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
+import { useColorProvider } from "colors";
 
 interface TreeDisplayProps extends TreeDisplayStyleProps {
 	systemState: SystemState;
@@ -27,8 +28,6 @@ export interface TreeDisplayStyleProps extends NodeRadiusOptions {
 	b2mSpacing?: number;
 	balancerGroupStyle?: "stacked" | "region-packed";
 }
-
-const color = d3.scaleOrdinal(d3.schemeCategory10);
 
 function buildBalancerRegionTree(systemState: SystemState): TreeNode {
 	const tree: TreeNode = {
@@ -125,6 +124,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	clientNodeRadius = 8,
 	balancerGroupStyle = "stacked",
 }) => {
+	const colors = useColorProvider();
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const monolithTrees = buildMonolithTrees(
 		dedupeMonoliths(systemState.flatMap(b => b.monoliths))
@@ -235,7 +235,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 						update => update,
 						exit => exit.transition(tr).attr("r", 0).remove()
 					)
-					.attr("fill", d => color(d.group))
+					.attr("fill", d => colors.assign(d.group))
 					.attr("data-nodeid", d => d.id)
 					.transition(tr)
 					.attr("cx", d => d.x)
@@ -279,8 +279,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				const balColor = d3
 					.scaleOrdinal()
 					.range([
-						d3.color(color("balancer"))?.darker(2),
-						d3.color(color("balancer"))?.darker(1),
+						d3.color(colors.assign("balancer"))?.darker(2),
+						d3.color(colors.assign("balancer"))?.darker(1),
 					]);
 
 				balancerCircles
@@ -299,7 +299,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 					)
 					// @ts-expect-error this is valid and it works
 					.attr("fill", d =>
-						d.data.group === "balancer" ? color(d.data.group) : balColor(d.data.group)
+						d.data.group === "balancer"
+							? colors.assign(d.data.group)
+							: balColor(d.data.group)
 					)
 					.attr("data-nodeid", d => d.data.id)
 					.transition(tr)
@@ -407,7 +409,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 									.remove()
 						)
 						.attr("data-nodeid", d => d.data.id)
-						.attr("fill", d => color(d.data.group))
+						.attr("fill", d => colors.assign(d.data.group))
 						.transition(tr)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
@@ -495,6 +497,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		balancerGroupStyle,
 		getRadius,
 		horizontal,
+		colors,
 	]);
 
 	useD3Zoom(svgRef);
