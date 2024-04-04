@@ -11,6 +11,7 @@ import {
 	calcGoodTreeRadius,
 } from "treeutils";
 import "./topology-view.css";
+import { useColorProvider } from "colors";
 
 /**
  * The goal of this component is to show a more accurate topology view from the perspective of actual network connections.
@@ -44,6 +45,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 	const balancerTrees = filterTreeGroups(fullTree, ["balancer", "client"]);
 	const nodeRadius = 20;
 	const subtreePadding = nodeRadius * 4;
+	const colors = useColorProvider();
 
 	useEffect(() => {
 		if (!svgRef.current) {
@@ -163,13 +165,14 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 						.attr("data-nodeid", d => d.data.id)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
-						.attr("r", nodeRadius);
+						.attr("r", nodeRadius)
+						.attr("fill", d => colors.assign(d.data.group));
 				});
 		}
 
 		renderTrees(balancerSubtrees, ".balancer-trees");
 		renderTrees(monolithSubtrees, ".monolith-trees");
-	}, [svgRef, monolithTrees, balancerTrees, subtreePadding, nodeRadius]);
+	}, [svgRef, monolithTrees, balancerTrees, subtreePadding, nodeRadius, colors]);
 
 	return (
 		<svg
