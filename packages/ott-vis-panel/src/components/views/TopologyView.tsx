@@ -1,7 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
-import { buildFullTree, filterTreeGroups, pruneTrees, type TreeNode } from "treeutils";
+import {
+	buildFullTree,
+	filterTreeGroups,
+	pruneTrees,
+	type BoundingBox,
+	type TreeNode,
+	treeBoundingBox,
+} from "treeutils";
 import "./topology-view.css";
 
 /**
@@ -20,6 +27,13 @@ interface TopologyViewProps extends TopologyViewStyleProps {
 
 export interface TopologyViewStyleProps {}
 
+interface Subtree {
+	tree: d3.HierarchyNode<TreeNode>;
+	bbox: BoundingBox;
+	x: number;
+	y: number;
+}
+
 export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, height }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const fullTree = d3.hierarchy(buildFullTree(systemState));
@@ -31,22 +45,46 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 			return;
 		}
 
+		const monolithSubtrees: Subtree[] = [];
+		const balancerSubtrees: Subtree[] = [];
+
 		const layout = d3.tree<TreeNode>().nodeSize([20, 20]);
+		let balancerYs = 0;
 		for (const balancerTree of balancerTrees) {
 			layout(balancerTree);
+			const bbox = treeBoundingBox(balancerTree);
+			balancerSubtrees.push({
+				tree: balancerTree,
+				bbox,
+				x: -100,
+				y: balancerYs,
+			});
+			const [_left, top, _right, bottom] = bbox;
+			const height = bottom - top;
+			balancerYs += height + 20;
 		}
+		let monolithYs = 0;
 		for (const monolithTree of monolithTrees) {
 			layout(monolithTree);
+			const bbox = treeBoundingBox(monolithTree);
+			monolithSubtrees.push({
+				tree: monolithTree,
+				bbox,
+				x: 100,
+				y: monolithYs,
+			});
+			const [_left, top, _right, bottom] = bbox;
+			const height = bottom - top;
+			monolithYs += height + 20;
 		}
-		// TODO: position monolith trees
 
 		const svg = d3.select(svgRef.current);
 
 		const diagonal = d3
-			.linkHorizontal<any, TreeNode>()
-			.x((d: any) => d.y)
-			.y((d: any) => d.x);
-		function renderTrees(trees: d3.HierarchyNode<TreeNode>[], groupClass: string) {
+			.linkVertical<any, TreeNode>()
+			.x((d: any) => d.x)
+			.y((d: any) => d.y);
+		function renderTrees(trees: Subtree[], groupClass: string) {
 			svg.select(groupClass)
 				.selectAll(".tree")
 				.data(trees)
@@ -61,7 +99,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 					update => update,
 					exit => exit.remove()
 				)
-				.each(function (tree) {
+				.attr("transform", d => `translate(${d.x}, ${d.y})`)
+				.each(function (subtree) {
+					const tree = subtree.tree;
 					const group = d3.select(this);
 					const gLinks = group.select(".links");
 					const gNodes = group.select(".nodes");
@@ -81,14 +121,14 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 						.join("circle")
 						.attr("class", "node")
 						.attr("data-nodeid", d => d.data.id)
-						.attr("cx", (d: any) => d.y)
-						.attr("cy", (d: any) => d.x)
+						.attr("cx", (d: any) => d.x)
+						.attr("cy", (d: any) => d.y)
 						.attr("r", 4);
 				});
 		}
 
-		renderTrees(balancerTrees, ".balancer-trees");
-		renderTrees(monolithTrees, ".monolith-trees");
+		renderTrees(balancerSubtrees, ".balancer-trees");
+		renderTrees(monolithSubtrees, ".monolith-trees");
 	}, [svgRef, monolithTrees, balancerTrees]);
 
 	return (
