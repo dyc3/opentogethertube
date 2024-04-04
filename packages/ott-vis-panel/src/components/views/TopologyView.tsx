@@ -41,6 +41,12 @@ interface Subtree {
 	y: number;
 }
 
+interface Region {
+	name: string;
+	balancerTrees: d3.HierarchyNode<TreeNode>[];
+	monolithTrees: d3.HierarchyNode<TreeNode>[];
+}
+
 const DEBUG_BOUNDING_BOXES = false;
 
 export const TopologyView: React.FC<TopologyViewProps> = ({
@@ -73,74 +79,30 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			return;
 		}
 
-		const monolithSubtrees: Subtree[] = [];
-		const balancerSubtrees: Subtree[] = [];
-
-		let balancerYs = 0;
-		for (const tree of balancerTrees) {
-			const radius = calcGoodTreeRadius(tree, clientNodeRadius);
-			const layout = d3.tree<TreeNode>().size([-Math.PI, radius]);
-			layout(tree);
-			// precompute radial coordinates
-			tree.each(node => {
-				// @ts-expect-error d3 adds x and y to the node
-				const [x, y] = d3.pointRadial(node.x, node.y);
-				// @ts-expect-error d3 adds x and y to the node
-				node.x = x;
-				// @ts-expect-error d3 adds x and y to the node
-				node.y = y;
-			});
-			const bbox = treeBoundingBox(tree);
-			balancerSubtrees.push({
-				tree,
-				bbox,
-				x: -100,
-				y: balancerYs,
-			});
-			const [_left, top, _right, bottom] = bbox;
-			const height = bottom - top;
-			balancerYs += height + subtreePadding;
-		}
-		let monolithYs = 0;
-		for (const tree of monolithTrees) {
-			const radius = calcGoodTreeRadius(tree, baseNodeRadius);
-			const layout = d3.tree<TreeNode>().size([Math.PI, radius]);
-			layout(tree);
-			// precompute radial coordinates
-			tree.each(node => {
-				// @ts-expect-error d3 adds x and y to the node
-				const [x, y] = d3.pointRadial(node.x, node.y);
-				// @ts-expect-error d3 adds x and y to the node
-				node.x = x;
-				// @ts-expect-error d3 adds x and y to the node
-				node.y = y;
-			});
-			const bbox = treeBoundingBox(tree);
-			monolithSubtrees.push({
-				tree,
-				bbox,
-				x: 100,
-				y: monolithYs,
-			});
-			const [_left, top, _right, bottom] = bbox;
-			const height = bottom - top;
-			monolithYs += height + subtreePadding;
-		}
-
 		const svg = d3.select(svgRef.current);
 
-		if (DEBUG_BOUNDING_BOXES) {
-			svg.select(".monolith-trees")
-				.selectAll("rect")
-				.data([...monolithSubtrees, ...balancerSubtrees])
-				.join("rect")
-				.attr("x", d => d.x + d.bbox[0])
-				.attr("y", d => d.y + d.bbox[1])
-				.attr("width", d => d.bbox[2] - d.bbox[0])
-				.attr("height", d => d.bbox[3] - d.bbox[1])
-				.attr("fill", "rgba(255, 255, 255, 0.1)")
-				.attr("stroke", "white")
-				.attr("stroke-width", 1);
+		const monolithRegions: Map<string, Region> = new Map();
+		for (const tree of monolithTrees) {
+			const region = tree.data.region;
+			if (!monolithRegions.has(region)) {
+				monolithRegions.set(region, {
+					name: region,
+					balancerTrees: [],
+					monolithTrees: [],
+				});
+			}
+			monolithRegions.get(region)?.monolithTrees.push(tree);
+		}
+		for (const tree of balancerTrees) {
+			const region = tree.data.region;
+			if (!monolithRegions.has(region)) {
+				monolithRegions.set(region, {
+					name: region,
+					balancerTrees: [],
+					monolithTrees: [],
+				});
+			}
+			monolithRegions.get(region)?.balancerTrees.push(tree);
 		}
 
 		const diagonal = d3
@@ -191,8 +153,82 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				});
 		}
 
-		renderTrees(balancerSubtrees, ".balancer-trees");
-		renderTrees(monolithSubtrees, ".monolith-trees");
+		function renderRegion(region: Region) {
+			const monolithSubtrees: Subtree[] = [];
+			const balancerSubtrees: Subtree[] = [];
+
+			let balancerYs = 0;
+			for (const tree of region.balancerTrees) {
+				const radius = calcGoodTreeRadius(tree, clientNodeRadius, 0);
+				const layout = d3.tree<TreeNode>().size([-Math.PI, radius]);
+				layout(tree);
+				// precompute radial coordinates
+				tree.each(node => {
+					// @ts-expect-error d3 adds x and y to the node
+					const [x, y] = d3.pointRadial(node.x, node.y);
+					// @ts-expect-error d3 adds x and y to the node
+					node.x = x;
+					// @ts-expect-error d3 adds x and y to the node
+					node.y = y;
+				});
+				const bbox = treeBoundingBox(tree);
+				balancerSubtrees.push({
+					tree,
+					bbox,
+					x: -100,
+					y: balancerYs,
+				});
+				const [_left, top, _right, bottom] = bbox;
+				const height = bottom - top;
+				balancerYs += height + subtreePadding;
+			}
+			let monolithYs = 0;
+			for (const tree of region.monolithTrees) {
+				const radius = calcGoodTreeRadius(tree, baseNodeRadius);
+				const layout = d3.tree<TreeNode>().size([Math.PI, radius]);
+				layout(tree);
+				// precompute radial coordinates
+				tree.each(node => {
+					// @ts-expect-error d3 adds x and y to the node
+					const [x, y] = d3.pointRadial(node.x, node.y);
+					// @ts-expect-error d3 adds x and y to the node
+					node.x = x;
+					// @ts-expect-error d3 adds x and y to the node
+					node.y = y;
+				});
+				const bbox = treeBoundingBox(tree);
+				monolithSubtrees.push({
+					tree,
+					bbox,
+					x: 100,
+					y: monolithYs,
+				});
+				const [_left, top, _right, bottom] = bbox;
+				const height = bottom - top;
+				monolithYs += height + subtreePadding;
+			}
+
+			if (DEBUG_BOUNDING_BOXES) {
+				svg.select(".monolith-trees")
+					.selectAll("rect")
+					.data([...monolithSubtrees, ...balancerSubtrees])
+					.join("rect")
+					.attr("x", d => d.x + d.bbox[0])
+					.attr("y", d => d.y + d.bbox[1])
+					.attr("width", d => d.bbox[2] - d.bbox[0])
+					.attr("height", d => d.bbox[3] - d.bbox[1])
+					.attr("fill", "rgba(255, 255, 255, 0.1)")
+					.attr("stroke", "white")
+					.attr("stroke-width", 1);
+			}
+
+			renderTrees(balancerSubtrees, ".balancer-trees");
+			renderTrees(monolithSubtrees, ".monolith-trees");
+		}
+
+		for (const region of monolithRegions.values()) {
+			renderRegion(region);
+		}
 	}, [
 		svgRef,
 		monolithTrees,
