@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
 import { useEventBus } from "eventbus";
@@ -11,6 +11,7 @@ import {
 	type TreeNode,
 	buildMonolithTrees,
 } from "treeutils";
+import { useD3Zoom } from "chartutils";
 
 interface TreeDisplayProps extends TreeDisplayStyleProps {
 	systemState: SystemState;
@@ -150,8 +151,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths)).sort(
 		(a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id)
 	);
-
-	const [chartTransform, setChartTransform] = useState("translate(0, 0)");
 
 	const getRadius = useCallback(
 		(group: string): number => {
@@ -506,13 +505,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				.transition(tr)
 				.attr("d", diagonal)
 				.attr("stroke-width", 1.5);
-
-			const zoom = d3.zoom<SVGSVGElement, TreeNode>().on("zoom", handleZoom);
-			function handleZoom(e: any) {
-				svg.select("g.chart").attr("transform", e.transform);
-				setChartTransform(e.transform);
-			}
-			svg.call(zoom);
 		}
 	}, [
 		systemState,
@@ -527,15 +519,7 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 		horizontal,
 	]);
 
-	// run this only once after the first render
-	useEffect(() => {
-		if (!svgRef.current) {
-			return;
-		}
-		const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
-		svg.select("g.chart").attr("transform", chartTransform);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	useD3Zoom(svgRef);
 
 	const eventBus = useEventBus();
 	useEffect(() => {

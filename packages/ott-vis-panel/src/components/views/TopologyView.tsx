@@ -12,6 +12,7 @@ import {
 } from "treeutils";
 import "./topology-view.css";
 import { useColorProvider } from "colors";
+import { useD3Zoom } from "chartutils";
 
 /**
  * The goal of this component is to show a more accurate topology view from the perspective of actual network connections.
@@ -173,6 +174,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 		renderTrees(balancerSubtrees, ".balancer-trees");
 		renderTrees(monolithSubtrees, ".monolith-trees");
 	}, [svgRef, monolithTrees, balancerTrees, subtreePadding, nodeRadius, colors]);
+
+	useD3Zoom(svgRef);
 
 	return (
 		<svg
