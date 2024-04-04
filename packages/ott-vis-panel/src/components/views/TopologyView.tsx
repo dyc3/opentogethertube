@@ -8,6 +8,7 @@ import {
 	type BoundingBox,
 	type TreeNode,
 	treeBoundingBox,
+	calcGoodTreeRadius,
 } from "treeutils";
 import "./topology-view.css";
 
@@ -34,11 +35,15 @@ interface Subtree {
 	y: number;
 }
 
+const DEBUG_BOUNDING_BOXES = false;
+
 export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, height }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const fullTree = d3.hierarchy(buildFullTree(systemState));
 	const monolithTrees = pruneTrees(fullTree, "monolith", "room");
 	const balancerTrees = filterTreeGroups(fullTree, ["balancer", "client"]);
+	const nodeRadius = 20;
+	const subtreePadding = nodeRadius * 4;
 
 	useEffect(() => {
 		if (!svgRef.current) {
@@ -48,42 +53,77 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 		const monolithSubtrees: Subtree[] = [];
 		const balancerSubtrees: Subtree[] = [];
 
-		const layout = d3.tree<TreeNode>().nodeSize([20, 20]);
 		let balancerYs = 0;
-		for (const balancerTree of balancerTrees) {
-			layout(balancerTree);
-			const bbox = treeBoundingBox(balancerTree);
+		for (const tree of balancerTrees) {
+			const radius = calcGoodTreeRadius(tree, nodeRadius);
+			const layout = d3.tree<TreeNode>().size([-Math.PI, radius]);
+			layout(tree);
+			// precompute radial coordinates
+			tree.each(node => {
+				// @ts-expect-error d3 adds x and y to the node
+				const [x, y] = d3.pointRadial(node.x, node.y);
+				// @ts-expect-error d3 adds x and y to the node
+				node.x = x;
+				// @ts-expect-error d3 adds x and y to the node
+				node.y = y;
+			});
+			const bbox = treeBoundingBox(tree);
 			balancerSubtrees.push({
-				tree: balancerTree,
+				tree,
 				bbox,
 				x: -100,
 				y: balancerYs,
 			});
 			const [_left, top, _right, bottom] = bbox;
 			const height = bottom - top;
-			balancerYs += height + 20;
+			balancerYs += height + subtreePadding;
 		}
 		let monolithYs = 0;
-		for (const monolithTree of monolithTrees) {
-			layout(monolithTree);
-			const bbox = treeBoundingBox(monolithTree);
+		for (const tree of monolithTrees) {
+			const radius = calcGoodTreeRadius(tree, nodeRadius);
+			const layout = d3.tree<TreeNode>().size([Math.PI, radius]);
+			layout(tree);
+			// precompute radial coordinates
+			tree.each(node => {
+				// @ts-expect-error d3 adds x and y to the node
+				const [x, y] = d3.pointRadial(node.x, node.y);
+				// @ts-expect-error d3 adds x and y to the node
+				node.x = x;
+				// @ts-expect-error d3 adds x and y to the node
+				node.y = y;
+			});
+			const bbox = treeBoundingBox(tree);
 			monolithSubtrees.push({
-				tree: monolithTree,
+				tree,
 				bbox,
 				x: 100,
 				y: monolithYs,
 			});
 			const [_left, top, _right, bottom] = bbox;
 			const height = bottom - top;
-			monolithYs += height + 20;
+			monolithYs += height + subtreePadding;
 		}
 
 		const svg = d3.select(svgRef.current);
 
+		if (DEBUG_BOUNDING_BOXES) {
+			svg.select(".monolith-trees")
+				.selectAll("rect")
+				.data([...monolithSubtrees, ...balancerSubtrees])
+				.join("rect")
+				.attr("x", d => d.x + d.bbox[0])
+				.attr("y", d => d.y + d.bbox[1])
+				.attr("width", d => d.bbox[2] - d.bbox[0])
+				.attr("height", d => d.bbox[3] - d.bbox[1])
+				.attr("fill", "rgba(255, 255, 255, 0.1)")
+				.attr("stroke", "white")
+				.attr("stroke-width", 1);
+		}
+
 		const diagonal = d3
-			.linkVertical<any, TreeNode>()
-			.x((d: any) => d.x)
-			.y((d: any) => d.y);
+			.linkRadial<any, TreeNode>()
+			.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
+			.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
 		function renderTrees(trees: Subtree[], groupClass: string) {
 			svg.select(groupClass)
 				.selectAll(".tree")
@@ -123,13 +163,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ systemState, width, 
 						.attr("data-nodeid", d => d.data.id)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
-						.attr("r", 4);
+						.attr("r", nodeRadius);
 				});
 		}
 
 		renderTrees(balancerSubtrees, ".balancer-trees");
 		renderTrees(monolithSubtrees, ".monolith-trees");
-	}, [svgRef, monolithTrees, balancerTrees]);
+	}, [svgRef, monolithTrees, balancerTrees, subtreePadding, nodeRadius]);
 
 	return (
 		<svg
