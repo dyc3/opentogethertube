@@ -36,50 +36,32 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 import { useStore } from "../store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import VideoQueueItem from "./VideoQueueItem.vue";
 
-export default defineComponent({
-	name: "RestoreQueue",
-	components: {
-		VideoQueueItem,
-	},
-	setup() {
-		const store = useStore();
-		const connection = useConnection();
-		const roomapi = useRoomApi(connection);
+const store = useStore();
+const connection = useConnection();
+const roomapi = useRoomApi(connection);
 
-		const showRestorePreview = ref(false);
+const showRestorePreview = ref(false);
 
-		function showDialog() {
-			showRestorePreview.value = true;
-		}
+function showDialog() {
+	showRestorePreview.value = true;
+}
 
-		function restore() {
-			roomapi.restoreQueue();
-			showRestorePreview.value = false;
-		}
+function restore() {
+	roomapi.restoreQueue();
+	showRestorePreview.value = false;
+}
 
-		function discard() {
-			roomapi.restoreQueue({ discard: true });
-			showRestorePreview.value = false;
-		}
-
-		return {
-			store,
-
-			showRestorePreview,
-
-			showDialog,
-			restore,
-			discard,
-		};
-	},
-});
+function discard() {
+	roomapi.restoreQueue({ discard: true });
+	showRestorePreview.value = false;
+}
 </script>
 
 <style lang="scss">

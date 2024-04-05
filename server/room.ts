@@ -836,6 +836,15 @@ export class Room implements RoomState {
 		return JSON.stringify(state, replacer);
 	}
 
+	private async saveStateToRedis(): Promise<void> {
+		this.log.debug("saving full state in redis");
+		await redisClient.set(`room:${this.name}`, this.serializeState(), {
+			EX: conf.get("room.expire_after"),
+		});
+	}
+
+	saveStateToRedisDebounced = _.debounce(this.saveStateToRedis, 5000);
+
 	public async sync(): Promise<void> {
 		if (this._dirty.size === 0) {
 			return;
@@ -854,10 +863,7 @@ export class Room implements RoomState {
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
 		if (isAnyDirtyStorable) {
-			this.log.debug("saving full state in redis");
-			await redisClient.set(`room:${this.name}`, this.serializeState(), {
-				EX: conf.get("room.expire_after"),
-			});
+			await this.saveStateToRedisDebounced();
 		}
 		if (!_.isEmpty(msg)) {
 			this.log.debug("sending sync message");
@@ -898,6 +904,8 @@ export class Room implements RoomState {
 	}
 
 	public async onBeforeUnload(): Promise<void> {
+		await this.saveStateToRedisDebounced.flush();
+
 		if (!this.isTemporary) {
 			const prevQueue = this.queue.items;
 			if (this.currentSource) {

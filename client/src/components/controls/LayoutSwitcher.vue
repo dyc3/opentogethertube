@@ -29,64 +29,48 @@
 	</v-btn>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed, onMounted } from "vue";
+<script lang="ts" setup>
+import { computed, onMounted } from "vue";
 import { useStore } from "@/store";
 import { RoomLayoutMode } from "@/stores/settings";
 import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 
-export const LayoutSwitcher = defineComponent({
-	name: "LayoutSwitcher",
-	setup() {
-		const store = useStore();
+const store = useStore();
 
-		const isMobile = computed(() => {
-			return window.matchMedia("only screen and (max-width: 760px)").matches;
-		});
-
-		function toggleFullscreen() {
-			if (document.fullscreenElement) {
-				document.exitFullscreen();
-			} else {
-				document.documentElement.requestFullscreen();
-				if (isMobile.value) {
-					// force the device into landscape mode to get the user to rotate the device
-					// but still allow exiting fullscreen by rotating the device back to portrait
-					if (screen.orientation) {
-						screen.orientation
-							.lock("landscape")
-							.then(() => screen.orientation.unlock());
-					}
-				}
-			}
-		}
-
-		function rotateRoomLayout() {
-			const layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
-			const newLayout =
-				layouts[(layouts.indexOf(store.state.settings.roomLayout) + 1) % layouts.length];
-			store.commit("settings/UPDATE", { roomLayout: newLayout });
-		}
-
-		const shortcuts = useRoomKeyboardShortcuts();
-		onMounted(() => {
-			if (shortcuts) {
-				shortcuts.bind({ code: "KeyF" }, () => toggleFullscreen());
-			} else {
-				console.warn("No keyboard shortcuts available");
-			}
-		});
-
-		return {
-			store,
-			isMobile,
-			toggleFullscreen,
-			rotateRoomLayout,
-		};
-	},
+const isMobile = computed(() => {
+	return window.matchMedia("only screen and (max-width: 760px)").matches;
 });
 
-export default LayoutSwitcher;
+function toggleFullscreen() {
+	if (document.fullscreenElement) {
+		document.exitFullscreen();
+	} else {
+		document.documentElement.requestFullscreen();
+		if (isMobile.value) {
+			// force the device into landscape mode to get the user to rotate the device
+			// but still allow exiting fullscreen by rotating the device back to portrait
+			if (screen.orientation) {
+				screen.orientation.lock("landscape").then(() => screen.orientation.unlock());
+			}
+		}
+	}
+}
+
+function rotateRoomLayout() {
+	const layouts = [RoomLayoutMode.default, RoomLayoutMode.theater];
+	const newLayout =
+		layouts[(layouts.indexOf(store.state.settings.roomLayout) + 1) % layouts.length];
+	store.commit("settings/UPDATE", { roomLayout: newLayout });
+}
+
+const shortcuts = useRoomKeyboardShortcuts();
+onMounted(() => {
+	if (shortcuts) {
+		shortcuts.bind({ code: "KeyF" }, () => toggleFullscreen());
+	} else {
+		console.warn("No keyboard shortcuts available");
+	}
+});
 </script>
 
 <style lang="scss">

@@ -63,67 +63,49 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import _ from "lodash";
 import { useStore } from "@/store";
 import { granted } from "@/util/grants";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 
-export const BasicControls = defineComponent({
-	name: "BasicControls",
-	props: {
-		currentPosition: {
-			type: Number,
-			default: 0,
-		},
-	},
-	emits: ["seek", "play", "pause", "skip"],
-	setup(props, { emit }) {
-		const store = useStore();
-		const roomapi = useRoomApi(useConnection());
+const props = withDefaults(
+	defineProps<{
+		currentPosition: number;
+	}>(),
+	{
+		currentPosition: 0,
+	}
+);
 
-		/** Send a message to play or pause the video, depending on the current state. */
-		function togglePlayback() {
-			if (store.state.room.isPlaying) {
-				roomapi.pause();
-				emit("pause");
-			} else {
-				roomapi.play();
-				emit("play");
-			}
-		}
+const emit = defineEmits(["seek", "play", "pause", "skip"]);
 
-		function seekDelta(delta: number) {
-			roomapi.seek(
-				_.clamp(
-					props.currentPosition + delta,
-					0,
-					store.state.room.currentSource?.length ?? 0
-				)
-			);
-			emit("seek");
-		}
+const store = useStore();
+const roomapi = useRoomApi(useConnection());
 
-		function skip() {
-			roomapi.skip();
-			emit("skip");
-		}
+/** Send a message to play or pause the video, depending on the current state. */
+function togglePlayback() {
+	if (store.state.room.isPlaying) {
+		roomapi.pause();
+		emit("pause");
+	} else {
+		roomapi.play();
+		emit("play");
+	}
+}
 
-		return {
-			store,
-			roomapi,
-			granted,
+function seekDelta(delta: number) {
+	roomapi.seek(
+		_.clamp(props.currentPosition + delta, 0, store.state.room.currentSource?.length ?? 0)
+	);
+	emit("seek");
+}
 
-			togglePlayback,
-			seekDelta,
-			skip,
-		};
-	},
-});
-
-export default BasicControls;
+function skip() {
+	roomapi.skip();
+	emit("skip");
+}
 </script>
 
 <style lang="scss">

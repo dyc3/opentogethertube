@@ -9,6 +9,7 @@ import RegionView from "./views/RegionView";
 import { LoadingState } from "@grafana/schema";
 import { useEventBus, type BusEvent } from "eventbus";
 import TreeDisplay from "./TreeDisplay";
+import { TopologyView } from "./views/TopologyView";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -32,12 +33,29 @@ const getStyles = () => {
 	};
 };
 
-export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => {
+export const CorePanel: React.FC<Props> = props => {
+	const { data } = props;
+
+	if (data.state === LoadingState.Error) {
+		return <CoreError data={data} />;
+	}
+
+	return <CoreData {...props} />;
+};
+
+/**
+ * Shown when the data source is in a nominal state.
+ */
+const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 	const styles = useStyles2(getStyles);
 
 	const stateSeries = data.series[0];
 	const eventBusSeries = data.series[1];
 	const eventBus = useEventBus();
+
+	if (!stateSeries) {
+		console.log("No state series, data:", data);
+	}
 
 	const systemState: SystemState = useMemo(() => {
 		return options.useSampleData
@@ -59,10 +77,19 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 					{...options.tree}
 				/>
 			);
+		} else if (options.view === "topology") {
+			return (
+				<TopologyView
+					height={height}
+					width={width}
+					systemState={systemState}
+					{...options.topology}
+				/>
+			);
 		} else {
 			return <div>Invalid view</div>;
 		}
-	}, [options.view, options.tree, height, width, systemState]);
+	}, [options.view, options.tree, options.topology, height, width, systemState]);
 
 	const [readEvents, setReadEvents] = useState(0);
 
@@ -116,6 +143,20 @@ export const CorePanel: React.FC<Props> = ({ options, data, width, height }) => 
 	);
 };
 
+/**
+ * Shown when the data source is in an error state.
+ */
+const CoreError: React.FC<Pick<Props, "data">> = ({ data }) => {
+	return (
+		<div>
+			Errors:
+			{data.errors?.map((e, i) => (
+				<div key={i}>{e.message}</div>
+			))}
+		</div>
+	);
+};
+
 const Loading: React.FC = () => {
 	return <div style={{ position: "absolute", top: 0, left: 0 }}>Loading...</div>;
 };
@@ -129,19 +170,34 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 2 },
-					{ name: "bar", clients: 0 },
+					{
+						name: "foo",
+						clients: [
+							{ id: "caa15370-8861-459e-997d-3e97f08f37d0" },
+							{ id: "12726a0c-02de-49f0-ab59-d87baf9c289f" },
+						],
+					},
+					{ name: "bar", clients: [] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 3 }],
+				rooms: [
+					{
+						name: "baz",
+						clients: [
+							{ id: "f3207419-b1d6-4c55-bc9d-799b4d1a70d7" },
+							{ id: "0ecd5456-ba1f-4585-b64e-e76d2c515c17" },
+							{ id: "6ed66113-cbd4-46ec-8b56-dae6e80d4f31" },
+						],
+					},
+				],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 0 }],
+				rooms: [{ name: "qux", clients: [] }],
 			},
 		],
 	},
@@ -153,19 +209,19 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 1 },
-					{ name: "bar", clients: 2 },
+					{ name: "foo", clients: [{ id: "4ac25d42-b0d3-49ff-9c43-cf98e1fde1d8" }] },
+					{ name: "bar", clients: [{ id: "f2e74aa2-8dbe-44bc-a2ef-75d201bb7387" }] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 0 }],
+				rooms: [{ name: "baz", clients: [] }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 0 }],
+				rooms: [{ name: "qux", clients: [] }],
 			},
 		],
 	},
@@ -177,19 +233,29 @@ const sampleSystemState: SystemState = [
 				id: "2bd5e4a7-14f6-4da4-bedd-72946864a7bf",
 				region: "ewr",
 				rooms: [
-					{ name: "foo", clients: 0 },
-					{ name: "bar", clients: 0 },
+					{ name: "foo", clients: [] },
+					{ name: "bar", clients: [] },
 				],
 			},
 			{
 				id: "419580cb-f576-4314-8162-45340c94bae1",
 				region: "ewr",
-				rooms: [{ name: "baz", clients: 0 }],
+				rooms: [{ name: "baz", clients: [] }],
 			},
 			{
 				id: "0c85b46e-d343-46a3-ae4f-5f2aa1a8bdac",
 				region: "cdg",
-				rooms: [{ name: "qux", clients: 4 }],
+				rooms: [
+					{
+						name: "qux",
+						clients: [
+							{ id: "fe768adf-730a-4cc5-a7e3-2c3438a538c6" },
+							{ id: "c4a6362a-61c8-45dd-9913-49f1bbccaeb9" },
+							{ id: "3e3389ff-d3c2-4814-8089-44cc7ec01eb4" },
+							{ id: "ddf9309a-8ace-4c53-9dd8-f742e9f282c3" },
+						],
+					},
+				],
 			},
 		],
 	},

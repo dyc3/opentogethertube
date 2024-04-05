@@ -1,10 +1,7 @@
 <template>
 	<v-sheet :color="color" class="toast" elevation="12" aria-live="polite">
-		<v-icon class="toast-icon" v-if="toast.style === ToastStyle.Success">
-			mdi-check-bold
-		</v-icon>
-		<v-icon class="toast-icon" v-else-if="toast.style === ToastStyle.Error">
-			mdi-alert-circle
+		<v-icon class="toast-icon" v-if="!!icon">
+			{{ icon }}
 		</v-icon>
 		<span class="toast-content">
 			<ProcessedText :text="toast.content" :show-add-queue-tooltip="false" />
@@ -14,16 +11,21 @@
 			<v-btn variant="text" v-if="undoable" @click="undo">
 				{{ $t("common.undo") }}
 			</v-btn>
-			<v-btn variant="text" @click="close" size="x-small" icon aria-label="close">
+			<v-btn
+				variant="text"
+				@click="close"
+				size="x-small"
+				icon
+				:aria-label="$t('common.close')"
+			>
 				<v-icon>mdi-close</v-icon>
 			</v-btn>
 		</div>
 	</v-sheet>
 </template>
 
-<script lang="ts">
-import { PropType } from "vue";
-import { defineComponent, ref, toRefs, onMounted, onUnmounted, Ref, computed } from "vue";
+<script lang="ts" setup>
+import { ref, toRefs, onMounted, onUnmounted, Ref, computed } from "vue";
 import { Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "ott-common/models/messages";
 import { API } from "@/common-http";
@@ -31,94 +33,77 @@ import toasts from "@/util/toast";
 import { useStore } from "@/store";
 import ProcessedText from "./ProcessedText.vue";
 
-const ToastNotification = defineComponent({
-	name: "ToastNotification",
-	props: {
-		toast: {
-			type: Object as PropType<Toast>,
-			required: true,
-		},
-		number: { type: Number },
-	},
-	components: {
-		ProcessedText,
-	},
-	setup(props) {
-		const { toast } = toRefs(props);
-		const store = useStore();
-		const padding = ref(8);
-		const closeTimeoutId: Ref<ReturnType<typeof setTimeout> | null> = ref(null);
+const props = defineProps<{ toast: Toast; number?: number }>();
 
-		onMounted(() => {
-			if (toast.value.duration) {
-				closeTimeoutId.value = setTimeout(() => {
-					close();
-				}, toast.value.duration);
-			}
-		});
+const { toast } = toRefs(props);
+const store = useStore();
+const closeTimeoutId: Ref<ReturnType<typeof setTimeout> | null> = ref(null);
 
-		onUnmounted(() => {
-			if (closeTimeoutId.value) {
-				clearTimeout(closeTimeoutId.value);
-			}
-		});
-
-		const color = computed(() => {
-			if (toast.value.style === ToastStyle.Success) {
-				return "success";
-			} else if (toast.value.style === ToastStyle.Error) {
-				return "error";
-			} else if (toast.value.style === ToastStyle.Important) {
-				return "warning";
-			}
-			return undefined;
-		});
-
-		const undoable = computed(() => {
-			if (!toast.value.event) {
-				return false;
-			}
-			const eventType = toast.value.event.request.type;
-			return (
-				eventType === RoomRequestType.SeekRequest ||
-				eventType === RoomRequestType.SkipRequest ||
-				eventType === RoomRequestType.AddRequest ||
-				eventType === RoomRequestType.RemoveRequest
-			);
-		});
-
-		async function undo() {
-			try {
-				await API.post(`/room/${store.state.room.name}/undo`, {
-					data: { event: toast.value.event },
-				});
-				close();
-			} catch (err) {
-				toasts.add({
-					style: ToastStyle.Error,
-					content: err.message,
-					duration: 4000,
-				});
-			}
-		}
-
-		function close() {
-			toasts.remove(toast.value.id);
-		}
-
-		return {
-			padding,
-			color,
-			undoable,
-
-			undo,
-			close,
-			ToastStyle,
-		};
-	},
+onMounted(() => {
+	if (toast.value.duration) {
+		closeTimeoutId.value = setTimeout(() => {
+			close();
+		}, toast.value.duration);
+	}
 });
 
-export default ToastNotification;
+onUnmounted(() => {
+	if (closeTimeoutId.value) {
+		clearTimeout(closeTimeoutId.value);
+	}
+});
+
+const color = computed(() => {
+	if (toast.value.style === ToastStyle.Success) {
+		return "success";
+	} else if (toast.value.style === ToastStyle.Error) {
+		return "error";
+	} else if (toast.value.style === ToastStyle.Important) {
+		return "warning";
+	}
+	return undefined;
+});
+
+const icon = computed(() => {
+	if (toast.value.style === ToastStyle.Success) {
+		return "mdi-check-bold";
+	} else if (toast.value.style === ToastStyle.Error) {
+		return "mdi-alert-circle";
+	}
+	return undefined;
+});
+
+const undoable = computed(() => {
+	if (!toast.value.event) {
+		return false;
+	}
+	const eventType = toast.value.event.request.type;
+	return (
+		eventType === RoomRequestType.SeekRequest ||
+		eventType === RoomRequestType.SkipRequest ||
+		eventType === RoomRequestType.AddRequest ||
+		eventType === RoomRequestType.RemoveRequest
+	);
+});
+
+async function undo() {
+	try {
+		await API.post(`/room/${store.state.room.name}/undo`, {
+			data: { event: toast.value.event },
+		});
+		close();
+	} catch (err) {
+		toasts.add({
+			style: ToastStyle.Error,
+			content: err.message,
+			duration: 4000,
+		});
+	}
+}
+
+function close() {
+	toasts.remove(toast.value.id);
+}
 </script>
 
 <style lang="scss" scoped>

@@ -178,35 +178,22 @@
 	</div>
 </template>
 
-<script>
-import { defineComponent, computed } from "vue";
+<script lang="ts" setup>
+import { computed } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
 
-export const HomeView = defineComponent({
-	name: "home",
-	setup() {
-		const store = useStore();
+const store = useStore();
 
-		const gitCommit = __COMMIT_HASH__;
+const gitCommit = __COMMIT_HASH__;
 
-		async function createTempRoom() {
-			await createRoomHelper(store);
-		}
+async function createTempRoom() {
+	await createRoomHelper(store);
+}
 
-		const cardHeight = computed(() => {
-			return 180;
-		});
-
-		return {
-			createTempRoom,
-			cardHeight,
-			gitCommit,
-		};
-	},
+const cardHeight = computed(() => {
+	return 180;
 });
-
-export default HomeView;
 </script>
 
 <style lang="scss" scoped>

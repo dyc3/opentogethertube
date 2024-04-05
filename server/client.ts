@@ -43,6 +43,8 @@ export abstract class Client {
 		this.bus = new EventEmitter();
 	}
 
+	abstract get clientType(): string;
+
 	on<E extends ClientEvents>(event: E, handler: ClientEventHandlers<E>) {
 		this.bus.on(event, handler);
 	}
@@ -123,6 +125,10 @@ export class DirectClient extends Client {
 		this.socket.on("error", this.onError.bind(this));
 	}
 
+	get clientType() {
+		return "direct";
+	}
+
 	onData(data: WebSocket.Data) {
 		const msg: ClientMessage = JSON.parse(data.toString());
 		if (msg.action === "auth") {
@@ -167,6 +173,10 @@ export class BalancerClient extends Client {
 		super(room);
 		this.id = clientId;
 		this.conn = conn;
+	}
+
+	get clientType() {
+		return "balancer";
 	}
 
 	leave() {

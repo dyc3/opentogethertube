@@ -11,6 +11,7 @@ import DebugPlayerWatcher from "@/components/debug/DebugPlayerWatcher.vue";
 import { getSdk } from "@/util/playerHelper.js";
 import toast from "@/util/toast";
 import { ToastStyle } from "@/models/toast";
+import { useCaptions } from "../composables";
 
 const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";
 // TODO: convert to ts and use an enum for this.
@@ -37,10 +38,12 @@ export default {
 	props: {
 		videoId: { type: String, required: true },
 	},
-	components: {
-		// eslint-disable-next-line vue/no-unused-components
-		DebugPlayerWatcher,
-	},
+	components: import.meta.env.DEV
+		? {
+				// eslint-disable-next-line vue/no-unused-components
+				DebugPlayerWatcher,
+		  }
+		: {},
 	emits: [
 		"apiready",
 		"ended",
@@ -115,6 +118,12 @@ export default {
 			this.player.destroy();
 			delete this.player;
 		}
+	},
+	setup() {
+		const captions = useCaptions();
+		return {
+			captions,
+		};
 	},
 	methods: {
 		play() {
@@ -217,10 +226,7 @@ export default {
 
 		onApiChange() {
 			console.debug(`youtube: onApiChange`);
-
-			this.$store.commit("captions/SET_AVAILABLE_TRACKS", {
-				tracks: this.getCaptionsTracks(),
-			});
+			this.captions.captionsTracks.value = this.getCaptionsTracks();
 		},
 		onReady() {
 			this.$emit("apiready");

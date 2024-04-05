@@ -12,26 +12,16 @@
 			<BasicControls :current-position="truePosition" />
 			<!-- eslint-disable-next-line vue/no-v-model-argument -->
 			<VolumeControl />
-			<TimestampDisplay :current-position="truePosition" />
+			<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 			<div class="grow"><!-- Spacer --></div>
-			<ClosedCaptionsSwitcher
-				:supported="isCaptionsSupported"
-				:tracks="store.state.captions.availableTracks"
-				@enable-cc="value => player.setCaptionsEnabled(value)"
-				@cc-track="value => player.setCaptionsTrack(value)"
-			/>
-			<PlaybackRateSwitcher
-				:current-rate="store.state.room.playbackSpeed"
-				:available-rates="player?.getAvailablePlaybackRates() ?? [1]"
-			/>
+			<ClosedCaptionsSwitcher />
+			<PlaybackRateSwitcher />
 			<LayoutSwitcher />
 		</v-row>
 	</v-col>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, Ref, toRefs } from "vue";
-
+<script lang="ts" setup>
 import BasicControls from "./BasicControls.vue";
 import ClosedCaptionsSwitcher from "./ClosedCaptionsSwitcher.vue";
 import LayoutSwitcher from "./LayoutSwitcher.vue";
@@ -40,78 +30,18 @@ import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 
-import type OmniPlayer from "../players/OmniPlayer.vue";
-import type { MediaPlayer, MediaPlayerWithCaptions } from "../players/OmniPlayer.vue";
-import { useStore } from "@/store";
-
-export default defineComponent({
-	name: "VideoControls",
-	components: {
-		BasicControls,
-		ClosedCaptionsSwitcher,
-		LayoutSwitcher,
-		TimestampDisplay,
-		VideoProgressSlider,
-		VolumeControl,
-		PlaybackRateSwitcher,
-	},
-	props: {
-		sliderPosition: {
-			type: Number,
-			required: true,
-		},
-		truePosition: {
-			type: Number,
-			required: true,
-		},
-		player: {
-			type: Object as PropType<typeof OmniPlayer | null>,
-			required: true,
-		},
-		controlsVisible: {
-			type: Boolean,
-			default: false,
-		},
-		isCaptionsSupported: {
-			type: Boolean,
-			default: false,
-		},
-		mode: {
-			type: String as PropType<"in-video" | "outside-video">,
-			default: "in-video",
-		},
-	},
-	emits: [],
-	setup(props) {
-		const store = useStore();
-		const { player } = toRefs(props);
-
-		function isPlayerPresent(p: Ref<typeof OmniPlayer>): p is Ref<typeof OmniPlayer> {
-			return !!p.value;
-		}
-
-		function isCaptionsSupported(
-			p: Ref<MediaPlayer | MediaPlayerWithCaptions>
-		): p is Ref<MediaPlayerWithCaptions> {
-			return (player.value as MediaPlayerWithCaptions)?.isCaptionsSupported() ?? false;
-		}
-		function getCaptionsTracks(): string[] {
-			if (!isPlayerPresent(player)) {
-				return [];
-			}
-			if (!isCaptionsSupported(player)) {
-				return [];
-			}
-			return player.value.getCaptionsTracks() ?? [];
-		}
-
-		return {
-			store,
-
-			getCaptionsTracks,
-		};
-	},
-});
+withDefaults(
+	defineProps<{
+		sliderPosition: number;
+		truePosition: number;
+		controlsVisible: boolean;
+		mode: "in-video" | "outside-video";
+	}>(),
+	{
+		controlsVisible: false,
+		mode: "in-video",
+	}
+);
 </script>
 
 <style lang="scss">

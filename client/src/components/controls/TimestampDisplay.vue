@@ -13,47 +13,30 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from "vue";
+<script lang="ts" setup>
+import { computed } from "vue";
 import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { secondsToTimestamp, timestampToSeconds } from "@/util/timestamp";
 import ClickToEdit from "../ClickToEdit.vue";
 
-export const TimestampDisplay = defineComponent({
-	name: "TimestampDisplay",
-	props: {
-		currentPosition: {
-			type: Number,
-			default: 0,
-		},
-	},
-	components: {
-		ClickToEdit,
-	},
-	setup() {
-		const store = useStore();
-		const roomapi = useRoomApi(useConnection());
+withDefaults(
+	defineProps<{
+		currentPosition: number;
+	}>(),
+	{
+		currentPosition: 0,
+	}
+);
 
-		const lengthDisplay = computed(() => {
-			const length = store.state.room.currentSource?.length ?? 0;
-			return secondsToTimestamp(length);
-		});
+const store = useStore();
+const roomapi = useRoomApi(useConnection());
 
-		return {
-			store,
-			roomapi,
-
-			lengthDisplay,
-
-			secondsToTimestamp,
-			timestampToSeconds,
-		};
-	},
+const lengthDisplay = computed(() => {
+	const length = store.state.room.currentSource?.length ?? 0;
+	return secondsToTimestamp(length);
 });
-
-export default TimestampDisplay;
 </script>
 
 <style lang="scss">

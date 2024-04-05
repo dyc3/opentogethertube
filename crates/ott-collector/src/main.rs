@@ -11,6 +11,7 @@ use ott_common::discovery::{
 use rocket::{serde::json::Json, State};
 use serde::Serialize;
 use tokio::sync::Mutex;
+use typeshare::typeshare;
 
 #[macro_use]
 extern crate rocket;
@@ -21,6 +22,7 @@ mod cors;
 mod event_bus;
 
 #[derive(Debug, Clone, Serialize)]
+#[typeshare]
 pub struct SystemState(Vec<BalancerState>);
 
 /// Serve the current system state

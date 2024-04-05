@@ -1,0 +1,17 @@
+.links {
+	fill: none;
+}
+
+.text {
+	font-family: Inter, Helvetica, Arial, sans-serif;
+	text-anchor: middle;
+	alignment-baseline: middle;
+	stroke-width: 0;
+	fill: white;
+}
+
+.region {
+	fill: rgba(255, 255, 255, 0.1);
+	stroke: white;
+	stroke-width: 2;
+}

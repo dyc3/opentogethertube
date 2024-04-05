@@ -20,93 +20,67 @@
 	</div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, nextTick, Ref } from "vue";
-
-function valueFormatterDefault(value: number): string {
-	return value.toString();
-}
-
-function valueParserDefault(value: string): number {
-	return parseInt(value, 10);
-}
-
+<script lang="ts" setup generic="T extends string | number">
 /**
  * Provides a value display that can be clicked to edit.
  */
-const ClickToEdit = defineComponent({
-	name: "ClickToEdit",
-	emits: ["change", "update:modelValue"],
-	props: {
-		modelValue: {
-			type: [String, Number],
-			required: true,
-		},
-		valueFormatter: {
-			type: Function,
-			default: valueFormatterDefault,
-		},
-		valueParser: {
-			type: Function,
-			default: valueParserDefault,
-		},
-	},
-	setup(props, { emit }) {
-		const editor = ref<HTMLInputElement | undefined>();
-		const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
-		const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
+import { ref, nextTick, Ref } from "vue";
 
-		const editing = ref(false);
-		const valueDirty = ref();
-		const display: Ref<HTMLDivElement | undefined> = ref();
-		const editorWidth = ref(120);
+const props = withDefaults(
+	defineProps<{
+		valueFormatter?: (value: number) => string;
+		valueParser?: (value: string) => number;
+	}>(),
+	{
+		valueFormatter: (value: number): string => value.toString(),
+		valueParser: (value: string): number => parseInt(value, 10),
+	}
+);
 
-		async function activate() {
-			if (display.value) {
-				editorWidth.value = display.value.offsetWidth + 24;
-			}
-			console.info("modelValue", props.modelValue);
-			if (typeof props.modelValue === "number") {
-				valueDirty.value = valueFormatter.value(props.modelValue);
-			} else {
-				valueDirty.value = props.modelValue;
-			}
-			editing.value = true;
-			await nextTick();
-			editor.value?.focus();
-		}
+const model = defineModel<T>();
 
-		function apply() {
-			let outValue: string | number;
-			if (typeof props.modelValue === "number") {
-				outValue = valueParser.value(valueDirty.value);
-			} else {
-				outValue = valueDirty.value;
-			}
-			editing.value = false;
-			emit("change", outValue);
-			emit("update:modelValue", outValue);
-		}
+const emit = defineEmits<{
+	change: [value: T];
+}>();
 
-		function abort() {
-			editing.value = false;
-		}
+const editor = ref<HTMLInputElement | undefined>();
+const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
+const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
 
-		return {
-			editor,
-			display,
-			editing,
-			valueDirty,
-			editorWidth,
+const editing = ref(false);
+const valueDirty = ref("");
+const display: Ref<HTMLDivElement | undefined> = ref();
+const editorWidth = ref(120);
 
-			activate,
-			apply,
-			abort,
-		};
-	},
-});
+async function activate() {
+	if (display.value) {
+		editorWidth.value = display.value.offsetWidth + 24;
+	}
+	if (typeof model.value === "number") {
+		valueDirty.value = valueFormatter.value(model.value);
+	} else {
+		valueDirty.value = model.value ?? "";
+	}
+	editing.value = true;
+	await nextTick();
+	editor.value?.focus();
+}
 
-export default ClickToEdit;
+function apply() {
+	let outValue: T;
+	if (typeof model.value === "number") {
+		outValue = valueParser.value(valueDirty.value) as T;
+	} else {
+		outValue = valueDirty.value as T;
+	}
+	editing.value = false;
+	model.value = outValue;
+	emit("change", outValue);
+}
+
+function abort() {
+	editing.value = false;
+}
 </script>
 
 <style lang="scss">

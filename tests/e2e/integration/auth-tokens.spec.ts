@@ -9,6 +9,7 @@ describe("Auth tokens", () => {
 			expect(win.localStorage.token).to.be.undefined;
 		});
 		cy.visit("/");
+		cy.wait(100);
 		cy.window().then(win => {
 			expect(win.localStorage.token).to.not.be.undefined;
 		});

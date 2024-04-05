@@ -14,10 +14,11 @@ use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, trace, warn};
-use uuid::Uuid;
 
+use crate::balancer::collector::ClientState;
 use crate::client::ClientLink;
 use crate::config::{BalancerConfig, MonolithSelectionStrategy};
+use crate::connection::BALANCER_ID;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
 use crate::selection::MonolithSelection;
@@ -428,14 +429,18 @@ impl BalancerContext {
                     .iter()
                     .map(|(name, room)| RoomState {
                         name: name.clone(),
-                        clients: room.clients().len(),
+                        clients: room
+                            .clients()
+                            .iter()
+                            .map(|c| ClientState { id: *c })
+                            .collect(),
                     })
                     .collect(),
             })
             .collect();
 
         BalancerState {
-            id: Uuid::new_v4().into(), // TODO: replace with actual constant balancer id
+            id: *BALANCER_ID,
             region: BalancerConfig::get().region.clone(),
             monoliths,
         }
@@ -791,5 +796,63 @@ mod test {
             .unwrap()
             .clients()
             .contains(&client_id));
+    }
+
+    #[tokio::test]
+    async fn test_client_join_case_insensitive() {
+        // a bunch of setup
+        let room_name = RoomName::from("Foo");
+        let join_room_name = RoomName::from("foo");
+        let mut ctx = BalancerContext::new();
+        let (monolith_outbound_tx, _monolith_outbound_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx = Arc::new(monolith_outbound_tx);
+        let (client_inbound_tx, _client_inbound_rx) = tokio::sync::mpsc::channel(100);
+        let (client_unicast_tx, _client_unicast_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_id = uuid::Uuid::new_v4().into();
+        let monolith = BalancerMonolith::new(
+            NewMonolith {
+                id: monolith_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx,
+            client_inbound_tx,
+        );
+        let client_id = uuid::Uuid::new_v4().into();
+        let client = BalancerClient::new(
+            NewClient {
+                id: client_id,
+                room: join_room_name.clone(),
+                token: "test".into(),
+            },
+            client_unicast_tx,
+        );
+        ctx.add_monolith(monolith);
+        ctx.add_room(room_name.clone(), RoomLocator::new(monolith_id, 0))
+            .expect("failed to add room");
+
+        // add a client
+        ctx.add_client(client, monolith_id)
+            .await
+            .expect("failed to add client");
+
+        // make sure the client is in the context
+        assert!(ctx.clients.contains_key(&client_id));
+
+        // make sure there is only one room in the monolith, with the client in it
+        assert!(ctx
+            .monoliths
+            .get(&monolith_id)
+            .unwrap()
+            .rooms()
+            .get(&room_name)
+            .unwrap()
+            .clients()
+            .contains(&client_id));
+        assert_eq!(ctx.monoliths.get(&monolith_id).unwrap().rooms().len(), 1);
     }
 }

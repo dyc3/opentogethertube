@@ -189,7 +189,7 @@ async fn unicast_messaging(ctx: &mut TestRunner) {
     })
     .await;
 
-    let res = vec![c1.recv().await, c2.recv().await];
+    let res = [c1.recv().await, c2.recv().await];
     let oks: Vec<_> = res.iter().filter(|r| r.is_ok()).collect();
 
     assert_eq!(

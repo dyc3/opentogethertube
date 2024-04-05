@@ -1,0 +1,90 @@
+{
+	"annotations": {
+		"list": [
+			{
+				"builtIn": 1,
+				"datasource": {
+					"type": "grafana",
+					"uid": "-- Grafana --"
+				},
+				"enable": true,
+				"hide": true,
+				"iconColor": "rgba(0, 211, 255, 1)",
+				"name": "Annotations & Alerts",
+				"type": "dashboard"
+			}
+		]
+	},
+	"editable": true,
+	"fiscalYearStartMonth": 0,
+	"graphTooltip": 0,
+	"links": [],
+	"liveNow": false,
+	"panels": [
+		{
+			"datasource": {
+				"type": "ott-vis-datasource",
+				"uid": "P8AFEECD30EDC727B"
+			},
+			"gridPos": {
+				"h": 21,
+				"w": 24,
+				"x": 0,
+				"y": 0
+			},
+			"id": 1,
+			"options": {
+				"topology": {
+					"baseNodeRadius": 20,
+					"clientNodeRadius": 8
+				},
+				"tree": {
+					"b2mLinkStyle": "smooth",
+					"b2mSpacing": 300,
+					"balancerGroupStyle": "stacked",
+					"balancerNodeRadius": 30,
+					"baseNodeRadius": 20,
+					"clientNodeRadius": 8
+				},
+				"view": "topology"
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"refId": "A"
+				},
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"hide": false,
+					"refId": "B",
+					"stream": true
+				}
+			],
+			"title": "Panel Title",
+			"type": "ott-vis-panel"
+		}
+	],
+	"refresh": "5s",
+	"schemaVersion": 38,
+	"style": "dark",
+	"tags": [],
+	"templating": {
+		"list": []
+	},
+	"time": {
+		"from": "now-6h",
+		"to": "now"
+	},
+	"timepicker": {},
+	"timezone": "",
+	"title": "Just TopologyView",
+	"uid": "e3771ad0-95f0-4be2-932d-259323694d10",
+	"version": 3,
+	"weekStart": ""
+}

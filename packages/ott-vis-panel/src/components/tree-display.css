@@ -1,0 +1,16 @@
+.ott-horizontal {
+	transform: rotate(-90deg);
+}
+
+.ott-horizontal text {
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+}
+
+.g-text > text {
+	font-family: Inter, Helvetica, Arial, sans-serif;
+	text-anchor: middle;
+	alignment-baseline: middle;
+	stroke-width: 0;
+	fill: white;
+}

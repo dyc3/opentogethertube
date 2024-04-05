@@ -50,10 +50,10 @@
 
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="primary" text @click="applySettings">
+				<v-btn color="primary" @click="applySettings">
 					{{ $t("common.save") }}
 				</v-btn>
-				<v-btn text @click="cancelSettings">
+				<v-btn @click="cancelSettings">
 					{{ $t("common.cancel") }}
 				</v-btn>
 			</v-card-actions>
@@ -61,8 +61,8 @@
 	</v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, Ref, ref, watch } from "vue";
+<script lang="ts" setup>
+import { Ref, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
@@ -73,54 +73,37 @@ type ExcludedFields = "volume" | "locale";
 type ExposedSettings = Omit<SettingsState, ExcludedFields>;
 const EXCLUDED: ExcludedFields[] = ["volume", "locale"];
 
-export const ClientSettingsDialog = defineComponent({
-	name: "ClientSettingsDialog",
-	setup() {
-		const show = ref(false);
-		const store = useStore();
-		const settings: Ref<ExposedSettings> = ref(loadSettings());
-		const sfx = useSfx();
+const show = ref(false);
+const store = useStore();
+const settings: Ref<ExposedSettings> = ref(loadSettings());
+const sfx = useSfx();
 
-		function loadSettings(): ExposedSettings {
-			const copy = _.cloneDeep(store.state.settings);
-			const filtered = _.omit(copy, EXCLUDED);
-			return filtered;
-		}
+function loadSettings(): ExposedSettings {
+	const copy = _.cloneDeep(store.state.settings);
+	const filtered = _.omit(copy, EXCLUDED);
+	return filtered;
+}
 
-		function applySettings() {
-			store.commit("settings/UPDATE", settings.value);
-			show.value = false;
-		}
+function applySettings() {
+	store.commit("settings/UPDATE", settings.value);
+	show.value = false;
+}
 
-		function cancelSettings() {
-			show.value = false;
-		}
+function cancelSettings() {
+	show.value = false;
+}
 
-		watch(show, () => {
-			settings.value = loadSettings();
-		});
-
-		store.subscribe(mutation => {
-			if (mutation.type === "settings/UPDATE") {
-				sfx.enabled = store.state.settings.sfxEnabled;
-				sfx.volume.value = store.state.settings.sfxVolume;
-			}
-		});
-
-		return {
-			show,
-			settings,
-
-			applySettings,
-			cancelSettings,
-			RoomLayoutMode,
-			Theme,
-
-			layouts: enumKeys(RoomLayoutMode),
-			themes: enumKeys(Theme),
-		};
-	},
+watch(show, () => {
+	settings.value = loadSettings();
 });
 
-export default ClientSettingsDialog;
+store.subscribe(mutation => {
+	if (mutation.type === "settings/UPDATE") {
+		sfx.enabled = store.state.settings.sfxEnabled;
+		sfx.volume.value = store.state.settings.sfxVolume;
+	}
+});
+
+const layouts = enumKeys(RoomLayoutMode);
+const themes = enumKeys(Theme);
 </script>

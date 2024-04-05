@@ -9,50 +9,46 @@
 		<v-icon>mdi-closed-caption</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
-				<v-list-item link @click="setCaptionsEnabled(true)" v-if="tracks.length === 0">
-					On
+				<v-list-item
+					link
+					@click="setCaptionsEnabled(true)"
+					v-if="captions.captionsTracks.value.length === 0"
+				>
+					{{ $t("common.on") }}
 				</v-list-item>
 				<v-list-item
 					link
 					@click="setCaptionsTrack(track)"
-					v-for="(track, idx) in tracks"
+					v-for="(track, idx) in captions.captionsTracks.value"
 					:key="idx"
 				>
 					{{ track }}
 				</v-list-item>
-				<v-list-item link @click="setCaptionsEnabled(false)"> Off </v-list-item>
+				<v-list-item link @click="setCaptionsEnabled(false)">
+					{{ $t("common.off") }}
+				</v-list-item>
 			</v-list>
 		</v-menu>
 	</v-btn>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from "vue";
+<script lang="ts" setup>
+import { useCaptions } from "../composables";
 
-const ClosedCaptionsSwitcher = defineComponent({
-	name: "ClosedCaptionsSwitcher",
-	emits: ["enable-cc", "cc-track"],
-	props: {
-		supported: { type: Boolean, default: true },
-		tracks: { type: Array as PropType<string[]>, default: () => [] },
-	},
-	setup(props, { emit }) {
-		function setCaptionsEnabled(value: boolean) {
-			emit("enable-cc", value);
-		}
+const captions = useCaptions();
 
-		function setCaptionsTrack(value: string) {
-			emit("cc-track", value);
-		}
+function setCaptionsEnabled(value: boolean) {
+	captions.isCaptionsEnabled.value = value;
+}
 
-		return {
-			setCaptionsEnabled,
-			setCaptionsTrack,
-		};
-	},
-});
+function setCaptionsTrack(value: string) {
+	if (!captions.isCaptionsEnabled.value) {
+		captions.isCaptionsEnabled.value = true;
+	}
+	captions.currentTrack.value = value;
+}
 
-export default ClosedCaptionsSwitcher;
+const supported = captions.isCaptionsSupported;
 </script>
 
 <style lang="scss">

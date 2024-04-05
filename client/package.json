@@ -1,6 +1,6 @@
 {
   "name": "ott-client",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
@@ -49,15 +49,15 @@
     "@vitest/coverage-v8": "^1.2.2",
     "@vue/eslint-config-typescript": "^11.0.3",
     "@vue/test-utils": "2.2.1",
-    "cypress": "12.14.0",
-    "cypress-real-events": "^1.7.4",
+    "cypress": "13.7.1",
+    "cypress-real-events": "^1.12.0",
     "eslint": "^8.57.0",
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-vitest": "0.3.22",
     "eslint-plugin-vue": "^9.9.0",
     "jsdom": "^21.1.0",
     "sass": "^1.41.1",
-    "vite": "^5.0.12",
+    "vite": "^5.0.13",
     "vite-plugin-vuetify": "2.0.1",
     "vitest": "^1.2.2"
   }
