@@ -228,11 +228,20 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 			let balancerYs = 0;
 			for (const tree of region.balancerTrees) {
-				const radius = calcGoodTreeRadius(tree, clientNodeRadius, 0);
+				const shouldPack = tree.leaves().length > 6;
+				const radius = calcGoodTreeRadius(
+					tree,
+					shouldPack ? clientNodeRadius / 2 : clientNodeRadius,
+					shouldPack ? 0 : 4
+				);
 				const layout = d3.tree<TreeNode>().size([-Math.PI, radius]);
 				layout(tree);
 				// precompute radial coordinates
-				tree.each(node => {
+				tree.each((node, i) => {
+					if (shouldPack) {
+						// @ts-expect-error d3 adds x and y to the node
+						node.y -= clientNodeRadius * (i % 2) * 2;
+					}
 					// @ts-expect-error d3 adds x and y to the node
 					const [x, y] = d3.pointRadial(node.x, node.y);
 					// @ts-expect-error d3 adds x and y to the node
@@ -253,11 +262,19 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			}
 			let monolithYs = 0;
 			for (const tree of region.monolithTrees) {
-				const radius = calcGoodTreeRadius(tree, baseNodeRadius);
+				const shouldPack = tree.leaves().length > 6;
+				const radius = calcGoodTreeRadius(
+					tree,
+					shouldPack ? baseNodeRadius / 2 : baseNodeRadius
+				);
 				const layout = d3.tree<TreeNode>().size([Math.PI, radius]);
 				layout(tree);
 				// precompute radial coordinates
-				tree.each(node => {
+				tree.each((node, i) => {
+					if (shouldPack) {
+						// @ts-expect-error d3 adds x and y to the node
+						node.y -= baseNodeRadius * (i % 2) * 2;
+					}
 					// @ts-expect-error d3 adds x and y to the node
 					const [x, y] = d3.pointRadial(node.x, node.y);
 					// @ts-expect-error d3 adds x and y to the node
