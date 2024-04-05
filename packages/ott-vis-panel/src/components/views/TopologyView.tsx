@@ -143,9 +143,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				.each(function (subtree) {
 					const tree = subtree.tree;
 					const group = d3.select(this);
-					const gLinks = group.select(".links");
-					const gNodes = group.select(".nodes");
-					gLinks
+					group
+						.select(".links")
 						.selectAll(".link")
 						.data(tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
 						.join("path")
@@ -155,7 +154,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.attr("d", diagonal)
 						.attr("stroke-width", 1.5);
 
-					gNodes
+					group
+						.select(".nodes")
 						.selectAll(".node")
 						.data(tree.descendants(), (d: any) => d.data.id)
 						.join("circle")
@@ -165,6 +165,18 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.attr("cy", (d: any) => d.y)
 						.attr("r", d => getRadius(d.data.group))
 						.attr("fill", d => colors.assign(d.data.group));
+
+					group
+						.select(".texts")
+						.selectAll(".text")
+						.data(tree.descendants(), (d: any) => d.data.id)
+						.join("text")
+						.filter(d => d.data.group !== "room" && d.data.group !== "client")
+						.attr("class", "text")
+						.text(d => d.data.id.substring(0, 6))
+						.attr("x", (d: any) => d.x)
+						.attr("y", (d: any) => d.y)
+						.attr("font-size", 10);
 				});
 		}
 
