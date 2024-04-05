@@ -34,6 +34,10 @@
 			},
 			"id": 1,
 			"options": {
+				"topology": {
+					"baseNodeRadius": 20,
+					"clientNodeRadius": 8
+				},
 				"tree": {
 					"b2mLinkStyle": "smooth",
 					"b2mSpacing": 300,
@@ -51,13 +55,22 @@
 						"uid": "P8AFEECD30EDC727B"
 					},
 					"refId": "A"
+				},
+				{
+					"datasource": {
+						"type": "ott-vis-datasource",
+						"uid": "P8AFEECD30EDC727B"
+					},
+					"hide": false,
+					"refId": "B",
+					"stream": true
 				}
 			],
 			"title": "Panel Title",
 			"type": "ott-vis-panel"
 		}
 	],
-	"refresh": "",
+	"refresh": "5s",
 	"schemaVersion": 38,
 	"style": "dark",
 	"tags": [],
@@ -72,6 +85,6 @@
 	"timezone": "",
 	"title": "Just TopologyView",
 	"uid": "e3771ad0-95f0-4be2-932d-259323694d10",
-	"version": 2,
+	"version": 3,
 	"weekStart": ""
 }
