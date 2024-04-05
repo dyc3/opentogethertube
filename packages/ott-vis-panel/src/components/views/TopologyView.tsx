@@ -17,6 +17,7 @@ import "./topology-view.css";
 import { useColorProvider } from "colors";
 import { useD3Zoom } from "chartutils";
 import { dedupeItems } from "aggregate";
+import { useEventBus } from "eventbus";
 
 /**
  * The goal of this component is to show a more accurate topology view from the perspective of actual network connections.
@@ -164,6 +165,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.attr("data-nodeid-target", d => d.target.data.id)
 						.transition(tr)
 						.attr("d", diagonal)
+						.attr("stroke", "#fff")
 						.attr("stroke-width", 1.5);
 
 					group
@@ -191,7 +193,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
 						.attr("r", d => getRadius(d.data.group))
-						.attr("fill", d => colors.assign(d.data.group));
+						.attr("fill", d => colors.assign(d.data.group))
+						.attr("stroke", "#fff")
+						.attr("stroke-width", 2);
 
 					group
 						.select(".texts")
@@ -354,9 +358,12 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					update => update,
 					exit => exit.transition(tr).attr("stroke-width", 0).remove()
 				)
+				.attr("data-nodeid-source", d => d.source.tree.data.id)
+				.attr("data-nodeid-target", d => d.target.tree.data.id)
 				.transition(tr)
 				.attr("d", diagonal)
-				.attr("stroke-width", 1.5);
+				.attr("stroke-width", 1.5)
+				.attr("stroke", "#fff");
 		}
 
 		const monolithBuiltRegions = new Map<string, Region>();
@@ -399,6 +406,85 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 	]);
 
 	useD3Zoom(svgRef);
+
+	const eventBus = useEventBus();
+	useEffect(() => {
+		const rxColor = "#0f0";
+		const txColor = "#00f";
+
+		function animateNode(
+			node: d3.Selection<any, d3.HierarchyNode<TreeNode>, any, any>,
+			color: string
+		) {
+			if (node.empty()) {
+				return;
+			}
+			const data = node.data()[0] as d3.HierarchyNode<TreeNode>;
+			const endRadius = data ? getRadius(data.data.group) : 20;
+			let radiusCurrent = parseFloat(node.attr("r"));
+			let colorCurrent = d3.color(node.attr("stroke"));
+			if (isNaN(radiusCurrent)) {
+				radiusCurrent = 0;
+			}
+			const newRadius = Math.max(Math.min(radiusCurrent + 5, 40), endRadius);
+			const newColor = d3.interpolateRgb(colorCurrent?.formatRgb() ?? "#fff", color)(0.5);
+			node.transition("highlight")
+				.duration(333)
+				.ease(d3.easeCubicOut)
+				.attrTween("stroke", () => d3.interpolateRgb(newColor, "#fff"))
+				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString())
+				.attrTween(
+					"r",
+					() => t => d3.interpolateNumber(newRadius, endRadius)(t).toString()
+				);
+		}
+
+		function animateLinks(
+			links: d3.Selection<any, d3.HierarchyLink<TreeNode>, any, any>,
+			color: string
+		) {
+			links
+				.transition("highlight")
+				.duration(333)
+				.ease(d3.easeCubicOut)
+				.attrTween("stroke", function () {
+					const link = d3.select<d3.BaseType, d3.HierarchyLink<TreeNode>>(
+						this
+					) as d3.Selection<any, d3.HierarchyLink<TreeNode>, any, unknown>;
+					let colorCurrent = d3.color(link.attr("stroke"));
+					const newColor = d3.interpolateRgb(
+						colorCurrent?.formatRgb() ?? "#fff",
+						color
+					)(0.5);
+
+					return d3.interpolateRgb(newColor, "#fff");
+				})
+				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
+		}
+
+		const sub = eventBus.subscribe(event => {
+			const color = event.direction === "rx" ? rxColor : txColor;
+			const node = d3.select<d3.BaseType, d3.HierarchyNode<TreeNode>>(
+				`[data-nodeid="${event.node_id}"]`
+			);
+			animateNode(node, color);
+			if (!node.empty()) {
+				const parent = d3.select<d3.BaseType, d3.HierarchyNode<TreeNode>>(
+					`[data-nodeid="${node.datum().parent?.data.id}"]`
+				);
+				animateNode(parent, color);
+			}
+
+			const links = d3.selectAll<d3.BaseType, d3.HierarchyLink<TreeNode>>(
+				`[data-nodeid-target="${event.node_id}"]`
+			);
+			animateLinks(links, color);
+		});
+
+		return () => {
+			sub.unsubscribe();
+		};
+	}, [eventBus, getRadius]);
 
 	return (
 		<svg
