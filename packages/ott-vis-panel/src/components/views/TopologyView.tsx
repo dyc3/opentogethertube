@@ -232,12 +232,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 			let balancerYs = 0;
 			for (const tree of region.balancerTrees) {
-				const shouldPack = tree.leaves().length > 6;
-				const radius = calcGoodTreeRadius(
-					tree,
-					shouldPack ? clientNodeRadius / 2 : clientNodeRadius,
-					shouldPack ? 0 : 4
-				);
+				let radius = calcGoodTreeRadius(tree, clientNodeRadius, 4);
+				const shouldPack = radius > 200;
+				if (shouldPack) {
+					radius = calcGoodTreeRadius(tree, clientNodeRadius / 2, 0);
+				}
 				const layout = d3.tree<TreeNode>().size([-Math.PI, radius]);
 				layout(tree);
 				// precompute radial coordinates
@@ -266,11 +265,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			}
 			let monolithYs = 0;
 			for (const tree of region.monolithTrees) {
-				const shouldPack = tree.leaves().length > 6;
-				const radius = calcGoodTreeRadius(
-					tree,
-					shouldPack ? baseNodeRadius / 2 : baseNodeRadius
-				);
+				let radius = calcGoodTreeRadius(tree, baseNodeRadius);
+				const shouldPack = radius > 200;
+				if (shouldPack) {
+					radius = calcGoodTreeRadius(tree, baseNodeRadius / 2);
+				}
 				const layout = d3.tree<TreeNode>().size([Math.PI, radius]);
 				layout(tree);
 				// precompute radial coordinates
