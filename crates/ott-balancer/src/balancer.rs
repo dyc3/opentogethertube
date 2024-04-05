@@ -17,7 +17,7 @@ use tracing::{debug, error, info, instrument, trace, warn};
 use uuid::Uuid;
 
 use crate::client::ClientLink;
-use crate::config::BalancerConfig;
+use crate::config::{BalancerConfig, MonolithSelectionStrategy};
 use crate::monolith::Room;
 use crate::room::RoomLocator;
 use crate::selection::MonolithSelection;
@@ -191,7 +191,7 @@ pub struct BalancerContext {
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
     pub rooms_to_monoliths: HashMap<RoomName, RoomLocator>,
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
-    pub monolith_selection: Box<dyn MonolithSelection + 'static + Send + Sync>,
+    pub monolith_selection: MonolithSelectionStrategy,
 }
 
 impl Default for BalancerContext {
@@ -201,7 +201,7 @@ impl Default for BalancerContext {
             monoliths: HashMap::default(),
             rooms_to_monoliths: HashMap::default(),
             monoliths_by_region: HashMap::default(),
-            monolith_selection: Box::new(BalancerConfig::get().selection_strategy),
+            monolith_selection: BalancerConfig::get().selection_strategy,
         }
     }
 }
