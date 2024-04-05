@@ -1,6 +1,7 @@
 use std::{borrow::BorrowMut, path::PathBuf, sync::Once};
 
 use clap::{Parser, ValueEnum};
+use enum_dispatch::enum_dispatch;
 use figment::providers::Format;
 use serde::Deserialize;
 
@@ -12,7 +13,8 @@ static mut CONFIG: Option<BalancerConfig> = None;
 
 static CONFIG_INIT: Once = Once::new();
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Copy, Clone)]
+#[enum_dispatch]
 pub enum MonolithSelectionStrategy {
     MinRooms(MinRoomsSelector),
 }

@@ -20,7 +20,7 @@ use crate::client::ClientLink;
 use crate::config::BalancerConfig;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
-use crate::selection::{MinRoomsSelector, MonolithSelection};
+use crate::selection::MonolithSelection;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -191,7 +191,7 @@ pub struct BalancerContext {
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
     pub rooms_to_monoliths: HashMap<RoomName, RoomLocator>,
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
-    pub monolith_selection: Box<dyn MonolithSelection + Send + Sync + 'static>,
+    pub monolith_selection: Box<dyn MonolithSelection + 'static + Send + Sync>,
 }
 
 impl Default for BalancerContext {
@@ -201,7 +201,7 @@ impl Default for BalancerContext {
             monoliths: HashMap::default(),
             rooms_to_monoliths: HashMap::default(),
             monoliths_by_region: HashMap::default(),
-            monolith_selection: Box::<MinRoomsSelector>::default(),
+            monolith_selection: Box::new(BalancerConfig::get().selection_strategy),
         }
     }
 }
