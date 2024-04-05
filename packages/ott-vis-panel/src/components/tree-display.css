@@ -1,8 +1,8 @@
-.horizontal {
+.ott-horizontal {
 	transform: rotate(-90deg);
 }
 
-.horizontal text {
+.ott-horizontal text {
 	writing-mode: vertical-rl;
 	text-orientation: mixed;
 }
