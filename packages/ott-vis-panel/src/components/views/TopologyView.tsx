@@ -270,6 +270,30 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 			renderTrees(balancerSubtrees, ".balancer-trees");
 			renderTrees(monolithSubtrees, ".monolith-trees");
+
+			interface B2M {
+				source: Subtree;
+				target: Subtree;
+			}
+
+			const b2mLinks: B2M[] = [];
+			for (const balancer of balancerSubtrees) {
+				for (const monolith of monolithSubtrees) {
+					b2mLinks.push({ source: balancer, target: monolith });
+				}
+			}
+
+			const diagonal = d3
+				.link<B2M, Subtree>(d3.curveStep)
+				.x((d: any) => d.x + d.tree.x)
+				.y((d: any) => d.y + d.tree.y);
+			svg.select(".b2m")
+				.selectAll(".link")
+				.data(b2mLinks)
+				.join("path")
+				.attr("class", "link")
+				.attr("d", diagonal)
+				.attr("stroke-width", 1.5);
 		}
 
 		const monolithBuiltRegions = new Map<string, Region>();
@@ -310,7 +334,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		>
 			<g className="chart">
 				<g className="regions"></g>
-				<g className="balancer-trees"></g>
+				<g className="b2m links" />
+				<g className="balancer-trees">g</g>
 				<g className="monolith-trees"></g>
 			</g>
 		</svg>
