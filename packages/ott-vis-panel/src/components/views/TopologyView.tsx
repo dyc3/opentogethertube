@@ -16,6 +16,7 @@ import {
 import "./topology-view.css";
 import { useColorProvider } from "colors";
 import { useD3Zoom } from "chartutils";
+import { dedupeItems } from "aggregate";
 
 /**
  * The goal of this component is to show a more accurate topology view from the perspective of actual network connections.
@@ -69,7 +70,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const fullTree = d3.hierarchy(buildFullTree(systemState));
-	const monolithTrees = pruneTrees(fullTree, "monolith", "room");
+	const monolithTrees = dedupeItems(
+		pruneTrees(fullTree, "monolith", "room"),
+		tree => tree.data.id,
+		(a, b) => a
+	);
 	const balancerTrees = filterTreeGroups(fullTree, ["balancer", "client"]);
 	const colors = useColorProvider();
 

@@ -147,7 +147,6 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	balancerGroupStyle = "stacked",
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
-	// const systemTree = useMemo(() => buildFullTree(systemState), [systemState]);
 	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths)).sort(
 		(a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id)
 	);

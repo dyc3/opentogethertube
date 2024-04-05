@@ -1,4 +1,3 @@
-import { dedupeMonoliths } from "aggregate";
 import * as d3 from "d3";
 import type { Monolith, Room, SystemState } from "ott-vis/types";
 
@@ -16,30 +15,21 @@ export function buildFullTree(systemState: SystemState): TreeNode {
 		group: "root",
 		children: [],
 	};
-	const monoliths = systemState.flatMap(balancer => balancer.monoliths);
-	const monolithNodes: Map<string, TreeNode> = new Map(
-		buildMonolithTrees(monoliths).map(monolith => {
-			return [monolith.id, monolith];
-		})
-	);
 
 	for (const balancer of systemState) {
 		const balancerNode: TreeNode = {
 			id: balancer.id,
 			region: balancer.region,
 			group: "balancer",
-			children: [],
+			children: buildMonolithTrees(balancer.monoliths),
 		};
 		tree.children.push(balancerNode);
-		for (const monolith of balancer.monoliths) {
-			balancerNode.children.push(monolithNodes.get(monolith.id) as TreeNode);
-		}
 	}
 	return tree;
 }
 
 export function buildMonolithTrees(monoliths: Monolith[]): TreeNode[] {
-	return dedupeMonoliths(monoliths).map(monolith => {
+	return monoliths.map(monolith => {
 		const monolithNode: TreeNode = {
 			id: monolith.id,
 			region: monolith.region,
