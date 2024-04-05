@@ -246,6 +246,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                             };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
+                            debug!(event = "proxy", direction = "tx", room = %room_name, node_id = %monolith.id());
                             match proxy_request(req, monolith).await {
                                 Ok(res) => Ok(res),
                                 Err(err) => {
@@ -266,6 +267,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                             message = "proxying request to monolith",
                             monolith = %monolith.id(),
                         );
+                        debug!(event = "proxy", direction = "tx", node_id = %monolith.id());
                         match proxy_request(req, monolith).await {
                             Ok(res) => Ok(res),
                             Err(err) => {

@@ -128,7 +128,7 @@ pub async fn client_entry<'r>(
     let client_id = Uuid::new_v4().into();
     let client = UnauthorizedClient {
         id: client_id,
-        room: room_name,
+        room: room_name.clone(),
     };
     tracing::Span::current().record("client_id", client_id.to_string());
     info!("client connected");
@@ -199,7 +199,7 @@ pub async fn client_entry<'r>(
         tokio::select! {
             Ok(msg) = client_link.outbound_recv() => {
                 if let SocketMessage::Message(msg) = msg {
-                    debug!(event = "ws", node_id = %client_id, direction = "tx");
+                    debug!(event = "ws", node_id = %client_id, room = %room_name, direction = "tx");
                     if let Err(err) = stream.send(msg).await {
                         error!("Error sending ws message to client: {:?}", err);
                         break;
@@ -220,7 +220,7 @@ pub async fn client_entry<'r>(
                         continue;
                     }
 
-                    debug!(event = "ws", node_id = %client_id, direction = "rx");
+                    debug!(event = "ws", node_id = %client_id, room = %room_name, direction = "rx");
                     if let Err(err) = client_link.inbound_send(msg).await {
                         error!("Error sending client message to balancer: {:?}", err);
                         break;
