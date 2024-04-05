@@ -560,12 +560,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 			width={width}
 			height={height}
 			viewBox={`${-width / 2} ${-height / 4} ${width} ${height}`}
-			style={{
-				alignmentBaseline: "middle",
-			}}
 		>
 			<g className="chart">
-				<g className={`${horizontal ? "horizontal" : ""}`}>
+				<g className={`${horizontal ? "ott-horizontal" : ""}`}>
 					<g className="b2m-links" />
 					<g className="balancers">
 						<g className="b-circles" />
