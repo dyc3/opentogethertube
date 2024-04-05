@@ -69,7 +69,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 	subtreePadding = 60,
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
-	const fullTree = d3.hierarchy(buildFullTree(systemState));
+	const fullTree = d3
+		.hierarchy(buildFullTree(systemState))
+		.sort((a, b) => d3.ascending(a.data.id, b.data.id));
 	const monolithTrees = dedupeItems(
 		pruneTrees(fullTree, "monolith", "room"),
 		tree => tree.data.id,
@@ -120,6 +122,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			monolithRegions.get(region)?.balancerTrees.push(tree);
 		}
 
+		const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
 		const diagonal = d3
 			.linkRadial<any, TreeNode>()
 			.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
@@ -130,7 +133,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				.data(trees)
 				.join(
 					create => {
-						const group = create.append("g").attr("class", "tree");
+						const group = create
+							.append("g")
+							.attr("class", "tree")
+							.attr("transform", d => `translate(${d.x}, ${d.y})`);
 						group.append("g").attr("class", "links");
 						group.append("g").attr("class", "nodes");
 						group.append("g").attr("class", "texts");
@@ -139,6 +145,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					update => update,
 					exit => exit.remove()
 				)
+				.transition(tr)
 				.attr("transform", d => `translate(${d.x}, ${d.y})`)
 				.each(function (subtree) {
 					const tree = subtree.tree;
@@ -147,10 +154,15 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.select(".links")
 						.selectAll(".link")
 						.data(tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
-						.join("path")
+						.join(
+							create => create.append("path").attr("class", "link"),
+							update => update,
+							exit => exit.transition(tr).attr("stroke-width", 0).remove()
+						)
 						.attr("class", "link")
 						.attr("data-nodeid-source", d => d.source.data.id)
 						.attr("data-nodeid-target", d => d.target.data.id)
+						.transition(tr)
 						.attr("d", diagonal)
 						.attr("stroke-width", 1.5);
 
@@ -158,9 +170,24 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.select(".nodes")
 						.selectAll(".node")
 						.data(tree.descendants(), (d: any) => d.data.id)
-						.join("circle")
-						.attr("class", "node")
+						.join(
+							create =>
+								create
+									.append("circle")
+									.attr("class", "node")
+									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y)),
+							update => update,
+							exit =>
+								exit
+									.transition(tr)
+									.attr("r", 0)
+									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
+									.remove()
+						)
 						.attr("data-nodeid", d => d.data.id)
+						.transition(tr)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
 						.attr("r", d => getRadius(d.data.group))
@@ -170,10 +197,25 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.select(".texts")
 						.selectAll(".text")
 						.data(tree.descendants(), (d: any) => d.data.id)
-						.join("text")
+						.join(
+							create =>
+								create
+									.append("text")
+									.attr("class", "text")
+									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y)),
+							update => update,
+							exit =>
+								exit
+									.transition(tr)
+									.attr("font-size", 0)
+									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
+									.remove()
+						)
 						.filter(d => d.data.group !== "room" && d.data.group !== "client")
-						.attr("class", "text")
 						.text(d => d.data.id.substring(0, 6))
+						.transition(tr)
 						.attr("x", (d: any) => d.x)
 						.attr("y", (d: any) => d.y)
 						.attr("font-size", 10);
@@ -289,9 +331,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				.y((d: any) => d.y + d.tree.y);
 			svg.select(".b2m")
 				.selectAll(".link")
-				.data(b2mLinks)
-				.join("path")
-				.attr("class", "link")
+				.data(b2mLinks, (d: any) => d.source?.tree.data.id + d.target?.tree.data.id)
+				.join(
+					create => create.append("path").attr("class", "link"),
+					update => update,
+					exit => exit.transition(tr).attr("stroke-width", 0).remove()
+				)
+				.transition(tr)
 				.attr("d", diagonal)
 				.attr("stroke-width", 1.5);
 		}
@@ -304,14 +350,26 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		svg.select(".regions")
 			.selectAll(".region")
-			.data(monolithBuiltRegions.values())
-			.join("rect")
-			.attr("class", "region")
+			.data(monolithBuiltRegions.values(), (d: any) => d.name)
+			.join(
+				create =>
+					create
+						.append("rect")
+						.attr("class", "region")
+						.attr("x", d => d.bbox[0])
+						.attr("y", d => d.bbox[1])
+						.attr("width", d => d.bbox[2] - d.bbox[0])
+						.attr("height", d => d.bbox[3] - d.bbox[1]),
+				update => update,
+				exit => exit.transition(tr).attr("opacity", 0).remove()
+			)
 			.attr("data-nodeid", d => d.name)
+			.transition(tr)
 			.attr("x", d => d.bbox[0])
 			.attr("y", d => d.bbox[1])
 			.attr("width", d => d.bbox[2] - d.bbox[0])
-			.attr("height", d => d.bbox[3] - d.bbox[1]);
+			.attr("height", d => d.bbox[3] - d.bbox[1])
+			.attr("opacity", 1);
 	}, [
 		svgRef,
 		monolithTrees,
