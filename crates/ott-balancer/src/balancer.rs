@@ -202,7 +202,7 @@ impl Default for BalancerContext {
             monoliths: HashMap::default(),
             rooms_to_monoliths: HashMap::default(),
             monoliths_by_region: HashMap::default(),
-            monolith_selection: BalancerConfig::get().selection_strategy,
+            monolith_selection: MonolithSelectionStrategy::default(),
         }
     }
 }

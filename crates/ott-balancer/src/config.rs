@@ -19,6 +19,11 @@ pub enum MonolithSelectionStrategy {
     MinRooms(MinRoomsSelector),
 }
 
+impl Default for MonolithSelectionStrategy {
+    fn default() -> Self {
+        MonolithSelectionStrategy::MinRooms(MinRoomsSelector)
+    }
+}
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct BalancerConfig {
