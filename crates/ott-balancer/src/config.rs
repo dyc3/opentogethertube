@@ -43,7 +43,7 @@ impl Default for BalancerConfig {
             discovery: DiscoveryConfig::default(),
             region: "unknown".to_owned(),
             api_key: None,
-            selection_strategy: MonolithSelectionStrategy::MinRooms(MinRoomsSelector),
+            selection_strategy: MonolithSelectionStrategy::default(),
         }
     }
 }
