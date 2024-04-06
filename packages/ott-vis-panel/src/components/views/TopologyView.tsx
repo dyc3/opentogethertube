@@ -17,7 +17,7 @@ import "./topology-view.css";
 import { useColorProvider } from "colors";
 import { useD3Zoom } from "chartutils";
 import { dedupeItems } from "aggregate";
-import { useEventBus } from "eventbus";
+import { useEventBus, type BusEvent } from "eventbus";
 
 /**
  * The goal of this component is to show a more accurate topology view from the perspective of actual network connections.
@@ -410,6 +410,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 	useEffect(() => {
 		const rxColor = "#0f0";
 		const txColor = "#00f";
+		const proxyColor = "#f58d05";
 
 		function animateNode(
 			node: d3.Selection<any, d3.HierarchyNode<TreeNode>, any, any>,
@@ -461,8 +462,18 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString());
 		}
 
+		function getColor(event: BusEvent): string {
+			if (event.event === "ws" || event.event === "broadcast") {
+				return event.direction === "rx" ? rxColor : txColor;
+			} else if (event.event === "proxy") {
+				return proxyColor;
+			} else {
+				return "#f00";
+			}
+		}
+
 		const sub = eventBus.subscribe(event => {
-			const color = event.direction === "rx" ? rxColor : txColor;
+			const color = getColor(event);
 			const node = d3.select<d3.BaseType, d3.HierarchyNode<TreeNode>>(
 				`[data-nodeid="${event.node_id}"]`
 			);
@@ -478,6 +489,18 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				`[data-nodeid-target="${event.node_id}"]`
 			);
 			animateLinks(links, color);
+
+			if (event.room) {
+				const room = d3.select<d3.BaseType, d3.HierarchyNode<TreeNode>>(
+					`[data-nodeid="${event.room}"]`
+				);
+				animateNode(room, color);
+
+				const roomLink = d3.select<d3.BaseType, d3.HierarchyLink<TreeNode>>(
+					`[data-nodeid-target="${event.room}"]`
+				);
+				animateLinks(roomLink, color);
+			}
 		});
 
 		return () => {

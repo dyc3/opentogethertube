@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use once_cell::sync::Lazy;
-use ott_balancer_protocol::collector::BalancerState;
+use ott_balancer_protocol::{collector::BalancerState, RoomName};
 use ott_common::discovery::{ConnectionConfig, ServiceDiscoveryMsg};
 use rocket::futures::StreamExt;
 use serde::Deserialize;
@@ -205,6 +205,8 @@ fn should_send(event: &str) -> bool {
 #[non_exhaustive]
 enum Event {
     Ws(EventWebsocketMessage),
+    Proxy(EventProxyRequest),
+    Broadcast(EventBroadcast),
 }
 
 /// Indicates that a message was sent or received on a websocket connection to a balancer.
@@ -212,6 +214,22 @@ enum Event {
 #[allow(dead_code)]
 struct EventWebsocketMessage {
     node_id: Uuid,
+    direction: MsgDirection,
+    room: Option<RoomName>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct EventProxyRequest {
+    node_id: Uuid,
+    direction: MsgDirection,
+    room: Option<RoomName>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct EventBroadcast {
+    node_id: String,
     direction: MsgDirection,
 }
 
@@ -228,7 +246,7 @@ mod tests {
     use uuid::uuid;
 
     #[test]
-    fn test_deserialize_event() {
+    fn test_deserialize_event_ws() {
         let event =
             r#"{"event":"ws","node_id":"f47ac10b-58cc-4372-a567-0e02b2c3d479", "direction": "tx"}"#;
         let event: Event = serde_json::from_str(event).unwrap();
@@ -236,6 +254,68 @@ mod tests {
         match event {
             Event::Ws(EventWebsocketMessage { node_id, .. }) => {
                 assert_eq!(node_id, uuid!("f47ac10b-58cc-4372-a567-0e02b2c3d479"));
+            }
+            _ => {
+                panic!("unexpected event type: {:?}", event);
+            }
+        }
+    }
+
+    #[test]
+    fn test_deserialize_event_ws2() {
+        let event = r#"{"event":"ws","node_id":"f47ac10b-58cc-4372-a567-0e02b2c3d479", "room": "foo", "direction": "tx"}"#;
+        let event: Event = serde_json::from_str(event).unwrap();
+        #[allow(unreachable_patterns)]
+        match event {
+            Event::Ws(EventWebsocketMessage { node_id, room, .. }) => {
+                assert_eq!(node_id, uuid!("f47ac10b-58cc-4372-a567-0e02b2c3d479"));
+                assert_eq!(room, Some("foo".into()));
+            }
+            _ => {
+                panic!("unexpected event type: {:?}", event);
+            }
+        }
+    }
+
+    #[test]
+    fn test_deserialize_event_proxy() {
+        let event = r#"{"event":"proxy","node_id":"f47ac10b-58cc-4372-a567-0e02b2c3d479", "direction": "tx"}"#;
+        let event: Event = serde_json::from_str(event).unwrap();
+        #[allow(unreachable_patterns)]
+        match event {
+            Event::Proxy(EventProxyRequest { node_id, .. }) => {
+                assert_eq!(node_id, uuid!("f47ac10b-58cc-4372-a567-0e02b2c3d479"));
+            }
+            _ => {
+                panic!("unexpected event type: {:?}", event);
+            }
+        }
+    }
+
+    #[test]
+    fn test_deserialize_event_proxy2() {
+        let event = r#"{"event":"proxy","node_id":"f47ac10b-58cc-4372-a567-0e02b2c3d479", "room": "foo", "direction": "tx"}"#;
+        let event: Event = serde_json::from_str(event).unwrap();
+        #[allow(unreachable_patterns)]
+        match event {
+            Event::Proxy(EventProxyRequest { node_id, room, .. }) => {
+                assert_eq!(node_id, uuid!("f47ac10b-58cc-4372-a567-0e02b2c3d479"));
+                assert_eq!(room, Some("foo".into()));
+            }
+            _ => {
+                panic!("unexpected event type: {:?}", event);
+            }
+        }
+    }
+
+    #[test]
+    fn test_deserialize_event_broadcast() {
+        let event = r#"{"event":"broadcast","node_id":"foo", "direction": "tx"}"#;
+        let event: Event = serde_json::from_str(event).unwrap();
+        #[allow(unreachable_patterns)]
+        match event {
+            Event::Broadcast(EventBroadcast { node_id, .. }) => {
+                assert_eq!(node_id, "foo");
             }
             _ => {
                 panic!("unexpected event type: {:?}", event);

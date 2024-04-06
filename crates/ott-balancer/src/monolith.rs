@@ -6,7 +6,7 @@ use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
 use ott_common::discovery::ConnectionConfig;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::messages::*;
 
@@ -194,6 +194,7 @@ impl Room {
 
     /// Broadcast a message to all clients in this room.
     pub fn broadcast(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
+        debug!(event = "broadcast", node_id = %self.name, direction = "tx");
         self.broadcast_tx.send(msg.into())?;
         Ok(())
     }

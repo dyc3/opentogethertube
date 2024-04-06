@@ -11,4 +11,5 @@ export type BusEvent = {
 	event: string;
 	node_id: string;
 	direction: "tx" | "rx";
+	room?: string;
 };
