@@ -33,7 +33,7 @@ pub struct BalancerConfig {
     pub region: String,
     /// The API key that clients can use to access restricted endpoints.
     pub api_key: Option<String>,
-    pub selection_strategy: MonolithSelectionStrategy,
+    pub selection_strategy: Option<MonolithSelectionStrategy>,
 }
 
 impl Default for BalancerConfig {
@@ -43,7 +43,7 @@ impl Default for BalancerConfig {
             discovery: DiscoveryConfig::default(),
             region: "unknown".to_owned(),
             api_key: None,
-            selection_strategy: MonolithSelectionStrategy::default(),
+            selection_strategy: MonolithSelectionStrategy::default().into(),
         }
     }
 }

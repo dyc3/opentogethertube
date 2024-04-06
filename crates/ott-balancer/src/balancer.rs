@@ -196,7 +196,15 @@ pub struct BalancerContext {
 }
 impl BalancerContext {
     pub fn new() -> Self {
-        Default::default()
+        if BalancerConfig::get().selection_strategy.is_some() {
+            let mut balancer_context = BalancerContext::default();
+            balancer_context.monolith_selection = BalancerConfig::get()
+                .selection_strategy
+                .expect("selection strategy not set");
+            balancer_context
+        } else {
+            Default::default()
+        }
     }
 
     #[instrument(skip(self, client), err, fields(client_id = %client.id, room = %client.room))]
