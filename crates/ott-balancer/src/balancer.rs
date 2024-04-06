@@ -197,13 +197,14 @@ pub struct BalancerContext {
 impl BalancerContext {
     pub fn new() -> Self {
         if BalancerConfig::get().selection_strategy.is_some() {
-            let mut balancer_context = BalancerContext::default();
-            balancer_context.monolith_selection = BalancerConfig::get()
-                .selection_strategy
-                .expect("selection strategy not set");
-            balancer_context
+            BalancerContext {
+                monolith_selection: BalancerConfig::get()
+                    .selection_strategy
+                    .expect("selection strategy not set"),
+                ..BalancerContext::default()
+            }
         } else {
-            Default::default()
+            BalancerContext::default()
         }
     }
 
