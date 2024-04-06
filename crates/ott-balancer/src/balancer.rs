@@ -186,7 +186,7 @@ impl BalancerLink {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BalancerContext {
     pub clients: HashMap<ClientId, BalancerClient>,
     pub monoliths: HashMap<MonolithId, BalancerMonolith>,
@@ -194,19 +194,6 @@ pub struct BalancerContext {
     pub monoliths_by_region: HashMap<String, Vec<MonolithId>>,
     pub monolith_selection: MonolithSelectionStrategy,
 }
-
-impl Default for BalancerContext {
-    fn default() -> Self {
-        BalancerContext {
-            clients: HashMap::default(),
-            monoliths: HashMap::default(),
-            rooms_to_monoliths: HashMap::default(),
-            monoliths_by_region: HashMap::default(),
-            monolith_selection: MonolithSelectionStrategy::default(),
-        }
-    }
-}
-
 impl BalancerContext {
     pub fn new() -> Self {
         Default::default()
