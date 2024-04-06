@@ -16,14 +16,28 @@ export function buildFullTree(systemState: SystemState): TreeNode {
 		children: [],
 	};
 
+	const regions = new Map<string, TreeNode>();
+
 	for (const balancer of systemState) {
+		const regionNode = regions.get(balancer.region) ?? {
+			id: balancer.region,
+			region: balancer.region,
+			group: "region",
+			children: [],
+		};
+		regions.set(regionNode.region, regionNode);
+
 		const balancerNode: TreeNode = {
 			id: balancer.id,
 			region: balancer.region,
 			group: "balancer",
 			children: buildMonolithTrees(balancer.monoliths),
 		};
-		tree.children.push(balancerNode);
+		regionNode.children.push(balancerNode);
+	}
+
+	for (const region of regions.values()) {
+		tree.children.push(region);
 	}
 	return tree;
 }
