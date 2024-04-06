@@ -9,6 +9,7 @@ async-trait.workspace = true
 bytes.workspace = true
 clap.workspace = true
 console-subscriber.workspace = true
+enum_dispatch.workspace = true
 figment.workspace = true
 futures-util.workspace = true
 hyper.workspace = true
@@ -31,11 +32,10 @@ uuid.workspace = true
 url.workspace = true
 ott-common.workspace = true
 ott-balancer-protocol.workspace = true
-route-recognizer = "0.3.1"
+route-recognizer.workspace = true
 once_cell.workspace = true
 pin-project.workspace = true
 prometheus.workspace = true
-enum_dispatch.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
