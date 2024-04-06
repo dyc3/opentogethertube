@@ -19,14 +19,6 @@ import { useD3Zoom } from "chartutils";
 import { dedupeItems } from "aggregate";
 import { useEventBus, type BusEvent } from "eventbus";
 
-/**
- * The goal of this component is to show a more accurate topology view from the perspective of actual network connections.
- *
- * There will be 2 types of trees: Balancer Trees and Monolith Trees. The Balancer Trees will show the connections between Balancers and clients, while the Monolith Trees will show the connections between Monoliths and Rooms.
- *
- * These trees will be grouped by region, and the nodes will be colored by group. Balancer Trees will be on the left, and Monolith Trees will be on the right, with connections between Balancers and Monoliths, and regions being shown by boxing the trees that are in the same region.
- */
-
 interface TopologyViewProps extends TopologyViewStyleProps {
 	systemState: SystemState;
 	width: number;
@@ -46,7 +38,7 @@ interface Subtree {
 	y: number;
 }
 
-interface PrebuiltRegion {
+interface UnbuiltRegion {
 	name: string;
 	balancerTrees: d3.HierarchyNode<TreeNode>[];
 	monolithTrees: d3.HierarchyNode<TreeNode>[];
@@ -61,6 +53,13 @@ interface Region {
 
 const DEBUG_BOUNDING_BOXES = false;
 
+/**
+ * The goal of this component is to show a more accurate topology view from the perspective of actual network connections.
+ *
+ * There will be 2 types of trees: Balancer Trees and Monolith Trees. The Balancer Trees will show the connections between Balancers and clients, while the Monolith Trees will show the connections between Monoliths and Rooms.
+ *
+ * These trees will be grouped by region, and the nodes will be colored by group. Balancer Trees will be on the left, and Monolith Trees will be on the right, with connections between Balancers and Monoliths, and regions being shown by boxing the trees that are in the same region.
+ */
 export const TopologyView: React.FC<TopologyViewProps> = ({
 	systemState,
 	width,
@@ -99,7 +98,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		const svg = d3.select(svgRef.current);
 
-		const monolithRegions: Map<string, PrebuiltRegion> = new Map();
+		const monolithRegions: Map<string, UnbuiltRegion> = new Map();
 		for (const tree of monolithTrees) {
 			const region = tree.data.region;
 			if (!monolithRegions.has(region)) {
@@ -128,9 +127,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			.linkRadial<any, TreeNode>()
 			.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
 			.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
-		function renderTrees(trees: Subtree[], groupClass: string) {
-			svg.select(groupClass)
-				.selectAll(".tree")
+		function renderTrees(
+			trees: Subtree[],
+			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>
+		) {
+			base.selectAll(".tree")
 				.data(trees)
 				.join(
 					create => {
@@ -226,7 +227,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				});
 		}
 
-		function buildRegion(region: PrebuiltRegion): Region {
+		function buildRegion(region: UnbuiltRegion): Region {
 			const monolithSubtrees: Subtree[] = [];
 			const balancerSubtrees: Subtree[] = [];
 
@@ -312,12 +313,15 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			return built;
 		}
 
-		function renderRegion(region: Region) {
+		function renderRegion(
+			region: Region,
+			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>
+		) {
 			const monolithSubtrees = region.monolithSubtrees;
 			const balancerSubtrees = region.balancerSubtrees;
 
 			if (DEBUG_BOUNDING_BOXES) {
-				svg.select(".monolith-trees")
+				base.select(".monolith-trees")
 					.selectAll("rect")
 					.data([...monolithSubtrees, ...balancerSubtrees])
 					.join("rect")
@@ -330,8 +334,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					.attr("stroke-width", 1);
 			}
 
-			renderTrees(balancerSubtrees, ".balancer-trees");
-			renderTrees(monolithSubtrees, ".monolith-trees");
+			renderTrees(balancerSubtrees, base.select(".balancer-trees"));
+			renderTrees(monolithSubtrees, base.select(".monolith-trees"));
 
 			interface B2M {
 				source: Subtree;
@@ -349,7 +353,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				.link<B2M, Subtree>(d3.curveStep)
 				.x((d: any) => d.x + d.tree.x)
 				.y((d: any) => d.y + d.tree.y);
-			svg.select(".b2m")
+			base.select(".b2m")
 				.selectAll(".link")
 				.data(b2mLinks, (d: any) => d.source?.tree.data.id + d.target?.tree.data.id)
 				.join(
@@ -368,31 +372,49 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		const monolithBuiltRegions = new Map<string, Region>();
 		for (const [name, region] of monolithRegions.entries()) {
 			monolithBuiltRegions.set(name, buildRegion(region));
-			renderRegion(monolithBuiltRegions.get(name)!);
 		}
 
 		svg.select(".regions")
 			.selectAll(".region")
 			.data(monolithBuiltRegions.values(), (d: any) => d.name)
 			.join(
-				create =>
-					create
-						.append("rect")
-						.attr("class", "region")
-						.attr("x", d => d.bbox[0])
-						.attr("y", d => d.bbox[1])
-						.attr("width", d => d.bbox[2] - d.bbox[0])
-						.attr("height", d => d.bbox[3] - d.bbox[1]),
+				create => {
+					const group = create.append("g").attr("class", "region");
+					group.append("rect").attr("class", "region-bbox");
+					group.append("text").attr("class", "region-name text");
+					group.append("g").attr("class", "b2m links");
+					group.append("g").attr("class", "balancer-trees");
+					group.append("g").attr("class", "monolith-trees");
+					return group;
+				},
 				update => update,
 				exit => exit.transition(tr).attr("opacity", 0).remove()
 			)
 			.attr("data-nodeid", d => d.name)
 			.transition(tr)
-			.attr("x", d => d.bbox[0])
-			.attr("y", d => d.bbox[1])
-			.attr("width", d => d.bbox[2] - d.bbox[0])
-			.attr("height", d => d.bbox[3] - d.bbox[1])
-			.attr("opacity", 1);
+			.attr("opacity", 1)
+			.each(function (region) {
+				const group = d3.select(this);
+
+				renderRegion(region, group);
+
+				group
+					.select(".region-bbox")
+					.datum(region)
+					.transition(tr)
+					.attr("x", d => d.bbox[0])
+					.attr("y", d => d.bbox[1])
+					.attr("width", d => d.bbox[2] - d.bbox[0])
+					.attr("height", d => d.bbox[3] - d.bbox[1]);
+
+				group
+					.select(".region-name")
+					.datum(region)
+					.text(d => d.name)
+					.transition(tr)
+					.attr("x", d => d.bbox[0] + (d.bbox[2] - d.bbox[0]) / 2)
+					.attr("y", d => d.bbox[1] + 20);
+			});
 	}, [
 		svgRef,
 		monolithTrees,
@@ -516,10 +538,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			ref={svgRef}
 		>
 			<g className="chart">
-				<g className="regions"></g>
+				<g className="regions" />
 				<g className="b2m links" />
-				<g className="balancer-trees">g</g>
-				<g className="monolith-trees"></g>
 			</g>
 		</svg>
 	);
