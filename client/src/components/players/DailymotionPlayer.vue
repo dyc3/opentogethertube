@@ -5,10 +5,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, toRefs, watch } from "vue";
+import { defineComponent, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
 import { getSdk } from "@/util/playerHelper.js";
-
-const DAILYMOTION_SDK_URL = "https://api.dmcdn.net/all.js";
 
 interface DailymotionPlayerProps {
 	videoId: string;
@@ -25,45 +23,64 @@ const DailymotionPlayer = defineComponent({
 		const DM = ref();
 		const player = ref();
 
-		function updateIframe() {
-			player.value = new DM.value.player(document.getElementById("dailymotion-player"), {
+		async function init() {
+			const _DM = await getSdk(
+				`https://geo.dailymotion.com/libs/player/${videoId.value}.js`,
+				"dailymotion",
+				"onScriptLoaded"
+			);
+			DM.value = _DM;
+			console.debug("Dailymotion SDK loaded");
+
+			player.value = DM.value.createPlayer("dailymotion-player", {
 				video: videoId.value,
 				width: "100%",
 				height: "100%",
 				params: {
-					"api": 1,
-					"autoplay": false,
-					"controls": false,
-					"ui-logo": false,
-					"ui-start-screen-info": false,
+					// "api": 1,
+					autoplay: false,
+					// "controls": false,
+					// "ui-logo": false,
+					// "ui-start-screen-info": false,
+					enablePlaybackControls: false,
 				},
-				events: {
-					apiready: () => emit("apiready"),
-					// eslint-disable-next-line camelcase
-					video_end: () => emit("end"),
-					playing: () => emit("playing"),
-					pause: () => emit("paused"),
-					waiting: () => emit("buffering"),
-					// eslint-disable-next-line camelcase
-					playback_ready: () => emit("ready"),
-					error: () => emit("error"),
-				},
+				// events: {
+				// 	apiready: () => {
+				// 		console.debug("Dailymotion API ready");
+				// 		emit("apiready");
+				// 	},
+				// 	// eslint-disable-next-line camelcase
+				// 	video_end: () => emit("end"),
+				// 	playing: () => emit("playing"),
+				// 	pause: () => emit("paused"),
+				// 	waiting: () => emit("buffering"),
+				// 	// eslint-disable-next-line camelcase
+				// 	playback_ready: () => emit("ready"),
+				// 	error: () => emit("error"),
+				// },
 			});
+
+			player.value.on(DM.value.events.VIDEO_PLAYING, () => emit("playing"));
+			player.value.on(DM.value.events.VIDEO_PAUSE, () => emit("paused"));
+			player.value.on(DM.value.events.VIDEO_BUFFERING, () => emit("buffering"));
+			player.value.on(DM.value.events.PLAYER_VIDEOCHANGE, () => emit("ready"));
+			player.value.on(DM.value.events.VIDEO_END, () => emit("end"));
+			emit("apiready");
+			emit("ready");
 		}
 
 		onMounted(async () => {
-			const _DM = await getSdk(DAILYMOTION_SDK_URL, "DM", "dmAsyncInit");
-			DM.value = _DM;
-			DM.value.init({
-				status: false,
-				cookie: false,
-			});
-			updateIframe();
+			await init();
+		});
+
+		onBeforeUnmount(() => {
+			if (player.value) {
+				player.value?.destroy();
+			}
 		});
 
 		watch(videoId, () => {
-			updateIframe();
-			player.value.load({ video: videoId.value });
+			player.value.loadContent({ video: videoId.value });
 		});
 
 		function play() {
@@ -99,6 +116,7 @@ const DailymotionPlayer = defineComponent({
 		});
 
 		return {
+			player,
 			play,
 			pause,
 			getPosition,
