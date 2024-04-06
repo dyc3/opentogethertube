@@ -1,9 +1,12 @@
-use rand::seq::IteratorRandom;
-
+use crate::config::MonolithSelectionStrategy;
 use crate::monolith::BalancerMonolith;
+use enum_dispatch::enum_dispatch;
+use rand::seq::IteratorRandom;
+use serde::Deserialize;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Deserialize, Copy, Clone)]
 pub struct MinRoomsSelector;
+#[enum_dispatch(MonolithSelectionStrategy)]
 pub trait MonolithSelection: std::fmt::Debug {
     fn select_monolith<'a>(
         &'a self,

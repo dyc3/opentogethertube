@@ -1,15 +1,29 @@
 use std::{borrow::BorrowMut, path::PathBuf, sync::Once};
 
 use clap::{Parser, ValueEnum};
+use enum_dispatch::enum_dispatch;
 use figment::providers::Format;
 use serde::Deserialize;
 
 use ott_common::discovery::DiscoveryConfig;
 
+use crate::selection::MinRoomsSelector;
+
 static mut CONFIG: Option<BalancerConfig> = None;
 
 static CONFIG_INIT: Once = Once::new();
 
+#[derive(Debug, Deserialize, Copy, Clone)]
+#[enum_dispatch]
+pub enum MonolithSelectionStrategy {
+    MinRooms(MinRoomsSelector),
+}
+
+impl Default for MonolithSelectionStrategy {
+    fn default() -> Self {
+        MonolithSelectionStrategy::MinRooms(MinRoomsSelector)
+    }
+}
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct BalancerConfig {
@@ -19,6 +33,7 @@ pub struct BalancerConfig {
     pub region: String,
     /// The API key that clients can use to access restricted endpoints.
     pub api_key: Option<String>,
+    pub selection_strategy: Option<MonolithSelectionStrategy>,
 }
 
 impl Default for BalancerConfig {
@@ -28,6 +43,7 @@ impl Default for BalancerConfig {
             discovery: DiscoveryConfig::default(),
             region: "unknown".to_owned(),
             api_key: None,
+            selection_strategy: None,
         }
     }
 }
