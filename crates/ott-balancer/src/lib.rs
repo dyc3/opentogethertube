@@ -57,19 +57,6 @@ pub async fn run() -> anyhow::Result<()> {
 
     let config = BalancerConfig::get();
 
-    if config.selection_strategy.is_some() {
-        info!("Using selection strategy: {:?}", config.selection_strategy);
-        BalancerContext {
-            monolith_selection: config
-                .selection_strategy
-                .expect("selection strategy not set"),
-            ..BalancerContext::default()
-        }
-    } else {
-        info!("Using default selection strategy");
-        BalancerContext::default()
-    };
-
     let console_layer = if args.console {
         let console_layer = if args.remote_console {
             console_subscriber::ConsoleLayer::builder()
@@ -109,7 +96,20 @@ pub async fn run() -> anyhow::Result<()> {
     let (discovery_tx, discovery_rx) = tokio::sync::mpsc::channel(2);
 
     info!("Starting balancer");
-    let ctx = Arc::new(RwLock::new(BalancerContext::new()));
+
+    let ctx = Arc::new(RwLock::new(
+        if let Some(selection_strategy) = config.selection_strategy {
+            info!("Using selection strategy: {:?}", selection_strategy);
+            BalancerContext {
+                monolith_selection: selection_strategy,
+                ..BalancerContext::new()
+            }
+        } else {
+            info!("Using default selection strategy");
+            BalancerContext::new()
+        },
+    ));
+
     let balancer = Balancer::new(ctx.clone());
     let service_link = balancer.new_link();
     let conman_link = balancer.new_link();
