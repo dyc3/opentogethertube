@@ -57,6 +57,19 @@ pub async fn run() -> anyhow::Result<()> {
 
     let config = BalancerConfig::get();
 
+    if config.selection_strategy.is_some() {
+        info!("Using selection strategy: {:?}", config.selection_strategy);
+        BalancerContext {
+            monolith_selection: config
+                .selection_strategy
+                .expect("selection strategy not set"),
+            ..BalancerContext::default()
+        }
+    } else {
+        info!("Using default selection strategy");
+        BalancerContext::default()
+    };
+
     let console_layer = if args.console {
         let console_layer = if args.remote_console {
             console_subscriber::ConsoleLayer::builder()
