@@ -1,8 +1,9 @@
-import React from "react";
-import ForceGraph, { Link, Node } from "components/ForceGraph";
+import React, { useEffect, useRef } from "react";
+import * as d3 from "d3";
 import type { SystemState } from "ott-vis";
-import { aggMonolithRooms, countRoomClients, groupMonolithsByRegion } from "aggregate";
-import _ from "lodash";
+import { buildFullTree, type TreeNode } from "treeutils";
+import { useColorProvider } from "colors";
+import { useD3Zoom } from "chartutils";
 
 interface Props {
 	systemState: SystemState;
@@ -10,103 +11,69 @@ interface Props {
 	height: number;
 }
 
-const COLORS = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"]; // TODO: use color from grafana theme/panel options
-
-function buildGraph(state: SystemState): [Node[], Link[]] {
-	const nodes: Node[] = [];
-	const links: Link[] = [];
-
-	const monolithRegions = groupMonolithsByRegion(state);
-	const monolithRooms = aggMonolithRooms(state);
-	const roomCounts = countRoomClients(state);
-
-	const regions = Object.keys(monolithRegions);
-	const regionColors: Record<string, string> = {};
-	for (let i = 0; i < regions.length; i++) {
-		regionColors[regions[i]] = COLORS[i % COLORS.length];
-	}
-
-	for (const [region, monoliths] of Object.entries(monolithRegions)) {
-		const core: Node = {
-			id: region,
-			radius: 12,
-			x: 0,
-			y: 0,
-			group: "core",
-			color: regionColors[region],
-			text: region,
-		};
-		nodes.push(core);
-
-		for (const monolith of monoliths) {
-			const monolithNode: Node = {
-				id: monolith,
-				radius: 10,
-				x: 0,
-				y: 0,
-				group: "monolith",
-				color: regionColors[region],
-				text: monolith.substring(0, 6),
-			};
-			nodes.push(monolithNode);
-
-			links.push({
-				source: core.id,
-				target: monolith,
-				value: 10,
-			});
-
-			for (const room of monolithRooms[monolith]) {
-				const roomNode: Node = {
-					id: room,
-					radius: 7,
-					x: 0,
-					y: 0,
-					group: "room",
-					color: regionColors[region],
-				};
-				nodes.push(roomNode);
-
-				links.push({
-					source: monolith,
-					target: room,
-					value: 10,
-				});
-
-				const clients = roomCounts[room];
-				if (clients === 0) {
-					continue;
-				}
-				const clientsNode: Node = {
-					id: `${room}-clients`,
-					radius: clients,
-					x: 0,
-					y: 0,
-					group: "client",
-					color: regionColors[region],
-					text: `${clients}`,
-				};
-				nodes.push(clientsNode);
-
-				links.push({
-					source: room,
-					target: clientsNode.id,
-					value: 10,
-				});
-			}
-		}
-	}
-
-	return [nodes, links];
-}
-
 export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
-	const [nodes, links] = buildGraph(systemState);
-	const data = { nodes, links };
+	const fullTree = buildFullTree(systemState);
+	const svgRef = useRef<SVGSVGElement>(null);
+	const colors = useColorProvider();
+
+	useEffect(() => {
+		if (!svgRef.current) {
+			return;
+		}
+
+		const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
+		const svg = d3.select(svgRef.current);
+		const group = svg.select(".chart");
+
+		const tree = d3.hierarchy(fullTree);
+		const pack = d3
+			.pack<TreeNode>()
+			.radius(() => 20)
+			.padding(20);
+		pack(tree);
+
+		group
+			.select(".nodes")
+			.selectAll("circle")
+			.data(tree.descendants())
+			.join("circle")
+			.filter(d => d.data.group !== "root")
+			.attr("class", "node")
+			.transition(tr)
+			.attr("cx", (d: any) => d.x)
+			.attr("cy", (d: any) => d.y)
+			.attr("r", (d: any) => d.r)
+			.attr("fill", (d: any) => colors.assign(d.data.group))
+			.attr("stroke", "#fff")
+			.attr("stroke-width", 1.5);
+
+		group
+			.select(".texts")
+			.selectAll("text")
+			.data(tree.descendants())
+			.join("text")
+			.filter(d => d.data.group !== "root" && d.data.group !== "room")
+			.attr("class", "text")
+			.transition(tr)
+			.attr("x", (d: any) => d.x)
+			.attr("y", (d: any) => d.y - d.r + 6)
+			.text(d => d.data.id.substring(0, 8));
+	});
+
+	useD3Zoom(svgRef);
+
 	return (
-		<div>
-			<ForceGraph width={width} height={height} data={data} />
-		</div>
+		<svg
+			viewBox={`${-width / 2} ${-height / 2} ${width} ${height}`}
+			width={width}
+			height={height}
+			ref={svgRef}
+		>
+			<g className="chart">
+				<g className="nodes" />
+				<g className="texts" />
+			</g>
+		</svg>
 	);
 };
 
