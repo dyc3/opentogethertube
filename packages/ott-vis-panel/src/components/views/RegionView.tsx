@@ -24,7 +24,15 @@ export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
 		"region",
 		"monolith",
 		"room",
-	])[0];
+	])[0].each(n => {
+		// filter children that are not in the branch's region
+		if (!n.children) {
+			return;
+		}
+		if (n.data.group === "region") {
+			n.children = n.children.filter(c => c.data.region === n.data.region);
+		}
+	});
 	const fullTree = mergeTrees([balancerTree, monolithTree])[0];
 	const svgRef = useRef<SVGSVGElement>(null);
 	const colors = useColorProvider();
