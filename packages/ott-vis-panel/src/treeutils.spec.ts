@@ -10,6 +10,7 @@ import {
 	expandBBox,
 	offsetBBox,
 	superBoundingBox,
+	mergeTrees,
 } from "treeutils";
 import * as d3 from "d3";
 import type { Monolith } from "ott-vis/types";
@@ -463,6 +464,84 @@ describe("treeutils", () => {
 				expect(child.parent?.data.group).toEqual("bar");
 			}
 		}
+	});
+
+	it("should merge trees", () => {
+		const tree1 = d3.hierarchy({
+			id: "root",
+			region: "bruh",
+			group: "foo",
+			children: [
+				{
+					id: "child1",
+					region: "bruh",
+					group: "bar",
+					children: [
+						{
+							id: "child1.1",
+							region: "bruh",
+							group: "baz",
+							children: [],
+						},
+						{
+							id: "child1.2",
+							region: "bruh",
+							group: "baz",
+							children: [],
+						},
+					],
+				},
+				{
+					id: "child2",
+					region: "bruh",
+					group: "bar",
+					children: [],
+				},
+			],
+		} as TreeNode);
+		const tree2 = d3.hierarchy({
+			id: "root",
+			region: "bruh",
+			group: "foo",
+			children: [
+				{
+					id: "child1",
+					region: "bruh",
+					group: "bar",
+					children: [
+						{
+							id: "child1.1",
+							region: "bruh",
+							group: "baz",
+							children: [],
+						},
+						{
+							id: "child1.3",
+							region: "bruh",
+							group: "baz",
+							children: [],
+						},
+					],
+				},
+				{
+					id: "child3",
+					region: "bruh",
+					group: "bar",
+					children: [],
+				},
+				{
+					id: "child4",
+					region: "bruh",
+					group: "bar",
+					children: [],
+				},
+			],
+		} as TreeNode);
+
+		const merged = mergeTrees([tree1, tree2])[0];
+		expect(merged.data.id).toEqual("root");
+		expect(merged.descendants().filter(n => n.data.group === "bar")).toHaveLength(4);
+		expect(merged.descendants().filter(n => n.data.group === "baz")).toHaveLength(3);
 	});
 
 	it("should calculate the super bounding box", () => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis";
-import { buildFullTree, type TreeNode } from "treeutils";
+import { buildFullTree, filterTreeGroups, mergeTrees, type TreeNode } from "treeutils";
 import { useColorProvider } from "colors";
 import { useD3Zoom } from "chartutils";
 
@@ -12,7 +12,20 @@ interface Props {
 }
 
 export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
-	const fullTree = buildFullTree(systemState);
+	const builtTree = d3.hierarchy(buildFullTree(systemState));
+	const balancerTree = filterTreeGroups(builtTree.copy(), [
+		"root",
+		"region",
+		"balancer",
+		"client",
+	])[0];
+	const monolithTree = filterTreeGroups(builtTree.copy(), [
+		"root",
+		"region",
+		"monolith",
+		"room",
+	])[0];
+	const fullTree = mergeTrees([balancerTree, monolithTree])[0];
 	const svgRef = useRef<SVGSVGElement>(null);
 	const colors = useColorProvider();
 
@@ -25,7 +38,7 @@ export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
 		const svg = d3.select(svgRef.current);
 		const group = svg.select(".chart");
 
-		const tree = d3.hierarchy(fullTree);
+		const tree = fullTree;
 		const pack = d3
 			.pack<TreeNode>()
 			.radius(() => 20)
@@ -35,9 +48,8 @@ export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
 		group
 			.select(".nodes")
 			.selectAll("circle")
-			.data(tree.descendants())
+			.data(tree.descendants().filter(d => d.data.group !== "root"))
 			.join("circle")
-			.filter(d => d.data.group !== "root")
 			.attr("class", "node")
 			.transition(tr)
 			.attr("cx", (d: any) => d.x)
@@ -50,9 +62,10 @@ export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
 		group
 			.select(".texts")
 			.selectAll("text")
-			.data(tree.descendants())
+			.data(
+				tree.descendants().filter(d => d.data.group !== "root" && d.data.group !== "room")
+			)
 			.join("text")
-			.filter(d => d.data.group !== "root" && d.data.group !== "room")
 			.attr("class", "text")
 			.transition(tr)
 			.attr("x", (d: any) => d.x)
