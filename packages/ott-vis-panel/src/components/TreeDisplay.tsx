@@ -12,6 +12,7 @@ import {
 	buildMonolithTrees,
 } from "treeutils";
 import { useD3Zoom } from "chartutils";
+import { dedupeMonoliths } from "aggregate";
 
 interface TreeDisplayProps extends TreeDisplayStyleProps {
 	systemState: SystemState;
@@ -147,9 +148,9 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	balancerGroupStyle = "stacked",
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
-	const monolithTrees = buildMonolithTrees(systemState.flatMap(b => b.monoliths)).sort(
-		(a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id)
-	);
+	const monolithTrees = buildMonolithTrees(
+		dedupeMonoliths(systemState.flatMap(b => b.monoliths))
+	).sort((a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id));
 
 	const getRadius = useCallback(
 		(group: string): number => {
