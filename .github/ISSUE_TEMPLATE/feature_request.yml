@@ -8,8 +8,8 @@ body:
         Do not use this template to request support for a video service or format, submit a Service Support Request instead.
   - type: textarea
     attributes:
-      label: Is your feature request related to a problem? Please describe.
-      description: A clear and concise description of what the problem is.
+      label: Is your feature request related to a problem? Please describe your use case.
+      description: A clear and concise description of the problem you are trying to solve.
       placeholder: I'm always frustrated when...
     validations:
       required: true
