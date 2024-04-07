@@ -33,6 +33,18 @@ body:
     - label: This happens on the official site, opentogethertube.com
     - label: This happens using a self-hosted version.
     - label: I'm using the docker image.
+- type: input
+  attributes:
+    label: Room name or URL
+    description: If you're on the official site, please provide the room name or url so I can track down the logs. Otherwise, leave blank.
+  validations:
+    required: false
+- type: input
+  attributes:
+    label: Video URL
+    description: If you're having trouble with video playback, please provide the video URL. Otherwise, leave blank.
+  validations:
+    required: false
 - type: textarea
   attributes:
     label: Anything else?
