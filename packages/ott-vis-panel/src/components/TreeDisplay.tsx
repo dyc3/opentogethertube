@@ -13,6 +13,7 @@ import {
 } from "treeutils";
 import { useD3Zoom } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
+import type { NodeRadiusOptions } from "types";
 
 interface TreeDisplayProps extends TreeDisplayStyleProps {
 	systemState: SystemState;
@@ -20,13 +21,10 @@ interface TreeDisplayProps extends TreeDisplayStyleProps {
 	height: number;
 }
 
-export interface TreeDisplayStyleProps {
+export interface TreeDisplayStyleProps extends NodeRadiusOptions {
 	horizontal?: boolean;
 	b2mLinkStyle?: "smooth" | "step";
 	b2mSpacing?: number;
-	baseNodeRadius?: number;
-	balancerNodeRadius?: number;
-	clientNodeRadius?: number;
 	balancerGroupStyle?: "stacked" | "region-packed";
 }
 

@@ -74,6 +74,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 					height={height}
 					width={width}
 					systemState={systemState}
+					{...options.nodes}
 					{...options.tree}
 				/>
 			);
@@ -83,13 +84,14 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 					height={height}
 					width={width}
 					systemState={systemState}
+					{...options.nodes}
 					{...options.topology}
 				/>
 			);
 		} else {
 			return <div>Invalid view</div>;
 		}
-	}, [options.view, options.tree, options.topology, height, width, systemState]);
+	}, [options.view, options.nodes, options.tree, options.topology, height, width, systemState]);
 
 	const [readEvents, setReadEvents] = useState(0);
 
