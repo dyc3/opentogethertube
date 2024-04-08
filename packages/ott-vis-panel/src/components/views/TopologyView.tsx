@@ -244,6 +244,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					radius = calcGoodTreeRadius(tree, nodeRadius / 2, 0);
 				}
 				const layout = d3.tree<TreeNode>().size([Math.PI * (onRight ? 1 : -1), radius]);
+				// d3 expects children to be undefined if there are no children
+				if (tree.children && tree.children.length === 0) {
+					tree.children = undefined;
+				}
 				layout(tree);
 				// precompute radial coordinates
 				tree.each((node, i) => {
