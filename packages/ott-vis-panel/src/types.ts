@@ -7,4 +7,11 @@ export interface CoreOptions {
 
 	tree: TreeDisplayStyleProps;
 	topology: TopologyViewStyleProps;
+	nodes: NodeRadiusOptions;
+}
+
+export interface NodeRadiusOptions {
+	baseNodeRadius?: number;
+	balancerNodeRadius?: number;
+	clientNodeRadius?: number;
 }

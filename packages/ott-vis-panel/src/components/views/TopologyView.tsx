@@ -19,6 +19,7 @@ import { useColorProvider } from "colors";
 import { useD3Zoom } from "chartutils";
 import { dedupeItems } from "aggregate";
 import { useEventBus, type BusEvent } from "eventbus";
+import type { NodeRadiusOptions } from "types";
 
 interface TopologyViewProps extends TopologyViewStyleProps {
 	systemState: SystemState;
@@ -26,9 +27,7 @@ interface TopologyViewProps extends TopologyViewStyleProps {
 	height: number;
 }
 
-export interface TopologyViewStyleProps {
-	baseNodeRadius: number;
-	clientNodeRadius: number;
+export interface TopologyViewStyleProps extends NodeRadiusOptions {
 	subtreePadding: number;
 }
 
@@ -68,6 +67,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 	width,
 	height,
 	baseNodeRadius = 20,
+	balancerNodeRadius = 20,
 	clientNodeRadius = 8,
 	subtreePadding = 60,
 }) => {
@@ -87,11 +87,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		(group: string): number => {
 			if (group === "client") {
 				return clientNodeRadius;
+			} else if (group === "balancer") {
+				return balancerNodeRadius;
 			} else {
 				return baseNodeRadius;
 			}
 		},
-		[baseNodeRadius, clientNodeRadius]
+		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
 	);
 
 	useEffect(() => {

@@ -34,6 +34,11 @@
 			},
 			"id": 1,
 			"options": {
+				"nodes": {
+					"balancerNodeRadius": 20,
+					"baseNodeRadius": 20,
+					"clientNodeRadius": 8
+				},
 				"topology": {
 					"baseNodeRadius": 20,
 					"clientNodeRadius": 8
@@ -85,6 +90,6 @@
 	"timezone": "",
 	"title": "Just TopologyView",
 	"uid": "e3771ad0-95f0-4be2-932d-259323694d10",
-	"version": 3,
+	"version": 16,
 	"weekStart": ""
 }
