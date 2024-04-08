@@ -230,83 +230,65 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				});
 		}
 
+		function buildSubtrees(
+			trees: d3.HierarchyNode<TreeNode>[],
+			nodeRadius: number,
+			nodePadding: number,
+			onRight: boolean
+		): Subtree[] {
+			const subtrees: Subtree[] = [];
+			for (const tree of trees) {
+				let radius = calcGoodTreeRadius(tree, nodeRadius, nodePadding);
+				const shouldPack = radius > 200;
+				if (shouldPack) {
+					radius = calcGoodTreeRadius(tree, nodeRadius / 2, 0);
+				}
+				const layout = d3.tree<TreeNode>().size([Math.PI * (onRight ? 1 : -1), radius]);
+				layout(tree);
+				// precompute radial coordinates
+				tree.each((node, i) => {
+					if (shouldPack) {
+						// @ts-expect-error d3 adds x and y to the node
+						node.y -= nodeRadius * (i % 2) * 2;
+					}
+					// @ts-expect-error d3 adds x and y to the node
+					const [x, y] = d3.pointRadial(node.x, node.y);
+					// @ts-expect-error d3 adds x and y to the node
+					node.x = x;
+					// @ts-expect-error d3 adds x and y to the node
+					node.y = y;
+				});
+				const bbox = treeBoundingBox(tree);
+				subtrees.push({
+					tree,
+					bbox,
+					x: 100 * (onRight ? 1 : -1),
+					y: 0,
+				});
+			}
+			const subtreeYs = stackBoxes(
+				subtrees.map(t => t.bbox),
+				nodeRadius * 2 + 10
+			);
+			for (const [i, subtree] of subtrees.entries()) {
+				subtree.y = subtreeYs[i];
+			}
+			return subtrees;
+		}
+
 		function buildRegion(region: UnbuiltRegion): Region {
-			const monolithSubtrees: Subtree[] = [];
-			const balancerSubtrees: Subtree[] = [];
-
-			for (const tree of region.balancerTrees) {
-				let radius = calcGoodTreeRadius(tree, clientNodeRadius, 4);
-				const shouldPack = radius > 200;
-				if (shouldPack) {
-					radius = calcGoodTreeRadius(tree, clientNodeRadius / 2, 0);
-				}
-				const layout = d3.tree<TreeNode>().size([-Math.PI, radius]);
-				layout(tree);
-				// precompute radial coordinates
-				tree.each((node, i) => {
-					if (shouldPack) {
-						// @ts-expect-error d3 adds x and y to the node
-						node.y -= clientNodeRadius * (i % 2) * 2;
-					}
-					// @ts-expect-error d3 adds x and y to the node
-					const [x, y] = d3.pointRadial(node.x, node.y);
-					// @ts-expect-error d3 adds x and y to the node
-					node.x = x;
-					// @ts-expect-error d3 adds x and y to the node
-					node.y = y;
-				});
-				const bbox = treeBoundingBox(tree);
-				balancerSubtrees.push({
-					tree,
-					bbox,
-					x: -100,
-					y: 0,
-				});
-			}
-			const balancerYs = stackBoxes(
-				balancerSubtrees.map(t => t.bbox),
-				baseNodeRadius * 2 + 10
+			const monolithSubtrees: Subtree[] = buildSubtrees(
+				region.monolithTrees,
+				baseNodeRadius,
+				5,
+				true
 			);
-			for (const [i, subtree] of balancerSubtrees.entries()) {
-				subtree.y = balancerYs[i];
-			}
-
-			for (const tree of region.monolithTrees) {
-				let radius = calcGoodTreeRadius(tree, baseNodeRadius);
-				const shouldPack = radius > 200;
-				if (shouldPack) {
-					radius = calcGoodTreeRadius(tree, baseNodeRadius / 2);
-				}
-				const layout = d3.tree<TreeNode>().size([Math.PI, radius]);
-				layout(tree);
-				// precompute radial coordinates
-				tree.each((node, i) => {
-					if (shouldPack) {
-						// @ts-expect-error d3 adds x and y to the node
-						node.y -= baseNodeRadius * (i % 2) * 2;
-					}
-					// @ts-expect-error d3 adds x and y to the node
-					const [x, y] = d3.pointRadial(node.x, node.y);
-					// @ts-expect-error d3 adds x and y to the node
-					node.x = x;
-					// @ts-expect-error d3 adds x and y to the node
-					node.y = y;
-				});
-				const bbox = treeBoundingBox(tree);
-				monolithSubtrees.push({
-					tree,
-					bbox,
-					x: 100,
-					y: 0,
-				});
-			}
-			const monolithYs = stackBoxes(
-				monolithSubtrees.map(t => t.bbox),
-				baseNodeRadius * 2 + 10
+			const balancerSubtrees: Subtree[] = buildSubtrees(
+				region.balancerTrees,
+				clientNodeRadius,
+				4,
+				false
 			);
-			for (const [i, subtree] of monolithSubtrees.entries()) {
-				subtree.y = monolithYs[i];
-			}
 
 			const built: Region = {
 				name: region.name,
