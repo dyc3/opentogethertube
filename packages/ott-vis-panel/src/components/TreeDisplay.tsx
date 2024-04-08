@@ -5,11 +5,11 @@ import { useEventBus } from "eventbus";
 import "./tree-display.css";
 import {
 	calcGoodTreeRadius,
-	type BoundingBox,
 	treeBoundingBox,
 	flipBoundingBoxH,
 	type TreeNode,
 	buildMonolithTrees,
+	stackBoxes,
 } from "treeutils";
 import { useD3Zoom } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
@@ -62,26 +62,6 @@ function buildBalancerRegionTree(systemState: SystemState): TreeNode {
 	}
 
 	return tree;
-}
-
-/**
- * Computes the y positions of boxes in a vertically stacked layout
- * @param boxes The bounding boxes of the boxes to stack
- */
-export function stackBoxes(boxes: BoundingBox[], nodeRadius: number): number[] {
-	const boxYs: number[] = [];
-	for (let i = 0; i < boxes.length; i++) {
-		if (i === 0) {
-			boxYs.push(0);
-		} else {
-			const [_pleft, _ptop, _pright, pbottom] = boxes[i - 1];
-			const [_left, top, _right, _bottom] = boxes[i];
-			const spacing = -top + pbottom + nodeRadius * 2 + 10;
-			boxYs.push(boxYs[i - 1] + Math.max(spacing, nodeRadius * 2 + 10));
-		}
-	}
-
-	return boxYs;
 }
 
 function mirrorTree(tree: d3.HierarchyNode<TreeNode>): d3.HierarchyNode<TreeNode> {
@@ -188,8 +168,8 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 				.splice(Math.floor(monolithTreeBoxes.length / 2))
 				.map(flipBoundingBoxH);
 			monolithTreeBoxes.push(...boxesLeft);
-			const monolithTreeYsRight: number[] = stackBoxes(boxesRight, baseNodeRadius);
-			const monolithTreeYsLeft: number[] = stackBoxes(boxesLeft, baseNodeRadius);
+			const monolithTreeYsRight: number[] = stackBoxes(boxesRight, baseNodeRadius * 2 + 10);
+			const monolithTreeYsLeft: number[] = stackBoxes(boxesLeft, baseNodeRadius * 2 + 10);
 			// add an offset to the smaller column to center it
 			const largestRight = monolithTreeYsRight[monolithTreeYsRight.length - 1] ?? 0;
 			const largestLeft = monolithTreeYsLeft[monolithTreeYsLeft.length - 1] ?? 0;

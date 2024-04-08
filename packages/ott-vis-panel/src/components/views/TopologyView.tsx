@@ -12,6 +12,7 @@ import {
 	superBoundingBox,
 	offsetBBox,
 	expandBBox,
+	stackBoxes,
 } from "treeutils";
 import "./topology-view.css";
 import { useColorProvider } from "colors";
@@ -49,6 +50,8 @@ interface Region {
 	balancerSubtrees: Subtree[];
 	monolithSubtrees: Subtree[];
 	bbox: BoundingBox;
+	x: number;
+	y: number;
 }
 
 const DEBUG_BOUNDING_BOXES = false;
@@ -309,6 +312,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					]),
 					200
 				),
+				x: 0,
+				y: 0,
 			};
 			return built;
 		}
@@ -369,14 +374,21 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				.attr("stroke", "#fff");
 		}
 
-		const monolithBuiltRegions = new Map<string, Region>();
-		for (const [name, region] of monolithRegions.entries()) {
-			monolithBuiltRegions.set(name, buildRegion(region));
+		const monolithBuiltRegions: Region[] = [];
+		for (const [_name, region] of monolithRegions.entries()) {
+			monolithBuiltRegions.push(buildRegion(region));
+		}
+		const regionYs = stackBoxes(
+			monolithBuiltRegions.map(r => r.bbox),
+			baseNodeRadius * 2 + 10
+		);
+		for (const [i, region] of monolithBuiltRegions.entries()) {
+			region.y = regionYs[i];
 		}
 
 		svg.select(".regions")
 			.selectAll(".region")
-			.data(monolithBuiltRegions.values(), (d: any) => d.name)
+			.data(monolithBuiltRegions, (d: any) => d.name)
 			.join(
 				create => {
 					const group = create.append("g").attr("class", "region");
@@ -393,6 +405,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			.attr("data-nodeid", d => d.name)
 			.transition(tr)
 			.attr("opacity", 1)
+			.attr("transform", d => `translate(${d.x}, ${d.y})`)
 			.each(function (region) {
 				const group = d3.select(this);
 
