@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
 import { useEventBus } from "eventbus";
-import "./tree-display.css";
+import "./tree-view.css";
 import {
 	calcGoodTreeRadius,
 	treeBoundingBox,
@@ -16,13 +16,13 @@ import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
 import { useColorProvider } from "colors";
 
-interface TreeDisplayProps extends TreeDisplayStyleProps {
+interface TreeViewProps extends TreeViewStyleProps {
 	systemState: SystemState;
 	width: number;
 	height: number;
 }
 
-export interface TreeDisplayStyleProps extends NodeRadiusOptions {
+export interface TreeViewStyleProps extends NodeRadiusOptions {
 	horizontal?: boolean;
 	b2mLinkStyle?: "smooth" | "step";
 	b2mSpacing?: number;
@@ -112,7 +112,7 @@ interface MonolithNode extends Node {
 
 const DEBUG_BOUNDING_BOXES = false;
 
-const TreeDisplay: React.FC<TreeDisplayProps> = ({
+const TreeView: React.FC<TreeViewProps> = ({
 	systemState,
 	width,
 	height,
@@ -556,4 +556,4 @@ const TreeDisplay: React.FC<TreeDisplayProps> = ({
 	);
 };
 
-export default TreeDisplay;
+export default TreeView;

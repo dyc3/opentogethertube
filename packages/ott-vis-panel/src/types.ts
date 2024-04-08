@@ -1,11 +1,11 @@
-import type { TreeDisplayStyleProps } from "components/TreeDisplay";
+import type { TreeViewStyleProps } from "components/views/TreeView";
 import type { TopologyViewStyleProps } from "components/views/TopologyView";
 
 export interface CoreOptions {
 	view: "global" | "region" | "tree" | "topology";
 	useSampleData: boolean;
 
-	tree: TreeDisplayStyleProps;
+	tree: TreeViewStyleProps;
 	topology: TopologyViewStyleProps;
 	nodes: NodeRadiusOptions;
 }
