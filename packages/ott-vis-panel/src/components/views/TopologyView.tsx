@@ -234,7 +234,6 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			const monolithSubtrees: Subtree[] = [];
 			const balancerSubtrees: Subtree[] = [];
 
-			let balancerYs = 0;
 			for (const tree of region.balancerTrees) {
 				let radius = calcGoodTreeRadius(tree, clientNodeRadius, 4);
 				const shouldPack = radius > 200;
@@ -261,13 +260,17 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					tree,
 					bbox,
 					x: -100,
-					y: balancerYs,
+					y: 0,
 				});
-				const [_left, top, _right, bottom] = bbox;
-				const height = bottom - top;
-				balancerYs += height + subtreePadding;
 			}
-			let monolithYs = 0;
+			const balancerYs = stackBoxes(
+				balancerSubtrees.map(t => t.bbox),
+				baseNodeRadius * 2 + 10
+			);
+			for (const [i, subtree] of balancerSubtrees.entries()) {
+				subtree.y = balancerYs[i];
+			}
+
 			for (const tree of region.monolithTrees) {
 				let radius = calcGoodTreeRadius(tree, baseNodeRadius);
 				const shouldPack = radius > 200;
@@ -294,11 +297,15 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					tree,
 					bbox,
 					x: 100,
-					y: monolithYs,
+					y: 0,
 				});
-				const [_left, top, _right, bottom] = bbox;
-				const height = bottom - top;
-				monolithYs += height + subtreePadding;
+			}
+			const monolithYs = stackBoxes(
+				monolithSubtrees.map(t => t.bbox),
+				baseNodeRadius * 2 + 10
+			);
+			for (const [i, subtree] of monolithSubtrees.entries()) {
+				subtree.y = monolithYs[i];
 			}
 
 			const built: Region = {
