@@ -272,7 +272,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			}
 			const subtreeYs = stackBoxes(
 				subtrees.map(t => t.bbox),
-				nodeRadius * 2 + 10
+				subtreePadding
 			);
 			for (const [i, subtree] of subtrees.entries()) {
 				subtree.y = subtreeYs[i];
