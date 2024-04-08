@@ -162,6 +162,27 @@ export function expandBBox(box: BoundingBox, padding: number): BoundingBox {
 	return [box[0] - padding, box[1] - padding, box[2] + padding, box[3] + padding];
 }
 
+/**
+ * Computes the y positions of boxes in a vertically stacked layout
+ * @param boxes The bounding boxes of the boxes to stack
+ * @returns The y positions of the boxes
+ */
+export function stackBoxes(boxes: BoundingBox[], padding: number): number[] {
+	const boxYs: number[] = [];
+	for (let i = 0; i < boxes.length; i++) {
+		if (i === 0) {
+			boxYs.push(0);
+		} else {
+			const [_pleft, _ptop, _pright, pbottom] = boxes[i - 1];
+			const [_left, top, _right, _bottom] = boxes[i];
+			const spacing = -top + pbottom + padding;
+			boxYs.push(boxYs[i - 1] + Math.max(spacing, padding));
+		}
+	}
+
+	return boxYs;
+}
+
 function traverseGroups(tree: d3.HierarchyNode<TreeNode>): string[] {
 	// def not the most efficient way to do this
 	return tree
