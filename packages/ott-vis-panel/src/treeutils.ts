@@ -1,3 +1,4 @@
+import { dedupeItems } from "aggregate";
 import * as d3 from "d3";
 import type { Monolith, Room, SystemState } from "ott-vis/types";
 
@@ -256,4 +257,41 @@ export function filterTreeGroups(
 	}
 
 	return newRoots;
+}
+
+/**
+ * Merges nodes with the same id in the same group. Nodes that don't match all become children of the first parent with the same id.
+ * @param trees
+ * @returns
+ */
+export function mergeTrees(trees: d3.HierarchyNode<TreeNode>[]): d3.HierarchyNode<TreeNode>[] {
+	const seen: Map<string, d3.HierarchyNode<TreeNode>> = new Map();
+	for (const tree of trees) {
+		if (!tree.children || tree.children.length === 0) {
+			continue;
+		}
+		if (seen.has(tree.data.id)) {
+			const existing = seen.get(tree.data.id)!;
+			existing.children?.push(...tree.children);
+		} else {
+			seen.set(tree.data.id, tree);
+		}
+	}
+
+	for (const tree of seen.values()) {
+		tree.children = dedupeItems(
+			tree.children ?? [],
+			d => d.data.id,
+			(a, b) => {
+				a.children?.push(...(b.children ?? []));
+				return a;
+			}
+		);
+		for (const child of tree.children) {
+			child.parent = tree;
+			mergeTrees([child]);
+		}
+	}
+
+	return Array.from(seen.values());
 }
