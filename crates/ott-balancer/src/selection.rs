@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use crate::monolith::BalancerMonolith;
 use enum_dispatch::enum_dispatch;
 use hashring::HashRing;
@@ -90,15 +92,21 @@ impl MonolithSelection for HashRingSelector {
         monoliths: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith> {
         let mut ring = HashRing::new();
-        ring.batch_add(monoliths.iter().map(|m| m.id()).collect());
+        ring.batch_add(monoliths.iter().map(|m| RingNode { monolith: m }).collect());
 
-        let id = ring.get(room).ok_or(anyhow::anyhow!("ring hash empty"))?;
-        let i = monoliths
-            .iter()
-            .position(|m| m.id() == *id)
-            .ok_or(anyhow::anyhow!("monolith not found"))?;
+        let node = ring.get(room).ok_or(anyhow::anyhow!("ring hash empty"))?;
 
-        Ok(monoliths[i])
+        Ok(node.monolith)
+    }
+}
+
+struct RingNode<'a> {
+    monolith: &'a BalancerMonolith,
+}
+
+impl Hash for RingNode<'_> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.monolith.id().hash(state);
     }
 }
 
