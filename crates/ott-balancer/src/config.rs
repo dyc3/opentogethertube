@@ -1,29 +1,17 @@
 use std::{borrow::BorrowMut, path::PathBuf, sync::Once};
 
 use clap::{Parser, ValueEnum};
-use enum_dispatch::enum_dispatch;
 use figment::providers::Format;
 use serde::Deserialize;
 
 use ott_common::discovery::DiscoveryConfig;
 
-use crate::selection::MinRoomsSelector;
+use crate::selection::MonolithSelectionStrategy;
 
 static mut CONFIG: Option<BalancerConfig> = None;
 
 static CONFIG_INIT: Once = Once::new();
 
-#[derive(Debug, Deserialize, Copy, Clone)]
-#[enum_dispatch]
-pub enum MonolithSelectionStrategy {
-    MinRooms(MinRoomsSelector),
-}
-
-impl Default for MonolithSelectionStrategy {
-    fn default() -> Self {
-        MonolithSelectionStrategy::MinRooms(MinRoomsSelector)
-    }
-}
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct BalancerConfig {
