@@ -1,3 +1,5 @@
+selection_strategy = "hashring"
+
 [discovery]
 method = "fly"
 fly_app = "ott-staging"
