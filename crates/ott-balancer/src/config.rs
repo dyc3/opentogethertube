@@ -6,7 +6,7 @@ use serde::Deserialize;
 
 use ott_common::discovery::DiscoveryConfig;
 
-use crate::selection::MonolithSelectionStrategy;
+use crate::selection::MonolithSelectionConfig;
 
 static mut CONFIG: Option<BalancerConfig> = None;
 
@@ -21,7 +21,7 @@ pub struct BalancerConfig {
     pub region: String,
     /// The API key that clients can use to access restricted endpoints.
     pub api_key: Option<String>,
-    pub selection_strategy: Option<MonolithSelectionStrategy>,
+    pub selection_strategy: Option<MonolithSelectionConfig>,
 }
 
 impl Default for BalancerConfig {

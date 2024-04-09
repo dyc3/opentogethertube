@@ -25,7 +25,7 @@ pub trait MonolithSelection: std::fmt::Debug {
     }
 }
 
-#[derive(Debug, Deserialize, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 #[enum_dispatch]
 pub enum MonolithSelectionStrategy {
     MinRooms(MinRoomsSelector),
@@ -38,7 +38,28 @@ impl Default for MonolithSelectionStrategy {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Default, Deserialize)]
+#[serde(tag = "strategy")]
+pub enum MonolithSelectionConfig {
+    #[default]
+    MinRooms,
+    HashRing,
+}
+
+impl From<MonolithSelectionConfig> for MonolithSelectionStrategy {
+    fn from(config: MonolithSelectionConfig) -> Self {
+        match config {
+            MonolithSelectionConfig::MinRooms => {
+                MonolithSelectionStrategy::MinRooms(MinRoomsSelector)
+            }
+            MonolithSelectionConfig::HashRing => {
+                MonolithSelectionStrategy::HashRing(HashRingSelector)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Default, Copy, Clone)]
 pub struct MinRoomsSelector;
 
 impl MonolithSelection for MinRoomsSelector {
@@ -59,7 +80,7 @@ impl MonolithSelection for MinRoomsSelector {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct HashRingSelector;
 
 impl MonolithSelection for HashRingSelector {
@@ -83,14 +104,26 @@ impl MonolithSelection for HashRingSelector {
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
     use std::net::Ipv4Addr;
     use std::sync::Arc;
 
     use crate::monolith::{BalancerMonolith, NewMonolith};
-    use ott_balancer_protocol::*;
     use ott_common::discovery::{ConnectionConfig, HostOrIp};
 
-    use super::{MinRoomsSelector, MonolithSelection};
+    #[test]
+    fn parse_config() {
+        let config = serde_json::json!(
+            {
+                "strategy": "HashRing"
+            }
+        );
+
+        let strategy: MonolithSelectionConfig =
+            serde_json::from_value(config).expect("failed to parse selection strategy config");
+        assert_eq!(strategy, MonolithSelectionConfig::HashRing);
+    }
 
     #[tokio::test]
     async fn test_min_by() {

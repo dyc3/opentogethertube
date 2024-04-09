@@ -1,4 +1,5 @@
-selection_strategy = "HashRing"
+[selection_strategy]
+strategy = "HashRing"
 
 [discovery]
 method = "fly"
