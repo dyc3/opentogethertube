@@ -1,49 +1,56 @@
-use crate::config::MonolithSelectionStrategy;
 use crate::monolith::BalancerMonolith;
 use enum_dispatch::enum_dispatch;
 use rand::seq::IteratorRandom;
 use serde::Deserialize;
 
-#[derive(Debug, Default, Deserialize, Copy, Clone)]
-pub struct MinRoomsSelector;
 #[enum_dispatch(MonolithSelectionStrategy)]
 pub trait MonolithSelection: std::fmt::Debug {
     fn select_monolith<'a>(
         &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
+        monoliths: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith>;
 
     fn random_monolith<'a>(
         &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith>;
+        monoliths: Vec<&'a BalancerMonolith>,
+    ) -> anyhow::Result<&BalancerMonolith> {
+        let selected = monoliths
+            .iter()
+            .choose(&mut rand::thread_rng())
+            .ok_or_else(|| anyhow::anyhow!("no monoliths available"))?;
+        Ok(selected)
+    }
 }
+
+#[derive(Debug, Deserialize, Copy, Clone)]
+#[enum_dispatch]
+pub enum MonolithSelectionStrategy {
+    MinRooms(MinRoomsSelector),
+}
+
+impl Default for MonolithSelectionStrategy {
+    fn default() -> Self {
+        MonolithSelectionStrategy::MinRooms(MinRoomsSelector)
+    }
+}
+
+#[derive(Debug, Default, Deserialize, Copy, Clone)]
+pub struct MinRoomsSelector;
 
 impl MonolithSelection for MinRoomsSelector {
     fn select_monolith<'a>(
         &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
+        monoliths: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
             x.rooms().len().cmp(&y.rooms().len())
         }
 
-        let selected = monolith.iter().min_by(|x, y| cmp(x, y));
+        let selected = monoliths.iter().min_by(|x, y| cmp(x, y));
         match selected {
             Some(s) => Ok(s),
             None => anyhow::bail!("no monoliths available"),
         }
-    }
-
-    fn random_monolith<'a>(
-        &'a self,
-        monolith: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith> {
-        let selected = monolith
-            .iter()
-            .choose(&mut rand::thread_rng())
-            .ok_or_else(|| anyhow::anyhow!("no monoliths available"))?;
-        Ok(selected)
     }
 }
 

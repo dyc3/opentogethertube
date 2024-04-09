@@ -17,11 +17,11 @@ use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::balancer::collector::ClientState;
 use crate::client::ClientLink;
-use crate::config::{BalancerConfig, MonolithSelectionStrategy};
+use crate::config::BalancerConfig;
 use crate::connection::BALANCER_ID;
 use crate::monolith::Room;
 use crate::room::RoomLocator;
-use crate::selection::MonolithSelection;
+use crate::selection::{MonolithSelection, MonolithSelectionStrategy};
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
