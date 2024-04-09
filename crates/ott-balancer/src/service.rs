@@ -242,7 +242,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                                 );
                                 ctx_read.monoliths.get(&locator.monolith_id())
                             } else {
-                                ctx_read.select_monolith().ok()
+                                ctx_read.select_monolith(&room_name).ok()
                             };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
