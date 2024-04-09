@@ -4,11 +4,10 @@ import type { CoreOptions } from "types";
 import type { SystemState } from "ott-vis";
 import { css, cx } from "@emotion/css";
 import { useStyles2 } from "@grafana/ui";
-import GlobalView from "./views/GlobalView";
 import RegionView from "./views/RegionView";
 import { LoadingState } from "@grafana/schema";
 import { useEventBus, type BusEvent } from "eventbus";
-import TreeDisplay from "./TreeDisplay";
+import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
 
 interface Props extends PanelProps<CoreOptions> {}
@@ -64,13 +63,11 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 	}, [options.useSampleData, stateSeries]);
 
 	let view = useMemo(() => {
-		if (options.view === "global") {
-			return <GlobalView height={height} width={width} systemState={systemState} />;
-		} else if (options.view === "region") {
+		if (options.view === "region") {
 			return <RegionView height={height} width={width} systemState={systemState} />;
 		} else if (options.view === "tree") {
 			return (
-				<TreeDisplay
+				<TreeView
 					height={height}
 					width={width}
 					systemState={systemState}
