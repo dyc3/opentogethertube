@@ -12,6 +12,7 @@ console-subscriber.workspace = true
 enum_dispatch.workspace = true
 figment.workspace = true
 futures-util.workspace = true
+hashring.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true
 http-body-util.workspace = true

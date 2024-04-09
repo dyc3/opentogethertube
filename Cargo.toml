@@ -14,6 +14,7 @@ figment = { version = "0.10.15", features = ["toml", "env"] }
 futures-util = "0.3.30"
 harness = { path = "crates/harness" }
 harness_macros = { path = "crates/harness_macros" }
+hashring = "0.3.3"
 hickory-resolver = { version = "0.24.0", features = ["system-config"] }
 humantime-serde = "1.1"
 hyper = { version = "1.2.0", features = ["full"] }
