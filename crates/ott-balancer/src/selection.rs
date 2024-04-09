@@ -1,5 +1,6 @@
 use crate::monolith::BalancerMonolith;
 use enum_dispatch::enum_dispatch;
+use hashring::HashRing;
 use ott_balancer_protocol::RoomName;
 use rand::seq::IteratorRandom;
 use serde::Deserialize;
@@ -28,6 +29,7 @@ pub trait MonolithSelection: std::fmt::Debug {
 #[enum_dispatch]
 pub enum MonolithSelectionStrategy {
     MinRooms(MinRoomsSelector),
+    HashRing(HashRingSelector),
 }
 
 impl Default for MonolithSelectionStrategy {
@@ -54,6 +56,28 @@ impl MonolithSelection for MinRoomsSelector {
             Some(s) => Ok(s),
             None => anyhow::bail!("no monoliths available"),
         }
+    }
+}
+
+#[derive(Debug, Default, Deserialize, Copy, Clone)]
+pub struct HashRingSelector;
+
+impl MonolithSelection for HashRingSelector {
+    fn select_monolith<'a>(
+        &'a self,
+        room: &RoomName,
+        monoliths: Vec<&'a BalancerMonolith>,
+    ) -> anyhow::Result<&BalancerMonolith> {
+        let mut ring = HashRing::new();
+        ring.batch_add(monoliths.iter().map(|m| m.id()).collect());
+
+        let id = ring.get(room).ok_or(anyhow::anyhow!("ring hash empty"))?;
+        let i = monoliths
+            .iter()
+            .position(|m| m.id() == *id)
+            .ok_or(anyhow::anyhow!("monolith not found"))?;
+
+        Ok(monoliths[i])
     }
 }
 
