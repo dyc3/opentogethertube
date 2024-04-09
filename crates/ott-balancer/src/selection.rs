@@ -1,5 +1,6 @@
 use crate::monolith::BalancerMonolith;
 use enum_dispatch::enum_dispatch;
+use ott_balancer_protocol::RoomName;
 use rand::seq::IteratorRandom;
 use serde::Deserialize;
 
@@ -7,6 +8,7 @@ use serde::Deserialize;
 pub trait MonolithSelection: std::fmt::Debug {
     fn select_monolith<'a>(
         &'a self,
+        room: &RoomName,
         monoliths: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith>;
 
@@ -40,6 +42,7 @@ pub struct MinRoomsSelector;
 impl MonolithSelection for MinRoomsSelector {
     fn select_monolith<'a>(
         &'a self,
+        _room: &RoomName,
         monoliths: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
@@ -121,8 +124,9 @@ mod test {
 
         let monoliths: Vec<&BalancerMonolith> = vec![&monolith_one, &monolith_two];
 
+        let room: RoomName = "foo".into();
         let selected = MinRoomsSelector
-            .select_monolith(monoliths)
+            .select_monolith(&room, monoliths)
             .expect("failed to select monolith");
 
         assert_eq!(selected.id(), monolith_two.id())
