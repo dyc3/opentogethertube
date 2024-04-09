@@ -101,7 +101,7 @@ pub async fn run() -> anyhow::Result<()> {
         if let Some(selection_strategy) = config.selection_strategy {
             info!("Using selection strategy: {:?}", selection_strategy);
             BalancerContext {
-                monolith_selection: selection_strategy,
+                monolith_selection: selection_strategy.into(),
                 ..BalancerContext::new()
             }
         } else {
