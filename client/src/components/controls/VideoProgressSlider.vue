@@ -30,12 +30,12 @@
 import { ref, Ref, onMounted, onUpdated, computed } from "vue";
 import VueSlider from "vue-slider-component";
 import { useStore } from "@/store";
-import { granted } from "@/util/grants";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import "vue-slider-component/theme/default.css";
 import "./slider-tweaks.scss";
+import { useGrants } from "../composables/grants";
 
 withDefaults(
 	defineProps<{
@@ -48,6 +48,7 @@ withDefaults(
 
 const store = useStore();
 const roomapi = useRoomApi(useConnection());
+const granted = useGrants();
 
 /**
  * vue-slider-component requires (props.max - props.min) to be divisible by props.interval.

@@ -215,7 +215,6 @@ import VideoQueue from "@/components/VideoQueue.vue";
 import { useGoTo } from "vuetify";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
-import { granted } from "@/util/grants";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import RoomDisconnected from "../components/RoomDisconnected.vue";
 import { useConnection } from "@/plugins/connection";
@@ -236,6 +235,7 @@ import { waitForToken } from "@/util/token";
 import { useSfx } from "@/plugins/sfx";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
+import { useGrants } from "@/components/composables/grants";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -578,6 +578,8 @@ export default defineComponent({
 				await roomSettingsForm.value.loadRoomSettings();
 			}
 		});
+
+		const granted = useGrants();
 
 		const addpreview = ref<typeof AddPreview | null>(null);
 		async function setAddPreviewText(text: string) {

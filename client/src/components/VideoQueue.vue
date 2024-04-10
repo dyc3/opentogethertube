@@ -50,7 +50,7 @@
 		</div>
 		<Sortable
 			:list="store.state.room.queue"
-			:move="() => granted('manage-queue.order')"
+			@move.capture="() => granted('manage-queue.order')"
 			@end="onQueueDragDrop"
 			:options="{ animation: 200, handle: '.drag-handle' }"
 			item-key="id"
@@ -65,18 +65,19 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import { granted } from "@/util/grants";
 import { useStore } from "@/store";
 import { Sortable } from "sortablejs-vue3";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { exportQueue } from "ott-common/queueexport";
 import { useCopyFromTextbox } from "./composables";
+import { useGrants } from "./composables/grants";
 
 defineEmits(["switchtab"]);
 
 const store = useStore();
 const roomapi = useRoomApi(useConnection());
+const granted = useGrants();
 
 function onQueueDragDrop(e: { oldIndex: number; newIndex: number }) {
 	roomapi.queueMove(e.oldIndex, e.newIndex);

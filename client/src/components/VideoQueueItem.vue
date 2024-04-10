@@ -9,7 +9,11 @@
 			>
 				<span
 					class="drag-handle"
-					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
+					v-if="
+						!isPreview &&
+						store.state.room.queueMode !== QueueMode.Vote &&
+						granted('manage-queue.order')
+					"
 				>
 					<v-icon>mdi-format-align-justify</v-icon>
 				</span>
@@ -163,6 +167,7 @@ import axios, { type AxiosResponse } from "axios";
 import { useRoomApi } from "@/util/roomapi";
 import { useConnection } from "@/plugins/connection";
 import type { OttResponseBody } from "ott-common/models/rest-api";
+import { useGrants } from "./composables/grants";
 
 interface VideoQueueItemProps {
 	item: QueueItem;
@@ -180,6 +185,7 @@ const { item, index } = toRefs(props);
 const store = useStore();
 const { t } = useI18n();
 const roomapi = useRoomApi(useConnection());
+const granted = useGrants();
 
 const isLoadingAdd = ref(false);
 const isLoadingVote = ref(false);

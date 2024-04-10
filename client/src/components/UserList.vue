@@ -108,13 +108,13 @@ import { ref, inject } from "vue";
 import { API } from "@/common-http";
 import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
-import { granted } from "@/util/grants";
 import { Role } from "ott-common/models/types";
 import { ROLE_NAMES } from "ott-common/permissions";
 import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { canKickUser } from "ott-common/userutils";
+import { useGrants } from "./composables/grants";
 
 defineProps<{
 	users: RoomUserInfo[];
@@ -122,6 +122,7 @@ defineProps<{
 
 const store = useStore();
 const roomapi = useRoomApi(useConnection());
+const granted = useGrants();
 const debugMode = inject("debugMode", false);
 
 const inputUsername = ref("");
