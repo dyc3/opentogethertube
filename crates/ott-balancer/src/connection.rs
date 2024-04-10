@@ -263,6 +263,8 @@ async fn connect_and_maintain(
                 }
             }
         }
+        outbound_rx.close();
+
         if cancel.is_cancelled() {
             break;
         }
