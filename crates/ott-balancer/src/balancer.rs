@@ -528,18 +528,31 @@ pub async fn join_monolith(
     let handle = tokio::task::Builder::new()
         .name(format!("monolith {}", monolith_id).as_ref())
         .spawn(async move {
-            while let Some(msg) = client_inbound_rx.recv().await {
+            loop {
+                let Some(msg) = (tokio::select! {
+                    biased;
+                    _ = monolith_outbound_tx.closed() => {
+                        None
+                    }
+                    msg = client_inbound_rx.recv() => {
+                        msg
+                    }
+                }) else {
+                    info!("monolith disconnected, stopping client inbound handler");
+                    break;
+                };
+
                 if let Err(e) =
                     handle_client_inbound(ctx.clone(), msg, monolith_outbound_tx.clone()).await
                 {
                     error!("failed to handle client inbound: {:?}", e);
                     if monolith_outbound_tx.is_closed() {
-                        // the monolith has disconnected
                         info!("monolith disconnected, stopping client inbound handler");
                         break;
                     }
                 }
             }
+            client_inbound_rx.close();
         })?;
     Ok(handle)
 }

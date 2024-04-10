@@ -65,6 +65,9 @@ impl ClientLink {
     /// Receive the next message from the Balancer that needs to be sent to this client.
     pub async fn outbound_recv(&mut self) -> Result<SocketMessage, RecvError> {
         let msg = tokio::select! {
+            _ = self.room_tx.closed() => {
+                return Err(RecvError::Closed);
+            }
             msg = self.unicast_rx.recv() => {
                 match msg {
                     Some(msg) => Ok(msg),
@@ -197,8 +200,8 @@ pub async fn client_entry<'r>(
 
     loop {
         tokio::select! {
-            Ok(msg) = client_link.outbound_recv() => {
-                if let SocketMessage::Message(msg) = msg {
+            msg = client_link.outbound_recv() => {
+                if let Ok(SocketMessage::Message(msg)) = msg {
                     debug!(event = "ws", node_id = %client_id, room = %room_name, direction = "tx");
                     if let Err(err) = stream.send(msg).await {
                         error!("Error sending ws message to client: {:?}", err);
@@ -239,15 +242,24 @@ pub async fn client_entry<'r>(
     }
 
     info!("ending client connection");
-    client_link
-        .room_tx
-        .send(Context::new(
-            client_id,
-            SocketMessage::Message(Message::Close(Some(CloseFrame {
-                code: CloseCode::Normal,
-                reason: "client connection ended".into(),
-            }))),
-        ))
+    if !client_link.room_tx.is_closed() {
+        client_link
+            .room_tx
+            .send(Context::new(
+                client_id,
+                SocketMessage::Message(Message::Close(Some(CloseFrame {
+                    code: CloseCode::Normal,
+                    reason: "client connection ended".into(),
+                }))),
+            ))
+            .await?;
+    }
+
+    stream
+        .close(Some(CloseFrame {
+            code: CloseCode::Normal,
+            reason: "client connection ended".into(),
+        }))
         .await?;
 
     Ok(())
