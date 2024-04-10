@@ -44,9 +44,9 @@
 <script lang="ts">
 import { defineComponent, ref, Ref, PropType } from "vue";
 import _ from "lodash";
-import { granted } from "@/util/grants";
 import { PERMISSIONS, ROLE_NAMES, Permission, Grants } from "ott-common/permissions";
 import { Role } from "ott-common/models/types";
+import { useGrants } from "./composables/grants";
 
 export const PermissionsEditor = defineComponent({
 	name: "PermissionsEditor",
@@ -64,6 +64,7 @@ export const PermissionsEditor = defineComponent({
 	setup(props, { emit }) {
 		const permissions: Ref<Permission[]> = ref([]);
 		const isLoading = ref(false);
+		const granted = useGrants();
 
 		const rolePerms = {
 			[Role.Moderator]: "configure-room.set-permissions.for-moderator",

@@ -155,16 +155,17 @@ import { ToastStyle } from "@/models/toast";
 import { API } from "@/common-http";
 import { Visibility, QueueMode, RoomSettings, Role, BehaviorOption } from "ott-common/models/types";
 import { Grants } from "ott-common/permissions";
-import { granted } from "@/util/grants";
 import toast from "@/util/toast";
 import { onMounted, Ref, ref } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
 import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
+import { useGrants } from "./composables/grants";
 
 const store = useStore();
 const { t } = useI18n();
+const granted = useGrants();
 
 const isLoadingRoomSettings = ref(false);
 const inputRoomSettings: Ref<RoomSettings> = ref<RoomSettings>({

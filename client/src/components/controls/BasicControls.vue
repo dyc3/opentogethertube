@@ -66,9 +66,9 @@
 <script lang="ts" setup>
 import _ from "lodash";
 import { useStore } from "@/store";
-import { granted } from "@/util/grants";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import { useGrants } from "../composables/grants";
 
 const props = withDefaults(
 	defineProps<{
@@ -83,6 +83,7 @@ const emit = defineEmits(["seek", "play", "pause", "skip"]);
 
 const store = useStore();
 const roomapi = useRoomApi(useConnection());
+const granted = useGrants();
 
 /** Send a message to play or pause the video, depending on the current state. */
 function togglePlayback() {
