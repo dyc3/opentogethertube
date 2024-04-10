@@ -239,7 +239,7 @@ impl BalancerContext {
         self.monoliths_by_region.entry(region).or_default().push(id);
     }
 
-    pub async fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
+    pub fn remove_monolith(&mut self, monolith_id: MonolithId) -> anyhow::Result<()> {
         let m = self.monoliths.remove(&monolith_id);
         if let Some(m) = m {
             let region = m.region().to_string();
@@ -250,24 +250,6 @@ impl BalancerContext {
 
         self.rooms_to_monoliths
             .retain(|_, v| v.monolith_id() != monolith_id);
-
-        self.clients
-            .retain(|_, v| self.rooms_to_monoliths.contains_key(&v.room));
-
-        for client in self.clients.values() {
-            match client
-                .send(Message::Close(Some(CloseFrame {
-                    code: CloseCode::Away,
-                    reason: "Monolith disconnect".into(),
-                })))
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => {
-                    error!("failed to disconnect client: {:?}", err)
-                }
-            };
-        }
 
         Ok(())
     }
@@ -592,7 +574,7 @@ pub async fn leave_monolith(
 ) -> anyhow::Result<()> {
     info!("monolith left");
     let mut ctx_write = ctx.write().await;
-    ctx_write.remove_monolith(id).await?;
+    ctx_write.remove_monolith(id)?;
     Ok(())
 }
 
