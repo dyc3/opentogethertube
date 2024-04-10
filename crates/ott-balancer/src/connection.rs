@@ -251,7 +251,7 @@ async fn connect_and_maintain(
                 }
 
                 _ = cancel.cancelled() => {
-                    info!("Monolith connection cancelled, safely ending: {}", monolith_id);
+                    info!(monolith_id = %monolith_id, "Monolith connection cancelled, safely ending");
                     #[allow(deprecated)]
                     if let Err(err) = link
                         .send_monolith_message(monolith_id, SocketMessage::End)
