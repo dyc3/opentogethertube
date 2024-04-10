@@ -618,13 +618,14 @@ pub async fn dispatch_monolith_message(
                     );
                 }
                 MsgM2B::Loaded(msg) => {
-                    debug!("room loaded on {}: {:?}", monolith_id, msg.room.name);
+                    info!(monolith_id = %monolith_id, room = %msg.room.name, load_epoch = %msg.load_epoch, "room loaded");
                     let mut ctx_write = ctx.write().await;
                     ctx_write
                         .add_or_sync_room(msg.room, *monolith_id, msg.load_epoch)
                         .await?;
                 }
                 MsgM2B::Unloaded(msg) => {
+                    info!(monolith_id = %monolith_id, room = %msg.name, "room unloaded");
                     let mut ctx_write = ctx.write().await;
                     ctx_write.remove_room(&msg.name, *monolith_id).await?;
                 }
