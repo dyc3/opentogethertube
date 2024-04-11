@@ -51,3 +51,7 @@ harness = false
 [[bench]]
 name = "joins"
 harness = false
+
+[[bench]]
+name = "selection"
+harness = false
