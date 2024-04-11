@@ -6,7 +6,6 @@ export const USERNAME_LENGTH_MAX = 48;
 export const ALL_VIDEO_SERVICES = [
 	"youtube",
 	"vimeo",
-	"dailymotion",
 	"direct",
 	"hls",
 	"dash",

@@ -1,6 +1,5 @@
 import { URL } from "url";
 import _ from "lodash";
-import DailyMotionAdapter from "./services/dailymotion";
 import GoogleDriveAdapter from "./services/googledrive";
 import VimeoAdapter from "./services/vimeo";
 import YouTubeAdapter from "./services/youtube";
@@ -56,9 +55,6 @@ export async function initExtractor() {
 
 	if (enabled.includes("vimeo")) {
 		adapters.push(new VimeoAdapter());
-	}
-	if (enabled.includes("dailymotion")) {
-		adapters.push(new DailyMotionAdapter());
 	}
 	if (enabled.includes("googledrive")) {
 		const apiKey = conf.get("info_extractor.google_drive.api_key");

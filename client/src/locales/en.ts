@@ -54,7 +54,7 @@ export default {
 			name: "OpenTogetherTube",
 			text1: "is a real-time video synchronization platform.\nIt's easy to use and has no sign up required. Just create a room, add videos and\ninvite your friends. BOOM! You're ready to binge videos with your friends until 3AM.",
 			text2: "The original TogetherTube was loved for it's simple interface,\nand how easy it was to start watching videos right away.\nOpenTogetherTube aims to be just as easy, and then improve on\ntop of that to make it even better.",
-			text3: "Currently, you can watch online videos with your friends from Youtube, Vimeo, Dailymotion, direct links to .mp4 videos, and",
+			text3: "Currently, you can watch online videos with your friends from Youtube, Vimeo, direct links to .mp4 videos, and",
 			link: "more are on the way",
 		},
 		features: {
@@ -197,7 +197,6 @@ export default {
 		"platforms": {
 			"youtube-videos": "Youtube videos: {url}",
 			"vimeo-videos": "Vimeo videos: {url}",
-			"dailymotion-videos": "Dailymotion videos: {url}",
 			"any-mp4-videos": "Any public .mp4 videos: {url}",
 			"youtube-playlists": "Youtube playlists: {url}",
 			"youtube-channels": "Youtube channels: {url}",
