@@ -1,7 +1,7 @@
 [package]
 name = "ott-collector"
 description = "A small service to collect and aggregate system state from Balancers, and make it available to Grafana."
-version = "0.14.0"
+version = "0.14.1"
 edition = "2021"
 
 [dependencies]
