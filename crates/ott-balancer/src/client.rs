@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
-use tokio::sync::broadcast::error::RecvError;
+use tokio::sync::broadcast::error::{RecvError, TryRecvError};
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
@@ -80,6 +80,22 @@ impl ClientLink {
         }?;
 
         Ok(msg)
+    }
+
+    pub fn outbound_try_recv(&mut self) -> Result<SocketMessage, TryRecvError> {
+        if self.room_tx.is_closed() {
+            return Err(TryRecvError::Closed);
+        }
+
+        match self.unicast_rx.try_recv() {
+            Ok(msg) => return Ok(msg),
+            Err(tokio::sync::mpsc::error::TryRecvError::Disconnected) => {
+                return Err(TryRecvError::Closed)
+            }
+            Err(_) => {}
+        }
+
+        self.broadcast_rx.try_recv()
     }
 
     /// Send a message to the Room this client is in via the Balancer
