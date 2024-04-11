@@ -16,4 +16,5 @@ extend-exclude = [
 	"server/tests/unit/services/dailymotion.spec.ts",
 	"client/src/locales",
 	"!client/src/locales/en.ts",
+	"deploy/nginx.prod.conf",
 ]
