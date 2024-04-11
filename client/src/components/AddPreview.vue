@@ -125,7 +125,6 @@ const testVideos = import.meta.env.DEV
 			["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
 			["test vimeo 0", "https://vimeo.com/94338566"],
 			["test vimeo 1", "https://vimeo.com/239423699"],
-			["test dailymotion 0", "https://www.dailymotion.com/video/x6hkywd"],
 			[
 				"test direct 0",
 				"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",

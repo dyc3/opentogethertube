@@ -10,8 +10,6 @@ export function buildUrlForQueueItem(item: QueueItem): string {
 			return `https://youtu.be/${item.id}`;
 		case "vimeo":
 			return `https://vimeo.com/${item.id}`;
-		case "dailymotion":
-			return `https://dailymotion.com/video/${item.id}`;
 		case "direct":
 			return item.id;
 		case "hls":

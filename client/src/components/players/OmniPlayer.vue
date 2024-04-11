@@ -47,18 +47,6 @@
 				@buffering="onBuffering"
 				@error="onError"
 			/>
-			<DailymotionPlayer
-				v-else-if="!!source && source.service == 'dailymotion'"
-				ref="player"
-				:video-id="source.id"
-				class="player"
-				@apiready="onApiReady"
-				@playing="onPlaying"
-				@paused="onPaused"
-				@ready="onReady"
-				@buffering="onBuffering"
-				@error="onError"
-			/>
 			<GoogleDrivePlayer
 				v-else-if="!!source && source.service == 'googledrive'"
 				ref="player"
@@ -148,7 +136,6 @@ const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering",
 
 const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
-const DailymotionPlayer = defineAsyncComponent(() => import("./DailymotionPlayer.vue"));
 const GoogleDrivePlayer = defineAsyncComponent(() => import("./GoogleDrivePlayer.vue"));
 const PlyrPlayer = defineAsyncComponent(() => import("./PlyrPlayer.vue"));
 const PeertubePlayer = defineAsyncComponent(() => import("./PeertubePlayer.vue"));
@@ -250,10 +237,7 @@ function onReady() {
 }
 
 function hackReadyEdgeCase() {
-	if (
-		props.source &&
-		(props.source.service === "youtube" || props.source.service === "dailymotion")
-	) {
+	if (props.source && props.source.service === "youtube") {
 		store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
 	}
 }

@@ -13,7 +13,6 @@ aknowledge = "aknowledge"
 extend-exclude = [
 	"server/tests/unit/fixtures",
 	"server/tests/unit/services/youtube.spec.ts",
-	"server/tests/unit/services/dailymotion.spec.ts",
 	"client/src/locales",
 	"!client/src/locales/en.ts",
 	"deploy/nginx.prod.conf",

@@ -50,7 +50,7 @@ describe("Vimeo", () => {
 			expect(adapter.fetchVideoInfo(videoId)).toBeInstanceOf(Promise);
 		});
 
-		it("Queries the Dailymotion API", async () => {
+		it("Queries the Vimeo API", async () => {
 			await adapter.fetchVideoInfo(videoId);
 			expect(apiGet).toBeCalled();
 		});

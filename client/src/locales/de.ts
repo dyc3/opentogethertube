@@ -30,7 +30,7 @@ export default {
 			name: "OpenTogetherTube",
 			text1: "ist eine Plattform zur Echtzeit-Videosynchronisation. Es ist einfach zu bedienen und erfordert keine Anmeldung. Erstelle einfach einen Raum, füge Videos hinzu und lade deine Freunde ein. Zack, fertig! Du bist nun startklar um mit deinen Freunden bis 3 Uhr nachts Videos zu gucken.",
 			text2: "Das ursprüngliche TogetherTube wurde für seine einfache Benutzeroberfläche geliebt und dafür, wie einfach es war, sofort mit dem Ansehen von Videos zu beginnen. OpenTogetherTube hat sich zum Ziel gesetzt, genauso einfach zu sein und es darüber hinaus noch besser zu machen.",
-			text3: "Derzeit können Sie mit Ihren Freunden Online-Videos von Youtube, Vimeo, Dailymotion und direkte Links zu .mp4-Videos ansehen.",
+			text3: "Derzeit können Sie mit Ihren Freunden Online-Videos von Youtube, Vimeo, und direkte Links zu .mp4-Videos ansehen.",
 			link: "Unterstützung für weitere Plattformen ist geplant",
 		},
 		features: {
@@ -165,7 +165,6 @@ export default {
 		"platforms": {
 			"youtube-videos": "Youtube-Videos: {url}",
 			"vimeo-videos": "Vimeo-Videos: {url}",
-			"dailymotion-videos": "Dailymotion-Videos: {url}",
 			"any-mp4-videos": "Alle öffentlichen .mp4-Videos: {url}",
 			"youtube-playlists": "Youtube-Wiedergabelisten: {url}",
 			"youtube-channels": "Youtube-Kanäle: {url}",

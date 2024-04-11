@@ -204,7 +204,7 @@ export function getVideoInfoFields(service?: string): (keyof VideoMetadata)[] {
 			continue;
 		}
 		// eslint-disable-next-line array-bracket-newline
-		if (["youtube", "vimeo", "dailymotion"].includes(service ?? "") && column === "mime") {
+		if (["youtube", "vimeo"].includes(service ?? "") && column === "mime") {
 			continue;
 		}
 		if (service === "googledrive" && column === "description") {

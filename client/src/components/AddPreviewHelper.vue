@@ -26,16 +26,6 @@
 			<li>
 				<ProcessedText
 					:text="
-						$t('add-preview.platforms.dailymotion-videos', {
-							url: 'https://dailymotion.com/video/x31i1so',
-						})
-					"
-					@link-click="setAddPreviewText"
-				/>
-			</li>
-			<li>
-				<ProcessedText
-					:text="
 						$t('add-preview.platforms.any-mp4-videos', {
 							url: 'https://vjs.zencdn.net/v/oceans.mp4',
 						})
