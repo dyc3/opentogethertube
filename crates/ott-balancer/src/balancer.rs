@@ -723,6 +723,7 @@ pub async fn dispatch_monolith_message(
 mod test {
     use ott_common::discovery::{ConnectionConfig, HostOrIp};
     use std::net::Ipv4Addr;
+    use tokio::sync::mpsc::error::TryRecvError;
 
     use super::*;
 
@@ -857,5 +858,272 @@ mod test {
             .clients()
             .contains(&client_id));
         assert_eq!(ctx.monoliths.get(&monolith_id).unwrap().rooms().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn should_unload_duplicate_rooms_where_second_load_invalid() {
+        // a bunch of setup
+        let mut ctx = BalancerContext::new();
+        let (monolith_outbound_tx_1, _monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
+        let (client_inbound_tx_1, _client_inbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let m1_id = uuid::Uuid::new_v4().into();
+        let m1 = BalancerMonolith::new(
+            NewMonolith {
+                id: m1_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_1,
+            client_inbound_tx_1,
+        );
+        let (monolith_outbound_tx_2, mut monolith_outbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_2 = Arc::new(monolith_outbound_tx_2);
+        let (client_inbound_tx_2, _client_inbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let m2_id = uuid::Uuid::new_v4().into();
+        let m2 = BalancerMonolith::new(
+            NewMonolith {
+                id: m2_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3004,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_2,
+            client_inbound_tx_2,
+        );
+        ctx.add_monolith(m1);
+        ctx.add_monolith(m2);
+
+        let room_name = RoomName::from("foo");
+        ctx.add_or_sync_room(RoomMetadata::default_with_name(room_name.clone()), m1_id, 8)
+            .await
+            .expect("failed to add room to m1");
+
+        // drain the channel
+        while match monolith_outbound_rx_2.try_recv() {
+            Ok(_) => true,
+            Err(TryRecvError::Empty) => false,
+            Err(TryRecvError::Disconnected) => false,
+        } {}
+
+        ctx.add_or_sync_room(
+            RoomMetadata::default_with_name(room_name.clone()),
+            m2_id,
+            10,
+        )
+        .await
+        .expect_err("should not be able to add room to m2 because it's already loaded on m1");
+
+        assert_eq!(
+            ctx.rooms_to_monoliths.get(&room_name),
+            Some(&RoomLocator::new(m1_id, 8))
+        );
+        let m1 = ctx.monoliths.get(&m1_id).unwrap();
+        assert!(m1.has_room(&room_name));
+        let m2 = ctx.monoliths.get(&m2_id).unwrap();
+        assert!(!m2.has_room(&room_name));
+
+        let msg = monolith_outbound_rx_2.try_recv();
+        assert!(matches!(msg, Ok(SocketMessage::Message(Message::Text(_)))));
+        match msg {
+            Ok(SocketMessage::Message(Message::Text(text))) => {
+                let msg: MsgB2M =
+                    serde_json::from_str(&text).expect("failed to deserialize message");
+                assert!(matches!(msg, MsgB2M::Unload(_)));
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    #[tokio::test]
+    async fn should_unload_duplicate_rooms_where_2and_load_overrides() {
+        // a bunch of setup
+        let mut ctx = BalancerContext::new();
+        let (monolith_outbound_tx_1, mut monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
+        let (client_inbound_tx_1, _client_inbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let m1_id = uuid::Uuid::new_v4().into();
+        let m1 = BalancerMonolith::new(
+            NewMonolith {
+                id: m1_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_1,
+            client_inbound_tx_1,
+        );
+        let (monolith_outbound_tx_2, _monolith_outbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_2 = Arc::new(monolith_outbound_tx_2);
+        let (client_inbound_tx_2, _client_inbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let m2_id = uuid::Uuid::new_v4().into();
+        let m2 = BalancerMonolith::new(
+            NewMonolith {
+                id: m2_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3004,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_2,
+            client_inbound_tx_2,
+        );
+        ctx.add_monolith(m1);
+        ctx.add_monolith(m2);
+
+        let room_name = RoomName::from("foo");
+        ctx.add_or_sync_room(RoomMetadata::default_with_name(room_name.clone()), m1_id, 8)
+            .await
+            .expect("failed to add room to m1");
+
+        // drain the channel
+        while match monolith_outbound_rx_1.try_recv() {
+            Ok(_) => true,
+            Err(TryRecvError::Empty) => false,
+            Err(TryRecvError::Disconnected) => false,
+        } {}
+
+        ctx.add_or_sync_room(RoomMetadata::default_with_name(room_name.clone()), m2_id, 6)
+            .await
+            .expect("should be able to add room to m2 because it's an older version");
+
+        assert_eq!(
+            ctx.rooms_to_monoliths.get(&room_name),
+            Some(&RoomLocator::new(m2_id, 6))
+        );
+        let m1 = ctx.monoliths.get(&m1_id).unwrap();
+        assert!(!m1.has_room(&room_name));
+        let m2 = ctx.monoliths.get(&m2_id).unwrap();
+        assert!(m2.has_room(&room_name));
+
+        let msg = monolith_outbound_rx_1.try_recv();
+        assert!(matches!(msg, Ok(SocketMessage::Message(Message::Text(_)))));
+        match msg {
+            Ok(SocketMessage::Message(Message::Text(text))) => {
+                let msg: MsgB2M =
+                    serde_json::from_str(&text).expect("failed to deserialize message");
+                assert!(matches!(msg, MsgB2M::Unload(_)));
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    #[tokio::test]
+    async fn should_unload_duplicate_rooms_where_second_load_overrides_should_disconnect_clients() {
+        // a bunch of setup
+        let ctx = Arc::new(RwLock::new(BalancerContext::new()));
+        let (monolith_outbound_tx_1, _monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
+        let (client_inbound_tx_1, _client_inbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let m1_id = uuid::Uuid::new_v4().into();
+        let m1 = BalancerMonolith::new(
+            NewMonolith {
+                id: m1_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_1,
+            client_inbound_tx_1,
+        );
+        let (monolith_outbound_tx_2, _monolith_outbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_2 = Arc::new(monolith_outbound_tx_2);
+        let (client_inbound_tx_2, _client_inbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let m2_id = uuid::Uuid::new_v4().into();
+        let m2 = BalancerMonolith::new(
+            NewMonolith {
+                id: m2_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3004,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_2,
+            client_inbound_tx_2,
+        );
+        ctx.write().await.add_monolith(m1);
+        ctx.write().await.add_monolith(m2);
+
+        let room_name = RoomName::from("foo");
+        ctx.write()
+            .await
+            .add_or_sync_room(RoomMetadata::default_with_name(room_name.clone()), m1_id, 8)
+            .await
+            .expect("failed to add room to m1");
+
+        // add client to room
+        let client_id = uuid::Uuid::new_v4().into();
+        let (client_link_tx, client_link_rx) = tokio::sync::oneshot::channel();
+        join_client(
+            &ctx,
+            NewClient {
+                id: client_id,
+                room: room_name.clone(),
+                token: "test".into(),
+            },
+            client_link_tx,
+        )
+        .await
+        .expect("failed to add client");
+        let mut client_link = client_link_rx.await.expect("failed to get client link");
+        let _client = ctx
+            .read()
+            .await
+            .clients
+            .get(&client_id)
+            .expect("client not found");
+
+        ctx.write()
+            .await
+            .add_or_sync_room(RoomMetadata::default_with_name(room_name.clone()), m2_id, 6)
+            .await
+            .expect("should be able to add room to m2 because it's an older version");
+
+        while client_link.outbound_try_recv().is_ok() {}
+        let msg = client_link
+            .outbound_try_recv()
+            .expect_err("channel should be closed");
+        assert!(matches!(
+            msg,
+            tokio::sync::broadcast::error::TryRecvError::Closed
+        ));
+
+        // make sure new clients get routed to the new room
+        let (client_link_tx, client_link_rx) = tokio::sync::oneshot::channel();
+        join_client(
+            &ctx,
+            NewClient {
+                id: client_id,
+                room: room_name.clone(),
+                token: "test".into(),
+            },
+            client_link_tx,
+        )
+        .await
+        .expect("failed to add client");
+        let _client_link = client_link_rx.await.expect("failed to get client link");
+        let ctx_read = ctx.read().await;
+        let _client = ctx_read.clients.get(&client_id).expect("client not found");
+
+        let m2 = ctx_read.monoliths.get(&m2_id).expect("monolith not found");
+        let room = m2.rooms().get(&room_name).expect("room not found on m2");
+        assert!(room.clients().contains(&client_id));
     }
 }
