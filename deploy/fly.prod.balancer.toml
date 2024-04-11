@@ -3,6 +3,7 @@ primary_region = "ewr"
 
 [build]
 dockerfile = "balancer.Dockerfile"
+build-target = "deploy-stage"
 
 [build.args]
 DEPLOY_TARGET = "ott-balancer-prod"
