@@ -303,25 +303,45 @@ impl BalancerContext {
         debug!(func = "add_or_sync_room");
         if let Some(locator) = self.rooms_to_monoliths.get(&metadata.name) {
             if locator.monolith_id() != monolith_id {
+                warn!(
+                    monolith_id = %locator.monolith_id(),
+                    monolith_id_new = %monolith_id,
+                    room = %metadata.name,
+                    load_epoch = %locator.load_epoch(),
+                    load_epoch_new = %load_epoch,
+                    "room already loaded on a different monolith"
+                );
                 // this room is loaded on a different monolith than we were expecting
                 match locator.load_epoch().cmp(&load_epoch) {
                     std::cmp::Ordering::Less => {
                         // we already have an older version of this room
+                        warn!(room = %metadata.name, "unloading room on new monolith because an older version is already loaded");
                         self.unload_room(monolith_id, metadata.name.clone()).await?;
                         return Err(anyhow::anyhow!("room already loaded"));
                     }
                     std::cmp::Ordering::Greater => {
                         // we have an newer version of this room, remove it
-                        self.unload_room(locator.monolith_id(), metadata.name.clone())
+                        warn!(room = %metadata.name, "unloading room on old monolith because it's the newer version");
+                        if let Err(err) = self
+                            .unload_room(locator.monolith_id(), metadata.name.clone())
+                            .await
+                        {
+                            warn!(room = %metadata.name, "failed to unload room on old monolith: {:?}", err);
+                        }
+                        self.remove_room(&metadata.name, locator.monolith_id())
                             .await?;
-                        // self.remove_room(&metadata.name, locator.monolith_id())
-                        //     .await?;
                     }
-                    _ => {}
+                    std::cmp::Ordering::Equal => {
+                        // this is really bad, and should never happen
+                        error!(room = %metadata.name, "room already loaded on the same version, but different monolith");
+                        return Err(anyhow::anyhow!("room already loaded"));
+                    }
                 }
             }
         }
-        let monolith = self.monoliths.get_mut(&monolith_id).unwrap();
+        let Some(monolith) = self.monoliths.get_mut(&monolith_id) else {
+            anyhow::bail!("monolith not found");
+        };
 
         self.rooms_to_monoliths.insert(
             metadata.name.clone(),
