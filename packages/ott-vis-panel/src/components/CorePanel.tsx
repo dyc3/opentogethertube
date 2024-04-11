@@ -10,7 +10,7 @@ import { useEventBus, type BusEvent } from "eventbus";
 import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
 
-interface Props extends PanelProps<CoreOptions> {}
+interface Props extends PanelProps<CoreOptions> { }
 
 const getStyles = () => {
 	return {
@@ -29,6 +29,15 @@ const getStyles = () => {
 			left: 0;
 			padding: 10px;
 		`,
+		legendBox: css`
+			position: absolute;
+			bottom: 0;
+			right: 0;
+			padding: 10px;
+			background-color: #ffffff;
+			border: 1px solid #000000;
+			border-radius: 5px;
+		`,
 	};
 };
 
@@ -40,6 +49,22 @@ export const CorePanel: React.FC<Props> = props => {
 	}
 
 	return <CoreData {...props} />;
+};
+
+const Legend: React.FC = () => {
+	//const colors = useColorProvider();
+	// implement hook into legend listing
+	return (
+		<div className={useStyles2(getStyles).legendBox}>
+			Legend:
+			<ul>
+				<li>Insert Balancer node here</li>
+				<li>Insert Monolith node here</li>
+				<li>Insert Room node here</li>
+				<li>Insert Client node here</li>
+			</ul>
+		</div>
+	);
 };
 
 /**
@@ -138,6 +163,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 		>
 			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
+			<Legend />
 		</div>
 	);
 };
