@@ -67,10 +67,7 @@ const CategorySchema = z.enum([
 	"preview",
 ]);
 
-const GrantSchema = z.tuple([
-	z.nativeEnum(Role),
-	z.number(),
-]);
+const GrantSchema = z.tuple([z.nativeEnum(Role), z.number()]);
 
 const RoomSettingsSchema = z.object({
 	title: z.string().max(255).optional(),
