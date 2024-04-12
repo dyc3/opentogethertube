@@ -8,8 +8,8 @@ import _ from "lodash";
 const store = useStore();
 const connection = useConnection();
 
-const playbackStatusUnsub = store.subscribe(mutation => {
-	if (mutation.type === "PLAYBACK_STATUS") {
+const playbackStatusUnsub = store.subscribe((mutation, state) => {
+	if (mutation.type === "PLAYBACK_STATUS" && state.playerStatus !== mutation.payload) {
 		sendPlaybackStatusDebounced(mutation.payload);
 	}
 });
