@@ -53,6 +53,7 @@
 					variant="flat"
 					@click="playNow"
 					v-if="store.state.room.queueMode !== QueueMode.Vote"
+					:disabled="!granted('manage-queue.play-now')"
 					data-cy="btn-play-now"
 				>
 					<v-icon>mdi-play</v-icon>
@@ -98,6 +99,7 @@
 							class="button-with-icon"
 							@click="playNow"
 							v-if="store.state.room.queueMode !== QueueMode.Vote"
+							:disabled="!granted('manage-queue.play-now')"
 							data-cy="menu-btn-play-now"
 						>
 							<v-icon>mdi-play</v-icon>

@@ -1046,6 +1046,7 @@ export class Room implements RoomState {
 			[RoomRequestType.OrderRequest, "manage-queue.order"],
 			[RoomRequestType.VoteRequest, "manage-queue.vote"],
 			[RoomRequestType.ChatRequest, "chat"],
+			[RoomRequestType.PlayNowRequest, "manage-queue.play-now"],
 			[RoomRequestType.KickRequest, "manage-users.kick"],
 		]);
 		const permission = permissions.get(request.type);
