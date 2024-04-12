@@ -1047,6 +1047,8 @@ export class Room implements RoomState {
 			[RoomRequestType.VoteRequest, "manage-queue.vote"],
 			[RoomRequestType.ChatRequest, "chat"],
 			[RoomRequestType.PlayNowRequest, "manage-queue.play-now"],
+			[RoomRequestType.ShuffleRequest, "manage-queue.order"],
+			[RoomRequestType.PlaybackSpeedRequest, "playback.speed"],
 			[RoomRequestType.KickRequest, "manage-users.kick"],
 		]);
 		const permission = permissions.get(request.type);
@@ -1674,8 +1676,6 @@ export class Room implements RoomState {
 		request: PlaybackSpeedRequest,
 		context: RoomRequestContext
 	): Promise<void> {
-		this.grants.check(context.role, "playback.speed");
-
 		this.flushPlaybackPosition();
 		this.playbackSpeed = request.speed;
 	}
