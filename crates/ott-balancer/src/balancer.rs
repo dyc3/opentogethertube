@@ -272,7 +272,13 @@ impl BalancerContext {
             .monoliths
             .get_mut(&monolith_id)
             .ok_or(anyhow::anyhow!("monolith not found"))?;
-        self.rooms_to_monoliths.remove(room);
+        if let Some(locator) = self.rooms_to_monoliths.get(room) {
+            if locator.monolith_id() == monolith_id {
+                // we have to check if the room is actually loaded on this monolith
+                // otherwise we risk unmapping the room from the monolith it's supposed to be on
+                self.rooms_to_monoliths.remove(room);
+            }
+        }
         monolith.remove_room(room);
         Ok(())
     }
