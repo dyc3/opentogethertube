@@ -274,6 +274,9 @@ async function claimOwnership() {
 	}
 	isLoadingRoomSettings.value = false;
 }
+defineExpose({
+	loadRoomSettings,
+});
 </script>
 
 <style lang="scss">
