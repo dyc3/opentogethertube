@@ -6,7 +6,7 @@ use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
 use ott_common::discovery::ConnectionConfig;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error};
+use tracing::{debug, error, info, instrument};
 
 use crate::messages::*;
 
@@ -81,8 +81,12 @@ impl BalancerMonolith {
         Ok(self.rooms.get_mut(room_name).unwrap())
     }
 
+    #[instrument(skip(self), fields(monolith_id = %self.id), ret)]
     pub fn remove_room(&mut self, room: &RoomName) -> Option<Room> {
-        self.rooms.remove(room)
+        self.rooms.remove(room).map(|r| {
+            info!("room removed");
+            r
+        })
     }
 
     pub fn has_room(&self, room: &RoomName) -> bool {
