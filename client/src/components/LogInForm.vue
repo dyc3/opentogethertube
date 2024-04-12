@@ -215,7 +215,7 @@ const LogInForm = defineComponent({
 			v => !!v || t("login-form.rules.password-required"),
 			v =>
 				(v && v.length >= 10) ||
-				(import.meta.env.NODE_ENV === "development" && v === "1") ||
+				(import.meta.env.DEV && v === "1") ||
 				t("login-form.rules.password-length"),
 		];
 		const retypePasswordRules = [
