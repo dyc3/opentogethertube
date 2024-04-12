@@ -148,7 +148,8 @@ const createRoom: RequestHandler<
 		await roommanager.createRoom(body);
 	}
 	log.info(
-		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${req.ip
+		`${body.isTemporary ? "Temporary" : "Permanent"} room created: name=${body.name} ip=${
+			req.ip
 		} user-agent=${req.headers["user-agent"]}`
 	);
 	res.status(201).json({
@@ -184,7 +185,6 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 	res.json(resp);
 };
 
-
 const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoom> = async (
 	req,
 	res
@@ -201,7 +201,7 @@ const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoo
 	}
 	const room = result.value;
 
-	if ('claim' in body) {
+	if ("claim" in body) {
 		if (body.claim) {
 			if (room.owner) {
 				throw new BadApiArgumentException("claim", `Room already has owner.`);
@@ -227,20 +227,16 @@ const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoo
 				return;
 			}
 		}
-
-	} else if ('visibility' in body) {
-		const newBody = {
-			...body,
-			grants: new Grants(body.grants),
-		}
-
+	} else if ("visibility" in body) {
 		const roomRequest: ApplySettingsRequest = {
 			type: RoomRequestType.ApplySettingsRequest,
-			settings: body,
+			settings: {
+				...body,
+				grants: new Grants(body.grants),
+			},
 		};
 
 		await room.processUnauthorizedRequest(roomRequest, { token: req.token });
-
 	}
 
 	if (!room.isTemporary) {
