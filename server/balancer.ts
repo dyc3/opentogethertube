@@ -354,9 +354,8 @@ function onRoomUnload(roomName: string) {
 	gossipDebounced();
 }
 
-function gossip() {
-	log.debug("Gossiping");
-	broadcastToBalancers({
+export function buildGossipMessage(): MsgM2B {
+	return {
 		type: "gossip",
 		payload: {
 			rooms: roommanager.rooms.map(room => ({
@@ -373,7 +372,12 @@ function gossip() {
 				load_epoch: room.loadEpoch,
 			})),
 		},
-	});
+	};
+}
+
+function gossip() {
+	log.debug("Gossiping");
+	broadcastToBalancers(buildGossipMessage());
 	gossipDebounced();
 }
 

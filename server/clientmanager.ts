@@ -24,7 +24,13 @@ import { RoomStateSyncable } from "./room";
 import { Gauge } from "prom-client";
 import { replacer } from "ott-common/serialize";
 import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
-import { BalancerConnection, MsgB2M, balancerManager, initBalancerConnections } from "./balancer";
+import {
+	BalancerConnection,
+	MsgB2M,
+	balancerManager,
+	buildGossipMessage,
+	initBalancerConnections,
+} from "./balancer";
 import usermanager from "./usermanager";
 import { OttException } from "ott-common/exceptions";
 import { conf } from "./ott-config";
@@ -262,6 +268,10 @@ async function onClientDisconnect(client: Client) {
 
 function onBalancerConnect(conn: BalancerConnection) {
 	log.info(`Connected to balancer ${conn.id}`);
+	const result = conn.send(buildGossipMessage());
+	if (!result.ok) {
+		log.error(`Failed to send initial gossip message to balancer ${conn.id}: ${result.value}`);
+	}
 }
 
 function onBalancerDisconnect(conn: BalancerConnection) {
