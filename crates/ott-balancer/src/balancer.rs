@@ -266,30 +266,14 @@ impl BalancerContext {
         Ok(room)
     }
 
-    pub async fn remove_room(
-        &mut self,
-        room: &RoomName,
-        monolith_id: MonolithId,
-    ) -> anyhow::Result<()> {
+    pub fn remove_room(&mut self, room: &RoomName, monolith_id: MonolithId) -> anyhow::Result<()> {
         debug!(func = "remove_room", %room, %monolith_id);
         let monolith = self
             .monoliths
             .get_mut(&monolith_id)
             .ok_or(anyhow::anyhow!("monolith not found"))?;
         self.rooms_to_monoliths.remove(room);
-        let room = monolith.remove_room(room);
-        if let Some(room) = room {
-            for client_id in room.clients() {
-                self.clients
-                    .get(client_id)
-                    .unwrap()
-                    .send(Message::Close(Some(CloseFrame {
-                        code: CloseCode::Again,
-                        reason: "Room unloaded".into(),
-                    })))
-                    .await?;
-            }
-        }
+        monolith.remove_room(room);
         Ok(())
     }
 
@@ -328,8 +312,7 @@ impl BalancerContext {
                         {
                             warn!(room = %metadata.name, "failed to unload room on old monolith: {:?}", err);
                         }
-                        self.remove_room(&metadata.name, locator.monolith_id())
-                            .await?;
+                        self.remove_room(&metadata.name, locator.monolith_id())?;
                     }
                     std::cmp::Ordering::Equal => {
                         // this is really bad, and should never happen
@@ -629,7 +612,7 @@ pub async fn dispatch_monolith_message(
                 MsgM2B::Unloaded(msg) => {
                     info!(monolith_id = %monolith_id, room = %msg.name, "room unloaded");
                     let mut ctx_write = ctx.write().await;
-                    ctx_write.remove_room(&msg.name, *monolith_id).await?;
+                    ctx_write.remove_room(&msg.name, *monolith_id)?;
                 }
                 MsgM2B::Gossip(msg) => {
                     let mut ctx_write = ctx.write_owned().await;
@@ -656,13 +639,13 @@ pub async fn dispatch_monolith_message(
                             Ok(_) => {}
                             Err(err) => {
                                 warn!("failed to add room: {:?}", err);
-                                let _ = ctx_write.remove_room(&room_name, *monolith_id).await;
+                                let _ = ctx_write.remove_room(&room_name, *monolith_id);
                             }
                         }
                     }
 
                     for room in to_remove {
-                        let _ = ctx_write.remove_room(&room, *monolith_id).await;
+                        let _ = ctx_write.remove_room(&room, *monolith_id);
                     }
                 }
                 MsgM2B::RoomMsg(msg) => {
