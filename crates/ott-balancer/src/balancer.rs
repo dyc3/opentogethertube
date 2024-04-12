@@ -714,11 +714,14 @@ mod test {
     use std::net::Ipv4Addr;
     use tokio::sync::mpsc::error::TryRecvError;
 
+    use crate::selection::HashRingSelector;
+
     use super::*;
 
     #[tokio::test]
     async fn test_clients_add_remove() {
         // a bunch of setup
+        BalancerConfig::init_default();
         let room_name = RoomName::from("test");
         let mut ctx = BalancerContext::new();
         let (monolith_outbound_tx, _monolith_outbound_rx) = tokio::sync::mpsc::channel(100);
@@ -794,6 +797,7 @@ mod test {
     #[tokio::test]
     async fn test_client_join_case_insensitive() {
         // a bunch of setup
+        BalancerConfig::init_default();
         let room_name = RoomName::from("Foo");
         let join_room_name = RoomName::from("foo");
         let mut ctx = BalancerContext::new();
@@ -852,6 +856,7 @@ mod test {
     #[tokio::test]
     async fn should_unload_duplicate_rooms_where_second_load_invalid() {
         // a bunch of setup
+        BalancerConfig::init_default();
         let mut ctx = BalancerContext::new();
         let (monolith_outbound_tx_1, _monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
         let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
@@ -934,6 +939,7 @@ mod test {
     #[tokio::test]
     async fn should_unload_duplicate_rooms_where_2and_load_overrides() {
         // a bunch of setup
+        BalancerConfig::init_default();
         let mut ctx = BalancerContext::new();
         let (monolith_outbound_tx_1, mut monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
         let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
@@ -1012,6 +1018,7 @@ mod test {
     #[tokio::test]
     async fn should_unload_duplicate_rooms_where_second_load_overrides_should_disconnect_clients() {
         // a bunch of setup
+        BalancerConfig::init_default();
         let ctx = Arc::new(RwLock::new(BalancerContext::new()));
         let (monolith_outbound_tx_1, _monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
         let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
@@ -1114,5 +1121,102 @@ mod test {
         let m2 = ctx_read.monoliths.get(&m2_id).expect("monolith not found");
         let room = m2.rooms().get(&room_name).expect("room not found on m2");
         assert!(room.clients().contains(&client_id));
+    }
+
+    #[tokio::test]
+    async fn should_prioritize_already_loaded() {
+        // a bunch of setup
+        BalancerConfig::init_default();
+        let ctx = Arc::new(RwLock::new(BalancerContext::new()));
+        ctx.write().await.monolith_selection =
+            MonolithSelectionStrategy::HashRing(HashRingSelector);
+        let (monolith_outbound_tx_1, _monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
+        let (client_inbound_tx_1, _client_inbound_rx_1) = tokio::sync::mpsc::channel(100);
+        let m1_id = uuid::Uuid::new_v4().into();
+        let m1 = BalancerMonolith::new(
+            NewMonolith {
+                id: m1_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_1,
+            client_inbound_tx_1,
+        );
+        let (monolith_outbound_tx_2, _monolith_outbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx_2 = Arc::new(monolith_outbound_tx_2);
+        let (client_inbound_tx_2, _client_inbound_rx_2) = tokio::sync::mpsc::channel(100);
+        let m2_id = uuid::Uuid::new_v4().into();
+        let m2 = BalancerMonolith::new(
+            NewMonolith {
+                id: m2_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3004,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx_2,
+            client_inbound_tx_2,
+        );
+        ctx.write().await.add_monolith(m1);
+        ctx.write().await.add_monolith(m2);
+
+        // determine which monolith the room will get loaded on according to the selector
+        let room_name = RoomName::from("foo");
+        let routed_id = ctx
+            .read()
+            .await
+            .select_monolith(&room_name)
+            .expect("failed to select monolith")
+            .id();
+        let opposite_id = if routed_id == m1_id { m2_id } else { m1_id };
+
+        ctx.write()
+            .await
+            .add_or_sync_room(
+                RoomMetadata::default_with_name(room_name.clone()),
+                opposite_id,
+                8,
+            )
+            .await
+            .expect("failed to add room to opposite monolith");
+
+        ctx.write()
+            .await
+            .add_or_sync_room(
+                RoomMetadata::default_with_name(room_name.clone()),
+                routed_id,
+                10,
+            )
+            .await
+            .expect_err("should not be able to add room to routed monolith because it's already loaded on the opposite monolith");
+
+        // add client to room
+        let client_id = uuid::Uuid::new_v4().into();
+        let (client_link_tx, client_link_rx) = tokio::sync::oneshot::channel();
+        join_client(
+            &ctx,
+            NewClient {
+                id: client_id,
+                room: room_name.clone(),
+                token: "test".into(),
+            },
+            client_link_tx,
+        )
+        .await
+        .expect("failed to add client");
+        let mut _client_link = client_link_rx.await.expect("failed to get client link");
+        let _client = ctx
+            .read()
+            .await
+            .clients
+            .get(&client_id)
+            .expect("client not found");
     }
 }
