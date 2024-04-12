@@ -141,6 +141,17 @@ class BalancerManager {
 		this.bus.on(event, handler);
 	}
 
+	off<E extends BalancerManagerEvemts>(event: E, handler: BalancerManagerEventHandlers<E>) {
+		this.bus.off(event, handler);
+	}
+
+	/**
+	 * Used in tests to clear all event listeners.
+	 */
+	clearListeners() {
+		this.bus.removeAllListeners();
+	}
+
 	private emit<E extends BalancerManagerEvemts>(
 		event: E,
 		...args: Parameters<BalancerManagerEventHandlers<E>>

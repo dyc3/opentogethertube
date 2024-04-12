@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import clientmanager, { parseWebsocketConnectionUrl } from "../../clientmanager";
+import clientmanager, {
+	parseWebsocketConnectionUrl,
+	setupBalancerManager,
+} from "../../clientmanager";
 import {
 	BalancerConnection,
 	BalancerConnectionEventHandlers,
@@ -208,6 +211,11 @@ describe("ClientManager", () => {
 describe("BalancerManager", () => {
 	beforeEach(() => {
 		balancerManager.balancerConnections.splice(0, balancerManager.balancerConnections.length);
+		setupBalancerManager();
+	});
+
+	afterEach(() => {
+		balancerManager.clearListeners();
 	});
 
 	it("should remove the correct balancer from the list when it disconnects", async () => {
@@ -238,9 +246,7 @@ describe("BalancerManager", () => {
 		await con1.emitInit();
 		expect(balancerManager.balancerConnections).toHaveLength(1);
 	});
-});
 
-describe("MonolithId", () => {
 	it("should send the same ID to each connection", () => {
 		const mock1 = new BalancerConnectionMock();
 		const mock2 = new BalancerConnectionMock();
@@ -254,5 +260,24 @@ describe("MonolithId", () => {
 		expect(id1).toBeDefined();
 		expect(id2).toBeDefined();
 		expect(id1).toEqual(id2);
+	});
+
+	it("should unload rooms when a balancer tells it to", async () => {
+		const mock = new BalancerConnectionMock();
+		await Promise.all([balancerManager.addBalancerConnection(mock), mock.emitInit()]);
+
+		await roommanager.createRoom({
+			name: "foo",
+			isTemporary: true,
+		});
+		expect((await roommanager.getRoom("foo", { mustAlreadyBeLoaded: true })).ok).toEqual(true);
+		mock.emit("message", {
+			type: "unload",
+			payload: {
+				room: "foo",
+			},
+		});
+		await new Promise(resolve => setTimeout(resolve, 100));
+		expect((await roommanager.getRoom("foo", { mustAlreadyBeLoaded: true })).ok).toEqual(false);
 	});
 });

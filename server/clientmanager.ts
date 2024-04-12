@@ -56,10 +56,7 @@ export async function setup(): Promise<void> {
 
 	usermanager.on("userModified", onUserModified);
 
-	balancerManager.on("connect", onBalancerConnect);
-	balancerManager.on("disconnect", onBalancerDisconnect);
-	balancerManager.on("message", onBalancerMessage);
-	balancerManager.on("error", onBalancerError);
+	setupBalancerManager();
 	initBalancerConnections();
 
 	if (conf.get("env") !== "test") {
@@ -68,6 +65,13 @@ export async function setup(): Promise<void> {
 		log.silly("subscribing to announcement channel");
 		await redisSubscriber.subscribe(ANNOUNCEMENT_CHANNEL, onAnnouncement);
 	}
+}
+
+export function setupBalancerManager() {
+	balancerManager.on("connect", onBalancerConnect);
+	balancerManager.on("disconnect", onBalancerDisconnect);
+	balancerManager.on("message", onBalancerMessage);
+	balancerManager.on("error", onBalancerError);
 }
 
 export function shutdown() {
@@ -306,10 +310,12 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 	// the intersection type makes it so that it throws a compile error if all the enum variants aren't handled
 	const handlers: Record<MsgB2M["type"], unknown> & EnumHandler<MsgB2M> = {
 		load: async message => {
+			log.debug(`Balancer requested to load room ${message.payload.room}`);
 			const msg = message.payload;
 			await roommanager.getRoom(msg.room);
 		},
 		unload: async message => {
+			log.debug(`Balancer requested to unload room ${message.payload.room}`);
 			const msg = message.payload;
 			await roommanager.unloadRoom(msg.room);
 		},
