@@ -143,6 +143,11 @@ export const PERMISSIONS = [
 		mask: 1 << 24,
 		minRole: Role.TrustedUser,
 	}),
+	new Permission({
+		name: "manage-queue.play-now",
+		mask: 1 << 25,
+		minRole: Role.UnregisteredUser,
+	}),
 ];
 
 const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));
