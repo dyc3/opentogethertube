@@ -202,7 +202,7 @@ function getRoleIcon(role: Role) {
 		[Role.Owner]: "mdi-star",
 		[Role.Administrator]: "mdi-star",
 		[Role.Moderator]: "mdi-chevron-up",
-		[Role.TrustedUser]: "mdi-thumbs-up",
+		[Role.TrustedUser]: "mdi-thumb-up",
 	}[role];
 }
 
