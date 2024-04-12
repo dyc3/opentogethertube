@@ -4,7 +4,7 @@
 		{{ $t("permissions-editor.text1") }}<br />
 		{{ $t("permissions-editor.text2") }}<br />
 		{{ $t("permissions-editor.viewing-as") }}: {{ $t(`roles.${currentRole}`) }}<br />
-		<v-table density="compact" :key="updateEpoch">
+		<v-table density="compact">
 			<thead>
 				<tr>
 					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
@@ -41,114 +41,81 @@
 	</v-container>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, Ref, PropType } from "vue";
+<script lang="ts" setup>
+import { ref, Ref, toRefs, watch } from "vue";
 import _ from "lodash";
-import { PERMISSIONS, ROLE_NAMES, Permission, Grants } from "ott-common/permissions";
+import { PERMISSIONS, Permission, Grants } from "ott-common/permissions";
 import { Role } from "ott-common/models/types";
 import { useGrants } from "./composables/grants";
 
-export const PermissionsEditor = defineComponent({
-	name: "PermissionsEditor",
-	props: {
-		modelValue: {
-			type: Object as PropType<Grants>,
-			required: true,
-			validator: val => {
-				return val instanceof Grants;
-			},
-		},
-		currentRole: { type: Number, default: 4 },
-	},
-	emits: ["update:modelValue"],
-	setup(props, { emit }) {
-		const permissions: Ref<Permission[]> = ref([]);
-		const isLoading = ref(false);
-		const granted = useGrants();
+const model = defineModel<Grants>({ required: true, validator: val => val instanceof Grants });
+const props = withDefaults(
+	defineProps<{
+		modelValue: Grants;
+		currentRole: number;
+	}>(),
+	{
+		currentRole: 4,
+	}
+);
+const { currentRole } = toRefs(props);
 
-		const rolePerms = {
-			[Role.Moderator]: "configure-room.set-permissions.for-moderator",
-			[Role.TrustedUser]: "configure-room.set-permissions.for-trusted-users",
-			[Role.RegisteredUser]: "configure-room.set-permissions.for-all-registered-users",
-			[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",
-		};
+const permissions: Ref<Permission[]> = ref([]);
+const granted = useGrants();
 
-		permissions.value = extractFromGrants(props.modelValue);
+const rolePerms = {
+	[Role.Moderator]: "configure-room.set-permissions.for-moderator",
+	[Role.TrustedUser]: "configure-room.set-permissions.for-trusted-users",
+	[Role.RegisteredUser]: "configure-room.set-permissions.for-all-registered-users",
+	[Role.UnregisteredUser]: "configure-room.set-permissions.for-all-unregistered-users",
+};
 
-		/**
-		 * Gets the id of the lowest role with this permission granted.
-		 */
-		function getLowestGranted(permission): Role {
-			const value = _.min(_.keys(_.pickBy(permission, v => v === true)));
-			if (value !== undefined) {
-				return parseInt(value);
-			} else {
-				return 4;
+/**
+ * Gets the id of the lowest role with this permission granted.
+ */
+function getLowestGranted(permission): Role {
+	const value = _.min(_.keys(_.pickBy(permission, v => v === true)));
+	if (value !== undefined) {
+		return parseInt(value);
+	} else {
+		return 4;
+	}
+}
+
+function extractFromGrants(grants: Grants): Permission[] {
+	const extracted: Permission[] = [];
+	for (const perm of PERMISSIONS) {
+		for (let role = 4; role >= 0; role--) {
+			let fullmask = grants.getMask(role);
+			for (let r = role - 1; r >= 0; r--) {
+				fullmask |= grants[r];
 			}
+			perm[role] = (fullmask & perm.mask) > 0;
 		}
+		extracted.push(perm);
+	}
+	return extracted;
+}
 
-		/**
-		 * Gets the id of the highest role with this permission denied.
-		 */
-		function getHighestDenied(permission): Role | null {
-			const value = _.max(_.keys(_.pickBy(permission, v => v === false)));
-			if (value !== undefined) {
-				let v = parseInt(value);
-				if (v === 4) {
-					v = 3;
-				}
-				return v;
-			} else {
-				return null;
-			}
-		}
+function rebuildMasks(): Grants {
+	const grants = {};
+	for (let role = 4; role >= 0; role--) {
+		grants[role] = 0;
+	}
+	for (let i = 0; i < PERMISSIONS.length; i++) {
+		const lowest = getLowestGranted(permissions.value[i]);
+		grants[lowest] |= PERMISSIONS[i].mask;
+	}
+	return new Grants(grants);
+}
 
-		function extractFromGrants(grants: Grants): Permission[] {
-			const extracted: Permission[] = [];
-			for (const perm of PERMISSIONS) {
-				for (let role = 4; role >= 0; role--) {
-					let fullmask = grants.getMask(role);
-					for (let r = role - 1; r >= 0; r--) {
-						fullmask |= grants[r];
-					}
-					perm[role] = (fullmask & perm.mask) > 0;
-				}
-				extracted.push(perm);
-			}
-			return extracted;
-		}
-
-		function rebuildMasks(): Grants {
-			const grants = {};
-			for (let role = 4; role >= 0; role--) {
-				grants[role] = 0;
-			}
-			for (let i = 0; i < PERMISSIONS.length; i++) {
-				const lowest = getLowestGranted(permissions.value[i]);
-				grants[lowest] |= PERMISSIONS[i].mask;
-			}
-			return new Grants(grants);
-		}
-
-		function onCheckboxModified() {
-			const masks = rebuildMasks();
-			permissions.value = extractFromGrants(masks);
-			emit("update:modelValue", masks);
-		}
-
-		return {
-			permissions,
-			isLoading,
-			granted,
-			ROLE_NAMES,
-			getLowestGranted,
-			getHighestDenied,
-			rolePerms,
-			Role,
-			onCheckboxModified,
-		};
-	},
+watch(model, value => {
+	permissions.value = extractFromGrants(value);
 });
 
-export default PermissionsEditor;
+function onCheckboxModified() {
+	const masks = rebuildMasks();
+	permissions.value = extractFromGrants(masks);
+	model.value = masks;
+}
 </script>
