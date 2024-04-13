@@ -67,135 +67,114 @@
 	</v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted, reactive, Ref, ref, watch } from "vue";
+<script lang="ts" setup>
+import { onMounted, reactive, Ref, ref, watch } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { ROOM_NAME_REGEX } from "ott-common/constants";
 import { Visibility, QueueMode } from "ott-common/models/types";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
 
-export const CreateRoomForm = defineComponent({
-	name: "CreateRoomForm",
-	emits: ["roomCreated", "cancel"],
-	setup(_props, { emit }) {
-		const store = useStore();
-		const { t } = useI18n();
+const emit = defineEmits(["roomCreated", "cancel"]);
 
-		const options = reactive({
-			name: "",
-			title: "",
-			description: "",
-			visibility: Visibility.Public,
-			queueMode: QueueMode.Manual,
-		});
+const store = useStore();
+const { t } = useI18n();
 
-		const rules = {
-			name: [
-				(v: string) => !!v || t("create-room-form.rules.name.name-required"),
-				(v: string) =>
-					(v && !v.includes(" ")) || t("create-room-form.rules.name.no-spaces"),
-				(v: string) =>
-					(v && v.length >= 3 && v.length <= 32) ||
-					t("create-room-form.rules.name.length"),
-				(v: string) =>
-					(v && ROOM_NAME_REGEX.test(v)) || t("create-room-form.rules.name.alphanumeric"),
-				(v: string) =>
-					(v && !isRoomNameTaken.value) || t("create-room-form.rules.name.taken"),
-			],
-			// eslint-disable-next-line array-bracket-newline
-			visibility: [
-				// eslint-disable-next-line array-bracket-newline
-				(v: string) =>
-					(v && [Visibility.Public, Visibility.Unlisted].includes(v as Visibility)) ||
-					t("create-room-form.rules.invalid-visibility"),
-			],
-			// eslint-disable-next-line array-bracket-newline
-			queueMode: [
-				// eslint-disable-next-line array-bracket-newline
-				(v: string) =>
-					(v &&
-						[QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj].includes(
-							v as QueueMode
-						)) ||
-					t("create-room-form.rules.invalid-queue"),
-			],
-		};
-
-		const isValid = ref(true);
-		const isSubmitting = ref(false);
-		const isRoomNameTaken = ref(false);
-		const error = ref("");
-		const form: Ref<{ validate(): void } | undefined> = ref();
-
-		// HACK: for some reason, the form doesn't start updating the model value unless we do this
-		onMounted(() => {
-			if (form.value) {
-				form.value.validate();
-			}
-		});
-
-		async function submit(e): Promise<void> {
-			e.preventDefault();
-			if (!form.value) {
-				console.error("Form not found");
-				return;
-			}
-			form.value.validate();
-			if (!isValid.value) {
-				return;
-			}
-
-			try {
-				const opts = {
-					...options,
-					isTemporary: false,
-				};
-				await createRoomHelper(store, opts);
-				console.info("Room created");
-				emit("roomCreated", options.name);
-				options.name = "";
-				options.title = "";
-				options.description = "";
-				options.visibility = Visibility.Public;
-				options.queueMode = QueueMode.Manual;
-			} catch (err) {
-				if (err.response) {
-					if (err.response.status === 400) {
-						if (err.response.data.error.name === "RoomNameTakenException") {
-							isRoomNameTaken.value = true;
-						}
-						error.value = err.response.data.error.message;
-					} else {
-						error.value = t("create-room-form.unknown-error");
-					}
-				} else {
-					error.value = err.message;
-				}
-				form.value.validate();
-			}
-		}
-
-		watch(options, () => {
-			isRoomNameTaken.value = false;
-			error.value = "";
-		});
-
-		return {
-			options,
-			rules,
-			isValid,
-			isSubmitting,
-			isRoomNameTaken,
-			error,
-			form,
-
-			submit,
-		};
-	},
+const options = reactive({
+	name: "",
+	title: "",
+	description: "",
+	visibility: Visibility.Public,
+	queueMode: QueueMode.Manual,
 });
 
-export default CreateRoomForm;
+const rules = {
+	name: [
+		(v: string) => !!v || t("create-room-form.rules.name.name-required"),
+		(v: string) => (v && !v.includes(" ")) || t("create-room-form.rules.name.no-spaces"),
+		(v: string) =>
+			(v && v.length >= 3 && v.length <= 32) || t("create-room-form.rules.name.length"),
+		(v: string) =>
+			(v && ROOM_NAME_REGEX.test(v)) || t("create-room-form.rules.name.alphanumeric"),
+		(v: string) => (v && !isRoomNameTaken.value) || t("create-room-form.rules.name.taken"),
+	],
+	// eslint-disable-next-line array-bracket-newline
+	visibility: [
+		// eslint-disable-next-line array-bracket-newline
+		(v: string) =>
+			(v && [Visibility.Public, Visibility.Unlisted].includes(v as Visibility)) ||
+			t("create-room-form.rules.invalid-visibility"),
+	],
+	// eslint-disable-next-line array-bracket-newline
+	queueMode: [
+		// eslint-disable-next-line array-bracket-newline
+		(v: string) =>
+			(v &&
+				[QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj].includes(
+					v as QueueMode
+				)) ||
+			t("create-room-form.rules.invalid-queue"),
+	],
+};
+
+const isValid = ref(true);
+const isSubmitting = ref(false);
+const isRoomNameTaken = ref(false);
+const error = ref("");
+const form: Ref<{ validate(): void } | undefined> = ref();
+
+// HACK: for some reason, the form doesn't start updating the model value unless we do this
+onMounted(() => {
+	if (form.value) {
+		form.value.validate();
+	}
+});
+
+async function submit(e): Promise<void> {
+	e.preventDefault();
+	if (!form.value) {
+		console.error("Form not found");
+		return;
+	}
+	form.value.validate();
+	if (!isValid.value) {
+		return;
+	}
+
+	try {
+		const opts = {
+			...options,
+			isTemporary: false,
+		};
+		await createRoomHelper(store, opts);
+		console.info("Room created");
+		emit("roomCreated", options.name);
+		options.name = "";
+		options.title = "";
+		options.description = "";
+		options.visibility = Visibility.Public;
+		options.queueMode = QueueMode.Manual;
+	} catch (err) {
+		if (err.response) {
+			if (err.response.status === 400) {
+				if (err.response.data.error.name === "RoomNameTakenException") {
+					isRoomNameTaken.value = true;
+				}
+				error.value = err.response.data.error.message;
+			} else {
+				error.value = t("create-room-form.unknown-error");
+			}
+		} else {
+			error.value = err.message;
+		}
+		form.value.validate();
+	}
+}
+
+watch(options, () => {
+	isRoomNameTaken.value = false;
+	error.value = "";
+});
 </script>
 
 <style lang="scss" scoped></style>
