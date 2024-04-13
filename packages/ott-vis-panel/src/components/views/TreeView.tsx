@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
-import { useEventBus } from "eventbus";
 import "./tree-view.css";
 import {
 	calcGoodTreeRadius,
@@ -11,7 +10,7 @@ import {
 	buildMonolithTrees,
 	stackBoxes,
 } from "treeutils";
-import { useD3Zoom } from "chartutils";
+import { useActivityAnimations, useD3Zoom } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
 import { useColorProvider } from "colors";
@@ -502,43 +501,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 
 	useD3Zoom(svgRef);
 
-	const eventBus = useEventBus();
-	useEffect(() => {
-		if (!svgRef.current) {
-			return;
-		}
-
-		const svg = d3.select<SVGSVGElement, d3.HierarchyNode<TreeNode>>(svgRef.current);
-		const sub = eventBus.subscribe(event => {
-			if (event.direction !== "rx") {
-				return;
-			}
-			const node = svg.select(`[data-nodeid="${event.node_id}"]`);
-			if (node.empty()) {
-				return;
-			}
-			const data = node.data()[0] as d3.HierarchyNode<TreeNode>;
-			const endRadius = data ? getRadius(data.data.group) : 20;
-			let radiusCurrent = parseFloat(node.attr("r"));
-			if (isNaN(radiusCurrent)) {
-				radiusCurrent = 0;
-			}
-			const newRadius = Math.max(Math.min(radiusCurrent + 5, 40), endRadius);
-			node.transition("highlight")
-				.duration(333)
-				.ease(d3.easeCubicOut)
-				.attrTween("stroke", () => d3.interpolateRgb("#0f0", "#fff"))
-				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString())
-				.attrTween(
-					"r",
-					() => t => d3.interpolateNumber(newRadius, endRadius)(t).toString()
-				);
-		});
-
-		return () => {
-			sub.unsubscribe();
-		};
-	}, [svgRef, eventBus, getRadius]);
+	useActivityAnimations(svgRef, getRadius);
 
 	return (
 		<svg
