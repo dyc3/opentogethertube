@@ -438,6 +438,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 	const eventBus = useEventBus();
 	useEffect(() => {
+		if (!svgRef.current) {
+			return;
+		}
+
+		const svg = d3.select<SVGSVGElement, d3.HierarchyNode<TreeNode>>(svgRef.current);
 		const rxColor = "#0f0";
 		const txColor = "#00f";
 		const proxyColor = "#f58d05";
@@ -504,39 +509,33 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		const sub = eventBus.subscribe(event => {
 			const color = getColor(event);
-			const node = d3.select<d3.BaseType, d3.HierarchyNode<TreeNode>>(
-				`[data-nodeid="${event.node_id}"]`
-			);
+			const node = svg.select(`[data-nodeid="${event.node_id}"]`);
 			animateNode(node, color);
 			if (!node.empty()) {
-				const parent = d3.select<d3.BaseType, d3.HierarchyNode<TreeNode>>(
-					`[data-nodeid="${node.datum().parent?.data.id}"]`
-				);
+				const parent = svg.select(`[data-nodeid="${node.datum().parent?.data.id}"]`);
 				animateNode(parent, color);
 			}
 
-			const links = d3.selectAll<d3.BaseType, d3.HierarchyLink<TreeNode>>(
+			const links = svg.selectAll<SVGSVGElement, d3.HierarchyLink<TreeNode>>(
 				`[data-nodeid-target="${event.node_id}"]`
 			);
 			animateLinks(links, color);
 
 			if (event.room) {
-				const room = d3.select<d3.BaseType, d3.HierarchyNode<TreeNode>>(
-					`[data-nodeid="${event.room}"]`
-				);
+				const room = svg.select(`[data-nodeid="${event.room}"]`);
 				animateNode(room, color);
 
-				const roomLink = d3.select<d3.BaseType, d3.HierarchyLink<TreeNode>>(
+				const roomLinks = svg.selectAll<SVGSVGElement, d3.HierarchyLink<TreeNode>>(
 					`[data-nodeid-target="${event.room}"]`
 				);
-				animateLinks(roomLink, color);
+				animateLinks(roomLinks, color);
 			}
 		});
 
 		return () => {
 			sub.unsubscribe();
 		};
-	}, [eventBus, getRadius]);
+	}, [svgRef, eventBus, getRadius]);
 
 	return (
 		<svg
