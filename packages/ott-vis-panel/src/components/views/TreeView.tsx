@@ -504,11 +504,16 @@ const TreeView: React.FC<TreeViewProps> = ({
 
 	const eventBus = useEventBus();
 	useEffect(() => {
+		if (!svgRef.current) {
+			return;
+		}
+
+		const svg = d3.select<SVGSVGElement, d3.HierarchyNode<TreeNode>>(svgRef.current);
 		const sub = eventBus.subscribe(event => {
 			if (event.direction !== "rx") {
 				return;
 			}
-			const node = d3.select(`[data-nodeid="${event.node_id}"]`);
+			const node = svg.select(`[data-nodeid="${event.node_id}"]`);
 			if (node.empty()) {
 				return;
 			}
@@ -533,7 +538,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 		return () => {
 			sub.unsubscribe();
 		};
-	}, [eventBus, getRadius]);
+	}, [svgRef, eventBus, getRadius]);
 
 	return (
 		<svg
