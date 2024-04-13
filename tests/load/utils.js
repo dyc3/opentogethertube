@@ -10,9 +10,14 @@ export const HOSTNAME = "localhost:8080";
 export function getAuthToken() {
 	let resp = http.get(`http://${HOSTNAME}/api/auth/grant`);
 	check(resp, { "token status is 200": r => r && r.status === 200 });
-	const token = JSON.parse(resp.body).token;
-	check(token, { "token is not empty": t => t && t.length > 0 });
-	return token;
+	try {
+		const token = JSON.parse(resp.body).token;
+		check(token, { "token is not empty": t => t && t.length > 0 });
+		return token;
+	} catch (e) {
+		console.log(`Failed to parse response body as json: ${resp.body}`);
+		throw e;
+	}
 }
 
 /**
