@@ -203,7 +203,7 @@ async fn connect_and_maintain(
             tokio::select! {
                 msg = outbound_rx.recv() => {
                     if let Some(SocketMessage::Message(msg)) = msg {
-                        debug!(event = "ws", node_id = %monolith_id, direction = "tx");
+                        debug!(event = "ws", balancer_id = %*BALANCER_ID,  node_id = %monolith_id, direction = "tx");
                         if let Err(err) = stream.send(msg).await {
                             error!("Error sending ws message to monolith: {:?}", err);
                             break;
@@ -223,7 +223,7 @@ async fn connect_and_maintain(
                             continue;
                         }
 
-                        debug!(event = "ws", node_id = %monolith_id, direction = "rx");
+                        debug!(event = "ws", balancer_id = %*BALANCER_ID,  node_id = %monolith_id, direction = "rx");
                         if let Err(err) = link
                             .send_monolith_message(monolith_id, SocketMessage::Message(msg))
                             .await {
