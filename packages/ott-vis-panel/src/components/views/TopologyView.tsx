@@ -241,9 +241,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			const subtrees: Subtree[] = [];
 			for (const tree of trees) {
 				let radius = calcGoodTreeRadius(tree, nodeRadius, nodePadding);
-				const shouldPack = radius > 200;
+				const shouldPack = radius > 300;
 				if (shouldPack) {
-					radius = calcGoodTreeRadius(tree, nodeRadius / 2, 0);
+					radius = calcGoodTreeRadius(tree, nodeRadius / 2, nodePadding);
 				}
 				const layout = d3.tree<TreeNode>().size([Math.PI * (onRight ? 1 : -1), radius]);
 				// d3 expects children to be undefined if there are no children
@@ -292,7 +292,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			const balancerSubtrees: Subtree[] = buildSubtrees(
 				region.balancerTrees,
 				clientNodeRadius,
-				4,
+				0,
 				false
 			);
 
