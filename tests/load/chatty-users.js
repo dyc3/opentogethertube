@@ -1,59 +1,45 @@
 import http from "k6/http";
 import ws from "k6/ws";
 import { sleep, check } from "k6";
-import { getAuthToken, randomRoomNames, createRoom, HOSTNAME } from "./utils.js";
+import { getAuthToken, createRoom, HOSTNAME } from "./utils.js";
+import exec from "k6/execution";
+
+// This is specially crafted to test the message fanout performance of the system.
 
 export const options = {
 	// A number specifying the number of VUs to run concurrently.
-	vus: 20,
+	vus: 3,
 	// A string specifying the total duration of the test run.
 	// duration: "10s",
 
 	stages: [
+		{ duration: "1m", target: 10 },
 		{ duration: "10m", target: 2000 }, // just slowly ramp-up to a HUGE load
 	],
-
-	// Uncomment this section to enable the use of Browser API in your tests.
-	//
-	// See https://grafana.com/docs/k6/latest/using-k6-browser/running-browser-tests/ to learn more
-	// about using Browser API in your test scripts.
-	//
-	// scenarios: {
-	//   // The scenario name appears in the result summary, tags, and so on.
-	//   // You can give the scenario any name, as long as each name in the script is unique.
-	//   ui: {
-	//     // Executor is a mandatory parameter for browser-based tests.
-	//     // Shared iterations in this case tells k6 to reuse VUs to execute iterations.
-	//     //
-	//     // See https://grafana.com/docs/k6/latest/using-k6/scenarios/executors/ for other executor types.
-	//     executor: 'shared-iterations',
-	//     options: {
-	//       browser: {
-	//         // This is a mandatory parameter that instructs k6 to launch and
-	//         // connect to a chromium-based browser, and use it to run UI-based
-	//         // tests.
-	//         type: 'chromium',
-	//       },
-	//     },
-	//   },
-	// }
 };
 
-const rooms = ["foo1", "foo2", "foo3", "foo4", "foo5", "foo6", "foo7", "foo8", "foo9", "foo10"];
-
 export function setup() {
-	const token = getAuthToken();
-	for (let room of rooms) {
-		createRoom(room, token, { visibility: "public", isTemporary: true });
+	const tokens = [];
+	for (let i = 0; i < 10; i++) {
+		tokens.push(getAuthToken());
 	}
+	for (let i = 0; i < 2000 / 5 + 1; i++) {
+		const room = `load-test-${i}`;
+		createRoom(room, tokens[0], { visibility: "public", isTemporary: false });
+		sleep(0.1);
+	}
+	return {
+		tokens,
+	};
 }
 
-export default function () {
-	const token = getAuthToken();
-	const room = rooms[Math.floor(Math.random() * rooms.length)];
+export default function ({ tokens }) {
+	const maxRooms = Math.floor(exec.instance.vusActive / 5 + 1);
+	const token = tokens[exec.vu.idInTest % tokens.length];
+	const room = `load-test-${exec.vu.idInTest % maxRooms}`;
 	console.log(`User is joining room ${room}`);
 	const url = `ws://${HOSTNAME}/api/room/${room}`;
-	const res = ws.connect(url, null, function (socket) {
+	const res = ws.connect(url, null, socket => {
 		let gotChat = false;
 		socket.on("open", () => {
 			socket.send(JSON.stringify({ action: "auth", token: token }));
@@ -73,10 +59,10 @@ export default function () {
 				"got chat message": b => b,
 			});
 		});
-		socket.setTimeout(function () {
+		socket.setTimeout(() => {
 			socket.close(1000);
-		}, 30000);
-		socket.setInterval(function () {
+		}, 60000 * 5 + Math.random() * 30000);
+		socket.setInterval(() => {
 			socket.send(
 				JSON.stringify({
 					action: "req",
@@ -86,7 +72,7 @@ export default function () {
 					},
 				})
 			);
-		}, 4000);
+		}, 10000);
 	});
 
 	check(res, { "status is 101": r => r && r.status === 101 });
