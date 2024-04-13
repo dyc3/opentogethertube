@@ -21,6 +21,7 @@ use tracing::{debug, error, field, info, span, warn, Level};
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
 use crate::config::BalancerConfig;
+use crate::connection::BALANCER_ID;
 use crate::monolith::BalancerMonolith;
 
 static NOTFOUND: &[u8] = b"Not Found";
@@ -246,7 +247,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                             };
                         if let Some(monolith) = monolith {
                             info!("proxying request to monolith {}", monolith.id());
-                            debug!(event = "proxy", direction = "tx", room = %room_name, node_id = %monolith.id());
+                            debug!(event = "proxy", balancer_id = %*BALANCER_ID,  direction = "tx", room = %room_name, node_id = %monolith.id());
                             match proxy_request(req, monolith).await {
                                 Ok(res) => Ok(res),
                                 Err(err) => {
@@ -267,7 +268,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
                             message = "proxying request to monolith",
                             monolith = %monolith.id(),
                         );
-                        debug!(event = "proxy", direction = "tx", node_id = %monolith.id());
+                        debug!(event = "proxy", balancer_id = %*BALANCER_ID,  direction = "tx", node_id = %monolith.id());
                         match proxy_request(req, monolith).await {
                             Ok(res) => Ok(res),
                             Err(err) => {

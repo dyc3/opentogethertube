@@ -8,8 +8,8 @@ use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, trace, warn};
 use uuid::Uuid;
 
-use crate::balancer::BalancerLink;
 use crate::messages::*;
+use crate::{balancer::BalancerLink, connection::BALANCER_ID};
 use ott_balancer_protocol::{client::*, *};
 use ott_common::websocket::HyperWebsocket;
 
@@ -218,7 +218,7 @@ pub async fn client_entry<'r>(
         tokio::select! {
             msg = client_link.outbound_recv() => {
                 if let Ok(SocketMessage::Message(msg)) = msg {
-                    debug!(event = "ws", node_id = %client_id, room = %room_name, direction = "tx");
+                    debug!(event = "ws", balancer_id = %*BALANCER_ID,  node_id = %client_id, room = %room_name, direction = "tx");
                     if let Err(err) = stream.send(msg).await {
                         error!("Error sending ws message to client: {:?}", err);
                         break;
@@ -239,7 +239,7 @@ pub async fn client_entry<'r>(
                         continue;
                     }
 
-                    debug!(event = "ws", node_id = %client_id, room = %room_name, direction = "rx");
+                    debug!(event = "ws", balancer_id = %*BALANCER_ID,  node_id = %client_id, room = %room_name, direction = "rx");
                     if let Err(err) = client_link.inbound_send(msg).await {
                         error!("Error sending client message to balancer: {:?}", err);
                         break;
