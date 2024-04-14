@@ -479,11 +479,12 @@ pub async fn join_client(
         client_outbound_unicast_rx,
     );
     let client = BalancerClient::new(new_client, client_outbound_unicast_tx);
+    // attempt to add the client to the monolith first so we don't have to worry about cleaning up the client if it fails
+    ctx_write.add_client(client, monolith_id).await?;
     client_link_tx
         .send(link)
         .map_err(|_| anyhow::anyhow!("receiver closed"))?;
-
-    ctx_write.add_client(client, monolith_id).await?;
+    info!("client added");
     Ok(())
 }
 

@@ -1,12 +1,12 @@
-use std::collections::HashMap;
 use std::sync::Arc;
+use std::{collections::HashMap, time::Duration};
 
 use anyhow::bail;
 use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
 use ott_common::discovery::ConnectionConfig;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::messages::*;
 
@@ -110,7 +110,12 @@ impl BalancerMonolith {
     pub async fn send(&self, msg: impl Into<MsgB2M>) -> anyhow::Result<()> {
         let text = serde_json::to_string(&msg.into())?;
         let socket_msg = Message::Text(text).into();
-        self.monolith_outbound_tx.send(socket_msg).await?;
+        if self.monolith_outbound_tx.capacity() == 0 {
+            warn!("Monolith outbound tx is full");
+        }
+        self.monolith_outbound_tx
+            .send_timeout(socket_msg, Duration::from_secs(1))
+            .await?;
 
         Ok(())
     }

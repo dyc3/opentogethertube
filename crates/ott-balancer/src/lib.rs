@@ -60,13 +60,16 @@ pub async fn run() -> anyhow::Result<()> {
     let console_layer = if args.console {
         let console_layer = if args.remote_console {
             console_subscriber::ConsoleLayer::builder()
+                .with_default_env()
                 .server_addr((
                     Ipv6Addr::UNSPECIFIED,
                     console_subscriber::Server::DEFAULT_PORT,
                 ))
                 .spawn()
         } else {
-            console_subscriber::ConsoleLayer::builder().spawn()
+            console_subscriber::ConsoleLayer::builder()
+                .with_default_env()
+                .spawn()
         }
         .with_filter(EnvFilter::try_new("tokio=trace,runtime=trace")?);
         Some(console_layer)
@@ -91,6 +94,7 @@ pub async fn run() -> anyhow::Result<()> {
         .with(streamer_layer)
         .with(fmt_layer)
         .init();
+    info!("Args: {:?}", args);
     info!("Loaded config: {:?}", config);
 
     let (discovery_tx, discovery_rx) = tokio::sync::mpsc::channel(2);
