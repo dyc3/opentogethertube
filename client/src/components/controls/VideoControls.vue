@@ -45,7 +45,7 @@ withDefaults(
 </script>
 
 <style lang="scss">
-$video-controls-height: 80px;
+$video-controls-height: 90px;
 $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 
 .grow {
