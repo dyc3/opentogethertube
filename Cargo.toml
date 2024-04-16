@@ -17,7 +17,7 @@ harness_macros = { path = "crates/harness_macros" }
 hashring = "0.3.3"
 hickory-resolver = { version = "0.24.0", features = ["system-config"] }
 humantime-serde = "1.1"
-hyper = { version = "1.3.0", features = ["full"] }
+hyper = { version = "1.3.1", features = ["full"] }
 hyper-util = { version = "0.1.3", features = ["full"] }
 http-body-util = "0.1.1"
 jemallocator = { version = "0.5.4" }
