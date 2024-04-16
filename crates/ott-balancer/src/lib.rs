@@ -80,6 +80,7 @@ pub async fn run() -> anyhow::Result<()> {
     let filter_layer = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new(filter))?;
     let fmt_layer = tracing_subscriber::fmt::layer().with_filter(filter_layer);
     let event_tx = { EVENT_STREAMER.lock().unwrap().event_tx() };
+    let streamer_filter = EventFilter::new(event_tx.clone());
     let streamer_layer = tracing_subscriber::fmt::layer()
         .json()
         .flatten_event(true)
@@ -88,7 +89,7 @@ pub async fn run() -> anyhow::Result<()> {
             event_tx: event_tx.clone(),
         })
         .with_filter(EnvFilter::new("debug"))
-        .with_filter(EventFilter);
+        .with_filter(streamer_filter);
     tracing_subscriber::registry()
         .with(console_layer)
         .with(streamer_layer)
