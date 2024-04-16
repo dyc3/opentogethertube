@@ -59,7 +59,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 					const error = (err: Event) => {
 						console.error("WebSocket error", err);
-						subscriber.error(err);
 					};
 
 					const close = (e: CloseEvent) => {
