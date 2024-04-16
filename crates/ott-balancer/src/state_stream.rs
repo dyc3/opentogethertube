@@ -111,10 +111,18 @@ impl std::io::Write for EventSink {
     }
 }
 
-pub struct EventFilter;
+pub struct EventFilter {
+    event_tx: tokio::sync::broadcast::Sender<String>,
+}
+
+impl EventFilter {
+    pub fn new(event_tx: tokio::sync::broadcast::Sender<String>) -> Self {
+        Self { event_tx }
+    }
+}
 
 impl<S> Filter<S> for EventFilter {
     fn enabled(&self, meta: &Metadata<'_>, _cx: &Context<'_, S>) -> bool {
-        meta.fields().field("event").is_some()
+        meta.fields().field("event").is_some() && self.event_tx.receiver_count() > 0
     }
 }
