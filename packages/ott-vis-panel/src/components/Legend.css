@@ -1,0 +1,8 @@
+.Legend ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.Legend li {
+    margin-bottom: 5px;
+}

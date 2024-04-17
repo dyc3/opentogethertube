@@ -9,6 +9,7 @@ import { LoadingState } from "@grafana/schema";
 import { useEventBus, type BusEvent } from "eventbus";
 import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
+import Legend from "./Legend";
 
 interface Props extends PanelProps<CoreOptions> { }
 
@@ -49,22 +50,6 @@ export const CorePanel: React.FC<Props> = props => {
 	}
 
 	return <CoreData {...props} />;
-};
-
-const Legend: React.FC = () => {
-	//const colors = useColorProvider();
-	// implement hook into legend listing
-	return (
-		<div className={useStyles2(getStyles).legendBox}>
-			Legend:
-			<ul>
-				<li>Insert Balancer node here</li>
-				<li>Insert Monolith node here</li>
-				<li>Insert Room node here</li>
-				<li>Insert Client node here</li>
-			</ul>
-		</div>
-	);
 };
 
 /**
