@@ -1,0 +1,29 @@
+.legendBox {
+	position: absolute;
+	bottom: 150px;
+	right: 150px;
+	background-color: #181b1f;
+	font-family: Inter, Helvetica, Arial, sans-serif;
+}
+
+.legendBox ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+.legendBox li {
+	margin-bottom: 5px;
+}
+
+.legendCircle {
+	display: inline-block;
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	margin-right: 10px;
+}
+
+.legendText {
+	color: white;
+	text-transform: capitalize;
+}

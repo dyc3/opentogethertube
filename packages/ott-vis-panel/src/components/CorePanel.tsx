@@ -9,6 +9,7 @@ import { LoadingState } from "@grafana/schema";
 import { useEventBus, type BusEvent } from "eventbus";
 import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
+import Legend from "./Legend";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -138,6 +139,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 		>
 			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
+			<Legend />
 		</div>
 	);
 };
