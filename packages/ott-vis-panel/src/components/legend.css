@@ -1,9 +1,7 @@
 .legendBox {
 	position: absolute;
-	bottom: 0;
-	right: 0;
-	padding-bottom: 150px;
-	padding-right: 150px;
+	bottom: 150px;
+	right: 150px;
 	background-color: #181b1f;
 	font-family: Inter, Helvetica, Arial, sans-serif;
 }
