@@ -7,14 +7,15 @@ const Legend: React.FC = () => {
 	const thingWithColor = color.getAssignments();
 
 	const legendItems = Array.from(thingWithColor.entries()).map(([thing, color]) => (
-		<li key={thing} style={{ color }}>
-			{thing}
+		<li key={thing}>
+			<span className="legendCircle" style={{ backgroundColor: color }}></span>
+			<span className="legendText">{thing}</span>
 		</li>
 	));
 	return (
 		<div className="legendBox">
 			Legend:
-			<ul>{{legendItems}</ul>
+			<ul>{legendItems}</ul>
 		</div>
 	);
 };
