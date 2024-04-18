@@ -11,7 +11,7 @@ import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
 import Legend from "./Legend";
 
-interface Props extends PanelProps<CoreOptions> { }
+interface Props extends PanelProps<CoreOptions> {}
 
 const getStyles = () => {
 	return {
