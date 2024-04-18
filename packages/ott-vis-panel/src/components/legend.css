@@ -1,3 +1,13 @@
+.legendBox {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	padding: 10px;
+	background-color: #ffffff;
+	border: 1px solid #000000;
+	border-radius: 5px;
+}
+
 .legendBox ul {
 	list-style-type: none;
 	padding: 0;
