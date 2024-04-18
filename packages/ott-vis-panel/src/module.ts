@@ -106,5 +106,12 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 				],
 			},
 			showIf: config => config.view === "tree",
+		})
+		.addNumberInput({
+			path: "topology.regionBoxPadding",
+			name: "Region Box Padding",
+			description: "Set the padding for the region boxes.",
+			defaultValue: 200,
+			showIf: config => config.view === "topology",
 		});
 });

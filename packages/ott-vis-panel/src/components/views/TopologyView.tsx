@@ -28,6 +28,7 @@ interface TopologyViewProps extends TopologyViewStyleProps {
 
 export interface TopologyViewStyleProps extends NodeRadiusOptions {
 	subtreePadding: number;
+	regionBoxPadding: number;
 }
 
 interface Subtree {
@@ -69,6 +70,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 	balancerNodeRadius = 20,
 	clientNodeRadius = 8,
 	subtreePadding = 60,
+	regionBoxPadding = 200,
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const fullTree = d3
@@ -304,7 +306,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						...balancerSubtrees.map(t => offsetBBox(t.bbox, t.x, t.y)),
 						...monolithSubtrees.map(t => offsetBBox(t.bbox, t.x, t.y)),
 					]),
-					200
+					regionBoxPadding
 				),
 				x: 0,
 				y: 0,
@@ -431,6 +433,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		baseNodeRadius,
 		clientNodeRadius,
 		getRadius,
+		regionBoxPadding,
 	]);
 
 	useD3Zoom(svgRef);
