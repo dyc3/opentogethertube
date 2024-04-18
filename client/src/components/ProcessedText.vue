@@ -1,5 +1,5 @@
 <template>
-	<span>
+	<span data-cy="processed-text">
 		<span v-for="(item, index) in content" :key="index">
 			<span v-if="item.type === 'text'">{{ item.text }}</span>
 			<a
