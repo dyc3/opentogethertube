@@ -1,23 +1,20 @@
 import * as d3 from "d3";
+import { useState } from "react";
 
-class ColorProvider {
-	private color = d3.scaleOrdinal(d3.schemeCategory10);
-	private assignments: Map<string, string> = new Map();
-
-	public assign(thing: string): string {
-		if (!this.assignments.has(thing)) {
-			this.assignments.set(thing, this.color(thing));
-		}
-		return this.assignments.get(thing)!;
-	}
-
-	public getAssignments(): Map<string, string> {
-		return this.assignments;
-	}
+interface ColorProvider {
+	assign(thing: string): string;
+	assignments: Map<string, string>;
 }
 
-const provider = new ColorProvider();
-
 export function useColorProvider(): ColorProvider {
-	return provider;
+	let [colorAssignments, setColorAssignments] = useState<Map<string, string>>(new Map());
+	const color = d3.scaleOrdinal(d3.schemeCategory10);
+	function assign(thing: string): string {
+		if (!colorAssignments.has(thing)) {
+			setColorAssignments(new Map(colorAssignments.set(thing, color(thing))));
+		}
+		return colorAssignments.get(thing)!;
+	}
+
+	return { assign, assignments: colorAssignments };
 }

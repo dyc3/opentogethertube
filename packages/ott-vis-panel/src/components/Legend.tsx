@@ -1,12 +1,12 @@
-import { useColorProvider } from "colors";
-import "./legend.css";
 import React from "react";
+import "./legend.css";
 
-const Legend: React.FC = () => {
-	const color = useColorProvider();
-	const thingWithColor = color.getAssignments();
+interface LegendProps {
+	assignments: Map<string, string>;
+}
 
-	const legendItems = Array.from(thingWithColor.entries()).map(([thing, color]) => (
+const Legend: React.FC<LegendProps> = ({ assignments }) => {
+	const legendItems = Array.from(assignments.entries()).map(([thing, color]) => (
 		<li key={thing}>
 			<span className="legendCircle" style={{ backgroundColor: color }}></span>
 			<span className="legendText">{thing}</span>

@@ -15,13 +15,13 @@ import {
 	stackBoxes,
 } from "treeutils";
 import "./topology-view.css";
-import { useColorProvider } from "colors";
 import { useActivityAnimations, useD3Zoom } from "chartutils";
 import { dedupeItems } from "aggregate";
 import type { NodeRadiusOptions } from "types";
 
 interface TopologyViewProps extends TopologyViewStyleProps {
 	systemState: SystemState;
+	assignColor: (thing: string) => string;
 	width: number;
 	height: number;
 }
@@ -64,6 +64,7 @@ const DEBUG_BOUNDING_BOXES = false;
  */
 export const TopologyView: React.FC<TopologyViewProps> = ({
 	systemState,
+	assignColor,
 	width,
 	height,
 	baseNodeRadius = 20,
@@ -82,7 +83,6 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		(a, b) => a
 	);
 	const balancerTrees = filterTreeGroups(fullTree, ["balancer", "client"]);
-	const colors = useColorProvider();
 
 	const getRadius = useCallback(
 		(group: string): number => {
@@ -200,7 +200,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
 						.attr("r", d => getRadius(d.data.group))
-						.attr("fill", d => colors.assign(d.data.group))
+						.attr("fill", d => assignColor(d.data.group))
 						.attr("stroke", "#fff")
 						.attr("stroke-width", 2);
 
@@ -424,17 +424,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					.attr("x", d => d.bbox[0] + (d.bbox[2] - d.bbox[0]) / 2)
 					.attr("y", d => d.bbox[1] + 20);
 			});
-	}, [
-		svgRef,
-		monolithTrees,
-		balancerTrees,
-		subtreePadding,
-		colors,
-		baseNodeRadius,
-		clientNodeRadius,
-		getRadius,
-		regionBoxPadding,
-	]);
+	});
 
 	useD3Zoom(svgRef);
 

@@ -10,6 +10,7 @@ import { useEventBus, type BusEvent } from "eventbus";
 import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
 import Legend from "./Legend";
+import { useColorProvider } from "colors";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -63,15 +64,25 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 			: stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? [];
 	}, [options.useSampleData, stateSeries]);
 
+	const { assign: assignColor, assignments: colorAssignments } = useColorProvider();
+
 	let view = useMemo(() => {
 		if (options.view === "region") {
-			return <RegionView height={height} width={width} systemState={systemState} />;
+			return (
+				<RegionView
+					height={height}
+					width={width}
+					systemState={systemState}
+					assignColor={assignColor}
+				/>
+			);
 		} else if (options.view === "tree") {
 			return (
 				<TreeView
 					height={height}
 					width={width}
 					systemState={systemState}
+					assignColor={assignColor}
 					{...options.nodes}
 					{...options.tree}
 				/>
@@ -82,6 +93,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 					height={height}
 					width={width}
 					systemState={systemState}
+					assignColor={assignColor}
 					{...options.nodes}
 					{...options.topology}
 				/>
@@ -89,7 +101,16 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 		} else {
 			return <div>Invalid view</div>;
 		}
-	}, [options.view, options.nodes, options.tree, options.topology, height, width, systemState]);
+	}, [
+		options.view,
+		options.nodes,
+		options.tree,
+		options.topology,
+		height,
+		width,
+		systemState,
+		assignColor,
+	]);
 
 	const [readEvents, setReadEvents] = useState(0);
 
@@ -139,7 +160,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 		>
 			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
-			<Legend />
+			<Legend assignments={colorAssignments} />
 		</div>
 	);
 };

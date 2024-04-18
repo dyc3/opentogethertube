@@ -2,16 +2,16 @@ import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis";
 import { buildFullTree, filterTreeGroups, mergeTrees, type TreeNode } from "treeutils";
-import { useColorProvider } from "colors";
 import { useD3Zoom } from "chartutils";
 
 interface Props {
 	systemState: SystemState;
+	assignColor: (thing: string) => string;
 	width: number;
 	height: number;
 }
 
-export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
+export const RegionView: React.FC<Props> = ({ systemState, assignColor, width, height }) => {
 	const builtTree = d3.hierarchy(buildFullTree(systemState));
 	const balancerTree = filterTreeGroups(builtTree.copy(), [
 		"root",
@@ -35,7 +35,6 @@ export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
 	});
 	const fullTree = mergeTrees([balancerTree, monolithTree])[0];
 	const svgRef = useRef<SVGSVGElement>(null);
-	const colors = useColorProvider();
 
 	useEffect(() => {
 		if (!svgRef.current) {
@@ -63,7 +62,7 @@ export const RegionView: React.FC<Props> = ({ systemState, width, height }) => {
 			.attr("cx", (d: any) => d.x)
 			.attr("cy", (d: any) => d.y)
 			.attr("r", (d: any) => d.r)
-			.attr("fill", (d: any) => colors.assign(d.data.group))
+			.attr("fill", (d: any) => assignColor(d.data.group))
 			.attr("stroke", "#fff")
 			.attr("stroke-width", 1.5);
 
