@@ -2,10 +2,10 @@
 	position: absolute;
 	bottom: 0;
 	right: 0;
-	padding: 10px;
-	background-color: #ffffff;
-	border: 1px solid #000000;
+	padding: 25px;
+	background-color: #181b1f;
 	border-radius: 5px;
+	font-family: Inter, Helvetica, Arial, sans-serif;
 }
 
 .legendBox ul {

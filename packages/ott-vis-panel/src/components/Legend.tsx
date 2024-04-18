@@ -14,7 +14,7 @@ const Legend: React.FC = () => {
 	return (
 		<div className="legendBox">
 			Legend:
-			<ul>{legendItems}</ul>
+			<ul>{{legendItems}</ul>
 		</div>
 	);
 };
