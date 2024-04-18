@@ -27,6 +27,8 @@ import {
 	OttApiResponseRoomCreate,
 	OttApiResponseRoomGenerate,
 	OttResponseBody,
+	OttClaimRequest,
+	OttSettingsRequest,
 } from "ott-common/models/rest-api";
 import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
@@ -185,6 +187,14 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 	res.json(resp);
 };
 
+function isClaimRequest(request: OttApiRequestPatchRoom): request is OttClaimRequest {
+	return "claim" in request;
+}
+
+function isSettingsRequest(request: OttApiRequestPatchRoom): request is OttSettingsRequest {
+	return !isClaimRequest(request);
+}
+
 const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoom> = async (
 	req,
 	res
@@ -201,7 +211,7 @@ const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoo
 	}
 	const room = result.value;
 
-	if ("claim" in body) {
+	if (isClaimRequest(body)) {
 		if (body.claim) {
 			if (room.owner) {
 				throw new BadApiArgumentException("claim", `Room already has owner.`);
@@ -227,16 +237,19 @@ const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoo
 				return;
 			}
 		}
-	} else if ("visibility" in body) {
-		const roomRequest: ApplySettingsRequest = {
-			type: RoomRequestType.ApplySettingsRequest,
-			settings: {
+	} else {
+		if (isSettingsRequest(body)) {
+			const newBody = {
 				...body,
 				grants: new Grants(body.grants),
-			},
-		};
+			};
+			const roomRequest: ApplySettingsRequest = {
+				type: RoomRequestType.ApplySettingsRequest,
+				settings: newBody,
+			};
 
-		await room.processUnauthorizedRequest(roomRequest, { token: req.token });
+			await room.processUnauthorizedRequest(roomRequest, { token: req.token });
+		}
 	}
 
 	if (!room.isTemporary) {

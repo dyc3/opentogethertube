@@ -11,6 +11,8 @@ import {
 	OttApiRequestAccountRecoveryStartSchema,
 	OttApiRequestAccountRecoveryVerifySchema,
 	OttApiRequestPatchRoomSchema,
+	ClaimSchema,
+	RoomSettingsSchema,
 } from "./zod-schemas";
 import { z } from "zod";
 
@@ -89,3 +91,7 @@ export type OttApiRequestAccountRecoveryStart = z.infer<
 export type OttApiRequestAccountRecoveryVerify = z.infer<
 	typeof OttApiRequestAccountRecoveryVerifySchema
 >;
+
+export type OttClaimRequest = z.infer<typeof ClaimSchema>;
+
+export type OttSettingsRequest = z.infer<typeof RoomSettingsSchema>;

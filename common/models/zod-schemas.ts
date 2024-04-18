@@ -69,8 +69,8 @@ const CategorySchema = z.enum([
 
 const GrantSchema = z.tuple([z.nativeEnum(Role), z.number()]);
 
-const RoomSettingsSchema = z.object({
-	title: z.string().max(255).optional(),
+export const RoomSettingsSchema = z.object({
+	title: z.string().max(254).optional(),
 	description: z.string().optional(),
 	visibility: z.nativeEnum(Visibility).optional(),
 	queueMode: z.nativeEnum(QueueMode).optional(),
@@ -80,7 +80,7 @@ const RoomSettingsSchema = z.object({
 	enableVoteSkip: z.boolean().optional(),
 });
 
-const ClaimSchema = z.object({
+export const ClaimSchema = z.object({
 	claim: z.boolean().optional(),
 });
 

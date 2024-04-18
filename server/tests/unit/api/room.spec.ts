@@ -397,7 +397,7 @@ describe("Room API", () => {
 			],
 			[[], []],
 		])(
-			"should update autoSkipSegmentCategories with only unique valid auto-skip segment cateogories",
+			"should update autoSkipSegmentCategories with only unique valid auto-skip segment categories",
 			async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
 				let resp = await request(app)
 					.patch("/api/room/foo")
