@@ -1,8 +1,8 @@
-.Legend ul {
+.legendBox ul {
 	list-style-type: none;
 	padding: 0;
 }
 
-.Legend li {
+.legendBox li {
 	margin-bottom: 5px;
 }
