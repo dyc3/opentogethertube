@@ -139,6 +139,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 		>
 			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
+			<Legend />
 		</div>
 	);
 };
