@@ -11,7 +11,7 @@ import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
 import Legend from "./Legend";
 
-interface Props extends PanelProps<CoreOptions> {}
+interface Props extends PanelProps<CoreOptions> { }
 
 const getStyles = () => {
 	return {
@@ -29,15 +29,6 @@ const getStyles = () => {
 			bottom: 0;
 			left: 0;
 			padding: 10px;
-		`,
-		legendBox: css`
-			position: absolute;
-			bottom: 0;
-			right: 0;
-			padding: 10px;
-			background-color: #ffffff;
-			border: 1px solid #000000;
-			border-radius: 5px;
 		`,
 	};
 };
@@ -148,7 +139,6 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 		>
 			{data.state === LoadingState.Loading ? <Loading /> : null}
 			{view}
-			<Legend />
 		</div>
 	);
 };
