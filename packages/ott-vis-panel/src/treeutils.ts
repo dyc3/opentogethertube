@@ -162,6 +162,14 @@ export function expandBBox(box: BoundingBox, padding: number): BoundingBox {
 	return [box[0] - padding, box[1] - padding, box[2] + padding, box[3] + padding];
 }
 
+export function bboxCenter(box: BoundingBox): [number, number] {
+	return [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2];
+}
+
+export function bboxSize(box: BoundingBox): [number, number] {
+	return [box[2] - box[0], box[3] - box[1]];
+}
+
 /**
  * Computes the y positions of boxes in a vertically stacked layout
  * @param boxes The bounding boxes of the boxes to stack
