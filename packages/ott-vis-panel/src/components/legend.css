@@ -1,7 +1,8 @@
 .legendBox {
 	position: absolute;
-	bottom: 150px;
-	right: 150px;
+	bottom: 0;
+	right: 0;
+	padding: 10px;
 	background-color: #181b1f;
 	font-family: Inter, Helvetica, Arial, sans-serif;
 }
@@ -13,6 +14,8 @@
 
 .legendBox li {
 	margin-bottom: 5px;
+	display: flex;
+	align-items: center;
 }
 
 .legendCircle {
@@ -26,4 +29,5 @@
 .legendText {
 	color: white;
 	text-transform: capitalize;
+	font-size: 10px;
 }
