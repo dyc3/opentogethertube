@@ -13,10 +13,10 @@ import {
 import { useActivityAnimations, useD3Zoom } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
-import { useColorProvider } from "colors";
 
 interface TreeViewProps extends TreeViewStyleProps {
 	systemState: SystemState;
+	assignColor: (thing: string) => string;
 	width: number;
 	height: number;
 }
@@ -113,6 +113,7 @@ const DEBUG_BOUNDING_BOXES = false;
 
 const TreeView: React.FC<TreeViewProps> = ({
 	systemState,
+	assignColor,
 	width,
 	height,
 	horizontal = false,
@@ -123,7 +124,6 @@ const TreeView: React.FC<TreeViewProps> = ({
 	clientNodeRadius = 8,
 	balancerGroupStyle = "stacked",
 }) => {
-	const colors = useColorProvider();
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const monolithTrees = buildMonolithTrees(
 		dedupeMonoliths(systemState.flatMap(b => b.monoliths))
@@ -234,7 +234,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 						update => update,
 						exit => exit.transition(tr).attr("r", 0).remove()
 					)
-					.attr("fill", d => colors.assign(d.group))
+					.attr("fill", d => assignColor(d.group))
 					.attr("data-nodeid", d => d.id)
 					.transition(tr)
 					.attr("cx", d => d.x)
@@ -278,8 +278,8 @@ const TreeView: React.FC<TreeViewProps> = ({
 				const balColor = d3
 					.scaleOrdinal()
 					.range([
-						d3.color(colors.assign("balancer"))?.darker(2),
-						d3.color(colors.assign("balancer"))?.darker(1),
+						d3.color(assignColor("balancer"))?.darker(2),
+						d3.color(assignColor("balancer"))?.darker(1),
 					]);
 
 				balancerCircles
@@ -299,7 +299,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 					// @ts-expect-error this is valid and it works
 					.attr("fill", d =>
 						d.data.group === "balancer"
-							? colors.assign(d.data.group)
+							? assignColor(d.data.group)
 							: balColor(d.data.group)
 					)
 					.attr("data-nodeid", d => d.data.id)
@@ -408,7 +408,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.remove()
 						)
 						.attr("data-nodeid", d => d.data.id)
-						.attr("fill", d => colors.assign(d.data.group))
+						.attr("fill", d => assignColor(d.data.group))
 						.transition(tr)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
@@ -485,19 +485,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 				.attr("d", diagonal)
 				.attr("stroke-width", 1.5);
 		}
-	}, [
-		systemState,
-		monolithTrees,
-		b2mLinkStyle,
-		b2mSpacing,
-		baseNodeRadius,
-		balancerNodeRadius,
-		clientNodeRadius,
-		balancerGroupStyle,
-		getRadius,
-		horizontal,
-		colors,
-	]);
+	});
 
 	useD3Zoom(svgRef);
 
