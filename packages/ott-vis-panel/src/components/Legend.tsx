@@ -14,7 +14,6 @@ const Legend: React.FC<LegendProps> = ({ assignments }) => {
 	));
 	return (
 		<div className="legendBox">
-			Legend:
 			<ul>{legendItems}</ul>
 		</div>
 	);
