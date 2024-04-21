@@ -11,11 +11,9 @@ import {
 	stackBoxes,
 	superBoundingBox,
 	offsetBBox,
-	bboxSize,
-	bboxCenter,
 	expandBBox,
 } from "treeutils";
-import { useActivityAnimations, useD3AutoZoom } from "chartutils";
+import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
 import ZoomReset from "components/ZoomReset";
@@ -498,13 +496,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 				superBoundingBox(monolithNodes.map(m => offsetBBox(m.boundingBox, m.x, m.y))),
 				50
 			);
-			const center = bboxCenter(superBBox);
-			const size = bboxSize(superBBox);
-			const scale = Math.min(width / size[0], height / size[1]);
-
-			const transformNew = d3.zoomIdentity
-				.translate(width / 2 - center[0] * scale, height / 2 - center[1] * scale)
-				.scale(scale);
+			const transformNew = calcZoomTransform(superBBox, width, height);
 
 			if (
 				transformNew.k !== transform.k ||
