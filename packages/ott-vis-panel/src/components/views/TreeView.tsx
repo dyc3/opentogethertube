@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
 import "./tree-view.css";
@@ -15,9 +15,10 @@ import {
 	bboxCenter,
 	expandBBox,
 } from "treeutils";
-import { useActivityAnimations } from "chartutils";
+import { useActivityAnimations, useD3AutoZoom } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
+import ZoomReset from "components/ZoomReset";
 
 interface TreeViewProps extends TreeViewStyleProps {
 	systemState: SystemState;
@@ -130,7 +131,6 @@ const TreeView: React.FC<TreeViewProps> = ({
 	balancerGroupStyle = "stacked",
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
-	const [transform, setTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity);
 	const monolithTrees = buildMonolithTrees(
 		dedupeMonoliths(systemState.flatMap(b => b.monoliths))
 	).sort((a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id));
@@ -147,6 +147,8 @@ const TreeView: React.FC<TreeViewProps> = ({
 		},
 		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
 	);
+
+	const { resetZoom, enableAutoZoom, transform, setTransform } = useD3AutoZoom(svgRef);
 
 	useEffect(() => {
 		if (svgRef.current) {
@@ -527,37 +529,27 @@ const TreeView: React.FC<TreeViewProps> = ({
 		width,
 		height,
 		transform,
+		setTransform,
 	]);
-
-	useEffect(() => {
-		if (!svgRef.current) {
-			return;
-		}
-		const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
-		const zoom = d3.zoom<SVGSVGElement, any>().on("zoom", handleZoom);
-		function handleZoom(e: any) {
-			svg.select("g.chart").attr("transform", e.transform);
-		}
-		svg.call(zoom).on("dblclick.zoom", null);
-
-		svg.transition("zoom").duration(1000).call(zoom.transform, transform);
-	}, [svgRef, transform]);
 
 	useActivityAnimations(svgRef, getRadius);
 
 	return (
-		<svg ref={svgRef} width={width} height={height}>
-			<g className="chart">
-				<g className={`${horizontal ? "ott-horizontal" : ""}`}>
-					<g className="b2m-links" />
-					<g className="balancers">
-						<g className="b-circles" />
-						<g className="b-texts g-text" />
+		<>
+			{!enableAutoZoom ? <ZoomReset onClick={resetZoom} /> : null}
+			<svg ref={svgRef} width={width} height={height}>
+				<g className="chart">
+					<g className={`${horizontal ? "ott-horizontal" : ""}`}>
+						<g className="b2m-links" />
+						<g className="balancers">
+							<g className="b-circles" />
+							<g className="b-texts g-text" />
+						</g>
+						<g className="monoliths" />
 					</g>
-					<g className="monoliths" />
 				</g>
-			</g>
-		</svg>
+			</svg>
+		</>
 	);
 };
 
