@@ -11,6 +11,8 @@ import {
 	offsetBBox,
 	superBoundingBox,
 	mergeTrees,
+	bboxCenter,
+	bboxSize,
 } from "treeutils";
 import * as d3 from "d3";
 import type { Monolith } from "ott-vis/types";
@@ -581,5 +583,44 @@ describe("treeutils", () => {
 		const padding = 0;
 		const expandedBox = expandBBox(box, padding);
 		expect(expandedBox).toEqual([0, 0, 10, 10]);
+	});
+
+	it("should calculate the center of the bounding box", () => {
+		const box: BoundingBox = [0, 0, 10, 10];
+		const center = bboxCenter(box);
+		expect(center).toEqual([5, 5]);
+	});
+
+	it("should handle negative coordinates", () => {
+		const box: BoundingBox = [-10, -10, 10, 10];
+		const center = bboxCenter(box);
+		expect(center).toEqual([0, 0]);
+	});
+
+	it("should handle non-square bounding boxes", () => {
+		const box: BoundingBox = [0, 0, 20, 10];
+		const center = bboxCenter(box);
+		expect(center).toEqual([10, 5]);
+	});
+
+	it("should calculate the size of a bounding box", () => {
+		const box: BoundingBox = [0, 0, 10, 20];
+		const [width, height] = bboxSize(box);
+		expect(width).toEqual(10);
+		expect(height).toEqual(20);
+	});
+
+	it("should handle negative coordinates in the bounding box", () => {
+		const box: BoundingBox = [-10, -10, 10, 10];
+		const [width, height] = bboxSize(box);
+		expect(width).toEqual(20);
+		expect(height).toEqual(20);
+	});
+
+	it("should handle zero-sized bounding box", () => {
+		const box: BoundingBox = [0, 0, 0, 0];
+		const [width, height] = bboxSize(box);
+		expect(width).toEqual(0);
+		expect(height).toEqual(0);
 	});
 });
