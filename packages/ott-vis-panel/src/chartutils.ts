@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as d3 from "d3";
 import { useEventBus, type BusEvent } from "eventbus";
 import type { TreeNode } from "treeutils";
@@ -15,6 +15,41 @@ export function useD3Zoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) 
 		}
 		svg.call(zoom);
 	}, [svgRef]);
+}
+
+export function useD3AutoZoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) {
+	const [enableAutoZoom, setEnableAutoZoom] = useState(true);
+	const [transform, setTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity);
+
+	useEffect(() => {
+		if (!svgRef.current) {
+			return;
+		}
+		const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
+		const zoom = d3.zoom<SVGSVGElement, any>().on("zoom", handleZoom);
+		function handleZoom(e: { transform: d3.ZoomTransform; sourceEvent: any }) {
+			svg.select("g.chart").attr("transform", e.transform.toString());
+			if (e.sourceEvent) {
+				setEnableAutoZoom(false);
+			}
+		}
+		svg.call(zoom).on("dblclick.zoom", null);
+
+		if (enableAutoZoom) {
+			svg.transition("zoom").duration(1000).call(zoom.transform, transform);
+		}
+	}, [svgRef, transform, enableAutoZoom]);
+
+	function resetZoom() {
+		setEnableAutoZoom(true);
+	}
+
+	return {
+		resetZoom,
+		enableAutoZoom,
+		transform,
+		setTransform,
+	};
 }
 
 export function useActivityAnimations(
