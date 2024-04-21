@@ -18,7 +18,6 @@
 	"editable": true,
 	"fiscalYearStartMonth": 0,
 	"graphTooltip": 0,
-	"id": 2,
 	"links": [],
 	"liveNow": false,
 	"panels": [
@@ -28,13 +27,21 @@
 				"uid": "P8AFEECD30EDC727B"
 			},
 			"gridPos": {
-				"h": 25,
+				"h": 21,
 				"w": 24,
 				"x": 0,
 				"y": 0
 			},
 			"id": 1,
 			"options": {
+				"nodes": {
+					"balancerNodeRadius": 30,
+					"baseNodeRadius": 20,
+					"clientNodeRadius": 8
+				},
+				"topology": {
+					"regionBoxPadding": 200
+				},
 				"tree": {
 					"b2mLinkStyle": "step",
 					"b2mSpacing": 300,
@@ -68,7 +75,7 @@
 			"type": "ott-vis-panel"
 		}
 	],
-	"refresh": "",
+	"refresh": "5s",
 	"schemaVersion": 38,
 	"style": "dark",
 	"tags": [],
@@ -83,6 +90,6 @@
 	"timezone": "",
 	"title": "Just TreeView",
 	"uid": "d81705b9-2027-4793-aa6e-9c198d5928b9",
-	"version": 1,
+	"version": 6,
 	"weekStart": ""
 }

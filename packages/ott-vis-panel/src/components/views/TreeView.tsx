@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
 import "./tree-view.css";
@@ -9,8 +9,13 @@ import {
 	type TreeNode,
 	buildMonolithTrees,
 	stackBoxes,
+	superBoundingBox,
+	offsetBBox,
+	bboxSize,
+	bboxCenter,
+	expandBBox,
 } from "treeutils";
-import { useActivityAnimations, useD3Zoom } from "chartutils";
+import { useActivityAnimations } from "chartutils";
 import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
 
@@ -125,6 +130,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 	balancerGroupStyle = "stacked",
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
+	const [transform, setTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity);
 	const monolithTrees = buildMonolithTrees(
 		dedupeMonoliths(systemState.flatMap(b => b.monoliths))
 	).sort((a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id));
@@ -484,20 +490,63 @@ const TreeView: React.FC<TreeViewProps> = ({
 				.transition(tr)
 				.attr("d", diagonal)
 				.attr("stroke-width", 1.5);
-		}
-	});
 
-	useD3Zoom(svgRef);
+			// zoom to fit the whole tree
+			const superBBox = expandBBox(
+				superBoundingBox(monolithNodes.map(m => offsetBBox(m.boundingBox, m.x, m.y))),
+				50
+			);
+			const center = bboxCenter(superBBox);
+			const size = bboxSize(superBBox);
+			const scale = Math.min(width / size[0], height / size[1]);
+
+			const transformNew = d3.zoomIdentity
+				.translate(width / 2 - center[0] * scale, height / 2 - center[1] * scale)
+				.scale(scale);
+
+			if (
+				transformNew.k !== transform.k ||
+				transformNew.x !== transform.x ||
+				transformNew.y !== transform.y
+			) {
+				setTransform(transformNew);
+			}
+		}
+	}, [
+		systemState,
+		monolithTrees,
+		b2mLinkStyle,
+		b2mSpacing,
+		baseNodeRadius,
+		balancerNodeRadius,
+		clientNodeRadius,
+		balancerGroupStyle,
+		getRadius,
+		horizontal,
+		assignColor,
+		width,
+		height,
+		transform,
+	]);
+
+	useEffect(() => {
+		if (!svgRef.current) {
+			return;
+		}
+		const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
+		const zoom = d3.zoom<SVGSVGElement, any>().on("zoom", handleZoom);
+		function handleZoom(e: any) {
+			svg.select("g.chart").attr("transform", e.transform);
+		}
+		svg.call(zoom).on("dblclick.zoom", null);
+
+		svg.transition("zoom").duration(1000).call(zoom.transform, transform);
+	}, [svgRef, transform]);
 
 	useActivityAnimations(svgRef, getRadius);
 
 	return (
-		<svg
-			ref={svgRef}
-			width={width}
-			height={height}
-			viewBox={`${-width / 2} ${-height / 4} ${width} ${height}`}
-		>
+		<svg ref={svgRef} width={width} height={height}>
 			<g className="chart">
 				<g className={`${horizontal ? "ott-horizontal" : ""}`}>
 					<g className="b2m-links" />
