@@ -8,6 +8,7 @@ import { getLogger } from "./logger";
 import { getSessionInfo } from "./auth/tokens";
 import { BalancerConnection, BalancerConnectionReal } from "./balancer";
 import { replacer } from "ott-common/serialize";
+import { Counter } from "prom-client";
 
 const log = getLogger("client");
 
@@ -156,6 +157,7 @@ export class DirectClient extends Client {
 
 	kick(code: OttWebsocketError) {
 		this.socket.close(code);
+		counterWebsocketCloseCodes.inc({ code: OttWebsocketError[code] });
 	}
 
 	ping() {
@@ -210,5 +212,12 @@ export class BalancerClient extends Client {
 				reason: code,
 			},
 		});
+		counterWebsocketCloseCodes.inc({ code: OttWebsocketError[code] });
 	}
 }
+
+const counterWebsocketCloseCodes = new Counter({
+	name: "ott_websocket_kick_close_codes",
+	help: "Count of websocket close codes",
+	labelNames: ["code"],
+});
