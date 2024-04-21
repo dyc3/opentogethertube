@@ -210,12 +210,13 @@ const TreeView: React.FC<TreeViewProps> = ({
 			const yincr = Math.max(lerp(lerpincr), balancerNodeRadius * 2 + 20);
 			const balancerNodes = systemState
 				.map((balancer, i) => {
+					const y = i * yincr;
 					const node: BalancerNode = {
 						id: balancer.id,
 						region: balancer.region,
 						group: "balancer",
 						x: 0,
-						y: i * yincr,
+						y: isNaN(y) ? 0 : y,
 					};
 					return node;
 				})
@@ -496,7 +497,18 @@ const TreeView: React.FC<TreeViewProps> = ({
 
 			// zoom to fit the whole tree
 			const superBBox = expandBBox(
-				superBoundingBox(monolithNodes.map(m => offsetBBox(m.boundingBox, m.x, m.y))),
+				superBoundingBox(
+					monolithNodes
+						.map(m => offsetBBox(m.boundingBox, m.x, m.y))
+						.concat(
+							balancerNodes.map(b => [
+								b.x - balancerNodeRadius,
+								b.y - balancerNodeRadius,
+								b.x + balancerNodeRadius,
+								b.y + balancerNodeRadius,
+							])
+						)
+				),
 				50
 			);
 			const transformNew = calcZoomTransform(superBBox, width, height);
