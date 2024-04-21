@@ -17,9 +17,13 @@ export function useD3Zoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) 
 	}, [svgRef]);
 }
 
-export function useD3AutoZoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) {
+export function useD3AutoZoom(
+	svgRef: React.MutableRefObject<SVGSVGElement | null>,
+	initialTransform = d3.zoomIdentity
+) {
 	const [enableAutoZoom, setEnableAutoZoom] = useState(true);
-	const [transform, setTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity);
+	const [transform, setTransform] = useState<d3.ZoomTransform>(initialTransform);
+	const [first, setFirst] = useState(true);
 
 	useEffect(() => {
 		if (!svgRef.current) {
@@ -36,9 +40,20 @@ export function useD3AutoZoom(svgRef: React.MutableRefObject<SVGSVGElement | nul
 		svg.call(zoom).on("dblclick.zoom", null);
 
 		if (enableAutoZoom) {
-			svg.transition("zoom").duration(1000).call(zoom.transform, transform);
+			console.log("Autozooming: first=", first);
+			if (first) {
+				svg.call(zoom.transform, transform);
+			} else {
+				svg.transition("zoom").duration(1000).call(zoom.transform, transform);
+			}
 		}
-	}, [svgRef, transform, enableAutoZoom]);
+	}, [svgRef, transform, enableAutoZoom, first]);
+
+	useEffect(() => {
+		if (first && svgRef.current) {
+			setFirst(false);
+		}
+	}, [first, svgRef]);
 
 	function resetZoom() {
 		setEnableAutoZoom(true);

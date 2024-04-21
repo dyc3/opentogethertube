@@ -98,7 +98,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
 	);
 
-	const { resetZoom, enableAutoZoom, transform, setTransform } = useD3AutoZoom(svgRef);
+	const { resetZoom, enableAutoZoom, transform, setTransform } = useD3AutoZoom(
+		svgRef,
+		d3.zoomIdentity.translate(width / 2, height / 2)
+	);
 
 	useEffect(() => {
 		if (!svgRef.current) {
