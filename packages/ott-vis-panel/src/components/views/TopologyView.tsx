@@ -15,9 +15,10 @@ import {
 	stackBoxes,
 } from "treeutils";
 import "./topology-view.css";
-import { useActivityAnimations, useD3Zoom } from "chartutils";
+import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
 import { dedupeItems } from "aggregate";
 import type { NodeRadiusOptions } from "types";
+import ZoomReset from "components/ZoomReset";
 
 interface TopologyViewProps extends TopologyViewStyleProps {
 	systemState: SystemState;
@@ -96,6 +97,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		},
 		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
 	);
+
+	const { resetZoom, enableAutoZoom, transform, setTransform } = useD3AutoZoom(svgRef);
 
 	useEffect(() => {
 		if (!svgRef.current) {
@@ -424,23 +427,36 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					.attr("x", d => d.bbox[0] + (d.bbox[2] - d.bbox[0]) / 2)
 					.attr("y", d => d.bbox[1] + 20);
 			});
-	});
 
-	useD3Zoom(svgRef);
+		// zoom to fit the whole tree
+		const superBBox = expandBBox(
+			superBoundingBox(
+				Array.from(monolithBuiltRegions.values()).map(r => offsetBBox(r.bbox, r.x, r.y))
+			),
+			50
+		);
+		const transformNew = calcZoomTransform(superBBox, width, height);
+
+		if (
+			transformNew.k !== transform.k ||
+			transformNew.x !== transform.x ||
+			transformNew.y !== transform.y
+		) {
+			setTransform(transformNew);
+		}
+	});
 
 	useActivityAnimations(svgRef, getRadius);
 
 	return (
-		<svg
-			viewBox={`${-width / 2} ${-height / 2} ${width} ${height}`}
-			width={width}
-			height={height}
-			ref={svgRef}
-		>
-			<g className="chart">
-				<g className="regions" />
-				<g className="b2m links" />
-			</g>
-		</svg>
+		<>
+			{!enableAutoZoom ? <ZoomReset onClick={resetZoom} /> : null}
+			<svg width={width} height={height} ref={svgRef}>
+				<g className="chart">
+					<g className="regions" />
+					<g className="b2m links" />
+				</g>
+			</svg>
+		</>
 	);
 };

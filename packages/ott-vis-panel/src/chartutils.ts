@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import * as d3 from "d3";
 import { useEventBus, type BusEvent } from "eventbus";
-import type { TreeNode } from "treeutils";
+import { bboxCenter, bboxSize, type BoundingBox, type TreeNode } from "treeutils";
 
 export function useD3Zoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) {
 	useEffect(() => {
@@ -50,6 +50,20 @@ export function useD3AutoZoom(svgRef: React.MutableRefObject<SVGSVGElement | nul
 		transform,
 		setTransform,
 	};
+}
+
+export function calcZoomTransform(
+	bbox: BoundingBox,
+	width: number,
+	height: number
+): d3.ZoomTransform {
+	const center = bboxCenter(bbox);
+	const size = bboxSize(bbox);
+	const scale = Math.min(width / size[0], height / size[1]);
+
+	return d3.zoomIdentity
+		.translate(width / 2 - center[0] * scale, height / 2 - center[1] * scale)
+		.scale(scale);
 }
 
 export function useActivityAnimations(
