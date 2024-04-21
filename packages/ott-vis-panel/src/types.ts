@@ -2,7 +2,7 @@ import type { TreeViewStyleProps } from "components/views/TreeView";
 import type { TopologyViewStyleProps } from "components/views/TopologyView";
 
 export interface CoreOptions {
-	view: "global" | "region" | "tree" | "topology";
+	view: "region" | "tree" | "topology";
 	useSampleData: boolean;
 
 	tree: TreeViewStyleProps;

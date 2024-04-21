@@ -8,13 +8,9 @@ export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(bu
 			path: "view",
 			name: "View",
 			description: "Select the view to display",
-			defaultValue: "global",
+			defaultValue: "tree",
 			settings: {
 				options: [
-					{
-						value: "global",
-						label: "Global",
-					},
 					{
 						value: "region",
 						label: "Region",
