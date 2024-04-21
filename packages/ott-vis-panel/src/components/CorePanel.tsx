@@ -101,16 +101,8 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 		} else {
 			return <div>Invalid view</div>;
 		}
-	}, [
-		options.view,
-		options.nodes,
-		options.tree,
-		options.topology,
-		height,
-		width,
-		systemState,
-		assignColor,
-	]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [options.view, options.nodes, options.tree, options.topology, height, width, systemState]);
 
 	const [readEvents, setReadEvents] = useState(0);
 
