@@ -1,10 +1,14 @@
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
+use once_cell::sync::Lazy;
+use prometheus::{register_int_counter_vec, IntCounterVec};
+use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::sync::broadcast::error::{RecvError, TryRecvError};
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::WebSocketStream;
 use tracing::{debug, error, info, trace, warn};
 use uuid::Uuid;
 
@@ -154,12 +158,14 @@ pub async fn client_entry<'r>(
 
     let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
     let Ok(Some(Ok(message))) = result else {
-        stream
-            .close(Some(CloseFrame {
+        close(
+            &mut stream,
+            CloseFrame {
                 code: CloseCode::Library(4004),
                 reason: "did not send auth token".into(),
-            }))
-            .await?;
+            },
+        )
+        .await?;
         return Ok(());
     };
 
@@ -171,12 +177,14 @@ pub async fn client_entry<'r>(
                 Ok(msg) => msg,
                 Err(err) => {
                     warn!("failed to deserialize client message: {:?}", err);
-                    stream
-                        .close(Some(CloseFrame {
+                    close(
+                        &mut stream,
+                        CloseFrame {
                             code: CloseCode::Protocol,
                             reason: "failed to deserialize message".into(),
-                        }))
-                        .await?;
+                        },
+                    )
+                    .await?;
                     return Ok(());
                 }
             };
@@ -187,12 +195,14 @@ pub async fn client_entry<'r>(
                     let client = client.into_new_client(message.token);
                     let Ok(rx) = balancer.send_client(client).await else {
                         error!("failed to send client to balancer");
-                        stream
-                            .close(Some(CloseFrame {
+                        close(
+                            &mut stream,
+                            CloseFrame {
                                 code: CloseCode::Library(4000),
                                 reason: "failed to send client to balancer".into(),
-                            }))
-                            .await?;
+                            },
+                        )
+                        .await?;
                         return Ok(());
                     };
                     client_link = rx;
@@ -217,15 +227,36 @@ pub async fn client_entry<'r>(
     loop {
         tokio::select! {
             msg = client_link.outbound_recv() => {
-                if let Ok(SocketMessage::Message(msg)) = msg {
-                    debug!(event = "ws", balancer_id = %*BALANCER_ID,  node_id = %client_id, room = %room_name, direction = "tx");
-                    if let Err(err) = stream.send(msg).await {
-                        error!("Error sending ws message to client: {:?}", err);
+                match msg {
+                    Ok(SocketMessage::Message(msg)) => {
+                        debug!(event = "ws", balancer_id = %*BALANCER_ID,  node_id = %client_id, room = %room_name, direction = "tx");
+
+                        let mut close_code = None;
+                        if let Message::Close(Some(frame)) = &msg {
+                            close_code = Some(frame.code);
+                        }
+                        if let Err(err) = stream.send(msg).await {
+                            error!("Error sending ws message to client: {:?}", err);
+                            break;
+                        }
+                        if let Some(frame) = close_code {
+                            COUNTER_WS_CLOSE_CODES
+                                .with_label_values(&[&frame.to_string()])
+                                .inc();
+                            break;
+                        }
+                    }
+                    Err(RecvError::Closed) => {
+                        debug!("Client outbound stream ended");
                         break;
                     }
-                } else {
-                    info!("Client outbound stream ended");
-                    break;
+                    Err(RecvError::Lagged(_)) => {
+                        error!("Client outbound stream lagged");
+                        break;
+                    }
+                    _ => {
+                        break;
+                    }
                 }
             }
 
@@ -271,12 +302,38 @@ pub async fn client_entry<'r>(
             .await?;
     }
 
-    stream
-        .close(Some(CloseFrame {
+    close(
+        &mut stream,
+        CloseFrame {
             code: CloseCode::Normal,
             reason: "client connection ended".into(),
-        }))
-        .await?;
+        },
+    )
+    .await?;
 
     Ok(())
 }
+
+async fn close<'s, S>(
+    stream: &mut WebSocketStream<S>,
+    frame: CloseFrame<'static>,
+) -> anyhow::Result<()>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let code = frame.code;
+    stream.send(Message::Close(Some(frame))).await?;
+    COUNTER_WS_CLOSE_CODES
+        .with_label_values(&[&code.to_string()])
+        .inc();
+    Ok(())
+}
+
+static COUNTER_WS_CLOSE_CODES: Lazy<IntCounterVec> = Lazy::new(|| {
+    register_int_counter_vec!(
+        "balancer_client_websocket_close_codes",
+        "Count of client websocket close codes",
+        &["code"]
+    )
+    .unwrap()
+});
