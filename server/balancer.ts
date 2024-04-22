@@ -63,7 +63,7 @@ class BalancerManager {
 
 		const waitForInit = new Promise<void>((resolve, reject) => {
 			const timeout = setTimeout(() => {
-				conn.disconnect();
+				conn.disconnect(1002, "Balancer did not send init message");
 				reject(new Error("Balancer did not send init message"));
 			}, 1000 * 10);
 			const handler = (msg: MsgB2M) => {
@@ -158,6 +158,15 @@ class BalancerManager {
 	) {
 		this.bus.emit(event, ...args);
 	}
+
+	shutdown() {
+		for (const conn of this.balancerConnections) {
+			let result = conn.disconnect(1001, "Server shutting down");
+			if (!result.ok) {
+				log.error(`Error disconnecting from balancer ${conn.id}: ${result.value}`);
+			}
+		}
+	}
 }
 
 export const balancerManager = new BalancerManager();
@@ -210,7 +219,7 @@ export abstract class BalancerConnection {
 
 	abstract send(message: MsgM2B): Result<void, Error>;
 
-	abstract disconnect(): Result<void, Error>;
+	abstract disconnect(code: number, reason: string): Result<void, Error>;
 }
 
 /** Manages the websocket connection to a Balancer. */
@@ -234,8 +243,8 @@ export class BalancerConnectionReal extends BalancerConnection {
 		return this.socket.readyState;
 	}
 
-	disconnect(): Result<void, Error> {
-		this.socket.close();
+	disconnect(code: number = 1006, reason: string = ""): Result<void, Error> {
+		this.socket.close(code, reason);
 		return ok(undefined);
 	}
 
