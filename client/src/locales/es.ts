@@ -55,7 +55,7 @@ export default {
 			name: "OpenTogetherTube",
 			text1: "Es una plataforma de sincronizacion de videos en tiempo real.\nEs fácil para usar y no tienes que inscribirte. Simplemente crea un sala, agrega videos y\ninvita a tus amigos. BOOM! Estás listo para disfrutar de videos con tus amigos hasta las 3 de la mañana",
 			text2: "El TogetherTube original fue amado por su interfaz simple,\ny lo fácil que fue empezar a ver vídeos de inmediato.\nOpenTogetherTube pretende ser igual de fácil de usar y luego mejoralo\npara hacerlo aún mejor.",
-			text3: "Actualmente, puedes ver videos en línea con tus amigos de Youtube, Vimeo, Dailymotion, enlaces directos a videos .mp4 y",
+			text3: "Actualmente, puedes ver videos en línea con tus amigos de Youtube, Vimeo, enlaces directos a videos .mp4 y",
 			link: "hay más en camino",
 		},
 		features: {
@@ -199,7 +199,6 @@ export default {
 		"platforms": {
 			"youtube-videos": "Vídeos de Youtube: {url}",
 			"vimeo-videos": "Vídeos de Vimeo: {url}",
-			"dailymotion-videos": "Vídeos de Dailymotion: {url}",
 			"any-mp4-videos": "Cualquier video público .mp4: {url}",
 			"youtube-playlists": "Listas de reproducción de youtube: {url}",
 			"youtube-channels": "Canales de Youtube: {url}",
