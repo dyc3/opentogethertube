@@ -18,6 +18,11 @@ auto_stop_machines = true
 auto_start_machines = true
 min_machines_running = 1
 
+[http_service.concurrency]
+type = "connections"
+soft_limit = 400
+hard_limit = 1000
+
 [http_service.http_options]
 h2_backend = true
 
