@@ -25,6 +25,19 @@ export default {
 		"restore": "Restaurar",
 		"success": "Éxito",
 		"vote": "Votar",
+		"unvote": "Anular el voto",
+		"on": "Encendido",
+		"off": "Apagado",
+		"dismiss": "Despedir",
+		"errors": {
+			"rate-limit":
+				"Demasiadas solicitudes. Por favor trata otra vez en {duration} segundos.",
+		},
+	},
+	"behavior": {
+		[BehaviorOption.Always]: "Siempre",
+		[BehaviorOption.Prompt]: "Preguntar",
+		[BehaviorOption.Never]: "Nunca",
 	},
 	"landing": {
 		hero: {
@@ -42,7 +55,7 @@ export default {
 			name: "OpenTogetherTube",
 			text1: "Es una plataforma de sincronizacion de videos en tiempo real.\nEs fácil para usar y no tienes que inscribirte. Simplemente crea un sala, agrega videos y\ninvita a tus amigos. BOOM! Estás listo para disfrutar de videos con tus amigos hasta las 3 de la mañana",
 			text2: "El TogetherTube original fue amado por su interfaz simple,\ny lo fácil que fue empezar a ver vídeos de inmediato.\nOpenTogetherTube pretende ser igual de fácil de usar y luego mejoralo\npara hacerlo aún mejor.",
-			text3: "Actualmente, puedes ver videos en línea con tus amigos de Youtube, Vimeo, enlaces directos a videos .mp4 y",
+			text3: "Actualmente, puedes ver videos en línea con tus amigos de Youtube, Vimeo, Dailymotion, enlaces directos a videos .mp4 y",
 			link: "hay más en camino",
 		},
 		features: {
@@ -173,6 +186,7 @@ export default {
 		"no-video-text": 'Haz clic en "Agregar" para añadir un video.',
 	},
 	"add-preview": {
+		"label": "enlace o buscar",
 		"add-all": "Agregar a la cola",
 		"placeholder":
 			"Escriba para buscar en YouTube o ingrese la URL de un video para agregarlo a la cola",
@@ -185,6 +199,7 @@ export default {
 		"platforms": {
 			"youtube-videos": "Vídeos de Youtube: {url}",
 			"vimeo-videos": "Vídeos de Vimeo: {url}",
+			"dailymotion-videos": "Vídeos de Dailymotion: {url}",
 			"any-mp4-videos": "Cualquier video público .mp4: {url}",
 			"youtube-playlists": "Listas de reproducción de youtube: {url}",
 			"youtube-channels": "Canales de Youtube: {url}",
@@ -242,6 +257,13 @@ export default {
 			"Cuando termine el video, comience el mismo video desde el principio. Bueno para reproducir música de fondo.",
 		"auto-skip-text":
 			"Omitir automáticamente segmentos patrocinados, introducciones, autopromociones, etc. utilizando los datos de SponsorBlock.",
+		"auto-skip-text-sponsor": "patrocinador",
+		"auto-skip-text-intro": "introducción",
+		"auto-skip-text-outro": "final",
+		"auto-skip-text-interaction": "interacción",
+		"auto-skip-text-selfpromo": "auto promoción",
+		"auto-skip-text-music_offtopic": "musica fuera de tema",
+		"auto-skip-text-preview": "preestreno",
 		"permissions-not-available": "Los permisos no están disponibles en salas temporarias",
 		"room-needs-owner":
 			"Esta sala necesita un propietario antes de poder modificar los permisos.",
