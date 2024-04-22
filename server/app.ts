@@ -246,9 +246,11 @@ export async function main() {
 	};
 }
 
-function shutdown() {
+async function shutdown() {
 	// The order here is important. We want to get all the clients disconnected first, so they don't get the room unloaded message when all the rooms get unloaded.
 	clientmanager.shutdown();
+	// let the clients disconnect
+	await new Promise(resolve => setTimeout(resolve, 1000));
 	roommanager.shutdown();
 	process.exit(0);
 }

@@ -76,6 +76,7 @@ export function setupBalancerManager() {
 
 export function shutdown() {
 	log.info("Shutting down client manager");
+	balancerManager.shutdown();
 	for (const client of connections) {
 		client.kick(OttWebsocketError.AWAY);
 	}
