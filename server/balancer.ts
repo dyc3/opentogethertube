@@ -160,12 +160,18 @@ class BalancerManager {
 	}
 
 	shutdown() {
+		wss?.removeAllListeners();
 		for (const conn of this.balancerConnections) {
 			let result = conn.disconnect(1001, "Server shutting down");
 			if (!result.ok) {
 				log.error(`Error disconnecting from balancer ${conn.id}: ${result.value}`);
 			}
 		}
+		wss?.close(err => {
+			if (err) {
+				log.error(`Error shutting down balancer server: ${err}`);
+			}
+		});
 	}
 }
 

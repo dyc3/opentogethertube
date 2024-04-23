@@ -19,7 +19,7 @@ use crate::balancer::collector::ClientState;
 use crate::client::ClientLink;
 use crate::config::BalancerConfig;
 use crate::connection::BALANCER_ID;
-use crate::monolith::Room;
+use crate::monolith::{MonolithSendError, Room};
 use crate::room::RoomLocator;
 use crate::selection::{MonolithSelection, MonolithSelectionStrategy};
 use crate::{
@@ -209,14 +209,31 @@ impl BalancerContext {
         let Some(monolith) = self.monoliths.get_mut(&monolith_id) else {
             anyhow::bail!("monolith not found");
         };
-        monolith.add_client(&client.room, client.id);
-        monolith
+        match monolith
             .send(B2MJoin {
                 room: client.room.clone(),
                 client: client.id,
                 token: client.token.clone(),
             })
-            .await?;
+            .await
+        {
+            Ok(_) => {}
+            Err(MonolithSendError::SendTimeoutError(err)) => {
+                // should only be a rare edge case
+                error!(
+                    "failed to send join message to monolith, due to channel issue: {:?}, ",
+                    err
+                );
+                warn!("removing bad monolith");
+                self.remove_monolith(monolith_id)?;
+                return Err(anyhow::anyhow!("failed to send join message to monolith"));
+            }
+            Err(err) => {
+                warn!("failed to send join message to monolith: {:?}", err);
+                return Err(anyhow::anyhow!("failed to send join message to monolith"));
+            }
+        };
+        monolith.add_client(&client.room, client.id);
         self.clients.insert(client.id, client);
 
         Ok(())

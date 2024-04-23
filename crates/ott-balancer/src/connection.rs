@@ -215,13 +215,21 @@ async fn connect_and_maintain(
 
                 msg = stream.next() => {
                     if let Some(Ok(msg)) = msg {
-                        if let Message::Ping(ping) = msg {
-                            if let Err(err) = stream.send(Message::Pong(ping)).await {
-                                error!("Error sending pong to monolith: {:?}", err);
+                        let msg = match msg {
+                            Message::Close(frame) => {
+                                let close_code = frame.map(|f| f.code).unwrap_or(CloseCode::Abnormal);
+                                info!(%monolith_id, %close_code, "Monolith websocket stream ended");
                                 break;
                             }
-                            continue;
-                        }
+                            Message::Ping(ping) => {
+                                if let Err(err) = stream.send(Message::Pong(ping)).await {
+                                    error!("Error sending pong to monolith: {:?}", err);
+                                    break;
+                                }
+                                continue;
+                            }
+                            _ => msg,
+                        };
 
                         debug!(event = "ws", balancer_id = %*BALANCER_ID,  node_id = %monolith_id, direction = "rx");
                         if let Err(err) = link
@@ -231,43 +239,35 @@ async fn connect_and_maintain(
                                 break;
                             }
                     } else {
-                        // soft reconnects are here to handle minor network failures, which should be rare
-                        info!("Monolith websocket stream ended, attempting soft reconnect: {}", monolith_id);
-                        if let Ok((s, _)) = connect_async(conf.uri()).await {
-                            stream = s;
-                        } else {
-                            // we need to notify the balancer that this monolith is dead
-                            // because otherwise the room won't get reallocated to another monolith
-                            error!("Failed to soft reconnect to monolith, notifying balancer: {} monolith {}", conf.uri(), monolith_id);
-                            #[allow(deprecated)]
-                            if let Err(err) = link
-                                .send_monolith_message(monolith_id, SocketMessage::End)
-                                .await {
-                                    error!("Error sending monolith message to balancer: {:?}", err);
-                                }
-                            break;
-                        }
+                        info!(%monolith_id, uri = %conf.uri(), "Monolith disconnected, notifying balancer");
+                        break;
                     }
                 }
 
                 _ = cancel.cancelled() => {
                     info!(monolith_id = %monolith_id, "Monolith connection cancelled, safely ending");
-                    #[allow(deprecated)]
-                    if let Err(err) = link
-                        .send_monolith_message(monolith_id, SocketMessage::End)
-                        .await {
-                            error!("Error sending monolith message to balancer: {:?}", err);
-                            break;
-                        }
                     break;
                 }
             }
         }
         outbound_rx.close();
+        // we need to notify the balancer that this monolith is dead
+        // because otherwise the rooms won't get reallocated to another monolith
+        info!(%monolith_id, uri = %conf.uri(), "Monolith disconnected, notifying balancer");
+        #[allow(deprecated)]
+        if let Err(err) = link
+            .send_monolith_message(monolith_id, SocketMessage::End)
+            .await
+        {
+            error!("Error sending monolith message to balancer: {:?}", err);
+        }
 
         if cancel.is_cancelled() {
             break;
         }
+
+        // wait a bit before reconnecting, in case the monolith is shutting down
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
     info!("Monolith connection task ended: {}", conf.uri());
