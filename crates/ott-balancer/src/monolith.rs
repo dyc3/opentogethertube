@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::sync::Arc;
 use std::{collections::HashMap, time::Duration};
 
@@ -5,6 +6,8 @@ use anyhow::bail;
 use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
 use ott_common::discovery::ConnectionConfig;
+use thiserror::Error;
+use tokio::sync::mpsc::error::SendTimeoutError;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, warn};
 
@@ -107,15 +110,16 @@ impl BalancerMonolith {
         }
     }
 
-    pub async fn send(&self, msg: impl Into<MsgB2M>) -> anyhow::Result<()> {
-        let text = serde_json::to_string(&msg.into())?;
+    pub async fn send(&self, msg: impl Into<MsgB2M>) -> Result<(), MonolithSendError> {
+        let text = serde_json::to_string(&msg.into()).map_err(MonolithSendError::SerdeError)?;
         let socket_msg = Message::Text(text).into();
         if self.monolith_outbound_tx.capacity() == 0 {
             warn!("Monolith outbound tx is full");
         }
         self.monolith_outbound_tx
             .send_timeout(socket_msg, Duration::from_secs(1))
-            .await?;
+            .await
+            .map_err(MonolithSendError::SendTimeoutError)?;
 
         Ok(())
     }
@@ -145,6 +149,18 @@ impl BalancerMonolith {
 
     pub fn new_inbound_tx(&self) -> tokio::sync::mpsc::Sender<Context<ClientId, SocketMessage>> {
         self.client_inbound_tx.clone()
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum MonolithSendError {
+    SendTimeoutError(SendTimeoutError<SocketMessage>),
+    SerdeError(serde_json::Error),
+}
+
+impl Display for MonolithSendError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
