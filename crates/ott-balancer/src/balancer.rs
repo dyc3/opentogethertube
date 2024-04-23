@@ -275,6 +275,9 @@ impl BalancerContext {
         self.rooms_to_monoliths
             .retain(|_, v| v.monolith_id() != monolith_id);
 
+        self.clients
+            .retain(|_, v| self.rooms_to_monoliths.contains_key(&v.room));
+
         Ok(())
     }
 
@@ -1243,5 +1246,76 @@ mod test {
             .clients
             .get(&client_id)
             .expect("client not found");
+    }
+
+    #[tokio::test]
+    async fn should_remove_clients_upon_monolith_removed() {
+        // a bunch of setup
+        BalancerConfig::init_default();
+        let room_name = RoomName::from("foo");
+        let ctx = Arc::new(RwLock::new(BalancerContext::new()));
+        let (monolith_outbound_tx, _monolith_outbound_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_outbound_tx = Arc::new(monolith_outbound_tx);
+        let (client_inbound_tx, _client_inbound_rx) = tokio::sync::mpsc::channel(100);
+        let monolith_id = uuid::Uuid::new_v4().into();
+        let monolith = BalancerMonolith::new(
+            NewMonolith {
+                id: monolith_id,
+                region: "unknown".into(),
+                config: ConnectionConfig {
+                    host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
+                    port: 3002,
+                },
+                proxy_port: 3000,
+            },
+            monolith_outbound_tx,
+            client_inbound_tx,
+        );
+        let client_id = uuid::Uuid::new_v4().into();
+        ctx.write().await.add_monolith(monolith);
+        ctx.write()
+            .await
+            .add_room(room_name.clone(), RoomLocator::new(monolith_id, 0))
+            .expect("failed to add room");
+
+        // add a client
+        let (client_link_tx, client_link_rx) = tokio::sync::oneshot::channel();
+        join_client(
+            &ctx,
+            NewClient {
+                id: client_id,
+                room: room_name.clone(),
+                token: "test".into(),
+            },
+            client_link_tx,
+        )
+        .await
+        .expect("failed to add client");
+        let _client_link = client_link_rx.await.expect("failed to get client link");
+
+        // make sure the client is in the context
+        assert!(ctx.read().await.clients.contains_key(&client_id));
+
+        // make sure the client is in the monolith
+        assert!(ctx
+            .read()
+            .await
+            .monoliths
+            .get(&monolith_id)
+            .unwrap()
+            .rooms()
+            .get(&room_name)
+            .unwrap()
+            .clients()
+            .contains(&client_id));
+
+        // remove the monolith
+        ctx.write()
+            .await
+            .remove_monolith(monolith_id)
+            .expect("failed to remove monolith");
+
+        // make sure the client is not in the context anymore
+        assert!(!ctx.read().await.clients.contains_key(&client_id));
     }
 }
