@@ -1,5 +1,5 @@
 [selection_strategy]
-strategy = "HashRing"
+strategy = "MinRooms"
 
 [discovery]
 method = "fly"
