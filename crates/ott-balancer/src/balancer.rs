@@ -241,10 +241,17 @@ impl BalancerContext {
 
     #[instrument(skip(self), err)]
     pub async fn remove_client(&mut self, client_id: ClientId) -> anyhow::Result<()> {
-        let monolith = self.find_monolith_mut(client_id)?;
+        let Some(removed) = self.clients.remove(&client_id) else {
+            anyhow::bail!("client not found in context");
+        };
+        let Some(locator) = self.rooms_to_monoliths.get(&removed.room) else {
+            anyhow::bail!("room not found in rooms_to_monoliths");
+        };
+        let Some(monolith) = self.monoliths.get_mut(&locator.monolith_id()) else {
+            anyhow::bail!("monolith not found");
+        };
         monolith.remove_client(client_id);
         monolith.send(B2MLeave { client: client_id }).await?;
-        self.clients.remove(&client_id);
 
         Ok(())
     }
