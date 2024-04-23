@@ -21,9 +21,13 @@ pub struct DnsDiscoveryConfig {
     /// The A record to query. If using docker-compose, this should be the service name for the monolith.
     pub query: String,
     /// The polling mode discovery interval.
-    #[serde(default)]
+    #[serde(default = "default_polling_interval")]
     #[serde(with = "humantime_serde")]
-    pub polling_interval: Option<Duration>,
+    pub polling_interval: Duration,
+}
+
+fn default_polling_interval() -> Duration {
+    Duration::from_secs(5)
 }
 
 fn deserialize_dns_server<'de, D>(deserializer: D) -> Result<Option<SocketAddr>, D::Error>
@@ -83,11 +87,7 @@ impl ServiceDiscoverer for DnsServiceDiscoverer {
     }
 
     fn mode(&self) -> DiscoveryMode {
-        DiscoveryMode::Polling(
-            self.config
-                .polling_interval
-                .unwrap_or_else(|| Duration::from_secs(10)),
-        )
+        DiscoveryMode::Polling(self.config.polling_interval)
     }
 }
 #[cfg(test)]

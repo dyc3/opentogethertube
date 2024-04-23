@@ -12,9 +12,13 @@ pub struct FlyDiscoveryConfig {
     pub fly_app: String,
     /// The polling mode discovery interval.
     ///
-    #[serde(default)]
+    #[serde(default = "default_polling_interval")]
     #[serde(with = "humantime_serde")]
-    pub polling_interval: Option<Duration>,
+    pub polling_interval: Duration,
+}
+
+fn default_polling_interval() -> Duration {
+    Duration::from_secs(5)
 }
 
 pub struct FlyServiceDiscoverer {
@@ -52,10 +56,6 @@ impl ServiceDiscoverer for FlyServiceDiscoverer {
     }
 
     fn mode(&self) -> DiscoveryMode {
-        DiscoveryMode::Polling(
-            self.config
-                .polling_interval
-                .unwrap_or_else(|| Duration::from_secs(10)),
-        )
+        DiscoveryMode::Polling(self.config.polling_interval)
     }
 }
