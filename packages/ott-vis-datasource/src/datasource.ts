@@ -16,11 +16,11 @@ import { Observable, lastValueFrom, merge } from "rxjs";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	baseUrl: string;
-	socket: WebSocket | null = null;
 
 	constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
 		super(instanceSettings);
 		this.baseUrl = instanceSettings.jsonData.baseUrl;
+		console.log("Datasource created");
 	}
 
 	query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
@@ -70,8 +70,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 						}
 						console.log("Datasource reconnecting...");
 						setTimeout(() => {
-							this.socket = new WebSocket(`${base}/state/stream`);
-							addListeners(this.socket);
+							if (socket) {
+								removeListeners(socket);
+							}
+							socket = new WebSocket(`${base}/state/stream`);
+							addListeners(socket);
 						}, 1000);
 					};
 
@@ -89,22 +92,18 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 					}
 
 					function teardown(this: DataSource) {
-						if (!this.socket) {
+						if (!socket) {
 							return;
 						}
-						this.socket.close(4132);
-						removeListeners(this.socket);
+						socket.close(4132);
+						removeListeners(socket);
 						window.removeEventListener("beforeunload", teardown);
 					}
 					subscriber.add(teardown.bind(this));
 					window.addEventListener("beforeunload", teardown);
 
-					if (this.socket) {
-						teardown.call(this);
-					}
-
-					this.socket = new WebSocket(`${base}/state/stream`);
-					addListeners(this.socket);
+					let socket = new WebSocket(`${base}/state/stream`);
+					addListeners(socket);
 				});
 			}
 
