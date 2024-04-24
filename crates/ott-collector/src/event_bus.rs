@@ -108,8 +108,14 @@ pub fn event_stream(
                                 info!("Event bus WebSocket closed");
                                 break;
                             }
-                            _ => {
-                                warn!("Unexpected message from Event bus WebSocket");
+                            Ok(rocket_ws::Message::Ping(ping)) => {
+                                if let Err(err) = stream.send(rocket_ws::Message::Pong(ping)).await {
+                                    error!("Error sending Pong to Event bus WebSocket: {}", err);
+                                    break;
+                                }
+                            }
+                            msg => {
+                                warn!("Unexpected message from Event bus WebSocket: {:?}", msg);
                             }
                         }
                     }
