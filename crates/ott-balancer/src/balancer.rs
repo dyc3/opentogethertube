@@ -245,13 +245,21 @@ impl BalancerContext {
             anyhow::bail!("client not found in context");
         };
         let Some(locator) = self.rooms_to_monoliths.get(&removed.room) else {
-            anyhow::bail!("room not found in rooms_to_monoliths");
+            // If we can't find the room that they are supposedly in, the client shouldn't be here anyway
+            warn!("room not found in rooms_to_monoliths");
+            return Ok(());
         };
-        let Some(monolith) = self.monoliths.get_mut(&locator.monolith_id()) else {
-            anyhow::bail!("monolith not found");
+        if let Some(monolith) = self.monoliths.get_mut(&locator.monolith_id()) {
+            monolith.remove_client(client_id);
+            monolith.send(B2MLeave { client: client_id }).await?;
+        } else {
+            // Similarly, if we can't find the monolith that the room is supposedly on, the client shouldn't be here anyway
+            warn!(
+                monolith_id = %locator.monolith_id(),
+                room = %&removed.room,
+                "monolith not found"
+            );
         };
-        monolith.remove_client(client_id);
-        monolith.send(B2MLeave { client: client_id }).await?;
 
         Ok(())
     }
