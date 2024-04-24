@@ -9,7 +9,7 @@ build-target = "deploy-stage"
 DEPLOY_TARGET = "ott-balancer-staging"
 
 [deploy]
-strategy = "canary"
+strategy = "bluegreen"
 
 [http_service]
 internal_port = 8081
