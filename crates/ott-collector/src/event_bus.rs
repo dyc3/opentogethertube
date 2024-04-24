@@ -114,6 +114,14 @@ pub fn event_stream(
                                     break;
                                 }
                             }
+                            Err(rocket_ws::result::Error::Io(err)) if err.kind() == std::io::ErrorKind::BrokenPipe => {
+                                warn!("Event bus WebSocket connection broken");
+                                break;
+                            }
+                            Err(err) => {
+                                error!("Error receiving message from Event bus WebSocket: {}", err);
+                                break;
+                            }
                             msg => {
                                 warn!("Unexpected message from Event bus WebSocket: {:?}", msg);
                             }
