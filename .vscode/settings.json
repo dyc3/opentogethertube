@@ -2,5 +2,8 @@
 	"search.exclude": {
 		"**/coverage": true,
 		"**/dist": true
+	},
+	"git.showActionButton": {
+		"sync": false
 	}
 }
