@@ -40,6 +40,7 @@ import {
 } from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { UnloadReason } from "../generated";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -286,7 +287,7 @@ const deleteRoom: RequestHandler<{ name: string }> = async (req, res) => {
 		});
 		return;
 	}
-	await roommanager.unloadRoom(req.params.name);
+	await roommanager.unloadRoom(req.params.name, UnloadReason.Admin);
 	res.json({
 		success: true,
 	});

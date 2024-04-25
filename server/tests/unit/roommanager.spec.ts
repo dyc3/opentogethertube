@@ -11,6 +11,7 @@ import storage from "../../storage";
 import { RoomRequest, RoomRequestType } from "ott-common/models/messages";
 import { VideoQueue } from "../../../server/videoqueue";
 import { buildClients } from "../../redisclient";
+import { UnloadReason } from "../../generated";
 
 describe("Room manager", () => {
 	beforeAll(async () => {
@@ -20,7 +21,7 @@ describe("Room manager", () => {
 
 	afterEach(async () => {
 		for (const room of roommanager.rooms) {
-			await roommanager.unloadRoom(room.name);
+			await roommanager.unloadRoom(room.name, UnloadReason.Admin);
 		}
 		roommanager.clearRooms();
 	});

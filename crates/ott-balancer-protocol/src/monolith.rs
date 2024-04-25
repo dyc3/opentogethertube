@@ -128,6 +128,21 @@ pub struct M2BLoaded {
 #[typeshare]
 pub struct M2BUnloaded {
     pub name: RoomName,
+    pub reason: UnloadReason,
+}
+
+/// The reason that a room was unloaded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare]
+pub enum UnloadReason {
+    /// The room was deemed inactive and was unloaded to free up resources.
+    Keepalive,
+    /// An admin forcibly unloaded the room.
+    Admin,
+    /// The Monolith was commanded to unload the room by a Balancer.
+    Commanded,
+    /// The room was unloaded because the Monolith is shutting down.
+    Shutdown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

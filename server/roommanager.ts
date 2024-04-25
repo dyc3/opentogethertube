@@ -15,6 +15,7 @@ import { EventEmitter } from "events";
 import { Result, ok, err } from "ott-common/result";
 import { Grants } from "ott-common/permissions";
 import type { ClientManagerCommand } from "./clientmanager";
+import { UnloadReason } from "./generated";
 
 export const log = getLogger("roommanager");
 export const rooms: Room[] = [];
@@ -26,7 +27,7 @@ export type RoomManagerEventHandlers<E> = E extends "publish"
 	: E extends "load"
 	? (roomName: string) => void
 	: E extends "unload"
-	? (roomName: string) => void
+	? (roomName: string, reason: UnloadReason) => void
 	: E extends "command"
 	? (roomName: string, command: ClientManagerCommand) => void
 	: never;
@@ -56,7 +57,9 @@ export async function shutdown() {
 		clearInterval(updaterInterval);
 		updaterInterval = null;
 	}
-	await Promise.all(rooms.map(room => unloadRoom(room.name, { preserveRedis: true })));
+	await Promise.all(
+		rooms.map(room => unloadRoom(room.name, UnloadReason.Shutdown, { preserveRedis: true }))
+	);
 	process.exit(0);
 }
 
@@ -84,7 +87,7 @@ export async function update(): Promise<void> {
 
 		if (room.isStale) {
 			try {
-				await unloadRoom(room.name);
+				await unloadRoom(room.name, UnloadReason.Keepalive);
 			} catch (e) {
 				log.error(`Error unloading room ${room.name}: ${e}`);
 			}
@@ -164,6 +167,7 @@ export async function getRoom(
 
 export async function unloadRoom(
 	room: string | Room,
+	reason: UnloadReason,
 	options: Partial<{ preserveRedis: boolean }> = {}
 ): Promise<void> {
 	const opts = _.defaults(options, {
@@ -192,7 +196,7 @@ export async function unloadRoom(
 		await redisClient.del(`room:${roomName}`);
 		await redisClient.del(`room-sync:${roomName}`);
 	}
-	bus.emit("unload", roomName);
+	bus.emit("unload", roomName, reason);
 }
 
 /**
@@ -208,7 +212,7 @@ export function clearRooms(): void {
 /** Unload all rooms off of this node. Intended to only be used in tests. */
 export async function unloadAllRooms(): Promise<void> {
 	const names = rooms.map(r => r.name);
-	await Promise.all(names.map(name => unloadRoom(name)));
+	await Promise.all(names.map(name => unloadRoom(name, UnloadReason.Admin)));
 }
 
 export function publish(roomName: string, msg: ServerMessage) {

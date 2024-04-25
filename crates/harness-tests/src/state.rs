@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use harness::{BehaviorLoadRooms, Client, Monolith, MonolithBuilder, TestRunner};
-use ott_balancer_protocol::monolith::MsgB2M;
+use ott_balancer_protocol::monolith::{MsgB2M, UnloadReason};
 use test_context::test_context;
 
 #[test_context(TestRunner)]
@@ -56,7 +56,7 @@ async fn should_not_unload_rooms_when_balancer_restart(ctx: &mut TestRunner) {
     // increase the load epoch past the initial value
     for _ in 0..10 {
         m.load_room("foo").await;
-        m.unload_room("foo").await;
+        m.unload_room("foo", UnloadReason::Admin).await;
     }
 
     m.show().await;
@@ -93,7 +93,7 @@ async fn should_update_load_epoch_when_balancer_restart_2_monoliths(ctx: &mut Te
     // increase the load epoch past the initial value
     for _ in 0..10 {
         m.load_room("foo").await;
-        m.unload_room("foo").await;
+        m.unload_room("foo", UnloadReason::Admin).await;
     }
 
     m.show().await;
