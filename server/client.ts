@@ -213,6 +213,7 @@ export class BalancerClient extends Client {
 			},
 		});
 		counterWebsocketCloseCodes.inc({ code: OttWebsocketError[code] });
+		this.leave();
 	}
 }
 
