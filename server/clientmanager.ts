@@ -220,6 +220,7 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 }
 
 async function onClientDisconnect(client: Client) {
+	log.debug(`Client ${client.id} disconnected`);
 	const index = connections.indexOf(client);
 	if (index !== -1) {
 		let clients = connections.splice(index, 1);
@@ -441,6 +442,7 @@ async function handleCommand(roomName: string, command: ClientManagerCommand) {
 
 function onRoomUnload(roomName: string) {
 	const clients = roomJoins.get(roomName);
+	log.debug(`Room unloaded, kicking ${clients?.length} clients`);
 	if (clients) {
 		for (const client of clients) {
 			client.kick(OttWebsocketError.ROOM_UNLOADED);
