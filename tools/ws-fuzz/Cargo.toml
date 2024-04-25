@@ -1,8 +1,0 @@
-[package]
-name = "ws-fuzz"
-version = "0.14.1"
-edition = "2021"
-
-[dependencies]
-anyhow.workspace = true
-websocket = "0.26.5"
