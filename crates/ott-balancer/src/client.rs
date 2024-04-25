@@ -224,6 +224,7 @@ pub async fn client_entry<'r>(
         }
     }
 
+    let mut already_sent_close = false;
     loop {
         tokio::select! {
             msg = client_link.outbound_recv() => {
@@ -240,6 +241,7 @@ pub async fn client_entry<'r>(
                             break;
                         }
                         if let Some(frame) = close_code {
+                            already_sent_close = true;
                             COUNTER_WS_CLOSE_CODES
                                 .with_label_values(&[&frame.to_string()])
                                 .inc();
@@ -288,8 +290,27 @@ pub async fn client_entry<'r>(
         }
     }
 
+    // Drain any remaining messages from the client link, because it might include a Close message.
+    while let Ok(SocketMessage::Message(msg)) = client_link.outbound_try_recv() {
+        let mut close_code = None;
+        if let Message::Close(Some(frame)) = &msg {
+            close_code = Some(frame.code);
+        }
+        if let Err(err) = stream.send(msg).await {
+            error!("Error sending ws message to client: {:?}", err);
+            break;
+        }
+        if let Some(frame) = close_code {
+            already_sent_close = true;
+            COUNTER_WS_CLOSE_CODES
+                .with_label_values(&[&frame.to_string()])
+                .inc();
+            break;
+        }
+    }
+
     info!("ending client connection");
-    if !client_link.room_tx.is_closed() {
+    if !already_sent_close && !client_link.room_tx.is_closed() {
         client_link
             .room_tx
             .send(Context::new(
@@ -302,14 +323,16 @@ pub async fn client_entry<'r>(
             .await?;
     }
 
-    close(
-        &mut stream,
-        CloseFrame {
-            code: CloseCode::Normal,
-            reason: "client connection ended".into(),
-        },
-    )
-    .await?;
+    if !already_sent_close {
+        close(
+            &mut stream,
+            CloseFrame {
+                code: CloseCode::Normal,
+                reason: "client connection ended".into(),
+            },
+        )
+        .await?;
+    }
 
     Ok(())
 }
