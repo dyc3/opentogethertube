@@ -62,7 +62,7 @@ async fn set_up_1m1c(
     let m_recv = link
         .send_monolith(NewMonolith {
             id: m_id,
-            region: "unknown".to_owned(),
+            region: Default::default(),
             config: ConnectionConfig {
                 host: HostOrIp::Host("localhost".to_owned()),
                 port: 0,

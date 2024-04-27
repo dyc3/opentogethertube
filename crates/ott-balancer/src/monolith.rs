@@ -17,7 +17,7 @@ use crate::messages::*;
 #[derive(Debug)]
 pub struct BalancerMonolith {
     id: MonolithId,
-    region: String,
+    region: Region,
     rooms: HashMap<RoomName, Room>,
     /// The Sender used to send messages to this Monolith.
     monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
@@ -53,7 +53,7 @@ impl BalancerMonolith {
         self.id
     }
 
-    pub fn region(&self) -> &str {
+    pub fn region(&self) -> &Region {
         &self.region
     }
 
@@ -228,7 +228,7 @@ impl Room {
 #[derive(Debug)]
 pub struct NewMonolith {
     pub id: MonolithId,
-    pub region: String,
+    pub region: Region,
     pub config: ConnectionConfig,
     pub proxy_port: u16,
 }

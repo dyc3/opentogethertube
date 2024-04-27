@@ -15,7 +15,7 @@ use hyper::{body::Incoming as IncomingBody, Request};
 use hyper::{service::Service, Response};
 use uuid::Uuid;
 
-use ott_balancer_protocol::{monolith::*, ClientId, RoomName};
+use ott_balancer_protocol::{monolith::*, ClientId, Region, RoomName};
 use tokio::{net::TcpListener, sync::Notify};
 use tracing::warn;
 use tungstenite::Message;
@@ -59,7 +59,7 @@ pub struct MonolithState {
     rooms: HashMap<RoomName, GossipRoom>,
     room_load_epoch: Arc<AtomicU32>,
     clients: HashSet<ClientId>,
-    region: String,
+    region: Region,
 }
 
 impl Monolith {
@@ -219,7 +219,7 @@ impl Monolith {
     }
 
     pub fn region(&self) -> String {
-        self.state.lock().unwrap().region.clone()
+        self.state.lock().unwrap().region.clone().to_string()
     }
 
     /// Tell the provider to add this monolith to the list of available monoliths.
@@ -287,8 +287,8 @@ impl Monolith {
         self.state.lock().unwrap().response_mocks = mocks;
     }
 
-    pub(crate) fn set_region(&mut self, region: &str) {
-        self.state.lock().unwrap().region = region.to_string();
+    pub(crate) fn set_region(&mut self, region: impl Into<Region>) {
+        self.state.lock().unwrap().region = region.into();
     }
 
     pub fn collect_mock_http(&self) -> Vec<MockRequest> {
@@ -472,7 +472,7 @@ impl MonolithBuilder {
                 .await
                 .unwrap();
         monolith.set_all_mock_http(self.response_mocks);
-        monolith.set_region(&self.region);
+        monolith.set_region(self.region);
         monolith
     }
 
