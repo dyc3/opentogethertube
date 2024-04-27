@@ -32,6 +32,7 @@ pub trait MonolithSelection: std::fmt::Debug {
 pub enum MonolithSelectionStrategy {
     MinRooms(MinRoomsSelector),
     HashRing(HashRingSelector),
+    Random(RandomSelector),
 }
 
 impl Default for MonolithSelectionStrategy {
@@ -46,6 +47,7 @@ pub enum MonolithSelectionConfig {
     #[default]
     MinRooms,
     HashRing,
+    Random,
 }
 
 impl From<MonolithSelectionConfig> for MonolithSelectionStrategy {
@@ -57,6 +59,7 @@ impl From<MonolithSelectionConfig> for MonolithSelectionStrategy {
             MonolithSelectionConfig::HashRing => {
                 MonolithSelectionStrategy::HashRing(HashRingSelector)
             }
+            MonolithSelectionConfig::Random => MonolithSelectionStrategy::Random(RandomSelector),
         }
     }
 }
@@ -107,6 +110,19 @@ struct RingNode<'a> {
 impl Hash for RingNode<'_> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.monolith.id().hash(state);
+    }
+}
+
+#[derive(Debug, Default, Copy, Clone)]
+pub struct RandomSelector;
+
+impl MonolithSelection for RandomSelector {
+    fn select_monolith<'a>(
+        &'a self,
+        _room: &RoomName,
+        monoliths: Vec<&'a BalancerMonolith>,
+    ) -> anyhow::Result<&BalancerMonolith> {
+        self.random_monolith(monoliths)
     }
 }
 
