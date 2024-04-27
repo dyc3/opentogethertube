@@ -10,6 +10,8 @@ export type MonolithId = string;
 
 export type BalancerId = string;
 
+export type Region = string;
+
 export interface ClientState {
 	id: ClientId;
 }

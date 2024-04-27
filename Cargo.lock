@@ -1751,6 +1751,7 @@ dependencies = [
 name = "ott-balancer-protocol"
 version = "0.14.1"
 dependencies = [
+ "once_cell",
  "serde",
  "serde_json",
  "typeshare",

@@ -1,5 +1,6 @@
 use std::{fmt::Display, hash::Hash, sync::Arc};
 
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 use uuid::Uuid;
@@ -152,6 +153,46 @@ impl Hash for RoomName {
         for c in self.0.chars() {
             c.to_ascii_lowercase().hash(state);
         }
+    }
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+#[typeshare(serialized_as = "String")]
+pub struct Region(Arc<str>);
+
+impl Region {
+    pub fn new(region: &str) -> Self {
+        Self(Arc::from(region))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+static UNKNOWN_REGION: Lazy<Region> = Lazy::new(|| Region::new("unknown"));
+
+impl Default for Region {
+    fn default() -> Self {
+        UNKNOWN_REGION.clone()
+    }
+}
+
+impl Display for Region {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl From<String> for Region {
+    fn from(val: String) -> Self {
+        Self(val.into())
+    }
+}
+
+impl From<&str> for Region {
+    fn from(val: &str) -> Self {
+        Self(val.into())
     }
 }
 
