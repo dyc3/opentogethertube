@@ -189,7 +189,9 @@ export async function unloadRoom(
 	}
 	const roomName = room.name;
 	log.info(`Unloading room: ${roomName}`);
-	await room.onBeforeUnload();
+	if (reason !== UnloadReason.Commanded) {
+		await room.onBeforeUnload();
+	}
 	idx = rooms[idx].name === room.name ? idx : rooms.indexOf(room); // because the index may have changed across await boundaries
 	rooms.splice(idx, 1);
 	if (!opts.preserveRedis) {

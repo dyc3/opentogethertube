@@ -441,12 +441,20 @@ async function handleCommand(roomName: string, command: ClientManagerCommand) {
 	}
 }
 
-function onRoomUnload(roomName: string) {
+const roomUnloadReasons: Record<UnloadReason, OttWebsocketError> = {
+	[UnloadReason.Keepalive]: OttWebsocketError.ROOM_UNLOADED,
+	[UnloadReason.Admin]: OttWebsocketError.ROOM_UNLOADED,
+	[UnloadReason.Commanded]: OttWebsocketError.AWAY,
+	[UnloadReason.Shutdown]: OttWebsocketError.AWAY,
+};
+
+function onRoomUnload(roomName: string, reason: UnloadReason) {
+	const code = roomUnloadReasons[reason];
 	const clients = roomJoins.get(roomName);
 	log.debug(`Room unloaded, kicking ${clients?.length} clients`);
 	if (clients) {
 		for (const client of clients) {
-			client.kick(OttWebsocketError.ROOM_UNLOADED);
+			client.kick(code);
 		}
 	}
 
