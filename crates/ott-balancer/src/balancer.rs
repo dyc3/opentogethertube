@@ -445,7 +445,15 @@ impl BalancerContext {
                         clients: room
                             .clients()
                             .iter()
-                            .map(|c| ClientState { id: *c })
+                            .map(|c| ClientState {
+                                id: *c,
+                                // TODO: perhaps refactor to avoid this map lookup?
+                                edge_region: self
+                                    .clients
+                                    .get(c)
+                                    .map(|c| c.edge_region.clone())
+                                    .unwrap_or_default(),
+                            })
                             .collect(),
                     })
                     .collect(),
@@ -783,6 +791,7 @@ mod test {
             NewClient {
                 id: client_id,
                 room: room_name.clone(),
+                edge_region: Default::default(),
                 token: "test".into(),
             },
             client_unicast_tx,
@@ -860,6 +869,7 @@ mod test {
             NewClient {
                 id: client_id,
                 room: join_room_name.clone(),
+                edge_region: Default::default(),
                 token: "test".into(),
             },
             client_unicast_tx,
@@ -1108,6 +1118,7 @@ mod test {
             NewClient {
                 id: client_id,
                 room: room_name.clone(),
+                edge_region: Default::default(),
                 token: "test".into(),
             },
             client_link_tx,
@@ -1144,6 +1155,7 @@ mod test {
             NewClient {
                 id: client_id,
                 room: room_name.clone(),
+                edge_region: Default::default(),
                 token: "test".into(),
             },
             client_link_tx,
@@ -1241,6 +1253,7 @@ mod test {
             NewClient {
                 id: client_id,
                 room: room_name.clone(),
+                edge_region: Default::default(),
                 token: "test".into(),
             },
             client_link_tx,
@@ -1293,6 +1306,7 @@ mod test {
             NewClient {
                 id: client_id,
                 room: room_name.clone(),
+                edge_region: Default::default(),
                 token: "test".into(),
             },
             client_link_tx,

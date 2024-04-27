@@ -30,6 +30,7 @@ pub struct RoomState {
 #[typeshare]
 pub struct ClientState {
     pub id: ClientId,
+    pub edge_region: Region,
 }
 
 pub enum Event {

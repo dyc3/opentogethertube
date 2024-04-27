@@ -14,6 +14,7 @@ export type Region = string;
 
 export interface ClientState {
 	id: ClientId;
+	edge_region: Region;
 }
 
 export interface RoomState {

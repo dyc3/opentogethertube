@@ -110,15 +110,15 @@ describe("treeutils", () => {
 					{
 						name: "foo",
 						clients: [
-							{ id: "de6be90b-f8d3-4331-9ef4-f8fd4c995214" },
-							{ id: "4341c5aa-ca7c-4698-838e-f398b836fadf" },
+							{ id: "de6be90b-f8d3-4331-9ef4-f8fd4c995214", edge_region: "ewr" },
+							{ id: "4341c5aa-ca7c-4698-838e-f398b836fadf", edge_region: "ewr" },
 						],
 					},
 					{
 						name: "baz",
 						clients: [
-							{ id: "5e6e740d-2cb1-41c4-a30e-094adc8b478e" },
-							{ id: "bba0da6a-6f0b-483d-b892-b7064a09a76d" },
+							{ id: "5e6e740d-2cb1-41c4-a30e-094adc8b478e", edge_region: "ewr" },
+							{ id: "bba0da6a-6f0b-483d-b892-b7064a09a76d", edge_region: "ewr" },
 						],
 					},
 				],
@@ -130,15 +130,15 @@ describe("treeutils", () => {
 					{
 						name: "bar",
 						clients: [
-							{ id: "addd57a7-e832-4ffa-a28b-575f8af24d41" },
-							{ id: "91e7d722-3ef9-4ec7-a9df-451fe11baad1" },
+							{ id: "addd57a7-e832-4ffa-a28b-575f8af24d41", edge_region: "ewr" },
+							{ id: "91e7d722-3ef9-4ec7-a9df-451fe11baad1", edge_region: "ewr" },
 						],
 					},
 					{
 						name: "qux",
 						clients: [
-							{ id: "deb6edec-2b95-4621-80ed-1a1eb6e25b26" },
-							{ id: "545aa543-76c6-4317-84df-bac07f46b805" },
+							{ id: "deb6edec-2b95-4621-80ed-1a1eb6e25b26", edge_region: "ewr" },
+							{ id: "545aa543-76c6-4317-84df-bac07f46b805", edge_region: "ewr" },
 						],
 					},
 				],

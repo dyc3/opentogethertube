@@ -75,6 +75,7 @@ async fn set_up_1m1c(
         .send_client(NewClient {
             id: c_id,
             room,
+            edge_region: Default::default(),
             token: "bar".to_owned(),
         })
         .await

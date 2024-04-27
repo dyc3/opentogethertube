@@ -20,6 +20,7 @@ use ott_common::websocket::HyperWebsocket;
 pub struct UnauthorizedClient {
     pub id: ClientId,
     pub room: RoomName,
+    pub edge_region: Region,
 }
 
 impl UnauthorizedClient {
@@ -27,6 +28,7 @@ impl UnauthorizedClient {
         NewClient {
             id: self.id,
             room: self.room,
+            edge_region: self.edge_region,
             token,
         }
     }
@@ -37,6 +39,7 @@ impl UnauthorizedClient {
 pub struct NewClient {
     pub id: ClientId,
     pub room: RoomName,
+    pub edge_region: Region,
     pub token: String,
 }
 
@@ -114,6 +117,7 @@ impl ClientLink {
 pub struct BalancerClient {
     pub id: ClientId,
     pub room: RoomName,
+    pub edge_region: Region,
     pub token: String,
     /// The Sender used to send outbound messages to this client.
     unicast_tx: tokio::sync::mpsc::Sender<SocketMessage>,
@@ -127,6 +131,7 @@ impl BalancerClient {
         Self {
             id: new_client.id,
             room: new_client.room,
+            edge_region: new_client.edge_region,
             token: new_client.token,
             unicast_tx,
         }
@@ -144,6 +149,7 @@ pub async fn client_entry<'r>(
     room_name: RoomName,
     ws: HyperWebsocket,
     balancer: BalancerLink,
+    edge_region: Region,
 ) -> anyhow::Result<()> {
     trace!("websocket connection received");
     let mut stream = ws.await?;
@@ -152,8 +158,11 @@ pub async fn client_entry<'r>(
     let client = UnauthorizedClient {
         id: client_id,
         room: room_name.clone(),
+        edge_region,
     };
-    tracing::Span::current().record("client_id", client_id.to_string());
+    tracing::Span::current()
+        .record("client_id", client_id.to_string())
+        .record("edge_region", client.edge_region.to_string());
     info!("client connected");
 
     let result = tokio::time::timeout(Duration::from_secs(20), stream.next()).await;
