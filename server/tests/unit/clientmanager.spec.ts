@@ -19,7 +19,7 @@ import roommanager from "../../roommanager";
 import { loadModels } from "../../models";
 import type { Request } from "express";
 import { loadConfigFile, conf } from "../../ott-config";
-import { M2BInit, type MsgB2M } from "server/generated";
+import { M2BInit, UnloadReason, type MsgB2M } from "../../generated";
 import { v4 as uuidv4 } from "uuid";
 
 class TestClient extends Client {
@@ -92,7 +92,7 @@ describe("ClientManager", () => {
 	});
 
 	afterEach(async () => {
-		await roommanager.unloadRoom("foo");
+		await roommanager.unloadRoom("foo", UnloadReason.Admin);
 	});
 
 	it.each([

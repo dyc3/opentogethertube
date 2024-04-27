@@ -83,6 +83,7 @@ impl Behavior for BehaviorLoadRooms {
                 state.rooms.remove(&msg.room);
                 let unloaded = M2BUnloaded {
                     name: msg.room.clone(),
+                    reason: UnloadReason::Commanded,
                 };
                 return vec![unloaded.into()];
             }

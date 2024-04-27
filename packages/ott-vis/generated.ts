@@ -94,8 +94,21 @@ export interface M2BLoaded {
 	load_epoch: number;
 }
 
+/** The reason that a room was unloaded. */
+export enum UnloadReason {
+	/** The room was deemed inactive and was unloaded to free up resources. */
+	Keepalive = "Keepalive",
+	/** An admin forcibly unloaded the room. */
+	Admin = "Admin",
+	/** The Monolith was commanded to unload the room by a Balancer. */
+	Commanded = "Commanded",
+	/** The room was unloaded because the Monolith is shutting down. */
+	Shutdown = "Shutdown",
+}
+
 export interface M2BUnloaded {
 	name: RoomName;
+	reason: UnloadReason;
 }
 
 export interface GossipRoom {

@@ -21,6 +21,7 @@ import usermanager from "../../../usermanager";
 import { OttApiRequestRoomCreate } from "ott-common/models/rest-api";
 import { conf } from "../../../../server/ott-config";
 import { User } from "../../../models/user";
+import { UnloadReason } from "../../../generated";
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -118,7 +119,7 @@ describe("Room API", () => {
 
 		afterEach(async () => {
 			try {
-				await roommanager.unloadRoom("test1");
+				await roommanager.unloadRoom("test1", UnloadReason.Admin);
 			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;
@@ -263,7 +264,7 @@ describe("Room API", () => {
 				name: "testnoowner",
 				owner: null,
 			});
-			await roommanager.unloadRoom("testnoowner");
+			await roommanager.unloadRoom("testnoowner", UnloadReason.Admin);
 			await RoomModel.destroy({ where: { name: "testnoowner" } });
 		});
 
@@ -286,7 +287,7 @@ describe("Room API", () => {
 					email: owner.email,
 				},
 			});
-			await roommanager.unloadRoom("testowner");
+			await roommanager.unloadRoom("testowner", UnloadReason.Admin);
 			await RoomModel.destroy({ where: { name: "testowner" } });
 		});
 
@@ -339,7 +340,7 @@ describe("Room API", () => {
 			validateSpy.mockRestore();
 
 			try {
-				await roommanager.unloadRoom("foo");
+				await roommanager.unloadRoom("foo", UnloadReason.Admin);
 			} catch (e) {
 				if (!(e instanceof RoomNotFoundException)) {
 					throw e;

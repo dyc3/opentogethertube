@@ -34,6 +34,7 @@ import {
 import usermanager from "./usermanager";
 import { OttException } from "ott-common/exceptions";
 import { conf } from "./ott-config";
+import { UnloadReason } from "./generated";
 
 const log = getLogger("clientmanager");
 
@@ -319,7 +320,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 		unload: async message => {
 			log.debug(`Balancer requested to unload room ${message.payload.room}`);
 			const msg = message.payload;
-			await roommanager.unloadRoom(msg.room);
+			await roommanager.unloadRoom(msg.room, UnloadReason.Commanded);
 		},
 		join: async message => {
 			const msg = message.payload;

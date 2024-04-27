@@ -320,7 +320,7 @@ impl Monolith {
         }
     }
 
-    pub async fn unload_room(&mut self, room: impl Into<RoomName> + Clone) {
+    pub async fn unload_room(&mut self, room: impl Into<RoomName> + Clone, reason: UnloadReason) {
         let room = room.into();
         self.state
             .lock()
@@ -328,7 +328,7 @@ impl Monolith {
             .rooms
             .remove(&room.clone().clone());
         if self.connected() {
-            self.send(M2BUnloaded { name: room }).await;
+            self.send(M2BUnloaded { name: room, reason }).await;
         }
     }
 

@@ -11,7 +11,7 @@ import { OttWebsocketError } from "ott-common/models/types";
 import roommanager from "./roommanager";
 import type { RoomListItem } from "./api/room";
 import _ from "lodash";
-import type { MsgB2M, MsgM2B } from "./generated";
+import type { MsgB2M, MsgM2B, UnloadReason } from "./generated";
 export type { MsgB2M, MsgM2B };
 
 const log = getLogger("balancer");
@@ -370,11 +370,12 @@ async function onRoomLoad(roomName: string) {
 	gossipDebounced();
 }
 
-function onRoomUnload(roomName: string) {
+function onRoomUnload(roomName: string, reason: UnloadReason) {
 	broadcastToBalancers({
 		type: "unloaded",
 		payload: {
 			name: roomName,
+			reason,
 		},
 	});
 	gossipDebounced();
