@@ -1,3 +1,6 @@
+[selection_strategy]
+strategy = "HashRing"
+
 [discovery]
 method = "fly"
 fly_app = "ott-prod"
