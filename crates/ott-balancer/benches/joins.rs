@@ -50,6 +50,7 @@ fn send_messages(c: &mut Criterion) {
                     .send_client(NewClient {
                         id: c_id,
                         room: room.clone(),
+                        edge_region: Default::default(),
                         token: "bar".to_owned(),
                     })
                     .await
@@ -90,6 +91,7 @@ fn send_messages(c: &mut Criterion) {
                     .send_client(NewClient {
                         id: c_id,
                         room: rooms[i as usize % rooms.len()].clone(),
+                        edge_region: Default::default(),
                         token: "bar".to_owned(),
                     })
                     .await
@@ -131,6 +133,7 @@ fn send_messages(c: &mut Criterion) {
                     .send_client(NewClient {
                         id: c_id,
                         room: rooms[i as usize % rooms.len()].clone(),
+                        edge_region: Default::default(),
                         token: "bar".to_owned(),
                     })
                     .await
@@ -179,6 +182,7 @@ fn send_messages(c: &mut Criterion) {
                         .send_client(NewClient {
                             id: c_id,
                             room: rooms[i as usize % rooms.len()].clone(),
+                            edge_region: Default::default(),
                             token: "bar".to_owned(),
                         })
                         .await

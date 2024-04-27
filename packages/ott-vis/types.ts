@@ -22,4 +22,5 @@ export interface Room {
 
 export interface Client {
 	id: string;
+	edge_region: string;
 }

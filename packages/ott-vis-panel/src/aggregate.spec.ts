@@ -1,4 +1,4 @@
-import type { SystemState } from "ott-vis";
+import type { Monolith, Room, SystemState } from "ott-vis";
 import {
 	aggMonolithRooms,
 	countRoomClients,
@@ -21,9 +21,11 @@ const sampleSystemState: SystemState = [
 						clients: [
 							{
 								id: "e7229053-89df-428d-a37c-4b669fd57788",
+								edge_region: "ewr",
 							},
 							{
 								id: "3fc0f726-2ad7-438b-8b2c-bae675dc1178",
+								edge_region: "ewr",
 							},
 						],
 					},
@@ -39,12 +41,15 @@ const sampleSystemState: SystemState = [
 						clients: [
 							{
 								id: "a90a98eb-5c82-44b3-90e0-1d117a9444c4",
+								edge_region: "ewr",
 							},
 							{
 								id: "a7a40762-0308-408a-b954-d3f7dc2e5732",
+								edge_region: "ewr",
 							},
 							{
 								id: "0ef93318-4b39-4b56-9180-637a9abeae9e",
+								edge_region: "ewr",
 							},
 						],
 					},
@@ -75,14 +80,15 @@ const sampleSystemState: SystemState = [
 						clients: [
 							{
 								id: "e7229053-89df-428d-a37c-4b669fd57788",
+								edge_region: "ewr",
 							},
 						],
 					},
 					{
 						name: "bar",
 						clients: [
-							{ id: "4a6fe051-3247-4cad-860a-cb455ee65923" },
-							{ id: "33bbcd19-2af5-4244-9d71-cb647acc1b06" },
+							{ id: "4a6fe051-3247-4cad-860a-cb455ee65923", edge_region: "ewr" },
+							{ id: "33bbcd19-2af5-4244-9d71-cb647acc1b06", edge_region: "ewr" },
 						],
 					},
 				],
@@ -128,10 +134,10 @@ const sampleSystemState: SystemState = [
 					{
 						name: "qux",
 						clients: [
-							{ id: "d3be3464-efd5-41a1-b145-7d54378b02e3" },
-							{ id: "acc449cc-4748-435d-96b8-63530beac3d8" },
-							{ id: "9d2ff554-8388-4021-8467-5dfb208bd66e" },
-							{ id: "ff68188f-f739-46df-9bd7-dd25c1026651" },
+							{ id: "d3be3464-efd5-41a1-b145-7d54378b02e3", edge_region: "ewr" },
+							{ id: "acc449cc-4748-435d-96b8-63530beac3d8", edge_region: "ewr" },
+							{ id: "9d2ff554-8388-4021-8467-5dfb208bd66e", edge_region: "ewr" },
+							{ id: "ff68188f-f739-46df-9bd7-dd25c1026651", edge_region: "ewr" },
 						],
 					},
 				],
@@ -172,30 +178,36 @@ describe("aggregation helpers", () => {
 	});
 
 	it("dedupes rooms", () => {
-		const rooms = [
-			{ name: "foo", clients: [{ id: "ff0ac5e0-caa8-4d5f-aba1-0c4aaa2d6f9e" }] },
+		const rooms: Room[] = [
+			{
+				name: "foo",
+				clients: [{ id: "ff0ac5e0-caa8-4d5f-aba1-0c4aaa2d6f9e", edge_region: "ewr" }],
+			},
 			{
 				name: "bar",
 				clients: [
-					{ id: "e36d4eb5-f526-4566-b94f-8cfc6dbf8548" },
-					{ id: "e842eeef-ef6c-4095-acc7-6342fb8c8b8c" },
+					{ id: "e36d4eb5-f526-4566-b94f-8cfc6dbf8548", edge_region: "ewr" },
+					{ id: "e842eeef-ef6c-4095-acc7-6342fb8c8b8c", edge_region: "ewr" },
 				],
 			},
-			{ name: "foo", clients: [{ id: "f7d5d57f-d15f-48b0-b30c-9bb378ce4943" }] },
+			{
+				name: "foo",
+				clients: [{ id: "f7d5d57f-d15f-48b0-b30c-9bb378ce4943", edge_region: "ewr" }],
+			},
 		];
 		expect(dedupeRooms(rooms)).toEqual([
 			{
 				name: "foo",
 				clients: [
-					{ id: "ff0ac5e0-caa8-4d5f-aba1-0c4aaa2d6f9e" },
-					{ id: "f7d5d57f-d15f-48b0-b30c-9bb378ce4943" },
+					{ id: "ff0ac5e0-caa8-4d5f-aba1-0c4aaa2d6f9e", edge_region: "ewr" },
+					{ id: "f7d5d57f-d15f-48b0-b30c-9bb378ce4943", edge_region: "ewr" },
 				],
 			},
 			{
 				name: "bar",
 				clients: [
-					{ id: "e36d4eb5-f526-4566-b94f-8cfc6dbf8548" },
-					{ id: "e842eeef-ef6c-4095-acc7-6342fb8c8b8c" },
+					{ id: "e36d4eb5-f526-4566-b94f-8cfc6dbf8548", edge_region: "ewr" },
+					{ id: "e842eeef-ef6c-4095-acc7-6342fb8c8b8c", edge_region: "ewr" },
 				],
 			},
 		]);
@@ -207,40 +219,40 @@ describe("aggregation helpers", () => {
 			{
 				name: "foo",
 				clients: [
-					{ id: "e7229053-89df-428d-a37c-4b669fd57788" },
-					{ id: "3fc0f726-2ad7-438b-8b2c-bae675dc1178" },
-					{ id: "e7229053-89df-428d-a37c-4b669fd57788" },
+					{ id: "e7229053-89df-428d-a37c-4b669fd57788", edge_region: "ewr" },
+					{ id: "3fc0f726-2ad7-438b-8b2c-bae675dc1178", edge_region: "ewr" },
+					{ id: "e7229053-89df-428d-a37c-4b669fd57788", edge_region: "ewr" },
 				],
 			},
 			{
 				name: "bar",
 				clients: [
-					{ id: "4a6fe051-3247-4cad-860a-cb455ee65923" },
-					{ id: "33bbcd19-2af5-4244-9d71-cb647acc1b06" },
+					{ id: "4a6fe051-3247-4cad-860a-cb455ee65923", edge_region: "ewr" },
+					{ id: "33bbcd19-2af5-4244-9d71-cb647acc1b06", edge_region: "ewr" },
 				],
 			},
 			{
 				name: "baz",
 				clients: [
-					{ id: "a90a98eb-5c82-44b3-90e0-1d117a9444c4" },
-					{ id: "a7a40762-0308-408a-b954-d3f7dc2e5732" },
-					{ id: "0ef93318-4b39-4b56-9180-637a9abeae9e" },
+					{ id: "a90a98eb-5c82-44b3-90e0-1d117a9444c4", edge_region: "ewr" },
+					{ id: "a7a40762-0308-408a-b954-d3f7dc2e5732", edge_region: "ewr" },
+					{ id: "0ef93318-4b39-4b56-9180-637a9abeae9e", edge_region: "ewr" },
 				],
 			},
 			{
 				name: "qux",
 				clients: [
-					{ id: "d3be3464-efd5-41a1-b145-7d54378b02e3" },
-					{ id: "acc449cc-4748-435d-96b8-63530beac3d8" },
-					{ id: "9d2ff554-8388-4021-8467-5dfb208bd66e" },
-					{ id: "ff68188f-f739-46df-9bd7-dd25c1026651" },
+					{ id: "d3be3464-efd5-41a1-b145-7d54378b02e3", edge_region: "ewr" },
+					{ id: "acc449cc-4748-435d-96b8-63530beac3d8", edge_region: "ewr" },
+					{ id: "9d2ff554-8388-4021-8467-5dfb208bd66e", edge_region: "ewr" },
+					{ id: "ff68188f-f739-46df-9bd7-dd25c1026651", edge_region: "ewr" },
 				],
 			},
 		]);
 	});
 
 	it("dedupes monoliths", () => {
-		const monoliths = [
+		const monoliths: Monolith[] = [
 			{
 				id: "a",
 				region: "x",
@@ -248,8 +260,8 @@ describe("aggregation helpers", () => {
 					{
 						name: "foo",
 						clients: [
-							{ id: "b379bce7-bd7a-4d79-a6bd-010e4fba1789" },
-							{ id: "a4505c5f-4856-49af-be53-77cabcb13aad" },
+							{ id: "b379bce7-bd7a-4d79-a6bd-010e4fba1789", edge_region: "ewr" },
+							{ id: "a4505c5f-4856-49af-be53-77cabcb13aad", edge_region: "ewr" },
 						],
 					},
 				],
@@ -258,7 +270,14 @@ describe("aggregation helpers", () => {
 			{
 				id: "a",
 				region: "x",
-				rooms: [{ name: "foo", clients: [{ id: "379fdf91-e1e5-47b3-ac0c-0380a51c3479" }] }],
+				rooms: [
+					{
+						name: "foo",
+						clients: [
+							{ id: "379fdf91-e1e5-47b3-ac0c-0380a51c3479", edge_region: "ewr" },
+						],
+					},
+				],
 			},
 		];
 		expect(dedupeMonoliths(monoliths)).toEqual([
@@ -269,9 +288,9 @@ describe("aggregation helpers", () => {
 					{
 						name: "foo",
 						clients: [
-							{ id: "b379bce7-bd7a-4d79-a6bd-010e4fba1789" },
-							{ id: "a4505c5f-4856-49af-be53-77cabcb13aad" },
-							{ id: "379fdf91-e1e5-47b3-ac0c-0380a51c3479" },
+							{ id: "b379bce7-bd7a-4d79-a6bd-010e4fba1789", edge_region: "ewr" },
+							{ id: "a4505c5f-4856-49af-be53-77cabcb13aad", edge_region: "ewr" },
+							{ id: "379fdf91-e1e5-47b3-ac0c-0380a51c3479", edge_region: "ewr" },
 						],
 					},
 				],

@@ -9,7 +9,7 @@ use hyper::StatusCode;
 use hyper::{body::Incoming as IncomingBody, Request, Response};
 use once_cell::sync::Lazy;
 use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
-use ott_balancer_protocol::RoomName;
+use ott_balancer_protocol::{Region, RoomName};
 use ott_common::websocket::{is_websocket_upgrade, upgrade};
 use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
 use reqwest::Url;
@@ -59,12 +59,20 @@ impl Service<Request<IncomingBody>> for BalancerService {
     fn call(&self, req: Request<hyper::body::Incoming>) -> Self::Future {
         COUNTER_HTTP_REQUESTS.inc();
         let request_id = COUNTER_HTTP_REQUESTS.get();
+        let edge_region: Region = req
+            .headers()
+            .get("Fly-Region")
+            .map(|v| v.to_str())
+            .and_then(Result::ok)
+            .map(Region::from)
+            .unwrap_or_default();
         let _request_span = span!(
             Level::INFO,
             "http_request",
             request_id = request_id,
             version = ?req.version(),
             method = %req.method(),
+            edge_region = ?edge_region,
             path = %req.uri().path(),
             handler = field::Empty,
         )
@@ -215,7 +223,9 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         let handle = tokio::task::Builder::new().name("client connection").spawn(
                             async move {
                                 GAUGE_CLIENTS.inc();
-                                if let Err(e) = client_entry(room_name, websocket, link).await {
+                                if let Err(e) =
+                                    client_entry(room_name, websocket, link, edge_region).await
+                                {
                                     error!("Error in websocket connection: {}", e);
                                 }
                                 GAUGE_CLIENTS.dec();

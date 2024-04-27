@@ -30,7 +30,7 @@ impl Default for BalancerConfig {
         Self {
             port: 8081,
             discovery: DiscoveryConfig::default(),
-            region: "unknown".into(),
+            region: Default::default(),
             api_key: None,
             selection_strategy: None,
         }
