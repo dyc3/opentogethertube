@@ -2,6 +2,7 @@ use std::{borrow::BorrowMut, path::PathBuf, sync::Once};
 
 use clap::{Parser, ValueEnum};
 use figment::providers::Format;
+use ott_balancer_protocol::Region;
 use serde::Deserialize;
 
 use ott_common::discovery::DiscoveryConfig;
@@ -18,7 +19,7 @@ pub struct BalancerConfig {
     /// The port to listen on for HTTP requests.
     pub port: u16,
     pub discovery: DiscoveryConfig,
-    pub region: String,
+    pub region: Region,
     /// The API key that clients can use to access restricted endpoints.
     pub api_key: Option<String>,
     pub selection_strategy: Option<MonolithSelectionConfig>,
@@ -29,7 +30,7 @@ impl Default for BalancerConfig {
         Self {
             port: 8081,
             discovery: DiscoveryConfig::default(),
-            region: "unknown".to_owned(),
+            region: "unknown".into(),
             api_key: None,
             selection_strategy: None,
         }
@@ -44,7 +45,7 @@ impl BalancerConfig {
             .extract()?;
 
         if let Some(region) = figment::providers::Env::var("FLY_REGION") {
-            config.region = region;
+            config.region = region.into();
         }
         // SAFETY: CONFIG is only mutated once, and only from this thread. All other accesses are read-only.
         CONFIG_INIT.call_once(|| unsafe { *CONFIG.borrow_mut() = Some(config) });

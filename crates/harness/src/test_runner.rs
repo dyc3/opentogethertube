@@ -1,5 +1,6 @@
 use std::{collections::HashMap, net::SocketAddr, process::Stdio, sync::Arc};
 
+use ott_balancer_protocol::Region;
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::{Child, Command},
@@ -33,8 +34,8 @@ impl TestRunner {
 
     /// Set the region that the balancer should use.
     /// **This will also restart the balancer.**
-    pub async fn set_region(&mut self, region: impl AsRef<str>) {
-        self.spawn_options.region = Some(region.as_ref().to_owned());
+    pub async fn set_region(&mut self, region: impl Into<Region>) {
+        self.spawn_options.region = Some(region.into().to_string());
         self.restart_balancer().await;
     }
 

@@ -1,4 +1,4 @@
-use ott_balancer_protocol::RoomName;
+use ott_balancer_protocol::{Region, RoomName};
 use std::{net::Ipv4Addr, sync::Arc};
 use tokio::{sync::RwLock, task::JoinHandle};
 
@@ -33,7 +33,7 @@ fn send_messages(c: &mut Criterion) {
             let (link, dispatcher_handle) = set_up_balancer();
             link.send_monolith(NewMonolith {
                 id: m_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 0,
@@ -73,7 +73,7 @@ fn send_messages(c: &mut Criterion) {
             let (link, dispatcher_handle) = set_up_balancer();
             link.send_monolith(NewMonolith {
                 id: m_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 0,
@@ -113,7 +113,7 @@ fn send_messages(c: &mut Criterion) {
             for _ in 0..5 {
                 link.send_monolith(NewMonolith {
                     id: uuid::Uuid::new_v4().into(),
-                    region: "unknown".into(),
+                    region: Default::default(),
                     config: ConnectionConfig {
                         host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                         port: 0,
@@ -148,14 +148,14 @@ fn send_messages(c: &mut Criterion) {
         |b| {
             b.to_async(&rt).iter_custom(|iters| async move {
                 unsafe {
-                    BalancerConfig::get_mut().region = "foo".to_owned();
+                    BalancerConfig::get_mut().region = "foo".into();
                 }
 
                 let rooms: Vec<RoomName> = (0..20)
                     .map(|i| format!("foo{}", i))
                     .map(|s| s.into())
                     .collect();
-                let regions = ["foo", "bar", "baz"];
+                let regions: [Region; 3] = ["foo", "bar", "baz"].map(|s| s.into());
 
                 let (link, dispatcher_handle) = set_up_balancer();
                 for i in 0..5 {

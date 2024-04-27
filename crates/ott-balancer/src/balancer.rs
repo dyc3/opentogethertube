@@ -436,7 +436,7 @@ impl BalancerContext {
             .values()
             .map(|m| MonolithState {
                 id: m.id(),
-                region: m.region().to_string(),
+                region: m.region().clone(),
                 rooms: m
                     .rooms()
                     .iter()
@@ -768,7 +768,7 @@ mod test {
         let monolith = BalancerMonolith::new(
             NewMonolith {
                 id: monolith_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
@@ -845,7 +845,7 @@ mod test {
         let monolith = BalancerMonolith::new(
             NewMonolith {
                 id: monolith_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
@@ -901,7 +901,7 @@ mod test {
         let m1 = BalancerMonolith::new(
             NewMonolith {
                 id: m1_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
@@ -918,7 +918,7 @@ mod test {
         let m2 = BalancerMonolith::new(
             NewMonolith {
                 id: m2_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3004,
@@ -984,7 +984,7 @@ mod test {
         let m1 = BalancerMonolith::new(
             NewMonolith {
                 id: m1_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
@@ -1001,7 +1001,7 @@ mod test {
         let m2 = BalancerMonolith::new(
             NewMonolith {
                 id: m2_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3004,
@@ -1063,7 +1063,7 @@ mod test {
         let m1 = BalancerMonolith::new(
             NewMonolith {
                 id: m1_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
@@ -1080,7 +1080,7 @@ mod test {
         let m2 = BalancerMonolith::new(
             NewMonolith {
                 id: m2_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3004,
@@ -1173,7 +1173,7 @@ mod test {
         let m1 = BalancerMonolith::new(
             NewMonolith {
                 id: m1_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
@@ -1190,7 +1190,7 @@ mod test {
         let m2 = BalancerMonolith::new(
             NewMonolith {
                 id: m2_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3004,
@@ -1269,7 +1269,7 @@ mod test {
         let monolith = BalancerMonolith::new(
             NewMonolith {
                 id: monolith_id,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,

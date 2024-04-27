@@ -12,7 +12,7 @@ use ott_common::discovery::{ConnectionConfig, HostOrIp};
 fn build_monolith() -> BalancerMonolith {
     let new = NewMonolith {
         id: uuid::Uuid::new_v4().into(),
-        region: "unknown".into(),
+        region: Default::default(),
         config: ConnectionConfig {
             host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
             port: 3002,

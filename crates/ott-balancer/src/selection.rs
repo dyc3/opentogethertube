@@ -162,7 +162,7 @@ mod test {
         let mut monolith_one = BalancerMonolith::new(
             NewMonolith {
                 id: monolith_id_one,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,
@@ -188,7 +188,7 @@ mod test {
         let mut monolith_two = BalancerMonolith::new(
             NewMonolith {
                 id: monolith_id_two,
-                region: "unknown".into(),
+                region: Default::default(),
                 config: ConnectionConfig {
                     host: HostOrIp::Ip(Ipv4Addr::LOCALHOST.into()),
                     port: 3002,

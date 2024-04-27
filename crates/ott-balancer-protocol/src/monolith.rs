@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 use typeshare::typeshare;
 
-use crate::{BalancerId, ClientId, MonolithId, RoomName};
+use crate::{BalancerId, ClientId, MonolithId, Region, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload", rename_all = "snake_case")]
@@ -112,7 +112,7 @@ pub enum MsgM2B<T = Box<RawValue>> {
 pub struct M2BInit {
     /// The port that the monolith is listening for HTTP requests on.
     pub port: u16,
-    pub region: String,
+    pub region: Region,
     pub id: MonolithId,
 }
 

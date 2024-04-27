@@ -23,13 +23,13 @@ export interface RoomState {
 
 export interface MonolithState {
 	id: MonolithId;
-	region: string;
+	region: Region;
 	rooms: RoomState[];
 }
 
 export interface BalancerState {
 	id: BalancerId;
-	region: string;
+	region: Region;
 	monoliths: MonolithState[];
 }
 
@@ -67,7 +67,7 @@ export interface B2MInit {
 export interface M2BInit {
 	/** The port that the monolith is listening for HTTP requests on. */
 	port: number;
-	region: string;
+	region: Region;
 	id: MonolithId;
 }
 

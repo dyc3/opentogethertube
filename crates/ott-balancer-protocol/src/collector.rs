@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{BalancerId, ClientId, MonolithId, RoomName};
+use crate::{BalancerId, ClientId, MonolithId, Region, RoomName};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare]
 pub struct BalancerState {
     pub id: BalancerId,
-    pub region: String,
+    pub region: Region,
     pub monoliths: Vec<MonolithState>,
 }
 
@@ -15,7 +15,7 @@ pub struct BalancerState {
 #[typeshare]
 pub struct MonolithState {
     pub id: MonolithId,
-    pub region: String,
+    pub region: Region,
     pub rooms: Vec<RoomState>,
 }
 
