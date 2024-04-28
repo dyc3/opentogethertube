@@ -60,7 +60,6 @@ export async function shutdown() {
 	await Promise.all(
 		rooms.map(room => unloadRoom(room.name, UnloadReason.Shutdown, { preserveRedis: true }))
 	);
-	process.exit(0);
 }
 
 export function redisStateToState(state: RoomStateFromRedis): RoomState {
@@ -195,10 +194,10 @@ export async function unloadRoom(
 	idx = rooms[idx].name === room.name ? idx : rooms.indexOf(room); // because the index may have changed across await boundaries
 	rooms.splice(idx, 1);
 	if (!opts.preserveRedis) {
-		await redisClient.del(`room:${roomName}`);
-		await redisClient.del(`room-sync:${roomName}`);
+		await redisClient.del(`room:${room.name}`);
+		await redisClient.del(`room-sync:${room.name}`);
 	}
-	bus.emit("unload", roomName, reason);
+	bus.emit("unload", room.name, reason);
 }
 
 /**
