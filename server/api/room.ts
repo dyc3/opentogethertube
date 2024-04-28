@@ -191,10 +191,6 @@ function isClaimRequest(request: OttApiRequestPatchRoom): request is OttClaimReq
 	return "claim" in request;
 }
 
-function isSettingsRequest(request: OttApiRequestPatchRoom): request is OttSettingsRequest {
-	return !isClaimRequest(request);
-}
-
 const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoom> = async (
 	req,
 	res
@@ -238,18 +234,16 @@ const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoo
 			}
 		}
 	} else {
-		if (isSettingsRequest(body)) {
-			const newBody = {
-				...body,
-				grants: new Grants(body.grants),
-			};
-			const roomRequest: ApplySettingsRequest = {
-				type: RoomRequestType.ApplySettingsRequest,
-				settings: newBody,
-			};
+		const newBody = {
+			...body,
+			grants: new Grants(body.grants),
+		};
+		const roomRequest: ApplySettingsRequest = {
+			type: RoomRequestType.ApplySettingsRequest,
+			settings: newBody,
+		};
 
-			await room.processUnauthorizedRequest(roomRequest, { token: req.token });
-		}
+		await room.processUnauthorizedRequest(roomRequest, { token: req.token });
 	}
 
 	if (!room.isTemporary) {
