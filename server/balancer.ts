@@ -159,19 +159,43 @@ class BalancerManager {
 		this.bus.emit(event, ...args);
 	}
 
-	shutdown() {
+	async shutdown(): Promise<void> {
 		wss?.removeAllListeners();
-		for (const conn of this.balancerConnections) {
-			let result = conn.disconnect(1001, "Server shutting down");
-			if (!result.ok) {
-				log.error(`Error disconnecting from balancer ${conn.id}: ${result.value}`);
-			}
-		}
-		wss?.close(err => {
-			if (err) {
-				log.error(`Error shutting down balancer server: ${err}`);
-			}
+		const closePromises = this.balancerConnections.map(conn => {
+			return new Promise<void>((resolve, reject) => {
+				conn.on("disconnect", () => {
+					resolve();
+				});
+				setTimeout(reject, 1000 * 10, new Error("Balancer did not disconnect in time"));
+				let result = conn.disconnect(1001, "Server shutting down");
+				if (!result.ok) {
+					log.error(`Error disconnecting from balancer ${conn.id}: ${result.value}`);
+				}
+			});
 		});
+		try {
+			await Promise.all(closePromises);
+		} catch (e) {
+			log.error(`Error waiting for balancers to disconnect: ${e}`);
+		}
+		const closePromise = new Promise<void>((resolve, reject) => {
+			if (!wss) {
+				resolve();
+				return;
+			}
+			wss.close(err => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
+		try {
+			await closePromise;
+		} catch (e) {
+			log.error(`Error shutting down balancing server: ${e}`);
+		}
 	}
 }
 
