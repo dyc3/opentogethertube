@@ -26,6 +26,7 @@ import { mount } from "cypress/vue";
 import type { FullOTTStoreState } from "../../../src/store";
 import type { Store } from "vuex";
 import type { OttRoomConnectionMock } from "../../../src/plugins/connection";
+import type { Role } from "ott-common";
 
 // Augment the Cypress namespace to include type definitions for
 // your custom command.
@@ -42,6 +43,7 @@ declare global {
 			emitted(event: string): Chainable<unknown[]>;
 			store(): Chainable<Store<FullOTTStoreState>>;
 			connection(): Chainable<OttRoomConnectionMock>;
+			getPermissionCheckbox(permission: string, role: Role): Chainable<HTMLElement>;
 		}
 	}
 }
