@@ -69,19 +69,21 @@ const CategorySchema = z.enum([
 
 const GrantSchema = z.tuple([z.nativeEnum(Role), z.number()]);
 
-export const RoomSettingsSchema = z.object({
-	title: z.string().max(254).optional(),
-	description: z.string().optional(),
-	visibility: z.nativeEnum(Visibility).optional(),
-	queueMode: z.nativeEnum(QueueMode).optional(),
-	grants: z.array(GrantSchema).optional(),
-	autoSkipSegmentCategories: z.array(CategorySchema).optional(),
-	restoreQueueBehavior: z.nativeEnum(BehaviorOption).optional(),
-	enableVoteSkip: z.boolean().optional(),
-});
+export const RoomSettingsSchema = z
+	.object({
+		title: z.string().max(254).optional(),
+		description: z.string().optional(),
+		visibility: z.nativeEnum(Visibility).optional(),
+		queueMode: z.nativeEnum(QueueMode).optional(),
+		grants: z.array(GrantSchema).optional(),
+		autoSkipSegmentCategories: z.array(CategorySchema).optional(),
+		restoreQueueBehavior: z.nativeEnum(BehaviorOption).optional(),
+		enableVoteSkip: z.boolean().optional(),
+	})
+	.strict();
 
 export const ClaimSchema = z.object({
-	claim: z.boolean().optional(),
+	claim: z.boolean(),
 });
 
 export const OttApiRequestPatchRoomSchema = z.union([RoomSettingsSchema, ClaimSchema]);
