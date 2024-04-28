@@ -32,8 +32,14 @@
 							:disabled="getLowestGranted(item) < r - 1"
 							color="primary"
 							@update:model-value="onCheckboxModified"
+							:data-cy="`perm-chk-${item.name}-${r - 1}`"
 						/>
-						<v-checkbox v-else v-model="item[r - 1]" :disabled="true" />
+						<v-checkbox
+							v-else
+							v-model="item[r - 1]"
+							:disabled="true"
+							:data-cy="`perm-chk-${item.name}-${r - 1}`"
+						/>
 					</td>
 				</tr>
 			</tbody>
@@ -60,7 +66,7 @@ const props = withDefaults(
 );
 const { currentRole } = toRefs(props);
 
-const permissions: Ref<Permission[]> = ref([]);
+const permissions: Ref<Permission[]> = ref(extractFromGrants(props.modelValue));
 const granted = useGrants();
 
 const rolePerms = {
@@ -110,6 +116,7 @@ function rebuildMasks(): Grants {
 }
 
 watch(model, value => {
+	console.log("model changed", value);
 	permissions.value = extractFromGrants(value);
 });
 

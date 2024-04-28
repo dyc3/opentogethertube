@@ -46,6 +46,7 @@ import { routes } from "../../../src/router";
 import { VueWrapper } from "@vue/test-utils";
 import { OttRoomConnectionMock, connectionInjectKey } from "../../../src/plugins/connection";
 import { OttSfx, sfxInjectKey } from "../../../src/plugins/sfx";
+import type { Role } from "ott-common";
 
 Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global = options.global || {};
@@ -129,4 +130,8 @@ Cypress.Commands.add("store", () => {
 
 Cypress.Commands.add("connection", () => {
 	return cy.get("@connection") as any;
+});
+
+Cypress.Commands.add("getPermissionCheckbox", (permission: string, role: Role) => {
+	return cy.get(`[data-cy="perm-chk-${permission}-${role}"] input`) as any;
 });
