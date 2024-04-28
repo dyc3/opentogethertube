@@ -27,6 +27,8 @@ import {
 	OttApiResponseRoomCreate,
 	OttApiResponseRoomGenerate,
 	OttResponseBody,
+	OttClaimRequest,
+	OttSettingsRequest,
 } from "ott-common/models/rest-api";
 import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
@@ -37,6 +39,7 @@ import {
 	OttApiRequestVoteSchema,
 	OttApiRequestAddToQueueSchema,
 	OttApiRequestRemoveFromQueueSchema,
+	OttApiRequestPatchRoomSchema,
 } from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -185,73 +188,60 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 	res.json(resp);
 };
 
+function isClaimRequest(request: OttApiRequestPatchRoom): request is OttClaimRequest {
+	return "claim" in request;
+}
+
 const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoom> = async (
 	req,
 	res
 ) => {
+	const body = OttApiRequestPatchRoomSchema.parse(req.body);
+
 	if (!req.token) {
 		throw new OttException("Missing token");
 	}
-	if (req.body.visibility && !VALID_ROOM_VISIBILITY.includes(req.body.visibility)) {
-		throw new BadApiArgumentException(
-			"visibility",
-			`must be one of ${VALID_ROOM_VISIBILITY.toString()}`
-		);
-	}
-	if (req.body.queueMode && !VALID_ROOM_QUEUE_MODE.includes(req.body.queueMode)) {
-		throw new BadApiArgumentException(
-			"queueMode",
-			`must be one of ${VALID_ROOM_QUEUE_MODE.toString()}`
-		);
-	}
-
-	if (req.body.permissions) {
-		req.body.grants = req.body.permissions;
-		delete req.body.permissions;
-	}
-
-	if (req.body.title && req.body.title.length > 255) {
-		throw new BadApiArgumentException(
-			"title",
-			"not allowed (too long, must be at most 255 characters)"
-		);
-	}
-
-	req.body.grants = new Grants(req.body.grants);
 
 	const result = await roommanager.getRoom(req.params.name);
 	if (!result.ok) {
 		throw result.value;
 	}
 	const room = result.value;
-	if (req.body.claim) {
-		if (room.owner) {
-			throw new BadApiArgumentException("claim", `Room already has owner.`);
-		}
 
-		if (req.user) {
-			log.info(`Room ${room.name} claimed by ${req.user.username} (${req.user.id})`);
-			room.owner = req.user;
-			// HACK: force the room to send the updated user info to the client
-			for (const user of room.realusers) {
-				if (user.user_id === room.owner.id) {
-					room.syncUser(room.getUserInfo(user.id));
-					break;
-				}
+	if (isClaimRequest(body)) {
+		if (body.claim) {
+			if (room.owner) {
+				throw new BadApiArgumentException("claim", `Room already has owner.`);
 			}
-		} else {
-			res.status(401).json({
-				success: false,
-				error: {
-					message: "Must be logged in to claim room ownership.",
-				},
-			});
-			return;
+
+			if (req.user) {
+				log.info(`Room ${room.name} claimed by ${req.user.username} (${req.user.id})`);
+				room.owner = req.user;
+				// HACK: force the room to send the updated user info to the client
+				for (const user of room.realusers) {
+					if (user.user_id === room.owner.id) {
+						room.syncUser(room.getUserInfo(user.id));
+						break;
+					}
+				}
+			} else {
+				res.status(401).json({
+					success: false,
+					error: {
+						message: "Must be logged in to claim room ownership.",
+					},
+				});
+				return;
+			}
 		}
 	} else {
+		const newBody = {
+			...body,
+			grants: new Grants(body.grants),
+		};
 		const roomRequest: ApplySettingsRequest = {
 			type: RoomRequestType.ApplySettingsRequest,
-			settings: req.body,
+			settings: newBody,
 		};
 
 		await room.processUnauthorizedRequest(roomRequest, { token: req.token });

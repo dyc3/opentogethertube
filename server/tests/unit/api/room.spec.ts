@@ -350,13 +350,16 @@ describe("Room API", () => {
 
 		it.each([
 			[
-				{ arg: "title", reason: "not allowed (too long, must be at most 255 characters)" },
 				{
 					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
-					isTemporary: true,
 				},
 			],
-		])("should fail to modify room for validation errors: %s", async (error, body) => {
+			[
+				{
+					autoSkipSegmentCategories: ["invalid", "intro"],
+				},
+			],
+		])("should fail to modify room for validation errors: %s", async body => {
 			let resp = await request(app)
 				.patch("/api/room/foo")
 				.auth(token, { type: "bearer" })
@@ -365,15 +368,14 @@ describe("Room API", () => {
 				.expect(400);
 			expect(resp.body.success).toEqual(false);
 			expect(resp.body.error).toMatchObject({
-				name: "BadApiArgumentException",
-				...error,
+				name: "ZodValidationError",
 			});
 		});
 
 		it.each([
 			[Array(100).fill("sponsor"), ["sponsor"]],
 			[
-				["invalidCategory1", "invalidCategory2", "intro", "intro", "outro"],
+				["intro", "intro", "outro"],
 				["intro", "outro"],
 			],
 			[
@@ -398,7 +400,7 @@ describe("Room API", () => {
 			],
 			[[], []],
 		])(
-			"should update autoSkipSegmentCategories with only unique valid auto-skip segment cateogories",
+			"should update autoSkipSegmentCategories with only unique valid auto-skip segment categories",
 			async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
 				let resp = await request(app)
 					.patch("/api/room/foo")
