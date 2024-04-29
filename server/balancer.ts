@@ -12,6 +12,7 @@ import roommanager from "./roommanager";
 import type { RoomListItem } from "./api/room";
 import _ from "lodash";
 import type { MsgB2M, MsgM2B, UnloadReason } from "./generated";
+import { Gauge } from "prom-client";
 export type { MsgB2M, MsgM2B };
 
 const log = getLogger("balancer");
@@ -435,3 +436,11 @@ function gossip() {
 const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait: 1000 * 20 });
 
 interface GossipRoom extends RoomListItem {}
+
+const gaugeBalancerConnections = new Gauge({
+	name: "ott_balancer_connections",
+	help: "Number of balancer connections",
+	collect() {
+		this.set(balancerManager.balancerConnections.length);
+	},
+});
