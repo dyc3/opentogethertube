@@ -13,41 +13,51 @@
 					@keydown="() => (isRoomNameTaken = false)"
 					persistent-hint
 				/>
-				<v-text-field
-					:label="$t('create-room-form.title')"
-					:hint="$t('create-room-form.title-hint')"
-					v-model="options.title"
-					persistent-hint
+				<v-checkbox
+					v-model="showSettings"
+					:label="$t('room.tabs.settings')"
+					false-icon="mdi-chevron-up"
+					true-icon="mdi-chevron-down"
 				/>
-				<v-text-field
-					:label="$t('create-room-form.description')"
-					:hint="$t('create-room-form.description-hint')"
-					v-model="options.description"
-					persistent-hint
-				/>
-				<v-select
-					:label="$t('create-room-form.visibility')"
-					:hint="$t('create-room-form.visibility-hint')"
-					:items="[
-						{ title: $t('create-room-form.public'), value: 'public' },
-						{ title: $t('create-room-form.unlisted'), value: 'unlisted' },
-					]"
-					v-model="options.visibility"
-					:rules="rules.visibility"
-					persistent-hint
-				/>
-				<v-select
-					:label="$t('create-room-form.queue-mode')"
-					:items="[
-						{ title: $t('create-room-form.manual'), value: 'manual' },
-						{ title: $t('create-room-form.vote'), value: 'vote' },
-						{ title: $t('create-room-form.loop'), value: 'loop' },
-						{ title: $t('create-room-form.dj'), value: 'dj' },
-					]"
-					v-model="options.queueMode"
-					:rules="rules.queueMode"
-					persistent-hint
-				/>
+				<v-expand-transition>
+					<div v-if="showSettings">
+						<v-text-field
+							:label="$t('create-room-form.title')"
+							:hint="$t('create-room-form.title-hint')"
+							v-model="options.title"
+							persistent-hint
+						/>
+						<v-text-field
+							:label="$t('create-room-form.description')"
+							:hint="$t('create-room-form.description-hint')"
+							v-model="options.description"
+							persistent-hint
+						/>
+						<v-select
+							:label="$t('create-room-form.visibility')"
+							:hint="$t('create-room-form.visibility-hint')"
+							:items="[
+								{ title: $t('create-room-form.public'), value: 'public' },
+								{ title: $t('create-room-form.unlisted'), value: 'unlisted' },
+							]"
+							v-model="options.visibility"
+							:rules="rules.visibility"
+							persistent-hint
+						/>
+						<v-select
+							:label="$t('create-room-form.queue-mode')"
+							:items="[
+								{ title: $t('create-room-form.manual'), value: 'manual' },
+								{ title: $t('create-room-form.vote'), value: 'vote' },
+								{ title: $t('create-room-form.loop'), value: 'loop' },
+								{ title: $t('create-room-form.dj'), value: 'dj' },
+							]"
+							v-model="options.queueMode"
+							:rules="rules.queueMode"
+							persistent-hint
+						/>
+					</div>
+				</v-expand-transition>
 				<div :key="error">{{ error }}</div>
 			</v-card-text>
 			<v-card-actions>
@@ -122,6 +132,7 @@ const isSubmitting = ref(false);
 const isRoomNameTaken = ref(false);
 const error = ref("");
 const form: Ref<{ validate(): void } | undefined> = ref();
+const showSettings = ref(false);
 
 // HACK: for some reason, the form doesn't start updating the model value unless we do this
 onMounted(() => {
