@@ -46,7 +46,7 @@ impl Default for MonolithSelectionStrategy {
 pub enum MonolithSelectionConfig {
     #[default]
     MinRooms,
-    HashRing,
+    HashRing(HashRingSelectorConfig),
     Random,
 }
 
@@ -56,8 +56,8 @@ impl From<MonolithSelectionConfig> for MonolithSelectionStrategy {
             MonolithSelectionConfig::MinRooms => {
                 MonolithSelectionStrategy::MinRooms(MinRoomsSelector)
             }
-            MonolithSelectionConfig::HashRing => {
-                MonolithSelectionStrategy::HashRing(HashRingSelector)
+            MonolithSelectionConfig::HashRing(config) => {
+                MonolithSelectionStrategy::HashRing(config.into())
             }
             MonolithSelectionConfig::Random => MonolithSelectionStrategy::Random(RandomSelector),
         }
@@ -85,8 +85,28 @@ impl MonolithSelection for MinRoomsSelector {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize)]
+pub struct HashRingSelectorConfig {
+    #[serde(default)]
+    pub weight: usize,
+}
+
+impl Default for HashRingSelectorConfig {
+    fn default() -> Self {
+        HashRingSelectorConfig { weight: 5 }
+    }
+}
+
+impl From<HashRingSelectorConfig> for HashRingSelector {
+    fn from(config: HashRingSelectorConfig) -> Self {
+        HashRingSelector { config }
+    }
+}
+
 #[derive(Debug, Default, Copy, Clone)]
-pub struct HashRingSelector;
+pub struct HashRingSelector {
+    pub config: HashRingSelectorConfig,
+}
 
 impl MonolithSelection for HashRingSelector {
     fn select_monolith<'a>(
@@ -94,8 +114,19 @@ impl MonolithSelection for HashRingSelector {
         room: &RoomName,
         monoliths: Vec<&'a BalancerMonolith>,
     ) -> anyhow::Result<&BalancerMonolith> {
+        let weight = self.config.weight.max(1);
         let mut ring = HashRing::new();
-        ring.batch_add(monoliths.iter().map(|m| RingNode { monolith: m }).collect());
+        ring.batch_add(
+            monoliths
+                .iter()
+                // This makes it so that each monolith is added to the ring 5 times with different hashes to spread the load more evenly
+                .flat_map(|m| std::iter::repeat(m).take(weight).enumerate())
+                .map(|(i, m)| RingNode {
+                    monolith: m,
+                    idx: i,
+                })
+                .collect(),
+        );
 
         let node = ring.get(room).ok_or(anyhow::anyhow!("ring hash empty"))?;
 
@@ -105,11 +136,13 @@ impl MonolithSelection for HashRingSelector {
 
 struct RingNode<'a> {
     monolith: &'a BalancerMonolith,
+    idx: usize,
 }
 
 impl Hash for RingNode<'_> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.monolith.id().hash(state);
+        self.idx.hash(state);
     }
 }
 
@@ -146,7 +179,7 @@ mod test {
 
         let strategy: MonolithSelectionConfig =
             serde_json::from_value(config).expect("failed to parse selection strategy config");
-        assert_eq!(strategy, MonolithSelectionConfig::HashRing);
+        assert!(matches!(strategy, MonolithSelectionConfig::HashRing(_)));
     }
 
     #[tokio::test]
