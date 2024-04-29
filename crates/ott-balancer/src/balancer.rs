@@ -1177,7 +1177,9 @@ mod test {
         BalancerConfig::init_default();
         let ctx = Arc::new(RwLock::new(BalancerContext::new()));
         ctx.write().await.monolith_selection =
-            MonolithSelectionStrategy::HashRing(HashRingSelector);
+            MonolithSelectionStrategy::HashRing(HashRingSelector {
+                config: Default::default(),
+            });
         let (monolith_outbound_tx_1, _monolith_outbound_rx_1) = tokio::sync::mpsc::channel(100);
         let monolith_outbound_tx_1 = Arc::new(monolith_outbound_tx_1);
         let (client_inbound_tx_1, _client_inbound_rx_1) = tokio::sync::mpsc::channel(100);

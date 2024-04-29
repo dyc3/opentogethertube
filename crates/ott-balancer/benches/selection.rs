@@ -98,7 +98,9 @@ fn select_monoliths(c: &mut Criterion) {
     });
 
     c.bench_function("hash ring selector, 2 monoliths", |b| {
-        let strategy = HashRingSelector;
+        let strategy = HashRingSelector {
+            config: Default::default(),
+        };
         let mut m1 = build_monolith();
         m1.add_room(&"foo1".into()).expect("failed to add room");
         m1.add_room(&"foo2".into()).expect("failed to add room");
@@ -112,7 +114,9 @@ fn select_monoliths(c: &mut Criterion) {
     });
 
     c.bench_function("hash ring selector, 5 monoliths", |b| {
-        let strategy = HashRingSelector;
+        let strategy = HashRingSelector {
+            config: Default::default(),
+        };
         let mut m1 = build_monolith();
         m1.add_room(&"foo1".into()).expect("failed to add room");
         m1.add_room(&"foo2".into()).expect("failed to add room");
@@ -132,7 +136,9 @@ fn select_monoliths(c: &mut Criterion) {
     });
 
     c.bench_function("hash ring selector, 10 monoliths", |b| {
-        let strategy = HashRingSelector;
+        let strategy = HashRingSelector {
+            config: Default::default(),
+        };
         let mut m1 = build_monolith();
         m1.add_room(&"foo1".into()).expect("failed to add room");
         m1.add_room(&"foo2".into()).expect("failed to add room");
