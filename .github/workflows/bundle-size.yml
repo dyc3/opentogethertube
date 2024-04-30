@@ -1,0 +1,84 @@
+name: Bundle size
+on:
+  pull_request:
+    paths-ignore:
+      - ".vscode/**"
+      - "docs/**"
+      - "env/**"
+      - "**/*.md"
+      - ".gitpod.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+
+jobs:
+  bundle-size-new:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+        ref:
+          - ${{ github.event.pull_request.base.ref }}
+          - ${{ github.event.pull_request.head.ref }}
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          check-latest: true
+          cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: |
+          yarn workspace ott-client run build | sed -r 's/([a-zA-Z]+-)[^ .]+(\.[^ ]+)/\1hash\2/' | tee /tmp/bundle-size.txt
+
+      - name: Upload bundle size
+        uses: actions/upload-artifact@v2
+        with:
+          name: bundle-size-${{ matrix.ref }}
+          path: /tmp/bundle-size.txt
+
+  bundle-size-compare:
+    runs-on: ubuntu-latest
+    needs: bundle-size-new
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: Download bundle size (base ref)
+        uses: actions/download-artifact@v2
+        with:
+          name: bundle-size-${{ github.event.pull_request.base.ref }}
+          path: /tmp/bundle-size-base.txt
+      - name: Download bundle size (head ref)
+        uses: actions/download-artifact@v2
+        with:
+          name: bundle-size-${{ github.event.pull_request.head.ref }}
+          path: /tmp/bundle-size-head.txt
+      - name: Compare bundle sizes
+        run: |
+          cat <<EOF > diff.txt
+          # Bundle size diff
+          \`\`\`diff
+          $(diff -u /tmp/bundle-size-base.txt /tmp/bundle-size-head.txt)
+          \`\`\`
+          EOF
+      - uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Bundle size diff
+          path: diff.txt
