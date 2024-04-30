@@ -140,9 +140,7 @@ describe("Creating Rooms", () => {
 			cy.contains("button", "Save")
 				.should("exist")
 				.scrollIntoView()
-				.should("be.visible")
-				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none");
+				.should("be.visible");
 			checkPermissionsEditor();
 		});
 

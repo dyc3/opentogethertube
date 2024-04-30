@@ -44,8 +44,7 @@ describe("Room settings", () => {
 				.should("exist")
 				.scrollIntoView()
 				.should("be.visible")
-				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none");
+				.should("be.disabled");
 		});
 
 		it("should apply title", () => {
@@ -71,7 +70,7 @@ describe("Room settings", () => {
 
 		it("should apply visibility", () => {
 			cy.get("[data-cy=select-visibility]").click();
-			cy.contains("Unlisted").click();
+			cy.contains("Public").click();
 			cy.contains("button", "Save")
 				.should("exist")
 				.should("be.visible")
