@@ -15854,7 +15854,7 @@ __metadata:
     vue-i18n: "npm:9.2.2"
     vue-router: "npm:^4.1.5"
     vue-slider-component: "npm:4.1.0-beta.6"
-    vuetify: "npm:^3.5.7"
+    vuetify: "npm:^3.5.17"
     vuex: "npm:4.1.0"
   languageName: unknown
   linkType: soft
@@ -21285,15 +21285,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vuetify@npm:^3.5.7":
-  version: 3.5.7
-  resolution: "vuetify@npm:3.5.7"
+"vuetify@npm:^3.5.17":
+  version: 3.5.17
+  resolution: "vuetify@npm:3.5.17"
   peerDependencies:
     typescript: ">=4.7"
-    vite-plugin-vuetify: ">=1.0.0-alpha.12"
+    vite-plugin-vuetify: ">=1.0.0"
     vue: ^3.3.0
     vue-i18n: ^9.0.0
-    webpack-plugin-vuetify: ">=2.0.0-alpha.11"
+    webpack-plugin-vuetify: ">=2.0.0"
   peerDependenciesMeta:
     typescript:
       optional: true
@@ -21303,7 +21303,7 @@ __metadata:
       optional: true
     webpack-plugin-vuetify:
       optional: true
-  checksum: 10c0/256abdc6f1b0c86ae13c019aec7f4da06252ff18142ccf397326f4de6d338cf5d8fa47a9d4fb31bddaf172b24f9ad3cc3703fdba1962053f8e195e66d5b59fa8
+  checksum: 10c0/19f590a3ee52ef297d966c90e3a599ab36085dfceed3d60c59311d22f1e51a5a6f90f97fb174405e0c0c3452ac8cb2ddf34f744725f422b1b1d824d95488eb80
   languageName: node
   linkType: hard
 
