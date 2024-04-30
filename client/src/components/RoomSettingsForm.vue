@@ -3,14 +3,14 @@
 		<v-form @submit="submitRoomSettings">
 			<v-text-field
 				:label="$t('room-settings.title')"
-				v-model="inputRoomSettings.title"
+				v-model="settings.title.value"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-title')"
 				data-cy="input-title"
 			/>
 			<v-text-field
 				:label="$t('room-settings.description')"
-				v-model="inputRoomSettings.description"
+				v-model="settings.description.value"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-description')"
 				data-cy="input-description"
@@ -21,7 +21,7 @@
 					{ title: $t('room-settings.public'), value: Visibility.Public },
 					{ title: $t('room-settings.unlisted'), value: Visibility.Unlisted },
 				]"
-				v-model="inputRoomSettings.visibility"
+				v-model="settings.visibility.value"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-visibility')"
 				data-cy="select-visibility"
@@ -54,7 +54,7 @@
 						description: $t('room-settings.dj-hint'),
 					},
 				]"
-				v-model="inputRoomSettings.queueMode"
+				v-model="settings.queueMode.value"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.set-queue-mode')"
 				data-cy="select-queueMode"
@@ -66,7 +66,7 @@
 				</template>
 			</v-select>
 			<v-select
-				v-model="inputRoomSettings.autoSkipSegmentCategories"
+				v-model="settings.autoSkipSegmentCategories.value"
 				:items="ALL_SKIP_CATEGORIES"
 				:disabled="!granted('configure-room.other')"
 				:label="$t('room-settings.auto-skip-text')"
@@ -90,7 +90,7 @@
 						value: BehaviorOption.Never,
 					},
 				]"
-				v-model="inputRoomSettings.restoreQueueBehavior"
+				v-model="settings.restoreQueueBehavior.value"
 				:loading="isLoadingRoomSettings"
 				:disabled="!granted('configure-room.other')"
 				data-cy="select-restore-queue"
@@ -100,14 +100,14 @@
 				</template>
 			</v-select>
 			<v-checkbox
-				v-model="inputRoomSettings.enableVoteSkip"
+				v-model="settings.enableVoteSkip.value"
 				:label="$t('room-settings.enable-vote-skip')"
 				:disabled="!granted('configure-room.other')"
 				data-cy="input-vote-skip"
 			/>
 			<PermissionsEditor
 				v-if="store.state.user && store.state.room.hasOwner"
-				v-model="inputRoomSettings.grants"
+				v-model="settings.grants.value as Grants"
 				:current-role="store.getters['users/self']?.role ?? Role.Owner"
 			/>
 			<div v-else-if="!store.state.room.hasOwner">
@@ -138,6 +138,7 @@
 					@click="submitRoomSettings"
 					role="submit"
 					:loading="isLoadingRoomSettings"
+					:disabled="dirtySettings.length === 0"
 					data-cy="save"
 				>
 					{{ $t("common.save") }}
@@ -155,13 +156,14 @@ import { API } from "@/common-http";
 import { Visibility, QueueMode, RoomSettings, Role, BehaviorOption } from "ott-common/models/types";
 import { Grants } from "ott-common/permissions";
 import toast from "@/util/toast";
-import { onMounted, Ref, ref } from "vue";
+import { Ref, onMounted, reactive, ref, toRefs } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
 import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
 import { useGrants } from "./composables/grants";
 import { useRoute } from "vue-router";
+import { watch } from "vue";
 
 const store = useStore();
 const { t } = useI18n();
@@ -169,7 +171,7 @@ const granted = useGrants();
 const route = useRoute();
 
 const isLoadingRoomSettings = ref(false);
-const inputRoomSettings = ref<RoomSettings>({
+const inputRoomSettings = reactive<RoomSettings>({
 	title: "",
 	description: "",
 	visibility: Visibility.Public,
@@ -178,7 +180,17 @@ const inputRoomSettings = ref<RoomSettings>({
 	autoSkipSegmentCategories: Array.from([]),
 	restoreQueueBehavior: BehaviorOption.Prompt,
 	enableVoteSkip: false,
-}) as Ref<RoomSettings>;
+});
+
+const settings = toRefs(inputRoomSettings);
+const dirtySettings: Ref<(keyof RoomSettings)[]> = ref([]);
+for (const key of Object.keys(inputRoomSettings) as (keyof RoomSettings)[]) {
+	watch(settings[key], () => {
+		if (!dirtySettings.value.includes(key)) {
+			dirtySettings.value.push(key);
+		}
+	});
+}
 
 onMounted(async () => {
 	await loadRoomSettings();
@@ -198,8 +210,12 @@ async function loadRoomSettings() {
 		const res = await API.get<OttApiResponseGetRoom>(
 			`/room/${route.params.roomId ?? store.state.room.name}`
 		);
-		inputRoomSettings.value = intoSettings(res.data);
+		Object.assign(inputRoomSettings, intoSettings(res.data));
+		setTimeout(() => {
+			dirtySettings.value = [];
+		}, 0);
 	} catch (err) {
+		console.error(err);
 		toast.add({
 			content: t("room-settings.load-failed"),
 			duration: 5000,
@@ -221,11 +237,14 @@ function getRoomSettingsSubmit(): Partial<RoomSettings> {
 	};
 	const blocked: (keyof RoomSettings)[] = [];
 	for (const prop of Object.keys(propsToGrants)) {
-		if (!granted(`configure-room.${propsToGrants[prop]}`)) {
+		if (
+			!dirtySettings.value.includes(prop as keyof typeof propsToGrants) ||
+			!granted(`configure-room.${propsToGrants[prop]}`)
+		) {
 			blocked.push(prop as keyof typeof propsToGrants);
 		}
 	}
-	return _.omit(inputRoomSettings.value, blocked);
+	return _.omit(inputRoomSettings, blocked);
 }
 
 /** Take room settings from the UI and submit them to the server. */
@@ -241,6 +260,7 @@ async function submitRoomSettings() {
 			content: t("room-settings.settings-applied").toString(),
 			duration: 4000,
 		});
+		dirtySettings.value = [];
 	} catch (e) {
 		console.log(e);
 		toast.add({
