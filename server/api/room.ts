@@ -464,7 +464,8 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 		res.status(400).json({
 			success: false,
 			error: {
-				name: err.name,
+				...err,
+				message: err.message,
 			},
 		});
 	} else {
