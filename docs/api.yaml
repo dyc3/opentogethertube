@@ -136,12 +136,6 @@ paths:
                       queue:
                         type: array
                         items: {}
-                      permissions:
-                        type: array
-                        items:
-                          type: array
-                          items:
-                            type: number
                       name:
                         type: string
                       isTemporary:
@@ -200,7 +194,7 @@ paths:
                       $ref: "#/components/schemas/visibility"
                     queueMode:
                       $ref: "#/components/schemas/queuemode"
-                    autoSkipSegmentCategories: 
+                    autoSkipSegmentCategories:
                       $ref: "#/components/schemas/autoSkipSegmentCategories"
                     grants:
                       description: Map of role numbers to the bitmask of permissions that role has

@@ -186,15 +186,7 @@ onMounted(async () => {
 
 function intoSettings(obj: OttApiResponseGetRoom): RoomSettings {
 	return {
-		..._.omit(obj, [
-			"name",
-			"isTemporary",
-			"users",
-			"queue",
-			"permissions",
-			"hasOwner",
-			"grants",
-		]),
+		..._.omit(obj, ["name", "isTemporary", "users", "queue", "hasOwner", "grants"]),
 		grants: new Grants(obj.grants),
 	};
 }
