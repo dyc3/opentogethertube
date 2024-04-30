@@ -4,14 +4,14 @@
 			<v-text-field
 				:label="$t('room-settings.title')"
 				v-model="settings.title.value"
-				:loading="isLoadingRoomSettings"
+				:loading="isLoadingRoomSettings || dirtySettings.includes('title')"
 				:disabled="!granted('configure-room.set-title')"
 				data-cy="input-title"
 			/>
 			<v-text-field
 				:label="$t('room-settings.description')"
 				v-model="settings.description.value"
-				:loading="isLoadingRoomSettings"
+				:loading="isLoadingRoomSettings || dirtySettings.includes('description')"
 				:disabled="!granted('configure-room.set-description')"
 				data-cy="input-description"
 			/>
@@ -22,7 +22,7 @@
 					{ title: $t('room-settings.unlisted'), value: Visibility.Unlisted },
 				]"
 				v-model="settings.visibility.value"
-				:loading="isLoadingRoomSettings"
+				:loading="isLoadingRoomSettings || dirtySettings.includes('visibility')"
 				:disabled="!granted('configure-room.set-visibility')"
 				data-cy="select-visibility"
 			>
@@ -55,7 +55,7 @@
 					},
 				]"
 				v-model="settings.queueMode.value"
-				:loading="isLoadingRoomSettings"
+				:loading="isLoadingRoomSettings || dirtySettings.includes('queueMode')"
 				:disabled="!granted('configure-room.set-queue-mode')"
 				data-cy="select-queueMode"
 			>
@@ -68,6 +68,9 @@
 			<v-select
 				v-model="settings.autoSkipSegmentCategories.value"
 				:items="ALL_SKIP_CATEGORIES"
+				:loading="
+					isLoadingRoomSettings || dirtySettings.includes('autoSkipSegmentCategories')
+				"
 				:disabled="!granted('configure-room.other')"
 				:label="$t('room-settings.auto-skip-text')"
 				chips
@@ -91,7 +94,7 @@
 					},
 				]"
 				v-model="settings.restoreQueueBehavior.value"
-				:loading="isLoadingRoomSettings"
+				:loading="isLoadingRoomSettings || dirtySettings.includes('restoreQueueBehavior')"
 				:disabled="!granted('configure-room.other')"
 				data-cy="select-restore-queue"
 			>
@@ -164,6 +167,7 @@ import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
 import { useGrants } from "./composables/grants";
 import { useRoute } from "vue-router";
 import { watch } from "vue";
+import { watchDebounced } from "@vueuse/core";
 
 const store = useStore();
 const { t } = useI18n();
@@ -191,6 +195,16 @@ for (const key of Object.keys(inputRoomSettings) as (keyof RoomSettings)[]) {
 		}
 	});
 }
+watchDebounced(
+	inputRoomSettings,
+	async () => {
+		if (dirtySettings.value.length === 0) {
+			return;
+		}
+		await submitRoomSettings();
+	},
+	{ debounce: 1000 }
+);
 
 onMounted(async () => {
 	await loadRoomSettings();
