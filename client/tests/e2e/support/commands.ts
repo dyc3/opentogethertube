@@ -65,21 +65,12 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	});
 
 	// create router if one is not provided
-	// @ts-expect-error
-	if (!options.router) {
-		// @ts-expect-error
-		options.router = createRouter({
-			routes: [],
-			history: createMemoryHistory(),
-		});
-	}
-
-	options.global.plugins.push({
-		install(app) {
-			// @ts-expect-error
-			app.use(options.router);
-		},
+	const router = createRouter({
+		routes: routes,
+		history: createMemoryHistory(),
 	});
+	cy.wrap(router).as("router");
+	options.global.plugins.push(router);
 
 	const sfx = new OttSfx();
 	options.global.plugins.push({
@@ -126,6 +117,10 @@ Cypress.Commands.add("emitted", (event: string) => {
 
 Cypress.Commands.add("store", () => {
 	return cy.get("@store") as any;
+});
+
+Cypress.Commands.add("router", () => {
+	return cy.get("@router") as any;
 });
 
 Cypress.Commands.add("connection", () => {
