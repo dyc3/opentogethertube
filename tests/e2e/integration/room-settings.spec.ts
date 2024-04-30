@@ -33,10 +33,13 @@ describe("Room settings", () => {
 				url: "/api/room/generate",
 			}).then(resp => {
 				// @ts-expect-error
-				cy.visit(`/room/${resp.body.room}`);
+				const room = resp.body.room;
+				cy.visit(`/room/${room}`);
+				cy.intercept("GET", `/api/room/${room}`).as("getRoom");
 			});
 
 			cy.contains("Settings").click();
+			cy.wait("@getRoom");
 			cy.contains("button", "Save")
 				.should("exist")
 				.scrollIntoView()

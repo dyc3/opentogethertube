@@ -62,7 +62,7 @@ export interface RoomSettings {
 	visibility: Visibility;
 	queueMode: QueueMode;
 	grants: Grants;
-	autoSkipSegmentCategories: Array<Category>;
+	autoSkipSegmentCategories: Category[];
 	restoreQueueBehavior: BehaviorOption;
 	enableVoteSkip: boolean;
 }
