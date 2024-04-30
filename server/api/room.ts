@@ -182,7 +182,6 @@ const getRoom: RequestHandler<{ name: string }, OttApiResponseGetRoom, unknown> 
 			])
 		),
 		queue: room.queue.items,
-		permissions: room.grants,
 		hasOwner: !!room.owner,
 	};
 	res.json(resp);
