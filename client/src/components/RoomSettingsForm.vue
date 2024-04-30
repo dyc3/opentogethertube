@@ -75,7 +75,6 @@
 				data-cy="input-auto-skip"
 			/>
 			<v-select
-				density="compact"
 				:label="$t('room-settings.restore-queue')"
 				:items="[
 					{
