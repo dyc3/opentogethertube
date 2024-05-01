@@ -15739,7 +15739,7 @@ __metadata:
     supertest: "npm:6.3.3"
     ts-essentials: "npm:^9.3.0"
     ts-node: "npm:^10.9.1"
-    typescript: "npm:5.3.3"
+    typescript: "npm:5.4.5"
     validator: "npm:^13.7.0"
     winston: "npm:^3.10.0"
   languageName: unknown
@@ -15835,7 +15835,7 @@ __metadata:
     sass: "npm:^1.41.1"
     sortablejs: "npm:^1.15.0"
     sortablejs-vue3: "npm:^1.2.3"
-    typescript: "npm:5.3.3"
+    typescript: "npm:5.4.5"
     validator: "npm:^13.7.0"
     video.js: "npm:^7.15.4"
     vite: "npm:^5.0.13"
@@ -15864,7 +15864,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     sponsorblock-api: "npm:^0.2.2"
     ts-essentials: "npm:^9.3.0"
-    typescript: "npm:5.3.3"
+    typescript: "npm:5.4.5"
     vitest: "npm:^1.2.2"
     zod: "npm:^3.22.4"
   languageName: unknown
@@ -15926,7 +15926,7 @@ __metadata:
     ts-essentials: "npm:^9.3.0"
     ts-node: "npm:^10.9.1"
     tslib: "npm:^2.4.1"
-    typescript: "npm:5.3.3"
+    typescript: "npm:5.4.5"
     unique-names-generator: "npm:^3.1.1"
     uuid: "npm:^9.0.0"
     validator: "npm:^13.7.0"
@@ -16062,7 +16062,7 @@ __metadata:
     concurrently: "npm:7.6.0"
     eslint: "npm:^8.57.0"
     prettier: "npm:^2.5.1"
-    typescript: "npm:5.3.3"
+    typescript: "npm:5.4.5"
     vitest: "npm:^1.2.2"
   languageName: unknown
   linkType: soft
@@ -20511,13 +20511,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.3.3":
-  version: 5.3.3
-  resolution: "typescript@npm:5.3.3"
+"typescript@npm:5.4.5":
+  version: 5.4.5
+  resolution: "typescript@npm:5.4.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/e33cef99d82573624fc0f854a2980322714986bc35b9cb4d1ce736ed182aeab78e2cb32b385efa493b2a976ef52c53e20d6c6918312353a91850e2b76f1ea44f
+  checksum: 10c0/2954022ada340fd3d6a9e2b8e534f65d57c92d5f3989a263754a78aba549f7e6529acc1921913560a4b816c46dce7df4a4d29f9f11a3dc0d4213bb76d043251e
   languageName: node
   linkType: hard
 
@@ -20531,13 +20531,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>":
-  version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
+"typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>":
+  version: 5.4.5
+  resolution: "typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>::version=5.4.5&hash=d69c25"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/1d0a5f4ce496c42caa9a30e659c467c5686eae15d54b027ee7866744952547f1be1262f2d40de911618c242b510029d51d43ff605dba8fb740ec85ca2d3f9500
+  checksum: 10c0/9cf4c053893bcf327d101b6c024a55baf05430dc30263f9adb1bf354aeffc11306fe1f23ba2f9a0209674359f16219b5b7d229e923477b94831d07d5a33a4217
   languageName: node
   linkType: hard
 
