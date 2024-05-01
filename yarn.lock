@@ -14634,13 +14634,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"material-design-icons-iconfont@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "material-design-icons-iconfont@npm:5.0.1"
-  checksum: 10c0/6bdf7da74b45e8099ac12e955872515a4ee9c3fec850d7817217f44a1dea27a7a579fad40d1677302270876c850e0709b4c41147a15748b74c32ad69e0b84794
-  languageName: node
-  linkType: hard
-
 "mdn-data@npm:2.0.14":
   version: 2.0.14
   resolution: "mdn-data@npm:2.0.14"
@@ -15837,7 +15830,6 @@ __metadata:
     jsdom: "npm:^21.1.0"
     load-script: "npm:^1.0.0"
     lodash: "npm:^4.17.21"
-    material-design-icons-iconfont: "npm:^5.0.1"
     ott-common: "workspace:*"
     plyr: "npm:3.7.8"
     sass: "npm:^1.41.1"
