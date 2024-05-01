@@ -16,7 +16,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  bundle-size-new:
+  bundle-size:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -48,25 +48,25 @@ jobs:
           yarn workspace ott-client run build | sed -r 's/([a-zA-Z]+-)[^ .]+(\.[^ ]+)/\1hash\2/' | tee /tmp/bundle-size.txt
 
       - name: Upload bundle size
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: bundle-size-${{ matrix.ref }}
           path: /tmp/bundle-size.txt
 
   bundle-size-compare:
     runs-on: ubuntu-latest
-    needs: bundle-size-new
+    needs: bundle-size
     strategy:
       matrix:
         node-version: [18.x]
     steps:
       - name: Download bundle size (base ref)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: bundle-size-${{ github.event.pull_request.base.ref }}
           path: /tmp/bundle-size-base.txt
       - name: Download bundle size (head ref)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: bundle-size-${{ github.event.pull_request.head.ref }}
           path: /tmp/bundle-size-head.txt
