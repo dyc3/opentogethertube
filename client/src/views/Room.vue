@@ -344,7 +344,12 @@ export default defineComponent({
 			}
 			const currentTime = player.getPosition();
 
-			if (Math.abs(newPosition - currentTime) > 1 && !mediaPlaybackBlocked.value) {
+			const diff = Math.abs(newPosition - (await currentTime));
+			if (isNaN(diff)) {
+				console.error("player diff is NaN, this is a bug", newPosition, currentTime);
+				return;
+			}
+			if (diff > 1 && !mediaPlaybackBlocked.value) {
 				player.setPosition(newPosition);
 			}
 		});

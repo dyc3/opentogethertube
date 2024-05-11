@@ -102,7 +102,8 @@ export class MediaPlayerV2 {
 		}
 		return this.player.value.pause();
 	}
-	getPosition(): number {
+	getPosition(): number | Promise<number> {
+		// vimeo video player returns a promise, so we need to handle that
 		if (!this.checkForPlayer(this.player.value)) {
 			return 0;
 		}
