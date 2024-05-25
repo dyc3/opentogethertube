@@ -157,9 +157,7 @@ watch(inputAddPreview, () => {
 	onInputAddPreviewChange();
 });
 
-const highlightedAddPreviewItem = computed(() => {
-	return _.find(videos.value, { highlight: true });
-});
+const highlightedAddPreviewItem = ref<Video | undefined>(undefined);
 const isAddPreviewInputUrl = computed(() => {
 	try {
 		return !!new URL(inputAddPreview.value).host;
@@ -184,6 +182,7 @@ async function requestAddPreview() {
 		hasAddPreviewFailed.value = false;
 		if (res.data.success) {
 			videos.value = res.data.result;
+			highlightedAddPreviewItem.value = res.data.highlighted;
 			console.log(`Got add preview with ${videos.value.length}`);
 		} else {
 			throw new Error(res.data.error.message);
