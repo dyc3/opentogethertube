@@ -424,11 +424,22 @@ export class AddPreview {
 	videos: Video[];
 	/** The number of seconds to allow downstream caches to cache the response. Affects caching HTTP headers. */
 	cacheDuration: number;
+	highlighted?: Video;
 
-	constructor(videos: Video[], cacheDuration: number) {
-		this.videos = videos;
+	constructor(videos: Video[] | BulkVideoResult, cacheDuration: number) {
+		if (Array.isArray(videos)) {
+			this.videos = videos;
+		} else {
+			this.videos = videos.videos;
+			this.highlighted = videos.highlighted;
+		}
 		this.cacheDuration = cacheDuration;
 	}
+}
+
+export interface BulkVideoResult {
+	videos: Video[];
+	highlighted?: Video;
 }
 
 const counterAddPreviewsRequested = new Counter({
