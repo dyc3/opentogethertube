@@ -255,8 +255,8 @@ describe("Youtube", () => {
 			].map(x => x.replace("%s", "BTZ5KVRUy1Q"))
 		)("Resolves single video URL: %s", async link => {
 			const videos = await adapter.resolveURL(link);
-			expect(videos).toHaveLength(1);
-			expect(videos[0]).toEqual({
+			expect(videos.videos).toHaveLength(1);
+			expect(videos.videos[0]).toEqual({
 				service: "youtube",
 				id: "BTZ5KVRUy1Q",
 				title: "tmpIwT4T4",
@@ -280,7 +280,7 @@ describe("Youtube", () => {
 			expect(fetchSpy).toHaveBeenCalledTimes(1);
 			expect(fetchPlaylist).toHaveBeenCalledTimes(1);
 			expect(fetchVideo).toHaveBeenCalledTimes(0);
-			expect(videos).toEqual([
+			expect(videos.videos).toEqual([
 				{
 					service: "youtube",
 					id: "zgxj_0xPleg",
@@ -289,7 +289,6 @@ describe("Youtube", () => {
 					thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
 					// length expected to be undefined because the youtube api doesn't return video length in playlist items
 					// feature requested here: https://issuetracker.google.com/issues/173420445
-					highlight: true,
 				},
 				{
 					service: "youtube",
@@ -299,6 +298,13 @@ describe("Youtube", () => {
 					thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
 				},
 			]);
+			expect(videos.highlighted).toEqual({
+				service: "youtube",
+				id: "zgxj_0xPleg",
+				title: "Chris Chan: A Comprehensive History - Part 1",
+				description: "(1982-2000)",
+				thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
+			});
 			expect(apiGet).toHaveBeenCalledTimes(1);
 
 			fetchSpy.mockRestore();
@@ -321,16 +327,15 @@ describe("Youtube", () => {
 				expect(fetchSpy).toHaveBeenCalledTimes(1);
 				expect(fetchPlaylist).toHaveBeenCalledTimes(1);
 				expect(fetchVideo).toHaveBeenCalledTimes(1);
+				expect(videos.highlighted).toEqual({
+					service: "youtube",
+					id: "BTZ5KVRUy1Q",
+					title: "tmpIwT4T4",
+					description: "tmpIwT4T4",
+					thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+					length: 10,
+				});
 				expect(videos.videos).toEqual([
-					{
-						service: "youtube",
-						id: "BTZ5KVRUy1Q",
-						title: "tmpIwT4T4",
-						description: "tmpIwT4T4",
-						thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
-						length: 10,
-						highlight: true,
-					},
 					{
 						service: "youtube",
 						id: "zgxj_0xPleg",
