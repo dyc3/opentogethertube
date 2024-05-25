@@ -207,7 +207,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	async resolveURL(
 		link: string,
 		onlyProperties?: (keyof VideoMetadata)[]
-	): Promise<Video[] | BulkVideoResult> {
+	): Promise<BulkVideoResult> {
 		log.debug(`resolveURL: ${link}, ${onlyProperties ? onlyProperties.toString() : ""}`);
 		const url = new URL(link);
 
@@ -223,7 +223,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			return { videos };
 		} else if (url.pathname === "/playlist") {
 			if (qPlaylist) {
-				return this.fetchPlaylistVideos(qPlaylist);
+				const videos = await this.fetchPlaylistVideos(qPlaylist);
+				return { videos };
 			} else {
 				throw new BadApiArgumentException("input", "Link is missing playlist ID");
 			}
@@ -233,10 +234,14 @@ export default class YouTubeAdapter extends ServiceAdapter {
 					return this.fetchVideoWithPlaylist(this.getVideoId(link), qPlaylist);
 				} catch {
 					log.debug("Falling back to fetching video without playlist");
-					return [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)];
+					return {
+						videos: [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)],
+					};
 				}
 			} else {
-				return [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)];
+				return {
+					videos: [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)],
+				};
 			}
 		}
 	}

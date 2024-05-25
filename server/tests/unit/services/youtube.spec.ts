@@ -321,7 +321,7 @@ describe("Youtube", () => {
 				expect(fetchSpy).toHaveBeenCalledTimes(1);
 				expect(fetchPlaylist).toHaveBeenCalledTimes(1);
 				expect(fetchVideo).toHaveBeenCalledTimes(1);
-				expect(videos).toEqual([
+				expect(videos.videos).toEqual([
 					{
 						service: "youtube",
 						id: "BTZ5KVRUy1Q",
@@ -375,7 +375,7 @@ describe("Youtube", () => {
 			async link => {
 				const fetchVideoWithPlaylist = vi.spyOn(adapter, "fetchVideoWithPlaylist");
 				const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
-				const videos: Video[] = await adapter.resolveURL(link);
+				let videos = (await adapter.resolveURL(link)).videos;
 				expect(videos).toHaveLength(1);
 				expect(videos[0]).toEqual({
 					service: "youtube",
@@ -404,7 +404,7 @@ describe("Youtube", () => {
 			expect(fetchVideoWithPlaylist).toHaveBeenCalledTimes(0);
 			expect(fetchPlaylist).toHaveBeenCalledTimes(1);
 			expect(fetchVideo).toHaveBeenCalledTimes(0);
-			expect(videos).toEqual([
+			expect(videos.videos).toEqual([
 				{
 					service: "youtube",
 					id: "zgxj_0xPleg",
