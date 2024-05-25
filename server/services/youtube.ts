@@ -16,6 +16,7 @@ import storage from "../storage";
 import { OttException } from "ott-common/exceptions";
 import { conf } from "../ott-config";
 import { parseIso8601Duration } from "./parsing/iso8601";
+import { BulkVideoResult } from "server/infoextractor";
 
 const log = getLogger("youtube");
 
@@ -203,7 +204,10 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 	}
 
-	async resolveURL(link: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video[]> {
+	async resolveURL(
+		link: string,
+		onlyProperties?: (keyof VideoMetadata)[]
+	): Promise<Video[] | BulkVideoResult> {
 		log.debug(`resolveURL: ${link}, ${onlyProperties ? onlyProperties.toString() : ""}`);
 		const url = new URL(link);
 
@@ -215,7 +219,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			url.pathname.startsWith("/user/") ||
 			url.pathname.startsWith("/@")
 		) {
-			return this.fetchChannelVideos(this.getChannelId(url));
+			const videos = await this.fetchChannelVideos(this.getChannelId(url));
+			return { videos };
 		} else if (url.pathname === "/playlist") {
 			if (qPlaylist) {
 				return this.fetchPlaylistVideos(qPlaylist);
@@ -225,7 +230,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		} else {
 			if (qPlaylist && !knownPrivateLists.includes(qPlaylist)) {
 				try {
-					return await this.fetchVideoWithPlaylist(this.getVideoId(link), qPlaylist);
+					return this.fetchVideoWithPlaylist(this.getVideoId(link), qPlaylist);
 				} catch {
 					log.debug("Falling back to fetching video without playlist");
 					return [await this.fetchVideoInfo(this.getVideoId(link), onlyProperties)];
@@ -410,23 +415,22 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 	}
 
-	async fetchVideoWithPlaylist(videoId: string, playlistId: string): Promise<Video[]> {
+	async fetchVideoWithPlaylist(videoId: string, playlistId: string): Promise<BulkVideoResult> {
 		const playlist = await this.fetchPlaylistVideos(playlistId);
-		let highlighted = false;
-		playlist.forEach(video => {
-			if (video.id === videoId) {
-				highlighted = true;
-				video.highlight = true;
-			}
-		});
+		let highlighted = playlist.find(video => video.id === videoId);
 
 		if (!highlighted) {
-			const video = await this.fetchVideoInfo(videoId);
-			video.highlight = true;
-			playlist.unshift(video);
+			try {
+				highlighted = await this.fetchVideoInfo(videoId);
+			} catch (err) {
+				log.warn(`Failed to fetch highlighted video from playlist, skipping: ${err}`);
+			}
 		}
 
-		return playlist;
+		return {
+			videos: playlist,
+			highlighted,
+		};
 	}
 
 	async videoApiRequest(

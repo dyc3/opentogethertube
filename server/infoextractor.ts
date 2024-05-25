@@ -26,6 +26,7 @@ import { conf } from "./ott-config";
 import PeertubeAdapter from "./services/peertube";
 import PlutoAdapter from "./services/pluto";
 import DashVideoAdapter from "./services/dash";
+import { Ls } from "dayjs";
 
 const log = getLogger("infoextract");
 
@@ -355,30 +356,34 @@ export default {
 
 			const fetchResults = await adapter.resolveURL(query);
 			const resolvedResults: VideoId[] = [];
-			for (let video of fetchResults) {
-				if ("url" in video) {
-					try {
-						const adapter = this.getServiceAdapterForURL(video.url);
-						if (!adapter) {
+			if (Array.isArray(fetchResults)) {
+				for (let video of fetchResults) {
+					if ("url" in video) {
+						try {
+							const adapter = this.getServiceAdapterForURL(video.url);
+							if (!adapter) {
+								continue;
+							}
+							if (adapter.isCollectionURL(video.url)) {
+								continue;
+							}
+							resolvedResults.push({
+								service: adapter.serviceId,
+								id: adapter.getVideoId(video.url),
+							});
+						} catch (e) {
+							log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
 							continue;
 						}
-						if (adapter.isCollectionURL(video.url)) {
-							continue;
-						}
-						resolvedResults.push({
-							service: adapter.serviceId,
-							id: adapter.getVideoId(video.url),
-						});
-					} catch (e) {
-						log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
-						continue;
+					} else {
+						resolvedResults.push(video);
 					}
-				} else {
-					resolvedResults.push(video);
 				}
+				const completeResults = await this.getManyVideoInfo(resolvedResults);
+				return new AddPreview(completeResults, cacheDuration);
+			} else {
+				return new AddPreview(fetchResults, cacheDuration);
 			}
-			const completeResults = await this.getManyVideoInfo(resolvedResults);
-			results.push(...completeResults);
 		} else {
 			if (query.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
 				throw new InvalidAddPreviewInputException(ADD_PREVIEW_SEARCH_MIN_LENGTH);
