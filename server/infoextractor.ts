@@ -382,7 +382,15 @@ export default {
 				const completeResults = await this.getManyVideoInfo(resolvedResults);
 				return new AddPreview(completeResults, cacheDuration);
 			} else {
-				return new AddPreview(fetchResults, cacheDuration);
+				const videos = fetchResults.videos;
+				const completeResults = await this.getManyVideoInfo(videos);
+				return new AddPreview(
+					{
+						videos: completeResults,
+						highlighted: fetchResults.highlighted,
+					},
+					cacheDuration
+				);
 			}
 		} else {
 			if (query.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {

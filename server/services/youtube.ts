@@ -231,7 +231,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		} else {
 			if (qPlaylist && !knownPrivateLists.includes(qPlaylist)) {
 				try {
-					return this.fetchVideoWithPlaylist(this.getVideoId(link), qPlaylist);
+					return await this.fetchVideoWithPlaylist(this.getVideoId(link), qPlaylist);
 				} catch {
 					log.debug("Falling back to fetching video without playlist");
 					return {

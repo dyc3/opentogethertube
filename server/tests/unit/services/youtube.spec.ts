@@ -119,7 +119,7 @@ async function mockYoutubeApi(
 			};
 		} catch (e) {
 			let content = fs.readFileSync(`${FIXTURE_DIRECTORY}/errors/${e.message}.json`, "utf8");
-			return JSON.parse(content);
+			throw JSON.parse(content);
 		}
 	} else if (path === "/channels") {
 		return {
