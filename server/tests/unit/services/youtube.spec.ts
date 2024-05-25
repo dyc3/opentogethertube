@@ -364,8 +364,8 @@ describe("Youtube", () => {
 		it("Recovers after not being able to fetch playlist information for a video", async () => {
 			const link = "https://youtube.com/watch?v=BTZ5KVRUy1Q&list=fakelistid";
 			const videos = await adapter.resolveURL(link);
-			expect(videos).toHaveLength(1);
-			expect(videos[0]).toEqual({
+			expect(videos.videos).toHaveLength(1);
+			expect(videos.videos[0]).toEqual({
 				service: "youtube",
 				id: "BTZ5KVRUy1Q",
 				title: "tmpIwT4T4",
@@ -380,9 +380,9 @@ describe("Youtube", () => {
 			async link => {
 				const fetchVideoWithPlaylist = vi.spyOn(adapter, "fetchVideoWithPlaylist");
 				const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
-				let videos = (await adapter.resolveURL(link)).videos;
-				expect(videos).toHaveLength(1);
-				expect(videos[0]).toEqual({
+				const videos = await adapter.resolveURL(link);
+				expect(videos.videos).toHaveLength(1);
+				expect(videos.videos[0]).toEqual({
 					service: "youtube",
 					id: "BTZ5KVRUy1Q",
 					title: "tmpIwT4T4",
