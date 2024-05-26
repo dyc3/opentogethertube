@@ -383,14 +383,16 @@ export default {
 				return new AddPreview(completeResults, cacheDuration);
 			} else {
 				const videos = fetchResults.videos;
-				const completeResults = await this.getManyVideoInfo(videos);
-				return new AddPreview(
-					{
-						videos: completeResults,
-						highlighted: fetchResults.highlighted,
-					},
-					cacheDuration
-				);
+				const completeResults: BulkVideoResult = {
+					videos: await this.getManyVideoInfo(videos),
+					highlighted: fetchResults.highlighted
+						? await this.getVideoInfo(
+								fetchResults.highlighted.service,
+								fetchResults.highlighted.id
+						  )
+						: undefined,
+				};
+				return new AddPreview(completeResults, cacheDuration);
 			}
 		} else {
 			if (query.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
