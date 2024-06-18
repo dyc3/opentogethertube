@@ -15932,7 +15932,7 @@ __metadata:
     validator: "npm:^13.7.0"
     vitest: "npm:^1.2.2"
     winston: "npm:^3.10.0"
-    ws: "npm:^7.4.6"
+    ws: "npm:^7.5.10"
     zod: "npm:^3.22.4"
     zod-validation-error: "npm:^3.0.2"
   languageName: unknown
@@ -21748,7 +21748,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^7.2.0, ws@npm:^7.4.6":
+"ws@npm:^7.2.0":
   version: 7.5.9
   resolution: "ws@npm:7.5.9"
   peerDependencies:
@@ -21760,6 +21760,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/aec4ef4eb65821a7dde7b44790f8699cfafb7978c9b080f6d7a98a7f8fc0ce674c027073a78574c94786ba7112cc90fa2cc94fc224ceba4d4b1030cff9662494
+  languageName: node
+  linkType: hard
+
+"ws@npm:^7.5.10":
+  version: 7.5.10
+  resolution: "ws@npm:7.5.10"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ^5.0.2
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/bd7d5f4aaf04fae7960c23dcb6c6375d525e00f795dd20b9385902bd008c40a94d3db3ce97d878acc7573df852056ca546328b27b39f47609f80fb22a0a9b61d
   languageName: node
   linkType: hard
 
