@@ -26,6 +26,7 @@ import { conf } from "./ott-config";
 import PeertubeAdapter from "./services/peertube";
 import PlutoAdapter from "./services/pluto";
 import DashVideoAdapter from "./services/dash";
+import { Ls } from "dayjs";
 
 const log = getLogger("infoextract");
 
@@ -355,30 +356,44 @@ export default {
 
 			const fetchResults = await adapter.resolveURL(query);
 			const resolvedResults: VideoId[] = [];
-			for (let video of fetchResults) {
-				if ("url" in video) {
-					try {
-						const adapter = this.getServiceAdapterForURL(video.url);
-						if (!adapter) {
+			if (Array.isArray(fetchResults)) {
+				for (let video of fetchResults) {
+					if ("url" in video) {
+						try {
+							const adapter = this.getServiceAdapterForURL(video.url);
+							if (!adapter) {
+								continue;
+							}
+							if (adapter.isCollectionURL(video.url)) {
+								continue;
+							}
+							resolvedResults.push({
+								service: adapter.serviceId,
+								id: adapter.getVideoId(video.url),
+							});
+						} catch (e) {
+							log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
 							continue;
 						}
-						if (adapter.isCollectionURL(video.url)) {
-							continue;
-						}
-						resolvedResults.push({
-							service: adapter.serviceId,
-							id: adapter.getVideoId(video.url),
-						});
-					} catch (e) {
-						log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
-						continue;
+					} else {
+						resolvedResults.push(video);
 					}
-				} else {
-					resolvedResults.push(video);
 				}
+				const completeResults = await this.getManyVideoInfo(resolvedResults);
+				return new AddPreview(completeResults, cacheDuration);
+			} else {
+				const videos = fetchResults.videos;
+				const completeResults: BulkVideoResult = {
+					videos: await this.getManyVideoInfo(videos),
+					highlighted: fetchResults.highlighted
+						? await this.getVideoInfo(
+								fetchResults.highlighted.service,
+								fetchResults.highlighted.id
+						  )
+						: undefined,
+				};
+				return new AddPreview(completeResults, cacheDuration);
 			}
-			const completeResults = await this.getManyVideoInfo(resolvedResults);
-			results.push(...completeResults);
 		} else {
 			if (query.length < ADD_PREVIEW_SEARCH_MIN_LENGTH) {
 				throw new InvalidAddPreviewInputException(ADD_PREVIEW_SEARCH_MIN_LENGTH);
@@ -424,11 +439,22 @@ export class AddPreview {
 	videos: Video[];
 	/** The number of seconds to allow downstream caches to cache the response. Affects caching HTTP headers. */
 	cacheDuration: number;
+	highlighted?: Video;
 
-	constructor(videos: Video[], cacheDuration: number) {
-		this.videos = videos;
+	constructor(videos: Video[] | BulkVideoResult, cacheDuration: number) {
+		if (Array.isArray(videos)) {
+			this.videos = videos;
+		} else {
+			this.videos = videos.videos;
+			this.highlighted = videos.highlighted;
+		}
 		this.cacheDuration = cacheDuration;
 	}
+}
+
+export interface BulkVideoResult {
+	videos: Video[];
+	highlighted?: Video;
 }
 
 const counterAddPreviewsRequested = new Counter({

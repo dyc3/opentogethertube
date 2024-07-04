@@ -3,6 +3,7 @@
 import { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video";
 import { IncompleteServiceAdapterException } from "./exceptions";
 import { getLogger } from "./logger";
+import { BulkVideoResult } from "./infoextractor";
 
 const log = getLogger("serviceadapter");
 export interface VideoRequest {
@@ -92,7 +93,7 @@ export class ServiceAdapter {
 	async resolveURL(
 		url: string,
 		properties?: (keyof VideoMetadata)[]
-	): Promise<(Video | { url: string })[]> {
+	): Promise<(Video | { url: string })[] | BulkVideoResult> {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method resolveURL`
 		);

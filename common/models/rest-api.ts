@@ -78,6 +78,7 @@ export type OttApiRequestRemoveFromQueue = z.infer<typeof OttApiRequestRemoveFro
 
 export type OttApiResponseAddPreview = {
 	result: Video[];
+	highlighted?: Video;
 };
 
 export type OttApiRequestVote = z.infer<typeof OttApiRequestVoteSchema>;
