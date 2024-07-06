@@ -25,21 +25,16 @@ body:
       4. See error...
   validations:
     required: true
-- type: checkboxes
-  - type: dropdown
+- type: dropdown
   attributes:
-    attributes:
     label: Environment
-      label: Environment
-    description: Mark the appropriate boxes. If you don't know if the statement applies, leave it blank.
-      description: Select the appropriate options. If you don't know if the statement
+    description: Select the appropriate options. If you don't know if the statement
+      applies, leave it blank.
     options:
-        applies, leave it blank.
-    - label: This happens on the official site, opentogethertube.com
-      options:
-    - label: This happens using a self-hosted version.
-        - This happens on the official site, opentogethertube.com
-    - label: I'm using the docker image.
+      - This happens on the official site, opentogethertube.com
+      - This happens using a self-hosted version.
+      - I'm using the docker image.
+    multiple: true
 - type: input
   attributes:
     label: Room name or URL
