@@ -40,7 +40,7 @@ export default {
 	},
 	"landing": {
 		hero: {
-			title: "Cola Junto.",
+			title: "Cola Junto!",
 			description:
 				"Reprodução sincronizada em tempo real. Sistema de votação opcional.\nTema escuro. Sem necessidade de cadastro. Totalmente Open Source.\nNunca foi tão fácil assistir vídeos com a galera.",
 			btns: {
@@ -50,7 +50,7 @@ export default {
 			},
 		},
 		intro: {
-			title: "Ficou Muito Mais Fácil Criar Salas de Reprodução Remotas.",
+			title: "Ficou muito mais fácil criar sessões remotas de vídeos.",
 			name: "OpenTogetherTube",
 			text1: "É uma plataforma de reprodução sincronizada em tempo real.\nÉ fácil de usar e não precisa de login ou cadastro. Apenas crie uma sala, coloque vídeos e\nchame seus amigos. TOMA! Você já pode degustar seus vídeos com seus amigos até 3 horas da matina.",
 			text2: "O TogetherTube original era amado por sua interface simples de usar,\ne o quão fácil era começar assistir vídeos sem complicações.\nOpenTogetherTube almeja ser tão fácil quanto, e melhorar a sua experiência \nainda mais, deixando-o ainda melhor.",
@@ -58,39 +58,39 @@ export default {
 			link: "mais integrações a caminho",
 		},
 		features: {
-			"title": "Principais Funcionalidades",
+			"title": "Principais funcionalidades",
 			"synchronized-playback": {
-				title: "Reprodução Sincronizada",
+				title: "Reprodução sincronizada",
 				text: "Aperte play, e o vídeo reproduz para todos\nque estão na sala. Simples, rápido e prático.",
 			},
 			"permanent-rooms": {
-				title: "Salas Permanentes",
+				title: "Salas permanentes",
 				text: "Você e sua tropa vem sempre aqui? Evite a inconveniência\nde mandar um link novo toda vez. Salas\npermanentes possuem um url personalizado que não muda.",
 			},
 			"dark-theme": {
-				title: "Tema Escuro",
+				title: "Tema escuro",
 				text: "Assistir compilados de Vine altas horas da noite?\nOpenTogetherTube tem um modo escuro como padrão, então\nseus olhos não vão sofrer.",
 			},
 			"room-permissions": {
-				title: "Permissões de Sala",
+				title: "Permissões de sala",
 				text: "Cansado de um randola qualquer entrar na sala e adicionar\numa tonelada de videos barulhentos na sua sessão calma de lofi?\nÉ só bloquear ele de adicionar vídeos.",
 			},
 			"voting-system": {
-				title: "Sistema de Votação",
-				text: "Não consegue decidir o que assistir em seguida? Mude a fila\npara sala com sistema de votação e deixa a democracia fazer o que\nela faz de melhor.",
+				title: "Sistema de votação",
+				text: "Não consegue decidir o que vai assistir depois? Mude a fila\npara sala com sistema de votação e deixa a democracia fazer o que\nela faz de melhor.",
 			},
 			"playlist-copying": {
-				title: "Cópia de Playlists",
+				title: "Cópia de playlists",
 				text: "Adicione uma playlist inteira ou canais na fila de vídeos\ntudo de uma única vez, assim você não precisa parar tudo para adicionar\ncada vídeo à fila um por um. É a melhor\nforma de curtir os vídeos daquele novo canal com seus amigos.",
 			},
 		},
 		support: {
-			title: "Apoie o Desenvolvimento",
+			title: "Apoie o desenvolvimento",
 			description1:
 				"OpenTogetherTube não seria possível sem a ajuda de contribuidores e apoiadores como você.",
 			description2:
 				"Contribua com o desenvolvimento com suas ideias ou código, ou mostre seu apoio tornando-se um apoiador. Todas as doações são usadas para pagar custos de hospedagem, desenvolvimento do OpenTogetherTube, e manter o OpenTogetherTube livre de anúncios.",
-			how: "Como Posso Ajudar?",
+			how: "Como posso ajudar?",
 			sponsor: "Tornar-me um Apoiador",
 			contribute: "Contribuir",
 		},
@@ -124,10 +124,10 @@ export default {
 		"link-discord": "Link Discord",
 		"logout": "Sair",
 		"create": {
-			"title": "Criar Sala",
-			"temp": "Criar Sala Temporária",
+			"title": "Criar sala",
+			"temp": "Criar sala temporária",
 			"temp-desc": "Começar a assistir vídeos com os seus amigos imediatamente.",
-			"perm": "Criar Sala Permanente",
+			"perm": "Criar sala permanente",
 			"perm-desc": "Perfeito para visitantes recorrentes.",
 		},
 	},
@@ -138,7 +138,7 @@ export default {
 		"nothing-playing": "Nada sendo reproduzido.",
 	},
 	"room": {
-		"title-temp": "Sala Temporária",
+		"title-temp": "Sala temporária",
 		"kick-me": "Expluse-me",
 		"rewind": "Voltar 10s",
 		"skip": "Pular 10s",
@@ -172,7 +172,7 @@ export default {
 		"type-here": "Digite sua mensagem aqui...",
 	},
 	"share-invite": {
-		title: "Compartilhar Convite",
+		title: "Compartilhar convite",
 		text: "Copie esse link e compartilhe com seus amigos!",
 		copied: "Copiado!",
 	},
@@ -188,7 +188,7 @@ export default {
 		"label": "Link ou Pesquisa",
 		"add-all": "Adicionar Tudo",
 		"placeholder": "Digite para pesquisar no YouTube ou adicione uma URL de vídeo para adicionar à fila",
-		"title": "O que posso adicionar?",
+		"title": "O que eu posso adicionar?",
 		"single-videos": "Vídeos Avulsos",
 		"playlists": "Playlists",
 		"playlist": "Playlist",
@@ -216,7 +216,7 @@ export default {
 		"no-videos": "Não há videos na fila.",
 		"add-video": "Adicionar vídeo",
 		"export": "Exportar",
-		"export-diag-title": "Exportar Fila",
+		"export-diag-title": "Exportar fila",
 		"export-hint": 'Copie e cole esse texto na aba "Adicionar" para restaurar essa fila.',
 		"restore": "Gostaria de restaurar os vídeos da fila anterior?",
 		"restore-queue": "Restaurar Fila?",
@@ -269,8 +269,8 @@ export default {
 		"enable-vote-skip": "Ativar votação para pular vídeo",
 	},
 	"create-room-form": {
-		"card-title": "Criar Sala Permanente",
-		"create-room": "Criar Sala",
+		"card-title": "Criar sala permanente",
+		"create-room": "Criar sala",
 		"name": "Nome",
 		"name-hint": "Usado no URL da sala. Não pode ser alterado.",
 		"title": "Título",
@@ -334,7 +334,7 @@ export default {
 			"in-use": "Já está sendo usado.",
 		},
 		"change-password": {
-			title: "Mudar Senha",
+			title: "Mudar senha",
 			success: "Senha alterada com sucesso.",
 			forgot: "Esqueceu a senha?",
 			prompt: "Insira o endereço de email ou o usuário associado à sua conta.",
@@ -344,7 +344,7 @@ export default {
 		},
 	},
 	"permissions-editor": {
-		"title": "Editor de Permissões",
+		"title": "Editor de permissões",
 		"text1":
 			"Todas as permissões concedidas aos usuários com menos privilégios são também concedidas aos usuários com mais privilégios.",
 		"text2":
