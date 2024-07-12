@@ -157,9 +157,7 @@ watch(inputAddPreview, () => {
 	onInputAddPreviewChange();
 });
 
-const highlightedAddPreviewItem = computed(() => {
-	return _.find(videos.value, { highlight: true });
-});
+const highlightedAddPreviewItem = ref<Video | undefined>(undefined);
 const isAddPreviewInputUrl = computed(() => {
 	try {
 		return !!new URL(inputAddPreview.value).host;
@@ -184,6 +182,7 @@ async function requestAddPreview() {
 		hasAddPreviewFailed.value = false;
 		if (res.data.success) {
 			videos.value = res.data.result;
+			highlightedAddPreviewItem.value = res.data.highlighted;
 			console.log(`Got add preview with ${videos.value.length}`);
 		} else {
 			throw new Error(res.data.error.message);
@@ -237,6 +236,7 @@ async function requestAddPreviewExplicit() {
 	isLoadingAddPreview.value = true;
 	hasAddPreviewFailed.value = false;
 	videos.value = [];
+	highlightedAddPreviewItem.value = undefined;
 	await requestAddPreview();
 }
 async function addAllToQueue() {
@@ -262,16 +262,19 @@ function onInputAddPreviewChange() {
 	hasAddPreviewFailed.value = false;
 	if (!inputAddPreview.value || _.trim(inputAddPreview.value).length === 0) {
 		videos.value = [];
+		highlightedAddPreviewItem.value = undefined;
 		return;
 	}
 	if (!isAddPreviewInputUrl.value) {
 		videos.value = [];
+		highlightedAddPreviewItem.value = undefined;
 		// Don't send API requests for non URL inputs without the user's explicit input to do so.
 		// This is to help conserve youtube API quota.
 		return;
 	}
 	isLoadingAddPreview.value = true;
 	videos.value = [];
+	highlightedAddPreviewItem.value = undefined;
 	requestAddPreviewDebounced();
 }
 function onInputAddPreviewKeyDown(e) {

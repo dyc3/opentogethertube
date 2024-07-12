@@ -33,7 +33,6 @@ const addPreview: RequestHandler<
 			req.query.input.trim(),
 			conf.get("add_preview.search.provider")
 		);
-		const videos = result.videos;
 
 		res.setHeader(
 			"Cache-Control",
@@ -42,9 +41,10 @@ const addPreview: RequestHandler<
 
 		res.json({
 			success: true,
-			result: videos,
+			result: result.videos,
+			highlighted: result.highlighted,
 		});
-		log.info(`Sent add preview response with ${videos.length} items`);
+		log.info(`Sent add preview response with ${result.videos.length} items`);
 	} catch (err) {
 		if (
 			err.name === "UnsupportedServiceException" ||

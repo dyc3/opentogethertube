@@ -1,7 +1,7 @@
 import { defineComponent, h } from "vue";
 import { useStore } from "../../../src/store";
 import AddPreview from "../../../src/components/AddPreview.vue";
-import Norifier from "../../../src/components/Notifier.vue";
+import Notifier from "../../../src/components/Notifier.vue";
 
 let page = defineComponent({
 	setup() {
@@ -10,7 +10,7 @@ let page = defineComponent({
 		return {};
 	},
 	render() {
-		return h("div", {}, [h(AddPreview), h(Norifier)]);
+		return h("div", {}, [h(AddPreview), h(Notifier)]);
 	},
 });
 
@@ -83,7 +83,7 @@ describe("<AddPreview />", () => {
 				return {};
 			},
 			render() {
-				return h("div", {}, [h(AddPreview), h(Norifier)]);
+				return h("div", {}, [h(AddPreview), h(Notifier)]);
 			},
 		});
 		cy.mount(page);

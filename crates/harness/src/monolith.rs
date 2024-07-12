@@ -498,7 +498,7 @@ impl MonolithBuilder {
         self.add_mock_http_raw(path, parts, body.into())
     }
 
-    pub fn behavior(mut self, behavior: impl Behavior + Send + 'static) -> Self {
+    pub fn behavior(mut self, behavior: impl Behavior + 'static) -> Self {
         self.behavior = Some(Box::new(behavior));
         self
     }
