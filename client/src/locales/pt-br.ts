@@ -30,7 +30,8 @@ export default {
 		"off": "Desligado",
 		"dismiss": "Dispensar",
 		"errors": {
-			"rate-limit": "Taxa limite de requisições excedida. Por favor, tente novamente em {duration} segundos.",
+			"rate-limit":
+				"Taxa limite de requisições excedida. Por favor, tente novamente em {duration} segundos.",
 		},
 	},
 	"behavior": {
@@ -187,7 +188,8 @@ export default {
 	"add-preview": {
 		"label": "Link ou Pesquisa",
 		"add-all": "Adicionar Tudo",
-		"placeholder": "Digite para pesquisar no YouTube ou adicione uma URL de vídeo para adicionar à fila",
+		"placeholder":
+			"Digite para pesquisar no YouTube ou adicione uma URL de vídeo para adicionar à fila",
 		"title": "O que eu posso adicionar?",
 		"single-videos": "Vídeos Avulsos",
 		"playlists": "Playlists",
@@ -203,7 +205,8 @@ export default {
 		},
 		"messages": {
 			"unknown-status": "Status de resposta inesperada ao carregar o player: {status}.",
-			"unknown-error": "Ocorreu um erro desconhecido enquanto adicionava o player. Tente novamente mais tarde.",
+			"unknown-error":
+				"Ocorreu um erro desconhecido enquanto adicionava o player. Tente novamente mais tarde.",
 			"failed-to-get-add-preview":
 				"Falha ao adicionar o player. Isso é um bug provavelmente, olhe o console para mais detalhes.",
 			"failed-to-all-videos": "Falha de todos os vídeos: {message}",
@@ -224,7 +227,8 @@ export default {
 			"A fila estava assim da última vez que a sala esteve ativa. Gostaria de restaurar a sessão?",
 	},
 	"video-queue-item": {
-		"experimental": "O suporte para esse serviço é experimental! É bem provável que sua experiência seja instável.",
+		"experimental":
+			"O suporte para esse serviço é experimental! É bem provável que sua experiência seja instável.",
 		"play-next": "Próximo",
 		"play-last": "Voltar",
 		"messages": {
@@ -250,7 +254,8 @@ export default {
 		"dj": "DJ",
 		"dj-hint":
 			"Quando o vídeo atual acaba é reiniciado do começo. Bom para músicas de fundo tocando em loop.",
-		"auto-skip-text": "Pula automaticamente segmentos não desejados do vídeo utilizando dados de bloqueadores de anúncios.",
+		"auto-skip-text":
+			"Pula automaticamente segmentos não desejados do vídeo utilizando dados de bloqueadores de anúncios.",
 		"auto-skip-text-sponsor": "patrocinador",
 		"auto-skip-text-intro": "intro",
 		"auto-skip-text-outro": "outro",
@@ -258,10 +263,13 @@ export default {
 		"auto-skip-text-selfpromo": "auto-promo",
 		"auto-skip-text-music_offtopic": "interlúdio (offtopic)",
 		"auto-skip-text-preview": "prévia",
-		"permissions-not-available": "Configurações de permissões não estão disponíveis em salas temporárias.",
-		"room-needs-owner": "Essa sala precisa de um dono para que as permissões possam ser alteradas.",
+		"permissions-not-available":
+			"Configurações de permissões não estão disponíveis em salas temporárias.",
+		"room-needs-owner":
+			"Essa sala precisa de um dono para que as permissões possam ser alteradas.",
 		"login-to-claim": "Faça login para reivindicar essa sala.",
-		"arent-able-to-modify-permissions": "Você não está autorizado a modificar as permissões dessa sala.",
+		"arent-able-to-modify-permissions":
+			"Você não está autorizado a modificar as permissões dessa sala.",
 		"settings-applied": "Configurações aplicadas",
 		"now-own-the-room": "Agora você é dono da sala {room}.",
 		"load-failed": "Falha ao carregar configurações da sala.",
@@ -326,7 +334,8 @@ export default {
 				"Algo estranho aconteceu, mas você está conectado? Atualize a página.",
 			"login-failed-noserver":
 				"Falha ao fazer login, mas o servidor não reportou o motivo. Reporte esse erro como um bug.",
-			"login-failed": "Falha ao fazer login, mas não sabemos o motivo. Reporte esse erro como um bug.",
+			"login-failed":
+				"Falha ao fazer login, mas não sabemos o motivo. Reporte esse erro como um bug.",
 			"register-failed-noserver":
 				"Falha ao se cadastrar, mas o servidor não reportou o motivo. Reporte esse erro como um bug.",
 			"register-failed":
