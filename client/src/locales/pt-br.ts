@@ -100,8 +100,8 @@ export default {
 		"disclaimer":
 			"Disclaimer: O projeto OpenTogetherTube não é associado ao TogetherTube, nem ao Watch2Gether.",
 		"made-in": "Made in America",
-		"thanks-to": "Agradecimento Especial para",
-		"privacy-policy": "Política de Privacidade",
+		"thanks-to": "Agradecimento especial para",
+		"privacy-policy": "Política de privacidade",
 		"attribution": "Atribuição",
 	},
 	"not-found": {
@@ -119,10 +119,10 @@ export default {
 		"home": "Início",
 		"browse": "Descobrir",
 		"faq": "FAQ",
-		"bug": "Reportar um Bug",
+		"bug": "Reportar um bug",
 		"support": "Apoie-me!",
 		"login": "Log In",
-		"link-discord": "Link Discord",
+		"link-discord": "Link discord",
 		"logout": "Sair",
 		"create": {
 			"title": "Criar sala",
@@ -186,8 +186,8 @@ export default {
 		"no-video-text": 'Clique em "Adicionar" abaixo para adicionar um vídeo.',
 	},
 	"add-preview": {
-		"label": "Link ou Pesquisa",
-		"add-all": "Adicionar Tudo",
+		"label": "Link ou pesquisa",
+		"add-all": "Adicionar tudo",
 		"placeholder":
 			"Digite para pesquisar no YouTube ou adicione uma URL de vídeo para adicionar à fila",
 		"title": "O que eu posso adicionar?",
@@ -222,7 +222,7 @@ export default {
 		"export-diag-title": "Exportar fila",
 		"export-hint": 'Copie e cole esse texto na aba "Adicionar" para restaurar essa fila.',
 		"restore": "Gostaria de restaurar os vídeos da fila anterior?",
-		"restore-queue": "Restaurar Fila?",
+		"restore-queue": "Restaurar fila?",
 		"restore-queue-hint":
 			"A fila estava assim da última vez que a sala esteve ativa. Gostaria de restaurar a sessão?",
 	},
@@ -293,7 +293,7 @@ export default {
 		"loop": "@:room-settings.loop",
 		"dj": "@:room-settings.dj",
 		"public": "Publica",
-		"unlisted": "Não Listada",
+		"unlisted": "Não listada",
 		"rules": {
 			"name": {
 				"name-required": "Nome é um campo obrigatório",
@@ -313,10 +313,10 @@ export default {
 		"register": "Register",
 		"login-discord": "Fazer login com Discord",
 		"email": "E-mail",
-		"email-or-username": "E-mail ou Usuário",
+		"email-or-username": "E-mail ou usuário",
 		"username": "Usuário",
 		"password": "Senha",
-		"retype-password": "Digite a Senha Novamente",
+		"retype-password": "Digite a senha novamente",
 		"email-optional":
 			"Opcional. Com um e-mail associado ao login é possível recuperar a conta caso você esqueça a senha.",
 		"rules": {
@@ -365,14 +365,14 @@ export default {
 		"title": "Preferências",
 		"description": "Essas configurações são salvas no seu navegador e afetam apenas você.",
 		"activator": "@:client-settings.title",
-		"room-layout": "Layout da Sala",
+		"room-layout": "Layout da sala",
 		"theme": "Tema",
-		"sfx-enable": "Ativar Efeitos Sonoros",
-		"sfx-volume": "Volume dos Efeitos Sonoros",
+		"sfx-enable": "Ativar efeitos sonoros",
+		"sfx-volume": "Volume dos efeitos sonoros",
 	},
 	"connect-overlay": {
 		"title": "Desconectado",
-		"find-another": "Achar Outra Sala",
+		"find-another": "Achar outra sala",
 		"dc-reasons": {
 			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
 			[OttWebsocketError.ROOM_NOT_FOUND]: "Sala não encontrada.",
@@ -389,9 +389,9 @@ export default {
 	"roles": {
 		[Role.Administrator]: "Administrador",
 		[Role.Moderator]: "Moderador",
-		[Role.TrustedUser]: "Usuário Confiável",
-		[Role.RegisteredUser]: "Usuário Cadastrado",
-		[Role.UnregisteredUser]: "Usuário Convidado",
+		[Role.TrustedUser]: "Usuário confiável",
+		[Role.RegisteredUser]: "Usuário cadastrado",
+		[Role.UnregisteredUser]: "Usuário convidado",
 		[Role.Owner]: "Dono",
 	},
 	"errors": {
