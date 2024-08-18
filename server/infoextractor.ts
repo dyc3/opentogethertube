@@ -13,6 +13,7 @@ import {
 	UnsupportedServiceException,
 	InvalidAddPreviewInputException,
 	FeatureDisabledException,
+	VideoNotFoundException,
 } from "./exceptions";
 import { getLogger } from "./logger";
 import { redisClient } from "./redisclient";
@@ -264,25 +265,35 @@ export default {
 							.filter(p => !video[p]),
 					}))
 					.filter(request => request.missingInfo.length > 0);
-
 				if (requests.length === 0 && adapter.isCacheSafe) {
 					return cachedVideos;
 				}
 
 				const fetchedVideos = await adapter.fetchManyVideoInfo(requests);
-				const finalResults = cachedVideos.map(video => {
-					const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
-					if (fetchedVideo) {
-						return mergeVideo(video, fetchedVideo);
-					} else {
-						return video;
-					}
-				});
+				const finalResults = cachedVideos
+					.map(video => {
+						const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
+						const videoKeys = Object.keys(video);
+						if (fetchedVideo) {
+							return mergeVideo(video, fetchedVideo);
+						} else if (videoKeys.length > 2) {
+							return video;
+						} else {
+							return null;
+						}
+					})
+					.filter(v => v !== null) as Video[];
+
 				return finalResults;
 			})
 		);
 
 		const flattened = results.flat();
+
+		if (flattened.length === 0) {
+			throw new VideoNotFoundException();
+		}
+
 		// type cast should be safe here because find should always be able to find a video.
 		const result = videoIds
 			.map(video => flattened.find(v => v.id === video.id) as Video)
