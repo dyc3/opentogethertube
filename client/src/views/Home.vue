@@ -162,7 +162,7 @@
 						<a class="side-pad" href="https://softe.club">SEC</a> @ Stevens
 					</v-row>
 					<v-row no-gutters class="center-shit">
-						<router-link class="side-pad" to="/privacypolicy">{{
+						<router-link class="side-pad" to="/privacypolicy" v-if="isOfficialSite()">{{
 							$t("footer.privacy-policy")
 						}}</router-link
 						><router-link class="side-pad" to="/attribution">{{
@@ -182,6 +182,7 @@
 import { computed } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
+import { isOfficialSite } from "@/util/misc";
 
 const store = useStore();
 

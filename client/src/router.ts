@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { isOfficialSite } from "./util/misc";
 
 export const routes: RouteRecordRaw[] = [
 	{
@@ -15,11 +16,6 @@ export const routes: RouteRecordRaw[] = [
 		path: "/room/:roomId",
 		name: "room",
 		component: () => import("./views/Room.vue"),
-	},
-	{
-		path: "/privacypolicy",
-		name: "privacypolicy",
-		component: () => import("./views/Privacy.vue"),
 	},
 	{
 		path: "/attribution",
@@ -44,6 +40,15 @@ export const routes: RouteRecordRaw[] = [
 		component: () => import("./views/NotFound.vue"),
 	},
 ];
+
+// FIXME: only render on official site
+if (import.meta.env.DEV || isOfficialSite()) {
+	routes.push({
+		path: "/privacypolicy",
+		name: "privacypolicy",
+		component: () => import("./views/Privacy.vue"),
+	});
+}
 
 if (import.meta.env.DEV) {
 	routes.push({

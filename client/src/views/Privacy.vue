@@ -31,15 +31,17 @@
 		</p>
 
 		<p>
-			OpenTogetherTube is GDPR compliant because of how little information is collected. If,
-			for some reason, you really want to have the one database row that represents your
-			account, reach out to me <a href="https://twitter.com/rollthedyc3">on twitter.</a>
+			OpenTogetherTube is GDPR compliant because of how little information is collected. If
+			you want your account data, please contact me at
+			<a href="mailto:carson.mcmanus1+ott-support@gmail.com">
+				carson.mcmanus1+ott-support@gmail.com
+			</a>
 		</p>
 
 		<p>
 			This site uses the Youtube Data API, and it's usage must comply with the
-			<a href="https://developers.google.com/youtube/terms/api-services-terms-of-service"
-				>YouTube API Terms of Service</a
+			<a href="https://developers.google.com/youtube/terms/api-services-terms-of-service">
+				YouTube API Terms of Service</a
 			>. No personally identifiable information is sent to Youtube. Watching Youtube videos
 			requires you to agree to the
 			<a href="https://www.youtube.com/t/terms">Youtube Terms of Service</a>, and
@@ -48,6 +50,15 @@
 			uploaded. The only data that is used by OpenTogetherTube is publicly available
 			information, which includes: video id, video title, video description, video thumbnail,
 			and video duration. This information is cached for up to 30 days.
+		</p>
+
+		<h1>Contact Info</h1>
+
+		<p>
+			Email:
+			<a href="mailto:carson.mcmanus1+ott-support@gmail.com">
+				carson.mcmanus1+ott-support@gmail.com
+			</a>
 		</p>
 	</v-container>
 </template>
@@ -58,4 +69,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+p {
+	margin: 1em 0;
+}
+</style>
