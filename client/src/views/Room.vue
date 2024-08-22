@@ -172,7 +172,9 @@
 		<v-footer>
 			<v-container>
 				<v-row class="center-shit">
-					<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
+					<router-link to="/privacypolicy" v-if="isOfficialSite()">
+						{{ $t("footer.privacy-policy") }}
+					</router-link>
 				</v-row>
 				<v-row class="center-shit">
 					{{ gitCommit }}
@@ -236,6 +238,7 @@ import { useSfx } from "@/plugins/sfx";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 import { useGrants } from "@/components/composables/grants";
+import { isOfficialSite } from "@/util/misc";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -673,6 +676,7 @@ export default defineComponent({
 			store,
 			roomapi,
 			granted,
+			isOfficialSite,
 
 			controlsVisible,
 			videoControlsHideTimeout,
