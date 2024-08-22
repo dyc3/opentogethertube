@@ -1,24 +1,26 @@
 <template>
-	<v-col
-		:class="{
-			'video-controls': true,
-			'in-video': mode == 'in-video',
-			'outside-video': mode == 'outside-video',
-			'hide': !controlsVisible,
-		}"
-	>
-		<VideoProgressSlider :current-position="sliderPosition" />
-		<v-row no-gutters class="controls-row2">
-			<BasicControls :current-position="truePosition" />
-			<!-- eslint-disable-next-line vue/no-v-model-argument -->
-			<VolumeControl />
-			<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
-			<div class="grow"><!-- Spacer --></div>
-			<ClosedCaptionsSwitcher />
-			<PlaybackRateSwitcher />
-			<LayoutSwitcher />
-		</v-row>
-	</v-col>
+	<div class="video-controls-wrapper">
+		<div
+			:class="{
+				'video-controls': true,
+				'in-video': mode == 'in-video',
+				'outside-video': mode == 'outside-video',
+				'hide': !controlsVisible,
+			}"
+		>
+			<VideoProgressSlider :current-position="sliderPosition" />
+			<div class="controls-row2">
+				<BasicControls :current-position="truePosition" />
+				<!-- eslint-disable-next-line vue/no-v-model-argument -->
+				<VolumeControl />
+				<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
+				<div class="grow"><!-- Spacer --></div>
+				<ClosedCaptionsSwitcher />
+				<PlaybackRateSwitcher />
+				<LayoutSwitcher />
+			</div>
+		</div>
+	</div>
 </template>
 
 <script lang="ts" setup>
@@ -57,6 +59,7 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 	min-height: $video-controls-height;
 	transition: all 0.2s;
 	z-index: 100;
+	padding: 12px;
 
 	&.in-video {
 		position: relative;
@@ -77,7 +80,6 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 	}
 
 	&.outside-video {
-		position: relative;
 		background: rgb($media-control-background);
 		border-radius: 0 0 10px 10px;
 
@@ -90,6 +92,7 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 	}
 
 	.controls-row2 {
+		display: flex;
 		align-items: center;
 	}
 }
