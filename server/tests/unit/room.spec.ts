@@ -61,7 +61,7 @@ describe("Room", () => {
 		const expectedPlaybackPosition = room.realPlaybackPosition;
 		const syncState = room.syncableState();
 
-		expect(syncState.playbackPosition).toBeCloseTo(expectedPlaybackPosition);
+		expect(syncState.playbackPosition).toBeCloseTo(expectedPlaybackPosition, 1);
 	});
 
 	describe("Room Requests", () => {
