@@ -73,11 +73,11 @@
 </template>
 
 <script lang="ts" setup>
-import { onUpdated, ref, type Ref, nextTick, onMounted, onUnmounted } from "vue";
+import { onUpdated, ref, Ref, nextTick, onMounted, onUnmounted } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
-import type { ServerMessageChat } from "ott-common/models/messages";
+import { ServerMessageChat } from "ott-common/models/messages";
 import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 import { useSfx } from "@/plugins/sfx";
 import ChatMsg from "./ChatMsg.vue";
