@@ -25,37 +25,29 @@
 				<div class="grow"><!-- Spacer --></div>
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
-			<v-col :style="{ padding: store.state.fullscreen ? 0 : 'inherit' }">
-				<div class="video-container">
-					<div
-						class="video-subcontainer"
-						:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
-					>
-						<div class="player-container">
-							<OmniPlayer
-								:source="store.state.room.currentSource"
-								@apiready="onPlayerApiReady"
-								@playing="onPlaybackChange(true)"
-								@paused="onPlaybackChange(false)"
-								@ready="onPlayerReady"
-							/>
-							<div
-								id="mouse-event-swallower"
-								:class="{ hide: controlsVisible }"
-							></div>
-							<div class="in-video-chat">
-								<Chat ref="chat" @link-click="setAddPreviewText" />
-							</div>
-							<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
-								<v-btn
-									prepend-icon="mdi-play"
-									size="x-large"
-									color="warning"
-									@click="onClickUnblockPlayback"
-								>
-									{{ $t("common.play") }}
-								</v-btn>
-							</div>
+			<div class="video-container">
+				<div class="video-subcontainer">
+					<div class="player-container">
+						<OmniPlayer
+							:source="store.state.room.currentSource"
+							@apiready="onPlayerApiReady"
+							@playing="onPlaybackChange(true)"
+							@paused="onPlaybackChange(false)"
+							@ready="onPlayerReady"
+						/>
+						<div id="mouse-event-swallower" :class="{ hide: controlsVisible }"></div>
+						<div class="in-video-chat" v-if="controlsMode === 'in-video'">
+							<Chat ref="chat" @link-click="setAddPreviewText" />
+						</div>
+						<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
+							<v-btn
+								prepend-icon="mdi-play"
+								size="x-large"
+								color="warning"
+								@click="onClickUnblockPlayback"
+							>
+								{{ $t("common.play") }}
+							</v-btn>
 						</div>
 					</div>
 					<VideoControls
@@ -66,108 +58,114 @@
 						:mode="controlsMode"
 					/>
 				</div>
-				<div class="banners">
-					<RestoreQueue />
-					<VoteSkip />
+				<div
+					class="out-video-chat"
+					v-if="controlsMode === 'outside-video' && !store.state.fullscreen"
+				>
+					<Chat ref="chat" @link-click="setAddPreviewText" />
 				</div>
-				<v-row no-gutters>
-					<v-col cols="12" md="8" sm="12">
-						<v-tabs fixed-tabs v-model="queueTab" color="primary">
-							<v-tab>
-								<v-icon>mdi-format-list-bulleted</v-icon>
-								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
-								<v-chip size="x-small">
-									{{
-										store.state.room.queue.length <= 99
-											? $n(store.state.room.queue.length)
-											: "99+"
-									}}
-								</v-chip>
-							</v-tab>
-							<v-tab>
-								<v-icon>mdi-plus</v-icon>
-								<span class="tab-text">{{ $t("common.add") }}</span>
-							</v-tab>
-							<v-tab>
-								<v-icon>mdi-wrench</v-icon>
-								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
-							</v-tab>
-						</v-tabs>
-						<v-window v-model="queueTab" class="queue-tab-content">
-							<v-window-item>
-								<VideoQueue @switchtab="queueTab = 1" />
-							</v-window-item>
-							<v-window-item>
-								<AddPreview ref="addpreview" />
-							</v-window-item>
-							<v-window-item>
-								<RoomSettingsForm ref="settings" />
-							</v-window-item>
-						</v-window>
-					</v-col>
-					<v-col col="4" md="4" sm="12" class="user-invite-container">
-						<div v-if="debugMode" class="debug-container">
-							<v-card>
-								<v-card-title> Debug (prod: {{ production }}) </v-card-title>
-								<v-list-item>
-									Player status: {{ store.state.playerStatus }}
-								</v-list-item>
-								<v-list-item v-if="store.state.playerBufferPercent">
-									Buffered:
-									{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
-								</v-list-item>
-								<v-list-item
-									v-if="
-										store.state.playerBufferSpans &&
-										store.state.playerBufferSpans.length > 0
-									"
-								>
-									Buffered spans:
-									{{ store.state.playerBufferSpans.length }}
-									{{
-										Array.from(
-											{ length: store.state.playerBufferSpans.length },
-											(v, k) => k++
+			</div>
+			<div class="banners">
+				<RestoreQueue />
+				<VoteSkip />
+			</div>
+			<div class="under-video-grid">
+				<div class="under-video-tabs">
+					<v-tabs fixed-tabs v-model="queueTab" color="primary">
+						<v-tab>
+							<v-icon>mdi-format-list-bulleted</v-icon>
+							<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
+							<v-chip size="x-small">
+								{{
+									store.state.room.queue.length <= 99
+										? $n(store.state.room.queue.length)
+										: "99+"
+								}}
+							</v-chip>
+						</v-tab>
+						<v-tab>
+							<v-icon>mdi-plus</v-icon>
+							<span class="tab-text">{{ $t("common.add") }}</span>
+						</v-tab>
+						<v-tab>
+							<v-icon>mdi-wrench</v-icon>
+							<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
+						</v-tab>
+					</v-tabs>
+					<v-window v-model="queueTab" class="queue-tab-content">
+						<v-window-item>
+							<VideoQueue @switchtab="queueTab = 1" />
+						</v-window-item>
+						<v-window-item>
+							<AddPreview ref="addpreview" />
+						</v-window-item>
+						<v-window-item>
+							<RoomSettingsForm ref="settings" />
+						</v-window-item>
+					</v-window>
+				</div>
+				<div class="user-invite-container">
+					<div v-if="debugMode" class="debug-container">
+						<v-card>
+							<v-card-title> Debug (prod: {{ production }}) </v-card-title>
+							<v-list-item>
+								Player status: {{ store.state.playerStatus }}
+							</v-list-item>
+							<v-list-item v-if="store.state.playerBufferPercent">
+								Buffered:
+								{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
+							</v-list-item>
+							<v-list-item
+								v-if="
+									store.state.playerBufferSpans &&
+									store.state.playerBufferSpans.length > 0
+								"
+							>
+								Buffered spans:
+								{{ store.state.playerBufferSpans.length }}
+								{{
+									Array.from(
+										{ length: store.state.playerBufferSpans.length },
+										(v, k) => k++
+									)
+										.map(
+											i =>
+												`${i}: [${secondsToTimestamp(
+													store.state.playerBufferSpans?.start(i) ?? 0
+												)} => ${secondsToTimestamp(
+													store.state.playerBufferSpans?.end(i) ?? 0
+												)}]`
 										)
-											.map(
-												i =>
-													`${i}: [${secondsToTimestamp(
-														store.state.playerBufferSpans?.start(i) ?? 0
-													)} => ${secondsToTimestamp(
-														store.state.playerBufferSpans?.end(i) ?? 0
-													)}]`
-											)
-											.join(" ")
-									}}
-								</v-list-item>
-								<v-list-item>
-									<span>Is Mobile: {{ isMobile }}</span>
-								</v-list-item>
-								<v-list-item>
-									<span>Device Orientation: {{ orientation }}</span>
-								</v-list-item>
-								<v-list-item>
-									<span>
-										Video controls: timeoutId:
-										{{ videoControlsHideTimeout }} visible:
-										{{ controlsVisible }}
-									</span>
-								</v-list-item>
-								<v-list-item>
-									<v-btn @click="roomapi.kickMe()" :disabled="!isConnected">
-										{{ $t("room.kick-me") }}
-									</v-btn>
-									<v-btn @click="roomapi.kickMe(1000)" :disabled="!isConnected">
-										Disconnect Me
-									</v-btn>
-								</v-list-item>
-							</v-card>
-						</div>
-						<UserList :users="Array.from(store.state.users.users.values())" />
-						<ShareInvite />
-					</v-col>
-				</v-row>
-			</v-col>
+										.join(" ")
+								}}
+							</v-list-item>
+							<v-list-item>
+								<span>Is Mobile: {{ isMobile }}</span>
+							</v-list-item>
+							<v-list-item>
+								<span>Device Orientation: {{ orientation }}</span>
+							</v-list-item>
+							<v-list-item>
+								<span>
+									Video controls: timeoutId:
+									{{ videoControlsHideTimeout }} visible:
+									{{ controlsVisible }}
+								</span>
+							</v-list-item>
+							<v-list-item>
+								<v-btn @click="roomapi.kickMe()" :disabled="!isConnected">
+									{{ $t("room.kick-me") }}
+								</v-btn>
+								<v-btn @click="roomapi.kickMe(1000)" :disabled="!isConnected">
+									Disconnect Me
+								</v-btn>
+							</v-list-item>
+						</v-card>
+					</div>
+					<UserList :users="Array.from(store.state.users.users.values())" />
+					<ShareInvite />
+				</div>
+			</div>
 		</v-container>
 		<v-footer>
 			<v-container>
@@ -727,41 +725,32 @@ $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
 
 .video-container {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-template-rows: minmax(400px, 70vh);
+	width: 100%;
+}
+
+.video-subcontainer {
+	position: relative;
 	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin: auto;
 	flex-direction: column;
-	aspect-ratio: 16 / 9;
+	height: 100%;
+}
 
-	.video-subcontainer {
-		display: flex;
-		flex-grow: 1;
-		aspect-ratio: 16 / 9;
-		width: 100%;
-	}
-
-	@media (max-width: $md-max) {
-		margin-left: 0;
-		margin-right: 0;
-	}
-
-	@media (min-aspect-ratio: 16 / 9) {
-		aspect-ratio: initial;
-	}
+.player-container {
+	width: 100%;
+	height: 100%;
 }
 
 .layout-default {
-	.video-container {
-		width: 80vw;
+	.video-subcontainer {
+		width: 80%;
+		justify-self: center;
 
 		@media (max-width: $md-max) {
-			width: 100%;
+			max-width: 100%;
 		}
-	}
-
-	.video-subcontainer {
-		max-height: $video-player-max-height;
 	}
 }
 
@@ -769,16 +758,62 @@ $in-video-chat-width-small: 250px;
 	padding: 0;
 
 	.video-container {
-		width: 100%;
-	}
-
-	.video-subcontainer {
-		max-height: $video-player-max-height-theater;
+		grid-template-rows: minmax(400px, 85vh);
 	}
 
 	.room-title {
 		font-size: 24px;
 	}
+}
+
+.fullscreen {
+	padding: 0;
+
+	.video-container {
+		display: block;
+		margin: 0;
+		height: 100vh;
+		max-height: 100vh;
+		aspect-ratio: inherit;
+		width: 100vw;
+	}
+
+	.video-subcontainer {
+		width: 100%;
+		max-height: 100vh;
+		padding: 0;
+	}
+
+	.player-container {
+		height: 100vh;
+	}
+}
+
+.in-video-chat {
+	padding: 5px 10px;
+
+	position: absolute;
+	bottom: $video-controls-height;
+	right: 0;
+	width: $in-video-chat-width;
+	height: 70%;
+	min-height: 70px;
+	@media screen and (max-width: $sm-max) {
+		width: $in-video-chat-width-small;
+	}
+	pointer-events: none;
+}
+
+.out-video-chat {
+	padding: 5px 10px;
+
+	width: $in-video-chat-width;
+	height: 300px;
+	min-height: 100px;
+	@media screen and (max-width: $sm-max) {
+		width: $in-video-chat-width-small;
+	}
+	pointer-events: none;
 }
 
 #mouse-event-swallower {
@@ -814,21 +849,6 @@ $in-video-chat-width-small: 250px;
 	}
 }
 
-.in-video-chat {
-	padding: 5px 10px;
-
-	position: absolute;
-	bottom: $video-controls-height;
-	right: 0;
-	width: $in-video-chat-width;
-	height: 70%;
-	min-height: 70px;
-	@media screen and (max-width: $sm-max) {
-		width: $in-video-chat-width-small;
-	}
-	pointer-events: none;
-}
-
 .playback-blocked-prompt {
 	position: absolute;
 	top: 0;
@@ -848,36 +868,6 @@ $in-video-chat-width-small: 250px;
 	transition: transform 0s;
 }
 
-.player-container {
-	position: relative;
-	top: 0;
-	left: 0;
-	width: 100%;
-}
-
-.fullscreen {
-	padding: 0;
-
-	.video-container {
-		display: block;
-		margin: 0;
-		height: 100vh;
-		max-height: 100vh;
-		aspect-ratio: inherit;
-		width: 100vw;
-
-		.video-subcontainer {
-			width: 100%;
-			aspect-ratio: inherit;
-			max-height: 100vh;
-		}
-	}
-
-	.player-container {
-		height: 100vh;
-	}
-}
-
 .room {
 	@media (max-width: $md-max) {
 		padding: 0;
@@ -887,6 +877,7 @@ $in-video-chat-width-small: 250px;
 .room-header {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	margin: 0 10px;
 	> * {
 		align-self: flex-end;
@@ -918,5 +909,23 @@ $in-video-chat-width-small: 250px;
 
 .grow {
 	flex-grow: 1;
+}
+
+.under-video-grid {
+	display: flex;
+	width: 100%;
+
+	@media screen and (max-width: $sm-max) {
+		flex-direction: column;
+	}
+}
+
+.under-video-tabs {
+	flex-grow: 1;
+	width: 60%;
+
+	@media screen and (max-width: $sm-max) {
+		width: 100%;
+	}
 }
 </style>

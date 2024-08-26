@@ -73,11 +73,11 @@
 </template>
 
 <script lang="ts" setup>
-import { onUpdated, ref, Ref, nextTick, onMounted, onUnmounted } from "vue";
+import { onUpdated, ref, type Ref, nextTick, onMounted, onUnmounted } from "vue";
 import type { ChatMessage } from "ott-common/models/types";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
-import { ServerMessageChat } from "ott-common/models/messages";
+import type { ServerMessageChat } from "ott-common/models/messages";
 import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 import { useSfx } from "@/plugins/sfx";
 import ChatMsg from "./ChatMsg.vue";
@@ -236,6 +236,7 @@ $chat-message-bg: $background-color;
 .chat-header {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	border-bottom: 1px solid #666;
 }
 

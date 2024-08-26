@@ -91,14 +91,14 @@
 				@buffering="onBuffering"
 				@error="onError"
 			/>
-			<v-container v-else fluid fill-height class="no-video">
+			<div v-else class="no-video">
 				<h1>{{ $t("video.no-video") }}</h1>
 				<span>{{ $t("video.no-video-text") }}</span>
-			</v-container>
+			</div>
 			<template #fallback>
-				<v-container class="no-video">
+				<div class="no-video">
 					<v-progress-circular indeterminate />
-				</v-container>
+				</div>
 			</template>
 		</Suspense>
 	</div>
