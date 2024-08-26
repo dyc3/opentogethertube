@@ -26,10 +26,7 @@
 				<span id="connectStatus">{{ connectionStatus }}</span>
 			</div>
 			<div class="video-container">
-				<div
-					class="video-subcontainer"
-					:style="{ padding: store.state.fullscreen ? 0 : 'inherit' }"
-				>
+				<div class="video-subcontainer">
 					<div class="player-container">
 						<OmniPlayer
 							:source="store.state.room.currentSource"
@@ -39,7 +36,7 @@
 							@ready="onPlayerReady"
 						/>
 						<div id="mouse-event-swallower" :class="{ hide: controlsVisible }"></div>
-						<div class="in-video-chat" v-if="controlsMode == 'in-video'">
+						<div class="in-video-chat" v-if="controlsMode === 'in-video'">
 							<Chat ref="chat" @link-click="setAddPreviewText" />
 						</div>
 						<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
@@ -61,7 +58,10 @@
 						:mode="controlsMode"
 					/>
 				</div>
-				<div class="out-video-chat" v-if="controlsMode == 'outside-video' && !fullscreen">
+				<div
+					class="out-video-chat"
+					v-if="controlsMode === 'outside-video' && !store.state.fullscreen"
+				>
 					<Chat ref="chat" @link-click="setAddPreviewText" />
 				</div>
 			</div>
@@ -725,30 +725,29 @@ $in-video-chat-width: 400px;
 $in-video-chat-width-small: 250px;
 
 .video-container {
-	position: relative;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-direction: row;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-template-rows: minmax(400px, 70vh);
 	width: 100%;
-
-	@media (max-width: $md-max) {
-		margin-left: 0;
-		margin-right: 0;
-	}
 }
 
 .video-subcontainer {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	flex-grow: 1;
+	height: 100%;
+}
+
+.player-container {
 	width: 100%;
+	height: 100%;
 }
 
 .layout-default {
 	.video-subcontainer {
-		max-width: 80%;
+		width: 80%;
+		justify-self: center;
+
 		@media (max-width: $md-max) {
 			max-width: 100%;
 		}
@@ -759,13 +758,62 @@ $in-video-chat-width-small: 250px;
 	padding: 0;
 
 	.video-container {
-		height: 85vh;
-		width: 100%;
+		grid-template-rows: minmax(400px, 85vh);
 	}
 
 	.room-title {
 		font-size: 24px;
 	}
+}
+
+.fullscreen {
+	padding: 0;
+
+	.video-container {
+		display: block;
+		margin: 0;
+		height: 100vh;
+		max-height: 100vh;
+		aspect-ratio: inherit;
+		width: 100vw;
+	}
+
+	.video-subcontainer {
+		width: 100%;
+		max-height: 100vh;
+		padding: 0;
+	}
+
+	.player-container {
+		height: 100vh;
+	}
+}
+
+.in-video-chat {
+	padding: 5px 10px;
+
+	position: absolute;
+	bottom: $video-controls-height;
+	right: 0;
+	width: $in-video-chat-width;
+	height: 70%;
+	min-height: 70px;
+	@media screen and (max-width: $sm-max) {
+		width: $in-video-chat-width-small;
+	}
+	pointer-events: none;
+}
+
+.out-video-chat {
+	padding: 5px 10px;
+
+	width: $in-video-chat-width;
+	height: 300px;
+	min-height: 100px;
+	@media screen and (max-width: $sm-max) {
+		width: $in-video-chat-width-small;
+	}
+	pointer-events: none;
 }
 
 #mouse-event-swallower {
@@ -801,33 +849,6 @@ $in-video-chat-width-small: 250px;
 	}
 }
 
-.in-video-chat {
-	padding: 5px 10px;
-
-	position: absolute;
-	bottom: $video-controls-height;
-	right: 0;
-	width: $in-video-chat-width;
-	height: 70%;
-	min-height: 70px;
-	@media screen and (max-width: $sm-max) {
-		width: $in-video-chat-width-small;
-	}
-	pointer-events: none;
-}
-
-.out-video-chat {
-	padding: 5px 10px;
-
-	width: $in-video-chat-width;
-	height: 300px;
-	min-height: 100px;
-	@media screen and (max-width: $sm-max) {
-		width: $in-video-chat-width-small;
-	}
-	pointer-events: none;
-}
-
 .playback-blocked-prompt {
 	position: absolute;
 	top: 0;
@@ -847,39 +868,6 @@ $in-video-chat-width-small: 250px;
 	transition: transform 0s;
 }
 
-.player-container {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	aspect-ratio: 16 / 9;
-
-	@media (min-aspect-ratio: 16 / 9) {
-		aspect-ratio: initial;
-	}
-}
-
-.fullscreen {
-	padding: 0;
-
-	.video-container {
-		display: block;
-		margin: 0;
-		height: 100vh;
-		max-height: 100vh;
-		aspect-ratio: inherit;
-		width: 100vw;
-	}
-
-	.video-subcontainer {
-		width: 100%;
-		max-height: 100vh;
-	}
-
-	.player-container {
-		height: 100vh;
-	}
-}
-
 .room {
 	@media (max-width: $md-max) {
 		padding: 0;
@@ -889,6 +877,7 @@ $in-video-chat-width-small: 250px;
 .room-header {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	margin: 0 10px;
 	> * {
 		align-self: flex-end;

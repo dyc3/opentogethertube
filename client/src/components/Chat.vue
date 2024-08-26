@@ -236,6 +236,7 @@ $chat-message-bg: $background-color;
 .chat-header {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	border-bottom: 1px solid #666;
 }
 

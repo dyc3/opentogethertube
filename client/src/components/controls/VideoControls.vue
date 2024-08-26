@@ -55,15 +55,15 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 }
 
 .video-controls {
-	flex-basis: auto;
 	min-height: $video-controls-height;
 	transition: all 0.2s;
 	z-index: 100;
 	padding: 12px;
+	width: 100%;
 
 	&.in-video {
-		position: relative;
-		bottom: $video-controls-height;
+		position: absolute;
+		bottom: 0;
 
 		background: linear-gradient(
 			to top,
