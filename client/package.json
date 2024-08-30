@@ -18,7 +18,7 @@
     "@peertube/embed-api": "^0.0.6",
     "@vimeo/player": "^2.20.1",
     "@vueuse/core": "^9.6.0",
-    "axios": "1.6.0",
+    "axios": "1.7.4",
     "dashjs": "4.7.1",
     "dayjs": "^1.10.4",
     "hls.js": "1.4.8",
