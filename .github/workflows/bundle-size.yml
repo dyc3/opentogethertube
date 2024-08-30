@@ -45,7 +45,7 @@ jobs:
       - run: corepack enable
       - run: yarn install --immutable
       - run: |
-          yarn workspace ott-client run build | sed -r 's/([a-zA-Z]+-)[^ .]+(\.[^ ]+)/\1hash\2/' | tee /tmp/bundle-size.txt
+          yarn workspace ott-client run build | sed -r 's/([a-zA-Z]+-)[^ .]+(\.[^ ]+)/\1hash\2/' | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | tee /tmp/bundle-size.txt
 
       - name: Upload bundle size
         uses: actions/upload-artifact@v4
