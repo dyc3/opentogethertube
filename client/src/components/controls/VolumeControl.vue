@@ -1,22 +1,23 @@
 <template>
-	<vue-slider
-		:model-value="volume"
-		@update:model-value="changed"
-		style="width: 150px; margin-left: 10px; margin-right: 20px"
-		:process="
-			dotsPos => [
-				[
-					0,
-					dotsPos[0],
-					{
-						backgroundColor: 'rgb(var(--v-theme-primary))',
-					},
-				],
-			]
-		"
-		:drag-on-click="true"
-		data-cy="volume-slider"
-	/>
+	<div class="volume">
+		<vue-slider
+			:model-value="volume"
+			@update:model-value="changed"
+			:process="
+				dotsPos => [
+					[
+						0,
+						dotsPos[0],
+						{
+							backgroundColor: 'rgb(var(--v-theme-primary))',
+						},
+					],
+				]
+			"
+			:drag-on-click="true"
+			data-cy="volume-slider"
+		/>
+	</div>
 </template>
 
 <script lang="ts" setup>
@@ -33,3 +34,17 @@ function changed(value: number) {
 	volume.value = value;
 }
 </script>
+
+<style lang="scss" scoped>
+@import "../../variables.scss";
+
+.volume {
+	width: 150px;
+	margin-left: 10px;
+	margin-right: 20px;
+
+	@media (max-width: $md-max) {
+		width: 100px;
+	}
+}
+</style>

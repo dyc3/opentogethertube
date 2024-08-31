@@ -749,7 +749,7 @@ $in-video-chat-width-small: 250px;
 		justify-self: center;
 
 		@media (max-width: $md-max) {
-			max-width: 100%;
+			width: 100%;
 		}
 	}
 }
