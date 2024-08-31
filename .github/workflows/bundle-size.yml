@@ -22,8 +22,8 @@ jobs:
       matrix:
         node-version: [18.x]
         ref:
-          - ${{ github.event.pull_request.base.ref }}
-          - ${{ github.event.pull_request.head.ref }}
+          - ${{ github.event.pull_request.base.sha }}
+          - ${{ github.event.pull_request.head.sha }}
       fail-fast: true
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
       - run: corepack enable
       - run: yarn install --immutable
       - run: |
-          yarn workspace ott-client run build | sed -r 's/([a-zA-Z]+-)[^ .]+(\.[^ ]+)/\1hash\2/' | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | tee /tmp/bundle-size.txt
+          yarn workspace ott-client run build | sed -r 's/([a-zA-Z]+-)[^ .]+(\.[^ ]+)/\1hash\2/' | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | grep -v "built in" | tee /tmp/bundle-size.txt
 
       - name: Upload bundle size
         uses: actions/upload-artifact@v4
@@ -63,12 +63,12 @@ jobs:
       - name: Download bundle size (base ref)
         uses: actions/download-artifact@v4
         with:
-          name: bundle-size-${{ github.event.pull_request.base.ref }}
+          name: bundle-size-${{ github.event.pull_request.base.sha }}
           path: /tmp/bundle-size-base.txt
       - name: Download bundle size (head ref)
         uses: actions/download-artifact@v4
         with:
-          name: bundle-size-${{ github.event.pull_request.head.ref }}
+          name: bundle-size-${{ github.event.pull_request.head.sha }}
           path: /tmp/bundle-size-head.txt
       - name: Compare bundle sizes
         run: |
