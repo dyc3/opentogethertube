@@ -86,9 +86,8 @@ impl BalancerMonolith {
 
     #[instrument(skip(self), fields(monolith_id = %self.id), ret)]
     pub fn remove_room(&mut self, room: &RoomName) -> Option<Room> {
-        self.rooms.remove(room).map(|r| {
+        self.rooms.remove(room).inspect(|_| {
             info!("room removed");
-            r
         })
     }
 
