@@ -1,4 +1,9 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import {
+	createRouter,
+	createWebHistory,
+	type RouteRecordRaw,
+	type RouteLocation,
+} from "vue-router";
 import { isOfficialSite } from "./util/misc";
 
 export const routes: RouteRecordRaw[] = [
@@ -24,11 +29,11 @@ export const routes: RouteRecordRaw[] = [
 	},
 	{
 		path: "/r/:roomId",
-		redirect: "/room/:roomId",
+		redirect: redirectToRoom,
 	},
 	{
 		path: "/rooms/:roomId",
-		redirect: "/room/:roomId",
+		redirect: redirectToRoom,
 	},
 	{
 		path: "/passwordreset",
@@ -40,6 +45,10 @@ export const routes: RouteRecordRaw[] = [
 		component: () => import("./views/NotFound.vue"),
 	},
 ];
+
+function redirectToRoom(to: RouteLocation) {
+	return { name: "room", params: { roomId: to.params.roomId } };
+}
 
 // FIXME: only render on official site
 if (import.meta.env.DEV || isOfficialSite()) {
