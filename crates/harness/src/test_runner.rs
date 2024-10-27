@@ -106,7 +106,7 @@ impl TestRunner {
         println!("waiting for balancer to start");
         loop {
             match client
-                .get(&format!("http://localhost:{}/api/status", opts.port))
+                .get(format!("http://localhost:{}/api/status", opts.port))
                 .send()
                 .await
             {
@@ -279,7 +279,7 @@ mod test {
             .build()
             .expect("failed to build request client");
         let response = client
-            .get(&format!("http://localhost:{}/api/status", port))
+            .get(format!("http://localhost:{}/api/status", port))
             .send()
             .await
             .expect("failed to send request");
@@ -288,7 +288,7 @@ mod test {
         ctx.restart_balancer().await;
 
         let response = client
-            .get(&format!("http://localhost:{}/api/status", port))
+            .get(format!("http://localhost:{}/api/status", port))
             .send()
             .await
             .expect("failed to send request");
