@@ -69,7 +69,11 @@ export async function authTokenMiddleware(
 		return;
 	}
 
-	req.ottsession = await tokens.getSessionInfo(req.token);
+	try {
+		req.ottsession = await tokens.getSessionInfo(req.token);
+	} catch (err) {
+		log.warn(`Error getting session info in auth middleware: ${err}`);
+	}
 	if (!req.ottsession) {
 		res.status(401).json({
 			success: false,
