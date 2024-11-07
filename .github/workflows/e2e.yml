@@ -229,7 +229,7 @@ jobs:
       - name: Start grafana docker
         if: steps.check-for-e2e.outputs.has-e2e == 'true'
         working-directory: packages/${{ matrix.package }}
-        run: docker-compose up -d
+        run: docker compose up -d
 
       - name: Run e2e tests
         if: steps.check-for-e2e.outputs.has-e2e == 'true'
@@ -238,4 +238,4 @@ jobs:
       - name: Stop grafana docker
         if: steps.check-for-e2e.outputs.has-e2e == 'true'
         working-directory: packages/${{ matrix.package }}
-        run: docker-compose down
+        run: docker compose down

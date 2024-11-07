@@ -150,9 +150,9 @@ jobs:
           touch env/production.env
       - name: Build image
         run: |
-          docker-compose -f docker/docker-compose.yml up -d --build
+          docker compose -f docker/docker-compose.yml up -d --build
           docker commit opentogethertube opentogethertube
-          docker-compose -f docker/docker-compose.yml down
+          docker compose -f docker/docker-compose.yml down
           docker tag opentogethertube dyc3/opentogethertube:latest
       - name: Push to Dockerhub
         run: docker push dyc3/opentogethertube:latest

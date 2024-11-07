@@ -15,9 +15,9 @@ jobs:
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dyc3" --password-stdin
       - name: Build image for ${{ github.ref_name }}
         run: |
-          docker-compose -f docker/docker-compose.yml up -d --build
+          docker compose -f docker/docker-compose.yml up -d --build
           docker commit opentogethertube opentogethertube
-          docker-compose -f docker/docker-compose.yml down
+          docker compose -f docker/docker-compose.yml down
           docker tag opentogethertube dyc3/opentogethertube:${{ github.ref_name }}
       - name: Push to Dockerhub
         run: docker push dyc3/opentogethertube:${{ github.ref_name }}
