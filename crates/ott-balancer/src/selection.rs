@@ -13,12 +13,12 @@ pub trait MonolithSelection: std::fmt::Debug {
         &'a self,
         room: &RoomName,
         monoliths: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith>;
+    ) -> anyhow::Result<&'a BalancerMonolith>;
 
     fn random_monolith<'a>(
         &'a self,
         monoliths: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith> {
+    ) -> anyhow::Result<&'a BalancerMonolith> {
         let selected = monoliths
             .iter()
             .choose(&mut rand::thread_rng())
@@ -72,7 +72,7 @@ impl MonolithSelection for MinRoomsSelector {
         &'a self,
         _room: &RoomName,
         monoliths: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith> {
+    ) -> anyhow::Result<&'a BalancerMonolith> {
         fn cmp(x: &BalancerMonolith, y: &BalancerMonolith) -> std::cmp::Ordering {
             x.rooms().len().cmp(&y.rooms().len())
         }
@@ -113,7 +113,7 @@ impl MonolithSelection for HashRingSelector {
         &'a self,
         room: &RoomName,
         monoliths: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith> {
+    ) -> anyhow::Result<&'a BalancerMonolith> {
         let weight = self.config.weight.max(1);
         let mut ring = HashRing::new();
         ring.batch_add(
@@ -154,7 +154,7 @@ impl MonolithSelection for RandomSelector {
         &'a self,
         _room: &RoomName,
         monoliths: Vec<&'a BalancerMonolith>,
-    ) -> anyhow::Result<&BalancerMonolith> {
+    ) -> anyhow::Result<&'a BalancerMonolith> {
         self.random_monolith(monoliths)
     }
 }

@@ -414,12 +414,12 @@ impl BalancerContext {
 
     pub fn select_monolith(&self, room: &RoomName) -> anyhow::Result<&BalancerMonolith> {
         let filtered = self.filter_monoliths();
-        return self.monolith_selection.select_monolith(room, filtered);
+        self.monolith_selection.select_monolith(room, filtered)
     }
 
     pub fn random_monolith(&self) -> anyhow::Result<&BalancerMonolith> {
         let filtered = self.filter_monoliths();
-        return self.monolith_selection.random_monolith(filtered);
+        self.monolith_selection.random_monolith(filtered)
     }
 
     #[instrument(skip(self, monolith), err, fields(monolith_id = %monolith))]

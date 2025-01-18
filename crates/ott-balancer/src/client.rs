@@ -346,10 +346,7 @@ pub async fn client_entry<'r>(
     Ok(())
 }
 
-async fn close<'s, S>(
-    stream: &mut WebSocketStream<S>,
-    frame: CloseFrame<'static>,
-) -> anyhow::Result<()>
+async fn close<S>(stream: &mut WebSocketStream<S>, frame: CloseFrame<'static>) -> anyhow::Result<()>
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
