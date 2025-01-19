@@ -48,6 +48,7 @@ impl BalancerConfig {
             config.region = region.into();
         }
         // SAFETY: CONFIG is only mutated once, and only from this thread. All other accesses are read-only.
+        #[allow(static_mut_refs)]
         CONFIG_INIT.call_once(|| unsafe { *CONFIG.borrow_mut() = Some(config) });
         Ok(())
     }
@@ -55,13 +56,17 @@ impl BalancerConfig {
     /// Initialize the config with default values.
     pub fn init_default() {
         // SAFETY: CONFIG is only mutated once, and only from this thread. All other accesses are read-only.
+        #[allow(static_mut_refs)]
         CONFIG_INIT.call_once(|| unsafe { *CONFIG.borrow_mut() = Some(BalancerConfig::default()) });
     }
 
     pub fn get() -> &'static Self {
         debug_assert!(CONFIG_INIT.is_completed(), "config not initialized");
         // SAFETY: get is never called before CONFIG is initialized.
-        unsafe { CONFIG.as_ref().expect("config not initialized") }
+        #[allow(static_mut_refs)]
+        unsafe {
+            CONFIG.as_ref().expect("config not initialized")
+        }
     }
 
     /// Get a mutable reference to the config. Should only be used for tests and benchmarks.
@@ -72,6 +77,7 @@ impl BalancerConfig {
     pub unsafe fn get_mut() -> &'static mut Self {
         debug_assert!(CONFIG_INIT.is_completed(), "config not initialized");
         // SAFETY: get_mut is only used for benchmarks
+        #[allow(static_mut_refs)]
         CONFIG.as_mut().expect("config not initialized")
     }
 }
