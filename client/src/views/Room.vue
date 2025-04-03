@@ -237,6 +237,7 @@ import { secondsToTimestamp } from "@/util/timestamp";
 import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 import { useGrants } from "@/components/composables/grants";
 import { isOfficialSite } from "@/util/misc";
+import { API } from "@/common-http";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -441,6 +442,18 @@ export default defineComponent({
 		let roomCreatedUnsub: (() => void) | null = null;
 		onMounted(async () => {
 			await waitForToken(store);
+
+			if (history.state.created && store.state.settings.autoSkipSegmentCategories) {
+				try {
+					await API.patch(`/room/${route.params.roomId ?? store.state.room.name}`, {
+						autoSkipSegmentCategories: store.state.settings.autoSkipSegmentCategories,
+					});
+				} catch (e) {
+					console.error(e);
+				}
+
+				delete history.state.created;
+			}
 
 			connection.addMessageHandler("sync", onSyncMsg);
 			if (!connection.active.value) {

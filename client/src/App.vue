@@ -189,7 +189,10 @@ export const App = defineComponent({
 			store.subscribe(mutation => {
 				if (mutation.type === "misc/ROOM_CREATED") {
 					try {
-						router.push(`/room/${mutation.payload.name}`);
+						router.push({
+							path: `/room/${mutation.payload.name}`,
+							state: { created: true },
+						});
 					} catch (e) {
 						if (e.name !== "NavigationDuplicated") {
 							throw e;

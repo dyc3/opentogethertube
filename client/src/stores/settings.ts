@@ -1,5 +1,6 @@
 import { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
+import type { Category } from "sponsorblock-api";
 
 export interface SettingsState {
 	volume: number;
@@ -8,6 +9,7 @@ export interface SettingsState {
 	theme: Theme;
 	sfxEnabled: boolean;
 	sfxVolume: number;
+	autoSkipSegmentCategories?: Category[];
 }
 
 export enum RoomLayoutMode {

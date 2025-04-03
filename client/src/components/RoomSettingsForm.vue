@@ -261,6 +261,13 @@ function getRoomSettingsSubmit(): Partial<RoomSettings> {
 	return _.omit(inputRoomSettings, blocked);
 }
 
+/** Save SponsorBlock settings in user's settings */
+function updateClientSettings() {
+	const copy = _.cloneDeep(store.state.settings);
+	copy.autoSkipSegmentCategories = settings.autoSkipSegmentCategories.value;
+	store.commit("settings/UPDATE", copy);
+}
+
 /** Take room settings from the UI and submit them to the server. */
 async function submitRoomSettings() {
 	isLoadingRoomSettings.value = true;
@@ -269,6 +276,7 @@ async function submitRoomSettings() {
 			`/room/${route.params.roomId ?? store.state.room.name}`,
 			getRoomSettingsSubmit()
 		);
+		updateClientSettings();
 		toast.add({
 			style: ToastStyle.Success,
 			content: t("room-settings.settings-applied").toString(),
