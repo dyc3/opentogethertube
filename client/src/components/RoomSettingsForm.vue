@@ -65,17 +65,12 @@
 					</v-list-item>
 				</template>
 			</v-select>
-			<v-select
-				v-model="settings.autoSkipSegmentCategories.value"
-				:items="ALL_SKIP_CATEGORIES"
+			<AutoSkipSegmentSettings
 				:loading="
 					isLoadingRoomSettings || dirtySettings.includes('autoSkipSegmentCategories')
 				"
 				:disabled="!granted('configure-room.other')"
-				:label="$t('room-settings.auto-skip-text')"
-				chips
-				multiple
-				data-cy="input-auto-skip"
+				v-model="settings.autoSkipSegmentCategories.value"
 			/>
 			<v-select
 				:label="$t('room-settings.restore-queue')"
@@ -168,6 +163,7 @@ import { useGrants } from "./composables/grants";
 import { useRoute } from "vue-router";
 import { watch } from "vue";
 import { watchDebounced } from "@vueuse/core";
+import AutoSkipSegmentSettings from "./AutoSkipSegmentSettings.vue";
 
 const store = useStore();
 const { t } = useI18n();
@@ -261,13 +257,6 @@ function getRoomSettingsSubmit(): Partial<RoomSettings> {
 	return _.omit(inputRoomSettings, blocked);
 }
 
-/** Save SponsorBlock settings in user's settings */
-function updateClientSettings() {
-	const copy = _.cloneDeep(store.state.settings);
-	copy.autoSkipSegmentCategories = settings.autoSkipSegmentCategories.value;
-	store.commit("settings/UPDATE", copy);
-}
-
 /** Take room settings from the UI and submit them to the server. */
 async function submitRoomSettings() {
 	isLoadingRoomSettings.value = true;
@@ -276,7 +265,6 @@ async function submitRoomSettings() {
 			`/room/${route.params.roomId ?? store.state.room.name}`,
 			getRoomSettingsSubmit()
 		);
-		updateClientSettings();
 		toast.add({
 			style: ToastStyle.Success,
 			content: t("room-settings.settings-applied").toString(),
