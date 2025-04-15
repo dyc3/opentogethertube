@@ -6,19 +6,37 @@ import { z } from "zod";
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
 
-export const OttApiRequestRoomCreateSchema = z.object({
-	name: z
-		.string()
-		.min(3, "too short, must be atleast 3 characters")
-		.max(32, "too long, must be at most 32 characters")
-		.regex(ROOM_NAME_REGEX)
-		.refine(name => !RESERVED_ROOM_NAMES.includes(name), { message: "not allowed (reserved)" }),
-	title: z.string().max(255, "too long, must be at most 255 characters").optional(),
-	description: z.string().optional(),
-	isTemporary: z.boolean().optional().default(true),
-	visibility: z.nativeEnum(Visibility).default(Visibility.Public).optional(),
-	queueMode: z.nativeEnum(QueueMode).optional(),
+const CategorySchema = z.enum([
+	"sponsor",
+	"intro",
+	"outro",
+	"interaction",
+	"selfpromo",
+	"music_offtopic",
+	"preview",
+]);
+
+export const OttApiRequestRoomGenerateSchema = z.object({
+	autoSkipSegmentCategories: z.array(CategorySchema).optional(),
 });
+
+export const OttApiRequestRoomCreateSchema = z
+	.object({
+		name: z
+			.string()
+			.min(3, "too short, must be atleast 3 characters")
+			.max(32, "too long, must be at most 32 characters")
+			.regex(ROOM_NAME_REGEX)
+			.refine(name => !RESERVED_ROOM_NAMES.includes(name), {
+				message: "not allowed (reserved)",
+			}),
+		title: z.string().max(255, "too long, must be at most 255 characters").optional(),
+		description: z.string().optional(),
+		isTemporary: z.boolean().optional().default(true),
+		visibility: z.nativeEnum(Visibility).default(Visibility.Public).optional(),
+		queueMode: z.nativeEnum(QueueMode).optional(),
+	})
+	.merge(OttApiRequestRoomGenerateSchema);
 
 const VideoIdSchema = z.object({
 	service: z.enum(ALL_VIDEO_SERVICES),
@@ -56,16 +74,6 @@ export const OttApiRequestAccountRecoveryVerifySchema = z.object({
 	verifyKey: z.string(),
 	newPassword: z.string(),
 });
-
-const CategorySchema = z.enum([
-	"sponsor",
-	"intro",
-	"outro",
-	"interaction",
-	"selfpromo",
-	"music_offtopic",
-	"preview",
-]);
 
 const GrantSchema = z.tuple([z.nativeEnum(Role), z.number()]);
 

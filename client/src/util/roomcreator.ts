@@ -52,7 +52,7 @@ export async function createRoomHelper(
 		if (options) {
 			await createRoom({
 				...options,
-				autoSkipCategories:
+				autoSkipSegmentCategories:
 					store.state.settings.defaultRoomSettings?.autoSkipSegmentCategories,
 			});
 			if (store.state.misc.cancelledRoomCreation) {
@@ -62,7 +62,7 @@ export async function createRoomHelper(
 			return options.name;
 		} else {
 			let resp = await generateRoom({
-				autoSkipCategories:
+				autoSkipSegmentCategories:
 					store.state.settings.defaultRoomSettings?.autoSkipSegmentCategories,
 			});
 			if (store.state.misc.cancelledRoomCreation) {

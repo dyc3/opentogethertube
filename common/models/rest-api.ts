@@ -41,7 +41,7 @@ export interface OttApiError {
 
 /** Endpoint: `/api/room/generate` */
 interface OttApiRequestRoomBase {
-	autoSkipCategories?: Category[];
+	autoSkipSegmentCategories?: Category[];
 }
 
 export interface OttApiRequestRoomGenerate extends OttApiRequestRoomBase {}

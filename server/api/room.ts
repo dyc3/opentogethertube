@@ -40,6 +40,7 @@ import {
 	OttApiRequestAddToQueueSchema,
 	OttApiRequestRemoveFromQueueSchema,
 	OttApiRequestPatchRoomSchema,
+	OttApiRequestRoomGenerateSchema,
 } from "ott-common/models/zod-schemas";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -105,6 +106,9 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 	if (!conf.get("room.enable_create_temporary")) {
 		throw new FeatureDisabledException("Temporary rooms are disabled.");
 	}
+
+	const body = OttApiRequestRoomGenerateSchema.parse(req.body);
+
 	let points = 50;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
@@ -115,6 +119,7 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 		name: roomName,
 		isTemporary: true,
 		owner: req.user,
+		...body,
 	});
 	log.info(`room generated: ip=${req.ip} user-agent=${req.headers["user-agent"]}`);
 	res.status(201).json({
