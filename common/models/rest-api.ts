@@ -51,8 +51,7 @@ export interface OttApiResponseRoomGenerate {
 }
 
 /** Endpoint: `/api/room/create` */
-export type OttApiRequestRoomCreate = OttApiRequestRoomBase &
-	z.infer<typeof OttApiRequestRoomCreateSchema>;
+export type OttApiRequestRoomCreate = z.infer<typeof OttApiRequestRoomCreateSchema>;
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiResponseRoomCreate {}
