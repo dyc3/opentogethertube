@@ -40,12 +40,19 @@ export interface OttApiError {
 }
 
 /** Endpoint: `/api/room/generate` */
+interface OttApiRequestRoomBase {
+	autoSkipCategories?: Category[];
+}
+
+export interface OttApiRequestRoomGenerate extends OttApiRequestRoomBase {}
+
 export interface OttApiResponseRoomGenerate {
 	room: string;
 }
 
 /** Endpoint: `/api/room/create` */
-export type OttApiRequestRoomCreate = z.infer<typeof OttApiRequestRoomCreateSchema>;
+export type OttApiRequestRoomCreate = OttApiRequestRoomBase &
+	z.infer<typeof OttApiRequestRoomCreateSchema>;
 
 /** Endpoint: `/api/room/create` */
 export interface OttApiResponseRoomCreate {}
