@@ -17,7 +17,7 @@ import type { Category } from "sponsorblock-api";
 
 const model = defineModel<Category[]>();
 defineProps<{
-	loading: boolean;
-	disabled: boolean;
+	loading?: boolean;
+	disabled?: boolean;
 }>();
 </script>

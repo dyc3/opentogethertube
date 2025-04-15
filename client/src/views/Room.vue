@@ -443,18 +443,6 @@ export default defineComponent({
 		onMounted(async () => {
 			await waitForToken(store);
 
-			if (history.state.created && store.state.settings.autoSkipSegmentCategories) {
-				try {
-					await API.patch(`/room/${route.params.roomId ?? store.state.room.name}`, {
-						autoSkipSegmentCategories: store.state.settings.autoSkipSegmentCategories,
-					});
-				} catch (e) {
-					console.error(e);
-				}
-
-				delete history.state.created;
-			}
-
 			connection.addMessageHandler("sync", onSyncMsg);
 			if (!connection.active.value) {
 				connection.connect(route.params.roomId as string);

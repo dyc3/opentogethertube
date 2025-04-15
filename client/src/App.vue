@@ -191,7 +191,6 @@ export const App = defineComponent({
 					try {
 						router.push({
 							path: `/room/${mutation.payload.name}`,
-							state: { created: true },
 						});
 					} catch (e) {
 						if (e.name !== "NavigationDuplicated") {

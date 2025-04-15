@@ -9,7 +9,11 @@ export interface SettingsState {
 	theme: Theme;
 	sfxEnabled: boolean;
 	sfxVolume: number;
-	autoSkipSegmentCategories?: Category[];
+	defaultRoomSettings?: DefaultRoomSettings;
+}
+
+export interface DefaultRoomSettings {
+	autoSkipSegmentCategories: Category[];
 }
 
 export enum RoomLayoutMode {
