@@ -13,6 +13,7 @@ import {
 	OttApiRequestPatchRoomSchema,
 	ClaimSchema,
 	RoomSettingsSchema,
+	OttApiRequestRoomGenerateSchema,
 } from "./zod-schemas";
 import { z } from "zod";
 
@@ -40,6 +41,8 @@ export interface OttApiError {
 }
 
 /** Endpoint: `/api/room/generate` */
+export type OttApiRequestRoomGenerate = z.infer<typeof OttApiRequestRoomGenerateSchema>;
+
 export interface OttApiResponseRoomGenerate {
 	room: string;
 }

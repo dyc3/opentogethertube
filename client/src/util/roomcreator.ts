@@ -5,15 +5,16 @@ import {
 	OttApiResponseRoomGenerate,
 	OttApiResponseRoomCreate,
 	OttApiRequestRoomCreate,
+	OttApiRequestRoomGenerate,
 } from "ott-common/models/rest-api";
 import type { Store } from "vuex";
-import { reactive, Ref, ref } from "vue";
-import { AxiosResponse } from "axios";
 import type { FullOTTStoreState } from "@/store";
 
 /** Generate a temporary room. */
-export async function generateRoom(): Promise<OttApiResponseRoomGenerate> {
-	let resp = await API.post("/room/generate", undefined, {
+export async function generateRoom(
+	options: OttApiRequestRoomGenerate
+): Promise<OttApiResponseRoomGenerate> {
+	let resp = await API.post("/room/generate", options, {
 		validateStatus: status => status >= 200 && status < 400,
 	});
 	let data: OttResponseBody<OttApiResponseRoomGenerate> = resp.data;
@@ -49,14 +50,21 @@ export async function createRoomHelper(
 	store.commit("misc/CREATING_ROOM");
 	try {
 		if (options) {
-			await createRoom(options);
+			await createRoom({
+				...options,
+				autoSkipSegmentCategories:
+					store.state.settings.defaultRoomSettings?.autoSkipSegmentCategories,
+			});
 			if (store.state.misc.cancelledRoomCreation) {
 				return;
 			}
 			store.commit("misc/ROOM_CREATED", { name: options.name });
 			return options.name;
 		} else {
-			let resp = await generateRoom();
+			let resp = await generateRoom({
+				autoSkipSegmentCategories:
+					store.state.settings.defaultRoomSettings?.autoSkipSegmentCategories,
+			});
 			if (store.state.misc.cancelledRoomCreation) {
 				return;
 			}

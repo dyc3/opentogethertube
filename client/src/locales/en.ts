@@ -360,6 +360,7 @@ export default {
 		"theme": "Theme",
 		"sfx-enable": "Enable Sound Effects",
 		"sfx-volume": "Sound Effect Volume",
+		"room-settings": "Default Room Settings",
 	},
 	"connect-overlay": {
 		"title": "Disconnected",

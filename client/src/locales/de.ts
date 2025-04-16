@@ -284,9 +284,10 @@ export default {
 		"permission": "Berechtigung",
 	},
 	"client-settings": {
-		title: "Anpassen",
-		description: "Diese Einstellungen werden in deinem Browser gespeichert.",
-		activator: "@:client-settings.title",
+		"title": "Anpassen",
+		"description": "Diese Einstellungen werden in deinem Browser gespeichert.",
+		"activator": "@:client-settings.title",
+		"room-settings": "Standardraumeinstellungen",
 	},
 	"connect-overlay": {
 		"find-another": "Einen anderen Raum finden",

@@ -1,5 +1,6 @@
 import { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
+import { RoomSettings } from "ott-common";
 
 export interface SettingsState {
 	volume: number;
@@ -8,7 +9,10 @@ export interface SettingsState {
 	theme: Theme;
 	sfxEnabled: boolean;
 	sfxVolume: number;
+	defaultRoomSettings?: DefaultRoomSettings;
 }
+
+export type DefaultRoomSettings = Pick<RoomSettings, "autoSkipSegmentCategories">;
 
 export enum RoomLayoutMode {
 	default = "default",

@@ -44,6 +44,19 @@
 					max="1"
 					step="0.01"
 				/>
+
+				<v-checkbox
+					:label="$t('client-settings.room-settings')"
+					v-model="showRoomSettings"
+					false-icon="mdi-chevron-up"
+					true-icon="mdi-chevron-down"
+				/>
+
+				<v-expand-transition>
+					<div v-if="showRoomSettings">
+						<AutoSkipSegmentSettings v-model="autoSkipCategories" />
+					</div>
+				</v-expand-transition>
 			</v-card-text>
 
 			<v-divider />
@@ -68,6 +81,8 @@ import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
 import { useSfx } from "@/plugins/sfx";
 import { enumKeys } from "@/util/misc";
+import AutoSkipSegmentSettings from "./AutoSkipSegmentSettings.vue";
+import { ALL_SKIP_CATEGORIES } from "ott-common";
 
 type ExcludedFields = "volume" | "locale";
 type ExposedSettings = Omit<SettingsState, ExcludedFields>;
@@ -77,6 +92,18 @@ const show = ref(false);
 const store = useStore();
 const settings: Ref<ExposedSettings> = ref(loadSettings());
 const sfx = useSfx();
+
+const showRoomSettings = ref(false);
+const autoSkipCategories = ref(
+	settings.value.defaultRoomSettings?.autoSkipSegmentCategories ?? ALL_SKIP_CATEGORIES
+);
+
+watch(autoSkipCategories, categories => {
+	settings.value.defaultRoomSettings = {
+		...settings.value.defaultRoomSettings,
+		autoSkipSegmentCategories: categories,
+	};
+});
 
 function loadSettings(): ExposedSettings {
 	const copy = _.cloneDeep(store.state.settings);
