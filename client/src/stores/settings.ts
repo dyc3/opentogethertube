@@ -1,6 +1,6 @@
 import { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
-import type { Category } from "sponsorblock-api";
+import { RoomSettings } from "ott-common";
 
 export interface SettingsState {
 	volume: number;
@@ -12,9 +12,7 @@ export interface SettingsState {
 	defaultRoomSettings?: DefaultRoomSettings;
 }
 
-export interface DefaultRoomSettings {
-	autoSkipSegmentCategories: Category[];
-}
+export type DefaultRoomSettings = Pick<RoomSettings, "autoSkipSegmentCategories">;
 
 export enum RoomLayoutMode {
 	default = "default",
