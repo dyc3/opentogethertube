@@ -237,7 +237,6 @@ import { secondsToTimestamp } from "@/util/timestamp";
 import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 import { useGrants } from "@/components/composables/grants";
 import { isOfficialSite } from "@/util/misc";
-import { API } from "@/common-http";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 

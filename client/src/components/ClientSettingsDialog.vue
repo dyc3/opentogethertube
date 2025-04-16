@@ -50,7 +50,7 @@
 					v-model="showRoomSettings"
 					false-icon="mdi-chevron-up"
 					true-icon="mdi-chevron-down"
-				></v-checkbox>
+				/>
 
 				<v-expand-transition>
 					<div v-if="showRoomSettings">

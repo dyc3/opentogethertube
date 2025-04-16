@@ -158,7 +158,6 @@ import { Ref, onMounted, reactive, ref, toRefs } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
-import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
 import { useGrants } from "./composables/grants";
 import { useRoute } from "vue-router";
 import { watch } from "vue";
