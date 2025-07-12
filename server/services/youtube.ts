@@ -493,6 +493,9 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			if (axios.isAxiosError(err)) {
 				if (err.response && isYoutubeApiError(err.response)) {
 					if (err.response.status === 403) {
+						log.error(
+							`Youtube API request failed: ${err.response.data.error.code} ${err.response.data.error.message}`
+						);
 						if (!onlyProperties || onlyProperties.includes("length")) {
 							log.warn(`Attempting youtube fallback method for ${ids.length} videos`);
 							try {
