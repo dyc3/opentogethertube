@@ -33,7 +33,7 @@
     "video.js": "^7.15.4",
     "vue": "^3.4.21",
     "vue-axios": "^2.1.5",
-    "vue-i18n": "9.2.2",
+    "vue-i18n": "9.14.5",
     "vue-router": "^4.1.5",
     "vue-slider-component": "4.1.0-beta.6",
     "vuetify": "^3.5.17",
