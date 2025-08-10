@@ -1,6 +1,7 @@
 import express from "express";
 import { getLogger } from "./logger";
 import roomapi from "./api/room";
+import userapi from "./api/user";
 import auth from "./auth";
 import usermanager from "./usermanager";
 import passport from "passport";
@@ -40,6 +41,7 @@ export function buildApiRouter(): express.Router {
 	});
 	router.use(auth.authTokenMiddleware);
 	router.use("/user", usermanager.router);
+	router.use("/user", userapi);
 	router.use("/room", roomapi);
 	router.use("/announce", announceapi);
 
