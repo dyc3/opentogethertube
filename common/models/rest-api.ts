@@ -97,3 +97,14 @@ export type OttApiRequestAccountRecoveryVerify = z.infer<
 export type OttClaimRequest = z.infer<typeof ClaimSchema>;
 
 export type OttSettingsRequest = z.infer<typeof RoomSettingsSchema>;
+
+export interface RoomListItem {
+	name: string;
+	title: string;
+	description: string;
+	isTemporary: boolean;
+	visibility: Visibility;
+	queueMode: QueueMode;
+	currentSource: Video | null;
+	users: number;
+}

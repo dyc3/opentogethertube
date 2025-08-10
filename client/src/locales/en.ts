@@ -117,6 +117,7 @@ export default {
 	"nav": {
 		"home": "Home",
 		"browse": "Browse",
+		"my-rooms": "My Rooms",
 		"faq": "FAQ",
 		"bug": "Report a Bug",
 		"support": "Support Me!",

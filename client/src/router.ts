@@ -18,6 +18,11 @@ export const routes: RouteRecordRaw[] = [
 		component: () => import("./views/RoomList.vue"),
 	},
 	{
+		path: "/my-rooms",
+		name: "my-rooms",
+		component: () => import("./views/MyRooms.vue"),
+	},
+	{
 		path: "/room/:roomId",
 		name: "room",
 		component: () => import("./views/Room.vue"),

@@ -29,6 +29,7 @@ import {
 	OttResponseBody,
 	OttClaimRequest,
 	OttSettingsRequest,
+	RoomListItem,
 } from "ott-common/models/rest-api";
 import { getApiKey } from "../admin";
 import { v4 as uuidv4 } from "uuid";
@@ -52,17 +53,6 @@ const log = getLogger("api/room");
 const VALID_ROOM_VISIBILITY = [Visibility.Public, Visibility.Unlisted, Visibility.Private];
 
 const VALID_ROOM_QUEUE_MODE = [QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj];
-
-export interface RoomListItem {
-	name: string;
-	title: string;
-	description: string;
-	isTemporary: boolean;
-	visibility: Visibility;
-	queueMode: QueueMode;
-	currentSource: Video | null;
-	users: number;
-}
 
 router.get("/list", (req, res) => {
 	const isAuthorized = req.get("apikey") === getApiKey();

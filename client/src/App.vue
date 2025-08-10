@@ -19,6 +19,9 @@
 			</v-app-bar-title>
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-btn variant="text" to="/rooms">{{ $t("nav.browse") }}</v-btn>
+				<v-btn v-if="store.state.user" variant="text" to="/my-rooms">{{
+					$t("nav.my-rooms")
+				}}</v-btn>
 				<v-btn
 					variant="text"
 					href="https://github.com/dyc3/opentogethertube/discussions/830"
@@ -66,6 +69,9 @@
 				</v-list-item>
 				<v-list-item to="/rooms">
 					{{ $t("nav.browse") }}
+				</v-list-item>
+				<v-list-item v-if="store.state.user" to="/my-rooms">
+					{{ $t("nav.my-rooms") }}
 				</v-list-item>
 				<v-list-item
 					href="https://github.com/dyc3/opentogethertube/discussions/830"
@@ -276,6 +282,7 @@ export default App;
 .scrollbarBeGone {
 	-ms-overflow-style: none; // I think this is an old way to do this? Probably not ideal
 	scrollbar-width: none;
+
 	&::-webkit-scrollbar {
 		display: none;
 	}

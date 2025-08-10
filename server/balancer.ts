@@ -9,7 +9,7 @@ import { AuthToken, ClientId } from "ott-common/models/types";
 import { replacer } from "ott-common/serialize";
 import { OttWebsocketError } from "ott-common/models/types";
 import roommanager from "./roommanager";
-import type { RoomListItem } from "./api/room";
+import type { RoomListItem } from "ott-common/models/rest-api";
 import _ from "lodash";
 import type { MsgB2M, MsgM2B, UnloadReason } from "./generated";
 import { Gauge } from "prom-client";
