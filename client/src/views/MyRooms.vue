@@ -33,10 +33,41 @@
 							<span v-if="room.description">{{ room.description }}</span>
 							<span v-else>{{ $t("room-list.no-description") }}</span>
 						</v-list-item-subtitle>
+						<template #append v-if="!room.isTemporary">
+							<v-btn
+								icon
+								variant="text"
+								color="error"
+								@click.stop.prevent="openDeleteDialog(room)"
+							>
+								<v-icon icon="mdi-delete" />
+							</v-btn>
+						</template>
 					</v-list-item>
 				</v-list>
 			</v-col>
 		</v-row>
+		<v-dialog v-model="showDeleteDialog" max-width="500">
+			<v-card>
+				<v-card-title class="text-h6">{{ $t("common.delete") }}</v-card-title>
+				<v-card-text>
+					{{
+						$t("my-rooms.confirm-delete", {
+							name: roomPendingDelete ? roomPendingDelete.name : "",
+						})
+					}}
+				</v-card-text>
+				<v-card-actions>
+					<v-spacer />
+					<v-btn variant="text" @click="closeDeleteDialog">{{
+						$t("common.cancel")
+					}}</v-btn>
+					<v-btn color="error" variant="flat" @click="confirmDelete">{{
+						$t("common.delete")
+					}}</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-dialog>
 	</v-container>
 </template>
 
@@ -50,6 +81,8 @@ import type { OttResponseBody, RoomListItem } from "ott-common/models/rest-api";
 const isLoading = ref(false);
 const rooms = ref<RoomListItem[]>([]);
 const store = useStore();
+const showDeleteDialog = ref(false);
+const roomPendingDelete = ref<RoomListItem | null>(null);
 
 onMounted(async () => {
 	isLoading.value = true;
@@ -68,6 +101,43 @@ onMounted(async () => {
 
 async function createTempRoom() {
 	await createRoomHelper(store);
+}
+
+function openDeleteDialog(room: RoomListItem) {
+	roomPendingDelete.value = room;
+	showDeleteDialog.value = true;
+}
+
+function closeDeleteDialog() {
+	showDeleteDialog.value = false;
+	roomPendingDelete.value = null;
+}
+
+async function confirmDelete() {
+	if (!roomPendingDelete.value) {
+		closeDeleteDialog();
+		return;
+	}
+	await deleteOwnedRoom(roomPendingDelete.value);
+	closeDeleteDialog();
+}
+
+async function deleteOwnedRoom(room: RoomListItem) {
+	try {
+		const response = await API.delete(`/room/${encodeURIComponent(room.name)}`, {
+			params: { permanent: true },
+		});
+		const data: OttResponseBody<unknown> = response.data;
+		// If the server returns a standard OttResponseBody with success=false, handle it
+		// Otherwise assume success on 2xx
+		if (!data.success) {
+			console.error("Failed to delete room:", data.error);
+			return;
+		}
+		rooms.value = rooms.value.filter(r => r.name !== room.name);
+	} catch (err) {
+		console.error("Failed to delete room:", err);
+	}
 }
 </script>
 

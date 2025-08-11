@@ -262,12 +262,90 @@ const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoo
 	});
 };
 
-const deleteRoom: RequestHandler<{ name: string }> = async (req, res) => {
+const deleteRoom: RequestHandler<
+	{ name: string },
+	OttResponseBody<unknown>,
+	unknown,
+	{ permanent?: string }
+> = async (req, res) => {
+	// If permanent=true, allow the room owner to permanently delete their own room (DB + unload)
+	const permanent = req.query.permanent === "true";
+
+	if (permanent) {
+		// Must be logged in
+		if (!req.user) {
+			res.status(401).json({
+				success: false,
+				error: {
+					name: "Unauthorized",
+					message: "Must be logged in to permanently delete a room.",
+				},
+			});
+			return;
+		}
+
+		// Load the room (loads from storage if needed) to validate ownership
+		const room = (await roommanager.getRoom(req.params.name)).unwrap();
+
+		// Only permanent rooms can be permanently deleted
+		if (room.isTemporary) {
+			res.status(400).json({
+				success: false,
+				error: {
+					name: "BadApiArgumentException",
+					message: "Temporary rooms cannot be permanently deleted.",
+				},
+			});
+			return;
+		}
+
+		// Only the owner can permanently delete
+		if (!room.owner || room.owner.id !== req.user.id) {
+			res.status(403).json({
+				success: false,
+				error: {
+					name: "PermissionDeniedException",
+					message: "Only the owner can permanently delete this room.",
+				},
+			});
+			return;
+		}
+
+		// Unload and delete from storage
+		await roommanager.unloadRoom(req.params.name, UnloadReason.Admin);
+		try {
+			await storage.deleteRoom(req.params.name);
+		} catch (err) {
+			if (err instanceof Error) {
+				log.error(`Failed to delete room from storage: ${err.message} ${err.stack}`);
+			} else {
+				log.error(`Failed to delete room from storage`);
+			}
+			res.status(500).json({
+				success: false,
+				error: {
+					name: "Unknown",
+					message: "Failed to delete room from storage.",
+				},
+			});
+			return;
+		}
+
+		res.json({
+			success: true,
+		});
+		return;
+	}
+
+	// If not permanent deletion, require admin apikey to unload a room
 	const isAuthorized = req.get("apikey") === getApiKey();
 	if (!isAuthorized) {
 		res.status(400).json({
 			success: false,
-			error: "apikey is required",
+			error: {
+				name: "Unauthorized",
+				message: "Admin apikey is required to unload a room.",
+			},
 		});
 		return;
 	}
