@@ -5,19 +5,18 @@ import { QueueMode, Visibility } from "ott-common/models/types";
 import { consumeRateLimitPoints } from "../rate-limit";
 import { BadApiArgumentException, FeatureDisabledException } from "../exceptions";
 import { OttException } from "ott-common/exceptions";
-import express, { RequestHandler, ErrorRequestHandler } from "express";
+import express, { type RequestHandler, type ErrorRequestHandler } from "express";
 import clientmanager from "../clientmanager";
 import {
-	ApplySettingsRequest,
+	type ApplySettingsRequest,
 	RoomRequestType,
-	UndoRequest,
-	AddRequest,
+	type UndoRequest,
+	type AddRequest,
 } from "ott-common/models/messages";
 import storage from "../storage";
 import { Grants } from "ott-common/permissions";
 import { Video } from "ott-common/models/video";
-import { ROOM_NAME_REGEX } from "ott-common/constants";
-import {
+import type {
 	OttApiRequestAddToQueue,
 	OttApiRequestPatchRoom,
 	OttApiRequestRemoveFromQueue,
@@ -49,10 +48,6 @@ import { UnloadReason } from "../generated";
 
 const router = express.Router();
 const log = getLogger("api/room");
-
-const VALID_ROOM_VISIBILITY = [Visibility.Public, Visibility.Unlisted, Visibility.Private];
-
-const VALID_ROOM_QUEUE_MODE = [QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj];
 
 router.get("/list", (req, res) => {
 	const isAuthorized = req.get("apikey") === getApiKey();
