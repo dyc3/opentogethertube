@@ -88,6 +88,23 @@ export async function updateRoom(room: Partial<RoomStatePersistable>): Promise<b
 	}
 }
 
+export async function deleteRoom(roomName: string): Promise<boolean> {
+	try {
+		const deleted = await DbRoomModel.destroy({
+			where: buildFindRoomWhere(roomName),
+		});
+		if (deleted === 0) {
+			log.debug(`Room ${roomName} not found in db to delete.`);
+		} else {
+			log.info(`Deleted room ${roomName} from db: ${deleted} row(s)`);
+		}
+		return deleted > 0;
+	} catch (err) {
+		log.error(`Failed to delete room ${roomName} from storage: ${err}`);
+		throw err;
+	}
+}
+
 function dbToRoomArgs(db: DbRoom): RoomOptions {
 	const room = {
 		name: db.name,

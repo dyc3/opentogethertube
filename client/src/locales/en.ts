@@ -132,6 +132,9 @@ export default {
 			"perm-desc": "Perfect for frequent visitors.",
 		},
 	},
+	"my-rooms": {
+		"confirm-delete": 'Permanently delete room "{name}"? This cannot be undone.',
+	},
 	"room-list": {
 		"no-rooms": "No rooms right now...",
 		"create": "@:nav.create.title",
