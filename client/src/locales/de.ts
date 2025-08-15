@@ -30,7 +30,8 @@ export default {
 		"off": "Aus",
 		"dismiss": "Ignorieren",
 		"errors": {
-			"rate-limit": "Rate-Limit überschritten. Bitte versuchen Sie es in {duration} Sekunden erneut.",
+			"rate-limit":
+				"Rate-Limit überschritten. Bitte versuchen Sie es in {duration} Sekunden erneut.",
 		},
 	},
 	"behavior": {
@@ -91,7 +92,7 @@ export default {
 			description2:
 				"Beteiligen Sie sich an der Entwicklung, indem Sie Ihre Ideen oder Ihren Code beisteuern, oder zeigen Sie Ihre Unterstützung, indem Sie Spender werden. Alle Spenden werden verwendet, um die Betriebskosten und die Entwicklung von OpenTogetherTube zu finanzieren und um OpenTogetherTube werbefrei zu halten.",
 			how: "Wie kann ich helfen?",
-			sponsor: "Sponsor werden",
+			sponsor: "@:nav.support",
 			contribute: "Beitragen",
 		},
 	},
@@ -133,7 +134,8 @@ export default {
 		},
 	},
 	"my-rooms": {
-		"confirm-delete": 'Raum "{name}" dauerhaft löschen? Dies kann nicht rückgängig gemacht werden.',
+		"confirm-delete":
+			'Raum "{name}" dauerhaft löschen? Dies kann nicht rückgängig gemacht werden.',
 	},
 	"room-list": {
 		"no-rooms": "Kein Raum im Moment...",
@@ -209,7 +211,8 @@ export default {
 		},
 		"messages": {
 			"unknown-status": "Unbekannter Status für Vorschau-Antwort: {status}.",
-			"unknown-error": "Ein unbekannter Fehler ist beim Laden der Vorschau aufgetreten. Versuchen Sie es später erneut.",
+			"unknown-error":
+				"Ein unbekannter Fehler ist beim Laden der Vorschau aufgetreten. Versuchen Sie es später erneut.",
 			"failed-to-get-add-preview":
 				"Fehler beim Laden der Vorschau. Dies ist wahrscheinlich ein Bug, überprüfen Sie die Konsole für Details.",
 			"failed-to-all-videos": "Fehler beim Hinzufügen aller Videos: {message}",
@@ -224,7 +227,8 @@ export default {
 		"add-video": "Ein Video hinzufügen",
 		"export": "Exportieren",
 		"export-diag-title": "Warteschlange exportieren",
-		"export-hint": 'Kopieren Sie diesen Text und fügen Sie ihn in das "Hinzufügen"-Tab ein, um diese Warteschlange wiederherzustellen.',
+		"export-hint":
+			'Kopieren Sie diesen Text und fügen Sie ihn in das "Hinzufügen"-Tab ein, um diese Warteschlange wiederherzustellen.',
 		"restore": "Möchten Sie die Videos aus der vorherigen Warteschlange wiederherstellen?",
 		"restore-queue": "Warteschlange wiederherstellen?",
 		"restore-queue-hint":
@@ -258,7 +262,8 @@ export default {
 		"dj": "DJ",
 		"dj-hint":
 			"Wenn das Video endet, startet das gleiche Video von Anfang an. Gut für das Abspielen von Hintergrundmusik.",
-		"auto-skip-text": "Unerwünschte Videosegmente automatisch überspringen mit SponsorBlock-Daten.",
+		"auto-skip-text":
+			"Unerwünschte Videosegmente automatisch überspringen mit SponsorBlock-Daten.",
 		"auto-skip-text-sponsor": "Sponsor",
 		"auto-skip-text-intro": "Intro",
 		"auto-skip-text-outro": "Outro",
@@ -366,7 +371,8 @@ export default {
 	},
 	"client-settings": {
 		"title": "Anpassen",
-		"description": "Diese Einstellungen werden in Ihrem Browser gespeichert und betreffen nur Sie.",
+		"description":
+			"Diese Einstellungen werden in Ihrem Browser gespeichert und betreffen nur Sie.",
 		"activator": "@:client-settings.title",
 		"room-layout": "Raum-Layout",
 		"theme": "Theme",
@@ -384,7 +390,8 @@ export default {
 			[OttWebsocketError.MISSING_TOKEN]:
 				"Es wurde kein Token bereitgestellt. Aktualisieren Sie die Seite und versuchen Sie es erneut. Andernfalls öffnen Sie bitte ein Issue auf GitHub.",
 			[OttWebsocketError.KICKED]: "Sie wurden von einem Benutzer aus dem Raum geworfen.",
-			unknown: "Etwas ist passiert, aber wir wissen nicht was. Bitte melden Sie dies als Bug.",
+			unknown:
+				"Etwas ist passiert, aber wir wissen nicht was. Bitte melden Sie dies als Bug.",
 		},
 	},
 	"vote-skip": {
@@ -401,7 +408,8 @@ export default {
 	"errors": {
 		BadPasswordError:
 			"Passwort erfüllt nicht die Mindestanforderungen. Muss mindestens 8 Zeichen lang sein und 2 der folgenden Kategorien enthalten: Kleinbuchstaben, Großbuchstaben, Zahlen, Sonderzeichen.",
-		BadApiArgumentException: "Schlechtes API-Argument. Dies ist wahrscheinlich ein Bug, bitte melden Sie es.",
+		BadApiArgumentException:
+			"Schlechtes API-Argument. Dies ist wahrscheinlich ein Bug, bitte melden Sie es.",
 	},
 	"player": {
 		"buffer-warn": {
