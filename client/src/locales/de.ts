@@ -28,7 +28,7 @@ export default {
 		"unvote": "Abwahl",
 		"on": "Ein",
 		"off": "Aus",
-		"dismiss": "Ignorieren",
+		"dismiss": "Entlassen",
 		"errors": {
 			"rate-limit":
 				"Rate-Limit überschritten. Bitte versuchen Sie es in {duration} Sekunden erneut.",
