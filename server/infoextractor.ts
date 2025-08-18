@@ -27,11 +27,16 @@ import PeertubeAdapter from "./services/peertube";
 import PlutoAdapter from "./services/pluto";
 import DashVideoAdapter from "./services/dash";
 import { Ls } from "dayjs";
+import InvidiousAdapter from "./services/invidious";
 
 const log = getLogger("infoextract");
 
 const ADD_PREVIEW_SEARCH_MIN_LENGTH = conf.get("add_preview.search.min_query_length");
 const ENABLE_SEARCH = conf.get("add_preview.search.enabled");
+
+const SERVICE_ALIASES: Partial<Record<VideoService, VideoService[]>> = {
+  invidious: ["hls", "dash", "direct"],
+};
 
 function mergeVideo(a: Video, b: Video): Video {
 	return Object.assign(
@@ -86,6 +91,9 @@ export async function initExtractor() {
 	if (enabled.includes("pluto")) {
 		adapters.push(new PlutoAdapter());
 	}
+	if (enabled.includes("invidious")) {
+		adapters.push(new InvidiousAdapter());
+	}
 
 	await Promise.all(adapters.map(adapter => adapter.initialize()));
 }
@@ -111,8 +119,11 @@ export default {
 		try {
 			const result = await storage.getVideoInfo(service, videoId);
 			const video = result;
-			const missingInfo = storage.getVideoInfoFields(video.service).filter(p => !video[p]);
-
+			// --> OLD <-- const missingInfo = storage.getVideoInfoFields(video.service).filter(p => !video[p]);
+			let missingInfo = storage.getVideoInfoFields(video.service).filter(p => !video[p]);
+			if (video.service === "hls" || video.service === "dash") {
+				missingInfo = missingInfo.filter(p => p !== "mime");
+			}
 			if (video.mime && !isSupportedMimeType(video.mime)) {
 				throw new UnsupportedMimeTypeException(video.mime);
 			}
@@ -210,15 +221,50 @@ export default {
 				} else {
 					log.info("video services don't match, must be an alias");
 					const video = fetchedVideo;
-					const newadapter = this.getServiceAdapter(video.service);
-					if (newadapter.isCacheSafe) {
-						this.updateCache(video);
+					const aliasAllowed =
+						!!SERVICE_ALIASES[cachedVideo.service as VideoService]?.includes(video.service as VideoService);
+					const mergedDesc = (video.description ?? cachedVideo.description ?? "").toString().trim();
+					const aliasWithMeta: Video = {
+						...video,
+						title:       video.title ?? cachedVideo.title,
+						description: mergedDesc.length ? mergedDesc : (video.title ?? cachedVideo.title ?? "-"),
+						thumbnail:   video.thumbnail ?? cachedVideo.thumbnail,
+						length:      video.length ?? cachedVideo.length,
+						// HLS/DASH: do not set mime
+						mime:        (video.service === "hls" || video.service === "dash")
+									? undefined
+									: (video.mime ?? cachedVideo.mime),
+					};
+
+					if (aliasAllowed) {
+						const metaForOriginal: Video = {
+						...cachedVideo,
+						title:       aliasWithMeta.title,
+						description: (aliasWithMeta.description ?? "").toString().trim().length
+								    ? aliasWithMeta.description
+      								: (aliasWithMeta.title ?? cachedVideo.title ?? "-"),
+						thumbnail:   aliasWithMeta.thumbnail,
+						length:      aliasWithMeta.length,
+						mime:        aliasWithMeta.mime,
+						};
+						try {
+						await storage.updateVideoInfo(metaForOriginal);
+						} catch (e) {
+						log.warn(`Failed to cache alias meta for ${cachedVideo.service}:${cachedVideo.id}: ${e instanceof Error ? e.message : e}`);
+						}
 					}
-					return video;
-				}
-			} catch (e) {
-				if (e instanceof OutOfQuotaException) {
-					log.error("Failed to get video info: Out of quota");
+
+					try {
+						await storage.updateVideoInfo(aliasWithMeta);
+					} catch (e) {
+						log.warn(`Failed to cache alias video for ${aliasWithMeta.service}:${aliasWithMeta.id}: ${e instanceof Error ? e.message : e}`);
+					}
+
+					return aliasWithMeta;
+					}
+					} catch (e) {
+						if (e instanceof OutOfQuotaException) {
+						log.error("Failed to get video info: Out of quota");
 					if (
 						missingInfo.length < storage.getVideoInfoFields(cachedVideo.service).length
 					) {
@@ -257,12 +303,14 @@ export default {
 					? await storage.getManyVideoInfo(serviceVideos)
 					: serviceVideos;
 				const requests = cachedVideos
-					.map(video => ({
-						id: video.id,
-						missingInfo: storage
-							.getVideoInfoFields(video.service)
-							.filter(p => !video[p]),
-					}))
+					.map(video => {
+						let missing = storage.getVideoInfoFields(video.service).filter(p => !video[p]);
+						// HLS/DASH: do not handle missing mime as missing
+						if (video.service === "hls" || video.service === "dash") {
+						missing = missing.filter(p => p !== "mime");
+						}
+						return { id: video.id, missingInfo: missing };
+					})
 					.filter(request => request.missingInfo.length > 0);
 
 				if (requests.length === 0 && adapter.isCacheSafe) {

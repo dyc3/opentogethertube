@@ -1,6 +1,6 @@
 # Optimized for layer cache hits to speed up builds
 
-FROM node:18-alpine3.19 as dep-install-stage
+FROM node:18-alpine3.19 AS dep-install-stage
 
 WORKDIR /app
 RUN corepack enable
@@ -12,7 +12,7 @@ COPY client/package.json client/
 COPY server/package.json server/
 RUN yarn workspaces focus ott-common ott-client ott-server
 
-FROM node:18-alpine3.19 as build-stage
+FROM node:18-alpine3.19 AS build-stage
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
@@ -29,14 +29,14 @@ RUN yarn workspace ott-common run build && yarn workspace ott-client run build &
 RUN rm -rf packages/ott-vis*
 RUN rm -rf node_modules && yarn workspaces focus ott-server --production
 
-FROM node:18-alpine3.19 as production-stage
+FROM node:18-alpine3.19 AS production-stage
 
 WORKDIR /app
 RUN corepack enable
 COPY --from=build-stage /app /app
 RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitignore client/vite.config.js client/babel.config.js docker-compose.yml /root/.npm tools crates
 
-FROM node:18-alpine3.19 as docker-stage
+FROM node:18-alpine3.19 AS docker-stage
 # For use in docker-compose
 
 WORKDIR /app
@@ -50,7 +50,7 @@ HEALTHCHECK --interval=30s --timeout=3s CMD ( curl -f http://localhost:8080/api/
 
 CMD ["/bin/sh", "wait_for_db.sh", "--", "yarn", "run", "start"]
 
-FROM node:18-alpine3.19 as deploy-stage
+FROM node:18-alpine3.19 AS deploy-stage
 # For deployment on Fly
 ARG DEPLOY_TARGET
 
