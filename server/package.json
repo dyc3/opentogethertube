@@ -23,7 +23,7 @@
     "convict": "^6.2.4",
     "cookie-parser": "^1.4.6",
     "dayjs": "^1.10.4",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "express-session": "^1.17.0",
     "lodash": "^4.17.21",
     "m3u8-parser": "^6.2.0",
