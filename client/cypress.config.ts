@@ -1,5 +1,5 @@
 import { defineConfig } from "cypress";
-import viteConfig from "./vite.config";
+import viteConfig from "./vite.config.js";
 
 export default defineConfig({
 	projectId: "3utpz8",

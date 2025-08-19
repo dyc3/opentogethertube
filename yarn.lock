@@ -12616,7 +12616,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ini@npm:^1.3.4, ini@npm:^1.3.5":
+"ini@npm:^1.3.4":
   version: 1.3.8
   resolution: "ini@npm:1.3.8"
   checksum: 10c0/ec93838d2328b619532e4f1ff05df7909760b6f66d9c9e2ded11e5c1897d6f2f9980c54dd638f88654b00919ce31e827040631eab0a3969e4d1abefa0719516a
@@ -15175,15 +15175,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.14.0":
-  version: 2.17.0
-  resolution: "nan@npm:2.17.0"
-  dependencies:
-    node-gyp: "npm:latest"
-  checksum: 10c0/4a231a62dba025f4c4fa814c1e6ffeb450c5cd0852b780f19fe4ea22b86ba0f1f394406dfd628c67fb7f0987e982fa230da1fbd3632258f927b8defd7046c1ad
-  languageName: node
-  linkType: hard
-
 "nano-css@npm:^5.3.1":
   version: 5.6.1
   resolution: "nano-css@npm:5.6.1"
@@ -15337,14 +15328,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build@npm:^4.1.0":
-  version: 4.6.0
-  resolution: "node-gyp-build@npm:4.6.0"
+"node-gyp-build@npm:^4.3.0":
+  version: 4.8.4
+  resolution: "node-gyp-build@npm:4.8.4"
   bin:
     node-gyp-build: bin.js
     node-gyp-build-optional: optional.js
     node-gyp-build-test: build-test.js
-  checksum: 10c0/147add65942acd3cf641d11d9becd030128c7298a5b4aec4ebf3ad4afcc3d0298ad2562afba3e7b2bf70160c5e2e82235e3bc043ff9c52dc68bdd36c856764fe
+  checksum: 10c0/444e189907ece2081fe60e75368784f7782cfddb554b60123743dfb89509df89f1f29c03bbfa16b3a3e0be3f48799a4783f487da6203245fa5bed239ba7407e1
   languageName: node
   linkType: hard
 
@@ -15956,7 +15947,7 @@ __metadata:
     rate-limiter-flexible: "npm:^2.2.1"
     redis: "npm:4.6.7"
     redis-mock: "npm:^0.56.3"
-    secure-password: "npm:^3.1.0"
+    secure-password: "npm:^4.0.0"
     sequelize: "npm:^6.25.7"
     sequelize-cli: "npm:^6.6.0"
     sponsorblock-api: "npm:^0.2.2"
@@ -18719,13 +18710,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"secure-password@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "secure-password@npm:3.1.0"
+"secure-password@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "secure-password@npm:4.0.0"
   dependencies:
     nanoassert: "npm:^1.0.0"
-    sodium-native: "npm:^2.2.1"
-  checksum: 10c0/3f41a20357c60311ab8c627ddc5d6dbf4f47e0bcdb046abf388ea25799823963a6d18e16a8a01413fef0b8b29dd03958ce267f3dfe4888ee24e534c1b0a42057
+    sodium-native: "npm:^3.1.1"
+  checksum: 10c0/f1f5d9211e1916801da75284c1e8a0ce25463fc1c27155831a490d1c1db2c3e50a09a76070a1bc5e84e9f6b1b3053642391f568a8f1ae0bad77a20a61f514740
   languageName: node
   linkType: hard
 
@@ -19242,15 +19233,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sodium-native@npm:^2.2.1":
-  version: 2.4.9
-  resolution: "sodium-native@npm:2.4.9"
+"sodium-native@npm:^3.1.1":
+  version: 3.4.1
+  resolution: "sodium-native@npm:3.4.1"
   dependencies:
-    ini: "npm:^1.3.5"
-    nan: "npm:^2.14.0"
     node-gyp: "npm:latest"
-    node-gyp-build: "npm:^4.1.0"
-  checksum: 10c0/3924aa9f3df7b9769687b4df2b1b730333dc7c1e2dfeed333fedfe7d850ca14e5011434955da5f9591e5dc70a47d7232fad2482bc91596c8837be0d26d96ca97
+    node-gyp-build: "npm:^4.3.0"
+  checksum: 10c0/b67de94d80a234d348e3bbcd27f39243f974dfdb5e2538b146433c5f2a42ce4697ce3bf5dff8a2803dab16486167e8cc755af426ff2934cb5ca393cb5b116c77
   languageName: node
   linkType: hard
 
