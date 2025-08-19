@@ -1,9 +1,10 @@
-import axios, { type AxiosResponse } from "axios";
+import axios from "axios";
 import { getLogger } from "../logger";
 import { ServiceAdapter } from "../serviceadapter";
 import { conf } from "../ott-config";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video";
 import { InvalidVideoIdException } from "../exceptions";
+import storage from "../storage";
 
 const log = getLogger("invidious");
 
@@ -22,7 +23,6 @@ interface InvidiousApiVideo {
   author?: string;
   description?: string;
   shortDescription?: string;
-  //lengthSeconds: number;
   lengthSeconds: number | string;
   // Some instances expose one or both fields below:
   hlsUrl?: string;
@@ -34,7 +34,7 @@ interface InvidiousApiVideo {
 
 export default class InvidiousAdapter extends ServiceAdapter {
   api = axios.create({
-    headers: { "User-Agent": `OpenTogetherTube @ ${conf.get("hostname")}` },
+    headers: { "User-Agent": `OpenTogetherTube-InvidiousServiceAdapter @ ${conf.get("hostname")}` },
   });
 
   allowedHosts: string[] = [];
@@ -49,6 +49,9 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
   async initialize(): Promise<void> {
     this.allowedHosts = conf.get("info_extractor.invidious.instances");
+    log.info(
+      `Invidious adapter enabled. Instances: ${this.allowedHosts.join(", ")}`
+    );
   }
 
   canHandleURL(link: string): boolean {
@@ -83,30 +86,36 @@ export default class InvidiousAdapter extends ServiceAdapter {
     return `${url.host}:${id.trim()}`;
   }
   
+  /**
+   * Build proxied manifest URL via the instance (no file extension; .mpd/.m3u8 not required).
+   * Using local=1 ensures the instance proxies YT and adds permissive CORS.
+   */
+  private manifestUrl(host: string, id: string, type: "hls" | "dash"): string {
+    const u = new URL(`https://${host}/api/manifest/${type}/id/${encodeURIComponent(id)}`);
+    u.searchParams.set("local", "1");
+    // optional but explicit
+    u.searchParams.set("source", "youtube");
+    return u.toString();
+  }
+
   async fetchVideoInfo(videoId: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
     if (!videoId.includes(":")) {
       throw new InvalidVideoIdException(this.serviceId, videoId);
     }
     const [host, id] = videoId.split(":");
 
-    const useLocal: boolean = !!conf.get("info_extractor.invidious.local");
     const baseUrl = `https://${host}/api/v1/videos/${encodeURIComponent(id)}`;
 
     let data: InvidiousApiVideo | undefined;
     try {
-      const resLocal = await this.api.get<InvidiousApiVideo>(useLocal ? `${baseUrl}?local=1` : baseUrl, {
+      const resLocal = await this.api.get<InvidiousApiVideo>(`${baseUrl}?local=1`, {
         headers: { Accept: "application/json" }
       });
       data = resLocal.data;
     } catch {
-        const resLocal = await this.api.get<InvidiousApiVideo>(useLocal ? `${baseUrl}` : baseUrl, {
+        const res = await this.api.get<InvidiousApiVideo>(baseUrl, {
         headers: { Accept: "application/json" }
       });
-      data = resLocal.data;
-    }
-
-    if (!data?.title) {
-      const res = await this.api.get<InvidiousApiVideo>(baseUrl, { headers: { Accept: "application/json" } });
       data = res.data;
     }
 
@@ -114,32 +123,27 @@ export default class InvidiousAdapter extends ServiceAdapter {
       throw new Error(`Invidious API returned empty/invalid response for ${host}:${id}`);
     }
 
-    if (conf.get("info_extractor.invidious.emit_as_direct")) {
-      return this.parseAsDirect(data, host, id);
-    } else {
-      return this.parseVideoAsInvidious(data, host, id);
+    // Prefer DASH/HLS (higher quality) and fall back to progressive "direct"
+    const video = await this.parseAsDirect(data, host, id);
+
+    // Pre-fill cache for the emitted (direct) video to avoid a follow-up metadata fetch
+    // by DirectVideoAdapter (which might fail on CORS/HEAD/mime detection).
+    try {
+      await storage.updateVideoInfo(video);
+    } catch (e: any) {
+      log.warn(`Failed to prefill cache for ${video.service}:${video.id}: ${e?.message ?? e}`);
     }
+
+    return video;
   }
   
-  private withLocal(url?: string): string | undefined {
-  if (!url) return url;
-  const useLocal = !!conf.get("info_extractor.invidious.local");
-  if (!useLocal) return url;
-  return /[?&]local=1\b/.test(url) ? url : url + (url.includes("?") ? "&" : "?") + "local=1";
-  }
-
-  private manifestUrl(host: string, id: string, type: "hls" | "dash") {
-    const base = `https://${host}/api/manifest/${type}/id/${encodeURIComponent(id)}`;
-    return this.withLocal(base);
-  }
-
-  // Proxied Progressive (MP4/WebM) over Invidious – avoiding CORS issues
+  /** Proxied Progressive (MP4/WebM) over Invidious – avoids CORS/signature churn */
   private proxiedProgressive(host: string, id: string, itag?: number) {
     const u = new URL(`https://${host}/latest_version`);
     u.searchParams.set("id", id);
     if (itag) u.searchParams.set("itag", String(itag));
     u.searchParams.set("local", "1");
-    // "source=youtube" ist optional
+    // optional but harmless
     u.searchParams.set("source", "youtube");
     return u.toString();
   }
@@ -153,25 +157,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
     });
     return sorted[0]?.url;
   }
-  
-  private parseVideoAsInvidious(inv: InvidiousApiVideo, host: string, id: string): Video {
-    const len = typeof inv.lengthSeconds === "string" ? parseInt(inv.lengthSeconds, 10) : inv.lengthSeconds;
-    const rawDesc = (inv.description ?? inv.shortDescription ?? "").toString().trim();
-    const safeDesc = rawDesc.length ? rawDesc : inv.title;
 
-    const video: Video = {
-      service: this.serviceId,
-      id: `${host}:${id}`,
-      title: inv.title,
-      description: safeDesc,
-      length: Number.isFinite(len) ? (len as number) : undefined,
-      thumbnail: this.pickBestThumbnail(inv.videoThumbnails),
-    };
-
-    return video;
-  }
-
-  private parseAsDirect(inv: InvidiousApiVideo, host: string, id: string): Video {
+  private async parseAsDirect(inv: InvidiousApiVideo, host: string, id: string): Promise<Video> {
     const rawDesc = (inv.description ?? inv.shortDescription ?? "").toString().trim();
     const safeDesc = rawDesc.length ? rawDesc : inv.title;
 
@@ -182,105 +169,248 @@ export default class InvidiousAdapter extends ServiceAdapter {
       thumbnail: this.pickBestThumbnail(inv.videoThumbnails),
     };
     
-    const useLocal = !!conf.get("info_extractor.invidious.local");
-    const preferProgressive = !!conf.get("info_extractor.invidious.prefer_progressive");
-    
-    // 0) If local=true:
-    //    0a) if prefer_progressive=true -> serve proxied MP4/WebM via /latest_version
-    //    0b) otherwise -> serve proxied manifest (prefer DASH if available)
-    if (useLocal) {
-    // 0a) proxied MP4/WebM
-    if (useLocal && preferProgressive) {
-      const list = inv.formatStreams || [];
-      const progressive =
-        list.find(f => f.qualityLabel === "1080p" && f.url) ||
-        list.find(f => f.url && ((f.container === "mp4") || (f.type || "").includes("mp4"))) ||
-        list[0];
-      if (progressive) {
-        const url = this.proxiedProgressive(host, id, progressive.itag);
-        const mime =
-          progressive.type?.split(";")[0]?.trim() ||
-          (progressive.container === "webm" ? "video/webm" : "video/mp4");
-        return { service: "direct", id: url, ...base, mime };
+    // 1) Probe DASH & HLS and pick the manifest whose top variant has the higher bitrate.
+    try {
+      const [dashProbe, hlsProbe] = await Promise.all([
+        this.probeManifest(host, id, "dash"),
+        this.probeManifest(host, id, "hls"),
+      ]);
+      const pick =
+        dashProbe && hlsProbe
+          ? (dashProbe.topKbps >= hlsProbe.topKbps ? dashProbe : hlsProbe)
+          : (dashProbe ?? hlsProbe);
+      if (pick) {
+        log.info("Picked streaming manifest", { kind: pick.kind, url: pick.url, topKbps: pick.topKbps, topRes: pick.topRes });
+        // optional async detail log of the full manifest:
+        void this.logManifestSummary(pick.url, pick.kind);
+        if (pick.kind === "dash") {
+          return {
+            service: "dash",
+            id: pick.url,
+            ...base,
+            dash_url: pick.url,
+            mime: "application/dash+xml",
+          };
+        } else {
+          return {
+            service: "hls",
+            id: pick.url,
+            ...base,
+            hls_url: pick.url,
+            // Mimetype application/vnd.apple.mpegurl not supported by hls player so switching to x-mpegURL
+            mime: "application/x-mpegURL",
+          };
+        }
       }
+    } catch (e) {
+      log.warn(`DASH/HLS probing failed for ${host}:${id}, will try progressive.`, { err: e instanceof Error ? e.message : e });
     }
-    // 0b) proxied manifest (prefer DASH when possible)
-    if (useLocal) {
-      const preferDash =
-        !!(inv as any).dashUrl ||
-        (inv.adaptiveFormats || []).some(f => f.url?.includes(".mpd"));
-      const forced = this.manifestUrl(host, id, preferDash ? "dash" : "hls")!;
-      return preferDash
-        ? { service: "dash", id: forced, ...base, dash_url: forced }
-        : { service: "hls",  id: forced, ...base, hls_url:  forced };
+
+    // 2) Progressive fallback (MP4/WebM with audio) – proxied through /latest_version
+    // Helper to extract numeric quality from labels like "720p", "480p", etc.
+    const q = (label?: string) => {
+      const m = (label || "").match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    };
+
+    const list = (inv.formatStreams || []).filter(f => !!f.url);
+    if (list.length) {
+      // Prefer MP4 progressive (best browser compatibility) in highest available quality.
+      const mp4 = list.filter(
+        f => f.container === "mp4" || (f.type || "").toLowerCase().includes("mp4")
+      );
+      // Sort by quality descending (e.g., 720 > 480 > 360)
+      const byQualityDesc = (a: InvidiousFormat, b: InvidiousFormat) =>
+        q(b.qualityLabel) - q(a.qualityLabel);
+
+      const bestMp4 = mp4.sort(byQualityDesc)[0];
+      const bestAny = list.sort(byQualityDesc)[0];
+      const chosen = bestMp4 || bestAny; // fall back to best progressive of any container
+
+      // Guess MIME as precisely as we can; fall back sanely.
+      let mime =
+        chosen.type?.split(";")[0]?.trim() ||
+        (chosen.container === "webm" ? "video/webm"
+                                     : chosen.container === "mp4" ? "video/mp4"
+                                                                  : undefined);
+
+      // Always proxy via the instance (avoids CORS/signature churn) and carry itag if known.
+      const proxied = this.proxiedProgressive(host, id, chosen.itag);
+
+      // If MIME couldn’t be inferred, default to MP4 (works best across players).
+      if (!mime) {
+        // Heuristic: many common progressive itags (22, 18, 59) are MP4.
+        if (typeof chosen.itag === "number" && [22, 18, 59].includes(chosen.itag)) {
+          mime = "video/mp4";
+        } else {
+          // Final fallback
+          mime = "video/mp4";
+        }
+      }
+      log.info("Chosen progressive stream via /latest_version", {
+        host, id,
+        itag: chosen.itag,
+        label: chosen.qualityLabel,
+        container: chosen.container,
+        bitrate: chosen.bitrate,
+        mime,
+      });
+      return { service: "direct", id: proxied, ...base, mime };
+    }
+
+    // Fallback: let the instance pick a default via /latest_version (proxied)
+    const fallback = this.proxiedProgressive(host, id);
+    log.warn("No progressive formatStreams found; falling back to proxied /latest_version", {
+      host, id
+    });
+    return {
+      service: "direct",
+      id: fallback,
+      ...base,
+      // Sensible default to avoid a follow-up probe in the pipeline:
+      mime: "video/mp4",
+    };
+  }
+
+  /**
+   * Fetch and log a compact summary of the manifest (top variants by bandwidth).
+   * Fire-and-forget: call with `void this.logManifestSummary(...)`.
+   * Can be deleted after Developing this feature through
+   */
+  private async logManifestSummary(manifestUrl: string, kind: "dash" | "hls"): Promise<void> {
+    try {
+      const resp = await this.api.get<string>(manifestUrl, {
+        headers: {
+          Accept:
+            kind === "dash"
+              ? "application/dash+xml,text/plain;q=0.9,*/*;q=0.8"
+              : "application/vnd.apple.mpegurl,application/x-mpegURL,text/plain;q=0.9,*/*;q=0.8",
+        },
+        responseType: "text",
+        transformResponse: [(r) => r], // keep raw text
+      });
+      const text = typeof resp.data === "string" ? resp.data : String(resp.data);
+
+      if (kind === "dash") {
+        // Parse <Representation ... bandwidth="..." width="..." height="..." codecs="...">
+        const tags = text.match(/<Representation\b[^>]*>/g) ?? [];
+        const reps: Array<{ bw: number; w?: number; h?: number; codecs?: string }> = [];
+        for (const tag of tags) {
+          const attrs = Object.fromEntries(
+            Array.from(tag.matchAll(/(\w+)=["']([^"']+)["']/g)).map(m => [m[1], m[2]])
+          ) as Record<string, string>;
+          const bw = Number(attrs["bandwidth"]);
+          if (!bw || Number.isNaN(bw)) continue;
+          const w = attrs["width"]  ? Number(attrs["width"])  : undefined;
+          const h = attrs["height"] ? Number(attrs["height"]) : undefined;
+          const codecs = attrs["codecs"];
+          reps.push({ bw, w: (w && !Number.isNaN(w)) ? w : undefined, h: (h && !Number.isNaN(h)) ? h : undefined, codecs });
+        }
+        reps.sort((a, b) => b.bw - a.bw);
+        const top = reps.slice(0, 5).map(r => ({
+          bandwidth_kbps: Math.round(r.bw / 1000),
+          resolution: (r.w && r.h) ? `${r.w}x${r.h}` : undefined,
+          codecs: r.codecs,
+        }));
+        log.info(
+          `DASH manifest summary url=${manifestUrl} total=${reps.length} variants=${JSON.stringify(top)}`
+        );
+        if (reps.length === 0) {
+          const ct = String((resp.headers as any)['content-type'] || '');
+          log.warn(
+            `DASH manifest parsed 0 variants (content-type=${ct}). First 300 chars: ${text.slice(0, 300)}`
+          );
+        }
+      } else {
+        // HLS master: #EXT-X-STREAM-INF lines
+        const lines = text.split(/\r?\n/);
+        const entries: Array<{ bw?: number; res?: string; codecs?: string }> = [];
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.startsWith("#EXT-X-STREAM-INF:")) {
+            const bw = Number((line.match(/BANDWIDTH=(\d+)/) || [])[1]);
+            const res = (line.match(/RESOLUTION=(\d+x\d+)/) || [])[1];
+            const codecs = (line.match(/CODECS="([^"]+)"/) || [])[1];
+            entries.push({ bw: Number.isNaN(bw) ? undefined : bw, res, codecs });
+          }
+        }
+        entries.sort((a, b) => (b.bw || 0) - (a.bw || 0));
+        const top = entries.slice(0, 5).map(e => ({
+          bandwidth_kbps: e.bw ? Math.round(e.bw / 1000) : undefined,
+          resolution: e.res,
+          codecs: e.codecs,
+        }));
+        log.info(
+          `HLS master playlist summary url=${manifestUrl} total=${entries.length} variants=${JSON.stringify(top)}`
+        );
+        if (entries.length === 0) {
+          const ct = String((resp.headers as any)['content-type'] || '');
+          log.warn(
+            `HLS manifest parsed 0 variants (content-type=${ct}). First 300 chars: ${text.slice(0, 300)}`
+          );
+        }
+      }
+    } catch (e) {
+      log.warn(
+        `Failed to fetch/parse ${kind.toUpperCase()} manifest for logging url=${manifestUrl} err=${e instanceof Error ? e.message : e}`
+      );
     }
   }
-    // 1) HLS from API (with ?local=1)
-    if (inv.hlsUrl) {
-      const hls = this.withLocal(inv.hlsUrl);
-      return {
-        service: "hls",
-        id: hls!,
-        ...base,
-        hls_url: hls!,
-      };
-    }
-    // 2) DASH (dashUrl) with ?local=1
-    if ((inv as any).dashUrl) {
-      const dash = this.withLocal((inv as any).dashUrl as string)!;
-      return {
-        service: "dash",
-        id: dash,
-        ...base,
-        dash_url: dash,
-      };
-    }
-  const adaptive = (inv.adaptiveFormats || []).find(
-    f => f.url && (f.url.includes(".m3u8") || f.url.includes(".mpd"))
-  );
 
-    if (adaptive) {
-      if (adaptive.url.includes(".m3u8")) {
-        const h = useLocal ? this.manifestUrl(host, id, "hls")! : this.withLocal(adaptive.url)!;
-        return { service: "hls", id: h, ...base, hls_url: h };
-      } else if (adaptive.url.includes(".mpd")) {
-        const d = useLocal ? this.manifestUrl(host, id, "dash")! : this.withLocal(adaptive.url)!;
-        return { service: "dash", id: d, ...base, dash_url: d };
+  /** Probe a manifest and return its top bitrate/resolution. 
+   * Needs to be there after finishing feature to give frontend all infos about quality
+  */
+  private async probeManifest(
+    host: string,
+    id: string,
+    kind: "dash" | "hls"
+  ): Promise<{ kind: "dash" | "hls"; url: string; topKbps: number; topRes?: string } | null> {
+    const url = this.manifestUrl(host, id, kind);
+    try {
+      const resp = await this.api.get<string>(url, {
+        headers: {
+          Accept:
+            kind === "dash"
+              ? "application/dash+xml,text/plain;q=0.9,*/*;q=0.8"
+              : "application/vnd.apple.mpegurl,application/x-mpegURL,text/plain;q=0.9,*/*;q=0.8",
+        },
+        responseType: "text",
+        transformResponse: [(r) => r],
+      });
+      const text = typeof resp.data === "string" ? resp.data : String(resp.data);
+      if (kind === "dash") {
+        const tags = text.match(/<Representation\b[^>]*>/g) ?? [];
+        let topBw = 0;
+        let topRes: string | undefined;
+        for (const tag of tags) {
+          const bw = Number((tag.match(/bandwidth="(\d+)"/) || [])[1]);
+          if (!bw || Number.isNaN(bw)) continue;
+          if (bw > topBw) {
+            topBw = bw;
+            const w = Number((tag.match(/width="(\d+)"/) || [])[1]);
+            const h = Number((tag.match(/height="(\d+)"/) || [])[1]);
+            topRes = (w && h && !Number.isNaN(w) && !Number.isNaN(h)) ? `${w}x${h}` : undefined;
+          }
+        }
+        return { kind, url, topKbps: Math.round(topBw / 1000), topRes };
+      } else {
+        const lines = text.split(/\r?\n/);
+        let topBw = 0;
+        let topRes: string | undefined;
+        for (const line of lines) {
+          if (line.startsWith("#EXT-X-STREAM-INF:")) {
+            const bw = Number((line.match(/BANDWIDTH=(\d+)/) || [])[1]);
+            if (bw && !Number.isNaN(bw) && bw > topBw) {
+              topBw = bw;
+              topRes = (line.match(/RESOLUTION=(\d+x\d+)/) || [])[1];
+            }
+          }
+        }
+        return { kind, url, topKbps: Math.round(topBw / 1000), topRes };
       }
+    } catch (e) {
+      log.warn(`probeManifest failed`, { kind, url, error: e instanceof Error ? e.message : e });
+      return null;
     }
-
-    const progressiveList = inv.formatStreams || [];
-    const progressive =
-      progressiveList.find(f => f.qualityLabel === "1080p" && f.url) ||
-      progressiveList.find(f => f.url && ((f.container === "mp4") || (f.type || "").includes("mp4"))) ||
-      progressiveList[0];
-
-    if (progressive?.url) {
-      const mime =
-        progressive.type?.split(";")[0]?.trim() ||
-        (progressive.container === "webm" ? "video/webm" : "video/mp4");
-      const video: Video = {
-        service: "direct",
-        id: (useLocal && preferProgressive)
-              ? this.proxiedProgressive(host, id, progressive.itag)
-              : progressive.url,
-        ...base,
-        mime
-      };
-      return video;
-    }
-    const any =
-      (inv.formatStreams || []).concat(inv.adaptiveFormats || []).find(f => !!f.url)?.url;
-
-    if (any) {
-      const video: Video = {
-        service: "direct",
-        id: (useLocal && preferProgressive) ? this.proxiedProgressive(host, id) : any,
-        ...base,
-        mime: any.includes(".webm") ? "video/webm" : "video/mp4"
-      };
-      return video;
-    }
-    throw new Error("Unable to extract video URL from Invidious video");
   }
 }

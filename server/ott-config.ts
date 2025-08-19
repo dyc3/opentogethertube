@@ -288,30 +288,12 @@ export const conf = convict({
 		invidious: {
 			instances: {
 				default: ["yt.safh.de", "invidious.nerdvpn.de", "yewtu.be"],
-				doc: "List of Invidious instances",
+				doc: "List of Invidious instances as array",
 				format: Array,
 				env: "INVIDIOUS_INSTANCES",
 				children: {
 					format: String,
 				},
-			},
-			emit_as_direct: {
-				default: true,
-				doc: "Whether to emit Invidious videos as direct or hls videos instead of Invidious videos. This is useful if the Invidious Instance embeds are broken.",
-				format: Boolean,
-				env: "INVIDIOUS_EMIT_AS_DIRECT",
-			},
-			local: {
-				default: true,
-				doc: "Use API local via Proxy",
-				format: Boolean,
-				env: "INVIDIOUS_LOCAL_API",
-			},
-			prefer_progressive: {
-				default: true,
-				doc: "Enable prefer progressive to proxy MP4/WebM if available",
-				format: Boolean,
-				env: "INVIDIOUS_PREFER_PROGRESSIVE",
 			},
 		},
 	},
