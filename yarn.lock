@@ -16012,7 +16012,7 @@ __metadata:
     typescript: "npm:5.4.5"
     validator: "npm:^13.7.0"
     video.js: "npm:^7.15.4"
-    vite: "npm:^5.2.14"
+    vite: "npm:^5.4.19"
     vite-plugin-vuetify: "npm:2.0.1"
     vitest: "npm:^1.2.2"
     vue: "npm:^3.4.21"
@@ -21245,9 +21245,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.2.14":
-  version: 5.4.6
-  resolution: "vite@npm:5.4.6"
+"vite@npm:^5.4.19":
+  version: 5.4.19
+  resolution: "vite@npm:5.4.19"
   dependencies:
     esbuild: "npm:^0.21.3"
     fsevents: "npm:~2.3.3"
@@ -21284,7 +21284,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/5f87be3a10e970eaf9ac52dfab39cf9fff583036685252fb64570b6d7bfa749f6d221fb78058f5ef4b5664c180d45a8e7a7ff68d7f3770e69e24c7c68b958bde
+  checksum: 10c0/c97601234dba482cea5290f2a2ea0fcd65e1fab3df06718ea48adc8ceb14bc3129508216c4989329c618f6a0470b42f439677a207aef62b0c76f445091c2d89e
   languageName: node
   linkType: hard
 
