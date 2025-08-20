@@ -9,17 +9,17 @@ import {
 	vi,
 	MockInstance,
 } from "vitest";
-import InfoExtractor, { initExtractor } from "../../infoextractor";
-import storage from "../../storage";
-import { getMimeType } from "../../mime";
-import YouTubeAdapter from "../../services/youtube";
-import { UnsupportedMimeTypeException, OutOfQuotaException } from "../../exceptions";
-import { ServiceAdapter } from "../../serviceadapter";
-import { buildClients, redisClient } from "../../redisclient";
+import InfoExtractor, { initExtractor } from "../../infoextractor.js";
+import storage from "../../storage.js";
+import { getMimeType } from "../../mime.js";
+import YouTubeAdapter from "../../services/youtube.js";
+import { UnsupportedMimeTypeException, OutOfQuotaException } from "../../exceptions.js";
+import { ServiceAdapter } from "../../serviceadapter.js";
+import { buildClients, redisClient } from "../../redisclient.js";
 import _ from "lodash";
-import { loadModels } from "../../models";
-import { loadConfigFile, conf } from "../../ott-config";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video";
+import { loadModels } from "../../models/index.js";
+import { loadConfigFile, conf } from "../../ott-config.js";
+import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 
 class TestAdapter extends ServiceAdapter {
 	get serviceId(): VideoService {

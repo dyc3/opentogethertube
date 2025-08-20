@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import dayjs from "dayjs";
-import { calculateCurrentPosition } from "../../timestamp";
+import { calculateCurrentPosition } from "../../timestamp.js";
 
 describe("calculateCurrentPosition", () => {
 	it("should calculate the correct playback position", () => {

@@ -9,10 +9,10 @@ import {
 	vi,
 	MockInstance,
 } from "vitest";
-import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto";
+import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto.js";
 import { AxiosResponse } from "axios";
 import fs from "fs";
-import { VideoRequest } from "../../../serviceadapter";
+import { VideoRequest } from "../../../serviceadapter.js";
 
 const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[

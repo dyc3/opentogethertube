@@ -1,17 +1,14 @@
 import express from "express";
-import { getLogger } from "./logger";
-import roomapi from "./api/room";
-import userapi from "./api/user";
-import auth from "./auth";
-import usermanager from "./usermanager";
+import { getLogger } from "./logger.js";
+import roomapi from "./api/room.js";
+import userapi from "./api/user.js";
+import auth from "./auth/index.js";
+import usermanager from "./usermanager.js";
 import passport from "passport";
-import statusapi from "./api/status";
-import { conf } from "./ott-config";
-import announceapi from "./api/announce";
-import dataapi from "./api/data";
-import { Counter } from "prom-client";
-import { redisClient } from "./redisclient";
-import connectRedis from "connect-redis";
+import statusapi from "./api/status.js";
+import { conf } from "./ott-config.js";
+import announceapi from "./api/announce.js";
+import dataapi from "./api/data.js";
 
 const log = getLogger("api");
 export function buildApiRouter(): express.Router {
@@ -47,7 +44,7 @@ export function buildApiRouter(): express.Router {
 
 	if (conf.get("env") === "development") {
 		(async () => {
-			router.use("/dev", (await import("./api/dev")).default);
+			router.use("/dev", (await import("./api/dev.js")).default);
 		})();
 	}
 

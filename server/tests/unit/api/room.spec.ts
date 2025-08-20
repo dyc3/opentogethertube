@@ -10,18 +10,18 @@ import {
 	MockInstance,
 } from "vitest";
 import _ from "lodash";
-import { AuthToken, QueueMode, Visibility } from "ott-common/models/types";
+import { type AuthToken, QueueMode, Visibility } from "ott-common/models/types.js";
 import request from "supertest";
-import tokens from "../../../../server/auth/tokens";
-import roommanager from "../../../../server/roommanager";
-import { RoomNotFoundException } from "../../../../server/exceptions";
-import { main } from "../../../app";
-import { Room as RoomModel, User as UserModel } from "../../../models";
-import usermanager from "../../../usermanager";
-import { OttApiRequestRoomCreate } from "ott-common/models/rest-api";
-import { conf } from "../../../../server/ott-config";
-import { User } from "../../../models/user";
-import { UnloadReason } from "../../../generated";
+import tokens from "../../../../server/auth/tokens.js";
+import roommanager from "../../../../server/roommanager.js";
+import { RoomNotFoundException } from "../../../../server/exceptions.js";
+import { main } from "../../../app.js";
+import { Room as RoomModel, User as UserModel } from "../../../models/index.js";
+import usermanager from "../../../usermanager.js";
+import type { OttApiRequestRoomCreate } from "ott-common/models/rest-api.js";
+import { conf } from "../../../../server/ott-config.js";
+import type { User } from "../../../models/user.js";
+import { UnloadReason } from "../../../generated.js";
 
 expect.extend({
 	toBeRoomNotFound(error) {

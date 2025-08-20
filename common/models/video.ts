@@ -1,4 +1,4 @@
-import { ALL_VIDEO_SERVICES } from "../constants";
+import { ALL_VIDEO_SERVICES } from "../constants.js";
 
 export type VideoService = (typeof ALL_VIDEO_SERVICES)[number];
 

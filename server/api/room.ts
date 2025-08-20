@@ -1,21 +1,21 @@
 import _ from "lodash";
-import { getLogger } from "../logger";
-import roommanager from "../roommanager";
-import { QueueMode, Visibility } from "ott-common/models/types";
-import { consumeRateLimitPoints } from "../rate-limit";
-import { BadApiArgumentException, FeatureDisabledException } from "../exceptions";
-import { OttException } from "ott-common/exceptions";
+import { getLogger } from "../logger.js";
+import roommanager from "../roommanager.js";
+import { QueueMode, Visibility } from "ott-common/models/types.js";
+import { consumeRateLimitPoints } from "../rate-limit.js";
+import { BadApiArgumentException, FeatureDisabledException } from "../exceptions.js";
+import { OttException } from "ott-common/exceptions.js";
 import express, { type RequestHandler, type ErrorRequestHandler } from "express";
-import clientmanager from "../clientmanager";
+import clientmanager from "../clientmanager.js";
 import {
 	type ApplySettingsRequest,
 	RoomRequestType,
 	type UndoRequest,
 	type AddRequest,
-} from "ott-common/models/messages";
-import storage from "../storage";
-import { Grants } from "ott-common/permissions";
-import { Video } from "ott-common/models/video";
+} from "ott-common/models/messages.js";
+import storage from "../storage.js";
+import { Grants } from "ott-common/permissions.js";
+import { Video } from "ott-common/models/video.js";
 import type {
 	OttApiRequestAddToQueue,
 	OttApiRequestPatchRoom,
@@ -29,11 +29,11 @@ import type {
 	OttClaimRequest,
 	OttSettingsRequest,
 	RoomListItem,
-} from "ott-common/models/rest-api";
-import { getApiKey } from "../admin";
+} from "ott-common/models/rest-api.js";
+import { getApiKey } from "../admin.js";
 import { v4 as uuidv4 } from "uuid";
-import { counterHttpErrors } from "../metrics";
-import { conf } from "../ott-config";
+import { counterHttpErrors } from "../metrics.js";
+import { conf } from "../ott-config.js";
 import {
 	OttApiRequestRoomCreateSchema,
 	OttApiRequestVoteSchema,
@@ -41,10 +41,10 @@ import {
 	OttApiRequestRemoveFromQueueSchema,
 	OttApiRequestPatchRoomSchema,
 	OttApiRequestRoomGenerateSchema,
-} from "ott-common/models/zod-schemas";
+} from "ott-common/models/zod-schemas.js";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { UnloadReason } from "../generated";
+import { UnloadReason } from "../generated.js";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -208,7 +208,7 @@ const patchRoom: RequestHandler<{ name: string }, unknown, OttApiRequestPatchRoo
 				room.owner = req.user;
 				// HACK: force the room to send the updated user info to the client
 				for (const user of room.realusers) {
-					if (user.user_id === room.owner.id) {
+					if (user.user_id === room.owner?.id) {
 						room.syncUser(room.getUserInfo(user.id));
 						break;
 					}

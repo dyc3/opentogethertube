@@ -10,14 +10,13 @@ import {
 	MockInstance,
 } from "vitest";
 import request from "supertest";
-import { main } from "../../../app";
-import usermanager from "../../../usermanager";
-import { User as UserModel } from "../../../models";
-import { User } from "../../../models/user";
-import { MockMailer } from "server/mailer";
-import { conf } from "../../../ott-config";
-import { redisClient } from "../../../redisclient";
-import { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api";
+import { main } from "../../../app.js";
+import usermanager from "../../../usermanager.js";
+import type { User } from "../../../models/user.js";
+import type { MockMailer } from "server/mailer.js";
+import { conf } from "../../../ott-config.js";
+import { redisClient } from "../../../redisclient.js";
+import type { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api.js";
 
 describe("Account Recovery", () => {
 	let token;

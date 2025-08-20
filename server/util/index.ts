@@ -1,1 +1,1 @@
-export * from "./dirtyable";
+export * from "./dirtyable.js";

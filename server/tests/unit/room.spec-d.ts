@@ -1,8 +1,8 @@
 /* eslint-disable vitest/expect-expect */
 import { describe, it, expectTypeOf } from "vitest";
-import type { ServerMessageSync } from "ott-common/models/messages";
-import type { RoomStateSyncable } from "../../room";
-import type { ConvertToJsonSafe } from "ott-common/serialize";
+import type { ServerMessageSync } from "ott-common/models/messages.js";
+import type { RoomStateSyncable } from "../../room.js";
+import type { ConvertToJsonSafe } from "ott-common/serialize.js";
 
 describe("room state types", () => {
 	it("should always keep RoomStateSyncable and ServerMessageSync in sync", () => {

@@ -1,11 +1,11 @@
 import { URL } from "url";
 import axios from "axios";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import { getLogger } from "../logger";
-import { Video, VideoMetadata } from "ott-common/models/video";
-import { InvalidVideoIdException } from "../exceptions";
-import infoextractor from "../infoextractor";
-import { conf } from "../ott-config";
+import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import { getLogger } from "../logger.js";
+import { Video, VideoMetadata } from "ott-common/models/video.js";
+import { InvalidVideoIdException } from "../exceptions.js";
+import infoextractor from "../infoextractor.js";
+import { conf } from "../ott-config.js";
 
 const log = getLogger("reddit");
 

@@ -1,7 +1,7 @@
 import express, { type RequestHandler } from "express";
-import type { OttResponseBody, RoomListItem } from "ott-common/models/rest-api";
-import type { QueueMode, Visibility } from "ott-common/models/types";
-import { Room as DbRoomModel } from "../models";
+import type { OttResponseBody, RoomListItem } from "ott-common/models/rest-api.js";
+import type { QueueMode, Visibility } from "ott-common/models/types.js";
+import { Room as DbRoomModel } from "../models/index.js";
 
 const router = express.Router();
 

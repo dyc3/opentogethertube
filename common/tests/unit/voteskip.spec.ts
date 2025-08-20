@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { Grants, parseIntoGrantMask } from "../../permissions";
-import { PlayerStatus, Role, RoomUserInfo } from "../../models/types";
-import { voteSkipThreshold, countEligibleVoters } from "../../voteskip";
+import { Grants, parseIntoGrantMask } from "../../permissions.js";
+import { PlayerStatus, Role, RoomUserInfo } from "../../models/types.js";
+import { voteSkipThreshold, countEligibleVoters } from "../../voteskip.js";
 
 describe("voteskip", () => {
 	it.each([

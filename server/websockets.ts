@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { getLogger } from "./logger";
+import { getLogger } from "./logger.js";
 import type { Server } from "http";
 import type { Socket } from "net";
 

@@ -1,21 +1,21 @@
-import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room";
-import { AuthToken, Role, RoomOptions, Visibility } from "ott-common/models/types";
+import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room.js";
+import { AuthToken, Role, RoomOptions, Visibility } from "ott-common/models/types.js";
 import _ from "lodash";
-import { getLogger } from "./logger";
-import { redisClient } from "./redisclient";
-import storage from "./storage";
+import { getLogger } from "./logger.js";
+import { redisClient } from "./redisclient.js";
+import storage from "./storage.js";
 import {
 	RoomAlreadyLoadedException,
 	RoomNameTakenException,
 	RoomNotFoundException,
-} from "./exceptions";
-import { RoomRequest, RoomRequestContext, ServerMessage } from "ott-common/models/messages";
+} from "./exceptions.js";
+import { RoomRequest, RoomRequestContext, ServerMessage } from "ott-common/models/messages.js";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
-import { Result, ok, err } from "ott-common/result";
-import { Grants } from "ott-common/permissions";
-import type { ClientManagerCommand } from "./clientmanager";
-import { UnloadReason } from "./generated";
+import { type Result, ok, err } from "ott-common/result.js";
+import { Grants } from "ott-common/permissions.js";
+import type { ClientManagerCommand } from "./clientmanager.js";
+import { UnloadReason } from "./generated.js";
 
 export const log = getLogger("roommanager");
 export const rooms: Room[] = [];

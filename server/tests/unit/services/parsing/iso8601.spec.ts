@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseIso8601Duration } from "../../../../services/parsing/iso8601";
+import { parseIso8601Duration } from "../../../../services/parsing/iso8601.js";
 
 describe("parse iso8601 duration", () => {
 	it.each([

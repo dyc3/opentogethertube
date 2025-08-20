@@ -1,13 +1,13 @@
 import { URL } from "url";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { ServiceAdapter } from "../serviceadapter";
+import { ServiceAdapter } from "../serviceadapter.js";
 import {
 	ServiceLinkParseException,
 	InvalidVideoIdException,
 	OutOfQuotaException,
-} from "../exceptions";
-import { Video, VideoService } from "ott-common/models/video";
-import { getLogger } from "../logger";
+} from "../exceptions.js";
+import { Video, VideoService } from "ott-common/models/video.js";
+import { getLogger } from "../logger.js";
 
 const log = getLogger("googledrive");
 

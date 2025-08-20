@@ -2,16 +2,16 @@ import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import WebSocket from "ws";
 
-import { getLogger } from "./logger";
-import { conf } from "./ott-config";
-import { Result, err, ok, intoResult } from "ott-common/result";
-import { AuthToken, ClientId } from "ott-common/models/types";
-import { replacer } from "ott-common/serialize";
-import { OttWebsocketError } from "ott-common/models/types";
-import roommanager from "./roommanager";
-import type { RoomListItem } from "ott-common/models/rest-api";
+import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
+import { Result, err, ok, intoResult } from "ott-common/result.js";
+import { AuthToken, ClientId } from "ott-common/models/types.js";
+import { replacer } from "ott-common/serialize.js";
+import { OttWebsocketError } from "ott-common/models/types.js";
+import roommanager from "./roommanager.js";
+import type { RoomListItem } from "ott-common/models/rest-api.js";
 import _ from "lodash";
-import type { MsgB2M, MsgM2B, UnloadReason } from "./generated";
+import type { MsgB2M, MsgM2B, UnloadReason } from "./generated.js";
 import { Gauge } from "prom-client";
 export type { MsgB2M, MsgM2B };
 

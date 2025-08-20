@@ -1,10 +1,10 @@
-import { Room as DbRoomModel, User as UserModel } from "../models";
-import { Room as DbRoom, RoomAttributes } from "../models/room";
-import { Role, RoomOptions } from "ott-common/models/types";
-import { getLogger } from "../logger";
+import { Room as DbRoomModel, User as UserModel } from "../models/index.js";
+import { Room as DbRoom, RoomAttributes } from "../models/room.js";
+import { Role, RoomOptions } from "ott-common/models/types.js";
+import { getLogger } from "../logger.js";
 import Sequelize from "sequelize";
-import permissions from "ott-common/permissions";
-import type { RoomStatePersistable } from "../room";
+import permissions from "ott-common/permissions.js";
+import type { RoomStatePersistable } from "../room.js";
 import _ from "lodash";
 
 const log = getLogger("storage/room");

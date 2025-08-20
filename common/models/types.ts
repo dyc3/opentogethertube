@@ -1,6 +1,6 @@
 import type { Session } from "express-session";
-import { QueueItem, Video } from "./video";
-import { Grants } from "../permissions";
+import { QueueItem, Video } from "./video.js";
+import { Grants } from "../permissions.js";
 import type { Category } from "sponsorblock-api";
 
 export enum Visibility {

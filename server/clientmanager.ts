@@ -1,10 +1,10 @@
 import express from "express";
 import WebSocket from "ws";
 import _ from "lodash";
-import { wss } from "./websockets";
-import { getLogger } from "./logger";
+import { wss } from "./websockets.js";
+import { getLogger } from "./logger.js";
 import { Request } from "express";
-import { createSubscriber, redisClient } from "./redisclient";
+import { createSubscriber, redisClient } from "./redisclient.js";
 import {
 	ClientMessage,
 	ClientMessageKickMe,
@@ -14,27 +14,27 @@ import {
 	ServerMessageSync,
 	ServerMessageUser,
 	ServerMessageYou,
-} from "ott-common/models/messages";
-import { ClientNotFoundInRoomException, MissingToken } from "./exceptions";
-import { MySession, OttWebsocketError, AuthToken, ClientId } from "ott-common/models/types";
-import roommanager from "./roommanager";
-import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants";
-import tokens, { SessionInfo } from "./auth/tokens";
-import { RoomStateSyncable } from "./room";
+} from "ott-common/models/messages.js";
+import { ClientNotFoundInRoomException, MissingToken } from "./exceptions.js";
+import { MySession, OttWebsocketError, AuthToken, ClientId } from "ott-common/models/types.js";
+import roommanager from "./roommanager.js";
+import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants.js";
+import tokens, { SessionInfo } from "./auth/tokens.js";
+import { RoomStateSyncable } from "./room.js";
 import { Gauge } from "prom-client";
-import { replacer } from "ott-common/serialize";
-import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client";
+import { replacer } from "ott-common/serialize.js";
+import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client.js";
 import {
 	BalancerConnection,
 	MsgB2M,
 	balancerManager,
 	buildGossipMessage,
 	initBalancerConnections,
-} from "./balancer";
-import usermanager from "./usermanager";
-import { OttException } from "ott-common/exceptions";
-import { conf } from "./ott-config";
-import { UnloadReason } from "./generated";
+} from "./balancer.js";
+import usermanager from "./usermanager.js";
+import { OttException } from "ott-common/exceptions.js";
+import { conf } from "./ott-config.js";
+import { UnloadReason } from "./generated.js";
 
 const log = getLogger("clientmanager");
 
@@ -548,7 +548,7 @@ const gaugeClients = new Gauge({
 	collect() {
 		this.reset();
 		for (const client of connections) {
-			const clientType = client instanceof DirectClient ? "direct" : "balancer";
+			const clientType = client instanceof DirectClient ? "direct" : "balancer.js";
 			this.labels(clientType, ClientJoinStatus[client.joinStatus]).inc();
 		}
 	},

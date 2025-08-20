@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
-import { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video";
-import { IncompleteServiceAdapterException } from "./exceptions";
-import { getLogger } from "./logger";
-import { BulkVideoResult } from "./infoextractor";
+import { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import { IncompleteServiceAdapterException } from "./exceptions.js";
+import { getLogger } from "./logger.js";
+import { BulkVideoResult } from "./infoextractor.js";
 
 const log = getLogger("serviceadapter");
 export interface VideoRequest {

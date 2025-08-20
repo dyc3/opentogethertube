@@ -1,8 +1,8 @@
-import permissions, { GrantMask, Grants } from "ott-common/permissions";
-import { redisClient } from "./redisclient";
-import { getLogger } from "./logger";
+import permissions, { GrantMask, Grants } from "ott-common/permissions.js";
+import { redisClient } from "./redisclient.js";
+import { getLogger } from "./logger.js";
 import winston from "winston";
-import {
+import type {
 	AddRequest,
 	ApplySettingsRequest,
 	ChatRequest,
@@ -14,7 +14,6 @@ import {
 	RemoveRequest,
 	RoomRequest,
 	RoomRequestBase,
-	RoomRequestType,
 	SeekRequest,
 	ServerMessage,
 	ServerMessageSync,
@@ -28,10 +27,11 @@ import {
 	ShuffleRequest,
 	PlaybackSpeedRequest,
 	KickRequest,
-} from "ott-common/models/messages";
+} from "ott-common/models/messages.js";
+import { RoomRequestType } from "ott-common/models/messages.js";
 import _ from "lodash";
-import InfoExtract from "./infoextractor";
-import usermanager from "./usermanager";
+import InfoExtract from "./infoextractor.js";
+import usermanager from "./usermanager.js";
 import {
 	ClientInfo,
 	QueueMode,
@@ -45,33 +45,33 @@ import {
 	RoomSettings,
 	AuthToken,
 	BehaviorOption,
-} from "ott-common/models/types";
-import { User } from "./models/user";
-import type { QueueItem, Video, VideoId } from "ott-common/models/video";
+} from "ott-common/models/types.js";
+import { User } from "./models/user.js";
+import type { QueueItem, Video, VideoId } from "ott-common/models/video.js";
 import dayjs, { Dayjs } from "dayjs";
-import type { PickFunctions } from "ott-common/typeutils";
-import { replacer } from "ott-common/serialize";
+import type { PickFunctions } from "ott-common/typeutils.js";
+import { replacer } from "ott-common/serialize.js";
 import {
 	ClientNotFoundInRoomException,
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
 	VideoNotFoundException,
-} from "./exceptions";
-import storage from "./storage";
-import tokens, { SessionInfo } from "./auth/tokens";
-import { OttException } from "ott-common/exceptions";
-import { fetchSegments, getSponsorBlock } from "./sponsorblock";
+} from "./exceptions.js";
+import storage from "./storage.js";
+import tokens, { SessionInfo } from "./auth/tokens.js";
+import { OttException } from "ott-common/exceptions.js";
+import { fetchSegments, getSponsorBlock } from "./sponsorblock.js";
 import { ResponseError as SponsorblockResponseError, Segment, Category } from "sponsorblock-api";
-import { VideoQueue } from "./videoqueue";
+import { VideoQueue } from "./videoqueue.js";
 import { Counter } from "prom-client";
-import roommanager from "./roommanager";
-import { calculateCurrentPosition } from "ott-common/timestamp";
-import { RestoreQueueRequest } from "ott-common/models/messages";
+import roommanager from "./roommanager.js";
+import { calculateCurrentPosition } from "ott-common/timestamp.js";
+import { RestoreQueueRequest } from "ott-common/models/messages.js";
 import { Result, countEligibleVoters, err, ok, voteSkipThreshold } from "ott-common";
-import type { ClientManagerCommand } from "./clientmanager";
-import { canKickUser } from "ott-common/userutils";
-import { conf } from "./ott-config";
-import { ALL_SKIP_CATEGORIES } from "ott-common/constants";
+import type { ClientManagerCommand } from "./clientmanager.js";
+import { canKickUser } from "ott-common/userutils.js";
+import { conf } from "./ott-config.js";
+import { ALL_SKIP_CATEGORIES } from "ott-common/constants.js";
 
 /**
  * Represents a User from the Room's perspective.

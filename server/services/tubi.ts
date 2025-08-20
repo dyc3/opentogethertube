@@ -1,9 +1,9 @@
 import { URL } from "url";
 import axios from "axios";
-import { getLogger } from "../logger";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video";
-import { conf } from "../ott-config";
+import { getLogger } from "../logger.js";
+import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import { conf } from "../ott-config.js";
 
 const log = getLogger("tubi");
 

@@ -2,9 +2,9 @@
  * Unit tests for DashVideoAdapter's MPD parsing methods
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import DashVideoAdapter from "../../../services/dash";
-import { UnsupportedVideoType } from "../../../exceptions";
-import { parseIso8601Duration } from "../../../services/parsing/iso8601";
+import DashVideoAdapter from "../../../services/dash.js";
+import { UnsupportedVideoType } from "../../../exceptions.js";
+import { parseIso8601Duration } from "../../../services/parsing/iso8601.js";
 import axios from "axios";
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import URL from "url";

@@ -9,7 +9,7 @@ import {
 	vi,
 	MockInstance,
 } from "vitest";
-import TubiAdapter from "../../../services/tubi";
+import TubiAdapter from "../../../services/tubi.js";
 import fs from "fs";
 import { AxiosRequestHeaders, AxiosResponse } from "axios";
 

@@ -1,14 +1,15 @@
-import { getLogger } from "../logger";
+import { getLogger } from "../logger.js";
 import express from "express";
-import tokens, { SessionInfo } from "./tokens";
+import tokens, { SessionInfo } from "./tokens.js";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import passport from "passport";
-import { AuthToken, MySession } from "ott-common/models/types";
+import { AuthToken, MySession } from "ott-common/models/types.js";
 import nocache from "nocache";
-import usermanager from "../usermanager";
-import { OttException } from "ott-common/exceptions";
-import { requireApiKey } from "../admin";
-import { conf } from "../ott-config";
+import usermanager from "../usermanager.js";
+import { requireApiKey } from "../admin.js";
+import { conf } from "../ott-config.js";
+
+export { SessionInfo } from "./tokens.js";
 
 const router = express.Router();
 router.use(nocache());
