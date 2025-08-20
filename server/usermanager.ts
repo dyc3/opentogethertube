@@ -1,18 +1,29 @@
-import { getLogger } from "./logger.js";
-import _ from "lodash";
-import securePassword from "secure-password";
-import express, { ErrorRequestHandler, RequestHandler } from "express";
-import passport from "passport";
 import crypto from "crypto";
-import { User as UserModel, Room as RoomModel } from "./models/index.js";
-import { User } from "./models/user.js";
-import { delPattern, redisClient } from "./redisclient.js";
-import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
-import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit.js";
-import tokens from "./auth/tokens.js";
+import { EventEmitter } from "events";
+import express, { ErrorRequestHandler, RequestHandler } from "express";
+import _ from "lodash";
 import nocache from "nocache";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants.js";
+import { OttException } from "ott-common/exceptions.js";
+import type {
+	OttApiRequestAccountRecoveryStart,
+	OttApiRequestAccountRecoveryVerify,
+	OttResponseBody,
+} from "ott-common/models/rest-api.js";
+import { AuthToken } from "ott-common/models/types.js";
+import {
+	OttApiRequestAccountRecoveryStartSchema,
+	OttApiRequestAccountRecoveryVerifySchema,
+} from "ott-common/models/zod-schemas.js";
+import { err, Result } from "ott-common/result.js";
+import passport from "passport";
+import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
+import securePassword from "secure-password";
+import { Sequelize, UniqueConstraintError } from "sequelize";
+import { uniqueNamesGenerator } from "unique-names-generator";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
+import tokens from "./auth/tokens.js";
 import {
 	BadApiArgumentException,
 	FeatureDisabledException,
@@ -21,25 +32,14 @@ import {
 	NoEmail,
 	UserNotFound,
 } from "./exceptions.js";
-import { conf } from "./ott-config.js";
-import { AuthToken } from "ott-common/models/types.js";
-import { EventEmitter } from "events";
-import { Sequelize, UniqueConstraintError } from "sequelize";
+import { getLogger } from "./logger.js";
 import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer.js";
-import { Result, err } from "ott-common/result.js";
-import type {
-	OttApiRequestAccountRecoveryStart,
-	OttApiRequestAccountRecoveryVerify,
-	OttResponseBody,
-} from "ott-common/models/rest-api.js";
 import { counterHttpErrors } from "./metrics.js";
-import { OttException } from "ott-common/exceptions.js";
-import {
-	OttApiRequestAccountRecoveryStartSchema,
-	OttApiRequestAccountRecoveryVerifySchema,
-} from "ott-common/models/zod-schemas.js";
-import { ZodError } from "zod";
-import { fromZodError } from "zod-validation-error";
+import { Room as RoomModel, User as UserModel } from "./models/index.js";
+import { User } from "./models/user.js";
+import { conf } from "./ott-config.js";
+import { consumeRateLimitPoints, RateLimiterRedisv4, rateLimiter } from "./rate-limit.js";
+import { delPattern, redisClient } from "./redisclient.js";
 
 const pwd = securePassword();
 const log = getLogger("usermanager");
@@ -49,10 +49,10 @@ export type UserManagerEvents = "userModified" | "login" | "logout";
 export type UserManagerEventHandlers<E> = E extends "userModified"
 	? (token: AuthToken) => void
 	: E extends "login"
-	? (user: User, token: AuthToken) => void
-	: E extends "logout"
-	? (user: User, token: AuthToken) => void
-	: never;
+		? (user: User, token: AuthToken) => void
+		: E extends "logout"
+			? (user: User, token: AuthToken) => void
+			: never;
 const bus = new EventEmitter();
 
 let maxWrongAttemptsByIPperDay;
@@ -94,7 +94,7 @@ export function setup() {
 				: new MailjetMailer(
 						conf.get("mail.mailjet_api_key"),
 						conf.get("mail.mailjet_api_secret")
-				  );
+					);
 	}
 }
 
@@ -154,6 +154,7 @@ router.post("/", nocache(), async (req, res) => {
 				throw new UsernameTakenError();
 			}
 			await req.user.save();
+			// biome-ignore lint/nursery/noShadow: biome migration
 		} catch (err) {
 			if (
 				err.name === "SequelizeUniqueConstraintError" ||
@@ -246,6 +247,7 @@ router.post("/login", async (req, res, next) => {
 	// For backwards compatibility
 	req.body.user = req.body.user ?? req.body.email ?? req.body.username;
 
+	// biome-ignore lint/nursery/noShadow: biome migration
 	passport.authenticate("local", (err, user: User) => {
 		if (err) {
 			res.status(401).json({
@@ -257,6 +259,7 @@ router.post("/login", async (req, res, next) => {
 			return;
 		}
 		if (user) {
+			// biome-ignore lint/nursery/noShadow: biome migration
 			req.login(user, async err => {
 				if (err) {
 					log.error("Unknown error when logging in");
@@ -272,6 +275,7 @@ router.post("/login", async (req, res, next) => {
 				await tokens.setSessionInfo(req.token!, req.ottsession);
 				try {
 					onUserLogIn(user, req.token!);
+					// biome-ignore lint/nursery/noShadow: biome migration
 				} catch (err) {
 					log.error(
 						`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
@@ -296,6 +300,7 @@ router.post("/login", async (req, res, next) => {
 router.post("/logout", async (req, res) => {
 	if (req.user) {
 		let user = req.user;
+		// biome-ignore lint/nursery/noShadow: biome migration
 		req.logout(async err => {
 			if (err) {
 				log.error(`Error logging out user ${err}`);
@@ -330,6 +335,7 @@ router.post("/register", async (req, res) => {
 			await tokens.setSessionInfo(req.token!, req.ottsession);
 			try {
 				onUserLogIn(result, req.token!);
+				// biome-ignore lint/nursery/noShadow: biome migration
 			} catch (err) {
 				log.error(
 					`An unknown error occurred when running onUserLogIn: ${err} ${err.message}`
@@ -340,6 +346,7 @@ router.post("/register", async (req, res) => {
 				user: _.pick(result, ["email", "username"]),
 			});
 		});
+		// biome-ignore lint/nursery/noShadow: biome migration
 	} catch (err) {
 		if (err instanceof Error) {
 			log.error(`Unable to register user ${err} ${err.message}`);
@@ -452,6 +459,7 @@ async function authCallback(emailOrUser: string, password: string, done) {
 	let user: User;
 	try {
 		user = await getUser({ user: emailOrUser });
+		// biome-ignore lint/nursery/noShadow: biome migration
 	} catch (err) {
 		if (err.message === "User not found") {
 			done(new Error("Email or password is incorrect."));
@@ -507,6 +515,7 @@ async function authCallbackDiscord(req, accessToken, refreshToken, profile, done
 		try {
 			await connectSocial(req.user, { discordId: profile.id });
 			return done(null, req.user);
+			// biome-ignore lint/nursery/noShadow: biome migration
 		} catch (err) {
 			return done(err, req.user);
 		}
@@ -516,6 +525,7 @@ async function authCallbackDiscord(req, accessToken, refreshToken, profile, done
 		if (user) {
 			return done(null, user);
 		}
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (e) {
 		log.warn("Couldn't find existing user for discord profile, making a new one...");
 		try {
@@ -571,6 +581,7 @@ async function deserializeUser(id: number, done) {
 	try {
 		const user = await getUser({ id });
 		done(null, user);
+		// biome-ignore lint/nursery/noShadow: biome migration
 	} catch (err) {
 		log.error(`Unable to deserialize user id=${id} ${err}`);
 		done(err, false);
@@ -580,9 +591,12 @@ async function deserializeUser(id: number, done) {
 /**
  * Middleware to handle errors in serialize and deserialize callbacks
  */
+
+// biome-ignore lint/nursery/noShadow: biome migration
 function passportErrorHandler(err, req: express.Request, res: express.Response, next) {
 	if (err) {
 		log.error(`Error in middleware ${err}, logging user out.`);
+		// biome-ignore lint/nursery/noShadow: biome migration
 		req.logout(err => {
 			if (err) {
 				log.error(`Error logging out user ${err}`);
@@ -628,6 +642,7 @@ async function registerUser({ email, username, password }): Promise<User> {
 			salt,
 			hash,
 		});
+		// biome-ignore lint/nursery/noShadow: biome migration
 	} catch (err) {
 		if (err instanceof Error) {
 			log.error(`Failed to create new user in the database: ${err} ${err.message}`);
@@ -660,6 +675,7 @@ async function connectSocial(user: User, options: { discordId: string }) {
 	try {
 		socialUser = await getUser(options);
 		log.warn("Detected duplicate accounts for social login!");
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (error) {
 		log.info("No account merging required.");
 	}
@@ -826,6 +842,7 @@ const accountRecoveryVerify: RequestHandler<
 router.post("/recover/start", async (req, res, next) => {
 	try {
 		await accountRecoveryStart(req, res, next);
+		// biome-ignore lint/nursery/noShadow: biome migration
 	} catch (err) {
 		errorHandler(err, req, res, next);
 	}
@@ -834,6 +851,7 @@ router.post("/recover/start", async (req, res, next) => {
 router.post("/recover/verify", async (req, res, next) => {
 	try {
 		await accountRecoveryVerify(req, res, next);
+		// biome-ignore lint/nursery/noShadow: biome migration
 	} catch (err) {
 		errorHandler(err, req, res, next);
 	}
@@ -886,6 +904,7 @@ async function changeUserPassword(
 	await user.save();
 }
 
+// biome-ignore lint/nursery/noShadow: biome migration
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	counterHttpErrors.labels({ error: err.name }).inc();
 	if (err instanceof OttException) {
@@ -928,6 +947,7 @@ async function clearAllRateLimiting() {
 if (conf.get("env") === "test") {
 	router.get("/test/forceLogin", async (req, res) => {
 		const user = await getUser({ user: "forced@localhost" });
+		// biome-ignore lint/nursery/noShadow: biome migration
 		req.login(user, async err => {
 			req.ottsession = { isLoggedIn: true, user_id: user.id };
 			await tokens.setSessionInfo(req.token!, req.ottsession);

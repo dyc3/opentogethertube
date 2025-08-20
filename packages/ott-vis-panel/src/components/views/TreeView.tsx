@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
+import React, { useCallback, useEffect, useRef } from "react";
 import "./tree-view.css";
+import { dedupeMonoliths } from "aggregate";
+import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
+import ZoomReset from "components/ZoomReset";
 import {
-	calcGoodTreeRadius,
-	treeBoundingBox,
-	flipBoundingBoxH,
-	type TreeNode,
 	buildMonolithTrees,
+	calcGoodTreeRadius,
+	expandBBox,
+	flipBoundingBoxH,
+	offsetBBox,
 	stackBoxes,
 	superBoundingBox,
-	offsetBBox,
-	expandBBox,
+	type TreeNode,
+	treeBoundingBox,
 } from "treeutils";
-import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
-import { dedupeMonoliths } from "aggregate";
 import type { NodeRadiusOptions } from "types";
-import ZoomReset from "components/ZoomReset";
 
 interface TreeViewProps extends TreeViewStyleProps {
 	systemState: SystemState;
@@ -151,6 +151,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 		d3.zoomIdentity.translate(width / 2, height / 2)
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: biome migration
 	useEffect(() => {
 		if (svgRef.current) {
 			// because d3-hierarchy doesn't support trees with multiple parents, we need to do manual layouts for balancers and monoliths, but we can use the built-in tree layout for monolith down to clients
@@ -271,11 +272,13 @@ const TreeView: React.FC<TreeViewProps> = ({
 				const balancerTree = buildBalancerRegionTree(systemState);
 				const root = d3
 					.hierarchy(balancerTree)
+					// biome-ignore lint/correctness/noUnusedVariables: biome migration
 					.sum(d => 1)
 					.sort((a, b) => d3.ascending(a.data.region, b.data.region));
 				const pack = d3
 					.pack<TreeNode>()
 					.padding(3)
+					// biome-ignore lint/correctness/noUnusedVariables: biome migration
 					.radius(d => balancerNodeRadius);
 				pack(root);
 
@@ -374,13 +377,16 @@ const TreeView: React.FC<TreeViewProps> = ({
 				.each(function (d) {
 					const diagonal = d3
 						.linkRadial<any, TreeNode>()
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
 
 					const monolith = d3.select(this);
 					monolith
 						.select(".links")
 						.selectAll(".treelink")
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.data(d.tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
 						.join(
 							create => create.append("path").attr("class", "treelink"),
@@ -389,7 +395,9 @@ const TreeView: React.FC<TreeViewProps> = ({
 						)
 						.attr("fill", "none")
 						.attr("stroke", "white")
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("data-nodeid-source", d => d.source.data.id)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("data-nodeid-target", d => d.target.data.id)
 						.transition(tr)
 						.attr("d", diagonal)
@@ -398,6 +406,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 					monolith
 						.select(".circles")
 						.selectAll(".monolith")
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.data(d.tree.descendants(), (d: any) => d.data?.id)
 						.join(
 							create =>
@@ -406,50 +415,68 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.attr("class", "monolith")
 									.attr("stroke", "white")
 									.attr("stroke-width", 2)
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
 							exit =>
 								exit
 									.transition(tr)
 									.attr("r", 0)
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("data-nodeid", d => d.data.id)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("fill", d => assignColor(d.data.group))
 						.transition(tr)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("cx", (d: any) => d.x)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("cy", (d: any) => d.y)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("r", d => getRadius(d.data.group));
 
 					const monolithTexts = monolith
 						.select(".texts")
 						.selectAll(".monolith-text")
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.data(d.tree.descendants(), (d: any) => d.data?.id);
 					monolithTexts
 						.join(
 							create =>
 								create
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.filter(d => d.data.group === "monolith")
 									.append("text")
 									.attr("class", "monolith-text")
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
 							exit =>
 								exit
 									.transition(tr)
 									.attr("font-size", 0)
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/nursery/noShadow: biome migration
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.text(d => `${d.data.id}`.substring(0, 6))
 						.transition(tr)
 						.attr("font-size", 10)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("x", (d: any) => d.x)
+						// biome-ignore lint/nursery/noShadow: biome migration
 						.attr("y", (d: any) => d.y);
 				});
 

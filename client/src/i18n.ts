@@ -1,7 +1,7 @@
-import { nextTick } from "vue";
-import messages from "@/locales/en";
 import axios from "axios";
+import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
+import messages from "@/locales/en";
 
 export const i18n = createI18n({
 	allowComposition: true,
@@ -35,6 +35,7 @@ export async function loadLanguageAsync(lang: string): Promise<string> {
 	}
 
 	// If the language hasn't been loaded yet
+	// biome-ignore lint/nursery/noShadow: biome migration
 	const messages = await import(`@/locales/${lang}.ts`);
 	i18n.global.setLocaleMessage(lang, messages.default);
 	loadedLanguages.push(lang);

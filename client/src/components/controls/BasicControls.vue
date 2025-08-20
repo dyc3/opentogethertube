@@ -65,8 +65,8 @@
 
 <script lang="ts" setup>
 import _ from "lodash";
-import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
+import { useStore } from "@/store";
 import { useRoomApi } from "@/util/roomapi";
 import { useGrants } from "../composables/grants";
 

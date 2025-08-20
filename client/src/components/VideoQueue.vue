@@ -63,13 +63,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
-import VideoQueueItem from "@/components/VideoQueueItem.vue";
-import { useStore } from "@/store";
-import { Sortable } from "sortablejs-vue3";
-import { useConnection } from "@/plugins/connection";
-import { useRoomApi } from "@/util/roomapi";
 import { exportQueue } from "ott-common/queueexport";
+import { Sortable } from "sortablejs-vue3";
+import { computed, ref } from "vue";
+import VideoQueueItem from "@/components/VideoQueueItem.vue";
+import { useConnection } from "@/plugins/connection";
+import { useStore } from "@/store";
+import { useRoomApi } from "@/util/roomapi";
 import { useCopyFromTextbox } from "./composables";
 import { useGrants } from "./composables/grants";
 

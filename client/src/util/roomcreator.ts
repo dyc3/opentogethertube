@@ -1,13 +1,13 @@
-import { API } from "@/common-http";
-import { ToastStyle } from "@/models/toast";
 import {
-	OttResponseBody,
-	OttApiResponseRoomGenerate,
-	OttApiResponseRoomCreate,
 	OttApiRequestRoomCreate,
 	OttApiRequestRoomGenerate,
+	OttApiResponseRoomCreate,
+	OttApiResponseRoomGenerate,
+	OttResponseBody,
 } from "ott-common/models/rest-api";
 import type { Store } from "vuex";
+import { API } from "@/common-http";
+import { ToastStyle } from "@/models/toast";
 import type { FullOTTStoreState } from "@/store";
 
 /** Generate a temporary room. */

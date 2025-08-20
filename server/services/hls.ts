@@ -1,13 +1,13 @@
-import URL from "url";
-import _ from "lodash";
-import { ServiceAdapter } from "../serviceadapter.js";
-import { LocalFileException, UnsupportedMimeTypeException } from "../exceptions.js";
-import { getMimeType, isSupportedMimeType } from "../mime.js";
-import { getLogger } from "../logger.js";
-import { Video } from "ott-common/models/video.js";
-import { Parser as M3u8Parser } from "m3u8-parser";
 import axios from "axios";
+import _ from "lodash";
+import { Parser as M3u8Parser } from "m3u8-parser";
 import { OttException } from "ott-common/exceptions.js";
+import { Video } from "ott-common/models/video.js";
+import URL from "url";
+import { LocalFileException, UnsupportedMimeTypeException } from "../exceptions.js";
+import { getLogger } from "../logger.js";
+import { getMimeType, isSupportedMimeType } from "../mime.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 
 const log = getLogger("hls");
 

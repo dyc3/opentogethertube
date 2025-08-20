@@ -1,18 +1,18 @@
 import "vuetify/styles";
 import "@mdi/font/css/materialdesignicons.css";
-import { createVuetify, ThemeDefinition } from "vuetify/lib/framework.mjs";
-import { fa } from "vuetify/iconsets/fa";
-import { mdi } from "vuetify/iconsets/mdi";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import { fa } from "vuetify/iconsets/fa";
+import { mdi } from "vuetify/iconsets/mdi";
+import { createVuetify, ThemeDefinition } from "vuetify/lib/framework.mjs";
 
 const themeDark: ThemeDefinition = {
 	dark: true,
 	colors: {
-		"primary": "#ffb300", // orange
+		primary: "#ffb300", // orange
 		"primary-lighten-1": "#FFC233",
 		"primary-darken-1": "#F5AB00",
-		"secondary": "#42A5F5", // blue
+		secondary: "#42A5F5", // blue
 	},
 };
 
@@ -27,30 +27,30 @@ const themeLight: ThemeDefinition = {
 const themeDeepRed: ThemeDefinition = {
 	dark: true,
 	colors: {
-		"primary": "#D00000",
+		primary: "#D00000",
 		"primary-lighten-1": "#f50000",
 		"primary-darken-1": "#b80000",
-		"secondary": "#CF7826",
-		"background": "#280411",
-		"surface": "#370617",
-		"success": "#00A878",
-		"warning": "#E15112",
-		"error": "#B10F2E",
+		secondary: "#CF7826",
+		background: "#280411",
+		surface: "#370617",
+		success: "#00A878",
+		warning: "#E15112",
+		error: "#B10F2E",
 	},
 };
 
 const themeDeepBlue: ThemeDefinition = {
 	dark: true,
 	colors: {
-		"primary": "#4288F0",
+		primary: "#4288F0",
 		"primary-lighten-1": "#b9f2f3",
 		"primary-darken-1": "#1b9b9d",
-		"secondary": "#42A5F5",
-		"background": "#001021",
-		"surface": "#001a37",
-		"success": "#00A878",
-		"warning": "#F46036",
-		"error": "#B10F2E",
+		secondary: "#42A5F5",
+		background: "#001021",
+		surface: "#001a37",
+		success: "#00A878",
+		warning: "#F46036",
+		error: "#B10F2E",
 	},
 };
 
@@ -70,13 +70,13 @@ const themeGreenSlate: ThemeDefinition = {
 const themeStrawberry: ThemeDefinition = {
 	dark: false,
 	colors: {
-		"primary": "#e8035f",
-		"secondary": "#83b264",
-		"background": "#ffffff",
-		"surface": "#fac7c5",
-		"success": "#83b264",
-		"warning": "#F19A3E",
-		"error": "#460b25",
+		primary: "#e8035f",
+		secondary: "#83b264",
+		background: "#ffffff",
+		surface: "#fac7c5",
+		success: "#83b264",
+		warning: "#F19A3E",
+		error: "#460b25",
 		"media-control-surface": "#ffffff",
 		"media-control-background": "#460b25",
 		"on-background": "#460b25",

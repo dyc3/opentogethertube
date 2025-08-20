@@ -1,9 +1,9 @@
-import { it, describe, expect, beforeEach, afterEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import Vuex from "vuex";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createVuetify } from "vuetify";
-import Room from "@/views/Room.vue";
+import Vuex from "vuex";
 import { i18n } from "@/i18n";
+import Room from "@/views/Room.vue";
 
 const $route = {
 	path: "http://localhost:8080/room/example",

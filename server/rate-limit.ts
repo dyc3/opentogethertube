@@ -1,15 +1,15 @@
-import { getLogger } from "./logger.js";
-import { redisClient } from "./redisclient.js";
 import {
 	IRateLimiterStoreOptions,
+	type RateLimiterAbstract,
 	RateLimiterMemory,
 	RateLimiterRedis,
-	type RateLimiterAbstract,
-	RateLimiterStoreAbstract,
 	RateLimiterRes,
+	RateLimiterStoreAbstract,
 } from "rate-limiter-flexible";
-import { conf } from "./ott-config.js";
 import { RedisClientType } from "redis";
+import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
+import { redisClient } from "./redisclient.js";
 
 const log = getLogger("api/rate-limit");
 

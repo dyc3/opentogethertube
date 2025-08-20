@@ -23,11 +23,11 @@ import "cypress-real-events";
 // require('./commands')
 
 import { mount } from "cypress/vue";
-import type { FullOTTStoreState } from "../../../src/store";
-import type { Store } from "vuex";
-import type { OttRoomConnectionMock } from "../../../src/plugins/connection";
 import type { Role } from "ott-common";
 import type { Router } from "vue-router";
+import type { Store } from "vuex";
+import type { OttRoomConnectionMock } from "../../../src/plugins/connection";
+import type { FullOTTStoreState } from "../../../src/store";
 
 // Augment the Cypress namespace to include type definitions for
 // your custom command.

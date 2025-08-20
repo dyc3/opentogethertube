@@ -22,5 +22,5 @@ describe("Room events", () => {
 		cy.wait(200);
 		cy.get('[aria-label="Next video"]').click();
 		cy.get(".toast-item").contains("skipped oceans");
-	})
-})
+	});
+});

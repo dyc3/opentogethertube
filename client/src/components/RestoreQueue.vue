@@ -38,9 +38,9 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import { useStore } from "../store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
+import { useStore } from "../store";
 import VideoQueueItem from "./VideoQueueItem.vue";
 
 const store = useStore();

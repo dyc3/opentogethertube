@@ -1,21 +1,21 @@
+import type { Category } from "sponsorblock-api";
+import { z } from "zod";
 import { Grants } from "../permissions.js";
 import { ServerMessageEvent } from "./messages.js";
 import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types.js";
 import { QueueItem, Video, VideoId } from "./video.js";
-import type { Category } from "sponsorblock-api";
 import {
-	OttApiRequestRoomCreateSchema,
-	OttApiRequestVoteSchema,
-	OttApiRequestAddToQueueSchema,
-	OttApiRequestRemoveFromQueueSchema,
+	ClaimSchema,
 	OttApiRequestAccountRecoveryStartSchema,
 	OttApiRequestAccountRecoveryVerifySchema,
+	OttApiRequestAddToQueueSchema,
 	OttApiRequestPatchRoomSchema,
-	ClaimSchema,
-	RoomSettingsSchema,
+	OttApiRequestRemoveFromQueueSchema,
+	OttApiRequestRoomCreateSchema,
 	OttApiRequestRoomGenerateSchema,
+	OttApiRequestVoteSchema,
+	RoomSettingsSchema,
 } from "./zod-schemas.js";
-import { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>

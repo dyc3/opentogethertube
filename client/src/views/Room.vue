@@ -17,8 +17,8 @@
 						store.state.room.title != ""
 							? store.state.room.title
 							: store.state.room.isTemporary
-							? $t("room.title-temp")
-							: store.state.room.name
+								? $t("room.title-temp")
+								: store.state.room.name
 					}}
 				</h1>
 				<ClientSettingsDialog />
@@ -193,50 +193,50 @@
 </template>
 
 <script lang="ts">
+import { useMouse, useScreenOrientation } from "@vueuse/core";
+import _ from "lodash";
+import { ServerMessageSync } from "ott-common/models/messages";
+import { calculateCurrentPosition } from "ott-common/timestamp";
 import {
-	defineComponent,
-	ref,
-	Ref,
-	unref,
 	computed,
-	watch,
+	defineComponent,
+	nextTick,
 	onMounted,
 	onUnmounted,
-	nextTick,
 	provide,
+	Ref,
+	ref,
+	unref,
+	watch,
 } from "vue";
-import AddPreview from "@/components/AddPreview.vue";
-import { calculateCurrentPosition } from "ott-common/timestamp";
-import _ from "lodash";
-import OmniPlayer from "@/components/players/OmniPlayer.vue";
-import Chat from "@/components/Chat.vue";
-import UserList from "@/components/UserList.vue";
-import VideoQueue from "@/components/VideoQueue.vue";
-import { useGoTo } from "vuetify";
-import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
-import ShareInvite from "@/components/ShareInvite.vue";
-import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
-import RoomDisconnected from "../components/RoomDisconnected.vue";
-import { useConnection } from "@/plugins/connection";
-import { useRoomApi } from "@/util/roomapi";
-import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
-import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
-import WorkaroundUserStateNotifier from "@/components/WorkaroundUserStateNotifier.vue";
-import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
-import { useRouter, useRoute } from "vue-router";
-import { ServerMessageSync } from "ott-common/models/messages";
-import { useScreenOrientation, useMouse } from "@vueuse/core";
-import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
-import VideoControls from "@/components/controls/VideoControls.vue";
-import RestoreQueue from "@/components/RestoreQueue.vue";
-import VoteSkip from "@/components/VoteSkip.vue";
-import { waitForToken } from "@/util/token";
-import { useSfx } from "@/plugins/sfx";
-import { secondsToTimestamp } from "@/util/timestamp";
+import { useRoute, useRouter } from "vue-router";
+import { useGoTo } from "vuetify";
+import AddPreview from "@/components/AddPreview.vue";
+import Chat from "@/components/Chat.vue";
+import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
 import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 import { useGrants } from "@/components/composables/grants";
+import VideoControls from "@/components/controls/VideoControls.vue";
+import OmniPlayer from "@/components/players/OmniPlayer.vue";
+import RestoreQueue from "@/components/RestoreQueue.vue";
+import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
+import ServerMessageHandler from "@/components/ServerMessageHandler.vue";
+import ShareInvite from "@/components/ShareInvite.vue";
+import UserList from "@/components/UserList.vue";
+import VideoQueue from "@/components/VideoQueue.vue";
+import VoteSkip from "@/components/VoteSkip.vue";
+import WorkaroundPlaybackStatusUpdater from "@/components/WorkaroundPlaybackStatusUpdater.vue";
+import WorkaroundUserStateNotifier from "@/components/WorkaroundUserStateNotifier.vue";
+import { useConnection } from "@/plugins/connection";
+import { useSfx } from "@/plugins/sfx";
+import { useStore } from "@/store";
+import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
 import { isOfficialSite } from "@/util/misc";
+import { useRoomApi } from "@/util/roomapi";
+import { secondsToTimestamp } from "@/util/timestamp";
+import { waitForToken } from "@/util/token";
+import RoomDisconnected from "../components/RoomDisconnected.vue";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -320,7 +320,7 @@ export default defineComponent({
 						new Date(),
 						store.state.room.playbackPosition,
 						store.state.room.playbackSpeed
-				  )
+					)
 				: store.state.room.playbackPosition;
 			sliderPosition.value = _.clamp(
 				truePosition.value,

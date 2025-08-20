@@ -1,21 +1,21 @@
-import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room.js";
-import { AuthToken, Role, RoomOptions, Visibility } from "ott-common/models/types.js";
+import { EventEmitter } from "events";
 import _ from "lodash";
-import { getLogger } from "./logger.js";
-import { redisClient } from "./redisclient.js";
-import storage from "./storage.js";
+import { RoomRequest, RoomRequestContext, ServerMessage } from "ott-common/models/messages.js";
+import { AuthToken, Role, RoomOptions, Visibility } from "ott-common/models/types.js";
+import { Grants } from "ott-common/permissions.js";
+import { err, ok, type Result } from "ott-common/result.js";
+import { Gauge } from "prom-client";
+import type { ClientManagerCommand } from "./clientmanager.js";
 import {
 	RoomAlreadyLoadedException,
 	RoomNameTakenException,
 	RoomNotFoundException,
 } from "./exceptions.js";
-import { RoomRequest, RoomRequestContext, ServerMessage } from "ott-common/models/messages.js";
-import { Gauge } from "prom-client";
-import { EventEmitter } from "events";
-import { type Result, ok, err } from "ott-common/result.js";
-import { Grants } from "ott-common/permissions.js";
-import type { ClientManagerCommand } from "./clientmanager.js";
 import { UnloadReason } from "./generated.js";
+import { getLogger } from "./logger.js";
+import { redisClient } from "./redisclient.js";
+import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room.js";
+import storage from "./storage.js";
 
 export const log = getLogger("roommanager");
 export const rooms: Room[] = [];
@@ -25,12 +25,13 @@ export type RoomManagerEvents = "publish" | "load" | "unload" | "command";
 export type RoomManagerEventHandlers<E> = E extends "publish"
 	? (roomName: string, message: ServerMessage) => void
 	: E extends "load"
-	? (roomName: string) => void
-	: E extends "unload"
-	? (roomName: string, reason: UnloadReason) => void
-	: E extends "command"
-	? (roomName: string, command: ClientManagerCommand) => void
-	: never;
+		? (roomName: string) => void
+		: E extends "unload"
+			? (roomName: string, reason: UnloadReason) => void
+			: E extends "command"
+				? // biome-ignore lint/nursery/noShadow: biome migration
+					(roomName: string, command: ClientManagerCommand) => void
+				: never;
 const bus = new EventEmitter();
 
 async function addRoom(room: Room) {
@@ -228,6 +229,7 @@ export function on<E extends RoomManagerEvents>(event: E, listener: RoomManagerE
 	bus.on(event, listener);
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeRoomCount = new Gauge({
 	name: "ott_room_count",
 	help: "The number of loaded rooms.",
@@ -257,6 +259,7 @@ const gaugeRoomCount = new Gauge({
 	},
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeUsersInRooms = new Gauge({
 	name: "ott_users_in_rooms",
 	help: "The number of users that the room manager thinks are in rooms.",

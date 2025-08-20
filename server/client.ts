@@ -1,14 +1,13 @@
-import { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "ott-common/models/types.js";
-import type { ClientMessage, ServerMessage } from "ott-common/models/messages.js";
-import WebSocket from "ws";
-import { SessionInfo, setSessionInfo } from "./auth/tokens.js";
-import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
-import { getLogger } from "./logger.js";
-import { getSessionInfo } from "./auth/tokens.js";
-import { BalancerConnection, BalancerConnectionReal } from "./balancer.js";
+import type { ClientMessage, ServerMessage } from "ott-common/models/messages.js";
+import { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "ott-common/models/types.js";
 import { replacer } from "ott-common/serialize.js";
 import { Counter } from "prom-client";
+import { v4 as uuidv4 } from "uuid";
+import WebSocket from "ws";
+import { getSessionInfo, SessionInfo, setSessionInfo } from "./auth/tokens.js";
+import { BalancerConnection, BalancerConnectionReal } from "./balancer.js";
+import { getLogger } from "./logger.js";
 
 const log = getLogger("client");
 
@@ -16,10 +15,10 @@ export type ClientEvents = "auth" | "message" | "disconnect";
 export type ClientEventHandlers<E> = E extends "auth"
 	? (client: Client, token: AuthToken, session: SessionInfo) => void
 	: E extends "message"
-	? (client: Client, msg: ClientMessage) => void
-	: E extends "disconnect"
-	? (client: Client) => void
-	: never;
+		? (client: Client, msg: ClientMessage) => void
+		: E extends "disconnect"
+			? (client: Client) => void
+			: never;
 
 export enum ClientJoinStatus {
 	WaitingForAuth,

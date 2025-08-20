@@ -1,9 +1,9 @@
-import { SponsorBlock, type Segment } from "sponsorblock-api";
-import { redisClient } from "./redisclient.js";
-import { v4 as uuidv4 } from "uuid";
 import { ALL_SKIP_CATEGORIES } from "ott-common";
-import { conf } from "./ott-config.js";
+import { type Segment, SponsorBlock } from "sponsorblock-api";
+import { v4 as uuidv4 } from "uuid";
 import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
+import { redisClient } from "./redisclient.js";
 
 const log = getLogger("sponsorblock");
 
@@ -42,6 +42,7 @@ export async function fetchSegments(videoId: string): Promise<Segment[]> {
 		if (cachedSegments) {
 			try {
 				return JSON.parse(cachedSegments);
+				// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			} catch (e) {
 				log.warn(
 					`Failed to parse cached segments for video ${videoId}, fetching fresh segments`

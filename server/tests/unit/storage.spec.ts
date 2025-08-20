@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import _ from "lodash";
-import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models/index.js";
-import storage from "../../storage.js";
-import permissions, { Grants } from "ott-common/permissions.js";
-import { Visibility, QueueMode } from "ott-common/models/types.js";
+import { QueueMode, Visibility } from "ott-common/models/types.js";
 import { Video, VideoId } from "ott-common/models/video.js";
+import permissions, { Grants } from "ott-common/permissions.js";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { CachedVideo, Room as DbRoom, loadModels, User } from "../../models/index.js";
+import { buildClients } from "../../redisclient.js";
 import { Room } from "../../room.js";
 import { roomToDb, roomToDbPartial } from "../../storage/room.js";
-import { buildClients } from "../../redisclient.js";
+import storage from "../../storage.js";
 
 describe(
 	"Storage: Room Spec",

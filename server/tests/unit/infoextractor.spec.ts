@@ -1,25 +1,25 @@
+import _ from "lodash";
+import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
 	MockInstance,
+	vi,
 } from "vitest";
+import { OutOfQuotaException, UnsupportedMimeTypeException } from "../../exceptions.js";
 import InfoExtractor, { initExtractor } from "../../infoextractor.js";
-import storage from "../../storage.js";
 import { getMimeType } from "../../mime.js";
-import YouTubeAdapter from "../../services/youtube.js";
-import { UnsupportedMimeTypeException, OutOfQuotaException } from "../../exceptions.js";
-import { ServiceAdapter } from "../../serviceadapter.js";
-import { buildClients, redisClient } from "../../redisclient.js";
-import _ from "lodash";
 import { loadModels } from "../../models/index.js";
-import { loadConfigFile, conf } from "../../ott-config.js";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import { conf, loadConfigFile } from "../../ott-config.js";
+import { buildClients, redisClient } from "../../redisclient.js";
+import { ServiceAdapter } from "../../serviceadapter.js";
+import YouTubeAdapter from "../../services/youtube.js";
+import storage from "../../storage.js";
 
 class TestAdapter extends ServiceAdapter {
 	get serviceId(): VideoService {
@@ -113,6 +113,7 @@ describe("InfoExtractor", () => {
 
 		it("should cache fresh search results", async () => {
 			let adapter = new TestAdapter();
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			let getAdapterSpy = vi
 				.spyOn(InfoExtractor, "getServiceAdapter")
 				.mockReturnValue(adapter);

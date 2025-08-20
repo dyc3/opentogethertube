@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import * as d3 from "d3";
-import { useEventBus, type BusEvent } from "eventbus";
-import { bboxCenter, bboxSize, type BoundingBox, type TreeNode } from "treeutils";
+import { type BusEvent, useEventBus } from "eventbus";
+import { useEffect, useState } from "react";
+import { type BoundingBox, bboxCenter, bboxSize, type TreeNode } from "treeutils";
 
 export function useD3Zoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) {
 	useEffect(() => {

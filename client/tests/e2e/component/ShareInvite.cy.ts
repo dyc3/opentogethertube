@@ -1,6 +1,6 @@
 import { defineComponent, h } from "vue";
-import { useStore } from "../../../src/store";
 import ShareInvite from "../../../src/components/ShareInvite.vue";
+import { useStore } from "../../../src/store";
 
 function assertValueInClipboard(value: string) {
 	cy.window().then(win => {

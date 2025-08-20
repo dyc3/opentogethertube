@@ -1,19 +1,19 @@
+import { AxiosRequestHeaders, AxiosResponse } from "axios";
+import fs from "fs";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
 	MockInstance,
+	vi,
 } from "vitest";
-import PeertubeAdapter from "../../../services/peertube.js";
-import fs from "fs";
 import { InvalidVideoIdException } from "../../../exceptions.js";
-import { AxiosRequestHeaders, AxiosResponse } from "axios";
 import { conf, loadConfigFile } from "../../../ott-config.js";
+import PeertubeAdapter from "../../../services/peertube.js";
 
 const validVideoLinks = [
 	["the.jokertv.eu:7C5YZTLVudL4FLN4JmVvnA", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
@@ -40,6 +40,7 @@ describe("Peertube", () => {
 
 		apiGetMock = vi.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
 			const videoid = adapter.getVideoId(url);
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			const [host, id] = videoid.split(":");
 			let fixtureText = FIXTURES.get(id);
 			if (!fixtureText) {
@@ -48,6 +49,7 @@ describe("Peertube", () => {
 			let data;
 			try {
 				data = JSON.parse(fixtureText);
+				// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			} catch (e) {
 				data = fixtureText;
 			}

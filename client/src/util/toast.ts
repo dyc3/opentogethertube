@@ -1,5 +1,5 @@
-import { Toast } from "@/models/toast";
 import { Store } from "vuex";
+import { Toast } from "@/models/toast";
 import { useStore } from "@/store";
 
 let _store: Store<unknown> | null = null;

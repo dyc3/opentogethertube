@@ -43,6 +43,7 @@ const locales = [
 const store = useStore();
 const locale = ref(store.state.settings.locale);
 
+// biome-ignore lint/nursery/noShadow: biome migration
 const setLocale = async (locale: string) => {
 	await loadLanguageAsync(locale);
 	store.commit("settings/UPDATE", { locale });

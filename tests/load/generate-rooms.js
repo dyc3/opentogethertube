@@ -1,6 +1,6 @@
+import { check, sleep } from "k6";
 import http from "k6/http";
 import ws from "k6/ws";
-import { sleep, check } from "k6";
 import { getAuthToken, HOSTNAME } from "./utils.js";
 
 export const options = {
@@ -88,6 +88,7 @@ export default function () {
 		socket.on("close", () => {
 			console.log("disconnected");
 			check(msgs, {
+				// biome-ignore lint/nursery/noShadow: biome migration
 				"got sync message": msgs => msgs.find(m => m.action === "sync") !== undefined,
 			});
 		});

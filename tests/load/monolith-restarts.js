@@ -9,10 +9,10 @@
 // 4. Observe that the VUs reconnect to the same room
 // 5. Repeat steps 3-4 as many times as needed
 
-import ws from "k6/ws";
-import { sleep, check, fail } from "k6";
 import { randomItem } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
-import { getAuthToken, createRoom, HOSTNAME } from "./utils.js";
+import { check, fail, sleep } from "k6";
+import ws from "k6/ws";
+import { createRoom, getAuthToken, HOSTNAME } from "./utils.js";
 
 export const options = {
 	executor: "constant-vus",
@@ -54,9 +54,12 @@ function doConnection(room, token) {
 		socket.on("open", () => {
 			socket.send(JSON.stringify({ action: "auth", token: token }));
 		});
-		socket.setTimeout(() => {
-			socket.close(1000);
-		}, 1000 * 60 * 60 * 2);
+		socket.setTimeout(
+			() => {
+				socket.close(1000);
+			},
+			1000 * 60 * 60 * 2
+		);
 		socket.on("close", code => {
 			if (code >= 4000) {
 				console.log("disconnected ws", code);

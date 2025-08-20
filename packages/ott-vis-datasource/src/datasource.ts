@@ -1,18 +1,17 @@
 import {
+	CircularDataFrame,
 	DataQueryRequest,
 	DataQueryResponse,
 	DataSourceApi,
 	DataSourceInstanceSettings,
-	MutableDataFrame,
 	FieldType,
-	CircularDataFrame,
 	LoadingState,
+	MutableDataFrame,
 } from "@grafana/data";
-
-import { MyQuery, MyDataSourceOptions } from "./types";
 import { getBackendSrv } from "@grafana/runtime";
 import type { SystemState } from "ott-vis";
-import { Observable, lastValueFrom, merge } from "rxjs";
+import { lastValueFrom, merge, Observable } from "rxjs";
+import { MyDataSourceOptions, MyQuery } from "./types";
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 	baseUrl: string;

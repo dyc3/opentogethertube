@@ -156,6 +156,7 @@ describe("<Chat />", () => {
 			let page = defineComponent({
 				name: "Page",
 				components: { Chat },
+				// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 				setup() {},
 				render() {
 					return h(

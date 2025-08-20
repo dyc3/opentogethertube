@@ -27,10 +27,10 @@
 import BasicControls from "./BasicControls.vue";
 import ClosedCaptionsSwitcher from "./ClosedCaptionsSwitcher.vue";
 import LayoutSwitcher from "./LayoutSwitcher.vue";
+import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 import TimestampDisplay from "./TimestampDisplay.vue";
 import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
-import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 
 withDefaults(
 	defineProps<{

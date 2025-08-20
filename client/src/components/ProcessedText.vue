@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch, Ref, toRefs } from "vue";
+import { onMounted, Ref, ref, toRefs, watch } from "vue";
 
 const urlRegex = /(https?:\/\/[^\s]+)/;
 

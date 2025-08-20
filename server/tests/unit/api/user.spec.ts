@@ -1,22 +1,22 @@
+import { AuthToken } from "ott-common/models/types.js";
+import request from "supertest";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
-	MockInstance,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
 	Mock,
+	MockInstance,
+	vi,
 } from "vitest";
-import request from "supertest";
 import { main } from "../../../app.js";
-import usermanager from "../../../usermanager.js";
 import { User as UserModel } from "../../../models/index.js";
-import { conf } from "../../../ott-config.js";
 import { User } from "../../../models/user.js";
-import { AuthToken } from "ott-common/models/types.js";
+import { conf } from "../../../ott-config.js";
+import usermanager from "../../../usermanager.js";
 
 describe("User API", () => {
 	let token;
@@ -81,6 +81,7 @@ describe("User API", () => {
 				.set("Cookie", cookies)
 				.expect("Content-Type", /json/)
 				.expect(200)
+				// biome-ignore lint/nursery/noShadow: biome migration
 				.then(resp => {
 					expect(resp.body.username).toBeDefined();
 					expect(resp.body.loggedIn).toBe(true);
@@ -135,6 +136,7 @@ describe("User API", () => {
 				.get("/api/user/test/forceLogin")
 				.set("Authorization", `Bearer ${token}`)
 				.expect(200)
+				// biome-ignore lint/nursery/noShadow: biome migration
 				.then(resp => {
 					cookies = resp.header["set-cookie"];
 				});
@@ -146,6 +148,7 @@ describe("User API", () => {
 				.send({ username: "new username" })
 				.expect("Content-Type", /json/)
 				// .expect(200)
+				// biome-ignore lint/nursery/noShadow: biome migration
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
 					expect(onUserModifiedSpy).toBeCalled();
@@ -300,6 +303,7 @@ describe("User API", () => {
 			let registeredUsers: User[] = [];
 
 			beforeAll(() => {
+				// biome-ignore lint/nursery/noShadow: biome migration
 				onUserLogInSpy = vi.fn().mockImplementation((user, token) => {
 					registeredUsers.push(user);
 				});

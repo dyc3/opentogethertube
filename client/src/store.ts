@@ -1,12 +1,12 @@
-import { createStore, Store, useStore as baseUseStore } from "vuex";
-import { toastModule, ToastState } from "@/stores/toast";
-import { usersModule, UsersState } from "@/stores/users";
-import { settingsModule, SettingsState } from "@/stores/settings";
-import { ToastStyle } from "./models/toast";
-import { eventsModule } from "@/stores/events";
-import { miscModule, MiscState } from "@/stores/misc";
-import { InjectionKey } from "vue";
 import _ from "lodash";
+import { InjectionKey } from "vue";
+import { useStore as baseUseStore, createStore, Store } from "vuex";
+import { eventsModule } from "@/stores/events";
+import { MiscState, miscModule } from "@/stores/misc";
+import { SettingsState, settingsModule } from "@/stores/settings";
+import { ToastState, toastModule } from "@/stores/toast";
+import { UsersState, usersModule } from "@/stores/users";
+import { ToastStyle } from "./models/toast";
 import { RoomState, roomModule } from "./stores/room";
 
 export type FullOTTStoreState = BaseStoreState & {
@@ -83,6 +83,7 @@ export function buildNewStore() {
 			},
 		},
 		actions: {
+			// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 			chat() {},
 			announcement(context, message) {
 				this.commit("toast/ADD_TOAST", {

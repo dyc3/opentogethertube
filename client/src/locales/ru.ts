@@ -1,45 +1,45 @@
-import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
+import { BehaviorOption, OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
-	"common": {
-		"yes": "Да",
-		"no": "Нет",
-		"ok": "Ок",
-		"cancel": "Отменить",
-		"close": "Закрыть",
+	common: {
+		yes: "Да",
+		no: "Нет",
+		ok: "Ок",
+		cancel: "Отменить",
+		close: "Закрыть",
 		"close-all": "Закрыть всё",
-		"add": "Добавить",
-		"remove": "Убрать",
-		"delete": "Удалить",
-		"play": "Воспроизвести",
-		"pause": "Пауза",
-		"save": "Сохранить",
-		"search": "Поиск",
-		"undo": "Отменить действие",
-		"copy": "Копировать",
-		"show": "Показать",
-		"hide": "Скрыть",
-		"discard": "Отменить изменения",
-		"loading": "Загрузка...",
-		"view": "Просмотр",
-		"restore": "Восстановить",
-		"success": "Успех",
-		"vote": "Голосовать",
-		"unvote": "Отменить голос",
-		"on": "Вкл",
-		"off": "Выкл",
-		"dismiss": "Закрыть",
-		"errors": {
+		add: "Добавить",
+		remove: "Убрать",
+		delete: "Удалить",
+		play: "Воспроизвести",
+		pause: "Пауза",
+		save: "Сохранить",
+		search: "Поиск",
+		undo: "Отменить действие",
+		copy: "Копировать",
+		show: "Показать",
+		hide: "Скрыть",
+		discard: "Отменить изменения",
+		loading: "Загрузка...",
+		view: "Просмотр",
+		restore: "Восстановить",
+		success: "Успех",
+		vote: "Голосовать",
+		unvote: "Отменить голос",
+		on: "Вкл",
+		off: "Выкл",
+		dismiss: "Закрыть",
+		errors: {
 			"rate-limit":
 				"Превышен лимит запросов. Пожалуйста, попробуйте снова через {duration} секунд.",
 		},
 	},
-	"behavior": {
+	behavior: {
 		[BehaviorOption.Always]: "Всегда",
 		[BehaviorOption.Prompt]: "Запрашивать",
 		[BehaviorOption.Never]: "Никогда",
 	},
-	"landing": {
+	landing: {
 		hero: {
 			title: "Наслаждайтесь вместе.",
 			description:
@@ -59,7 +59,7 @@ export default {
 			link: "ещё больше",
 		},
 		features: {
-			"title": "Основные функции",
+			title: "Основные функции",
 			"synchronized-playback": {
 				title: "Синхронное воспроизведение",
 				text: "Нажмите одну кнопку, и видео воспроизведётся для всех\nв комнате. Проще простого.",
@@ -96,13 +96,13 @@ export default {
 			contribute: "Посодействовать",
 		},
 	},
-	"footer": {
-		"disclaimer":
+	footer: {
+		disclaimer:
 			"Отказ от ответственности: Проект OpenTogetherTube никак не связан ни с TogetherTube, ни с Watch2Gether.",
 		"made-in": "Сделано в Америке",
 		"thanks-to": "Особая благодарность",
 		"privacy-policy": "Политика конфиденциальности",
-		"attribution": "Атрибуция",
+		attribution: "Атрибуция",
 	},
 	"not-found": {
 		title: "Страница не найдена",
@@ -112,37 +112,37 @@ export default {
 	"quick-room": {
 		text: "Создаём временную комнату для Вас...",
 	},
-	"attribution": {
+	attribution: {
 		"sponsorblock-text": "Используются данные SponsorBlock от",
 	},
-	"nav": {
-		"home": "Главная",
-		"browse": "Комнаты",
-		"faq": "FAQ",
-		"bug": "Сообщить о баге",
-		"support": "Поддержать!",
-		"login": "Вход",
+	nav: {
+		home: "Главная",
+		browse: "Комнаты",
+		faq: "FAQ",
+		bug: "Сообщить о баге",
+		support: "Поддержать!",
+		login: "Вход",
 		"link-discord": "Привязать Discord",
-		"logout": "Выход",
-		"create": {
-			"title": "Создать комнату",
-			"temp": "Создать временную комнату",
+		logout: "Выход",
+		create: {
+			title: "Создать комнату",
+			temp: "Создать временную комнату",
 			"temp-desc": "Начните просмотр как можно скорее",
-			"perm": "Создать постоянную комнату",
+			perm: "Создать постоянную комнату",
 			"perm-desc": "Отлично подходит для частых посетителей",
 		},
 	},
 	"room-list": {
 		"no-rooms": "На данный момент нет ни одной комнаты...",
-		"create": "@:nav.create.title",
+		create: "@:nav.create.title",
 		"no-description": "Нет описания.",
 		"nothing-playing": "Ничего не воспроизводится.",
 	},
-	"room": {
+	room: {
 		"title-temp": "Временная комната",
 		"kick-me": "Исключить меня",
-		"rewind": "Назад на 10с",
-		"skip": "Вперёд на 10с",
+		rewind: "Назад на 10с",
+		skip: "Вперёд на 10с",
 		"play-pause": "Воспроизведение/Пауза",
 		"next-video": "Следующее видео",
 		"next-video-vote": "Голосовать за пропуск видео",
@@ -151,11 +151,11 @@ export default {
 			connecting: "Подключение...",
 			connected: "Подключено",
 		},
-		"tabs": {
+		tabs: {
 			queue: "Очередь",
 			settings: "Настройки",
 		},
-		"users": {
+		users: {
 			title: "Пользователи",
 			set: "Выберите себе ник",
 			empty: "Кажется, здесь никого нет. Пригласите своих друзей!",
@@ -165,11 +165,11 @@ export default {
 			kick: "Исключить",
 		},
 	},
-	"privacy": {
+	privacy: {
 		title: "@:footer.privacy-policy",
 	},
-	"chat": {
-		"title": "Чат",
+	chat: {
+		title: "Чат",
 		"type-here": "Напишите Ваше сообщение здесь...",
 	},
 	"share-invite": {
@@ -177,33 +177,33 @@ export default {
 		text: "Скопируйте эту ссылку, и поделитесь ею с друзьями!",
 		copied: "Скопировано!",
 	},
-	"video": {
+	video: {
 		"add-explanation": "Добавить в очередь.",
-		"playnow": "Воспроизвести сейчас",
+		playnow: "Воспроизвести сейчас",
 		"playnow-explanation":
 			"Воспроизвести это видео сейчас, переместив текущее видео вверх очереди.",
 		"no-video": "Ничего не проигрывается.",
 		"no-video-text": "Добавьте Ваше видео.",
 	},
 	"add-preview": {
-		"label": "Ссылка или Поиск",
+		label: "Ссылка или Поиск",
 		"add-all": "Добавить всё",
-		"placeholder":
+		placeholder:
 			"Воспользуйтесь поиском на YouTube здесь, или вставьте URL видео, чтобы добавить его в очередь",
-		"title": "Что я могу добавить?",
+		title: "Что я могу добавить?",
 		"single-videos": "Видео",
-		"playlists": "Плейлисты",
-		"playlist": "Плейлист",
-		"text": "Или просто введите текст для поиска на Youtube",
+		playlists: "Плейлисты",
+		playlist: "Плейлист",
+		text: "Или просто введите текст для поиска на Youtube",
 		"search-for": 'Найдите на YouTube "{search}", нажав Enter или кнопку Поиск.',
-		"platforms": {
+		platforms: {
 			"youtube-videos": "YouTube видео: {url}",
 			"vimeo-videos": "Vimeo видео: {url}",
 			"any-mp4-videos": "Общедоступные .mp4 видео: {url}",
 			"youtube-playlists": "YouTube плейлисты: {url}",
 			"youtube-channels": "YouTube каналы: {url}",
 		},
-		"messages": {
+		messages: {
 			"unknown-status": "Неизвестный статус добавления превью: {status}.",
 			"unknown-error":
 				"Произошла неизвестная ошибка при получении превью видео. Попробуйте позже.",
@@ -218,40 +218,40 @@ export default {
 	"video-queue": {
 		"no-videos": "Очередь пуста.",
 		"add-video": "Добавить видео",
-		"export": "Экспорт",
+		export: "Экспорт",
 		"export-diag-title": "Экспорт очереди",
 		"export-hint":
 			'Скопируйте и вставьте этот текст во вкладку "Добавить", чтобы восстановить эту очередь.',
-		"restore": "Хотите восстановить видео из предыдущей очереди?",
+		restore: "Хотите восстановить видео из предыдущей очереди?",
 		"restore-queue": "Восстановить очередь?",
 		"restore-queue-hint":
 			"Это содержимое было в очереди в последний раз, когда эта комната была активной. Хотите восстановить его?",
 	},
 	"video-queue-item": {
-		"experimental": "Эта функция в стадии тестирования... Может сломаться!",
+		experimental: "Эта функция в стадии тестирования... Может сломаться!",
 		"play-next": "Следующее",
 		"play-last": "Предыдущее",
-		"messages": {
+		messages: {
 			"video-added": "Видео добавлено",
 			"video-removed": "Видео удалено",
 		},
 		"start-at": "Воспроизведено на {timestamp}",
 	},
 	"room-settings": {
-		"title": "@:create-room-form.title",
-		"description": "@:create-room-form.description",
-		"visibility": "@:create-room-form.visibility",
-		"public": "@:create-room-form.public",
-		"unlisted": "@:create-room-form.unlisted",
+		title: "@:create-room-form.title",
+		description: "@:create-room-form.description",
+		visibility: "@:create-room-form.visibility",
+		public: "@:create-room-form.public",
+		unlisted: "@:create-room-form.unlisted",
 		"queue-mode": "@:create-room-form.queue-mode",
-		"manual": "@:create-room-form.manual",
+		manual: "@:create-room-form.manual",
 		"manual-hint":
 			"Режим по умолчанию. Вы можете вручную изменить порядок элементов в очереди.",
-		"vote": "@:create-room-form.vote",
+		vote: "@:create-room-form.vote",
 		"vote-hint": "Следующим воспроизводится видео с наибольшим количеством голосов.",
-		"loop": "Повтор",
+		loop: "Повтор",
 		"loop-hint": "Когда видео закончится, переместить его в конец очереди.",
-		"dj": "DJ",
+		dj: "DJ",
 		"dj-hint":
 			"Когда видео закончится, начать его просмотр с самого начала. Подходит для зацикливания фоновой музыки.",
 		"auto-skip-text":
@@ -277,29 +277,29 @@ export default {
 	"create-room-form": {
 		"card-title": "Создать постоянную комнату",
 		"create-room": "Создать комнату",
-		"name": "Имя комнаты",
+		name: "Имя комнаты",
 		"name-hint": "Используется как URL комнаты. Не может быть изменено позже.",
-		"title": "Заголовок",
+		title: "Заголовок",
 		"title-hint": "Необязательно",
-		"description": "Описание",
+		description: "Описание",
 		"description-hint": "@:create-room-form.title-hint",
-		"visibility": "Видимость",
+		visibility: "Видимость",
 		"visibility-hint": "Определяет, отображается ли комната в списке комнат или нет.",
 		"queue-mode": "Режим очереди",
-		"manual": "Вручную",
-		"vote": "@:common.vote",
-		"loop": "@:room-settings.loop",
-		"dj": "@:room-settings.dj",
-		"public": "Публичная",
-		"unlisted": "Скрытая",
-		"rules": {
-			"name": {
+		manual: "Вручную",
+		vote: "@:common.vote",
+		loop: "@:room-settings.loop",
+		dj: "@:room-settings.dj",
+		public: "Публичная",
+		unlisted: "Скрытая",
+		rules: {
+			name: {
 				"name-required": "Имя обязательно",
 				"no-spaces": "Имя не должно содержать пробелов.",
-				"length": "Имя должно содержать от 3 до 32 символов",
-				"alphanumeric":
+				length: "Имя должно содержать от 3 до 32 символов",
+				alphanumeric:
 					"Имя должно содержать только латинские буквы, цифры, тире и подчеркивания",
-				"taken": "Имя занято",
+				taken: "Имя занято",
 			},
 			"invalid-visibility": "Недопустимая видимость",
 			"invalid-queue": "Недопустимый режим очереди",
@@ -307,17 +307,17 @@ export default {
 		"unknown-error": "Произошла неизвестная ошибка. Попробуйте позже.",
 	},
 	"login-form": {
-		"login": "@:nav.login",
-		"register": "Регистрация",
+		login: "@:nav.login",
+		register: "Регистрация",
 		"login-discord": "Войти через Discord",
-		"email": "E-mail",
+		email: "E-mail",
 		"email-or-username": "E-mail или Логин",
-		"username": "Логин",
-		"password": "Пароль",
+		username: "Логин",
+		password: "Пароль",
 		"retype-password": "Повторите пароль",
 		"email-optional":
 			"Необязательно. Указание электронной почты позволит восстановить доступ к Вашему аккаунту в случае утери пароля.",
-		"rules": {
+		rules: {
 			"email-required": "Обязательное поле",
 			"valid-email": "E-mail должен быть настоящим!",
 			"username-required": "Обязательное поле",
@@ -327,7 +327,7 @@ export default {
 			"retype-password": "Повторно введите свой пароль",
 			"passwords-match": "Пароли должны совпадать",
 		},
-		"errors": {
+		errors: {
 			"something-weird-happened":
 				"Произошло что-то странное, но, возможно, Вы вошли в систему? Обновите страницу.",
 			"login-failed-noserver":
@@ -351,25 +351,23 @@ export default {
 		},
 	},
 	"permissions-editor": {
-		"title": "Настройка разрешений",
-		"text1":
-			"Все разрешения, предоставленные менее привилегированным пользователям, автоматически предоставляются более привилегированным пользователям.",
-		"text2":
-			"Администраторам предоставляется всё. Владелец комнаты автоматически становится администратором и не может быть понижен в должности.",
+		title: "Настройка разрешений",
+		text1: "Все разрешения, предоставленные менее привилегированным пользователям, автоматически предоставляются более привилегированным пользователям.",
+		text2: "Администраторам предоставляется всё. Владелец комнаты автоматически становится администратором и не может быть понижен в должности.",
 		"viewing-as": "Просмотреть как",
-		"permission": "Разрешение",
+		permission: "Разрешение",
 	},
 	"client-settings": {
-		"title": "Персональные настройки",
-		"description": "Эти настройки сохраняются в Вашем браузере и влияют только на Вас.",
-		"activator": "@:client-settings.title",
+		title: "Персональные настройки",
+		description: "Эти настройки сохраняются в Вашем браузере и влияют только на Вас.",
+		activator: "@:client-settings.title",
 		"room-layout": "Макет комнаты",
-		"theme": "Тема",
+		theme: "Тема",
 		"sfx-enable": "Включить звуковые эффекты",
 		"sfx-volume": "Громкость звуковых эффектов",
 	},
 	"connect-overlay": {
-		"title": "Отключено",
+		title: "Отключено",
 		"find-another": "Найдите другую комнату",
 		"dc-reasons": {
 			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
@@ -384,7 +382,7 @@ export default {
 	"vote-skip": {
 		remaining: "Ещё {count} голосов для пропуска",
 	},
-	"roles": {
+	roles: {
 		[Role.Administrator]: "Администратор",
 		[Role.Moderator]: "Модератор",
 		[Role.TrustedUser]: "Доверенный пользователь",
@@ -392,13 +390,13 @@ export default {
 		[Role.UnregisteredUser]: "Незарегистрированный пользователь",
 		[Role.Owner]: "Владелец",
 	},
-	"errors": {
+	errors: {
 		BadPasswordError:
 			"Пароль не соответствует минимальным требованиям. Должен быть не менее 8 символов длиной и содержать как минимум 2 из следующих категорий символов: строчные буквы, прописные буквы, цифры, специальные символы.",
 		BadApiArgumentException:
 			"Неверный аргумент API. Вероятно, это ошибка, пожалуйста, сообщите об этом.",
 	},
-	"player": {
+	player: {
 		"buffer-warn": {
 			spans: "Вы еще не достаточно буферизовали видео. Текущие временные диапазоны буферизации: {ranges}",
 		},

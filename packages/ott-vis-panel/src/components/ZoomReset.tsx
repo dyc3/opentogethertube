@@ -1,5 +1,5 @@
-import React from "react";
 import { Button } from "@grafana/ui";
+import React from "react";
 import "./zoom-reset.css";
 
 interface ZoomResetProps {

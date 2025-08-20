@@ -1,21 +1,21 @@
-import {
-	pruneTrees,
-	sizeOfTree,
-	treeBoundingBox,
-	type BoundingBox,
-	type TreeNode,
-	flipBoundingBoxH,
-	buildMonolithTrees,
-	filterTreeGroups,
-	expandBBox,
-	offsetBBox,
-	superBoundingBox,
-	mergeTrees,
-	bboxCenter,
-	bboxSize,
-} from "treeutils";
 import * as d3 from "d3";
 import type { Monolith } from "ott-vis/types";
+import {
+	type BoundingBox,
+	bboxCenter,
+	bboxSize,
+	buildMonolithTrees,
+	expandBBox,
+	filterTreeGroups,
+	flipBoundingBoxH,
+	mergeTrees,
+	offsetBBox,
+	pruneTrees,
+	sizeOfTree,
+	superBoundingBox,
+	type TreeNode,
+	treeBoundingBox,
+} from "treeutils";
 
 describe("treeutils", () => {
 	it("should find the size of any d3 tree", () => {

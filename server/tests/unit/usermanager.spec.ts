@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import usermanager from "../../usermanager.js";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { conf } from "../../../server/ott-config.js";
 import { FeatureDisabledException } from "../../exceptions.js";
+import usermanager from "../../usermanager.js";
 
 describe("Usermanager spec", () => {
 	beforeEach(() => {

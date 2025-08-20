@@ -75,14 +75,14 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, ref, watch } from "vue";
-import { useStore } from "@/store";
-import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
+import { ALL_SKIP_CATEGORIES } from "ott-common";
+import { Ref, ref, watch } from "vue";
 import { useSfx } from "@/plugins/sfx";
+import { useStore } from "@/store";
+import { RoomLayoutMode, SettingsState, Theme } from "@/stores/settings";
 import { enumKeys } from "@/util/misc";
 import AutoSkipSegmentSettings from "./AutoSkipSegmentSettings.vue";
-import { ALL_SKIP_CATEGORIES } from "ott-common";
 
 type ExcludedFields = "volume" | "locale";
 type ExposedSettings = Omit<SettingsState, ExcludedFields>;

@@ -1,10 +1,10 @@
-import Sequelize from "sequelize";
 import type { Model, Options } from "sequelize";
+import Sequelize from "sequelize";
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
+import { createModel as createModelCachedVideo } from "./cachedvideo.js";
 import { createModel as createModelRoom } from "./room.js";
 import { createModel as createModelUser } from "./user.js";
-import { createModel as createModelCachedVideo } from "./cachedvideo.js";
 
 const log = getLogger("db");
 
@@ -96,6 +96,7 @@ function buildConnection(config: Sequelize.Options): Sequelize.Sequelize {
 export let Room: ReturnType<typeof createModelRoom>;
 export let User: ReturnType<typeof createModelUser>;
 export let CachedVideo: ReturnType<typeof createModelCachedVideo>;
+// biome-ignore lint/nursery/noShadow: biome migration
 function buildModels(sequelize: Sequelize.Sequelize) {
 	Room = createModelRoom(sequelize);
 	User = createModelUser(sequelize);

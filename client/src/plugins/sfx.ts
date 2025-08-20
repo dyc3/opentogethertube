@@ -1,5 +1,5 @@
-import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
 import axios from "axios";
+import { App, InjectionKey, inject, Plugin, Ref, ref } from "vue";
 
 export const sfxInjectKey: InjectionKey<OttSfx> = Symbol("ott:sfx");
 
@@ -11,8 +11,8 @@ export function useSfx(): OttSfx {
 	return sfx;
 }
 
-import sfxPopUrl from "../assets/sfx/pop.ogg?url";
 import { watch } from "vue";
+import sfxPopUrl from "../assets/sfx/pop.ogg?url";
 
 /**
  * Handles sound effects.
@@ -45,6 +45,7 @@ export class OttSfx {
 		const buffer = new Promise<AudioBuffer>((resolve, reject) => {
 			this.context.decodeAudioData(
 				buf,
+				// biome-ignore lint/nursery/noShadow: biome migration
 				buffer => {
 					resolve(buffer);
 				},

@@ -1,5 +1,5 @@
+import { check, sleep } from "k6";
 import http from "k6/http";
-import { sleep, check } from "k6";
 
 export const HOSTNAME = "localhost:8080";
 
@@ -61,7 +61,7 @@ export function createRoom(name, token, roomOptions = {}, options = { doCheck: t
 	let resp = http.post(url, JSON.stringify(body), {
 		headers: {
 			"Content-Type": "application/json",
-			"Authorization": `Bearer ${token}`,
+			Authorization: `Bearer ${token}`,
 		},
 	});
 	if (options.doCheck) {
@@ -71,11 +71,13 @@ export function createRoom(name, token, roomOptions = {}, options = { doCheck: t
 					return true;
 				}
 				try {
+					// biome-ignore lint/nursery/noShadow: biome migration
 					let body = JSON.parse(r.body);
 					if (body.error && body.error.name === "RoomNameTakenException") {
 						return true;
 					}
 					return false;
+					// biome-ignore lint/correctness/noUnusedVariables: biome migration
 				} catch (e) {
 					console.log(`Failed to parse response body as json: ${r.body}`);
 					return false;
@@ -112,7 +114,7 @@ export function reqVideo(room, token, videoId, options = { action: "add", target
 	const resp = fn(url, JSON.stringify(body), {
 		headers: {
 			"Content-Type": "application/json",
-			"Authorization": `Bearer ${token}`,
+			Authorization: `Bearer ${token}`,
 		},
 	});
 	return resp;

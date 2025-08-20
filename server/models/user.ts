@@ -1,5 +1,5 @@
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 import { UserAccountAttributes } from "ott-common/models/types.js";
+import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 import { conf } from "../ott-config.js";
 
 type UserCreationAttributes = Optional<UserAccountAttributes, "id">;

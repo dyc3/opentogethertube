@@ -8,9 +8,9 @@
 <script>
 import _ from "lodash";
 import DebugPlayerWatcher from "@/components/debug/DebugPlayerWatcher.vue";
+import { ToastStyle } from "@/models/toast";
 import { getSdk } from "@/util/playerHelper.js";
 import toast from "@/util/toast";
-import { ToastStyle } from "@/models/toast";
 import { useCaptions } from "../composables";
 
 const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";
@@ -42,7 +42,7 @@ export default {
 		? {
 				// eslint-disable-next-line vue/no-unused-components
 				DebugPlayerWatcher,
-		  }
+			}
 		: {},
 	emits: [
 		"apiready",

@@ -3,8 +3,8 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted } from "vue";
 import { PeerTubePlayer as Peertube } from "@peertube/embed-api";
+import { computed, defineComponent, onMounted } from "vue";
 
 // CURRENTLY SOMEWHAT BROKEN
 // does not respect position syncing for some reason.

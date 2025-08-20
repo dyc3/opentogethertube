@@ -1,5 +1,5 @@
-import { inject, InjectionKey, onUnmounted } from "vue";
 import _ from "lodash";
+import { InjectionKey, inject, onUnmounted } from "vue";
 
 const BINDING_DEFAULTS = {
 	ctrlKey: false,

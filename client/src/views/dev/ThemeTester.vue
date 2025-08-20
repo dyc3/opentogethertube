@@ -62,11 +62,11 @@
 
 <script lang="ts" setup>
 import { onMounted } from "vue";
-import { Theme } from "@/stores/settings";
 import VideoControls from "@/components/controls/VideoControls.vue";
-import { useStore } from "@/store";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { Toast, ToastStyle } from "@/models/toast";
+import { useStore } from "@/store";
+import { Theme } from "@/stores/settings";
 import { enumKeys } from "@/util/misc";
 
 const store = useStore();

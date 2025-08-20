@@ -1,7 +1,7 @@
-import { it, describe, expect, beforeEach } from "vitest";
-import Vuex from "vuex";
-import { shallowMount, mount } from "@vue/test-utils";
+import { mount, shallowMount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import Vuetify from "vuetify";
+import Vuex from "vuex";
 import LogInForm from "@/components/LogInForm.vue";
 import { i18n } from "@/i18n";
 

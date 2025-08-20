@@ -1,25 +1,25 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import clientmanager, {
-	parseWebsocketConnectionUrl,
-	setupBalancerManager,
-} from "../../clientmanager.js";
+import type { Request } from "express";
+import { OttWebsocketError } from "ott-common/models/types.js";
+import { ok, Result } from "ott-common/result.js";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	BalancerConnection,
 	BalancerConnectionEventHandlers,
 	BalancerConnectionEvents,
 	BalancerConnectionReal,
-	MsgM2B,
 	balancerManager,
+	MsgM2B,
 } from "../../balancer.js";
 import { BalancerClient, Client } from "../../client.js";
-import { OttWebsocketError } from "ott-common/models/types.js";
-import { buildClients } from "../../redisclient.js";
-import { Result, ok } from "ott-common/result.js";
-import roommanager from "../../roommanager.js";
+import clientmanager, {
+	parseWebsocketConnectionUrl,
+	setupBalancerManager,
+} from "../../clientmanager.js";
+import { type M2BInit, type MsgB2M, UnloadReason } from "../../generated.js";
 import { loadModels } from "../../models/index.js";
-import type { Request } from "express";
-import { loadConfigFile, conf } from "../../ott-config.js";
-import { type M2BInit, UnloadReason, type MsgB2M } from "../../generated.js";
+import { conf, loadConfigFile } from "../../ott-config.js";
+import { buildClients } from "../../redisclient.js";
+import roommanager from "../../roommanager.js";
 
 class TestClient extends Client {
 	sendRawMock = vi.fn();

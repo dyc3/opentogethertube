@@ -1,8 +1,8 @@
+import _ from "lodash";
+import { QueueMode } from "ott-common/models/types";
+import { QueueItem } from "ott-common/models/video";
 import { defineComponent, h } from "vue";
 import VideoQueueItem from "../../../src/components/VideoQueueItem.vue";
-import { QueueItem } from "ott-common/models/video";
-import { QueueMode } from "ott-common/models/types";
-import _ from "lodash";
 
 describe("<VideoQueueItem />", () => {
 	Cypress.on("uncaught:exception", (err, runnable) => {

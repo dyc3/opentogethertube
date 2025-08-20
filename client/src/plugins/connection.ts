@@ -1,4 +1,3 @@
-import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
 import type {
 	ClientMessage,
 	ClientMessageAuthenticate,
@@ -6,6 +5,7 @@ import type {
 	ServerMessageActionType,
 } from "ott-common/models/messages";
 import type { AuthToken, OttWebsocketError } from "ott-common/models/types";
+import { App, InjectionKey, inject, Plugin, Ref, ref } from "vue";
 
 export interface OttRoomConnection {
 	active: Ref<boolean>;
@@ -73,6 +73,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	private messageHandlers = new Map<ServerMessageActionType, ((msg: ServerMessage) => void)[]>();
 	private eventHandlers = new Map<ConnectionEventKind, ((e: unknown) => void)[]>();
 
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	constructor() {}
 
 	get connectionUrl() {
@@ -174,6 +175,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 			try {
 				let msg = JSON.parse(e.data) as ServerMessage;
 				this.handleMessage(msg);
+				// biome-ignore lint/nursery/noShadow: biome migration
 			} catch (e) {
 				console.error("unable to process message: ", e.data, e);
 			}
@@ -261,8 +263,11 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 		this.handleMessage(msg);
 	}
 
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	public connect(roomName: string) {}
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	public reconnect() {}
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	public disconnect() {}
 	public send(message: ClientMessage) {
 		this.sent.push(message);

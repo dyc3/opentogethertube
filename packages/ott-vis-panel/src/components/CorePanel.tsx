@@ -1,16 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { PanelProps } from "@grafana/data";
-import type { CoreOptions } from "types";
-import type { SystemState } from "ott-vis";
 import { css, cx } from "@emotion/css";
-import { useStyles2 } from "@grafana/ui";
-import RegionView from "./views/RegionView";
+import { PanelProps } from "@grafana/data";
 import { LoadingState } from "@grafana/schema";
-import { useEventBus, type BusEvent } from "eventbus";
-import TreeView from "./views/TreeView";
-import { TopologyView } from "./views/TopologyView";
-import Legend from "./Legend";
+import { useStyles2 } from "@grafana/ui";
 import { useColorProvider } from "colors";
+import { type BusEvent, useEventBus } from "eventbus";
+import type { SystemState } from "ott-vis";
+import React, { useEffect, useMemo, useState } from "react";
+import type { CoreOptions } from "types";
+import Legend from "./Legend";
+import RegionView from "./views/RegionView";
+import { TopologyView } from "./views/TopologyView";
+import TreeView from "./views/TreeView";
 
 interface Props extends PanelProps<CoreOptions> {}
 
@@ -61,11 +61,12 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 	const systemState: SystemState = useMemo(() => {
 		return options.useSampleData
 			? sampleSystemState
-			: stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+			: (stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? []);
 	}, [options.useSampleData, stateSeries]);
 
 	const { assign: assignColor, assignments: colorAssignments } = useColorProvider();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: biome migration
 	let view = useMemo(() => {
 		if (options.view === "region") {
 			return (
@@ -106,6 +107,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 
 	const [readEvents, setReadEvents] = useState(0);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: biome migration
 	useEffect(() => {
 		if (!eventBusSeries) {
 			return;

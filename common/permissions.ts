@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { PermissionDeniedException, InvalidRoleException } from "./exceptions.js";
+import { InvalidRoleException, PermissionDeniedException } from "./exceptions.js";
 import { Role } from "./models/types.js";
 
 export type GrantMask = number;
@@ -275,7 +275,7 @@ export class Grants {
 		} else {
 			for (const r in grants) {
 				const role = _normalizeRoleId(r);
-				if (Object.hasOwnProperty.call(grants, role)) {
+				if (Object.hasOwn(grants, role)) {
 					this.setRoleGrants(role, grants[role]!);
 				}
 			}

@@ -21,4 +21,4 @@ describe("Websocket connection", () => {
 		cy.get("#connectStatus").should("contain", "Connecting");
 		cy.get("#connectStatus").should("contain", "Connected");
 	});
-})
+});

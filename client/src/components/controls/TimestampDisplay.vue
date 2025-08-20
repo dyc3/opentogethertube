@@ -15,8 +15,8 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
+import { useStore } from "@/store";
 import { useRoomApi } from "@/util/roomapi";
 import { secondsToTimestamp, timestampToSeconds } from "@/util/timestamp";
 import ClickToEdit from "../ClickToEdit.vue";

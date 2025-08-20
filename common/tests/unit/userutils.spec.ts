@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { canKickUser } from "../../userutils.js";
+import { describe, expect, it } from "vitest";
 import { Role } from "../../models/types.js";
+import { canKickUser } from "../../userutils.js";
 
 describe("canKickUser", () => {
 	it.each([

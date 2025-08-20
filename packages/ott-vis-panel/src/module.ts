@@ -1,6 +1,6 @@
 import { PanelPlugin } from "@grafana/data";
-import { CoreOptions } from "./types";
 import { CorePanel } from "./components/CorePanel";
+import { CoreOptions } from "./types";
 
 export const plugin = new PanelPlugin<CoreOptions>(CorePanel).setPanelOptions(builder => {
 	return builder

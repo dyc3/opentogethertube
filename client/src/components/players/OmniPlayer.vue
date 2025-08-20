@@ -105,12 +105,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from "@/store";
-import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
+import { ALL_VIDEO_SERVICES } from "ott-common";
 import { PlayerStatus } from "ott-common/models/types";
 import { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
-import { defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
+import { computed, defineAsyncComponent, PropType, Ref, ref, watch, watchEffect } from "vue";
+import { useStore } from "@/store";
+import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import {
 	MediaPlayer,
 	MediaPlayerWithCaptions,
@@ -120,8 +121,6 @@ import {
 	usePlaybackRate,
 	useVolume,
 } from "../composables";
-import { watchEffect } from "vue";
-import { ALL_VIDEO_SERVICES } from "ott-common";
 
 const props = defineProps({
 	source: {
@@ -277,7 +276,7 @@ async function onBufferSpans(spans: TimeRanges) {
 				new Date(),
 				store.state.room.playbackPosition,
 				store.state.room.playbackSpeed
-		  )
+			)
 		: store.state.room.playbackPosition;
 	const isInSpans = isInTimeRanges(spans, position);
 	showBufferWarning.value = !isInSpans;

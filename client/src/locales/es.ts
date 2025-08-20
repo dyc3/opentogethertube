@@ -1,45 +1,45 @@
-import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
+import { BehaviorOption, OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
-	"common": {
-		"yes": "Si",
-		"no": "No",
-		"ok": "OK",
-		"cancel": "Cancelar",
-		"close": "Cerrar",
+	common: {
+		yes: "Si",
+		no: "No",
+		ok: "OK",
+		cancel: "Cancelar",
+		close: "Cerrar",
 		"close-all": "Cerrar Todos",
-		"add": "Agregar",
-		"remove": "Eliminar",
-		"delete": "Borrar",
-		"play": "Jugar",
-		"pause": "Pausar",
-		"save": "Guardar",
-		"search": "Buscar",
-		"undo": "Deshacer",
-		"copy": "Copiar",
-		"show": "Mostrar",
-		"hide": "Esconder",
-		"discard": "Desechar",
-		"loading": "Cargando...",
-		"view": "Mirar",
-		"restore": "Restaurar",
-		"success": "Éxito",
-		"vote": "Votar",
-		"unvote": "Anular el voto",
-		"on": "Encendido",
-		"off": "Apagado",
-		"dismiss": "Despedir",
-		"errors": {
+		add: "Agregar",
+		remove: "Eliminar",
+		delete: "Borrar",
+		play: "Jugar",
+		pause: "Pausar",
+		save: "Guardar",
+		search: "Buscar",
+		undo: "Deshacer",
+		copy: "Copiar",
+		show: "Mostrar",
+		hide: "Esconder",
+		discard: "Desechar",
+		loading: "Cargando...",
+		view: "Mirar",
+		restore: "Restaurar",
+		success: "Éxito",
+		vote: "Votar",
+		unvote: "Anular el voto",
+		on: "Encendido",
+		off: "Apagado",
+		dismiss: "Despedir",
+		errors: {
 			"rate-limit":
 				"Demasiadas solicitudes. Por favor trata otra vez en {duration} segundos.",
 		},
 	},
-	"behavior": {
+	behavior: {
 		[BehaviorOption.Always]: "Siempre",
 		[BehaviorOption.Prompt]: "Preguntar",
 		[BehaviorOption.Never]: "Nunca",
 	},
-	"landing": {
+	landing: {
 		hero: {
 			title: "Disfrutar juntos.",
 			description:
@@ -59,7 +59,7 @@ export default {
 			link: "hay más en camino",
 		},
 		features: {
-			"title": "Características Principales",
+			title: "Características Principales",
 			"syncronized-playback": {
 				title: "Reproducción sincronizada",
 				text: "Golpea play, y el video se reproduce para todos\nen la sala. Asi de simple",
@@ -96,13 +96,13 @@ export default {
 			contribute: "Contribuir",
 		},
 	},
-	"footer": {
-		"disclaimer":
+	footer: {
+		disclaimer:
 			"Descargo de responsabilidad: El proyecto OpenTogetherTube no está asociado con TogetherTube ni con Watch2Gether.",
 		"made-in": "Hecho en America",
 		"thanks-to": "Agradecimientos especiales a",
 		"privacy-policy": "Política de privacidad",
-		"attribution": "Atribución",
+		attribution: "Atribución",
 	},
 	"not-found": {
 		title: "Página no encontrada",
@@ -112,37 +112,37 @@ export default {
 	"quick-room": {
 		text: "Haciendo una sala temporaria para ti...",
 	},
-	"attribution": {
+	attribution: {
 		"sponsorblock-text": "Utiliza SponsorBlock datos de",
 	},
-	"nav": {
-		"home": "Página Principal",
-		"browse": "Navegar",
-		"faq": "FAQ",
-		"bug": "Reportar un Error",
-		"support": "Apoyarme!",
-		"login": "Registrarse",
+	nav: {
+		home: "Página Principal",
+		browse: "Navegar",
+		faq: "FAQ",
+		bug: "Reportar un Error",
+		support: "Apoyarme!",
+		login: "Registrarse",
 		"link-discord": "Conectar Discord",
-		"logout": "Cerrar Sesión",
-		"create": {
-			"title": "Crear Sala",
-			"temp": "Crear Sala Temporaria",
+		logout: "Cerrar Sesión",
+		create: {
+			title: "Crear Sala",
+			temp: "Crear Sala Temporaria",
 			"temp-desc": "Comienza a ver videos con tus amigos ahora",
-			"perm": "Crear Sala Permanente",
+			perm: "Crear Sala Permanente",
 			"perm-desc": "Perfecto para visitantes frecuentes.",
 		},
 	},
 	"room-list": {
 		"no-rooms": "No hay salas en este momento......",
-		"create": "@:nav.create.title",
+		create: "@:nav.create.title",
 		"no-description": "Sin descripción.",
 		"nothing-playing": "Nada Jugando.",
 	},
-	"room": {
+	room: {
 		"title-temp": "Sala Temporario",
 		"kick-me": "Sacame",
-		"rewind": "Devolver 10s",
-		"skip": "Adelantar 10s",
+		rewind: "Devolver 10s",
+		skip: "Adelantar 10s",
 		"play-pause": "Reproducir/Pausar",
 		"next-video": "Siguiente vídeo",
 		"next-video-vote": "Vota para saltar el vídeo",
@@ -151,11 +151,11 @@ export default {
 			connecting: "Conectando...",
 			connected: "Conectado",
 		},
-		"tabs": {
+		tabs: {
 			queue: "Cola",
 			settings: "Ajustes",
 		},
-		"users": {
+		users: {
 			title: "Usuarios",
 			set: "Establece tu nombre",
 			empty: "Parece que no hay nadie más aquí. ¡Invita a algunos amigos!",
@@ -165,11 +165,11 @@ export default {
 			kick: "Sacar",
 		},
 	},
-	"privacy": {
+	privacy: {
 		title: "@:footer.privacy-policy",
 	},
-	"chat": {
-		"title": "Hablar",
+	chat: {
+		title: "Hablar",
 		"type-here": "Escribe tu mensaje aquí...",
 	},
 	"share-invite": {
@@ -177,33 +177,33 @@ export default {
 		text: "Copia este enlace y compártelo con tus amigos!",
 		copied: "Copiado!",
 	},
-	"video": {
+	video: {
 		"add-explanation": "Agregar a la cola.",
-		"playnow": "Reproducir ahora",
+		playnow: "Reproducir ahora",
 		"playnow-explanation":
 			"Reproduce este video ahora, empujando el video actual al principio de la cola.",
 		"no-video": "No se está reproduciendo ningún video.",
 		"no-video-text": 'Haz clic en "Agregar" para añadir un video.',
 	},
 	"add-preview": {
-		"label": "enlace o buscar",
+		label: "enlace o buscar",
 		"add-all": "Agregar a la cola",
-		"placeholder":
+		placeholder:
 			"Escriba para buscar en YouTube o ingrese la URL de un video para agregarlo a la cola",
-		"title": "Que puedo agregar??",
+		title: "Que puedo agregar??",
 		"single-videos": "Vídeos Individuales",
-		"playlists": "Listas de reproducción",
-		"playlist": "Lista de reproducción",
-		"text": "O simplemente escriba texto para buscar en Youtube.",
+		playlists: "Listas de reproducción",
+		playlist: "Lista de reproducción",
+		text: "O simplemente escriba texto para buscar en Youtube.",
 		"search-for": 'Busque "{search}" en YouTube presionando Intro o haciendo clic en Buscar.',
-		"platforms": {
+		platforms: {
 			"youtube-videos": "Vídeos de Youtube: {url}",
 			"vimeo-videos": "Vídeos de Vimeo: {url}",
 			"any-mp4-videos": "Cualquier video público .mp4: {url}",
 			"youtube-playlists": "Listas de reproducción de youtube: {url}",
 			"youtube-channels": "Canales de Youtube: {url}",
 		},
-		"messages": {
+		messages: {
 			"unknown-status":
 				"Estado desconocido para agregar respuesta de vista previa: {status}.",
 			"unknown-error":
@@ -219,39 +219,39 @@ export default {
 	"video-queue": {
 		"no-videos": "No hay vídeos en la cola.",
 		"add-video": "Agregar un vídeos",
-		"export": "Exportar",
+		export: "Exportar",
 		"export-diag-title": "Exportar Cola",
 		"export-hint": 'Copie y pegue este texto en la pestaña "Agregar" para restaurar esta cola.',
-		"restore": "¿Quieres restaurar los vídeos de la cola anterior?",
+		restore: "¿Quieres restaurar los vídeos de la cola anterior?",
 		"restore-queue": "¿Restaurar Cola?",
 		"restore-queue-hint":
 			"Esto es lo que estaba en la cola la última vez que esta sala estuvo activa. ¿Quieres restaurarlo?",
 	},
 	"video-queue-item": {
-		"experimental": "¡Soporte experimental para este servicio! Espere que se rompa mucho.",
+		experimental: "¡Soporte experimental para este servicio! Espere que se rompa mucho.",
 		"play-next": "Reproducir Próximo",
 		"play-last": "Reproducir Último",
-		"messages": {
+		messages: {
 			"video-added": "Vídeo agregado",
 			"video-removed": "Vídeos borrado",
 		},
 		"start-at": "Empieza en {timestamp}",
 	},
 	"room-settings": {
-		"title": "@:create-room-form.title",
-		"description": "@:create-room-form.description",
-		"visibility": "@:create-room-form.visibility",
-		"public": "@:create-room-form.public",
-		"unlisted": "@:create-room-form.unlisted",
+		title: "@:create-room-form.title",
+		description: "@:create-room-form.description",
+		visibility: "@:create-room-form.visibility",
+		public: "@:create-room-form.public",
+		unlisted: "@:create-room-form.unlisted",
 		"queue-mode": "@:create-room-form.queue-mode",
-		"manual": "@:create-room-form.manual",
+		manual: "@:create-room-form.manual",
 		"manual-hint":
 			"Comportamiento normal predeterminado, funciona como lo piensas. Puedes reordenar manualmente los elementos en la cola.",
-		"vote": "@:create-room-form.vote",
+		vote: "@:create-room-form.vote",
 		"vote-hint": "El vídeo más votado se reproduce a continuación.",
-		"loop": "Loop",
+		loop: "Loop",
 		"loop-hint": "Cuando termine el video, colóquelo al final de la cola.",
-		"dj": "DJ",
+		dj: "DJ",
 		"dj-hint":
 			"Cuando termine el video, comience el mismo video desde el principio. Bueno para reproducir música de fondo.",
 		"auto-skip-text":
@@ -277,26 +277,26 @@ export default {
 	"create-room-form": {
 		"card-title": "Crear una Sala Permanente.",
 		"create-room": "Crear Sala",
-		"name": "Nombre",
+		name: "Nombre",
 		"name-hint": "Utilizado en la URL de la sala. No se puede cambiar más tarde.",
-		"title": "Título",
+		title: "Título",
 		"title-hint": "Opcional",
-		"description": "Descripción",
+		description: "Descripción",
 		"description-hint": "@:create-room-form.title-hint",
-		"visibility": "Visibilidad",
+		visibility: "Visibilidad",
 		"visibility-hint": "Controla si la sala aparece o no en la lista de salas.",
 		"queue-mode": "Modo de Cola",
-		"manual": "Manual",
-		"public": "Público",
-		"unlisted": "No incluido en listado",
-		"rules": {
-			"name": {
+		manual: "Manual",
+		public: "Público",
+		unlisted: "No incluido en listado",
+		rules: {
+			name: {
 				"name-required": "Se requiere el nombre.",
 				"no-spaces": "El nombre no debe contener espacios.",
-				"length": "El nombre debe tener entre 3 y 32 caracteres.",
-				"alphanumeric":
+				length: "El nombre debe tener entre 3 y 32 caracteres.",
+				alphanumeric:
 					"El nombre solo debe contener caracteres alfanuméricos, guiones y guiones bajos.",
-				"taken": "Nombre ya esta en uso.",
+				taken: "Nombre ya esta en uso.",
 			},
 			"invalid-visibility": "Visibilidad no válida",
 			"invalid-queue": "Modo de cola no válido",
@@ -304,17 +304,17 @@ export default {
 		"unknown-error": "Un error desconocido ocurrió. Vuelve a intentarlo más tarde.",
 	},
 	"login-form": {
-		"login": "@:nav.login",
-		"register": "Registrar",
+		login: "@:nav.login",
+		register: "Registrar",
 		"login-discord": "Iniciar sesión con Discord.",
-		"email": "Correo Electrónico",
+		email: "Correo Electrónico",
 		"email-or-username": "Correo Electrónico o Nombre de Usuario",
-		"username": "Nombre de Usuario",
-		"password": "Contraseña",
+		username: "Nombre de Usuario",
+		password: "Contraseña",
 		"retype-password": "Vuelva a escribir la contraseña",
 		"email-optional":
 			"Dando un correo electrónico es opcional, pero hace imposible recuperar su cuenta si olvida su contraseña.",
-		"rules": {
+		rules: {
 			"email-required": "Correo electronico es requerido",
 			"valid-email": "Debe ser un correo electrónico válido",
 			"username-required": "Se requiere nombre de usuario",
@@ -324,7 +324,7 @@ export default {
 			"retype-password": "Por favor, escriba de nuevo su contraseña",
 			"passwords-match": "Las contraseñas deben coincidir",
 		},
-		"errors": {
+		errors: {
 			"something-weird-happened":
 				"Algo extraño sucedió, pero ¿es posible que hayas iniciado sesión? Recarga la página.",
 			"login-failed-noserver":
@@ -347,26 +347,23 @@ export default {
 		},
 	},
 	"permissions-editor": {
-		"title": "Editor de permisos",
-		"text1":
-			"Todos los permisos concedidos a usuarios con menos privilegios se conceden automáticamente a usuarios con más privilegios.",
-		"text2":
-			"A los administradores se les concede todo. El propietario de la sala es automáticamente administrador y no puede ser degradado.",
+		title: "Editor de permisos",
+		text1: "Todos los permisos concedidos a usuarios con menos privilegios se conceden automáticamente a usuarios con más privilegios.",
+		text2: "A los administradores se les concede todo. El propietario de la sala es automáticamente administrador y no puede ser degradado.",
 		"viewing-as": "Viendo como",
-		"permission": "Permisos",
+		permission: "Permisos",
 	},
 	"client-settings": {
-		"title": "Preferencias",
-		"description":
-			"Estas configuraciones se guardan en su navegador y solo le afectan a usted.",
-		"activator": "@:client-settings.title",
+		title: "Preferencias",
+		description: "Estas configuraciones se guardan en su navegador y solo le afectan a usted.",
+		activator: "@:client-settings.title",
 		"room-layout": "Diseño de la sala",
-		"theme": "Modo",
+		theme: "Modo",
 		"sfx-enable": "Habilitar efectos de sonido",
 		"sfx-volume": "Volumen del efecto de sonido",
 	},
 	"connect-overlay": {
-		"title": "Desconectado",
+		title: "Desconectado",
 		"find-another": "Encuentra otra sala",
 		"dc-reasons": {
 			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
@@ -381,7 +378,7 @@ export default {
 	"vote-skip": {
 		remaining: "{count} votos más para omitir",
 	},
-	"roles": {
+	roles: {
 		[Role.Administrator]: "Administrador",
 		[Role.Moderator]: "Moderador",
 		[Role.TrustedUser]: "Usuario Confiado",
@@ -389,12 +386,12 @@ export default {
 		[Role.UnregisteredUser]: "Usuario no Registrado",
 		[Role.Owner]: "Dueño",
 	},
-	"errors": {
+	errors: {
 		BadPasswordError:
 			"La contraseña no cumple con los requisitos mínimos. Debe tener al menos 8 caracteres y contener 2 de las siguientes categorías de caracteres: letras minúsculas, letras mayúsculas, números, caracteres especiales.",
 		BadApiArgumentException: "Mal argumento de API. Probablemente es un error, Reportalo",
 	},
-	"player": {
+	player: {
 		"buffer-warn": {
 			spans: "Aún no has almacenado suficiente cantidad del vídeo. Intervalos de tiempo actuales almacenados en búfer: {range}",
 		},

@@ -72,11 +72,11 @@
 </template>
 
 <script lang="ts" setup>
-import { API } from "@/common-http";
-import { ref, onMounted } from "vue";
-import { createRoomHelper } from "@/util/roomcreator";
-import { useStore } from "@/store";
 import type { OttResponseBody, RoomListItem } from "ott-common/models/rest-api";
+import { onMounted, ref } from "vue";
+import { API } from "@/common-http";
+import { useStore } from "@/store";
+import { createRoomHelper } from "@/util/roomcreator";
 
 const isLoading = ref(false);
 const rooms = ref<RoomListItem[]>([]);

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
+import _ from "lodash";
+import { PlayerStatus } from "ott-common/models/types";
 import { onUnmounted } from "vue";
 import { useConnection } from "@/plugins/connection";
 import { useStore } from "@/store";
-import { PlayerStatus } from "ott-common/models/types";
-import _ from "lodash";
 
 const store = useStore();
 const connection = useConnection();

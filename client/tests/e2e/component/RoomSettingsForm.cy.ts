@@ -1,9 +1,9 @@
-import { defineComponent, h } from "vue";
-import RoomSettingsForm from "../../../src/components/RoomSettingsForm.vue";
-import Notifier from "../../../src/components/Notifier.vue";
-import { useStore } from "../../../src/store";
-import { Grants, parseIntoGrantMask } from "ott-common/permissions";
 import { PlayerStatus, Role, RoomUserInfo } from "ott-common/models/types";
+import { Grants, parseIntoGrantMask } from "ott-common/permissions";
+import { defineComponent, h } from "vue";
+import Notifier from "../../../src/components/Notifier.vue";
+import RoomSettingsForm from "../../../src/components/RoomSettingsForm.vue";
+import { useStore } from "../../../src/store";
 
 let page = defineComponent({
 	setup() {
@@ -71,6 +71,7 @@ describe("<RoomSettingsForm />", () => {
 		cy.intercept("GET", "/api/room/foo", {
 			fixture: "get-room-foo.json",
 		});
+		// biome-ignore lint/nursery/noShadow: biome migration
 		let page = defineComponent({
 			setup() {
 				const store = useStore();

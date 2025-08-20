@@ -1,16 +1,16 @@
-import util from "util";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
-import { getLogger } from "./logger.js";
-import childProcess from "child_process";
 import axios from "axios";
-import { Stream } from "stream";
+import childProcess from "child_process";
 import fs from "fs/promises";
-import path from "path";
-// FIXME: remove node-abort-controller package when we stop supporting node 14.
-import { AbortController } from "node-abort-controller";
 import http from "http";
 import https from "https";
+// FIXME: remove node-abort-controller package when we stop supporting node 14.
+import { AbortController } from "node-abort-controller";
+import path from "path";
 import { Counter } from "prom-client";
+import { Stream } from "stream";
+import util from "util";
+import { getLogger } from "./logger.js";
 import { conf } from "./ott-config.js";
 
 const log = getLogger("infoextract/ffprobe");
@@ -22,6 +22,7 @@ function streamDataIntoFfprobe(
 	controller: AbortController
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 		let streamEnded = true;
 
 		let child = childProcess.spawn(

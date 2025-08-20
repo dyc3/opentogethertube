@@ -1,0 +1,231 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+	"root": true,
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!**/node_modules/**",
+			"!**/dist/**",
+			"!**/coverage/**",
+			"!**/ts-out/**",
+			"!**/benchmarks/**/*.json",
+			"!**/*.lock",
+			"!**/*.log",
+			"!**/*.env",
+			"!**/tests/unit/fixtures/**",
+			"!server/generated.ts"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineEnding": "lf",
+		"lineWidth": 100,
+		"attributePosition": "auto",
+		"bracketSameLine": false,
+		"bracketSpacing": true,
+		"expand": "auto"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": false,
+			"complexity": {
+				"noAdjacentSpacesInRegex": "error",
+				"noExtraBooleanCast": "error",
+				"noUselessCatch": "error",
+				"noUselessEscapeInRegex": "error"
+			},
+			"correctness": {
+				"noConstAssign": "error",
+				"noConstantCondition": "error",
+				"noEmptyCharacterClassInRegex": "error",
+				"noEmptyPattern": "error",
+				"noGlobalObjectCalls": "error",
+				"noInnerDeclarations": "error",
+				"noInvalidConstructorSuper": "error",
+				"noNonoctalDecimalEscape": "error",
+				"noPrecisionLoss": "error",
+				"noSelfAssign": "error",
+				"noSetterReturn": "error",
+				"noSwitchDeclarations": "error",
+				"noUndeclaredVariables": "error",
+				"noUnreachable": "error",
+				"noUnreachableSuper": "error",
+				"noUnsafeFinally": "error",
+				"noUnsafeOptionalChaining": "error",
+				"noUnusedLabels": "error",
+				"noUnusedVariables": "error",
+				"useIsNan": "error",
+				"useValidForDirection": "error",
+				"useValidTypeof": "error",
+				"useYield": "error"
+			},
+			"security": {
+				"noGlobalEval": "error"
+			},
+			"style": {
+				"useBlockStatements": "error",
+				"useUnifiedTypeSignatures": "error"
+			},
+			"suspicious": {
+				"noAsyncPromiseExecutor": "error",
+				"noCatchAssign": "error",
+				"noClassAssign": "error",
+				"noCompareNegZero": "error",
+				"noConsole": "error",
+				"noControlCharactersInRegex": "error",
+				"noDebugger": "error",
+				"noDoubleEquals": "error",
+				"noDuplicateCase": "error",
+				"noDuplicateClassMembers": "error",
+				"noDuplicateElseIf": "error",
+				"noDuplicateObjectKeys": "error",
+				"noDuplicateParameters": "error",
+				"noEmptyBlockStatements": "error",
+				"noFallthroughSwitchClause": "error",
+				"noFunctionAssign": "error",
+				"noGlobalAssign": "error",
+				"noImportAssign": "error",
+				"noIrregularWhitespace": "error",
+				"noMisleadingCharacterClass": "error",
+				"noPrototypeBuiltins": "error",
+				"noRedeclare": "error",
+				"noShadowRestrictedNames": "error",
+				"noSparseArray": "error",
+				"noUnsafeNegation": "error",
+				"noVar": "error",
+				"noWith": "error",
+				"useGetterReturn": "error"
+			},
+			"nursery": {
+				"noShadow": "error",
+				"useExhaustiveSwitchCases": "error"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"trailingCommas": "es5",
+			"semicolons": "always",
+			"arrowParentheses": "asNeeded",
+			"bracketSameLine": false,
+			"quoteStyle": "double",
+			"attributePosition": "auto",
+			"bracketSpacing": true
+		}
+	},
+	"html": {
+		"formatter": {
+			"selfCloseVoidElements": "always"
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["*.yaml", "*.yml"],
+			"formatter": {
+				"indentStyle": "space",
+				"indentWidth": 2
+			}
+		},
+		// Until Biome has full support for Vue
+		{
+			"includes": ["**/*.vue"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedImports": "off",
+						"noUnusedVariables": "off"
+					},
+					"style": {
+						"useConst": "off",
+						"useImportType": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["client/**", "tests/load/**", "server/config/config.mjs"],
+			"linter": {
+				"domains": {
+					"vue": "recommended"
+				},
+				"rules": {
+					"suspicious": {
+						"noConsole": "off"
+					}
+				}
+			},
+			"javascript": {
+				"globals": ["__COMMIT_HASH__"]
+			}
+		},
+		{
+			"includes": ["packages/ott-vis-datasource/**", "packages/ott-vis-panel/**"],
+			"linter": {
+				"domains": {
+					"react": "recommended"
+				},
+				"rules": {
+					"suspicious": {
+						"noConsole": "off"
+					}
+				}
+			},
+			"javascript": {
+				"globals": ["__COMMIT_HASH__"]
+			}
+		},
+		{
+			"includes": ["**/*.test.ts", "**/*.test.js", "**/*.spec.ts", "**/*.spec.js"],
+			"linter": {
+				"domains": {
+					"test": "all"
+				}
+			}
+		},
+		{
+			"includes": ["client/tests/e2e/**", "**/cypress/integration/**", "tests/e2e/**"],
+			"linter": {
+				"domains": {
+					"test": "all"
+				}
+			},
+			"javascript": {
+				"globals": ["cy", "Cypress"]
+			}
+		},
+		{
+			"includes": ["**/jest-setup.js"],
+			"javascript": {
+				"globals": ["jest"]
+			}
+		},
+		{
+			"includes": ["**/.eslintrc.json"],
+			"json": {
+				"parser": {
+					"allowComments": true
+				}
+			}
+		}
+	],
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}

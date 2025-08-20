@@ -23,8 +23,8 @@ describe("<ClickToEdit />", () => {
 		const updateModelValueSpy = cy.spy().as("updateModelValueSpy");
 		cy.mount(ClickToEdit, {
 			props: {
-				"modelValue": "Hello World",
-				"onChange": changeSpy,
+				modelValue: "Hello World",
+				onChange: changeSpy,
 				"onUpdate:modelValue": updateModelValueSpy,
 			},
 		});
@@ -46,8 +46,8 @@ describe("<ClickToEdit />", () => {
 			const updateModelValueSpy = cy.spy().as("updateModelValueSpy");
 			cy.mount(ClickToEdit, {
 				props: {
-					"modelValue": "Hello World",
-					"onChange": changeSpy,
+					modelValue: "Hello World",
+					onChange: changeSpy,
 					"onUpdate:modelValue": updateModelValueSpy,
 				},
 			});
@@ -81,8 +81,8 @@ describe("<ClickToEdit />", () => {
 		const updateModelValueSpy = cy.spy().as("updateModelValueSpy");
 		cy.mount(ClickToEdit, {
 			props: {
-				"modelValue": 420,
-				"onChange": changeSpy,
+				modelValue: 420,
+				onChange: changeSpy,
 				"onUpdate:modelValue": updateModelValueSpy,
 			},
 		});

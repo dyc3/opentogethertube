@@ -41,12 +41,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
 import type { OttResponseBody } from "ott-common/models/rest-api";
-import toast from "@/util/toast";
-import { ToastStyle } from "@/models/toast";
-import { API } from "@/common-http";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { API } from "@/common-http";
+import { ToastStyle } from "@/models/toast";
+import toast from "@/util/toast";
 
 const i18n = useI18n();
 

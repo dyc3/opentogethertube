@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
-import Plyr from "plyr";
-import Hls from "hls.js";
 import dashjs from "dashjs";
+import Hls from "hls.js";
+import Plyr from "plyr";
+import { defineComponent, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
 import "plyr/src/sass/plyr.scss";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
 import { useCaptions } from "../composables";

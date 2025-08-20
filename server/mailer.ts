@@ -1,8 +1,8 @@
-import { type Result, ok, err } from "ott-common/result.js";
 import Mailjet, { Client as MailjetClient } from "node-mailjet";
-import { conf } from "./ott-config.js";
-import { getLogger } from "./logger.js";
+import { err, ok, type Result } from "ott-common/result.js";
 import { Counter } from "prom-client";
+import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
 
 const log = getLogger("mailer");
 

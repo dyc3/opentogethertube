@@ -1,10 +1,10 @@
-import { it, describe, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
+import { createVuetify } from "vuetify";
+import { usePlaybackRate } from "@/components/composables";
 import PlaybackRateSwitcher from "@/components/controls/PlaybackRateSwitcher.vue";
 import { i18n } from "@/i18n";
-import { createVuetify } from "vuetify";
 import { MockOttRoomConnectionPlugin } from "@/plugins/connection";
-import { usePlaybackRate } from "@/components/composables";
 
 const mountOptions = {
 	global: {

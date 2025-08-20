@@ -1,12 +1,12 @@
-import { URL } from "url";
 import axios from "axios";
-import { getLogger } from "../logger.js";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import _ from "lodash";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { conf } from "../ott-config.js";
+import { URL } from "url";
 import { v1 as uuidv1 } from "uuid";
 import { InvalidVideoIdException } from "../exceptions.js";
-import _ from "lodash";
+import { getLogger } from "../logger.js";
+import { conf } from "../ott-config.js";
+import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
 
 const log = getLogger("pluto");
 

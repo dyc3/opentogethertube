@@ -1,22 +1,22 @@
+import type { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api.js";
+import type { MockMailer } from "server/mailer.js";
+import request from "supertest";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
 	MockInstance,
+	vi,
 } from "vitest";
-import request from "supertest";
 import { main } from "../../../app.js";
-import usermanager from "../../../usermanager.js";
 import type { User } from "../../../models/user.js";
-import type { MockMailer } from "server/mailer.js";
 import { conf } from "../../../ott-config.js";
 import { redisClient } from "../../../redisclient.js";
-import type { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api.js";
+import usermanager from "../../../usermanager.js";
 
 describe("Account Recovery", () => {
 	let token;
@@ -45,6 +45,7 @@ describe("Account Recovery", () => {
 		conf.set("mail.enabled", true);
 	});
 
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	beforeEach(async () => {});
 
 	afterEach(() => {

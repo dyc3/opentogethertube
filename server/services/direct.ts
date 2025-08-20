@@ -1,16 +1,16 @@
-import URL from "url";
 import _ from "lodash";
-import { ServiceAdapter } from "../serviceadapter.js";
+import { Video } from "ott-common/models/video.js";
+import URL from "url";
 import {
 	LocalFileException,
-	UnsupportedMimeTypeException,
 	MissingMetadataException,
+	UnsupportedMimeTypeException,
 } from "../exceptions.js";
-import { getMimeType, isSupportedMimeType } from "../mime.js";
 import { FfprobeStrategy, OnDiskPreviewFfprobe, RunFfprobe, StreamFfprobe } from "../ffprobe.js";
 import { getLogger } from "../logger.js";
-import { Video } from "ott-common/models/video.js";
+import { getMimeType, isSupportedMimeType } from "../mime.js";
 import { conf } from "../ott-config.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 
 const log = getLogger("direct");
 

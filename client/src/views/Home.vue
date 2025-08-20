@@ -180,9 +180,9 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
 import { isOfficialSite } from "@/util/misc";
+import { createRoomHelper } from "@/util/roomcreator";
 
 const store = useStore();
 

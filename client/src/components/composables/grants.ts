@@ -1,4 +1,4 @@
-import { parseIntoGrantMask, PermissionName } from "ott-common/permissions";
+import { PermissionName, parseIntoGrantMask } from "ott-common/permissions";
 import { useStore } from "@/store";
 
 export function useGrants() {

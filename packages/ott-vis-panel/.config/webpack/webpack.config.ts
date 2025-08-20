@@ -8,13 +8,12 @@
 import CopyWebpackPlugin from "copy-webpack-plugin";
 import ESLintPlugin from "eslint-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
-import LiveReloadPlugin from "webpack-livereload-plugin";
 import path from "path";
 import ReplaceInFileWebpackPlugin from "replace-in-file-webpack-plugin";
 import { Configuration } from "webpack";
-
-import { getPackageJson, getPluginJson, hasReadme, getEntries, isWSL } from "./utils";
-import { SOURCE_DIR, DIST_DIR } from "./constants";
+import LiveReloadPlugin from "webpack-livereload-plugin";
+import { DIST_DIR, SOURCE_DIR } from "./constants";
+import { getEntries, getPackageJson, getPluginJson, hasReadme, isWSL } from "./utils";
 
 const pluginJson = getPluginJson();
 
@@ -60,7 +59,9 @@ const config = async (env): Promise<Configuration> => {
 			// Mark legacy SDK imports as external if their name starts with the "grafana/" prefix
 			({ request }, callback) => {
 				const prefix = "grafana/";
+				// biome-ignore lint/nursery/noShadow: biome migration
 				const hasPrefix = request => request.indexOf(prefix) === 0;
+				// biome-ignore lint/nursery/noShadow: biome migration
 				const stripPrefix = request => request.substr(prefix.length);
 
 				if (hasPrefix(request)) {
@@ -110,7 +111,7 @@ const config = async (env): Promise<Configuration> => {
 						// Keep publicPath relative for host.com/grafana/ deployments
 						publicPath: `public/plugins/${pluginJson.id}/img/`,
 						outputPath: "img/",
-						filename: Boolean(env.production) ? "[hash][ext]" : "[file]",
+						filename: env.production ? "[hash][ext]" : "[file]",
 					},
 				},
 				{
@@ -120,7 +121,7 @@ const config = async (env): Promise<Configuration> => {
 						// Keep publicPath relative for host.com/grafana/ deployments
 						publicPath: `public/plugins/${pluginJson.id}/fonts/`,
 						outputPath: "fonts/",
-						filename: Boolean(env.production) ? "[hash][ext]" : "[name][ext]",
+						filename: env.production ? "[hash][ext]" : "[name][ext]",
 					},
 				},
 			],
@@ -165,15 +166,15 @@ const config = async (env): Promise<Configuration> => {
 					files: ["plugin.json", "README.md"],
 					rules: [
 						{
-							search: /\%VERSION\%/g,
+							search: /%VERSION%/g,
 							replace: getPackageJson().version,
 						},
 						{
-							search: /\%TODAY\%/g,
+							search: /%TODAY%/g,
 							replace: new Date().toISOString().substring(0, 10),
 						},
 						{
-							search: /\%PLUGIN_ID\%/g,
+							search: /%PLUGIN_ID%/g,
 							replace: pluginJson.id,
 						},
 					],
@@ -193,7 +194,7 @@ const config = async (env): Promise<Configuration> => {
 							extensions: [".ts", ".tsx"],
 							lintDirtyModulesOnly: Boolean(env.development), // don't lint on start, only lint changed files
 						}),
-				  ]
+					]
 				: []),
 		],
 

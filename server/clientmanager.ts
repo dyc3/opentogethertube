@@ -1,10 +1,7 @@
-import express from "express";
-import WebSocket from "ws";
+import express, { Request } from "express";
 import _ from "lodash";
-import { wss } from "./websockets.js";
-import { getLogger } from "./logger.js";
-import { Request } from "express";
-import { createSubscriber, redisClient } from "./redisclient.js";
+import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants.js";
+import { OttException } from "ott-common/exceptions.js";
 import {
 	ClientMessage,
 	ClientMessageKickMe,
@@ -15,26 +12,28 @@ import {
 	ServerMessageUser,
 	ServerMessageYou,
 } from "ott-common/models/messages.js";
-import { ClientNotFoundInRoomException, MissingToken } from "./exceptions.js";
-import { MySession, OttWebsocketError, AuthToken, ClientId } from "ott-common/models/types.js";
-import roommanager from "./roommanager.js";
-import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants.js";
-import tokens, { SessionInfo } from "./auth/tokens.js";
-import { RoomStateSyncable } from "./room.js";
-import { Gauge } from "prom-client";
+import { AuthToken, ClientId, MySession, OttWebsocketError } from "ott-common/models/types.js";
 import { replacer } from "ott-common/serialize.js";
-import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client.js";
+import { Gauge } from "prom-client";
+import WebSocket from "ws";
+import tokens, { SessionInfo } from "./auth/tokens.js";
 import {
 	BalancerConnection,
-	MsgB2M,
 	balancerManager,
 	buildGossipMessage,
 	initBalancerConnections,
+	MsgB2M,
 } from "./balancer.js";
-import usermanager from "./usermanager.js";
-import { OttException } from "ott-common/exceptions.js";
-import { conf } from "./ott-config.js";
+import { BalancerClient, Client, ClientJoinStatus, DirectClient } from "./client.js";
+import { ClientNotFoundInRoomException, MissingToken } from "./exceptions.js";
 import { UnloadReason } from "./generated.js";
+import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
+import { createSubscriber, redisClient } from "./redisclient.js";
+import { RoomStateSyncable } from "./room.js";
+import roommanager from "./roommanager.js";
+import usermanager from "./usermanager.js";
+import { wss } from "./websockets.js";
 
 const log = getLogger("clientmanager");
 
@@ -229,9 +228,11 @@ async function onClientDisconnect(client: Client) {
 			log.error("failed to remove client from connections");
 			return;
 		}
+		// biome-ignore lint/nursery/noShadow: biome migration
 		let client = clients[0];
 		let joins = roomJoins.get(client.room);
 		if (joins) {
+			// biome-ignore lint/nursery/noShadow: biome migration
 			const index = joins.indexOf(client);
 			if (index !== -1) {
 				joins.splice(index, 1);
@@ -312,16 +313,19 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 
 	// the intersection type makes it so that it throws a compile error if all the enum variants aren't handled
 	const handlers: Record<MsgB2M["type"], unknown> & EnumHandler<MsgB2M> = {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		load: async message => {
 			log.debug(`Balancer requested to load room ${message.payload.room}`);
 			const msg = message.payload;
 			await roommanager.getRoom(msg.room);
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		unload: async message => {
 			log.debug(`Balancer requested to unload room ${message.payload.room}`);
 			const msg = message.payload;
 			await roommanager.unloadRoom(msg.room, UnloadReason.Commanded);
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		join: async message => {
 			const msg = message.payload;
 			const client = new BalancerClient(msg.room, msg.client, conn);
@@ -331,6 +335,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 			client.on("disconnect", onClientDisconnect);
 			client.auth(msg.token);
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		leave: async message => {
 			const msg = message.payload;
 			const client = connections.find(c => c.id === msg.client);
@@ -342,6 +347,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 				);
 			}
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		client_msg: async message => {
 			const msg = message.payload;
 			const client = connections.find(c => c.id === msg.client_id);
@@ -353,6 +359,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 				);
 			}
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		init: async message => {
 			const msg = message.payload;
 			conn.id = msg.id;
@@ -533,6 +540,7 @@ export interface CmdKick extends CmdBase {
 	clientId: ClientId;
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeWebsocketConnections = new Gauge({
 	name: "ott_websocket_connections",
 	help: "The number of active websocket connections (deprecated)",
@@ -541,6 +549,7 @@ const gaugeWebsocketConnections = new Gauge({
 	},
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeClients = new Gauge({
 	name: "ott_clients_connected",
 	help: "The number of clients connected.",

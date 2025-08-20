@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
+import { defineComponent, h, onMounted } from "vue";
 // import { document } from "jsdom";
 import { KeyboardShortcuts } from "../../src/util/keyboard-shortcuts";
-import { mount } from "@vue/test-utils";
-import { defineComponent, h, onMounted } from "vue";
 
 describe("KeyboardShortcuts", () => {
 	it("should bind and unbind", () => {

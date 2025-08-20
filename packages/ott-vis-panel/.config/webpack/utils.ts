@@ -1,8 +1,8 @@
 import fs from "fs";
-import process from "process";
+import { glob } from "glob";
 import os from "os";
 import path from "path";
-import { glob } from "glob";
+import process from "process";
 import { SOURCE_DIR } from "./constants";
 
 export function isWSL() {
@@ -46,6 +46,7 @@ export async function getEntries(): Promise<Record<string, string>> {
 	);
 
 	return plugins.reduce((result, modules) => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		return modules.reduce((result, module) => {
 			const pluginPath = path.dirname(module);
 			const pluginName = path.relative(process.cwd(), pluginPath).replace(/src\/?/i, "");

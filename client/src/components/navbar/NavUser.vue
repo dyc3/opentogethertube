@@ -25,8 +25,8 @@
 </template>
 
 <script lang="ts" setup>
-import { goLoginDiscord } from "@/util/discord";
 import { useStore } from "@/store";
+import { goLoginDiscord } from "@/util/discord";
 
 defineEmits(["login", "logout"]);
 const store = useStore();

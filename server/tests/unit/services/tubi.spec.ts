@@ -1,17 +1,17 @@
+import { AxiosRequestHeaders, AxiosResponse } from "axios";
+import fs from "fs";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
 	MockInstance,
+	vi,
 } from "vitest";
 import TubiAdapter from "../../../services/tubi.js";
-import fs from "fs";
-import { AxiosRequestHeaders, AxiosResponse } from "axios";
 
 const singleVideoLinks = [
 	["https://tubitv.com/oz/videos/458113/content", "458113"],
@@ -62,6 +62,7 @@ describe("Tubi TV", () => {
 			let data;
 			try {
 				data = JSON.parse(fixtureText);
+				// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			} catch (e) {
 				data = fixtureText;
 			}

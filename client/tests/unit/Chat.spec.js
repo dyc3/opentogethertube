@@ -1,8 +1,8 @@
-import { it, describe, expect, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createVuetify } from "vuetify";
-import Chat from "@/components/Chat.vue";
 import Vuex from "vuex";
+import Chat from "@/components/Chat.vue";
 import { i18n } from "@/i18n";
 
 function createStore() {

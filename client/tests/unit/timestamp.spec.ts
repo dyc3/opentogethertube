@@ -1,5 +1,5 @@
-import { it, describe, expect } from "vitest";
 import dayjs from "dayjs";
+import { describe, expect, it } from "vitest";
 import { secondsToTimestamp, timestampToSeconds } from "../../src/util/timestamp.js";
 
 describe("secondsToTimestamp spec", () => {

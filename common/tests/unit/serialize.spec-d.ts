@@ -1,7 +1,7 @@
 /* eslint-disable vitest/expect-expect */
-import { assertType, expectTypeOf, describe, it } from "vitest";
-import type { ConvertToJsonSafe } from "../../serialize.js";
+import { assertType, describe, expectTypeOf, it } from "vitest";
 import type { QueueItem } from "../../models/video.js";
+import type { ConvertToJsonSafe } from "../../serialize.js";
 
 describe("serialize helper types", () => {
 	it("should convert types to a type that is actually json serializable", () => {

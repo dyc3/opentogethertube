@@ -1,18 +1,18 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	MockInstance,
-} from "vitest";
-import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto.js";
 import { AxiosResponse } from "axios";
 import fs from "fs";
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	MockInstance,
+	vi,
+} from "vitest";
 import { VideoRequest } from "../../../serviceadapter.js";
+import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto.js";
 
 const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[
@@ -106,6 +106,7 @@ describe("Pluto TV", () => {
 	});
 
 	describe("resolveUrl", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new PlutoAdapter();
 		let apiGetSpy: MockInstance;
 
@@ -156,6 +157,7 @@ describe("Pluto TV", () => {
 	});
 
 	describe("fetchManyVideoInfo", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new PlutoAdapter();
 		let apiGetSpy: MockInstance;
 

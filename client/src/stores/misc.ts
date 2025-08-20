@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { Module } from "vuex/types";
 import Vuex from "vuex";
+import { Module } from "vuex/types";
 
 export interface MiscState {
 	isLoadingCreateRoom: boolean;

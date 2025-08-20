@@ -1,45 +1,45 @@
-import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
+import { BehaviorOption, OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
-	"common": {
-		"yes": "Ja",
-		"no": "Nein",
-		"ok": "OK",
-		"cancel": "Abbrechen",
-		"close": "Schließen",
+	common: {
+		yes: "Ja",
+		no: "Nein",
+		ok: "OK",
+		cancel: "Abbrechen",
+		close: "Schließen",
 		"close-all": "Alle schließen",
-		"add": "Hinzufügen",
-		"remove": "Entfernen",
-		"delete": "Löschen",
-		"play": "Play",
-		"pause": "Pause",
-		"save": "Speichern",
-		"search": "Suche",
-		"undo": "Rückgängig",
-		"copy": "Kopieren",
-		"show": "Anzeigen",
-		"hide": "Ausblenden",
-		"discard": "Verwerfen",
-		"loading": "Laden...",
-		"view": "Ansicht",
-		"restore": "Wiederherstellen",
-		"success": "Erfolg",
-		"vote": "Abstimmen",
-		"unvote": "Abwahl",
-		"on": "Ein",
-		"off": "Aus",
-		"dismiss": "Entlassen",
-		"errors": {
+		add: "Hinzufügen",
+		remove: "Entfernen",
+		delete: "Löschen",
+		play: "Play",
+		pause: "Pause",
+		save: "Speichern",
+		search: "Suche",
+		undo: "Rückgängig",
+		copy: "Kopieren",
+		show: "Anzeigen",
+		hide: "Ausblenden",
+		discard: "Verwerfen",
+		loading: "Laden...",
+		view: "Ansicht",
+		restore: "Wiederherstellen",
+		success: "Erfolg",
+		vote: "Abstimmen",
+		unvote: "Abwahl",
+		on: "Ein",
+		off: "Aus",
+		dismiss: "Entlassen",
+		errors: {
 			"rate-limit":
 				"Rate-Limit überschritten. Bitte versuchen Sie es in {duration} Sekunden erneut.",
 		},
 	},
-	"behavior": {
+	behavior: {
 		[BehaviorOption.Always]: "Immer",
 		[BehaviorOption.Prompt]: "Nachfragen",
 		[BehaviorOption.Never]: "Niemals",
 	},
-	"landing": {
+	landing: {
 		hero: {
 			title: "Gemeinsam genießen.",
 			description:
@@ -59,7 +59,7 @@ export default {
 			link: "Unterstützung für weitere Plattformen ist geplant",
 		},
 		features: {
-			"title": "Kernfunktionen",
+			title: "Kernfunktionen",
 			"synchronized-playback": {
 				title: "Synchrone Wiedergabe",
 				text: 'Sie drücken auf "Wiedergabe", und das Video wird für alle im Raum abgespielt. So einfach ist das.',
@@ -96,13 +96,13 @@ export default {
 			contribute: "Beitragen",
 		},
 	},
-	"footer": {
-		"disclaimer":
+	footer: {
+		disclaimer:
 			"Disclaimer: Das OpenTogetherTube-Projekt ist weder mit TogetherTube noch mit Watch2Gether verbunden.",
 		"made-in": "Made in Amerika",
 		"thanks-to": "Besonderen Dank an",
 		"privacy-policy": "Datenschutzbestimmungen",
-		"attribution": "Zuschreibung",
+		attribution: "Zuschreibung",
 	},
 	"not-found": {
 		title: "Seite nicht gefunden",
@@ -112,24 +112,24 @@ export default {
 	"quick-room": {
 		text: "Erstelle einen temporären Raum für Sie...",
 	},
-	"attribution": {
+	attribution: {
 		"sponsorblock-text": "Verwendet SponsorBlock-Daten von",
 	},
-	"nav": {
-		"home": "Startseite",
-		"browse": "Durchsuchen",
+	nav: {
+		home: "Startseite",
+		browse: "Durchsuchen",
 		"my-rooms": "Meine Räume",
-		"faq": "FAQ",
-		"bug": "Einen Fehler melden",
-		"support": "Unterstütze mich!",
-		"login": "Anmelden",
+		faq: "FAQ",
+		bug: "Einen Fehler melden",
+		support: "Unterstütze mich!",
+		login: "Anmelden",
 		"link-discord": "Mit Discord verknüpfen",
-		"logout": "Abmelden",
-		"create": {
-			"title": "Raum erstellen",
-			"temp": "Temporären Raum erstellen",
+		logout: "Abmelden",
+		create: {
+			title: "Raum erstellen",
+			temp: "Temporären Raum erstellen",
 			"temp-desc": "Beginnen Sie sofort damit, Videos mit Ihren Freunden anzusehen.",
-			"perm": "Permanenten Raum erstellen",
+			perm: "Permanenten Raum erstellen",
 			"perm-desc": "Ideal für häufige Besucher.",
 		},
 	},
@@ -139,15 +139,15 @@ export default {
 	},
 	"room-list": {
 		"no-rooms": "Kein Raum im Moment...",
-		"create": "@:nav.create.title",
+		create: "@:nav.create.title",
 		"no-description": "Keine Beschreibung.",
 		"nothing-playing": "Es wird nichts abgespielt.",
 	},
-	"room": {
+	room: {
 		"title-temp": "Temporärer Raum",
 		"kick-me": "Mich rauswerfen",
-		"rewind": "10s Zurückspulen",
-		"skip": "10s Vorspulen",
+		rewind: "10s Zurückspulen",
+		skip: "10s Vorspulen",
 		"play-pause": "Wiedergabe/Pause",
 		"next-video": "Nächstes Video",
 		"next-video-vote": "Für Video überspringen abstimmen",
@@ -156,11 +156,11 @@ export default {
 			connecting: "Verbinden...",
 			connected: "Verbunden",
 		},
-		"tabs": {
+		tabs: {
 			queue: "Warteschlange",
 			settings: "Einstellungen",
 		},
-		"users": {
+		users: {
 			title: "Nutzer",
 			set: "Geben Sie Ihren Nutzernamen ein",
 			empty: "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
@@ -170,11 +170,11 @@ export default {
 			kick: "Rauswerfen",
 		},
 	},
-	"privacy": {
+	privacy: {
 		title: "@:footer.privacy-policy",
 	},
-	"chat": {
-		"title": "Chat",
+	chat: {
+		title: "Chat",
 		"type-here": "Schreibe deine Nachricht hier...",
 	},
 	"share-invite": {
@@ -182,34 +182,34 @@ export default {
 		text: "Kopieren Sie diesen Link und teilen Sie ihn mit Ihren Freunden!",
 		copied: "Kopiert!",
 	},
-	"video": {
+	video: {
 		"add-explanation": "Zur Warteschlange hinzufügen.",
-		"playnow": "Jetzt abspielen",
+		playnow: "Jetzt abspielen",
 		"playnow-explanation":
 			"Dieses Video jetzt abspielen, wobei das aktuelle Video an den Anfang der Warteschlange gestellt wird.",
 		"no-video": "Es wird kein Video abgespielt.",
 		"no-video-text": 'Klicken Sie unten auf "Hinzufügen", um ein Video hinzuzufügen.',
 	},
 	"add-preview": {
-		"label": "Link oder Suche",
+		label: "Link oder Suche",
 		"add-all": "Alle hinzufügen",
-		"placeholder":
+		placeholder:
 			"Geben Sie hier einen Suchbegriff ein um YouTube zu durchsuchen, oder geben Sie eine Video-URL ein, um sie zur Warteschlange hinzuzufügen.",
-		"title": "Was kann ich hinzufügen?",
+		title: "Was kann ich hinzufügen?",
 		"single-videos": "Einzelne Videos",
-		"playlists": "Wiedergabelisten",
-		"playlist": "Wiedergabeliste",
-		"text": "Oder geben Sie einfach Text ein, um Youtube zu durchsuchen.",
+		playlists: "Wiedergabelisten",
+		playlist: "Wiedergabeliste",
+		text: "Oder geben Sie einfach Text ein, um Youtube zu durchsuchen.",
 		"search-for":
 			'Suchen Sie auf YouTube nach "{search}", indem Sie die Eingabetaste drücken oder auf Suchen klicken.',
-		"platforms": {
+		platforms: {
 			"youtube-videos": "Youtube-Videos: {url}",
 			"vimeo-videos": "Vimeo-Videos: {url}",
 			"any-mp4-videos": "Alle öffentlichen .mp4-Videos: {url}",
 			"youtube-playlists": "Youtube-Wiedergabelisten: {url}",
 			"youtube-channels": "Youtube-Kanäle: {url}",
 		},
-		"messages": {
+		messages: {
 			"unknown-status": "Unbekannter Status für Vorschau-Antwort: {status}.",
 			"unknown-error":
 				"Ein unbekannter Fehler ist beim Laden der Vorschau aufgetreten. Versuchen Sie es später erneut.",
@@ -225,41 +225,41 @@ export default {
 	"video-queue": {
 		"no-videos": "Es sind keine Videos in der Warteschlange.",
 		"add-video": "Ein Video hinzufügen",
-		"export": "Exportieren",
+		export: "Exportieren",
 		"export-diag-title": "Warteschlange exportieren",
 		"export-hint":
 			'Kopieren Sie diesen Text und fügen Sie ihn in das "Hinzufügen"-Tab ein, um diese Warteschlange wiederherzustellen.',
-		"restore": "Möchten Sie die Videos aus der vorherigen Warteschlange wiederherstellen?",
+		restore: "Möchten Sie die Videos aus der vorherigen Warteschlange wiederherstellen?",
 		"restore-queue": "Warteschlange wiederherstellen?",
 		"restore-queue-hint":
 			"Das war das letzte Mal in der Warteschlange, als dieser Raum aktiv war. Möchten Sie es wiederherstellen?",
 	},
 	"video-queue-item": {
-		"experimental":
+		experimental:
 			"Experimentelle Unterstützung für diesen Dienst! Rechnen Sie damit, dass er oft kaputt geht.",
 		"play-next": "Als nächstes abspielen",
 		"play-last": "Als letztes abspielen",
-		"messages": {
+		messages: {
 			"video-added": "Video hinzugefügt",
 			"video-removed": "Video entfernt",
 		},
 		"start-at": "Starten bei {timestamp}",
 	},
 	"room-settings": {
-		"title": "@:create-room-form.title",
-		"description": "@:create-room-form.description",
-		"visibility": "@:create-room-form.visibility",
-		"public": "@:create-room-form.public",
-		"unlisted": "@:create-room-form.unlisted",
+		title: "@:create-room-form.title",
+		description: "@:create-room-form.description",
+		visibility: "@:create-room-form.visibility",
+		public: "@:create-room-form.public",
+		unlisted: "@:create-room-form.unlisted",
 		"queue-mode": "@:create-room-form.queue-mode",
-		"manual": "@:create-room-form.manual",
+		manual: "@:create-room-form.manual",
 		"manual-hint":
 			"Standardverhalten, funktioniert so, wie man es erwarten würde. Sie können Einträge in der Warteschlange manuell neu anordnen.",
-		"vote": "@:common.vote",
+		vote: "@:common.vote",
 		"vote-hint": "Das Video mit den meisten Stimmen wird als nächstes abgespielt.",
-		"loop": "Schleife",
+		loop: "Schleife",
 		"loop-hint": "Wenn ein Video endet, wird es an das Ende der Warteschlange geschoben.",
-		"dj": "DJ",
+		dj: "DJ",
 		"dj-hint":
 			"Wenn das Video endet, startet das gleiche Video von Anfang an. Gut für das Abspielen von Hintergrundmusik.",
 		"auto-skip-text":
@@ -286,29 +286,29 @@ export default {
 	"create-room-form": {
 		"card-title": "Permanenten Raum erstellen",
 		"create-room": "Raum erstellen",
-		"name": "Name",
+		name: "Name",
 		"name-hint": "Wird in der Raum-URL verwendet. Kann später nicht mehr geändert werden.",
-		"title": "Titel",
+		title: "Titel",
 		"title-hint": "Optional",
-		"description": "Beschreibung",
+		description: "Beschreibung",
 		"description-hint": "@:create-room-form.title-hint",
-		"visibility": "Sichtbarkeit",
+		visibility: "Sichtbarkeit",
 		"visibility-hint": "Steuert, ob der Raum in der Raumliste angezeigt wird oder nicht.",
 		"queue-mode": "Warteschlangen-Modus",
-		"manual": "Manuell",
-		"vote": "@:common.vote",
-		"loop": "@:room-settings.loop",
-		"dj": "@:room-settings.dj",
-		"public": "Öffentlich",
-		"unlisted": "Ungelistet",
-		"rules": {
-			"name": {
+		manual: "Manuell",
+		vote: "@:common.vote",
+		loop: "@:room-settings.loop",
+		dj: "@:room-settings.dj",
+		public: "Öffentlich",
+		unlisted: "Ungelistet",
+		rules: {
+			name: {
 				"name-required": "Name ist erforderlich",
 				"no-spaces": "Name darf keine Leerzeichen enthalten.",
-				"length": "Der Name muss zwischen 3 und 32 Zeichen lang sein.",
-				"alphanumeric":
+				length: "Der Name muss zwischen 3 und 32 Zeichen lang sein.",
+				alphanumeric:
 					"Der Name darf nur alphanumerische Zeichen, Bindestriche und Unterstriche enthalten.",
-				"taken": "Name ist bereits vergeben",
+				taken: "Name ist bereits vergeben",
 			},
 			"invalid-visibility": "Ungültige Sichtbarkeit",
 			"invalid-queue": "Ungültiger Warteschlangen-Modus",
@@ -317,17 +317,17 @@ export default {
 			"Ein unbekannter Fehler ist aufgetreten. Versuchen Sie es später noch einmal.",
 	},
 	"login-form": {
-		"login": "@:nav.login",
-		"register": "Registrieren",
+		login: "@:nav.login",
+		register: "Registrieren",
 		"login-discord": "Anmelden mit Discord",
-		"email": "E-Mail",
+		email: "E-Mail",
 		"email-or-username": "E-Mail oder Nutzername",
-		"username": "Nutzername",
-		"password": "Passwort",
+		username: "Nutzername",
+		password: "Passwort",
 		"retype-password": "Passwort erneut eingeben",
 		"email-optional":
 			"Optional. Die Angabe einer E-Mail macht es möglich, Ihr Konto wiederherzustellen, falls Sie Ihr Passwort vergessen.",
-		"rules": {
+		rules: {
 			"email-required": "E-Mail ist erforderlich",
 			"valid-email": "Es muss eine gültige E-Mail sein",
 			"username-required": "Nutzername ist erforderlich",
@@ -337,7 +337,7 @@ export default {
 			"retype-password": "Bitte geben Sie Ihr Passwort erneut ein",
 			"passwords-match": "Passwörter müssen übereinstimmen",
 		},
-		"errors": {
+		errors: {
 			"something-weird-happened":
 				"Es ist etwas Seltsames passiert, aber vielleicht sind Sie eingeloggt? Aktualisieren Sie die Seite.",
 			"login-failed-noserver":
@@ -361,27 +361,25 @@ export default {
 		},
 	},
 	"permissions-editor": {
-		"title": "Berechtigungs-Editor",
-		"text1":
-			"Alle Berechtigungen, die weniger privilegierten Benutzern gewährt werden, werden automatisch auch den höher privilegierten Benutzern gewährt.",
-		"text2":
-			"Administratoren haben alle Rechte. Der Raumbesitzer ist automatisch Administrator und kann nicht degradiert werden.",
+		title: "Berechtigungs-Editor",
+		text1: "Alle Berechtigungen, die weniger privilegierten Benutzern gewährt werden, werden automatisch auch den höher privilegierten Benutzern gewährt.",
+		text2: "Administratoren haben alle Rechte. Der Raumbesitzer ist automatisch Administrator und kann nicht degradiert werden.",
 		"viewing-as": "Ansicht als",
-		"permission": "Berechtigung",
+		permission: "Berechtigung",
 	},
 	"client-settings": {
-		"title": "Anpassen",
-		"description":
+		title: "Anpassen",
+		description:
 			"Diese Einstellungen werden in Ihrem Browser gespeichert und betreffen nur Sie.",
-		"activator": "@:client-settings.title",
+		activator: "@:client-settings.title",
 		"room-layout": "Raum-Layout",
-		"theme": "Theme",
+		theme: "Theme",
 		"sfx-enable": "Soundeffekte aktivieren",
 		"sfx-volume": "Soundeffekt-Lautstärke",
 		"room-settings": "Standardraumeinstellungen",
 	},
 	"connect-overlay": {
-		"title": "Verbindung getrennt",
+		title: "Verbindung getrennt",
 		"find-another": "Einen anderen Raum finden",
 		"dc-reasons": {
 			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
@@ -397,7 +395,7 @@ export default {
 	"vote-skip": {
 		remaining: "{count} weitere Stimmen zum Überspringen",
 	},
-	"roles": {
+	roles: {
 		[Role.Administrator]: "Administrator",
 		[Role.Moderator]: "Moderator",
 		[Role.TrustedUser]: "Vertrauensvoller Nutzer",
@@ -405,13 +403,13 @@ export default {
 		[Role.UnregisteredUser]: "Nicht registrierter Nutzer",
 		[Role.Owner]: "Besitzer",
 	},
-	"errors": {
+	errors: {
 		BadPasswordError:
 			"Passwort erfüllt nicht die Mindestanforderungen. Muss mindestens 8 Zeichen lang sein und 2 der folgenden Kategorien enthalten: Kleinbuchstaben, Großbuchstaben, Zahlen, Sonderzeichen.",
 		BadApiArgumentException:
 			"Schlechtes API-Argument. Dies ist wahrscheinlich ein Bug, bitte melden Sie es.",
 	},
-	"player": {
+	player: {
 		"buffer-warn": {
 			spans: "Sie haben noch nicht genug von dem Video gepuffert. Aktuelle Zeit-Bereiche gepuffert: {ranges}",
 		},

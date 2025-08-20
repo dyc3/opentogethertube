@@ -1,24 +1,24 @@
-import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
-	buildFullTree,
-	filterTreeGroups,
-	pruneTrees,
 	type BoundingBox,
+	buildFullTree,
+	calcGoodTreeRadius,
+	expandBBox,
+	filterTreeGroups,
+	offsetBBox,
+	pruneTrees,
+	stackBoxes,
+	superBoundingBox,
 	type TreeNode,
 	treeBoundingBox,
-	calcGoodTreeRadius,
-	superBoundingBox,
-	offsetBBox,
-	expandBBox,
-	stackBoxes,
 } from "treeutils";
 import "./topology-view.css";
-import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
 import { dedupeItems } from "aggregate";
-import type { NodeRadiusOptions } from "types";
+import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
 import ZoomReset from "components/ZoomReset";
+import type { NodeRadiusOptions } from "types";
 
 interface TopologyViewProps extends TopologyViewStyleProps {
 	systemState: SystemState;
@@ -356,6 +356,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				}
 			}
 
+			// biome-ignore lint/nursery/noShadow: biome migration
 			const diagonal = d3
 				.link<B2M, Subtree>(d3.curveStep)
 				.x((d: any) => d.x + d.tree.x)

@@ -1,5 +1,5 @@
-import { it, describe, expect, afterEach, vi } from "vitest";
 import { shallowMount } from "@vue/test-utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import YoutubePlayer from "@/components/players/YoutubePlayer.vue";
 // we need to import the mocks so mounting the component doesn't fail.
 // eslint-disable-next-line no-unused-vars

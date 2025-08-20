@@ -1,16 +1,16 @@
 import type { Category, Segment } from "sponsorblock-api";
 import {
+	AuthToken,
+	BehaviorOption,
 	ClientId,
 	ClientInfo,
-	QueueMode,
-	RoomUserInfo,
-	Visibility,
 	PlayerStatus,
+	QueueMode,
 	Role,
 	RoomEventContext,
 	RoomSettings,
-	AuthToken,
-	BehaviorOption,
+	RoomUserInfo,
+	Visibility,
 } from "./types.js";
 import { QueueItem, VideoId } from "./video.js";
 

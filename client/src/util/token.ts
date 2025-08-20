@@ -1,5 +1,5 @@
-import type { FullOTTStoreState } from "../store";
 import type { Store } from "vuex";
+import type { FullOTTStoreState } from "../store";
 
 export async function waitForToken(store: Store<FullOTTStoreState>) {
 	if (store.getters["users/token"]) {

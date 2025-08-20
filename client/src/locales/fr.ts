@@ -1,21 +1,21 @@
 import { OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
-	"common": {
-		"yes": "Oui",
-		"no": "Non",
-		"cancel": "Annuler",
-		"close": "Fermer",
+	common: {
+		yes: "Oui",
+		no: "Non",
+		cancel: "Annuler",
+		close: "Fermer",
 		"close-all": "Tout Fermer",
-		"add": "Ajouter",
-		"remove": "Retirer",
-		"delete": "Supprimer",
-		"save": "Enregistrer",
-		"search": "Rechercher",
-		"undo": "Retour",
-		"vote": "Vote",
+		add: "Ajouter",
+		remove: "Retirer",
+		delete: "Supprimer",
+		save: "Enregistrer",
+		search: "Rechercher",
+		undo: "Retour",
+		vote: "Vote",
 	},
-	"landing": {
+	landing: {
 		hero: {
 			title: "S'amuser ensemble !",
 			description:
@@ -35,7 +35,7 @@ export default {
 			link: "d'autres sources arrivent bientôt",
 		},
 		features: {
-			"title": "Fonctionnalités Principales",
+			title: "Fonctionnalités Principales",
 			"synchronized-playback": {
 				title: "Vidéo synchronisée",
 				text: "Appuies sur le bouton play et la vidéo se lance pour tout le monde dans la salle. Aussi simple que ça.",
@@ -72,13 +72,13 @@ export default {
 			contribute: "Contribuer",
 		},
 	},
-	"footer": {
-		"disclaimer":
+	footer: {
+		disclaimer:
 			"Information importante: OpenTogetherTube n'est pas associé à TogetherTube ou Watch2Gether.",
 		"made-in": "Made in America",
 		"thanks-to": "Remerciments spécial à",
 		"privacy-policy": "Politique de Confidentialité",
-		"attribution": "Attribution",
+		attribution: "Attribution",
 	},
 	"not-found": {
 		title: "Page non trouvée",
@@ -88,37 +88,37 @@ export default {
 	"quick-room": {
 		text: "Création d'une salle temporaire pour vous...",
 	},
-	"attribution": {
+	attribution: {
 		"sponsorblock-text": "Utilise les données SponsorBlock de",
 	},
-	"nav": {
-		"home": "Accueil",
-		"browse": "Parcourir",
-		"faq": "FAQ",
-		"bug": "Rapporter un bug",
-		"support": "Me Soutenir!",
-		"login": "Se connecter",
+	nav: {
+		home: "Accueil",
+		browse: "Parcourir",
+		faq: "FAQ",
+		bug: "Rapporter un bug",
+		support: "Me Soutenir!",
+		login: "Se connecter",
 		"link-discord": "Lien Discord",
-		"logout": "Se déconnecter",
-		"create": {
-			"title": "Créer une salle",
-			"temp": "Créer une salle temporaire",
+		logout: "Se déconnecter",
+		create: {
+			title: "Créer une salle",
+			temp: "Créer une salle temporaire",
 			"temp-desc": "Pour regarder des vidéos avec t'es amis rapidement.",
-			"perm": "Créer une salle permanente",
+			perm: "Créer une salle permanente",
 			"perm-desc": "Parfait pour les utilisateurs réguliers.",
 		},
 	},
 	"room-list": {
 		"no-rooms": "Pas de salle pour le moment...",
-		"create": "@:nav.create.title",
+		create: "@:nav.create.title",
 		"no-description": "Pas de description.",
 		"nothing-playing": "Aucune lecture en cours.",
 	},
-	"room": {
+	room: {
 		"title-temp": "Salle Temporaire",
 		"kick-me": "Kick moi",
-		"rewind": "Reculer de 10s",
-		"skip": "Avancer de 10s",
+		rewind: "Reculer de 10s",
+		skip: "Avancer de 10s",
 		"play-pause": "Play/Pause",
 		"next-video": "Vidéo suivante",
 		"toggle-fullscreen": "Mettre en plein-ecran",
@@ -126,11 +126,11 @@ export default {
 			connecting: "Connection...",
 			connected: "Connecté",
 		},
-		"tabs": {
+		tabs: {
 			queue: "Liste de lecture",
 			settings: "Paramètres",
 		},
-		"users": {
+		users: {
 			title: "Utilisateurs",
 			set: "Change ton nom d'utilisateur",
 			empty: "Il semble qu'il n'y ait personne d'autre ici. Inviter des amis !",
@@ -139,11 +139,11 @@ export default {
 			promote: "Promouvoir",
 		},
 	},
-	"privacy": {
+	privacy: {
 		title: "@:footer.privacy-policy",
 	},
-	"chat": {
-		"title": "Chat",
+	chat: {
+		title: "Chat",
 		"type-here": "Écris ton message ici...",
 	},
 	"share-invite": {
@@ -151,9 +151,9 @@ export default {
 		text: "Copie ce lien et partage le à t'es amis!",
 		copied: "Copié!",
 	},
-	"video": {
+	video: {
 		"add-explanation": "Ajouter à la liste de lecture.",
-		"playnow": "Lancer maintenant",
+		playnow: "Lancer maintenant",
 		"playnow-explanation":
 			"Lire cette vidéo maintenant, en déplaçant la vidéo actuelle en haut de la file d'attente.",
 		"no-video": "Aucune vidéo n'est en cours de lecture.",
@@ -161,23 +161,23 @@ export default {
 	},
 	"add-preview": {
 		"add-all": "Ajouter tout",
-		"placeholder":
+		placeholder:
 			"Tapes pour faire une recherche Youtube ou entre une URL de vidéo pour l'ajouter à la liste de lecture",
-		"title": "Que puis-je ajouter ?",
+		title: "Que puis-je ajouter ?",
 		"single-videos": "Vidéos uniques",
-		"playlists": "Playlists",
-		"playlist": "Playlist",
-		"text": "Ou tapes juste du texte pour faire une recherche Youtube.",
+		playlists: "Playlists",
+		playlist: "Playlist",
+		text: "Ou tapes juste du texte pour faire une recherche Youtube.",
 		"search-for":
 			'Recherche Youtube pour "{search}" en appuyant sur entrée, ou en cliquant sur le bouton recherche.',
-		"platforms": {
+		platforms: {
 			"youtube-videos": "Des vidéos Youtube: {url}",
 			"vimeo-videos": "Des vidéos Vimeo: {url}",
 			"any-mp4-videos": "Toutes les vidéos .mp4 publiques: {url}",
 			"youtube-playlists": "Les playlists Youtube: {url}",
 			"youtube-channels": "Les chaînes Youtube: {url}",
 		},
-		"messages": {
+		messages: {
 			"unknown-status": "Statut inconnu, impossible de donner un aperçu pour : {status}.",
 			"unknown-error":
 				"Une erreur inconnue s'est produite lors de l'obtention de l'aperçu. Réessayez plus tard.",
@@ -194,31 +194,31 @@ export default {
 		"add-video": "Ajouter une vidéo",
 	},
 	"video-queue-item": {
-		"experimental":
+		experimental:
 			"Support expérimental pour ce service ! Attendez-vous à ce qu'il y est beaucoup de bug.",
 		"play-next": "Vidéo suivante",
 		"play-last": "Vidéo précédente",
-		"messages": {
+		messages: {
 			"video-added": "Vidéo ajoutée",
 			"video-removed": "Vidéo supprimée",
 		},
 		"start-at": "Démarre à {timestamp}",
 	},
 	"room-settings": {
-		"title": "@:create-room-form.title",
-		"description": "@:create-room-form.description",
-		"visibility": "@:create-room-form.visibility",
-		"public": "@:create-room-form.public",
-		"unlisted": "@:create-room-form.unlisted",
+		title: "@:create-room-form.title",
+		description: "@:create-room-form.description",
+		visibility: "@:create-room-form.visibility",
+		public: "@:create-room-form.public",
+		unlisted: "@:create-room-form.unlisted",
 		"queue-mode": "@:create-room-form.queue-mode",
-		"manual": "@:create-room-form.manual",
+		manual: "@:create-room-form.manual",
 		"manual-hint":
 			"Comportement normal. Vous pouvez réorganiser manuellement les éléments de la liste de lecture.",
-		"vote": "@:create-room-form.vote",
+		vote: "@:create-room-form.vote",
 		"vote-hint": "La vidéo la plus votée est lue ensuite.",
-		"loop": "Lire en boucle",
+		loop: "Lire en boucle",
 		"loop-hint": "Lorsque la vidéo se termine, elle se remet à la fin de la liste de lecture.",
-		"dj": "DJ",
+		dj: "DJ",
 		"dj-hint":
 			"Lorsque la vidéo se termine elle recommence depuis le début. Bien pour la musique de fond en boucle.",
 		"auto-skip-text":
@@ -237,27 +237,27 @@ export default {
 	"create-room-form": {
 		"card-title": "Créer une salle permanente",
 		"create-room": "Crée une salle",
-		"name": "Nom",
+		name: "Nom",
 		"name-hint": "Utilisé dans l'URL de la salle. Ne peut pas être modifié ultérieurement.",
-		"title": "Titre",
+		title: "Titre",
 		"title-hint": "Optionel",
-		"description": "Description",
+		description: "Description",
 		"description-hint": "@:create-room-form.title-hint",
-		"visibility": "Visibilité",
+		visibility: "Visibilité",
 		"visibility-hint": "Contrôle si la salle s'affiche ou non dans la liste des salles.",
 		"queue-mode": "Mode Liste de lecture",
-		"manual": "Manuel",
-		"vote": "Vote",
-		"public": "Publique",
-		"unlisted": "Non listée",
-		"rules": {
-			"name": {
+		manual: "Manuel",
+		vote: "Vote",
+		public: "Publique",
+		unlisted: "Non listée",
+		rules: {
+			name: {
 				"name-required": "Le nom est requis",
 				"no-spaces": "Le nom ne doit pas contenir d'espaces.",
-				"length": "Le nom doit comporter entre 3 et 32 caractères",
-				"alphanumeric":
+				length: "Le nom doit comporter entre 3 et 32 caractères",
+				alphanumeric:
 					"Le nom ne doit contenir que des caractères alphanumériques, des tirets et des traits de soulignement",
-				"taken": "Le nom est déjà pris",
+				taken: "Le nom est déjà pris",
 			},
 			"invalid-visibility": "Visibilité invalide",
 			"invalid-queue": "Mode liste de lecture invalide",
@@ -265,14 +265,14 @@ export default {
 		"unknown-error": "Une erreur inconnue est survenue. Réessayez plus tard.",
 	},
 	"login-form": {
-		"login": "@:nav.login",
-		"register": "S'enregistrer",
+		login: "@:nav.login",
+		register: "S'enregistrer",
 		"login-discord": "Se connecter via Discord",
-		"email": "Email",
-		"username": "Nom d'utilisateur",
-		"password": "Mot de passe",
+		email: "Email",
+		username: "Nom d'utilisateur",
+		password: "Mot de passe",
 		"retype-password": "Retaper le mot de passe",
-		"rules": {
+		rules: {
 			"email-required": "Email requis",
 			"valid-email": "L'email doit être valide",
 			"username-required": "Nom d'utilisateur requis",
@@ -283,7 +283,7 @@ export default {
 			"retype-password": "Veuillez retaper votre mot de passe",
 			"passwords-match": "Les mots de passe doivent correspondre",
 		},
-		"errors": {
+		errors: {
 			"something-weird-happened":
 				"Quelque chose de bizarre s'est produit, mais vous êtes peut-être connecté ? Actualisez la page.",
 			"login-failed-noserver":
@@ -298,13 +298,11 @@ export default {
 		},
 	},
 	"permissions-editor": {
-		"title": "Editeurs des permissions",
-		"text1":
-			"Toutes les autorisations accordées aux utilisateurs moins privilégiés sont automatiquement accordées aux utilisateurs plus privilégiés.",
-		"text2":
-			"Les administrateurs ont tous les droits. Le propriétaire de la salle est automatiquement administrateur et ne peut pas être rétrogradé.",
+		title: "Editeurs des permissions",
+		text1: "Toutes les autorisations accordées aux utilisateurs moins privilégiés sont automatiquement accordées aux utilisateurs plus privilégiés.",
+		text2: "Les administrateurs ont tous les droits. Le propriétaire de la salle est automatiquement administrateur et ne peut pas être rétrogradé.",
 		"viewing-as": "Affichage en tant que",
-		"permission": "Permission",
+		permission: "Permission",
 	},
 	"client-settings": {
 		title: "Préférences",
@@ -313,7 +311,7 @@ export default {
 		activator: "@:client-settings.title",
 	},
 	"connect-overlay": {
-		"title": "Déconnecté",
+		title: "Déconnecté",
 		"find-another": "Trouver une autre salle",
 		"dc-reasons": {
 			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",

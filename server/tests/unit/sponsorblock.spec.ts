@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
-import { redisClient, buildClients } from "../../redisclient.js";
-import * as sponsorblock from "../../sponsorblock.js";
 import { SponsorBlock } from "sponsorblock-api";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { buildClients, redisClient } from "../../redisclient.js";
+import * as sponsorblock from "../../sponsorblock.js";
 
 vi.mock("sponsorblock-api", () => {
 	return {

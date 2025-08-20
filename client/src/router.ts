@@ -1,8 +1,8 @@
 import {
 	createRouter,
 	createWebHistory,
-	type RouteRecordRaw,
 	type RouteLocation,
+	type RouteRecordRaw,
 } from "vue-router";
 import { isOfficialSite } from "./util/misc";
 

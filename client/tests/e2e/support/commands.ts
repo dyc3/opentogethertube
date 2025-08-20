@@ -36,17 +36,17 @@
 //   }
 // }
 
-import { mount } from "cypress/vue";
-import { ComponentPublicInstance, h } from "vue";
-import vuetify from "../../../src/plugins/vuetify";
-import { key, buildNewStore } from "../../../src/store";
-import { i18n } from "../../../src/i18n";
-import { createMemoryHistory, createRouter } from "vue-router";
-import { routes } from "../../../src/router";
 import { VueWrapper } from "@vue/test-utils";
-import { OttRoomConnectionMock, connectionInjectKey } from "../../../src/plugins/connection";
-import { OttSfx, sfxInjectKey } from "../../../src/plugins/sfx";
+import { mount } from "cypress/vue";
 import type { Role } from "ott-common";
+import { ComponentPublicInstance, h } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
+import { i18n } from "../../../src/i18n";
+import { connectionInjectKey, OttRoomConnectionMock } from "../../../src/plugins/connection";
+import { OttSfx, sfxInjectKey } from "../../../src/plugins/sfx";
+import vuetify from "../../../src/plugins/vuetify";
+import { routes } from "../../../src/router";
+import { buildNewStore, key } from "../../../src/store";
 
 Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global = options.global || {};

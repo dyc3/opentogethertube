@@ -1,4 +1,5 @@
 import faker from "faker";
+
 const uuid = require("uuid");
 
 describe("Creating Rooms", () => {
@@ -137,10 +138,7 @@ describe("Creating Rooms", () => {
 			cy.contains("Settings").click();
 			cy.contains("button", "Claim Room").should("be.visible").click();
 			cy.wait(200);
-			cy.contains("button", "Save")
-				.should("exist")
-				.scrollIntoView()
-				.should("be.visible");
+			cy.contains("button", "Save").should("exist").scrollIntoView().should("be.visible");
 			checkPermissionsEditor();
 		});
 

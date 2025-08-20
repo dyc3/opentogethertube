@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { onUnmounted } from "vue";
 import { useConnection } from "@/plugins/connection";
-import { useRoomApi } from "@/util/roomapi";
 import { useStore } from "@/store";
+import { useRoomApi } from "@/util/roomapi";
 
 const connection = useConnection();
 const roomapi = useRoomApi(connection);

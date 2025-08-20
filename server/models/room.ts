@@ -1,61 +1,61 @@
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { QueueMode, Visibility, Role, BehaviorOption } from "ott-common/models/types.js";
-import { User } from "./user.js";
 import { ALL_SKIP_CATEGORIES, ROOM_NAME_REGEX } from "ott-common/constants.js";
-import type { OldRoleGrants, GrantMask } from "ott-common/permissions.js";
+import { BehaviorOption, QueueMode, Role, Visibility } from "ott-common/models/types.js";
 import { QueueItem } from "ott-common/models/video.js";
+import type { GrantMask, OldRoleGrants } from "ott-common/permissions.js";
+import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 import { Category } from "sponsorblock-api";
+import { User } from "./user.js";
 
 export interface RoomAttributes {
-	"id": number;
-	"name": string;
-	"title": string;
-	"description": string;
-	"visibility": Visibility;
-	"queueMode": QueueMode;
-	"ownerId": number | null;
-	"permissions": [Role, GrantMask][] | OldRoleGrants;
+	id: number;
+	name: string;
+	title: string;
+	description: string;
+	visibility: Visibility;
+	queueMode: QueueMode;
+	ownerId: number | null;
+	permissions: [Role, GrantMask][] | OldRoleGrants;
 	"role-admin": Array<number>;
 	"role-mod": Array<number>;
 	"role-trusted": Array<number>;
-	"autoSkipSegmentCategories": Array<Category>;
-	"prevQueue": Array<QueueItem> | null;
-	"restoreQueueBehavior": BehaviorOption;
-	"enableVoteSkip": boolean;
+	autoSkipSegmentCategories: Array<Category>;
+	prevQueue: Array<QueueItem> | null;
+	restoreQueueBehavior: BehaviorOption;
+	enableVoteSkip: boolean;
 }
 
 type RoomCreationAttributes = Optional<RoomAttributes, "id">;
 
 export class Room extends Model<RoomAttributes, RoomCreationAttributes> implements RoomAttributes {
-	declare "id": number;
-	public declare readonly "createdAt": Date;
-	public declare readonly "updatedAt": Date;
-	declare "name": string;
-	declare "title": string;
-	declare "description": string;
-	declare "visibility": Visibility;
-	declare "queueMode": QueueMode;
-	declare "ownerId": number | null;
-	declare "owner": User | null;
-	declare "permissions": [Role, GrantMask][] | OldRoleGrants;
+	declare id: number;
+	public declare readonly createdAt: Date;
+	public declare readonly updatedAt: Date;
+	declare name: string;
+	declare title: string;
+	declare description: string;
+	declare visibility: Visibility;
+	declare queueMode: QueueMode;
+	declare ownerId: number | null;
+	declare owner: User | null;
+	declare permissions: [Role, GrantMask][] | OldRoleGrants;
 	declare "role-admin": Array<number>;
 	declare "role-mod": Array<number>;
 	declare "role-trusted": Array<number>;
-	declare "autoSkipSegmentCategories": Array<Category>;
-	declare "prevQueue": Array<QueueItem> | null;
-	declare "restoreQueueBehavior": BehaviorOption;
-	declare "enableVoteSkip": boolean;
+	declare autoSkipSegmentCategories: Array<Category>;
+	declare prevQueue: Array<QueueItem> | null;
+	declare restoreQueueBehavior: BehaviorOption;
+	declare enableVoteSkip: boolean;
 }
 
 export const createModel = (sequelize: Sequelize) => {
 	Room.init(
 		{
-			"id": {
+			id: {
 				type: DataTypes.INTEGER,
 				primaryKey: true,
 				autoIncrement: true,
 			},
-			"name": {
+			name: {
 				type: DataTypes.STRING,
 				allowNull: false,
 				unique: true,
@@ -64,9 +64,9 @@ export const createModel = (sequelize: Sequelize) => {
 					len: [3, 32],
 				},
 			},
-			"title": DataTypes.STRING,
-			"description": DataTypes.TEXT,
-			"visibility": {
+			title: DataTypes.STRING,
+			description: DataTypes.TEXT,
+			visibility: {
 				type: DataTypes.STRING,
 				defaultValue: Visibility.Public,
 				validate: {
@@ -74,7 +74,7 @@ export const createModel = (sequelize: Sequelize) => {
 					isIn: [[Visibility.Public, Visibility.Unlisted, Visibility.Private]],
 				},
 			},
-			"queueMode": {
+			queueMode: {
 				type: DataTypes.STRING,
 				defaultValue: QueueMode.Manual,
 				validate: {
@@ -82,11 +82,11 @@ export const createModel = (sequelize: Sequelize) => {
 					isIn: [[QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj]],
 				},
 			},
-			"ownerId": {
+			ownerId: {
 				type: DataTypes.INTEGER,
 				allowNull: true,
 			},
-			"permissions": {
+			permissions: {
 				type: DataTypes.JSONB,
 			},
 			"role-admin": {
@@ -98,16 +98,16 @@ export const createModel = (sequelize: Sequelize) => {
 			"role-trusted": {
 				type: DataTypes.JSONB,
 			},
-			"autoSkipSegmentCategories": {
+			autoSkipSegmentCategories: {
 				type: DataTypes.JSONB,
 				allowNull: false,
 				defaultValue: ALL_SKIP_CATEGORIES,
 			},
-			"prevQueue": {
+			prevQueue: {
 				type: DataTypes.JSONB,
 				allowNull: true,
 			},
-			"restoreQueueBehavior": {
+			restoreQueueBehavior: {
 				type: DataTypes.NUMBER,
 				allowNull: false,
 				defaultValue: BehaviorOption.Prompt,
@@ -115,7 +115,7 @@ export const createModel = (sequelize: Sequelize) => {
 					isIn: [[BehaviorOption.Always, BehaviorOption.Prompt, BehaviorOption.Never]],
 				},
 			},
-			"enableVoteSkip": {
+			enableVoteSkip: {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,
 				defaultValue: false,

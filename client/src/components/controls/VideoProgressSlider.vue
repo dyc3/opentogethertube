@@ -28,12 +28,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, Ref, onMounted, onUpdated, computed } from "vue";
+import { computed, onMounted, onUpdated, Ref, ref } from "vue";
 import VueSlider from "vue-slider-component";
-import { useStore } from "@/store";
-import { secondsToTimestamp } from "@/util/timestamp";
 import { useConnection } from "@/plugins/connection";
+import { useStore } from "@/store";
 import { useRoomApi } from "@/util/roomapi";
+import { secondsToTimestamp } from "@/util/timestamp";
 import "vue-slider-component/theme/default.css";
 import "./slider-tweaks.scss";
 import { useGrants } from "../composables/grants";

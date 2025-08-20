@@ -1,4 +1,4 @@
-import { Ref, ref, ComputedRef } from "vue";
+import { ComputedRef, Ref, ref } from "vue";
 
 export function useCopyFromTextbox(
 	text: Ref<string> | ComputedRef<string>,

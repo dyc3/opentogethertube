@@ -1,5 +1,5 @@
+import { computed, inject, onMounted, provide, type Ref, ref, shallowRef, watch } from "vue";
 import { useStore } from "@/store";
-import { onMounted, ref, watch, type Ref, shallowRef, provide, inject, computed } from "vue";
 
 const volume = ref(100);
 
@@ -30,6 +30,7 @@ export interface MediaPlayer {
 	 * Some browsers emit promises for this, and some don't.
 	 */
 	pause(): void | Promise<void>;
+	// biome-ignore lint/nursery/noShadow: biome migration
 	setVolume(volume: number): void | Promise<void>;
 	getPosition(): number;
 	setPosition(position: number): void;
@@ -56,6 +57,7 @@ export class MediaPlayerV2 {
 	playing = ref(false);
 	isCaptionsSupported = ref(false);
 
+	// biome-ignore lint/nursery/noShadow: biome migration
 	setPlayer(player: MediaPlayer | null) {
 		this.apiReady.value = false;
 		this.player.value = player;

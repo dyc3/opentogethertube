@@ -3,9 +3,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, watch } from "vue";
 import vimeo from "@vimeo/player";
-import { onBeforeUnmount } from "vue";
+import { defineComponent, onBeforeUnmount, onMounted, watch } from "vue";
 import "./iframe-bg-hack.scss";
 
 const VimeoPlayer = defineComponent({

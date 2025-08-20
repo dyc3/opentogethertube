@@ -1,7 +1,7 @@
-import ws from "k6/ws";
-import { sleep, check } from "k6";
 import { randomItem } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
-import { getAuthToken, createRoom, HOSTNAME } from "./utils.js";
+import { check, sleep } from "k6";
+import ws from "k6/ws";
+import { createRoom, getAuthToken, HOSTNAME } from "./utils.js";
 
 export const options = {
 	rate: 50,

@@ -1,18 +1,18 @@
+import request from "supertest";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
 	MockInstance,
+	vi,
 } from "vitest";
-import request from "supertest";
 import { main } from "../../../app.js";
-import InfoExtract, { AddPreview } from "../../../infoextractor.js";
 import tokens from "../../../auth/tokens.js";
+import InfoExtract, { AddPreview } from "../../../infoextractor.js";
 
 describe("Data API", () => {
 	let app;

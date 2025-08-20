@@ -1,10 +1,11 @@
-import { URL } from "url";
 import axios from "axios";
-import { getLogger } from "../logger.js";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import { URL } from "url";
+import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
+import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const log = getLogger("tubi");
 
 interface TubiVideoResponse {

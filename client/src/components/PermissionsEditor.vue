@@ -48,10 +48,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, Ref, toRefs, watch } from "vue";
 import _ from "lodash";
-import { PERMISSIONS, Permission, Grants } from "ott-common/permissions";
 import { Role } from "ott-common/models/types";
+import { Grants, PERMISSIONS, Permission } from "ott-common/permissions";
+import { Ref, ref, toRefs, watch } from "vue";
 import { useGrants } from "./composables/grants";
 
 const model = defineModel<Grants>({ required: true, validator: val => val instanceof Grants });

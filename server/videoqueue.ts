@@ -1,9 +1,8 @@
 import { Mutex } from "@divine/synchronization";
-
-import { Dirtyable } from "./util/index.js";
-import { QueueItem, Video, VideoId } from "ott-common/models/video.js";
 import _ from "lodash";
+import { QueueItem, Video, VideoId } from "ott-common/models/video.js";
 import { VideoNotFoundException } from "./exceptions.js";
+import { Dirtyable } from "./util/index.js";
 
 /** A concurrently safe orderable queue for videos. */
 export class VideoQueue extends Dirtyable {

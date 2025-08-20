@@ -104,16 +104,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, inject } from "vue";
-import { API } from "@/common-http";
-import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
-import { Role } from "ott-common/models/types";
+import { ClientId, PlayerStatus, Role, RoomUserInfo } from "ott-common/models/types";
 import { ROLE_NAMES } from "ott-common/permissions";
-import { useStore } from "@/store";
-import { useConnection } from "@/plugins/connection";
-import { useRoomApi } from "@/util/roomapi";
 import { canKickUser } from "ott-common/userutils";
+import { inject, ref } from "vue";
+import { API } from "@/common-http";
+import { useConnection } from "@/plugins/connection";
+import { useStore } from "@/store";
+import { useRoomApi } from "@/util/roomapi";
 import { useGrants } from "./composables/grants";
 
 defineProps<{
@@ -134,7 +133,7 @@ function openEditName() {
 	if (!inputUsername.value) {
 		inputUsername.value = store.state.user
 			? store.state.user.username
-			: store.state.username ?? "";
+			: (store.state.username ?? "");
 	}
 	showEditName.value = !showEditName.value;
 }

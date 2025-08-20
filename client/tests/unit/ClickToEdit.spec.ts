@@ -1,6 +1,6 @@
-import { it, describe, expect } from "vitest";
-import { createVuetify } from "vuetify";
 import { mount } from "@vue/test-utils";
+import { describe, expect, it } from "vitest";
+import { createVuetify } from "vuetify";
 // @ts-ignore for some reason, this is not a valid import to typescript, but it works. Unfortunately, this completely destroys type checking. This also only occurs in the test environment, which is the only place that it matters. For some reason, when running `yarn build` it works fine. I also don't know why `yarn build` even touches this file.
 import ClickToEdit from "@/components/ClickToEdit.vue";
 

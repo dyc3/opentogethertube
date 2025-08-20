@@ -25,12 +25,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, toRefs, onMounted, onUnmounted, Ref, computed } from "vue";
-import { Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "ott-common/models/messages";
+import { computed, onMounted, onUnmounted, Ref, ref, toRefs } from "vue";
 import { API } from "@/common-http";
-import toasts from "@/util/toast";
+import { Toast, ToastStyle } from "@/models/toast";
 import { useStore } from "@/store";
+import toasts from "@/util/toast";
 import ProcessedText from "./ProcessedText.vue";
 
 const props = defineProps<{ toast: Toast; number?: number }>();

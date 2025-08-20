@@ -155,20 +155,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, toRefs, computed, watchEffect } from "vue";
-import { API } from "@/common-http";
-import { secondsToTimestamp } from "@/util/timestamp";
-import { ToastStyle } from "@/models/toast";
-import { QueueItem, VideoId } from "ott-common/models/video";
-import { QueueMode } from "ott-common/models/types";
-import { useStore } from "@/store";
-import toast from "@/util/toast";
-import placeholderUrl from "@/assets/placeholder.svg";
-import { useI18n } from "vue-i18n";
 import axios, { type AxiosResponse } from "axios";
-import { useRoomApi } from "@/util/roomapi";
-import { useConnection } from "@/plugins/connection";
 import type { OttResponseBody } from "ott-common/models/rest-api";
+import { QueueMode } from "ott-common/models/types";
+import { QueueItem, VideoId } from "ott-common/models/video";
+import { computed, ref, toRefs, watchEffect } from "vue";
+import { useI18n } from "vue-i18n";
+import placeholderUrl from "@/assets/placeholder.svg";
+import { API } from "@/common-http";
+import { ToastStyle } from "@/models/toast";
+import { useConnection } from "@/plugins/connection";
+import { useStore } from "@/store";
+import { useRoomApi } from "@/util/roomapi";
+import { secondsToTimestamp } from "@/util/timestamp";
+import toast from "@/util/toast";
 import { useGrants } from "./composables/grants";
 
 interface VideoQueueItemProps {
@@ -202,6 +202,7 @@ const thumbnailSource = computed(() => {
 	return !thumbnailHasError.value && item.value.thumbnail ? item.value.thumbnail : placeholderUrl;
 });
 const votes = computed(() => {
+	// biome-ignore lint/nursery/noShadow: biome migration
 	const store = useStore();
 	return store.state.room.voteCounts?.get(item.value.service + item.value.id) ?? 0;
 });

@@ -1,6 +1,6 @@
+import { RoomSettings } from "ott-common";
 import { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
-import { RoomSettings } from "ott-common";
 
 export interface SettingsState {
 	volume: number;

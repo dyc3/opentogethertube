@@ -14,9 +14,9 @@
 </template>
 
 <script lang="ts" setup>
+import { countEligibleVoters, voteSkipThreshold } from "ott-common/voteskip";
 import { computed } from "vue";
 import { useStore } from "@/store";
-import { voteSkipThreshold, countEligibleVoters } from "ott-common/voteskip";
 
 const store = useStore();
 

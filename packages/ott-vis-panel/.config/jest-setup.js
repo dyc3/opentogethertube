@@ -22,4 +22,5 @@ Object.defineProperty(global, "matchMedia", {
 	})),
 });
 
+// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 HTMLCanvasElement.prototype.getContext = () => {};

@@ -93,18 +93,18 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch, Ref } from "vue";
-import { useRoute } from "vue-router";
-import { useStore } from "@/store";
-import { useI18n } from "vue-i18n";
-import { API } from "@/common-http";
+import axios from "axios";
 import _ from "lodash";
+import { OttApiResponseAddPreview, OttResponseBody } from "ott-common/models/rest-api";
+import { Video } from "ott-common/models/video";
+import { computed, Ref, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
+import { API } from "@/common-http";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import { ToastStyle } from "@/models/toast";
+import { useStore } from "@/store";
 import toast from "@/util/toast";
-import { Video } from "ott-common/models/video";
-import { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
-import axios from "axios";
 import AddPreviewHelper from "./AddPreviewHelper.vue";
 
 const store = useStore();
@@ -144,7 +144,7 @@ const testVideos = import.meta.env.DEV
 			],
 			["test dash 1", "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd"],
 			["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
-	  ]
+		]
 	: [];
 
 // HACK: The @change event only triggers when the text field is defocused.

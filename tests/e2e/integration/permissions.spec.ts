@@ -1,4 +1,5 @@
 import faker from "faker";
+
 const uuid = require("uuid");
 
 describe("promotion and demotion", () => {

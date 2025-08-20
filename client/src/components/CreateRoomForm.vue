@@ -78,12 +78,12 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, Ref, ref, watch } from "vue";
-import { createRoomHelper } from "@/util/roomcreator";
 import { ROOM_NAME_REGEX } from "ott-common/constants";
-import { Visibility, QueueMode } from "ott-common/models/types";
+import { QueueMode, Visibility } from "ott-common/models/types";
+import { onMounted, Ref, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
+import { createRoomHelper } from "@/util/roomcreator";
 
 const emit = defineEmits(["roomCreated", "cancel"]);
 

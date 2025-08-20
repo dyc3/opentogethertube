@@ -1,13 +1,14 @@
 /**
  * Unit tests for DashVideoAdapter's MPD parsing methods
  */
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import DashVideoAdapter from "../../../services/dash.js";
-import { UnsupportedVideoType } from "../../../exceptions.js";
-import { parseIso8601Duration } from "../../../services/parsing/iso8601.js";
-import axios from "axios";
+
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
+import axios from "axios";
 import URL from "url";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { UnsupportedVideoType } from "../../../exceptions.js";
+import DashVideoAdapter from "../../../services/dash.js";
+import { parseIso8601Duration } from "../../../services/parsing/iso8601.js";
 
 vi.mock("axios");
 vi.mock("../../../services/parsing/iso8601");
@@ -72,7 +73,7 @@ describe("DashVideoAdapter", () => {
 			const manifest = {
 				MPD: {
 					"@mediaPresentationDuration": "PT3S",
-					"ProgramInformation": { Title: "foo" },
+					ProgramInformation: { Title: "foo" },
 				},
 			};
 			const url = URL.parse("http://example.com/video.mpd");
@@ -86,7 +87,7 @@ describe("DashVideoAdapter", () => {
 			const manifest = {
 				MPD: {
 					"@mediaPresentationDuration": "PT3S",
-					"Period": [{ AdaptationSet: [{ Representation: [{ Title: "foo" }] }] }],
+					Period: [{ AdaptationSet: [{ Representation: [{ Title: "foo" }] }] }],
 				},
 			};
 			const url = URL.parse("http://example.com/video.mpd");

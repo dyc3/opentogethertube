@@ -1,9 +1,9 @@
+import { randomIntBetween } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
+import { check, sleep } from "k6";
+import exec from "k6/execution";
 import http from "k6/http";
 import ws from "k6/ws";
-import { sleep, check } from "k6";
-import { getAuthToken, createRoom, HOSTNAME } from "./utils.js";
-import exec from "k6/execution";
-import { randomIntBetween } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
+import { createRoom, getAuthToken, HOSTNAME } from "./utils.js";
 
 // This is specially crafted to test the message fanout performance of the system.
 
@@ -60,9 +60,12 @@ export default function ({ tokens }) {
 				"got chat message": b => b,
 			});
 		});
-		socket.setTimeout(() => {
-			socket.close(1000);
-		}, 60000 * 1 + Math.random() * 30000);
+		socket.setTimeout(
+			() => {
+				socket.close(1000);
+			},
+			60000 * 1 + Math.random() * 30000
+		);
 		socket.setInterval(() => {
 			socket.send(
 				JSON.stringify({

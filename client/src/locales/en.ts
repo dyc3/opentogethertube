@@ -1,44 +1,44 @@
-import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
+import { BehaviorOption, OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
-	"common": {
-		"yes": "Yes",
-		"no": "No",
-		"ok": "OK",
-		"cancel": "Cancel",
-		"close": "Close",
+	common: {
+		yes: "Yes",
+		no: "No",
+		ok: "OK",
+		cancel: "Cancel",
+		close: "Close",
 		"close-all": "Close All",
-		"add": "Add",
-		"remove": "Remove",
-		"delete": "Delete",
-		"play": "Play",
-		"pause": "Pause",
-		"save": "Save",
-		"search": "Search",
-		"undo": "Undo",
-		"copy": "Copy",
-		"show": "Show",
-		"hide": "Hide",
-		"discard": "Discard",
-		"loading": "Loading...",
-		"view": "View",
-		"restore": "Restore",
-		"success": "Success",
-		"vote": "Vote",
-		"unvote": "Unvote",
-		"on": "On",
-		"off": "Off",
-		"dismiss": "Dismiss",
-		"errors": {
+		add: "Add",
+		remove: "Remove",
+		delete: "Delete",
+		play: "Play",
+		pause: "Pause",
+		save: "Save",
+		search: "Search",
+		undo: "Undo",
+		copy: "Copy",
+		show: "Show",
+		hide: "Hide",
+		discard: "Discard",
+		loading: "Loading...",
+		view: "View",
+		restore: "Restore",
+		success: "Success",
+		vote: "Vote",
+		unvote: "Unvote",
+		on: "On",
+		off: "Off",
+		dismiss: "Dismiss",
+		errors: {
 			"rate-limit": "Rate limit exceeded. Please try again in {duration} seconds.",
 		},
 	},
-	"behavior": {
+	behavior: {
 		[BehaviorOption.Always]: "Always",
 		[BehaviorOption.Prompt]: "Prompt",
 		[BehaviorOption.Never]: "Never",
 	},
-	"landing": {
+	landing: {
 		hero: {
 			title: "Enjoy Together.",
 			description:
@@ -58,7 +58,7 @@ export default {
 			link: "more are on the way",
 		},
 		features: {
-			"title": "Core Features",
+			title: "Core Features",
 			"synchronized-playback": {
 				title: "Synchronized Playback",
 				text: "You hit play, and the video plays for everybody\nin the room. Simple as that.",
@@ -95,13 +95,13 @@ export default {
 			contribute: "Contribute",
 		},
 	},
-	"footer": {
-		"disclaimer":
+	footer: {
+		disclaimer:
 			"Disclaimer: The OpenTogetherTube project is not associated with TogetherTube nor Watch2Gether.",
 		"made-in": "Made in America",
 		"thanks-to": "Special Thanks to",
 		"privacy-policy": "Privacy Policy",
-		"attribution": "Attribution",
+		attribution: "Attribution",
 	},
 	"not-found": {
 		title: "Page Not Found",
@@ -111,24 +111,24 @@ export default {
 	"quick-room": {
 		text: "Making a temporary room for you...",
 	},
-	"attribution": {
+	attribution: {
 		"sponsorblock-text": "Uses SponsorBlock data from",
 	},
-	"nav": {
-		"home": "Home",
-		"browse": "Browse",
+	nav: {
+		home: "Home",
+		browse: "Browse",
 		"my-rooms": "My Rooms",
-		"faq": "FAQ",
-		"bug": "Report a Bug",
-		"support": "Support Me!",
-		"login": "Log In",
+		faq: "FAQ",
+		bug: "Report a Bug",
+		support: "Support Me!",
+		login: "Log In",
 		"link-discord": "Link Discord",
-		"logout": "Log Out",
-		"create": {
-			"title": "Create Room",
-			"temp": "Create Temporary Room",
+		logout: "Log Out",
+		create: {
+			title: "Create Room",
+			temp: "Create Temporary Room",
 			"temp-desc": "Start watching videos with your friends ASAP.",
-			"perm": "Create Permanent Room",
+			perm: "Create Permanent Room",
 			"perm-desc": "Perfect for frequent visitors.",
 		},
 	},
@@ -137,15 +137,15 @@ export default {
 	},
 	"room-list": {
 		"no-rooms": "No rooms right now...",
-		"create": "@:nav.create.title",
+		create: "@:nav.create.title",
 		"no-description": "No description.",
 		"nothing-playing": "Nothing playing.",
 	},
-	"room": {
+	room: {
 		"title-temp": "Temporary Room",
 		"kick-me": "Kick me",
-		"rewind": "Rewind 10s",
-		"skip": "Skip 10s",
+		rewind: "Rewind 10s",
+		skip: "Skip 10s",
 		"play-pause": "Play/Pause",
 		"next-video": "Next video",
 		"next-video-vote": "Vote to skip video",
@@ -154,11 +154,11 @@ export default {
 			connecting: "Connecting...",
 			connected: "Connected",
 		},
-		"tabs": {
+		tabs: {
 			queue: "Queue",
 			settings: "Settings",
 		},
-		"users": {
+		users: {
 			title: "Users",
 			set: "Set your name",
 			empty: "There seems to be nobody else here. Invite some friends!",
@@ -168,11 +168,11 @@ export default {
 			kick: "Kick",
 		},
 	},
-	"privacy": {
+	privacy: {
 		title: "@:footer.privacy-policy",
 	},
-	"chat": {
-		"title": "Chat",
+	chat: {
+		title: "Chat",
 		"type-here": "Type your message here...",
 	},
 	"share-invite": {
@@ -180,32 +180,32 @@ export default {
 		text: "Copy this link and share it with your friends!",
 		copied: "Copied!",
 	},
-	"video": {
+	video: {
 		"add-explanation": "Add to the queue.",
-		"playnow": "Play Now",
+		playnow: "Play Now",
 		"playnow-explanation":
 			"Play this video now, pushing the current video to the top of the queue.",
 		"no-video": "No video is playing.",
 		"no-video-text": 'Click "Add" below to add a video.',
 	},
 	"add-preview": {
-		"label": "Link or Search",
+		label: "Link or Search",
 		"add-all": "Add All",
-		"placeholder": "Type to search YouTube or enter a Video URL to add to the queue",
-		"title": "What can I add?",
+		placeholder: "Type to search YouTube or enter a Video URL to add to the queue",
+		title: "What can I add?",
 		"single-videos": "Single Videos",
-		"playlists": "Playlists",
-		"playlist": "Playlist",
-		"text": "Or just type text to search Youtube.",
+		playlists: "Playlists",
+		playlist: "Playlist",
+		text: "Or just type text to search Youtube.",
 		"search-for": 'Search YouTube for "{search}" by pressing enter, or by clicking search.',
-		"platforms": {
+		platforms: {
 			"youtube-videos": "Youtube videos: {url}",
 			"vimeo-videos": "Vimeo videos: {url}",
 			"any-mp4-videos": "Any public .mp4 videos: {url}",
 			"youtube-playlists": "Youtube playlists: {url}",
 			"youtube-channels": "Youtube channels: {url}",
 		},
-		"messages": {
+		messages: {
 			"unknown-status": "Unknown status for add preview response: {status}.",
 			"unknown-error": "An unknown error occurred when getting add preview. Try again later.",
 			"failed-to-get-add-preview":
@@ -219,39 +219,39 @@ export default {
 	"video-queue": {
 		"no-videos": "There aren't any videos queued up.",
 		"add-video": "Add a video",
-		"export": "Export",
+		export: "Export",
 		"export-diag-title": "Export Queue",
 		"export-hint": 'Copy and paste this text into the "Add" tab to restore this queue.',
-		"restore": "Would you like to restore the videos from the previous queue?",
+		restore: "Would you like to restore the videos from the previous queue?",
 		"restore-queue": "Restore Queue?",
 		"restore-queue-hint":
 			"This is what was in the queue last time this room was active. Would you like to restore it?",
 	},
 	"video-queue-item": {
-		"experimental": "Experimental support for this service! Expect it to break a lot.",
+		experimental: "Experimental support for this service! Expect it to break a lot.",
 		"play-next": "Play Next",
 		"play-last": "Play Last",
-		"messages": {
+		messages: {
 			"video-added": "Video added",
 			"video-removed": "Video removed",
 		},
 		"start-at": "Start at {timestamp}",
 	},
 	"room-settings": {
-		"title": "@:create-room-form.title",
-		"description": "@:create-room-form.description",
-		"visibility": "@:create-room-form.visibility",
-		"public": "@:create-room-form.public",
-		"unlisted": "@:create-room-form.unlisted",
+		title: "@:create-room-form.title",
+		description: "@:create-room-form.description",
+		visibility: "@:create-room-form.visibility",
+		public: "@:create-room-form.public",
+		unlisted: "@:create-room-form.unlisted",
 		"queue-mode": "@:create-room-form.queue-mode",
-		"manual": "@:create-room-form.manual",
+		manual: "@:create-room-form.manual",
 		"manual-hint":
 			"Default normal behavior, works how you would expect it to. You can manually reorder items in the queue.",
-		"vote": "@:common.vote",
+		vote: "@:common.vote",
 		"vote-hint": "The highest voted video gets played next.",
-		"loop": "Loop",
+		loop: "Loop",
 		"loop-hint": "When the video ends, put it at the end of the queue.",
-		"dj": "DJ",
+		dj: "DJ",
 		"dj-hint":
 			"When the video ends, start the same video from the beginning. Good for looping background music.",
 		"auto-skip-text": "Auto-skip undesirable video segments using SponsorBlock data.",
@@ -275,29 +275,29 @@ export default {
 	"create-room-form": {
 		"card-title": "Create a Permanent Room",
 		"create-room": "Create Room",
-		"name": "Name",
+		name: "Name",
 		"name-hint": "Used in the room URL. Can't be changed later.",
-		"title": "Title",
+		title: "Title",
 		"title-hint": "Optional",
-		"description": "Description",
+		description: "Description",
 		"description-hint": "@:create-room-form.title-hint",
-		"visibility": "Visibility",
+		visibility: "Visibility",
 		"visibility-hint": "Controls whether or not the room shows up in the room list.",
 		"queue-mode": "Queue Mode",
-		"manual": "Manual",
-		"vote": "@:common.vote",
-		"loop": "@:room-settings.loop",
-		"dj": "@:room-settings.dj",
-		"public": "Public",
-		"unlisted": "Unlisted",
-		"rules": {
-			"name": {
+		manual: "Manual",
+		vote: "@:common.vote",
+		loop: "@:room-settings.loop",
+		dj: "@:room-settings.dj",
+		public: "Public",
+		unlisted: "Unlisted",
+		rules: {
+			name: {
 				"name-required": "Name is required",
 				"no-spaces": "Name must not contain spaces.",
-				"length": "Name must be between 3 and 32 characters",
-				"alphanumeric":
+				length: "Name must be between 3 and 32 characters",
+				alphanumeric:
 					"Name must only contain alphanumeric characters, dashes, and underscores",
-				"taken": "Name is already taken",
+				taken: "Name is already taken",
 			},
 			"invalid-visibility": "Invalid Visibility",
 			"invalid-queue": "Invalid Queue Mode",
@@ -305,17 +305,17 @@ export default {
 		"unknown-error": "An unknown error occurred. Try again later.",
 	},
 	"login-form": {
-		"login": "@:nav.login",
-		"register": "Register",
+		login: "@:nav.login",
+		register: "Register",
 		"login-discord": "Log in with Discord",
-		"email": "Email",
+		email: "Email",
 		"email-or-username": "Email or Username",
-		"username": "Username",
-		"password": "Password",
+		username: "Username",
+		password: "Password",
 		"retype-password": "Retype Password",
 		"email-optional":
 			"Optional. Providing an email makes it possible to recover your account if you forget your password.",
-		"rules": {
+		rules: {
 			"email-required": "Email is required",
 			"valid-email": "Must be a valid email",
 			"username-required": "Username is required",
@@ -325,7 +325,7 @@ export default {
 			"retype-password": "Please retype your password",
 			"passwords-match": "Passwords must match",
 		},
-		"errors": {
+		errors: {
 			"something-weird-happened":
 				"Something weird happened, but you might be logged in? Refresh the page.",
 			"login-failed-noserver":
@@ -348,26 +348,24 @@ export default {
 		},
 	},
 	"permissions-editor": {
-		"title": "Permissions Editor",
-		"text1":
-			"All permissions granted to less privileged users are automatically granted to more privileged users.",
-		"text2":
-			"Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.",
+		title: "Permissions Editor",
+		text1: "All permissions granted to less privileged users are automatically granted to more privileged users.",
+		text2: "Administrators are granted everything. Room owner is automatically Administrator, and can't be demoted.",
 		"viewing-as": "Viewing as",
-		"permission": "Permission",
+		permission: "Permission",
 	},
 	"client-settings": {
-		"title": "Preferences",
-		"description": "These settings are saved in your browser, and only affect you.",
-		"activator": "@:client-settings.title",
+		title: "Preferences",
+		description: "These settings are saved in your browser, and only affect you.",
+		activator: "@:client-settings.title",
 		"room-layout": "Room Layout",
-		"theme": "Theme",
+		theme: "Theme",
 		"sfx-enable": "Enable Sound Effects",
 		"sfx-volume": "Sound Effect Volume",
 		"room-settings": "Default Room Settings",
 	},
 	"connect-overlay": {
-		"title": "Disconnected",
+		title: "Disconnected",
 		"find-another": "Find Another Room",
 		"dc-reasons": {
 			[OttWebsocketError.UNKNOWN]: "@:connect-overlay.dc-reasons.unknown",
@@ -382,7 +380,7 @@ export default {
 	"vote-skip": {
 		remaining: "{count} more votes to skip",
 	},
-	"roles": {
+	roles: {
 		[Role.Administrator]: "Administrator",
 		[Role.Moderator]: "Moderator",
 		[Role.TrustedUser]: "Trusted User",
@@ -390,12 +388,12 @@ export default {
 		[Role.UnregisteredUser]: "Unregistered User",
 		[Role.Owner]: "Owner",
 	},
-	"errors": {
+	errors: {
 		BadPasswordError:
 			"Password does not meet minimum requirements. Must be at least 8 characters long, and contain 2 of the following categories of characters: lowercase letters, uppercase letters, numbers, special characters.",
 		BadApiArgumentException: "Bad API Argument. This is likely a bug, please report it.",
 	},
-	"player": {
+	player: {
 		"buffer-warn": {
 			spans: "You haven't buffered enough of the video yet. Current time ranges buffered: {ranges}",
 		},

@@ -57,11 +57,11 @@
 </template>
 
 <script lang="ts">
-import { API } from "@/common-http";
-import { defineComponent, ref, onMounted } from "vue";
-import { createRoomHelper } from "@/util/roomcreator";
-import { useStore } from "@/store";
+import { defineComponent, onMounted, ref } from "vue";
 import placeholderUrl from "@/assets/placeholder.svg";
+import { API } from "@/common-http";
+import { useStore } from "@/store";
+import { createRoomHelper } from "@/util/roomcreator";
 
 const RoomListView = defineComponent({
 	name: "RoomListView",

@@ -1,27 +1,27 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	MockInstance,
-} from "vitest";
-import YouTubeAdapter, {
-	YoutubeErrorResponse,
-	YoutubeApiVideoListResponse,
-	YoutubeApiVideo,
-} from "../../../services/youtube.js";
-import { Video } from "ott-common/models/video.js";
-import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions.js";
-import { buildClients, redisClient } from "../../../redisclient.js";
 import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "fs";
+import { Video } from "ott-common/models/video.js";
 import { VideoRequest } from "server/serviceadapter.js";
 import { URL } from "url";
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	MockInstance,
+	vi,
+} from "vitest";
+import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions.js";
 import { loadModels } from "../../../models/index.js";
+import { buildClients, redisClient } from "../../../redisclient.js";
+import YouTubeAdapter, {
+	YoutubeApiVideo,
+	YoutubeApiVideoListResponse,
+	YoutubeErrorResponse,
+} from "../../../services/youtube.js";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -468,6 +468,7 @@ describe("Youtube", () => {
 	});
 
 	describe("searchVideos", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = vi.spyOn(adapter.api, "get");
 
@@ -504,6 +505,7 @@ describe("Youtube", () => {
 	});
 
 	describe("videoApiRequest", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = vi.spyOn(adapter.api, "get");
 		const outOfQuotaResponse = {

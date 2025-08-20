@@ -24,7 +24,7 @@
 /**
  * Provides a value display that can be clicked to edit.
  */
-import { ref, nextTick, Ref } from "vue";
+import { nextTick, Ref, ref } from "vue";
 
 const props = withDefaults(
 	defineProps<{

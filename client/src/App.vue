@@ -138,19 +138,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed } from "vue";
+import { computed, defineComponent, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import logoUrl from "@/assets/logo.svg";
 import { API } from "@/common-http";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
 import LogInForm from "@/components/LogInForm.vue";
-import NavUser from "@/components/navbar/NavUser.vue";
-import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
 import Notifier from "@/components/Notifier.vue";
-import { loadLanguageAsync } from "@/i18n";
-import { createRoomHelper } from "@/util/roomcreator";
-import { useRouter } from "vue-router";
-import logoUrl from "@/assets/logo.svg";
-import { useStore } from "@/store";
 import LocaleSelector from "@/components/navbar/LocaleSelector.vue";
+import NavCreateRoom from "@/components/navbar/NavCreateRoom.vue";
+import NavUser from "@/components/navbar/NavUser.vue";
+import { loadLanguageAsync } from "@/i18n";
+import { useStore } from "@/store";
+import { createRoomHelper } from "@/util/roomcreator";
 
 export const App = defineComponent({
 	name: "app",

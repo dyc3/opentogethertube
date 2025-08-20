@@ -1,8 +1,10 @@
-import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
+import { OttException } from "ott-common/exceptions.js";
+import type { Video, VideoId, VideoMetadata } from "ott-common/models/video.js";
 import { RedisClientType } from "redis";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import type { BulkVideoResult } from "server/infoextractor.js";
+import { URL } from "url";
 import {
 	BadApiArgumentException,
 	InvalidVideoIdException,
@@ -11,12 +13,10 @@ import {
 	VideoNotFoundException,
 } from "../exceptions.js";
 import { getLogger } from "../logger.js";
-import type { Video, VideoId, VideoMetadata } from "ott-common/models/video.js";
-import storage from "../storage.js";
-import { OttException } from "ott-common/exceptions.js";
 import { conf } from "../ott-config.js";
+import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import storage from "../storage.js";
 import { parseIso8601Duration } from "./parsing/iso8601.js";
-import type { BulkVideoResult } from "server/infoextractor.js";
 
 const log = getLogger("youtube");
 
@@ -333,7 +333,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		];
 		let idKey: keyof YoutubeChannelData | undefined;
 		for (let key of possibleKeys) {
-			if (Object.prototype.hasOwnProperty.call(channelData, key)) {
+			if (Object.hasOwn(channelData, key)) {
 				idKey = key;
 				break;
 			}
@@ -361,7 +361,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			"handle",
 		];
 		for (let key of possibleKeys) {
-			if (Object.prototype.hasOwnProperty.call(channelData, key)) {
+			if (Object.hasOwn(channelData, key)) {
 				const idValue = channelData[key];
 				const redisKey = `ytchannel:${key}:${idValue}`;
 				log.info(`caching channel playlist id: ${redisKey}`);
@@ -502,6 +502,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 								const videos: Partial<Video>[] =
 									await this.getManyVideoLengthsFallback(ids);
 								return videos;
+								// biome-ignore lint/nursery/noShadow: biome migration
 							} catch (err) {
 								if (err instanceof Error) {
 									log.error(
@@ -580,7 +581,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 					length,
 					// HACK: we can guess what the thumbnail url is, but this could possibly change without warning
 					thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
-				} as Video)
+				}) as Video
 		);
 		try {
 			await storage.updateManyVideoInfo(videos);

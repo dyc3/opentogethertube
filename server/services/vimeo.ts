@@ -1,9 +1,9 @@
-import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
-import { ServiceAdapter } from "../serviceadapter.js";
-import { InvalidVideoIdException } from "../exceptions.js";
 import { Video } from "ott-common/models/video.js";
+import { URL } from "url";
+import { InvalidVideoIdException } from "../exceptions.js";
 import { getLogger } from "../logger.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 
 const log = getLogger("vimeo");
 

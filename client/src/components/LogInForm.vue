@@ -158,13 +158,13 @@
 </template>
 
 <script lang="ts" setup>
-import { API } from "@/common-http";
-import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
+import isEmail from "validator/es/lib/isEmail";
 import { reactive, ref, watch } from "vue";
-import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
+import { API } from "@/common-http";
+import { useStore } from "@/store";
 import { goLoginDiscord } from "@/util/discord";
 import ForgotPassword from "./ForgotPassword.vue";
 

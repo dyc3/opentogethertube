@@ -147,22 +147,21 @@
 </template>
 
 <script lang="ts" setup>
+import { watchDebounced } from "@vueuse/core";
 import _ from "lodash";
+import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
+import { BehaviorOption, QueueMode, Role, RoomSettings, Visibility } from "ott-common/models/types";
+import { Grants } from "ott-common/permissions";
+import { onMounted, Ref, reactive, ref, toRefs, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
+import { API } from "@/common-http";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { ToastStyle } from "@/models/toast";
-import { API } from "@/common-http";
-import { Visibility, QueueMode, RoomSettings, Role, BehaviorOption } from "ott-common/models/types";
-import { Grants } from "ott-common/permissions";
-import toast from "@/util/toast";
-import { Ref, onMounted, reactive, ref, toRefs } from "vue";
 import { useStore } from "@/store";
-import { useI18n } from "vue-i18n";
-import { OttApiResponseGetRoom } from "ott-common/models/rest-api";
-import { useGrants } from "./composables/grants";
-import { useRoute } from "vue-router";
-import { watch } from "vue";
-import { watchDebounced } from "@vueuse/core";
+import toast from "@/util/toast";
 import AutoSkipSegmentSettings from "./AutoSkipSegmentSettings.vue";
+import { useGrants } from "./composables/grants";
 
 const store = useStore();
 const { t } = useI18n();

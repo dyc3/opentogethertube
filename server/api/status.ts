@@ -1,8 +1,9 @@
-import { getLogger } from "../logger.js";
 import express from "express";
 import { register } from "prom-client";
+import { getLogger } from "../logger.js";
 
 const router = express.Router();
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const log = getLogger("api/status");
 
 router.get("/", (req, res) => {

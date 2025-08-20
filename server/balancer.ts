@@ -1,18 +1,16 @@
-import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
+import _ from "lodash";
+import type { RoomListItem } from "ott-common/models/rest-api.js";
+import { AuthToken, ClientId, OttWebsocketError } from "ott-common/models/types.js";
+import { err, intoResult, ok, Result } from "ott-common/result.js";
+import { replacer } from "ott-common/serialize.js";
+import { Gauge } from "prom-client";
+import { v4 as uuidv4 } from "uuid";
 import WebSocket from "ws";
-
+import type { MsgB2M, MsgM2B, UnloadReason } from "./generated.js";
 import { getLogger } from "./logger.js";
 import { conf } from "./ott-config.js";
-import { Result, err, ok, intoResult } from "ott-common/result.js";
-import { AuthToken, ClientId } from "ott-common/models/types.js";
-import { replacer } from "ott-common/serialize.js";
-import { OttWebsocketError } from "ott-common/models/types.js";
 import roommanager from "./roommanager.js";
-import type { RoomListItem } from "ott-common/models/rest-api.js";
-import _ from "lodash";
-import type { MsgB2M, MsgM2B, UnloadReason } from "./generated.js";
-import { Gauge } from "prom-client";
 export type { MsgB2M, MsgM2B };
 
 const log = getLogger("balancer");
@@ -184,6 +182,7 @@ class BalancerManager {
 				resolve();
 				return;
 			}
+			// biome-ignore lint/nursery/noShadow: biome migration
 			wss.close(err => {
 				if (err) {
 					reject(err);
@@ -206,23 +205,23 @@ export type BalancerManagerEvemts = BalancerConnectionEvents;
 export type BalancerManagerEventHandlers<E> = E extends "connect"
 	? (conn: BalancerConnection) => void
 	: E extends "disconnect"
-	? (conn: BalancerConnection) => void
-	: E extends "message"
-	? (conn: BalancerConnection, message: MsgB2M) => void
-	: E extends "error"
-	? (conn: BalancerConnection, error: WebSocket.ErrorEvent) => void
-	: never;
+		? (conn: BalancerConnection) => void
+		: E extends "message"
+			? (conn: BalancerConnection, message: MsgB2M) => void
+			: E extends "error"
+				? (conn: BalancerConnection, error: WebSocket.ErrorEvent) => void
+				: never;
 
 export type BalancerConnectionEvents = "connect" | "disconnect" | "message" | "error";
 export type BalancerConnectionEventHandlers<E> = E extends "connect"
 	? () => void
 	: E extends "disconnect"
-	? (code: number, reason: string) => void
-	: E extends "message"
-	? (message: MsgB2M) => void
-	: E extends "error"
-	? (error: WebSocket.ErrorEvent) => void
-	: never;
+		? (code: number, reason: string) => void
+		: E extends "message"
+			? (message: MsgB2M) => void
+			: E extends "error"
+				? (error: WebSocket.ErrorEvent) => void
+				: never;
 
 export abstract class BalancerConnection {
 	/** A local identifier for the balancer. Other monoliths will have different IDs for the same balancer. */
@@ -437,6 +436,7 @@ const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait:
 
 interface GossipRoom extends RoomListItem {}
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeBalancerConnections = new Gauge({
 	name: "ott_balancer_connections",
 	help: "Number of balancer connections",

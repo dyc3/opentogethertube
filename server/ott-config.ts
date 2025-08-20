@@ -1,12 +1,13 @@
 /* eslint-disable camelcase */
-import fs from "fs";
-import path from "path";
-import validator from "validator";
+
 import convict from "convict";
-import toml from "toml";
-import type winston from "winston";
+import fs from "fs";
 import { ALL_VIDEO_SERVICES } from "ott-common/constants.js";
-import { Result, err, ok, intoResult } from "ott-common/result.js";
+import { err, intoResult, ok, Result } from "ott-common/result.js";
+import path from "path";
+import toml from "toml";
+import validator from "validator";
+import type winston from "winston";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 

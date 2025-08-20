@@ -31,14 +31,14 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
-import { API } from "@/common-http";
-import { useRoute, useRouter } from "vue-router";
 import { OttResponseBody } from "ott-common/models/rest-api";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
+import { API } from "@/common-http";
+import { ToastStyle } from "@/models/toast";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
-import { ToastStyle } from "@/models/toast";
 
 const router = useRouter();
 const route = useRoute();
@@ -84,6 +84,7 @@ async function submitPasswordReset() {
 				content: i18n.t("login-form.change-password.success"),
 				duration: 4000,
 			});
+			// biome-ignore lint/nursery/noShadow: biome migration
 			const resp = await API.get("/user");
 			if (resp.data.loggedIn) {
 				const user = resp.data;

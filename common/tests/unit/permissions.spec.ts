@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { PermissionDeniedException } from "../../exceptions.js";
 import { Role } from "../../index.js";
-import permissions, { Grants, GrantMask } from "../../permissions.js";
+import permissions, { GrantMask, Grants } from "../../permissions.js";
 
 describe("Permission System", () => {
 	it("should parse exact permissions list into correct grant mask", () => {

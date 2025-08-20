@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import VimeoAdapter from "../../../services/vimeo.js";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { InvalidVideoIdException } from "../../../exceptions.js";
+import VimeoAdapter from "../../../services/vimeo.js";
 
 const validVideoLinks = [["283918572", "https://vimeo.com/283918572"]];
 

@@ -1,9 +1,9 @@
-import { ServerMessageUser, ServerMessageYou, PartialUserInfo } from "ott-common/models/messages";
+import { PartialUserInfo, ServerMessageUser, ServerMessageYou } from "ott-common/models/messages";
 import { ClientId, Role, RoomUserInfo } from "ott-common/models/types";
+import type { GrantMask } from "ott-common/permissions";
+import { reactive } from "vue";
 import { Module } from "vuex/types";
 import { API } from "@/common-http";
-import { reactive } from "vue";
-import type { GrantMask } from "ott-common/permissions";
 import type { FullOTTStoreState } from "../store";
 
 export interface UsersState {
