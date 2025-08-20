@@ -9,7 +9,7 @@ import usermanager from "../usermanager.js";
 import { requireApiKey } from "../admin.js";
 import { conf } from "../ott-config.js";
 
-export { SessionInfo } from "./tokens.js";
+export type { SessionInfo } from "./tokens.js";
 
 const router = express.Router();
 router.use(nocache());
