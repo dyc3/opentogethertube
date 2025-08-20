@@ -1,32 +1,31 @@
 import { URL } from "url";
 import _ from "lodash";
-import GoogleDriveAdapter from "./services/googledrive";
-import VimeoAdapter from "./services/vimeo";
-import YouTubeAdapter from "./services/youtube";
-import DirectVideoAdapter from "./services/direct";
-import RedditAdapter from "./services/reddit";
-import HlsVideoAdapter from "./services/hls";
-import storage from "./storage";
+import GoogleDriveAdapter from "./services/googledrive.js";
+import VimeoAdapter from "./services/vimeo.js";
+import YouTubeAdapter from "./services/youtube.js";
+import DirectVideoAdapter from "./services/direct.js";
+import RedditAdapter from "./services/reddit.js";
+import HlsVideoAdapter from "./services/hls.js";
+import storage from "./storage.js";
 import {
 	UnsupportedMimeTypeException,
 	OutOfQuotaException,
 	UnsupportedServiceException,
 	InvalidAddPreviewInputException,
 	FeatureDisabledException,
-} from "./exceptions";
-import { getLogger } from "./logger";
-import { redisClient } from "./redisclient";
-import { isSupportedMimeType } from "./mime";
-import { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video";
-import { ServiceAdapter } from "./serviceadapter";
-import { OttException } from "ott-common/exceptions";
-import TubiAdapter from "./services/tubi";
+} from "./exceptions.js";
+import { getLogger } from "./logger.js";
+import { redisClient } from "./redisclient.js";
+import { isSupportedMimeType } from "./mime.js";
+import type { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import type { ServiceAdapter } from "./serviceadapter.js";
+import { OttException } from "ott-common/exceptions.js";
+import TubiAdapter from "./services/tubi.js";
 import { Counter } from "prom-client";
-import { conf } from "./ott-config";
-import PeertubeAdapter from "./services/peertube";
-import PlutoAdapter from "./services/pluto";
-import DashVideoAdapter from "./services/dash";
-import { Ls } from "dayjs";
+import { conf } from "./ott-config.js";
+import PeertubeAdapter from "./services/peertube.js";
+import PlutoAdapter from "./services/pluto.js";
+import DashVideoAdapter from "./services/dash.js";
 
 const log = getLogger("infoextract");
 

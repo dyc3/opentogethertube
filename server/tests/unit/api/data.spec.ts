@@ -10,9 +10,9 @@ import {
 	MockInstance,
 } from "vitest";
 import request from "supertest";
-import { main } from "../../../app";
-import InfoExtract, { AddPreview } from "../../../infoextractor";
-import tokens from "../../../auth/tokens";
+import { main } from "../../../app.js";
+import InfoExtract, { AddPreview } from "../../../infoextractor.js";
+import tokens from "../../../auth/tokens.js";
 
 describe("Data API", () => {
 	let app;

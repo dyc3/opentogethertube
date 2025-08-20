@@ -1,5 +1,5 @@
 import { User as UserAccount } from "./models/user";
-import { AuthToken } from "ott-common/models/types";
+import { AuthToken } from "ott-common/models/types.js";
 import { SessionInfo } from "./auth/tokens";
 import * as core from "express-serve-static-core";
 

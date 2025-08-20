@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import _ from "lodash";
-import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models";
-import storage from "../../storage";
-import permissions, { Grants } from "ott-common/permissions";
-import { Visibility, QueueMode } from "ott-common/models/types";
-import { Video, VideoId } from "ott-common/models/video";
-import { Room } from "../../room";
-import { roomToDb, roomToDbPartial } from "../../storage/room";
-import { buildClients } from "../../redisclient";
+import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models/index.js";
+import storage from "../../storage.js";
+import permissions, { Grants } from "ott-common/permissions.js";
+import { Visibility, QueueMode } from "ott-common/models/types.js";
+import { Video, VideoId } from "ott-common/models/video.js";
+import { Room } from "../../room.js";
+import { roomToDb, roomToDbPartial } from "../../storage/room.js";
+import { buildClients } from "../../redisclient.js";
 
 describe(
 	"Storage: Room Spec",
@@ -436,9 +436,8 @@ describe("Storage: CachedVideos: bulk inserts/updates", () => {
 				serviceId: "abc789",
 				title: "existing video 3",
 			},
-		];
+		] as const;
 		for (const video of existingVideos) {
-			// @ts-expect-error it's complaining about the type of `service`, but it's valid
 			await CachedVideo.create(video);
 		}
 

@@ -4,7 +4,7 @@ import RedditAdapter, {
 	RedditListableThing,
 	RedditListing,
 	RedditPost,
-} from "../../../../server/services/reddit";
+} from "../../../../server/services/reddit.js";
 
 const subredditListResponse: RedditListing<RedditListableThing> = {
 	kind: "Listing",

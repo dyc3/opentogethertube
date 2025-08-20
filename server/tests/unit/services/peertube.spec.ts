@@ -9,11 +9,11 @@ import {
 	vi,
 	MockInstance,
 } from "vitest";
-import PeertubeAdapter from "../../../services/peertube";
+import PeertubeAdapter from "../../../services/peertube.js";
 import fs from "fs";
-import { InvalidVideoIdException } from "../../../exceptions";
+import { InvalidVideoIdException } from "../../../exceptions.js";
 import { AxiosRequestHeaders, AxiosResponse } from "axios";
-import { conf, loadConfigFile } from "../../../ott-config";
+import { conf, loadConfigFile } from "../../../ott-config.js";
 
 const validVideoLinks = [
 	["the.jokertv.eu:7C5YZTLVudL4FLN4JmVvnA", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],

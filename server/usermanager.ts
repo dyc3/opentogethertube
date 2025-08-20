@@ -1,18 +1,18 @@
-import { getLogger } from "./logger";
+import { getLogger } from "./logger.js";
 import _ from "lodash";
 import securePassword from "secure-password";
 import express, { ErrorRequestHandler, RequestHandler } from "express";
 import passport from "passport";
 import crypto from "crypto";
-import { User as UserModel, Room as RoomModel } from "./models/index";
-import { User } from "./models/user";
-import { delPattern, redisClient } from "./redisclient";
+import { User as UserModel, Room as RoomModel } from "./models/index.js";
+import { User } from "./models/user.js";
+import { delPattern, redisClient } from "./redisclient.js";
 import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
-import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit";
-import tokens from "./auth/tokens";
+import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit.js";
+import tokens from "./auth/tokens.js";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
-import { USERNAME_LENGTH_MAX } from "ott-common/constants";
+import { USERNAME_LENGTH_MAX } from "ott-common/constants.js";
 import {
 	BadApiArgumentException,
 	FeatureDisabledException,
@@ -20,24 +20,24 @@ import {
 	LengthOutOfRangeException,
 	NoEmail,
 	UserNotFound,
-} from "./exceptions";
-import { conf } from "./ott-config";
-import { AuthToken } from "ott-common/models/types";
+} from "./exceptions.js";
+import { conf } from "./ott-config.js";
+import { AuthToken } from "ott-common/models/types.js";
 import { EventEmitter } from "events";
 import { Sequelize, UniqueConstraintError } from "sequelize";
-import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer";
-import { Result, err } from "ott-common/result";
+import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer.js";
+import { Result, err } from "ott-common/result.js";
 import type {
 	OttApiRequestAccountRecoveryStart,
 	OttApiRequestAccountRecoveryVerify,
 	OttResponseBody,
-} from "ott-common/models/rest-api";
-import { counterHttpErrors } from "./metrics";
-import { OttException } from "ott-common/exceptions";
+} from "ott-common/models/rest-api.js";
+import { counterHttpErrors } from "./metrics.js";
+import { OttException } from "ott-common/exceptions.js";
 import {
 	OttApiRequestAccountRecoveryStartSchema,
 	OttApiRequestAccountRecoveryVerifySchema,
-} from "ott-common/models/zod-schemas";
+} from "ott-common/models/zod-schemas.js";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 

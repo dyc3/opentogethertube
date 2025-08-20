@@ -1,6 +1,6 @@
 import { it, describe, expect } from "vitest";
 import dayjs from "dayjs";
-import { secondsToTimestamp, timestampToSeconds } from "../../src/util/timestamp";
+import { secondsToTimestamp, timestampToSeconds } from "../../src/util/timestamp.js";
 
 describe("secondsToTimestamp spec", () => {
 	it("handles positive values", () => {

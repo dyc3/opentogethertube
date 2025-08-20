@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
-import roommanager, { redisStateToState } from "../../roommanager";
+import roommanager, { redisStateToState } from "../../roommanager.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { Room as DbRoom, loadModels } from "../../models";
-import { Room, RoomStateFromRedis } from "../../room";
-import { AuthToken, QueueMode, Role, Visibility } from "ott-common/models/types";
+import { Room as DbRoom, loadModels } from "../../models/index.js";
+import { Room, RoomStateFromRedis } from "../../room.js";
+import { AuthToken, QueueMode, Role, Visibility } from "ott-common/models/types.js";
 import dayjs from "dayjs";
-import { RoomNotFoundException } from "../../exceptions";
-import storage from "../../storage";
-import { RoomRequest, RoomRequestType } from "ott-common/models/messages";
-import { VideoQueue } from "../../../server/videoqueue";
-import { buildClients } from "../../redisclient";
-import { UnloadReason } from "../../generated";
+import { RoomNotFoundException } from "../../exceptions.js";
+import storage from "../../storage.js";
+import { RoomRequest, RoomRequestType } from "ott-common/models/messages.js";
+import { VideoQueue } from "../../../server/videoqueue.js";
+import { buildClients } from "../../redisclient.js";
+import { UnloadReason } from "../../generated.js";
 
 describe("Room manager", () => {
 	beforeAll(async () => {

@@ -1,9 +1,9 @@
 import { SponsorBlock, type Segment } from "sponsorblock-api";
-import { redisClient } from "./redisclient";
+import { redisClient } from "./redisclient.js";
 import { v4 as uuidv4 } from "uuid";
 import { ALL_SKIP_CATEGORIES } from "ott-common";
-import { conf } from "./ott-config";
-import { getLogger } from "./logger";
+import { conf } from "./ott-config.js";
+import { getLogger } from "./logger.js";
 
 const log = getLogger("sponsorblock");
 

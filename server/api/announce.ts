@@ -1,11 +1,11 @@
-import { getLogger } from "../logger";
-import { conf } from "../ott-config";
+import { getLogger } from "../logger.js";
+import { conf } from "../ott-config.js";
 import express, { RequestHandler } from "express";
-import { redisClient } from "../redisclient";
-import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants";
-import { OttResponseBody } from "ott-common/models/rest-api";
-import { OttException } from "ott-common/exceptions";
-import { BadApiArgumentException } from "../exceptions";
+import { redisClient } from "../redisclient.js";
+import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants.js";
+import type { OttResponseBody } from "ott-common/models/rest-api.js";
+import { OttException } from "ott-common/exceptions.js";
+import { BadApiArgumentException } from "../exceptions.js";
 
 const router = express.Router();
 const log = getLogger("api/announce");

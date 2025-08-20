@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { PermissionDeniedException, InvalidRoleException } from "./exceptions";
-import { Role } from "./models/types";
+import { PermissionDeniedException, InvalidRoleException } from "./exceptions.js";
+import { Role } from "./models/types.js";
 
 export type GrantMask = number;
 export type PermissionName = string;

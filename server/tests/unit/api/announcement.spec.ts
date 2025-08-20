@@ -10,12 +10,12 @@ import {
 	MockInstance,
 } from "vitest";
 import request from "supertest";
-import { main } from "../../../app";
-import { setApiKey } from "../../../admin";
-import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants";
-import { redisClient } from "../../../redisclient";
-import tokens, { type SessionInfo } from "../../../auth/tokens";
-import type { AuthToken } from "ott-common/models/types";
+import { main } from "../../../app.js";
+import { setApiKey } from "../../../admin.js";
+import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants.js";
+import { redisClient } from "../../../redisclient.js";
+import tokens, { type SessionInfo } from "../../../auth/tokens.js";
+import type { AuthToken } from "ott-common/models/types.js";
 
 const TEST_API_KEY = "TESTAPIKEY";
 

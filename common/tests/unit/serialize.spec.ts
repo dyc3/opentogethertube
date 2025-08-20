@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deserializeMap, deserializeSet, replacer } from "../../serialize";
+import { deserializeMap, deserializeSet, replacer } from "../../serialize.js";
 
 describe("Serialize helpers", () => {
 	describe("JSON with replacer round trips", () => {

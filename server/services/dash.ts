@@ -1,17 +1,17 @@
 import URL from "url";
 import _ from "lodash";
-import { ServiceAdapter } from "../serviceadapter";
+import { ServiceAdapter } from "../serviceadapter.js";
 import {
 	LocalFileException,
 	UnsupportedMimeTypeException,
 	UnsupportedVideoType,
-} from "../exceptions";
-import { getMimeType, isSupportedMimeType } from "../mime";
-import { getLogger } from "../logger";
-import { Video } from "ott-common/models/video";
+} from "../exceptions.js";
+import { getMimeType, isSupportedMimeType } from "../mime.js";
+import { getLogger } from "../logger.js";
+import { Video } from "ott-common/models/video.js";
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import axios from "axios";
-import { parseIso8601Duration } from "./parsing/iso8601";
+import { parseIso8601Duration } from "./parsing/iso8601.js";
 
 const log = getLogger("dash");
 

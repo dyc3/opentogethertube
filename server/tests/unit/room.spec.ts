@@ -10,17 +10,17 @@ import {
 	MockInstance,
 } from "vitest";
 import dayjs from "dayjs";
-import tokens, { SessionInfo } from "../../auth/tokens";
-import { RoomRequestType } from "ott-common/models/messages";
-import { AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types";
-import { Room, RoomUser } from "../../room";
-import infoextractor from "../../infoextractor";
-import { Video, VideoId } from "ott-common/models/video";
-import permissions from "ott-common/permissions";
+import tokens, { SessionInfo } from "../../auth/tokens.js";
+import { RoomRequestType } from "ott-common/models/messages.js";
+import { AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types.js";
+import { Room, RoomUser } from "../../room.js";
+import infoextractor from "../../infoextractor.js";
+import { Video, VideoId } from "ott-common/models/video.js";
+import permissions from "ott-common/permissions.js";
 import _ from "lodash";
-import { VideoQueue } from "../../videoqueue";
-import { loadModels } from "../../models";
-import { buildClients } from "../../redisclient";
+import { VideoQueue } from "../../videoqueue.js";
+import { loadModels } from "../../models/index.js";
+import { buildClients } from "../../redisclient.js";
 
 describe("Room", () => {
 	let getSessionInfoSpy: MockInstance<[AuthToken], Promise<SessionInfo>>;

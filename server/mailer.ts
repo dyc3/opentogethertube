@@ -1,7 +1,7 @@
-import { Result, ok, err } from "ott-common/result";
+import { type Result, ok, err } from "ott-common/result.js";
 import Mailjet, { Client as MailjetClient } from "node-mailjet";
-import { conf } from "./ott-config";
-import { getLogger } from "./logger";
+import { conf } from "./ott-config.js";
+import { getLogger } from "./logger.js";
 import { Counter } from "prom-client";
 
 const log = getLogger("mailer");
@@ -21,6 +21,7 @@ export class MailjetMailer extends Mailer {
 
 	constructor(apiKey: string, apiSecret: string) {
 		super();
+		// @ts-expect-error This is how you use the Mailjet client, I don't know why it's complaining
 		this.client = Mailjet.apiConnect(apiKey, apiSecret);
 	}
 

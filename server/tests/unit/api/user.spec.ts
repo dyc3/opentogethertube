@@ -11,12 +11,12 @@ import {
 	Mock,
 } from "vitest";
 import request from "supertest";
-import { main } from "../../../app";
-import usermanager from "../../../usermanager";
-import { User as UserModel } from "../../../models";
-import { conf } from "../../../ott-config";
-import { User } from "../../../models/user";
-import { AuthToken } from "ott-common/models/types";
+import { main } from "../../../app.js";
+import usermanager from "../../../usermanager.js";
+import { User as UserModel } from "../../../models/index.js";
+import { conf } from "../../../ott-config.js";
+import { User } from "../../../models/user.js";
+import { AuthToken } from "ott-common/models/types.js";
 
 describe("User API", () => {
 	let token;

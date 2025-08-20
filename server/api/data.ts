@@ -1,12 +1,12 @@
-import { getLogger } from "../logger";
-import { conf } from "../ott-config";
+import { getLogger } from "../logger.js";
+import { conf } from "../ott-config.js";
 import express, { RequestHandler, ErrorRequestHandler } from "express";
-import { OttApiResponseAddPreview, OttResponseBody } from "ott-common/models/rest-api";
-import { OttException } from "ott-common/exceptions";
-import { BadApiArgumentException } from "../exceptions";
-import InfoExtract from "../infoextractor";
-import { consumeRateLimitPoints } from "../rate-limit";
-import { counterHttpErrors } from "../metrics";
+import type { OttApiResponseAddPreview, OttResponseBody } from "ott-common/models/rest-api.js";
+import { OttException } from "ott-common/exceptions.js";
+import { BadApiArgumentException } from "../exceptions.js";
+import InfoExtract from "../infoextractor.js";
+import { consumeRateLimitPoints } from "../rate-limit.js";
+import { counterHttpErrors } from "../metrics.js";
 
 const router = express.Router();
 const log = getLogger("api/data");

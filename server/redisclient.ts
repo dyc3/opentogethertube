@@ -1,7 +1,7 @@
 import redis, { RedisClientOptions, RedisClientType } from "redis";
 import { Counter, Gauge } from "prom-client";
-import { conf } from "./ott-config";
-import { getLogger } from "./logger";
+import { conf } from "./ott-config.js";
+import { getLogger } from "./logger.js";
 const log = getLogger("redisclient");
 
 function buildOptions(): RedisClientOptions<redis.RedisDefaultModules> {

@@ -3,6 +3,9 @@
 		"lib": ["esnext", "es2020.promise", "es2020.bigint", "es2020.string", "DOM"],
 		"module": "esnext",
 		"moduleResolution": "node",
+		// TODO: transition to new module resolution:
+    // "module": "nodenext",
+    // "moduleResolution": "nodenext",
 		"allowSyntheticDefaultImports": true,
 		"preserveConstEnums": true,
 		"allowJs": true,

@@ -1,12 +1,12 @@
-import { getLogger } from "../logger";
+import { getLogger } from "../logger.js";
 import express from "express";
-import { rateLimiter } from "../rate-limit";
-import roommanager from "../roommanager";
-import { RoomRequestType } from "ott-common/models/messages";
-import usermanager from "../usermanager";
+import { rateLimiter } from "../rate-limit.js";
+import roommanager from "../roommanager.js";
+import { RoomRequestType } from "ott-common/models/messages.js";
+import usermanager from "../usermanager.js";
 import faker from "faker";
-import tokens from "../auth/tokens";
-import { setApiKey } from "../admin";
+import tokens from "../auth/tokens.js";
+import { setApiKey } from "../admin.js";
 
 const router = express.Router();
 const log = getLogger("api/dev");

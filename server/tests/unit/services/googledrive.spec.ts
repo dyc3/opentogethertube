@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import GoogleDriveAdapter from "../../../../server/services/googledrive";
+import GoogleDriveAdapter from "../../../../server/services/googledrive.js";
 
 describe("Google Drive", () => {
 	describe("canHandleURL", () => {

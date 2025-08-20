@@ -2,21 +2,21 @@ import { URL } from "url";
 import axios, { AxiosResponse } from "axios";
 import _ from "lodash";
 import { RedisClientType } from "redis";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter";
+import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
 import {
 	BadApiArgumentException,
 	InvalidVideoIdException,
 	OutOfQuotaException,
 	UnsupportedVideoType,
 	VideoNotFoundException,
-} from "../exceptions";
-import { getLogger } from "../logger";
-import { Video, VideoId, VideoMetadata } from "ott-common/models/video";
-import storage from "../storage";
-import { OttException } from "ott-common/exceptions";
-import { conf } from "../ott-config";
-import { parseIso8601Duration } from "./parsing/iso8601";
-import { BulkVideoResult } from "server/infoextractor";
+} from "../exceptions.js";
+import { getLogger } from "../logger.js";
+import type { Video, VideoId, VideoMetadata } from "ott-common/models/video.js";
+import storage from "../storage.js";
+import { OttException } from "ott-common/exceptions.js";
+import { conf } from "../ott-config.js";
+import { parseIso8601Duration } from "./parsing/iso8601.js";
+import type { BulkVideoResult } from "server/infoextractor.js";
 
 const log = getLogger("youtube");
 

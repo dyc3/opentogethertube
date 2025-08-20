@@ -1,5 +1,5 @@
-import { OttException } from "ott-common/exceptions";
-import { conf } from "./ott-config";
+import { OttException } from "ott-common/exceptions.js";
+import { conf } from "./ott-config.js";
 
 /**
  * @deprecated use `conf.get("api_key")` instead

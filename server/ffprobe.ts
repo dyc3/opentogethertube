@@ -1,6 +1,6 @@
 import util from "util";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
-import { getLogger } from "./logger";
+import { getLogger } from "./logger.js";
 import childProcess from "child_process";
 import axios from "axios";
 import { Stream } from "stream";
@@ -11,7 +11,7 @@ import { AbortController } from "node-abort-controller";
 import http from "http";
 import https from "https";
 import { Counter } from "prom-client";
-import { conf } from "./ott-config";
+import { conf } from "./ott-config.js";
 
 const log = getLogger("infoextract/ffprobe");
 const exec = util.promisify(childProcess.exec);

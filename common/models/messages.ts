@@ -11,8 +11,8 @@ import {
 	RoomSettings,
 	AuthToken,
 	BehaviorOption,
-} from "./types";
-import { QueueItem, VideoId } from "./video";
+} from "./types.js";
+import { QueueItem, VideoId } from "./video.js";
 
 export type ServerMessage =
 	| ServerMessageSync

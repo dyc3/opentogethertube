@@ -13,15 +13,15 @@ import YouTubeAdapter, {
 	YoutubeErrorResponse,
 	YoutubeApiVideoListResponse,
 	YoutubeApiVideo,
-} from "../../../services/youtube";
-import { Video } from "ott-common/models/video";
-import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions";
-import { buildClients, redisClient } from "../../../redisclient";
+} from "../../../services/youtube.js";
+import { Video } from "ott-common/models/video.js";
+import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions.js";
+import { buildClients, redisClient } from "../../../redisclient.js";
 import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "fs";
-import { VideoRequest } from "server/serviceadapter";
+import { VideoRequest } from "server/serviceadapter.js";
 import { URL } from "url";
-import { loadModels } from "../../../models";
+import { loadModels } from "../../../models/index.js";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],

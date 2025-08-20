@@ -1,11 +1,20 @@
 {
-	"extends": "../tsconfig.json",
-	"compilerOptions": {
-		"target": "ESNext",
-		"baseUrl": ".",
-		"strictFunctionTypes": true,
-		"outDir": "ts-out",
-	},
-	"include": ["**/*.ts"],
-	"exclude": ["node_modules", "dist", "ts-out"]
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ESNext",
+    "baseUrl": ".",
+    "rootDir": ".",
+    "strictFunctionTypes": true,
+    "outDir": "ts-out",
+  },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "ts-out"
+  ]
 }
