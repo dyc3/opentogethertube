@@ -14,6 +14,7 @@ export const ALL_VIDEO_SERVICES = [
 	"googledrive",
 	"peertube",
 	"pluto",
+	"invidious",
 ] as const;
 export const ALL_SKIP_CATEGORIES: Category[] = [
 	"sponsor",
