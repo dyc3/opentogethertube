@@ -221,11 +221,56 @@ export default defineComponent({
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// ...so that we can use hls.js to change the video source
-				hls = new Hls();
+				hls = new Hls({
+					capLevelToPlayerSize: false,
+					abrEwmaDefaultEstimate: 8_000_000, // ~8Mbps
+					startLevel: -1, // auto
+				});
+
 				hls.loadSource(videoUrl.value);
 				hls.attachMedia(videoElem.value);
-				hls.on(Hls.Events.MANIFEST_PARSED, () => {
+				// Helper
+				const logCurrentHlsLevel = (label: string) => {
+					try {
+						if (!hls) return;
+							const idx =
+							(hls.currentLevel ?? -1) >= 0
+								? hls.currentLevel
+								: (hls.nextLevel ?? hls.loadLevel ?? -1);
+							const lvl = idx >= 0 ? hls.levels[idx] : undefined;
+							console.info(`[hls.js] current level (${label})`, {
+							index: idx,
+							bitrateKbps: lvl?.bitrate ? Math.round(lvl.bitrate / 1000) : undefined,
+							width: lvl?.width,
+							height: lvl?.height,
+							name: (lvl as any)?.name,
+							auto: hls.autoLevelEnabled,
+							cappedToPlayerSize: hls.config?.capLevelToPlayerSize,
+							});
+					} catch {}
+				};
+
+				hls.on(Hls.Events.MANIFEST_PARSED, (_evt, data: any) => {
+					const h = hls;
+					if (!h) return; // TS: narrow Hls | undefined -> Hls
 					console.info("PlyrPlayer: hls.js manifest parsed");
+					try {
+						const levels = (data?.levels ?? h.levels ?? []).map((l: any, i: number) => ({
+						index: i,
+						bitrateKbps: l?.bitrate ? Math.round(l.bitrate / 1000) : undefined,
+						width: l?.width,
+						height: l?.height,
+						name: l?.name,
+					}));
+						console.info("[hls.js] manifest levels", levels);
+						const max = (h.levels?.length || 0) - 1;
+						if (max >= 0) {
+							h.currentLevel = max;
+							h.nextLevel = max;
+							console.info("[hls.js] forced highest level", levels[max]);
+						}
+					} catch {}
+					logCurrentHlsLevel("after MANIFEST_PARSED");
 					emit("ready");
 					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
 					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
@@ -234,6 +279,36 @@ export default defineComponent({
 					console.error("PlyrPlayer: hls.js error:", event, data);
 					console.error("PlyrPlayer: hls.js inner error:", data.error);
 					emit("error");
+				});
+				hls.on(Hls.Events.LEVEL_SWITCHING, (_evt, data: any) => {
+				const cand = hls?.levels?.[data?.level];
+					console.info("[hls.js] level requested →", {
+						index: data?.level,
+						bitrateKbps: cand?.bitrate ? Math.round(cand.bitrate / 1000) : undefined,
+						width: cand?.width, height: cand?.height, name: (cand as any)?.name,
+					});
+				});
+				hls.on(Hls.Events.LEVEL_SWITCHED, (_evt, data: any) => {
+				const cur = hls?.levels?.[data?.level];
+					console.info("[hls.js] level rendered ✔", {
+						index: data?.level,
+						bitrateKbps: cur?.bitrate ? Math.round(cur.bitrate / 1000) : undefined,
+						width: cur?.width, height: cur?.height, name: (cur as any)?.name,
+					});
+				logCurrentHlsLevel("after LEVEL_SWITCHED");
+				});
+				videoElem.value.addEventListener("playing", () => {
+					logCurrentHlsLevel("HTML5 playing");
+				});
+				videoElem.value.addEventListener("seeked", () => {
+					try {
+						const max = (hls?.levels?.length || 0) - 1;
+						if (max >= 0 && hls) {
+						hls.nextLevel = max;
+						hls.currentLevel = max;
+						}
+					} catch {}
+					logCurrentHlsLevel("after seeked (forced MAX)");
 				});
 				hls.on(Hls.Events.INIT_PTS_FOUND, () => {
 					console.info("PlyrPlayer: hls.js init pts found");
@@ -258,30 +333,93 @@ export default defineComponent({
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// ...so that we can use dash.js to change the video source
+				// Add EventLister for "Seeking(Seeked)"
+				videoElem.value.addEventListener("seeked", () => {
+					try {
+						const list = dash?.getBitrateInfoListFor("video") || [];
+						const maxIndex = list.length ? list.length - 1 : 0;
+						dash?.setQualityFor("video", maxIndex);
+					} catch {}
+					logCurrentDashQuality("after seeked (forced MAX)");
+				});
+				// Allow fast switching 
+				dash.updateSettings({ streaming: { fastSwitchEnabled: true } } as any);
+
+				const logCurrentDashQuality = (label: string) => {
+				try {
+					const q = dash?.getQualityFor("video");
+					const list = dash?.getBitrateInfoListFor("video") || [];
+					const it = (q != null && list[q]) ? list[q] : undefined;
+					console.info(`[dash.js] current quality (${label})`, {
+					index: q,
+					bitrateKbps: it?.bitrate ? Math.round(it.bitrate / 1000) : undefined,
+					width: it?.width,
+					height: it?.height,
+					});
+				} catch {}
+				};
+
 				dash.initialize(videoElem.value, videoUrl.value, false);
 
-				dash.on("manifestLoaded", () => {
+				// Prefer official Eventhandling from dash.js
+				dash.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, () => {
 					console.info("PlyrPlayer: dash.js manifest loaded");
+					// Try highest possible quality first
+					try {
+						const list = dash?.getBitrateInfoListFor("video") || [];
+						const maxIndex = list.length ? list.length - 1 : 0;
+						dash?.setQualityFor("video", maxIndex);
+						console.info("[dash.js] forced highest quality", {
+						index: maxIndex,
+						bitrateKbps: list[maxIndex]?.bitrate ? Math.round(list[maxIndex].bitrate / 1000) : undefined,
+						width: list[maxIndex]?.width, height: list[maxIndex]?.height,
+						});
+					} catch {}
+					logCurrentDashQuality("after MANIFEST_LOADED");
 					emit("ready");
 					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
 					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
 				});
-				dash.on("error", (event: unknown) => {
+				dash.on(dashjs.MediaPlayer.events.ERROR, (event: unknown) => {
 					console.error("PlyrPlayer: dash.js error:", event);
 					emit("error");
 				});
-				dash.on("playbackError", (event: unknown) => {
-					console.error("PlyrPlayer: dash.js playback error:", event);
-					emit("error");
+				dash.on(dashjs.MediaPlayer.events.PLAYBACK_PLAYING, () => {
+				logCurrentDashQuality("PLAYBACK_PLAYING");
+				console.info("PlyrPlayer: dash.js video Playing");
 				});
-				dash.on("streamInitialized", () => {
+				//*** Temporary loginfo for quality
+				dash.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_REQUESTED, (e: any) => {
+					if (e?.mediaType !== "video") return;
+					const list = dash?.getBitrateInfoListFor("video") || [];
+					const cand = list[e.newQuality];
+					console.info("[dash.js] quality requested →", {
+						index: e.newQuality,
+						bitrateKbps: cand?.bitrate ? Math.round(cand.bitrate / 1000) : undefined,
+						width: cand?.width, height: cand?.height,
+						reason: e?.reason,
+					});
+				});
+				dash.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, (e: any) => {
+				if (e?.mediaType !== "video") return;
+					const list = dash?.getBitrateInfoListFor("video") || [];
+					const cand = list[e.newQuality];
+					console.info("[dash.js] quality rendered ✔", {
+						index: e.newQuality,
+						bitrateKbps: cand?.bitrate ? Math.round(cand.bitrate / 1000) : undefined,
+						width: cand?.width, height: cand?.height,
+					});
+				logCurrentDashQuality("after QUALITY_CHANGE_RENDERED");
+				});
+				// TEMP END ***
+				dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
 					console.info("PlyrPlayer: dash.js stream initialized");
 				});
-				dash.on("bufferStalled", () => {
+				dash.on(dashjs.MediaPlayer.events.BUFFER_EMPTY, () => {
 					console.info("PlyrPlayer: dash.js buffer stalled");
 					emit("buffering");
 				});
-				dash.on("bufferLoaded", () => {
+				dash.on(dashjs.MediaPlayer.events.BUFFER_LOADED, () => {
 					console.info("PlyrPlayer: dash.js buffer loaded");
 					emit("ready");
 				});
