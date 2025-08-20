@@ -7458,25 +7458,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.6.7":
-  version: 1.6.7
-  resolution: "axios@npm:1.6.7"
-  dependencies:
-    follow-redirects: "npm:^1.15.4"
-    form-data: "npm:^4.0.0"
-    proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/131bf8e62eee48ca4bd84e6101f211961bf6a21a33b95e5dfb3983d5a2fe50d9fffde0b57668d7ce6f65063d3dc10f2212cbcb554f75cfca99da1c73b210358d
-  languageName: node
-  linkType: hard
-
-"axios@npm:1.7.4":
-  version: 1.7.4
-  resolution: "axios@npm:1.7.4"
+"axios@npm:1.8.2":
+  version: 1.8.2
+  resolution: "axios@npm:1.8.2"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/5ea1a93140ca1d49db25ef8e1bd8cfc59da6f9220159a944168860ad15a2743ea21c5df2967795acb15cbe81362f5b157fdebbea39d53117ca27658bab9f7f17
+  checksum: 10c0/d8c2969e4642dc6d39555ac58effe06c051ba7aac2bd40cad7a9011c019fb2f16ee011c5a6906cb25b8a4f87258c359314eb981f852e60ad445ecaeb793c7aa2
   languageName: node
   linkType: hard
 
@@ -11561,7 +11550,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.15.4, follow-redirects@npm:^1.15.6":
+"follow-redirects@npm:^1.15.6":
   version: 1.15.6
   resolution: "follow-redirects@npm:1.15.6"
   peerDependenciesMeta:
@@ -15894,7 +15883,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:6.14.0"
     "@typescript-eslint/parser": "npm:6.14.0"
     ansi-colors: "npm:^4.1.1"
-    axios: "npm:1.6.7"
+    axios: "npm:1.8.2"
     concurrently: "npm:7.6.0"
     cypress: "npm:13.7.1"
     cypress-iframe: "npm:^1.0.1"
@@ -15991,7 +15980,7 @@ __metadata:
     "@vue/eslint-config-typescript": "npm:^11.0.3"
     "@vue/test-utils": "npm:2.2.1"
     "@vueuse/core": "npm:^9.6.0"
-    axios: "npm:1.7.4"
+    axios: "npm:1.8.2"
     cypress: "npm:13.7.1"
     cypress-real-events: "npm:^1.12.0"
     dashjs: "npm:4.7.1"
@@ -16065,7 +16054,7 @@ __metadata:
     "@types/validator": "npm:^13.15.2"
     "@types/ws": "npm:^7.4.4"
     ansi-colors: "npm:^4.1.1"
-    axios: "npm:1.7.4"
+    axios: "npm:1.8.2"
     connect-redis: "npm:7.1.0"
     convict: "npm:^6.2.4"
     cookie-parser: "npm:^1.4.6"
