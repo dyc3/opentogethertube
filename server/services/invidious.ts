@@ -65,7 +65,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			return false;
 		}
 
-    // Support both the canonical and short Invidious routes that mirror YouTube. – Invidious-specific
+		// Support both the canonical and short Invidious routes that mirror YouTube. – Invidious-specific
 		if (url.pathname === "/watch") {
 			return url.searchParams.has("v");
 		}
@@ -101,7 +101,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	private manifestUrl(host: string, id: string, type: "hls" | "dash"): string {
 		const u = new URL(`https://${host}/api/manifest/${type}/id/${encodeURIComponent(id)}`);
 		u.searchParams.set("local", "1");
-    // Some instances honor `source=youtube` to disambiguate backends. – Invidious-specific
+		// Some instances honor `source=youtube` to disambiguate backends. – Invidious-specific
 		u.searchParams.set("source", "youtube");
 		return u.toString();
 	}
@@ -119,7 +119,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			});
 			data = resLocal.data;
 		} catch {
-      // Some instances gate `local=1` behind anti-DDoS/rate-limit checks; fallback to non-proxied metadata. – Invidious infra quirk
+			// Some instances gate `local=1` behind anti-DDoS/rate-limit checks; fallback to non-proxied metadata. – Invidious infra quirk
 			const res = await this.api.get<InvidiousApiVideo>(baseUrl, {
 				headers: { Accept: "application/json" },
 			});
@@ -152,7 +152,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			u.searchParams.set("itag", String(itag));
 		}
 		u.searchParams.set("local", "1");
-    // Helps some instances route the request correctly. – Invidious-specific
+		// Helps some instances route the request correctly. – Invidious-specific
 		u.searchParams.set("source", "youtube");
 		return u.toString();
 	}
@@ -163,7 +163,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		if (!thumbnails || thumbnails.length === 0) {
 			return undefined;
 		}
-    // YouTube commonly exposes multiple thumbnail sizes; prefer the largest. – YouTube behavior
+		// YouTube commonly exposes multiple thumbnail sizes; prefer the largest. – YouTube behavior
 		const sorted = [...thumbnails].sort((a, b) => {
 			const aPixels = (a.width || 0) * (a.height || 0);
 			const bPixels = (b.width || 0) * (b.height || 0);
@@ -188,7 +188,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 		// 1) Probe DASH & HLS and pick the manifest whose top variant has the higher bitrate.
 		try {
-      // Both may exist or be omitted depending on upstream availability and instance config. – YouTube/Invidious variability
+			// Both may exist or be omitted depending on upstream availability and instance config. – YouTube/Invidious variability
 			const [dashProbe, hlsProbe] = await Promise.all([
 				this.probeManifest(host, id, "dash"),
 				this.probeManifest(host, id, "hls"),
@@ -232,7 +232,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		}
 
 		// 2) Progressive fallback (MP4/WebM with audio) via /latest_version
-  	// Direct YouTube progressive URLs are short-lived and CORS-restricted; proxying via Invidious stabilizes access for browsers. – YouTube+CORS
+		// Direct YouTube progressive URLs are short-lived and CORS-restricted; proxying via Invidious stabilizes access for browsers. – YouTube+CORS
 		// Helper to extract numeric quality from labels like "720p", "480p", etc.
 		const q = (label?: string) => {
 			const m = (label || "").match(/(\d+)/);
@@ -261,7 +261,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			// Always proxy via the instance (avoids CORS/signature churn) and carry itag if known.
 			const proxied = this.proxiedProgressive(host, id, chosen.itag);
 
-      // Known YouTube itag→MIME hints for progressive formats (historical values; may vary over time). – YouTube-specific
+			// Known YouTube itag→MIME hints for progressive formats (historical values; may vary over time). – YouTube-specific
 			const ITAG_TO_MIME: Record<number, string> = {
 				18: "video/mp4", // 360p
 				22: "video/mp4", // 720p
@@ -289,7 +289,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		}
 		// Fallback: let the instance pick a default via /latest_version (proxied)
 		const fallback = this.proxiedProgressive(host, id);
-    // Some videos only expose adaptive (DASH/HLS) and no progressive tracks. – YouTube encoding variability
+		// Some videos only expose adaptive (DASH/HLS) and no progressive tracks. – YouTube encoding variability
 		log.warn("No progressive formatStreams found; falling back to proxied /latest_version", {
 			host,
 			id,
@@ -370,7 +370,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				return { kind, url, topKbps: Math.round(topBw / 1000), topRes };
 			}
 		} catch (e) {
-      // Public instances may throttle or shield manifest endpoints (e.g., 421/429/5xx behind DDoS protection). – Invidious/infra behavior
+			// Public instances may throttle or shield manifest endpoints (e.g., 421/429/5xx behind DDoS protection). – Invidious/infra behavior
 			log.warn(`probeManifest failed`, {
 				kind,
 				url,
