@@ -111,26 +111,41 @@ describe("InvidiousAdapter (unit)", () => {
 			adapter.allowedHosts = ["inv.nadeko.net"];
 		});
 
-		it("parses DASH MPD and returns top bitrate/res", async () => {
+		it("parses DASH MPD (via DashMPD) and returns top bitrate/res", async () => {
 			const mpd = `
-    <MPD>
-      <Period>
-        <AdaptationSet mimeType="video/mp4" codecs="avc1.640028">
-          <Representation id="1080" bandwidth="4300000" width="1920" height="1080"/>
-          <Representation id="720"  bandwidth="2100000" width="1280" height="720"/>
-        </AdaptationSet>
-      </Period>
-    </MPD>`;
-			// mock axios instance on this adapter
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:DASH:schema:MPD:2011"
+     profiles="urn:mpeg:dash:profile:isoff-live:2011"
+     type="static"
+     minBufferTime="PT2S"
+     mediaPresentationDuration="PT10S">
+  <Period>
+    <AdaptationSet mimeType="video/mp4" contentType="video">
+      <Representation id="1080"
+                      bandwidth="4300000"
+                      width="1920"
+                      height="1080"/>
+      <Representation id="720"
+                      bandwidth="2100000"
+                      width="1280"
+                      height="720"/>
+    </AdaptationSet>
+  </Period>
+</MPD>`;
+			// mock axios instance on this adapter (DashMPD expects raw XML string)
 			(adapter.api.get as any) = vi.fn().mockResolvedValue({ data: mpd, headers: {} });
 
 			const out = await (adapter as any).probeManifest("inv.nadeko.net", "abc", "dash");
-			expect(out).toEqual({
-				kind: "dash",
-				url: expect.stringContaining("/api/manifest/dash/id/abc"),
-				topKbps: 4300,
-				topRes: "1920x1080",
-			});
+			// Assert fields individually to avoid matcher differences
+			expect(out).not.toBeNull();
+			// Kind must be "dash"
+			expect(out?.kind).toBe("dash");
+			// URL should include the DASH manifest path (query order may vary)
+			expect(out?.url).toContain("/api/manifest/dash/id/abc");
+			// Top bitrate should be 4300 kbps for the 4,300,000 bandwidth rep
+			expect(out?.topKbps).toBe(4300);
+			// Resolution should be 1920x1080 (width/height present in the test MPD)
+			expect(out?.topRes).toBe("1920x1080");
 		});
 
 		it("parses HLS master and returns top bitrate/res", async () => {

@@ -3,7 +3,7 @@ import maxBy from "lodash/maxBy.js";
 import { getLogger } from "../logger.js";
 import { ServiceAdapter } from "../serviceadapter.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
-import { DOMParser } from "@xmldom/xmldom";
+import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import { conf } from "../ott-config.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException } from "../exceptions.js";
@@ -36,6 +36,16 @@ interface InvidiousApiVideo {
 	adaptiveFormats?: InvidiousFormat[];
 	videoThumbnails?: { url: string; width?: number; height?: number }[];
 }
+
+// Known YouTube itag→MIME hints for progressive formats (historical values; may vary over time). – YouTube-specific
+const ITAG_TO_MIME = new Map<number, string>([
+	[18, "video/mp4"], // 360p
+	[22, "video/mp4"], // 720p
+	[59, "video/mp4"], // 480p
+	[43, "video/webm"], // 360p (VP8/Vorbis)
+	[44, "video/webm"], // 480p
+	[45, "video/webm"], // 720p
+]);
 
 export default class InvidiousAdapter extends ServiceAdapter {
 	api = axios.create({
@@ -261,19 +271,10 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			// Always proxy via the instance (avoids CORS/signature churn) and carry itag if known.
 			const proxied = this.proxiedProgressive(host, id, chosen.itag);
 
-			// Known YouTube itag→MIME hints for progressive formats (historical values; may vary over time). – YouTube-specific
-			const ITAG_TO_MIME: Record<number, string> = {
-				18: "video/mp4", // 360p
-				22: "video/mp4", // 720p
-				59: "video/mp4", // 480p
-				43: "video/webm", // 360p (VP8/Vorbis)
-				44: "video/webm", // 480p
-				45: "video/webm", // 720p
-			};
-
 			// If MIME cannot be inferred reliably, prefer MP4 for widest browser compatibility. – Browser compatibility
 			if (!mime) {
-				const m = typeof chosen.itag === "number" ? ITAG_TO_MIME[chosen.itag] : undefined;
+				const m =
+					typeof chosen.itag === "number" ? ITAG_TO_MIME.get(chosen.itag) : undefined;
 				mime = m ?? "video/mp4";
 			}
 			log.info("Chosen progressive stream via /latest_version", {
@@ -323,27 +324,70 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			});
 			const text = typeof resp.data === "string" ? resp.data : String(resp.data);
 			if (kind === "dash") {
-				// Parse MPD via xmldom (server-side safe; no browser DOM in Node). – Environment constraint
-				type XmlEl = { getAttribute(name: string): string | null };
-				const doc = new DOMParser().parseFromString(text, "application/xml");
-				const reps: XmlEl[] = Array.from(doc.getElementsByTagName("Representation") as any);
+				// 1) Faster, namespace- scan <Representation .../>-attr
 				let topBw = 0;
 				let topRes: string | undefined;
-				for (const rep of reps) {
-					const bwAttr = rep.getAttribute("bandwidth");
-					const bw = bwAttr ? parseInt(bwAttr, 10) : 0;
-					if (!bw || Number.isNaN(bw)) {
+
+				const repTagRe = /<Representation\b[^>]*\/?>/gi;
+				const attrNum = (src: string, name: string): number => {
+					// exakter Attributname (verhindert 'width' in 'bandwidth')
+					const re = new RegExp(`(?:^|\\s)${name}(?=\\s*=)\\s*=\\s*["'](\\d+)["']`, "i");
+					const m = re.exec(src);
+					return m ? Number(m[1]) : NaN;
+				};
+
+				let m: RegExpExecArray | null;
+				while ((m = repTagRe.exec(text)) !== null) {
+					const tag = m[0];
+					const bw = attrNum(tag, "bandwidth");
+					if (!Number.isFinite(bw)) {
 						continue;
 					}
+
 					if (bw > topBw) {
 						topBw = bw;
-						const wAttr = rep.getAttribute("width");
-						const hAttr = rep.getAttribute("height");
-						if (wAttr && hAttr) {
-							topRes = `${wAttr}x${hAttr}`;
+						const w = attrNum(tag, "width");
+						const h = attrNum(tag, "height");
+						topRes = Number.isFinite(w) && Number.isFinite(h) ? `${w}x${h}` : undefined;
+					}
+				}
+
+				// 2) Parser-Fallback,
+				if (topBw === 0) {
+					const mpd = new DashMPD();
+					mpd.parse(text);
+
+					const asArr = <T>(v: T | T[] | undefined | null): T[] =>
+						Array.isArray(v) ? v : v !== null && v !== undefined ? [v as T] : [];
+					const attrs = (node: any): Record<string, unknown> =>
+						(node && (node["@"] ?? node._attributes ?? node.attributes ?? node.$)) ||
+						{};
+
+					const root: any =
+						(mpd as any).mpd?.MPD ??
+						(mpd as any).mpd ??
+						mpd.getJSON?.().MPD ??
+						mpd.getJSON?.();
+
+					for (const period of asArr(root?.Period)) {
+						for (const set of asArr(period?.AdaptationSet)) {
+							for (const rep of asArr(set?.Representation)) {
+								const a = attrs(rep);
+								const bw = Number(a["bandwidth"] ?? a["Bandwidth"] ?? 0);
+								if (!Number.isFinite(bw) || bw <= topBw) {
+									continue;
+								}
+								topBw = bw;
+								const w = Number(a["width"] ?? a["Width"]);
+								const h = Number(a["height"] ?? a["Height"]);
+								if (Number.isFinite(w) && Number.isFinite(h)) {
+									topRes = `${w}x${h}`;
+								}
+							}
 						}
 					}
 				}
+
 				return { kind, url, topKbps: Math.round(topBw / 1000), topRes };
 			} else {
 				// Parse HLS master playlist via m3u8-parser; master formats differ across encodes and instance rewrites. – YouTube/Invidious variability
