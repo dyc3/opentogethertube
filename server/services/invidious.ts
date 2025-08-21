@@ -1,5 +1,5 @@
 import axios from "axios";
-import { maxBy } from "lodash";
+import maxBy from "lodash/maxBy.js";
 import { getLogger } from "../logger.js";
 import { ServiceAdapter } from "../serviceadapter.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
