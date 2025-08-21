@@ -11,7 +11,7 @@ import storage from "../storage.js";
 
 const log = getLogger("invidious");
 
-const INVIDIOUS_SHORT_WATCH_RE = /^\/w\/[A-Za-z0-9_-]+$/;
+export const INVIDIOUS_SHORT_WATCH_RE = /^\/w\/[A-Za-z0-9_-]+$/;
 
 interface InvidiousFormat {
 	itag?: number;
