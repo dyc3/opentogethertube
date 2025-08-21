@@ -233,12 +233,12 @@ export default defineComponent({
 				const logCurrentHlsLevel = (label: string) => {
 					try {
 						if (!hls) return;
-							const idx =
+						const idx =
 							(hls.currentLevel ?? -1) >= 0
 								? hls.currentLevel
-								: (hls.nextLevel ?? hls.loadLevel ?? -1);
-							const lvl = idx >= 0 ? hls.levels[idx] : undefined;
-							console.info(`[hls.js] current level (${label})`, {
+								: hls.nextLevel ?? hls.loadLevel ?? -1;
+						const lvl = idx >= 0 ? hls.levels[idx] : undefined;
+						console.info(`[hls.js] current level (${label})`, {
 							index: idx,
 							bitrateKbps: lvl?.bitrate ? Math.round(lvl.bitrate / 1000) : undefined,
 							width: lvl?.width,
@@ -246,7 +246,7 @@ export default defineComponent({
 							name: (lvl as any)?.name,
 							auto: hls.autoLevelEnabled,
 							cappedToPlayerSize: hls.config?.capLevelToPlayerSize,
-							});
+						});
 					} catch {}
 				};
 
@@ -255,13 +255,15 @@ export default defineComponent({
 					if (!h) return; // TS: narrow Hls | undefined -> Hls
 					console.info("PlyrPlayer: hls.js manifest parsed");
 					try {
-						const levels = (data?.levels ?? h.levels ?? []).map((l: any, i: number) => ({
-						index: i,
-						bitrateKbps: l?.bitrate ? Math.round(l.bitrate / 1000) : undefined,
-						width: l?.width,
-						height: l?.height,
-						name: l?.name,
-					}));
+						const levels = (data?.levels ?? h.levels ?? []).map(
+							(l: any, i: number) => ({
+								index: i,
+								bitrateKbps: l?.bitrate ? Math.round(l.bitrate / 1000) : undefined,
+								width: l?.width,
+								height: l?.height,
+								name: l?.name,
+							})
+						);
 						console.info("[hls.js] manifest levels", levels);
 						const max = (h.levels?.length || 0) - 1;
 						if (max >= 0) {
@@ -281,21 +283,25 @@ export default defineComponent({
 					emit("error");
 				});
 				hls.on(Hls.Events.LEVEL_SWITCHING, (_evt, data: any) => {
-				const cand = hls?.levels?.[data?.level];
+					const cand = hls?.levels?.[data?.level];
 					console.info("[hls.js] level requested →", {
 						index: data?.level,
 						bitrateKbps: cand?.bitrate ? Math.round(cand.bitrate / 1000) : undefined,
-						width: cand?.width, height: cand?.height, name: (cand as any)?.name,
+						width: cand?.width,
+						height: cand?.height,
+						name: (cand as any)?.name,
 					});
 				});
 				hls.on(Hls.Events.LEVEL_SWITCHED, (_evt, data: any) => {
-				const cur = hls?.levels?.[data?.level];
+					const cur = hls?.levels?.[data?.level];
 					console.info("[hls.js] level rendered ✔", {
 						index: data?.level,
 						bitrateKbps: cur?.bitrate ? Math.round(cur.bitrate / 1000) : undefined,
-						width: cur?.width, height: cur?.height, name: (cur as any)?.name,
+						width: cur?.width,
+						height: cur?.height,
+						name: (cur as any)?.name,
 					});
-				logCurrentHlsLevel("after LEVEL_SWITCHED");
+					logCurrentHlsLevel("after LEVEL_SWITCHED");
 				});
 				videoElem.value.addEventListener("playing", () => {
 					logCurrentHlsLevel("HTML5 playing");
@@ -304,8 +310,8 @@ export default defineComponent({
 					try {
 						const max = (hls?.levels?.length || 0) - 1;
 						if (max >= 0 && hls) {
-						hls.nextLevel = max;
-						hls.currentLevel = max;
+							hls.nextLevel = max;
+							hls.currentLevel = max;
 						}
 					} catch {}
 					logCurrentHlsLevel("after seeked (forced MAX)");
@@ -342,21 +348,21 @@ export default defineComponent({
 					} catch {}
 					logCurrentDashQuality("after seeked (forced MAX)");
 				});
-				// Allow fast switching 
+				// Allow fast switching
 				dash.updateSettings({ streaming: { fastSwitchEnabled: true } } as any);
 
 				const logCurrentDashQuality = (label: string) => {
-				try {
-					const q = dash?.getQualityFor("video");
-					const list = dash?.getBitrateInfoListFor("video") || [];
-					const it = (q != null && list[q]) ? list[q] : undefined;
-					console.info(`[dash.js] current quality (${label})`, {
-					index: q,
-					bitrateKbps: it?.bitrate ? Math.round(it.bitrate / 1000) : undefined,
-					width: it?.width,
-					height: it?.height,
-					});
-				} catch {}
+					try {
+						const q = dash?.getQualityFor("video");
+						const list = dash?.getBitrateInfoListFor("video") || [];
+						const it = q != null && list[q] ? list[q] : undefined;
+						console.info(`[dash.js] current quality (${label})`, {
+							index: q,
+							bitrateKbps: it?.bitrate ? Math.round(it.bitrate / 1000) : undefined,
+							width: it?.width,
+							height: it?.height,
+						});
+					} catch {}
 				};
 
 				dash.initialize(videoElem.value, videoUrl.value, false);
@@ -370,9 +376,12 @@ export default defineComponent({
 						const maxIndex = list.length ? list.length - 1 : 0;
 						dash?.setQualityFor("video", maxIndex);
 						console.info("[dash.js] forced highest quality", {
-						index: maxIndex,
-						bitrateKbps: list[maxIndex]?.bitrate ? Math.round(list[maxIndex].bitrate / 1000) : undefined,
-						width: list[maxIndex]?.width, height: list[maxIndex]?.height,
+							index: maxIndex,
+							bitrateKbps: list[maxIndex]?.bitrate
+								? Math.round(list[maxIndex].bitrate / 1000)
+								: undefined,
+							width: list[maxIndex]?.width,
+							height: list[maxIndex]?.height,
 						});
 					} catch {}
 					logCurrentDashQuality("after MANIFEST_LOADED");
@@ -385,8 +394,8 @@ export default defineComponent({
 					emit("error");
 				});
 				dash.on(dashjs.MediaPlayer.events.PLAYBACK_PLAYING, () => {
-				logCurrentDashQuality("PLAYBACK_PLAYING");
-				console.info("PlyrPlayer: dash.js video Playing");
+					logCurrentDashQuality("PLAYBACK_PLAYING");
+					console.info("PlyrPlayer: dash.js video Playing");
 				});
 				//*** Temporary loginfo for quality
 				dash.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_REQUESTED, (e: any) => {
@@ -396,20 +405,22 @@ export default defineComponent({
 					console.info("[dash.js] quality requested →", {
 						index: e.newQuality,
 						bitrateKbps: cand?.bitrate ? Math.round(cand.bitrate / 1000) : undefined,
-						width: cand?.width, height: cand?.height,
+						width: cand?.width,
+						height: cand?.height,
 						reason: e?.reason,
 					});
 				});
 				dash.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, (e: any) => {
-				if (e?.mediaType !== "video") return;
+					if (e?.mediaType !== "video") return;
 					const list = dash?.getBitrateInfoListFor("video") || [];
 					const cand = list[e.newQuality];
 					console.info("[dash.js] quality rendered ✔", {
 						index: e.newQuality,
 						bitrateKbps: cand?.bitrate ? Math.round(cand.bitrate / 1000) : undefined,
-						width: cand?.width, height: cand?.height,
+						width: cand?.width,
+						height: cand?.height,
 					});
-				logCurrentDashQuality("after QUALITY_CHANGE_RENDERED");
+					logCurrentDashQuality("after QUALITY_CHANGE_RENDERED");
 				});
 				// TEMP END ***
 				dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
