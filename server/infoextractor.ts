@@ -26,6 +26,7 @@ import { conf } from "./ott-config.js";
 import PeertubeAdapter from "./services/peertube.js";
 import PlutoAdapter from "./services/pluto.js";
 import DashVideoAdapter from "./services/dash.js";
+import InvidiousAdapter from "./services/invidious.js";
 
 const log = getLogger("infoextract");
 
@@ -84,6 +85,9 @@ export async function initExtractor() {
 	}
 	if (enabled.includes("pluto")) {
 		adapters.push(new PlutoAdapter());
+	}
+	if (enabled.includes("invidious")) {
+		adapters.push(new InvidiousAdapter());
 	}
 
 	await Promise.all(adapters.map(adapter => adapter.initialize()));
