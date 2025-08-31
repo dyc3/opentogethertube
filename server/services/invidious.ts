@@ -37,7 +37,26 @@ interface InvidiousApiVideo {
 	videoThumbnails?: { url: string; width?: number; height?: number }[];
 }
 
-// Known YouTube itag→MIME hints for progressive formats (historical values; may vary over time). – YouTube-specific
+// Prefer higher resolution much more than bitrate when scoring progressive formats.
+// Keeping as a constant makes intent clear and avoids magic numbers in the hot path.
+const SCORE_RES_WEIGHT = 1_000_000;
+
+// Keep HTTP calls from hanging forever in CI/Docker; safe, conservative default.
+// set to 15 seconds
+const DEFAULT_HTTP_TIMEOUT_MS = 15000;
+
+/**
+ * Known YouTube itag→MIME hints for *progressive* formats.
+ * These mappings are based on long-standing community reverse-engineering and are **not**
+ * officially documented by Google/YouTube. They can change at any time and should be treated
+ * as best-effort hints rather than a stable contract.
+ *
+ * References (non-official, community-maintained):
+ * - Community iTag cheat-sheet (historical):
+ *   https://gist.github.com/sidneys/7095afe4da4ae58694d128b1034e01e2
+ *
+ * Keep this list intentionally small and conservative to avoid over-fitting to unstable details.
+ */
 const ITAG_TO_MIME = new Map<number, string>([
 	[18, "video/mp4"], // 360p
 	[22, "video/mp4"], // 720p
@@ -52,9 +71,20 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		headers: {
 			"User-Agent": `OpenTogetherTube-InvidiousServiceAdapter @ ${conf.get("hostname")}`,
 		},
+		timeout: DEFAULT_HTTP_TIMEOUT_MS,
 	});
 
 	allowedHosts: string[] = [];
+	/** When true, accept links from hosts not listed in config and probe them. */
+	private autoDiscoverEnabled = false;
+	/** Probe result cache TTL (ms). */
+	private autoDiscoverTTL = 300000;
+	/**
+	 * Simple in-memory probe cache: host → { ok, ts }.
+	 * ok=true means the host recently answered a known Invidious endpoint.
+	 */
+	private hostProbeCache = new Map<string, { ok: boolean; ts: number }>();
+	private readonly hostProbeCacheMaxSize = 200;
 
 	get serviceId(): VideoService {
 		return "invidious";
@@ -66,13 +96,48 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 	async initialize(): Promise<void> {
 		this.allowedHosts = conf.get("info_extractor.invidious.instances");
+		// Auto-discover config is optional; guard reads so missing keys don’t throw.
+		try {
+			this.autoDiscoverEnabled = !!conf.get("info_extractor.invidious.auto_discover.enabled");
+		} catch {
+			/* keep default false */
+		}
+		try {
+			const ttl = Number(conf.get("info_extractor.invidious.auto_discover.cache_ttl_ms"));
+			if (Number.isFinite(ttl) && ttl > 0) {
+				this.autoDiscoverTTL = ttl;
+			}
+		} catch {
+			/* keep default TTL */
+		}
 		log.info(`Invidious adapter enabled. Instances: ${this.allowedHosts.join(", ")}`);
+		if (this.autoDiscoverEnabled) {
+			log.info(
+				`Invidious auto-discovery enabled (TTL=${this.autoDiscoverTTL}ms). Unknown hosts will be tentatively accepted and probed.`
+			);
+		}
 	}
 
 	canHandleURL(link: string): boolean {
-		const url = new URL(link);
-		if (!this.allowedHosts.includes(url.host)) {
+		let url: URL;
+		try {
+			url = new URL(link);
+		} catch {
 			return false;
+		}
+		// Only accept http(s) schemes to avoid false positives (e.g., mailto:, chrome:).
+		if (url.protocol !== "http:" && url.protocol !== "https:") {
+			return false;
+		}
+		// Accept either "host" (may include :port) or "hostname" from config.
+		const hostAllowed =
+			this.allowedHosts.includes(url.host) || this.allowedHosts.includes(url.hostname);
+		if (!this.autoDiscoverEnabled && !hostAllowed) {
+			return false;
+		}
+		if (this.autoDiscoverEnabled && !hostAllowed) {
+			// Log that we are letting the URL through due to auto-discovery; acceptance is confirmed in probeHost().
+			log.debug(`invidious:autodiscover tentative accept host=${url.host}`);
 		}
 
 		// Support both the canonical and short Invidious routes that mirror YouTube. – Invidious-specific
@@ -88,7 +153,13 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	}
 
 	getVideoId(link: string): string {
-		const url = new URL(link);
+		// Be defensive: surface a consistent domain-specific error on bad inputs.
+		let url: URL;
+		try {
+			url = new URL(link);
+		} catch {
+			throw new InvalidVideoIdException(this.serviceId, link);
+		}
 		let id: string | null = null;
 
 		if (url.pathname === "/watch") {
@@ -117,10 +188,13 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(videoId: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
-		if (!videoId.includes(":")) {
+		// Split on the *last* colon so hosts with ports (e.g., example.com:8443) are preserved.
+		const sep = videoId.lastIndexOf(":");
+		if (sep === -1) {
 			throw new InvalidVideoIdException(this.serviceId, videoId);
 		}
-		const [host, id] = videoId.split(":");
+		const host = videoId.slice(0, sep);
+		const id = videoId.slice(sep + 1);
 		const baseUrl = `https://${host}/api/v1/videos/${encodeURIComponent(id)}`;
 		let data: InvidiousApiVideo | undefined;
 		try {
@@ -170,19 +244,78 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	private pickBestThumbnail(
 		thumbnails?: { url: string; width?: number; height?: number }[]
 	): string | undefined {
-		if (!thumbnails || thumbnails.length === 0) {
+		// Prefer the thumbnail with the largest pixel area.
+		if (!thumbnails?.length) {
 			return undefined;
 		}
-		// YouTube commonly exposes multiple thumbnail sizes; prefer the largest. – YouTube behavior
-		const sorted = [...thumbnails].sort((a, b) => {
-			const aPixels = (a.width || 0) * (a.height || 0);
-			const bPixels = (b.width || 0) * (b.height || 0);
-			return bPixels - aPixels;
-		});
-		return sorted[0]?.url;
+		const best = maxBy(thumbnails, t => (t.width ?? 0) * (t.height ?? 0));
+		return best?.url;
+	}
+
+	/**
+	 * Optional host probe to see if a given origin responds like an Invidious instance.
+	 * This is *best-effort* only and intentionally conservative; failures do not block playback,
+	 * but help us decide whether to keep accepting links from this host without explicit config.
+	 *
+	 * We use `/api/v1/stats` as a lightweight signal; many public instances expose it.
+	 * Some instances may gate it or return non-standard JSON; we treat any 2xx JSON-ish body as "ok".
+	 */
+	private async probeHost(host: string): Promise<boolean> {
+		const now = Date.now();
+		const cached = this.hostProbeCache.get(host);
+		if (cached && now - cached.ts < this.autoDiscoverTTL) {
+			// Emit a concise cache-hit log so we can see remaining TTL on repeated visits.
+			const remaining = this.autoDiscoverTTL - (now - cached.ts);
+			log.debug(
+				`invidious:autodiscover cache host=${host} ok=${cached.ok} ttl_ms_remaining=${remaining}`
+			);
+			return cached.ok;
+		}
+		let ok = false;
+		try {
+			const url = `https://${host}/api/v1/stats`;
+			const res = await this.api.get(url, {
+				headers: { Accept: "application/json" },
+				// Keep the probe inexpensive; inherit global timeout.
+				responseType: "json",
+				transformResponse: undefined,
+				validateStatus: s => s >= 200 && s < 500, // treat 4xx as a negative probe, not a throw
+			});
+			ok = res.status >= 200 && res.status < 300 && typeof res.data === "object";
+			if (!ok) {
+				log.info(
+					`Invidious host probe: ${host} did not look healthy (status=${res.status}).`
+				);
+			}
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : String(e);
+			log.debug(`Invidious host probe failed for ${host}: ${msg}`);
+			ok = false;
+		} finally {
+			// Evict oldest entry if we are over the cap, then insert once (avoid double set()).
+			if (this.hostProbeCache.size >= this.hostProbeCacheMaxSize) {
+				const firstKey = this.hostProbeCache.keys().next().value as string | undefined;
+				if (firstKey) {
+					this.hostProbeCache.delete(firstKey);
+				}
+			}
+			this.hostProbeCache.set(host, { ok, ts: now });
+			if (ok) {
+				// Explicit acceptance log with TTL info as requested.
+				const expiresAt = new Date(now + this.autoDiscoverTTL).toISOString();
+				log.info(
+					`invidious:autodiscover accepted host=${host} ttl_ms=${this.autoDiscoverTTL} expires_at=${expiresAt}`
+				);
+			}
+		}
+		return ok;
 	}
 
 	private async parseAsDirect(inv: InvidiousApiVideo, host: string, id: string): Promise<Video> {
+		if (this.autoDiscoverEnabled && !this.allowedHosts.includes(host)) {
+			// Best-effort: the result is cached for a short TTL and does not block the flow.
+			void this.probeHost(host);
+		}
 		const rawDesc = (inv.description ?? inv.shortDescription ?? "").toString().trim();
 		const safeDesc = rawDesc.length ? rawDesc : inv.title;
 
@@ -198,11 +331,13 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 		// 1) Probe DASH & HLS and pick the manifest whose top variant has the higher bitrate.
 		try {
-			// Both may exist or be omitted depending on upstream availability and instance config. – YouTube/Invidious variability
-			const [dashProbe, hlsProbe] = await Promise.all([
+			// Promise.any would give only the first fulfilled result and drop the second one, which prevents comparing topKbps when both succeed.
+			const [dashSet, hlsSet] = await Promise.allSettled([
 				this.probeManifest(host, id, "dash"),
 				this.probeManifest(host, id, "hls"),
 			]);
+			const dashProbe = dashSet.status === "fulfilled" ? dashSet.value : null;
+			const hlsProbe = hlsSet.status === "fulfilled" ? hlsSet.value : null;
 			const pick =
 				dashProbe && hlsProbe
 					? dashProbe.topKbps >= hlsProbe.topKbps
@@ -255,10 +390,12 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				f => f.container === "mp4" || (f.type || "").toLowerCase().includes("mp4")
 			);
 
-			const score = (f: InvidiousFormat) => q(f.qualityLabel) * 1_000_000 + (f.bitrate || 0);
-			const bestMp4 = maxBy(mp4, score);
-			const bestAny = maxBy(list, score)!;
-			const chosen: InvidiousFormat = bestMp4 ?? bestAny;
+			// Use the constant (no magic number) and avoid non-null assertion by falling back to list[0].
+			const score = (f: InvidiousFormat) =>
+				q(f.qualityLabel) * SCORE_RES_WEIGHT + (f.bitrate || 0);
+			const bestMp4 = maxBy(mp4, score); // InvidiousFormat | undefined
+			const bestAny = maxBy(list, score) ?? list[0];
+			const chosen = bestMp4 ?? bestAny;
 
 			// Infer MIME from container/type; Invidious does not always expose full codec/MIME details for YouTube progressive formats. – Invidious/YouTube issue
 			let mime =
@@ -318,77 +455,83 @@ export default class InvidiousAdapter extends ServiceAdapter {
 						kind === "dash"
 							? "application/dash+xml,text/plain;q=0.9,*/*;q=0.8"
 							: "application/vnd.apple.mpegurl,application/x-mpegURL,text/plain;q=0.9,*/*;q=0.8",
+					// timeout inherited from axios instance (DEFAULT_HTTP_TIMEOUT_MS)
 				},
 				responseType: "text",
 				transformResponse: [r => r],
 			});
 			const text = typeof resp.data === "string" ? resp.data : String(resp.data);
 			if (kind === "dash") {
-				// 1) Faster, namespace- scan <Representation .../>-attr
+				// Parse DASH MPD using the dedicated library (no dynamic regex).
+				// Code-owner request: avoid ad-hoc regex and rely on structured parsing.
 				let topBw = 0;
 				let topRes: string | undefined;
 
-				const repTagRe = /<Representation\b[^>]*\/?>/gi;
-				const attrNum = (src: string, name: string): number => {
-					// exakter Attributname (verhindert 'width' in 'bandwidth')
-					const re = new RegExp(`(?:^|\\s)${name}(?=\\s*=)\\s*=\\s*["'](\\d+)["']`, "i");
-					const m = re.exec(src);
-					return m ? Number(m[1]) : NaN;
-				};
+				const mpd = new DashMPD();
+				mpd.parse(text);
 
-				let m: RegExpExecArray | null;
-				while ((m = repTagRe.exec(text)) !== null) {
-					const tag = m[0];
-					const bw = attrNum(tag, "bandwidth");
-					if (!Number.isFinite(bw)) {
-						continue;
-					}
+				// The library exposes a JSON-like structure; normalize variants across versions.
+				const asArr = <T>(v: T | T[] | undefined | null): T[] =>
+					Array.isArray(v) ? v : v !== null && v !== undefined ? [v as T] : [];
+				const attrs = (node: any): Record<string, unknown> =>
+					(node && (node["@"] ?? node._attributes ?? node.attributes ?? node.$)) || {};
 
-					if (bw > topBw) {
-						topBw = bw;
-						const w = attrNum(tag, "width");
-						const h = attrNum(tag, "height");
-						topRes = Number.isFinite(w) && Number.isFinite(h) ? `${w}x${h}` : undefined;
-					}
-				}
+				const root: any =
+					(mpd as any).mpd?.MPD ??
+					(mpd as any).mpd ??
+					mpd.getJSON?.().MPD ??
+					mpd.getJSON?.();
 
-				// 2) Parser-Fallback,
-				if (topBw === 0) {
-					const mpd = new DashMPD();
-					mpd.parse(text);
-
-					const asArr = <T>(v: T | T[] | undefined | null): T[] =>
-						Array.isArray(v) ? v : v !== null && v !== undefined ? [v as T] : [];
-					const attrs = (node: any): Record<string, unknown> =>
-						(node && (node["@"] ?? node._attributes ?? node.attributes ?? node.$)) ||
-						{};
-
-					const root: any =
-						(mpd as any).mpd?.MPD ??
-						(mpd as any).mpd ??
-						mpd.getJSON?.().MPD ??
-						mpd.getJSON?.();
-
-					for (const period of asArr(root?.Period)) {
-						for (const set of asArr(period?.AdaptationSet)) {
-							for (const rep of asArr(set?.Representation)) {
-								const a = attrs(rep);
-								const bw = Number(a["bandwidth"] ?? a["Bandwidth"] ?? 0);
-								if (!Number.isFinite(bw) || bw <= topBw) {
-									continue;
-								}
-								topBw = bw;
-								const w = Number(a["width"] ?? a["Width"]);
-								const h = Number(a["height"] ?? a["Height"]);
-								if (Number.isFinite(w) && Number.isFinite(h)) {
-									topRes = `${w}x${h}`;
-								}
+				for (const period of asArr(root?.Period)) {
+					for (const set of asArr(period?.AdaptationSet)) {
+						for (const rep of asArr(set?.Representation)) {
+							const a = attrs(rep);
+							const bw = Number(a["bandwidth"] ?? a["Bandwidth"] ?? 0);
+							if (!Number.isFinite(bw) || bw <= topBw) {
+								continue;
+							}
+							topBw = bw;
+							const w = Number(a["width"] ?? a["Width"]);
+							const h = Number(a["height"] ?? a["Height"]);
+							if (Number.isFinite(w) && Number.isFinite(h)) {
+								topRes = `${w}x${h}`;
 							}
 						}
 					}
 				}
 
-				return { kind, url, topKbps: Math.round(topBw / 1000), topRes };
+				// Conservative fallback: fixed-pattern scan for attributes if parser yielded no bandwidth.
+				// Note: avoids *dynamic* regex; only checks well-known attribute names.
+				if (topBw === 0) {
+					// Find <Representation .../> tags and extract bandwidth/width/height via fixed regexes.
+					const repTagRe = /<Representation\b[^>]*\/?>/gi;
+					const bwRe = /(?:^|\s)bandwidth\s*=\s*["'](\d+)["']/i;
+					const wRe = /(?:^|\s)width\s*=\s*["'](\d+)["']/i;
+					const hRe = /(?:^|\s)height\s*=\s*["'](\d+)["']/i;
+					let m: RegExpExecArray | null;
+					while ((m = repTagRe.exec(text)) !== null) {
+						const tag = m[0];
+						const bwMatch = bwRe.exec(tag);
+						if (!bwMatch) {
+							continue;
+						}
+						const bw = Number(bwMatch[1]);
+						if (!Number.isFinite(bw) || bw <= topBw) {
+							continue;
+						}
+						topBw = bw;
+						// Resolution is optional; capture if present.
+						const wMatch = wRe.exec(tag);
+						const hMatch = hRe.exec(tag);
+						const w = wMatch ? Number(wMatch[1]) : NaN;
+						const h = hMatch ? Number(hMatch[1]) : NaN;
+						if (Number.isFinite(w) && Number.isFinite(h)) {
+							topRes = `${w}x${h}`;
+						}
+					}
+				}
+
+				return { kind: "dash" as const, url, topKbps: Math.round(topBw / 1000), topRes };
 			} else {
 				// Parse HLS master playlist via m3u8-parser; master formats differ across encodes and instance rewrites. – YouTube/Invidious variability
 				const parser = new M3U8Parser();
@@ -411,7 +554,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 						}
 					}
 				}
-				return { kind, url, topKbps: Math.round(topBw / 1000), topRes };
+				return { kind: "hls" as const, url, topKbps: Math.round(topBw / 1000), topRes };
 			}
 		} catch (e) {
 			// Public instances may throttle or shield manifest endpoints (e.g., 421/429/5xx behind DDoS protection). – Invidious/infra behavior

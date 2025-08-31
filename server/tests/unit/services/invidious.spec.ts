@@ -39,6 +39,22 @@ describe("InvidiousAdapter (unit)", () => {
 		});
 
 		describe("canHandleURL", () => {
+			it("rejects invalid URL strings defensively", () => {
+				// Should not throw; just return false when URL parsing fails.
+				expect(adapter.canHandleURL("not a url")).toBe(false);
+			});
+
+			it("rejects non-http(s) schemes", () => {
+				// Defensive: should not accept mailto:, chrome:, etc.
+				expect(adapter.canHandleURL("mailto:test@example.com")).toBe(false);
+			});
+
+			it("accepts allowed hostname even when URL includes a port", () => {
+				// The implementation accepts either exact host or hostname (without port).
+				expect(adapter.canHandleURL(mk("https://inv.nadeko.net:8443/watch?v=abc123"))).toBe(
+					true
+				);
+			});
 			it("accepts /watch?v=VIDEOID on allowed host", () => {
 				expect(adapter.canHandleURL(mk("https://inv.nadeko.net/watch?v=abc123"))).toBe(
 					true
@@ -84,6 +100,11 @@ describe("InvidiousAdapter (unit)", () => {
 			it("extracts host:id from /w/ID", () => {
 				const id = adapter.getVideoId(mk("https://inv.nadeko.net/w/AbC-123_"));
 				expect(id).toBe("inv.nadeko.net:AbC-123_");
+			});
+
+			it("throws a domain-specific error on invalid URL input", () => {
+				// Be defensive: invalid URL strings should surface as InvalidVideoIdException.
+				expect(() => adapter.getVideoId("not a url")).toThrow(InvalidVideoIdException);
 			});
 
 			it("throws on missing id", () => {
@@ -142,6 +163,9 @@ describe("InvidiousAdapter (unit)", () => {
 			expect(out?.kind).toBe("dash");
 			// URL should include the DASH manifest path (query order may vary)
 			expect(out?.url).toContain("/api/manifest/dash/id/abc");
+			// And the proxy parameters we rely on for CORS stability
+			expect(out?.url).toContain("local=1");
+			expect(out?.url).toContain("source=youtube");
 			// Top bitrate should be 4300 kbps for the 4,300,000 bandwidth rep
 			expect(out?.topKbps).toBe(4300);
 			// Resolution should be 1920x1080 (width/height present in the test MPD)
@@ -165,6 +189,44 @@ hi.m3u8
 				topKbps: 4200,
 				topRes: "1920x1080",
 			});
+			// Also ensure the proxy parameters are present
+			expect(out?.url).toContain("local=1");
+			expect(out?.url).toContain("source=youtube");
+		});
+	});
+
+	describe("fetchVideoInfo: host with explicit port", () => {
+		let adapter: InvidiousAdapter;
+
+		beforeEach(() => {
+			adapter = new InvidiousAdapter();
+			// allow the base hostname (port may be present in the URL string)
+			adapter.allowedHosts = ["inv.nadeko.net"];
+		});
+
+		it("preserves the port from the videoId when building the API URL", async () => {
+			// Arrange: spy parseAsDirect to avoid probing manifests and to control the return value.
+			const parseSpy = vi.spyOn(adapter as any, "parseAsDirect").mockResolvedValue({
+				service: "direct",
+				id: "x",
+				title: "T",
+				description: "T",
+				length: 10,
+				mime: "video/mp4",
+			});
+
+			const getMock = vi
+				.spyOn(adapter.api, "get")
+				.mockResolvedValueOnce({
+					data: { title: "T", lengthSeconds: 10 },
+					headers: {},
+				} as any);
+
+			await adapter.fetchVideoInfo("inv.nadeko.net:8443:abc");
+			expect(getMock.mock.calls[0][0]).toContain(
+				"https://inv.nadeko.net:8443/api/v1/videos/abc"
+			);
+			expect(parseSpy).toHaveBeenCalled();
 		});
 	});
 
@@ -233,6 +295,62 @@ hi.m3u8
 			expect(v.mime).toBe("application/x-mpegURL");
 		});
 	});
+	/**
+	 * New: partial probe failures should not fail the whole operation.
+	 * We now use Promise.allSettled to allow one probe to fail independently.
+	 */
+	describe("fetchVideoInfo: partial probe failures (allSettled semantics)", () => {
+		let adapter: InvidiousAdapter;
+
+		beforeEach(() => {
+			adapter = new InvidiousAdapter();
+			adapter.allowedHosts = ["inv.nadeko.net"];
+		});
+
+		function mockVideoJson() {
+			(adapter.api.get as any) = vi
+				.fn()
+				// first call: /api/v1/videos?id&local=1
+				.mockResolvedValueOnce({
+					data: { title: "T", lengthSeconds: 10, formatStreams: [] },
+					headers: {},
+				});
+		}
+
+		it("uses DASH when HLS probe rejects and DASH succeeds", async () => {
+			mockVideoJson();
+			vi.spyOn(adapter as any, "probeManifest").mockImplementation(async (...args: any[]) => {
+				const kind = args[2] as "dash" | "hls";
+				if (kind === "dash") {
+					return {
+						kind: "dash",
+						url: "https://inv.nadeko.net/api/manifest/dash/id/abc?local=1&source=youtube",
+						topKbps: 4500,
+					};
+				}
+				throw new Error("hls-probe-failed");
+			});
+			const v = await adapter.fetchVideoInfo("inv.nadeko.net:abc");
+			expect(v.service).toBe("dash");
+		});
+
+		it("uses HLS when DASH probe rejects and HLS succeeds", async () => {
+			mockVideoJson();
+			vi.spyOn(adapter as any, "probeManifest").mockImplementation(async (...args: any[]) => {
+				const kind = args[2] as "dash" | "hls";
+				if (kind === "hls") {
+					return {
+						kind: "hls",
+						url: "https://inv.nadeko.net/api/manifest/hls/id/abc?local=1&source=youtube",
+						topKbps: 4200,
+					};
+				}
+				throw new Error("dash-probe-failed");
+			});
+			const v = await adapter.fetchVideoInfo("inv.nadeko.net:abc");
+			expect(v.service).toBe("hls");
+		});
+	});
 
 	describe("Progressive fallback selection", () => {
 		let adapter: InvidiousAdapter;
@@ -242,17 +360,21 @@ hi.m3u8
 			adapter.allowedHosts = ["inv.nadeko.net"];
 		});
 
-		it("prefers best MP4 by qualityLabel and falls back to mp4 MIME via itag", async () => {
+		it("prefers highest-quality progressive and falls back to MP4 MIME via itag", async () => {
 			// Arrange: make probeManifest fail so we go progressive
 			vi.spyOn(adapter as any, "probeManifest").mockRejectedValue(new Error("nope"));
 			// Invidious /api/v1/videos payload
+			// Important: include 'url' fields so progressive selection is exercised.
+			// Also: no MP4 entries present, so MIME must be derived from the iTag (22 → MP4).
 			(adapter.api.get as any) = vi.fn().mockResolvedValueOnce({
 				data: {
 					title: "T",
 					lengthSeconds: 10,
-					// two MP4s + one WEBM; best MP4 is 1080p
+					// Two progressives: one WEBM 720p and one 1080p with no container/type but iTag=22 (MP4).
+					// This forces the codepath that uses the iTag mapping for MIME.
 					formatStreams: [
 						{
+							url: "https://inv.example/video-720.webm",
 							container: "webm",
 							qualityLabel: "1080p",
 							bitrate: 1_500_000,
@@ -260,17 +382,10 @@ hi.m3u8
 							itag: 45,
 						},
 						{
-							container: "mp4",
-							qualityLabel: "720p",
-							bitrate: 2_200_000,
-							type: "video/mp4",
-							itag: 22,
-						},
-						{
-							container: "mp4",
+							url: "https://inv.example/video-1080-unknown",
 							qualityLabel: "1080p",
 							bitrate: 1_800_000,
-							/* type intentionally missing */ itag: 22,
+							itag: 22,
 						},
 					],
 				},
@@ -279,8 +394,95 @@ hi.m3u8
 
 			const v = await adapter.fetchVideoInfo("inv.nadeko.net:abc");
 			expect(v.service).toBe("direct");
-			expect(v.mime).toBe("video/mp4"); // via itag mapping / default
+			expect(v.mime).toBe("video/mp4"); // via iTag mapping
 			expect(v.id).toContain("/latest_version?");
+			expect(v.id).toContain("itag=22");
+		});
+		/* New: explicit fallback when there are *no* progressive formats and probes fail.
+		 * This covers the branch that returns a proxied /latest_version URL with a safe MP4 mime.
+		 */
+		it("falls back to /latest_version when no progressive formats and probes fail", async () => {
+			const adapter = new InvidiousAdapter();
+			adapter.allowedHosts = ["inv.nadeko.net"];
+
+			// Force both probes to fail so we *must* use the no-formats fallback.
+			vi.spyOn(adapter as any, "probeManifest").mockRejectedValue(new Error("probe-failed"));
+
+			// Respond with a metadata payload that has *no* formatStreams.
+			(adapter.api.get as any) = vi.fn().mockResolvedValueOnce({
+				data: {
+					title: "NoFormats",
+					lengthSeconds: 12,
+					formatStreams: [], // <- empty list triggers latest_version fallback
+				},
+				headers: {},
+			});
+
+			const v = await adapter.fetchVideoInfo("inv.nadeko.net:abc123");
+			expect(v.service).toBe("direct");
+			expect(v.id).toContain("/latest_version");
+			expect(v.mime).toBe("video/mp4");
+		});
+	});
+
+	/**
+	 * New: auto-discovery behavior (optional). We test only the surface behavior that affects URL acceptance
+	 * and basic probing, without asserting on logs.
+	 */
+	describe("auto-discover (canHandleURL + probeHost)", () => {
+		let adapter: InvidiousAdapter;
+
+		beforeEach(() => {
+			adapter = new InvidiousAdapter();
+			adapter.allowedHosts = ["inv.nadeko.net"];
+			// enable auto-discover for these tests
+			(adapter as any).autoDiscoverEnabled = true;
+			(adapter as any).autoDiscoverTTL = 60_000; // 1 minute for test readability
+		});
+
+		it("tentatively accepts unknown hosts when auto-discover is enabled", () => {
+			const ok = adapter.canHandleURL("https://unknown.example/watch?v=abc123");
+			expect(ok).toBe(true);
+			// Still rejects malformed URLs (no v)
+			expect(adapter.canHandleURL("https://unknown.example/watch")).toBe(false);
+		});
+
+		it("probeHost caches results for TTL and avoids repeated network calls", async () => {
+			// Mock a healthy /api/v1/stats response
+			const getMock = vi
+				.spyOn(adapter.api, "get")
+				.mockResolvedValue({ status: 200, data: { version: "2024.x" } } as any);
+
+			const host = "unknown.example";
+			// First probe performs a network call
+			const first = await (adapter as any).probeHost(host);
+			expect(first).toBe(true);
+			expect(getMock).toHaveBeenCalledTimes(1);
+
+			// Second probe within TTL should be served from cache (no extra call)
+			const second = await (adapter as any).probeHost(host);
+			expect(second).toBe(true);
+			expect(getMock).toHaveBeenCalledTimes(1);
+
+			// Force cache expiry and ensure it probes again
+			(adapter as any).hostProbeCache.set(host, {
+				ok: true,
+				ts: Date.now() - 120_000, // older than TTL
+			});
+			const third = await (adapter as any).probeHost(host);
+			expect(third).toBe(true);
+			expect(getMock).toHaveBeenCalledTimes(2);
+		});
+		it("probeHost cache does not exceed hard size cap", async () => {
+			const adapter = new InvidiousAdapter();
+			(adapter as any).autoDiscoverEnabled = true;
+			vi.spyOn(adapter.api, "get").mockResolvedValue({ status: 200, data: {} } as any);
+			(adapter as any).hostProbeCacheMaxSize = 5;
+			for (let i = 0; i < 12; i++) {
+				await (adapter as any).probeHost(`h${i}.example`);
+			}
+			const cache: Map<string, any> = (adapter as any).hostProbeCache;
+			expect(cache.size).toBeLessThanOrEqual(5);
 		});
 	});
 
@@ -293,6 +495,11 @@ hi.m3u8
 				{ url: "c.jpg", width: 320, height: 180 },
 			]);
 			expect(out).toBe("b.jpg");
+		});
+		it("returns undefined for missing or empty lists", () => {
+			const adapter = new InvidiousAdapter();
+			expect(adapter["pickBestThumbnail"](undefined as any)).toBeUndefined();
+			expect(adapter["pickBestThumbnail"]([])).toBeUndefined();
 		});
 	});
 });
