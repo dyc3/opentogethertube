@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import InvidiousAdapter, { INVIDIOUS_SHORT_WATCH_RE } from "../../../services/invidious.js";
-import { InvalidVideoIdException } from "../../../exceptions.js";
+import { InvalidVideoIdException, UpstreamInvidiousException } from "../../../exceptions.js";
 
 describe("InvidiousAdapter (unit)", () => {
 	afterEach(() => {
@@ -420,6 +420,53 @@ hi.m3u8
 			expect(v.service).toBe("direct");
 			expect(v.id).toContain("/latest_version");
 			expect(v.mime).toBe("video/mp4");
+		});
+	});
+
+	describe("fetchVideoInfo: error mapping to UpstreamInvidiousException", () => {
+		let adapter: InvidiousAdapter;
+
+		beforeEach(() => {
+			adapter = new InvidiousAdapter();
+			adapter.allowedHosts = ["inv.nadeko.net"];
+		});
+
+		it("throws UpstreamInvidiousException on upstream 429 (rate limited) for ?local=1", async () => {
+			// Arrange: first request (?local=1) returns an Axios-like 429 error.
+			const axios429 = Object.assign(new Error("rate limited"), {
+				isAxiosError: true,
+				response: { status: 429 },
+			});
+			vi.spyOn(adapter.api, "get").mockRejectedValueOnce(axios429);
+
+			// Act/Assert
+			await expect(adapter.fetchVideoInfo("inv.nadeko.net:abc")).rejects.toBeInstanceOf(
+				UpstreamInvidiousException
+			);
+		});
+
+		it("throws UpstreamInvidiousException on network timeout during non-proxied fallback", async () => {
+			// Arrange:
+			// 1) First call (?local=1) fails with a non-429 upstream HTTP error (e.g., 403),
+			//    which makes the adapter fall back to the non-proxied endpoint.
+			const axios403 = Object.assign(new Error("blocked"), {
+				isAxiosError: true,
+				response: { status: 403 },
+			});
+			// 2) Second call (non-proxied) fails without response, simulating a timeout.
+			const axiosTimeout = Object.assign(new Error("timeout exceeded"), {
+				isAxiosError: true,
+				code: "ECONNABORTED",
+				// no 'response' on purpose
+			});
+			vi.spyOn(adapter.api, "get")
+				.mockRejectedValueOnce(axios403) // for `${baseUrl}?local=1`
+				.mockRejectedValueOnce(axiosTimeout); // for `${baseUrl}`
+
+			// Act/Assert
+			await expect(adapter.fetchVideoInfo("inv.nadeko.net:abc")).rejects.toBeInstanceOf(
+				UpstreamInvidiousException
+			);
 		});
 	});
 

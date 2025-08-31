@@ -6,7 +6,7 @@ import { Parser as M3U8Parser } from "m3u8-parser";
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import { conf } from "../ott-config.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { InvalidVideoIdException } from "../exceptions.js";
+import { InvalidVideoIdException, UpstreamInvidiousException } from "../exceptions.js";
 import storage from "../storage.js";
 
 const log = getLogger("invidious");
@@ -163,21 +163,68 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		const id = videoId.slice(sep + 1);
 		const baseUrl = `https://${host}/api/v1/videos/${encodeURIComponent(id)}`;
 		let data: InvidiousApiVideo | undefined;
+		// Try proxied (?local=1) first; on failure, fall back to plain endpoint.
+		// If upstream returns an HTTP error (e.g. 429), convert to a FE-visible exception
+		// instead of bubbling up as a generic 500.
 		try {
 			const resLocal = await this.api.get<InvidiousApiVideo>(`${baseUrl}?local=1`, {
 				headers: { Accept: "application/json" },
 			});
 			data = resLocal.data;
-		} catch {
-			// Some instances gate `local=1` behind anti-DDoS/rate-limit checks; fallback to non-proxied metadata. – Invidious infra quirk
-			const res = await this.api.get<InvidiousApiVideo>(baseUrl, {
-				headers: { Accept: "application/json" },
-			});
-			data = res.data;
+		} catch (e: any) {
+			if (axios.isAxiosError(e) && e.response) {
+				const status = e.response.status;
+				if (status === 429) {
+					// Short-circuit on rate limit to provide a clear UI message.
+					throw new UpstreamInvidiousException({
+						host,
+						status,
+						endpoint: `${baseUrl}?local=1`,
+					});
+				}
+			}
+			// Some instances gate `local=1`; try non-proxied metadata next.
+			try {
+				const res = await this.api.get<InvidiousApiVideo>(baseUrl, {
+					headers: { Accept: "application/json" },
+				});
+				data = res.data;
+			} catch (e2: any) {
+				if (axios.isAxiosError(e2)) {
+					// HTTP error from upstream (e.g., 429/5xx)
+					if (e2.response) {
+						throw new UpstreamInvidiousException({
+							host,
+							status: e2.response.status,
+							endpoint: baseUrl,
+						});
+					}
+					// Network / timeout (no response): surface a user-friendly 502/504
+					const code = String(e2.code || "").toUpperCase();
+					const isTimeout =
+						code === "ECONNABORTED" || /\btimeout\b/i.test(e2.message || "");
+					throw new UpstreamInvidiousException({
+						host,
+						status: isTimeout ? 504 : 502,
+						endpoint: baseUrl,
+					});
+				}
+				// Unknown error type — wrap conservatively as upstream error (Bad Gateway)
+				throw new UpstreamInvidiousException({
+					host,
+					status: 502,
+					endpoint: baseUrl,
+				});
+			}
 		}
 
 		if (!data?.title) {
-			throw new Error(`Invidious API returned empty/invalid response for ${host}:${id}`);
+			// Empty/invalid JSON: surface a 502 with user-friendly message.
+			throw new UpstreamInvidiousException({
+				host,
+				status: 502,
+				endpoint: `${baseUrl} (empty/invalid)`,
+			});
 		}
 
 		// Prefer DASH/HLS (higher quality) and fall back to progressive "direct"

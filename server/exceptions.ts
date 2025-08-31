@@ -17,6 +17,50 @@ export class UnsupportedServiceException extends OttException {
 	}
 }
 
+/**
+ * UpstreamInvidiousException
+ * --------------------------
+ * Normalizes upstream (Invidious) HTTP failures to a FE-visible shape.
+ *
+ * Frontend can key off:
+ *  - `code`:  "UPSTREAM_RATE_LIMITED" | "UPSTREAM_INVIDIOUS_ERROR"
+ *  - `status`: HTTP status that should be returned to the client (e.g., 429)
+ *  - `userMessage`: short, safe text for direct display in the UI
+ *  - `expose`: signals the server error handler to expose the message
+ *
+ * Optional `meta` can help with logging/debugging.
+ */
+export class UpstreamInvidiousException extends Error {
+	public readonly status: number;
+	public readonly code: "UPSTREAM_RATE_LIMITED" | "UPSTREAM_INVIDIOUS_ERROR";
+	public readonly expose = true;
+	public readonly userMessage: string;
+	public readonly meta?: { host: string; endpoint?: string };
+
+	constructor(opts: { host: string; status?: number; endpoint?: string }) {
+		const is429 = opts.status === 429;
+		const code = is429 ? "UPSTREAM_RATE_LIMITED" : "UPSTREAM_INVIDIOUS_ERROR";
+		// Respect upstream status if sane, else 502 (Bad Gateway)
+		const status =
+			typeof opts.status === "number" && opts.status >= 400 && opts.status <= 599
+				? opts.status
+				: 502;
+
+		const userMessage = is429
+			? "The video provider is rate limiting requests right now. Please try again later or choose another instance."
+			: `The video provider returned an error${
+					opts.status ? ` (HTTP ${opts.status})` : ""
+			  }. Please try again later.`;
+
+		super(userMessage);
+		this.name = "UpstreamInvidiousException";
+		this.status = status;
+		this.code = code;
+		this.userMessage = userMessage;
+		this.meta = { host: opts.host, endpoint: opts.endpoint };
+	}
+}
+
 export class InvalidAddPreviewInputException extends OttException {
 	name = "InvalidAddPreviewInputException";
 
