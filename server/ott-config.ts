@@ -295,6 +295,20 @@ export const conf = convict({
 					format: String,
 				},
 			},
+			deny_list: {
+				default: [],
+				doc: "List of hostnames that are explicitly disallowed for Invidious (case-insensitive).",
+				format: Array,
+				env: "INVIDIOUS_DENY_LIST",
+				children: { format: String },
+				// Normalize to lowercase & trim, drop empty values.
+				coerce: (v: unknown) => {
+					if (!Array.isArray(v)) {
+						return [];
+					}
+					return v.map(s => String(s).toLowerCase().trim()).filter(Boolean);
+				},
+			},
 			// Auto-discover support: optionally accept unknown hosts and probe them.
 			auto_discover: {
 				enabled: {
@@ -304,10 +318,22 @@ export const conf = convict({
 					env: "INVIDIOUS_AUTO_DISCOVER_ENABLED",
 				},
 				cache_ttl_ms: {
-					default: 300000, // 5 minutes
-					doc: "TTL for cached host probe results (milliseconds).",
+					// Default and minimum TTL is 1 hour.
+					// Rationale: avoid hammering unknown hosts and keep probes inexpensive.
+					default: 3600000, // 1 hour in ms
+					doc: "TTL for cached host probe results (milliseconds). Minimum: 1 hour.",
 					format: "nat",
 					env: "INVIDIOUS_AUTO_DISCOVER_CACHE_TTL_MS",
+					// Enforce a lower bound of 1 hour even if the env/config provides a smaller value.
+					// `coerce` runs before format validation in convict, so we clamp here.
+					coerce: (v: unknown) => {
+						const ONE_HOUR = 3600000;
+						const n = typeof v === "number" ? v : Number(v);
+						if (!Number.isFinite(n)) {
+							return ONE_HOUR;
+						}
+						return n < ONE_HOUR ? ONE_HOUR : n;
+					},
 				},
 			},
 		},

@@ -7,6 +7,7 @@ import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import { conf } from "../ott-config.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../exceptions.js";
+import redis from "redis";
 import storage from "../storage.js";
 
 const log = getLogger("invidious");
@@ -76,16 +77,12 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 	allowedHosts: string[] = [];
 
+	private deniedHosts: string[] = [];
+
 	/** When true, accept links from hosts not listed in config and probe them. */
 	private autoDiscoverEnabled = false;
 	/** Probe result cache TTL (ms). */
-	private autoDiscoverTTL = 300000; // 5 minutes
-	/**
-	 * Simple in-memory probe cache: host → { ok, ts }.
-	 * ok=true means the host recently answered a known Invidious endpoint.
-	 */
-	private hostProbeCache = new Map<string, { ok: boolean; ts: number }>();
-	private readonly hostProbeCacheMaxSize = 200;
+	private autoDiscoverTTL = 3600000; // time in ms = 1 hour
 
 	get serviceId(): VideoService {
 		return "invidious";
@@ -97,6 +94,14 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 	async initialize(): Promise<void> {
 		this.allowedHosts = conf.get("info_extractor.invidious.instances");
+		// Load deny-list (optional); keep normalized to lowercase
+		try {
+			this.deniedHosts = (conf.get("info_extractor.invidious.deny_list") as string[]).map(h =>
+				String(h).toLowerCase()
+			);
+		} catch {
+			this.deniedHosts = [];
+		}
 		// Auto-discover config is optional; guard reads so missing keys don’t throw.
 		try {
 			this.autoDiscoverEnabled = !!conf.get("info_extractor.invidious.auto_discover.enabled");
@@ -104,7 +109,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			/* keep default false */
 		}
 		try {
-			const ttl = Number(conf.get("info_extractor.invidious.auto_discover.cache_ttl_ms"));
+			const ttl = conf.get("info_extractor.invidious.auto_discover.cache_ttl_ms");
 			if (Number.isFinite(ttl) && ttl > 0) {
 				this.autoDiscoverTTL = ttl;
 			}
@@ -128,6 +133,13 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		}
 		// Only accept http(s) schemes to avoid false positives (e.g., mailto:, chrome:).
 		if (url.protocol !== "http:" && url.protocol !== "https:") {
+			return false;
+		}
+		// Hard block: deny-list has precedence over everything else.
+		const hostLc = url.host.toLowerCase();
+		const hostnameLc = url.hostname.toLowerCase();
+		if (this.isHostDenied(hostLc) || this.isHostDenied(hostnameLc)) {
+			log.warn(`Invidious deny-list blocked host=${url.host}`);
 			return false;
 		}
 		// Accept either "host" (may include :port) or "hostname" from config.
@@ -174,6 +186,13 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		return `${url.host}:${id.trim()}`;
 	}
 
+	/** Check if a host (with or without port) is deny-listed. */
+	private isHostDenied(host: string): boolean {
+		const h = host.toLowerCase();
+		const bare = h.split(":")[0];
+		return this.deniedHosts.includes(h) || this.deniedHosts.includes(bare);
+	}
+
 	/**
 	 * Build proxied manifest URL via the instance.
 	 * `local=1` forces the instance to proxy YouTube instead of redirecting, which adds permissive CORS headers.
@@ -195,6 +214,10 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		}
 		const host = videoId.slice(0, sep);
 		const id = videoId.slice(sep + 1);
+		// Defense-in-depth: even if a URL slipped through, do not process deny-listed hosts.
+		if (this.isHostDenied(host)) {
+			throw new InvalidVideoIdException(this.serviceId, `${host}:${id}`);
+		}
 		const baseUrl = `https://${host}/api/v1/videos/${encodeURIComponent(id)}`;
 		let data: InvidiousApiVideo | undefined;
 		// Try proxied (?local=1) first; on failure, fall back to plain endpoint.
@@ -298,8 +321,12 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	}
 
 	private async parseAsDirect(inv: InvidiousApiVideo, host: string, id: string): Promise<Video> {
-		// Best-effort background probe for unknown hosts when auto-discovery is enabled.
-		if (this.autoDiscoverEnabled && !this.allowedHosts.includes(host)) {
+		// Best-effort background probe for unknown hosts when auto-discovery is enabled (skip deny-listed).
+		if (
+			this.autoDiscoverEnabled &&
+			!this.allowedHosts.includes(host) &&
+			!this.isHostDenied(host)
+		) {
 			void this.probeHost(host);
 		}
 		const rawDesc = (inv.description ?? inv.shortDescription ?? "").toString().trim();
@@ -431,11 +458,18 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	 * NOTE: Failures do not block playback; this is best-effort signal/telemetry.
 	 */
 	private async probeHost(host: string): Promise<boolean> {
-		const now = Date.now();
-		const cached = this.hostProbeCache.get(host);
-		if (cached && now - cached.ts < this.autoDiscoverTTL) {
-			// Serve from cache.
-			return cached.ok;
+		const key = `invidious:probe:${host.toLowerCase()}`;
+		const ttlSec = Math.max(1, Math.floor(this.autoDiscoverTTL / 1000));
+
+		// Fast path: read from Redis first
+		try {
+			const cached = await (redis as any).get(key);
+			if (cached !== null && cached !== undefined) {
+				return cached === "1";
+			}
+		} catch (e) {
+			// Non-fatal: if Redis is temporarily unavailable, fall back to probing.
+			log.warn(`Redis GET failed for ${key}: ${e instanceof Error ? e.message : e}`);
 		}
 		let ok = false;
 		try {
@@ -458,22 +492,22 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				`Invidious host probe failed for ${host}: ${e instanceof Error ? e.message : e}`
 			);
 			ok = false;
-		} finally {
-			// Enforce a small upper bound on cache size.
-			if (this.hostProbeCache.size >= this.hostProbeCacheMaxSize) {
-				const firstKey = this.hostProbeCache.keys().next().value as string | undefined;
-				if (firstKey) {
-					this.hostProbeCache.delete(firstKey);
-				}
+		}
+		// Store probe result in Redis with TTL; prefer SETEX if available (node-redis v4),
+		// fall back to SET EX for ioredis-style clients.
+		try {
+			const val = ok ? "1" : "0";
+			const cli: any = redis as any;
+			if (typeof cli.setEx === "function") {
+				await cli.setEx(key, ttlSec, val);
+			} else {
+				await cli.set(key, val, "EX", ttlSec);
 			}
-			this.hostProbeCache.set(host, { ok, ts: now });
 			if (ok) {
-				log.info(
-					`invidious:autodiscover accepted host=${host} ttl_ms=${
-						this.autoDiscoverTTL
-					} expires_at=${new Date(now + this.autoDiscoverTTL).toISOString()}`
-				);
+				log.info(`invidious:autodiscover accepted host=${host} ttl_s=${ttlSec}`);
 			}
+		} catch (e) {
+			log.warn(`Redis SET failed for ${key}: ${e instanceof Error ? e.message : e}`);
 		}
 		return ok;
 	}

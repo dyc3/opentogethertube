@@ -2,6 +2,17 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import InvidiousAdapter, { INVIDIOUS_SHORT_WATCH_RE } from "../../../services/invidious.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../../../exceptions.js";
 
+vi.mock("redis", () => ({
+	default: {
+		get: vi.fn(), // configured per test
+		setEx: vi.fn(), // node-redis v4
+		set: vi.fn(), // ioredis-style fallback
+	},
+}));
+
+import redis from "redis";
+const redisMock: any = (redis as any)?.default ?? (redis as any);
+
 describe("InvidiousAdapter (unit)", () => {
 	afterEach(() => {
 		vi.clearAllMocks();
@@ -56,42 +67,33 @@ describe("InvidiousAdapter (unit)", () => {
 		});
 
 		it("probeHost caches results for TTL and avoids repeated network calls", async () => {
-			// Mock a healthy /api/v1/stats response
-			const getMock = vi
+			// 1) Cache miss: Redis GET -> null; API call -> 200; Redis SETEX called
+			redisMock.get.mockResolvedValueOnce(null);
+			const apiGet = vi
 				.spyOn(adapter.api, "get")
 				.mockResolvedValue({ status: 200, data: { version: "2024.x" } } as any);
 
 			const host = "unknown.example";
-			// First probe performs a network call
 			const first = await (adapter as any).probeHost(host);
 			expect(first).toBe(true);
-			expect(getMock).toHaveBeenCalledTimes(1);
+			expect(apiGet).toHaveBeenCalledTimes(1);
+			const setFn = redisMock.setEx ?? redisMock.set;
+			expect(setFn).toHaveBeenCalledTimes(1);
 
-			// Second probe within TTL should be served from cache (no extra call)
+			// 2) Cache hit: Redis GET -> "1"; should NOT perform API call again
+			redisMock.get.mockResolvedValueOnce("1");
 			const second = await (adapter as any).probeHost(host);
 			expect(second).toBe(true);
-			expect(getMock).toHaveBeenCalledTimes(1);
+			expect(apiGet).toHaveBeenCalledTimes(1);
+			// No second SETEX on cache hit
+			expect(setFn).toHaveBeenCalledTimes(1);
 
-			// Force cache expiry and ensure it probes again
-			(adapter as any).hostProbeCache.set(host, {
-				ok: true,
-				ts: Date.now() - 120_000, // older than TTL
-			});
+			// 3) Simulate TTL expiry: Redis GET -> null; should call API again
+			redisMock.get.mockResolvedValueOnce(null);
 			const third = await (adapter as any).probeHost(host);
 			expect(third).toBe(true);
-			expect(getMock).toHaveBeenCalledTimes(2);
-		});
-
-		it("probeHost cache does not exceed hard size cap", async () => {
-			const ad = new InvidiousAdapter();
-			(ad as any).autoDiscoverEnabled = true;
-			vi.spyOn(ad.api, "get").mockResolvedValue({ status: 200, data: {} } as any);
-			(ad as any).hostProbeCacheMaxSize = 5;
-			for (let i = 0; i < 12; i++) {
-				await (ad as any).probeHost(`h${i}.example`);
-			}
-			const cache: Map<string, any> = (ad as any).hostProbeCache;
-			expect(cache.size).toBeLessThanOrEqual(5);
+			expect(apiGet).toHaveBeenCalledTimes(2);
+			expect(setFn).toHaveBeenCalledTimes(2);
 		});
 	});
 
@@ -554,6 +556,39 @@ hi.m3u8
 			await expect(adapter.fetchVideoInfo("inv.nadeko.net:abc")).rejects.toBeInstanceOf(
 				UpstreamInvidiousException
 			);
+		});
+	});
+
+	describe("deny-list behavior", () => {
+		it("rejects URLs from deny-listed hosts (even with auto-discover enabled)", () => {
+			const adapter = new InvidiousAdapter();
+			(adapter as any).autoDiscoverEnabled = true;
+			// allow some host to show it's not about allow-list
+			adapter.allowedHosts = ["inv.nadeko.net"];
+			// explicitly deny yewtu.be
+			(adapter as any).deniedHosts = ["yewtu.be"];
+
+			expect(adapter.canHandleURL("https://yewtu.be/watch?v=abc123")).toBe(false);
+			expect(adapter.canHandleURL("https://yewtu.be/w/abc123")).toBe(false);
+		});
+
+		it("deny-list wins over allow-list (host present in both)", () => {
+			const adapter = new InvidiousAdapter();
+			adapter.allowedHosts = ["yewtu.be"]; // would normally be allowed
+			(adapter as any).deniedHosts = ["yewtu.be"]; // but is deny-listed
+			expect(adapter.canHandleURL("https://yewtu.be/watch?v=abc123")).toBe(false);
+		});
+
+		it("fetchVideoInfo defensively rejects deny-listed host IDs", async () => {
+			const adapter = new InvidiousAdapter();
+			adapter.allowedHosts = ["yewtu.be"];
+			(adapter as any).deniedHosts = ["yewtu.be"];
+			// Ensure we do not even attempt any HTTP calls
+			const getSpy = vi.spyOn(adapter.api, "get");
+			await expect(adapter.fetchVideoInfo("yewtu.be:abc123")).rejects.toBeInstanceOf(
+				InvalidVideoIdException
+			);
+			expect(getSpy).not.toHaveBeenCalled();
 		});
 	});
 
