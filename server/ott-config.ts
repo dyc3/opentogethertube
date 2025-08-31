@@ -295,26 +295,6 @@ export const conf = convict({
 					format: String,
 				},
 			},
-			/**
-			 * Optional: allow links from *any* host (not just the configured allowlist) and
-			 * perform a lightweight probe to see if the host looks like an Invidious instance.
-			 * This is a stepping stone towards instance auto-discovery/caching without relying
-			 * on central configuration. Disabled by default to keep current behavior.
-			 */
-			auto_discover: {
-				enabled: {
-					default: false,
-					doc: "If true, accept unknown hosts and attempt to probe them as Invidious instances.",
-					format: Boolean,
-					env: "INVIDIOUS_AUTODISCOVER",
-				},
-				cache_ttl_ms: {
-					default: 300000, // 5 minutes
-					doc: "TTL for per-host probe cache in milliseconds.",
-					format: Number,
-					env: "INVIDIOUS_AUTODISCOVER_TTL_MS",
-				},
-			},
 		},
 	},
 	rate_limit: {

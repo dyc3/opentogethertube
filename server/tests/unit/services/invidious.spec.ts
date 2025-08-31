@@ -423,67 +423,6 @@ hi.m3u8
 		});
 	});
 
-	/**
-	 * New: auto-discovery behavior (optional). We test only the surface behavior that affects URL acceptance
-	 * and basic probing, without asserting on logs.
-	 */
-	describe("auto-discover (canHandleURL + probeHost)", () => {
-		let adapter: InvidiousAdapter;
-
-		beforeEach(() => {
-			adapter = new InvidiousAdapter();
-			adapter.allowedHosts = ["inv.nadeko.net"];
-			// enable auto-discover for these tests
-			(adapter as any).autoDiscoverEnabled = true;
-			(adapter as any).autoDiscoverTTL = 60_000; // 1 minute for test readability
-		});
-
-		it("tentatively accepts unknown hosts when auto-discover is enabled", () => {
-			const ok = adapter.canHandleURL("https://unknown.example/watch?v=abc123");
-			expect(ok).toBe(true);
-			// Still rejects malformed URLs (no v)
-			expect(adapter.canHandleURL("https://unknown.example/watch")).toBe(false);
-		});
-
-		it("probeHost caches results for TTL and avoids repeated network calls", async () => {
-			// Mock a healthy /api/v1/stats response
-			const getMock = vi
-				.spyOn(adapter.api, "get")
-				.mockResolvedValue({ status: 200, data: { version: "2024.x" } } as any);
-
-			const host = "unknown.example";
-			// First probe performs a network call
-			const first = await (adapter as any).probeHost(host);
-			expect(first).toBe(true);
-			expect(getMock).toHaveBeenCalledTimes(1);
-
-			// Second probe within TTL should be served from cache (no extra call)
-			const second = await (adapter as any).probeHost(host);
-			expect(second).toBe(true);
-			expect(getMock).toHaveBeenCalledTimes(1);
-
-			// Force cache expiry and ensure it probes again
-			(adapter as any).hostProbeCache.set(host, {
-				ok: true,
-				ts: Date.now() - 120_000, // older than TTL
-			});
-			const third = await (adapter as any).probeHost(host);
-			expect(third).toBe(true);
-			expect(getMock).toHaveBeenCalledTimes(2);
-		});
-		it("probeHost cache does not exceed hard size cap", async () => {
-			const adapter = new InvidiousAdapter();
-			(adapter as any).autoDiscoverEnabled = true;
-			vi.spyOn(adapter.api, "get").mockResolvedValue({ status: 200, data: {} } as any);
-			(adapter as any).hostProbeCacheMaxSize = 5;
-			for (let i = 0; i < 12; i++) {
-				await (adapter as any).probeHost(`h${i}.example`);
-			}
-			const cache: Map<string, any> = (adapter as any).hostProbeCache;
-			expect(cache.size).toBeLessThanOrEqual(5);
-		});
-	});
-
 	describe("pickBestThumbnail", () => {
 		it("returns URL with most pixels", () => {
 			const adapter = new InvidiousAdapter();

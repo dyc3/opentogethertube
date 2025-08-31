@@ -75,16 +75,6 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	});
 
 	allowedHosts: string[] = [];
-	/** When true, accept links from hosts not listed in config and probe them. */
-	private autoDiscoverEnabled = false;
-	/** Probe result cache TTL (ms). */
-	private autoDiscoverTTL = 300000;
-	/**
-	 * Simple in-memory probe cache: host → { ok, ts }.
-	 * ok=true means the host recently answered a known Invidious endpoint.
-	 */
-	private hostProbeCache = new Map<string, { ok: boolean; ts: number }>();
-	private readonly hostProbeCacheMaxSize = 200;
 
 	get serviceId(): VideoService {
 		return "invidious";
@@ -96,26 +86,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 	async initialize(): Promise<void> {
 		this.allowedHosts = conf.get("info_extractor.invidious.instances");
-		// Auto-discover config is optional; guard reads so missing keys don’t throw.
-		try {
-			this.autoDiscoverEnabled = !!conf.get("info_extractor.invidious.auto_discover.enabled");
-		} catch {
-			/* keep default false */
-		}
-		try {
-			const ttl = Number(conf.get("info_extractor.invidious.auto_discover.cache_ttl_ms"));
-			if (Number.isFinite(ttl) && ttl > 0) {
-				this.autoDiscoverTTL = ttl;
-			}
-		} catch {
-			/* keep default TTL */
-		}
 		log.info(`Invidious adapter enabled. Instances: ${this.allowedHosts.join(", ")}`);
-		if (this.autoDiscoverEnabled) {
-			log.info(
-				`Invidious auto-discovery enabled (TTL=${this.autoDiscoverTTL}ms). Unknown hosts will be tentatively accepted and probed.`
-			);
-		}
 	}
 
 	canHandleURL(link: string): boolean {
@@ -132,14 +103,9 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		// Accept either "host" (may include :port) or "hostname" from config.
 		const hostAllowed =
 			this.allowedHosts.includes(url.host) || this.allowedHosts.includes(url.hostname);
-		if (!this.autoDiscoverEnabled && !hostAllowed) {
+		if (!hostAllowed) {
 			return false;
 		}
-		if (this.autoDiscoverEnabled && !hostAllowed) {
-			// Log that we are letting the URL through due to auto-discovery; acceptance is confirmed in probeHost().
-			log.debug(`invidious:autodiscover tentative accept host=${url.host}`);
-		}
-
 		// Support both the canonical and short Invidious routes that mirror YouTube. – Invidious-specific
 		if (url.pathname === "/watch") {
 			return url.searchParams.has("v");
@@ -252,70 +218,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		return best?.url;
 	}
 
-	/**
-	 * Optional host probe to see if a given origin responds like an Invidious instance.
-	 * This is *best-effort* only and intentionally conservative; failures do not block playback,
-	 * but help us decide whether to keep accepting links from this host without explicit config.
-	 *
-	 * We use `/api/v1/stats` as a lightweight signal; many public instances expose it.
-	 * Some instances may gate it or return non-standard JSON; we treat any 2xx JSON-ish body as "ok".
-	 */
-	private async probeHost(host: string): Promise<boolean> {
-		const now = Date.now();
-		const cached = this.hostProbeCache.get(host);
-		if (cached && now - cached.ts < this.autoDiscoverTTL) {
-			// Emit a concise cache-hit log so we can see remaining TTL on repeated visits.
-			const remaining = this.autoDiscoverTTL - (now - cached.ts);
-			log.debug(
-				`invidious:autodiscover cache host=${host} ok=${cached.ok} ttl_ms_remaining=${remaining}`
-			);
-			return cached.ok;
-		}
-		let ok = false;
-		try {
-			const url = `https://${host}/api/v1/stats`;
-			const res = await this.api.get(url, {
-				headers: { Accept: "application/json" },
-				// Keep the probe inexpensive; inherit global timeout.
-				responseType: "json",
-				transformResponse: undefined,
-				validateStatus: s => s >= 200 && s < 500, // treat 4xx as a negative probe, not a throw
-			});
-			ok = res.status >= 200 && res.status < 300 && typeof res.data === "object";
-			if (!ok) {
-				log.info(
-					`Invidious host probe: ${host} did not look healthy (status=${res.status}).`
-				);
-			}
-		} catch (e) {
-			const msg = e instanceof Error ? e.message : String(e);
-			log.debug(`Invidious host probe failed for ${host}: ${msg}`);
-			ok = false;
-		} finally {
-			// Evict oldest entry if we are over the cap, then insert once (avoid double set()).
-			if (this.hostProbeCache.size >= this.hostProbeCacheMaxSize) {
-				const firstKey = this.hostProbeCache.keys().next().value as string | undefined;
-				if (firstKey) {
-					this.hostProbeCache.delete(firstKey);
-				}
-			}
-			this.hostProbeCache.set(host, { ok, ts: now });
-			if (ok) {
-				// Explicit acceptance log with TTL info as requested.
-				const expiresAt = new Date(now + this.autoDiscoverTTL).toISOString();
-				log.info(
-					`invidious:autodiscover accepted host=${host} ttl_ms=${this.autoDiscoverTTL} expires_at=${expiresAt}`
-				);
-			}
-		}
-		return ok;
-	}
-
 	private async parseAsDirect(inv: InvidiousApiVideo, host: string, id: string): Promise<Video> {
-		if (this.autoDiscoverEnabled && !this.allowedHosts.includes(host)) {
-			// Best-effort: the result is cached for a short TTL and does not block the flow.
-			void this.probeHost(host);
-		}
 		const rawDesc = (inv.description ?? inv.shortDescription ?? "").toString().trim();
 		const safeDesc = rawDesc.length ? rawDesc : inv.title;
 
