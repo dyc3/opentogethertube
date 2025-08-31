@@ -295,6 +295,21 @@ export const conf = convict({
 					format: String,
 				},
 			},
+			// Auto-discover support: optionally accept unknown hosts and probe them.
+			auto_discover: {
+				enabled: {
+					default: false,
+					doc: "Allow tentatively accepting unknown Invidious hosts and probing them. If false, only configured instances are allowed.",
+					format: Boolean,
+					env: "INVIDIOUS_AUTO_DISCOVER_ENABLED",
+				},
+				cache_ttl_ms: {
+					default: 300000, // 5 minutes
+					doc: "TTL for cached host probe results (milliseconds).",
+					format: "nat",
+					env: "INVIDIOUS_AUTO_DISCOVER_CACHE_TTL_MS",
+				},
+			},
 		},
 	},
 	rate_limit: {

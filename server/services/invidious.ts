@@ -76,6 +76,17 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 	allowedHosts: string[] = [];
 
+	/** When true, accept links from hosts not listed in config and probe them. */
+	private autoDiscoverEnabled = false;
+	/** Probe result cache TTL (ms). */
+	private autoDiscoverTTL = 300000; // 5 minutes
+	/**
+	 * Simple in-memory probe cache: host → { ok, ts }.
+	 * ok=true means the host recently answered a known Invidious endpoint.
+	 */
+	private hostProbeCache = new Map<string, { ok: boolean; ts: number }>();
+	private readonly hostProbeCacheMaxSize = 200;
+
 	get serviceId(): VideoService {
 		return "invidious";
 	}
@@ -86,7 +97,26 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 	async initialize(): Promise<void> {
 		this.allowedHosts = conf.get("info_extractor.invidious.instances");
+		// Auto-discover config is optional; guard reads so missing keys don’t throw.
+		try {
+			this.autoDiscoverEnabled = !!conf.get("info_extractor.invidious.auto_discover.enabled");
+		} catch {
+			/* keep default false */
+		}
+		try {
+			const ttl = Number(conf.get("info_extractor.invidious.auto_discover.cache_ttl_ms"));
+			if (Number.isFinite(ttl) && ttl > 0) {
+				this.autoDiscoverTTL = ttl;
+			}
+		} catch {
+			/* keep default TTL */
+		}
 		log.info(`Invidious adapter enabled. Instances: ${this.allowedHosts.join(", ")}`);
+		if (this.autoDiscoverEnabled) {
+			log.info(
+				`Invidious auto-discovery enabled (TTL=${this.autoDiscoverTTL}ms). Unknown hosts will be tentatively accepted and probed.`
+			);
+		}
 	}
 
 	canHandleURL(link: string): boolean {
@@ -103,8 +133,12 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		// Accept either "host" (may include :port) or "hostname" from config.
 		const hostAllowed =
 			this.allowedHosts.includes(url.host) || this.allowedHosts.includes(url.hostname);
-		if (!hostAllowed) {
+		if (!this.autoDiscoverEnabled && !hostAllowed) {
 			return false;
+		}
+		if (this.autoDiscoverEnabled && !hostAllowed) {
+			// Let it through tentatively; we’ll probe in the background during parsing.
+			log.debug(`invidious:autodiscover tentative accept host=${url.host}`);
 		}
 		// Support both the canonical and short Invidious routes that mirror YouTube. – Invidious-specific
 		if (url.pathname === "/watch") {
@@ -264,6 +298,10 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	}
 
 	private async parseAsDirect(inv: InvidiousApiVideo, host: string, id: string): Promise<Video> {
+		// Best-effort background probe for unknown hosts when auto-discovery is enabled.
+		if (this.autoDiscoverEnabled && !this.allowedHosts.includes(host)) {
+			void this.probeHost(host);
+		}
 		const rawDesc = (inv.description ?? inv.shortDescription ?? "").toString().trim();
 		const safeDesc = rawDesc.length ? rawDesc : inv.title;
 
@@ -387,6 +425,59 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			mime: "video/mp4",
 		};
 	}
+	/**
+	 * Probe a host via a lightweight endpoint to see if it responds like an Invidious instance.
+	 * Results are cached for a short TTL to avoid repeated network calls.
+	 * NOTE: Failures do not block playback; this is best-effort signal/telemetry.
+	 */
+	private async probeHost(host: string): Promise<boolean> {
+		const now = Date.now();
+		const cached = this.hostProbeCache.get(host);
+		if (cached && now - cached.ts < this.autoDiscoverTTL) {
+			// Serve from cache.
+			return cached.ok;
+		}
+		let ok = false;
+		try {
+			const url = `https://${host}/api/v1/stats`;
+			const res = await this.api.get(url, {
+				headers: { Accept: "application/json" },
+				// Keep probe inexpensive; inherit axios instance timeout.
+				responseType: "json",
+				transformResponse: undefined,
+				validateStatus: s => s >= 200 && s < 500, // 2xx=ok; 4xx counts as negative, not a throw
+			});
+			ok = res.status >= 200 && res.status < 300 && typeof res.data === "object";
+			if (!ok) {
+				log.info(
+					`Invidious host probe: ${host} did not look healthy (status=${res.status}).`
+				);
+			}
+		} catch (e) {
+			log.debug(
+				`Invidious host probe failed for ${host}: ${e instanceof Error ? e.message : e}`
+			);
+			ok = false;
+		} finally {
+			// Enforce a small upper bound on cache size.
+			if (this.hostProbeCache.size >= this.hostProbeCacheMaxSize) {
+				const firstKey = this.hostProbeCache.keys().next().value as string | undefined;
+				if (firstKey) {
+					this.hostProbeCache.delete(firstKey);
+				}
+			}
+			this.hostProbeCache.set(host, { ok, ts: now });
+			if (ok) {
+				log.info(
+					`invidious:autodiscover accepted host=${host} ttl_ms=${
+						this.autoDiscoverTTL
+					} expires_at=${new Date(now + this.autoDiscoverTTL).toISOString()}`
+				);
+			}
+		}
+		return ok;
+	}
+
 	/** Probe a manifest and return its top bitrate/resolution.
 	 * Parse MPD/M3U8 using dedicated parsers; regex is unreliable because these manifests evolve frequently across YouTube encodes and Invidious rewrites. – YouTube/HLS/DASH variability
 	 */
