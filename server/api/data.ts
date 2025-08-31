@@ -56,6 +56,7 @@ const addPreview: RequestHandler<
 			err.name === "LocalFileException" ||
 			err.name === "MissingMetadataException" ||
 			err.name === "UnsupportedVideoType" ||
+			err.name === "UpstreamInvidiousException" ||
 			err.name === "VideoNotFoundException"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);
