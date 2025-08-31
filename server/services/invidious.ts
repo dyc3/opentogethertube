@@ -199,10 +199,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
 							endpoint: baseUrl,
 						});
 					}
-					// Network / timeout (no response): surface a user-friendly 502/504
-					const code = String(e2.code || "").toUpperCase();
-					const isTimeout =
-						code === "ECONNABORTED" || /\btimeout\b/i.test(e2.message || "");
+					// Network / timeout (no response): keep it simple — Axios uses ECONNABORTED for timeouts.
+					const isTimeout = e2.code === "ECONNABORTED";
 					throw new UpstreamInvidiousException({
 						host,
 						status: isTimeout ? 504 : 502,
