@@ -285,6 +285,17 @@ export const conf = convict({
 				env: "PEERTUBE_EMIT_AS_DIRECT",
 			},
 		},
+		invidious: {
+			instances: {
+				default: ["yt.safh.de", "inv.nadeko.net", "yewtu.be"],
+				doc: "List of Invidious instances as array",
+				format: Array,
+				env: "INVIDIOUS_INSTANCES",
+				children: {
+					format: String,
+				},
+			},
+		},
 	},
 	rate_limit: {
 		enabled: {
