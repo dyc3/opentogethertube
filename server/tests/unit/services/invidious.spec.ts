@@ -215,12 +215,10 @@ hi.m3u8
 				mime: "video/mp4",
 			});
 
-			const getMock = vi
-				.spyOn(adapter.api, "get")
-				.mockResolvedValueOnce({
-					data: { title: "T", lengthSeconds: 10 },
-					headers: {},
-				} as any);
+			const getMock = vi.spyOn(adapter.api, "get").mockResolvedValueOnce({
+				data: { title: "T", lengthSeconds: 10 },
+				headers: {},
+			} as any);
 
 			await adapter.fetchVideoInfo("inv.nadeko.net:8443:abc");
 			expect(getMock.mock.calls[0][0]).toContain(
