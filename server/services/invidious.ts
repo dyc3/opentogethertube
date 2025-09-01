@@ -9,6 +9,8 @@ import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../exceptions.js";
 import { redisClient } from "../redisclient.js";
 import storage from "../storage.js";
+import dns from "node:dns/promises";
+import net from "node:net";
 
 const log = getLogger("invidious");
 
@@ -465,6 +467,81 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			return false;
 		}
 
+		// 2b) SSRF hardening:
+		//  - Disallow custom ports (reduce attack surface to default HTTPS).
+		//  - Host must be a DNS name (not an IP literal) and resolve ONLY to public IPs.
+		//  - No single-label hosts (require at least one dot).
+		if (url.port && url.port !== "443") {
+			log.warn(`autodiscover: rejected non-standard port host=${url.host}`);
+			return false;
+		}
+		// Reject IP literals outright
+		if (net.isIP(url.hostname)) {
+			log.warn(`autodiscover: rejected IP literal host=${url.hostname}`);
+			return false;
+		}
+
+		// Require at least one dot to avoid "localhost" / single-label names
+		if (!url.hostname.includes(".")) {
+			log.warn(`autodiscover: rejected single-label hostname host=${url.hostname}`);
+			return false;
+		}
+
+		// Resolve and ensure all answers are public addresses
+		try {
+			const answers = await dns.lookup(url.hostname, { all: true, verbatim: false });
+			if (!answers.length) {
+				log.warn(`autodiscover: DNS lookup returned no results for host=${url.hostname}`);
+				return false;
+			}
+			const isPrivate = (addr: string) => {
+				// IPv4 ranges: 10/8, 172.16/12, 192.168/16, 127/8, 169.254/16, 100.64/10, 0.0.0.0/8, 224/4
+				// IPv6: ::1/128, fc00::/7 (ULA), fe80::/10 (link-local), ff00::/8 (multicast)
+				if (net.isIP(addr) === 4) {
+					return (
+						addr.startsWith("10.") ||
+						addr.startsWith("127.") ||
+						addr.startsWith("192.168.") ||
+						addr.startsWith("169.254.") ||
+						addr.startsWith("0.") ||
+						// 172.16.0.0 – 172.31.255.255
+						/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(addr) ||
+						// 100.64.0.0 – 100.127.255.255 (CGNAT)
+						/^100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\./.test(addr) ||
+						// 224.0.0.0/4 (multicast)
+						/^(22[4-9]|23[0-9])\./.test(addr)
+					);
+				}
+				if (net.isIP(addr) === 6) {
+					const a = addr.toLowerCase();
+					return (
+						a === "::1" ||
+						a.startsWith("fc") ||
+						a.startsWith("fd") || // fc00::/7 (ULA)
+						a.startsWith("fe8") ||
+						a.startsWith("fe9") ||
+						a.startsWith("fea") ||
+						a.startsWith("feb") || // fe80::/10
+						a.startsWith("ff") // multicast
+					);
+				}
+				return true; // non-IP should have been filtered before; treat as unsafe
+			};
+			if (answers.some(a => isPrivate(a.address))) {
+				log.warn(
+					`autodiscover: rejected private/loopback resolution for host=${url.hostname}`
+				);
+				return false;
+			}
+		} catch (e) {
+			log.warn(
+				`autodiscover: DNS lookup failed for host=${url.hostname}: ${
+					e instanceof Error ? e.message : e
+				}`
+			);
+			return false;
+		}
+
 		// 3) Path/route must match canHandleURL (YouTube-/watch or /w/<id>)
 		const pathOk =
 			(url.pathname === "/watch" && url.searchParams.has("v")) ||
@@ -502,6 +579,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				responseType: "json",
 				transformResponse: undefined,
 				validateStatus: s => s >= 200 && s < 500, // 2xx=ok; 4xx counts as negative, but no throw
+				maxRedirects: 0, // avoid SSRF via open redirects to internal targets
+				proxy: false, // ignore HTTP(S)_PROXY env to reduce SSRF via proxy
 			});
 			ok = res.status >= 200 && res.status < 300 && typeof res.data === "object";
 			if (!ok) {
