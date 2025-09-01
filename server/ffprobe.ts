@@ -14,7 +14,11 @@ import { Counter } from "prom-client";
 import { conf } from "./ott-config.js";
 
 const log = getLogger("infoextract/ffprobe");
-const exec = util.promisify(childProcess.exec);
+
+// Note: we avoid using exec for ffprobe to prevent shell injection.
+// Hard, non-configurable timeout for every ffprobe run (in ms).
+// Timeout in ms 45000 = 45 secs more then enough Time as descriped in #1056 (30s)
+const FFPROBE_TIMEOUT_MS = 45000;
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -22,55 +26,70 @@ function streamDataIntoFfprobe(
 	controller: AbortController
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
-		let streamEnded = true;
+		// Spawn ffprobe and feed data via stdin (no shell).
+		const args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
+		const child = childProcess.spawn(ffprobePath, args, {
+			stdio: "pipe",
+			windowsHide: true,
+		});
 
-		let child = childProcess.spawn(
-			`${ffprobePath}`,
-			["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"],
-			{
-				stdio: "pipe",
-				windowsHide: true,
-			}
-		);
 		log.debug(`ffprobe child spawned: ${child.pid}`);
 		let resultJson = "";
-		function finalize() {
-			stream.removeAllListeners();
-			stream.emit("end");
+		let errBuf = ""; // collect stderr for better error messages
+
+		// Kill ffprobe if it runs too long.
+		const killer = setTimeout(() => {
+			log.warn(`ffprobe pid=${child.pid} timed out after ${FFPROBE_TIMEOUT_MS}ms — killing`);
+			try {
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.debug(`ffprobe process: kill-error @48: ${String(e)}`);
+			}
 			try {
 				controller.abort();
 			} catch (e) {
-				if (!axios.isCancel(e)) {
-					log.error(`Failed to abort request: ${e}`);
-				}
+				log.debug(`ffprobe process: controller-error @53: ${String(e)}`);
 			}
-			resolve(resultJson);
-		}
+		}, FFPROBE_TIMEOUT_MS);
 
 		stream.on("data", data => {
 			counterBytesDownloaded.inc(data.length);
+			// If ffprobe closed stdin, stop downloading further data.
 			if (child.stdin.destroyed) {
+				try {
+					controller.abort();
+				} catch (e) {
+					log.debug(`ffprobe process: controller-error @64: ${String(e)}`);
+				}
 				return;
 			}
 			child.stdin.write(data, e => {
 				if (e) {
-					log.debug(`write failed (destroyed: ${child.stdin.destroyed}): ${e}`);
+					log.debug(`write failed (destroyed: ${child.stdin.destroyed}): ${String(e)}`);
+					try {
+						controller.abort();
+					} catch (e) {
+						log.debug(`ffprobe process: controller-error @74: ${String(e)}`);
+					}
 				}
 			});
 		});
 		child.stdin.on("error", e => {
-			log.debug(`ffprobe stdin error: ${e}`);
+			log.debug(`ffprobe stdin error: ${String(e)}`);
 		});
 		stream.on("end", () => {
 			log.debug("http stream ended");
-			streamEnded = true;
-			if (child.stdin.destroyed) {
-				return;
+			if (!child.stdin.destroyed) {
+				child.stdin.end();
 			}
-			child.stdin.end();
 		});
 		stream.on("error", error => {
-			log.error(`http stream error: ${error}`);
+			log.error(`http stream error: ${String(error)}`);
+			try {
+				controller.abort();
+			} catch (e) {
+				log.debug(`ffprobe process: controller-error @93: ${String(e)}`);
+			}
 			reject(error);
 		});
 		child.stdout.on("data", data => {
@@ -79,10 +98,37 @@ function streamDataIntoFfprobe(
 		});
 		child.stderr.on("data", data => {
 			log.silly(`${data}`);
+			errBuf += String(data);
 		});
-		child.on("close", () => {
-			log.debug("ffprobe closed");
-			finalize();
+		child.on("error", err => {
+			clearTimeout(killer);
+			log.error(`ffprobe process error: ${String(err)}`);
+			try {
+				controller.abort();
+			} catch (e) {
+				log.debug(`ffprobe process: controller-error @111: ${String(e)}`);
+			}
+			reject(err);
+		});
+		child.on("close", (code, signal) => {
+			clearTimeout(killer);
+			log.debug(`ffprobe closed (code=${code}, signal=${signal ?? "none"})`);
+			stream.removeAllListeners();
+			try {
+				controller.abort();
+			} catch (e) {
+				log.debug(`ffprobe process: controller-error @122: ${String(e)}`);
+			}
+			if (code === 0) {
+				return resolve(resultJson);
+			}
+			reject(
+				new Error(
+					`ffprobe exited non-zero (code=${code}, signal=${
+						signal ?? "none"
+					}) stderr=${errBuf}`
+				)
+			);
 		});
 	});
 }
@@ -101,18 +147,54 @@ export abstract class FfprobeStrategy {
 export class RunFfprobe extends FfprobeStrategy {
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
-		if (uri.includes('"')) {
-			// if, by some weird off chance, the uri SOMEHOW contains a quote, don't execute the command
-			// because it'll break, and probably lead to an exploit.
-			log.error(
-				"Failed to grab file info: uri contains unescaped double quote, which is a banned character"
-			);
-			throw new Error("Unescaped double quote found in uri");
-		}
-		const { stdout } = await exec(
-			`${this.ffprobePath} -v quiet -i "${uri}" -print_format json -show_streams -show_format`
-		);
-		return JSON.parse(stdout);
+		// Use spawn with args (no shell). This prevents shell injection issues.
+		const args = [
+			"-v",
+			"quiet",
+			"-i",
+			uri,
+			"-print_format",
+			"json",
+			"-show_streams",
+			"-show_format",
+		];
+		const child = childProcess.spawn(this.ffprobePath, args, {
+			stdio: ["ignore", "pipe", "pipe"],
+			windowsHide: true,
+		});
+		let out = "";
+		let err = "";
+
+		const killer = setTimeout(() => {
+			log.warn(`ffprobe (RunFfprobe) timed out after ${FFPROBE_TIMEOUT_MS}ms — killing`);
+			try {
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.debug(`ffprobe process: kill-error @175: ${String(e)}`);
+			}
+		}, FFPROBE_TIMEOUT_MS);
+
+		child.stdout.on("data", d => {
+			out += d;
+		});
+
+		child.stderr.on("data", d => {
+			err += d;
+		});
+
+		await new Promise<void>((resolve, reject) => {
+			child.on("error", reject);
+			child.on("close", (code, signal) => {
+				clearTimeout(killer);
+				if (code === 0) {
+					return resolve();
+				}
+				reject(
+					new Error(`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`)
+				);
+			});
+		});
+		return JSON.parse(out);
 	}
 }
 
@@ -120,8 +202,9 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 
-		let tmpdir = await fs.mkdtemp("/tmp/ott");
-		let tmpfile = path.join(tmpdir, "./preview");
+		// Create a unique temp dir and clean it later.
+		const tmpdir = await fs.mkdtemp("/tmp/ott-");
+		const tmpfile = path.join(tmpdir, "preview");
 		log.debug(`saving preview to ${tmpfile}`);
 		let handle = await fs.open(tmpfile, "w");
 
@@ -155,15 +238,66 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 			controller.abort();
 			httpAgent.destroy();
 			httpsAgent.destroy();
+			await handle.close().catch(e => {
+				log.debug(`ffprobe process: handle.close error @244: ${String(e)}`);
+			});
 		}
 
 		try {
-			const { stdout } = await exec(
-				`${this.ffprobePath} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
-			);
-			return JSON.parse(stdout);
+			// Run ffprobe on the local preview file with timeout and exit checks.
+			const args = [
+				"-v",
+				"quiet",
+				"-i",
+				tmpfile,
+				"-print_format",
+				"json",
+				"-show_streams",
+				"-show_format",
+			];
+			const child = childProcess.spawn(this.ffprobePath, args, {
+				stdio: ["ignore", "pipe", "pipe"],
+				windowsHide: true,
+			});
+			let out = "";
+			let err = "";
+			const killer = setTimeout(() => {
+				log.warn(
+					`ffprobe (OnDiskPreview) timed out after ${FFPROBE_TIMEOUT_MS}ms — killing`
+				);
+				try {
+					child.kill("SIGKILL");
+				} catch (e) {
+					log.debug(`ffprobe process: kill-error @271: ${String(e)}`);
+				}
+			}, FFPROBE_TIMEOUT_MS);
+			child.stdout.on("data", d => {
+				out += d;
+			});
+			child.stderr.on("data", d => {
+				err += d;
+			});
+			await new Promise<void>((resolve, reject) => {
+				child.on("error", e => reject(e));
+				child.on("close", (code, signal) => {
+					clearTimeout(killer);
+					if (code === 0) {
+						return resolve();
+					}
+					reject(
+						new Error(
+							`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${String(
+								err
+							)}`
+						)
+					);
+				});
+			});
+			return JSON.parse(out);
 		} finally {
-			await fs.rm(tmpfile);
+			await fs.rm(tmpdir, { recursive: true, force: true }).catch(e => {
+				log.debug(`fs rm error @301: ${String(e)}`);
+			});
 		}
 	}
 }
