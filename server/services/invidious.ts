@@ -444,7 +444,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	/**
 	 * Auto-discover hook: decide at **runtime** whether this adapter can handle the URL
 	 * for unknown hosts by performing a cheap presence probe.
-	 * All AutoDiscover-Logik lebt hier (deny-list, Pfadprüfung, Redis-Cache, Health-Probe, TTL).
+	 * All AutoDiscover-logic can be found here
 	 */
 	async probeForPresence(url: URL): Promise<boolean> {
 		// 0) Probing nur, wenn Auto-Discover aktiv ist
@@ -452,12 +452,12 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			return false;
 		}
 
-		// 1) Basic scheme check
+		// 1) Basic check
 		if (url.protocol !== "http:" && url.protocol !== "https:") {
 			return false;
 		}
 
-		// 2) Deny-List: hartes Nein
+		// 2) Deny-List
 		const hostLc = url.host.toLowerCase();
 		const hostnameLc = url.hostname.toLowerCase();
 		if (this.isHostDenied(hostLc) || this.isHostDenied(hostnameLc)) {
@@ -465,7 +465,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			return false;
 		}
 
-		// 3) Pfad/Route muss wie bei canHandleURL passen (YouTube-/watch oder /w/<id>)
+		// 3) Path/route must match canHandleURL (YouTube-/watch or /w/<id>)
 		const pathOk =
 			(url.pathname === "/watch" && url.searchParams.has("v")) ||
 			INVIDIOUS_SHORT_WATCH_RE.test(url.pathname);
@@ -473,17 +473,17 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			return false;
 		}
 
-		// 4) Wenn ohnehin erlaubt, kein Probe nötig
+		// 4) If already allowed, no probe needed
 		if (this.allowedHosts.includes(url.host) || this.allowedHosts.includes(url.hostname)) {
 			return true;
 		}
 
-		// 5) Redis-gestützte Health-Probe für unbekannte Hosts
+		// 5) Redis-backed health probe for unknown hosts
 		const host = url.host;
 		const key = `invidious:probe:${host.toLowerCase()}`;
 		const ttlSec = Math.max(1, Math.floor(this.autoDiscoverTTL / 1000));
 
-		// 5a) Cache lesen
+		// 5a) read cache
 		try {
 			const cached = await (redisClient as any).get(key);
 			if (cached !== null && cached !== undefined) {
@@ -493,7 +493,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			log.warn(`Redis GET failed for ${key}: ${e instanceof Error ? e.message : e}`);
 		}
 
-		// 5b) Live-Probe gegen /api/v1/stats
+		// 5b) Live probe against /api/v1/stats
 		let ok = false;
 		try {
 			const statsUrl = `https://${host}/api/v1/stats`;
@@ -514,7 +514,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			ok = false;
 		}
 
-		// 5c) Ergebnis in Redis cachen
+		// 5c) Save result into redis
 		try {
 			const val = ok ? "1" : "0";
 			const cli: any = redisClient as any;
