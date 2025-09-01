@@ -2,6 +2,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import InvidiousAdapter, { INVIDIOUS_SHORT_WATCH_RE } from "../../../services/invidious.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../../../exceptions.js";
 
+// Hoist a single mock function so it's available inside the mock factory.
+const { lookupMock } = vi.hoisted(() => ({ lookupMock: vi.fn() }));
+vi.mock("node:dns/promises", () => ({
+	default: { lookup: lookupMock },
+	lookup: lookupMock,
+}));
+import * as dns from "node:dns/promises";
+
 vi.mock("../../../../server/redisclient.js", () => ({
 	redisClient: {
 		get: vi.fn(), // configured per test
@@ -13,11 +21,21 @@ vi.mock("../../../../server/redisclient.js", () => ({
 import { redisClient } from "../../../../server/redisclient.js";
 const redisMock: any = redisClient as any;
 
+// Helper: shape dns.lookup result depending on "all" option.
+function setLookup(address: string) {
+	const rec = { address, family: address.includes(":") ? 6 : 4 };
+	// Ensure both default.lookup and named lookup use the same implementation
+	(dns as any).lookup.mockImplementation?.((_host: string, opts?: { all?: boolean }) =>
+		Promise.resolve(opts && opts.all ? [rec] : rec)
+	);
+}
+
 describe("InvidiousAdapter (unit)", () => {
 	afterEach(() => {
 		redisMock.get?.mockReset?.();
 		redisMock.setEx?.mockReset?.();
 		redisMock.set?.mockReset?.();
+		(dns as any).lookup?.mockReset?.();
 		vi.clearAllMocks();
 		vi.restoreAllMocks();
 	});
@@ -60,33 +78,36 @@ describe("InvidiousAdapter (unit)", () => {
 			ad.allowedHosts = ["inv.nadeko.net"];
 			ad.deniedHosts = [];
 
-			expect(ad.canHandleURL("https://unknown.example/watch?v=abc123")).toBe(false);
-			expect(ad.canHandleURL("https://unknown.example/w/abc123")).toBe(false);
+			expect(ad.canHandleURL("https://unknown.example.com/watch?v=abc123")).toBe(false);
+			expect(ad.canHandleURL("https://unknown.example.com/w/abc123")).toBe(false);
 		});
 
 		it("probeForPresence accepts unknown hosts when auto-discover is enabled & instance looks healthy", async () => {
 			// Redis miss so we actually hit the network
 			redisMock.get.mockResolvedValueOnce(null);
+			// DNS resolves to a public IP (required by SSRF hardening)
+			setLookup("93.184.216.34");
 			vi.spyOn(adapter.api, "get").mockResolvedValueOnce({ status: 200, data: {} } as any);
 			const ok = await adapter.probeForPresence(
-				new URL("https://unknown.example/watch?v=abc123")
+				new URL("https://unknown.example.com/watch?v=abc123")
 			);
 			expect(ok).toBe(true);
 		});
 
 		it("probeForPresence rejects malformed URLs (missing v param)", async () => {
-			const ok = await adapter.probeForPresence(new URL("https://unknown.example/watch"));
+			const ok = await adapter.probeForPresence(new URL("https://unknown.example.com/watch"));
 			expect(ok).toBe(false);
 		});
 
 		it("probeForPresence caches results for TTL and avoids repeated network calls", async () => {
 			// 1) Cache miss: Redis GET -> null; API call -> 200; Redis SETEX called
 			redisMock.get.mockResolvedValueOnce(null);
+			setLookup("93.184.216.34");
 			const apiGet = vi
 				.spyOn(adapter.api, "get")
 				.mockResolvedValue({ status: 200, data: {} } as any);
 
-			const url = new URL("https://unknown.example/watch?v=abc123");
+			const url = new URL("https://unknown.example.com/watch?v=abc123");
 			const first = await adapter.probeForPresence(url);
 			expect(first).toBe(true);
 			expect(apiGet).toHaveBeenCalledTimes(1);
@@ -103,10 +124,72 @@ describe("InvidiousAdapter (unit)", () => {
 
 			// 3) Simulate TTL expiry: Redis GET -> null; should call API again
 			redisMock.get.mockResolvedValueOnce(null);
+			// DNS still resolves to a public IP
+			setLookup("93.184.216.34");
 			const third = await adapter.probeForPresence(url);
 			expect(third).toBe(true);
 			expect(apiGet).toHaveBeenCalledTimes(2);
 			expect(setFn).toHaveBeenCalledTimes(2);
+		});
+	});
+
+	describe("auto-discover SSRF hardening", () => {
+		let adapter: InvidiousAdapter;
+		beforeEach(() => {
+			adapter = new InvidiousAdapter();
+			adapter.allowedHosts = ["inv.nadeko.net"];
+			(adapter as any).deniedHosts = [];
+			(adapter as any).autoDiscoverEnabled = true;
+			(adapter as any).autoDiscoverTTL = 60_000;
+		});
+
+		it("rejects IP literal hosts outright", async () => {
+			const apiSpy = vi.spyOn(adapter.api, "get");
+			const ok = await adapter.probeForPresence(new URL("https://127.0.0.1/watch?v=abc"));
+			expect(ok).toBe(false);
+			expect(apiSpy).not.toHaveBeenCalled();
+		});
+
+		it("rejects single-label hostnames like 'localhost'", async () => {
+			const apiSpy = vi.spyOn(adapter.api, "get");
+			const ok = await adapter.probeForPresence(new URL("https://localhost/watch?v=abc"));
+			expect(ok).toBe(false);
+			expect(apiSpy).not.toHaveBeenCalled();
+		});
+
+		it("rejects non-standard ports (≠ 443) for unknown hosts", async () => {
+			const apiSpy = vi.spyOn(adapter.api, "get");
+			const ok = await adapter.probeForPresence(
+				new URL("https://unknown.example.com:8443/watch?v=abc")
+			);
+			expect(ok).toBe(false);
+			expect(apiSpy).not.toHaveBeenCalled();
+		});
+
+		it("rejects when DNS resolves to private/loopback/link-local addresses", async () => {
+			setLookup("10.0.0.8");
+			const apiSpy = vi.spyOn(adapter.api, "get");
+			const ok = await adapter.probeForPresence(
+				new URL("https://unknown.example.com/watch?v=abc")
+			);
+			expect(ok).toBe(false);
+			expect(apiSpy).not.toHaveBeenCalled();
+		});
+
+		it("sets anti-SSRF axios options (no redirects, no proxy) on probe requests", async () => {
+			redisMock.get.mockResolvedValueOnce(null);
+			setLookup("93.184.216.34");
+			const apiGet = vi
+				.spyOn(adapter.api, "get")
+				.mockResolvedValueOnce({ status: 200, data: {} } as any);
+			const ok = await adapter.probeForPresence(
+				new URL("https://unknown.example.com/watch?v=abc")
+			);
+			expect(ok).toBe(true);
+			expect(apiGet).toHaveBeenCalledTimes(1);
+			const [, opts] = apiGet.mock.calls[0];
+			expect(opts?.maxRedirects).toBe(0);
+			expect(opts?.proxy).toBe(false);
 		});
 	});
 
