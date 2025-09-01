@@ -56,6 +56,6 @@
 			"request": "attach",
 			"name": "Attach to ott-collector",
 			"program": "${workspaceFolder}/ott-collector"
-		},
+		}
 	]
 }
