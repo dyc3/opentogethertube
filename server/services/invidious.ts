@@ -447,7 +447,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	 * All AutoDiscover-logic can be found here
 	 */
 	async probeForPresence(url: URL): Promise<boolean> {
-		// 0) Probing nur, wenn Auto-Discover aktiv ist
+		// 0) Probe only if auto-discovery is enabled
 		if (!this.autoDiscoverEnabled) {
 			return false;
 		}
@@ -501,7 +501,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				headers: { Accept: "application/json" },
 				responseType: "json",
 				transformResponse: undefined,
-				validateStatus: s => s >= 200 && s < 500, // 2xx=ok; 4xx zählt als negativ, aber kein Throw
+				validateStatus: s => s >= 200 && s < 500, // 2xx=ok; 4xx counts as negative, but no throw
 			});
 			ok = res.status >= 200 && res.status < 300 && typeof res.data === "object";
 			if (!ok) {
