@@ -19,8 +19,8 @@
     "start": "yarn workspace ott-server start",
     "serve": "yarn workspace ott-client serve",
     "build": "yarn workspaces foreach --all run build",
-    "lint": "yarn workspaces foreach --all run lint",
-    "lint-ci": "yarn workspaces foreach --all run lint-ci",
+    "lint": "biome check --write && yarn workspaces foreach --all run lint",
+    "lint-ci": "biome check && yarn workspaces foreach --all run lint-ci",
     "test": "yarn workspaces foreach --all run test",
     "cy:run": "cypress run --headless",
     "cy:run:component": "yarn workspace ott-client run cy:run",
@@ -45,6 +45,7 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
     "@types/lodash": "^4.14.170",
     "@types/node": "^16.11.7",
     "@types/uuid": "^3.4.0",
