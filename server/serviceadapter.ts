@@ -43,7 +43,6 @@ export class ServiceAdapter {
 	}
 
 	/**
-	 * 
 	 * Returns true if this service adapter supports Autodiscover on given link.
 	 */
 	canAutodiscover(link: string): boolean {

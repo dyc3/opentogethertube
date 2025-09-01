@@ -2,19 +2,22 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import InvidiousAdapter, { INVIDIOUS_SHORT_WATCH_RE } from "../../../services/invidious.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../../../exceptions.js";
 
-vi.mock("redis", () => ({
-	default: {
+vi.mock("../../../../server/redisclient.js", () => ({
+	redisClient: {
 		get: vi.fn(), // configured per test
 		setEx: vi.fn(), // node-redis v4
 		set: vi.fn(), // ioredis-style fallback
 	},
 }));
 
-import redis from "redis";
-const redisMock: any = (redis as any)?.default ?? (redis as any);
+import { redisClient } from "../../../../server/redisclient.js";
+const redisMock: any = redisClient as any;
 
 describe("InvidiousAdapter (unit)", () => {
 	afterEach(() => {
+		redisMock.get?.mockReset?.();
+		redisMock.setEx?.mockReset?.();
+		redisMock.set?.mockReset?.();
 		vi.clearAllMocks();
 		vi.restoreAllMocks();
 	});
@@ -71,7 +74,7 @@ describe("InvidiousAdapter (unit)", () => {
 			redisMock.get.mockResolvedValueOnce(null);
 			const apiGet = vi
 				.spyOn(adapter.api, "get")
-				.mockResolvedValue({ status: 200, data: { version: "2024.x" } } as any);
+				.mockResolvedValue({ status: 200, data: {} } as any);
 
 			const host = "unknown.example";
 			const first = await (adapter as any).probeHost(host);
