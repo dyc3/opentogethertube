@@ -43,6 +43,14 @@ export class ServiceAdapter {
 	}
 
 	/**
+	 * 
+	 * Returns true if this service adapter supports Autodiscover on given link.
+	 */
+	canAutodiscover(link: string): boolean {
+		return false;
+	}
+
+	/**
 	 * Determines whether a given URL points to a collection of videos.
 	 */
 	isCollectionURL(url: string): boolean {

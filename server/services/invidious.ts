@@ -7,7 +7,7 @@ import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import { conf } from "../ott-config.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../exceptions.js";
-import RedisClientType from "redis";
+import { redisClient } from "../redisclient.js";
 import storage from "../storage.js";
 
 const log = getLogger("invidious");
@@ -121,6 +121,14 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			log.info(
 				`Invidious auto-discovery enabled (TTL=${this.autoDiscoverTTL}ms). Unknown hosts will be tentatively accepted and probed.`
 			);
+		}
+	}
+
+	canAutodiscover(link: string): boolean {
+		if (this.autoDiscoverEnabled) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -463,7 +471,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 		// Fast path: read from Redis first
 		try {
-			const cached = await (RedisClientType as any).get(key);
+			const cached = await (redisClient as any).get(key);
 			if (cached !== null && cached !== undefined) {
 				return cached === "1";
 			}
@@ -497,7 +505,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		// fall back to SET EX for ioredis-style clients.
 		try {
 			const val = ok ? "1" : "0";
-			const cli: any = RedisClientType as any;
+			const cli: any = redisClient as any;
 			if (typeof cli.setEx === "function") {
 				await cli.setEx(key, ttlSec, val);
 			} else {
