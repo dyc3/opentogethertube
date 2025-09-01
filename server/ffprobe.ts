@@ -1,4 +1,3 @@
-import util from "util";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { getLogger } from "./logger.js";
 import childProcess from "child_process";
