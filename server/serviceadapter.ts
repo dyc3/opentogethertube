@@ -32,7 +32,7 @@ export class ServiceAdapter {
 	 * Whether this adapter participates in Auto-Discover probing.
 	 * If `true`, the InfoExtractor's Auto-Discover path may call `probeForPresence(url)`
 	 * when no synchronous match via `canHandleURL()` was found.
- 	 */
+	 */
 	get canProbePresence(): boolean {
 		return false;
 	}
