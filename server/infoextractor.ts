@@ -1,4 +1,3 @@
-import { URL } from "url";
 import _ from "lodash";
 import GoogleDriveAdapter from "./services/googledrive.js";
 import VimeoAdapter from "./services/vimeo.js";
@@ -184,6 +183,41 @@ export default {
 	},
 
 	/**
+	 * Like getServiceAdapterForURL – but with Auto-Discover support:
+	 * 1) Try the normal synchronous match via canHandleURL() first.
+	 * 2) If there is no match, ask all adapters that support probing
+	 *    (canProbePresence=true) to probe the URL asynchronously.
+	 *    Return the first adapter that reports presence.
+	 */
+	async getServiceAdapterForURLWithProbe(urlStr: string): Promise<ServiceAdapter> {
+		// Pass 1: synchronous match (fast, no network)
+		const sync = adapters.find(adapter => adapter.canHandleURL(urlStr));
+		if (sync) {
+			return sync;
+		}
+
+		// Pass 2: asynchronous Auto-Discover
+		let u: URL;
+		try {
+			u = new URL(urlStr);
+		} catch {
+			throw new UnsupportedServiceException(urlStr);
+		}
+		const candidates = adapters.filter(a => a.canProbePresence);
+		if (candidates.length === 0) {
+			throw new UnsupportedServiceException(urlStr);
+		}
+		const results = await Promise.allSettled(candidates.map(a => a.probeForPresence(u)));
+		for (let i = 0; i < candidates.length; i++) {
+			const r = results[i];
+			if (r.status === "fulfilled" && r.value) {
+				return candidates[i];
+			}
+		}
+		throw new UnsupportedServiceException(urlStr);
+	},
+
+	/**
 	 * Returns metadata for a single video. Uses cached info if possible and writes newly fetched info
 	 * to the cache.
 	 */
@@ -330,17 +364,22 @@ export default {
 				.split("\n")
 				.filter(line => this.isURL(line));
 
-			const videoIds = lines.map(line => {
-				const adapter = this.getServiceAdapterForURL(line);
-				return {
-					service: adapter.serviceId,
-					id: adapter.getVideoId(line),
-				};
-			});
+			const videoIds = await Promise.all(
+				lines.map(async line => {
+					// Try normal routing first; otherwise use Auto-Discover
+					let adapter: ServiceAdapter;
+					const direct = adapters.find(a => a.canHandleURL(line));
+					adapter = direct ?? (await this.getServiceAdapterForURLWithProbe(line));
+					return {
+						service: adapter.serviceId,
+						id: adapter.getVideoId(line),
+					};
+				})
+			);
 
 			results = await this.getManyVideoInfo(videoIds);
 		} else if (this.isURL(query)) {
-			const adapter = this.getServiceAdapterForURL(query);
+			const adapter = await this.getServiceAdapterForURLWithProbe(query);
 
 			if (!adapter) {
 				throw new UnsupportedServiceException(query);
@@ -363,7 +402,7 @@ export default {
 				for (let video of fetchResults) {
 					if ("url" in video) {
 						try {
-							const adapter = this.getServiceAdapterForURL(video.url);
+							const adapter = await this.getServiceAdapterForURLWithProbe(video.url);
 							if (!adapter) {
 								continue;
 							}

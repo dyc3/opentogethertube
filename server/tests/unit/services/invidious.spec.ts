@@ -42,13 +42,14 @@ describe("InvidiousAdapter (unit)", () => {
 		});
 	});
 
-	describe("auto-discover (canHandleURL + probeHost)", () => {
+	describe("auto-discover (probeForPresence + caching)", () => {
 		let adapter: InvidiousAdapter;
 
 		beforeEach(() => {
 			adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
 			// enable auto-discover for these tests
+			(adapter as any).deniedHosts = [];
 			(adapter as any).autoDiscoverEnabled = true;
 			(adapter as any).autoDiscoverTTL = 60_000; // 1 minute for test readability
 		});
@@ -57,27 +58,36 @@ describe("InvidiousAdapter (unit)", () => {
 			const ad = new InvidiousAdapter();
 			// no autoDiscoverEnabled flip here on purpose
 			ad.allowedHosts = ["inv.nadeko.net"];
+			ad.deniedHosts = [];
 
 			expect(ad.canHandleURL("https://unknown.example/watch?v=abc123")).toBe(false);
 			expect(ad.canHandleURL("https://unknown.example/w/abc123")).toBe(false);
 		});
 
-		it("tentatively accepts unknown hosts when auto-discover is enabled", () => {
-			const ok = adapter.canHandleURL("https://unknown.example/watch?v=abc123");
+		it("probeForPresence accepts unknown hosts when auto-discover is enabled & instance looks healthy", async () => {
+			// Redis miss so we actually hit the network
+			redisMock.get.mockResolvedValueOnce(null);
+			vi.spyOn(adapter.api, "get").mockResolvedValueOnce({ status: 200, data: {} } as any);
+			const ok = await adapter.probeForPresence(
+				new URL("https://unknown.example/watch?v=abc123")
+			);
 			expect(ok).toBe(true);
-			// Still rejects malformed URLs (no v)
-			expect(adapter.canHandleURL("https://unknown.example/watch")).toBe(false);
 		});
 
-		it("probeHost caches results for TTL and avoids repeated network calls", async () => {
+		it("probeForPresence rejects malformed URLs (missing v param)", async () => {
+			const ok = await adapter.probeForPresence(new URL("https://unknown.example/watch"));
+			expect(ok).toBe(false);
+		});
+
+		it("probeForPresence caches results for TTL and avoids repeated network calls", async () => {
 			// 1) Cache miss: Redis GET -> null; API call -> 200; Redis SETEX called
 			redisMock.get.mockResolvedValueOnce(null);
 			const apiGet = vi
 				.spyOn(adapter.api, "get")
 				.mockResolvedValue({ status: 200, data: {} } as any);
 
-			const host = "unknown.example";
-			const first = await (adapter as any).probeHost(host);
+			const url = new URL("https://unknown.example/watch?v=abc123");
+			const first = await adapter.probeForPresence(url);
 			expect(first).toBe(true);
 			expect(apiGet).toHaveBeenCalledTimes(1);
 			const setFn = redisMock.setEx ?? redisMock.set;
@@ -85,7 +95,7 @@ describe("InvidiousAdapter (unit)", () => {
 
 			// 2) Cache hit: Redis GET -> "1"; should NOT perform API call again
 			redisMock.get.mockResolvedValueOnce("1");
-			const second = await (adapter as any).probeHost(host);
+			const second = await adapter.probeForPresence(url);
 			expect(second).toBe(true);
 			expect(apiGet).toHaveBeenCalledTimes(1);
 			// No second SETEX on cache hit
@@ -93,7 +103,7 @@ describe("InvidiousAdapter (unit)", () => {
 
 			// 3) Simulate TTL expiry: Redis GET -> null; should call API again
 			redisMock.get.mockResolvedValueOnce(null);
-			const third = await (adapter as any).probeHost(host);
+			const third = await adapter.probeForPresence(url);
 			expect(third).toBe(true);
 			expect(apiGet).toHaveBeenCalledTimes(2);
 			expect(setFn).toHaveBeenCalledTimes(2);
@@ -108,6 +118,7 @@ describe("InvidiousAdapter (unit)", () => {
 			adapter = new InvidiousAdapter();
 			// Restrict to a known host so tests are deterministic
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		describe("canHandleURL", () => {
@@ -202,6 +213,7 @@ describe("InvidiousAdapter (unit)", () => {
 		beforeEach(() => {
 			adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		it("parses DASH MPD (via DashMPD) and returns top bitrate/res", async () => {
@@ -274,6 +286,7 @@ hi.m3u8
 			adapter = new InvidiousAdapter();
 			// allow the base hostname (port may be present in the URL string)
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		it("preserves the port from the videoId when building the API URL", async () => {
@@ -306,6 +319,7 @@ hi.m3u8
 		beforeEach(() => {
 			adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		function mockVideoJson() {
@@ -375,6 +389,7 @@ hi.m3u8
 		beforeEach(() => {
 			adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		function mockVideoJson() {
@@ -428,6 +443,7 @@ hi.m3u8
 		beforeEach(() => {
 			adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		it("prefers highest-quality progressive and falls back to MP4 MIME via itag", async () => {
@@ -474,6 +490,7 @@ hi.m3u8
 		it("falls back to /latest_version when no progressive formats and probes fail", async () => {
 			const adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 
 			// Force both probes to fail so we *must* use the no-formats fallback.
 			vi.spyOn(adapter as any, "probeManifest").mockRejectedValue(new Error("probe-failed"));
@@ -500,6 +517,7 @@ hi.m3u8
 		beforeEach(() => {
 			adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		it("throws when upstream returns no title field", async () => {
@@ -521,6 +539,7 @@ hi.m3u8
 		beforeEach(() => {
 			adapter = new InvidiousAdapter();
 			adapter.allowedHosts = ["inv.nadeko.net"];
+			adapter.deniedHosts = [];
 		});
 
 		it("throws UpstreamInvidiousException on upstream 429 (rate limited) for ?local=1", async () => {
@@ -565,11 +584,11 @@ hi.m3u8
 	describe("deny-list behavior", () => {
 		it("rejects URLs from deny-listed hosts (even with auto-discover enabled)", () => {
 			const adapter = new InvidiousAdapter();
-			(adapter as any).autoDiscoverEnabled = true;
+			adapter.autoDiscoverEnabled = true;
 			// allow some host to show it's not about allow-list
 			adapter.allowedHosts = ["inv.nadeko.net"];
 			// explicitly deny yewtu.be
-			(adapter as any).deniedHosts = ["yewtu.be"];
+			adapter.deniedHosts = ["yewtu.be"];
 
 			expect(adapter.canHandleURL("https://yewtu.be/watch?v=abc123")).toBe(false);
 			expect(adapter.canHandleURL("https://yewtu.be/w/abc123")).toBe(false);

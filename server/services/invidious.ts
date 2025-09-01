@@ -75,14 +75,11 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		timeout: DEFAULT_HTTP_TIMEOUT_MS,
 	});
 
-	allowedHosts: string[] = [];
-
-	private deniedHosts: string[] = [];
-
-	/** When true, accept links from hosts not listed in config and probe them. */
-	private autoDiscoverEnabled = false;
-	/** Probe result cache TTL (ms). */
-	private autoDiscoverTTL = 3600000; // time in ms = 1 hour
+	// Always sourced from configuration in initialize()
+	allowedHosts!: string[];
+	deniedHosts!: string[];
+	autoDiscoverEnabled!: boolean;
+	autoDiscoverTTL!: number;
 
 	get serviceId(): VideoService {
 		return "invidious";
@@ -94,29 +91,26 @@ export default class InvidiousAdapter extends ServiceAdapter {
 
 	async initialize(): Promise<void> {
 		this.allowedHosts = conf.get("info_extractor.invidious.instances");
-		// Load deny-list (optional); keep normalized to lowercase
-		try {
-			this.deniedHosts = (conf.get("info_extractor.invidious.deny_list") as string[]).map(h =>
-				String(h).toLowerCase()
-			);
-		} catch {
-			this.deniedHosts = [];
+		this.deniedHosts = conf.get("info_extractor.invidious.deny_list");
+		this.autoDiscoverEnabled = conf.get("info_extractor.invidious.auto_discover.enabled");
+		this.autoDiscoverTTL = conf.get("info_extractor.invidious.auto_discover.cache_ttl_ms");
+
+		// Defensive: ensure types are as expected (convict should already guarantee this but sanity check).
+		if (!Array.isArray(this.allowedHosts)) {
+			throw new Error("invalid config: instances");
 		}
-		// Auto-discover config is optional; guard reads so missing keys don’t throw.
-		try {
-			this.autoDiscoverEnabled = !!conf.get("info_extractor.invidious.auto_discover.enabled");
-		} catch {
-			/* keep default false */
+		if (!Array.isArray(this.deniedHosts)) {
+			throw new Error("invalid config: deny_list");
 		}
-		try {
-			const ttl = conf.get("info_extractor.invidious.auto_discover.cache_ttl_ms");
-			if (Number.isFinite(ttl) && ttl > 0) {
-				this.autoDiscoverTTL = ttl;
-			}
-		} catch {
-			/* keep default TTL */
+		if (typeof this.autoDiscoverEnabled !== "boolean") {
+			throw new Error("invalid config: auto_discover.enabled");
 		}
+		if (typeof this.autoDiscoverTTL !== "number") {
+			throw new Error("invalid config: auto_discover.cache_ttl_ms");
+		}
+
 		log.info(`Invidious adapter enabled. Instances: ${this.allowedHosts.join(", ")}`);
+
 		if (this.autoDiscoverEnabled) {
 			log.info(
 				`Invidious auto-discovery enabled (TTL=${this.autoDiscoverTTL}ms). Unknown hosts will be tentatively accepted and probed.`
@@ -124,12 +118,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		}
 	}
 
-	canAutodiscover(link: string): boolean {
-		if (this.autoDiscoverEnabled) {
-			return true;
-		} else {
-			return false;
-		}
+	get canProbePresence(): boolean {
+		return this.autoDiscoverEnabled;
 	}
 
 	canHandleURL(link: string): boolean {
@@ -150,16 +140,14 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			log.warn(`Invidious deny-list blocked host=${url.host}`);
 			return false;
 		}
-		// Accept either "host" (may include :port) or "hostname" from config.
+		// Strict: accept either "host" (may include :port) or "hostname" from config.
 		const hostAllowed =
 			this.allowedHosts.includes(url.host) || this.allowedHosts.includes(url.hostname);
-		if (!this.autoDiscoverEnabled && !hostAllowed) {
+
+		if (!hostAllowed) {
 			return false;
 		}
-		if (this.autoDiscoverEnabled && !hostAllowed) {
-			// Let it through tentatively; we’ll probe in the background during parsing.
-			log.debug(`invidious:autodiscover tentative accept host=${url.host}`);
-		}
+
 		// Support both the canonical and short Invidious routes that mirror YouTube. – Invidious-specific
 		if (url.pathname === "/watch") {
 			return url.searchParams.has("v");
@@ -329,14 +317,6 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	}
 
 	private async parseAsDirect(inv: InvidiousApiVideo, host: string, id: string): Promise<Video> {
-		// Best-effort background probe for unknown hosts when auto-discovery is enabled (skip deny-listed).
-		if (
-			this.autoDiscoverEnabled &&
-			!this.allowedHosts.includes(host) &&
-			!this.isHostDenied(host)
-		) {
-			void this.probeHost(host);
-		}
 		const rawDesc = (inv.description ?? inv.shortDescription ?? "").toString().trim();
 		const safeDesc = rawDesc.length ? rawDesc : inv.title;
 
@@ -460,40 +440,72 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			mime: "video/mp4",
 		};
 	}
+
 	/**
-	 * Probe a host via a lightweight endpoint to see if it responds like an Invidious instance.
-	 * Results are cached for a short TTL to avoid repeated network calls.
-	 * NOTE: Failures do not block playback; this is best-effort signal/telemetry.
+	 * Auto-discover hook: decide at **runtime** whether this adapter can handle the URL
+	 * for unknown hosts by performing a cheap presence probe.
+	 * All AutoDiscover-Logik lebt hier (deny-list, Pfadprüfung, Redis-Cache, Health-Probe, TTL).
 	 */
-	private async probeHost(host: string): Promise<boolean> {
+	async probeForPresence(url: URL): Promise<boolean> {
+		// 0) Probing nur, wenn Auto-Discover aktiv ist
+		if (!this.autoDiscoverEnabled) {
+			return false;
+		}
+
+		// 1) Basic scheme check
+		if (url.protocol !== "http:" && url.protocol !== "https:") {
+			return false;
+		}
+
+		// 2) Deny-List: hartes Nein
+		const hostLc = url.host.toLowerCase();
+		const hostnameLc = url.hostname.toLowerCase();
+		if (this.isHostDenied(hostLc) || this.isHostDenied(hostnameLc)) {
+			log.warn(`Invidious deny-list blocked host=${url.host}`);
+			return false;
+		}
+
+		// 3) Pfad/Route muss wie bei canHandleURL passen (YouTube-/watch oder /w/<id>)
+		const pathOk =
+			(url.pathname === "/watch" && url.searchParams.has("v")) ||
+			INVIDIOUS_SHORT_WATCH_RE.test(url.pathname);
+		if (!pathOk) {
+			return false;
+		}
+
+		// 4) Wenn ohnehin erlaubt, kein Probe nötig
+		if (this.allowedHosts.includes(url.host) || this.allowedHosts.includes(url.hostname)) {
+			return true;
+		}
+
+		// 5) Redis-gestützte Health-Probe für unbekannte Hosts
+		const host = url.host;
 		const key = `invidious:probe:${host.toLowerCase()}`;
 		const ttlSec = Math.max(1, Math.floor(this.autoDiscoverTTL / 1000));
 
-		// Fast path: read from Redis first
+		// 5a) Cache lesen
 		try {
 			const cached = await (redisClient as any).get(key);
 			if (cached !== null && cached !== undefined) {
 				return cached === "1";
 			}
 		} catch (e) {
-			// Non-fatal: if Redis is temporarily unavailable, fall back to probing.
 			log.warn(`Redis GET failed for ${key}: ${e instanceof Error ? e.message : e}`);
 		}
+
+		// 5b) Live-Probe gegen /api/v1/stats
 		let ok = false;
 		try {
-			const url = `https://${host}/api/v1/stats`;
-			const res = await this.api.get(url, {
+			const statsUrl = `https://${host}/api/v1/stats`;
+			const res = await this.api.get(statsUrl, {
 				headers: { Accept: "application/json" },
-				// Keep probe inexpensive; inherit axios instance timeout.
 				responseType: "json",
 				transformResponse: undefined,
-				validateStatus: s => s >= 200 && s < 500, // 2xx=ok; 4xx counts as negative, not a throw
+				validateStatus: s => s >= 200 && s < 500, // 2xx=ok; 4xx zählt als negativ, aber kein Throw
 			});
 			ok = res.status >= 200 && res.status < 300 && typeof res.data === "object";
 			if (!ok) {
-				log.info(
-					`Invidious host probe: ${host} did not look healthy (status=${res.status}).`
-				);
+				log.info(`Invidious host probe: ${host} unhealthy (status=${res.status}).`);
 			}
 		} catch (e) {
 			log.debug(
@@ -501,8 +513,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
 			);
 			ok = false;
 		}
-		// Store probe result in Redis with TTL; prefer SETEX if available (node-redis v4),
-		// fall back to SET EX for ioredis-style clients.
+
+		// 5c) Ergebnis in Redis cachen
 		try {
 			const val = ok ? "1" : "0";
 			const cli: any = redisClient as any;
@@ -517,6 +529,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		} catch (e) {
 			log.warn(`Redis SET failed for ${key}: ${e instanceof Error ? e.message : e}`);
 		}
+
 		return ok;
 	}
 

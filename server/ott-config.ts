@@ -12,17 +12,57 @@ convict.addParser({ extension: "toml", parse: toml.parse });
 
 // Note that all schema objects MUST include `default`, even if its set to null
 // A default value of null and nullable == false will make the option required
+const ONE_HOUR_MS = 60 * 60 * 1000;
 
-convict.addFormat({
-	name: "balancer-config",
-	validate: (sources, schema) => {
-		if (!Array.isArray(sources)) {
-			throw new Error("Balancer config must be an array");
-		}
+convict.addFormats({
+	"balancer-config": {
+		validate: (sources: unknown, schema: any) => {
+			if (!Array.isArray(sources)) {
+				throw new Error("Balancer config must be an array");
+			}
+			for (const source of sources) {
+				convict(schema.children).load(source).validate();
+			}
+		},
+	},
 
-		for (let source of sources) {
-			convict(schema.children).load(source).validate();
-		}
+	"ms_at_least_1h": {
+		validate: (val: unknown) => {
+			const n = typeof val === "number" ? val : Number(val);
+			if (!Number.isFinite(n)) {
+				throw new Error("must be a number representing milliseconds");
+			}
+			if (n < ONE_HOUR_MS) {
+				throw new Error(`must be >= ${ONE_HOUR_MS} (1 hour)`);
+			}
+		},
+		coerce: (val: unknown) => (typeof val === "number" ? val : Number(val)),
+	},
+
+	"lowercase_hostname": {
+		// Lowercase hostname validator (no scheme, no slashes, no spaces, non-empty).
+		// ok: "yewtu.be", "inv.nadeko.net"
+		// not ok: "https://yewtu.be", "yewtu.be/", " yewtu.be ", "", "foo bar"
+		validate: (val: unknown) => {
+			if (typeof val !== "string") {
+				throw new Error("must be a string");
+			}
+			const s = val.trim();
+			if (!s) {
+				throw new Error("must be a non-empty hostname");
+			}
+			if (/[/\s]/.test(s)) {
+				throw new Error("must not contain slashes or whitespace");
+			}
+			if (/^[a-z]+:\/\//i.test(s)) {
+				throw new Error("must not include a scheme");
+			}
+			const HOST_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))*$/i;
+			if (!HOST_RE.test(s)) {
+				throw new Error("invalid hostname format");
+			}
+		},
+		coerce: (val: unknown) => String(val).trim().toLowerCase(),
 	},
 });
 
@@ -300,14 +340,7 @@ export const conf = convict({
 				doc: "List of hostnames that are explicitly disallowed for Invidious (case-insensitive).",
 				format: Array,
 				env: "INVIDIOUS_DENY_LIST",
-				children: { format: String },
-				// Normalize to lowercase & trim, drop empty values.
-				coerce: (v: unknown) => {
-					if (!Array.isArray(v)) {
-						return [];
-					}
-					return v.map(s => String(s).toLowerCase().trim()).filter(Boolean);
-				},
+				children: { format: "lowercase_hostname" },
 			},
 			// Auto-discover support: optionally accept unknown hosts and probe them.
 			auto_discover: {
@@ -318,22 +351,10 @@ export const conf = convict({
 					env: "INVIDIOUS_AUTO_DISCOVER_ENABLED",
 				},
 				cache_ttl_ms: {
-					// Default and minimum TTL is 1 hour.
-					// Rationale: avoid hammering unknown hosts and keep probes inexpensive.
-					default: 3600000, // 1 hour in ms
-					doc: "TTL for cached host probe results (milliseconds). Minimum: 1 hour.",
-					format: "nat",
+					default: 3600000,
+					doc: "TTL for cached host probe results (milliseconds). Must be >= 1 hour.",
+					format: "ms_at_least_1h",
 					env: "INVIDIOUS_AUTO_DISCOVER_CACHE_TTL_MS",
-					// Enforce a lower bound of 1 hour even if the env/config provides a smaller value.
-					// `coerce` runs before format validation in convict, so we clamp here.
-					coerce: (v: unknown) => {
-						const ONE_HOUR = 3600000;
-						const n = typeof v === "number" ? v : Number(v);
-						if (!Number.isFinite(n)) {
-							return ONE_HOUR;
-						}
-						return n < ONE_HOUR ? ONE_HOUR : n;
-					},
 				},
 			},
 		},

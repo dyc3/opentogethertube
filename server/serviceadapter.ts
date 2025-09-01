@@ -29,6 +29,15 @@ export class ServiceAdapter {
 	}
 
 	/**
+	 * Whether this adapter participates in Auto-Discover probing.
+	 * If `true`, the InfoExtractor's Auto-Discover path may call `probeForPresence(url)`
+	 * when no synchronous match via `canHandleURL()` was found.
+ 	 */
+	get canProbePresence(): boolean {
+		return false;
+	}
+
+	/**
 	 * Performs any initialization tasks that need to be done before the service adapter can be used.
 	 */
 	async initialize(): Promise<void> {
@@ -39,13 +48,6 @@ export class ServiceAdapter {
 	 * Returns true if this service adapter can handle a given link.
 	 */
 	canHandleURL(link: string): boolean {
-		return false;
-	}
-
-	/**
-	 * Returns true if this service adapter supports Autodiscover on given link.
-	 */
-	canAutodiscover(link: string): boolean {
 		return false;
 	}
 
@@ -73,6 +75,18 @@ export class ServiceAdapter {
 	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method fetchVideoInfo`
+		);
+	}
+
+	/**
+	 * Auto-Discover probe for a specific URL.
+	 * Called only if `canProbePresence` is `true` **and** `canHandleURL(urlStr)` returned `false`.
+	 *  - Return `true` if this adapter can handle the URL at runtime.
+	 *  - Return `false` for negative/undecidable cases.
+	 */
+	async probeForPresence(url: URL): Promise<boolean> {
+		throw new IncompleteServiceAdapterException(
+			`Service ${this.serviceId} does not implement method probeForPresence`
 		);
 	}
 
