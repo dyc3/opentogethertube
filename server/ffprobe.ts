@@ -17,7 +17,7 @@ const log = getLogger("infoextract/ffprobe");
 
 // Note: we avoid using exec for ffprobe to prevent shell injection.
 // Hard, non-configurable timeout for every ffprobe run (in ms).
-// Timeout in ms 45000 = 45 secs more then enough Time as descriped in #1056 (30s)
+// Timeout in ms 45000 = 45 secs more then enough Time as described in #1056 (30s)
 const FFPROBE_TIMEOUT_MS = 45000;
 
 //Axios Web Timeout 30 seconds so the webserver has a valid Timeout that can be configured.
