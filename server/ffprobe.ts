@@ -12,16 +12,19 @@ import http from "http";
 import https from "https";
 import { Counter } from "prom-client";
 import { conf } from "./ott-config.js";
+import { redisClient } from "./redisclient.js";
 
 const log = getLogger("infoextract/ffprobe");
 
-// Note: we avoid using exec for ffprobe to prevent shell injection.
-// Hard, non-configurable timeout for every ffprobe run (in ms).
-// Timeout in ms 45000 = 45 secs more then enough Time as described in #1056 (30s)
+// ffprobe Timeout in ms 45000 = 45 secs more then enough Time as described in #1056 (30s)
 const FFPROBE_TIMEOUT_MS = 45000;
 
-//Axios Web Timeout 30 seconds so the webserver has a valid Timeout that can be configured.
-const AXIOS_TIMEOUT_MS = 30000;
+// Cache TTL (in ms) - 1 hour
+const FFPROBE_CACHE_TTL_MS = 3600000;
+
+function makeFfprobeCacheKey(uri: string): string {
+	return `ott:ffprobe:v1:${uri}`;
+}
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -29,6 +32,7 @@ function streamDataIntoFfprobe(
 	controller: AbortController
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
+		const STRATEGY = "stream";
 		// Guard to avoid multiple resolve/reject and to squelch late errors
 		let settled = false;
 		let aborted = false;
@@ -56,17 +60,17 @@ function streamDataIntoFfprobe(
 			aborted = true;
 			try {
 				controller.abort();
-			} catch (e) {
+			} catch (e: any) {
 				log.debug(`ffprobe process: controller-abort error: ${String(e)}`);
 			}
 			try {
 				(stream as any)?.pause?.();
-			} catch (e) {
+			} catch (e: any) {
 				log.debug(String(e));
 			}
 			try {
 				(stream as any)?.destroy?.();
-			} catch (e) {
+			} catch (e: any) {
 				log.debug(String(e));
 			}
 		};
@@ -82,16 +86,34 @@ function streamDataIntoFfprobe(
 		let resultJson = "";
 		let errBuf = ""; // collect stderr for better error messages
 
-		// Kill ffprobe if it runs too long.
-		const killer = setTimeout(() => {
-			log.warn(`ffprobe pid=${child.pid} timed out after ${FFPROBE_TIMEOUT_MS}ms — killing`);
-			try {
-				child.kill("SIGKILL");
-			} catch (e) {
-				log.debug(`ffprobe process: kill-error @48: ${String(e)}`);
+		// Watchdog: arm only AFTER input has finished (stdin closed or upstream ended).
+		let killer: NodeJS.Timeout | null = null;
+		let watchdogFired = false;
+		let inputFinished = false;
+		const armWatchdog = () => {
+			if (killer || settled) {
+				return;
 			}
-			abortUpstreamOnce();
-		}, FFPROBE_TIMEOUT_MS);
+			inputFinished = true;
+			killer = setTimeout(() => {
+				watchdogFired = true;
+				log.warn(
+					`ffprobe pid=${child.pid} did not exit within ${FFPROBE_TIMEOUT_MS}ms after input finished — killing`
+				);
+				try {
+					child.kill("SIGKILL");
+				} catch (e: any) {
+					log.debug(`ffprobe process: kill-error @watchdog: ${String(e)}`);
+				}
+				abortUpstreamOnce();
+			}, FFPROBE_TIMEOUT_MS);
+		};
+		const clearWatchdog = () => {
+			if (killer) {
+				clearTimeout(killer);
+				killer = null;
+			}
+		};
 
 		const onData = (data: Buffer) => {
 			if (settled || pipeBroken) {
@@ -102,6 +124,7 @@ function streamDataIntoFfprobe(
 			if (child.stdin.destroyed) {
 				pipeBroken = true;
 				abortUpstreamOnce();
+				armWatchdog();
 				return;
 			}
 			const ok = child.stdin.write(data, (e?: Error | null) => {
@@ -109,20 +132,21 @@ function streamDataIntoFfprobe(
 					log.debug(`write failed (destroyed: ${child.stdin.destroyed}): ${String(e)}`);
 					pipeBroken = true;
 					abortUpstreamOnce();
+					armWatchdog();
 				}
 			});
 			// Handle backpressure: pause upstream until ffprobe drains stdin.
 			if (!ok) {
 				try {
 					(stream as any)?.pause?.();
-				} catch (e) {
+				} catch (e: any) {
 					log.debug(String(e));
 				}
 				child.stdin.once("drain", () => {
 					if (!settled && !pipeBroken) {
 						try {
 							(stream as any)?.resume?.();
-						} catch (e) {
+						} catch (e: any) {
 							log.debug(String(e));
 						}
 					}
@@ -135,6 +159,7 @@ function streamDataIntoFfprobe(
 			log.debug(`ffprobe stdin error: ${String(e)}`);
 			pipeBroken = true;
 			abortUpstreamOnce();
+			armWatchdog();
 		});
 
 		stream.on("end", () => {
@@ -142,6 +167,7 @@ function streamDataIntoFfprobe(
 			if (!child.stdin.destroyed) {
 				child.stdin.end();
 			}
+			armWatchdog();
 		});
 
 		stream.on("error", error => {
@@ -169,29 +195,46 @@ function streamDataIntoFfprobe(
 		});
 
 		child.on("error", err => {
-			clearTimeout(killer);
+			clearWatchdog();
 			log.error(`ffprobe process error: ${String(err)}`);
 			// Abort upstream and reject only once
 			abortUpstreamOnce();
+			try {
+				ffprobeExits.labels(STRATEGY, "spawn_error").inc();
+			} catch (e: any) {
+				log.debug(String(e));
+			}
 			rejectOnce(err);
 		});
 
 		child.on("close", (code, signal) => {
-			clearTimeout(killer);
+			clearWatchdog();
 			log.debug(`ffprobe closed (code=${code}, signal=${signal ?? "none"})`);
 			abortUpstreamOnce();
 			try {
 				(stream as any)?.off?.("data", onData);
-			} catch (e) {
+			} catch (e: any) {
 				log.debug(String(e));
 			}
 			try {
 				stream.removeAllListeners?.();
-			} catch (e) {
+			} catch (e: any) {
 				log.debug(String(e));
 			}
 			if (code === 0) {
+				try {
+					ffprobeExits.labels(STRATEGY, "ok").inc();
+				} catch (e: any) {
+					log.debug(String(e));
+				}
 				return resolveOnce(resultJson);
+			}
+			try {
+				ffprobeExits
+					.labels(STRATEGY, watchdogFired ? "watchdog_kill" : "nonzero_exit")
+					.inc();
+			} catch (e: any) {
+				log.debug(String(e));
 			}
 			rejectOnce(
 				new Error(
@@ -218,6 +261,17 @@ export abstract class FfprobeStrategy {
 export class RunFfprobe extends FfprobeStrategy {
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
+		// Cache lookup (fast path)
+		const runCacheKey = makeFfprobeCacheKey(uri);
+		try {
+			const hit = await redisClient.get(runCacheKey);
+			if (hit) {
+				log.debug(`ffprobe cache hit (run) for ${uri}`);
+				return JSON.parse(hit);
+			}
+		} catch (e: any) {
+			log.debug(`ffprobe cache get error (run): ${String(e)}`);
+		}
 		// Use spawn with args (no shell). This prevents shell injection issues.
 		const args = [
 			"-v",
@@ -233,14 +287,17 @@ export class RunFfprobe extends FfprobeStrategy {
 			stdio: ["ignore", "pipe", "pipe"],
 			windowsHide: true,
 		});
+		const STRATEGY = "run";
 		let out = "";
 		let err = "";
 
+		let timedOut = false;
 		const killer = setTimeout(() => {
+			timedOut = true;
 			log.warn(`ffprobe (RunFfprobe) timed out after ${FFPROBE_TIMEOUT_MS}ms — killing`);
 			try {
 				child.kill("SIGKILL");
-			} catch (e) {
+			} catch (e: any) {
 				log.debug(`ffprobe process: kill-error @175: ${String(e)}`);
 			}
 		}, FFPROBE_TIMEOUT_MS);
@@ -254,24 +311,62 @@ export class RunFfprobe extends FfprobeStrategy {
 		});
 
 		await new Promise<void>((resolve, reject) => {
-			child.on("error", reject);
+			child.on("error", e => {
+				try {
+					ffprobeExits.labels(STRATEGY, "spawn_error").inc();
+				} catch (e: any) {
+					log.debug(String(e));
+				}
+				reject(e);
+			});
 			child.on("close", (code, signal) => {
 				clearTimeout(killer);
 				if (code === 0) {
+					try {
+						ffprobeExits.labels(STRATEGY, "ok").inc();
+					} catch (e: any) {
+						log.debug(String(e));
+					}
 					return resolve();
+				}
+				try {
+					ffprobeExits.labels(STRATEGY, timedOut ? "timeout_kill" : "nonzero_exit").inc();
+				} catch (e: any) {
+					log.debug(String(e));
 				}
 				reject(
 					new Error(`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`)
 				);
 			});
 		});
-		return JSON.parse(out);
+		const runParsed = JSON.parse(out);
+		try {
+			await redisClient.set(runCacheKey, JSON.stringify(runParsed), {
+				PX: FFPROBE_CACHE_TTL_MS,
+			});
+			log.debug(`ffprobe cache set (run) for ${uri} TTL=${FFPROBE_CACHE_TTL_MS}ms`);
+		} catch (e: any) {
+			log.debug(`ffprobe cache set error (run): ${String(e)}`);
+		}
+		return runParsed;
 	}
 }
 
 export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
+
+		// Cache lookup (fast path)
+		const diskCacheKey = makeFfprobeCacheKey(uri);
+		try {
+			const hit = await redisClient.get(diskCacheKey);
+			if (hit) {
+				log.debug(`ffprobe cache hit (ondisk) for ${uri}`);
+				return JSON.parse(hit);
+			}
+		} catch (e: any) {
+			log.debug(`ffprobe cache get error (ondisk): ${String(e)}`);
+		}
 
 		// Create a unique temp dir and clean it later.
 		const tmpdir = await fs.mkdtemp("/tmp/ott-");
@@ -287,7 +382,6 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 			signal: controller.signal,
 			httpAgent,
 			httpsAgent,
-			timeout: AXIOS_TIMEOUT_MS,
 		});
 
 		const byteLimit = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
@@ -323,6 +417,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 				if (isExpectedAbort) {
 					log.debug(`preview download aborted intentionally: ${String(e)}`);
 				} else {
+					log.debug(String(e));
 					throw e;
 				}
 			}
@@ -351,15 +446,18 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 				stdio: ["ignore", "pipe", "pipe"],
 				windowsHide: true,
 			});
+			const STRATEGY = "ondisk";
 			let out = "";
 			let err = "";
+			let timedOut = false;
 			const killer = setTimeout(() => {
+				timedOut = true;
 				log.warn(
 					`ffprobe (OnDiskPreview) timed out after ${FFPROBE_TIMEOUT_MS}ms — killing`
 				);
 				try {
 					child.kill("SIGKILL");
-				} catch (e) {
+				} catch (e: any) {
 					log.debug(`ffprobe process: kill-error @271: ${String(e)}`);
 				}
 			}, FFPROBE_TIMEOUT_MS);
@@ -370,11 +468,30 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 				err += d;
 			});
 			await new Promise<void>((resolve, reject) => {
-				child.on("error", e => reject(e));
+				child.on("error", e => {
+					try {
+						ffprobeExits.labels(STRATEGY, "spawn_error").inc();
+					} catch (e: any) {
+						log.debug(String(e));
+					}
+					reject(e);
+				});
 				child.on("close", (code, signal) => {
 					clearTimeout(killer);
 					if (code === 0) {
+						try {
+							ffprobeExits.labels(STRATEGY, "ok").inc();
+						} catch (e: any) {
+							log.debug(String(e));
+						}
 						return resolve();
+					}
+					try {
+						ffprobeExits
+							.labels(STRATEGY, timedOut ? "timeout_kill" : "nonzero_exit")
+							.inc();
+					} catch (e: any) {
+						log.debug(String(e));
 					}
 					reject(
 						new Error(
@@ -385,7 +502,17 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 					);
 				});
 			});
-			return JSON.parse(out);
+			const diskParsed = JSON.parse(out);
+			// Cache store (slow path → write back)
+			try {
+				await redisClient.set(diskCacheKey, JSON.stringify(diskParsed), {
+					PX: FFPROBE_CACHE_TTL_MS,
+				});
+				log.debug(`ffprobe cache set (ondisk) for ${uri} TTL=${FFPROBE_CACHE_TTL_MS}ms`);
+			} catch (e: any) {
+				log.debug(`ffprobe cache set error (ondisk): ${String(e)}`);
+			}
+			return diskParsed;
 		} finally {
 			await fs.rm(tmpdir, { recursive: true, force: true }).catch(e => {
 				log.debug(`fs rm error @301: ${String(e)}`);
@@ -398,6 +525,18 @@ export class StreamFfprobe extends FfprobeStrategy {
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 
+		// Cache lookup (fast path)
+		const streamCacheKey = makeFfprobeCacheKey(uri);
+		try {
+			const hit = await redisClient.get(streamCacheKey);
+			if (hit) {
+				log.debug(`ffprobe cache hit (stream) for ${uri}`);
+				return JSON.parse(hit);
+			}
+		} catch (e: any) {
+			log.debug(`ffprobe cache get error (stream): ${String(e)}`);
+		}
+
 		const httpAgent = new http.Agent({ keepAlive: false });
 		const httpsAgent = new https.Agent({ keepAlive: false });
 		const controller = new AbortController();
@@ -406,11 +545,19 @@ export class StreamFfprobe extends FfprobeStrategy {
 			signal: controller.signal,
 			httpAgent,
 			httpsAgent,
-			timeout: AXIOS_TIMEOUT_MS,
 		});
 		try {
 			let stdout = await streamDataIntoFfprobe(this.ffprobePath, resp.data, controller);
-			return JSON.parse(stdout);
+			const streamParsed = JSON.parse(stdout);
+			try {
+				await redisClient.set(streamCacheKey, JSON.stringify(streamParsed), {
+					PX: FFPROBE_CACHE_TTL_MS,
+				});
+				log.debug(`ffprobe cache set (stream) for ${uri} TTL=${FFPROBE_CACHE_TTL_MS}ms`);
+			} catch (e: any) {
+				log.debug(`ffprobe cache set error (stream): ${String(e)}`);
+			}
+			return streamParsed;
 		} finally {
 			controller.abort();
 			httpAgent.destroy();
@@ -422,4 +569,10 @@ export class StreamFfprobe extends FfprobeStrategy {
 const counterBytesDownloaded = new Counter({
 	name: "ott_infoextractor_direct_bytes_downloaded",
 	help: "The number of bytes that have been downloaded for the purpose of getting direct video metadata",
+});
+
+const ffprobeExits = new Counter({
+	name: "ott_infoextractor_ffprobe_exits_total",
+	help: "Count of ffprobe exits by strategy and result",
+	labelNames: ["strategy", "result"],
 });
