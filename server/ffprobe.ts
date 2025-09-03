@@ -24,15 +24,11 @@ function streamDataIntoFfprobe(
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
 		//let streamEnded = false; dead code?
-
-		let child = childProcess.spawn(
-			ffprobePath,
-			["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"],
-			{
-				stdio: "pipe",
-				windowsHide: true,
-			}
-		);
+		let args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
+		let child = childProcess.spawn(ffprobePath, args, {
+			stdio: "pipe",
+			windowsHide: true,
+		});
 		log.debug(`ffprobe child spawned: ${child.pid}`);
 		let resultJson = "";
 
