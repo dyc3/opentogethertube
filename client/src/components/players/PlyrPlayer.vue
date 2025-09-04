@@ -43,19 +43,110 @@ export default defineComponent({
 
 		const captionsBottom = computed(() => `${props.captionsOffset}px`);
 
-		// Helper: find first caption track index on the <video> element.
-		// Reason: For DASH we may need to "enable captions" by selecting any valid text track.
-
 		// Treat both "subtitles" and "captions" as valid CC kinds (dash.js usually uses "subtitles").
 		function isCaptionKind(kind?: string | null): boolean {
 			return kind === "captions" || kind === "subtitles";
 		}
+
+		// Short-hands to avoid repeating optional chaining everywhere.
+		const tt = () => videoElem.value?.textTracks ?? ({} as TextTrackList);
+
+		// Helper: pick a safe caption index (prefer currently showing, else first available)
+		function pickCaptionIdx(): number {
+			const showing = showingCaptionIdx();
+			return showing >= 0 ? showing : firstCaptionTrackIdx();
+		}
+
+		// Ensure Plyr overlay & native track mode are changed coherently.
+		// If `idx` is provided, we normalize Plyr.currentTrack to that before toggling.
+		function safeToggleCaptions(enabled: boolean, idx?: number): void {
+			if (!player.value || !hasCaptionTracks()) {
+				return;
+			}
+			try {
+				if (enabled) {
+					const use = typeof idx === "number" && idx >= 0 ? idx : pickCaptionIdx();
+					if (use < 0) {
+						return;
+					} // no valid track yet; avoid toggling Plyr to prevent errors
+					try {
+						// Normalize Plyr's notion of the current track.
+						(player.value as any).currentTrack = use;
+					} catch (e) {
+						console.warn("PlyrPlayer: could not set currentTrack on Plyr", e);
+					}
+					try {
+						// Ensure native track actually renders.
+						(tt() as any)[use].mode = "showing";
+					} catch (e) {
+						console.error("PlyrPlayer: failed to set text track mode to 'showing'", e);
+					}
+				} else {
+					try {
+						(player.value as any).currentTrack = -1;
+					} catch (e) {
+						console.warn("PlyrPlayer: could not clear currentTrack on Plyr", e);
+					}
+				}
+				player.value.toggleCaptions(enabled);
+			} catch (e) {
+				console.warn("PlyrPlayer: toggleCaptions skipped:", e);
+			}
+		}
+
+		// Return true if the <video> currently has any caption/subtitle TextTracks.
+		function hasCaptionTracks(): boolean {
+			const list = videoElem.value?.textTracks;
+			if (!list) {
+				return false;
+			}
+			// Snapshot length to avoid live-list races.
+			const len = list.length;
+			for (let i = 0; i < len; i++) {
+				const t = (list as any)[i] as TextTrack | undefined;
+				if (t && isCaptionKind(t.kind)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function showingCaptionIdx(): number {
+			for (let i = 0; i < tt().length; i++) {
+				const t = tt()[i];
+				if (t && isCaptionKind(t.kind) && t.mode === "showing") {
+					return i;
+				}
+			}
+			return -1;
+		}
+
 		function firstCaptionTrackIdx(): number {
-			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-				const t = videoElem.value!.textTracks[i];
-				if (isCaptionKind(t?.kind)) return i;
+			for (let i = 0; i < tt().length; i++) {
+				if (isCaptionKind(tt()[i]?.kind)) {
+					return i;
+				}
 			}
 			return -1; // -1 disables captions in dash.js, also signals "none found" here
+		}
+
+		function findTrackIdx(language: string): number {
+			for (let i = 0; i < tt().length; i++) {
+				const track = tt()[i];
+				if (!track || !isCaptionKind(track.kind)) {
+					continue;
+				}
+				// Be lenient: dash.js may expose "en", "en-US", etc.
+				if (
+					track.language === language ||
+					(track.language &&
+						language &&
+						track.language.toLowerCase().startsWith(language.toLowerCase()))
+				) {
+					return i;
+				}
+			}
+			return -1;
 		}
 
 		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
@@ -96,61 +187,57 @@ export default defineComponent({
 			},
 
 			isCaptionsSupported(): boolean {
-				// old: return ["direct", "hls"].includes(props.service);
 				return ["direct", "hls", "dash"].includes(props.service);
 			},
 			setCaptionsEnabled(enabled: boolean): void {
 				if (hls) {
 					hls.subtitleDisplay = enabled;
-					// DASH: select a valid text track (>=0) to show, or -1 to hide
 				} else if (dash) {
-					player.value?.toggleCaptions(enabled);
-					// If enabling, pick currently selected track if any “showing”, else first available caption track.
 					if (enabled) {
-						const current = (() => {
-							for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-								const t = videoElem.value!.textTracks[i];
-								if (t && t.kind === "captions" && t.mode === "showing") return i;
-							}
-							return firstCaptionTrackIdx();
-						})();
-						dash.setTextTrack(current >= 0 ? current : -1);
-						if (current >= 0) {
-							try {
-								videoElem.value!.textTracks[current].mode = "showing";
-							} catch (e) {
-								console.error(String(e));
-							}
+						// Select a concrete text track first, then normalize Plyr + native mode, then toggle overlay.
+						const idx = pickCaptionIdx();
+						dash.setTextTrack(idx >= 0 ? idx : -1);
+						if (idx >= 0) {
+							safeToggleCaptions(true, idx);
 						}
 					} else {
 						dash.setTextTrack(-1);
+						safeToggleCaptions(false);
 					}
 				} else {
-					player.value?.toggleCaptions(enabled);
+					// direct (MP4, etc.)
+					safeToggleCaptions(enabled);
 				}
 			},
 			isCaptionsEnabled(): boolean {
 				if (hls) {
 					return hls.subtitleDisplay;
 				}
-				// DASH/native fallback: check if any caption track is currently "showing"
-				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-					const t = videoElem.value!.textTracks[i];
-					if (t && isCaptionKind(t.kind) && t.mode === "showing") return true;
+				// DASH/native fallback: true if any caption track is "showing"
+				if (dash) {
+					return showingCaptionIdx() >= 0;
 				}
 				// Plyr fallback (native)
 				return (player.value?.currentTrack ?? -1) !== -1;
 			},
 			getCaptionsTracks(): string[] {
-				const tracks: string[] = [];
-				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-					const track = videoElem.value?.textTracks[i];
-					if (!track || !isCaptionKind(track.kind)) {
+				const langs: string[] = [];
+				const list = videoElem.value?.textTracks;
+				if (!list) {
+					return langs;
+				}
+				const len = list.length;
+				for (let i = 0; i < len; i++) {
+					const t: TextTrack | null | undefined =
+						typeof (list as any).item === "function"
+							? (list as any).item(i)
+							: (list as any)[i];
+					if (!t || !isCaptionKind(t.kind)) {
 						continue;
 					}
-					tracks.push(track.language);
+					langs.push(t.language || "");
 				}
-				return tracks;
+				return langs;
 			},
 			setCaptionsTrack(track: string): void {
 				if (!player.value) {
@@ -165,16 +252,12 @@ export default defineComponent({
 				else if (dash) {
 					let idx = findTrackIdx(track);
 					// If not found, fall back to first available subtitle/caption to at least show text.
-					if (idx < 0) idx = firstCaptionTrackIdx();
+					if (idx < 0) {
+						idx = firstCaptionTrackIdx();
+					}
 					dash.setTextTrack(idx >= 0 ? idx : -1); // -1 disables
-					// Ensure overlay + native track mode are aligned so text actually renders.
 					if (idx >= 0) {
-						player.value?.toggleCaptions(true);
-						try {
-							videoElem.value!.textTracks[idx].mode = "showing";
-						} catch (e) {
-							console.error(String(e));
-						}
+						safeToggleCaptions(true, idx);
 					}
 				} else {
 					player.value.currentTrack = findTrackIdx(track);
@@ -200,34 +283,12 @@ export default defineComponent({
 			},
 		};
 
-		function findTrackIdx(language: string): number {
-			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-				const track = videoElem.value?.textTracks[i];
-				if (!track || !isCaptionKind(track.kind)) {
-					continue;
-				}
-				// Be lenient: dash.js may expose "en", "en-US", etc.
-				if (
-					track.language === language ||
-					(track.language &&
-						language &&
-						track.language.toLowerCase().startsWith(language.toLowerCase()))
-				) {
-					return i;
-				}
-			}
-			return -1;
-		}
-
 		const captions = useCaptions();
 		onMounted(() => {
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
 			player.value = new Plyr(videoElem.value, {
 				controls: [],
 				clickToPlay: false,
-				// Ensure Plyr’s caption overlay is available.
-				// NOTE: With DASH we switch tracks via dash.js, but Plyr still needs its overlay “active”
-				// to actually render native text tracks on top of the video.
 				captions: {
 					active: false, // we’ll toggle this dynamically in setCaptionsEnabled / stream init
 					update: true,
@@ -325,11 +386,7 @@ export default defineComponent({
 					console.error("video element not ready");
 					return;
 				}
-				try {
-					(videoElem.value as HTMLVideoElement).crossOrigin = "anonymous";
-				} catch (e) {
-					console.error(String(e));
-				}
+
 				dash = dashjs.MediaPlayer().create();
 				// HACK: force the video element to be recreated...
 				player.value.source = {
@@ -337,46 +394,63 @@ export default defineComponent({
 					sources: [],
 					poster: thumbnail.value,
 				};
+				// Acquire the freshly recreated <video> and set CORS on THAT element.
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+
+				// Allow cross-origin WebVTT fetched by dash.js.
+				(videoElem.value as HTMLVideoElement).crossOrigin = "anonymous";
+
 				// ...so that we can use dash.js to change the video source
 				dash.initialize(videoElem.value, videoUrl.value, false);
 
 				// Update: hook into dash.js caption-related events to keep the store in sync.
 				const D = dashjs.MediaPlayer.events;
 
+				// Small util to keep store + overlay up to date.
+				const syncCaptions = () => {
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+				};
+
 				// Fired when MPD is ready; text tracks may come slightly later, so also listen for TEXT_TRACK(S)_ADDED.
 				dash.on("manifestLoaded", () => {
 					console.info("PlyrPlayer: dash.js manifest loaded");
 					emit("ready");
-					if (player.value) {
-						player.value.toggleCaptions(!!captions.isCaptionsEnabled.value);
+					syncCaptions();
+				});
+				dash.on(D.TEXT_TRACKS_ADDED ?? "allTextTracksAdded", () => {
+					// Tracks just arrived: keep store in sync and, if captions should be on,
+					// select a valid track and enable the overlay now.
+					syncCaptions();
+					if (captions.isCaptionsEnabled.value && hasCaptionTracks()) {
+						const idx = pickCaptionIdx();
+						if (idx >= 0) {
+							dash?.setTextTrack(idx);
+							safeToggleCaptions(true, idx);
+						}
 					}
-					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
-					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
 				});
-				// Fired once all text tracks found in MPD are added to the element (dash v4+ name below)
-				// Ref: dash.js docs – setTextTrack / TEXT_TRACK(S)_ADDED
-				// This keeps the captions track list reactive for DASH like we do for HLS.
-				dash.on((D as any).TEXT_TRACKS_ADDED ?? "allTextTracksAdded", () => {
-					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
-					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+				dash.on(D.TEXT_TRACK_ADDED ?? "textTrackAdded", () => {
+					// Same as above for engines that emit per-track.
+					syncCaptions();
+					if (captions.isCaptionsEnabled.value && hasCaptionTracks()) {
+						const idx = pickCaptionIdx();
+						if (idx >= 0) {
+							dash?.setTextTrack(idx);
+							safeToggleCaptions(true, idx);
+						}
+					}
 				});
-				// Additionally react to single track additions (older/newer variants)
-				dash.on((D as any).TEXT_TRACK_ADDED ?? "textTrackAdded", () => {
-					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
-					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
-				});
-				// Optional: ensure captions default visibility mirrors our store upon stream init
 				dash.on("streamInitialized", () => {
-					if (player.value) {
-						player.value.toggleCaptions(!!captions.isCaptionsEnabled.value);
-					}
-					// If store says captions should be on, select a valid track; otherwise ensure off.
 					if (captions.isCaptionsEnabled.value) {
-						const idx = firstCaptionTrackIdx();
-						if (idx >= 0) dash?.setTextTrack(idx);
+						const idx = pickCaptionIdx();
+						if (idx >= 0) {
+							dash?.setTextTrack(idx);
+							safeToggleCaptions(true, idx);
+						}
 					} else {
 						dash?.setTextTrack(-1);
+						safeToggleCaptions(false);
 					}
 				});
 				dash.on("error", (event: unknown) => {
