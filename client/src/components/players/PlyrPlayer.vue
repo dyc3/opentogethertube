@@ -175,6 +175,16 @@ export default defineComponent({
 			return getContainer()?.querySelector<HTMLElement>(".plyr__captions") ?? undefined;
 		}
 
+		/** True when Plyr hides the controls (we use it to mirror caption offset). */
+		function isControlsHidden(): boolean {
+			return getContainer()?.classList.contains("plyr--hide-controls") ?? false;
+		}
+
+		/** Convenience wrapper to call applyControlsOffset with current visibility state. */
+		function applyControlsOffsetCurrent(): void {
+			applyControlsOffset(!isControlsHidden());
+		}
+
 		function controlsPixelHeight(): number {
 			const controls = getControls();
 			if (!controls) {
@@ -364,10 +374,26 @@ export default defineComponent({
 
 		const captions = useCaptions();
 
+		// --- TextTrack binding helpers (bind/unbind in one place) ------------------------------
 		let tracksList: TextTrackList | null = null;
-		const onTracksChange: EventListener = () => {
-			forcePlyrOverlay();
-		};
+		const onTracksChange: EventListener = () => forcePlyrOverlay();
+		function bindTrackEvents() {
+			try {
+				tracksList = videoElem.value?.textTracks ?? null;
+				tracksList?.addEventListener("addtrack", onTracksChange, { passive: true });
+				tracksList?.addEventListener("change", onTracksChange, { passive: true });
+			} catch (e) {
+				console.warn("PlyrPlayer: textTracks event binding skipped:", e);
+			}
+		}
+		function unbindTrackEvents() {
+			try {
+				tracksList?.removeEventListener("addtrack", onTracksChange);
+				tracksList?.removeEventListener("change", onTracksChange);
+			} catch (e) {
+				console.warn("PlyrPlayer: textTracks event unbinding skipped:", e);
+			}
+		}
 
 		onMounted(() => {
 			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
@@ -388,9 +414,8 @@ export default defineComponent({
 				},
 			});
 
-			player.value.on("ready", () => applyControlsOffset(true));
-			player.value.on("controlsshown", () => applyControlsOffset(true));
-			player.value.on("controlshidden", () => applyControlsOffset(false));
+			const reflowOffsets = () => applyControlsOffsetCurrent();
+			player.value?.on("ready", reflowOffsets);
 
 			player.value.on("ready", () => emit("ready"));
 			player.value.on("ended", () => emit("end"));
@@ -402,23 +427,11 @@ export default defineComponent({
 			player.value.on("canplay", () => {
 				emit("ready");
 				forcePlyrOverlay();
-				setTimeout(
-					() =>
-						applyControlsOffset(
-							!(getContainer()?.classList.contains("plyr--hide-controls") ?? false)
-						),
-					0
-				);
+				setTimeout(reflowOffsets, 0);
 				captions.captionsTracks.value = playerImpl.getCaptionsTracks();
 				captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
 			});
-			try {
-				tracksList = videoElem.value?.textTracks ?? null;
-				tracksList?.addEventListener("addtrack", onTracksChange, { passive: true });
-				tracksList?.addEventListener("change", onTracksChange, { passive: true });
-			} catch (e) {
-				console.warn("PlyrPlayer: textTracks event binding skipped:", e);
-			}
+			bindTrackEvents();
 			player.value.on("progress", () => {
 				if (!player.value) {
 					return;
@@ -452,13 +465,9 @@ export default defineComponent({
 				return;
 			}
 			classObserver?.disconnect();
-			classObserver = new MutationObserver(() => {
-				const hidden = container.classList.contains("plyr--hide-controls");
-				applyControlsOffset(!hidden);
-			});
+			classObserver = new MutationObserver(applyControlsOffsetCurrent);
 			classObserver.observe(container, { attributes: true, attributeFilter: ["class"] });
-			const hidden = container.classList.contains("plyr--hide-controls");
-			applyControlsOffset(!hidden);
+			applyControlsOffsetCurrent();
 		}
 
 		function startCaptionObserver() {
@@ -467,16 +476,9 @@ export default defineComponent({
 				return;
 			}
 			captionObserver?.disconnect();
-			captionObserver = new MutationObserver(() => {
-				const hidden = container.classList.contains("plyr--hide-controls");
-				applyControlsOffset(!hidden);
-			});
-			captionObserver.observe(container, {
-				subtree: true,
-				childList: true,
-			});
-			const hidden = container.classList.contains("plyr--hide-controls");
-			applyControlsOffset(!hidden);
+			captionObserver = new MutationObserver(applyControlsOffsetCurrent);
+			captionObserver.observe(container, { subtree: true, childList: true });
+			applyControlsOffsetCurrent();
 		}
 
 		function bindHoverFallback() {
@@ -531,19 +533,13 @@ export default defineComponent({
 
 			window.addEventListener("resize", updateControlsHeightVar);
 			updateControlsHeightVar();
-			const hidden = getContainer()?.classList.contains("plyr--hide-controls") ?? false;
-			applyControlsOffset(!hidden);
+			applyControlsOffsetCurrent();
 			const host = getContainer() ?? videoElem.value?.parentElement;
 			host?.addEventListener?.("mousemove", updateControlsHeightVarRaf);
 		});
 
 		onBeforeUnmount(() => {
-			try {
-				tracksList?.removeEventListener("addtrack", onTracksChange);
-				tracksList?.removeEventListener("change", onTracksChange);
-			} catch (e) {
-				console.warn("PlyrPlayer: textTracks event unbinding skipped:", e);
-			}
+			unbindTrackEvents();
 			stopClassObserver();
 			stopCaptionObserver();
 			unbindHoverFallback();
@@ -657,9 +653,7 @@ export default defineComponent({
 					emit("ready");
 					forcePlyrOverlay();
 					syncCaptions();
-					const hidden =
-						getContainer()?.classList.contains("plyr--hide-controls") ?? false;
-					applyControlsOffset(!hidden);
+					applyControlsOffsetCurrent();
 				});
 
 				dash.on(D.TEXT_TRACKS_ADDED ?? "allTextTracksAdded", handleTextTracksAvailable);
@@ -679,9 +673,7 @@ export default defineComponent({
 						dash?.setTextTrack(-1);
 						safeToggleCaptions(false);
 					}
-					const hidden =
-						getContainer()?.classList.contains("plyr--hide-controls") ?? false;
-					applyControlsOffset(!hidden);
+					applyControlsOffsetCurrent();
 				});
 				dash.on("error", (event: unknown) => {
 					console.error("PlyrPlayer: dash.js error:", event);
