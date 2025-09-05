@@ -62,7 +62,9 @@ export default defineComponent({
 
 		function hasPlyrCaptionTracks(): boolean {
 			const p = player.value as PlyrWithCaptionsInternals | undefined;
-			if (!p?.captions?.getTracks) return false;
+			if (!p?.captions?.getTracks) {
+				return false;
+			}
 			try {
 				const tracks = p.captions.getTracks();
 				return Array.isArray(tracks) && tracks.length > 0;
@@ -84,7 +86,9 @@ export default defineComponent({
 					}
 					(player.value as MutablePlyr).currentTrack = use;
 					const chosen = entries.find(e => e.idx === use);
-					if (chosen) chosen.track.mode = "showing";
+					if (chosen) {
+						chosen.track.mode = "showing";
+					}
 				} else {
 					(player.value as MutablePlyr).currentTrack = -1;
 				}
@@ -97,7 +101,9 @@ export default defineComponent({
 		function captionEntries(): CaptionEntry[] {
 			const list = videoElem.value?.textTracks;
 			const out: CaptionEntry[] = [];
-			if (!list) return out;
+			if (!list) {
+				return out;
+			}
 			const len = list.length;
 			for (let i = 0; i < len; i++) {
 				// Access by numeric index, fallback to .item() for broader browser compat.
@@ -108,7 +114,9 @@ export default defineComponent({
 						i
 					) ?? undefined;
 				const t = byIndex ?? viaItem;
-				if (t && isCaptionKind(t.kind)) out.push({ track: t, idx: i });
+				if (t && isCaptionKind(t.kind)) {
+					out.push({ track: t, idx: i });
+				}
 			}
 			return out;
 		}
@@ -385,7 +393,9 @@ export default defineComponent({
 
 				const handleTextTracksAvailable = () => {
 					syncCaptions();
-					if (!captions.isCaptionsEnabled.value || !hasCaptionTracks()) return;
+					if (!captions.isCaptionsEnabled.value || !hasCaptionTracks()) {
+						return;
+					}
 					const idx = pickCaptionIdx();
 					if (idx >= 0) {
 						dash?.setTextTrack(idx);
