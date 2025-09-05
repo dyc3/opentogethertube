@@ -536,11 +536,37 @@ export default defineComponent({
 	object-position: 50% 50%;
 }
 
-.plyr__captions {
-	bottom: calc(var(--captions-bottom, 56px) + env(safe-area-inset-bottom));
+.plyr--hide-controls .plyr__captions {
+	bottom: env(safe-area-inset-bottom);
 }
 
+/* Keep captions above safe area + our custom offset and away from the controls */
+.plyr__captions {
+	bottom: calc(var(--captions-bottom, 56px) + env(safe-area-inset-bottom));
+	inset-inline: 0;
+	padding-inline: 3%;
+	pointer-events: none;
+}
+
+/* Plyr-rendered captions (non-native) */
 .plyr__captions .plyr__caption {
 	max-width: 92%;
+	display: inline;
+	padding: 0.1em 0.35em;
+	border-radius: 0.25em;
+	font-size: clamp(14px, 2.2vw, 22px);
+	line-height: 1.35;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.7);
+	background: rgba(0, 0, 0, 0.35);
+	color: #fff;
+}
+
+/* Native captions fallback (e.g. iOS Safari). Only a subset of CSS is allowed. */
+.direct video::cue {
+	color: #fff;
+	background-color: rgba(0, 0, 0, 0.35);
+	font-size: clamp(14px, 2.2vw, 22px);
+	line-height: 1.35;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.7);
 }
 </style>
