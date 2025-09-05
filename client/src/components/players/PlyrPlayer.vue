@@ -56,15 +56,26 @@ export default defineComponent({
 			captions?: { getTracks?: () => unknown[] };
 		};
 
+		type PlyrCaptionTrackLike = { language?: string | null };
+		function isObjectRecord(v: unknown): v is Record<string, unknown> {
+			return typeof v === "object" && v !== null;
+		}
+
+		function isPlyrCaptionTrackLike(v: unknown): v is PlyrCaptionTrackLike {
+			return isObjectRecord(v) && "language" in v;
+		}
+
 		function hasValidPlyrTracks(): boolean {
 			const p = player.value as PlyrWithCaptionsInternals | undefined;
-			if (!p?.captions?.getTracks) return false;
+			if (!p?.captions?.getTracks) {
+				return false;
+			}
 			try {
-				const tracks = p.captions.getTracks();
+				const tracks = p.captions.getTracks() as unknown[];
 				return (
 					Array.isArray(tracks) &&
 					tracks.length > 0 &&
-					tracks.every(t => t && typeof t === "object" && "language" in (t as any))
+					tracks.every(isPlyrCaptionTrackLike)
 				);
 			} catch {
 				return false;
@@ -74,19 +85,6 @@ export default defineComponent({
 		function pickCaptionIdx(): number {
 			const showing = showingCaptionIdx();
 			return showing >= 0 ? showing : firstCaptionTrackIdx();
-		}
-
-		function hasPlyrCaptionTracks(): boolean {
-			const p = player.value as PlyrWithCaptionsInternals | undefined;
-			if (!p?.captions?.getTracks) {
-				return false;
-			}
-			try {
-				const tracks = p.captions.getTracks();
-				return Array.isArray(tracks) && tracks.length > 0;
-			} catch {
-				return false;
-			}
 		}
 
 		function safeToggleCaptions(enabled: boolean, idx?: number): void {
@@ -143,7 +141,9 @@ export default defineComponent({
 			if (list) {
 				for (let i = 0; i < list.length; i++) {
 					const t = (list as unknown as { [n: number]: TextTrack | undefined })[i];
-					if (t && isCaptionKind(t.kind)) t.mode = "hidden"; // never show native cues
+					if (t && isCaptionKind(t.kind)) {
+						t.mode = "hidden";
+					} // never show native cues
 				}
 			}
 			try {
@@ -177,14 +177,18 @@ export default defineComponent({
 
 		function controlsPixelHeight(): number {
 			const controls = getControls();
-			if (!controls) return 0;
+			if (!controls) {
+				return 0;
+			}
 			return Math.ceil(controls.getBoundingClientRect().height || 0) + 10;
 		}
 
 		function applyControlsOffset(visible: boolean) {
 			const container = getContainer();
 			const captionsEl = getCaptionsEl();
-			if (!container && !captionsEl) return;
+			if (!container && !captionsEl) {
+				return;
+			}
 			const DEFAULT_CTRL_H = 64;
 			const measured = controlsPixelHeight();
 			const h = visible ? measured || DEFAULT_CTRL_H : 0;
@@ -192,7 +196,9 @@ export default defineComponent({
 			const value = `calc(${16 + extra}px + ${h}px + env(safe-area-inset-bottom))`;
 			if (captionsEl) {
 				captionsEl.style.bottom = value;
-				if (!visible) captionsEl.style.removeProperty("transform");
+				if (!visible) {
+					captionsEl.style.removeProperty("transform");
+				}
 			}
 			container?.style.setProperty("--captions-bottom", value);
 			captionsEl?.style.setProperty("--captions-bottom", value);
@@ -329,7 +335,6 @@ export default defineComponent({
 					if (hasValidPlyrTracks()) {
 						player.value.currentTrack = findTrackIdx(track);
 					} else {
-						// Native Fallback: gewünschte Spur zeigen, alle anderen verstecken
 						const idx = findTrackIdx(track);
 						for (const e of captionEntries()) {
 							e.track.mode = e.idx === idx ? "showing" : "hidden";
@@ -430,9 +435,11 @@ export default defineComponent({
 		function updateControlsHeightVar() {
 			const controls = getControls();
 			const host = getContainer() ?? videoElem.value?.parentElement ?? undefined;
-			if (!controls || !host) return;
+			if (!controls || !host) {
+				return;
+			}
 			const h = Math.ceil(controls.getBoundingClientRect().height || 0);
-			const pad = 12; // small safety margin for shadows/hover area
+			const pad = 12;
 			host.style.setProperty("--plyr-controls-height", `${h + pad}px`);
 		}
 
@@ -441,7 +448,9 @@ export default defineComponent({
 
 		function startClassObserver() {
 			const container = getContainer();
-			if (!container) return;
+			if (!container) {
+				return;
+			}
 			classObserver?.disconnect();
 			classObserver = new MutationObserver(() => {
 				const hidden = container.classList.contains("plyr--hide-controls");
@@ -454,7 +463,9 @@ export default defineComponent({
 
 		function startCaptionObserver() {
 			const container = getContainer();
-			if (!container) return;
+			if (!container) {
+				return;
+			}
 			captionObserver?.disconnect();
 			captionObserver = new MutationObserver(() => {
 				const hidden = container.classList.contains("plyr--hide-controls");
@@ -470,7 +481,9 @@ export default defineComponent({
 
 		function bindHoverFallback() {
 			hoverContainer = getContainer();
-			if (!hoverContainer) return;
+			if (!hoverContainer) {
+				return;
+			}
 			hoverContainer.addEventListener("mouseenter", onEnter, { passive: true });
 			hoverContainer.addEventListener("mouseleave", onLeave, { passive: true });
 		}
@@ -482,7 +495,9 @@ export default defineComponent({
 		}
 
 		function unbindHoverFallback() {
-			if (!hoverContainer) return;
+			if (!hoverContainer) {
+				return;
+			}
 			hoverContainer.removeEventListener("mouseenter", onEnter);
 			hoverContainer.removeEventListener("mouseleave", onLeave);
 			hoverContainer = undefined;
@@ -500,7 +515,9 @@ export default defineComponent({
 
 		let rafId: number | null = null;
 		function updateControlsHeightVarRaf() {
-			if (rafId != null) return;
+			if (rafId !== null) {
+				return;
+			}
 			rafId = requestAnimationFrame(() => {
 				rafId = null;
 				updateControlsHeightVar();
@@ -534,7 +551,9 @@ export default defineComponent({
 			host?.removeEventListener?.("mousemove", updateControlsHeightVarRaf);
 			window.removeEventListener("resize", updateControlsHeightVar);
 
-			if (rafId != null) cancelAnimationFrame(rafId);
+			if (rafId !== null) {
+				cancelAnimationFrame(rafId);
+			}
 
 			player.value?.destroy();
 			hls?.destroy();
@@ -780,11 +799,11 @@ export default defineComponent({
 	pointer-events: none;
 	transition: bottom 120ms ease-out;
 	bottom: calc(16px + env(safe-area-inset-bottom));
-	transform: none !important; // jegliches translateY von Plyr pauschal neutralisieren
+	transform: none !important;
 	will-change: bottom;
 }
 
-// Firefox/Plyr: verschiebt Captions via translateY, das neutralisieren wir hart
+// Firefox/Plyr: moves Captions via translateY, we remove it here to gain control
 .plyr:not(.plyr--hide-controls) .plyr__controls:not(:empty) ~ .plyr__captions {
 	transform: none !important;
 }
