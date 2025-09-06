@@ -62,7 +62,9 @@
 			<PlyrPlayer
 				v-else-if="
 					!!source &&
-					['direct', 'hls', 'dash', 'reddit', 'tubi', 'pluto'].includes(source.service)
+					['direct', 'hls', 'dash', 'reddit', 'tubi', 'pluto', 'odysee'].includes(
+						source.service
+					)
 				"
 				ref="player"
 				:service="source.service"
@@ -131,6 +133,12 @@ const props = defineProps({
 		},
 	},
 });
+
+watch(
+  () => props.source?.service,
+  s => console.debug("[Omniplayer] source.service (changed) =", s),
+  { immediate: false }
+);
 
 const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering", "error"]);
 

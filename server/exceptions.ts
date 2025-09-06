@@ -61,6 +61,37 @@ export class UpstreamInvidiousException extends Error {
 	}
 }
 
+/**
+ * OdyseeDRMProtectedVideo
+ * -----------------------
+ *
+ * will be thrown when odysee claim has copyrighted in license
+ *
+ * - status: HTTP status that should be returned to the client (451)
+ * - code:   "ODYSEE_COPYRIGHT_BLOCKED"
+ * - userMessage: short, safe text for direct display in the UI
+ * - meta:  optional extras (e.g., { license: "Copyrighted (contact publisher)" })
+ */
+export class OdyseeDRMProtectedVideo extends Error {
+	public readonly status: number = 451; // Unavailable For Legal Reasons
+	public readonly code: "ODYSEE_COPYRIGHT_BLOCKED" = "ODYSEE_COPYRIGHT_BLOCKED";
+	public readonly userMessage: string;
+	public readonly expose = true;
+	public readonly meta?: { license?: string };
+
+	constructor(opts?: { license?: string }) {
+		const userMessage = "This Odysee video is not available due to copyright restrictions.";
+		super(userMessage);
+		this.name = "OdyseeDRMProtectedVideo";
+		this.userMessage = userMessage;
+		this.meta = opts && typeof opts === "object" ? { license: opts.license } : undefined;
+		// keep proper prototype chain in older runtimes
+		Object.setPrototypeOf?.(this, OdyseeDRMProtectedVideo.prototype);
+		// better stack for V8
+		(Error as any).captureStackTrace?.(this, OdyseeDRMProtectedVideo);
+	}
+}
+
 export class InvalidAddPreviewInputException extends OttException {
 	name = "InvalidAddPreviewInputException";
 

@@ -57,6 +57,7 @@ const addPreview: RequestHandler<
 			err.name === "MissingMetadataException" ||
 			err.name === "UnsupportedVideoType" ||
 			err.name === "UpstreamInvidiousException" ||
+			err.name === "OdyseeDRMProtectedVideo" ||
 			err.name === "VideoNotFoundException"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);

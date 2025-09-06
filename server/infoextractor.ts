@@ -27,7 +27,7 @@ import PeertubeAdapter from "./services/peertube.js";
 import PlutoAdapter from "./services/pluto.js";
 import DashVideoAdapter from "./services/dash.js";
 import InvidiousAdapter from "./services/invidious.js";
-import OdyseeAdapter from "./services/Odysee.js";
+import OdyseeAdapter from "./services/odysee.js";
 
 const log = getLogger("infoextract");
 
