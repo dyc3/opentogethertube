@@ -15,7 +15,7 @@ import { conf } from "./ott-config.js";
 const log = getLogger("infoextract/ffprobe");
 
 // Timeout in ms how long the watchdog will wait until ffprobe exits itself if not sigkill
-const FFPROBE_TIMEOUT_MS = 45000;
+const FFPROBE_TIMEOUT_MS = 30000;
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -38,6 +38,7 @@ function streamDataIntoFfprobe(
 			if (killer) {
 				return;
 			}
+			log.debug("arming ffprobe watchdog");
 			killer = setTimeout(() => {
 				log.warn(
 					`ffprobe pid=${child.pid} did not exit within ${FFPROBE_TIMEOUT_MS}ms after input finished — killing`
@@ -58,6 +59,7 @@ function streamDataIntoFfprobe(
 		};
 		const clearWatchdog = () => {
 			if (killer) {
+				log.debug("clearing ffprobe watchdog");
 				clearTimeout(killer);
 				killer = null;
 			}
