@@ -134,12 +134,6 @@ const props = defineProps({
 	},
 });
 
-watch(
-  () => props.source?.service,
-  s => console.debug("[Omniplayer] source.service (changed) =", s),
-  { immediate: false }
-);
-
 const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering", "error"]);
 
 const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
