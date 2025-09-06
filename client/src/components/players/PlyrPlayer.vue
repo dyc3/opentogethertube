@@ -135,6 +135,15 @@ export default defineComponent({
 			return out;
 		}
 
+		function waitForPlyrTracks(cb: () => void, tries = 12, delayMs = 80): void {
+			if (hasValidPlyrTracks()) {
+				cb();
+				return;
+			}
+			if (tries <= 0) return;
+			setTimeout(() => waitForPlyrTracks(cb, tries - 1, delayMs), delayMs);
+		}
+
 		let overlayRetry = 0;
 		function forcePlyrOverlay() {
 			const list = videoElem.value?.textTracks;
@@ -149,6 +158,11 @@ export default defineComponent({
 			try {
 				player.value?.toggleCaptions(true); // enable Plyr overlay
 				overlayRetry = 0;
+				const p = player.value as MutablePlyr | undefined;
+				const firstIdx = firstCaptionTrackIdx();
+				if (p && p.currentTrack === -1 && firstIdx >= 0) {
+					p.currentTrack = firstIdx;
+				}
 			} catch {
 				// Tracks may not be ready yet (common in Firefox) – retry briefly.
 				if (overlayRetry < 10) {
@@ -294,11 +308,24 @@ export default defineComponent({
 						safeToggleCaptions(false);
 					}
 				} else {
-					if (hasValidPlyrTracks()) {
-						safeToggleCaptions(enabled);
+					if (enabled) {
+						if (hasValidPlyrTracks()) {
+							safeToggleCaptions(true);
+						} else {
+							for (const e of captionEntries()) {
+								e.track.mode = "showing";
+							}
+							waitForPlyrTracks(() => {
+								forcePlyrOverlay();
+								safeToggleCaptions(true);
+							});
+						}
 					} else {
+						if (hasValidPlyrTracks()) {
+							safeToggleCaptions(false);
+						}
 						for (const e of captionEntries()) {
-							e.track.mode = enabled ? "showing" : "hidden";
+							e.track.mode = "hidden";
 						}
 					}
 				}
