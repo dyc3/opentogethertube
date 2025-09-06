@@ -17,6 +17,55 @@ const log = getLogger("infoextract/ffprobe");
 // Timeout in ms how long the watchdog will wait until ffprobe exits itself if not sigkill
 const FFPROBE_TIMEOUT_MS = 30000;
 
+// Track all spawned ffprobe children so we can always clean them up.
+const FFPROBE_CHILDREN = new Set<childProcess.ChildProcess>();
+
+function registerFfprobeChild(child: childProcess.ChildProcess): void {
+	try {
+		FFPROBE_CHILDREN.add(child);
+		log.debug(`registered ffprobe child pid=${child.pid}, total now=${FFPROBE_CHILDREN.size}`);
+		// auto-unregister when the child exits
+		child.once("close", () => {
+			FFPROBE_CHILDREN.delete(child);
+			log.debug(
+				`unregistered ffprobe child pid=${child.pid}, total now=${FFPROBE_CHILDREN.size}`
+			);
+		});
+	} catch (e) {
+		log.debug(`registerFfprobeChild error: ${String(e)}`);
+	}
+}
+
+function killAllFfprobeChildren(reason: string): void {
+	if (FFPROBE_CHILDREN.size === 0) {
+		log.debug(`killAllFfprobeChildren: no lingering children (reason=${reason})`);
+		return;
+	}
+	log.warn(
+		`killAllFfprobeChildren: cleaning up ${FFPROBE_CHILDREN.size} children (reason=${reason})`
+	);
+	for (const c of FFPROBE_CHILDREN) {
+		try {
+			log.warn(`killing lingering ffprobe pid=${c.pid}`);
+			c.kill("SIGKILL");
+		} catch (e) {
+			log.debug(`killAllFfprobeChildren error: ${String(e)}`);
+		}
+	}
+	FFPROBE_CHILDREN.clear();
+}
+
+// Best-effort cleanup on shutdown paths
+process.once("exit", () => killAllFfprobeChildren("process_exit"));
+process.once("SIGINT", () => {
+	killAllFfprobeChildren("SIGINT");
+	process.exit(130);
+});
+process.once("SIGTERM", () => {
+	killAllFfprobeChildren("SIGTERM");
+	process.exit(143);
+});
+
 function streamDataIntoFfprobe(
 	ffprobePath: string,
 	stream: Stream,
@@ -29,6 +78,7 @@ function streamDataIntoFfprobe(
 			stdio: "pipe",
 			windowsHide: true,
 		});
+		registerFfprobeChild(child);
 		log.debug(`ffprobe child spawned: ${child.pid}`);
 		let resultJson = "";
 
@@ -38,7 +88,7 @@ function streamDataIntoFfprobe(
 			if (killer) {
 				return;
 			}
-			log.debug("arming ffprobe watchdog");
+			log.debug(`arming ffprobe watchdog on child pid=${child.pid}`);
 			killer = setTimeout(() => {
 				log.warn(
 					`ffprobe pid=${child.pid} did not exit within ${FFPROBE_TIMEOUT_MS}ms after input finished — killing`
@@ -59,7 +109,7 @@ function streamDataIntoFfprobe(
 		};
 		const clearWatchdog = () => {
 			if (killer) {
-				log.debug("clearing ffprobe watchdog");
+				log.debug(`clearing ffprobe watchdog on child pid=${child.pid}`);
 				clearTimeout(killer);
 				killer = null;
 			}
@@ -162,6 +212,7 @@ export class RunFfprobe extends FfprobeStrategy {
 			stdio: ["ignore", "pipe", "pipe"],
 			windowsHide: true,
 		});
+		registerFfprobeChild(child);
 		let out = "";
 		let err = "";
 		child.stdout.on("data", d => (out += d));
@@ -237,6 +288,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 				stdio: ["ignore", "pipe", "pipe"],
 				windowsHide: true,
 			});
+			registerFfprobeChild(child);
 			let out = "";
 			let err = "";
 			child.stdout.on("data", d => (out += d));
