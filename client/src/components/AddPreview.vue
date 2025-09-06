@@ -143,6 +143,10 @@ const testVideos = import.meta.env.DEV
 				"https://dash.akamaized.net/dash264/TestCases/1a/sony/SNE_DASH_SD_CASE1A_REVISED.mpd",
 			],
 			["test dash 1", "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd"],
+			[
+				"test dash 2",
+				"https://dash.akamaized.net/akamai/test/caption_test/ElephantsDream/elephants_dream_480p_heaac5_1_https.mpd",
+			],
 			["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
 	  ]
 	: [];
