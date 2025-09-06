@@ -140,7 +140,9 @@ export default defineComponent({
 				cb();
 				return;
 			}
-			if (tries <= 0) return;
+			if (tries <= 0) {
+				return;
+			}
 			setTimeout(() => waitForPlyrTracks(cb, tries - 1, delayMs), delayMs);
 		}
 
