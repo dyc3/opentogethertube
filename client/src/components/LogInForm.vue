@@ -135,6 +135,19 @@
 								<v-row v-if="registerFailureMessage">
 									{{ registerFailureMessage }}
 								</v-row>
+								<v-row v-if="!store.state.production">
+									<v-btn
+										@click="
+											() => {
+												username = 'alice';
+												password = '12345asdfg';
+												password2 = '12345asdfg';
+											}
+										"
+									>
+										Sample User 1
+									</v-btn>
+								</v-row>
 							</v-container>
 						</v-card-text>
 						<v-card-actions>

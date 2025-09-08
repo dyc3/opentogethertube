@@ -5,6 +5,9 @@ FROM node:20-alpine3.22 AS dep-install-stage
 WORKDIR /app
 RUN corepack enable
 RUN apk update -q && apk --no-cache add libc6-compat python3 make g++ autoconf automake libtool -q
+# Force building from source to avoid any issues with incompatible prebuilt binaries
+# particularly for sodium-native
+ENV npm_config_build_from_source=true
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn .yarn
 COPY common/package.json common/
@@ -18,6 +21,9 @@ ENV GIT_COMMIT=$GIT_COMMIT
 
 WORKDIR /app
 RUN apk update -q && apk --no-cache add libc6-compat python3 make g++ autoconf automake libtool -q
+# Force building from source to avoid any issues with incompatible prebuilt binaries
+# particularly for sodium-native
+ENV npm_config_build_from_source=true
 RUN corepack enable
 COPY tsconfig.json ./
 COPY common common
@@ -42,7 +48,7 @@ FROM node:20-alpine3.22 AS docker-stage
 WORKDIR /app
 ENV NODE_ENV production
 ENV FFPROBE_PATH /usr/bin/ffprobe
-RUN apk update -q && apk --no-cache add curl ffmpeg -q
+RUN apk update -q && apk --no-cache add curl ffmpeg gcompat -q
 RUN corepack enable
 COPY docker/scripts/wait_for_db.sh /app/wait_for_db.sh
 COPY --from=production-stage /app /app
@@ -57,7 +63,7 @@ ARG DEPLOY_TARGET
 WORKDIR /app
 ENV NODE_ENV production
 ENV FFPROBE_PATH /usr/bin/ffprobe
-RUN apk update -q && apk --no-cache add curl ffmpeg -q
+RUN apk update -q && apk --no-cache add curl ffmpeg gcompat -q
 COPY --from=production-stage /app /app
 COPY deploy/base.toml /app/env/
 COPY deploy/$DEPLOY_TARGET.toml /app/env/production.toml
