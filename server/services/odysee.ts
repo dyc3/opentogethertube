@@ -174,12 +174,18 @@ function collectThumbnails(resolved: ResolveMap[string] | undefined, got: LbryGe
 	}
 	if (thumbnails.length === 0) {
 		const chVal = got.signing_channel?.value ?? resolved?.signing_channel?.value;
-		if (chVal?.thumbnail) thumbnails = extractThumbnails(chVal.thumbnail);
-		if (thumbnails.length === 0 && chVal?.cover) thumbnails = extractThumbnails(chVal.cover);
+		if (chVal?.thumbnail) {
+			thumbnails = extractThumbnails(chVal.thumbnail);
+		}
+		if (thumbnails.length === 0 && chVal?.cover) {
+			thumbnails = extractThumbnails(chVal.cover);
+		}
 	}
 	if (thumbnails.length === 0) {
 		const cid = resolved?.claim_id || got.claim_id;
-		if (cid) thumbnails.push(`https://thumbnails.lbry.com/${cid}`);
+		if (cid) {
+			thumbnails.push(`https://thumbnails.lbry.com/${cid}`);
+		}
 	}
 	return thumbnails;
 }

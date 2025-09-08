@@ -4,114 +4,114 @@ import axios from "axios";
 import { OdyseeDRMProtectedVideo } from "../../../exceptions.js";
 
 vi.mock("axios", () => ({
-  default: {
-    post: vi.fn(),
-    head: vi.fn(),
-    get: vi.fn(),
-  },
+	default: {
+		post: vi.fn(),
+		head: vi.fn(),
+		get: vi.fn(),
+	},
 }));
 
 describe("OdyseeAdapter", () => {
-  beforeEach(() => {
-    (axios.post as any).mockReset();
-    (axios.head as any).mockReset();
-    (axios.get as any).mockReset();
-  });
+	beforeEach(() => {
+		(axios.post as any).mockReset();
+		(axios.head as any).mockReset();
+		(axios.get as any).mockReset();
+	});
 
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
 
-  it("returns HLS correctly", async () => {
-    const adapter = new OdyseeAdapter();
-    const odyUrl = "https://odysee.com/@Foo:ab/Bar:cd";
-    const lbryUri = "lbry://@Foo#ab/Bar#cd";
+	it("returns HLS correctly", async () => {
+		const adapter = new OdyseeAdapter();
+		const odyUrl = "https://odysee.com/@Foo:ab/Bar:cd";
+		const lbryUri = "lbry://@Foo#ab/Bar#cd";
 
-    (axios.post as any).mockResolvedValueOnce({
-      data: {
-        result: {
-          [lbryUri]: {
-            canonical_url: lbryUri,
-            value_type: "stream",
-            value: {
-              title: "Test title",
-              video: { duration: 600 },
-              thumbnail: "https://thumb.test/img.jpg",
-            },
-          },
-        },
-      },
-    });
+		(axios.post as any).mockResolvedValueOnce({
+			data: {
+				result: {
+					[lbryUri]: {
+						canonical_url: lbryUri,
+						value_type: "stream",
+						value: {
+							title: "Test title",
+							video: { duration: 600 },
+							thumbnail: "https://thumb.test/img.jpg",
+						},
+					},
+				},
+			},
+		});
 
-    (axios.post as any).mockResolvedValueOnce({
-      data: {
-        result: {
-          streaming_url: "https://cdn.example/master.m3u8",
-          mime_type: "application/x-mpegurl",
-          value: {
-            title: "Test title",
-            description: "Desc",
-            video: { duration: 600 },
-            thumbnail: "https://thumb.test/img.jpg",
-          },
-        },
-      },
-    });
+		(axios.post as any).mockResolvedValueOnce({
+			data: {
+				result: {
+					streaming_url: "https://cdn.example/master.m3u8",
+					mime_type: "application/x-mpegurl",
+					value: {
+						title: "Test title",
+						description: "Desc",
+						video: { duration: 600 },
+						thumbnail: "https://thumb.test/img.jpg",
+					},
+				},
+			},
+		});
 
-    (axios.head as any).mockResolvedValue({
-      status: 200,
-      headers: { "content-type": "application/vnd.apple.mpegurl" },
-      request: { res: { responseUrl: "https://cdn.example/master.m3u8" } },
-    });
+		(axios.head as any).mockResolvedValue({
+			status: 200,
+			headers: { "content-type": "application/vnd.apple.mpegurl" },
+			request: { res: { responseUrl: "https://cdn.example/master.m3u8" } },
+		});
 
-    (axios.get as any).mockResolvedValue({
-      status: 200,
-      data: `#EXTM3U
+		(axios.get as any).mockResolvedValue({
+			status: 200,
+			data: `#EXTM3U
 #EXT-X-STREAM-INF:BANDWIDTH=2000000,RESOLUTION=1280x720
 720p.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080
 1080p.m3u8`,
-    });
+		});
 
-    // Sanity check: URL -> lbry conversion
-    const id = adapter.getVideoId(odyUrl);
-    expect(id).toBe(lbryUri);
+		// Sanity check: URL -> lbry conversion
+		const id = adapter.getVideoId(odyUrl);
+		expect(id).toBe(lbryUri);
 
-    const v = await adapter.fetchVideoInfo(id);
+		const v = await adapter.fetchVideoInfo(id);
 
-    expect(v.service).toBe("odysee");
-    expect(v.mime).toBe("application/x-mpegURL");
-    expect((v as any).hls_url).toMatch(/1080p\.m3u8$/);
-    expect(v.id).toMatch(/1080p\.m3u8$/);
-    expect(v.title).toBe("Test title");
-    expect(v.length).toBe(600);
-    expect(v.thumbnail).toBe("https://thumb.test/img.jpg");
-  });
+		expect(v.service).toBe("odysee");
+		expect(v.mime).toBe("application/x-mpegURL");
+		expect((v as any).hls_url).toMatch(/1080p\.m3u8$/);
+		expect(v.id).toMatch(/1080p\.m3u8$/);
+		expect(v.title).toBe("Test title");
+		expect(v.length).toBe(600);
+		expect(v.thumbnail).toBe("https://thumb.test/img.jpg");
+	});
 
-  it("throws OdyseeDRMProtectedVideo when license indicates copyright restrictions", async () => {
-    const adapter = new OdyseeAdapter();
-    const lbryUri = "lbry://@Foo#ab/Bar#cd";
+	it("throws OdyseeDRMProtectedVideo when license indicates copyright restrictions", async () => {
+		const adapter = new OdyseeAdapter();
+		const lbryUri = "lbry://@Foo#ab/Bar#cd";
 
-    // resolve reports a copyrighted license -> adapter should throw immediately
-    (axios.post as any).mockResolvedValueOnce({
-      data: {
-        result: {
-          [lbryUri]: {
-            canonical_url: lbryUri,
-            value_type: "stream",
-            value: { title: "DRM", license: "Copyrighted (contact publisher)" },
-          },
-        },
-      },
-    });
+		// resolve reports a copyrighted license -> adapter should throw immediately
+		(axios.post as any).mockResolvedValueOnce({
+			data: {
+				result: {
+					[lbryUri]: {
+						canonical_url: lbryUri,
+						value_type: "stream",
+						value: { title: "DRM", license: "Copyrighted (contact publisher)" },
+					},
+				},
+			},
+		});
 
-    await expect(adapter.fetchVideoInfo(lbryUri)).rejects.toBeInstanceOf(
-      OdyseeDRMProtectedVideo
-    );
-  });
+		await expect(adapter.fetchVideoInfo(lbryUri)).rejects.toBeInstanceOf(
+			OdyseeDRMProtectedVideo
+		);
+	});
 
-  it("getVideoId throws for non-Odysee URLs", () => {
-    const adapter = new OdyseeAdapter();
-    expect(() => adapter.getVideoId("https://example.com/not-odysee")).toThrow();
-  });
+	it("getVideoId throws for non-Odysee URLs", () => {
+		const adapter = new OdyseeAdapter();
+		expect(() => adapter.getVideoId("https://example.com/not-odysee")).toThrow();
+	});
 });
