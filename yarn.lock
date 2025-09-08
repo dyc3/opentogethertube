@@ -15472,7 +15472,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build@npm:^4.3.0":
+"node-gyp-build@npm:^4.8.0":
   version: 4.8.4
   resolution: "node-gyp-build@npm:4.8.4"
   bin:
@@ -19378,13 +19378,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sodium-native@npm:^3.1.1":
-  version: 3.4.1
-  resolution: "sodium-native@npm:3.4.1"
+"sodium-native@npm:4.3.2":
+  version: 4.3.2
+  resolution: "sodium-native@npm:4.3.2"
   dependencies:
-    node-gyp: "npm:latest"
-    node-gyp-build: "npm:^4.3.0"
-  checksum: 10c0/b67de94d80a234d348e3bbcd27f39243f974dfdb5e2538b146433c5f2a42ce4697ce3bf5dff8a2803dab16486167e8cc755af426ff2934cb5ca393cb5b116c77
+    node-gyp-build: "npm:^4.8.0"
+  checksum: 10c0/92028fe65659826e8134578d7530704332ebc08b76a586681b104be226c77e5c7acb58431408be315888d8d57e6c9934eae12c7608890a88acf382b67453969e
   languageName: node
   linkType: hard
 
