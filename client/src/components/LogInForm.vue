@@ -135,8 +135,7 @@
 								<v-row v-if="registerFailureMessage">
 									{{ registerFailureMessage }}
 								</v-row>
-								<v-row>
-									<!-- <v-row v-if="!store.state.production"> -->
+								<v-row v-if="!store.state.production">
 									<v-btn
 										@click="
 											() => {
