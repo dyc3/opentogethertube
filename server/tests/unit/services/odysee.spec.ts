@@ -22,10 +22,11 @@ describe("OdyseeAdapter", () => {
 		vi.clearAllMocks();
 	});
 
-	it("returns HLS correctly", async () => {
+	it("returns HLS correctly (keeps master URL)", async () => {
 		const adapter = new OdyseeAdapter();
 		const odyUrl = "https://odysee.com/@Foo:ab/Bar:cd";
 		const lbryUri = "lbry://@Foo#ab/Bar#cd";
+		const masterUrl = "https://cdn.example/master.m3u8";
 
 		(axios.post as any).mockResolvedValueOnce({
 			data: {
@@ -46,7 +47,7 @@ describe("OdyseeAdapter", () => {
 		(axios.post as any).mockResolvedValueOnce({
 			data: {
 				result: {
-					streaming_url: "https://cdn.example/master.m3u8",
+					streaming_url: masterUrl,
 					mime_type: "application/x-mpegurl",
 					value: {
 						title: "Test title",
@@ -61,7 +62,7 @@ describe("OdyseeAdapter", () => {
 		(axios.head as any).mockResolvedValue({
 			status: 200,
 			headers: { "content-type": "application/vnd.apple.mpegurl" },
-			request: { res: { responseUrl: "https://cdn.example/master.m3u8" } },
+			request: { res: { responseUrl: masterUrl } },
 		});
 
 		(axios.get as any).mockResolvedValue({
@@ -81,8 +82,8 @@ describe("OdyseeAdapter", () => {
 
 		expect(v.service).toBe("odysee");
 		expect(v.mime).toBe("application/x-mpegURL");
-		expect((v as any).hls_url).toMatch(/1080p\.m3u8$/);
-		expect(v.id).toMatch(/1080p\.m3u8$/);
+		expect((v as any).hls_url).toBe(masterUrl);
+		expect(v.id).toBe(masterUrl);
 		expect(v.title).toBe("Test title");
 		expect(v.length).toBe(600);
 		expect(v.thumbnail).toBe("https://thumb.test/img.jpg");
