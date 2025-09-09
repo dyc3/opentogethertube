@@ -69,10 +69,9 @@ export default class HlsVideoAdapter extends ServiceAdapter {
 			},
 			{ attributes: { BANDWIDTH: Infinity } }
 		);
-		const newPath =
-			url.pathname?.split("/").slice(0, -1).join("/") + "/" + lowestBitratePlaylist.uri;
-		log.silly(`new playlist path ${newPath}`);
-		const respStreams = await axios.get("https://" + url.hostname + newPath);
+		const playlistUrl = URL.resolve(url.href, lowestBitratePlaylist.uri);
+		log.silly(`new playlist path ${playlistUrl}`);
+		const respStreams = await axios.get(playlistUrl);
 		const parser2 = new M3u8Parser();
 		parser2.push(respStreams.data);
 		parser2.end();
