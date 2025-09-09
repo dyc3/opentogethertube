@@ -144,6 +144,8 @@ const testVideos = import.meta.env.DEV
 			],
 			["test dash 1", "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd"],
 			["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
+			["test odysee 0", "https://odysee.com/@rpgDAN:8/Detektive-9:a"],
+			["test odysee 1", "https://odysee.com/@Majoo:8/so-sprengst-du-das-neue-kraftwerk-in:f"],
 	  ]
 	: [];
 
