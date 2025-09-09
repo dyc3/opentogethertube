@@ -72,7 +72,7 @@ export class UpstreamInvidiousException extends Error {
  * - userMessage: short, safe text for direct display in the UI
  * - meta:  optional extras (e.g., { license: "Copyrighted (contact publisher)" })
  */
-export class OdyseeDRMProtectedVideo extends Error {
+export class OdyseeDrmProtectedVideo  extends Error {
 	public readonly status: number = 451; // Unavailable For Legal Reasons
 	public readonly code: "ODYSEE_COPYRIGHT_BLOCKED" = "ODYSEE_COPYRIGHT_BLOCKED";
 	public readonly userMessage: string;
@@ -82,13 +82,13 @@ export class OdyseeDRMProtectedVideo extends Error {
 	constructor(opts?: { license?: string }) {
 		const userMessage = "This Odysee video is not available due to copyright restrictions.";
 		super(userMessage);
-		this.name = "OdyseeDRMProtectedVideo";
+		this.name = "OdyseeDrmProtectedVideo ";
 		this.userMessage = userMessage;
 		this.meta = opts && typeof opts === "object" ? { license: opts.license } : undefined;
 		// keep proper prototype chain in older runtimes
-		Object.setPrototypeOf?.(this, OdyseeDRMProtectedVideo.prototype);
+		Object.setPrototypeOf?.(this, OdyseeDrmProtectedVideo .prototype);
 		// better stack for V8
-		(Error as any).captureStackTrace?.(this, OdyseeDRMProtectedVideo);
+		(Error as any).captureStackTrace?.(this, OdyseeDrmProtectedVideo );
 	}
 }
 

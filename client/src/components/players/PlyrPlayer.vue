@@ -8,7 +8,6 @@
 import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Plyr from "plyr";
 import Hls from "hls.js";
-import type { HlsConfig, Level } from "hls.js";
 import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
@@ -222,50 +221,11 @@ export default defineComponent({
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
 				// ...so that we can use hls.js to change the video source
-				if (props.service === "odysee") {
-					const hlsconfig: HlsConfig = {
-						...Hls.DefaultConfig,
-						startLevel: -1,
-						enableWorker: true,
-						lowLatencyMode: false,
-					};
-					hls = new Hls(hlsconfig);
-				} else {
-					hls = new Hls();
-				}
+				hls = new Hls();
 				hls.loadSource(videoUrl.value);
 				hls.attachMedia(videoElem.value);
 				hls.on(Hls.Events.MANIFEST_PARSED, () => {
 					console.info("PlyrPlayer: hls.js manifest parsed");
-					if (props.service === "odysee") {
-						try {
-							type NavigatorWithConnection = Navigator & {
-								connection?: { downlink?: number };
-							};
-							const conn = (navigator as NavigatorWithConnection).connection;
-							const downlinkMbps =
-								typeof conn?.downlink === "number" ? conn.downlink : undefined;
-							if (downlinkMbps && Array.isArray(hls?.levels) && hls?.levels.length) {
-								// pick highest level whose bitrate fits ~80% of reported downlink
-								const levels: Level[] = hls.levels;
-								let cap = 0;
-								for (let i = 0; i < levels.length; i++) {
-									if (levels[i].bitrate / 1e6 <= downlinkMbps * 0.8) {
-										cap = i;
-									}
-								}
-								// apply as an auto cap (keeps ABR active within cap)
-								hls.autoLevelCapping = cap;
-								console.info("PlyrPlayer: applied autoLevelCapping", {
-									downlinkMbps,
-									cap,
-									bitrate: levels[cap]?.bitrate,
-								});
-							}
-						} catch (e: unknown) {
-							console.error("PlyrPlayer:", e);
-						}
-					}
 					emit("ready");
 					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
 					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
