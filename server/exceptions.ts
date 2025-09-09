@@ -88,7 +88,7 @@ export class OdyseeDrmProtectedVideo extends Error {
 		// keep proper prototype chain in older runtimes
 		Object.setPrototypeOf?.(this, OdyseeDrmProtectedVideo.prototype);
 		// better stack for V8
-		(Error as any).captureStackTrace?.(this, OdyseeDrmProtectedVideo);
+		Error.captureStackTrace?.(this, OdyseeDrmProtectedVideo);
 	}
 }
 
