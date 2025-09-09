@@ -14,8 +14,8 @@ import { conf } from "./ott-config.js";
 
 const log = getLogger("infoextract/ffprobe");
 
-// Timeout in ms how long the watchdog will wait until ffprobe exits itself if not sigkill
-const FFPROBE_TIMEOUT_MS = 30000;
+// Hard ffprobe, 35 Seconds.
+const FFPROBE_TIMEOUT_MS = 35000;
 
 // Track all spawned ffprobe children so we can always clean them up.
 const FFPROBE_CHILDREN = new Set<childProcess.ChildProcess>();
@@ -36,6 +36,7 @@ function registerFfprobeChild(child: childProcess.ChildProcess): void {
 	}
 }
 
+// Fixes multi spawn ffprobe
 function killAllFfprobeChildren(reason: string): void {
 	if (FFPROBE_CHILDREN.size === 0) {
 		log.debug(`killAllFfprobeChildren: no lingering children (reason=${reason})`);
@@ -57,14 +58,6 @@ function killAllFfprobeChildren(reason: string): void {
 
 // Best-effort cleanup on shutdown paths
 process.once("exit", () => killAllFfprobeChildren("process_exit"));
-process.once("SIGINT", () => {
-	killAllFfprobeChildren("SIGINT");
-	process.exit(130);
-});
-process.once("SIGTERM", () => {
-	killAllFfprobeChildren("SIGTERM");
-	process.exit(143);
-});
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -82,41 +75,31 @@ function streamDataIntoFfprobe(
 		log.debug(`ffprobe child spawned: ${child.pid}`);
 		let resultJson = "";
 
-		// Watchdog
-		let killer: NodeJS.Timeout | null = null;
-		const armWatchdog = () => {
-			if (killer) {
-				return;
+		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
+			log.warn(
+				`ffprobe pid=${child.pid} exceeded hard timeout ${FFPROBE_TIMEOUT_MS}ms — killing`
+			);
+			try {
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.debug(`ffprobe hard-kill error: ${String(e)}`);
 			}
-			log.debug(`arming ffprobe watchdog on child pid=${child.pid}`);
-			killer = setTimeout(() => {
-				log.warn(
-					`ffprobe pid=${child.pid} did not exit within ${FFPROBE_TIMEOUT_MS}ms after input finished — killing`
-				);
-				try {
-					child.kill("SIGKILL");
-				} catch (e) {
-					log.debug(`ffprobe kill error: ${String(e)}`);
-				}
-				try {
-					controller.abort();
-				} catch (e) {
-					if (!axios.isCancel(e)) {
-						log.debug(`abort error: ${String(e)}`);
-					}
-				}
-			}, FFPROBE_TIMEOUT_MS);
-		};
-		const clearWatchdog = () => {
-			if (killer) {
-				log.debug(`clearing ffprobe watchdog on child pid=${child.pid}`);
-				clearTimeout(killer);
-				killer = null;
+			try {
+				controller.abort();
+			} catch (e) {
+				if (!axios.isCancel(e)) log.debug(`abort error: ${String(e)}`);
+			}
+		}, FFPROBE_TIMEOUT_MS);
+
+		const clearHardKiller = () => {
+			if (hardKiller) {
+				clearTimeout(hardKiller);
+				hardKiller = null;
 			}
 		};
 
 		function finalize() {
-			clearWatchdog();
+			clearHardKiller();
 			stream.removeAllListeners();
 			stream.emit("end");
 			try {
@@ -132,32 +115,33 @@ function streamDataIntoFfprobe(
 		stream.on("data", data => {
 			counterBytesDownloaded.inc(data.length);
 			if (child.stdin.destroyed) {
-				armWatchdog();
 				return;
 			}
 			child.stdin.write(data, e => {
 				if (e) {
 					log.debug(`write failed (destroyed: ${child.stdin.destroyed}): ${String(e)}`);
-					armWatchdog();
 				}
 			});
 		});
 		child.stdin.on("error", e => {
 			log.debug(`ffprobe stdin error: ${String(e)}`);
-			armWatchdog();
 		});
 		stream.on("end", () => {
 			log.debug("http stream ended");
 			// streamEnded = true; dead code? never actually checked or used
 			if (child.stdin.destroyed) {
-				armWatchdog();
 				return;
 			}
 			child.stdin.end();
-			armWatchdog();
 		});
 		stream.on("error", error => {
 			log.error(`http stream error: ${error}`);
+			clearHardKiller();
+			try {
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.error("Error while trying to destroy ffprobe:", e);
+			}
 			reject(error);
 		});
 		child.stdout.on("data", data => {
@@ -168,7 +152,7 @@ function streamDataIntoFfprobe(
 			log.silly(`${data}`);
 		});
 		child.on("close", (code, signal) => {
-			clearWatchdog();
+			clearHardKiller();
 			log.debug(`ffprobe closed (code=${code}, signal=${signal ?? "none"})`);
 			finalize();
 		});
@@ -215,11 +199,30 @@ export class RunFfprobe extends FfprobeStrategy {
 		registerFfprobeChild(child);
 		let out = "";
 		let err = "";
+		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
+			log.warn(`ffprobe (run) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`);
+			try {
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.debug(`ffprobe hard-kill error: ${String(e)}`);
+			}
+		}, FFPROBE_TIMEOUT_MS);
 		child.stdout.on("data", d => (out += d));
 		child.stderr.on("data", d => (err += d));
 		await new Promise<void>((resolve, reject) => {
-			child.on("error", reject);
+			child.on("error", err => {
+				if (hardKiller) {
+					clearTimeout(hardKiller);
+					hardKiller = null;
+				}
+				log.error(`ffprobe spawn error (pid=${child.pid ?? "n/a"}): ${String(err)}`);
+				reject;
+			});
 			child.on("close", (code, signal) => {
+				if (hardKiller) {
+					clearTimeout(hardKiller);
+					hardKiller = null;
+				}
 				if (code === 0) {
 					return resolve();
 				}
@@ -291,11 +294,32 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 			registerFfprobeChild(child);
 			let out = "";
 			let err = "";
+			let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
+				log.warn(
+					`ffprobe (ondisk) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`
+				);
+				try {
+					child.kill("SIGKILL");
+				} catch (e) {
+					log.debug(`ffprobe hard-kill error: ${String(e)}`);
+				}
+			}, FFPROBE_TIMEOUT_MS);
 			child.stdout.on("data", d => (out += d));
 			child.stderr.on("data", d => (err += d));
 			await new Promise<void>((resolve, reject) => {
-				child.on("error", reject);
+				child.on("error", err => {
+					if (hardKiller) {
+						clearTimeout(hardKiller);
+						hardKiller = null;
+					}
+					log.error(`ffprobe spawn error (pid=${child.pid ?? "n/a"}): ${String(err)}`);
+					reject;
+				});
 				child.on("close", (code, signal) => {
+					if (hardKiller) {
+						clearTimeout(hardKiller);
+						hardKiller = null;
+					}
 					if (code === 0) {
 						return resolve();
 					}
