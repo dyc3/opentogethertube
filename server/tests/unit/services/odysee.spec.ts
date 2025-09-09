@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import OdyseeAdapter from "../../../services/odysee.js";
 import axios from "axios";
-import { OdyseeDRMProtectedVideo } from "../../../exceptions.js";
+import { OdyseeDrmProtectedVideo } from "../../../exceptions.js";
 
 vi.mock("axios", () => ({
 	default: {
@@ -89,7 +89,7 @@ describe("OdyseeAdapter", () => {
 		expect(v.thumbnail).toBe("https://thumb.test/img.jpg");
 	});
 
-	it("throws OdyseeDRMProtectedVideo when license indicates copyright restrictions", async () => {
+	it("throws OdyseeDrmProtectedVideo when license indicates copyright restrictions", async () => {
 		const adapter = new OdyseeAdapter();
 		const lbryUri = "lbry://@Foo#ab/Bar#cd";
 
@@ -107,7 +107,7 @@ describe("OdyseeAdapter", () => {
 		});
 
 		await expect(adapter.fetchVideoInfo(lbryUri)).rejects.toBeInstanceOf(
-			OdyseeDRMProtectedVideo
+			OdyseeDrmProtectedVideo
 		);
 	});
 
