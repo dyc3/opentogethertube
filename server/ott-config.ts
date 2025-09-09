@@ -296,6 +296,14 @@ export const conf = convict({
 				},
 			},
 		},
+		soundcloud: {
+			access_token: {
+				default: "",
+				doc: "OAUTH2.1 Access Token",
+				format: String,
+				env: "SOUNDCLOUD_ACCESS_TOKEN",
+			},
+		},
 	},
 	rate_limit: {
 		enabled: {
