@@ -1,9 +1,9 @@
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { getLogger } from "../logger.js";
 import { ServiceAdapter } from "../serviceadapter.js";
-import { InvalidVideoIdException, OdyseeDRMProtectedVideo } from "../exceptions.js";
+import { InvalidVideoIdException, OdyseeDrmProtectedVideo } from "../exceptions.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { Parser as M3U8Parser } from "m3u8-parser";
+import { getMimeType } from "../mime.js";
 
 const log = getLogger("odysee");
 
@@ -83,6 +83,14 @@ type ResolveMap = Record<
 	}
 >;
 
+function isStringHeaderMap(h: unknown): h is Record<string, string | string[] | undefined> {
+	return typeof h === "object" && h !== null;
+}
+
+function hasUrl(o: unknown): o is { url?: string } {
+	return typeof o === "object" && o !== null && "url" in o;
+}
+
 // Resolve and normalize an LBRY URI to its canonical (follow reposts)
 async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 	canonicalUri: string;
@@ -103,7 +111,7 @@ async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 	return { canonicalUri: canonical, resolved: entry };
 }
 
-//Copyrighted Content from Odysee isnt available via API and gets blocked (http error 401)
+// Copyrighted content -> blocked by API (HTTP 401 upstream)
 function isCopyrightRestricted(resolved?: ResolveMap[string]): boolean {
 	const lic = resolved?.value?.license ?? resolved?.value?.reposted_claim?.value?.license;
 	log.debug(String(lic));
@@ -116,19 +124,19 @@ async function rpc<T>(
 	params: Record<string, unknown>,
 	axiosCfg: Partial<Parameters<typeof axios.post>[2]> = {}
 ): Promise<T> {
-	const res = await axios.post(
+	const res = await axios.post<{ result?: T; error?: { message?: string } }>(
 		`${ODYSEE_RPC}?m=${encodeURIComponent(method)}`,
 		{ jsonrpc: "2.0", method, params },
-		{ timeout: 12000, ...axiosCfg }
+		{ timeout: 8000, ...axiosCfg }
 	);
 
 	log.debug(`Odysee RPC ${method} response: ${JSON.stringify(res.data)}`);
 
-	if (!res?.data || typeof res.data.result === "undefined") {
-		const errMsg = res?.data?.error?.message ? ` (${res.data.error.message})` : "";
+	if (!res.data || typeof res.data.result === "undefined") {
+		const errMsg = res.data?.error?.message ? ` (${res.data.error.message})` : "";
 		throw new Error(`Odysee RPC returned no result for ${method}${errMsg}`);
 	}
-	return res.data.result as T;
+	return res.data.result;
 }
 
 // Convert an odysee.com URL to lbry:// form (or pass-through)
@@ -153,16 +161,13 @@ function parseOdyseeUrlToLbry(uriOrUrl: string): string | null {
 
 // Normalize thumbnail field(s) into a list of URLs
 function extractThumbnails(thumb: unknown): string[] {
-	const out: string[] = [];
 	if (typeof thumb === "string") {
-		out.push(thumb);
-	} else if (thumb && typeof thumb === "object" && "url" in (thumb as any)) {
-		const url = (thumb as { url?: string }).url;
-		if (url) {
-			out.push(url);
-		}
+		return [thumb];
 	}
-	return out;
+	if (hasUrl(thumb) && thumb.url) {
+		return [thumb.url];
+	}
+	return [];
 }
 
 // Collect thumbnails with fallbacks: claim → channel → lbry.com
@@ -190,85 +195,66 @@ function collectThumbnails(resolved: ResolveMap[string] | undefined, got: LbryGe
 	return thumbnails;
 }
 
-// Detect HLS by MIME or URL pattern
+// Extract final URL from axios response (redirects) or use fallback
+function responseFinalUrl(resp: AxiosResponse<any>, fallback: string): string {
+	const headers = isStringHeaderMap(resp.headers) ? resp.headers : {};
+	const loc = headers["location"];
+	return typeof loc === "string" ? loc : fallback;
+}
+
+// Try to derive a MIME from a URL using mime.ts
+function mimeFromUrl(url?: string): string | undefined {
+	if (!url) {
+		return undefined;
+	}
+	try {
+		const u = new URL(url);
+		const name = u.pathname.split("/").pop() ?? "";
+		const ext = (name.split(".").pop() ?? "").toLowerCase();
+		return ext ? getMimeType(ext) : undefined;
+	} catch {
+		// Fallback for non-absolute URLs
+		const clean = url.split("?")[0].split("#")[0];
+		const name = clean.split("/").pop() ?? "";
+		const ext = (name.split(".").pop() ?? "").toLowerCase();
+		return ext ? getMimeType(ext) : undefined;
+	}
+}
+
+// Detect HLS by MIME or URL-derived MIME (via mime.ts)
 function isHlsMimeOrUrl(mime?: string | null, url?: string): boolean {
-	const m = (mime || "").toLowerCase();
-	return (
-		/\.m3u8(\?|$)/i.test(url || "") ||
-		m.includes("application/x-mpegurl") ||
-		m.includes("application/vnd.apple.mpegurl") ||
+	const m = (mime ?? "").toLowerCase();
+	if (
+		m === "application/x-mpegurl" ||
+		m === "application/vnd.apple.mpegurl" ||
 		m === "application/mpegurl" ||
 		m === "audio/mpegurl"
-	);
+	) {
+		return true;
+	}
+	return mimeFromUrl(url) === "application/x-mpegURL";
 }
 
 // Canonicalize MIME; map HLS to application/x-mpegURL; default to MP4
 function normalizeMime(mimeFromServer?: string | null, url?: string): string {
+	// 1) Trust strong hint from URL (e.g., .mp4, .webm)
+	const urlMime = mimeFromUrl(url);
+	if (urlMime && (urlMime.startsWith("video/") || urlMime.startsWith("audio/"))) {
+		return urlMime;
+	}
+	// 2) Detect HLS (header or URL-based)
 	if (isHlsMimeOrUrl(mimeFromServer, url)) {
 		return "application/x-mpegURL";
 	}
-	return mimeFromServer?.startsWith("video/") ? mimeFromServer : "video/mp4";
-}
-
-// Make absolute URL using base if needed
-function resolveRelativeUrl(base: string, maybeRelative: string): string {
-	try {
-		return new URL(maybeRelative, base).toString();
-	} catch {
-		return maybeRelative;
+	// 3) Fallback to server header when it's a concrete media type
+	if (
+		mimeFromServer &&
+		(mimeFromServer.startsWith("video/") || mimeFromServer.startsWith("audio/"))
+	) {
+		return mimeFromServer;
 	}
-}
-
-// Extract final URL from axios response (redirects) or use fallback
-function responseFinalUrl(resp: any, fallback: string): string {
-	return (
-		resp?.request?.res?.responseUrl ||
-		(typeof resp?.headers?.location === "string" ? resp.headers.location : undefined) ||
-		fallback
-	);
-}
-
-// Parse M3U8 master and pick the highest-quality variant
-async function pickBestHlsVariant(masterUrl: string): Promise<string> {
-	try {
-		const r = await axios.get(masterUrl, {
-			responseType: "text",
-			timeout: 12000,
-			maxRedirects: 5,
-			headers: {
-				...ODYSEE_HEADERS,
-				Accept: "application/vnd.apple.mpegurl,application/x-mpegurl,*/*",
-			},
-			validateStatus: s => s >= 200 && s < 400,
-		});
-
-		const parser = new M3U8Parser();
-		parser.push(typeof r.data === "string" ? r.data : String(r.data));
-		parser.end();
-
-		const manifest = parser.manifest as any;
-		const playlists = Array.isArray(manifest?.playlists) ? manifest.playlists : [];
-		if (!playlists.length) {
-			return masterUrl;
-		}
-
-		playlists.sort(
-			(a: any, b: any) =>
-				(b?.attributes?.BANDWIDTH ?? 0) - (a?.attributes?.BANDWIDTH ?? 0) ||
-				(b?.attributes?.RESOLUTION?.height ?? 0) - (a?.attributes?.RESOLUTION?.height ?? 0)
-		);
-
-		const best = playlists[0];
-		const bestUri: string | undefined = best?.uri || best?.attributes?.URI;
-		if (typeof bestUri === "string" && bestUri.length) {
-			const abs = resolveRelativeUrl(masterUrl, bestUri);
-			log.debug?.(`HLS: selected best variant ${abs}`);
-			return abs;
-		}
-	} catch (e: any) {
-		log.warn?.(`HLS parse failed for ${masterUrl}: ${e?.message ?? e}`);
-	}
-	return masterUrl;
+	// 4) Safe default
+	return "video/mp4";
 }
 
 // Verify stream via HEAD (fallback GET range), get final URL and MIME
@@ -282,7 +268,7 @@ async function verifyStream(
 			validateStatus: s => (s >= 200 && s < 400) || s === 405,
 			headers: { ...ODYSEE_HEADERS, Accept: "application/json,text/plain,*/*" },
 		});
-		const mime = head.headers?.["content-type"] || head.headers?.["Content-Type"];
+		const mime = head.headers?.["content-type"] ?? head.headers?.["Content-Type"];
 		const finalUrl = responseFinalUrl(head, url);
 		return {
 			ok: head.status >= 200 && head.status < 400,
@@ -303,7 +289,7 @@ async function verifyStream(
 					Accept: "application/json,text/plain,*/*",
 				},
 			});
-			const mime = get.headers?.["content-type"] || get.headers?.["Content-Type"];
+			const mime = get.headers?.["content-type"] ?? get.headers?.["Content-Type"];
 			const finalUrl = responseFinalUrl(get, url);
 			return {
 				ok: true,
@@ -311,8 +297,14 @@ async function verifyStream(
 				mime: typeof mime === "string" ? mime : undefined,
 				finalUrl,
 			};
-		} catch (e: any) {
-			log.warn(`verifyStream failed for ${url}: ${e?.message ?? e}`);
+		} catch (e: unknown) {
+			let msg = "unknown error";
+			if (e instanceof Error) {
+				msg = e.message;
+			} else {
+				msg = String(e);
+			}
+			log.warn(`verifyStream failed for ${url}: ${msg}`);
 			return { ok: false };
 		}
 	}
@@ -332,9 +324,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 	}
 
 	canHandleURL(url: string): boolean {
-		return (
-			typeof url === "string" && (url.startsWith("lbry://") || /\bodysee\.com\//i.test(url))
-		);
+		return url.startsWith("lbry://") || /\bodysee\.com\//i.test(url);
 	}
 
 	isCollectionURL(url: string): boolean {
@@ -352,15 +342,12 @@ export default class OdyseeAdapter extends ServiceAdapter {
 
 	async fetchVideoInfo(videoId: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		const { canonicalUri, resolved } = await resolveCanonicalUri(videoId);
-		const uriForGet =
-			resolved?.permanent_url && typeof resolved.permanent_url === "string"
-				? resolved.permanent_url
-				: canonicalUri;
+		const uriForGet = resolved?.permanent_url ?? canonicalUri;
 
 		if (isCopyrightRestricted(resolved)) {
 			const license =
 				resolved?.value?.license ?? resolved?.value?.reposted_claim?.value?.license;
-			throw new OdyseeDRMProtectedVideo({ license });
+			throw new OdyseeDrmProtectedVideo({ license });
 		}
 		let got = await rpc<LbryGetResult>("get", { uri: uriForGet, save_file: false });
 
@@ -371,36 +358,27 @@ export default class OdyseeAdapter extends ServiceAdapter {
 
 		if (!got?.streaming_url) {
 			const dbg = JSON.stringify({ claim_id: got?.claim_id, mime_type: got?.mime_type });
-			throw new Error(`Odysee RPC get() returned no streaming_url (${dbg})`);
+			const msg = `Odysee RPC get() returned no streaming_url (${dbg})`;
+			log.error(msg);
+			throw new Error(msg);
 		}
 
 		let finalStreamingUrl = got.streaming_url;
 
 		// Always verify the stream and adopt redirects + authoritative MIME.
-		let baseMimeHeader: string | null =
-			got.mime_type && got.mime_type.length ? got.mime_type : null;
+		let baseMimeHeader: string | null = got.mime_type ?? null;
 
 		const ver = await verifyStream(finalStreamingUrl);
 		if (ver.ok) {
-			if (
-				ver.finalUrl &&
-				ver.finalUrl.startsWith("http") &&
-				ver.finalUrl !== finalStreamingUrl
-			) {
+			if (ver.finalUrl?.startsWith("http") && ver.finalUrl !== finalStreamingUrl) {
 				log.debug?.(`verifyStream: redirect detected -> using finalUrl: ${ver.finalUrl}`);
 				finalStreamingUrl = ver.finalUrl;
 			}
-			if (typeof ver.mime === "string" && ver.mime.length > 0) {
+			if (ver.mime) {
 				baseMimeHeader = ver.mime;
 			}
 		} else {
 			log.warn?.(`verifyStream: could not validate stream url=${finalStreamingUrl}`);
-		}
-
-		let probeUrl: string | undefined;
-		const isMasterHls = isHlsMimeOrUrl(baseMimeHeader, finalStreamingUrl);
-		if (isMasterHls) {
-			probeUrl = await pickBestHlsVariant(finalStreamingUrl);
 		}
 
 		const v = got.value ?? resolved?.value ?? {};
@@ -410,32 +388,31 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		const effectiveMime = normalizeMime(baseMimeHeader, finalStreamingUrl);
 		const isHls = isHlsMimeOrUrl(effectiveMime, finalStreamingUrl);
 
-		const result: any = {
+		const result: Video = {
 			service: "odysee",
 			id: finalStreamingUrl,
-			title: v.title || got.name || "",
-			description: v.description || "",
+			title: v.title ?? got.name ?? "",
+			description: v.description ?? "",
 			length: typeof videoMeta.duration === "number" ? videoMeta.duration : undefined,
-			thumbnail: thumbnails[0] ?? undefined,
+			thumbnail: thumbnails[0],
 			mime: effectiveMime || "video/mp4",
 		};
 		if (isHls) {
 			result.hls_url = finalStreamingUrl;
 		}
-		const typedResult = result as unknown as Video;
 
 		const snapshot: Record<string, unknown> = {
-			service: typedResult.service,
-			id: typedResult.id,
-			title: typedResult.title,
-			description: typedResult.description,
-			length: typedResult.length,
-			thumbnail: typedResult.thumbnail,
-			mime: typedResult.mime,
+			service: result.service,
+			id: result.id,
+			title: result.title,
+			description: result.description,
+			length: result.length,
+			thumbnail: result.thumbnail,
+			mime: result.mime,
 			...(isHls ? { hls_url: finalStreamingUrl } : null),
 		};
 		log.debug(`Odysee FE payload -> ${JSON.stringify(snapshot)}`);
 
-		return typedResult;
+		return result;
 	}
 }
