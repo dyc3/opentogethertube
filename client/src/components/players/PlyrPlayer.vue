@@ -81,20 +81,15 @@ export default defineComponent({
 				return ["direct", "hls"].includes(props.service);
 			},
 			setCaptionsEnabled(enabled: boolean): void {
-				if (hls) {
-					hls.subtitleDisplay = enabled;
-				} else {
-					player.value?.toggleCaptions(enabled);
-				}
+				player.value?.toggleCaptions(enabled);
 			},
 			isCaptionsEnabled(): boolean {
-				if (hls) {
-					return hls.subtitleDisplay;
-				} else {
-					return player.value?.currentTrack !== -1;
-				}
+				return player.value?.currentTrack !== -1;
 			},
 			getCaptionsTracks(): string[] {
+				if (hls) {
+					return hls.subtitleTracks.map(track => track.name);
+				}
 				const tracks: string[] = [];
 				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
 					const track = videoElem.value?.textTracks[i];
@@ -112,7 +107,7 @@ export default defineComponent({
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
 				if (hls) {
-					hls.subtitleTrack = findTrackIdx(track);
+					player.value.currentTrack = hls.subtitleTracks.findIndex(t => t.name === track);
 				} else {
 					player.value.currentTrack = findTrackIdx(track);
 				}
@@ -163,6 +158,11 @@ export default defineComponent({
 				disableContextMenu: false,
 				fullscreen: {
 					enabled: false,
+				},
+				captions: {
+					active: true,
+					update: true, // For HLS.js captions to work
+					language: "auto",
 				},
 			});
 
@@ -220,6 +220,7 @@ export default defineComponent({
 					poster: thumbnail.value,
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+				videoElem.value.setAttribute("crossorigin", "anonymous"); // For WebVTT captions
 				// ...so that we can use hls.js to change the video source
 				hls = new Hls();
 				hls.loadSource(videoUrl.value);
@@ -373,5 +374,10 @@ export default defineComponent({
 	height: 100%;
 	object-fit: contain;
 	object-position: 50% 50%;
+}
+
+.plyr__captions {
+	font-size: clamp(1em, 3cqh, 3em);
+	bottom: 50px;
 }
 </style>
