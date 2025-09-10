@@ -82,7 +82,7 @@ export class OdyseeDrmProtectedVideo extends Error {
 	constructor(opts?: { license?: string }) {
 		const userMessage = "This Odysee video is not available due to copyright restrictions.";
 		super(userMessage);
-		this.name = "OdyseeDrmProtectedVideo ";
+		this.name = "OdyseeDrmProtectedVideo";
 		this.userMessage = userMessage;
 		this.meta = opts && typeof opts === "object" ? { license: opts.license } : undefined;
 		// keep proper prototype chain in older runtimes
