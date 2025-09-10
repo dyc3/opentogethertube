@@ -11,6 +11,9 @@ const log = getLogger("odysee");
 // API for Odysee
 const ODYSEE_RPC = "https://api.na-backend.odysee.com/api/v1/proxy";
 
+// Unified AXIOS Timeout
+const AXIOS_TIMEOUT_MS = 10000;
+
 // Default headers expected by Odysee CDN
 const ODYSEE_HEADERS = {
 	"Referer": "https://odysee.com/",
@@ -105,10 +108,13 @@ async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 }
 
 //Copyrighted Content from Odysee isnt available via API and gets blocked (http error 401)
-function isCopyrightRestricted(resolved?: ResolveMap[string]): boolean {
-	const lic = resolved?.value?.license ?? resolved?.value?.reposted_claim?.value?.license;
-	log.debug(String(lic));
-	return typeof lic === "string" && /copyright/i.test(lic);
+
+function getLicense(resolved?: ResolveMap[string]): string | undefined {
+	return resolved?.value?.license ?? resolved?.value?.reposted_claim?.value?.license;
+}
+
+function isCopyrightRestricted(license?: string): boolean {
+	return license?.toLowerCase().includes("copyright") ?? false;
 }
 
 // Call Odysee JSON-RPC and return typed result
@@ -120,7 +126,7 @@ async function rpc<T>(
 	const res = await axios.post(
 		`${ODYSEE_RPC}?m=${encodeURIComponent(method)}`,
 		{ jsonrpc: "2.0", method, params },
-		{ timeout: 10000, ...axiosCfg }
+		{ timeout: AXIOS_TIMEOUT_MS, ...axiosCfg }
 	);
 
 	log.debug(`Odysee RPC ${method} response: ${JSON.stringify(res.data)}`);
@@ -175,12 +181,18 @@ function collectThumbnails(resolved: ResolveMap[string] | undefined, got: LbryGe
 	}
 	if (thumbnails.length === 0) {
 		const chVal = got.signing_channel?.value ?? resolved?.signing_channel?.value;
-		if (chVal?.thumbnail) thumbnails = extractThumbnails(chVal.thumbnail);
-		if (thumbnails.length === 0 && chVal?.cover) thumbnails = extractThumbnails(chVal.cover);
+		if (chVal?.thumbnail) {
+			thumbnails = extractThumbnails(chVal.thumbnail);
+		}
+		if (thumbnails.length === 0 && chVal?.cover) {
+			thumbnails = extractThumbnails(chVal.cover);
+		}
 	}
 	if (thumbnails.length === 0) {
 		const cid = resolved?.claim_id || got.claim_id;
-		if (cid) thumbnails.push(`https://thumbnails.lbry.com/${cid}`);
+		if (cid) {
+			thumbnails.push(`https://thumbnails.lbry.com/${cid}`);
+		}
 	}
 	return thumbnails;
 }
@@ -238,7 +250,7 @@ async function pickBestHlsVariant(masterUrl: string): Promise<string> {
 	try {
 		const r = await axios.get(masterUrl, {
 			responseType: "text",
-			timeout: 12000,
+			timeout: AXIOS_TIMEOUT_MS,
 			maxRedirects: 5,
 			headers: {
 				...ODYSEE_HEADERS,
@@ -282,7 +294,7 @@ async function verifyStream(
 ): Promise<{ ok: boolean; status?: number; mime?: string; finalUrl?: string }> {
 	try {
 		const head = await axios.head(url, {
-			timeout: 10000,
+			timeout: AXIOS_TIMEOUT_MS,
 			maxRedirects: 5,
 			validateStatus: s => (s >= 200 && s < 400) || s === 405,
 			headers: { ...ODYSEE_HEADERS, Accept: "application/json,text/plain,*/*" },
@@ -299,7 +311,7 @@ async function verifyStream(
 		try {
 			const get = await axios.get(url, {
 				responseType: "arraybuffer",
-				timeout: 10000,
+				timeout: AXIOS_TIMEOUT_MS,
 				maxRedirects: 5,
 				validateStatus: s => s === 206 || (s >= 200 && s < 300),
 				headers: {
@@ -359,11 +371,12 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		const { canonicalUri, resolved } = await resolveCanonicalUri(videoId);
 		const uriForGet = resolved?.permanent_url ?? canonicalUri;
 
-		if (isCopyrightRestricted(resolved)) {
-			const license =
-				resolved?.value?.license ?? resolved?.value?.reposted_claim?.value?.license;
+		const license = getLicense(resolved);
+
+		if (isCopyrightRestricted(license)) {
 			throw new OdyseeDrmProtectedVideo({ license });
 		}
+
 		let got = await rpc<LbryGetResult>("get", { uri: uriForGet, save_file: false });
 
 		if (!got?.streaming_url) {
