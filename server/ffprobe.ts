@@ -95,7 +95,9 @@ function streamDataIntoFfprobe(
 			try {
 				controller.abort();
 			} catch (e) {
-				if (!axios.isCancel(e)) log.debug(`abort error: ${String(e)}`);
+				if (!axios.isCancel(e)) {
+					log.debug(`abort error: ${String(e)}`);
+				}
 			}
 		}, FFPROBE_TIMEOUT_MS);
 
