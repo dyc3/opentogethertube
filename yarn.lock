@@ -5250,6 +5250,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/m3u8-parser@npm:^7.2.5":
+  version: 7.2.5
+  resolution: "@types/m3u8-parser@npm:7.2.5"
+  checksum: 10c0/893345368afd7c5fd166f622a4952bf4314f046b8d418a5d5c41ec1ab99a1462a14f610134126af3e60ca84723b1926e03995df67cf8a57d7035a896055215a7
+  languageName: node
+  linkType: hard
+
 "@types/mime@npm:*":
   version: 3.0.1
   resolution: "@types/mime@npm:3.0.1"
@@ -6226,6 +6233,16 @@ __metadata:
     global: "npm:^4.4.0"
     url-toolkit: "npm:^2.2.1"
   checksum: 10c0/cb90fe5b921ab09274aba3898a546c3a6e439f607be83cf78943e2834970632e281d9d54fab45b3e72b7d63771260ff851edf45f0dda3d3be03e334a75dfc4ff
+  languageName: node
+  linkType: hard
+
+"@videojs/vhs-utils@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "@videojs/vhs-utils@npm:4.1.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.12.5"
+    global: "npm:^4.4.0"
+  checksum: 10c0/3b874ee5f66b54b5b158b85c27c86aef859ff90eb0da37cdf2e95b3757413c397a3680ddb37fcf5c33ea967d121b56a0f845ac311e0192fb4ef8e1a2936573c4
   languageName: node
   linkType: hard
 
@@ -14670,14 +14687,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"m3u8-parser@npm:^6.2.0":
-  version: 6.2.0
-  resolution: "m3u8-parser@npm:6.2.0"
+"m3u8-parser@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "m3u8-parser@npm:7.2.0"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
-    "@videojs/vhs-utils": "npm:^3.0.5"
+    "@videojs/vhs-utils": "npm:^4.1.1"
     global: "npm:^4.4.0"
-  checksum: 10c0/50be1d7809367f12ec51911120f33f50e1927960288308a61cd1cba4b2363eda62e8f7cc45921e1c5f1729d1e69ed8b6073bcd6f7b4c411874958f0df3808ad5
+  checksum: 10c0/059571722e842a125f380c1eabb1897bfcda02732525fae73fd404bc18dcf6c8f2383a3102f3f1de45ecdb5774e0312f4558ad178e6fcbd10718f239925f7d83
   languageName: node
   linkType: hard
 
@@ -16056,6 +16073,7 @@ __metadata:
     "@types/express": "npm:^4.17.11"
     "@types/express-session": "npm:^1.17.3"
     "@types/lodash": "npm:^4.14.170"
+    "@types/m3u8-parser": "npm:^7.2.5"
     "@types/node": "npm:^18.13.0"
     "@types/passport": "npm:1.0.12"
     "@types/passport-http-bearer": "npm:^1.0.36"
@@ -16076,7 +16094,7 @@ __metadata:
     express-session: "npm:^1.17.0"
     faker: "npm:^5.5.3"
     lodash: "npm:^4.17.21"
-    m3u8-parser: "npm:^6.2.0"
+    m3u8-parser: "npm:^7.2.0"
     nocache: "npm:^3.0.0"
     node-abort-controller: "npm:3.0.1"
     node-mailjet: "npm:^6.0.9"
