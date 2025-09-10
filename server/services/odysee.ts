@@ -11,6 +11,9 @@ const log = getLogger("odysee");
 // API for Odysee
 const ODYSEE_RPC = "https://api.na-backend.odysee.com/api/v1/proxy";
 
+// Odysee URL for normalizing
+const ODYSEE_WEB = "https://odysee.com";
+
 // Unified AXIOS Timeout
 const AXIOS_TIMEOUT_MS = 10000;
 
@@ -87,6 +90,22 @@ type ResolveMap = Record<
 	}
 >;
 
+/**
+ * Normalize Odysee URLs the same way browsers do:
+ * - Accept Unicode in the path
+ * - decodeURI → Unicode NFC → encodeURI (UTF-8 percent encoding)
+ * - Keep important path characters like `@` and `:` unencoded
+ * - Idempotent for already-correctly-encoded inputs
+ */
+export function normalizeOdyseeUrl(input: string): URL {
+	const url = new URL(input, ODYSEE_WEB);
+	const decodedPath = decodeURI(url.pathname);
+	const normalizedPath = decodedPath.normalize("NFC");
+	const reencodedPath = encodeURI(normalizedPath);
+	url.pathname = reencodedPath;
+	return url;
+}
+
 // Resolve and normalize an LBRY URI to its canonical (follow reposts)
 async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 	canonicalUri: string;
@@ -140,22 +159,37 @@ async function rpc<T>(
 
 // Convert an odysee.com URL to lbry:// form (or pass-through)
 function parseOdyseeUrlToLbry(uriOrUrl: string): string | null {
-	if (!uriOrUrl || typeof uriOrUrl !== "string") {
+	if (!uriOrUrl) {
 		return null;
 	}
 	if (uriOrUrl.startsWith("lbry://")) {
 		return uriOrUrl;
 	}
-
-	// https://odysee.com/@Channel:xx/Video:yy  →  lbry://@Channel#xx/Video#yy
-	const m = uriOrUrl.match(/odysee\.com\/(@[^/]+)(?:\/([^?#]+))?/i);
-	if (!m) {
+	let url: URL;
+	try {
+		url = normalizeOdyseeUrl(uriOrUrl);
+	} catch {
+		return null;
+	}
+	if (!/(\.|^)odysee\.com$/i.test(url.hostname)) {
 		return null;
 	}
 
-	const chan = m[1].replace(":", "#");
-	const vid = m[2] ? m[2].replace(":", "#") : "";
-	return `lbry://${chan}${vid ? "/" + vid : ""}`;
+	// Work on decoded + NFC-normalized path
+	const decoded = decodeURI(url.pathname).normalize("NFC");
+	const parts = decoded.split("/").filter(Boolean);
+	if (!parts[0] || !parts[0].startsWith("@")) {
+		return null;
+	}
+
+	// @Channel:xx[/Slug:yy] -> lbry://@Channel#xx[/Slug#yy]
+	const [channel, channelId] = parts[0].split(":", 2);
+	let lbry = `lbry://${channel}${channelId ? `#${channelId}` : ""}`;
+	if (parts[1]) {
+		const [slug, streamId] = parts[1].split(":", 2);
+		lbry += `/${slug}${streamId ? `#${streamId}` : ""}`;
+	}
+	return lbry;
 }
 
 // Normalize thumbnail field(s) into a list of URLs
@@ -349,9 +383,18 @@ export default class OdyseeAdapter extends ServiceAdapter {
 	}
 
 	canHandleURL(url: string): boolean {
-		return (
-			typeof url === "string" && (url.startsWith("lbry://") || /\bodysee\.com\//i.test(url))
-		);
+		if (!url) {
+			return false;
+		}
+		if (url.startsWith("lbry://")) {
+			return true;
+		}
+		try {
+			const u = normalizeOdyseeUrl(url);
+			return /(\.|^)odysee\.com$/i.test(u.hostname);
+		} catch {
+			return false;
+		}
 	}
 
 	isCollectionURL(url: string): boolean {
