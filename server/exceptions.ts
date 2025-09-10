@@ -64,7 +64,6 @@ export class UpstreamInvidiousException extends Error {
 /**
  * OdyseeDrmProtectedVideo
  * -----------------------
- *
  * will be thrown when odysee claim has copyrighted in license
  *
  * - status: HTTP status that should be returned to the client (451)
@@ -89,6 +88,34 @@ export class OdyseeDrmProtectedVideo extends Error {
 		Object.setPrototypeOf?.(this, OdyseeDrmProtectedVideo.prototype);
 		// better stack for V8
 		Error.captureStackTrace?.(this, OdyseeDrmProtectedVideo);
+	}
+}
+
+/**
+ * OdyseeUnavailableVideo
+ * -----------------------
+ * will be thrown if the final verify throws an unexpected 401 instead of giving the
+ *
+ * Front-End the unavailable video; the video cannot be played.
+ *
+ * - code:   "ODYSEE_UNAVAILABLE_VIDEO"
+ * - userMessage: short, safe text for direct display in the UI
+ */
+export class OdyseeUnavailableVideo extends Error {
+	public readonly status: number = 401;
+	public readonly code: "ODYSEE_UNAVAILABLE_VIDEO" = "ODYSEE_UNAVAILABLE_VIDEO";
+	public readonly userMessage: string;
+	public readonly expose = true;
+
+	constructor() {
+		const userMessage = "This video is not available to us to play.";
+		super(userMessage);
+		this.name = "OdyseeUnavailableVideo";
+		this.userMessage = userMessage;
+		// keep proper prototype chain in older runtimes
+		Object.setPrototypeOf?.(this, OdyseeUnavailableVideo.prototype);
+		// better stack for V8
+		Error.captureStackTrace?.(this, OdyseeUnavailableVideo);
 	}
 }
 

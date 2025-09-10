@@ -58,7 +58,8 @@ const addPreview: RequestHandler<
 			err.name === "UnsupportedVideoType" ||
 			err.name === "UpstreamInvidiousException" ||
 			err.name === "VideoNotFoundException" ||
-			err.name === "OdyseeDrmProtectedVideo"
+			err.name === "OdyseeDrmProtectedVideo" ||
+			err.name === "OdyseeUnavailableVideo"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);
 			res.status(400).json({
