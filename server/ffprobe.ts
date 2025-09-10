@@ -56,8 +56,16 @@ function killAllFfprobeChildren(reason: string): void {
 	FFPROBE_CHILDREN.clear();
 }
 
-// Best-effort cleanup on shutdown paths
+// Ensure no ffprobe child processes are left running when Node.js is terminated.
+// On normal exit or termination signals (SIGINT, SIGTERM) we clean up
+// all registered ffprobe children to prevent zombie processes.
+
+// Node.js terminates via exit
 process.once("exit", () => killAllFfprobeChildren("process_exit"));
+// Node.js terminates via Ctrl + C command
+process.once("SIGINT", () => killAllFfprobeChildren("sigint"));
+// Node.js terminates via OS Kill execution. Linux/Mac: Kill or service manager, Windows: taskkill or EndTask
+process.once("SIGTERM", () => killAllFfprobeChildren("sigterm"));
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -313,7 +321,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 						hardKiller = null;
 					}
 					log.error(`ffprobe spawn error (pid=${child.pid ?? "n/a"}): ${String(err)}`);
-					reject;
+					reject(err);
 				});
 				child.on("close", (code, signal) => {
 					if (hardKiller) {
