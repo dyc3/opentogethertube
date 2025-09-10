@@ -1,4 +1,7 @@
 import axios from "axios";
+import http from "http";
+import https from "https";
+import { conf } from "../ott-config.js";
 import { getLogger } from "../logger.js";
 import { ServiceAdapter } from "../serviceadapter.js";
 import {
@@ -20,6 +23,18 @@ const ODYSEE_WEB = "https://odysee.com";
 
 // Unified AXIOS Timeout
 const AXIOS_TIMEOUT_MS = 10000;
+
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 50 });
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 50 });
+const httpc = axios.create({
+	timeout: AXIOS_TIMEOUT_MS,
+	maxRedirects: 5,
+	httpAgent,
+	httpsAgent,
+	headers: {
+		"User-Agent": `OpenTogetherTube @ ${conf.get("hostname")}`,
+	},
+});
 
 interface LbryGetResult {
 	claim_id?: string;
@@ -46,6 +61,8 @@ interface LbryGetResult {
 		};
 	};
 }
+
+type JsonRpcEnvelope<T> = { jsonrpc: "2.0"; result?: T; error?: { message?: string } };
 
 type ResolveMap = Record<
 	string,
@@ -110,19 +127,23 @@ async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 	canonicalUri: string;
 	resolved: ResolveMap[string];
 }> {
-	const res = await rpc<ResolveMap>("resolve", { urls: [inputLbryUri] });
-	const entry = res[inputLbryUri];
-	if (!entry) {
-		throw new Error("resolve() returned no entry for URI");
+	try {
+		const res = await rpc<ResolveMap>("resolve", { urls: [inputLbryUri] });
+		const entry = res[inputLbryUri];
+		if (!entry) {
+			throw new Error("resolve() returned no entry for URI");
+		}
+		const repost =
+			entry.value_type === "repost" ? entry.value?.reposted_claim?.canonical_url : null;
+		const canonical = repost || entry.canonical_url;
+		if (!canonical) {
+			throw new Error("resolve() returned no canonical_url");
+		}
+		return { canonicalUri: canonical, resolved: entry };
+	} catch (e) {
+		log.debug?.("resolveCanonicalUri failed", { uri: inputLbryUri, err: String(e) });
+		throw e;
 	}
-
-	const repost =
-		entry.value_type === "repost" ? entry.value?.reposted_claim?.canonical_url : null;
-	const canonical = repost || entry.canonical_url;
-	if (!canonical) {
-		throw new Error("resolve() returned no canonical_url");
-	}
-	return { canonicalUri: canonical, resolved: entry };
 }
 
 //Copyrighted Content from Odysee isnt available via API and gets blocked (http error 401)
@@ -132,7 +153,6 @@ function getLicense(resolved?: ResolveMap[string]): string | undefined {
 }
 
 function isCopyrightRestricted(license?: string): boolean {
-	log.debug("Found copyright claim:", license);
 	return license?.toLowerCase().includes("copyright") ?? false;
 }
 
@@ -142,19 +162,21 @@ async function rpc<T>(
 	params: Record<string, unknown>,
 	axiosCfg: Partial<Parameters<typeof axios.post>[2]> = {}
 ): Promise<T> {
-	const res = await axios.post(
-		`${ODYSEE_RPC}?m=${encodeURIComponent(method)}`,
-		{ jsonrpc: "2.0", method, params },
-		{ timeout: AXIOS_TIMEOUT_MS, ...axiosCfg }
-	);
-
-	log.debug(`Odysee RPC ${method} response: ${JSON.stringify(res.data)}`);
-
-	if (!res?.data || typeof res.data.result === "undefined") {
-		const errMsg = res?.data?.error?.message ? ` (${res.data.error.message})` : "";
-		throw new Error(`Odysee RPC returned no result for ${method}${errMsg}`);
+	try {
+		const res = await httpc.post<JsonRpcEnvelope<T>>(
+			`${ODYSEE_RPC}?m=${encodeURIComponent(method)}`,
+			{ jsonrpc: "2.0", method, params },
+			axiosCfg
+		);
+		if (!res?.data || typeof res.data.result === "undefined") {
+			const errMsg = res?.data?.error?.message ? ` (${res.data.error.message})` : "";
+			throw new Error(`Odysee RPC returned no result for ${method}${errMsg}`);
+		}
+		return res.data.result;
+	} catch (e) {
+		log.debug?.("rpc error", { method, err: String(e) });
+		throw e;
 	}
-	return res.data.result;
 }
 
 // Convert an odysee.com URL to lbry:// form (or pass-through)
@@ -243,6 +265,14 @@ function collectThumbnails(resolved: ResolveMap[string] | undefined, got: LbryGe
 	return thumbnails;
 }
 
+function isOdyCdnHost(u: string): boolean {
+	try {
+		return /(\.|^)odycdn\.com$/i.test(new URL(u).hostname);
+	} catch {
+		return false;
+	}
+}
+
 // Detect HLS by MIME or URL pattern
 function isHlsMimeOrUrl(mime?: string | null, url?: string): boolean {
 	const m = (mime || "").toLowerCase();
@@ -310,15 +340,6 @@ function guessHlsCandidatesFromMp4(mp4Url: string): string[] {
 }
 
 // Extract final URL from axios response (redirects) or use fallback
-interface HeadersLike {
-	location?: string;
-	Location?: string;
-}
-
-interface RequestLike {
-	res?: { responseUrl?: string };
-}
-
 function responseFinalUrl(
 	nodeResponseUrl: string | undefined,
 	locationHeader: string | undefined,
@@ -342,10 +363,16 @@ function toStr(x: unknown): string | undefined {
 // Parse M3U8 master and pick the highest-quality variant
 async function pickBestHlsVariant(masterUrl: string): Promise<string> {
 	try {
-		const r = await axios.get(masterUrl, {
+		const v = await verifyStream(masterUrl);
+		if (!v.ok) {
+			log.debug?.("pickBestHlsVariant: master not verifiable", {
+				masterUrl,
+				status: v.status,
+			});
+			return masterUrl;
+		}
+		const r = await httpc.get(masterUrl, {
 			responseType: "text",
-			timeout: AXIOS_TIMEOUT_MS,
-			maxRedirects: 5,
 			headers: {
 				Accept: "application/vnd.apple.mpegurl,application/x-mpegurl,*/*",
 			},
@@ -378,7 +405,7 @@ async function pickBestHlsVariant(masterUrl: string): Promise<string> {
 		}
 	} catch (e: unknown) {
 		const msg = e instanceof Error ? e.message : String(e);
-		log.warn?.(`HLS parse failed for ${masterUrl}: ${msg}`);
+		log.debug?.("pickBestHlsVariant failed", { masterUrl, err: msg });
 	}
 	return masterUrl;
 }
@@ -388,14 +415,12 @@ async function verifyStream(
 	url: string
 ): Promise<{ ok: boolean; status?: number; mime?: string; finalUrl?: string }> {
 	try {
-		const head = await axios.head(url, {
-			timeout: AXIOS_TIMEOUT_MS,
-			maxRedirects: 5,
+		const head = await httpc.head(url, {
 			validateStatus: s => (s >= 200 && s < 300) || s === 405,
 			headers: { Accept: "application/json,text/plain,*/*" },
 		});
-		const mime = head.headers?.["content-type"] || head.headers?.["Content-Type"];
-		const loc = head.headers?.["location"] ?? head.headers?.["Location"];
+		const mime = head.headers?.["content-type"];
+		const loc = head.headers?.["location"];
 		const finalUrl = responseFinalUrl(
 			head.request?.res?.responseUrl,
 			typeof loc === "string" ? loc : undefined,
@@ -410,18 +435,16 @@ async function verifyStream(
 		};
 	} catch {
 		try {
-			const get = await axios.get(url, {
+			const get = await httpc.get(url, {
 				responseType: "arraybuffer",
-				timeout: AXIOS_TIMEOUT_MS,
-				maxRedirects: 5,
 				validateStatus: s => s === 206 || s === 200,
 				headers: {
 					Range: "bytes=0-1",
 					Accept: "application/json,text/plain,*/*",
 				},
 			});
-			const mime = get.headers?.["content-type"] || get.headers?.["Content-Type"];
-			const loc = get.headers?.["location"] ?? get.headers?.["Location"];
+			const mime = get.headers?.["content-type"];
+			const loc = get.headers?.["location"];
 			const finalUrl = responseFinalUrl(
 				get.request?.res?.responseUrl,
 				typeof loc === "string" ? loc : undefined,
@@ -433,15 +456,15 @@ async function verifyStream(
 				mime: typeof mime === "string" ? mime : undefined,
 				finalUrl,
 			};
-		} catch (e: unknown) {
-			const status = axios.isAxiosError(e) ? e.response?.status : undefined;
-			if (status === 404) {
-				log.debug?.(`verifyStream expected ${status} for ${url}`);
+		} catch (e2: unknown) {
+			const status = axios.isAxiosError(e2) ? e2.response?.status : undefined;
+			if (status === 401 || status === 404) {
+				log.debug?.("verifyStream expected status", { url, status });
 			} else {
-				const msg = e instanceof Error ? e.message : String(e);
-				log.warn(`verifyStream failed for ${url}: ${msg}`);
+				const msg = e2 instanceof Error ? e2.message : String(e2);
+				log.warn(`verifyStream failed`, { url, msg, status } as any);
 			}
-			log.debug?.(`Found the following status:${status}`);
+			log.debug?.("verifyStream result", { url, status, ok: false });
 			return { ok: false, status };
 		}
 	}
@@ -497,13 +520,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(videoId: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
-		const isOdyCdn = (() => {
-			try {
-				return /(\.|^)odycdn\.com$/i.test(new URL(videoId).hostname);
-			} catch {
-				return false;
-			}
-		})();
+		const isOdyCdn = isOdyCdnHost(videoId);
 		if (isOdyCdn) {
 			let finalStreamingUrl = videoId;
 			const ver = await verifyStream(finalStreamingUrl);
@@ -527,8 +544,11 @@ export default class OdyseeAdapter extends ServiceAdapter {
 					claimId = path[i + 1];
 					thumbnail = `https://thumbnails.lbry.com/${claimId}`;
 				}
-			} catch {
-				/* ignore */
+			} catch (e) {
+				log.debug?.("extract claimId from URL failed", {
+					url: finalStreamingUrl,
+					err: String(e),
+				});
 			}
 
 			if (claimId) {
@@ -592,8 +612,8 @@ export default class OdyseeAdapter extends ServiceAdapter {
 							}
 						}
 					}
-				} catch {
-					/* ignore meta fetch errors */
+				} catch (e) {
+					log.debug?.("claim_search failed (odycdn path)", { claimId, err: String(e) });
 				}
 			}
 			if (!isHls) {
@@ -603,6 +623,15 @@ export default class OdyseeAdapter extends ServiceAdapter {
 					finalStreamingUrl = hls;
 					isHls = true;
 				}
+			}
+
+			const finalCheck = await verifyStream(finalStreamingUrl);
+			if (!finalCheck.ok) {
+				log.debug?.("odycdn final URL not playable", {
+					url: finalStreamingUrl,
+					status: finalCheck.status,
+				});
+				throw new OdyseeUnavailableVideo();
 			}
 
 			const result: Video = {
@@ -640,11 +669,22 @@ export default class OdyseeAdapter extends ServiceAdapter {
 			throw new OdyseeDrmProtectedVideo({ license });
 		}
 
-		let got = await rpc<LbryGetResult>("get", { uri: uriForGet, save_file: false });
+		let got: LbryGetResult;
+		try {
+			got = await rpc<LbryGetResult>("get", { uri: uriForGet, save_file: false });
+		} catch (e) {
+			log.debug?.("rpc get(save_file:false) failed", { uri: uriForGet, err: String(e) });
+			throw e;
+		}
 
 		if (!got?.streaming_url) {
 			log.debug("Odysee get(save_file:false) had no streaming_url, retrying plain get()");
-			got = await rpc<LbryGetResult>("get", { uri: uriForGet });
+			try {
+				got = await rpc<LbryGetResult>("get", { uri: uriForGet });
+			} catch (e) {
+				log.debug?.("rpc get() failed", { uri: uriForGet, err: String(e) });
+				throw e;
+			}
 		}
 
 		if (!got?.streaming_url) {
@@ -673,10 +713,9 @@ export default class OdyseeAdapter extends ServiceAdapter {
 			throw new OdyseeUnavailableVideo();
 		}
 
-		let probeUrl: string | undefined;
 		const isMasterHls = isHlsMimeOrUrl(baseMimeHeader, finalStreamingUrl);
 		if (isMasterHls) {
-			probeUrl = await pickBestHlsVariant(finalStreamingUrl);
+			finalStreamingUrl = await pickBestHlsVariant(finalStreamingUrl);
 		}
 
 		const v = got.value ?? resolved?.value ?? {};
@@ -686,7 +725,15 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		let effectiveMime = normalizeMime(baseMimeHeader, finalStreamingUrl);
 		let isHls = isHlsMimeOrUrl(effectiveMime, finalStreamingUrl);
 		// Prefer HLS when we can construct it precisely from claim_id + sd_hash
-		if (!isHls && /(\.|^)odycdn\.com$/i.test(new URL(finalStreamingUrl).hostname)) {
+		if (!isHls && isOdyCdnHost(finalStreamingUrl)) {
+			try {
+				new URL(finalStreamingUrl); // Robust: Guard
+			} catch (e) {
+				log.debug?.("invalid finalStreamingUrl", {
+					url: finalStreamingUrl,
+					err: String(e),
+				});
+			}
 			const claimId = resolved?.claim_id || got.claim_id;
 			const sd = getSdHashFromValue(v);
 			if (typeof claimId === "string" && typeof sd === "string") {
@@ -707,6 +754,15 @@ export default class OdyseeAdapter extends ServiceAdapter {
 					isHls = true;
 				}
 			}
+		}
+
+		const finalCheck2 = await verifyStream(finalStreamingUrl);
+		if (!finalCheck2.ok) {
+			log.debug?.("final URL not playable (resolve path)", {
+				url: finalStreamingUrl,
+				status: finalCheck2.status,
+			});
+			throw new OdyseeUnavailableVideo();
 		}
 
 		const result: Video = {
