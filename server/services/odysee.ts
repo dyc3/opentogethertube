@@ -240,7 +240,7 @@ function extractThumbnails(thumb: unknown): string[] {
 	return out;
 }
 
-// Collect thumbnails with fallbacks: claim → channel → lbry.com
+// Collect thumbnails with fallbacks: claim -> channel -> lbry.com
 function collectThumbnails(resolved: ResolveMap[string] | undefined, got: LbryGetResult): string[] {
 	const v = got.value ?? resolved?.value ?? {};
 	let thumbnails = extractThumbnails(v.thumbnail);
@@ -727,7 +727,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		// Prefer HLS when we can construct it precisely from claim_id + sd_hash
 		if (!isHls && isOdyCdnHost(finalStreamingUrl)) {
 			try {
-				new URL(finalStreamingUrl); // Robust: Guard
+				new URL(finalStreamingUrl);
 			} catch (e) {
 				log.debug?.("invalid finalStreamingUrl", {
 					url: finalStreamingUrl,
