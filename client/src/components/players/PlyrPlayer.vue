@@ -375,9 +375,4 @@ export default defineComponent({
 	object-fit: contain;
 	object-position: 50% 50%;
 }
-
-.plyr__captions {
-	font-size: clamp(1em, 3cqh, 3em);
-	bottom: 50px;
-}
 </style>
