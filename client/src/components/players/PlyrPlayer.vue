@@ -266,17 +266,8 @@ export default defineComponent({
 				hls.on(Hls.Events.KEY_LOADED, () => {
 					console.info("PlyrPlayer: hls.js key loaded");
 				});
-				// Update the current track when a subtitle track is loaded
-				// (primarily for the initial page load)
 				hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, (_, data) => {
 					console.info("PlyrPlayer: hls.js subtitle track loaded:", data);
-					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
-					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
-					const currentTrack = player.value?.currentTrack;
-					if (hls && currentTrack !== undefined && currentTrack !== -1) {
-						const track = hls.subtitleTracks[currentTrack];
-						captions.currentTrack.value = track.name;
-					}
 				});
 			} else if (videoMime.value === "application/dash+xml") {
 				if (!videoElem.value) {
@@ -357,6 +348,17 @@ export default defineComponent({
 				});
 				videoElem.value.addEventListener("canplay", () => {
 					console.debug("PlyrPlayer: video canplay");
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+					captions.currentTrack.value =
+						captions.captionsTracks.value[player.value?.currentTrack ?? -1];
+				});
+				videoElem.value.addEventListener("languagechange", () => {
+					console.debug("PlyrPlayer: video languagechange");
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+					captions.currentTrack.value =
+						captions.captionsTracks.value[player.value?.currentTrack ?? -1];
 				});
 			} else {
 				console.error("video element not present");
