@@ -107,7 +107,28 @@ export default defineComponent({
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
 				if (hls) {
-					player.value.currentTrack = hls.subtitleTracks.findIndex(t => t.name === track);
+					const trackIdx = hls.subtitleTracks.findIndex(t => t.name === track);
+					if (trackIdx === -1) {
+						console.error("PlyrPlayer: HLS.js captions track not found:", track);
+						return;
+					}
+					console.log("PlyrPlayer: setting HLS.js captions track:", trackIdx);
+					player.value.currentTrack = trackIdx;
+					// HACK: Also set the track in hls.js, since it sometimes fails to switch to the specified track.
+					// (The SUBTITLE_TRACK_SWITCH event wasn't fired), it's unclear if this is a bug in Plyr or hls.js.
+					hls.subtitleTrack = trackIdx;
+
+					// Plyr Sometime switches back to -1 (disabled) after the track is set. We check again after a short delay.
+					// This appears to be a bug in plyr.js, as testing the same manifest on the hls.js
+					// demo page shows the captions track switching correctly.
+					setTimeout(() => {
+						if (player.value?.currentTrack === -1) {
+							console.error(
+								"PlyrPlayer: HLS.js captions track not enabled after getting set"
+							);
+							captions.isCaptionsEnabled.value = false;
+						}
+					}, 100);
 				} else {
 					player.value.currentTrack = findTrackIdx(track);
 				}
@@ -244,6 +265,18 @@ export default defineComponent({
 				});
 				hls.on(Hls.Events.KEY_LOADED, () => {
 					console.info("PlyrPlayer: hls.js key loaded");
+				});
+				// Update the current track when a subtitle track is loaded
+				// (primarily for the initial page load)
+				hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, (_, data) => {
+					console.info("PlyrPlayer: hls.js subtitle track loaded:", data);
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+					const currentTrack = player.value?.currentTrack;
+					if (hls && currentTrack !== undefined && currentTrack !== -1) {
+						const track = hls.subtitleTracks[currentTrack];
+						captions.currentTrack.value = track.name;
+					}
 				});
 			} else if (videoMime.value === "application/dash+xml") {
 				if (!videoElem.value) {
