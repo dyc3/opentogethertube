@@ -10,7 +10,7 @@ import { AbortController } from "node-abort-controller";
 import http from "http";
 import https from "https";
 import { Counter } from "prom-client";
-import { FfprobeTimeoutError } from "./exceptions.js"
+import { FfprobeTimeoutError } from "./exceptions.js";
 import { conf } from "./ott-config.js";
 
 const log = getLogger("infoextract/ffprobe");

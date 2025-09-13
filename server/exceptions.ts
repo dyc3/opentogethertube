@@ -72,18 +72,18 @@ export class InvalidAddPreviewInputException extends OttException {
 }
 
 export class FfprobeTimeoutError extends OttException {
-	public readonly status:number = 408;
+	public readonly status: number = 408;
 	public readonly code: "UPSTREAM_FFPROBE_TIMEOUT" = "UPSTREAM_FFPROBE_TIMEOUT";
 	public readonly userMessage: string;
-	public readonly expose = true;
+	public readonly expose: boolean = true;
 
-	constructor (){
-		const userMessage = "The provided direct file needs too long to probe. Please try another file.";
+	constructor() {
+		const userMessage =
+			"The provided direct file needs too long to probe. Please try another file.";
 		super(userMessage);
-		this.name = "FfprobeTimeoutError"
+		this.name = "FfprobeTimeoutError";
 		this.userMessage = userMessage;
 	}
-
 }
 
 export class OutOfQuotaException extends OttException {
