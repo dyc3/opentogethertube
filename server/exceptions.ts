@@ -71,7 +71,7 @@ export class UpstreamInvidiousException extends Error {
  * - userMessage: short, safe text for direct display in the UI
  * - meta:  optional extras (e.g., { license: "Copyrighted (contact publisher)" })
  */
-export class OdyseeDrmProtectedVideo extends Error {
+export class OdyseeDrmProtectedVideo extends OttException {
 	public readonly status: number = 451; // Unavailable For Legal Reasons
 	public readonly code: "ODYSEE_COPYRIGHT_BLOCKED" = "ODYSEE_COPYRIGHT_BLOCKED";
 	public readonly userMessage: string;
@@ -101,7 +101,7 @@ export class OdyseeDrmProtectedVideo extends Error {
  * - code:   "ODYSEE_UNAVAILABLE_VIDEO"
  * - userMessage: short, safe text for direct display in the UI
  */
-export class OdyseeUnavailableVideo extends Error {
+export class OdyseeUnavailableVideo extends OttException {
 	public readonly status: number = 401;
 	public readonly code: "ODYSEE_UNAVAILABLE_VIDEO" = "ODYSEE_UNAVAILABLE_VIDEO";
 	public readonly userMessage: string;
