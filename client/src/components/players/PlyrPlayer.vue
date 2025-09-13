@@ -118,9 +118,8 @@ export default defineComponent({
 					// (The SUBTITLE_TRACK_SWITCH event wasn't fired), it's unclear if this is a bug in Plyr or hls.js.
 					hls.subtitleTrack = trackIdx;
 
-					// Plyr Sometime switches back to -1 (disabled) after the track is set. We check again after a short delay.
-					// This appears to be a bug in plyr.js, as testing the same manifest on the hls.js
-					// demo page shows the captions track switching correctly.
+					// Plyr switches back to -1 (disabled) when the track's language code contains uppercase characters.
+					// So, we check again after a short delay. This appears to be a bug in plyr.js
 					setTimeout(() => {
 						if (player.value?.currentTrack === -1) {
 							console.error(
