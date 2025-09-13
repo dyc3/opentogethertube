@@ -81,20 +81,15 @@ export default defineComponent({
 				return ["direct", "hls"].includes(props.service);
 			},
 			setCaptionsEnabled(enabled: boolean): void {
-				if (hls) {
-					hls.subtitleDisplay = enabled;
-				} else {
-					player.value?.toggleCaptions(enabled);
-				}
+				player.value?.toggleCaptions(enabled);
 			},
 			isCaptionsEnabled(): boolean {
-				if (hls) {
-					return hls.subtitleDisplay;
-				} else {
-					return player.value?.currentTrack !== -1;
-				}
+				return player.value?.currentTrack !== -1;
 			},
 			getCaptionsTracks(): string[] {
+				if (hls) {
+					return hls.subtitleTracks.map(track => track.name);
+				}
 				const tracks: string[] = [];
 				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
 					const track = videoElem.value?.textTracks[i];
@@ -112,7 +107,27 @@ export default defineComponent({
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
 				if (hls) {
-					hls.subtitleTrack = findTrackIdx(track);
+					const trackIdx = hls.subtitleTracks.findIndex(t => t.name === track);
+					if (trackIdx === -1) {
+						console.error("PlyrPlayer: HLS.js captions track not found:", track);
+						return;
+					}
+					console.log("PlyrPlayer: setting HLS.js captions track:", trackIdx);
+					player.value.currentTrack = trackIdx;
+					// HACK: Also set the track in hls.js, since it sometimes fails to switch to the specified track.
+					// (The SUBTITLE_TRACK_SWITCH event wasn't fired), it's unclear if this is a bug in Plyr or hls.js.
+					hls.subtitleTrack = trackIdx;
+
+					// Plyr switches back to -1 (disabled) when the track's language code contains uppercase characters.
+					// So, we check again after a short delay. This appears to be a bug in plyr.js
+					setTimeout(() => {
+						if (player.value?.currentTrack === -1) {
+							console.error(
+								"PlyrPlayer: HLS.js captions track not enabled after getting set"
+							);
+							captions.isCaptionsEnabled.value = false;
+						}
+					}, 100);
 				} else {
 					player.value.currentTrack = findTrackIdx(track);
 				}
@@ -163,6 +178,11 @@ export default defineComponent({
 				disableContextMenu: false,
 				fullscreen: {
 					enabled: false,
+				},
+				captions: {
+					active: true,
+					update: true, // For HLS.js captions to work
+					language: "auto",
 				},
 			});
 
@@ -220,6 +240,7 @@ export default defineComponent({
 					poster: thumbnail.value,
 				};
 				videoElem.value = document.querySelector("video") as HTMLVideoElement;
+				videoElem.value.setAttribute("crossorigin", "anonymous"); // For WebVTT captions
 				// ...so that we can use hls.js to change the video source
 				hls = new Hls();
 				hls.loadSource(videoUrl.value);
@@ -243,6 +264,9 @@ export default defineComponent({
 				});
 				hls.on(Hls.Events.KEY_LOADED, () => {
 					console.info("PlyrPlayer: hls.js key loaded");
+				});
+				hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, (_, data) => {
+					console.info("PlyrPlayer: hls.js subtitle track loaded:", data);
 				});
 			} else if (videoMime.value === "application/dash+xml") {
 				if (!videoElem.value) {
@@ -323,6 +347,17 @@ export default defineComponent({
 				});
 				videoElem.value.addEventListener("canplay", () => {
 					console.debug("PlyrPlayer: video canplay");
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+					captions.currentTrack.value =
+						captions.captionsTracks.value[player.value?.currentTrack ?? -1];
+				});
+				videoElem.value.addEventListener("languagechange", () => {
+					console.debug("PlyrPlayer: video languagechange");
+					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+					captions.currentTrack.value =
+						captions.captionsTracks.value[player.value?.currentTrack ?? -1];
 				});
 			} else {
 				console.error("video element not present");
