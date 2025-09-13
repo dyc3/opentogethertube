@@ -407,7 +407,9 @@ async function pickBestHlsVariant(masterUrl: string): Promise<string> {
 
 		playlists.sort((a, b) => {
 			const bwDiff = (b.attributes?.BANDWIDTH ?? 0) - (a.attributes?.BANDWIDTH ?? 0);
-			if (bwDiff !== 0) return bwDiff;
+			if (bwDiff !== 0) {
+				return bwDiff;
+			}
 			const hA = a.attributes?.RESOLUTION?.height ?? 0;
 			const hB = b.attributes?.RESOLUTION?.height ?? 0;
 			return hB - hA;
@@ -530,7 +532,9 @@ export default class OdyseeAdapter extends ServiceAdapter {
 			}
 			if (host === "odysee.com" || host.endsWith(".odysee.com")) {
 				const lbry = parseOdyseeUrlToLbry(url);
-				if (lbry) return lbry;
+				if (lbry) {
+					return lbry;
+				}
 			}
 		} catch {
 			// Fall through
@@ -586,9 +590,15 @@ export default class OdyseeAdapter extends ServiceAdapter {
 					const item = meta.items?.[0];
 					const v = item?.value;
 					if (v) {
-						if (typeof v.title === "string") title = v.title;
-						if (typeof v.description === "string") description = v.description;
-						if (typeof v.video?.duration === "number") length = v.video.duration;
+						if (typeof v.title === "string") {
+							title = v.title;
+						}
+						if (typeof v.description === "string") {
+							description = v.description;
+						}
+						if (typeof v.video?.duration === "number") {
+							length = v.video.duration;
+						}
 
 						// Prefer exact HLS if we can reconstruct from claimId + sd_hash
 						const sdHash = v.source?.sd_hash ?? getSdHashFromValue(v);
