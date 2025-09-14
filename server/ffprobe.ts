@@ -160,14 +160,22 @@ function streamDataIntoFfprobe(
 			child.stdin.end();
 		});
 		stream.on("error", error => {
-			log.error(`http stream error: ${error}`);
+			if (!timedOut) {
+				log.error(`http stream error: ${error}`);
+			} else {
+				log.debug(`expected stream.on error: ${error}`);
+			}
 			clearHardKiller();
 			try {
 				child.kill("SIGKILL");
 			} catch (e) {
 				log.error("Error while trying to destroy ffprobe:", e);
 			}
-			rejectOnce(error);
+			if (timedOut) {
+				rejectOnce(new FfprobeTimeoutError());
+			} else {
+				rejectOnce(error);
+			}
 		});
 		child.stdout.on("data", data => {
 			log.debug(`ffprobe output: ${data}`);
