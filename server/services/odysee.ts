@@ -11,7 +11,7 @@ import {
 } from "../exceptions.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
-import type { Manifest, Playlist } from "m3u8-parser";
+import type { Manifest } from "m3u8-parser";
 import { getMimeType } from "../mime.js";
 
 const log = getLogger("odysee");
@@ -328,14 +328,10 @@ function normalizeMime(mimeFromServer?: string | null, url?: string): string {
 
 const _baseUrlCache = new Map<string, URL>();
 
-function resolveRelativeUrl(base: string, maybeRelative: string): string {
+function resolveRelativeUrl(base: string | URL, maybeRelative: string): string {
 	try {
-		let baseUrl = _baseUrlCache.get(base);
-		if (!baseUrl) {
-			baseUrl = new URL(base);
-			_baseUrlCache.set(base, baseUrl);
-		}
-		return new URL(maybeRelative, baseUrl).toString();
+		const b = typeof base === "string" ? new URL(base) : base;
+		return new URL(maybeRelative, b).toString();
 	} catch {
 		return maybeRelative;
 	}
@@ -400,8 +396,8 @@ async function pickBestHlsVariant(masterUrl: string): Promise<string> {
 		parser.push(r.data);
 		parser.end();
 
-		const manifest = parser.manifest as Manifest;
-		const playlists: Playlist[] = manifest?.playlists ?? [];
+		const manifest: Manifest = parser.manifest;
+		const playlists = Array.isArray(manifest.playlists) ? manifest.playlists : [];
 		if (!playlists.length) {
 			return masterUrl;
 		}
@@ -419,7 +415,8 @@ async function pickBestHlsVariant(masterUrl: string): Promise<string> {
 		const best = playlists[0];
 		const bestUri = best.uri ?? best.attributes?.URI;
 		if (bestUri) {
-			const abs = resolveRelativeUrl(masterUrl, bestUri);
+			const baseUrl = new URL(masterUrl);
+			const abs = resolveRelativeUrl(baseUrl, bestUri);
 			log.debug?.(`HLS: selected best variant ${abs}`);
 			return abs;
 		}
