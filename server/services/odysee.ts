@@ -289,7 +289,8 @@ function collectThumbnails(resolved: ResolveMap[string] | undefined, got: LbryGe
 
 function isOdyCdnHost(u: string): boolean {
 	try {
-		return new URL(u).hostname.endsWith("odycdn.com");
+		const host = new URL(u).hostname; // hostname has no port
+		return isHostUnderDomain(host, "odycdn.com");
 	} catch {
 		return false;
 	}
@@ -494,6 +495,12 @@ async function verifyStream(
 	}
 }
 
+function isHostUnderDomain(host: string, domain: string): boolean {
+	const h = host.toLowerCase().replace(/\.$/, ""); // tolerate a trailing dot
+	const d = domain.toLowerCase();
+	return h === d || h.endsWith(`.${d}`);
+}
+
 export default class OdyseeAdapter extends ServiceAdapter {
 	get serviceId(): VideoService {
 		return "odysee";
@@ -526,11 +533,11 @@ export default class OdyseeAdapter extends ServiceAdapter {
 
 	getVideoId(url: string): string {
 		try {
-			const host = new URL(url).hostname.toLowerCase();
-			if (host.endsWith("odycdn.com")) {
+			const host = new URL(url).hostname;
+			if (isHostUnderDomain(host, "odycdn.com")) {
 				return url;
 			}
-			if (host === "odysee.com" || host.endsWith(".odysee.com")) {
+			if (isHostUnderDomain(host, "odysee.com")) {
 				const lbry = parseOdyseeUrlToLbry(url);
 				if (lbry) {
 					return lbry;
