@@ -13,7 +13,6 @@ export const ALL_VIDEO_SERVICES = [
 	"reddit",
 	"googledrive",
 	"peertube",
-	"soundcloud",
 	"pluto",
 	"invidious",
 	"odysee",
