@@ -270,7 +270,9 @@ export class RunFfprobe extends FfprobeStrategy {
 				if (timedOut) {
 					return reject(new FfprobeTimeoutError());
 				}
-				if (code === 0) return resolve();
+				if (code === 0) {
+					return resolve();
+				}
 				reject(
 					new Error(`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`)
 				);
