@@ -74,6 +74,20 @@ function streamDataIntoFfprobe(
 	controller: AbortController
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
+		let settled = false;
+		const resolveOnce = (v: string) => {
+			if (!settled) {
+				settled = true;
+				resolve(v);
+			}
+		};
+		const rejectOnce = (e: unknown) => {
+			if (!settled) {
+				settled = true;
+				reject(e as Error);
+			}
+		};
+
 		let args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
 		let child = childProcess.spawn(ffprobePath, args, {
 			stdio: "pipe",
@@ -83,13 +97,14 @@ function streamDataIntoFfprobe(
 		log.debug(`ffprobe child spawned: ${child.pid}`);
 		let resultJson = "";
 
+		let timedOut = false;
 		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
 			log.warn(
 				`ffprobe pid=${child.pid} exceeded hard timeout ${FFPROBE_TIMEOUT_MS}ms — killing`
 			);
 			try {
+				timedOut = true;
 				child.kill("SIGKILL");
-				throw new FfprobeTimeoutError();
 			} catch (e) {
 				log.debug(`ffprobe hard-kill error: ${String(e)}`);
 			}
@@ -120,7 +135,7 @@ function streamDataIntoFfprobe(
 					log.error(`Failed to abort request: ${e}`);
 				}
 			}
-			resolve(resultJson);
+			resolveOnce(resultJson);
 		}
 
 		stream.on("data", data => {
@@ -149,11 +164,10 @@ function streamDataIntoFfprobe(
 			clearHardKiller();
 			try {
 				child.kill("SIGKILL");
-				throw new FfprobeTimeoutError();
 			} catch (e) {
 				log.error("Error while trying to destroy ffprobe:", e);
 			}
-			reject(error);
+			rejectOnce(error);
 		});
 		child.stdout.on("data", data => {
 			log.debug(`ffprobe output: ${data}`);
@@ -165,6 +179,9 @@ function streamDataIntoFfprobe(
 		child.on("close", (code, signal) => {
 			clearHardKiller();
 			log.debug(`ffprobe closed (code=${code}, signal=${signal ?? "none"})`);
+			if (timedOut) {
+				return rejectOnce(new FfprobeTimeoutError());
+			}
 			finalize();
 		});
 	});
@@ -210,11 +227,26 @@ export class RunFfprobe extends FfprobeStrategy {
 		registerFfprobeChild(child);
 		let out = "";
 		let err = "";
+
+		let settled = false;
+		const resolveOnce = () => {
+			if (!settled) {
+				settled = true;
+			}
+		};
+		const rejectOnce = (e: unknown) => {
+			if (!settled) {
+				settled = true;
+				throw e;
+			}
+		};
+		let timedOut = false;
+
 		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
 			log.warn(`ffprobe (run) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`);
 			try {
+				timedOut = true;
 				child.kill("SIGKILL");
-				throw new FfprobeTimeoutError();
 			} catch (e) {
 				log.debug(`ffprobe hard-kill error: ${String(e)}`);
 			}
@@ -228,16 +260,17 @@ export class RunFfprobe extends FfprobeStrategy {
 					hardKiller = null;
 				}
 				log.error(`ffprobe spawn error (pid=${child.pid ?? "n/a"}): ${String(err)}`);
-				reject;
+				reject(err);
 			});
 			child.on("close", (code, signal) => {
 				if (hardKiller) {
 					clearTimeout(hardKiller);
 					hardKiller = null;
 				}
-				if (code === 0) {
-					return resolve();
+				if (timedOut) {
+					return reject(new FfprobeTimeoutError());
 				}
+				if (code === 0) return resolve();
 				reject(
 					new Error(`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`)
 				);
@@ -306,13 +339,16 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 			registerFfprobeChild(child);
 			let out = "";
 			let err = "";
+
+			let timedOut = false;
+
 			let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
 				log.warn(
 					`ffprobe (ondisk) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`
 				);
 				try {
+					timedOut = true;
 					child.kill("SIGKILL");
-					throw new FfprobeTimeoutError();
 				} catch (e) {
 					log.debug(`ffprobe hard-kill error: ${String(e)}`);
 				}
@@ -332,6 +368,9 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 					if (hardKiller) {
 						clearTimeout(hardKiller);
 						hardKiller = null;
+					}
+					if (timedOut) {
+						return reject(new FfprobeTimeoutError());
 					}
 					if (code === 0) {
 						return resolve();
