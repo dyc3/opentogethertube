@@ -7,7 +7,6 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Plyr from "plyr";
-import Hls from "hls.js";
 import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
@@ -37,7 +36,6 @@ export default defineComponent({
 		const { videoUrl, videoMime, thumbnail } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
-		let hls: Hls | undefined = undefined;
 		let dash: dashjs.MediaPlayerClass | undefined = undefined;
 
 		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
@@ -78,21 +76,13 @@ export default defineComponent({
 			},
 
 			isCaptionsSupported(): boolean {
-				return ["direct", "hls"].includes(props.service);
+				return ["direct"].includes(props.service);
 			},
 			setCaptionsEnabled(enabled: boolean): void {
-				if (hls) {
-					hls.subtitleDisplay = enabled;
-				} else {
-					player.value?.toggleCaptions(enabled);
-				}
+				player.value?.toggleCaptions(enabled);
 			},
 			isCaptionsEnabled(): boolean {
-				if (hls) {
-					return hls.subtitleDisplay;
-				} else {
-					return player.value?.currentTrack !== -1;
-				}
+				return player.value?.currentTrack !== -1;
 			},
 			getCaptionsTracks(): string[] {
 				const tracks: string[] = [];
@@ -111,11 +101,7 @@ export default defineComponent({
 					return;
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
-				if (hls) {
-					hls.subtitleTrack = findTrackIdx(track);
-				} else {
-					player.value.currentTrack = findTrackIdx(track);
-				}
+				player.value.currentTrack = findTrackIdx(track);
 			},
 
 			getAvailablePlaybackRates(): number[] {
@@ -192,7 +178,6 @@ export default defineComponent({
 		});
 		onBeforeUnmount(() => {
 			player.value?.destroy();
-			hls?.destroy();
 			dash?.reset();
 		});
 
@@ -203,48 +188,10 @@ export default defineComponent({
 				return;
 			}
 
-			hls?.destroy();
-			hls = undefined;
 			dash?.reset();
 			dash = undefined;
 
-			if (videoMime.value === "application/x-mpegURL") {
-				if (!videoElem.value) {
-					console.error("video element not ready");
-					return;
-				}
-				// HACK: force the video element to be recreated...
-				player.value.source = {
-					type: "video",
-					sources: [],
-					poster: thumbnail.value,
-				};
-				videoElem.value = document.querySelector("video") as HTMLVideoElement;
-				// ...so that we can use hls.js to change the video source
-				hls = new Hls();
-				hls.loadSource(videoUrl.value);
-				hls.attachMedia(videoElem.value);
-				hls.on(Hls.Events.MANIFEST_PARSED, () => {
-					console.info("PlyrPlayer: hls.js manifest parsed");
-					emit("ready");
-					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
-					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
-				});
-				hls.on(Hls.Events.ERROR, (event, data) => {
-					console.error("PlyrPlayer: hls.js error:", event, data);
-					console.error("PlyrPlayer: hls.js inner error:", data.error);
-					emit("error");
-				});
-				hls.on(Hls.Events.INIT_PTS_FOUND, () => {
-					console.info("PlyrPlayer: hls.js init pts found");
-				});
-				hls.on(Hls.Events.KEY_LOADING, () => {
-					console.info("PlyrPlayer: hls.js key loading");
-				});
-				hls.on(Hls.Events.KEY_LOADED, () => {
-					console.info("PlyrPlayer: hls.js key loaded");
-				});
-			} else if (videoMime.value === "application/dash+xml") {
+			if (videoMime.value === "application/dash+xml") {
 				if (!videoElem.value) {
 					console.error("video element not ready");
 					return;

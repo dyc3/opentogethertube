@@ -23,7 +23,9 @@
 					@click="setCaptionsTrack(track)"
 					v-for="(track, idx) in captions.captionsTracks.value"
 					:key="idx"
-					:active="captions.isCaptionsEnabled.value && track == captions.currentTrack.value"
+					:active="
+						captions.isCaptionsEnabled.value && track == captions.currentTrack.value
+					"
 					color="primary"
 					variant="plain"
 					min-width="100px"
