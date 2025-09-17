@@ -93,12 +93,18 @@ export default class TubiAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
+		if (!/^\d+$/.test(id)) {
+			throw new Error(`Invalid Tubi video id: ${id}`);
+		}
 		const resp = await this.api.get(`https://tubitv.com/oz/videos/${id}/content`);
 		const data = resp.data as TubiVideoResponse;
 		return this.extractVideo(data);
 	}
 
 	async fetchSeriesInfo(id: string): Promise<Video[]> {
+		if (!/^\d+$/.test(id)) {
+			throw new Error(`Invalid Tubi series id: ${id}`);
+		}
 		const resp = await this.api.get(`https://tubitv.com/series/${id}`);
 		const match = /window\.__data\s*=\s*({.+?});\s*<\/script>/.exec(resp.data)?.[1];
 		if (!match) {
