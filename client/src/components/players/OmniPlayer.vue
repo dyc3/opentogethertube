@@ -60,7 +60,7 @@
 				@error="onError"
 			/>
 			<HlsPlayer
-				v-else-if="!!source && source.service === 'hls'"
+				v-else-if="!!source && ['hls', 'tubi', 'pluto'].includes(source.service)"
 				ref="player"
 				:video-url="source.hls_url ?? source.id"
 				:thumbnail="source.thumbnail"
@@ -75,10 +75,7 @@
 				@buffer-spans="onBufferSpans"
 			/>
 			<PlyrPlayer
-				v-else-if="
-					!!source &&
-					['direct', 'dash', 'reddit', 'tubi', 'pluto'].includes(source.service)
-				"
+				v-else-if="!!source && ['direct', 'dash', 'reddit'].includes(source.service)"
 				ref="player"
 				:service="source.service"
 				:video-url="source.hls_url ?? source.id"
