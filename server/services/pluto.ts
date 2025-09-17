@@ -1,12 +1,12 @@
-import { URL } from "url";
 import axios from "axios";
-import { getLogger } from "../logger.js";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import _ from "lodash";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { conf } from "../ott-config.js";
+import { URL } from "url";
 import { v1 as uuidv1 } from "uuid";
 import { InvalidVideoIdException } from "../exceptions.js";
-import _ from "lodash";
+import { getLogger } from "../logger.js";
+import { conf } from "../ott-config.js";
+import { ServiceAdapter, type VideoRequest } from "../serviceadapter.js";
 
 const log = getLogger("pluto");
 
@@ -47,10 +47,10 @@ export default class PlutoAdapter extends ServiceAdapter {
 	parseUrl(url: string): PlutoParsedIds {
 		const parsed = new URL(url);
 		const seriesMatch = parsed.pathname.match(/\/(movies|series)\/([a-z0-9]+)/);
-		let videoType: "series" | "movies" | undefined = seriesMatch
+		const videoType: "series" | "movies" | undefined = seriesMatch
 			? (seriesMatch[1] as "series" | "movies")
 			: undefined;
-		let series = seriesMatch ? seriesMatch[2] : undefined;
+		const series = seriesMatch ? seriesMatch[2] : undefined;
 		if (!videoType || !series) {
 			throw new Error(`Unable to parse series from ${url}`);
 		}
@@ -63,7 +63,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 		if (!episodeMatch) {
 			const seasonMatch = parsed.pathname.match(/season\/(\d+)/);
 			if (seasonMatch) {
-				season = parseInt(seasonMatch[1]);
+				season = parseInt(seasonMatch[1], 10);
 			}
 		}
 
