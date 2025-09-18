@@ -59,11 +59,23 @@
 				@buffering="onBuffering"
 				@error="onError"
 			/>
+			<HlsPlayer
+				v-else-if="!!source && ['hls', 'tubi', 'pluto'].includes(source.service)"
+				ref="player"
+				:video-url="source.hls_url ?? source.id"
+				:thumbnail="source.thumbnail"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+				@buffer-progress="onBufferProgress"
+				@buffer-spans="onBufferSpans"
+			/>
 			<PlyrPlayer
-				v-else-if="
-					!!source &&
-					['direct', 'hls', 'dash', 'reddit', 'tubi', 'pluto'].includes(source.service)
-				"
+				v-else-if="!!source && ['direct', 'dash', 'reddit'].includes(source.service)"
 				ref="player"
 				:service="source.service"
 				:video-url="source.hls_url ?? source.id"
@@ -137,6 +149,7 @@ const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering",
 const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
 const GoogleDrivePlayer = defineAsyncComponent(() => import("./GoogleDrivePlayer.vue"));
+const HlsPlayer = defineAsyncComponent(() => import("./HlsPlayer.vue"));
 const PlyrPlayer = defineAsyncComponent(() => import("./PlyrPlayer.vue"));
 const PeertubePlayer = defineAsyncComponent(() => import("./PeertubePlayer.vue"));
 

@@ -12396,10 +12396,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hls.js@npm:1.4.8":
-  version: 1.4.8
-  resolution: "hls.js@npm:1.4.8"
-  checksum: 10c0/d40511d465a1a47ea3b2b8f673408a08bf4e75117bca9c74fd700255289d73e2b8d6a99e4378b34123afde1114084393cc2cfeb64424311fbb879073377b96c0
+"hls.js@npm:1.6.12":
+  version: 1.6.12
+  resolution: "hls.js@npm:1.6.12"
+  checksum: 10c0/67d0bbc4ac2ac905d15665ab25dbab19e974d58d3bc010229648d02e1684b1c9e483feff5e4205f4cf58579a5e1242e19ad99171344ff6a683d2d9292a1cdd42
   languageName: node
   linkType: hard
 
@@ -16006,7 +16006,7 @@ __metadata:
     eslint-plugin-cypress: "npm:^2.12.1"
     eslint-plugin-vitest: "npm:0.3.22"
     eslint-plugin-vue: "npm:^9.9.0"
-    hls.js: "npm:1.4.8"
+    hls.js: "npm:1.6.12"
     jsdom: "npm:^21.1.0"
     load-script: "npm:^1.0.0"
     lodash: "npm:^4.17.21"
