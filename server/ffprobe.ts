@@ -236,18 +236,6 @@ export class RunFfprobe extends FfprobeStrategy {
 		let out = "";
 		let err = "";
 
-		let settled = false;
-		const resolveOnce = () => {
-			if (!settled) {
-				settled = true;
-			}
-		};
-		const rejectOnce = (e: unknown) => {
-			if (!settled) {
-				settled = true;
-				throw e;
-			}
-		};
 		let timedOut = false;
 
 		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
