@@ -5,6 +5,15 @@
 			preload="auto"
 			crossorigin="anonymous"
 			:poster="thumbnail || ''"
+			@canplay="onReady"
+			@ready="onReady"
+			@playing="onPlaying"
+			@pause="onPaused"
+			@stalled="onBuffering"
+			@loadstart="onBuffering"
+			@progress="onProgress"
+			@ended="onEnd"
+			@error="onError"
 		></video>
 	</div>
 </template>
@@ -21,6 +30,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const { videoUrl, thumbnail } = toRefs(props);
+const videoElem = ref<HTMLVideoElement | undefined>();
+const captions = useCaptions();
+let hls: Hls | undefined = undefined;
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -33,10 +46,6 @@ const emit = defineEmits<{
 	"buffer-progress": [progress: number];
 	"buffer-spans": [spans: TimeRanges];
 }>();
-
-const { videoUrl, thumbnail } = toRefs(props);
-const videoElem = ref<HTMLVideoElement | undefined>();
-let hls: Hls | undefined = undefined;
 
 function play() {
 	if (!videoElem.value) {
@@ -138,8 +147,6 @@ async function setPlaybackRate(rate: number): Promise<void> {
 	videoElem.value.playbackRate = rate;
 }
 
-const captions = useCaptions();
-
 function loadVideoSource() {
 	console.log("HlsPlayer: loading video source:", videoUrl.value);
 
@@ -195,33 +202,38 @@ onMounted(() => {
 		console.error("HLS player video element not found");
 		return;
 	}
-
-	// Set up video element event listeners
-	videoElem.value.addEventListener("ready", () => emit("ready"));
-	videoElem.value.addEventListener("canplay", () => emit("ready"));
-	videoElem.value.addEventListener("playing", () => emit("playing"));
-	videoElem.value.addEventListener("pause", () => emit("paused"));
-	videoElem.value.addEventListener("stalled", () => emit("buffering"));
-	videoElem.value.addEventListener("loadstart", () => emit("buffering"));
-	videoElem.value.addEventListener("progress", () => {
-		if (videoElem.value) {
-			const buffered = videoElem.value.buffered;
-			emit("buffer-spans", buffered);
-
-			const duration = videoElem.value.duration;
-			const bufferedPercentage =
-				buffered && buffered.length && duration > 0 ? buffered.end(0) / duration : 0;
-			emit("buffer-progress", bufferedPercentage);
-		}
-	});
-	videoElem.value.addEventListener("ended", () => emit("end"));
-	videoElem.value.addEventListener("error", err => {
-		emit("error");
-		console.error("HlsPlayer: video element error:", err);
-	});
-
 	loadVideoSource();
 });
+
+function onReady() {
+	emit("ready");
+}
+function onPlaying() {
+	emit("playing");
+}
+function onPaused() {
+	emit("paused");
+}
+function onBuffering() {
+	emit("buffering");
+}
+function onProgress() {
+	if (videoElem.value) {
+		const buffered = videoElem.value.buffered;
+		emit("buffer-spans", buffered);
+		const duration = videoElem.value.duration;
+		const bufferedPercentage =
+			buffered && buffered.length && duration > 0 ? buffered.end(0) / duration : 0;
+		emit("buffer-progress", bufferedPercentage);
+	}
+}
+function onEnd() {
+	emit("end");
+}
+function onError(err: Event) {
+	emit("error");
+	console.error("HlsPlayer: video element error:", err);
+}
 
 onBeforeUnmount(() => {
 	hls?.destroy();
