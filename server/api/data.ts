@@ -57,7 +57,8 @@ const addPreview: RequestHandler<
 			err.name === "MissingMetadataException" ||
 			err.name === "UnsupportedVideoType" ||
 			err.name === "UpstreamInvidiousException" ||
-			err.name === "VideoNotFoundException"
+			err.name === "VideoNotFoundException" ||
+			err.name === "FfprobeTimeoutError"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);
 			res.status(400).json({
