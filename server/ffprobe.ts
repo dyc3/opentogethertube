@@ -13,7 +13,6 @@ import { Counter } from "prom-client";
 import { FfprobeTimeoutError } from "./exceptions.js";
 import { conf } from "./ott-config.js";
 
-
 const log = getLogger("infoextract/ffprobe");
 
 // Hard ffprobe, 35 Seconds.
