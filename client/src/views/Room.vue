@@ -27,7 +27,13 @@
 			</div>
 			<div class="video-container">
 				<div class="video-subcontainer">
-					<div class="player-container" :class="{ 'controls-visible': controlsVisible }">
+					<div
+						class="player-container"
+						:class="{
+							'controls-visible': controlsVisible,
+							'controls-just-hidden': controlsJustHidden,
+						}"
+					>
 						<OmniPlayer
 							:source="store.state.room.currentSource"
 							@apiready="onPlayerApiReady"
@@ -269,10 +275,18 @@ export default defineComponent({
 
 		// video control visibility
 		const controlsVisible = ref(true);
+		const controlsJustHidden = ref(false); // New ref for transition
 		const videoControlsHideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
 		const mouse = useMouse();
 
 		function setVideoControlsVisibility(visible: boolean) {
+			if (controlsVisible.value && !visible) {
+				// controlsVisible is switching from true to false
+				controlsJustHidden.value = true;
+				setTimeout(() => {
+					controlsJustHidden.value = false;
+				}, 500); // match transition duration
+			}
 			controlsVisible.value = visible;
 			if (videoControlsHideTimeout.value) {
 				clearTimeout(videoControlsHideTimeout.value);
@@ -677,6 +691,7 @@ export default defineComponent({
 			isOfficialSite,
 
 			controlsVisible,
+			controlsJustHidden,
 			videoControlsHideTimeout,
 			controlsMode,
 
@@ -748,9 +763,13 @@ $in-video-chat-width-small: 250px;
 .player-container.controls-visible video::-webkit-media-text-track-display {
 	transform: translateY(-$video-controls-height);
 }
-.player-container:not(.controls-visible) video::-webkit-media-text-track-display {
+.player-container.controls-just-hidden video::-webkit-media-text-track-display {
 	transform: translateY(-1em);
-	transition: 0.5s;
+	transition: transform 0.5s;
+}
+.player-container:not(.controls-visible):not(.controls-just-hidden)
+	video::-webkit-media-text-track-display {
+	transform: translateY(-1em);
 }
 
 .layout-default {
