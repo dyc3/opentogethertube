@@ -27,7 +27,7 @@
 			</div>
 			<div class="video-container">
 				<div class="video-subcontainer">
-					<div class="player-container">
+					<div class="player-container" :class="{ 'controls-visible': controlsVisible }">
 						<OmniPlayer
 							:source="store.state.room.currentSource"
 							@apiready="onPlayerApiReady"
@@ -741,6 +741,16 @@ $in-video-chat-width-small: 250px;
 .player-container {
 	width: 100%;
 	height: 100%;
+}
+
+// Nudge subtitles up when controls are visible, down when hidden
+// This only works for WebKit-based browsers (Chrome, Edge, Safari, etc.)
+.player-container.controls-visible video::-webkit-media-text-track-display {
+	transform: translateY(-$video-controls-height);
+}
+.player-container:not(.controls-visible) video::-webkit-media-text-track-display {
+	transform: translateY(-1em);
+	transition: 0.5s;
 }
 
 .layout-default {
