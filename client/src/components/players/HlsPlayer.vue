@@ -95,7 +95,9 @@ function setCaptionsEnabled(enabled: boolean): void {
 	if (!hls) {
 		return;
 	}
-	if (!enabled) {
+	if (enabled) {
+		setCaptionsTrack(captions.currentTrack.value || "");
+	} else {
 		hls.subtitleTrack = -1;
 	}
 }
