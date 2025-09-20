@@ -5,15 +5,15 @@
 			preload="auto"
 			crossorigin="anonymous"
 			:poster="thumbnail || ''"
-			@canplay="onReady"
-			@ready="onReady"
-			@playing="onPlaying"
-			@pause="onPaused"
-			@stalled="onBuffering"
-			@loadstart="onBuffering"
-			@progress="onProgress"
-			@ended="onEnd"
-			@error="onError"
+			@canplay="playerEvents.onReady"
+			@ready="playerEvents.onReady"
+			@playing="playerEvents.onPlaying"
+			@pause="playerEvents.onPaused"
+			@stalled="playerEvents.onBuffering"
+			@loadstart="playerEvents.onBuffering"
+			@progress="playerEvents.onProgress"
+			@ended="playerEvents.onEnd"
+			@error="playerEvents.onError"
 		></video>
 	</div>
 </template>
@@ -33,7 +33,7 @@ const props = defineProps<Props>();
 const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
-let hls: Hls | undefined = undefined;
+const hls = ref<Hls | undefined>(undefined);
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -47,105 +47,127 @@ const emit = defineEmits<{
 	"buffer-spans": [spans: TimeRanges];
 }>();
 
-function play() {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return;
-	}
-	return videoElem.value.play();
-}
+const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
+	play() {
+		if (!videoElem.value) {
+			console.error("player not ready");
+			return;
+		}
+		return videoElem.value.play();
+	},
+	pause() {
+		if (!videoElem.value) {
+			console.error("player not ready");
+			return;
+		}
+		videoElem.value.pause();
+	},
+	setVolume(volume: number) {
+		if (!videoElem.value) {
+			console.error("player not ready");
+			return;
+		}
+		videoElem.value.volume = volume / 100;
+	},
+	getPosition() {
+		if (!videoElem.value) {
+			console.error("player not ready");
+			return 0;
+		}
+		return videoElem.value.currentTime;
+	},
+	setPosition(position: number) {
+		if (!videoElem.value) {
+			console.error("player not ready");
+			return;
+		}
+		videoElem.value.currentTime = position;
+	},
+	isCaptionsSupported(): boolean {
+		return true;
+	},
+	setCaptionsEnabled(enabled: boolean): void {
+		if (!hls.value) {
+			return;
+		}
+		if (!enabled) {
+			hls.value.subtitleTrack = -1;
+		}
+	},
+	isCaptionsEnabled(): boolean {
+		if (!hls.value) {
+			return false;
+		}
+		return hls.value.subtitleTrack !== -1;
+	},
+	getCaptionsTracks(): string[] {
+		console.log("HlsPlayer: getCaptionsTracks:", hls.value?.subtitleTracks);
+		return hls.value?.subtitleTracks.map(track => track.name) || [];
+	},
+	setCaptionsTrack(track: string): void {
+		if (!hls.value) {
+			console.error("HlsPlayer: player not ready");
+			return;
+		}
+		console.log("HlsPlayer: setCaptionsTrack:", track);
+		const trackIdx = hls.value.subtitleTracks.findIndex(t => t.name === track);
+		if (trackIdx === -1) {
+			console.error("HlsPlayer: HLS.js captions track not found:", track);
+			return;
+		}
+		console.log("HlsPlayer: setting HLS.js captions track:", trackIdx);
+		hls.value.subtitleTrack = trackIdx;
+	},
+	getAvailablePlaybackRates(): number[] {
+		return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+	},
+	getPlaybackRate(): number {
+		if (!videoElem.value) {
+			console.error("player not ready");
+			return 1;
+		}
+		return videoElem.value.playbackRate;
+	},
+	async setPlaybackRate(rate: number): Promise<void> {
+		if (!videoElem.value) {
+			console.error("player not ready");
+			return;
+		}
+		videoElem.value.playbackRate = rate;
+	},
+};
 
-function pause() {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return;
-	}
-	videoElem.value.pause();
-}
-
-function setVolume(volume: number) {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return;
-	}
-	videoElem.value.volume = volume / 100;
-}
-
-function getPosition() {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return 0;
-	}
-	return videoElem.value.currentTime;
-}
-
-function setPosition(position: number) {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return;
-	}
-	videoElem.value.currentTime = position;
-}
-
-function isCaptionsSupported(): boolean {
-	return true;
-}
-
-function setCaptionsEnabled(enabled: boolean): void {
-	if (!hls) {
-		return;
-	}
-	if (!enabled) {
-		hls.subtitleTrack = -1;
-	}
-}
-
-function isCaptionsEnabled(): boolean {
-	if (!hls) {
-		return false;
-	}
-	return hls.subtitleTrack !== -1;
-}
-
-function getCaptionsTracks(): string[] {
-	console.log("HlsPlayer: getCaptionsTracks:", hls?.subtitleTracks);
-	return hls?.subtitleTracks.map(track => track.name) || [];
-}
-
-function setCaptionsTrack(track: string): void {
-	if (!hls) {
-		console.error("HlsPlayer: player not ready");
-		return;
-	}
-	console.log("HlsPlayer: setCaptionsTrack:", track);
-	const trackIdx = hls.subtitleTracks.findIndex(t => t.name === track);
-	if (trackIdx === -1) {
-		console.error("HlsPlayer: HLS.js captions track not found:", track);
-		return;
-	}
-	console.log("HlsPlayer: setting HLS.js captions track:", trackIdx);
-	hls.subtitleTrack = trackIdx;
-}
-
-function getAvailablePlaybackRates(): number[] {
-	return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
-}
-
-function getPlaybackRate(): number {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return 1;
-	}
-	return videoElem.value.playbackRate;
-}
-
-async function setPlaybackRate(rate: number): Promise<void> {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return;
-	}
-	videoElem.value.playbackRate = rate;
-}
+const playerEvents = {
+	onReady() {
+		emit("ready");
+	},
+	onPlaying() {
+		emit("playing");
+	},
+	onPaused() {
+		emit("paused");
+	},
+	onBuffering() {
+		emit("buffering");
+	},
+	onProgress() {
+		if (videoElem.value) {
+			const buffered = videoElem.value.buffered;
+			emit("buffer-spans", buffered);
+			const duration = videoElem.value.duration;
+			const bufferedPercentage =
+				buffered && buffered.length && duration > 0 ? buffered.end(0) / duration : 0;
+			emit("buffer-progress", bufferedPercentage);
+		}
+	},
+	onEnd() {
+		emit("end");
+	},
+	onError(err: Event) {
+		emit("error");
+		console.error("HlsPlayer: video element error:", err);
+	},
+};
 
 function loadVideoSource() {
 	console.log("HlsPlayer: loading video source:", videoUrl.value);
@@ -155,38 +177,38 @@ function loadVideoSource() {
 		return;
 	}
 
-	hls?.destroy();
-	hls = undefined;
+	hls.value?.destroy();
+	hls.value = undefined;
 
-	hls = new Hls();
+	hls.value = new Hls();
 
-	hls.loadSource(videoUrl.value);
-	hls.attachMedia(videoElem.value);
+	hls.value.loadSource(videoUrl.value);
+	hls.value.attachMedia(videoElem.value);
 
-	hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+	hls.value.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
 		console.info("HlsPlayer: hls.js manifest parsed", data);
 		emit("ready");
 	});
 
-	hls.on(Hls.Events.ERROR, (event, data) => {
+	hls.value.on(Hls.Events.ERROR, (event, data) => {
 		console.error("HlsPlayer: hls.js error:", event, data);
 		console.error("HlsPlayer: hls.js inner error:", data.error);
 		emit("error");
 	});
 
-	hls.on(Hls.Events.INIT_PTS_FOUND, () => {
+	hls.value.on(Hls.Events.INIT_PTS_FOUND, () => {
 		console.info("HlsPlayer: hls.js init pts found");
-		captions.captionsTracks.value = getCaptionsTracks();
-		captions.isCaptionsEnabled.value = isCaptionsEnabled();
-		console.log("HlsPlayer: current subtitle track:", hls?.subtitleTrack);
-		captions.currentTrack.value = captions.captionsTracks.value[hls?.subtitleTrack || 0] || "";
+		captions.captionsTracks.value = playerImpl.getCaptionsTracks();
+		captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
+		console.log("HlsPlayer: current subtitle track:", hls.value?.subtitleTrack);
+		captions.currentTrack.value = captions.captionsTracks.value[hls.value?.subtitleTrack || 0] || "";
 	});
 
-	hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, (_, data) => {
+	hls.value.on(Hls.Events.SUBTITLE_TRACK_LOADED, (_, data) => {
 		console.info("HlsPlayer: hls.js subtitle track loaded:", data);
 	});
 
-	hls.on(Hls.Events.SUBTITLE_TRACK_SWITCH, (_, data) => {
+	hls.value.on(Hls.Events.SUBTITLE_TRACK_SWITCH, (_, data) => {
 		console.info("HlsPlayer: hls.js subtitle track switched:", data);
 	});
 
@@ -205,38 +227,8 @@ onMounted(() => {
 	loadVideoSource();
 });
 
-function onReady() {
-	emit("ready");
-}
-function onPlaying() {
-	emit("playing");
-}
-function onPaused() {
-	emit("paused");
-}
-function onBuffering() {
-	emit("buffering");
-}
-function onProgress() {
-	if (videoElem.value) {
-		const buffered = videoElem.value.buffered;
-		emit("buffer-spans", buffered);
-		const duration = videoElem.value.duration;
-		const bufferedPercentage =
-			buffered && buffered.length && duration > 0 ? buffered.end(0) / duration : 0;
-		emit("buffer-progress", bufferedPercentage);
-	}
-}
-function onEnd() {
-	emit("end");
-}
-function onError(err: Event) {
-	emit("error");
-	console.error("HlsPlayer: video element error:", err);
-}
-
 onBeforeUnmount(() => {
-	hls?.destroy();
+	hls.value?.destroy();
 });
 
 watch(videoUrl, () => {
@@ -245,20 +237,8 @@ watch(videoUrl, () => {
 });
 
 defineExpose({
-	play,
-	pause,
-	setVolume,
-	getPosition,
-	setPosition,
-	isCaptionsSupported,
-	setCaptionsEnabled,
-	isCaptionsEnabled,
-	getCaptionsTracks,
-	setCaptionsTrack,
-	getAvailablePlaybackRates,
-	getPlaybackRate,
-	setPlaybackRate,
-} satisfies MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate);
+	...playerImpl,
+});
 </script>
 
 <style lang="scss">
