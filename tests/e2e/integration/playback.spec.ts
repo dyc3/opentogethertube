@@ -144,7 +144,7 @@ describe("Video playback", () => {
 
 		// enable captions
 		cy.get('[aria-label="Closed Captions"]').click();
-		cy.get('.v-overlay__content > .v-list').contains("en").eq(0).click();
+		cy.get('.v-overlay__content > .v-list').contains("English").eq(0).click();
 		cy.get("video").should(element => {
 			expect(element[0].textTracks[0].mode).to.be.equal("showing");
 			expect(element[0].textTracks[0].language).to.be.equal("en");
@@ -159,7 +159,7 @@ describe("Video playback", () => {
 
 		// show a different caption track
 		cy.get('[aria-label="Closed Captions"]').click();
-		cy.get('.v-overlay__content > .v-list').contains("es").eq(0).click();
+		cy.get('.v-overlay__content > .v-list').contains("Español").eq(0).click();
 		// cy.get("video")
 		// .then(element => {
 		// 	for (let i = 0; i < element[0].textTracks.length; i++) {
