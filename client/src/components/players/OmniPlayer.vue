@@ -74,6 +74,21 @@
 				@buffer-progress="onBufferProgress"
 				@buffer-spans="onBufferSpans"
 			/>
+			<DashPlayer
+				v-else-if="!!source && source.service == 'dash'"
+				ref="player"
+				:video-url="source.dash_url ?? source.id"
+				:thumbnail="source.thumbnail"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+				@buffer-progress="onBufferProgress"
+				@buffer-spans="onBufferSpans"
+			/>
 			<PlyrPlayer
 				v-else-if="!!source && ['direct', 'dash'].includes(source.service)"
 				ref="player"
@@ -150,6 +165,7 @@ const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
 const GoogleDrivePlayer = defineAsyncComponent(() => import("./GoogleDrivePlayer.vue"));
 const HlsPlayer = defineAsyncComponent(() => import("./HlsPlayer.vue"));
+const DashPlayer = defineAsyncComponent(() => import("./DashPlayer.vue"));
 const PlyrPlayer = defineAsyncComponent(() => import("./PlyrPlayer.vue"));
 const PeertubePlayer = defineAsyncComponent(() => import("./PeertubePlayer.vue"));
 
