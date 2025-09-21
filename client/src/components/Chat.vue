@@ -163,6 +163,9 @@ function expireChatMessage() {
  */
 function enforceStickToBottom() {
 	const div = messages.value as HTMLDivElement;
+	if (!div) {
+		return;
+	}
 	if (stickToBottom.value) {
 		div.scrollTop = div.scrollHeight;
 	}
@@ -185,6 +188,9 @@ function onInputKeyDown(e: KeyboardEvent): void {
 
 function onScroll() {
 	const div = messages.value as HTMLDivElement;
+	if (!div) {
+		return;
+	}
 	const distToBottom = div.scrollHeight - div.clientHeight - div.scrollTop;
 	stickToBottom.value = distToBottom === 0;
 }
