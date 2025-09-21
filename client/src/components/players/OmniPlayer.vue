@@ -90,7 +90,7 @@
 				@buffer-spans="onBufferSpans"
 			/>
 			<PlyrPlayer
-				v-else-if="!!source && ['direct', 'dash'].includes(source.service)"
+				v-else-if="!!source && ['direct'].includes(source.service)"
 				ref="player"
 				:service="source.service"
 				:video-url="source.hls_url ?? source.id"
