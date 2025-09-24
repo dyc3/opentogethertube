@@ -78,13 +78,13 @@ const conf = convict({
   },
 });
 try {
-  conf.load("../env/base.toml");
+  conf.loadFile("../env/base.toml");
 } catch {
   console.log("No base config found");
 }
 const env = process.env.NODE_ENV || "development";
 try {
-  conf.load(`../env/${env}.toml`);
+  conf.loadFile(`../env/${env}.toml`);
 } catch {
   console.log(`No ${env} config found`);
 }
