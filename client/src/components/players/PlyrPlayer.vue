@@ -7,7 +7,6 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Plyr from "plyr";
-import dashjs from "dashjs";
 import "plyr/src/sass/plyr.scss";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
 import { useCaptions } from "../composables";
@@ -36,7 +35,6 @@ export default defineComponent({
 		const { videoUrl, videoMime, thumbnail } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
-		let dash: dashjs.MediaPlayerClass | undefined = undefined;
 
 		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
 			play() {
@@ -178,7 +176,6 @@ export default defineComponent({
 		});
 		onBeforeUnmount(() => {
 			player.value?.destroy();
-			dash?.reset();
 		});
 
 		function loadVideoSource() {
@@ -188,63 +185,18 @@ export default defineComponent({
 				return;
 			}
 
-			dash?.reset();
-			dash = undefined;
+			player.value.source = {
+				sources: [
+					{
+						src: videoUrl.value,
+						type: videoMime.value,
+					},
+				],
+				type: "video",
+				poster: thumbnail.value,
+			};
+			videoElem.value = document.querySelector("video") as HTMLVideoElement;
 
-			if (videoMime.value === "application/dash+xml") {
-				if (!videoElem.value) {
-					console.error("video element not ready");
-					return;
-				}
-				dash = dashjs.MediaPlayer().create();
-				// HACK: force the video element to be recreated...
-				player.value.source = {
-					type: "video",
-					sources: [],
-					poster: thumbnail.value,
-				};
-				videoElem.value = document.querySelector("video") as HTMLVideoElement;
-				// ...so that we can use dash.js to change the video source
-				dash.initialize(videoElem.value, videoUrl.value, false);
-
-				dash.on("manifestLoaded", () => {
-					console.info("PlyrPlayer: dash.js manifest loaded");
-					emit("ready");
-					captions.captionsTracks.value = playerImpl.getCaptionsTracks();
-					captions.isCaptionsEnabled.value = playerImpl.isCaptionsEnabled();
-				});
-				dash.on("error", (event: unknown) => {
-					console.error("PlyrPlayer: dash.js error:", event);
-					emit("error");
-				});
-				dash.on("playbackError", (event: unknown) => {
-					console.error("PlyrPlayer: dash.js playback error:", event);
-					emit("error");
-				});
-				dash.on("streamInitialized", () => {
-					console.info("PlyrPlayer: dash.js stream initialized");
-				});
-				dash.on("bufferStalled", () => {
-					console.info("PlyrPlayer: dash.js buffer stalled");
-					emit("buffering");
-				});
-				dash.on("bufferLoaded", () => {
-					console.info("PlyrPlayer: dash.js buffer loaded");
-					emit("ready");
-				});
-			} else {
-				player.value.source = {
-					sources: [
-						{
-							src: videoUrl.value,
-							type: videoMime.value,
-						},
-					],
-					type: "video",
-					poster: thumbnail.value,
-				};
-				videoElem.value = document.querySelector("video") as HTMLVideoElement;
-			}
 			// this is needed to get the player to keep playing after the previous video has ended
 			player.value.play();
 
