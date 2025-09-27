@@ -1,6 +1,6 @@
 import { getLogger } from "./logger.js";
 import _ from "lodash";
-import securePassword from "secure-password";
+import * as argon2 from "argon2";
 import express, { ErrorRequestHandler, RequestHandler } from "express";
 import passport from "passport";
 import crypto from "crypto";
@@ -41,7 +41,6 @@ import {
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
-const pwd = securePassword();
 const log = getLogger("usermanager");
 export const router = express.Router();
 
@@ -467,37 +466,40 @@ async function authCallback(emailOrUser: string, password: string, done) {
 		return;
 	}
 
-	// eslint-disable-next-line array-bracket-newline
-	const result = await pwd.verify(
-		Buffer.concat([user.salt, Buffer.from(password)]),
-		Buffer.from(user.hash)
-	);
-	switch (result) {
-		case securePassword.INVALID_UNRECOGNIZED_HASH:
-			log.error(
-				`User ${user.username} (${user.id}): Unrecognized hash. I don't think this should ever happen.`
-			);
-			done(null, false);
-			break;
-		case securePassword.INVALID:
-			log.debug(`User ${user.username} (${user.id}): Hash is invalid`);
-			done(new Error("Email or password is incorrect."), false);
-			break;
-		case securePassword.VALID_NEEDS_REHASH:
-			log.debug(`User ${user.username} (${user.id}): Hash is valid, needs rehash`);
-			// eslint-disable-next-line array-bracket-newline
-			user.hash = await pwd.hash(Buffer.concat([user.salt, Buffer.from(password)]));
-			await user.save();
-			done(null, user);
-			break;
-		case securePassword.VALID:
-			log.debug(`User ${user.username} (${user.id}): Hash is valid`);
-			done(null, user);
-			break;
+	// argon2 format: $argon2id$v=<version>$<params>$<salt_base64>$<hash_base64>
+	// Example: $argon2id$v=19$m=65536,t=2,p=1$OTBJYW01Z3B6c255emxSaQ$cBHXbCblzazbQETAc0SWMw
+	// argon2.verify expects a completely valid base64-encoded hash string.
+	// Since our stored hashes are binary data that may contain trailing null bytes added
+	// by "Buffer", we must trim them before verification.
+	const hash = user.hash.toString().replace(/\0+$/, "");
+	try {
+		const result = await argon2.verify(hash, Buffer.concat([user.salt, Buffer.from(password)]));
 
-		default:
-			log.error(`Unknown password hash result: ${result}`);
-			break;
+		if (result) {
+			if (argon2.needsRehash(hash)) {
+				log.debug(`User ${user.username} (${user.id}): Hash is valid, needs rehash`);
+				user.hash = Buffer.from(
+					await argon2.hash(Buffer.concat([user.salt, Buffer.from(password)]))
+				);
+				await user.save();
+			} else {
+				log.debug(`User ${user.username} (${user.id}): Hash is valid`);
+			}
+			done(null, user);
+		} else {
+			if (hash.indexOf("$argon2$") > -1) {
+				log.debug(`User ${user.username} (${user.id}): Hash is invalid`);
+				done(new Error("Email or password is incorrect."), false);
+			} else {
+				log.error(
+					`User ${user.username} (${user.id}): Unrecognized hash. I don't think this should ever happen.`
+				);
+				done(null, false);
+			}
+		}
+	} catch (error) {
+		log.error(`User ${user.username} (${user.id}): Error verifying hash: ${error.message}`);
+		done(new Error("An unknown error occurred. This is a bug."));
 	}
 }
 
@@ -610,8 +612,7 @@ async function registerUser({ email, username, password }): Promise<User> {
 	}
 
 	const salt = crypto.randomBytes(128);
-	// eslint-disable-next-line array-bracket-newline
-	const hash = await pwd.hash(Buffer.concat([salt, Buffer.from(password)]));
+	const hash = Buffer.from(await argon2.hash(Buffer.concat([salt, Buffer.from(password)])));
 
 	// HACK: the unique constraint on the model is fucking broken
 	if (await isUsernameTaken(username)) {
@@ -879,8 +880,7 @@ async function changeUserPassword(
 		throw new BadPasswordError();
 	}
 	const newSalt = crypto.randomBytes(128);
-	// eslint-disable-next-line array-bracket-newline
-	const hash = await pwd.hash(Buffer.concat([newSalt, Buffer.from(newPassword)]));
+	const hash = Buffer.from(await argon2.hash(Buffer.concat([newSalt, Buffer.from(newPassword)])));
 	user.hash = hash;
 	user.salt = newSalt;
 	await user.save();
