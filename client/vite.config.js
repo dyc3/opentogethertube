@@ -1,8 +1,8 @@
-import { defineConfig, searchForWorkspaceRoot } from "vite";
+import childProcess from "node:child_process";
+import path from "node:path";
 import vue from "@vitejs/plugin-vue";
+import { defineConfig, searchForWorkspaceRoot } from "vite";
 import vuetify from "vite-plugin-vuetify";
-import path from "path";
-import childProcess from "child_process";
 
 function gitCommit() {
 	if (process.env.GIT_COMMIT) {
@@ -34,6 +34,15 @@ export default defineConfig({
 			},
 		}),
 	],
+	css: {
+		preprocessorOptions: {
+			scss: {
+				// unfortunately, some of our dependencies use deprecated sass features, and we can't really do much about it
+				silenceDeprecations: ["import", "global-builtin"],
+				quietDeps: true,
+			},
+		},
+	},
 	resolve: {
 		alias: {
 			"@": path.resolve(searchForWorkspaceRoot(process.cwd()), "client/src"),
@@ -50,16 +59,16 @@ export default defineConfig({
 	},
 	envDir: path.resolve(searchForWorkspaceRoot(process.cwd()), "env"),
 	envPrefix: ["VITE_", "VUE_APP_", "OTT_"],
-	optimizeDeps: {
-		// this attempts to mitigate https://github.com/cypress-io/cypress/issues/25913
-		entries: [
-			"tests/e2e/**/*.ts",
-			"client/tests/e2e/**/*.ts",
-			"tests/e2e/support/component.ts",
-			"client/tests/e2e/support/component.ts",
-			"**/*.{js,ts,vue}",
-		],
-	},
+	// optimizeDeps: {
+	// 	// this attempts to mitigate https://github.com/cypress-io/cypress/issues/25913
+	// 	entries: [
+	// 		"tests/e2e/**/*.ts",
+	// 		"client/tests/e2e/**/*.ts",
+	// 		"tests/e2e/support/component.ts",
+	// 		"client/tests/e2e/support/component.ts",
+	// 		"**/*.{js,ts,vue}",
+	// 	],
+	// },
 	test: {
 		environment: "jsdom",
 		server: {
