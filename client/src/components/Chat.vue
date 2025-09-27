@@ -204,10 +204,6 @@ onUpdated(enforceStickToBottom);
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
-
-$chat-message-bg: $background-color;
-
 .chat {
 	display: flex;
 	flex-direction: column;

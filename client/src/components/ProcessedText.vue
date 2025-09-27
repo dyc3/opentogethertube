@@ -95,5 +95,5 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@use "../variables.scss";
 </style>

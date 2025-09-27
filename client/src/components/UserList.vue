@@ -224,8 +224,6 @@ function kickUser(clientId: ClientId) {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
-
 .user {
 	display: flex;
 	flex-direction: row;
@@ -251,7 +249,7 @@ function kickUser(clientId: ClientId) {
 
 	&.role-owner {
 		.role {
-			color: $brand-color;
+			color: rgb(var(--v-theme-primary));
 		}
 	}
 }

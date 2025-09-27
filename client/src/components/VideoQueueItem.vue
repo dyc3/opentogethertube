@@ -337,7 +337,7 @@ watchEffect(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@use "../variables.scss";
 
 .video {
 	display: flex;
@@ -367,7 +367,7 @@ watchEffect(() => {
 		.video-title,
 		.experimental {
 			font-size: 1.25rem;
-			@media (max-width: $sm-max) {
+			@media (max-width: variables.$sm-max) {
 				font-size: 0.8rem;
 			}
 			white-space: nowrap;
@@ -382,7 +382,7 @@ watchEffect(() => {
 			overflow: hidden;
 			text-overflow: ellipsis;
 
-			@media (max-width: $sm-max) {
+			@media (max-width: variables.$sm-max) {
 				display: none;
 			}
 		}
@@ -391,7 +391,7 @@ watchEffect(() => {
 	.img-container {
 		width: 200px;
 		max-width: 200px;
-		@media (max-width: $sm-max) {
+		@media (max-width: variables.$sm-max) {
 			max-width: 80px;
 		}
 	}
@@ -402,7 +402,7 @@ watchEffect(() => {
 		justify-content: center;
 		flex-wrap: nowrap;
 
-		@media (max-width: $sm-max) {
+		@media (max-width: variables.$sm-max) {
 			.vote-text {
 				display: none;
 			}
@@ -465,7 +465,7 @@ watchEffect(() => {
 
 .video-start-at {
 	font-size: 1rem;
-	@media (max-width: $sm-max) {
+	@media (max-width: variables.$sm-max) {
 		font-size: 0.8rem;
 	}
 	font-style: italic;
