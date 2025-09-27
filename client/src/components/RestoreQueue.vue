@@ -65,7 +65,7 @@ function discard() {
 </script>
 
 <style lang="scss">
-@import "./banner-transitions.scss";
+@use "./banner-transitions.scss";
 
 .restore {
 	margin-top: 10px;

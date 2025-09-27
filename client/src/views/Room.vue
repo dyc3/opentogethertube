@@ -717,7 +717,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "../variables.scss";
+@use "../variables.scss";
 
 $video-player-max-height: 75vh;
 $video-player-max-height-theater: 90vh;
@@ -748,7 +748,7 @@ $in-video-chat-width-small: 250px;
 		width: 80%;
 		justify-self: center;
 
-		@media (max-width: $md-max) {
+		@media (max-width: variables.$md-max) {
 			width: 100%;
 		}
 	}
@@ -793,12 +793,12 @@ $in-video-chat-width-small: 250px;
 	padding: 5px 10px;
 
 	position: absolute;
-	bottom: $video-controls-height;
+	bottom: variables.$video-controls-height;
 	right: 0;
 	width: $in-video-chat-width;
 	height: 70%;
 	min-height: 70px;
-	@media screen and (max-width: $sm-max) {
+	@media screen and (max-width: variables.$sm-max) {
 		width: $in-video-chat-width-small;
 	}
 	pointer-events: none;
@@ -810,7 +810,7 @@ $in-video-chat-width-small: 250px;
 	width: $in-video-chat-width;
 	height: 300px;
 	min-height: 100px;
-	@media screen and (max-width: $sm-max) {
+	@media screen and (max-width: variables.$sm-max) {
 		width: $in-video-chat-width-small;
 	}
 	pointer-events: none;
@@ -844,7 +844,7 @@ $in-video-chat-width-small: 250px;
 .tab-text {
 	margin: 0 8px;
 
-	@media screen and (max-width: $sm-max) {
+	@media screen and (max-width: variables.$sm-max) {
 		display: none;
 	}
 }
@@ -869,7 +869,7 @@ $in-video-chat-width-small: 250px;
 }
 
 .room {
-	@media (max-width: $md-max) {
+	@media (max-width: variables.$md-max) {
 		padding: 0;
 	}
 }
@@ -915,7 +915,7 @@ $in-video-chat-width-small: 250px;
 	display: flex;
 	width: 100%;
 
-	@media screen and (max-width: $sm-max) {
+	@media screen and (max-width: variables.$sm-max) {
 		flex-direction: column;
 	}
 }
@@ -924,7 +924,7 @@ $in-video-chat-width-small: 250px;
 	flex-grow: 1;
 	width: 60%;
 
-	@media screen and (max-width: $sm-max) {
+	@media screen and (max-width: variables.$sm-max) {
 		width: 100%;
 	}
 }

@@ -36,14 +36,14 @@ function changed(value: number) {
 </script>
 
 <style lang="scss" scoped>
-@import "../../variables.scss";
+@use "../../variables.scss";
 
 .volume {
 	width: 150px;
 	margin-left: 10px;
 	margin-right: 20px;
 
-	@media (max-width: $md-max) {
+	@media (max-width: variables.$md-max) {
 		width: 100px;
 	}
 }
