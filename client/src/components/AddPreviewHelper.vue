@@ -75,11 +75,11 @@ function setAddPreviewText(url: string) {
 </script>
 
 <style lang="scss">
-@import "../variables.scss";
+@use "../variables.scss";
 
 .add-video-helper {
 	width: 400px;
-	@media (max-width: $sm-max) {
+	@media (max-width: variables.$sm-max) {
 		width: 80%;
 	}
 

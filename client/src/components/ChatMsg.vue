@@ -27,7 +27,7 @@ const emit = defineEmits<{
 </script>
 
 <style lang="scss">
-@import "../variables.scss";
+@use "../variables.scss";
 
 .message {
 	margin: 2px 0;
@@ -57,7 +57,7 @@ const emit = defineEmits<{
 		margin-left: 0;
 	}
 
-	@media screen and (max-width: $sm-max) {
+	@media screen and (max-width: variables.$sm-max) {
 		font-size: 0.8em;
 	}
 }

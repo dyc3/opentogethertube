@@ -198,7 +198,7 @@ const cardHeight = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "../variables.scss";
+@use "../variables.scss";
 
 .home {
 	width: 100%;
@@ -221,7 +221,7 @@ const cardHeight = computed(() => {
 		font-size: 52px;
 	}
 
-	@media only screen and (max-width: $xs-max) {
+	@media only screen and (max-width: variables.$xs-max) {
 		h1 {
 			font-size: 48px;
 		}
@@ -240,12 +240,12 @@ const cardHeight = computed(() => {
 			.v-btn {
 				background: transparent !important;
 				// margin: 0 10px;
-				@media only screen and (max-width: $md-max) {
+				@media only screen and (max-width: variables.$md-max) {
 					margin-top: 22px;
 				}
 			}
 
-			@media screen and (max-width: $sm-max) {
+			@media screen and (max-width: variables.$sm-max) {
 				flex-direction: column;
 			}
 		}

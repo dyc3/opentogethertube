@@ -32,5 +32,5 @@ const currentVotes = computed(() => {
 </script>
 
 <style lang="scss">
-@import "./banner-transitions.scss";
+@use "./banner-transitions.scss";
 </style>

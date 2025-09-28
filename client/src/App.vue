@@ -248,9 +248,9 @@ export default App;
 </script>
 
 <style lang="scss">
-@import "variables.scss";
-@import "fonts.scss";
-@import "common.scss";
+@use "./variables.scss";
+@use "./fonts.scss";
+@use "./common.scss";
 
 .link {
 	text-decoration: underline;
