@@ -466,7 +466,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 					key: this.apiKey,
 					part: parts.join(","),
 					id: ids.join(","),
-					fields: this.getVideosFieldsParam(parts),
+					fields: this.getNeededFields(parts),
 				},
 			});
 			const results: Video[] = [];
@@ -540,7 +540,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 	}
 
-	private getVideosFieldsParam(parts: YoutubeApiPart[]): string {
+	private getNeededFields(parts: YoutubeApiPart[]): string {
 		const needsSnippet = parts.includes("snippet");
 		const needsContentDetails = parts.includes("contentDetails");
 		const fields: string[] = ["items("];
@@ -695,15 +695,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			videoSyndicated: true,
 			q: query,
 			eventType: "none",
+			fields: "items(id(videoId))",
 		};
 
 		try {
-			const res = await this.api.get("/search", {
-				params: {
-					...params,
-					fields: "items(id(videoId))",
-				},
-			});
+			const res = await this.api.get("/search", { params });
 			const results: VideoId[] = res.data.items.map(searchResult => ({
 				service: this.serviceId,
 				id: searchResult.id.videoId,
