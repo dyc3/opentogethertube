@@ -1,4 +1,3 @@
-import util from "util";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { getLogger } from "./logger.js";
 import childProcess from "child_process";
@@ -11,10 +10,63 @@ import { AbortController } from "node-abort-controller";
 import http from "http";
 import https from "https";
 import { Counter } from "prom-client";
+import { FfprobeTimeoutError } from "./exceptions.js";
 import { conf } from "./ott-config.js";
 
 const log = getLogger("infoextract/ffprobe");
-const exec = util.promisify(childProcess.exec);
+
+// Hard ffprobe, 35 Seconds.
+const FFPROBE_TIMEOUT_MS = 35000;
+
+// Track all spawned ffprobe children so we can always clean them up.
+const FFPROBE_CHILDREN = new Set<childProcess.ChildProcess>();
+
+function registerFfprobeChild(child: childProcess.ChildProcess): void {
+	try {
+		FFPROBE_CHILDREN.add(child);
+		log.debug(`registered ffprobe child pid=${child.pid}, total now=${FFPROBE_CHILDREN.size}`);
+		// auto-unregister when the child exits
+		child.once("close", () => {
+			FFPROBE_CHILDREN.delete(child);
+			log.debug(
+				`unregistered ffprobe child pid=${child.pid}, total now=${FFPROBE_CHILDREN.size}`
+			);
+		});
+	} catch (e) {
+		log.debug(`registerFfprobeChild error: ${String(e)}`);
+	}
+}
+
+// Fixes multi spawn ffprobe
+function killAllFfprobeChildren(reason: string): void {
+	if (FFPROBE_CHILDREN.size === 0) {
+		log.debug(`killAllFfprobeChildren: no lingering children (reason=${reason})`);
+		return;
+	}
+	log.warn(
+		`killAllFfprobeChildren: cleaning up ${FFPROBE_CHILDREN.size} children (reason=${reason})`
+	);
+	for (const c of FFPROBE_CHILDREN) {
+		try {
+			log.warn(`killing lingering ffprobe pid=${c.pid}`);
+			c.kill("SIGKILL");
+		} catch (e) {
+			log.debug(`killAllFfprobeChildren error: ${String(e)}`);
+		}
+	}
+	FFPROBE_CHILDREN.clear();
+}
+
+// Ensure no ffprobe child processes are left running when Node.js is terminated.
+// On normal exit or termination signals (SIGINT, SIGTERM) we clean up
+// all registered ffprobe children to prevent zombie processes.
+
+// Node.js terminates via exit
+process.once("exit", () => killAllFfprobeChildren("process_exit"));
+// Node.js terminates via Ctrl + C command
+process.once("SIGINT", () => killAllFfprobeChildren("sigint"));
+// Node.js terminates via OS Kill execution. Linux/Mac: Kill or service manager, Windows: taskkill or EndTask
+process.once("SIGTERM", () => killAllFfprobeChildren("sigterm"));
 
 function streamDataIntoFfprobe(
 	ffprobePath: string,
@@ -22,19 +74,58 @@ function streamDataIntoFfprobe(
 	controller: AbortController
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
-		let streamEnded = true;
-
-		let child = childProcess.spawn(
-			`${ffprobePath}`,
-			["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"],
-			{
-				stdio: "pipe",
-				windowsHide: true,
+		let settled = false;
+		const resolveOnce = (v: string) => {
+			if (!settled) {
+				settled = true;
+				resolve(v);
 			}
-		);
+		};
+		const rejectOnce = (e: unknown) => {
+			if (!settled) {
+				settled = true;
+				reject(e as Error);
+			}
+		};
+
+		let args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
+		let child = childProcess.spawn(ffprobePath, args, {
+			stdio: "pipe",
+			windowsHide: true,
+		});
+		registerFfprobeChild(child);
 		log.debug(`ffprobe child spawned: ${child.pid}`);
 		let resultJson = "";
+
+		let timedOut = false;
+		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
+			log.warn(
+				`ffprobe pid=${child.pid} exceeded hard timeout ${FFPROBE_TIMEOUT_MS}ms — killing`
+			);
+			try {
+				timedOut = true;
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.debug(`ffprobe hard-kill error: ${String(e)}`);
+			}
+			try {
+				controller.abort();
+			} catch (e) {
+				if (!axios.isCancel(e)) {
+					log.debug(`abort error: ${String(e)}`);
+				}
+			}
+		}, FFPROBE_TIMEOUT_MS);
+
+		const clearHardKiller = () => {
+			if (hardKiller) {
+				clearTimeout(hardKiller);
+				hardKiller = null;
+			}
+		};
+
 		function finalize() {
+			clearHardKiller();
 			stream.removeAllListeners();
 			stream.emit("end");
 			try {
@@ -44,7 +135,7 @@ function streamDataIntoFfprobe(
 					log.error(`Failed to abort request: ${e}`);
 				}
 			}
-			resolve(resultJson);
+			resolveOnce(resultJson);
 		}
 
 		stream.on("data", data => {
@@ -54,24 +145,37 @@ function streamDataIntoFfprobe(
 			}
 			child.stdin.write(data, e => {
 				if (e) {
-					log.debug(`write failed (destroyed: ${child.stdin.destroyed}): ${e}`);
+					log.debug(`write failed (destroyed: ${child.stdin.destroyed}): ${String(e)}`);
 				}
 			});
 		});
 		child.stdin.on("error", e => {
-			log.debug(`ffprobe stdin error: ${e}`);
+			log.debug(`ffprobe stdin error: ${String(e)}`);
 		});
 		stream.on("end", () => {
 			log.debug("http stream ended");
-			streamEnded = true;
 			if (child.stdin.destroyed) {
 				return;
 			}
 			child.stdin.end();
 		});
 		stream.on("error", error => {
-			log.error(`http stream error: ${error}`);
-			reject(error);
+			if (!timedOut) {
+				log.error(`http stream error: ${error}`);
+			} else {
+				log.debug(`expected stream.on error: ${error}`);
+			}
+			clearHardKiller();
+			try {
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.error("Error while trying to destroy ffprobe:", e);
+			}
+			if (timedOut) {
+				rejectOnce(new FfprobeTimeoutError());
+			} else {
+				rejectOnce(error);
+			}
 		});
 		child.stdout.on("data", data => {
 			log.debug(`ffprobe output: ${data}`);
@@ -80,8 +184,12 @@ function streamDataIntoFfprobe(
 		child.stderr.on("data", data => {
 			log.silly(`${data}`);
 		});
-		child.on("close", () => {
-			log.debug("ffprobe closed");
+		child.on("close", (code, signal) => {
+			clearHardKiller();
+			log.debug(`ffprobe closed (code=${code}, signal=${signal ?? "none"})`);
+			if (timedOut) {
+				return rejectOnce(new FfprobeTimeoutError());
+			}
 			finalize();
 		});
 	});
@@ -109,10 +217,64 @@ export class RunFfprobe extends FfprobeStrategy {
 			);
 			throw new Error("Unescaped double quote found in uri");
 		}
-		const { stdout } = await exec(
-			`${this.ffprobePath} -v quiet -i "${uri}" -print_format json -show_streams -show_format`
-		);
-		return JSON.parse(stdout);
+		// minimal change: use spawn with args
+		const args = [
+			"-v",
+			"quiet",
+			"-i",
+			uri,
+			"-print_format",
+			"json",
+			"-show_streams",
+			"-show_format",
+		];
+		const child = childProcess.spawn(this.ffprobePath, args, {
+			stdio: ["ignore", "pipe", "pipe"],
+			windowsHide: true,
+		});
+		registerFfprobeChild(child);
+		let out = "";
+		let err = "";
+
+		let timedOut = false;
+
+		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
+			log.warn(`ffprobe (run) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`);
+			try {
+				timedOut = true;
+				child.kill("SIGKILL");
+			} catch (e) {
+				log.debug(`ffprobe hard-kill error: ${String(e)}`);
+			}
+		}, FFPROBE_TIMEOUT_MS);
+		child.stdout.on("data", d => (out += d));
+		child.stderr.on("data", d => (err += d));
+		await new Promise<void>((resolve, reject) => {
+			child.on("error", err => {
+				if (hardKiller) {
+					clearTimeout(hardKiller);
+					hardKiller = null;
+				}
+				log.error(`ffprobe spawn error (pid=${child.pid ?? "n/a"}): ${String(err)}`);
+				reject(err);
+			});
+			child.on("close", (code, signal) => {
+				if (hardKiller) {
+					clearTimeout(hardKiller);
+					hardKiller = null;
+				}
+				if (timedOut) {
+					return reject(new FfprobeTimeoutError());
+				}
+				if (code === 0) {
+					return resolve();
+				}
+				reject(
+					new Error(`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`)
+				);
+			});
+		});
+		return JSON.parse(out);
 	}
 }
 
@@ -158,10 +320,67 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 		}
 
 		try {
-			const { stdout } = await exec(
-				`${this.ffprobePath} -v quiet -i "${tmpfile}" -print_format json -show_streams -show_format`
-			);
-			return JSON.parse(stdout);
+			const args = [
+				"-v",
+				"quiet",
+				"-i",
+				tmpfile,
+				"-print_format",
+				"json",
+				"-show_streams",
+				"-show_format",
+			];
+			const child = childProcess.spawn(this.ffprobePath, args, {
+				stdio: ["ignore", "pipe", "pipe"],
+				windowsHide: true,
+			});
+			registerFfprobeChild(child);
+			let out = "";
+			let err = "";
+
+			let timedOut = false;
+
+			let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
+				log.warn(
+					`ffprobe (ondisk) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`
+				);
+				try {
+					timedOut = true;
+					child.kill("SIGKILL");
+				} catch (e) {
+					log.debug(`ffprobe hard-kill error: ${String(e)}`);
+				}
+			}, FFPROBE_TIMEOUT_MS);
+			child.stdout.on("data", d => (out += d));
+			child.stderr.on("data", d => (err += d));
+			await new Promise<void>((resolve, reject) => {
+				child.on("error", err => {
+					if (hardKiller) {
+						clearTimeout(hardKiller);
+						hardKiller = null;
+					}
+					log.error(`ffprobe spawn error (pid=${child.pid ?? "n/a"}): ${String(err)}`);
+					reject(err);
+				});
+				child.on("close", (code, signal) => {
+					if (hardKiller) {
+						clearTimeout(hardKiller);
+						hardKiller = null;
+					}
+					if (timedOut) {
+						return reject(new FfprobeTimeoutError());
+					}
+					if (code === 0) {
+						return resolve();
+					}
+					reject(
+						new Error(
+							`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`
+						)
+					);
+				});
+			});
+			return JSON.parse(out);
 		} finally {
 			await fs.rm(tmpfile);
 		}
