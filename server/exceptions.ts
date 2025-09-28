@@ -79,7 +79,7 @@ export class FfprobeTimeoutError extends OttException {
 
 	constructor() {
 		const userMessage =
-			"The provided direct file needs too long to probe. Please try another file.";
+			"The provided direct file took too long to probe for metadata. Please try another file.";
 		super(userMessage);
 		this.name = "FfprobeTimeoutError";
 		this.userMessage = userMessage;
