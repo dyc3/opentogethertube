@@ -296,6 +296,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 					key: this.apiKey,
 					part: "contentDetails",
 					[channelIdProp]: channelIdValue,
+					fields: "items(id,contentDetails(relatedPlaylists(uploads)))",
 				},
 			});
 
@@ -378,6 +379,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
 					part: "snippet,status",
 					playlistId: playlistId,
 					maxResults: ADD_PREVIEW_PLAYLIST_RESULTS_COUNT,
+					fields:
+						"items(" +
+						"status(privacyStatus)," +
+						"snippet(resourceId(videoId),title,description,thumbnails(default(url),medium(url)))" +
+						")",
 				},
 			});
 
@@ -460,6 +466,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 					key: this.apiKey,
 					part: parts.join(","),
 					id: ids.join(","),
+					fields: this.getNeededFields(parts),
 				},
 			});
 			const results: Video[] = [];
@@ -531,6 +538,25 @@ export default class YouTubeAdapter extends ServiceAdapter {
 				throw err;
 			}
 		}
+	}
+
+	private getNeededFields(parts: YoutubeApiPart[]): string {
+		const needsSnippet = parts.includes("snippet");
+		const needsContentDetails = parts.includes("contentDetails");
+		const fields: string[] = ["items("];
+		fields.push("id");
+		if (needsSnippet) {
+			// Only fields actually used by parseVideoItem() and livestream check
+			fields.push(
+				",snippet(title,description,thumbnails(default(url),medium(url)),liveBroadcastContent)"
+			);
+		}
+		if (needsContentDetails) {
+			// Only duration is used (ISO8601)
+			fields.push(",contentDetails(duration)");
+		}
+		fields.push(")");
+		return fields.join("");
 	}
 
 	private parseVideoItem(item: YoutubeApiVideo) {
@@ -669,6 +695,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			videoSyndicated: true,
 			q: query,
 			eventType: "none",
+			fields: "items(id(videoId))",
 		};
 
 		try {
