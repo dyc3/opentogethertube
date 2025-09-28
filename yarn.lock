@@ -1933,6 +1933,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@epic-web/invariant@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@epic-web/invariant@npm:1.0.0"
+  checksum: 10c0/72dbeb026e4e4eb3bc9c65739b91408ca77ab7d603a2494fa2eff3790ec22892c4caba751cffdf30f5ccf0e7ba79c1e9c96cf0a357404b9432bf1365baac23ca
+  languageName: node
+  linkType: hard
+
 "@es-joy/jsdoccomment@npm:~0.39.4":
   version: 0.39.4
   resolution: "@es-joy/jsdoccomment@npm:0.39.4"
@@ -3568,6 +3575,13 @@ __metadata:
   version: 3.8.4
   resolution: "@petamoriken/float16@npm:3.8.4"
   checksum: 10c0/4a5fd8a3c2781fcb4f9cb60e6c69288702f12c8177dcaf14b0f75c17e112aff4a457788008b09b7969938fa88ac035f495bc521bdbf96e59ed0f614deb623666
+  languageName: node
+  linkType: hard
+
+"@phc/format@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@phc/format@npm:1.0.0"
+  checksum: 10c0/56cec2687ac3767298f77b2202c0d6f282878c1375948b01da16e03475dc293628847d33150469a793d55095700dce65ac1760ada271deeab15bd0c6d1ceb306
   languageName: node
   linkType: hard
 
@@ -7268,6 +7282,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"argon2@npm:^0.44.0":
+  version: 0.44.0
+  resolution: "argon2@npm:0.44.0"
+  dependencies:
+    "@phc/format": "npm:^1.0.0"
+    cross-env: "npm:^10.0.0"
+    node-addon-api: "npm:^8.5.0"
+    node-gyp: "npm:latest"
+    node-gyp-build: "npm:^4.8.4"
+  checksum: 10c0/e0c4ccdebda659b4e44ed25621ad4cce07ee1d1bc9790ba3ef7145cd57a561b483e448fb8fd585dc28eadcb353918d89d0dcae73da36d9cb95af55e243ce49b9
+  languageName: node
+  linkType: hard
+
 "argparse@npm:^1.0.7":
   version: 1.0.10
   resolution: "argparse@npm:1.0.10"
@@ -8872,6 +8899,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cross-env@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "cross-env@npm:10.0.0"
+  dependencies:
+    "@epic-web/invariant": "npm:^1.0.0"
+    cross-spawn: "npm:^7.0.6"
+  bin:
+    cross-env: dist/bin/cross-env.js
+    cross-env-shell: dist/bin/cross-env-shell.js
+  checksum: 10c0/d16ffc3734106577d57b6253d81ab50294623bd59f96e161033eaf99c1c308ffbaba8463c23a6c0f72e841eff467cb7007a0a551f27554fcf2bbf6598cd828f9
+  languageName: node
+  linkType: hard
+
 "cross-fetch@npm:^3.0.6":
   version: 3.1.5
   resolution: "cross-fetch@npm:3.1.5"
@@ -8881,7 +8921,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.2, cross-spawn@npm:^7.0.3":
+"cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.2, cross-spawn@npm:^7.0.3, cross-spawn@npm:^7.0.6":
   version: 7.0.6
   resolution: "cross-spawn@npm:7.0.6"
   dependencies:
@@ -15492,13 +15532,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoassert@npm:^1.0.0":
-  version: 1.1.0
-  resolution: "nanoassert@npm:1.1.0"
-  checksum: 10c0/aa9586c0c73b36a431f66a14db9b6035e3f729c44da59fc973049d8433822d943c0312ac92436a7da2a59e4da0b9094c22da1cdd16ddebcb54ea9e75eb9906fe
-  languageName: node
-  linkType: hard
-
 "nanoid@npm:3.3.3":
   version: 3.3.3
   resolution: "nanoid@npm:3.3.3"
@@ -15598,6 +15631,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-addon-api@npm:^8.5.0":
+  version: 8.5.0
+  resolution: "node-addon-api@npm:8.5.0"
+  dependencies:
+    node-gyp: "npm:latest"
+  checksum: 10c0/e4de0b4e70998fed7ef41933946f60565fc3a17cb83b7d626a0c0bb1f734cf7852e0e596f12681e7c8ed424163ee3cdbb4f0abaa9cc269d03f48834c263ba162
+  languageName: node
+  linkType: hard
+
 "node-fetch@npm:2.6.7":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
@@ -15626,7 +15668,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build@npm:^4.8.0":
+"node-gyp-build@npm:^4.8.4":
   version: 4.8.4
   resolution: "node-gyp-build@npm:4.8.4"
   bin:
@@ -16227,6 +16269,7 @@ __metadata:
     "@types/validator": "npm:^13.15.2"
     "@types/ws": "npm:^7.4.4"
     ansi-colors: "npm:^4.1.1"
+    argon2: "npm:^0.44.0"
     axios: "npm:1.12.2"
     connect-redis: "npm:7.1.0"
     convict: "npm:^6.2.4"
@@ -16254,7 +16297,6 @@ __metadata:
     rate-limiter-flexible: "npm:^2.2.1"
     redis: "npm:4.6.7"
     redis-mock: "npm:^0.56.3"
-    secure-password: "npm:^4.0.0"
     sequelize: "npm:^6.25.7"
     sequelize-cli: "npm:^6.6.0"
     sponsorblock-api: "npm:^0.2.2"
@@ -19019,16 +19061,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"secure-password@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "secure-password@npm:4.0.0"
-  dependencies:
-    nanoassert: "npm:^1.0.0"
-    sodium-native: "npm:^3.1.1"
-  checksum: 10c0/f1f5d9211e1916801da75284c1e8a0ce25463fc1c27155831a490d1c1db2c3e50a09a76070a1bc5e84e9f6b1b3053642391f568a8f1ae0bad77a20a61f514740
-  languageName: node
-  linkType: hard
-
 "selection-is-backward@npm:^1.0.0":
   version: 1.0.0
   resolution: "selection-is-backward@npm:1.0.0"
@@ -19596,15 +19628,6 @@ __metadata:
     ip: "npm:^2.0.0"
     smart-buffer: "npm:^4.2.0"
   checksum: 10c0/43f69dbc9f34fc8220bc51c6eea1c39715ab3cfdb115d6e3285f6c7d1a603c5c75655668a5bbc11e3c7e2c99d60321fb8d7ab6f38cda6a215fadd0d6d0b52130
-  languageName: node
-  linkType: hard
-
-"sodium-native@npm:4.3.2":
-  version: 4.3.2
-  resolution: "sodium-native@npm:4.3.2"
-  dependencies:
-    node-gyp-build: "npm:^4.8.0"
-  checksum: 10c0/92028fe65659826e8134578d7530704332ebc08b76a586681b104be226c77e5c7acb58431408be315888d8d57e6c9934eae12c7608890a88acf382b67453969e
   languageName: node
   linkType: hard
 

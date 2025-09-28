@@ -65,8 +65,5 @@
     "supertest": "6.3.3",
     "ts-node": "^10.9.1"
   },
-  "packageManager": "yarn@4.1.0",
-  "resolutions": {
-    "sodium-native": "4.3.2"
-  }
+  "packageManager": "yarn@4.1.0"
 }
