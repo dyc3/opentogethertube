@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import convict from "convict";
+import toml from "toml";
 
 if (process.env.NODE_ENV !== "production") {
   let rootDir = path.resolve(process.cwd());
@@ -9,6 +10,8 @@ if (process.env.NODE_ENV !== "production") {
     fs.mkdirSync(path.join(rootDir, "./db"));
   }
 }
+
+convict.addParser({ extension: "toml", parse: toml.parse });
 
 // HACK: we can't import the config here because sequelize-cli doesn't support typescript imports
 // which is actually really really annoying
@@ -75,13 +78,13 @@ const conf = convict({
   },
 });
 try {
-  conf.load("../env/base.toml");
+  conf.loadFile("../env/base.toml");
 } catch {
   console.log("No base config found");
 }
 const env = process.env.NODE_ENV || "development";
 try {
-  conf.load(`../env/${env}.toml`);
+  conf.loadFile(`../env/${env}.toml`);
 } catch {
   console.log(`No ${env} config found`);
 }
