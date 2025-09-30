@@ -21,8 +21,12 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Hls from "hls.js";
-import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
-import { useCaptions } from "../composables";
+import type {
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
+} from "../composables";
+import { useCaptions, useQualities } from "../composables";
 
 interface Props {
 	videoUrl: string;
@@ -33,6 +37,7 @@ const props = defineProps<Props>();
 const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
+const qualities = useQualities();
 let hls: Hls | undefined = undefined;
 
 const emit = defineEmits<{
@@ -129,6 +134,57 @@ function setCaptionsTrack(track: string): void {
 	hls.subtitleTrack = trackIdx;
 }
 
+function isQualitySupported(): boolean {
+	return true;
+}
+
+function getVideoTracks(): number[] {
+	if (!hls || !hls.levels) {
+		console.error("player not ready");
+		return [];
+	}
+	console.log("HlsPlayer: getVideoTracks:", hls.levels);
+	if (hls.levels.length === 1) {
+		console.log("HlsPlayer: no other video tracks available");
+		if (hls.levels[0].height === 0) {
+			// if the only level height is 0, then don't return any quality levels
+			return [];
+		}
+	}
+	return hls.levels.map(level => level.height);
+}
+
+function setVideoTrack(track: number): void {
+	if (!hls) {
+		console.error("player not ready");
+		return;
+	}
+	if (track >= hls.levels.length || track < -1) {
+		console.error("HlsPlayer:  HLS.js video track not found:", track);
+		return;
+	}
+	if (track === hls.currentLevel) {
+		return;
+	}
+	console.log("HlsPlayer: setting HLS.js video track:", track);
+	// hls.currentLevel immediately switches to the specified quality level.
+	// hls.loadLevel switches to the new quality level
+	// hls.nextLevel switches to the new quality level and eventually flush already buffered next fragments.
+	// To smoothly switch quality levels, let's use nextLevel.
+	hls.nextLevel = track;
+}
+
+function isAutoQualitySupported(): boolean {
+	return true;
+}
+
+function getCurrentActiveQuality(): number | null {
+	if (!hls || !hls.levels || hls.levels.length === 0) {
+		return null;
+	}
+	return hls.currentLevel;
+}
+
 function getAvailablePlaybackRates(): number[] {
 	return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 }
@@ -182,6 +238,15 @@ function loadVideoSource() {
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
 		console.log("HlsPlayer: current subtitle track:", hls?.subtitleTrack);
 		captions.currentTrack.value = captions.captionsTracks.value[hls?.subtitleTrack || 0] || "";
+		qualities.videoTracks.value = getVideoTracks();
+		qualities.currentVideoTrack.value = hls?.autoLevelEnabled ? -1 : hls?.currentLevel || -1;
+		qualities.currentActiveQuality.value = getCurrentActiveQuality();
+		console.log("HlsPlayer: current video track:", qualities.currentVideoTrack.value);
+	});
+
+	hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
+		console.info("HlsPlayer: hls.js level switched:", data);
+		qualities.currentActiveQuality.value = getCurrentActiveQuality();
 	});
 
 	hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, (_, data) => {
@@ -257,10 +322,15 @@ defineExpose({
 	isCaptionsEnabled,
 	getCaptionsTracks,
 	setCaptionsTrack,
+	isQualitySupported,
+	getVideoTracks,
+	setVideoTrack,
+	isAutoQualitySupported,
+	getCurrentActiveQuality,
 	getAvailablePlaybackRates,
 	getPlaybackRate,
 	setPlaybackRate,
-} satisfies MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate);
+} satisfies MediaPlayerWithCaptions & MediaPlayerWithQuality & MediaPlayerWithPlaybackRate);
 </script>
 
 <style lang="scss">
