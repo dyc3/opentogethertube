@@ -142,8 +142,10 @@ import { defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
 import {
 	MediaPlayer,
 	MediaPlayerWithCaptions,
+	MediaPlayerWithQuality,
 	MediaPlayerWithPlaybackRate,
 	useCaptions,
+	useQualities,
 	useMediaPlayer,
 	usePlaybackRate,
 	useVolume,
@@ -181,6 +183,10 @@ function implementsCaptions(p: MediaPlayer | null): p is MediaPlayerWithCaptions
 	return !!p && p.isCaptionsSupported();
 }
 
+function implementsQualities(p: MediaPlayer | null): p is MediaPlayerWithQuality {
+	return !!p && p.isQualitySupported();
+}
+
 function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlaybackRate {
 	return !!p && p.getAvailablePlaybackRates().length > 1;
 }
@@ -192,8 +198,16 @@ function isCaptionsSupported() {
 	return implementsCaptions(player.value);
 }
 
+function isQualitySupported() {
+	if (!controls.checkForPlayer(player.value)) {
+		return false;
+	}
+	return implementsQualities(player.value);
+}
+
 const volume = useVolume();
 const captions = useCaptions();
+const qualities = useQualities();
 watch(volume, v => {
 	if (player.value) {
 		player.value.setVolume(v);
@@ -207,6 +221,7 @@ watch(player, v => {
 		hasPlayerChangedYet.value = true;
 	} else {
 		captions.isCaptionsSupported.value = false;
+		qualities.isQualitySupported.value = false;
 		playbackRate.availablePlaybackRates.value = [1];
 	}
 });
@@ -220,6 +235,11 @@ watch(captions.isCaptionsEnabled, v => {
 watch(captions.currentTrack, v => {
 	if (player.value && implementsCaptions(player.value) && v) {
 		player.value.setCaptionsTrack(v);
+	}
+});
+watch(qualities.currentVideoTrack, v => {
+	if (player.value && implementsQualities(player.value) && v !== null) {
+		player.value.setVideoTrack(v);
 	}
 });
 const playbackRate = usePlaybackRate();
@@ -248,11 +268,15 @@ async function onApiReady() {
 	hasPlayerChangedYet.value = false;
 	controls.markApiReady();
 	captions.isCaptionsSupported.value = isCaptionsSupported();
+	qualities.isQualitySupported.value = isQualitySupported();
 	if (player.value) {
 		player.value.setVolume(volume.value);
 	}
 	if (implementsCaptions(player.value)) {
 		captions.captionsTracks.value = player.value.getCaptionsTracks();
+	}
+	if (implementsQualities(player.value)) {
+		qualities.videoTracks.value = player.value.getVideoTracks();
 	}
 	if (implementsPlaybackRate(player.value)) {
 		playbackRate.availablePlaybackRates.value = player.value.getAvailablePlaybackRates();
