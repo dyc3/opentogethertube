@@ -4,7 +4,7 @@
 		icon
 		:disabled="!supported"
 		class="media-control"
-		aria-label="Video Quality"
+		:aria-label="$t('room.video-quality')"
 	>
 		<v-icon>mdi-settings</v-icon>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">

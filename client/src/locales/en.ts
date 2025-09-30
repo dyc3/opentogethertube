@@ -150,6 +150,7 @@ export default {
 		"next-video": "Next video",
 		"next-video-vote": "Vote to skip video",
 		"toggle-fullscreen": "Toggle fullscreen",
+		"video-quality": "Video Quality",
 		"con-status": {
 			connecting: "Connecting...",
 			connected: "Connected",
