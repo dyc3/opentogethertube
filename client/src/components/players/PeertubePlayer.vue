@@ -80,6 +80,10 @@ const PeertubePlayer = defineComponent({
 			return false;
 		}
 
+		function isQualitySupported(): boolean {
+			return false;
+		}
+
 		function getAvailablePlaybackRates(): number[] {
 			return player.getPlaybackRates();
 		}
@@ -101,6 +105,7 @@ const PeertubePlayer = defineComponent({
 			setPosition,
 			setVolume,
 			isCaptionsSupported,
+			isQualitySupported,
 			getAvailablePlaybackRates,
 			getPlaybackRate,
 			setPlaybackRate,

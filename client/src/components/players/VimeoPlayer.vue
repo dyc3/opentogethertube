@@ -120,6 +120,10 @@ const VimeoPlayer = defineComponent({
 			return false;
 		}
 
+		function isQualitySupported(): boolean {
+			return false;
+		}
+
 		function getAvailablePlaybackRates(): number[] {
 			return [1];
 		}
@@ -133,6 +137,7 @@ const VimeoPlayer = defineComponent({
 			setPosition,
 			setVolume,
 			isCaptionsSupported,
+			isQualitySupported,
 			getAvailablePlaybackRates,
 		};
 	},

@@ -206,6 +206,10 @@ export default {
 			}
 		},
 
+		isQualitySupported() {
+			return false;
+		},
+
 		getAvailablePlaybackRates() {
 			if (!this.player) {
 				return [1];

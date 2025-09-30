@@ -72,6 +72,9 @@ export default {
 		isCaptionsSupported() {
 			return false;
 		},
+		isQualitySupported() {
+			return false;
+		},
 		getAvailablePlaybackRates() {
 			return [1];
 		},
