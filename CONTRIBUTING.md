@@ -6,7 +6,7 @@ There's 2 ways you can set up your dev environment: using docker via dev contain
 
 ### Prerequisites
 
-This project targets node 18 and up. I recommend using [nvm](https://github.com/nvm-sh/nvm) to manage your node versions.
+This project targets node 20 and up. I recommend using [nvm](https://github.com/nvm-sh/nvm) to manage your node versions.
 
 I also recommend using the github cli (note this is different from git) to make PRs.
 
