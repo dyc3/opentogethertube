@@ -6,7 +6,7 @@
 		class="media-control"
 		:aria-label="$t('room.video-quality')"
 	>
-		<v-icon>mdi-settings</v-icon>
+		<v-icon :icon="mdiCog" />
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
 				<v-list-item
@@ -49,6 +49,7 @@
 
 <script lang="ts" setup>
 import { useQualities } from "../composables";
+import { mdiCog } from "@mdi/js";
 
 const qualities = useQualities();
 
