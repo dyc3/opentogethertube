@@ -1,7 +1,7 @@
 <template>
 	<v-list-item @click="$emit('createtemp')">
 		<template #prepend>
-			<v-icon>mdi-plus-box</v-icon>
+			<v-icon :icon="mdiPlusBox" />
 		</template>
 		<v-list-item-title>{{ $t("nav.create.temp") }}</v-list-item-title>
 		<v-list-item-subtitle class="text-muted">{{
@@ -10,7 +10,7 @@
 	</v-list-item>
 	<v-list-item @click="$emit('createperm')">
 		<template #prepend>
-			<v-icon>mdi-plus-box</v-icon>
+			<v-icon :icon="mdiPlusBox" />
 		</template>
 		<v-list-item-title>{{ $t("nav.create.perm") }}</v-list-item-title>
 		<v-list-item-subtitle class="text-muted">{{
@@ -20,5 +20,6 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiPlusBox } from "@mdi/js";
 defineEmits(["createtemp", "createperm"]);
 </script>

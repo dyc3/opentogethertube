@@ -3405,10 +3405,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mdi/font@npm:^3.9.97":
-  version: 3.9.97
-  resolution: "@mdi/font@npm:3.9.97"
-  checksum: 10c0/1ddb0a49f870ad98018c35503db811d2bc469769d0510e79fa4022e131801178c072b92b8499b2af96e73a474ead968ef0a61675d7a3c565abc011c3402ad46b
+"@mdi/js@npm:^7.4.47":
+  version: 7.4.47
+  resolution: "@mdi/js@npm:7.4.47"
+  checksum: 10c0/4364d4dff943c630f9cdddba1a74d3713654e4da1b85bc7a307b2285447a57c41434a39a8520b39957df1028186a2e5944102fd1386d6c0c73e709335f5ccb3e
   languageName: node
   linkType: hard
 
@@ -16506,7 +16506,7 @@ __metadata:
   resolution: "ott-client@workspace:client"
   dependencies:
     "@cypress/vue": "npm:^5.0.3"
-    "@mdi/font": "npm:^3.9.97"
+    "@mdi/js": "npm:^7.4.47"
     "@peertube/embed-api": "npm:^0.0.6"
     "@types/video.js": "npm:^7.3.29"
     "@types/vimeo__player": "npm:^2.16.0"

@@ -6,7 +6,7 @@
 		class="media-control"
 		aria-label="Closed Captions"
 	>
-		<v-icon>mdi-closed-caption</v-icon>
+		<v-icon :icon="mdiClosedCaption" />
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
 				<v-list-item
@@ -47,6 +47,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiClosedCaption } from "@mdi/js";
 import { useCaptions } from "../composables";
 
 const captions = useCaptions();

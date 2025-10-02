@@ -16,8 +16,8 @@
 				<v-checkbox
 					v-model="showSettings"
 					:label="$t('room.tabs.settings')"
-					false-icon="mdi-chevron-up"
-					true-icon="mdi-chevron-down"
+					:false-icon="mdiChevronUp"
+					:true-icon="mdiChevronDown"
 				/>
 				<v-expand-transition>
 					<div v-if="showSettings">
@@ -78,6 +78,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
 import { onMounted, reactive, Ref, ref, watch } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { ROOM_NAME_REGEX } from "ott-common/constants";

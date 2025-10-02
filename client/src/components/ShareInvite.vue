@@ -12,7 +12,7 @@
 					:class="copySuccess ? 'text-success' : ''"
 					ref="inviteLinkText"
 					:value="inviteLink"
-					append-icon="mdi-clipboard-outline"
+					:append-icon="mdiClipboardOutline"
 					:messages="copySuccess ? $t('share-invite.copied') : ''"
 					@focus="onFocusHighlightText"
 					@click:append="copyInviteLink"
@@ -24,6 +24,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiClipboardOutline } from "@mdi/js";
 import { ref, computed } from "vue";
 import { useStore } from "@/store";
 import { useCopyFromTextbox } from "./composables";

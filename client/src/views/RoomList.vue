@@ -26,7 +26,7 @@
 						v-if="$vuetify.display.smAndUp"
 					>
 						<span class="subtitle-2 users">
-							{{ room.users }} <v-icon small>mdi-account-multiple</v-icon>
+							{{ room.users }} <v-icon small :icon="mdiAccountMultiple" />
 						</span>
 					</v-img>
 					<v-card-title>
@@ -57,6 +57,7 @@
 </template>
 
 <script lang="ts">
+import { mdiAccountMultiple } from "@mdi/js";
 import { API } from "@/common-http";
 import { defineComponent, ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
@@ -87,6 +88,7 @@ const RoomListView = defineComponent({
 
 			createRoom,
 			placeholderUrl,
+			mdiAccountMultiple,
 		};
 	},
 });

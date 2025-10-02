@@ -10,10 +10,9 @@
 		<v-icon
 			v-if="store.state.settings.roomLayout === 'theater'"
 			style="transform: scaleX(180%)"
-		>
-			mdi-square-outline
-		</v-icon>
-		<v-icon v-else style="transform: scaleX(130%)"> mdi-square-outline </v-icon>
+			:icon="mdiSquareOutline"
+		/>
+		<v-icon v-else style="transform: scaleX(130%)" :icon="mdiSquareOutline" />
 	</v-btn>
 	<v-btn
 		variant="text"
@@ -22,7 +21,7 @@
 		class="media-control"
 		:aria-label="$t('room.toggle-fullscreen')"
 	>
-		<v-icon>mdi-fullscreen-exit</v-icon>
+		<v-icon :icon="mdiFullscreenExit" />
 		<v-tooltip activator="parent" location="bottom">
 			<span>{{ $t("room.toggle-fullscreen") }}</span>
 		</v-tooltip>
@@ -30,6 +29,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiSquareOutline, mdiFullscreenExit } from "@mdi/js";
 import { computed, onMounted } from "vue";
 import { useStore } from "@/store";
 import { RoomLayoutMode } from "@/stores/settings";

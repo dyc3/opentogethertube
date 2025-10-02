@@ -13,7 +13,7 @@
 					@keydown="onInputAddPreviewKeyDown"
 					@focus="onFocusHighlightText"
 					:loading="isLoadingAddPreview"
-					prepend-inner-icon="mdi-magnify"
+					:prepend-inner-icon="mdiMagnify"
 					base-color="primary"
 					color="primary"
 					persistent-clear
@@ -37,7 +37,7 @@
 				@click="addAllToQueue()"
 				:loading="isLoadingAddAll"
 				:disabled="isLoadingAddAll"
-				prepend-icon="mdi-plus"
+				:prepend-icon="mdiPlus"
 			>
 				{{ $t("add-preview.add-all") }}
 			</v-btn>
@@ -93,6 +93,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiMagnify, mdiPlus } from "@mdi/js";
 import { ref, computed, watch, Ref } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "@/store";
