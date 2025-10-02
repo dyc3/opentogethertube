@@ -130,7 +130,7 @@
 								href="https://github.com/sponsors/dyc3"
 								target="_blank"
 							>
-								<v-icon class="side-pad">mdi-heart</v-icon>
+								<v-icon class="side-pad" :icon="mdiHeart" />
 								{{ $t("landing.support.sponsor") }}
 							</v-btn>
 							<v-btn
@@ -141,7 +141,7 @@
 								href="https://github.com/dyc3/opentogethertube"
 								target="_blank"
 							>
-								<v-icon class="side-pad">mdi-xml</v-icon>
+								<v-icon class="side-pad" :icon="mdiXml" />
 								{{ $t("landing.support.contribute") }}
 							</v-btn>
 						</v-col>
@@ -179,6 +179,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiHeart, mdiXml } from "@mdi/js";
 import { computed } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";

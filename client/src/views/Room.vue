@@ -41,7 +41,7 @@
 						</div>
 						<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
 							<v-btn
-								prepend-icon="mdi-play"
+								:prepend-icon="mdiPlay"
 								size="x-large"
 								color="warning"
 								@click="onClickUnblockPlayback"
@@ -73,7 +73,7 @@
 				<div class="under-video-tabs">
 					<v-tabs fixed-tabs v-model="queueTab" color="primary">
 						<v-tab>
-							<v-icon>mdi-format-list-bulleted</v-icon>
+							<v-icon :icon="mdiFormatListBulleted" />
 							<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
 							<v-chip size="x-small">
 								{{
@@ -84,11 +84,11 @@
 							</v-chip>
 						</v-tab>
 						<v-tab>
-							<v-icon>mdi-plus</v-icon>
+							<v-icon :icon="mdiPlus" />
 							<span class="tab-text">{{ $t("common.add") }}</span>
 						</v-tab>
 						<v-tab>
-							<v-icon>mdi-wrench</v-icon>
+							<v-icon :icon="mdiWrench" />
 							<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
 						</v-tab>
 					</v-tabs>
@@ -193,6 +193,7 @@
 </template>
 
 <script lang="ts">
+import { mdiPlay, mdiFormatListBulleted, mdiPlus, mdiWrench } from "@mdi/js";
 import {
 	defineComponent,
 	ref,
@@ -711,6 +712,12 @@ export default defineComponent({
 			mediaPlaybackBlocked,
 			onClickUnblockPlayback,
 			secondsToTimestamp,
+
+			// MDI Icons
+			mdiPlay,
+			mdiFormatListBulleted,
+			mdiPlus,
+			mdiWrench,
 		};
 	},
 });

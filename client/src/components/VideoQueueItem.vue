@@ -15,7 +15,7 @@
 						granted('manage-queue.order')
 					"
 				>
-					<v-icon>mdi-format-align-justify</v-icon>
+					<v-icon :icon="mdiFormatAlignJustify" />
 				</span>
 				<span class="video-length">{{ videoLength }}</span>
 			</v-img>
@@ -43,7 +43,7 @@
 					data-cy="btn-vote"
 				>
 					<span>{{ votes }}</span>
-					<v-icon>mdi-thumb-up</v-icon>
+					<v-icon :icon="mdiThumbUp" />
 					<span class="vote-text">
 						{{ voted ? $t("common.unvote") : $t("common.vote") }}
 					</span>
@@ -56,7 +56,7 @@
 					:disabled="!granted('manage-queue.play-now')"
 					data-cy="btn-play-now"
 				>
-					<v-icon>mdi-play</v-icon>
+					<v-icon :icon="mdiPlay" />
 					<v-tooltip activator="parent" location="top">
 						<span>{{ $t("video.playnow-explanation") }}</span>
 					</v-tooltip>
@@ -69,9 +69,9 @@
 					v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					data-cy="btn-add-to-queue"
 				>
-					<v-icon v-if="hasError">mdi-exclamation</v-icon>
-					<v-icon v-else-if="hasBeenAdded">mdi-check-bold</v-icon>
-					<v-icon v-else>mdi-plus</v-icon>
+					<v-icon v-if="hasError" :icon="mdiExclamation" />
+					<v-icon v-else-if="hasBeenAdded" :icon="mdiCheckBold" />
+					<v-icon v-else :icon="mdiPlus" />
 					<v-tooltip activator="parent" location="top">
 						<span>{{ $t("video.add-explanation") }}</span>
 					</v-tooltip>
@@ -85,13 +85,13 @@
 					@click="removeFromQueue"
 					data-cy="btn-remove-from-queue"
 				>
-					<v-icon v-if="hasError">mdi-exclamation</v-icon>
-					<v-icon v-else>mdi-trash-can</v-icon>
+					<v-icon v-if="hasError" :icon="mdiExclamation" />
+					<v-icon v-else :icon="mdiTrashCan" />
 				</v-btn>
 				<v-menu offset-y>
 					<template v-slot:activator="{ props: p }">
 						<v-btn icon variant="flat" v-bind="p" data-cy="btn-menu">
-							<v-icon>mdi-dots-vertical</v-icon>
+							<v-icon :icon="mdiDotsVertical" />
 						</v-btn>
 					</template>
 					<v-list>
@@ -102,7 +102,7 @@
 							:disabled="!granted('manage-queue.play-now')"
 							data-cy="menu-btn-play-now"
 						>
-							<v-icon>mdi-play</v-icon>
+							<v-icon :icon="mdiPlay" />
 							<span>{{ $t("video.playnow") }}</span>
 						</v-list-item>
 						<v-list-item
@@ -115,7 +115,7 @@
 							"
 							data-cy="menu-btn-move-to-top"
 						>
-							<v-icon>mdi-sort-descending</v-icon>
+							<v-icon :icon="mdiSortDescending" />
 							<span>{{ $t("video-queue-item.play-next") }}</span>
 						</v-list-item>
 						<v-list-item
@@ -124,7 +124,7 @@
 							v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 							data-cy="menu-btn-move-to-bottom"
 						>
-							<v-icon>mdi-sort-ascending</v-icon>
+							<v-icon :icon="mdiSortAscending" />
 							<span>{{ $t("video-queue-item.play-last") }}</span>
 						</v-list-item>
 						<v-list-item
@@ -133,9 +133,9 @@
 							@click="addToQueue"
 							data-cy="menu-btn-add-to-queue"
 						>
-							<v-icon v-if="hasError">mdi-exclamation</v-icon>
-							<v-icon v-else-if="hasBeenAdded">mdi-check-bold</v-icon>
-							<v-icon v-else>mdi-plus</v-icon>
+							<v-icon v-if="hasError" :icon="mdiExclamation" />
+							<v-icon v-else-if="hasBeenAdded" :icon="mdiCheckBold" />
+							<v-icon v-else :icon="mdiPlus" />
 							<span>{{ $t("common.add") }}</span>
 						</v-list-item>
 						<v-list-item
@@ -144,7 +144,7 @@
 							v-if="!isPreview && store.state.room.queueMode === QueueMode.Dj"
 							data-cy="menu-btn-remove-from-queue"
 						>
-							<v-icon>mdi-trash-can</v-icon>
+							<v-icon :icon="mdiTrashCan" />
 							<span>{{ $t("common.remove") }}</span>
 						</v-list-item>
 					</v-list>
@@ -155,6 +155,18 @@
 </template>
 
 <script lang="ts" setup>
+import {
+	mdiFormatAlignJustify,
+	mdiThumbUp,
+	mdiPlay,
+	mdiExclamation,
+	mdiCheckBold,
+	mdiPlus,
+	mdiTrashCan,
+	mdiDotsVertical,
+	mdiSortDescending,
+	mdiSortAscending,
+} from "@mdi/js";
 import { ref, toRefs, computed, watchEffect } from "vue";
 import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";

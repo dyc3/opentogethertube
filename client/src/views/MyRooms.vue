@@ -40,7 +40,7 @@
 								color="error"
 								@click.stop.prevent="openDeleteDialog(room)"
 							>
-								<v-icon icon="mdi-delete" />
+								<v-icon :icon="mdiDelete" />
 							</v-btn>
 						</template>
 					</v-list-item>
@@ -72,6 +72,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiDelete } from "@mdi/js";
 import { API } from "@/common-http";
 import { ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";

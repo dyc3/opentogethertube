@@ -8,7 +8,7 @@
 			class="media-control"
 			:aria-label="$t('room.rewind')"
 		>
-			<v-icon>mdi-chevron-left</v-icon>
+			<v-icon :icon="mdiChevronLeft" />
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.rewind") }}</span>
 			</v-tooltip>
@@ -21,7 +21,7 @@
 			class="media-control"
 			:aria-label="$t('room.play-pause')"
 		>
-			<v-icon :icon="store.state.room.isPlaying ? 'mdi-pause' : 'mdi-play'" />
+			<v-icon :icon="store.state.room.isPlaying ? mdiPause : mdiPlay" />
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.play-pause") }}</span>
 			</v-tooltip>
@@ -34,7 +34,7 @@
 			class="media-control"
 			:aria-label="$t('room.skip')"
 		>
-			<v-icon>mdi-chevron-right</v-icon>
+			<v-icon :icon="mdiChevronRight" />
 			<v-tooltip activator="parent" location="bottom">
 				<span>{{ $t("room.skip") }}</span>
 			</v-tooltip>
@@ -49,7 +49,7 @@
 				store.state.room.enableVoteSkip ? $t('room.next-video-vote') : $t('room.next-video')
 			"
 		>
-			<v-icon>mdi-skip-forward</v-icon>
+			<v-icon :icon="mdiSkipForward" />
 			<v-tooltip activator="parent" location="bottom">
 				<span>
 					{{
@@ -64,6 +64,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiChevronLeft, mdiPlay, mdiPause, mdiChevronRight, mdiSkipForward } from "@mdi/js";
 import _ from "lodash";
 import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";

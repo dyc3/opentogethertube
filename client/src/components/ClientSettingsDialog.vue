@@ -48,8 +48,8 @@
 				<v-checkbox
 					:label="$t('client-settings.room-settings')"
 					v-model="showRoomSettings"
-					false-icon="mdi-chevron-up"
-					true-icon="mdi-chevron-down"
+					:false-icon="mdiChevronUp"
+					:true-icon="mdiChevronDown"
 				/>
 
 				<v-expand-transition>
@@ -75,6 +75,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
 import { Ref, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";

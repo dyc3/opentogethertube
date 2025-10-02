@@ -34,11 +34,11 @@
 					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
 					target="_blank"
 				>
-					<v-icon class="side-pad">mdi-bug</v-icon>
+					<v-icon class="side-pad" :icon="mdiBug" />
 					{{ $t("nav.bug") }}
 				</v-btn>
 				<v-btn variant="text" href="https://github.com/sponsors/dyc3" target="_blank">
-					<v-icon class="side-pad">mdi-heart</v-icon>
+					<v-icon class="side-pad" :icon="mdiHeart" />
 					{{ $t("nav.support") }}
 				</v-btn>
 			</v-toolbar-items>
@@ -47,7 +47,7 @@
 				<v-menu offset-y>
 					<template v-slot:activator="{ props }">
 						<v-btn variant="text" v-bind="props">
-							<v-icon class="side-pad">mdi-plus-box</v-icon>
+							<v-icon class="side-pad" :icon="mdiPlusBox" />
 							{{ $t("nav.create.title") }}
 						</v-btn>
 					</template>
@@ -84,13 +84,13 @@
 					target="_blank"
 				>
 					<template #prepend>
-						<v-icon>mdi-bug</v-icon>
+						<v-icon :icon="mdiBug" />
 					</template>
 					{{ $t("nav.bug") }}
 				</v-list-item>
 				<v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
 					<template #prepend>
-						<v-icon>mdi-heart</v-icon>
+						<v-icon :icon="mdiHeart" />
 					</template>
 					{{ $t("nav.support") }}
 				</v-list-item>
@@ -138,6 +138,7 @@
 </template>
 
 <script lang="ts">
+import { mdiBug, mdiHeart, mdiPlusBox } from "@mdi/js";
 import { defineComponent, onMounted, ref, computed } from "vue";
 import { API } from "@/common-http";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
@@ -152,7 +153,7 @@ import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
 import LocaleSelector from "@/components/navbar/LocaleSelector.vue";
 
-export const App = defineComponent({
+const App = defineComponent({
 	name: "app",
 	components: {
 		CreateRoomForm,
@@ -240,6 +241,9 @@ export const App = defineComponent({
 			createTempRoom,
 			logoUrl,
 			store,
+			mdiBug,
+			mdiHeart,
+			mdiPlusBox,
 		};
 	},
 });

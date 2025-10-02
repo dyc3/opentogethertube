@@ -14,7 +14,7 @@
     "cy:run": "cypress run --component"
   },
   "dependencies": {
-    "@mdi/font": "^3.9.97",
+    "@mdi/js": "^7.4.47",
     "@peertube/embed-api": "^0.0.6",
     "@vimeo/player": "^2.20.1",
     "@vueuse/core": "^9.6.0",

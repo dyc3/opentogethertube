@@ -14,7 +14,7 @@
 							icon
 							@click="showBufferWarning = false"
 						>
-							<v-icon>mdi-close</v-icon>
+							<v-icon :icon="mdiClose" />
 						</v-btn>
 					</div>
 				</v-container>
@@ -132,6 +132,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mdiClose } from "@mdi/js";
 import { useStore } from "@/store";
 import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
