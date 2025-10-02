@@ -63,7 +63,7 @@ export default defineConfig({
 					// ],
 					// Temporarily(?) exclude vuetify until we can find a better solution for
 					// "Failed to fetch dynamically imported module" error in the component tests running on ci
-					exclude: ["vuetify"]
+					exclude: ["vuetify"],
 				},
 			},
 		},
