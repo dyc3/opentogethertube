@@ -102,6 +102,10 @@ export default defineComponent({
 				player.value.currentTrack = findTrackIdx(track);
 			},
 
+			isQualitySupported(): boolean {
+				return false;
+			},
+
 			getAvailablePlaybackRates(): number[] {
 				return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 			},

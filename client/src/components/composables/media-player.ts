@@ -35,6 +35,7 @@ export interface MediaPlayer {
 	setPosition(position: number): void;
 
 	isCaptionsSupported(): boolean;
+	isQualitySupported(): boolean;
 	getAvailablePlaybackRates(): number[];
 }
 
@@ -48,6 +49,13 @@ export interface MediaPlayerWithCaptions extends MediaPlayer {
 export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 	getPlaybackRate(): number;
 	setPlaybackRate(rate: number): void;
+}
+
+export interface MediaPlayerWithQuality extends MediaPlayer {
+	getVideoTracks(): number[];
+	setVideoTrack(idx: number): void;
+	isAutoQualitySupported(): boolean;
+	getCurrentActiveQuality(): number | null;
 }
 
 export class MediaPlayerV2 {
@@ -135,6 +143,22 @@ export function useCaptions() {
 		isCaptionsEnabled,
 		captionsTracks,
 		currentTrack,
+	};
+}
+
+const isQualitySupported: Ref<boolean> = ref(false);
+const videoTracks: Ref<number[]> = ref([]);
+const currentVideoTrack: Ref<number> = ref(-1);
+const isAutoQualitySupported: Ref<boolean> = ref(false);
+const currentActiveQuality: Ref<number | null> = ref(null);
+
+export function useQualities() {
+	return {
+		isQualitySupported,
+		videoTracks,
+		currentVideoTrack,
+		isAutoQualitySupported,
+		currentActiveQuality,
 	};
 }
 

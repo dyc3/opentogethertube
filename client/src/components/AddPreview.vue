@@ -140,6 +140,10 @@ const testVideos = import.meta.env.DEV
 				"https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
 			],
 			[
+				"test hls 2 w/ one quality",
+				"https://test-streams.mux.dev/x36xhzz/url_6/193039199_mp4_h264_aac_hq_7.m3u8",
+			],
+			[
 				"test dash 0",
 				"https://dash.akamaized.net/dash264/TestCases/1a/sony/SNE_DASH_SD_CASE1A_REVISED.mpd",
 			],
