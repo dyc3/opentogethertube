@@ -156,6 +156,10 @@ const testVideos = import.meta.env.DEV
 				"test dash 3 w/ multiple captions",
 				"https://livesim2.dashif.org/vod/testpic_2s/multi_subs.mpd",
 			],
+			[
+				"test dash 4 w/ multiple qualities",
+				"https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
+			],
 			["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
 	  ]
 	: [];
