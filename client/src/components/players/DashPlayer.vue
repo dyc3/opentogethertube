@@ -21,8 +21,12 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import * as dashjs from "dashjs";
-import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
-import { useCaptions } from "../composables";
+import type {
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
+} from "../composables";
+import { useCaptions, useQualities } from "../composables";
 
 interface Props {
 	videoUrl: string;
@@ -34,6 +38,7 @@ const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement>();
 const ttlmCaption = ref<HTMLDivElement>();
 const captions = useCaptions();
+const qualities = useQualities();
 const dash = ref<dashjs.MediaPlayerClass | undefined>(undefined);
 
 const emit = defineEmits([
@@ -139,7 +144,62 @@ function setCaptionsTrack(track: string): void {
 }
 
 function isQualitySupported(): boolean {
-	return false;
+	return true;
+}
+
+function getVideoTracks(): number[] {
+	if (!dash.value) {
+		console.error("player not ready");
+		return [];
+	}
+	const videoTracks = dash.value.getRepresentationsByType("video").map(rep => rep.height);
+	console.log("DashPlayer: getVideoTracks:", videoTracks);
+	if (videoTracks.length === 1) {
+		console.log("DashPlayer: no other video tracks available");
+		if (videoTracks[0] === 0) {
+			// if the only level height is 0, then don't return any quality levels
+			return [];
+		}
+	}
+	return videoTracks;
+}
+
+function setVideoTrack(track: number): void {
+	if (!dash.value) {
+		console.error("dash.js player not ready");
+		return;
+	}
+	if (track === -1) {
+		console.log("DashPlayer: setting video track to auto");
+		dash.value.updateSettings({
+			streaming: {
+				abr: {
+					autoSwitchBitrate: { audio: true, video: true },
+				},
+			},
+		});
+		return;
+	}
+	if (track >= getVideoTracks().length || track < -1) {
+		console.error("DashPlayer: video track not found:", track);
+		return;
+	}
+	console.log("DashPlayer: setting video track to index", track);
+	dash.value.setRepresentationForTypeByIndex("video", track);
+}
+
+function isAutoQualitySupported(): boolean {
+	return true;
+}
+
+function getCurrentActiveQuality(): number {
+	if (!dash.value) {
+		console.error("dash.js player not ready");
+		return -1;
+	}
+	const representation = dash.value.getCurrentRepresentationForType("video");
+	console.log("DashPlayer: current active quality:", representation);
+	return representation?.index || 0;
 }
 
 function getAvailablePlaybackRates(): number[] {
@@ -178,6 +238,18 @@ function loadVideoSource() {
 		dash.value.attachTTMLRenderingDiv(ttlmCaption.value);
 	}
 
+	// When fastSwitchEnabled is set to true the next fragment is requested and appended
+	// close to the current playback time.
+	// Note: When ABR down-switch is detected, dash.js appends the lower quality
+	// at the end of the buffer range to preserve the higher quality media for as long as possible.
+	dash.value.updateSettings({
+		streaming: {
+			buffer: {
+				fastSwitchEnabled: true,
+			},
+		},
+	});
+
 	dash.value.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, () => {
 		console.info("DashPlayer: dash.js manifest loaded");
 		emit("ready");
@@ -203,6 +275,13 @@ function loadVideoSource() {
 	});
 	dash.value.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
 		console.info("DashPlayer: dash.js stream initialized");
+		qualities.videoTracks.value = getVideoTracks();
+		const isAuto = dash.value?.getSettings()?.streaming?.abr?.autoSwitchBitrate?.video || false;
+		const currentVideoTrack = dash.value?.getCurrentRepresentationForType("video")?.index || 0;
+		qualities.currentVideoTrack.value = isAuto ? -1 : currentVideoTrack;
+		console.log("DashPlayer: current video track:", qualities.currentVideoTrack.value);
+		qualities.currentActiveQuality.value = getCurrentActiveQuality();
+		console.log("DashPlayer: current active quality:", qualities.currentActiveQuality.value);
 	});
 	dash.value.on(dashjs.MediaPlayer.events.BUFFER_EMPTY, () => {
 		console.info("DashPlayer: dash.js buffer stalled");
@@ -211,6 +290,10 @@ function loadVideoSource() {
 	dash.value.on(dashjs.MediaPlayer.events.BUFFER_LOADED, () => {
 		console.info("DashPlayer: dash.js buffer loaded");
 		emit("ready");
+	});
+	dash.value.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, () => {
+		console.info("DashPlayer: dash.js quality change rendered");
+		qualities.currentActiveQuality.value = getCurrentActiveQuality();
 	});
 
 	// this is needed to get the player to keep playing after the previous video has ended
@@ -281,10 +364,14 @@ defineExpose({
 	getCaptionsTracks,
 	setCaptionsTrack,
 	isQualitySupported,
+	getVideoTracks,
+	setVideoTrack,
+	isAutoQualitySupported,
+	getCurrentActiveQuality,
 	getAvailablePlaybackRates,
 	getPlaybackRate,
 	setPlaybackRate,
-} satisfies MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate);
+} satisfies MediaPlayerWithCaptions & MediaPlayerWithQuality & MediaPlayerWithPlaybackRate);
 </script>
 
 <style lang="scss">
