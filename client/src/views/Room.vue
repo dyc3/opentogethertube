@@ -27,7 +27,7 @@
 			</div>
 			<div class="video-container">
 				<div class="video-subcontainer">
-					<div class="player-container">
+					<div class="player-container" ref="playerContainer">
 						<OmniPlayer
 							:source="store.state.room.currentSource"
 							@apiready="onPlayerApiReady"
@@ -205,6 +205,7 @@ import {
 	onUnmounted,
 	nextTick,
 	provide,
+	useTemplateRef,
 } from "vue";
 import AddPreview from "@/components/AddPreview.vue";
 import { calculateCurrentPosition } from "ott-common/timestamp";
@@ -227,7 +228,7 @@ import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
 import { ServerMessageSync } from "ott-common/models/messages";
-import { useScreenOrientation, useMouse } from "@vueuse/core";
+import { useScreenOrientation, useMouseInElement } from "@vueuse/core";
 import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
 import VideoControls from "@/components/controls/VideoControls.vue";
 import RestoreQueue from "@/components/RestoreQueue.vue";
@@ -271,7 +272,8 @@ export default defineComponent({
 		// video control visibility
 		const controlsVisible = ref(true);
 		const videoControlsHideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
-		const mouse = useMouse();
+		const playerContainer = useTemplateRef<HTMLDivElement>("playerContainer");
+		const { isOutside } = useMouseInElement(playerContainer);
 
 		function setVideoControlsVisibility(visible: boolean) {
 			controlsVisible.value = visible;
@@ -292,9 +294,12 @@ export default defineComponent({
 			}
 		}
 
-		watch([mouse.x, mouse.y], () => {
+		watch(isOutside, () => {
 			if (!store.state.room.isPlaying) {
 				setVideoControlsVisibility(true);
+				return;
+			}
+			if (isOutside.value) {
 				return;
 			}
 			activateVideoControls();
