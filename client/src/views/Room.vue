@@ -273,7 +273,7 @@ export default defineComponent({
 		const controlsVisible = ref(true);
 		const videoControlsHideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
 		const playerContainer = useTemplateRef<HTMLDivElement>("playerContainer");
-		const { isOutside } = useMouseInElement(playerContainer);
+		const mouse = useMouseInElement(playerContainer);
 
 		function setVideoControlsVisibility(visible: boolean) {
 			controlsVisible.value = visible;
@@ -294,12 +294,19 @@ export default defineComponent({
 			}
 		}
 
-		watch(isOutside, () => {
+		watch([mouse.x, mouse.y], () => {
 			if (!store.state.room.isPlaying) {
 				setVideoControlsVisibility(true);
 				return;
 			}
-			if (isOutside.value) {
+			// When the iframe has focus, we can't reliably detect mouse movement
+			// So we just show the video controls for iframes whenever the mouse moves
+			if (
+				!["youtube", "peertube"].includes(
+					store.state.room.currentSource?.service || "youtube"
+				) &&
+				mouse.isOutside.value
+			) {
 				return;
 			}
 			activateVideoControls();
