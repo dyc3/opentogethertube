@@ -294,21 +294,22 @@ export default defineComponent({
 			}
 		}
 
+		const isIframeBasedPlayer = computed(() => {
+			const service = store.state.room.currentSource?.service;
+			return ["youtube", "peertube"].includes(service || "");
+		});
+
 		watch([mouse.x, mouse.y], () => {
 			if (!store.state.room.isPlaying) {
 				setVideoControlsVisibility(true);
 				return;
 			}
-			// When the iframe has focus, we can't reliably detect mouse movement
-			// So we just show the video controls for iframes whenever the mouse moves
-			if (
-				!["youtube", "peertube"].includes(
-					store.state.room.currentSource?.service || "youtube"
-				) &&
-				mouse.isOutside.value
-			) {
+
+			// For non-iframe players, only show controls when mouse is inside the player
+			if (!isIframeBasedPlayer.value && mouse.isOutside.value) {
 				return;
 			}
+
 			activateVideoControls();
 		});
 
