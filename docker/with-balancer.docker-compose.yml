@@ -1,9 +1,10 @@
-version: "3.7"
 services:
   opentogethertube:
     image: opentogethertube
     build:
       context: ../
+      sbom: true
+      provenance: mode=max
       dockerfile: deploy/monolith.Dockerfile
       target: docker-stage
       args:
