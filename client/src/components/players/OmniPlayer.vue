@@ -60,7 +60,10 @@
 				@error="onError"
 			/>
 			<HlsPlayer
-				v-else-if="!!source && ['hls', 'reddit', 'tubi', 'pluto'].includes(source.service)"
+				v-else-if="
+					!!source &&
+					['hls', 'reddit', 'tubi', 'pluto', 'odysee'].includes(source.service)
+				"
 				ref="player"
 				:video-url="source.hls_url ?? source.id"
 				:thumbnail="source.thumbnail"
