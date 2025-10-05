@@ -2,6 +2,9 @@
 	<v-btn variant="text" class="media-control" aria-label="Playback Speed" :disabled="!supported">
 		{{ formatRate(playbackRate.playbackRate.value) }}
 
+		<v-tooltip activator="parent" location="bottom">
+			<span>{{ $t("room.playback-speed") }}</span>
+		</v-tooltip>
 		<v-menu location="top" activator="parent">
 			<v-list>
 				<v-list-item
