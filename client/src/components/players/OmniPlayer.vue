@@ -222,6 +222,7 @@ watch(player, v => {
 	} else {
 		captions.isCaptionsSupported.value = false;
 		qualities.isQualitySupported.value = false;
+		qualities.isAutoQualitySupported.value = false;
 		playbackRate.availablePlaybackRates.value = [1];
 	}
 });
@@ -277,6 +278,7 @@ async function onApiReady() {
 	}
 	if (implementsQualities(player.value)) {
 		qualities.videoTracks.value = player.value.getVideoTracks();
+		qualities.isAutoQualitySupported.value = player.value.isAutoQualitySupported();
 	}
 	if (implementsPlaybackRate(player.value)) {
 		playbackRate.availablePlaybackRates.value = player.value.getAvailablePlaybackRates();
