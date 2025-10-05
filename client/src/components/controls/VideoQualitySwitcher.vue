@@ -15,7 +15,7 @@
 				<v-list-item
 					link
 					@click="setVideosTrack(-1)"
-					v-if="qualities.isAutoQualitySupported"
+					v-if="qualities.isAutoQualitySupported.value"
 					:active="qualities.currentVideoTrack.value == -1"
 					color="primary"
 					variant="plain"
