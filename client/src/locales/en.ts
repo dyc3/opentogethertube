@@ -150,7 +150,11 @@ export default {
 		"next-video": "Next video",
 		"next-video-vote": "Vote to skip video",
 		"toggle-fullscreen": "Toggle fullscreen",
-		"video-quality": "Video Quality",
+		"subtitles": "Subtitles/CC",
+		"video-quality": "Video quality",
+		"playback-speed": "Playback speed",
+		"default-layout": "Default layout",
+		"theater-mode": "Theater mode",
 		"con-status": {
 			connecting: "Connecting...",
 			connected: "Connected",

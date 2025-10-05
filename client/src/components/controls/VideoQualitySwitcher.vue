@@ -7,6 +7,9 @@
 		:aria-label="$t('room.video-quality')"
 	>
 		<v-icon :icon="mdiCog" />
+		<v-tooltip activator="parent" location="bottom">
+			<span>{{ $t("room.video-quality") }}</span>
+		</v-tooltip>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
 				<v-list-item
