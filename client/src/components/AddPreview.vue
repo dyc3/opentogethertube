@@ -160,7 +160,7 @@ const testVideos = import.meta.env.DEV
 				"test dash 4 w/ multiple qualities",
 				"https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
 			],
-			["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
+			["test peertube 0", "https://tube.shanti.cafe/w/96kFpg7fs4LwYkFCMFv51E"],
 	  ]
 	: [];
 
