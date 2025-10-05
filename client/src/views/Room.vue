@@ -274,6 +274,7 @@ export default defineComponent({
 		const videoControlsHideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
 		const playerContainer = useTemplateRef<HTMLDivElement>("playerContainer");
 		const mouse = useMouseInElement(playerContainer);
+		const isIframeBasedPlayer = ref(false);
 
 		function setVideoControlsVisibility(visible: boolean) {
 			controlsVisible.value = visible;
@@ -293,11 +294,6 @@ export default defineComponent({
 				}, VIDEO_CONTROLS_HIDE_TIMEOUT);
 			}
 		}
-
-		const isIframeBasedPlayer = computed(() => {
-			const service = store.state.room.currentSource?.service;
-			return ["youtube", "peertube"].includes(service || "");
-		});
 
 		watch([mouse.x, mouse.y], () => {
 			if (!store.state.room.isPlaying) {
@@ -547,6 +543,8 @@ export default defineComponent({
 			if (currentSource.value?.service === "vimeo") {
 				onPlayerReadyVimeo();
 			}
+			isIframeBasedPlayer.value = !!playerContainer.value?.querySelector("iframe");
+			console.log("isIframeBasedPlayer:", isIframeBasedPlayer.value);
 		}
 		async function onPlayerReadyVimeo() {
 			await applyIsPlaying(store.state.room.isPlaying);
