@@ -7,6 +7,9 @@
 		aria-label="Closed Captions"
 	>
 		<v-icon :icon="mdiClosedCaption" />
+		<v-tooltip activator="parent" location="bottom">
+			<span>{{ $t("room.subtitles") }}</span>
+		</v-tooltip>
 		<v-menu location="top" offset-y activator="parent" :disabled="!supported">
 			<v-list>
 				<v-list-item
