@@ -59,7 +59,6 @@ const addPreview: RequestHandler<
 			err.name === "UpstreamInvidiousException" ||
 			err.name === "VideoNotFoundException" ||
 			err.name === "FfprobeTimeoutError" ||
-			err.name === "OdyseeDrmProtectedVideo" ||
 			err.name === "OdyseeUnavailableVideo"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);

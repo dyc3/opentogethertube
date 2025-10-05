@@ -18,40 +18,9 @@ export class UnsupportedServiceException extends OttException {
 }
 
 /**
- * OdyseeDrmProtectedVideo
- * -----------------------
- * will be thrown when odysee claim has copyrighted in license
- *
- * - status: HTTP status that should be returned to the client (451)
- * - code:   "ODYSEE_COPYRIGHT_BLOCKED"
- * - userMessage: short, safe text for direct display in the UI
- * - meta:  optional extras (e.g., { license: "Copyrighted (contact publisher)" })
- */
-export class OdyseeDrmProtectedVideo extends OttException {
-	public readonly status: number = 451; // Unavailable For Legal Reasons
-	public readonly code: "ODYSEE_COPYRIGHT_BLOCKED" = "ODYSEE_COPYRIGHT_BLOCKED";
-	public readonly userMessage: string;
-	public readonly expose = true;
-	public readonly meta?: { license?: string };
-
-	constructor(opts?: { license?: string }) {
-		const userMessage = "This Odysee video is not available due to copyright restrictions.";
-		super(userMessage);
-		this.name = "OdyseeDrmProtectedVideo";
-		this.userMessage = userMessage;
-		this.meta = opts && typeof opts === "object" ? { license: opts.license } : undefined;
-		// keep proper prototype chain in older runtimes
-		Object.setPrototypeOf?.(this, OdyseeDrmProtectedVideo.prototype);
-		// better stack for V8
-		Error.captureStackTrace?.(this, OdyseeDrmProtectedVideo);
-	}
-}
-
-/**
  * OdyseeUnavailableVideo
  * -----------------------
  * will be thrown if the final verify throws an unexpected 401 instead of giving the
- *
  * Front-End the unavailable video; the video cannot be played.
  *
  * - code:   "ODYSEE_UNAVAILABLE_VIDEO"

@@ -4,11 +4,7 @@ import https from "https";
 import { conf } from "../ott-config.js";
 import { getLogger } from "../logger.js";
 import { ServiceAdapter } from "../serviceadapter.js";
-import {
-	InvalidVideoIdException,
-	OdyseeDrmProtectedVideo,
-	OdyseeUnavailableVideo,
-} from "../exceptions.js";
+import { InvalidVideoIdException, OdyseeUnavailableVideo } from "../exceptions.js";
 import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
 import type { Manifest } from "m3u8-parser";
@@ -165,16 +161,6 @@ async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 		log.debug?.("resolveCanonicalUri failed", { uri: inputLbryUri, err: String(e) });
 		throw e;
 	}
-}
-
-//Copyrighted Content from Odysee isnt available via API and gets blocked (http error 401)
-
-function getLicense(resolved?: ResolveMap[string]): string | undefined {
-	return resolved?.value?.license ?? resolved?.value?.reposted_claim?.value?.license;
-}
-
-function isCopyrightRestricted(license?: string): boolean {
-	return license?.toLowerCase().includes("copyright") ?? false;
 }
 
 // Call Odysee JSON-RPC and return typed result
@@ -478,15 +464,19 @@ async function verifyStream(
 			};
 		} catch (e2: unknown) {
 			const status = axios.isAxiosError(e2) ? e2.response?.status : undefined;
-			if (status === 401 || status === 404) {
-				// Common with tokenized/geo/rights-restricted assets – not necessarily fatal at probe time.
-				log.debug?.("verifyStream expected status", { url, status });
+			const msg = e2 instanceof Error ? e2.message : String(e2);
+
+			if (status === 401 || status === 404 || status === 403) {
+				// Log expected restricted status explicitly with URL and message
+				log.debug?.(
+					`verifyStream: restricted or blocked => url=${url}, status=${status}, message=${msg}`
+				);
 			} else {
-				const msg = e2 instanceof Error ? e2.message : String(e2);
-				log.warn(`verifyStream failed`, { url, msg, status } as any);
+				log.warn(`verifyStream failed => url=${url}, status=${status}, message=${msg}`);
 			}
-			// Surface a consistent "not ok" result to the caller.
-			log.debug?.("verifyStream result", { url, status, ok: false });
+
+			// Always log fallback result for visibility
+			log.debug?.(`verifyStream result => url=${url}, status=${status}, message=${msg}`);
 			return { ok: false, status };
 		}
 	}
@@ -543,7 +533,6 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		} catch {
 			// Fall through
 		}
-
 		throw new InvalidVideoIdException(this.serviceId, url);
 	}
 
@@ -680,12 +669,6 @@ export default class OdyseeAdapter extends ServiceAdapter {
 
 		const { canonicalUri, resolved } = await resolveCanonicalUri(videoId);
 		const uriForGet = resolved?.permanent_url ?? canonicalUri;
-
-		const license = getLicense(resolved);
-
-		if (isCopyrightRestricted(license)) {
-			throw new OdyseeDrmProtectedVideo({ license });
-		}
 
 		let got: LbryGetResult;
 		try {
