@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { exportQueue } from "../../queueexport.js";
+import { describe, expect, it } from "vitest";
 import type { QueueItem } from "../../models/video.js";
+import { exportQueue } from "../../queueexport.js";
 
 describe("exportQueue", () => {
 	it("should export a queue of 2 videos", () => {

@@ -1,10 +1,6 @@
-import { Role } from "./models/types.js";
+import type { Role } from "./models/types.js";
 
 export class OttException extends Error {
-	constructor(message?: string) {
-		super(message);
-	}
-
 	toJSON() {
 		return {
 			...this,

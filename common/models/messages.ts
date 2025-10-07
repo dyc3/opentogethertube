@@ -1,18 +1,18 @@
 import type { Category, Segment } from "sponsorblock-api";
-import {
+import type {
+	AuthToken,
+	BehaviorOption,
 	ClientId,
 	ClientInfo,
-	QueueMode,
-	RoomUserInfo,
-	Visibility,
 	PlayerStatus,
+	QueueMode,
 	Role,
 	RoomEventContext,
 	RoomSettings,
-	AuthToken,
-	BehaviorOption,
+	RoomUserInfo,
+	Visibility,
 } from "./types.js";
-import { QueueItem, VideoId } from "./video.js";
+import type { QueueItem, VideoId } from "./video.js";
 
 export type ServerMessage =
 	| ServerMessageSync

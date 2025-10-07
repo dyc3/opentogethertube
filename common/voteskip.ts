@@ -1,5 +1,5 @@
 import type { RoomUserInfo } from "./models/types.js";
-import { Grants } from "./permissions.js";
+import type { Grants } from "./permissions.js";
 
 export function voteSkipThreshold(users: number): number {
 	return Math.ceil(users * 0.5);
