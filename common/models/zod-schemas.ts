@@ -1,6 +1,5 @@
 import { ALL_VIDEO_SERVICES, ROOM_NAME_REGEX } from "ott-common/constants.js";
-import { BehaviorOption, Role } from "ott-common/models/types.js";
-import { Visibility, QueueMode } from "ott-common/models/types.js";
+import { BehaviorOption, QueueMode, Role, Visibility } from "ott-common/models/types.js";
 import { z } from "zod";
 
 // These strings are not allowed to be used as room names.

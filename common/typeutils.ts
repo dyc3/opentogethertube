@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { NonNever } from "ts-essentials";
+import type { NonNever } from "ts-essentials";
 
 /**
  * Takes an object type and a type condition, and returns a new object whose
@@ -25,7 +25,7 @@ export type OmitTypes<T, Cond> = Pick<T, NeverIfMatch<T, Cond>[keyof T]>;
 export type PickTypes<T, Cond> = Pick<T, NeverIfNotMatch<T, Cond>[keyof T]>;
 
 export type NeverIfArg1NotMatch<T, Cond> = {
-	[P in keyof T]: T[P] extends (arg: any) => Promise<void>
+	[P in keyof T]: T[P] extends (arg: unknown) => Promise<void>
 		? Parameters<T[P]>[0] extends Cond
 			? P
 			: never
@@ -33,7 +33,7 @@ export type NeverIfArg1NotMatch<T, Cond> = {
 };
 
 export type NeverIfArg2NotMatch<T, Arg1, Arg2> = {
-	[P in keyof T]: T[P] extends (arg: any, arg2: any) => Promise<void>
+	[P in keyof T]: T[P] extends (arg: unknown, arg2: unknown) => Promise<void>
 		? (Parameters<T[P]>[0] extends Arg1 ? P : never) &
 				(Parameters<T[P]>[1] extends Arg2 ? P : never)
 		: never;
