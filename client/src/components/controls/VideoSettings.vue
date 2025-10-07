@@ -16,148 +16,107 @@
 
 		<v-container v-if="isMenuOpen" class="settings-menu-container">
 			<div class="menu-container">
-				<transition name="menu-resize" mode="out-in" slim variant="text">
+				<transition name="menu-resize" mode="out-in" slim>
 					<!-- Main menu -->
 					<v-list
-						v-if="currentMenu == 'main'"
+						v-if="currentMenu === MenuType.MAIN"
 						key="main"
 						class="menu-content"
 						min-width="300px"
 					>
 						<v-list-item
+							v-if="isCaptionsSupported"
 							link
-							@click="currentMenu = 'subtitle'"
+							class="menu-item"
 							:append-icon="mdiChevronRight"
 							:prepend-icon="mdiClosedCaptionOutline"
-							v-if="isCaptionsSupported"
+							@click="navigateToMenu(MenuType.SUBTITLE)"
 						>
-							<div style="display: flex; justify-content: space-between">
+							<div class="menu-item-content">
 								<span>{{ $t("room.subtitles") }}</span>
-								<span
-									v-if="
-										captions.isCaptionsEnabled.value &&
-										captions.currentTrack.value
-									"
-									style="color: #888"
-								>
-									{{ captions.currentTrack.value }}
+								<span v-if="currentSubtitleDisplay" class="menu-item-value">
+									{{ currentSubtitleDisplay }}
 								</span>
 							</div>
 						</v-list-item>
+
 						<v-list-item
+							v-if="isQualitySupported"
 							link
-							@click="currentMenu = 'quality'"
+							class="menu-item"
 							:append-icon="mdiChevronRight"
 							:prepend-icon="mdiTune"
-							v-if="isQualitySupported"
+							@click="navigateToMenu(MenuType.QUALITY)"
 						>
-							<div style="display: flex; justify-content: space-between">
+							<div class="menu-item-content">
 								<span>{{ $t("room.quality") }}</span>
-								<!-- Show "Auto" if on auto quality, otherwise show current quality -->
-								<span
-									v-if="
-										qualities.isAutoQualitySupported.value &&
-										qualities.currentVideoTrack.value == -1
-									"
-									style="color: #888"
-								>
-									{{
-										qualities.videoTracks.value.length > 0 &&
-										qualities.currentActiveQuality.value !== null
-											? `Auto (${
-													qualities.videoTracks.value[
-														qualities.currentActiveQuality.value
-													]
-											  }p)`
-											: "Auto"
-									}}
-								</span>
-								<span v-else style="color: #888">
-									{{
-										qualities.videoTracks.value[
-											qualities.currentVideoTrack.value
-										] + "p"
-									}}
+								<span class="menu-item-value">
+									{{ currentQualityDisplay }}
 								</span>
 							</div>
 						</v-list-item>
 					</v-list>
+
 					<!-- Quality submenu -->
 					<v-list
-						v-else-if="currentMenu == 'quality'"
+						v-else-if="currentMenu === MenuType.QUALITY"
 						key="quality"
 						class="menu-content"
 						color="primary"
 					>
 						<v-list-item
 							link
-							@click="currentMenu = 'main'"
+							class="menu-header"
 							min-width="150px"
 							:prepend-icon="mdiChevronLeft"
+							@click="navigateToMenu(MenuType.MAIN)"
 						>
 							{{ $t("room.quality") }}
 						</v-list-item>
+
 						<v-list-item
-							link
-							@click="
-								setVideosTrack(-1);
-								closeMenu();
-							"
 							v-if="qualities.isAutoQualitySupported.value"
-							:active="qualities.currentVideoTrack.value == -1"
-						>
-							{{
-								qualities.currentVideoTrack.value == -1 &&
-								qualities.videoTracks.value.length > 0 &&
-								qualities.currentActiveQuality.value !== null
-									? `Auto (${
-											qualities.videoTracks.value[
-												qualities.currentActiveQuality.value
-											]
-									  }p)`
-									: "Auto"
-							}}
-						</v-list-item>
-						<v-list-item
 							link
-							@click="
-								setVideosTrack(idx);
-								closeMenu();
-							"
+							:active="isAutoQualityActive"
+							@click="selectQuality(-1)"
+						>
+							{{ autoQualityDisplay }}
+						</v-list-item>
+
+						<v-list-item
 							v-for="(quality, idx) in qualities.videoTracks.value"
 							:key="idx"
-							:active="idx == qualities.currentVideoTrack.value"
+							link
+							:active="idx === qualities.currentVideoTrack.value"
+							@click="selectQuality(idx)"
 						>
-							{{ quality + "p" }}
+							{{ formatQuality(quality) }}
 						</v-list-item>
 					</v-list>
-					<!-- Subtitle/CC submenu -->
+
+					<!-- Subtitle submenu -->
 					<v-list
-						v-else-if="currentMenu == 'subtitle'"
+						v-else-if="currentMenu === MenuType.SUBTITLE"
 						key="subtitle"
 						class="menu-content"
 						color="primary"
 					>
 						<v-list-item
 							link
-							@click="currentMenu = 'main'"
-							:prepend-icon="mdiChevronLeft"
+							class="menu-header"
 							min-width="200px"
+							:prepend-icon="mdiChevronLeft"
+							@click="navigateToMenu(MenuType.MAIN)"
 						>
 							{{ $t("room.subtitles") }}
 						</v-list-item>
+
 						<v-list-item
-							link
-							@click="
-								setCaptionsTrack(track);
-								closeMenu();
-							"
 							v-for="(track, idx) in captions.captionsTracks.value"
 							:key="idx"
-							:active="
-								captions.isCaptionsEnabled.value &&
-								track == captions.currentTrack.value
-							"
+							link
+							:active="isSubtitleTrackActive(track)"
+							@click="selectSubtitleTrack(track)"
 						>
 							{{ track }}
 						</v-list-item>
@@ -176,41 +135,100 @@ import { ref, computed } from "vue";
 import { useCaptions, useQualities } from "../composables";
 import { mdiCog, mdiClosedCaptionOutline, mdiTune, mdiChevronLeft, mdiChevronRight } from "@mdi/js";
 
+// Menu types enum
+enum MenuType {
+	MAIN = "main",
+	QUALITY = "quality",
+	SUBTITLE = "subtitle",
+}
+const currentMenu = ref<MenuType>(MenuType.MAIN);
+const isMenuOpen = ref<boolean>(false);
+
 const qualities = useQualities();
+const captions = useCaptions();
+
 const isQualitySupported = computed(
 	() => qualities.isQualitySupported.value && qualities.videoTracks.value.length > 0
 );
 
-function setVideosTrack(idx: number) {
-	qualities.currentVideoTrack.value = idx;
-}
-
-const captions = useCaptions();
 const isCaptionsSupported = computed(
 	() => captions.isCaptionsSupported.value && captions.captionsTracks.value.length > 0
 );
 
-function setCaptionsTrack(value: string) {
+const isMenuSupported = computed(() => isQualitySupported.value || isCaptionsSupported.value);
+
+const currentSubtitleDisplay = computed(() => {
+	return captions.isCaptionsEnabled.value && captions.currentTrack.value
+		? captions.currentTrack.value
+		: null;
+});
+
+function formatQuality(quality: number): string {
+	return `${quality}p`;
+}
+
+const autoQualityDisplay = computed(() => {
+	const hasActiveQuality =
+		qualities.currentVideoTrack.value === -1 &&
+		qualities.videoTracks.value.length > 0 &&
+		qualities.currentActiveQuality.value !== null;
+
+	const currentQuality = qualities.videoTracks.value[qualities.currentActiveQuality.value!];
+	return hasActiveQuality ? `Auto (${formatQuality(currentQuality)})` : "Auto";
+});
+
+const currentQualityDisplay = computed(() => {
+	const isAutoQualitySupported = qualities.isAutoQualitySupported.value;
+	const currentTrack = qualities.currentVideoTrack.value;
+	if (isAutoQualitySupported && currentTrack === -1) {
+		return autoQualityDisplay.value;
+	}
+
+	const currentQuality = qualities.videoTracks.value[currentTrack];
+	if (currentTrack >= 0 && currentQuality) {
+		return formatQuality(currentQuality);
+	}
+
+	return "";
+});
+
+const isAutoQualityActive = computed(() => qualities.currentVideoTrack.value === -1);
+
+function isSubtitleTrackActive(track: string): boolean {
+	return captions.isCaptionsEnabled.value && track === captions.currentTrack.value;
+}
+
+function navigateToMenu(menu: MenuType): void {
+	currentMenu.value = menu;
+}
+
+function resetToMainMenu(): void {
+	currentMenu.value = MenuType.MAIN;
+}
+
+function toggleMenu(): void {
+	isMenuOpen.value = !isMenuOpen.value;
+	if (!isMenuOpen.value) {
+		resetToMainMenu();
+	}
+}
+
+function closeMenu(): void {
+	isMenuOpen.value = false;
+	resetToMainMenu();
+}
+
+function selectQuality(idx: number): void {
+	qualities.currentVideoTrack.value = idx;
+	closeMenu();
+}
+
+function selectSubtitleTrack(track: string): void {
 	if (!captions.isCaptionsEnabled.value) {
 		captions.isCaptionsEnabled.value = true;
 	}
-	captions.currentTrack.value = value;
-}
-
-const currentMenu = ref<string>("main");
-const isMenuSupported = computed(() => isQualitySupported.value || isCaptionsSupported.value);
-const isMenuOpen = ref<boolean>(false);
-
-function toggleMenu() {
-	isMenuOpen.value = !isMenuOpen.value;
-	if (!isMenuOpen.value) {
-		currentMenu.value = "main";
-	}
-}
-
-function closeMenu() {
-	isMenuOpen.value = false;
-	currentMenu.value = "main";
+	captions.currentTrack.value = track;
+	closeMenu();
 }
 </script>
 
@@ -230,7 +248,6 @@ function closeMenu() {
 	border-radius: 10px;
 	padding: 0;
 	width: auto;
-	// max-width: 320px;
 	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -253,6 +270,26 @@ function closeMenu() {
 	width: 100%;
 	min-height: fit-content;
 	background: transparent;
+}
+
+.menu-item {
+	&-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+	}
+
+	&-value {
+		color: #888;
+		font-size: 0.875rem;
+		margin-left: 1rem;
+	}
+}
+
+.menu-header {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	font-weight: 500;
 }
 
 .menu-resize-enter-active,
