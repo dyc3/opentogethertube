@@ -1,16 +1,22 @@
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
-import { getLogger } from "./logger.js";
-import childProcess from "child_process";
 import axios from "axios";
-import { Stream } from "stream";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import childProcess from "child_process";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
 import fs from "fs/promises";
-import path from "path";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import http from "http";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import https from "https";
 // FIXME: remove node-abort-controller package when we stop supporting node 14.
 import { AbortController } from "node-abort-controller";
-import http from "http";
-import https from "https";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import path from "path";
 import { Counter } from "prom-client";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import type { Stream } from "stream";
 import { FfprobeTimeoutError } from "./exceptions.js";
+import { getLogger } from "./logger.js";
 import { conf } from "./ott-config.js";
 
 const log = getLogger("infoextract/ffprobe");
@@ -88,8 +94,8 @@ function streamDataIntoFfprobe(
 			}
 		};
 
-		let args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
-		let child = childProcess.spawn(ffprobePath, args, {
+		const args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
+		const child = childProcess.spawn(ffprobePath, args, {
 			stdio: "pipe",
 			windowsHide: true,
 		});
@@ -203,10 +209,12 @@ export abstract class FfprobeStrategy {
 		log.debug(`ffprobe installed at ${this.ffprobePath}`);
 	}
 
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	abstract getFileInfo(uri: string): Promise<any>;
 }
 
 export class RunFfprobe extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 		if (uri.includes('"')) {
@@ -247,9 +255,12 @@ export class RunFfprobe extends FfprobeStrategy {
 				log.debug(`ffprobe hard-kill error: ${String(e)}`);
 			}
 		}, FFPROBE_TIMEOUT_MS);
+		// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 		child.stdout.on("data", d => (out += d));
+		// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 		child.stderr.on("data", d => (err += d));
 		await new Promise<void>((resolve, reject) => {
+			// biome-ignore lint/nursery/noShadow: biome migration
 			child.on("error", err => {
 				if (hardKiller) {
 					clearTimeout(hardKiller);
@@ -279,18 +290,19 @@ export class RunFfprobe extends FfprobeStrategy {
 }
 
 export class OnDiskPreviewFfprobe extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 
-		let tmpdir = await fs.mkdtemp("/tmp/ott");
-		let tmpfile = path.join(tmpdir, "./preview");
+		const tmpdir = await fs.mkdtemp("/tmp/ott");
+		const tmpfile = path.join(tmpdir, "./preview");
 		log.debug(`saving preview to ${tmpfile}`);
-		let handle = await fs.open(tmpfile, "w");
+		const handle = await fs.open(tmpfile, "w");
 
 		const httpAgent = new http.Agent({ keepAlive: false });
 		const httpsAgent = new https.Agent({ keepAlive: false });
 		const controller = new AbortController();
-		let resp = await axios.get<Stream>(uri, {
+		const resp = await axios.get<Stream>(uri, {
 			responseType: "stream",
 			signal: controller.signal,
 			httpAgent,
@@ -351,9 +363,12 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 					log.debug(`ffprobe hard-kill error: ${String(e)}`);
 				}
 			}, FFPROBE_TIMEOUT_MS);
+			// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 			child.stdout.on("data", d => (out += d));
+			// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 			child.stderr.on("data", d => (err += d));
 			await new Promise<void>((resolve, reject) => {
+				// biome-ignore lint/nursery/noShadow: biome migration
 				child.on("error", err => {
 					if (hardKiller) {
 						clearTimeout(hardKiller);
@@ -388,20 +403,21 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 }
 
 export class StreamFfprobe extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 
 		const httpAgent = new http.Agent({ keepAlive: false });
 		const httpsAgent = new https.Agent({ keepAlive: false });
 		const controller = new AbortController();
-		let resp = await axios.get<Stream>(uri, {
+		const resp = await axios.get<Stream>(uri, {
 			responseType: "stream",
 			signal: controller.signal,
 			httpAgent,
 			httpsAgent,
 		});
 		try {
-			let stdout = await streamDataIntoFfprobe(this.ffprobePath, resp.data, controller);
+			const stdout = await streamDataIntoFfprobe(this.ffprobePath, resp.data, controller);
 			return JSON.parse(stdout);
 		} finally {
 			controller.abort();

@@ -1,21 +1,12 @@
+import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import _ from "lodash";
-import { getLogger } from "../logger.js";
-import roommanager from "../roommanager.js";
-import { QueueMode, Visibility } from "ott-common/models/types.js";
-import { consumeRateLimitPoints } from "../rate-limit.js";
-import { BadApiArgumentException, FeatureDisabledException } from "../exceptions.js";
 import { OttException } from "ott-common/exceptions.js";
-import express, { type RequestHandler, type ErrorRequestHandler } from "express";
-import clientmanager from "../clientmanager.js";
 import {
+	type AddRequest,
 	type ApplySettingsRequest,
 	RoomRequestType,
 	type UndoRequest,
-	type AddRequest,
 } from "ott-common/models/messages.js";
-import storage from "../storage.js";
-import { Grants } from "ott-common/permissions.js";
-import { Video } from "ott-common/models/video.js";
 import type {
 	OttApiRequestAddToQueue,
 	OttApiRequestPatchRoom,
@@ -25,26 +16,38 @@ import type {
 	OttApiResponseGetRoom,
 	OttApiResponseRoomCreate,
 	OttApiResponseRoomGenerate,
-	OttResponseBody,
 	OttClaimRequest,
+	OttResponseBody,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
 	OttSettingsRequest,
 	RoomListItem,
 } from "ott-common/models/rest-api.js";
-import { getApiKey } from "../admin.js";
-import { v4 as uuidv4 } from "uuid";
-import { counterHttpErrors } from "../metrics.js";
-import { conf } from "../ott-config.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { QueueMode, Visibility } from "ott-common/models/types.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { Video } from "ott-common/models/video.js";
 import {
-	OttApiRequestRoomCreateSchema,
-	OttApiRequestVoteSchema,
 	OttApiRequestAddToQueueSchema,
-	OttApiRequestRemoveFromQueueSchema,
 	OttApiRequestPatchRoomSchema,
+	OttApiRequestRemoveFromQueueSchema,
+	OttApiRequestRoomCreateSchema,
 	OttApiRequestRoomGenerateSchema,
+	OttApiRequestVoteSchema,
 } from "ott-common/models/zod-schemas.js";
+import { Grants } from "ott-common/permissions.js";
+import { v4 as uuidv4 } from "uuid";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { getApiKey } from "../admin.js";
+import clientmanager from "../clientmanager.js";
+import { BadApiArgumentException, FeatureDisabledException } from "../exceptions.js";
 import { UnloadReason } from "../generated.js";
+import { getLogger } from "../logger.js";
+import { counterHttpErrors } from "../metrics.js";
+import { conf } from "../ott-config.js";
+import { consumeRateLimitPoints } from "../rate-limit.js";
+import roommanager from "../roommanager.js";
+import storage from "../storage.js";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -94,11 +97,11 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 
 	const body = OttApiRequestRoomGenerateSchema.parse(req.body);
 
-	let points = 50;
+	const points = 50;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
-	let roomName = uuidv4();
+	const roomName = uuidv4();
 	log.debug(`Generating room: ${roomName}`);
 	await roommanager.createRoom({
 		name: roomName,
@@ -441,6 +444,7 @@ const addToQueue: RequestHandler<
 		};
 	}
 
+	// biome-ignore lint/style/noNonNullAssertion: biome migration
 	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
 	res.json({
 		success: true,
@@ -453,7 +457,7 @@ const removeFromQueue: RequestHandler<
 	OttApiRequestRemoveFromQueue
 > = async (req, res) => {
 	const body = OttApiRequestRemoveFromQueueSchema.parse(req.body);
-	let points = 5;
+	const points = 5;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
@@ -464,6 +468,7 @@ const removeFromQueue: RequestHandler<
 			type: RoomRequestType.RemoveRequest,
 			video: { service: body.service, id: body.id },
 		},
+		// biome-ignore lint/style/noNonNullAssertion: biome migration
 		{ token: req.token! }
 	);
 	res.json({
@@ -509,6 +514,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 				},
 			});
 		} else if (err.name === "FeatureDisabledException") {
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			const e = err as FeatureDisabledException;
 			res.status(403).json({
 				success: false,

@@ -19,6 +19,7 @@ export default class HlsVideoAdapter extends ServiceAdapter {
 		return false;
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	isCollectionURL(link: string): boolean {
 		return false;
 	}

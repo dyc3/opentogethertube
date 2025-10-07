@@ -1,18 +1,33 @@
-import { getLogger } from "./logger.js";
-import _ from "lodash";
 import * as argon2 from "argon2";
-import express, { ErrorRequestHandler, RequestHandler } from "express";
-import passport from "passport";
 import crypto from "crypto";
-import { User as UserModel, Room as RoomModel } from "./models/index.js";
-import { User } from "./models/user.js";
-import { delPattern, redisClient } from "./redisclient.js";
-import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
-import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit.js";
-import tokens from "./auth/tokens.js";
+import { EventEmitter } from "events";
+import express, { type ErrorRequestHandler, type RequestHandler } from "express";
+import _ from "lodash";
 import nocache from "nocache";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants.js";
+import { OttException } from "ott-common/exceptions.js";
+import type {
+	OttApiRequestAccountRecoveryStart,
+	OttApiRequestAccountRecoveryVerify,
+	OttResponseBody,
+} from "ott-common/models/rest-api.js";
+import type { AuthToken } from "ott-common/models/types.js";
+import {
+	OttApiRequestAccountRecoveryStartSchema,
+	OttApiRequestAccountRecoveryVerifySchema,
+} from "ott-common/models/zod-schemas.js";
+import { err, type Result } from "ott-common/result.js";
+import passport from "passport";
+import {
+	type RateLimiterAbstract,
+	RateLimiterMemory,
+	RateLimiterRedis,
+} from "rate-limiter-flexible";
+import { Sequelize, UniqueConstraintError } from "sequelize";
+import { uniqueNamesGenerator } from "unique-names-generator";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
+import tokens from "./auth/tokens.js";
 import {
 	BadApiArgumentException,
 	FeatureDisabledException,
@@ -21,25 +36,14 @@ import {
 	NoEmail,
 	UserNotFound,
 } from "./exceptions.js";
-import { conf } from "./ott-config.js";
-import { AuthToken } from "ott-common/models/types.js";
-import { EventEmitter } from "events";
-import { Sequelize, UniqueConstraintError } from "sequelize";
-import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer.js";
-import { Result, err } from "ott-common/result.js";
-import type {
-	OttApiRequestAccountRecoveryStart,
-	OttApiRequestAccountRecoveryVerify,
-	OttResponseBody,
-} from "ott-common/models/rest-api.js";
+import { getLogger } from "./logger.js";
+import { type Email, type Mailer, type MailerError, MailjetMailer, MockMailer } from "./mailer.js";
 import { counterHttpErrors } from "./metrics.js";
-import { OttException } from "ott-common/exceptions.js";
-import {
-	OttApiRequestAccountRecoveryStartSchema,
-	OttApiRequestAccountRecoveryVerifySchema,
-} from "ott-common/models/zod-schemas.js";
-import { ZodError } from "zod";
-import { fromZodError } from "zod-validation-error";
+import { Room as RoomModel, User as UserModel } from "./models/index.js";
+import type { User } from "./models/user.js";
+import { conf } from "./ott-config.js";
+import { consumeRateLimitPoints, RateLimiterRedisv4, rateLimiter } from "./rate-limit.js";
+import { delPattern, redisClient } from "./redisclient.js";
 
 const log = getLogger("usermanager");
 export const router = express.Router();
@@ -48,10 +52,10 @@ export type UserManagerEvents = "userModified" | "login" | "logout";
 export type UserManagerEventHandlers<E> = E extends "userModified"
 	? (token: AuthToken) => void
 	: E extends "login"
-	? (user: User, token: AuthToken) => void
-	: E extends "logout"
-	? (user: User, token: AuthToken) => void
-	: never;
+		? (user: User, token: AuthToken) => void
+		: E extends "logout"
+			? (user: User, token: AuthToken) => void
+			: never;
 const bus = new EventEmitter();
 
 let maxWrongAttemptsByIPperDay;
@@ -93,7 +97,7 @@ export function setup() {
 				: new MailjetMailer(
 						conf.get("mail.mailjet_api_key"),
 						conf.get("mail.mailjet_api_secret")
-				  );
+					);
 	}
 }
 
@@ -294,7 +298,7 @@ router.post("/login", async (req, res, next) => {
 
 router.post("/logout", async (req, res) => {
 	if (req.user) {
-		let user = req.user;
+		const user = req.user;
 		req.logout(async err => {
 			if (err) {
 				log.error(`Error logging out user ${err}`);
@@ -322,7 +326,7 @@ router.post("/register", async (req, res) => {
 		return;
 	}
 	try {
-		let result = await registerUser(req.body);
+		const result = await registerUser(req.body);
 		log.info(`User registered: ${result.id}`);
 		req.login(result, async () => {
 			req.ottsession = { isLoggedIn: true, user_id: result.id };
@@ -709,7 +713,7 @@ async function getUser(options: { user?: string; id?: number; discordId?: string
 		log.error("Invalid parameters to find user");
 		throw new Error("Invalid parameters to find user");
 	}
-	let user = await UserModel.findOne({ where });
+	const user = await UserModel.findOne({ where });
 	if (!user) {
 		log.error("User not found");
 		throw new UserNotFound();

@@ -1,12 +1,15 @@
 /* eslint-disable camelcase */
-import fs from "fs";
-import path from "path";
-import validator from "validator";
+
 import convict from "convict";
-import toml from "toml";
-import type winston from "winston";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import fs from "fs";
 import { ALL_VIDEO_SERVICES } from "ott-common/constants.js";
-import { Result, err, ok, intoResult } from "ott-common/result.js";
+import { err, intoResult, ok, type Result } from "ott-common/result.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import path from "path";
+import toml from "toml";
+import validator from "validator";
+import type winston from "winston";
 
 convict.addParser({ extension: "toml", parse: toml.parse });
 
@@ -20,7 +23,7 @@ convict.addFormat({
 			throw new Error("Balancer config must be an array");
 		}
 
-		for (let source of sources) {
+		for (const source of sources) {
 			convict(schema.children).load(source).validate();
 		}
 	},
@@ -481,9 +484,9 @@ function getExtraBaseConfig(): string | undefined {
 }
 
 export function loadConfigFile() {
-	let extraBaseConfig = getExtraBaseConfig();
+	const extraBaseConfig = getExtraBaseConfig();
 	if (extraBaseConfig) {
-		let extraBaseConfigPath = path.resolve(process.cwd(), `../env/${extraBaseConfig}`);
+		const extraBaseConfigPath = path.resolve(process.cwd(), `../env/${extraBaseConfig}`);
 		if (fs.existsSync(extraBaseConfigPath)) {
 			log.info(`Loading extra base config from ${extraBaseConfigPath}`);
 			conf.loadFile(extraBaseConfigPath);
@@ -500,8 +503,8 @@ export function loadConfigFile() {
 		log.warn(`No config found at ${configPath}`);
 	}
 
-	let environment = conf.get("env");
-	let envConfigPath = path.resolve(process.cwd(), `../env/${environment}.toml`);
+	const environment = conf.get("env");
+	const envConfigPath = path.resolve(process.cwd(), `../env/${environment}.toml`);
 	if (fs.existsSync(envConfigPath)) {
 		log.info(`Loading environment config from ${envConfigPath}`);
 		conf.loadFile(envConfigPath);

@@ -1,19 +1,22 @@
+import type { AxiosRequestHeaders, AxiosResponse } from "axios";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import fs from "fs";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
 	afterAll,
 	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockInstance,
 	vi,
-	MockInstance,
 } from "vitest";
-import PeertubeAdapter from "../../../services/peertube.js";
-import fs from "fs";
 import { InvalidVideoIdException } from "../../../exceptions.js";
-import { AxiosRequestHeaders, AxiosResponse } from "axios";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
 import { conf, loadConfigFile } from "../../../ott-config.js";
+import PeertubeAdapter from "../../../services/peertube.js";
 
 const validVideoLinks = [
 	["the.jokertv.eu:7C5YZTLVudL4FLN4JmVvnA", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
@@ -31,7 +34,7 @@ describe("Peertube", () => {
 	beforeAll(async () => {
 		await adapter.initialize();
 
-		for (let file of fs.readdirSync(FIXTURE_DIRECTORY)) {
+		for (const file of fs.readdirSync(FIXTURE_DIRECTORY)) {
 			FIXTURES.set(
 				file.split(".")[0],
 				fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8")
@@ -40,18 +43,21 @@ describe("Peertube", () => {
 
 		apiGetMock = vi.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
 			const videoid = adapter.getVideoId(url);
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			const [host, id] = videoid.split(":");
-			let fixtureText = FIXTURES.get(id);
+			const fixtureText = FIXTURES.get(id);
 			if (!fixtureText) {
 				throw new Error(`Fixture not found for ${id}`);
 			}
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let data;
 			try {
 				data = JSON.parse(fixtureText);
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			} catch (e) {
 				data = fixtureText;
 			}
-			let resp: AxiosResponse = {
+			const resp: AxiosResponse = {
 				status: 200,
 				statusText: "OK",
 				data,

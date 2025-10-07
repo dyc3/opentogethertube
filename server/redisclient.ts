@@ -1,7 +1,8 @@
-import redis, { RedisClientOptions, RedisClientType } from "redis";
 import { Counter, Gauge } from "prom-client";
-import { conf } from "./ott-config.js";
+import redis, { type RedisClientOptions, type RedisClientType } from "redis";
 import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
+
 const log = getLogger("redisclient");
 
 function buildOptions(): RedisClientOptions<redis.RedisDefaultModules> {
@@ -16,10 +17,10 @@ function buildOptions(): RedisClientOptions<redis.RedisDefaultModules> {
 					? {
 							tls: true,
 							rejectUnauthorized: !heroku,
-					  }
+						}
 					: {},
 				database: db,
-		  }
+			}
 		: {
 				socket: {
 					port: conf.get("redis.port") ?? undefined,
@@ -28,7 +29,7 @@ function buildOptions(): RedisClientOptions<redis.RedisDefaultModules> {
 				username: conf.get("redis.username") ?? undefined,
 				password: conf.get("redis.password") ?? undefined,
 				database: conf.get("redis.db") ?? undefined,
-		  };
+			};
 	return redisOptions;
 }
 
@@ -89,113 +90,134 @@ function parseRedisInfo(lines: string[]): Record<string, string> {
 }
 
 /** Map of the redis metric name to our prometheus counter. */
-let redisMetrics: Record<string, Counter | Gauge> = {};
+const redisMetrics: Record<string, Counter | Gauge> = {};
 
 export async function registerRedisMetrics(): Promise<void> {
 	if (Object.keys(redisMetrics).length > 0) {
 		return;
 	}
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["used_memory"] = new Gauge({
 		name: "redis_used_memory",
 		help: "The amount of memory used by Redis",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["used_memory_rss"] = new Gauge({
 		name: "redis_used_memory_rss",
 		help: "The amount of memory used by Redis, including the shared memory",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["used_memory_peak"] = new Gauge({
 		name: "redis_used_memory_peak",
 		help: "The peak amount of memory used by Redis",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["used_memory_lua"] = new Gauge({
 		name: "redis_used_memory_lua",
 		help: "The amount of memory used by Lua",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["used_memory_scripts"] = new Gauge({
 		name: "redis_used_memory_scripts",
 		help: "The amount of memory used by Redis scripts",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["maxmemory"] = new Gauge({
 		name: "redis_maxmemory",
 		help: "The maximum amount of memory Redis can use",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["mem_fragmentation_ratio"] = new Gauge({
 		name: "redis_mem_fragmentation_ratio",
 		help: "The ratio of used_memory_rss to used_memory",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["mem_fragmentation_bytes"] = new Gauge({
 		name: "redis_mem_fragmentation_bytes",
 		help: "The difference between used_memory_rss and used_memory",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["mem_clients_normal"] = new Gauge({
 		name: "redis_mem_clients_normal",
 		help: "The amount of memory used by normal clients",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["total_connections_received"] = new Counter({
 		name: "redis_total_connections_received",
 		help: "The total number of connections received by Redis",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["total_commands_processed"] = new Counter({
 		name: "redis_total_commands_processed",
 		help: "The total number of commands processed by Redis",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["instantaneous_ops_per_sec"] = new Gauge({
 		name: "redis_instantaneous_ops_per_sec",
 		help: "The number of commands processed per second",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["total_net_input_bytes"] = new Counter({
 		name: "redis_total_net_input_bytes",
 		help: "The total number of bytes read from the network by Redis",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["total_net_output_bytes"] = new Counter({
 		name: "redis_total_net_output_bytes",
 		help: "The total number of bytes sent to the network by Redis",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["expired_keys"] = new Gauge({
 		name: "redis_expired_keys",
 		help: "The number of keys that have expired",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["evicted_keys"] = new Gauge({
 		name: "redis_evicted_keys",
 		help: "The number of keys that have been evicted",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["keyspace_hits"] = new Counter({
 		name: "redis_keyspace_hits",
 		help: "The number of successful lookup of keys in the main dictionary",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["keyspace_misses"] = new Counter({
 		name: "redis_keyspace_misses",
 		help: "The number of failed lookup of keys in the main dictionary",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["pubsub_channels"] = new Gauge({
 		name: "redis_pubsub_channels",
 		help: "The number of active channels",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["total_reads_processed"] = new Counter({
 		name: "redis_total_reads_processed",
 		help: "The total number of reads processed by Redis",
 	});
 
+	// biome-ignore lint/complexity/useLiteralKeys: biome migration
 	redisMetrics["total_writes_processed"] = new Counter({
 		name: "redis_total_writes_processed",
 		help: "The total number of writes processed by Redis",
@@ -219,8 +241,8 @@ async function collectRedisMetrics() {
 	let countMetricsSkipped = 0;
 	for (const [key, value] of Object.entries(mergedInfo)) {
 		if (key in redisMetrics) {
-			let metric = redisMetrics[key];
-			let parsed = Number(value);
+			const metric = redisMetrics[key];
+			const parsed = Number(value);
 			if (metric instanceof Counter) {
 				metric.reset();
 				metric.inc(parsed);
@@ -237,6 +259,7 @@ async function collectRedisMetrics() {
 	log.silly(`Collected ${countMetricsCollected} redis metrics, skipped ${countMetricsSkipped}`);
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeRedisDbsize = new Gauge({
 	name: "redis_keys_count",
 	help: "The number of keys in the database",

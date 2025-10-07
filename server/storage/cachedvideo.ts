@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
-import { CachedVideo as DbCachedVideo } from "../models/index.js";
-import Sequelize from "sequelize";
-import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { getLogger } from "../logger.js";
 import _ from "lodash";
-import type { CachedVideoCreationAttributes, CachedVideo } from "../models/cachedvideo.js";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import Sequelize from "sequelize";
+import { getLogger } from "../logger.js";
+import type { CachedVideo, CachedVideoCreationAttributes } from "../models/cachedvideo.js";
+import { CachedVideo as DbCachedVideo } from "../models/index.js";
 
 const log = getLogger("storage/cachedvideo");
 
@@ -59,7 +59,7 @@ export async function getManyVideoInfo(videos) {
 			},
 		});
 		if (videos.length !== foundVideos.length) {
-			for (let video of videos) {
+			for (const video of videos) {
 				if (!_.find(foundVideos, video)) {
 					foundVideos.push(video);
 				}
@@ -160,13 +160,13 @@ export async function updateManyVideoInfo(videos: Video[]): Promise<boolean> {
 			},
 		});
 
-		let [toUpdate, toCreate] = _.partition(videos, video =>
+		const [toUpdate, toCreate] = _.partition(videos, video =>
 			_.find(foundVideos, { service: video.service, serviceId: video.id })
 		);
 		log.debug(
 			`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`
 		);
-		let promises: Promise<unknown>[] = toUpdate.map(video => updateVideoInfo(video, false));
+		const promises: Promise<unknown>[] = toUpdate.map(video => updateVideoInfo(video, false));
 		if (toCreate.length) {
 			promises.push(DbCachedVideo.bulkCreate(toCreate.map(toDbVideo)));
 		}
@@ -192,8 +192,8 @@ function toDbVideo(video: Video): CachedVideoCreationAttributes {
 }
 
 export function getVideoInfoFields(service?: string): (keyof VideoMetadata)[] {
-	let fields: (keyof VideoMetadata)[] = [];
-	for (let column in DbCachedVideo.rawAttributes) {
+	const fields: (keyof VideoMetadata)[] = [];
+	for (const column in DbCachedVideo.rawAttributes) {
 		if (
 			column === "id" ||
 			column === "createdAt" ||

@@ -1,14 +1,14 @@
 import express from "express";
-import { getLogger } from "./logger.js";
-import roomapi from "./api/room.js";
-import userapi from "./api/user.js";
-import auth from "./auth/index.js";
-import usermanager from "./usermanager.js";
 import passport from "passport";
-import statusapi from "./api/status.js";
-import { conf } from "./ott-config.js";
 import announceapi from "./api/announce.js";
 import dataapi from "./api/data.js";
+import roomapi from "./api/room.js";
+import statusapi from "./api/status.js";
+import userapi from "./api/user.js";
+import auth from "./auth/index.js";
+import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
+import usermanager from "./usermanager.js";
 
 const log = getLogger("api");
 export function buildApiRouter(): express.Router {
@@ -21,7 +21,8 @@ export function buildApiRouter(): express.Router {
 
 	router.use((req, res, next) => {
 		// eslint-disable-next-line no-unused-vars
-		passport.authenticate("bearer", (err, user, info) => {
+		// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
+				passport.authenticate("bearer", (err, user, info) => {
 			// We are intentionally ignoring the case where authentication fails, because
 			// we want to allow users who are not logged in to an actual account to
 			// be able to use the website.

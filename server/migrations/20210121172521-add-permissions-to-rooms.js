@@ -31,6 +31,7 @@ module.exports = {
 		}
 	},
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	down: async (queryInterface, Sequelize) => {
 		await queryInterface.removeColumn("Rooms", "permissions");
 		for (const role of Object.values(ROLES)) {

@@ -1,13 +1,13 @@
-import { getLogger } from "../logger.js";
 import express from "express";
-import tokens, { SessionInfo } from "./tokens.js";
-import { uniqueNamesGenerator } from "unique-names-generator";
-import passport from "passport";
-import { AuthToken, MySession } from "ott-common/models/types.js";
 import nocache from "nocache";
-import usermanager from "../usermanager.js";
+import type { AuthToken, MySession } from "ott-common/models/types.js";
+import passport from "passport";
+import { uniqueNamesGenerator } from "unique-names-generator";
 import { requireApiKey } from "../admin.js";
+import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
+import usermanager from "../usermanager.js";
+import tokens, { type SessionInfo } from "./tokens.js";
 
 export type { SessionInfo } from "./tokens.js";
 
@@ -27,7 +27,7 @@ export async function authTokenMiddleware(
 	res: express.Response,
 	next: express.NextFunction
 ): Promise<void> {
-	let apikey = req.get("apikey");
+	const apikey = req.get("apikey");
 	if (apikey) {
 		log.silly("API key was provided for auth");
 		try {
@@ -52,6 +52,7 @@ export async function authTokenMiddleware(
 		return;
 	}
 	log.silly("validating auth token");
+	// biome-ignore lint/complexity/useOptionalChain: biome migration
 	if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
 		const token: AuthToken = req.headers.authorization.split(" ")[1];
 		req.token = token;
@@ -85,6 +86,7 @@ export async function authTokenMiddleware(
 		});
 		return;
 	}
+	// biome-ignore lint/complexity/useOptionalChain: biome migration
 	if (req.ottsession && req.ottsession.isLoggedIn) {
 		try {
 			req.user = await usermanager.getUser({ id: req.ottsession.user_id });
@@ -132,6 +134,7 @@ router.get("/grant", async (req, res) => {
 
 router.get(
 	"/discord",
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async (req, res, next) => {
 		// @ts-expect-error ts really doesn't like express's query type
 		(req.session as MySession).postLoginRedirect = req.query.redirect ?? "/";

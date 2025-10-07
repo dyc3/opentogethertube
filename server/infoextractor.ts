@@ -1,32 +1,33 @@
-import { URL } from "url";
 import _ from "lodash";
-import GoogleDriveAdapter from "./services/googledrive.js";
-import VimeoAdapter from "./services/vimeo.js";
-import YouTubeAdapter from "./services/youtube.js";
-import DirectVideoAdapter from "./services/direct.js";
-import RedditAdapter from "./services/reddit.js";
-import HlsVideoAdapter from "./services/hls.js";
-import storage from "./storage.js";
+import { OttException } from "ott-common/exceptions.js";
+import type { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import { Counter } from "prom-client";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import { URL } from "url";
 import {
-	UnsupportedMimeTypeException,
-	OutOfQuotaException,
-	UnsupportedServiceException,
-	InvalidAddPreviewInputException,
 	FeatureDisabledException,
+	InvalidAddPreviewInputException,
+	OutOfQuotaException,
+	UnsupportedMimeTypeException,
+	UnsupportedServiceException,
 } from "./exceptions.js";
 import { getLogger } from "./logger.js";
-import { redisClient } from "./redisclient.js";
 import { isSupportedMimeType } from "./mime.js";
-import type { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import type { ServiceAdapter } from "./serviceadapter.js";
-import { OttException } from "ott-common/exceptions.js";
-import TubiAdapter from "./services/tubi.js";
-import { Counter } from "prom-client";
 import { conf } from "./ott-config.js";
+import { redisClient } from "./redisclient.js";
+import type { ServiceAdapter } from "./serviceadapter.js";
+import DashVideoAdapter from "./services/dash.js";
+import DirectVideoAdapter from "./services/direct.js";
+import GoogleDriveAdapter from "./services/googledrive.js";
+import HlsVideoAdapter from "./services/hls.js";
+import InvidiousAdapter from "./services/invidious.js";
 import PeertubeAdapter from "./services/peertube.js";
 import PlutoAdapter from "./services/pluto.js";
-import DashVideoAdapter from "./services/dash.js";
-import InvidiousAdapter from "./services/invidious.js";
+import RedditAdapter from "./services/reddit.js";
+import TubiAdapter from "./services/tubi.js";
+import VimeoAdapter from "./services/vimeo.js";
+import YouTubeAdapter from "./services/youtube.js";
+import storage from "./storage.js";
 
 const log = getLogger("infoextract");
 
@@ -165,6 +166,7 @@ export default {
 	 * Returns the adapter instance for a given service name.
 	 */
 	getServiceAdapter(service: string): ServiceAdapter {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = adapters.find(adapter => adapter.serviceId === service);
 		if (!adapter) {
 			throw new OttException(`Unknown service: ${service}`);
@@ -176,6 +178,7 @@ export default {
 	 * Returns the adapter that can handle a given URL.
 	 */
 	getServiceAdapterForURL(url: string): ServiceAdapter {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = adapters.find(adapter => adapter.canHandleURL(url));
 		if (!adapter) {
 			throw new UnsupportedServiceException(url);
@@ -309,7 +312,7 @@ export default {
 		counterAddPreviewsRequested.inc();
 		counterMethodsInvoked.labels({ method: "resolveVideoQuery" }).inc();
 		try {
-			let result = await this.resolveVideoQueryImpl(query, searchService);
+			const result = await this.resolveVideoQueryImpl(query, searchService);
 			counterAddPreviewsCompleted.labels({ result: "success" }).inc();
 			return result;
 		} catch (e: unknown) {
@@ -360,9 +363,10 @@ export default {
 			const fetchResults = await adapter.resolveURL(query);
 			const resolvedResults: VideoId[] = [];
 			if (Array.isArray(fetchResults)) {
-				for (let video of fetchResults) {
+				for (const video of fetchResults) {
 					if ("url" in video) {
 						try {
+							// biome-ignore lint/nursery/noShadow: biome migration
 							const adapter = this.getServiceAdapterForURL(video.url);
 							if (!adapter) {
 								continue;
@@ -376,7 +380,6 @@ export default {
 							});
 						} catch (e) {
 							log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
-							continue;
 						}
 					} else {
 						resolvedResults.push(video);
@@ -392,7 +395,7 @@ export default {
 						? await this.getVideoInfo(
 								fetchResults.highlighted.service,
 								fetchResults.highlighted.id
-						  )
+							)
 						: undefined,
 				};
 				return new AddPreview(completeResults, cacheDuration);

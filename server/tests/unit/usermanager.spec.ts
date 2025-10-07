@@ -1,13 +1,16 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import usermanager from "../../usermanager.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { conf } from "../../../server/ott-config.js";
+import { main } from "../../app.js";
 import { FeatureDisabledException } from "../../exceptions.js";
 import { User as UserModel } from "../../models/index.js";
-import { User } from "../../models/user.js";
-import { main } from "../../app.js";
+import type { User } from "../../models/user.js";
+import usermanager from "../../usermanager.js";
 
 describe("Usermanager spec", () => {
-	let app;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
+	// biome-ignore lint/correctness/noUnusedVariables: biome migration
+		let app;
 
 	// Initialize the application before running tests to set up database connections,
 	// models, and other dependencies required for user management operations

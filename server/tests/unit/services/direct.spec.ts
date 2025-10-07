@@ -1,11 +1,14 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import DirectVideoAdapter from "../../../services/direct.js";
-import { FfprobeStrategy } from "../../../ffprobe.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
 import fs from "fs";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { FfprobeStrategy } from "../../../ffprobe.js";
+import DirectVideoAdapter from "../../../services/direct.js";
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/direct";
 
 class FfprobeFixtures extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		const url = new URL(uri);
 
@@ -24,9 +27,9 @@ class FfprobeFixtures extends FfprobeStrategy {
 	}
 
 	getFixture(file: string) {
-		let path = `${FIXTURE_DIRECTORY}/${file}`;
+		const path = `${FIXTURE_DIRECTORY}/${file}`;
 		if (fs.existsSync(path)) {
-			let content = fs.readFileSync(path, "utf8");
+			const content = fs.readFileSync(path, "utf8");
 			return JSON.parse(content);
 		}
 		throw new Error("fixture not found");

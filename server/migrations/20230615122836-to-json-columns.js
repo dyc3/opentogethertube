@@ -6,6 +6,7 @@ const COLUMNS = ["permissions", "role-admin", "role-mod", "role-trusted"];
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async up(queryInterface, Sequelize) {
 		const dialect = queryInterface.sequelize.getDialect();
 		for (const column of COLUMNS) {
@@ -21,6 +22,7 @@ module.exports = {
 		}
 	},
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async down(queryInterface, Sequelize) {
 		const dialect = queryInterface.sequelize.getDialect();
 		for (const column of COLUMNS) {

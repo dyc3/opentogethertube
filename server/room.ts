@@ -1,77 +1,81 @@
-import permissions, { GrantMask, Grants } from "ott-common/permissions.js";
-import { redisClient } from "./redisclient.js";
-import { getLogger } from "./logger.js";
-import winston from "winston";
+import dayjs, { type Dayjs } from "dayjs";
+import _ from "lodash";
+import { countEligibleVoters, err, ok, type Result, voteSkipThreshold } from "ott-common";
+import { ALL_SKIP_CATEGORIES } from "ott-common/constants.js";
+import { OttException } from "ott-common/exceptions.js";
 import type {
 	AddRequest,
 	ApplySettingsRequest,
 	ChatRequest,
 	JoinRequest,
+	KickRequest,
 	LeaveRequest,
 	OrderRequest,
 	PlaybackRequest,
+	PlaybackSpeedRequest,
+	PlayNowRequest,
 	PromoteRequest,
 	RemoveRequest,
 	RoomRequest,
+	RoomRequestAuthorization,
 	RoomRequestBase,
+	RoomRequestContext,
 	SeekRequest,
 	ServerMessage,
 	ServerMessageSync,
+	ShuffleRequest,
 	SkipRequest,
 	UndoRequest,
 	UpdateUser,
 	VoteRequest,
-	PlayNowRequest,
-	RoomRequestAuthorization,
-	RoomRequestContext,
-	ShuffleRequest,
-	PlaybackSpeedRequest,
-	KickRequest,
 } from "ott-common/models/messages.js";
-import { RoomRequestType } from "ott-common/models/messages.js";
-import _ from "lodash";
-import InfoExtract from "./infoextractor.js";
-import usermanager from "./usermanager.js";
+import { type RestoreQueueRequest, RoomRequestType } from "ott-common/models/messages.js";
 import {
-	ClientInfo,
-	QueueMode,
-	Visibility,
-	RoomOptions,
-	RoomUserInfo,
-	Role,
-	ClientId,
-	PlayerStatus,
-	RoomEventContext,
-	RoomSettings,
-	AuthToken,
+	type AuthToken,
 	BehaviorOption,
+	type ClientId,
+	type ClientInfo,
+	PlayerStatus,
+	QueueMode,
+	Role,
+	type RoomEventContext,
+	type RoomOptions,
+	type RoomSettings,
+	type RoomUserInfo,
+	Visibility,
 } from "ott-common/models/types.js";
-import { User } from "./models/user.js";
 import type { QueueItem, Video, VideoId } from "ott-common/models/video.js";
-import dayjs, { Dayjs } from "dayjs";
-import type { PickFunctions } from "ott-common/typeutils.js";
+import permissions, { type GrantMask, Grants } from "ott-common/permissions.js";
 import { replacer } from "ott-common/serialize.js";
+import { calculateCurrentPosition } from "ott-common/timestamp.js";
+import type { PickFunctions } from "ott-common/typeutils.js";
+import { canKickUser } from "ott-common/userutils.js";
+import { Counter } from "prom-client";
+import {
+	type Category,
+	type Segment,
+	ResponseError as SponsorblockResponseError,
+} from "sponsorblock-api";
+import type winston from "winston";
+import tokens, { type SessionInfo } from "./auth/tokens.js";
+import type { ClientManagerCommand } from "./clientmanager.js";
 import {
 	ClientNotFoundInRoomException,
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
 	VideoNotFoundException,
 } from "./exceptions.js";
-import storage from "./storage.js";
-import tokens, { SessionInfo } from "./auth/tokens.js";
-import { OttException } from "ott-common/exceptions.js";
-import { fetchSegments, getSponsorBlock } from "./sponsorblock.js";
-import { ResponseError as SponsorblockResponseError, Segment, Category } from "sponsorblock-api";
-import { VideoQueue } from "./videoqueue.js";
-import { Counter } from "prom-client";
-import roommanager from "./roommanager.js";
-import { calculateCurrentPosition } from "ott-common/timestamp.js";
-import { RestoreQueueRequest } from "ott-common/models/messages.js";
-import { Result, countEligibleVoters, err, ok, voteSkipThreshold } from "ott-common";
-import type { ClientManagerCommand } from "./clientmanager.js";
-import { canKickUser } from "ott-common/userutils.js";
+import InfoExtract from "./infoextractor.js";
+import { getLogger } from "./logger.js";
+import type { User } from "./models/user.js";
 import { conf } from "./ott-config.js";
-import { ALL_SKIP_CATEGORIES } from "ott-common/constants.js";
+import { redisClient } from "./redisclient.js";
+import roommanager from "./roommanager.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { fetchSegments, getSponsorBlock } from "./sponsorblock.js";
+import storage from "./storage.js";
+import usermanager from "./usermanager.js";
+import { VideoQueue } from "./videoqueue.js";
 
 /**
  * Represents a User from the Room's perspective.
@@ -331,10 +335,10 @@ export class Room implements RoomState {
 			}
 		}
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
+		// @ts-expect-error
 		if (options._playbackStart) {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
+			// @ts-expect-error
 			this._playbackStart = dayjs(options._playbackStart);
 		}
 		if (Array.isArray(this.votesToSkip)) {
@@ -858,6 +862,7 @@ export class Room implements RoomState {
 
 		const state: RoomStateSyncable = this.syncableState();
 		const isAnyDirtyStorable = Array.from(this._dirty).some(prop =>
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			storableProps.includes(prop as any)
 		);
 
@@ -870,7 +875,7 @@ export class Room implements RoomState {
 			await this.publish(msg);
 		}
 
-		let settings: Partial<RoomStatePersistable> = _.pick(
+		const settings: Partial<RoomStatePersistable> = _.pick(
 			this,
 			"name",
 			"title",
@@ -991,7 +996,7 @@ export class Room implements RoomState {
 
 		// the user is not in the room, but they may have a valid session
 
-		let session = await tokens.getSessionInfo(authorization.token);
+		const session = await tokens.getSessionInfo(authorization.token);
 		if (!session) {
 			throw new Error("Invalid token, unauthorized request");
 		}
@@ -1027,7 +1032,7 @@ export class Room implements RoomState {
 
 	/** Process the room request, but unsafely trust the client id of the room request */
 	public async processRequestUnsafe(request: RoomRequest, clientid: ClientId): Promise<void> {
-		let userInfo = this.getUserInfo(clientid);
+		const userInfo = this.getUserInfo(clientid);
 		await this.processRequest(request, {
 			username: userInfo.name,
 			role: userInfo.role,
@@ -1037,6 +1042,7 @@ export class Room implements RoomState {
 
 	public async processRequest(request: RoomRequest, context: RoomRequestContext): Promise<void> {
 		counterRoomRequests.labels({ type: RoomRequestType[request.type] }).inc();
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const permissions = new Map([
 			[RoomRequestType.PlaybackRequest, "playback.play-pause"],
 			[RoomRequestType.SkipRequest, "playback.skip"],
@@ -1089,7 +1095,8 @@ export class Room implements RoomState {
 		const handler = handlers[request.type];
 		if (handler) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			await this[handler](request as any, context);
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
+						await this[handler](request as any, context);
 		} else {
 			this.log.error(`No room request handler: ${request.type}`);
 		}
@@ -1253,7 +1260,6 @@ export class Room implements RoomState {
 				}
 				if (this.isVideoInQueue(video)) {
 					videos.splice(i--, 1);
-					continue;
 				}
 			}
 			if (videos.length === 0) {
@@ -1263,7 +1269,7 @@ export class Room implements RoomState {
 			this.queue.enqueue(...videos);
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
-			for (let vid of videos) {
+			for (const vid of videos) {
 				counterMediaQueued.labels({ service: vid.service }).inc();
 			}
 		} else {
@@ -1285,6 +1291,7 @@ export class Room implements RoomState {
 		await this.publishRoomEvent(request, context, { video: removed, queueIdx: matchIdx });
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	public async reorderQueue(request: OrderRequest, context: RoomRequestContext): Promise<void> {
 		await this.queue.move(request.fromIdx, request.toIdx);
 	}
@@ -1334,6 +1341,7 @@ export class Room implements RoomState {
 		}
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	public async updateUser(request: UpdateUser, context: RoomRequestContext): Promise<void> {
 		this.log.debug(`User was updated: ${request.info.id} ${JSON.stringify(request.info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
@@ -1414,6 +1422,7 @@ export class Room implements RoomState {
 		}
 		const key = request.video.service + request.video.id;
 		if (this.votes.has(key)) {
+			// biome-ignore lint/style/noNonNullAssertion: biome migration
 			const votes = this.votes.get(key)!;
 			if (request.add) {
 				votes.add(context.clientId);
@@ -1460,6 +1469,7 @@ export class Room implements RoomState {
 		}
 		const targetCurrentRole = this.getRole(targetUser);
 		if (request.role < targetCurrentRole) {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let demotePerm;
 			switch (targetCurrentRole) {
 				case Role.Administrator:
@@ -1499,6 +1509,7 @@ export class Room implements RoomState {
 		if (!this.isTemporary) {
 			try {
 				await storage.updateRoom(this);
+			// biome-ignore lint/nursery/noShadow: biome migration
 			} catch (err: unknown) {
 				if (err instanceof Error) {
 					this.log.error(`Failed to update room: ${err.message} ${err.stack}`);
@@ -1535,7 +1546,7 @@ export class Room implements RoomState {
 		// TODO: have clients only send properties that they actually intend to change.
 		// For now, we'll determine what the request is trying to change here, and delete the identical fields from the request.
 		for (const prop in request.settings) {
-			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+			if (Object.hasOwn(propsToPerms, prop)) {
 				if (this[prop] === request.settings[prop]) {
 					this.log.silly(`deleting ${prop} from request because it did not change`);
 					delete request.settings[prop];
@@ -1544,7 +1555,7 @@ export class Room implements RoomState {
 		}
 		if (request.settings.grants) {
 			for (const role of request.settings.grants.getRoles()) {
-				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+				if (Object.hasOwn(roleToPerms, role)) {
 					if (request.settings.grants.getMask(role) === this.grants.getMask(role)) {
 						this.log.silly(
 							`deleting permissions for role ${role} from request because it did not change`
@@ -1566,7 +1577,7 @@ export class Room implements RoomState {
 
 		// check permissions
 		for (const prop in request.settings) {
-			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+			if (Object.hasOwn(propsToPerms, prop)) {
 				this.grants.check(context.role, propsToPerms[prop]);
 			}
 		}
@@ -1574,7 +1585,7 @@ export class Room implements RoomState {
 		if (request.settings.grants) {
 			const newGrants = request.settings.grants;
 			for (const role of newGrants.getRoles()) {
-				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+				if (Object.hasOwn(roleToPerms, role)) {
 					this.grants.check(context.role, roleToPerms[role]);
 				}
 			}
@@ -1599,7 +1610,7 @@ export class Room implements RoomState {
 
 		// apply the simple ones
 		for (const prop in request.settings) {
-			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+			if (Object.hasOwn(propsToPerms, prop)) {
 				this[prop] = request.settings[prop];
 			}
 		}
@@ -1607,7 +1618,7 @@ export class Room implements RoomState {
 		// special handling required for permissions
 		if (request.settings.grants) {
 			for (const role of request.settings.grants.getRoles()) {
-				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+				if (Object.hasOwn(roleToPerms, role)) {
 					this.grants.setRoleGrants(role, request.settings.grants.getMask(role));
 					this.markDirty("grants");
 				}
@@ -1648,6 +1659,7 @@ export class Room implements RoomState {
 
 		let videoToPlay: Video;
 		if (alreadyInQueue) {
+			// biome-ignore lint/nursery/noShadow: biome migration
 			const [_, item] = await this.queue.evict(request.video);
 			videoToPlay = item;
 		} else {
@@ -1667,6 +1679,7 @@ export class Room implements RoomState {
 		}
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	public async shuffle(request: ShuffleRequest, context: RoomRequestContext): Promise<void> {
 		this.grants.check(context.role, "manage-queue.order");
 		await this.queue.shuffle();
@@ -1674,6 +1687,7 @@ export class Room implements RoomState {
 
 	public async setPlaybackSpeed(
 		request: PlaybackSpeedRequest,
+		// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 		context: RoomRequestContext
 	): Promise<void> {
 		this.flushPlaybackPosition();

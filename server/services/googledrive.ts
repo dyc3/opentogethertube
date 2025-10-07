@@ -1,13 +1,15 @@
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import axios, { AxiosError, type AxiosResponse } from "axios";
+import type { Video, VideoService } from "ott-common/models/video.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
 import { URL } from "url";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import { ServiceAdapter } from "../serviceadapter.js";
 import {
-	ServiceLinkParseException,
 	InvalidVideoIdException,
 	OutOfQuotaException,
+	ServiceLinkParseException,
 } from "../exceptions.js";
-import { Video, VideoService } from "ott-common/models/video.js";
 import { getLogger } from "../logger.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 
 const log = getLogger("googledrive");
 
@@ -37,6 +39,7 @@ interface GoogleDriveErrorResponse {
 }
 
 function isGoogleDriveApiError(
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	response: AxiosResponse<any> | undefined
 ): response is AxiosResponse<GoogleDriveErrorResponse> {
 	return !!response && "error" in response.data;

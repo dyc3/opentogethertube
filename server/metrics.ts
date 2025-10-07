@@ -1,6 +1,8 @@
-import { collectDefaultMetrics, Counter, Histogram } from "prom-client";
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
+import { Counter, collectDefaultMetrics, Histogram } from "prom-client";
 import { getLogger } from "./logger.js";
+
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const log = getLogger("metrics");
 
 collectDefaultMetrics();
@@ -32,10 +34,10 @@ export const counterHttpErrors = new Counter({
 
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction) {
 	counterHttpRequestsReceived.labels({ http_method: req.method }).inc();
-	let start = process.hrtime();
+	const start = process.hrtime();
 	next();
 	res.on("finish", () => {
-		let end = process.hrtime(start);
+		const end = process.hrtime(start);
 		histHttpRequestDuration
 			.labels({ http_method: req.method, http_status: res.statusCode })
 			.observe((end[0] * 1e9 + end[1]) / 1e9);

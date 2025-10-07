@@ -1,6 +1,5 @@
 {
-	"env": {
-	},
+	"env": {},
 	"plugins": ["vitest"],
 	"rules": {
 		"no-console": "off",

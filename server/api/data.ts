@@ -1,20 +1,23 @@
-import { getLogger } from "../logger.js";
-import { conf } from "../ott-config.js";
-import express, { RequestHandler, ErrorRequestHandler } from "express";
-import type { OttApiResponseAddPreview, OttResponseBody } from "ott-common/models/rest-api.js";
+import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import { OttException } from "ott-common/exceptions.js";
+import type { OttApiResponseAddPreview, OttResponseBody } from "ott-common/models/rest-api.js";
 import { BadApiArgumentException } from "../exceptions.js";
 import InfoExtract from "../infoextractor.js";
-import { consumeRateLimitPoints } from "../rate-limit.js";
+import { getLogger } from "../logger.js";
 import { counterHttpErrors } from "../metrics.js";
+import { conf } from "../ott-config.js";
+import { consumeRateLimitPoints } from "../rate-limit.js";
 
 const router = express.Router();
 const log = getLogger("api/data");
 const addPreview: RequestHandler<
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	any,
 	OttResponseBody<OttApiResponseAddPreview>,
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	any,
 	{ input: string }
+// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 > = async (req, res, next) => {
 	if (!req.query.input) {
 		throw new BadApiArgumentException("input", "missing");

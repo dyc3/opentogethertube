@@ -23,7 +23,8 @@
 
 			// temporarily ignore some files we want to eventually include to make migration easier
 			"!client",
-			"!server",
+			"!server/services/",
+			"!server/tests/",
 			"!packages",
 			"!tests"
 		],

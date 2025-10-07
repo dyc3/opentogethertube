@@ -1,6 +1,7 @@
 import axios from "axios";
 import _ from "lodash";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
 import { URL } from "url";
 import { v1 as uuidv1 } from "uuid";
 import { InvalidVideoIdException } from "../exceptions.js";
@@ -95,6 +96,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return this.parsedIdsToVideoId(parsed);
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		const plutoIds = this.videoIdToSlugs(id);
 

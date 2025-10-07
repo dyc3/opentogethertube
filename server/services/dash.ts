@@ -1,16 +1,18 @@
-import URL from "url";
+import { DashMPD } from "@liveinstantly/dash-mpd-parser";
+import axios from "axios";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
 import _ from "lodash";
-import { ServiceAdapter } from "../serviceadapter.js";
+import type { Video } from "ott-common/models/video.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import URL from "url";
 import {
 	LocalFileException,
 	UnsupportedMimeTypeException,
 	UnsupportedVideoType,
 } from "../exceptions.js";
-import { getMimeType, isSupportedMimeType } from "../mime.js";
 import { getLogger } from "../logger.js";
-import { Video } from "ott-common/models/video.js";
-import { DashMPD } from "@liveinstantly/dash-mpd-parser";
-import axios from "axios";
+import { getMimeType, isSupportedMimeType } from "../mime.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 import { parseIso8601Duration } from "./parsing/iso8601.js";
 
 const log = getLogger("dash");
@@ -24,6 +26,7 @@ export default class DashVideoAdapter extends ServiceAdapter {
 		return false;
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	isCollectionURL(link: string): boolean {
 		return false;
 	}
@@ -60,11 +63,13 @@ export default class DashVideoAdapter extends ServiceAdapter {
 		return this.parseMpdManifest(url, manifest);
 	}
 
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	parseMpdManifest(url: URL.UrlWithStringQuery, manifest: any): Video {
 		// docs for how the parser works: https://github.com/liveinstantly/dash-mpd-parser
 
 		log.debug(JSON.stringify(manifest));
 
+		// biome-ignore lint/complexity/useLiteralKeys: biome migration
 		const durationRaw: string = manifest["MPD"]["@mediaPresentationDuration"];
 		if (!durationRaw) {
 			throw new UnsupportedVideoType("livestream");
@@ -89,19 +94,27 @@ export default class DashVideoAdapter extends ServiceAdapter {
 	 *
 	 * Video metadata is not always available in the manifest, and it's not standardized, so this method will probably usually fail.
 	 */
-	extractTitle(manifest: any): string | undefined {
+	
+// biome-ignore lint/suspicious/noExplicitAny: biome migration
+extractTitle(manifest: any): string | undefined {
 		try {
+			// biome-ignore lint/complexity/useLiteralKeys: biome migration
 			if ("ProgramInformation" in manifest["MPD"]) {
+				// biome-ignore lint/complexity/useLiteralKeys: biome migration
 				return manifest["MPD"]["ProgramInformation"]["Title"];
 			}
 
+			// biome-ignore lint/complexity/useLiteralKeys: biome migration
 			const periods = manifest["MPD"]["Period"];
 			for (const period of periods) {
+				// biome-ignore lint/complexity/useLiteralKeys: biome migration
 				const adaptationSets = period["AdaptationSet"];
 				for (const adaptationSet of adaptationSets) {
+					// biome-ignore lint/complexity/useLiteralKeys: biome migration
 					const representations = adaptationSet["Representation"];
 					for (const representation of representations) {
 						if ("Title" in representation) {
+							// biome-ignore lint/complexity/useLiteralKeys: biome migration
 							return representation["Title"];
 						}
 					}

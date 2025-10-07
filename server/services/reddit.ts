@@ -1,11 +1,14 @@
-import { URL } from "url";
 import axios from "axios";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
-import { getLogger } from "../logger.js";
-import { Video, VideoMetadata } from "ott-common/models/video.js";
+import type { Video, VideoMetadata } from "ott-common/models/video.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import { URL } from "url";
 import { InvalidVideoIdException } from "../exceptions.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
 import infoextractor from "../infoextractor.js";
+import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
 
 const log = getLogger("reddit");
 
@@ -114,7 +117,7 @@ export default class RedditAdapter extends ServiceAdapter {
 	async fetchRedditUrl(
 		link: string
 	): Promise<RedditListing<RedditListableThing>[] | RedditListing<RedditListableThing>> {
-		let resp = await this.api.get(link);
+		const resp = await this.api.get(link);
 		if (Array.isArray(resp.data)) {
 			return resp.data as RedditListing<RedditListableThing>[];
 		}
@@ -153,14 +156,15 @@ export default class RedditAdapter extends ServiceAdapter {
 	}
 
 	getVideoId(url: string): string {
-		let fragments = url.split("/");
-		let idx = fragments.indexOf("comments");
+		const fragments = url.split("/");
+		const idx = fragments.indexOf("comments");
 		return fragments[idx + 1];
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
-		let resp = await this.fetchRedditUrl(`https://reddit.com/comments/${id}.json`);
-		let video = this.extractVideos(resp[0])[0];
+		const resp = await this.fetchRedditUrl(`https://reddit.com/comments/${id}.json`);
+		const video = this.extractVideos(resp[0])[0];
 		if ("url" in video) {
 			throw new InvalidVideoIdException(this.serviceId, id);
 		}

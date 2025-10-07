@@ -1,22 +1,12 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "strictFunctionTypes": true,
-    "outDir": "ts-out",
-  },
-  "include": [
-    "**/*.ts",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "ts-out"
-  ],
-  "files": [
-    "./express-types.d.ts"
-  ]
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"strictFunctionTypes": true,
+		"outDir": "ts-out"
+	},
+	"include": ["**/*.ts", "tests/**/*.ts", "tests/**/*.tsx"],
+	"exclude": ["node_modules", "dist", "ts-out"],
+	"files": ["./express-types.d.ts"]
 }

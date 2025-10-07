@@ -1,13 +1,15 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import _ from "lodash";
-import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models/index.js";
-import storage from "../../storage.js";
+import { QueueMode, Visibility } from "ott-common/models/types.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { type Video, VideoId } from "ott-common/models/video.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
 import permissions, { Grants } from "ott-common/permissions.js";
-import { Visibility, QueueMode } from "ott-common/models/types.js";
-import { Video, VideoId } from "ott-common/models/video.js";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { CachedVideo, Room as DbRoom, loadModels, User } from "../../models/index.js";
+import { buildClients } from "../../redisclient.js";
 import { Room } from "../../room.js";
 import { roomToDb, roomToDbPartial } from "../../storage/room.js";
-import { buildClients } from "../../redisclient.js";
+import storage from "../../storage.js";
 
 describe(
 	"Storage: Room Spec",
@@ -33,8 +35,8 @@ describe(
 				description: "This is an example room.",
 				owner: user,
 			});
-			let dbroom = roomToDb(room);
-			let dbroomPartial = roomToDbPartial(room);
+			const dbroom = roomToDb(room);
+			const dbroomPartial = roomToDbPartial(room);
 			expect(dbroom).toMatchObject(dbroomPartial);
 		});
 
@@ -113,7 +115,7 @@ describe(
 
 			await new Promise(resolve => setTimeout(resolve, 200));
 
-			let room = await DbRoom.findOne({ where: { name: "example" } });
+			const room = await DbRoom.findOne({ where: { name: "example" } });
 			expect(room).toBeInstanceOf(DbRoom);
 			expect(room?.id).toBeDefined();
 			expect(room).toMatchObject({
@@ -152,7 +154,7 @@ describe(
 			// HACK: wait for the database to update. This test is flaky without this.
 			await new Promise(resolve => setTimeout(resolve, 200));
 
-			let room = await DbRoom.findOne({ where: { name: "example" } });
+			const room = await DbRoom.findOne({ where: { name: "example" } });
 			expect(room).toBeInstanceOf(DbRoom);
 			expect(room?.id).toBeDefined();
 			expect(room).toMatchObject({

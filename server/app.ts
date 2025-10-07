@@ -1,28 +1,30 @@
+import bodyParser from "body-parser";
+import RedisStore from "connect-redis";
+import cookieparser from "cookie-parser";
 import express from "express";
-import http from "http";
+import session, { type SessionOptions } from "express-session";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
 import fs from "fs";
-import { getLogger, setLogLevel } from "./logger.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import http from "http";
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as BearerStrategy } from "passport-http-bearer";
+import { Strategy as LocalStrategy } from "passport-local";
+import { buildApiRouter } from "./api.js";
+import tokens from "./auth/tokens.js";
+import clientmanager from "./clientmanager.js";
+import { initExtractor } from "./infoextractor.js";
+import { getLogger, setLogLevel } from "./logger.js";
 import { metricsMiddleware } from "./metrics.js";
 import { loadModels, sequelize } from "./models/index.js";
-import { buildApiRouter } from "./api.js";
-import { buildClients, redisClient, registerRedisMetrics } from "./redisclient.js";
-import usermanager from "./usermanager.js";
-import tokens from "./auth/tokens.js";
-import websockets from "./websockets.js";
-import clientmanager from "./clientmanager.js";
-import roommanager from "./roommanager.js";
-import bodyParser from "body-parser";
-import { loadConfigFile, conf, setLogger, validateConfig } from "./ott-config.js";
+import { conf, loadConfigFile, setLogger, validateConfig } from "./ott-config.js";
 import { buildRateLimiter } from "./rate-limit.js";
-import { initExtractor } from "./infoextractor.js";
-import session, { SessionOptions } from "express-session";
-import RedisStore from "connect-redis";
+import { buildClients, redisClient, registerRedisMetrics } from "./redisclient.js";
+import roommanager from "./roommanager.js";
 import { setupPostgresMetricsCollection } from "./storage.metrics.js";
-import cookieparser from "cookie-parser";
+import usermanager from "./usermanager.js";
+import websockets from "./websockets.js";
 
 const app = express();
 
@@ -33,7 +35,7 @@ export async function main() {
 	loadConfigFile();
 	setLogLevel(conf.get("log.level"));
 	if (process.argv.includes("--validate")) {
-		let result = validateConfig();
+		const result = validateConfig();
 		if (!result.ok) {
 			log.error("Config validation failed:");
 			log.error(result.value.message);
@@ -48,9 +50,13 @@ export async function main() {
 	const heroku = conf.get("heroku");
 	const docker = conf.get("docker");
 	const dbmode = conf.get("db.mode");
+	// biome-ignore lint/style/useTemplate: biome migration
 	log.info("Environment: " + env);
+	// biome-ignore lint/style/useTemplate: biome migration
 	log.info("Is Heroku? " + heroku);
+	// biome-ignore lint/style/useTemplate: biome migration
 	log.info("Is Docker? " + docker);
+	// biome-ignore lint/style/useTemplate: biome migration
 	log.info("Database mode: " + dbmode);
 
 	const searchEnabled = conf.get("add_preview.search.enabled");
@@ -83,9 +89,9 @@ export async function main() {
 	const server = http.createServer(app);
 	async function checkRedis() {
 		if (performance) {
-			let start = performance.now();
+			const start = performance.now();
 			await redisClient.ping();
-			let duration = performance.now() - start;
+			const duration = performance.now() - start;
 			log.info(`Latency to redis: ${duration}ms`);
 		}
 	}
@@ -165,7 +171,7 @@ export async function main() {
 			if (!(await tokens.validate(token))) {
 				return done(null, false);
 			}
-			let ottsession = await tokens.getSessionInfo(token);
+			const ottsession = await tokens.getSessionInfo(token);
 			if (ottsession.isLoggedIn) {
 				return done(null, ottsession);
 			}
@@ -189,6 +195,7 @@ export async function main() {
 		})
 	);
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	app.use((req, res, next) => {
 		if (!req.path.startsWith("/api") || req.path.startsWith("/api/status")) {
 			next();
@@ -199,7 +206,9 @@ export async function main() {
 		next();
 	});
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	function serveBuiltFiles(req, res) {
+		// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 		fs.readFile("../client/dist/index.html", (err, contents) => {
 			res.setHeader("Content-type", "text/html");
 			if (contents) {
@@ -216,6 +225,7 @@ export async function main() {
 		app.get("*", serveBuiltFiles);
 	} else {
 		log.warn("no dist folder found, run `yarn build` to build the client");
+		// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 		app.get("*", (req, res) => {
 			res.status(404).send(
 				"File not found - Client files not found. Run `yarn build` to build the client."
@@ -228,7 +238,7 @@ export async function main() {
 	//start our server
 	if (conf.get("env") !== "test") {
 		server.listen(conf.get("port"), () => {
-			let addr = server.address();
+			const addr = server.address();
 			if (!addr) {
 				log.error("Failed to start server!");
 				process.exit(1);
